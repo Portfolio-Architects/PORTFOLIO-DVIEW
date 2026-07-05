@@ -337,7 +337,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           try {
             let isAdminUser = false;
             try {
-              isAdminUser = localStorage.getItem('drive_is_admin') === 'true';
+              isAdminUser = localStorage.getItem('dview_is_admin') === 'true';
             } catch (err) {
               logger.warn('LoungeDetailClient.usePostEffect', 'localStorage is unavailable', undefined, err);
             }
@@ -478,7 +478,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     try {
       await sharePostToKakao({
         postId,
-        title: (post.title as string) || "DRIVE 라운지 소식",
+        title: (post.title as string) || "DVIEW 라운지 소식",
         category: (post.category as string) || "자유",
         contentSummary: content,
         imageUrl: firstImageUrl
@@ -499,7 +499,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const getAnonymousNickname = () => {
     if (typeof window === 'undefined') return '익명이웃';
     try {
-      let anonName = localStorage.getItem('drive_anon_nickname');
+      let anonName = localStorage.getItem('dview_anon_nickname');
       if (!anonName) {
         if (sessionAnonNickname) {
           anonName = sessionAnonNickname;
@@ -507,7 +507,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           anonName = generateMamacafeNickname();
           sessionAnonNickname = anonName;
         }
-        localStorage.setItem('drive_anon_nickname', anonName);
+        localStorage.setItem('dview_anon_nickname', anonName);
       }
       return anonName;
     } catch (e) {
@@ -521,7 +521,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
   const getAnonymousUid = () => {
     if (typeof window === 'undefined') return 'guest';
     try {
-      let anonUid = localStorage.getItem('drive_anon_uid');
+      let anonUid = localStorage.getItem('dview_anon_uid');
       if (!anonUid) {
         if (sessionAnonUid) {
           anonUid = sessionAnonUid;
@@ -529,7 +529,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           anonUid = 'anon_' + Math.random().toString(36).substring(2, 10);
           sessionAnonUid = anonUid;
         }
-        localStorage.setItem('drive_anon_uid', anonUid);
+        localStorage.setItem('dview_anon_uid', anonUid);
       }
       return anonUid;
     } catch (e) {

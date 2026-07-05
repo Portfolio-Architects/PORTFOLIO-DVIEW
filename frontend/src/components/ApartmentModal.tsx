@@ -693,7 +693,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   const [filterOutliers, setFilterOutliers] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
       try {
-        const saved = localStorage.getItem('drive_filter_outliers');
+        const saved = localStorage.getItem('dview_filter_outliers');
         return saved !== 'false';
       } catch (e) {
         return true;
@@ -707,9 +707,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
     setFilterOutliers(prev => {
       const next = !prev;
       try {
-        localStorage.setItem('drive_filter_outliers', String(next));
+        localStorage.setItem('dview_filter_outliers', String(next));
       } catch (e) {
-        logger.warn('ApartmentModal.localStorage', 'Failed to set drive_filter_outliers to localStorage', undefined, e);
+        logger.warn('ApartmentModal.localStorage', 'Failed to set dview_filter_outliers to localStorage', undefined, e);
       }
       return next;
     });
@@ -1468,7 +1468,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
         const dataUrl = canvas.toDataURL('image/png');
         const link = document.createElement('a');
-        link.download = `DRIVE_${normalizeAptName(report.apartmentName)}_요약카드.png`;
+        link.download = `DVIEW_${normalizeAptName(report.apartmentName)}_요약카드.png`;
         link.href = dataUrl;
         link.click();
         
@@ -1655,7 +1655,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
       const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
 
-      desc = `실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\nDRIVE에서 ${displayAptName} 단지의 입지, 학군, 실거래가 밸류에이션 리포트를 지금 확인해보세요.`;
+      desc = `실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\nDVIEW에서 ${displayAptName} 단지의 입지, 학군, 실거래가 밸류에이션 리포트를 지금 확인해보세요.`;
     }
 
     if (navigator.share) {

@@ -88,7 +88,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Place",
-    "name": "DRIVE 단지 주변 생활 인프라 입지 정보",
+    "name": "DVIEW 단지 주변 생활 인프라 입지 정보",
     "description": "지하철역, 대형마트, 올리브영, 스타벅스, 다이소 등 단지 주변 핵심 생활 편의시설의 최단 보행 거리 및 접근성 정보입니다.",
     "amenityFeature": jsonLdElements
   };

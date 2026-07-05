@@ -19,7 +19,8 @@
     "sync-location-scores": "node scripts/sync-location-scores.js",
     "sync-static": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/sync-static-data.ts",
     "import-csv": "node scripts/import-csv.js",
-    "sync-all": "node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js && node scripts/fetch-local-notices.js && npm run sync-static",
+    "sync-nps": "node scripts/sync-nps.js",
+    "sync-all": "node scripts/sync-nps.js && node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js && node scripts/fetch-local-notices.js && npm run sync-static",
     "test": "jest",
     "test:e2e": "playwright test"
   },

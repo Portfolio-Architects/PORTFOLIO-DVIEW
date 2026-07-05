@@ -1,0 +1,12 @@
+{
+  "updatedAt": "2026-07-05T10:41:42.073Z",
+  "sourceEndpoint": "/15083277/v1/uddi:b2243a59-a261-4dc6-a4f3-cfcbc478d231",
+  "stats": {
+    "yeongcheonDong": {
+      "companiesCount": 1917,
+      "totalEmployees": 25257,
+      "newHires": 918,
+      "departures": 809
+    }
+  }
+}

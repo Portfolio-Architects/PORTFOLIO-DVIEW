@@ -65,12 +65,12 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
                             className: "text-[10.5px] md:text-[12px] font-bold text-tertiary tracking-tight min-w-0 w-full break-keep leading-snug",
                             children: title
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 88,
                             columnNumber: 11
                         }, undefined)
                     }, void 0, false, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 87,
                         columnNumber: 9
                     }, undefined),
@@ -81,7 +81,7 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
                                 className: "text-[12.5px] sm:text-[13px] md:text-[14.5px] font-extrabold text-primary tracking-tight line-clamp-1 break-keep leading-tight",
                                 children: value
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 95,
                                 columnNumber: 11
                             }, undefined),
@@ -89,19 +89,19 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
                                 className: "text-[10px] md:text-[11px] font-bold text-secondary tracking-tight shrink-0",
                                 children: unit
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 99,
                                 columnNumber: 13
                             }, undefined)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 94,
                         columnNumber: 9
                     }, undefined)
                 ]
             }, void 0, true, {
-                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                 lineNumber: 85,
                 columnNumber: 7
             }, undefined),
@@ -117,12 +117,12 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
                             },
                             children: badge
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 111,
                             columnNumber: 15
                         }, undefined)
                     }, void 0, false, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 110,
                         columnNumber: 13
                     }, undefined),
@@ -142,7 +142,7 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
                                     stroke: "#e5e8eb",
                                     strokeWidth: "4"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 127,
                                     columnNumber: 17
                                 }, undefined),
@@ -158,30 +158,30 @@ const InfoBox = ({ title, value, unit, progress, badge, color = "#00d29d" })=>{
                                     strokeLinecap: "round",
                                     className: "transition-all duration-1000 ease-out"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 135,
                                     columnNumber: 17
                                 }, undefined)
                             ]
                         }, void 0, true, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 121,
                             columnNumber: 15
                         }, undefined)
                     }, void 0, false, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 120,
                         columnNumber: 13
                     }, undefined)
                 ]
             }, void 0, true, {
-                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                 lineNumber: 108,
                 columnNumber: 9
             }, undefined)
         ]
     }, void 0, true, {
-        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
         lineNumber: 83,
         columnNumber: 5
     }, undefined);
@@ -204,7 +204,7 @@ const CustomTooltip = ({ active, payload, label })=>{
                     className: "text-[13.5px] font-bold text-tertiary mb-1",
                     children: label
                 }, void 0, false, {
-                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                     lineNumber: 190,
                     columnNumber: 9
                 }, undefined),
@@ -222,7 +222,7 @@ const CustomTooltip = ({ active, payload, label })=>{
                                             backgroundColor: entry.color
                                         }
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 203,
                                         columnNumber: 17
                                     }, undefined),
@@ -230,13 +230,13 @@ const CustomTooltip = ({ active, payload, label })=>{
                                         className: "text-[14px] font-bold text-secondary",
                                         children: isRent ? "전세가" : "매매가"
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 207,
                                         columnNumber: 17
                                     }, undefined)
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 202,
                                 columnNumber: 15
                             }, undefined),
@@ -247,13 +247,13 @@ const CustomTooltip = ({ active, payload, label })=>{
                                     "억"
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 211,
                                 columnNumber: 15
                             }, undefined)
                         ]
                     }, index, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 198,
                         columnNumber: 13
                     }, undefined);
@@ -263,7 +263,7 @@ const CustomTooltip = ({ active, payload, label })=>{
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                             className: "w-full h-[1px] bg-body my-1"
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 219,
                             columnNumber: 13
                         }, undefined),
@@ -274,7 +274,7 @@ const CustomTooltip = ({ active, payload, label })=>{
                                     className: "text-[13px] font-bold text-tertiary pl-4",
                                     children: "전세가율"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 221,
                                     columnNumber: 15
                                 }, undefined),
@@ -285,13 +285,13 @@ const CustomTooltip = ({ active, payload, label })=>{
                                         "%"
                                     ]
                                 }, void 0, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 224,
                                     columnNumber: 15
                                 }, undefined)
                             ]
                         }, void 0, true, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 220,
                             columnNumber: 13
                         }, undefined)
@@ -299,7 +299,7 @@ const CustomTooltip = ({ active, payload, label })=>{
                 }, void 0, true)
             ]
         }, void 0, true, {
-            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
             lineNumber: 189,
             columnNumber: 7
         }, undefined);
@@ -1272,7 +1272,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                             className: "text-[#00d29d] font-extrabold px-0.5",
                             children: "동탄 아파트"
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1126,
                             columnNumber: 20
                         }, this),
@@ -1286,7 +1286,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                             className: "hidden sm:inline text-[#d1d6db] mr-0.5 shrink-0",
                             children: "—"
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1131,
                             columnNumber: 13
                         }, this),
@@ -1297,7 +1297,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight",
                                     children: "MAU"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1133,
                                     columnNumber: 15
                                 }, this),
@@ -1305,7 +1305,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums",
                                     children: gaData ? formatNum(gaData.mau) : '...'
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1134,
                                     columnNumber: 15
                                 }, this),
@@ -1316,26 +1316,26 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                             className: "absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]"
                                         }, void 0, false, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1137,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1135,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1132,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                             className: "w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0"
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1140,
                             columnNumber: 13
                         }, this),
@@ -1346,7 +1346,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-toss-blue font-bold tracking-tight",
                                     children: "DAU"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1142,
                                     columnNumber: 15
                                 }, this),
@@ -1354,7 +1354,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "text-toss-blue font-extrabold text-[13px] sm:text-[14px] font-mono tabular-nums",
                                     children: gaData ? formatNum(gaData.dau) : '...'
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1143,
                                     columnNumber: 15
                                 }, this),
@@ -1365,26 +1365,26 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                             className: "absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]"
                                         }, void 0, false, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1146,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1144,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1141,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                             className: "w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0"
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1149,
                             columnNumber: 13
                         }, this),
@@ -1395,7 +1395,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight",
                                     children: "VIEW (30D)"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1151,
                                     columnNumber: 15
                                 }, this),
@@ -1403,7 +1403,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums",
                                     children: gaData ? formatNum(gaData.totalViews) : '...'
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1152,
                                     columnNumber: 15
                                 }, this),
@@ -1414,26 +1414,26 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                             className: "absolute bottom-full left-1/2 -translate-x-1/2 border-4 border-transparent border-b-[#191f28]"
                                         }, void 0, false, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1155,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1153,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1150,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                             className: "hidden sm:block w-[3px] h-[3px] rounded-full bg-[#d1d6db] shrink-0"
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1158,
                             columnNumber: 13
                         }, this),
@@ -1444,7 +1444,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "bg-body border border-border px-1.5 py-0.5 rounded text-[11px] sm:text-[12px] text-secondary font-bold tracking-tight",
                                     children: "AVG. TIME"
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1160,
                                     columnNumber: 15
                                 }, this),
@@ -1452,7 +1452,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     className: "text-primary font-semibold text-[13px] sm:text-[14px] font-mono tabular-nums",
                                     children: gaData ? gaData.avgSessionDuration : '...'
                                 }, void 0, false, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1161,
                                     columnNumber: 15
                                 }, this),
@@ -1463,25 +1463,25 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                             className: "absolute bottom-full right-6 border-4 border-transparent border-b-[#191f28]"
                                         }, void 0, false, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1164,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1162,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1159,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
-                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                     lineNumber: 1130,
                     columnNumber: 11
                 }, this),
@@ -1492,14 +1492,14 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_7__["default"], {
                             size: 14
                         }, void 0, false, {
-                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                             lineNumber: 1175,
                             columnNumber: 15
                         }, this),
                         "광고/제휴 문의"
                     ]
                 }, void 0, true, {
-                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                     lineNumber: 1171,
                     columnNumber: 13
                 }, this),
@@ -1513,7 +1513,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                 className: "text-[14px] font-bold text-tertiary group-hover:text-primary transition-colors",
                                 children: "광고 구좌 (배너) 영역"
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 1183,
                                 columnNumber: 15
                             }, this),
@@ -1521,23 +1521,23 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                 className: "text-[12px] text-tertiary group-hover:text-secondary transition-colors",
                                 children: "이곳을 클릭하여 제휴 문의를 남겨주세요"
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 1184,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 1182,
                         columnNumber: 13
                     }, this)
                 }, void 0, false, {
-                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                     lineNumber: 1181,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
-                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                 lineNumber: 1121,
                 columnNumber: 7
             }, this),
@@ -1560,7 +1560,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         className: "text-[14.5px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap",
                                                         children: "최근 실거래 등락 비중"
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1197,
                                                         columnNumber: 17
                                                     }, this),
@@ -1572,7 +1572,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 className: `px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "30" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                                                 children: "최근 30일"
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1202,
                                                                 columnNumber: 19
                                                             }, this),
@@ -1581,19 +1581,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 className: `px-2.5 py-1 sm:px-3 sm:py-1.5 text-[11px] sm:text-[12px] font-bold rounded-md transition-all cursor-pointer whitespace-nowrap ${chartMode === "90" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                                                 children: "최근 90일"
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1211,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1201,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1196,
                                                 columnNumber: 15
                                             }, this),
@@ -1611,7 +1611,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                         className: "text-[13px] font-bold text-tertiary mb-1",
                                                                         children: "총 거래 건수"
                                                                     }, void 0, false, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1227,
                                                                         columnNumber: 21
                                                                     }, this),
@@ -1623,19 +1623,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                 className: "text-[15px] font-bold text-tertiary ml-1",
                                                                                 children: "건"
                                                                             }, void 0, false, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1232,
                                                                                 columnNumber: 23
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1230,
                                                                         columnNumber: 21
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1226,
                                                                 columnNumber: 19
                                                             }, this),
@@ -1673,13 +1673,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                         filter: "none"
                                                                                     }
                                                                                 }, `cell-${index}`, false, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1261,
                                                                                     columnNumber: 29
                                                                                 }, this);
                                                                             })
                                                                         }, void 0, false, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1246,
                                                                             columnNumber: 23
                                                                         }, this),
@@ -1700,12 +1700,12 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                 " 건"
                                                                                             ]
                                                                                         }, void 0, true, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1282,
                                                                                             columnNumber: 33
                                                                                         }, this)
                                                                                     }, void 0, false, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1281,
                                                                                         columnNumber: 31
                                                                                     }, this);
@@ -1717,24 +1717,24 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                             },
                                                                             isAnimationActive: false
                                                                         }, void 0, false, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1276,
                                                                             columnNumber: 23
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1245,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1238,
                                                                 columnNumber: 19
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1224,
                                                         columnNumber: 17
                                                     }, this),
@@ -1763,7 +1763,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length]
                                                                                 }
                                                                             }, void 0, false, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1318,
                                                                                 columnNumber: 27
                                                                             }, this),
@@ -1771,13 +1771,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                 className: "text-[14px] font-bold text-secondary tracking-tight",
                                                                                 children: entry.name
                                                                             }, void 0, false, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1324,
                                                                                 columnNumber: 27
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1317,
                                                                         columnNumber: 25
                                                                     }, this),
@@ -1791,7 +1791,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     "%"
                                                                                 ]
                                                                             }, void 0, true, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1329,
                                                                                 columnNumber: 27
                                                                             }, this),
@@ -1802,37 +1802,37 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     "건"
                                                                                 ]
                                                                             }, void 0, true, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1332,
                                                                                 columnNumber: 27
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1328,
                                                                         columnNumber: 25
                                                                     }, this)
                                                                 ]
                                                             }, entry.name, true, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1311,
                                                                 columnNumber: 23
                                                             }, this);
                                                         })
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1298,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1223,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1195,
                                         columnNumber: 13
                                     }, this),
@@ -1847,14 +1847,14 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             className: "break-keep whitespace-nowrap tracking-tight",
                                                             children: card1And2Data.card1.label
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1348,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
                                                             className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1351,
                                                             columnNumber: 21
                                                         }, this),
@@ -1865,19 +1865,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                     className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1355,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1353,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1347,
                                                     columnNumber: 19
                                                 }, this),
@@ -1885,7 +1885,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 badge: card1And2Data.card1.price,
                                                 color: "#ff4b5c"
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1345,
                                                 columnNumber: 15
                                             }, this),
@@ -1897,14 +1897,14 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             className: "break-keep whitespace-nowrap tracking-tight",
                                                             children: card1And2Data.card2.label
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1366,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
                                                             className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1369,
                                                             columnNumber: 21
                                                         }, this),
@@ -1915,19 +1915,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                     className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1373,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1371,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1365,
                                                     columnNumber: 19
                                                 }, this),
@@ -1935,7 +1935,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 badge: card1And2Data.card2.drop,
                                                 color: "#2e7cf6"
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1363,
                                                 columnNumber: 15
                                             }, this),
@@ -1947,14 +1947,14 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             className: "break-keep whitespace-nowrap tracking-tight",
                                                             children: "최근 30일 동탄 실거래량"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1384,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
                                                             className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1387,
                                                             columnNumber: 21
                                                         }, this),
@@ -1965,19 +1965,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                     className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1391,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1389,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1383,
                                                     columnNumber: 19
                                                 }, this),
@@ -1986,7 +1986,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 badge: card3Data.badge,
                                                 color: card3Data.trendColor
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1381,
                                                 columnNumber: 15
                                             }, this),
@@ -1998,14 +1998,14 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             className: "break-keep whitespace-nowrap tracking-tight",
                                                             children: "최저 갭(GAP) 투자 단지"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1403,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
                                                             className: "w-3.5 h-3.5 shrink-0 text-tertiary cursor-pointer hover:text-secondary transition-colors"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1406,
                                                             columnNumber: 21
                                                         }, this),
@@ -2016,19 +2016,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                     className: "absolute top-full left-1/2 -translate-x-1/2 border-[6px] border-transparent border-t-[#191f28]"
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1410,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1408,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1402,
                                                     columnNumber: 19
                                                 }, this),
@@ -2036,19 +2036,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 badge: card4Data.badge,
                                                 color: "#00d29d"
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1400,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1344,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 1193,
                                 columnNumber: 11
                             }, this),
@@ -2065,7 +2065,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         className: "text-[18px] font-extrabold text-primary tracking-tight",
                                                         children: "동탄 아파트 대표 가격 변화 추이"
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1425,
                                                         columnNumber: 17
                                                     }, this),
@@ -2076,13 +2076,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             "국민평형(30~36평형) 실거래가 변동"
                                                         ]
                                                     }, void 0, true, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1428,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1424,
                                                 columnNumber: 15
                                             }, this),
@@ -2100,18 +2100,18 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         className: `px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all duration-200 ${timeframe === tf ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                                         children: tf
                                                     }, tf, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1437,
                                                         columnNumber: 19
                                                     }, this))
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1435,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1423,
                                         columnNumber: 13
                                     }, this),
@@ -2136,7 +2136,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         vertical: false,
                                                         stroke: "var(--border-color)"
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1457,
                                                         columnNumber: 21
                                                     }, this),
@@ -2152,7 +2152,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         dy: 10,
                                                         ticks: xTicks
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1462,
                                                         columnNumber: 21
                                                     }, this),
@@ -2172,7 +2172,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         ],
                                                         width: 40
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1470,
                                                         columnNumber: 21
                                                     }, this),
@@ -2193,13 +2193,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         ],
                                                         width: 40
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1481,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_CartesianGrid_Cell_Legend_Line_LineChart_Pie_PieChart_ResponsiveContainer_Tooltip_XAxis_YAxis_recharts__WEBPACK_IMPORTED_MODULE_12__.Tooltip, {
                                                         content: /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(CustomTooltip, {}, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1494,
                                                             columnNumber: 32
                                                         }, this),
@@ -2209,7 +2209,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             strokeDasharray: "3 3"
                                                         }
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1493,
                                                         columnNumber: 21
                                                     }, this),
@@ -2229,12 +2229,12 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 },
                                                                 children: value
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1511,
                                                                 columnNumber: 25
                                                             }, this)
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1501,
                                                         columnNumber: 21
                                                     }, this),
@@ -2254,7 +2254,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             r: 7
                                                         }
                                                     }, "동탄 아파트 전체", false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1521,
                                                         columnNumber: 21
                                                     }, this),
@@ -2274,35 +2274,35 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             r: 5
                                                         }
                                                     }, "동탄 아파트 전세 평균", false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 1537,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 1453,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1452,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1451,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 1422,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 1191,
                         columnNumber: 9
                     }, this),
@@ -2315,7 +2315,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                         className: "w-[3px] h-[16px] bg-[#00d29d] rounded-full"
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1562,
                                         columnNumber: 13
                                     }, this),
@@ -2323,13 +2323,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         className: "text-[22px] font-bold text-primary",
                                         children: "권역별 단지 분류"
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1563,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 1561,
                                 columnNumber: 11
                             }, this),
@@ -2341,7 +2341,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         className: `px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "price" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                         children: "매매가"
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1570,
                                         columnNumber: 13
                                     }, this),
@@ -2350,19 +2350,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         className: `px-3 py-1.5 text-[12px] font-bold rounded-md transition-all ${accordionMode === "pyeong" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                         children: "평단가"
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 1579,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 1569,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 1560,
                         columnNumber: 9
                     }, this),
@@ -2396,7 +2396,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 backgroundColor: themeColor
                                                             }
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1616,
                                                             columnNumber: 21
                                                         }, this),
@@ -2409,7 +2409,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                         className: "text-[14px] md:text-[17px] font-extrabold text-primary tracking-tight break-keep",
                                                                         children: group.title
                                                                     }, void 0, false, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1622,
                                                                         columnNumber: 25
                                                                     }, this),
@@ -2419,7 +2419,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_13__["default"], {
                                                                                 className: "w-4 h-4 text-tertiary cursor-pointer hover:text-secondary transition-colors"
                                                                             }, void 0, false, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1627,
                                                                                 columnNumber: 29
                                                                             }, this),
@@ -2430,7 +2430,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                         className: "font-bold text-[#3182f6] text-[15px]",
                                                                                         children: "동탄역세권 설정 기준"
                                                                                     }, void 0, false, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1629,
                                                                                         columnNumber: 31
                                                                                     }, this),
@@ -2440,12 +2440,12 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                 className: "font-bold text-primary",
                                                                                                 children: "1. 공간적\xb7물리적 기준"
                                                                                             }, void 0, false, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1631,
                                                                                                 columnNumber: 33
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1631,
                                                                                                 columnNumber: 94
                                                                                             }, this),
@@ -2454,20 +2454,20 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                 children: [
                                                                                                     "1차: 동탄역 중심 반경 500m (도보 7~8분 한계선)",
                                                                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
-                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                         lineNumber: 1632,
                                                                                                         columnNumber: 98
                                                                                                     }, this),
                                                                                                     "2차: 반경 1km 이내 (경부 지하화로 인한 광비콤 서측 동서 단절 해소)"
                                                                                                 ]
                                                                                             }, void 0, true, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1632,
                                                                                                 columnNumber: 33
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1630,
                                                                                         columnNumber: 31
                                                                                     }, this),
@@ -2478,12 +2478,12 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                 className: "font-bold text-primary",
                                                                                                 children: "2. 시간 및 교통 연계적 기준"
                                                                                             }, void 0, false, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1636,
                                                                                                 columnNumber: 33
                                                                                             }, this),
                                                                                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1636,
                                                                                                 columnNumber: 98
                                                                                             }, this),
@@ -2492,7 +2492,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                 children: [
                                                                                                     "복합환승 결절점(GTX-A, SRT, 인동선, 트램) 효과 및 지선망 연계를 통한 접근 시간 등가 반경 적용.",
                                                                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("br", {}, void 0, false, {
-                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                         lineNumber: 1637,
                                                                                                         columnNumber: 127
                                                                                                     }, this),
@@ -2501,19 +2501,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                         className: "font-bold text-[#3182f6]",
                                                                                                         children: "1 트램 정거장 이내 도달(반경 1.5km) 지역을 '시간적 역세권'으로 분류."
                                                                                                     }, void 0, false, {
-                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                         lineNumber: 1638,
                                                                                                         columnNumber: 37
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1637,
                                                                                                 columnNumber: 33
                                                                                             }, this)
                                                                                         ]
                                                                                     }, void 0, true, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1635,
                                                                                         columnNumber: 31
                                                                                     }, this),
@@ -2521,43 +2521,43 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                         className: "mt-1 bg-[#3182f6]/10 text-[#3182f6] px-2 py-1.5 rounded-[6px] text-center font-bold",
                                                                                         children: "물리+시간적 1.5km 통합 기준 적용"
                                                                                     }, void 0, false, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1640,
                                                                                         columnNumber: 31
                                                                                     }, this),
                                                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                                         className: "absolute top-full left-3 border-[6px] border-transparent border-t-white"
                                                                                     }, void 0, false, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1643,
                                                                                         columnNumber: 31
                                                                                     }, this)
                                                                                 ]
                                                                             }, void 0, true, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1628,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1626,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 1621,
                                                                 columnNumber: 23
                                                             }, this)
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1620,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1615,
                                                     columnNumber: 19
                                                 }, this),
@@ -2577,7 +2577,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     className: "text-[13.5px] md:text-[18px] font-extrabold text-primary tracking-tighter",
                                                                                     children: value
                                                                                 }, void 0, false, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1659,
                                                                                     columnNumber: 33
                                                                                 }, this),
@@ -2585,13 +2585,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     className: "text-[10px] md:text-[11px] font-bold text-tertiary",
                                                                                     children: unit
                                                                                 }, void 0, false, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1662,
                                                                                     columnNumber: 33
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1658,
                                                                             columnNumber: 31
                                                                         }, this),
@@ -2599,7 +2599,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                             className: "text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap",
                                                                             children: "평균 실거래가"
                                                                         }, void 0, false, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1666,
                                                                             columnNumber: 31
                                                                         }, this)
@@ -2614,7 +2614,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                 className: "text-[13.5px] md:text-[18px] font-extrabold text-primary tracking-tighter",
                                                                                 children: Math.round(group.avgPyeongPrice || 0).toLocaleString()
                                                                             }, void 0, false, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1675,
                                                                                 columnNumber: 29
                                                                             }, this),
@@ -2622,13 +2622,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                 className: "text-[10px] md:text-[11px] font-bold text-tertiary",
                                                                                 children: "만원/평"
                                                                             }, void 0, false, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1678,
                                                                                 columnNumber: 29
                                                                             }, this)
                                                                         ]
                                                                     }, void 0, true, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1674,
                                                                         columnNumber: 27
                                                                     }, this),
@@ -2636,39 +2636,39 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                         className: "text-[11px] md:text-[12px] font-medium text-tertiary mt-0.5 whitespace-nowrap",
                                                                         children: "평균 평단가"
                                                                     }, void 0, false, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 1682,
                                                                         columnNumber: 27
                                                                     }, this)
                                                                 ]
                                                             }, void 0, true)
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1652,
                                                             columnNumber: 21
                                                         }, this),
                                                         isExpanded ? /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_20__["default"], {
                                                             className: "w-5 h-5 text-tertiary"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1689,
                                                             columnNumber: 23
                                                         }, this) : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_21__["default"], {
                                                             className: "w-5 h-5 text-tertiary"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1691,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1651,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1611,
                                             columnNumber: 17
                                         }, this),
@@ -2678,7 +2678,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                     className: "w-full h-[1px] bg-body mb-4"
                                                 }, void 0, false, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1699,
                                                     columnNumber: 21
                                                 }, this),
@@ -2696,7 +2696,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             className: `px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${(selectedSubModes[group.title] ?? "tiers") === "tiers" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                                             children: "금액대별 단지"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1703,
                                                             columnNumber: 23
                                                         }, this),
@@ -2711,13 +2711,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                             className: `px-3 py-1.5 text-[11px] font-bold rounded-md transition-all ${(selectedSubModes[group.title] ?? "tiers") === "recentTxs" ? "bg-surface text-primary shadow-sm" : "text-tertiary hover:text-secondary"}`,
                                                             children: "동별 최근 실거래"
                                                         }, void 0, false, {
-                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                             lineNumber: 1716,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1702,
                                                     columnNumber: 21
                                                 }, this),
@@ -2816,19 +2816,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     className: `text-[11px] px-1.5 py-0.5 rounded-md ${isActive ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`,
                                                                                     children: t.apts.length
                                                                                 }, void 0, false, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1786,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             ]
                                                                         }, t.originalIndex, true, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1774,
                                                                             columnNumber: 37
                                                                         }, this);
                                                                     })
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1770,
                                                                     columnNumber: 31
                                                                 }, this),
@@ -2850,7 +2850,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                 /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                                                     className: "w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#00d29d] transition-colors"
                                                                                                 }, void 0, false, {
-                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                     lineNumber: 1805,
                                                                                                     columnNumber: 41
                                                                                                 }, this),
@@ -2858,26 +2858,26 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                     className: "text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate",
                                                                                                     children: apt.name
                                                                                                 }, void 0, false, {
-                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                     lineNumber: 1806,
                                                                                                     columnNumber: 41
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1804,
                                                                                             columnNumber: 39
                                                                                         }, this),
                                                                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_22__["default"], {
                                                                                             className: "w-4 h-4 text-tertiary shrink-0"
                                                                                         }, void 0, false, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1810,
                                                                                             columnNumber: 39
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1803,
                                                                                     columnNumber: 37
                                                                                 }, this),
@@ -2894,12 +2894,12 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                     "km"
                                                                                                 ]
                                                                                             }, void 0, true, {
-                                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                 lineNumber: 1817,
                                                                                                 columnNumber: 43
                                                                                             }, this)
                                                                                         }, void 0, false, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1815,
                                                                                             columnNumber: 39
                                                                                         }, this),
@@ -2913,7 +2913,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                             className: "text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap",
                                                                                                             children: value
                                                                                                         }, void 0, false, {
-                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                             lineNumber: 1829,
                                                                                                             columnNumber: 49
                                                                                                         }, this),
@@ -2921,7 +2921,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                             className: "text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap",
                                                                                                             children: unit
                                                                                                         }, void 0, false, {
-                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                             lineNumber: 1832,
                                                                                                             columnNumber: 49
                                                                                                         }, this)
@@ -2933,7 +2933,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                         className: "text-[13.5px] sm:text-[15px] font-extrabold text-primary whitespace-nowrap",
                                                                                                         children: Math.round(apt.pyeongPrice).toLocaleString()
                                                                                                     }, void 0, false, {
-                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                         lineNumber: 1840,
                                                                                                         columnNumber: 45
                                                                                                     }, this),
@@ -2941,31 +2941,31 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                         className: "text-[10px] sm:text-[11px] font-bold text-tertiary whitespace-nowrap",
                                                                                                         children: "만원/평"
                                                                                                     }, void 0, false, {
-                                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                         lineNumber: 1843,
                                                                                                         columnNumber: 45
                                                                                                     }, this)
                                                                                                 ]
                                                                                             }, void 0, true)
                                                                                         }, void 0, false, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1823,
                                                                                             columnNumber: 39
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1814,
                                                                                     columnNumber: 37
                                                                                 }, this)
                                                                             ]
                                                                         }, apt.name, true, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1797,
                                                                             columnNumber: 35
                                                                         }, this))
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1795,
                                                                     columnNumber: 31
                                                                 }, this)
@@ -2973,7 +2973,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         }, void 0, true);
                                                     })()
                                                 }, void 0, false, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1732,
                                                     columnNumber: 23
                                                 }, this) : /* 동별 최근 실거래 UI */ /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
@@ -3032,13 +3032,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                     className: `text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === 'all' ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`,
                                                                                     children: txList.length
                                                                                 }, void 0, false, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1932,
                                                                                     columnNumber: 35
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1920,
                                                                             columnNumber: 33
                                                                         }, this),
@@ -3059,20 +3059,20 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                         className: `text-[11px] px-1.5 py-0.5 rounded-md ${activeDong === dong ? 'bg-surface/20 text-white' : 'bg-[#e5e8eb] text-tertiary'}`,
                                                                                         children: count
                                                                                     }, void 0, false, {
-                                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                         lineNumber: 1953,
                                                                                         columnNumber: 39
                                                                                     }, this)
                                                                                 ]
                                                                             }, dong, true, {
-                                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                 lineNumber: 1940,
                                                                                 columnNumber: 37
                                                                             }, this);
                                                                         })
                                                                     ]
                                                                 }, void 0, true, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1919,
                                                                     columnNumber: 31
                                                                 }, this),
@@ -3092,7 +3092,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                             className: "px-2 py-1 bg-body rounded-[8px] text-[11.5px] font-extrabold text-tertiary group-hover/tx:bg-[#e8f3ff] group-hover/tx:text-[#3182f6] transition-colors shrink-0",
                                                                                             children: tx.date
                                                                                         }, void 0, false, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1974,
                                                                                             columnNumber: 41
                                                                                         }, this),
@@ -3106,7 +3106,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                             className: "text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate",
                                                                                                             children: tx.aptName
                                                                                                         }, void 0, false, {
-                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                             lineNumber: 1979,
                                                                                                             columnNumber: 45
                                                                                                         }, this),
@@ -3114,13 +3114,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                             className: "text-[10px] font-semibold text-tertiary bg-body px-1.5 py-[2px] rounded-[4px] shrink-0",
                                                                                                             children: tx.dong
                                                                                                         }, void 0, false, {
-                                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                             lineNumber: 1983,
                                                                                                             columnNumber: 47
                                                                                                         }, this)
                                                                                                     ]
                                                                                                 }, void 0, true, {
-                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                     lineNumber: 1978,
                                                                                                     columnNumber: 43
                                                                                                 }, this),
@@ -3135,19 +3135,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                                         "층"
                                                                                                     ]
                                                                                                 }, void 0, true, {
-                                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                                     lineNumber: 1988,
                                                                                                     columnNumber: 43
                                                                                                 }, this)
                                                                                             ]
                                                                                         }, void 0, true, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1977,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1973,
                                                                                     columnNumber: 39
                                                                                 }, this),
@@ -3158,7 +3158,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                             className: "text-[14px] sm:text-[15.5px] font-extrabold text-[#f04452]",
                                                                                             children: tx.priceEok
                                                                                         }, void 0, false, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1994,
                                                                                             columnNumber: 41
                                                                                         }, this),
@@ -3166,31 +3166,31 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                                             className: "text-[10px] sm:text-[11px] font-bold text-tertiary ml-0.5",
                                                                                             children: "만원"
                                                                                         }, void 0, false, {
-                                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                             lineNumber: 1997,
                                                                                             columnNumber: 41
                                                                                         }, this)
                                                                                     ]
                                                                                 }, void 0, true, {
-                                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                                     lineNumber: 1993,
                                                                                     columnNumber: 39
                                                                                 }, this)
                                                                             ]
                                                                         }, `${tx.aptName}-${tx.date}-${tx.priceEok}-${idx}`, true, {
-                                                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                             lineNumber: 1965,
                                                                             columnNumber: 37
                                                                         }, this)) : /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                                         className: "flex flex-col items-center justify-center py-8 text-tertiary text-[13.5px]",
                                                                         children: "최근 실거래 내역이 없습니다."
                                                                     }, void 0, false, {
-                                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                         lineNumber: 2004,
                                                                         columnNumber: 35
                                                                     }, this)
                                                                 }, void 0, false, {
-                                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                     lineNumber: 1962,
                                                                     columnNumber: 31
                                                                 }, this)
@@ -3198,19 +3198,19 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         }, void 0, true);
                                                     })()
                                                 }, void 0, false, {
-                                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                     lineNumber: 1859,
                                                     columnNumber: 23
                                                 }, this)
                                             ]
                                         }, void 0, true, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 1698,
                                             columnNumber: 19
                                         }, this)
                                     ]
                                 }, group.title, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 1606,
                                     columnNumber: 15
                                 }, this);
@@ -3219,13 +3219,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                 location: "매크로 대시보드 하단",
                                 onClick: onOpenAdModal
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2021,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 1591,
                         columnNumber: 9
                     }, this),
@@ -3235,27 +3235,27 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                 className: "h-[36px]"
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2026,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                 className: "w-full h-px bg-[#f2f4f6] dark:bg-border"
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2027,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                 className: "h-[36px]"
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2028,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 2025,
                         columnNumber: 9
                     }, this),
@@ -3274,13 +3274,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 className: "text-[16px] font-semibold text-tertiary ml-2 font-normal",
                                                 children: "최신 뉴스 피드"
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 2036,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 2034,
                                         columnNumber: 13
                                     }, this),
@@ -3288,13 +3288,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         className: "text-[13px] font-medium text-tertiary mt-1 italic",
                                         children: "Dongtan real estate market latest news"
                                     }, void 0, false, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 2040,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2033,
                                 columnNumber: 11
                             }, this),
@@ -3308,7 +3308,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                             /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                 className: "w-8 h-8 shrink-0 bg-gray-200 rounded-full"
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 2052,
                                                 columnNumber: 19
                                             }, this),
@@ -3318,33 +3318,33 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                         className: "w-1/3 h-3 bg-gray-200 rounded mb-2"
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 2054,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                         className: "w-full h-4 bg-gray-200 rounded mb-1.5"
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 2055,
                                                         columnNumber: 21
                                                     }, this),
                                                     /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)("div", {
                                                         className: "w-2/3 h-4 bg-gray-200 rounded"
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 2056,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 2053,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, i, true, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 2048,
                                         columnNumber: 17
                                     }, this)) : (newsData.length > 0 ? newsData.slice(0, visibleNewsCount) : [
@@ -3398,7 +3398,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                 className: "w-8 h-8 md:w-9 md:h-9 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-[#00d29d] font-bold text-[13px] md:text-[14px] shadow-sm group-hover:bg-[#00d29d] group-hover:text-white transition-colors",
                                                 children: news.id
                                             }, void 0, false, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 2120,
                                                 columnNumber: 19
                                             }, this),
@@ -3412,7 +3412,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 className: "text-[11px] md:text-[12px] font-extrabold text-[#00d29d] tracking-wide",
                                                                 children: news.category
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 2125,
                                                                 columnNumber: 23
                                                             }, this),
@@ -3420,7 +3420,7 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 className: "text-[11px] md:text-[12px] text-gray-300",
                                                                 children: "|"
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 2128,
                                                                 columnNumber: 23
                                                             }, this),
@@ -3428,13 +3428,13 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                                 className: "text-[11px] md:text-[12px] font-semibold text-tertiary",
                                                                 children: news.sub
                                                             }, void 0, false, {
-                                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                                 lineNumber: 2129,
                                                                 columnNumber: 23
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 2124,
                                                         columnNumber: 21
                                                     }, this),
@@ -3442,24 +3442,24 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                                         className: "text-[13px] md:text-[15px] font-semibold text-secondary leading-snug md:leading-[1.5] group-hover:text-primary transition-colors line-clamp-2",
                                                         children: news.title
                                                     }, void 0, false, {
-                                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                         lineNumber: 2133,
                                                         columnNumber: 21
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
-                                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                                 lineNumber: 2123,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, news.id, true, {
-                                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                         lineNumber: 2113,
                                         columnNumber: 17
                                     }, this))
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2045,
                                 columnNumber: 11
                             }, this),
@@ -3481,36 +3481,36 @@ function MacroDashboardClient({ sheetApartments, txSummaryData, macroTrendData, 
                                         /*#__PURE__*/ (0,react_jsx_dev_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxDEV)(_barrel_optimize_names_ChevronDown_ChevronRight_ChevronUp_Info_MessageSquare_lucide_react__WEBPACK_IMPORTED_MODULE_22__["default"], {
                                             className: "w-4 h-4"
                                         }, void 0, false, {
-                                            fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                            fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                             lineNumber: 2149,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
-                                    fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                    fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                     lineNumber: 2142,
                                     columnNumber: 13
                                 }, this)
                             }, void 0, false, {
-                                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                                 lineNumber: 2141,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
-                        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                         lineNumber: 2032,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
-                fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+                fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
                 lineNumber: 1189,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
-        fileName: "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DRIVE\frontend\src\components\MacroDashboardClient.tsx",
+        fileName: "C:\Users\ocs56\OneDview\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx",
         lineNumber: 1120,
         columnNumber: 5
     }, this);

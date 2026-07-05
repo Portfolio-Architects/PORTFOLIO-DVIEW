@@ -174,8 +174,8 @@ const CommentSection = React.memo(function CommentSection({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "DiscussionForumPosting",
-    "name": "DRIVE 아파트 입주민 소통 라운지",
-    "headline": "DRIVE 단지별 입주민 거주 후기 및 이야기",
+    "name": "DVIEW 아파트 입주민 소통 라운지",
+    "headline": "DVIEW 단지별 입주민 거주 후기 및 이야기",
     "description": "실제 입주민들이 작성한 단지 특징, 교통 편의성, 학군 및 거주 만족도 관련 소통 공간입니다.",
     "commentCount": comments.length,
     "comment": comments.map((c) => {

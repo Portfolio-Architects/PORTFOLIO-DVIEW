@@ -292,7 +292,7 @@ function auditE2ETests() {
 
       if (fs.existsSync(artifactDir)) {
         const sourceReport = path.resolve(process.cwd(), 'scratch/ui_ux_improvement_report.md');
-        const destReport = path.join(artifactDir, 'PORTFOLIO DRIVE - UI-UX Diagnostics Report.md');
+        const destReport = path.join(artifactDir, 'PORTFOLIO DVIEW - UI-UX Diagnostics Report.md');
         fs.copyFileSync(sourceReport, destReport);
         log(colors.green, `✅ UI/UX Report successfully copied to Artifacts:\n   ${destReport}`);
       }
@@ -376,7 +376,7 @@ async function auditFirestoreCosts() {
 // Main execution block
 async function run() {
   log(colors.magenta, '\n==================================================');
-  log(colors.magenta, '🚀 DRIVE Recursive Self-Improvement Audit Pipeline');
+  log(colors.magenta, '🚀 DVIEW Recursive Self-Improvement Audit Pipeline');
   log(colors.magenta, '==================================================\n');
 
   const tsPassed = auditTypeScript();

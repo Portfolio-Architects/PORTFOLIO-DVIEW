@@ -6,8 +6,11 @@ import {
   Search, 
   X, 
   Filter, 
-  MapPin, 
-  Building
+  Building,
+  Calendar,
+  Layers,
+  Car,
+  Maximize2
 } from 'lucide-react';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import CoLeasingBoard from '@/components/macro/CoLeasingBoard';
@@ -23,6 +26,7 @@ interface OfficeTransaction {
 interface OfficeBuilding {
   name: string;
   type: string;
+  dong: '동탄영천동' | '동탄오산동' | '동탄목동' | '동탄장지동';
   rentPerPy: string;
   features: string[];
   driveIn: boolean;
@@ -30,13 +34,22 @@ interface OfficeBuilding {
   desc: string;
   imgPlaceholder: string;
   score: number;
+  totalUnits: number;
+  vacancyRate: number;
   recentTransactions: OfficeTransaction[];
+  specs: {
+    gfa: string;
+    scale: string;
+    parking: string;
+    completion: string;
+  };
 }
 
 const BUILDINGS_DB: OfficeBuilding[] = [
   {
     name: '금강펜테리움 IX타워',
     type: '초대형 지식산업센터',
+    dong: '동탄영천동',
     rentPerPy: '3.5만 ~ 4.2만원',
     features: ['드라이브인 (지하 2층 ~ 지상 7층)', '동탄역 셔틀버스 상시 운행', '최대 층고 5.8m 제조 특화', '피트니스 & 옥상정원 인프라'],
     driveIn: true,
@@ -44,15 +57,24 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     desc: '대규모 입주 기업 네트워킹과 드라이브인 물류 동선이 최적화된 초대형 랜드마크 지산입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600',
     score: 95,
+    totalUnits: 2701,
+    vacancyRate: 21.6,
     recentTransactions: [
       { date: '2026-05-12', type: '임대', sizeSqM: 45.2, floor: 15, price: '보증금 1,000만 / 월세 90만' },
       { date: '2026-05-03', type: '임대', sizeSqM: 88.9, floor: 3, price: '보증금 1,500만 / 월세 150만' },
       { date: '2026-04-18', type: '매매', sizeSqM: 108.5, floor: 7, price: '4억 1,000만원' }
-    ]
+    ],
+    specs: {
+      gfa: '286,970㎡ (약 8.6만 평, 남부권 최대)',
+      scale: '지하 2층 ~ 지상 38층 (총 3개동)',
+      parking: '1,879대 (법정대비 170%)',
+      completion: '2021년 08월'
+    }
   },
   {
     name: '현대 실리콘앨리 동탄',
     type: '문화복합형 지식산업센터',
+    dong: '동탄영천동',
     rentPerPy: '3.8만 ~ 4.5만원',
     features: ['뉴욕 스트리트형 대형 상권 연계', '섹션 오피스 레이아웃 최적화', '공유 라운지 & 세미나실 제공', '친환경 태양광 발전 및 에너지 절감'],
     driveIn: false,
@@ -60,15 +82,24 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     desc: '세련된 오피스 인테리어와 업무 편의 시설, 다채로운 먹거리 상권이 융합된 문화형 복합 지산입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600',
     score: 92,
+    totalUnits: 2470,
+    vacancyRate: 28.5,
     recentTransactions: [
       { date: '2026-05-20', type: '임대', sizeSqM: 51.6, floor: 8, price: '보증금 1,000만 / 월세 110만' },
       { date: '2026-04-11', type: '임대', sizeSqM: 102.3, floor: 4, price: '보증금 2,000만 / 월세 210만' },
       { date: '2026-03-29', type: '매매', sizeSqM: 72.4, floor: 12, price: '2억 9,500만원' }
-    ]
+    ],
+    specs: {
+      gfa: '238,615㎡ (약 7.2만 평, 초대형 단지)',
+      scale: '지하 4층 ~ 지상 30층 (총 2개동)',
+      parking: '1,671대 (넉넉함)',
+      completion: '2023년 06월'
+    }
   },
   {
     name: '동탄 IT타워',
     type: '도보 역세권 지식산업센터',
+    dong: '동탄영천동',
     rentPerPy: '3.2만 ~ 3.7만원',
     features: ['동탄역 도보 10분권', '소형 사무실(10~15평) 섹션 특화', '합리적인 가성비 임대료', '개별 냉난방 및 조용한 환경'],
     driveIn: false,
@@ -76,15 +107,24 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     desc: '동탄역과의 지리적 접근성이 가장 뛰어나며, 소자본 스타트업이나 소형 오피스에 안성맞춤입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600',
     score: 89,
+    totalUnits: 320,
+    vacancyRate: 13.5,
     recentTransactions: [
       { date: '2026-05-24', type: '임대', sizeSqM: 33.1, floor: 9, price: '보증금 500만 / 월세 65만' },
       { date: '2026-04-15', type: '임대', sizeSqM: 66.2, floor: 11, price: '보증금 1,000만 / 월세 115만' },
       { date: '2026-02-28', type: '매매', sizeSqM: 33.1, floor: 5, price: '1억 2,000만원' }
-    ]
+    ],
+    specs: {
+      gfa: '41,200㎡ (실속형 비즈니스 특화)',
+      scale: '지하 2층 ~ 지상 15층 (단일동)',
+      parking: '298대 (법정 수준)',
+      completion: '2018년 04월'
+    }
   },
   {
     name: 'SH타임스퀘어',
     type: '제조/도어투도어 지식산업센터',
+    dong: '동탄영천동',
     rentPerPy: '3.0만 ~ 3.5만원',
     features: ['도어투도어 (호실 앞 주차 가능)', '하중 설계 평당 4톤 이상', '화물용 엘리베이터 인접', '소형 공장 등록 가능'],
     driveIn: true,
@@ -92,20 +132,173 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     desc: '하역 동선과 중장비 설비 안착이 필요한 고부하 제조 및 물류 적재 업종에 최적화된 맞춤형 센터입니다.',
     imgPlaceholder: 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-600',
     score: 87,
+    totalUnits: 369,
+    vacancyRate: 19.8,
     recentTransactions: [
       { date: '2026-05-18', type: '임대', sizeSqM: 75.4, floor: 2, price: '보증금 800만 / 월세 85만' },
       { date: '2026-03-05', type: '임대', sizeSqM: 150.8, floor: 1, price: '보증금 2,000만 / 월세 200만' },
       { date: '2026-01-20', type: '매매', sizeSqM: 75.4, floor: 4, price: '2억 1,000만원' }
-    ]
+    ],
+    specs: {
+      gfa: '56,700㎡ (제조·물류 특화형)',
+      scale: '지하 2층 ~ 지상 12층 (단일동)',
+      parking: '388대 (하역 데크 확보)',
+      completion: '2018년 11월'
+    }
+  },
+  {
+    name: '동탄 테라타워',
+    type: '제조·오피스 하이브리드 지산',
+    dong: '동탄영천동',
+    rentPerPy: '3.3만 ~ 3.9만원',
+    features: ['드라이브인 시스템 완비', '동탄역세권 대중교통 인접', '초고속 화물 승강기', '커뮤니티 및 회의실 연계'],
+    driveIn: true,
+    stationDistance: 'close',
+    desc: '제조형 공장과 스마트 오피스가 조화롭게 융합된 현대엔지니어링 시공의 프리미엄 지식산업센터입니다.',
+    imgPlaceholder: 'bg-gradient-to-br from-teal-500/20 to-emerald-500/20 text-teal-600',
+    score: 91,
+    totalUnits: 824,
+    vacancyRate: 18.2,
+    recentTransactions: [
+      { date: '2026-05-15', type: '임대', sizeSqM: 60.5, floor: 5, price: '보증금 1,000만 / 월세 100만' },
+      { date: '2026-04-20', type: '매매', sizeSqM: 120.4, floor: 8, price: '3억 8,000만원' }
+    ],
+    specs: {
+      gfa: '143,600㎡ (중대형급 복합 지산)',
+      scale: '지하 2층 ~ 지상 29층',
+      parking: '984대 (쾌적한 주차)',
+      completion: '2020년 10월'
+    }
+  },
+  {
+    name: '동탄 에이팩시티',
+    type: '랜드마크형 IT 지식산업센터',
+    dong: '동탄영천동',
+    rentPerPy: '3.4만 ~ 4.0만원',
+    features: ['초대형 하역 데크 시스템', '입주 기업 전용 네트워킹 라운지', '동탄테크노밸리 초입 입지', '주변 풍부한 근린 상가'],
+    driveIn: false,
+    stationDistance: 'close',
+    desc: '동탄테크노밸리 진입로에 위치하여 뛰어난 가시성과 브랜드 파워를 자랑하는 전통의 랜드마크 지산입니다.',
+    imgPlaceholder: 'bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-indigo-600',
+    score: 93,
+    totalUnits: 618,
+    vacancyRate: 15.4,
+    recentTransactions: [
+      { date: '2026-05-10', type: '임대', sizeSqM: 48.2, floor: 12, price: '보증금 1,000만 / 월세 95만' },
+      { date: '2026-04-05', type: '임대', sizeSqM: 92.4, floor: 6, price: '보증금 1,500만 / 월세 155만' }
+    ],
+    specs: {
+      gfa: '72,000㎡ (랜드마크 비즈니스)',
+      scale: '지하 3층 ~ 지상 17층',
+      parking: '524대',
+      completion: '2017년 12월'
+    }
+  },
+  {
+    name: '동탄 SK V1',
+    type: '대단지 도어투도어 제조형 지산',
+    dong: '동탄영천동',
+    rentPerPy: '3.1만 ~ 3.6만원',
+    features: ['전 층 드라이브인 램프', '램프 입구 폭 9m로 대형차 통행 원활', '평당 5톤 하중 바닥', '집하 및 하역 공간 분리'],
+    driveIn: true,
+    stationDistance: 'moderate',
+    desc: '대형 화물 물류와 하역이 빈번한 정밀 제조 및 가공 조립 업종에 압도적인 편의를 제공하는 대단지 지산입니다.',
+    imgPlaceholder: 'bg-gradient-to-br from-red-500/20 to-orange-500/20 text-red-600',
+    score: 90,
+    totalUnits: 776,
+    vacancyRate: 22.8,
+    recentTransactions: [
+      { date: '2026-05-19', type: '임대', sizeSqM: 99.5, floor: 3, price: '보증금 1,200만 / 월세 115만' },
+      { date: '2026-03-24', type: '매매', sizeSqM: 99.5, floor: 2, price: '2억 6,000만원' }
+    ],
+    specs: {
+      gfa: '89,800㎡ (대규모 제조 물류망)',
+      scale: '지하 2층 ~ 지상 20층',
+      parking: '650대',
+      completion: '2019년 02월'
+    }
+  },
+  {
+    name: '동탄 비즈타워',
+    type: '실속형 콤팩트 지식산업센터',
+    dong: '동탄영천동',
+    rentPerPy: '2.8만 ~ 3.3만원',
+    features: ['가장 합리적인 평단 임대 가격', '드라이브인 하역 램프 탑재', '소규모 분할 섹션 오피스 다수', '주차 100% 이상 확보'],
+    driveIn: true,
+    stationDistance: 'moderate',
+    desc: '스타트업 및 소형 창고 임차가 필요한 소자본 임차인에게 최고의 평단 가성비를 제공하는 실속형 센터입니다.',
+    imgPlaceholder: 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600',
+    score: 86,
+    totalUnits: 276,
+    vacancyRate: 25.4,
+    recentTransactions: [
+      { date: '2026-05-22', type: '임대', sizeSqM: 40.5, floor: 7, price: '보증금 500만 / 월세 55만' },
+      { date: '2026-04-12', type: '임대', sizeSqM: 80.2, floor: 4, price: '보증금 1,000만 / 월세 95만' }
+    ],
+    specs: {
+      gfa: '32,500㎡ (소규모 실속 임차)',
+      scale: '지하 1층 ~ 지상 10층',
+      parking: '210대',
+      completion: '2016년 08월'
+    }
+  },
+  {
+    name: '동탄 더퍼스트타워',
+    type: '역세권 스마트 섹션 지산',
+    dong: '동탄영천동',
+    rentPerPy: '3.3만 ~ 3.8만원',
+    features: ['동탄역 도보 8분권', '소형 오피스 전용 섹션 설계', '공동 회의실 지원', '쾌적한 중앙 광장 조경'],
+    driveIn: false,
+    stationDistance: 'very-close',
+    desc: '동탄역 접근성이 극대화되고 입주사 비즈니스 편의 시설이 우수한 스마트 사무 특화 지식산업센터입니다.',
+    imgPlaceholder: 'bg-gradient-to-br from-pink-500/20 to-rose-500/20 text-rose-600',
+    score: 90,
+    totalUnits: 460,
+    vacancyRate: 16.8,
+    recentTransactions: [
+      { date: '2026-05-14', type: '임대', sizeSqM: 40.2, floor: 10, price: '보증금 1,000만 / 월세 85만' },
+      { date: '2026-04-19', type: '매매', sizeSqM: 80.5, floor: 15, price: '2억 4,000만원' }
+    ],
+    specs: {
+      gfa: '58,200㎡ (역세권 랜드마크)',
+      scale: '지하 3층 ~ 지상 20층 (단일동)',
+      parking: '420대 (안정적인 확보)',
+      completion: '2018년 04월'
+    }
+  },
+  {
+    name: '동탄 메가비즈타워',
+    type: '소규모 실속형 섹션 지산',
+    dong: '동탄영천동',
+    rentPerPy: '2.9만 ~ 3.4만원',
+    features: ['스타트업 소형 사무실 특화', '기흥IC 차량 3분 최적 진입', '구내 식당 및 편의점 연계', '저렴한 관리비용'],
+    driveIn: false,
+    stationDistance: 'moderate',
+    desc: '초기 창업 기업 및 1인 스타트업이 저렴한 고정 비용으로 입주할 수 있도록 유닛을 잘게 쪼갠 가성비 지산입니다.',
+    imgPlaceholder: 'bg-gradient-to-br from-violet-500/20 to-purple-500/20 text-violet-600',
+    score: 85,
+    totalUnits: 168,
+    vacancyRate: 23.5,
+    recentTransactions: [
+      { date: '2026-05-18', type: '임대', sizeSqM: 33.1, floor: 8, price: '보증금 500만 / 월세 50만' },
+      { date: '2026-04-02', type: '임대', sizeSqM: 66.2, floor: 12, price: '보증금 1,000만 / 월세 90만' }
+    ],
+    specs: {
+      gfa: '21,800㎡ (스타트업 비즈니스 특화)',
+      scale: '지하 2층 ~ 지상 12층',
+      parking: '145대',
+      completion: '2019년 05월'
+    }
   }
 ];
 
 export default function OfficeExplorerClient() {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDong, setSelectedDong] = useState('전체');
   const [selectedDriveIn, setSelectedDriveIn] = useState<'all' | 'yes' | 'no'>('all');
-  const [sortBy, setSortBy] = useState<'score' | 'rentPerPy' | 'station'>('score');
+  const [selectedStation, setSelectedStation] = useState<'all' | 'near'>('all');
+  const [selectedScale, setSelectedScale] = useState<'all' | 'huge'>('all');
+  const [sortBy, setSortBy] = useState<'score' | 'rentPerPy' | 'station' | 'units' | 'vacancy'>('score');
   const [selectedBuilding, setSelectedBuilding] = useState<OfficeBuilding | null>(null);
   
   const isResizingRef = useRef(false);
@@ -167,7 +360,12 @@ export default function OfficeExplorerClient() {
       const matchesDriveIn = selectedDriveIn === 'all' || 
         (selectedDriveIn === 'yes' && building.driveIn) || 
         (selectedDriveIn === 'no' && !building.driveIn);
-      return matchesSearch && matchesDriveIn;
+      const matchesStation = selectedStation === 'all' || 
+        (selectedStation === 'near' && (building.stationDistance === 'very-close' || building.stationDistance === 'close'));
+      const matchesScale = selectedScale === 'all' || 
+        (selectedScale === 'huge' && building.totalUnits >= 800);
+      
+      return matchesSearch && matchesDriveIn && matchesStation && matchesScale;
     }).sort((a, b) => {
       if (sortBy === 'score') return b.score - a.score;
       if (sortBy === 'rentPerPy') {
@@ -179,9 +377,15 @@ export default function OfficeExplorerClient() {
         const distScore = { 'very-close': 3, 'close': 2, 'moderate': 1 };
         return distScore[b.stationDistance] - distScore[a.stationDistance];
       }
+      if (sortBy === 'units') {
+        return b.totalUnits - a.totalUnits;
+      }
+      if (sortBy === 'vacancy') {
+        return a.vacancyRate - b.vacancyRate;
+      }
       return 0;
     });
-  }, [searchQuery, selectedDriveIn, sortBy]);
+  }, [searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
 
   return (
     <div className="flex flex-col w-full bg-transparent">
@@ -201,34 +405,13 @@ export default function OfficeExplorerClient() {
           {/* Sidebar 필터 영역 */}
           <aside 
             style={{ width: `${sidebarWidth}px` }}
-            className="hidden md:flex flex-col shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
+            className="hidden md:flex flex-col shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl gap-6 select-none"
           >
-            <div className="mb-6">
-              <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
-                <MapPin size={14} className="text-[#ea6100]" />
-                행정구역 필터
-              </h3>
-              <div className="flex flex-col gap-1">
-                {['전체', '동탄영천동', '동탄오산동', '동탄목동', '동탄장지동'].map(dong => (
-                  <button
-                    key={dong}
-                    onClick={() => setSelectedDong(dong)}
-                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all ${
-                      selectedDong === dong 
-                        ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
-                        : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
-                    }`}
-                  >
-                    {dong}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mb-6">
+            {/* Filter Group 1: Drive-In */}
+            <div>
               <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
                 <Filter size={14} className="text-[#ea6100]" />
-                시설 조건
+                물류 / 하역 시설
               </h3>
               <div className="flex flex-col gap-1">
                 {[
@@ -239,8 +422,60 @@ export default function OfficeExplorerClient() {
                   <button
                     key={opt.id}
                     onClick={() => setSelectedDriveIn(opt.id as 'all' | 'yes' | 'no')}
-                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all ${
+                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer ${
                       selectedDriveIn === opt.id 
+                        ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
+                        : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter Group 2: Station Proximity */}
+            <div>
+              <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
+                <Filter size={14} className="text-[#ea6100]" />
+                대중교통 입지
+              </h3>
+              <div className="flex flex-col gap-1">
+                {[
+                  { id: 'all', label: '전체 입지' },
+                  { id: 'near', label: '초역세권 (도보 10분 내)' }
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setSelectedStation(opt.id as 'all' | 'near')}
+                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer ${
+                      selectedStation === opt.id 
+                        ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
+                        : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Filter Group 3: Building Scale */}
+            <div>
+              <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
+                <Filter size={14} className="text-[#ea6100]" />
+                단지 규모
+              </h3>
+              <div className="flex flex-col gap-1">
+                {[
+                  { id: 'all', label: '전체 규모' },
+                  { id: 'huge', label: '대단지 (연면적 10만㎡+)' }
+                ].map(opt => (
+                  <button
+                    key={opt.id}
+                    onClick={() => setSelectedScale(opt.id as 'all' | 'huge')}
+                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer ${
+                      selectedScale === opt.id 
                         ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
                         : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
@@ -288,11 +523,13 @@ export default function OfficeExplorerClient() {
                   {[
                     { id: 'score', label: '종합 점수순' },
                     { id: 'rentPerPy', label: '저렴한 임대료순' },
-                    { id: 'station', label: '역세권순' }
+                    { id: 'station', label: '역세권순' },
+                    { id: 'units', label: '총 호수순' },
+                    { id: 'vacancy', label: '공실률 낮은순' }
                   ].map(opt => (
                     <button
                       key={opt.id}
-                      onClick={() => setSortBy(opt.id as 'score' | 'rentPerPy' | 'station')}
+                      onClick={() => setSortBy(opt.id as 'score' | 'rentPerPy' | 'station' | 'units' | 'vacancy')}
                       className={`px-3 py-1.5 rounded-full text-[11.5px] font-extrabold border transition-all shrink-0 ${
                         sortBy === opt.id
                           ? 'bg-[#c44d00] border-[#c44d00] text-white shadow-sm'
@@ -334,6 +571,11 @@ export default function OfficeExplorerClient() {
                         <p className="text-[12px] text-tertiary mt-1.5 leading-relaxed truncate md:max-w-[500px]">
                           {building.desc}
                         </p>
+                        <div className="flex items-center gap-2 mt-2 text-[10.5px] font-bold text-tertiary">
+                          <span>총 {building.totalUnits.toLocaleString()}호</span>
+                          <span className="w-1 h-1 rounded-full bg-neutral-300 shrink-0" />
+                          <span>공실률 {building.vacancyRate}%</span>
+                        </div>
                       </div>
                     </div>
 
@@ -364,31 +606,76 @@ export default function OfficeExplorerClient() {
         </div>
       </div>
 
-      {/* 상세 정보 모달 (껍데기 형식) */}
+      {/* 상세 정보 모달 */}
       {selectedBuilding && (
-        <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-surface w-full max-w-[580px] rounded-3xl shadow-2xl border border-border p-6 sm:p-8 flex flex-col animate-in zoom-in-95 duration-200 relative max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-surface w-full max-w-[580px] h-[82vh] max-h-[640px] rounded-3xl shadow-2xl border border-border p-6 sm:p-8 flex flex-col justify-between animate-in zoom-in-95 duration-200 relative">
             
             <button 
               onClick={() => setSelectedBuilding(null)}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-secondary transition-all"
+              className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-secondary transition-all cursor-pointer"
             >
               <X size={20} />
             </button>
 
-            <div className="flex items-center gap-3.5 mb-5 mt-2">
+            <div className="flex items-center gap-3.5 mb-2 mt-2 shrink-0">
               <div className="p-3 bg-[#ea6100]/10 text-[#ea6100] rounded-2xl">
                 <Building2 size={24} />
               </div>
               <div>
                 <h3 className="text-lg font-black text-primary">{selectedBuilding.name}</h3>
-                <span className="text-xs font-bold text-tertiary mt-1 block">{selectedBuilding.type}</span>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-bold text-tertiary">{selectedBuilding.type}</span>
+                  <span className="w-1 h-1 rounded-full bg-neutral-300 shrink-0" />
+                  <span className="text-xs font-extrabold text-[#ea6100]">{selectedBuilding.dong}</span>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-5">
+            {/* Scrollable Content Area with Stable Height */}
+            <div className="flex-1 overflow-y-auto pr-1 my-4 space-y-5 scrollbar-thin select-none">
+              
+              {/* 빌딩 주요 제원 */}
               <div>
-                <h4 className="text-xs font-bold text-secondary mb-2">빌딩 상세 특징</h4>
+                <h4 className="text-xs font-black text-secondary mb-2.5">빌딩 주요 제원</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
+                    <div className="text-tertiary shrink-0"><Maximize2 size={16} /></div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] text-tertiary font-bold">연면적 (GFA)</span>
+                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.gfa}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
+                    <div className="text-tertiary shrink-0"><Layers size={16} /></div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] text-tertiary font-bold">건물 규모</span>
+                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.scale}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
+                    <div className="text-tertiary shrink-0"><Car size={16} /></div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] text-tertiary font-bold">주차 시설</span>
+                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.parking}</span>
+                    </div>
+                  </div>
+
+                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
+                    <div className="text-tertiary shrink-0"><Calendar size={16} /></div>
+                    <div className="flex flex-col min-w-0">
+                      <span className="text-[10px] text-tertiary font-bold">준공 연월</span>
+                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.completion}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 빌딩 상세 특징 */}
+              <div>
+                <h4 className="text-xs font-bold text-secondary mb-2.5">빌딩 상세 특징</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedBuilding.features.map(feat => (
                     <span key={feat} className="text-[11px] font-extrabold px-3 py-1.5 bg-neutral-50 dark:bg-zinc-800/40 rounded-xl border border-border/30 text-secondary">
@@ -398,18 +685,20 @@ export default function OfficeExplorerClient() {
                 </div>
               </div>
 
+              {/* 빌딩 설명 */}
               <div>
-                <h4 className="text-xs font-bold text-secondary mb-2">기본 정보</h4>
+                <h4 className="text-xs font-bold text-secondary mb-2">빌딩 설명</h4>
                 <p className="text-[12.5px] leading-relaxed text-secondary font-medium">
                   {selectedBuilding.desc}
                 </p>
               </div>
 
+              {/* 최근 3개월 실거래/시세 현황 */}
               <div>
-                <h4 className="text-xs font-bold text-secondary mb-2.5">최근 3개월 실거래/시세 현황 (형식)</h4>
+                <h4 className="text-xs font-bold text-secondary mb-2.5">최근 3개월 실거래/시세 현황</h4>
                 <div className="border border-border/80 rounded-2xl overflow-hidden divide-y divide-border/60 bg-body/20">
                   {selectedBuilding.recentTransactions.map((tx, idx) => (
-                    <div key={idx} className="flex items-center justify-between px-4 py-3 text-[12px] font-bold">
+                    <div key={idx} className="flex items-center justify-between px-4 py-3.5 text-[12px] font-bold hover:bg-body/40 transition-all">
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
                           tx.type === '매매' ? 'bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600'
@@ -426,10 +715,10 @@ export default function OfficeExplorerClient() {
               </div>
             </div>
 
-            <div className="flex gap-2.5 w-full mt-8">
+            <div className="flex gap-2.5 w-full mt-2 shrink-0">
               <button
                 onClick={() => setSelectedBuilding(null)}
-                className="flex-1 py-3 bg-[#c44d00] hover:bg-[#9e3c00] dark:bg-[#ff8f00] dark:hover:bg-[#c44d00] text-white font-extrabold text-[13px] rounded-2xl shadow-md transition-all active:scale-[0.98]"
+                className="flex-1 py-3.5 bg-[#c44d00] hover:bg-[#9e3c00] dark:bg-[#ff8f00] dark:hover:bg-[#c44d00] text-white font-extrabold text-[13px] rounded-2xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
               >
                 확인
               </button>

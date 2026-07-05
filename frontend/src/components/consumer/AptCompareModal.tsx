@@ -277,7 +277,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
   useEffect(() => {
     if (isOpen) {
       try {
-        const parsedNames = localCache.get('drive_compare_recent', ViewedAptsSchema, []);
+        const parsedNames = localCache.get('dview_compare_recent', ViewedAptsSchema, []);
         const matched = parsedNames
           .map(name => allApartments.find(a => a.name === name))
           .filter((a): a is DongApartment => !!a);
@@ -292,7 +292,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
   useEffect(() => {
     const loadQuizAnswers = () => {
       try {
-        const answers = localCache.get('drive_quiz_answers', QuizAnswerSchema, null);
+        const answers = localCache.get('dview_quiz_answers', QuizAnswerSchema, null);
         setQuizAnswers(answers);
       } catch (e) {
         logger.warn('AptCompareModal', 'Failed to parse quiz answers', undefined, e);
@@ -301,14 +301,14 @@ const AptCompareModal = React.memo(function AptCompareModal({
     if (isOpen) {
       loadQuizAnswers();
       if (typeof window !== 'undefined') {
-        window.addEventListener('drive_quiz_answers_changed', loadQuizAnswers);
+        window.addEventListener('dview_quiz_answers_changed', loadQuizAnswers);
       }
     } else {
       setQuizAnswers(null);
     }
     return () => {
       if (typeof window !== 'undefined') {
-        window.removeEventListener('drive_quiz_answers_changed', loadQuizAnswers);
+        window.removeEventListener('dview_quiz_answers_changed', loadQuizAnswers);
       }
     };
   }, [isOpen]);
@@ -319,7 +319,7 @@ const AptCompareModal = React.memo(function AptCompareModal({
       const filtered = prev.filter(a => a.name !== apt.name);
       const updated = [apt, ...filtered].slice(0, 5); // Keep last 5
       try {
-        localCache.set('drive_compare_recent', updated.map(a => a.name), 604800); // 7 days TTL
+        localCache.set('dview_compare_recent', updated.map(a => a.name), 604800); // 7 days TTL
       } catch (e) {
         logger.error('AptCompareModal', 'Error saving recent apartment', { apartmentName: apt.name }, e);
       }
@@ -1121,7 +1121,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
     return {
       "@context": "https://schema.org",
       "@type": "ItemList",
-      "name": `DRIVE 아파트 1:1 비교 분석 (${apt1Label} vs ${apt2Label})`,
+      "name": `DVIEW 아파트 1:1 비교 분석 (${apt1Label} vs ${apt2Label})`,
       "description": "동탄 지역 아파트 단지 간의 실거래가 트렌드, 입지 점수, 학군 환경, 대중교통 인프라 등을 1:1로 대조한 종합 분석 리포트입니다.",
       "itemListElement": elements.map((el, idx) => ({
         "@type": "ListItem",
@@ -1814,7 +1814,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
               </div>
               
               <a
-                href="https://drive-moving.toss.im"
+                href="https://dview-moving.toss.im"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-4 py-2.5 rounded-xl text-[12.5px] font-black text-center bg-toss-blue hover:bg-[#ff8f00] text-white shadow-md hover:shadow-lg transition-all duration-200 select-none shrink-0"

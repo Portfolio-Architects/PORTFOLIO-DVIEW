@@ -181,18 +181,91 @@ const TREND_DATA = [
   }
 ];
 
+const AVERAGE_LINE_COLOR = '#845ef7'; // Soft Amethyst Purple (Pastel Cute theme)
+
 const AVAILABLE_BUILDINGS = [
-  { id: '금강 IX', name: '금강 IX타워', color: '#ea580c', rentKey: '금강IX_임대료' },
-  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#2563eb', rentKey: '실리콘앨리_임대료' },
-  { id: 'SH타임', name: 'SH타임스퀘어', color: '#0d9488', rentKey: 'SH타임_임대료' },
-  { id: '더퍼스트', name: '더퍼스트타워', color: '#a855f7', rentKey: '더퍼스트_임대료' },
-  { id: 'SK V1', name: '동탄 SK V1', color: '#ec4899', rentKey: 'SKV1_임대료' },
-  { id: '에이팩시티', name: '동탄 에이팩시티', color: '#10b981', rentKey: '에이팩시티_임대료' },
-  { id: '테라타워', name: '동탄 테라타워', color: '#06b6d4', rentKey: '테라타워_임대료' },
-  { id: 'IT타워', name: '동탄 IT타워', color: '#3b82f6', rentKey: 'IT타워_임대료' },
-  { id: '메가비즈타워', name: '동탄 메가비즈타워', color: '#14b8a6', rentKey: '메가비즈타워_임대료' },
-  { id: '비즈타워', name: '동탄 비즈타워', color: '#84cc16', rentKey: '비즈타워_임대료' }
+  { id: '금강 IX', name: '금강 IX타워', color: '#ff6b35', rentKey: '금강IX_임대료', totalUnits: 2701 },
+  { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#4c6ef5', rentKey: '실리콘앨리_임대료', totalUnits: 2470 },
+  { id: 'SH타임', name: 'SH타임스퀘어', color: '#0f766e', rentKey: 'SH타임_임대료', totalUnits: 369 },
+  { id: '더퍼스트', name: '더퍼스트타워', color: '#ff85a2', rentKey: '더퍼스트_임대료', totalUnits: 460 },
+  { id: 'SK V1', name: '동탄 SK V1', color: '#ff9f43', rentKey: 'SKV1_임대료', totalUnits: 776 },
+  { id: '에이팩시티', name: '동탄 에이팩시티', color: '#20c997', rentKey: '에이팩시티_임대료', totalUnits: 618 },
+  { id: '테라타워', name: '동탄 테라타워', color: '#0d9488', rentKey: '테라타워_임대료', totalUnits: 824 }, // Signature Urban Emerald
+  { id: 'IT타워', name: '동탄 IT타워', color: '#748ffc', rentKey: 'IT타워_임대료', totalUnits: 320 },
+  { id: '메가비즈타워', name: '동탄 메가비즈타워', color: '#da77f2', rentKey: '메가비즈타워_임대료', totalUnits: 168 },
+  { id: '비즈타워', name: '동탄 비즈타워', color: '#a9e34b', rentKey: '비즈타워_임대료', totalUnits: 276 }
 ];
+
+interface TooltipPayloadEntry {
+  dataKey?: string | number;
+  name?: string;
+  value: number;
+  color?: string;
+  stroke?: string;
+  payload?: any;
+}
+
+interface CustomTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadEntry[];
+  label?: string;
+  metricMode?: 'vacancy' | 'rent';
+}
+
+function ChartTooltip({ active, payload, label, metricMode }: CustomTooltipProps) {
+  if (active && payload && payload.length) {
+    const orderMap: Record<string, number> = {};
+    AVAILABLE_BUILDINGS.forEach((b, index) => {
+      orderMap[b.name] = index + 1;
+      orderMap[b.id] = index + 1;
+    });
+    orderMap['평균 공실률'] = 100;
+    orderMap['평균 임대료'] = 100;
+
+    const sortedPayload = [...payload].sort((a, b) => {
+      const nameA = a.name || '';
+      const nameB = b.name || '';
+      const orderA = orderMap[nameA] || 99;
+      const orderB = orderMap[nameB] || 99;
+      return orderA - orderB;
+    });
+
+    return (
+      <div className="bg-surface/95 dark:bg-zinc-900/90 p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2.5 min-w-[200px] transition-all duration-200 animate-tooltip-spring">
+        <div className="text-[12.5px] font-black text-primary border-b border-border/40 pb-1.5 mb-0.5">
+          {label} 기준 분석
+        </div>
+        <div className="flex flex-col gap-1.5">
+          {sortedPayload.map((entry, index) => {
+            const isAverage = entry.name?.includes('평균');
+            const color = entry.color || entry.stroke || '#845ef7';
+            const valueFormatted = metricMode === 'vacancy' 
+              ? `${entry.value.toFixed(1)}%` 
+              : `${entry.value.toFixed(2)}만`;
+
+            return (
+              <div key={index} className={`flex items-center justify-between gap-4 py-0.5 ${isAverage ? 'border-t border-border/40 pt-1.5 mt-1' : ''}`}>
+                <div className="flex items-center gap-2 min-w-0">
+                  <span 
+                    className="w-2.5 h-2.5 rounded-full shrink-0" 
+                    style={{ backgroundColor: color }} 
+                  />
+                  <span className={`text-[12px] truncate ${isAverage ? 'font-black text-primary' : 'font-bold text-secondary'}`}>
+                    {entry.name}
+                  </span>
+                </div>
+                <span className={`text-[13px] text-right shrink-0 ${isAverage ? 'font-black text-[#845ef7] dark:text-[#9775fa]' : 'font-extrabold text-primary'}`}>
+                  {valueFormatted}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+  return null;
+}
 
 export default function TechnoValleyDashboard() {
   const [mounted, setMounted] = useState(false);
@@ -346,8 +419,8 @@ export default function TechnoValleyDashboard() {
     const latest = trendData[trendData.length - 1] || TREND_DATA[TREND_DATA.length - 1];
     const prev = trendData[trendData.length - 2] || TREND_DATA[TREND_DATA.length - 2];
     
-    const latestVacancy = (latest['금강 IX'] + latest['실리콘앨리'] + latest['SH타임']) / 3;
-    const prevVacancy = (prev['금강 IX'] + prev['실리콘앨리'] + prev['SH타임']) / 3;
+    const latestVacancy = (latest['금강 IX'] + latest['실리콘앨리'] + latest['테라타워']) / 3;
+    const prevVacancy = (prev['금강 IX'] + prev['실리콘앨리'] + prev['테라타워']) / 3;
     const change = latestVacancy - prevVacancy;
     const isUp = change >= 0;
     
@@ -373,7 +446,7 @@ export default function TechnoValleyDashboard() {
     else if (timeframe === '1Y') sliced = trendData.slice(-5);
     
     return sliced.map((d: any) => {
-      const buildings = ['금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1', '에이팩시티', '테라타워', 'IT타워', '메가비즈타워', '비즈타워'];
+      const buildings = ['금강 IX', '실리콘앨리', '테라타워'];
       const values = buildings
         .map(b => d[b])
         .filter((v): v is number => typeof v === 'number' && v !== null);
@@ -389,7 +462,7 @@ export default function TechnoValleyDashboard() {
     });
   }, [trendData, timeframe]);
 
-  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'vacancy' | 'rent' | 'change'; direction: 'asc' | 'desc' }>({ key: 'vacancy', direction: 'asc' });
+  const [sortConfig, setSortConfig] = useState<{ key: 'name' | 'vacancy' | 'rent' | 'change' | 'units'; direction: 'asc' | 'desc' }>({ key: 'vacancy', direction: 'asc' });
 
   const sortedBuildings = useMemo(() => {
     const list = [...AVAILABLE_BUILDINGS];
@@ -400,6 +473,9 @@ export default function TechnoValleyDashboard() {
       if (sortConfig.key === 'name') {
         aVal = a.name;
         bVal = b.name;
+      } else if (sortConfig.key === 'units') {
+        aVal = a.totalUnits;
+        bVal = b.totalUnits;
       } else if (sortConfig.key === 'vacancy') {
         aVal = latestTrend?.[a.id] || 0;
         bVal = latestTrend?.[b.id] || 0;
@@ -423,16 +499,8 @@ export default function TechnoValleyDashboard() {
     return list;
   }, [latestTrend, trendData, sortConfig]);
 
-  const vacancyRankMap = useMemo(() => {
-    const sorted = [...AVAILABLE_BUILDINGS].sort((a, b) => {
-      const aVal = latestTrend?.[a.id] || 0;
-      const bVal = latestTrend?.[b.id] || 0;
-      return aVal - bVal;
-    });
-    return new Map(sorted.map((b, index) => [b.id, index + 1]));
-  }, [latestTrend]);
 
-  const handleSort = (key: 'name' | 'vacancy' | 'rent' | 'change') => {
+  const handleSort = (key: 'name' | 'vacancy' | 'rent' | 'change' | 'units') => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
       direction = 'desc';
@@ -616,20 +684,20 @@ export default function TechnoValleyDashboard() {
         {/* 2x2 KPI Cards Grid */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
           
-          {/* Card 1: Total Companies */}
+          {/* Card 1: Total Employees (NPS) */}
           <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">총 입주기업 수</span>
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[14px] sm:text-[16px] font-black text-primary">{totalCompanyCount.toLocaleString()}개사</span>
-                <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] dark:text-[#ea580c] flex items-center gap-0.5 shrink-0">
-                  ▲ 24
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">총 상주 근로자 수</span>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">25,257명</span>
+                <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 flex items-center gap-0.5 shrink-0">
+                  ▲ 109
                 </span>
               </div>
             </div>
             <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">앵커 15개사</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">첨단 {techRatio}%</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">신규 918명</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">퇴사 809명</span>
             </div>
           </div>
 
@@ -637,8 +705,8 @@ export default function TechnoValleyDashboard() {
           <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
               <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">평당 평균 임대료</span>
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[14px] sm:text-[16px] font-black text-primary">{rentKPI.value} 만원</span>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">{rentKPI.value}만원</span>
                 <span className={`text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                   rentKPI.isUp 
                     ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500' 
@@ -667,7 +735,7 @@ export default function TechnoValleyDashboard() {
                   <HelpCircle className="w-3 h-3" />
                 </button>
               </div>
-              <div className="flex items-baseline gap-1 flex-wrap">
+              <div className="flex items-baseline gap-1.5 flex-wrap">
                 <span className="text-[14px] sm:text-[16px] font-black text-primary">{vacancyKPI.value}%</span>
                 <span className={`text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                   vacancyKPI.isUp 
@@ -679,25 +747,25 @@ export default function TechnoValleyDashboard() {
               </div>
             </div>
             <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">SH {latestTrend['SH타임']}%</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">테라 {latestTrend['테라타워']}%</span>
               <span className="text-[10px] text-tertiary font-bold tracking-tight">앨리 {latestTrend['실리콘앨리']}%</span>
             </div>
           </div>
 
-          {/* Card 4: Activity Index */}
+          {/* Card 4: Avg Company Size (NPS-based) */}
           <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">지산 활성 지수</span>
-              <div className="flex items-baseline gap-1 flex-wrap">
-                <span className="text-[14px] sm:text-[16px] font-black text-primary">88.5 점</span>
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">기업별 평균 고용 규모</span>
+              <div className="flex items-baseline gap-1.5 flex-wrap">
+                <span className="text-[14px] sm:text-[16px] font-black text-primary">13.2명 / 사</span>
                 <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-500 flex items-center gap-0.5 shrink-0">
-                  ▲ 3.2
+                  ▲ 0.1
                 </span>
               </div>
             </div>
             <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">종합 S등급</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">집적도 92%</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">IT·제조 18.6명</span>
+              <span className="text-[10px] text-tertiary font-bold tracking-tight">소호 3.4명</span>
             </div>
           </div>
 
@@ -791,13 +859,13 @@ export default function TechnoValleyDashboard() {
           ))}
           
           {metricMode === 'rent' ? (
-            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#8b5cf6] py-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0" />
+            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#845ef7] py-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#845ef7] shrink-0" />
               <span>평균 임대료</span>
             </div>
           ) : (
-            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#8b5cf6] py-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#8b5cf6] shrink-0" />
+            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#845ef7] py-1">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#845ef7] shrink-0" />
               <span>평균 공실률</span>
             </div>
           )}
@@ -830,16 +898,7 @@ export default function TechnoValleyDashboard() {
                   }}
                   unit={metricMode === 'vacancy' ? '%' : '만'}
                 />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: '#ffffff', 
-                    borderColor: '#e5e8eb', 
-                    borderRadius: '16px', 
-                    fontSize: '11px',
-                    fontWeight: 700,
-                    boxShadow: '0 4px 16px rgba(0,0,0,0.06)'
-                  }}
-                />
+                <Tooltip content={<ChartTooltip metricMode={metricMode} />} />
                 {metricMode === 'vacancy' ? (
                   <>
                     {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
@@ -858,7 +917,7 @@ export default function TechnoValleyDashboard() {
                       type="monotone" 
                       dataKey="평균공실률" 
                       name="평균 공실률"
-                      stroke="#8b5cf6" 
+                      stroke={AVERAGE_LINE_COLOR} 
                       strokeWidth={2.5} 
                       strokeDasharray="4 4"
                       dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
@@ -883,7 +942,7 @@ export default function TechnoValleyDashboard() {
                       type="monotone" 
                       dataKey="평균임대료" 
                       name="평균 임대료"
-                      stroke="#8b5cf6" 
+                      stroke={AVERAGE_LINE_COLOR} 
                       strokeWidth={2.5} 
                       strokeDasharray="4 4"
                       dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
@@ -1102,46 +1161,54 @@ export default function TechnoValleyDashboard() {
       {/* AI 공실률 추정 도움말 모달 */}
       {showHelpModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300">
-          <div className="bg-surface/95 border border-border/80 rounded-[32px] shadow-2xl p-8 md:p-10 max-w-xl w-full relative animate-in fade-in zoom-in-95 duration-200">
-            <h4 className="text-[19px] font-black text-primary mb-4 flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-hs-orange" />
-              AI 공실률 추정 메커니즘
+          <div className="bg-surface/95 border border-border/80 rounded-[32px] shadow-2xl p-10 md:p-12 max-w-4xl w-full relative animate-in fade-in zoom-in-95 duration-200">
+            <h4 className="text-[22px] font-black text-primary mb-6 flex items-center gap-2">
+              <span className="w-3.5 h-3.5 rounded-full bg-hs-orange" />
+              AI 공실률 추정 메커니즘 (하이브리드 모델)
             </h4>
             
-            <div className="flex flex-col gap-4 text-[13.5px] text-secondary leading-relaxed font-semibold">
-              <p className="leading-relaxed font-medium">
-                D-VIEW의 공실률은 실시간 파악이 어려운 지식산업센터의 특성을 고려하여 
-                공공 데이터를 기반으로 다각 추정하는 <strong>하이브리드 AI 연산 모델</strong>을 사용합니다.
+            <div className="flex flex-col gap-6 text-[15px] text-secondary leading-relaxed font-semibold">
+              <p className="leading-relaxed font-semibold text-primary">
+                D-VIEW의 공실률은 실시간 파악이 어려운 지식산업센터의 특성을 해결하기 위해 
+                국토부 실거래 정보와 국민연금공단(NPS) 고용 빅데이터를 결합한 <strong>하이브리드 추정 모델</strong>을 사용합니다.
               </p>
               
-              <div className="p-5 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-2.5 shadow-sm">
-                <div className="flex justify-between items-center text-[13.5px]">
-                  <span className="font-black text-[#ea580c]">⚡ 건물 전력 실측 소비량</span>
-                  <span className="font-extrabold text-primary">실측 기반 연산</span>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-2">
+                {/* Layer 1 */}
+                <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
+                  <span className="font-black text-[#ea580c] text-[14.5px] flex items-center gap-1.5">
+                    🏢 1단계: 실거래 베이스라인
+                  </span>
+                  <p className="text-[13px] text-tertiary leading-relaxed font-medium">
+                    국토교통부 매매/임대 거래량을 파악하고, 거래 면적에 따른 실입주 가중치(Tx Weight)를 부여해 공간의 실질 계약 점유율을 1차 산출합니다.
+                  </p>
                 </div>
-                <p className="text-[11.5px] text-tertiary leading-relaxed font-normal">
-                  국가건물에너지사용량(전기) API의 검침 전력량을 분석해 실시간 가동 점유율을 추정합니다. 단, 공공데이터 정책상 산업용 전력 제한 규정 등으로 포털에 전력량이 등재되지 않는 단지는 실거래가 기반으로 자동 대체 가동됩니다.
-                </p>
-              </div>
 
-              <div className="p-5 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-2.5 shadow-sm">
-                <div className="flex justify-between items-center text-[13.5px]">
-                  <span className="font-black text-blue-600 dark:text-toss-blue">🔄 규모 비례형 임대 실거래가 역산</span>
-                  <span className="font-extrabold text-primary">호수 규모 비례 역산</span>
+                {/* Layer 2 */}
+                <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
+                  <span className="font-black text-blue-600 dark:text-toss-blue text-[14.5px] flex items-center gap-1.5">
+                    📊 2단계: 국민연금 고용 보정
+                  </span>
+                  <p className="text-[13px] text-tertiary leading-relaxed font-medium">
+                    실제 동탄에 상주하는 근로자 수와 고용 증감률을 분석하여, 5인 미만 사업장 누락 및 주소지 불일치 한계를 상쇄한 거시 고용 보정치(macroBonus)를 반영합니다.
+                  </p>
                 </div>
-                <p className="text-[11.5px] text-tertiary leading-relaxed font-normal">
-                  국세청 사업자등록 및 세무서 확정일자 연계를 거쳐 공공 DB에 수집되는 국토부 임대차 실거래 계약 건수를 직접 활용합니다. 각 지산 단지별 실제 공식 총 호수를 분모로 적용하여 단지 크기에 부합하는 공실 해소율을 역추산합니다.
-                </p>
-              </div>
 
-              <p className="text-[11.5px] text-tertiary mt-2 bg-neutral-100 dark:bg-zinc-800 p-3 rounded-xl border border-border/40 text-center font-normal">
-                ※ 데이터 무결성 정책에 따라 가짜 모사 값을 쓰지 않으며, 전력 실측 및 실거래 계약 변동에 의거하여 실시간 자동 갱신됩니다.
-              </p>
+                {/* Layer 3 */}
+                <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
+                  <span className="font-black text-violet-600 text-[14.5px] flex items-center gap-1.5">
+                    🔄 3단계: 자연 퇴거율 결합
+                  </span>
+                  <p className="text-[13px] text-tertiary leading-relaxed font-medium">
+                    지식산업센터의 연면적 규모(GFA 집적 효과)와 계약 만기/기업 이전에 따른 시계열 자연 퇴거율(Dynamic Turnover) 모델을 최종 결합해 실시간 공실률을 도출합니다.
+                  </p>
+                </div>
+              </div>
             </div>
 
             <button
               onClick={() => setShowHelpModal(false)}
-              className="mt-6 w-full py-3 bg-primary text-surface font-extrabold text-[12.5px] rounded-xl hover:bg-primary/95 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
+              className="mt-8 w-full py-3.5 bg-primary text-surface font-extrabold text-[13.5px] rounded-xl hover:bg-primary/95 transition-all cursor-pointer shadow-sm active:scale-[0.98]"
             >
               닫기
             </button>
@@ -1238,15 +1305,7 @@ export default function TechnoValleyDashboard() {
                         tick={{ fontSize: 9.5, fontWeight: 700, fill: '#6b7280' }}
                         unit={metricMode === 'vacancy' ? '%' : '만'}
                       />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: '#ffffff', 
-                          borderColor: '#e5e8eb', 
-                          borderRadius: '12px', 
-                          fontSize: '10px',
-                          fontWeight: 700
-                        }}
-                      />
+                      <Tooltip content={<ChartTooltip metricMode={metricMode} />} />
                       {metricMode === 'vacancy' ? (
                         <>
                           {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
@@ -1265,7 +1324,7 @@ export default function TechnoValleyDashboard() {
                             type="monotone" 
                             dataKey="평균공실률" 
                             name="평균 공실률"
-                            stroke="#8b5cf6" 
+                            stroke={AVERAGE_LINE_COLOR} 
                             strokeWidth={2} 
                             strokeDasharray="4 4"
                             dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
@@ -1290,7 +1349,7 @@ export default function TechnoValleyDashboard() {
                             type="monotone" 
                             dataKey="평균임대료" 
                             name="평균 임대료"
-                            stroke="#8b5cf6" 
+                            stroke={AVERAGE_LINE_COLOR} 
                             strokeWidth={2} 
                             strokeDasharray="4 4"
                             dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
@@ -1325,7 +1384,7 @@ export default function TechnoValleyDashboard() {
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
-                        <span>{b.name}</span>
+                        <span>{b.name} <span className="opacity-80 font-normal">({b.totalUnits.toLocaleString()}호)</span></span>
                       </button>
                     );
                   })}
@@ -1341,6 +1400,9 @@ export default function TechnoValleyDashboard() {
                         <th className="py-2.5 px-3 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
                           단지명 <span className={sortConfig.key === 'name' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
+                        <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('units')}>
+                          총 호수 <span className={sortConfig.key === 'units' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'units' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                        </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('vacancy')}>
                           공실률 <span className={sortConfig.key === 'vacancy' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'vacancy' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
@@ -1353,12 +1415,12 @@ export default function TechnoValleyDashboard() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40 text-[11px] font-bold text-secondary">
-                      {sortedBuildings.map(b => {
+                      {sortedBuildings.map((b, index) => {
                         const firstVal = trendData[0]?.[b.id] || 0;
                         const latestVal = latestTrend?.[b.id] || 0;
                         const latestRent = latestTrend?.[b.rentKey] || 0;
                         const change = latestVal - firstVal;
-                        const rank = vacancyRankMap.get(b.id) || 10;
+                        const rank = index + 1;
                         
                         let rankBadge = '';
                         if (rank === 1) rankBadge = '🥇';
@@ -1378,7 +1440,12 @@ export default function TechnoValleyDashboard() {
                                 {rankBadge}
                               </span>
                               <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
-                              <span className="truncate max-w-[100px]" title={b.name}>{b.name}</span>
+                              <span className="truncate max-w-[150px]" title={b.name}>
+                                {b.name}
+                              </span>
+                            </td>
+                            <td className="py-2.5 px-3 text-right text-secondary font-extrabold">
+                              {b.totalUnits.toLocaleString()}호
                             </td>
                             <td className="py-2.5 px-3 text-right">
                               <span className={vacancyColor}>{latestVal}%</span>

@@ -170,7 +170,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     // Clear old SWR localStorage cache to ensure returning users get fresh data
     try {
       if (typeof window !== 'undefined') {
-        localStorage.removeItem('drive-swr-cache');
+        localStorage.removeItem('dview-swr-cache');
       }
     } catch {}
 
@@ -188,10 +188,10 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // 🔧 Multi-tab LocalStorage synchronization
     const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'drive_quiz_answers') {
-        window.dispatchEvent(new Event('drive_quiz_answers_changed'));
-      } else if (e.key === 'drive_viewed_apts') {
-        window.dispatchEvent(new Event('drive_viewed_apts_changed'));
+      if (e.key === 'dview_quiz_answers') {
+        window.dispatchEvent(new Event('dview_quiz_answers_changed'));
+      } else if (e.key === 'dview_viewed_apts') {
+        window.dispatchEvent(new Event('dview_viewed_apts_changed'));
       }
     };
     window.addEventListener('storage', handleStorageChange);
@@ -238,7 +238,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     // 🔧 Service Worker message handler for cache expiration detection
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'CACHE_EXPIRED_WARNING') {
-        if (sessionStorage.getItem('drive_cache_expired_warned') === 'true') {
+        if (sessionStorage.getItem('dview_cache_expired_warned') === 'true') {
           return;
         }
         if (typeof window !== 'undefined' && !navigator.onLine) {
@@ -264,8 +264,8 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       setShowCustomA2HSModal(false);
 
       // Add PWA reward passes to localStorage
-      const currentPasses = Number(localStorage.getItem('drive_free_passes') || '0');
-      localStorage.setItem('drive_free_passes', (currentPasses + 3).toString());
+      const currentPasses = Number(localStorage.getItem('dview_free_passes') || '0');
+      localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
 
       setToastMessage('🎉 홈화면 앱 설치 완료! 모바일에서 더 빠르고 편하게 분석 리포트를 확인해 보세요.');
       if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
@@ -617,7 +617,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[24px] shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none">
           <div className="flex items-center gap-2.5">
             <span className="text-[12.5px] leading-relaxed flex-1">
-              🚀 새로운 버전의 DRIVE 앱이 준비되었습니다. 최신 시세 정보와 기능을 바로 적용해 보세요!
+              🚀 새로운 버전의 DVIEW 앱이 준비되었습니다. 최신 시세 정보와 기능을 바로 적용해 보세요!
             </span>
           </div>
           <div className="flex gap-2">
@@ -668,7 +668,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
               
               <button
                 onClick={() => {
-                  sessionStorage.setItem('drive_cache_expired_warned', 'true');
+                  sessionStorage.setItem('dview_cache_expired_warned', 'true');
                   setShowCacheExpiredModal(false);
                 }}
                 className="w-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-[13px] font-bold py-2.5 px-4 rounded-[14px] transition-colors cursor-pointer"

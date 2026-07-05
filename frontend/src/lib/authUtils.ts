@@ -35,7 +35,7 @@ export async function verifyAuthHeader(request: NextRequest): Promise<DecodedTok
 
   // 1. Try to read from Secure HttpOnly Cookie (Highest Security)
   const isDev = process.env.NODE_ENV === 'development';
-  const sessionCookie = request.cookies.get(isDev ? 'DRIVE-Session' : '__Secure-DRIVE-Session')?.value || request.cookies.get('__Secure-DRIVE-Session')?.value;
+  const sessionCookie = request.cookies.get(isDev ? 'DVIEW-Session' : '__Secure-DVIEW-Session')?.value || request.cookies.get('__Secure-DVIEW-Session')?.value;
   if (sessionCookie) {
     try {
       const cached = sessionCache.get(sessionCookie);

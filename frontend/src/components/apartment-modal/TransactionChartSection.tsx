@@ -500,7 +500,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         useCORS: true,
         onclone: (clonedDoc: Document) => {
           // You can modify cloned DOM here if needed
-          const watermark = clonedDoc.getElementById('drive-watermark');
+          const watermark = clonedDoc.getElementById('dview-watermark');
           if (watermark) {
             watermark.style.opacity = '1';
             watermark.style.color = '#8b95a1';
@@ -509,7 +509,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       });
       const dataUrl = canvas.toDataURL('image/png');
       const link = document.createElement('a');
-      link.download = `DRIVE_${displayAptName}_${chartType === 'sale' ? '매매' : '전월세'}_차트.png`;
+      link.download = `DVIEW_${displayAptName}_${chartType === 'sale' ? '매매' : '전월세'}_차트.png`;
       link.href = dataUrl;
       link.click();
     } catch (err) {
@@ -540,7 +540,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
           />
         )}
         {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
-        <div id="drive-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
+        <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
           <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>
           <span className="text-[10px] md:text-[12px] font-bold text-tertiary">dongtanview.com</span>
         </div>

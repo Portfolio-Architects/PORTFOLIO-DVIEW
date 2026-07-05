@@ -388,7 +388,7 @@ export default function RelocationTaxSimulator() {
                     required
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="예: (주)드라이브소프트"
+                    placeholder="예: (주)디뷰소프트"
                     className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
                   />
                 </div>

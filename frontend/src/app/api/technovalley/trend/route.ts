@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOfficeTransactions } from '@/lib/services/officeTx.service';
-import { getEnergyVacancyEstimation } from '@/lib/services/energy.service';
 import { logger } from '@/lib/services/logger';
 import fs from 'fs';
 import path from 'path';
@@ -133,47 +132,61 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    logger.info('GET /api/technovalley/trend', 'Fetching raw transactions and energy vacancy estimations in parallel...');
+    logger.info('GET /api/technovalley/trend', 'Fetching raw transactions in parallel...');
 
-    const [rawResults, vacancyResults] = await Promise.all([
-      Promise.all(
-        TARGET_MONTHS.map(async (ym) => {
-          try {
-            const [list90, list97] = await Promise.all([
-              getOfficeTransactions('41590', ym),
-              getOfficeTransactions('41597', ym)
-            ]);
-            return { ym, list: [...list90, ...list97] };
-          } catch (e) {
-            logger.error('GET /api/technovalley/trend', `Failed to fetch transactions for ${ym}`, {}, e);
-            return { ym, list: [] };
-          }
-        })
-      ),
-      Promise.all(
-        TARGET_MONTHS.map(async (ym) => {
-          try {
-            const est = await getEnergyVacancyEstimation('41590', ym);
-            return { ym, est };
-          } catch (e) {
-            logger.error('GET /api/technovalley/trend', `Failed to estimate vacancy for ${ym}`, {}, e);
-            return { ym, est: {} as Record<string, number> };
-          }
-        })
-      )
-    ]);
+    const rawResults = await Promise.all(
+      TARGET_MONTHS.map(async (ym) => {
+        try {
+          const [list90, list97] = await Promise.all([
+            getOfficeTransactions('41590', ym),
+            getOfficeTransactions('41597', ym)
+          ]);
+          return { ym, list: [...list90, ...list97] };
+        } catch (e) {
+          logger.error('GET /api/technovalley/trend', `Failed to fetch transactions for ${ym}`, {}, e);
+          return { ym, list: [] };
+        }
+      })
+    );
 
     // Load building metadata dynamically from JSON database
     const jisanDbPath = path.join(process.cwd(), 'src/lib/data/yeongcheon_jisan_units.json');
     const jisanDb = JSON.parse(fs.readFileSync(jisanDbPath, 'utf8'));
 
     const BUILDING_TOTAL_UNITS: Record<string, number> = {};
+    const BUILDING_GFA: Record<string, number> = {};
     const BASELINE_VACANCY_2411: Record<string, number> = {};
 
     jisanDb.forEach((b: any) => {
       BUILDING_TOTAL_UNITS[b.id] = b.totalUnits;
+      BUILDING_GFA[b.id] = b.gfa || 50000;
       BASELINE_VACANCY_2411[b.id] = b.baselineVacancy;
     });
+
+    // Load NPS Macro stats dynamically and calculate multi-factor macro market heat bonus
+    let macroBonus = 0;
+    try {
+      const npsDbPath = path.join(process.cwd(), 'src/lib/data/nps_stats.json');
+      if (fs.existsSync(npsDbPath)) {
+        const npsData = JSON.parse(fs.readFileSync(npsDbPath, 'utf8'));
+        const totalEmp = npsData.stats?.yeongcheonDong?.totalEmployees || 0;
+        const compCount = npsData.stats?.yeongcheonDong?.companiesCount || 1;
+        const newHires = npsData.stats?.yeongcheonDong?.newHires || 0;
+        const departures = npsData.stats?.yeongcheonDong?.departures || 0;
+        
+        // 1. Regional Scale Factor: based on total employee/employer size
+        const scaleFactor = (totalEmp / 100000) * (compCount / 10000); // e.g. ~0.048% reduction
+        
+        // 2. Job Growth Velocity Factor: based on net hires rate
+        const netHires = newHires - departures;
+        const jobGrowthRate = totalEmp > 0 ? (netHires / totalEmp) : 0;
+        const growthFactor = jobGrowthRate * 1.5; // Scale net hiring velocity
+        
+        macroBonus = scaleFactor + Math.max(0, growthFactor);
+      }
+    } catch (e) {
+      logger.warn('GET /api/technovalley/trend', 'Could not load NPS stats', {}, e);
+    }
 
     // Tracking stateful vacancy across timeline months sequentially
     const currentVacancy = { ...BASELINE_VACANCY_2411 };
@@ -198,6 +211,11 @@ export async function GET(request: NextRequest) {
 
       // Count monthly transactions per building to reflect actual movement
       const rentTxCounts: Record<string, number> = {
+        '금강 IX': 0, '실리콘앨리': 0, 'SH타임': 0, '더퍼스트': 0, 'SK V1': 0,
+        '에이팩시티': 0, '테라타워': 0, 'IT타워': 0, '메가비즈타워': 0, '비즈타워': 0
+      };
+      // Count size-scaled transaction weights per building
+      const rentTxWeights: Record<string, number> = {
         '금강 IX': 0, '실리콘앨리': 0, 'SH타임': 0, '더퍼스트': 0, 'SK V1': 0,
         '에이팩시티': 0, '테라타워': 0, 'IT타워': 0, '메가비즈타워': 0, '비즈타워': 0
       };
@@ -261,6 +279,13 @@ export async function GET(request: NextRequest) {
 
         if (key) {
           rentTxCounts[key] += 1;
+          
+          // Apply size-based heuristics (Larger areas have higher prob of actual occupancy)
+          let txWeight = 1.0;
+          if (tx.sizeSqM >= 100) txWeight = 1.5;
+          else if (tx.sizeSqM <= 50) txWeight = 0.5;
+          rentTxWeights[key] += txWeight;
+
           const pyeong = tx.sizeSqM / 3.3058;
           if (pyeong > 0) {
             const pricePerPyeong = tx.priceRaw / pyeong;
@@ -303,24 +328,29 @@ export async function GET(request: NextRequest) {
       const allRents = [rentGold, rentSilver, rentBronze, rentFirst, rentSk, rentApex, rentTerra, rentIt, rentMega, rentBiz];
       const avgRent = parseFloat((allRents.reduce((a, b) => a + b, 0) / allRents.length).toFixed(2));
 
-      // Calculate vacancy rates based on energy estimation with size-scaled transaction fallback
-      const vEst = vacancyResults.find(v => v.ym === ym)?.est;
-      
+      // Calculate vacancy rates based on size-weighted transaction model, NPS macro trends, and building scale (GFA)
       const getVacancyRate = (key: string): number => {
-        const energyValue = vEst ? vEst[key] : null;
-        // Priority 1: Real public electricity data if available
-        if (energyValue !== null && energyValue !== undefined) {
-          currentVacancy[key] = energyValue;
-          return energyValue;
+        const txWeightSum = rentTxWeights[key] || 0;
+        const totalUnits = BUILDING_TOTAL_UNITS[key] || 500;
+        const gfa = BUILDING_GFA[key] || 50000;
+        
+        // 1.5 base units moved per weight, scaled against total building units
+        const reductionPercent = (txWeightSum * 1.5 / totalUnits) * 100;
+        
+        // 1. Building-specific physical scale factor (GFA agglomeration effect)
+        // Larger buildings with rich infrastructure naturally attract and stabilize tenants faster.
+        const buildingScaleFactor = Math.min(1.5, Math.max(0.8, gfa / 100000));
+        const finalReduction = reductionPercent * buildingScaleFactor;
+        
+        // 2. Dynamic turnover modeling: newer buildings have faster natural decay (simulated here)
+        let turnoverRate = 0.2; // base +0.2% vacancy increase (turnover)
+        if (['실리콘앨리', '금강 IX'].includes(key) && Number(ym) < 202601) {
+           // Younger phase: filling up naturally faster
+           turnoverRate = -0.5;
         }
         
-        // Priority 2: Safe real estate transaction scaling based on building size
-        const txCount = rentTxCounts[key] || 0;
-        const totalUnits = BUILDING_TOTAL_UNITS[key] || 500;
-        // Average 1.5 units moved per transaction, scaled against total building units
-        const reductionPercent = (txCount * 1.5 / totalUnits) * 100;
-        // Apply decay with a natural small turnover vacancy increase (0.2%)
-        const estimatedVacancy = Math.max(2.0, currentVacancy[key] - reductionPercent + 0.2);
+        // Apply decay with GFA-scaled reduction, dynamic turnover, and NPS multi-factor macro bonus
+        const estimatedVacancy = Math.max(2.0, currentVacancy[key] - finalReduction + turnoverRate - macroBonus);
         currentVacancy[key] = estimatedVacancy;
         return estimatedVacancy;
       };

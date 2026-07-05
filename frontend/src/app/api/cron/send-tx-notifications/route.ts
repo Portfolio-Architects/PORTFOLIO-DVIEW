@@ -13,7 +13,7 @@ const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || 'YCeNPk2VFyunF4yNgdtqTh
 
 try {
   webpush.setVapidDetails(
-    'mailto:admin@drive.kr',
+    'mailto:admin@dview.kr',
     vapidPublicKey,
     vapidPrivateKey
   );
@@ -37,7 +37,7 @@ export async function GET(req: Request) {
     
     // Security check: CRON_SECRET verification
     const authHeader = req.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'drive-default-cron-secret-2026';
+    const cronSecret = process.env.CRON_SECRET || 'dview-default-cron-secret-2026';
     const host = req.headers.get('host') || '';
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
 
@@ -126,7 +126,7 @@ export async function GET(req: Request) {
         // Send a notification for each new transaction (or summarize if multiple)
         for (const tx of aptTransactions) {
           const payload = JSON.stringify({
-            title: '🔔 DRIVE 실거래가 알림',
+            title: '🔔 DVIEW 실거래가 알림',
             body: `${tx.aptName} ${Math.round(tx.areaPyeong)}평형 ${tx.floor}층이 ${tx.priceEok}에 실거래 등록되었습니다!`,
             url: `/apartment/${encodeURIComponent(tx.aptName)}`
           });

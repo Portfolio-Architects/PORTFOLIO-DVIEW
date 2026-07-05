@@ -105,7 +105,7 @@ async function check() {
   }
 
   let report = `=========================================\n`;
-  report += `📊 DRIVE DATA CONSISTENCY INTEGRITY REPORT\n`;
+  report += `📊 DVIEW DATA CONSISTENCY INTEGRITY REPORT\n`;
   report += `=========================================\n`;
   report += `Generated At: ${new Date().toISOString()}\n\n`;
   report += `Sheet count: ${lines.length - 1}\n`;
