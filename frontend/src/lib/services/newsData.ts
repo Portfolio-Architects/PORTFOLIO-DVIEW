@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { googleNewsItemSchema, noticeSchema } from '@/lib/validation/facade.schemas';
 import * as NewsRepo from '@/lib/repositories/news.repository';
+import { redis } from '@/lib/redis';
 
 const parser = new Parser();
 
@@ -37,6 +38,18 @@ export interface NewsItem {
 }
 
 export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
+  const cacheKey = `DTDLS:cache:macroNews:${limit}`;
+  if (redis) {
+    try {
+      const cached = await redis.get<NewsItem[]>(cacheKey);
+      if (cached) {
+        return cached;
+      }
+    } catch (cacheErr) {
+      logger.warn('newsData.getMacroNews', 'Redis read error, falling back to network', {}, cacheErr as Error);
+    }
+  }
+
   try {
     // Google News RSS Search Query for "동탄 부동산"
     const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
@@ -81,7 +94,7 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
 
     const slicedItems = rawItems.slice(0, limit);
 
-    return slicedItems.map((item, index) => {
+    const newsItems = slicedItems.map((item, index) => {
       const parsedItem = googleNewsItemSchema.safeParse(item);
       let title = '';
       let link = '';
@@ -141,6 +154,14 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
         pubDate: pubDate,
       };
     });
+
+    if (redis && newsItems.length > 0) {
+      redis.set(cacheKey, newsItems, { ex: 600 }).catch(e =>
+        logger.warn('newsData.getMacroNews', 'Redis write error', {}, e as Error)
+      );
+    }
+
+    return newsItems;
   } catch (error) {
     logger.error('newsData.getMacroNews', 'Error during getMacroNews', {}, error as Error);
     return [];
