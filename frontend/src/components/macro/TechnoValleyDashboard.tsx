@@ -543,74 +543,73 @@ export default function TechnoValleyDashboard() {
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-6 flex-1 min-h-[240px] sm:px-4">
-            {/* Donut Chart Container */}
-            <div className="w-[200px] h-[200px] sm:w-[250px] sm:h-[250px] relative flex items-center justify-center shrink-0 sm:translate-x-4">
-              {mounted ? (
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={donutData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="65%"
-                      outerRadius="90%"
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      {donutData.map((entry: any, index: number) => {
-                        const isSelected = activeCategory === entry.name;
-                        return (
-                          <Cell 
-                             key={`cell-${index}`} 
-                             fill={entry.color} 
-                             stroke={isSelected ? '#ffffff' : 'none'}
-                             strokeWidth={isSelected ? 3 : 0}
-                             opacity={activeCategory === null || isSelected ? 1 : 0.6}
-                             style={{ outline: 'none', cursor: 'pointer' }}
-                             onClick={() => setActiveCategory(isSelected ? null : entry.name)}
-                          />
-                        );
-                      })}
-                    </Pie>
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="w-[140px] h-[140px] sm:w-[200px] sm:h-[200px] rounded-full border-[24px] border-border/10 animate-pulse" />
-              )}
-              
-              {/* Center text */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none mt-1 select-none">
-                {activeItem ? (
-                  <>
-                    <span className="text-[12px] sm:text-[13.5px] text-tertiary font-bold tracking-tight px-3 truncate max-w-[150px]">
-                      {activeItem.name}
-                    </span>
-                    <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
-                      {activeItem.value}%
-                    </span>
-                    <span className="text-[11.5px] sm:text-[13px] text-secondary font-extrabold mt-0.5 bg-neutral-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-full">
-                      {activeItem.count ? `${activeItem.count.toLocaleString()}개` : ''}
-                    </span>
-                  </>
+          <div className="grid grid-cols-1 sm:grid-cols-10 gap-6 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
+            {/* Donut Chart Container (60%) */}
+            <div className="col-span-1 sm:col-span-6 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-8 py-2">
+              <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
+                {mounted ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={donutData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius="65%"
+                        outerRadius="90%"
+                        paddingAngle={3}
+                        dataKey="value"
+                      >
+                        {donutData.map((entry: any, index: number) => {
+                          const isSelected = activeCategory === entry.name;
+                          return (
+                            <Cell 
+                               key={`cell-${index}`} 
+                               fill={entry.color} 
+                               stroke={isSelected ? '#ffffff' : 'none'}
+                               strokeWidth={isSelected ? 3 : 0}
+                               opacity={activeCategory === null || isSelected ? 1 : 0.6}
+                               style={{ outline: 'none', cursor: 'pointer' }}
+                               onClick={() => setActiveCategory(isSelected ? null : entry.name)}
+                            />
+                          );
+                        })}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
                 ) : (
-                  <>
-                    <span className="text-[12.5px] sm:text-[14px] text-tertiary font-bold tracking-tight">
-                      총 기업 수
-                    </span>
-                    <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
-                      {totalCompanyCount.toLocaleString()}개
-                    </span>
-                  </>
+                  <div className="w-[140px] h-[140px] sm:w-[200px] sm:h-[200px] rounded-full border-[24px] border-border/10 animate-pulse" />
                 )}
+                
+                {/* Center text */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none mt-1 select-none">
+                  {activeItem ? (
+                    <>
+                      <span className="text-[12px] sm:text-[13.5px] text-tertiary font-bold tracking-tight px-3 truncate max-w-[150px]">
+                        {activeItem.name}
+                      </span>
+                      <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
+                        {activeItem.value}%
+                      </span>
+                      <span className="text-[11.5px] sm:text-[13px] text-secondary font-extrabold mt-0.5 bg-neutral-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-full">
+                        {activeItem.count ? `${activeItem.count.toLocaleString()}개` : ''}
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-[12.5px] sm:text-[14px] text-tertiary font-bold tracking-tight">
+                        총 기업 수
+                      </span>
+                      <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
+                        {totalCompanyCount.toLocaleString()}개
+                      </span>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* Responsive Divider Line */}
-            <div className="w-11/12 sm:w-[1px] h-[1px] sm:h-36 bg-border/50 dark:bg-border/30 my-4 sm:my-0 shrink-0 self-center sm:translate-x-2" />
-
-            {/* Donut Legend */}
-            <div className="w-full sm:flex-1 flex flex-col gap-2.5 sm:gap-3 mt-4 sm:mt-0 max-w-[240px] mx-auto sm:mx-0 sm:ml-auto">
+            {/* Donut Legend (40%) */}
+            <div className="col-span-1 sm:col-span-4 flex flex-col gap-2.5 sm:gap-3 w-full sm:pl-8 mt-4 sm:mt-0">
               {activeCategory === null ? (
                 donutData.map((item: any, index: number) => (
                   <div 
