@@ -278,6 +278,21 @@ export default function TechnoValleyDashboard() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+
+  // Prevent background scroll when any modal is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') return;
+    const isAnyModalOpen = showHelpModal || showDetailModal;
+    const originalStyle = window.getComputedStyle(document.body).overflow;
+    if (isAnyModalOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+    };
+  }, [showHelpModal, showDetailModal]);
   
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', '테라타워', '더퍼스트', 'SK V1']);
   const REPRESENTATIVE_BUILDINGS = ['금강 IX', '실리콘앨리', '테라타워'];

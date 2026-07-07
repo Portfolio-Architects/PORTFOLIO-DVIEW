@@ -1,19 +1,17 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { Coins, HelpCircle, Check, Copy, Share2, PhoneCall, Sparkles } from 'lucide-react';
+import { Coins, HelpCircle, Check, Copy, Share2 } from 'lucide-react';
 
 export default function RelocationTaxSimulator() {
   // 1. Inputs
   const [existingLocation, setExistingLocation] = useState<'overconcentrated' | 'other'>('overconcentrated');
 
   // Timer refs to prevent memory leaks in async handlers on unmount
-  const consultingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     return () => {
-      if (consultingTimeoutRef.current) clearTimeout(consultingTimeoutRef.current);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
     };
   }, []);
@@ -21,12 +19,6 @@ export default function RelocationTaxSimulator() {
   const [purchasePrice, setPurchasePrice] = useState<number>(60000); // 단위: 만원 (기본 6억원)
   const [annualPropTax, setAnnualPropTax] = useState<number>(200); // 단위: 만원 (기본 200만원)
 
-  // Form states for consulting modal
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [companyName, setCompanyName] = useState('');
-  const [contactName, setContactName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
 
   // 2. Calculation Logic
@@ -74,7 +66,7 @@ export default function RelocationTaxSimulator() {
       `  - 법인세/소득세 감면 (6개년): ${formatKoreanPrice(corpTaxSavings)}\n` +
       `  - 취득세 감면 (최초 1회): ${formatKoreanPrice(acquisitionTaxSavings)}\n` +
       `  - 재산세 감면 (5개년 누적): ${formatKoreanPrice(propTaxSavings)}\n` +
-      `* 본 결과는 시뮬레이션 추정치이며, 상세 내역은 D-VIEW 전문 세무 컨설팅을 통해 확인하실 수 있습니다.`;
+      `* 본 결과는 지방세특례제한법 및 조세특례제한법 기준 시뮬레이션 추정치입니다.`;
 
     try {
       navigator.clipboard.writeText(text);
@@ -87,23 +79,6 @@ export default function RelocationTaxSimulator() {
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
-  };
-
-  const handleConsultingSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!companyName || !contactName || !phoneNumber) return;
-    setIsSubmitted(true);
-    if (consultingTimeoutRef.current) clearTimeout(consultingTimeoutRef.current);
-    consultingTimeoutRef.current = setTimeout(() => {
-      setIsSubmitted(false);
-      setIsModalOpen(false);
-      // Reset form
-      setCompanyName('');
-      setContactName('');
-      setPhoneNumber('');
-      alert('전문 세무 컨설팅 매칭이 완료되었습니다. 24시간 이내 연락처로 상담사가 배정되어 안내해 드리겠습니다.');
-      consultingTimeoutRef.current = null;
-    }, 1500);
   };
 
   return (
@@ -316,11 +291,11 @@ export default function RelocationTaxSimulator() {
           </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-3 mt-4 pt-4 border-t border-border/40">
+        <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border/40">
           <button
             type="button"
             onClick={handleCopy}
-            className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-border/80 bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-border/80 bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
           >
             {isCopied ? (
               <>
@@ -334,112 +309,9 @@ export default function RelocationTaxSimulator() {
               </>
             )}
           </button>
-          
-          <button
-            type="button"
-            onClick={() => setIsModalOpen(true)}
-            className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-hs-orange hover:bg-hs-orange/95 text-white text-[12px] font-black cursor-pointer transition-all active:scale-[0.98] shadow-sm"
-          >
-            <PhoneCall size={15} />
-            <span>세무 컨설팅 매칭</span>
-          </button>
         </div>
       </div>
     </div>
-
-      {/* ═══ CONSULTING REQUEST MODAL ═══ */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div 
-            className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto"
-            role="dialog"
-            aria-modal="true"
-          >
-            {/* Close Button */}
-            <button
-              onClick={() => setIsModalOpen(false)}
-              className="absolute top-4 right-4 text-tertiary hover:text-primary transition-all p-1 text-[18px] cursor-pointer font-bold"
-              aria-label="모달 닫기"
-            >
-              &times;
-            </button>
-
-            <div className="flex flex-col gap-4">
-              
-              {/* Modal Header */}
-              <div className="flex items-center gap-2 pb-2 border-b border-border/40">
-                <span className="p-1.5 bg-hs-orange/10 text-hs-orange rounded-xl">
-                  <Sparkles size={18} />
-                </span>
-                <div className="flex flex-col">
-                  <h4 className="text-[14px] font-black text-primary">전문 세무 컨설팅 신청</h4>
-                  <span className="text-[10px] text-tertiary font-bold">동탄 테크노밸리 법인 전문 세무사를 매칭해 드립니다.</span>
-                </div>
-              </div>
-
-              {/* Form */}
-              <form onSubmit={handleConsultingSubmit} className="flex flex-col gap-4">
-                
-                {/* Input: Company Name */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[11.5px] font-bold text-secondary">법인(또는 기업)명</label>
-                  <input
-                    type="text"
-                    required
-                    value={companyName}
-                    onChange={(e) => setCompanyName(e.target.value)}
-                    placeholder="예: (주)디뷰소프트"
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
-                  />
-                </div>
-
-                {/* Input: Contact Name */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[11.5px] font-bold text-secondary">신청자 성함 (직급)</label>
-                  <input
-                    type="text"
-                    required
-                    value={contactName}
-                    onChange={(e) => setContactName(e.target.value)}
-                    placeholder="예: 홍길동 대표"
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
-                  />
-                </div>
-
-                {/* Input: Phone Number */}
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-[11.5px] font-bold text-secondary">연락처 (휴대전화 번호)</label>
-                  <input
-                    type="text"
-                    required
-                    value={phoneNumber}
-                    onChange={(e) => setPhoneNumber(e.target.value)}
-                    placeholder="예: 010-1234-5678"
-                    className="w-full bg-body border border-border/80 rounded-xl py-2 px-3 text-[12px] text-primary focus:outline-none focus:border-hs-orange font-bold"
-                  />
-                </div>
-
-                {/* Info Text */}
-                <span className="text-[9.5px] text-tertiary leading-normal font-bold">
-                  * 제출 시 동탄 테크노밸리 지산 이전 전담 세무 세션(Acquisition & Tax Relief) 담당 파트너사에 연락처 정보가 제공되며, 24시간 이내 연락을 드립니다.
-                </span>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={isSubmitted}
-                  className="w-full mt-2 py-3 bg-hs-orange hover:bg-hs-orange/95 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white text-[12px] font-black rounded-xl transition-all shadow-sm cursor-pointer"
-                >
-                  {isSubmitted ? '신청 정보 전송 중...' : '컨설팅 매칭 신청하기'}
-                </button>
-
-              </form>
-
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
