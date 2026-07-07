@@ -23,31 +23,35 @@ function log(color, message) {
 }
 
 const PROJECT_ROOT = path.resolve(__dirname, '../..');
-let BRAIN_DIR = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\06c2ad1c-6cc8-4ca3-b789-d1acd2a2ae14'; // default fallback
-try {
-  const baseBrainDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain';
-  if (fs.existsSync(baseBrainDir)) {
-    const dirs = fs.readdirSync(baseBrainDir)
-      .map(name => {
-        const dirPath = path.join(baseBrainDir, name);
-        const taskPath = path.join(dirPath, 'task.md');
-        let mtime = 0;
-        if (fs.existsSync(taskPath)) {
-          mtime = fs.statSync(taskPath).mtime.getTime();
-        } else if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
-          mtime = fs.statSync(dirPath).mtime.getTime();
-        }
-        return { name, path: dirPath, mtime };
-      })
-      .filter(item => fs.existsSync(item.path) && fs.statSync(item.path).isDirectory() && !item.name.startsWith('.') && fs.existsSync(path.join(item.path, 'task.md')))
-      .sort((a, b) => b.mtime - a.mtime);
-    if (dirs.length > 0) {
-      BRAIN_DIR = dirs[0].path;
-      console.log(`🔍 Resolved active BRAIN_DIR: ${BRAIN_DIR}`);
+let BRAIN_DIR = process.env.BRAIN_DIR || 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain\\06c2ad1c-6cc8-4ca3-b789-d1acd2a2ae14'; // default fallback
+if (!process.env.BRAIN_DIR) {
+  try {
+    const baseBrainDir = 'C:\\Users\\ocs56\\.gemini\\antigravity\\brain';
+    if (fs.existsSync(baseBrainDir)) {
+      const dirs = fs.readdirSync(baseBrainDir)
+        .map(name => {
+          const dirPath = path.join(baseBrainDir, name);
+          const taskPath = path.join(dirPath, 'task.md');
+          let mtime = 0;
+          if (fs.existsSync(taskPath)) {
+            mtime = fs.statSync(taskPath).mtime.getTime();
+          } else if (fs.existsSync(dirPath) && fs.statSync(dirPath).isDirectory()) {
+            mtime = fs.statSync(dirPath).mtime.getTime();
+          }
+          return { name, path: dirPath, mtime };
+        })
+        .filter(item => fs.existsSync(item.path) && fs.statSync(item.path).isDirectory() && !item.name.startsWith('.') && fs.existsSync(path.join(item.path, 'task.md')))
+        .sort((a, b) => b.mtime - a.mtime);
+      if (dirs.length > 0) {
+        BRAIN_DIR = dirs[0].path;
+        console.log(`🔍 Resolved active BRAIN_DIR: ${BRAIN_DIR}`);
+      }
     }
+  } catch (e) {
+    console.log(`⚠️ Failed to resolve active BRAIN_DIR dynamically: ${e.message}`);
   }
-} catch (e) {
-  console.log(`⚠️ Failed to resolve active BRAIN_DIR dynamically: ${e.message}`);
+} else {
+  console.log(`🔍 Using environment-specified BRAIN_DIR: ${BRAIN_DIR}`);
 }
 const TASK_MD_PATH = path.join(BRAIN_DIR, 'task.md');
 const HISTORY_JSON_PATH = path.join(BRAIN_DIR, 'scratch/loop-history.json');
