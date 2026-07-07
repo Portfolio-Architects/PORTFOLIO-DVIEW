@@ -487,3 +487,13 @@
 body {
   transform: none !important;
 }
+
+/* Optimize heavy below-the-fold elements rendering */
+footer {
+  content-visibility: auto;
+  contain-intrinsic-size: 150px;
+}
+.below-the-fold-render-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: 300px;
+}

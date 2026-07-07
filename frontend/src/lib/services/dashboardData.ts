@@ -172,12 +172,15 @@ async function fetchFreshData(): Promise<InitialPageData> {
     }
   }
 
-  const parsed = InitialPageDataSchema.safeParse(result);
-  if (!parsed.success) {
-    logger.warn('DashboardData', 'Validation failed for initial page data, returning raw result.', {}, parsed.error);
-    return result;
+  if (process.env.NODE_ENV !== 'production') {
+    const parsed = InitialPageDataSchema.safeParse(result);
+    if (!parsed.success) {
+      logger.warn('DashboardData', 'Validation failed for initial page data, returning raw result.', {}, parsed.error);
+      return result;
+    }
+    return parsed.data;
   }
 
-  return parsed.data;
+  return result;
 }
 

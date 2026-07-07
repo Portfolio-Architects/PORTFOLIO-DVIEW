@@ -4,7 +4,19 @@ import React from 'react';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
-import TechnoValleyDashboard from '@/components/macro/TechnoValleyDashboard';
+import dynamic from 'next/dynamic';
+
+const TechnoValleyDashboard = dynamic(
+  () => import('@/components/macro/TechnoValleyDashboard'),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full min-h-[450px] bg-black/5 dark:bg-surface/5 rounded-[24px] animate-pulse flex items-center justify-center text-secondary font-medium">
+        지식산업센터 분석 정보를 로딩하는 중...
+      </div>
+    )
+  }
+);
 
 export default function TechnoValleyClient() {
   return (

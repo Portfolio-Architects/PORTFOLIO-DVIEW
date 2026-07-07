@@ -87,6 +87,9 @@ interface TossApartmentExploreClientProps {
   updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
 }
 
+let globalEnrichedAptsCache: any[] | null = null;
+let globalEnrichedAptsCacheKey: string = '';
+
 const TossApartmentExploreClientPropsSchema = z.object({
   sheetApartments: z.record(z.string(), z.array(z.unknown())),
   txSummaryData: z.record(z.string(), z.unknown()),
@@ -192,6 +195,21 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     }
     return '';
   });
+  const [inputValue, setInputValue] = useState(searchQuery);
+  const [isPending, startTransition] = React.useTransition();
+
+  // Sync inputValue with searchQuery when searchQuery changes from URL
+  useEffect(() => {
+    setInputValue(searchQuery);
+  }, [searchQuery]);
+
+  const handleInputChange = (val: string) => {
+    setInputValue(val);
+    startTransition(() => {
+      setSearchQuery(val);
+    });
+  };
+
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [visibleCount, setVisibleCount] = useState(15);
   const searchFocusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -343,7 +361,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, [sheetApartments, publicRentalSet]);
 
   const enrichedApts = useMemo(() => {
-    return allApts.map((apt: DongApartment) => {
+    const cacheKey = `${allApts.length}_${Object.keys(txSummaryData).length}`;
+    if (globalEnrichedAptsCache && globalEnrichedAptsCacheKey === cacheKey) {
+      return globalEnrichedAptsCache;
+    }
+    const computed = allApts.map((apt: DongApartment) => {
       const rawKey = apt.txKey || apt.name;
       const txKey = findTxKey(rawKey, txSummaryData, nameMapping, false, apt.dong) || rawKey;
 
@@ -390,6 +412,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         formattedTurnover
       };
     });
+    globalEnrichedAptsCache = computed;
+    globalEnrichedAptsCacheKey = cacheKey;
+    return computed;
   }, [allApts, txSummaryData, nameMapping]);
 
   const sortedApts = useMemo(() => {
@@ -760,8 +785,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-tertiary" size={18} />
               <input 
               type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={inputValue}
+              onChange={(e) => handleInputChange(e.target.value)}
               onFocus={() => {
                 setIsSearchFocused(true);
                 if (onSearchFocus) onSearchFocus();
@@ -787,7 +812,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               className="w-full bg-body border border-transparent focus:border-toss-blue focus:bg-surface focus:shadow-[0_0_0_2px_rgba(0,210,157,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
             />
             {/* CSS Rolling Placeholder */}
-            {!searchQuery && !isSearchFocused && (
+            {!inputValue && !isSearchFocused && (
               <div className="absolute left-10 top-1/2 -translate-y-1/2 h-6 overflow-hidden pointer-events-none select-none">
                 <div className="flex flex-col animate-placeholder-roll">
                   <span className="text-[14px] font-medium text-tertiary h-6 flex items-center">단지명 검색 (예: 롯데캐슬)</span>
@@ -798,9 +823,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 </div>
               </div>
             )}
-            {searchQuery && (
+            {inputValue && (
               <button 
-                onClick={() => setSearchQuery('')}
+                onClick={() => { setInputValue(''); startTransition(() => setSearchQuery('')); }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary p-1 focus:outline-none rounded-full hover:bg-body"
                 aria-label="검색어 지우기"
               >

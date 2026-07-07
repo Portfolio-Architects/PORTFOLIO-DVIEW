@@ -122,6 +122,10 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable}`}>
       <head>
         <meta name="referrer" content="no-referrer" />
+        <link rel="preconnect" href="https://firestore.googleapis.com" />
+        <link rel="preconnect" href="https://t1.kakaocdn.net" />
+        <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+        <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-hidden aurora-bg">
         <Script 

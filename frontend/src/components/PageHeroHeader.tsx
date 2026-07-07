@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Image from "next/image";
 import FloatingUserBar from "./FloatingUserBar";
 
 export interface PageHeroHeaderProps {
@@ -90,10 +91,13 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
-                  <img
+                  <Image
                     src="/hwaseong-symbol.png"
                     alt="화성시 심볼"
-                    className="w-full h-full object-contain"
+                    fill
+                    sizes="(max-width: 640px) 36px, 42px"
+                    priority
+                    className="object-contain p-0.5 sm:p-1"
                   />
                 </div>
                 <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">

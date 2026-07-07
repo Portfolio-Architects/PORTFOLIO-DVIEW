@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error', 'warn'] } : false,
   },
   experimental: {
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ["lucide-react", "swr"],
   },
   images: {
     formats: ['image/avif', 'image/webp'],
@@ -63,6 +63,17 @@ const nextConfig: NextConfig = {
           {
             key: 'Cache-Control',
             value: isDev 
+              ? 'no-store, no-cache, must-revalidate, max-age=0'
+              : 'public, max-age=31536000, immutable',
+          },
+        ],
+      },
+      {
+        source: '/:path*\\.(png|jpg|jpeg|svg|gif|webp|ico|woff2|woff)',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: isDev
               ? 'no-store, no-cache, must-revalidate, max-age=0'
               : 'public, max-age=31536000, immutable',
           },

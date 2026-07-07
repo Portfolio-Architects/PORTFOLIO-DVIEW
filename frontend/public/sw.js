@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1783342426953';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1783342426953';
+const CACHE_NAME = 'dview-cache-v-1783433274891';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1783433274891';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -98,8 +98,8 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests or cross-origin (unless specific APIs)
   if (req.method !== 'GET') return;
 
-  // Static Assets (Next.js build files, images) -> Cache First, Network Fallback
-  if (url.pathname.startsWith('/_next/') || url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp)$/)) {
+  // Static Assets (Next.js build files, images, fonts) -> Cache First, Network Fallback
+  if (url.pathname.startsWith('/_next/') || url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|woff2|woff|ttf|otf)$/)) {
     event.respondWith(
       caches.match(req).then((cachedRes) => {
         if (cachedRes) return cachedRes;
