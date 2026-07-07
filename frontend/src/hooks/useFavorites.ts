@@ -52,13 +52,16 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       setIsFavoritesLoading(true);
       // E2E Mock Auth Bypass to prevent 401 Unauthorized API fetch errors
       if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
-        setTimeout(() => {
+        const timer = setTimeout(() => {
           if (!unmounted) {
             setUserFavorites(new Set());
             setIsFavoritesLoading(false);
           }
         }, 50);
-        return;
+        return () => {
+          unmounted = true;
+          clearTimeout(timer);
+        };
       }
       user.getIdToken().then(idToken => {
         fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } })
