@@ -94,7 +94,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
               <Link
                 key={tab.id}
                 href={tab.href}
-                prefetch={false}
+                prefetch={true}
                 className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
                   isActive ? 'text-hs-orange' : 'text-tertiary hover:text-secondary'
                 }`}

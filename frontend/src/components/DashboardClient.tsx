@@ -847,6 +847,7 @@ const DashboardClient = React.memo(function DashboardClient({
               <nav aria-label="테크노 랩 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
                 <Link
                   href="/"
+                  prefetch={true}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'technovalley'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'

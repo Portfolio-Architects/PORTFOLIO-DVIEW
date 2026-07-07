@@ -36,6 +36,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
               <nav aria-label="테크노 랩 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
                 <Link
                   href="/"
+                  prefetch={true}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'technovalley'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -48,6 +49,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
 
                 <Link
                   href="/overview?tab=office"
+                  prefetch={true}
                   onClick={() => {
                     if (onTabChange) onTabChange('office');
                   }}
@@ -66,6 +68,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
               <nav aria-label="라운지 메뉴" className="flex items-center bg-body p-1.5 rounded-[18px] border border-border/40">
                 <Link
                   href="/lounge"
+                  prefetch={true}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'lounge'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -81,6 +84,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
               <nav aria-label="아파트 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
                 <Link
                   href="/overview"
+                  prefetch={true}
                   onClick={() => {
                     if (onTabChange) onTabChange('overview');
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
@@ -98,6 +102,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
 
                 <Link
                   href="/explore"
+                  prefetch={true}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'imjang'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
