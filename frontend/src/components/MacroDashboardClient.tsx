@@ -4,6 +4,7 @@ import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
 import { logger } from "@/lib/services/logger";
+import { preloadApartmentModal } from "@/lib/utils/preloadHelpers";
 const InlineLoader = ({ text }: { text: string }) => (
   <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl p-6 gap-3 backdrop-blur-md">
     <div className="relative w-10 h-10 flex items-center justify-center">
@@ -668,6 +669,21 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showOrderEditor]);
+
+  // Preload ApartmentModal and transactions when selectedTimelineApt changes
+  useEffect(() => {
+    if (!selectedTimelineApt || !sheetApartments) return;
+    
+    // Find the dong of the selected timeline apartment from sheetApartments
+    const allApts = Object.values(sheetApartments).flat();
+    const aptObj = allApts.find(a => a.name === selectedTimelineApt || normalizeAptName(a.name) === normalizeAptName(selectedTimelineApt));
+    const dong = aptObj?.dong || '';
+    
+    if (preloadApartmentTx) {
+      preloadApartmentTx(selectedTimelineApt, dong);
+    }
+    preloadApartmentModal();
+  }, [selectedTimelineApt, sheetApartments, preloadApartmentTx]);
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
@@ -1915,13 +1931,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   }}
                                   onMouseEnter={() => {
                                     preloadApartmentTx?.(item.aptName, item.dong);
-                                    import('@/components/ApartmentModal').catch(() => {});
-                                    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                    preloadApartmentModal();
                                   }}
                                   onTouchStart={() => {
                                     preloadApartmentTx?.(item.aptName, item.dong);
-                                    import('@/components/ApartmentModal').catch(() => {});
-                                    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                                    preloadApartmentModal();
                                   }}
                                   className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
                                 >
@@ -1980,6 +1994,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                             <div className="relative flex items-center gap-1">
                               <select
                                 value={selectedTimelineApt || ""}
+                                onFocus={preloadApartmentModal}
                                 onChange={(e) => {
                                   const val = e.target.value;
                                   setSelectedTimelineApt(val === "" ? null : val);
@@ -2036,6 +2051,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                             <div className="relative flex items-center gap-1">
                               <select
                                 value={selectedTimelineApt || ""}
+                                onFocus={preloadApartmentModal}
                                 onChange={(e) => {
                                   const val = e.target.value;
                                   setSelectedTimelineApt(val === "" ? null : val);
@@ -2061,8 +2077,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                               const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt || normalizeAptName(a.name) === normalizeAptName(selectedTimelineApt));
                               const dong = aptObj?.dong || '';
                               preloadApartmentTx?.(selectedTimelineApt, dong);
-                              import('@/components/ApartmentModal').catch(() => {});
-                              import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                              preloadApartmentModal();
                             }
                           }}
                           onTouchStart={() => {
@@ -2070,8 +2085,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                               const aptObj = Object.values(sheetApartments).flat().find(a => a.name === selectedTimelineApt || normalizeAptName(a.name) === normalizeAptName(selectedTimelineApt));
                               const dong = aptObj?.dong || '';
                               preloadApartmentTx?.(selectedTimelineApt, dong);
-                              import('@/components/ApartmentModal').catch(() => {});
-                              import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+                              preloadApartmentModal();
                             }
                           }}
                           className="px-2.5 py-1 bg-[#fff3e0] hover:bg-[#fff3e0]/80 text-[#ea6100] border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-sm"

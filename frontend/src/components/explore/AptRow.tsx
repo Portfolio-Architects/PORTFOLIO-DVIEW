@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { Heart, Camera } from 'lucide-react';
 import { EnrichedApt } from './types';
+import { preloadApartmentModal } from '@/lib/utils/preloadHelpers';
 
 const InteractiveHeart = memo(({ 
   isFavorited, 
@@ -168,13 +169,11 @@ export const AptRow = memo(({
       <div 
         onMouseEnter={() => {
           preloadApartmentTx?.(item.apt.name, item.apt.dong);
-          import('@/components/ApartmentModal').catch(() => {});
-          import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+          preloadApartmentModal();
         }}
         onTouchStart={() => {
           preloadApartmentTx?.(item.apt.name, item.apt.dong);
-          import('@/components/ApartmentModal').catch(() => {});
-          import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+          preloadApartmentModal();
         }}
         onClick={() => handleSelectApt(item.apt.name)}
         className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border hover:border-emerald-500/40 rounded-2xl bg-surface hover:bg-neutral-50/20 dark:hover:bg-zinc-900/10 transition-all cursor-pointer shadow-sm relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"

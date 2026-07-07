@@ -214,6 +214,7 @@ import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import LoginGateModal from '@/components/ui/LoginGateModal';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/utils/preloadHelpers';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -422,23 +423,8 @@ const DashboardClient = React.memo(function DashboardClient({
       // Preload heavy chunks during idle time to improve LCP & Interaction responsiveness
       const preloadHeavyComponents = () => {
         if (!isMounted) return;
-        import('@/components/ApartmentModal').catch(() => {});
-        import('@/components/GapInvestmentExplorer').catch(() => {});
-        import('@/components/LoungeContainerClient').catch(() => {});
-        import('@/components/MacroDashboardClient').catch(() => {});
-        
-        // Preload ApartmentModal sub-components as well for 0ms transition stutter
-        import('@/components/CommentSection').catch(() => {});
-        import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
-        import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
-        import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-        import('@/components/apartment-modal/PhotoUploadModal').catch(() => {});
-        import('@/components/apartment-modal/BuyOrWaitVote').catch(() => {});
-        import('@/components/apartment-modal/EducationAnalysisSection').catch(() => {});
-        import('@/components/apartment-modal/InfraAnalysisSection').catch(() => {});
-        import('@/components/apartment-modal/ScoutingReportDetailSection').catch(() => {});
-        import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
-        import('@/components/consumer/AnchorTenantCard').catch(() => {});
+        preloadApartmentModal();
+        preloadDashboardFeatures();
       };
       if (process.env.NODE_ENV === 'production') {
         if (window.requestIdleCallback) {
