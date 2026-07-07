@@ -441,12 +441,18 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
 
                   if (!activeUid) {
                     if (typeof window !== 'undefined') {
-                      let anonUid = localStorage.getItem('dview-anon-uid');
-                      if (!anonUid) {
-                        anonUid = `anon-${Math.random().toString(36).substring(2, 12)}`;
-                        localStorage.setItem('dview-anon-uid', anonUid);
+                      let anonUid: string | null = null;
+                      try {
+                        anonUid = localStorage.getItem('dview-anon-uid');
+                        if (!anonUid) {
+                          anonUid = `anon-${Math.random().toString(36).substring(2, 12)}`;
+                          localStorage.setItem('dview-anon-uid', anonUid);
+                        }
+                      } catch (e) {
+                        logger.warn('LoungeComposeClient.submit', 'localStorage is unavailable', undefined, e as Error);
+                        anonUid = `anon-session-${Math.random().toString(36).substring(2, 12)}`;
                       }
-                      activeUid = anonUid;
+                      activeUid = anonUid || 'anon-guest';
                       
                       let anonNickname = customNickname.trim();
                       if (!anonNickname) {
