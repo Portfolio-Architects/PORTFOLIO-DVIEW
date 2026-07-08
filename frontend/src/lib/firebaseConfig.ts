@@ -64,6 +64,10 @@ if (typeof window !== 'undefined' && app) {
   const debugToken = process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN;
   const recaptchaKey = process.env.NEXT_PUBLIC_RECAPTCHA_ENTERPRISE_KEY || process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
 
+  const isLocalhost = window.location.hostname === 'localhost' ||
+    window.location.hostname === '127.0.0.1' ||
+    window.location.hostname.startsWith('192.168.');
+
   if (isDev) {
     if (debugToken) {
       // Enable debug token for local testing in development mode
@@ -79,8 +83,13 @@ if (typeof window !== 'undefined' && app) {
     debugToken,
   });
 
-  // Initialize App Check if we have recaptcha key in production, or if we are in dev and have a debug token
-  if ((!isDev && appCheckValidation.success) || (isDev && debugToken)) {
+  // On localhost, we only initialize App Check if a debug token is configured.
+  // Otherwise, we initialize it in non-development (production) environments with a valid recaptcha key.
+  const shouldInitialize = isLocalhost
+    ? !!debugToken
+    : ((!isDev && appCheckValidation.success) || (isDev && debugToken));
+
+  if (shouldInitialize) {
     try {
       initializeAppCheck(app, {
         provider: new ReCaptchaV3Provider(
@@ -92,7 +101,7 @@ if (typeof window !== 'undefined' && app) {
       logger.warn('firebaseConfig.appCheck', 'Failed to initialize App Check', {}, err instanceof Error ? err : new Error(String(err)));
     }
   } else {
-    if (!isDev) {
+    if (!isDev && !isLocalhost) {
       logger.warn('firebaseConfig.appCheck', 'Skipped initialization: No recaptcha key configured', { error: String(appCheckValidation.error) });
     }
   }

@@ -87,8 +87,10 @@ interface TossApartmentExploreClientProps {
   updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
 }
 
-let globalEnrichedAptsCache: any[] | null = null;
-let globalEnrichedAptsCacheKey: string = '';
+const globalAptsCache = {
+  data: null as any[] | null,
+  key: '',
+};
 
 const TossApartmentExploreClientPropsSchema = z.object({
   sheetApartments: z.record(z.string(), z.array(z.unknown())),
@@ -362,8 +364,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
   const enrichedApts = useMemo(() => {
     const cacheKey = `${allApts.length}_${Object.keys(txSummaryData).length}`;
-    if (globalEnrichedAptsCache && globalEnrichedAptsCacheKey === cacheKey) {
-      return globalEnrichedAptsCache;
+    if (globalAptsCache.data && globalAptsCache.key === cacheKey) {
+      return globalAptsCache.data;
     }
     const computed = allApts.map((apt: DongApartment) => {
       const rawKey = apt.txKey || apt.name;
@@ -412,8 +414,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         formattedTurnover
       };
     });
-    globalEnrichedAptsCache = computed;
-    globalEnrichedAptsCacheKey = cacheKey;
+    // eslint-disable-next-line react-hooks/immutability
+    globalAptsCache.data = computed;
+    // eslint-disable-next-line react-hooks/immutability
+    globalAptsCache.key = cacheKey;
     return computed;
   }, [allApts, txSummaryData, nameMapping]);
 

@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1783433274891';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1783433274891';
+const CACHE_NAME = 'dview-cache-v-1783512609775';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1783512609775';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -15,7 +15,6 @@ self.addEventListener('install', (event) => {
         '/offline.html',
         '/data/apartments-by-dong.json',
         '/data/coordinate-corrections.json',
-        '/data/local-ads.json',
         '/data/local-events.json',
         '/data/location-scores.json',
         '/data/macro-trend.json',

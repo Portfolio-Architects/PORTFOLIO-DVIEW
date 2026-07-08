@@ -546,9 +546,10 @@ export default function TechnoValleyDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-10 gap-6 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
             {/* Donut Chart Container (60%) */}
             <div className="col-span-1 sm:col-span-6 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-8 py-2">
-              <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
+              <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative shrink-0">
                 {mounted ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <div className="absolute inset-0">
+                    <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={donutData}
@@ -576,7 +577,8 @@ export default function TechnoValleyDashboard() {
                       </Pie>
                     </PieChart>
                   </ResponsiveContainer>
-                ) : (
+                </div>
+              ) : (
                   <div className="w-[140px] h-[140px] sm:w-[200px] sm:h-[200px] rounded-full border-[24px] border-border/10 animate-pulse" />
                 )}
                 
@@ -888,8 +890,9 @@ export default function TechnoValleyDashboard() {
         {/* Line Chart Area */}
         <div className="flex-1 w-full relative min-h-[290px]">
           {mounted ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -5, bottom: 0 }}>
+            <div className="absolute inset-0">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -5, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis 
                   dataKey="date" 
@@ -966,7 +969,8 @@ export default function TechnoValleyDashboard() {
                 )}
               </LineChart>
             </ResponsiveContainer>
-          ) : (
+          </div>
+        ) : (
             <div className="w-full h-[350px] border border-border/20 rounded-xl flex items-end justify-between p-4 gap-2 animate-pulse">
               {[30, 45, 60, 40, 75, 50, 90, 65, 80, 55, 70, 85].map((h, i) => (
                 <div 

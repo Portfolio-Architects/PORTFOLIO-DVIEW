@@ -701,47 +701,49 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-body/20 p-4 rounded-xl border border-border/20">
                     <div className="w-full h-32 relative">
                       {mounted ? (
-                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                          <PieChart>
-                            <defs>
-                              <linearGradient id="colorAcq" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#ea6100" stopOpacity={1}/>
-                                <stop offset="95%" stopColor="#059669" stopOpacity={1}/>
-                              </linearGradient>
-                              <linearGradient id="colorTax" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#f43f5e" stopOpacity={1}/>
-                                <stop offset="95%" stopColor="#be123c" stopOpacity={1}/>
-                              </linearGradient>
-                              <linearGradient id="colorFee" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#64748b" stopOpacity={1}/>
-                                <stop offset="95%" stopColor="#475569" stopOpacity={1}/>
-                              </linearGradient>
-                            </defs>
-                            <Pie
-                              data={chartData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={30}
-                              outerRadius={45}
-                              paddingAngle={4}
-                              dataKey="value"
-                            >
-                              {chartData.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.gradientUrl} />
-                              ))}
-                            </Pie>
-                            <Tooltip
-                              formatter={(value: unknown) => [formatEokMan(Number(value) || 0), '']}
-                              contentStyle={{
-                                background: 'rgba(255, 255, 255, 0.95)',
-                                border: '1px solid #ddd',
-                                borderRadius: '8px',
-                                fontSize: '11px',
-                                fontWeight: 'bold',
-                              }}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
+                        <div className="absolute inset-0">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <PieChart>
+                              <defs>
+                                <linearGradient id="colorAcq" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#ea6100" stopOpacity={1}/>
+                                  <stop offset="95%" stopColor="#059669" stopOpacity={1}/>
+                                </linearGradient>
+                                <linearGradient id="colorTax" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#f43f5e" stopOpacity={1}/>
+                                  <stop offset="95%" stopColor="#be123c" stopOpacity={1}/>
+                                </linearGradient>
+                                <linearGradient id="colorFee" x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="5%" stopColor="#64748b" stopOpacity={1}/>
+                                  <stop offset="95%" stopColor="#475569" stopOpacity={1}/>
+                                </linearGradient>
+                              </defs>
+                              <Pie
+                                data={chartData}
+                                cx="50%"
+                                cy="50%"
+                                innerRadius={30}
+                                outerRadius={45}
+                                paddingAngle={4}
+                                dataKey="value"
+                              >
+                                {chartData.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={entry.gradientUrl} />
+                                ))}
+                              </Pie>
+                              <Tooltip
+                                formatter={(value: unknown) => [formatEokMan(Number(value) || 0), '']}
+                                contentStyle={{
+                                  background: 'rgba(255, 255, 255, 0.95)',
+                                  border: '1px solid #ddd',
+                                  borderRadius: '8px',
+                                  fontSize: '11px',
+                                  fontWeight: 'bold',
+                                }}
+                              />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </div>
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
                       )}
