@@ -718,11 +718,11 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                           </defs>
                           <Pie
                             data={chartData}
-                            cx="50%"
-                            cy="50%"
+                            cx={64}
+                            cy={64}
                             innerRadius={30}
                             outerRadius={45}
-                            paddingAngle={4}
+                            paddingAngle={0}
                             dataKey="value"
                             isAnimationActive={false}
                           >

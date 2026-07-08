@@ -563,11 +563,11 @@ export default function TechnoValleyDashboard() {
                   <PieChart width={chartSize} height={chartSize}>
                     <Pie
                       data={donutData}
-                      cx="50%"
-                      cy="50%"
+                      cx={chartSize * 0.5}
+                      cy={chartSize * 0.5}
                       innerRadius={chartSize * 0.5 * 0.65}
                       outerRadius={chartSize * 0.5 * 0.90}
-                      paddingAngle={3}
+                      paddingAngle={0}
                       dataKey="value"
                       isAnimationActive={false}
                     >
