@@ -548,7 +548,7 @@ export default function TechnoValleyDashboard() {
   };
 
   return (
-    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-10 items-stretch">
+    <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-5 items-stretch">
       
       {/* ═══ LEFT PANEL: Donut Chart & KPI Cards (lg:col-span-6) ═══ */}
       <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">

@@ -13,7 +13,7 @@ const Footer = React.memo(function Footer() {
   if (isAdmin) return null;
 
   return (
-    <footer className="w-full bg-surface border-t border-border/40 relative z-30 py-4 sm:py-6 mt-0 pb-[calc(env(safe-area-inset-bottom)+80px)] sm:pb-6">
+    <footer className="w-full bg-surface border-t border-border/40 relative z-30 pt-2 sm:pt-3 mt-0 pb-[calc(env(safe-area-inset-bottom)+80px)] sm:pb-6">
       <div className="max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 flex flex-col gap-4 sm:gap-6">
         
         {/* 알림 받기 배너 (푸터와 병합) */}
