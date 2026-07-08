@@ -288,8 +288,20 @@ export default function TechnoValleyDashboard() {
     };
     handleQueryChange(mediaQuery);
     mediaQuery.addEventListener('change', handleQueryChange);
-    return () => mediaQuery.removeEventListener('change', handleQueryChange);
   }, []);
+
+  // Click outside donut chart card to reset activeCategory
+  useEffect(() => {
+    if (activeCategory === null) return;
+    const handleGlobalClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('#donut-chart-card')) {
+        setActiveCategory(null);
+      }
+    };
+    window.addEventListener('click', handleGlobalClick);
+    return () => window.removeEventListener('click', handleGlobalClick);
+  }, [activeCategory]);
 
   // Prevent background scroll when any modal is open
   useEffect(() => {
@@ -541,8 +553,7 @@ export default function TechnoValleyDashboard() {
       {/* ═══ LEFT PANEL: Donut Chart & KPI Cards (lg:col-span-6) ═══ */}
       <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
         
-        {/* Donut Chart Card */}
-        <div className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0">
+        <div id="donut-chart-card" className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
@@ -577,8 +588,8 @@ export default function TechnoValleyDashboard() {
                           <Cell 
                              key={`cell-${index}`} 
                              fill={entry.color} 
-                             stroke={isSelected ? '#ffffff' : entry.color}
-                             strokeWidth={isSelected ? 3 : 1}
+                             stroke={isSelected ? 'var(--text-primary)' : 'var(--bg-surface)'}
+                             strokeWidth={isSelected ? 4 : 2.5}
                              opacity={activeCategory === null || isSelected ? 0.99 : 0.6}
                              style={{ outline: 'none', cursor: 'pointer' }}
                              onClick={() => setActiveCategory(isSelected ? null : entry.name)}
@@ -625,7 +636,7 @@ export default function TechnoValleyDashboard() {
                 donutData.map((item: any, index: number) => (
                   <div 
                     key={index} 
-                    onClick={() => setActiveCategory(item.name)}
+                    onClick={() => setActiveCategory(activeCategory === item.name ? null : item.name)}
                     className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-slate-50/50 dark:bg-surface/30 px-3 py-2 sm:px-2.5 sm:py-2 rounded-xl border border-border/30 sm:border border-border/10 hover:bg-slate-100/50 dark:hover:bg-white/5 cursor-pointer transition-all duration-300"
                   >
                     <div className="flex items-center gap-2 min-w-0 pr-1">
@@ -900,7 +911,7 @@ export default function TechnoValleyDashboard() {
         <div className="flex-1 w-full relative min-h-[290px]">
           {mounted ? (
             <div className="absolute inset-0">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -5, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis 
@@ -1004,7 +1015,7 @@ export default function TechnoValleyDashboard() {
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
               업종 구분별 기업 리스트
             </h3>
-            <p className="text-[11px] text-tertiary font-bold mt-0.5">
+            <p className="text-[10px] sm:text-[11px] text-tertiary font-bold mt-1 whitespace-nowrap truncate max-w-[80vw] sm:max-w-none" title="각 업종 카테고리를 클릭하여 입주 기업 전체 목록을 확인하실 수 있습니다.">
               각 업종 카테고리를 클릭하여 입주 기업 전체 목록을 확인하실 수 있습니다.
             </p>
           </div>
@@ -1315,7 +1326,7 @@ export default function TechnoValleyDashboard() {
 
                 {/* Modal Line Chart */}
                 <div className="w-full h-[360px] relative flex items-end">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                       <XAxis 

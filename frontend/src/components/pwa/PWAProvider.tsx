@@ -120,6 +120,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const installRewardTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pushSupportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
+  const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -326,11 +327,17 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       navigator.serviceWorker.ready.then((reg) => {
         if (!isMounted) return;
         registeredReg = reg;
+        swRegistrationRef.current = reg;
         
         // 1. If SW is already waiting to activate
         if (reg.waiting) {
           setSwUpdateAvailable(true);
         }
+
+        // Trigger manual update check on mount to ensure fresh status
+        reg.update().catch((err) => {
+          logger.warn('PWAProvider', 'Manual reg.update() failed', undefined, err);
+        });
 
         // 2. If new SW installation completes
         reg.addEventListener('updatefound', handleUpdateFound);
@@ -373,20 +380,29 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
   const handleApplyUpdate = useCallback(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.getRegistrations().then((registrations) => {
-        const activeReg = registrations.find(r => r.waiting);
-        if (activeReg && activeReg.waiting) {
-          logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING...');
-          activeReg.waiting.postMessage({ type: 'SKIP_WAITING' });
-          // Fallback: 1000ms 경과 후에도 controllerchange 이벤트가 반응하지 않을 경우 강제 새로고침
-          setTimeout(() => {
-            logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
-            window.location.reload();
-          }, 1000);
-        } else {
+      const reg = swRegistrationRef.current;
+      if (reg && reg.waiting) {
+        logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING from ref...');
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        setTimeout(() => {
+          logger.warn('PWAProvider', 'SW Update fallback reload triggered (ref).');
           window.location.reload();
-        }
-      });
+        }, 1000);
+      } else {
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          const activeReg = registrations.find(r => r.waiting);
+          if (activeReg && activeReg.waiting) {
+            logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING from fallback...');
+            activeReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            setTimeout(() => {
+              logger.warn('PWAProvider', 'SW Update fallback reload triggered (fallback).');
+              window.location.reload();
+            }, 1000);
+          } else {
+            window.location.reload();
+          }
+        });
+      }
     }
   }, []);
 

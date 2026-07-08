@@ -88,8 +88,8 @@ export default function RelocationTaxSimulator() {
       <div className="flex flex-col gap-1 border-b border-border/40 pb-5">
         <div className="flex items-center gap-2">
           <span className="w-2.5 h-2.5 rounded-full bg-hs-orange animate-pulse" />
-          <h3 className="text-[16px] font-black text-primary tracking-tight">
-            동탄 테크노밸리 이전 세제 혜택 시뮬레이터
+          <h3 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight whitespace-nowrap truncate max-w-[65vw] sm:max-w-none" title="테크노밸리 이전 세금 감면 시뮬레이터">
+            테크노밸리 이전 세금 감면 시뮬레이터
           </h3>
           <span className="text-[9.5px] font-extrabold text-[#00a37b] dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full select-none shrink-0">
             실시간 연산

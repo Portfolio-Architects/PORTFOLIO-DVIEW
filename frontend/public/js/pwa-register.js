@@ -36,7 +36,7 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
     } else {
       var registerSW = function() {
         if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
-          navigator.serviceWorker.register('/sw.js').catch(function(err) {
+          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function(err) {
             console.log('ServiceWorker registration failed: ', err);
           });
         }
