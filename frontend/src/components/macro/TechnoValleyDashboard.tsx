@@ -278,6 +278,18 @@ export default function TechnoValleyDashboard() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [chartSize, setChartSize] = useState(220);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia('(min-width: 640px)');
+    const handleQueryChange = (e: MediaQueryListEvent | MediaQueryList) => {
+      setChartSize(e.matches ? 260 : 220);
+    };
+    handleQueryChange(mediaQuery);
+    mediaQuery.addEventListener('change', handleQueryChange);
+    return () => mediaQuery.removeEventListener('change', handleQueryChange);
+  }, []);
 
   // Prevent background scroll when any modal is open
   useEffect(() => {
@@ -546,40 +558,36 @@ export default function TechnoValleyDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-10 gap-6 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
             {/* Donut Chart Container (60%) */}
             <div className="col-span-1 sm:col-span-6 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-8 py-2">
-              <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative shrink-0">
+              <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
                 {mounted ? (
-                  <div className="absolute inset-0">
-                    <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={donutData}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius="65%"
-                        outerRadius="90%"
-                        paddingAngle={3}
-                        dataKey="value"
-                        isAnimationActive={false}
-                      >
-                        {donutData.map((entry: any, index: number) => {
-                          const isSelected = activeCategory === entry.name;
-                          return (
-                            <Cell 
-                               key={`cell-${index}`} 
-                               fill={entry.color} 
-                               stroke={isSelected ? '#ffffff' : 'none'}
-                               strokeWidth={isSelected ? 3 : 0}
-                               opacity={activeCategory === null || isSelected ? 1 : 0.6}
-                               style={{ outline: 'none', cursor: 'pointer' }}
-                               onClick={() => setActiveCategory(isSelected ? null : entry.name)}
-                            />
-                          );
-                        })}
-                      </Pie>
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
+                  <PieChart width={chartSize} height={chartSize}>
+                    <Pie
+                      data={donutData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius="65%"
+                      outerRadius="90%"
+                      paddingAngle={3}
+                      dataKey="value"
+                      isAnimationActive={false}
+                    >
+                      {donutData.map((entry: any, index: number) => {
+                        const isSelected = activeCategory === entry.name;
+                        return (
+                          <Cell 
+                             key={`cell-${index}`} 
+                             fill={entry.color} 
+                             stroke={isSelected ? '#ffffff' : 'none'}
+                             strokeWidth={isSelected ? 3 : 0}
+                             opacity={activeCategory === null || isSelected ? 1 : 0.6}
+                             style={{ outline: 'none', cursor: 'pointer' }}
+                             onClick={() => setActiveCategory(isSelected ? null : entry.name)}
+                          />
+                        );
+                      })}
+                    </Pie>
+                  </PieChart>
+                ) : (
                   <div className="w-[140px] h-[140px] sm:w-[200px] sm:h-[200px] rounded-full border-[24px] border-border/10 animate-pulse" />
                 )}
                 
