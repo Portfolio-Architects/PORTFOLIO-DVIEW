@@ -565,8 +565,8 @@ export default function TechnoValleyDashboard() {
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius="65%"
-                      outerRadius="90%"
+                      innerRadius={chartSize * 0.5 * 0.65}
+                      outerRadius={chartSize * 0.5 * 0.90}
                       paddingAngle={3}
                       dataKey="value"
                       isAnimationActive={false}
@@ -577,8 +577,8 @@ export default function TechnoValleyDashboard() {
                           <Cell 
                              key={`cell-${index}`} 
                              fill={entry.color} 
-                             stroke={isSelected ? '#ffffff' : 'none'}
-                             strokeWidth={isSelected ? 3 : 0}
+                             stroke={isSelected ? '#ffffff' : entry.color}
+                             strokeWidth={isSelected ? 3 : 1}
                              opacity={activeCategory === null || isSelected ? 1 : 0.6}
                              style={{ outline: 'none', cursor: 'pointer' }}
                              onClick={() => setActiveCategory(isSelected ? null : entry.name)}
