@@ -192,7 +192,7 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
     <SettingsValueContext.Provider value={{ areaUnit, setAreaUnit, theme, setTheme }}>
       <SettingsUiContext.Provider value={{ isSettingsModalOpen, setIsSettingsModalOpen }}>
         {children}
-        <SettingsModal />
+        {isSettingsModalOpen && <SettingsModal />}
       </SettingsUiContext.Provider>
     </SettingsValueContext.Provider>
   );

@@ -726,6 +726,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                                 outerRadius={45}
                                 paddingAngle={4}
                                 dataKey="value"
+                                isAnimationActive={false}
                               >
                                 {chartData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.gradientUrl} />

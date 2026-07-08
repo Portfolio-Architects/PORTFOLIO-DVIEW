@@ -559,6 +559,7 @@ export default function TechnoValleyDashboard() {
                         outerRadius="90%"
                         paddingAngle={3}
                         dataKey="value"
+                        isAnimationActive={false}
                       >
                         {donutData.map((entry: any, index: number) => {
                           const isSelected = activeCategory === entry.name;
