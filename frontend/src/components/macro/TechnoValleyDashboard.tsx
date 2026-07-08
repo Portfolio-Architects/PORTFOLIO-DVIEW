@@ -579,7 +579,7 @@ export default function TechnoValleyDashboard() {
                              fill={entry.color} 
                              stroke={isSelected ? '#ffffff' : entry.color}
                              strokeWidth={isSelected ? 3 : 1}
-                             opacity={activeCategory === null || isSelected ? 1 : 0.6}
+                             opacity={activeCategory === null || isSelected ? 0.99 : 0.6}
                              style={{ outline: 'none', cursor: 'pointer' }}
                              onClick={() => setActiveCategory(isSelected ? null : entry.name)}
                           />
@@ -1134,11 +1134,11 @@ export default function TechnoValleyDashboard() {
                                 
                                 {/* Company Info */}
                                 <div className="flex flex-col min-w-0 flex-1 justify-center">
-                                  <span className="text-[12.5px] font-black text-primary truncate leading-tight" title={companyName}>
+                                  <span className="block text-[12.5px] font-black text-primary truncate whitespace-nowrap leading-tight" title={companyName}>
                                     {companyName}
                                   </span>
                                   {companyAddr && (
-                                    <span className="text-[10px] text-tertiary font-bold truncate mt-1 leading-none" title={companyAddr}>
+                                     <span className="block text-[10px] text-tertiary font-bold truncate whitespace-nowrap mt-1 leading-normal" title={companyAddr}>
                                       {companyAddr}
                                     </span>
                                   )}
