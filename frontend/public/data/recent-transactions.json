@@ -18,6 +18,23 @@
     "dateLabel": "7월 4일"
   },
   {
+    "aptName": "동탄숲속마을모아미래도2단지",
+    "txKey": "동탄숲속마을모아미래도2단지",
+    "date": "07.04",
+    "contractDate": "20260704",
+    "priceVal": 6.2,
+    "priceEok": "6억2,000",
+    "area": 100.92,
+    "areaPyeong": 39.6275,
+    "floor": 10,
+    "dealType": " ",
+    "isNewHigh": false,
+    "prevPriceVal": 6,
+    "delta": 0.2,
+    "deltaPercent": 3.3333333333333335,
+    "dateLabel": "7월 4일"
+  },
+  {
     "aptName": "더샵센트럴시티",
     "txKey": "더샵센트럴시티",
     "date": "07.04",
@@ -8299,9 +8316,9 @@
     "floor": 9,
     "dealType": " ",
     "isNewHigh": false,
-    "prevPriceVal": 8.1,
-    "delta": -0.8,
-    "deltaPercent": -9.876543209876543,
+    "prevPriceVal": 8.7,
+    "delta": -1.4,
+    "deltaPercent": -16.091954022988507,
     "dateLabel": "6월 22일"
   },
   {
@@ -9738,6 +9755,23 @@
     "dateLabel": "6월 20일"
   },
   {
+    "aptName": "시범다은마을우남퍼스트빌",
+    "txKey": "시범다은마을우남퍼스트빌",
+    "date": "06.20",
+    "contractDate": "20260620",
+    "priceVal": 8.7,
+    "priceEok": "8억7,000",
+    "area": 84.4275,
+    "areaPyeong": 34.7875,
+    "floor": 22,
+    "dealType": " ",
+    "isNewHigh": false,
+    "prevPriceVal": 8.1,
+    "delta": 0.6,
+    "deltaPercent": 7.4074074074074066,
+    "dateLabel": "6월 20일"
+  },
+  {
     "aptName": "레이크힐 반도유보라 아이비파크 10.2",
     "txKey": "레이크힐반도유보라아이비파크10.2",
     "date": "06.20",
@@ -9821,9 +9855,9 @@
     "dealType": " ",
     "isNewHigh": true,
     "newHighDelta": 0.3,
-    "prevPriceVal": 12.7,
-    "delta": 0.3,
-    "deltaPercent": 2.3622047244094486,
+    "prevPriceVal": 12.5,
+    "delta": 0.5,
+    "deltaPercent": 4,
     "dateLabel": "6월 20일"
   },
   {
@@ -17231,40 +17265,6 @@
     "prevPriceVal": 3.98,
     "delta": 0.22,
     "deltaPercent": 5.527638190954774,
-    "dateLabel": "6월 10일"
-  },
-  {
-    "aptName": "동탄푸른마을신일해피트리",
-    "txKey": "동탄푸른마을신일해피트리",
-    "date": "06.10",
-    "contractDate": "20260610",
-    "priceVal": 4.07,
-    "priceEok": "4억700",
-    "area": 59.05,
-    "areaPyeong": 23.2925,
-    "floor": 2,
-    "dealType": " ",
-    "isNewHigh": false,
-    "prevPriceVal": 4.4,
-    "delta": -0.33,
-    "deltaPercent": -7.5,
-    "dateLabel": "6월 10일"
-  },
-  {
-    "aptName": "동탄푸른마을신일해피트리",
-    "txKey": "동탄푸른마을신일해피트리",
-    "date": "06.10",
-    "contractDate": "20260610",
-    "priceVal": 5.2,
-    "priceEok": "5억2,000",
-    "area": 83.21,
-    "areaPyeong": 32.065,
-    "floor": 22,
-    "dealType": " ",
-    "isNewHigh": false,
-    "prevPriceVal": 5.2,
-    "delta": 0,
-    "deltaPercent": 0,
     "dateLabel": "6월 10일"
   }
 ]
