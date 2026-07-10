@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1783680969793';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1783680969793';
+const CACHE_NAME = 'dview-cache-v-1783695566041';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1783695566041';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -97,6 +97,11 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests or cross-origin (unless specific APIs)
   if (req.method !== 'GET') return;
 
+  // 모든 /api/ API 요청은 서비스 워커 캐싱을 거치하지 않고 다이렉트 네트워크를 타도록 바이패스 처리
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
   // Static Assets (Next.js build files, images, fonts) -> Cache First, Network Fallback
   if (url.pathname.startsWith('/_next/') || url.pathname.match(/\.(png|jpg|jpeg|svg|gif|webp|woff2|woff|ttf|otf)$/)) {
     event.respondWith(
@@ -112,26 +117,28 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Stale-While-Revalidate
+  // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Network First, Fallback to Cache
   // 단, 용량이 크고 실시간 데이터와 정합이 중요한 tx-summary.json은 캐싱 레이턴시 배제를 위해 SWR 캐시에서 제외합니다.
   if ((url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) && !url.pathname.includes('tx-summary.json')) {
     event.respondWith(
-      caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
-        return cache.match(req).then((cachedRes) => {
-          const fetchPromise = fetch(req).then((networkRes) => {
-            if (networkRes.status === 200) {
-              cache.put(req, addCacheTimestamp(networkRes.clone()));
-            }
-            return networkRes;
-          }).catch(() => null);
-
-          if (cachedRes) {
-            checkCacheExpiration(cachedRes, req);
-            return cachedRes;
+      fetch(req)
+        .then((networkRes) => {
+          if (networkRes.status === 200) {
+            const clone = networkRes.clone();
+            caches.open(DYNAMIC_CACHE_NAME).then((cache) => cache.put(req, addCacheTimestamp(clone)));
           }
-          return fetchPromise;
-        });
-      })
+          return networkRes;
+        })
+        .catch(() => {
+          return caches.match(req).then((cachedRes) => {
+            if (cachedRes) {
+              checkCacheExpiration(cachedRes, req);
+              return cachedRes;
+            }
+            // Offline fallback
+            return new Response('[]', { headers: { 'Content-Type': 'application/json' } });
+          });
+        })
     );
     return;
   }

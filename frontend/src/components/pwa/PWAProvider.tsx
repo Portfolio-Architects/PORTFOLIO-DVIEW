@@ -385,6 +385,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       if (isReloadingRef.current) return;
       isReloadingRef.current = true;
+      setSwUpdateAvailable(false); // 즉시 팝업 모달을 꺼서 사용자 액션 피드백 제공
 
       const performUpdate = async (waitingWorker: ServiceWorker) => {
         try {
@@ -403,7 +404,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         setTimeout(() => {
           logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
           window.location.reload();
-        }, 3000);
+        }, 1000); // 딜레이를 1초로 단축하여 신속한 화면 새로고침 수행
       };
 
       const reg = swRegistrationRef.current;
@@ -411,10 +412,14 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         performUpdate(reg.waiting);
       } else {
         navigator.serviceWorker.getRegistrations().then((registrations) => {
-          const activeReg = registrations.find(r => r.waiting);
-          if (activeReg && activeReg.waiting) {
-            performUpdate(activeReg.waiting);
-          } else {
+          let updated = false;
+          registrations.forEach(r => {
+            if (r.waiting) {
+              performUpdate(r.waiting);
+              updated = true;
+            }
+          });
+          if (!updated) {
             window.location.reload();
           }
         });
