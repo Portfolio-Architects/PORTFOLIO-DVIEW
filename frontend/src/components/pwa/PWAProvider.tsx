@@ -121,6 +121,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const pushSupportTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
   const swRegistrationRef = useRef<ServiceWorkerRegistration | null>(null);
+  const isReloadingRef = useRef(false);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -199,6 +200,8 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // 🔧 Multi-tab Service Worker lifecycle update synchronization
     const handleControllerChange = () => {
+      if (isReloadingRef.current) return;
+      isReloadingRef.current = true;
       logger.info('PWAProvider', 'Service Worker controller changed. Reloading page to apply updates...');
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         try {
@@ -380,24 +383,37 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
   const handleApplyUpdate = useCallback(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      if (isReloadingRef.current) return;
+      isReloadingRef.current = true;
+
+      const performUpdate = async (waitingWorker: ServiceWorker) => {
+        try {
+          if (typeof window !== 'undefined' && window.caches) {
+            const keys = await window.caches.keys();
+            await Promise.all(keys.map(key => window.caches.delete(key)));
+            logger.info('PWAProvider', 'Cleared all caches before applying SW update');
+          }
+        } catch (e) {
+          logger.warn('PWAProvider', 'Failed to clear caches before update', undefined, e);
+        }
+
+        logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING...');
+        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
+
+        setTimeout(() => {
+          logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
+          window.location.reload();
+        }, 3000);
+      };
+
       const reg = swRegistrationRef.current;
       if (reg && reg.waiting) {
-        logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING from ref...');
-        reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        setTimeout(() => {
-          logger.warn('PWAProvider', 'SW Update fallback reload triggered (ref).');
-          window.location.reload();
-        }, 1000);
+        performUpdate(reg.waiting);
       } else {
         navigator.serviceWorker.getRegistrations().then((registrations) => {
           const activeReg = registrations.find(r => r.waiting);
           if (activeReg && activeReg.waiting) {
-            logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING from fallback...');
-            activeReg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            setTimeout(() => {
-              logger.warn('PWAProvider', 'SW Update fallback reload triggered (fallback).');
-              window.location.reload();
-            }, 1000);
+            performUpdate(activeReg.waiting);
           } else {
             window.location.reload();
           }

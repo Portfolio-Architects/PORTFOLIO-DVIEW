@@ -3,6 +3,7 @@
 import React from 'react';
 import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useSettingsUi } from '@/lib/contexts/SettingsContext';
 
 interface MobileDockProps {
@@ -12,6 +13,7 @@ interface MobileDockProps {
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
   const { setIsSettingsModalOpen } = useSettingsUi();
+  const router = useRouter();
   const [shouldHide, setShouldHide] = React.useState(false);
 
   React.useEffect(() => {
@@ -95,6 +97,8 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                 key={tab.id}
                 href={tab.href}
                 prefetch={true}
+                onMouseEnter={() => router.prefetch(tab.href)}
+                onTouchStart={() => router.prefetch(tab.href)}
                 className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
                   isActive ? 'text-hs-orange' : 'text-tertiary hover:text-secondary'
                 }`}

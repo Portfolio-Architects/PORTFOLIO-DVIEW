@@ -3,12 +3,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TrendingUp, MessageSquare, Home, LayoutDashboard, Coins, Newspaper, Building2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import { useAuth } from '@/hooks/useAuth';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 
 const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
   const { user } = useAuth();
+  const router = useRouter();
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
@@ -37,6 +39,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 <Link
                   href="/"
                   prefetch={true}
+                  onMouseEnter={() => router.prefetch('/')}
+                  onTouchStart={() => router.prefetch('/')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'technovalley'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -50,6 +54,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 <Link
                   href="/overview?tab=office"
                   prefetch={true}
+                  onMouseEnter={() => router.prefetch('/overview?tab=office')}
+                  onTouchStart={() => router.prefetch('/overview?tab=office')}
                   onClick={() => {
                     if (onTabChange) onTabChange('office');
                   }}
@@ -69,6 +75,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 <Link
                   href="/lounge"
                   prefetch={true}
+                  onMouseEnter={() => router.prefetch('/lounge')}
+                  onTouchStart={() => router.prefetch('/lounge')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'lounge'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -85,6 +93,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 <Link
                   href="/overview"
                   prefetch={true}
+                  onMouseEnter={() => router.prefetch('/overview')}
+                  onTouchStart={() => router.prefetch('/overview')}
                   onClick={() => {
                     if (onTabChange) onTabChange('overview');
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
@@ -103,6 +113,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                 <Link
                   href="/explore"
                   prefetch={true}
+                  onMouseEnter={() => router.prefetch('/explore')}
+                  onTouchStart={() => router.prefetch('/explore')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'imjang'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
