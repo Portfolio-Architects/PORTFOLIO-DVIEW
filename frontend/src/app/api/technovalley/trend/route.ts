@@ -114,21 +114,52 @@ const CACHE_TTL_MS = 600000; // 10 minutes
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const bypassCache = searchParams.get('refresh') === 'true';
+  const bypassCache = searchParams.get('refresh') === 'true' || searchParams.get('bypassCache') === 'true';
   const now = Date.now();
+  const cachePath = path.join(process.cwd(), 'scratch/trend-cache.json');
 
-  if (!bypassCache && memoryCache && (now - memoryCache.timestamp) < CACHE_TTL_MS) {
-    logger.info('GET /api/technovalley/trend', 'Serving trend data from in-memory cache.');
-    return NextResponse.json({
-      success: true,
-      source: 'memory-cache',
-      data: memoryCache.data
-    }, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+  if (!bypassCache) {
+    if (memoryCache && (now - memoryCache.timestamp) < CACHE_TTL_MS) {
+      logger.info('GET /api/technovalley/trend', 'Serving trend data from in-memory cache.');
+      return NextResponse.json({
+        success: true,
+        source: 'memory-cache',
+        data: memoryCache.data
+      }, {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+        }
+      });
+    }
+
+    try {
+      if (fs.existsSync(cachePath)) {
+        const fileContent = fs.readFileSync(cachePath, 'utf8');
+        const fileCached = JSON.parse(fileContent);
+        if (fileCached && fileCached.data) {
+          logger.info('GET /api/technovalley/trend', 'Serving trend data from local file cache.');
+          
+          memoryCache = {
+            data: fileCached.data,
+            timestamp: fileCached.timestamp || now
+          };
+
+          return NextResponse.json({
+            success: true,
+            source: 'file-cache',
+            data: fileCached.data
+          }, {
+            status: 200,
+            headers: {
+              'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+            }
+          });
+        }
       }
-    });
+    } catch (err) {
+      logger.error('GET /api/technovalley/trend', 'Failed to read local file cache', {}, err);
+    }
   }
 
   try {
@@ -401,6 +432,18 @@ export async function GET(request: NextRequest) {
       data: finalTrend,
       timestamp: Date.now()
     };
+
+    // Write to local file cache
+    try {
+      const LOCAL_CACHE_DIR = path.dirname(cachePath);
+      if (!fs.existsSync(LOCAL_CACHE_DIR)) {
+        fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
+      }
+      fs.writeFileSync(cachePath, JSON.stringify({ data: finalTrend, timestamp: Date.now() }), 'utf-8');
+      logger.info('GET /api/technovalley/trend', 'Successfully wrote trend data to local file cache.');
+    } catch (e: unknown) {
+      logger.error('GET /api/technovalley/trend', 'Failed to write local file cache', {}, e);
+    }
 
     logger.info('GET /api/technovalley/trend', 'Successfully calculated rents from raw sales transactions.');
 

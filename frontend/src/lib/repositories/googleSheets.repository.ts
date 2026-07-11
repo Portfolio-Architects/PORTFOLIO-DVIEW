@@ -77,6 +77,32 @@ export async function fetchCsv(sheetName: string, bypassCache: boolean = false):
   const LOCAL_CACHE_DIR = path.resolve(process.cwd(), 'scratch/sheets-cache');
   const localCachePath = path.join(LOCAL_CACHE_DIR, `${sheetName}.json`);
 
+  // Helper logic for background refresh
+  const triggerBackgroundRefresh = () => {
+    fetchCsvFromGoogle(sheetName).then(freshData => {
+      sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: Date.now() };
+      
+      // Update local file cache
+      try {
+        if (!fs.existsSync(LOCAL_CACHE_DIR)) {
+          fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
+        }
+        fs.writeFileSync(localCachePath, JSON.stringify({ data: freshData, timestamp: Date.now() }), 'utf-8');
+      } catch (err: unknown) {
+        logger.error('googleSheets.repository.fetchCsv', `Local file cache write failed on background refresh: ${sheetName}`, undefined, err instanceof Error ? err : new Error(String(err)));
+      }
+
+      // Update Redis
+      if (redis) {
+        redis.set(cacheKey, { data: freshData, timestamp: Date.now() }).catch(e => {
+          logger.error('googleSheets.repository.fetchCsv', `Redis write failed on background refresh: ${sheetName}`, undefined, e instanceof Error ? e : new Error(String(e)));
+        });
+      }
+    }).catch((err: unknown) => {
+      logger.error('googleSheets.repository.fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err instanceof Error ? err : new Error(String(err)));
+    });
+  };
+
   // 1. Check in-memory cache first
   if (!bypassCache) {
     const memCached = sheetsMemoryCache[cacheKey];
@@ -88,32 +114,48 @@ export async function fetchCsv(sheetName: string, bypassCache: boolean = false):
     }
   }
 
-  // 2. Check Redis cache
+  // 2. Check local file cache (Higher priority than network/Redis roundtrip when Redis is offline)
+  if (!bypassCache) {
+    try {
+      if (fs.existsSync(localCachePath)) {
+        const fileContent = fs.readFileSync(localCachePath, 'utf-8');
+        const cached = JSON.parse(fileContent);
+        if (cached && cached.data && cached.timestamp) {
+          const isStale = (now - cached.timestamp) > SHEETS_CACHE_TTL * 1000;
+          if (isStale) {
+            logger.info('googleSheets.repository.fetchCsv', `Local file cache is stale for: ${sheetName}. Triggering background refresh.`);
+            triggerBackgroundRefresh();
+          }
+          // Set in-memory cache
+          sheetsMemoryCache[cacheKey] = { data: cached.data, timestamp: cached.timestamp };
+          return cached.data as string[][];
+        }
+      }
+    } catch (e: unknown) {
+      logger.error('googleSheets.repository.fetchCsv', `Local file cache read failed during active check for: ${sheetName}`, undefined, e instanceof Error ? e : new Error(String(e)));
+    }
+  }
+
+  // 3. Check Redis cache
   if (!bypassCache && redis) {
     try {
       const cached = await redis.get<{ data: string[][]; timestamp: number }>(cacheKey);
       if (cached) {
         const isStale = (now - cached.timestamp) > SHEETS_CACHE_TTL * 1000;
         if (isStale) {
-          // Stale-While-Revalidate: fetch in background
-          fetchCsvFromGoogle(sheetName).then(freshData => {
-            redis?.set(cacheKey, { data: freshData, timestamp: Date.now() });
-            sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: Date.now() };
-            // Save to local file cache as well
-            try {
-              if (!fs.existsSync(LOCAL_CACHE_DIR)) {
-                fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
-              }
-              fs.writeFileSync(localCachePath, JSON.stringify({ data: freshData, timestamp: Date.now() }), 'utf-8');
-            } catch (err: unknown) {
-              logger.error('googleSheets.repository.fetchCsv', `Local file cache write failed on background refresh: ${sheetName}`, undefined, err instanceof Error ? err : new Error(String(err)));
-            }
-          }).catch((err: unknown) => {
-            logger.error('googleSheets.repository.fetchCsv', `Failed to background refresh sheet: ${sheetName}`, undefined, err instanceof Error ? err : new Error(String(err)));
-          });
+          logger.info('googleSheets.repository.fetchCsv', `Redis cache is stale for: ${sheetName}. Triggering background refresh.`);
+          triggerBackgroundRefresh();
         }
-        // Write to memory cache
+        // Write to memory cache & file cache
         sheetsMemoryCache[cacheKey] = { data: cached.data, timestamp: cached.timestamp };
+        try {
+          if (!fs.existsSync(LOCAL_CACHE_DIR)) {
+            fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
+          }
+          fs.writeFileSync(localCachePath, JSON.stringify({ data: cached.data, timestamp: cached.timestamp }), 'utf-8');
+        } catch (fileErr) {
+          // ignore
+        }
         return cached.data;
       }
     } catch (e: unknown) {
@@ -121,7 +163,7 @@ export async function fetchCsv(sheetName: string, bypassCache: boolean = false):
     }
   }
 
-  // 3. Live fetch with resilient fallback on failure
+  // 4. Live fetch (Bypass or Cache Miss)
   try {
     const freshData = await fetchCsvFromGoogle(sheetName, bypassCache);
     sheetsMemoryCache[cacheKey] = { data: freshData, timestamp: now };
