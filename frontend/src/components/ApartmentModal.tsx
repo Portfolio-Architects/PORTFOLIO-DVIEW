@@ -122,7 +122,14 @@ const CommentSection = dynamic(() => import('@/components/CommentSection').catch
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import SegmentedControl from './ui/SegmentedControl';
 import { ApartmentGallery } from './apartment-modal/ApartmentGallery';
-import { TransactionTable } from './apartment-modal/TransactionTable';
+const TransactionTable = dynamic(() => import('@/components/apartment-modal/TransactionTable').then(mod => mod.TransactionTable).catch(err => {
+  logger.warn('ApartmentModal.dynamic', 'TransactionTable Chunk Load failure, initiating fallback reload', undefined, err);
+  safeReload('TransactionTable');
+  return () => null;
+}), {
+  ssr: false,
+  loading: () => <TransactionTableSkeleton />
+});
 
 const JeonseSafetyReport = dynamic(() => import('@/components/apartment-modal/JeonseSafetyReport').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'JeonseSafetyReport Chunk Load failure, initiating fallback reload', undefined, err);
@@ -140,7 +147,14 @@ const TransactionChartSection = dynamic(() => import('@/components/apartment-mod
   ssr: false,
   loading: () => <TransactionChartSkeleton />
 });
-import { TransactionSummaryMetrics } from './apartment-modal/TransactionSummaryMetrics';
+const TransactionSummaryMetrics = dynamic(() => import('@/components/apartment-modal/TransactionSummaryMetrics').then(mod => mod.TransactionSummaryMetrics).catch(err => {
+  logger.warn('ApartmentModal.dynamic', 'TransactionSummaryMetrics Chunk Load failure, initiating fallback reload', undefined, err);
+  safeReload('TransactionSummaryMetrics');
+  return () => null;
+}), {
+  ssr: false,
+  loading: () => <div className="w-full h-[460px] md:h-[386px] rounded-2xl border border-border/40 animate-shimmer mt-4" />
+});
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 const PhotoUploadModal = dynamic(() => import('@/components/apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
   logger.warn('ApartmentModal.dynamic', 'PhotoUploadModal Chunk Load failure, initiating fallback reload', undefined, err);
@@ -178,7 +192,14 @@ import PushSubscriptionModal from './pwa/PushSubscriptionModal';
 import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, calculateInfraScore } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 
-import ApartmentSpecsSection from './apartment-modal/ApartmentSpecsSection';
+const ApartmentSpecsSection = dynamic(() => import('@/components/apartment-modal/ApartmentSpecsSection').catch(err => {
+  logger.warn('ApartmentModal.dynamic', 'ApartmentSpecsSection Chunk Load failure, initiating fallback reload', undefined, err);
+  safeReload('ApartmentSpecsSection');
+  return { default: () => null };
+}), {
+  ssr: false,
+  loading: () => <div className="w-full h-32 rounded-2xl border border-border/40 animate-shimmer mt-4" />
+});
 const EducationAnalysisSection = dynamic(() => import('@/components/apartment-modal/EducationAnalysisSection').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'EducationAnalysisSection Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('EducationAnalysisSection');
