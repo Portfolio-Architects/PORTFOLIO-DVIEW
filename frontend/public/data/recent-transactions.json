@@ -6263,6 +6263,23 @@
     "dateLabel": "6월 25일"
   },
   {
+    "aptName": "METAPOLIS",
+    "txKey": "METAPOLIS",
+    "date": "06.25",
+    "contractDate": "20260625",
+    "priceVal": 11.8,
+    "priceEok": "11억8,000",
+    "area": 109.482,
+    "areaPyeong": 46.2825,
+    "floor": 8,
+    "dealType": " ",
+    "isNewHigh": false,
+    "prevPriceVal": 12.3,
+    "delta": -0.5,
+    "deltaPercent": -4.0650406504065035,
+    "dateLabel": "6월 25일"
+  },
+  {
     "aptName": "솔빛마을신도브래뉴",
     "txKey": "솔빛마을신도브래뉴",
     "date": "06.25",
@@ -17248,23 +17265,6 @@
     "prevPriceVal": 7.3,
     "delta": -0.42,
     "deltaPercent": -5.7534246575342465,
-    "dateLabel": "6월 11일"
-  },
-  {
-    "aptName": "동탄센트럴포레스트",
-    "txKey": "동탄센트럴포레스트",
-    "date": "06.11",
-    "contractDate": "20260611",
-    "priceVal": 5.97,
-    "priceEok": "5억9,700",
-    "area": 84.87,
-    "areaPyeong": 34.1825,
-    "floor": 8,
-    "dealType": " ",
-    "isNewHigh": false,
-    "prevPriceVal": 6.15,
-    "delta": -0.18,
-    "deltaPercent": -2.9268292682926833,
     "dateLabel": "6월 11일"
   }
 ]
