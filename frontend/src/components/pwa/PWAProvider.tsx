@@ -384,8 +384,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const handleApplyUpdate = useCallback(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       if (isReloadingRef.current) return;
-      isReloadingRef.current = true;
-      setSwUpdateAvailable(false); // 즉시 팝업 모달을 꺼서 사용자 액션 피드백 제공
+      setSwUpdateAvailable(false); // 즉시 팝업 모달을 꺼서 사용자 액션 피드백 제공 및 중복 클릭 방지
 
       const performUpdate = async (waitingWorker: ServiceWorker) => {
         try {
@@ -401,10 +400,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING...');
         waitingWorker.postMessage({ type: 'SKIP_WAITING' });
 
+        // 서비스 워커 교체가 비동기로 처리될 때까지 충분한 마진(4초)을 두고 대기한 후 폴백 리로드 실행
         setTimeout(() => {
+          if (isReloadingRef.current) return;
+          isReloadingRef.current = true;
           logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
           window.location.reload();
-        }, 1000); // 딜레이를 1초로 단축하여 신속한 화면 새로고침 수행
+        }, 4000);
       };
 
       const reg = swRegistrationRef.current;
@@ -420,6 +422,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
             }
           });
           if (!updated) {
+            isReloadingRef.current = true;
             window.location.reload();
           }
         });
