@@ -126,6 +126,18 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   useEffect(() => {
     mountedRef.current = true;
     initSafeReloadDiagnostics();
+
+    // 🔧 Clear SW update reload flags after page loads
+    if (typeof window !== 'undefined') {
+      if (sessionStorage.getItem('dview_sw_reloading') === 'true' || sessionStorage.getItem('dview_sw_update_in_progress') === 'true') {
+        logger.info('PWAProvider', 'Detected SW update state on mount. Clearing flags in 2 seconds.');
+        setTimeout(() => {
+          sessionStorage.removeItem('dview_sw_reloading');
+          sessionStorage.removeItem('dview_sw_update_in_progress');
+        }, 2000);
+      }
+    }
+
     return () => {
       mountedRef.current = false;
       if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
@@ -199,9 +211,20 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     window.addEventListener('storage', handleStorageChange);
 
     // 🔧 Multi-tab Service Worker lifecycle update synchronization
+    const hasExistingController = !!navigator.serviceWorker.controller;
+
     const handleControllerChange = () => {
+      if (!hasExistingController) {
+        logger.info('PWAProvider', 'Service Worker active for the first time. Bypassing reload.');
+        return;
+      }
       if (isReloadingRef.current) return;
+      if (sessionStorage.getItem('dview_sw_reloading') === 'true') {
+        logger.info('PWAProvider', 'Already reloaded recently due to SW controller change. Bypassing...');
+        return;
+      }
       isReloadingRef.current = true;
+      sessionStorage.setItem('dview_sw_reloading', 'true');
       logger.info('PWAProvider', 'Service Worker controller changed. Reloading page to apply updates...');
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         try {
@@ -309,7 +332,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     const handleStateChange = () => {
       if (registeredWorker && registeredWorker.state === 'installed' && registeredReg && registeredReg.waiting) {
-        setSwUpdateAvailable(true);
+        if (sessionStorage.getItem('dview_sw_update_in_progress') !== 'true') {
+          setSwUpdateAvailable(true);
+        }
       }
     };
 
@@ -334,7 +359,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         
         // 1. If SW is already waiting to activate
         if (reg.waiting) {
-          setSwUpdateAvailable(true);
+          if (sessionStorage.getItem('dview_sw_update_in_progress') !== 'true') {
+            setSwUpdateAvailable(true);
+          }
         }
 
         // Trigger manual update check on mount to ensure fresh status
@@ -384,6 +411,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const handleApplyUpdate = useCallback(() => {
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
       if (isReloadingRef.current) return;
+      if (sessionStorage.getItem('dview_sw_reloading') === 'true') return;
+      
+      sessionStorage.setItem('dview_sw_update_in_progress', 'true');
       setSwUpdateAvailable(false); // 즉시 팝업 모달을 꺼서 사용자 액션 피드백 제공 및 중복 클릭 방지
 
       const performUpdate = async (waitingWorker: ServiceWorker) => {
@@ -403,7 +433,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         // 서비스 워커 교체가 비동기로 처리될 때까지 충분한 마진(4초)을 두고 대기한 후 폴백 리로드 실행
         setTimeout(() => {
           if (isReloadingRef.current) return;
+          if (sessionStorage.getItem('dview_sw_reloading') === 'true') return;
           isReloadingRef.current = true;
+          sessionStorage.setItem('dview_sw_reloading', 'true');
           logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
           window.location.reload();
         }, 4000);
@@ -423,6 +455,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           });
           if (!updated) {
             isReloadingRef.current = true;
+            sessionStorage.setItem('dview_sw_reloading', 'true');
             window.location.reload();
           }
         });

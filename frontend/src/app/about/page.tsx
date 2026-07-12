@@ -183,6 +183,22 @@ export default async function AboutPage() {
               </div>
             </div>
 
+            {/* Card 5: 공동임차 매칭 & 실시간 웹푸시 */}
+            <div className="bg-surface p-6 sm:p-7 rounded-2xl border border-border shadow-sm flex flex-col justify-between hover:border-emerald-500/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group md:col-span-2">
+              <div>
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-5 border border-emerald-500/10 group-hover:scale-105 transition-transform">
+                  <ShieldCheck size={22} />
+                </div>
+                <h4 className="text-[15px] sm:text-[16.5px] font-bold text-primary tracking-tight">공동임차 매칭 및 실시간 알림 피드</h4>
+                <p className="mt-3 text-[12px] sm:text-[13.5px] text-secondary leading-relaxed font-medium">
+                  지속가능한 상업용 부동산 활성화를 위해 커뮤니티 라운지를 연계합니다. 예비 창업자 및 1인 스타트업이 중대형 오피스의 분할 공동 임차 파트너(공유오피스 메이트)를 구할 수 있도록 매칭 서비스를 제공하고, 관심 단지의 실거래 신규 신고가 등록 시 KST 07:00에 실시간 웹 푸시 알림으로 소식을 배달하는 지능형 알림 피드를 탑재했습니다.
+                </p>
+              </div>
+              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold">
+                💡 특징: iOS PWA 독립 실행형 대응 및 Web Push API 표준 규격 전면 연동
+              </div>
+            </div>
+
           </div>
         </div>
 

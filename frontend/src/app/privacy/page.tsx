@@ -57,14 +57,16 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제2조 (수집하는 개인정보 항목 및 수집 방법)</h2>
           <ul className="list-disc pl-5 space-y-2">
             <li><strong>수집 항목 (이메일 및 소셜 로그인):</strong> 이메일 주소, 이름(닉네임), 프로필 사진, 암호화된 식별자(UID)</li>
+            <li><strong>웹 푸시 구독 정보:</strong> 알림 서비스를 신청한 경우, 브라우저가 발행한 고유 푸시 수신 주소(Endpoint), 암호화 키(P256dh, Auth)</li>
             <li><strong>자동 수집 항목 (Google Analytics 4 등):</strong> IP 주소, 쿠키, 기기 정보, 위치 정보(대략적인 지역), 서비스 이용 기록(방문 페이지, 체류 시간, 즐겨찾기 클릭 등 트래픽 데이터)</li>
-            <li><strong>수집 방법:</strong> 서비스 가입 및 이용 시 수집, 생성정보 수집 툴(Google Analytics)을 통한 자동 수집</li>
+            <li><strong>수집 방법:</strong> 회원가입, 푸시 알림 신청, 커뮤니티(라운지) 게시글/댓글 작성, 또는 Google Analytics 분석 도구 연동을 통한 자동 수집</li>
           </ul>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제3조 (개인정보의 수집 및 이용 목적)</h2>
           <p>회사는 수집한 개인정보를 다음의 목적을 위해 활용합니다.</p>
           <ul className="list-disc pl-5 space-y-2 mt-2">
             <li><strong>서비스 제공:</strong> 부동산 분석 데이터 및 리포트 제공, 개인화된 맞춤형 단지 추천 및 즐겨찾기 연동</li>
+            <li><strong>웹 푸시 알림:</strong> 관심 단지 신규 거래 및 신고가 소식 제공, 본인 게시글에 대한 신규 댓글 등록 알림</li>
             <li><strong>회원 관리:</strong> 본인 확인, 개인 식별, 불량 회원의 부정 이용 방지, 가입 의사 확인, 고객 상담(CS)</li>
             <li><strong>서비스 분석 및 고도화:</strong> 사용자 행동 패턴(페이지 조회수, 체류 시간 등) 및 트래픽 분석을 통한 UI/UX 개선 및 서비스 최적화</li>
           </ul>
@@ -82,7 +84,7 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제6조 (이용자의 권리와 그 행사방법)</h2>
           <p>
             이용자는 언제든지 등록되어 있는 자신의 개인정보를 조회하거나 수정할 수 있으며, 가입 해지(회원 탈퇴)를 요청할 수 있습니다. 
-            회원 탈퇴를 원하시는 경우, 서비스 내 &apos;마이페이지&apos; 또는 관리자 이메일을 통해 요청하시면 본인 확인 절차를 거친 후 지체 없이 처리합니다.
+            회원 탈퇴를 원하시는 경우, 서비스 내 마이페이지 또는 관리자 이메일을 통해 요청하시면 본인 확인 절차를 거친 후 지체 없이 처리합니다.
           </p>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제7조 (개인정보 보호책임자)</h2>
@@ -96,8 +98,8 @@ export default function PrivacyPage() {
           </div>
 
           <div className="mt-12 text-sm text-tertiary">
-            <p>공고일자: 2026년 5월 21일</p>
-            <p>시행일자: 2026년 5월 21일</p>
+            <p>공고일자: 2026년 7월 12일</p>
+            <p>시행일자: 2026년 7월 12일</p>
           </div>
         </article>
       </main>
