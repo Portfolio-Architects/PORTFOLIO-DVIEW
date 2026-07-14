@@ -31,7 +31,7 @@ export function LoungeTalkWidget({ postsData }: LoungeTalkWidgetProps) {
           onClick={() => {
             window.location.href = '/lounge';
           }}
-          className="text-[11.5px] font-bold text-secondary hover:text-[#ea6100] transition-colors bg-transparent border-none cursor-pointer"
+          className="text-[11.5px] font-bold text-secondary hover:text-hs-orange transition-colors bg-transparent border-none cursor-pointer"
         >
           라운지 전체보기 ➔
         </button>
@@ -55,14 +55,14 @@ export function LoungeTalkWidget({ postsData }: LoungeTalkWidgetProps) {
                   window.location.href = `/lounge#post=${post.id}`;
                 }
               }}
-              className="flex justify-between items-center p-3 hover:bg-body/50 dark:hover:bg-zinc-950/20 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995] w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#ea6100]/50"
+              className="flex justify-between items-center p-3 hover:bg-body/50 dark:hover:bg-zinc-950/20 border border-transparent hover:border-border/30 rounded-xl transition-all cursor-pointer group active:scale-[0.995] w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-hs-orange/50"
             >
               <div className="flex flex-col gap-1 min-w-0 mr-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[9.5px] font-bold text-[#ff8f00] dark:text-[#ea6100] bg-[#ea6100]/10 dark:bg-[#ea6100]/20 px-1.5 py-0.5 rounded shrink-0">
+                  <span className="text-[9.5px] font-bold text-hs-orange bg-hs-orange/10 dark:bg-hs-orange/20 px-1.5 py-0.5 rounded shrink-0">
                     {post.category || '기타'}
                   </span>
-                  <span className="text-[12.5px] font-bold text-primary truncate group-hover:text-[#ea6100] transition-colors">
+                  <span className="text-[12.5px] font-bold text-primary truncate group-hover:text-hs-orange transition-colors">
                     {post.title}
                   </span>
                 </div>

@@ -61,7 +61,7 @@ function CircularProgress({ percent, color }: CircularProgressProps) {
 // 1. Donut Chart Data
 const DONUT_DATA = [
   { name: '반도체·첨단제조', value: 33.3, color: '#9a3412', count: 643, companies: ['어플라이드 머티리얼즈 코리아 - 경기도 화성시 동탄기흥로 614-26', '도쿄일렉트론코리아 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', 'ASM 코리아 - 경기도 화성시 동탄기흥로 635', '케이씨텍 - 경기도 화성시 동탄기흥로 642'] },
-  { name: 'IT·소프트웨어', value: 9.5, color: '#ea580c', count: 184, companies: ['한국아이티에스 - 경기도 화성시 동탄대로22길 17', '위즈코리아 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '제이앤제이 테크 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '(주)디디오넷코리아 - 경기도 화성시 동탄구 동탄순환대로29길'] },
+  { name: 'IT·소프트웨어', value: 9.5, color: '#dc6e2d', count: 184, companies: ['한국아이티에스 - 경기도 화성시 동탄대로22길 17', '위즈코리아 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '제이앤제이 테크 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '(주)디디오넷코리아 - 경기도 화성시 동탄구 동탄순환대로29길'] },
   { name: '바이오·헬스케어', value: 1.8, color: '#f59e0b', count: 35, companies: ['한미약품 연구센터 - 경기도 화성시 동탄대로22길 125, 한미약품 연구센터', '서린바이오 - 경기도 화성시 동탄대로21길 15, 서린바이오 글로벌센터', '녹십자웰빙 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', '우정바이오 - 경기도 화성시 동탄기흥로 593-8, 우정바이오 신약클러스터'] },
   { name: '지식기반 서비스', value: 21.7, color: '#fdba74', count: 419, companies: ['기술보증기금 동탄 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '특허법인 지산 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', '노바메저링인스트루먼트코리아 - 경기도 화성시 동탄구 동탄대로23길', '더몰론코리아 동탄지점 - 경기도 화성시 동탄구 동탄영천로'] },
   { name: '정밀기기 및 기타', value: 33.7, color: '#e7e5e4', count: 650, companies: ['신도리코 R&D - 경기도 화성시 동탄기흥로 568', '제이앤제이엠컴퍼니 - 경기도 화성시 동탄구 동탄대로', 'VATKOREALTD - 경기도 화성시 동탄구 동탄기흥로', '구뎅코리아 (GUDENG KOREA CO. LTD.) - 경기도 화성시 동탄구 동탄대로23길'] }
@@ -482,7 +482,7 @@ const TREND_DATA = [
 const AVERAGE_LINE_COLOR = '#845ef7'; // Soft Amethyst Purple (Pastel Cute theme)
 
 const AVAILABLE_BUILDINGS = [
-  { id: '금강 IX', name: '금강 IX타워', color: '#ea580c', rentKey: '금강IX_임대료', totalUnits: 2701 },
+  { id: '금강 IX', name: '금강 IX타워', color: '#dc6e2d', rentKey: '금강IX_임대료', totalUnits: 2701 },
   { id: '실리콘앨리', name: '현대 실리콘앨리', color: '#2563eb', rentKey: '실리콘앨리_임대료', totalUnits: 2470 },
   { id: 'SH타임', name: 'SH타임스퀘어', color: '#0d9488', rentKey: 'SH타임_임대료', totalUnits: 369 },
   { id: '더퍼스트', name: '더퍼스트타워', color: '#ff85a2', rentKey: '더퍼스트_임대료', totalUnits: 460 },
@@ -1086,22 +1086,27 @@ export default function TechnoValleyDashboard() {
             </div>
           </div>
 
-          {/* Card 4: Avg Company Size (NPS-based) */}
-          <div className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-300">
+          {/* Card 4: Tax Simulator (Interactive Link) */}
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById('tax-simulator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-hs-orange transition-all duration-300 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-hs-orange/20"
+          >
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">기업별 평균 고용 규모</span>
-              <div className="flex items-baseline gap-1.5 flex-wrap">
-                <span className="text-[14px] sm:text-[16px] font-black text-primary">13.2명 / 사</span>
-                <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-600 dark:text-violet-500 flex items-center gap-0.5 shrink-0">
-                  ▲ 0.1
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">법인 세제 감면 계산기</span>
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[12px] sm:text-[13.5px] font-black text-hs-orange leading-snug">
+                  내 예상 절세 혜택 알아보기 (클릭 시 이동)
                 </span>
               </div>
             </div>
-            <div className="hidden sm:flex flex-col text-right shrink-0 pl-3 border-l border-border/40 gap-0.5 justify-center min-w-[95px] h-9">
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">IT·제조 18.6명</span>
-              <span className="text-[10px] text-tertiary font-bold tracking-tight">소호 3.4명</span>
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-hs-orange-light text-hs-orange shrink-0 ml-3">
+              <ChevronRight className="w-4 h-4" />
             </div>
-          </div>
+          </button>
 
         </div>
 
@@ -1115,7 +1120,7 @@ export default function TechnoValleyDashboard() {
           {/* Left Panel: Title & Unit Inline */}
           <div className="flex items-center gap-2 flex-wrap min-w-0">
             <h3 className="text-[14.5px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#ea580c] shrink-0" />
+              <span className="w-2.5 h-2.5 rounded-full bg-hs-orange shrink-0" />
               <span>{metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}</span>
               {metricMode === 'vacancy' && (
                 <button 
@@ -1175,7 +1180,7 @@ export default function TechnoValleyDashboard() {
             {/* Detailed Modal Trigger Button */}
             <button
               onClick={() => setShowDetailModal(true)}
-              className="h-[26px] px-2.5 rounded-lg border border-[#ea580c]/30 hover:border-[#ea580c]/50 bg-[#ea580c]/5 hover:bg-[#ea580c]/10 text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all text-[#ea580c] shadow-sm active:scale-[0.98] shrink-0"
+              className="h-[26px] px-2.5 rounded-lg border border-hs-orange/30 hover:border-hs-orange/50 bg-hs-orange/5 hover:bg-hs-orange/10 text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all text-hs-orange shadow-sm active:scale-[0.98] shrink-0"
             >
               <span>상세보기</span>
               <ChevronRight className="w-3 h-3" />
@@ -1490,7 +1495,7 @@ export default function TechnoValleyDashboard() {
       </div>
 
       {/* 과밀억제권역 기업 동탄 이전 세제 시뮬레이터 (Full Width) */}
-      <div className="lg:col-span-12 mt-6">
+      <div id="tax-simulator" className="lg:col-span-12 mt-6">
         <RelocationTaxSimulator />
       </div>
 
@@ -1512,7 +1517,7 @@ export default function TechnoValleyDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-2">
                 {/* Layer 1 */}
                 <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
-                  <span className="font-black text-[#ea580c] text-[14.5px] flex items-center gap-1.5">
+                  <span className="font-black text-hs-orange text-[14.5px] flex items-center gap-1.5">
                     🏢 1단계: 실거래 베이스라인
                   </span>
                   <p className="text-[13px] text-tertiary leading-relaxed font-medium">
@@ -1734,19 +1739,19 @@ export default function TechnoValleyDashboard() {
                     <thead>
                       <tr className="bg-body border-b border-border/60 text-[10px] font-black text-tertiary select-none">
                         <th className="py-2.5 px-3 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                          단지명 <span className={sortConfig.key === 'name' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          단지명 <span className={sortConfig.key === 'name' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('units')}>
-                          총 호수 <span className={sortConfig.key === 'units' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'units' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          총 호수 <span className={sortConfig.key === 'units' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'units' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('vacancy')}>
-                          공실률 <span className={sortConfig.key === 'vacancy' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'vacancy' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          공실률 <span className={sortConfig.key === 'vacancy' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'vacancy' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('rent')}>
-                          임대료 <span className={sortConfig.key === 'rent' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'rent' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          임대료 <span className={sortConfig.key === 'rent' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'rent' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
                         <th className="py-2.5 px-3 text-center cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('change')}>
-                          개선폭 <span className={sortConfig.key === 'change' ? "text-[#ea580c]" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'change' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          개선폭 <span className={sortConfig.key === 'change' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'change' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
                         </th>
                       </tr>
                     </thead>
@@ -1767,7 +1772,7 @@ export default function TechnoValleyDashboard() {
                         let vacancyColor = '';
                         if (latestVal < 15) vacancyColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded';
                         else if (latestVal < 20) vacancyColor = 'text-blue-600 dark:text-toss-blue bg-blue-50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded';
-                        else vacancyColor = 'text-[#ea580c] bg-[#ea580c]/5 px-1.5 py-0.5 rounded';
+                        else vacancyColor = 'text-hs-orange bg-hs-orange/5 px-1.5 py-0.5 rounded';
 
                         return (
                           <tr key={b.id} className="hover:bg-body/80 transition-all">

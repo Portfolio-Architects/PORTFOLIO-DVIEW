@@ -43,11 +43,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   onTouchStart={() => router.prefetch('/')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'technovalley'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                      ? 'bg-hs-blue-light text-hs-blue font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <LayoutDashboard size={18} className={activeTab === 'technovalley' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                  <LayoutDashboard size={18} className={activeTab === 'technovalley' ? 'text-hs-blue' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                   <span>테크노 랩</span>
                 </Link>
 
@@ -61,11 +61,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   }}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'office'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                      ? 'bg-hs-blue-light text-hs-blue font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Building2 size={18} className={activeTab === 'office' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                  <Building2 size={18} className={activeTab === 'office' ? 'text-hs-blue' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                   <span>사무실 탐색</span>
                 </Link>
               </nav>
@@ -79,11 +79,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   onTouchStart={() => router.prefetch('/lounge')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'lounge'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                      ? 'bg-hs-blue-light text-hs-blue font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                  <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-hs-blue' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                   <span>동탄 라운지</span>
                 </Link>
               </nav>
@@ -102,11 +102,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   }}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'overview'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Building2 size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                  <Building2 size={18} className={activeTab === 'overview' ? 'text-hs-orange' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                   아파트 랩
                 </Link>
 
@@ -117,11 +117,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   onTouchStart={() => router.prefetch('/explore')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'imjang'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Home size={18} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
+                  <Home size={18} className={activeTab === 'imjang' ? 'text-hs-orange' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
                   <span>아파트 탐색</span>
                 </Link>
               </nav>

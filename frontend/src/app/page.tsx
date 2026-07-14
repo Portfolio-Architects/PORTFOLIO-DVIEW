@@ -6,16 +6,35 @@ import { safeJsonLd } from '@/lib/utils/structuredData';
 
 function TechnoValleySkeleton() {
   return (
-    <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 flex flex-col gap-8">
-      {/* 2 columns layout skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        <div className="lg:col-span-6 h-[400px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
-        <div className="lg:col-span-6 h-[400px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
+    <div className="w-full bg-transparent">
+      {/* LoungeHeader Placeholder */}
+      <div className="hidden md:block shrink-0 bg-surface border-b border-border h-[80px]" />
+      
+      {/* PageHeroHeader Placeholder */}
+      <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-3 px-4 sm:px-6 md:px-10 lg:px-16 pt-5 pb-4 bg-transparent border-b border-border/60">
+        <div className="flex items-center gap-3">
+          <div className="w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] rounded-[12px] bg-black/5 dark:bg-surface/5 animate-pulse" />
+          <div className="w-48 h-8 bg-black/5 dark:bg-surface/5 rounded-lg animate-pulse" />
+        </div>
+        <div className="w-64 h-4 bg-black/5 dark:bg-surface/5 rounded-md animate-pulse ml-3 border-l-2 border-border/40 pl-3" />
       </div>
-      {/* Cards grid skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="w-full h-[220px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
-        <div className="w-full h-[220px] bg-black/5 dark:bg-surface/5 rounded-3xl" />
+
+      <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 flex flex-col gap-6 animate-pulse">
+        {/* 2 columns dashboard skeleton */}
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+          {/* Left Panel Skeleton */}
+          <div className="lg:col-span-6 flex flex-col gap-6 h-[586px]">
+            <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-6 rounded-[24px] h-[370px] shrink-0" />
+            <div className="grid grid-cols-2 gap-4 flex-1">
+              <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
+              <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
+              <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
+              <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
+            </div>
+          </div>
+          {/* Right Panel Skeleton */}
+          <div className="lg:col-span-6 bg-black/5 dark:bg-surface/5 border border-border/40 p-6 rounded-[24px] h-[566px]" />
+        </div>
       </div>
     </div>
   );

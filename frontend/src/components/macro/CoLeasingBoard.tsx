@@ -345,7 +345,7 @@ export default function CoLeasingBoard() {
                           신청 완료
                         </span>
                       ) : (
-                        <span className="px-2 py-0.5 rounded-full bg-[#ea580c]/10 text-[#ea580c] text-[9.5px] font-black">
+                        <span className="px-2 py-0.5 rounded-full bg-hs-orange/10 text-hs-orange text-[9.5px] font-black">
                           모집 중
                         </span>
                       )}

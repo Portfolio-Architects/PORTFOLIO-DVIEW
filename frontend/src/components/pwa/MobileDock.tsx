@@ -63,6 +63,12 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
           const isActive = activeTab === tab.id;
           const showDivider = tab.id === 'office' || tab.id === 'lounge';
           
+          const isBlueTab = tab.id === 'technovalley' || tab.id === 'office' || tab.id === 'lounge';
+          const activeTextColor = isBlueTab ? 'text-hs-blue' : 'text-hs-orange';
+          const activeBgClass = isBlueTab 
+            ? 'bg-hs-blue-light border border-hs-blue/15' 
+            : 'bg-hs-orange-light border border-hs-orange/15';
+
           let tabElement = null;
           
           if (onTabClick && tab.id !== 'imjang' && tab.id !== 'lounge' && tab.id !== 'technovalley' && tab.id !== 'overview' && tab.id !== 'office') {
@@ -80,11 +86,11 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                     }
                   }}
                   className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
-                    isActive ? 'text-hs-orange' : 'text-tertiary hover:text-secondary'
+                    isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
                   }`}
                 >
                  {isActive && (
-                    <div className="absolute inset-0 bg-[#fdf0e9] border border-[#dc6e2d]/15 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95" />
+                    <div className={`absolute inset-0 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95 ${activeBgClass}`} />
                  )}
                  <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
                  <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
@@ -100,11 +106,11 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                 onMouseEnter={() => router.prefetch(tab.href)}
                 onTouchStart={() => router.prefetch(tab.href)}
                 className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
-                  isActive ? 'text-hs-orange' : 'text-tertiary hover:text-secondary'
+                  isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
                 }`}
               >
                 {isActive && (
-                   <div className="absolute inset-0 bg-[#fdf0e9] border border-[#dc6e2d]/15 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95" />
+                   <div className={`absolute inset-0 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95 ${activeBgClass}`} />
                 )}
                 <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
                 <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>

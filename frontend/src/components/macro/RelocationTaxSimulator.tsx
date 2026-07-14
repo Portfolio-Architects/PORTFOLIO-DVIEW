@@ -249,7 +249,7 @@ export default function RelocationTaxSimulator() {
               {/* Corp Tax Savings */}
               <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#ea580c]" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
                   <div className="flex flex-col">
                     <span className="text-[13px] font-black text-primary">법인세 / 소득세 감면 (6개년)</span>
                     <span className="text-[10.5px] text-tertiary font-bold mt-0.5">이전 후 최초 4년 100%, 이후 2년 50%</span>
