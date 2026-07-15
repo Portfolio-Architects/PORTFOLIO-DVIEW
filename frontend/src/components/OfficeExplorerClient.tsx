@@ -13,7 +13,12 @@ import {
   Maximize2
 } from 'lucide-react';
 import PageHeroHeader from '@/components/PageHeroHeader';
-import CoLeasingBoard from '@/components/macro/CoLeasingBoard';
+import dynamic from 'next/dynamic';
+
+const CoLeasingBoard = dynamic(() => import('@/components/macro/CoLeasingBoard'), {
+  ssr: false,
+  loading: () => <div className="w-full h-48 bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
+});
 
 interface OfficeTransaction {
   readonly date: string;
@@ -292,7 +297,65 @@ const BUILDINGS_DB: OfficeBuilding[] = [
   }
 ];
 
-export default function OfficeExplorerClient() {
+interface OfficeBuildingCardProps {
+  building: OfficeBuilding;
+  idx: number;
+  onSelect: (building: OfficeBuilding) => void;
+}
+
+const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
+  building,
+  idx,
+  onSelect
+}: OfficeBuildingCardProps) {
+  return (
+    <div 
+      onClick={() => onSelect(building)}
+      className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:scale-[1.01] rounded-[20px] transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300"
+    >
+      <div className="flex items-center gap-4 flex-1 min-w-0">
+        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-black ${building.imgPlaceholder}`}>
+          {idx + 1}
+        </div>
+        <div className="flex flex-col min-w-0">
+          <div className="flex items-center gap-2">
+            <h3 className="text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate">{building.name}</h3>
+            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
+              {building.type}
+            </span>
+            {building.driveIn && (
+              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+                드라이브인
+              </span>
+            )}
+          </div>
+          <p className="text-[12px] text-secondary/75 dark:text-zinc-400 mt-1.5 leading-relaxed truncate md:max-w-[500px]">
+            {building.desc}
+          </p>
+          <div className="flex items-center gap-2 mt-2 text-[10.5px] font-bold text-secondary/60 dark:text-zinc-400">
+            <span>총 {building.totalUnits.toLocaleString()}호</span>
+            <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-zinc-700 shrink-0" />
+            <span>공실률 {building.vacancyRate}%</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex md:flex-col items-end justify-between md:justify-center gap-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-white/10 border-dashed shrink-0">
+        <div className="flex flex-col items-start md:items-end">
+          <span className="text-[11px] font-bold text-secondary/60 dark:text-zinc-400">평당 임대료</span>
+          <span className="text-sm font-black text-[#ea6100] mt-0.5">{building.rentPerPy}</span>
+        </div>
+        <span className="text-[12px] font-extrabold text-secondary/90 dark:text-zinc-300 bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 dark:border-white/10 group-hover:bg-[#ea6100]/10 group-hover:text-[#ea6100] group-hover:border-[#ea6100]/20 dark:group-hover:bg-[#ea6100]/20 dark:group-hover:border-[#ea6100]/30 transition-all duration-300">
+          상세 정보
+        </span>
+      </div>
+    </div>
+  );
+});
+
+OfficeBuildingCard.displayName = 'OfficeBuildingCard';
+
+const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDriveIn, setSelectedDriveIn] = useState<'all' | 'yes' | 'no'>('all');
@@ -400,16 +463,16 @@ export default function OfficeExplorerClient() {
         {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
         <CoLeasingBoard />
 
-        <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-[500px]">
+        <div className="flex w-full bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md md:rounded-[20px] md:border md:border-border/40 md:dark:border-white/10 md:shadow-[0_8px_30px_rgb(0,0,0,0.02)] items-stretch flex-1 min-h-[500px]">
           
           {/* Sidebar 필터 영역 */}
           <aside 
             style={{ width: `${sidebarWidth}px` }}
-            className="hidden md:flex flex-col shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl gap-6 select-none"
+            className="hidden md:flex flex-col shrink-0 border-r border-border/40 dark:border-white/10 bg-neutral-50/20 dark:bg-zinc-900/20 backdrop-blur-md py-6 px-4 sticky top-[68px] self-start md:rounded-l-[20px] gap-6 select-none"
           >
             {/* Filter Group 1: Drive-In */}
             <div>
-              <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-secondary/95 dark:text-zinc-100 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
                 <Filter size={14} className="text-[#ea6100]" />
                 물류 / 하역 시설
               </h3>
@@ -422,10 +485,10 @@ export default function OfficeExplorerClient() {
                   <button
                     key={opt.id}
                     onClick={() => setSelectedDriveIn(opt.id as 'all' | 'yes' | 'no')}
-                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer ${
+                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                       selectedDriveIn === opt.id 
                         ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
-                        : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
+                        : 'text-secondary/70 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                   >
                     {opt.label}
@@ -436,7 +499,7 @@ export default function OfficeExplorerClient() {
 
             {/* Filter Group 2: Station Proximity */}
             <div>
-              <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-secondary/95 dark:text-zinc-100 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
                 <Filter size={14} className="text-[#ea6100]" />
                 대중교통 입지
               </h3>
@@ -448,10 +511,10 @@ export default function OfficeExplorerClient() {
                   <button
                     key={opt.id}
                     onClick={() => setSelectedStation(opt.id as 'all' | 'near')}
-                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer ${
+                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                       selectedStation === opt.id 
                         ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
-                        : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
+                        : 'text-secondary/70 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                   >
                     {opt.label}
@@ -462,7 +525,7 @@ export default function OfficeExplorerClient() {
 
             {/* Filter Group 3: Building Scale */}
             <div>
-              <h3 className="text-xs font-bold text-secondary mb-3 flex items-center gap-1.5">
+              <h3 className="text-xs font-bold text-secondary/95 dark:text-zinc-100 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
                 <Filter size={14} className="text-[#ea6100]" />
                 단지 규모
               </h3>
@@ -474,10 +537,10 @@ export default function OfficeExplorerClient() {
                   <button
                     key={opt.id}
                     onClick={() => setSelectedScale(opt.id as 'all' | 'huge')}
-                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer ${
+                    className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                       selectedScale === opt.id 
                         ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
-                        : 'text-tertiary hover:bg-black/5 dark:hover:bg-white/5'
+                        : 'text-secondary/70 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                   >
                     {opt.label}
@@ -490,17 +553,17 @@ export default function OfficeExplorerClient() {
           {/* Drag Resizer */}
           <div 
             onMouseDown={handleMouseDown}
-            className="hidden md:block w-1 bg-border/80 hover:bg-[#ea6100]/60 transition-all cursor-col-resize shrink-0 relative z-30"
+            className="hidden md:block w-[2px] hover:w-[4px] bg-border/30 dark:bg-white/10 hover:bg-[#ea6100]/60 dark:hover:bg-[#ea6100]/60 transition-all cursor-col-resize shrink-0 relative z-30"
           />
 
           {/* 메인 리스트 영역 */}
-          <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
+          <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-[20px]">
             
             {/* 상단 검색 / 소팅 바 */}
-            <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-transparent">
+            <div className="px-0 py-3 md:py-4 border-b border-border/40 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-transparent">
               <div>
-                <h2 className="text-lg font-black text-primary">지식산업센터 탐색</h2>
-                <p className="text-[12px] text-tertiary mt-1">
+                <h2 className="text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">지식산업센터 탐색</h2>
+                <p className="text-[12px] text-secondary/80 dark:text-zinc-400 mt-1 leading-relaxed">
                   총 <span className="text-[#ea6100] font-extrabold">{filteredBuildings.length}</span>개의 빌딩이 탐색되었습니다.
                 </p>
               </div>
@@ -513,9 +576,9 @@ export default function OfficeExplorerClient() {
                     placeholder="빌딩명 검색..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-body border border-border focus:border-[#ea6100] rounded-xl pl-9 pr-4 py-2 text-[12.5px] font-semibold outline-none transition-all"
+                    className="w-full bg-body/60 dark:bg-zinc-850/40 border border-border/40 dark:border-white/10 focus:ring-2 focus:ring-[#ea6100]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#ea6100] dark:focus:border-[#ea6100] rounded-xl pl-9 pr-4 py-2 text-[12.5px] font-semibold outline-none transition-all duration-300"
                   />
-                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-tertiary" />
+                  <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary/70 dark:text-zinc-400" />
                 </div>
 
                 {/* 정렬 필터 */}
@@ -530,10 +593,10 @@ export default function OfficeExplorerClient() {
                     <button
                       key={opt.id}
                       onClick={() => setSortBy(opt.id as 'score' | 'rentPerPy' | 'station' | 'units' | 'vacancy')}
-                      className={`px-3 py-1.5 rounded-full text-[11.5px] font-extrabold border transition-all shrink-0 ${
+                      className={`px-3 py-1.5 rounded-full text-[11.5px] font-extrabold border transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                         sortBy === opt.id
                           ? 'bg-[#c44d00] border-[#c44d00] text-white shadow-sm'
-                          : 'bg-body border-border text-secondary hover:bg-black/5 dark:hover:bg-white/5'
+                          : 'bg-body border-border/40 dark:border-white/10 text-secondary/80 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/5'
                       }`}
                     >
                       {opt.label}
@@ -544,58 +607,22 @@ export default function OfficeExplorerClient() {
             </div>
 
             {/* 테이블형 목록 */}
-            <div className="flex-1 overflow-y-auto no-scrollbar py-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar scroll-smooth py-4">
               <div className="flex flex-col gap-3">
                 {filteredBuildings.map((building, idx) => (
-                  <div 
+                  <OfficeBuildingCard
                     key={building.name}
-                    onClick={() => setSelectedBuilding(building)}
-                    className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border hover:border-[#ea6100]/40 rounded-2xl bg-surface hover:bg-neutral-50/20 dark:hover:bg-zinc-900/10 transition-all cursor-pointer shadow-sm relative overflow-hidden"
-                  >
-                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-black ${building.imgPlaceholder}`}>
-                        {idx + 1}
-                      </div>
-                      <div className="flex flex-col min-w-0">
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-base font-black text-primary truncate">{building.name}</h3>
-                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary shrink-0">
-                            {building.type}
-                          </span>
-                          {building.driveIn && (
-                            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 shrink-0">
-                              드라이브인
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[12px] text-tertiary mt-1.5 leading-relaxed truncate md:max-w-[500px]">
-                          {building.desc}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2 text-[10.5px] font-bold text-tertiary">
-                          <span>총 {building.totalUnits.toLocaleString()}호</span>
-                          <span className="w-1 h-1 rounded-full bg-neutral-300 shrink-0" />
-                          <span>공실률 {building.vacancyRate}%</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex md:flex-col items-end justify-between md:justify-center gap-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border border-dashed shrink-0">
-                      <div className="flex flex-col items-start md:items-end">
-                        <span className="text-[11px] font-bold text-tertiary">평당 임대료</span>
-                        <span className="text-sm font-black text-[#ea6100] mt-0.5">{building.rentPerPy}</span>
-                      </div>
-                      <span className="text-[12px] font-extrabold text-secondary bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 group-hover:bg-[#ea6100]/10 group-hover:text-[#ea6100] group-hover:border-[#ea6100]/20 transition-all">
-                        상세 정보
-                      </span>
-                    </div>
-                  </div>
+                    building={building}
+                    idx={idx}
+                    onSelect={setSelectedBuilding}
+                  />
                 ))}
 
                 {filteredBuildings.length === 0 && (
-                  <div className="py-20 text-center flex flex-col items-center justify-center">
-                    <Building size={40} className="text-tertiary mb-3 opacity-60" />
-                    <p className="text-sm font-bold text-secondary">조건에 맞는 사무실/지산 빌딩이 없습니다.</p>
-                    <p className="text-xs text-tertiary mt-1">검색어나 필터를 초기화해 보세요.</p>
+                  <div className="py-20 text-center flex flex-col items-center justify-center animate-in fade-in duration-300">
+                    <Building size={40} className="text-secondary/50 dark:text-zinc-500 mb-3 opacity-60" />
+                    <p className="text-sm font-bold text-secondary/90 dark:text-zinc-300">조건에 맞는 사무실/지산 빌딩이 없습니다.</p>
+                    <p className="text-xs text-secondary/60 dark:text-zinc-500 mt-1">검색어나 필터를 초기화해 보세요.</p>
                   </div>
                 )}
               </div>
@@ -609,11 +636,11 @@ export default function OfficeExplorerClient() {
       {/* 상세 정보 모달 */}
       {selectedBuilding && (
         <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-surface w-full max-w-[580px] h-[82vh] max-h-[640px] rounded-3xl shadow-2xl border border-border p-6 sm:p-8 flex flex-col justify-between animate-in zoom-in-95 duration-200 relative">
+          <div className="bg-surface/90 dark:bg-zinc-900/90 backdrop-blur-lg w-full max-w-[580px] h-[82vh] max-h-[640px] rounded-[20px] shadow-2xl border border-border/40 dark:border-white/10 p-6 sm:p-8 flex flex-col justify-between animate-in zoom-in-95 duration-200 relative">
             
             <button 
               onClick={() => setSelectedBuilding(null)}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-secondary transition-all cursor-pointer"
+              className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-secondary dark:text-zinc-400 transition-all cursor-pointer"
             >
               <X size={20} />
             </button>
@@ -623,10 +650,10 @@ export default function OfficeExplorerClient() {
                 <Building2 size={24} />
               </div>
               <div>
-                <h3 className="text-lg font-black text-primary">{selectedBuilding.name}</h3>
+                <h3 className="text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">{selectedBuilding.name}</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs font-bold text-tertiary">{selectedBuilding.type}</span>
-                  <span className="w-1 h-1 rounded-full bg-neutral-300 shrink-0" />
+                  <span className="text-xs font-bold text-secondary/70 dark:text-zinc-400">{selectedBuilding.type}</span>
+                  <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-zinc-700 shrink-0" />
                   <span className="text-xs font-extrabold text-[#ea6100]">{selectedBuilding.dong}</span>
                 </div>
               </div>
@@ -637,37 +664,37 @@ export default function OfficeExplorerClient() {
               
               {/* 빌딩 주요 제원 */}
               <div>
-                <h4 className="text-xs font-black text-secondary mb-2.5">빌딩 주요 제원</h4>
+                <h4 className="text-xs font-black text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2.5">빌딩 주요 제원</h4>
                 <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
-                    <div className="text-tertiary shrink-0"><Maximize2 size={16} /></div>
+                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
+                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Maximize2 size={16} /></div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-tertiary font-bold">연면적 (GFA)</span>
-                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.gfa}</span>
+                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">연면적 (GFA)</span>
+                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.gfa}</span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
-                    <div className="text-tertiary shrink-0"><Layers size={16} /></div>
+                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
+                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Layers size={16} /></div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-tertiary font-bold">건물 규모</span>
-                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.scale}</span>
+                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">건물 규모</span>
+                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.scale}</span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
-                    <div className="text-tertiary shrink-0"><Car size={16} /></div>
+                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
+                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Car size={16} /></div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-tertiary font-bold">주차 시설</span>
-                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.parking}</span>
+                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">주차 시설</span>
+                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.parking}</span>
                     </div>
                   </div>
 
-                  <div className="p-3 bg-body/60 border border-border/40 rounded-2xl flex items-center gap-3">
-                    <div className="text-tertiary shrink-0"><Calendar size={16} /></div>
+                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
+                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Calendar size={16} /></div>
                     <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-tertiary font-bold">준공 연월</span>
-                      <span className="text-[11px] text-secondary font-extrabold mt-0.5 truncate">{selectedBuilding.specs.completion}</span>
+                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">준공 연월</span>
+                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.completion}</span>
                     </div>
                   </div>
                 </div>
@@ -675,10 +702,10 @@ export default function OfficeExplorerClient() {
 
               {/* 빌딩 상세 특징 */}
               <div>
-                <h4 className="text-xs font-bold text-secondary mb-2.5">빌딩 상세 특징</h4>
+                <h4 className="text-xs font-bold text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2.5">빌딩 상세 특징</h4>
                 <div className="flex flex-wrap gap-1.5">
                   {selectedBuilding.features.map(feat => (
-                    <span key={feat} className="text-[11px] font-extrabold px-3 py-1.5 bg-neutral-50 dark:bg-zinc-800/40 rounded-xl border border-border/30 text-secondary">
+                    <span key={feat} className="text-[11px] font-extrabold px-3 py-1.5 bg-neutral-50/50 dark:bg-zinc-800/50 rounded-xl border border-border/30 dark:border-white/5 text-secondary dark:text-zinc-300">
                       {feat}
                     </span>
                   ))}
@@ -687,28 +714,28 @@ export default function OfficeExplorerClient() {
 
               {/* 빌딩 설명 */}
               <div>
-                <h4 className="text-xs font-bold text-secondary mb-2">빌딩 설명</h4>
-                <p className="text-[12.5px] leading-relaxed text-secondary font-medium">
+                <h4 className="text-xs font-bold text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2">빌딩 설명</h4>
+                <p className="text-[12.5px] leading-relaxed text-secondary/90 dark:text-zinc-300 font-medium">
                   {selectedBuilding.desc}
                 </p>
               </div>
 
               {/* 최근 3개월 실거래/시세 현황 */}
               <div>
-                <h4 className="text-xs font-bold text-secondary mb-2.5">최근 3개월 실거래/시세 현황</h4>
-                <div className="border border-border/80 rounded-2xl overflow-hidden divide-y divide-border/60 bg-body/20">
+                <h4 className="text-xs font-bold text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2.5">최근 3개월 실거래/시세 현황</h4>
+                <div className="border border-border/40 dark:border-white/10 rounded-[20px] overflow-hidden divide-y divide-border/40 dark:divide-white/10 bg-body/20">
                   {selectedBuilding.recentTransactions.map((tx, idx) => (
-                    <div key={idx} className="flex items-center justify-between px-4 py-3.5 text-[12px] font-bold hover:bg-body/40 transition-all">
+                    <div key={idx} className="flex items-center justify-between px-4 py-3.5 text-[12px] font-bold hover:bg-body/20 dark:hover:bg-zinc-800/20 transition-all duration-300">
                       <div className="flex items-center gap-2">
                         <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                          tx.type === '매매' ? 'bg-orange-50 dark:bg-orange-950/20 text-orange-600' : 'bg-blue-50 dark:bg-blue-950/20 text-blue-600'
+                          tx.type === '매매' ? 'bg-orange-500/10 dark:bg-orange-500/20 text-orange-600' : 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600'
                         }`}>
                           {tx.type}
                         </span>
-                        <span className="text-secondary">{tx.sizeSqM}㎡ (실평수)</span>
-                        <span className="text-tertiary">{tx.floor}층</span>
+                        <span className="text-secondary dark:text-zinc-300">{tx.sizeSqM}㎡ (실평수)</span>
+                        <span className="text-secondary/70 dark:text-zinc-400">{tx.floor}층</span>
                       </div>
-                      <div className="text-primary font-black">{tx.price}</div>
+                      <div className="text-primary/95 dark:text-zinc-100 font-black">{tx.price}</div>
                     </div>
                   ))}
                 </div>
@@ -729,4 +756,8 @@ export default function OfficeExplorerClient() {
       )}
     </div>
   );
-}
+});
+
+OfficeExplorerClient.displayName = 'OfficeExplorerClient';
+export default OfficeExplorerClient;
+

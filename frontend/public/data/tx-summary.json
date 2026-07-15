@@ -5391,10 +5391,10 @@
     }
   },
   "recent7DaysVolume": {
-    "currentCount": 292,
+    "currentCount": 299,
     "prevCount": 315,
-    "trendText": "하락 (-7.3%)",
+    "trendText": "하락 (-5.1%)",
     "trendColor": "#2e7cf6",
-    "badge": "-23건 (-7%)"
+    "badge": "-16건 (-5%)"
   }
 }

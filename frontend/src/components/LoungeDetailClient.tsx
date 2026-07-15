@@ -109,7 +109,7 @@ const CommentInput = memo(({ user, isSending, onSubmit }: CommentInputProps) => 
           }}
           placeholder={user ? "댓글을 남겨 이웃과 소통해보세요..." : "로그인 없이 자유롭게 댓글을 남겨보세요... (익명)"}
           aria-label="댓글 작성 입력"
-          className="flex-1 bg-surface border border-toss-gray rounded-xl px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#c44d00]/20 focus:border-[#c44d00] dark:focus:ring-[#ea6100]/20 dark:focus:border-[#ea6100] transition-all duration-300"
+          className="flex-1 bg-surface/50 border border-border/40 rounded-[14px] px-4 py-3 text-[14px] outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] hover:border-border/80 dark:hover:border-white/20 transition-all duration-300"
         />
         <button
           onClick={handleSubmit}
@@ -127,19 +127,34 @@ const CommentInput = memo(({ user, isSending, onSubmit }: CommentInputProps) => 
 });
 CommentInput.displayName = 'CommentInput';
 
+const CommentItem = React.memo(function CommentItem({ comment }: { comment: PostComment }) {
+  return (
+    <li className="px-5 py-5 hover:bg-body transition-colors">
+      <div className="flex items-center gap-2 mb-1.5">
+        <span className="text-[14px] font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight">{comment.authorName}</span>
+        <span className="text-[12px] text-secondary/80 dark:text-zinc-400">{comment.createdAt}</span>
+      </div>
+      <p className="text-[14px] text-secondary/80 dark:text-zinc-400 leading-relaxed break-all">{comment.text}</p>
+    </li>
+  );
+});
+CommentItem.displayName = 'CommentItem';
+
+
+
 /** Verification badge */
 const VerificationBadge = memo(({ apartment, level }: { apartment?: string; level?: string }) => {
   if (!apartment || !level) return null;
   const shortName = apartment.replace(/\[.*?\]\s*/, '').trim();
   if (level === 'registry_verified') {
     return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-toss-blue-light text-toss-blue px-2 py-0.5 rounded-md">
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30 px-2 py-0.5 rounded-md">
         <ShieldCheck size={11} /> {shortName}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-body text-tertiary px-2 py-0.5 rounded-md">
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold bg-zinc-500/10 text-secondary/80 dark:text-zinc-400 dark:bg-zinc-800/30 border border-transparent px-2 py-0.5 rounded-md">
       <Shield size={11} /> {shortName}
     </span>
   );
@@ -839,7 +854,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           ? 'pb-12 pt-14 px-2 sm:px-6' 
           : 'pb-12 sm:pb-16 pt-4 sm:pt-6 px-4'
       }`}>
-        <div className="bg-surface rounded-2xl border border-border p-4 sm:p-6 mb-6 shadow-sm">
+        <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] p-4 sm:p-6 mb-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300">
           {isEditing ? (
             <div className="mt-4 flex flex-col gap-3">
               <div className="flex gap-2 mb-2 overflow-x-auto">
@@ -854,7 +869,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
               <input
                 value={editTitle}
                 onChange={(e) => setEditTitle(e.target.value)}
-                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[16px] font-bold outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300"
+                className="w-full bg-body border border-border/40 rounded-[14px] px-4 py-3 text-[16px] font-extrabold tracking-tight outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] hover:border-border/80 dark:hover:border-white/20 transition-all duration-300"
                 placeholder="제목"
                 aria-label="게시글 수정 제목"
               />
@@ -863,7 +878,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                 value={editContent}
                 onChange={(e) => setEditContent(e.target.value)}
                 rows={12}
-                className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3 text-[15px] outline-none focus:ring-2 focus:ring-toss-blue/20 focus:border-toss-blue transition-all duration-300 resize-none whitespace-pre-wrap"
+                className="w-full bg-body border border-border/40 rounded-[16px] px-4 py-3 text-[15px] leading-relaxed outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] hover:border-border/80 dark:hover:border-white/20 transition-all duration-300 resize-none whitespace-pre-wrap"
                 placeholder="내용"
                 aria-label="게시글 수정 내용"
               />
@@ -895,12 +910,12 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           ) : (
             <>
               <div className="flex items-center gap-2 mb-2">
-                <span className={`text-[12px] font-bold px-2 py-0.5 rounded-md ${
-                  (post?.category === '동탄 임장/분석' || post?.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
-                  (post?.category === '부동산 고민상담' || post?.category === '부동산 기초' || post?.category === '부동산') ? 'bg-[#ffe8e8] text-toss-red' :
-                  (post?.category === '동탄 청약/대출' || post?.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue' :
-                  (post?.category === '동탄 교통/상권' || post?.category === '인프라' || post?.category === '교통') ? 'bg-[#f4e8ff] text-[#9b51e0]' :
-                  'bg-body text-secondary'
+                <span className={`text-[12px] font-bold px-2.5 py-1 rounded-md border ${
+                  (post?.category === '동탄 임장/분석' || post?.category === '임장기') ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:bg-emerald-500/20 dark:text-emerald-400 dark:border-emerald-500/30' :
+                  (post?.category === '부동산 고민상담' || post?.category === '부동산 기초' || post?.category === '부동산') ? 'bg-rose-500/10 text-rose-500 border-rose-500/20 dark:bg-rose-500/20 dark:text-rose-400 dark:border-rose-500/30' :
+                  (post?.category === '동탄 청약/대출' || post?.category === '정책자금 대출') ? 'bg-blue-500/10 text-blue-600 border-blue-500/20 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30' :
+                  (post?.category === '동탄 교통/상권' || post?.category === '인프라' || post?.category === '교통') ? 'bg-purple-500/10 text-purple-600 border-purple-500/20 dark:bg-purple-500/20 dark:text-purple-400 dark:border-purple-500/30' :
+                  'bg-zinc-500/10 text-secondary/80 border-transparent dark:text-zinc-400'
                 }`}>
                   {post?.category === '임장기' ? '동탄 임장/분석' : 
                    post?.category === '부동산 기초' ? '부동산 고민상담' :
@@ -943,7 +958,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                   )}
                 </div>
               </div>
-              <h1 className="text-[20px] font-extrabold text-primary leading-snug mt-2 mb-4 text-left">{String(post?.title || "")}</h1>
+              <h1 className="text-[20px] font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-relaxed mt-2 mb-4 text-left">{String(post?.title || "")}</h1>
 
               {(() => {
                 const cleanTitle = String(post?.title || '');
@@ -975,7 +990,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                             // Bypass Next.js router for instant hash update and modal rendering
                             window.location.hash = `post=${postId}&apt=${encodeURIComponent(shortName)}`;
                           }}
-                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-[#e5e8eb] rounded-xl shrink-0 transition-colors group border border-transparent hover:border-[#c44d00]/20 dark:hover:border-[#ea6100]/20"
+                          className="flex items-center gap-2.5 px-3.5 py-2.5 bg-body hover:bg-body/70 border border-border/40 dark:border-white/10 hover:scale-[1.02] hover:shadow-[0_4px_12px_rgba(0,0,0,0.02)] rounded-[14px] shrink-0 transition-all duration-200 group outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30"
                         >
                           <div className="w-8 h-8 rounded-full bg-surface flex items-center justify-center shrink-0 shadow-sm border border-border">
                             <Building2 size={15} className="text-[#c44d00] dark:text-[#ea6100]" />
@@ -1070,7 +1085,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
         </div>
 
         {/* Comments Section */}
-        <div className="bg-surface rounded-2xl border border-border overflow-hidden shadow-sm">
+        <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300">
           <div className="px-5 py-4 border-b border-body flex items-center gap-2">
             <MessageSquare size={18} className="text-[#c44d00] dark:text-[#ea6100]" />
             <span className="text-[16px] font-bold text-primary">댓글 {comments.length}</span>
@@ -1090,13 +1105,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           ) : (
             <ul className="divide-y divide-body">
               {comments.map((c) => (
-                <li key={c.id} className="px-5 py-5 hover:bg-body transition-colors">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className="text-[14px] font-bold text-primary">{c.authorName}</span>
-                    <span className="text-[12px] text-tertiary">{c.createdAt}</span>
-                  </div>
-                  <p className="text-[14px] text-secondary leading-relaxed">{c.text}</p>
-                </li>
+                <CommentItem key={c.id} comment={c} />
               ))}
             </ul>
           )}
@@ -1104,7 +1113,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
 
         {/* Recommended Posts (이 시간 인기 토크) */}
         {recommendedPosts.length > 0 && (
-          <div className="bg-surface rounded-2xl border border-border p-5 mt-4 shadow-sm">
+          <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] p-5 mt-4 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all duration-300">
             <h3 className="text-[14.5px] font-extrabold text-primary flex items-center gap-1.5 mb-4 px-1">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -1125,15 +1134,15 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
                     }
                   }}
                   aria-label={`추천 게시글: ${recPost.title}, 카테고리: ${recPost.category} 상세 보기`}
-                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/50 hover:border-[#c44d00]/20 dark:hover:border-[#ea6100]/20 rounded-xl cursor-pointer transition-all group text-left w-full outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+                  className="flex items-center justify-between p-3.5 bg-body hover:bg-body/70 border border-border/40 dark:border-white/10 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[14px] cursor-pointer transition-all duration-300 group text-left w-full outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100]"
                 >
                   <div className="flex flex-col gap-1.5 min-w-0 flex-1 pr-4">
                     <div className="flex items-center gap-2">
                       <span className={`text-[10px] font-extrabold px-1.5 py-0.5 rounded-md ${
-                        (recPost.category === '동탄 임장/분석' || recPost.category === '임장기') ? 'bg-[#e8f8f0] text-[#00a06c]' :
-                        (recPost.category === '부동산 고민상담' || recPost.category === '부동산 기초') ? 'bg-[#ffe8e8] text-toss-red' :
-                        (recPost.category === '동탄 청약/대출' || recPost.category === '정책자금 대출') ? 'bg-toss-blue-light text-toss-blue' :
-                        'bg-surface border border-border text-secondary'
+                        (recPost.category === '동탄 임장/분석' || recPost.category === '임장기') ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400' :
+                        (recPost.category === '부동산 고민상담' || recPost.category === '부동산 기초') ? 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400' :
+                        (recPost.category === '동탄 청약/대출' || recPost.category === '정책자금 대출') ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' :
+                        'bg-zinc-500/10 text-secondary/80 dark:text-zinc-400'
                       }`}>
                         {recPost.category === '임장기' ? '동탄 임장/분석' : 
                          recPost.category === '부동산 기초' ? '부동산 고민상담' :

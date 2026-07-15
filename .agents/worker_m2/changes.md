@@ -1,63 +1,29 @@
-# Milestone 2: Test Runner & Setup Changes
+# M2 Lounge & News Enhancements - Changes Report
 
-## Implemented Files
-1. **`self_improvement_loop/runner.py`**:
-   - Implemented the `TestRunner` class.
-   - Designed dynamic resolution of the Python executable inside the virtual environment (`.venv`), falling back to `sys.executable` if not present.
-   - Used `subprocess.run` to execute the specified test file and capture stdout/stderr, returning a structured dict: `{"success": bool, "stdout": str, "stderr": str, "returncode": int}`.
-   - Added direct script execution support for local debugging and manual runs.
+## Overview of Changes
+We have successfully implemented typography and performance optimizations for the Lounge & News components (Milestone M2) following Apple HIG design patterns and memoization practices:
 
-2. **`self_improvement_loop/target_module.py`**:
-   - Initial implementation of the `Calculator` class with the buggy `add` method (`return a - b`) and missing `subtract`/`multiply` methods to act as the test target.
+### 1. `frontend/src/components/LoungeFeedClient.tsx`
+- **NoticeCard Sub-component Extraction**: Extracted inline mapped notice rendering logic into a memoized `NoticeCard` sub-component (`React.memo`) to eliminate unnecessary re-renders of list items.
+- **Visual styling upgrade**: Applied Apple HIG styling rules with `rounded-[20px]` outer card wrappers, border color refinements (`border-border/40 dark:border-white/10`), glassmorphic backgrounds (`backdrop-blur-md bg-surface/80 dark:bg-zinc-900/80`), hover translation (`scale-[1.01]`), and shadow updates.
+- **Removed hardcoded background variables**: Updated `getCategoryChipStyles` to use high-contrast alpha-layered background utility classes (e.g. `bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20` instead of solid light greens) ensuring support for dark mode and accessibility guidelines.
 
-3. **`self_improvement_loop/test_target_module.py`**:
-   - Implemented `unittest.TestCase` suite with:
-     - `test_add` asserting `add(2, 3) == 5`.
-     - `test_subtract` asserting `subtract(5, 2) == 3`.
-     - `test_multiply` asserting `multiply(3, 4) == 12`.
-   - Included fallback importing logic supporting both localized import and module paths.
-   - Added `if __name__ == '__main__': unittest.main()`.
+### 2. `frontend/src/components/LoungeDetailClient.tsx`
+- **CommentItem Sub-component Extraction**: Extracted inline mapped comment list items into a memoized `CommentItem` sub-component (`React.memo`).
+- **Visual styling upgrade**: Updated the post details wrapper, comment box container, recommended posts container, and inline apartment mentions to use `rounded-[20px]`, `backdrop-blur-md bg-surface/80 dark:bg-zinc-900/80`, and fine border classes (`border-border/40 dark:border-white/10`).
+- **Input and focus enhancements**: Implemented a responsive alpha border design for textareas and input fields, adding transition animations on active/focus states (`focus:ring-2 focus:ring-[#c44d00]/30`).
+- **Typography & Contrasts**: Replaced custom bold font weights with `font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-relaxed` on post titles and subheadings.
 
-## Test Execution Results (Buggy Initial Run)
-Running `.venv\Scripts\python.exe self_improvement_loop\runner.py` produced:
-```
---- Test Run Results ---
-Success: False
-Return Code: 1
-Stdout:
+### 3. `frontend/src/components/LoungeComposeClient.tsx`
+- **Callback Memoization**: Wrapped modal action handlers (`handleClose`, `handleKeyDown`, `handleImageUpload`, and `handleSubmit`) in `useCallback` to avoid function recreation overhead.
+- **Visual styling upgrade**: Applied Apple HIG design rules with `rounded-t-[20px] sm:rounded-[20px]` modal outer boxes, input area adjustments, and active button hover scales (`hover:scale-[1.02] active:scale-[0.98]`).
+- **Typography**: Enhanced input and textarea placeholders with high-contrast text and cleaner spacing.
 
-Stderr:
-FEE
-======================================================================
-ERROR: test_multiply (__main__.TestCalculator.test_multiply)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\self_improvement_loop\test_target_module.py", line 18, in test_multiply
-    self.assertEqual(self.calc.multiply(3, 4), 12)
-                     ^^^^^^^^^^^^^^^^^^
-AttributeError: 'Calculator' object has no attribute 'multiply'
+### 4. `frontend/src/components/CommentSection.tsx`
+- **Callback Memoization**: Memoized input action handlers (`handleAction`, `handleMentionAuthor`, `handleInputChange`, `selectSuggestion`, and `handleKeyDown`) with `useCallback`.
+- **Visual styling upgrade**: Upgraded comments section wrapper, banner cards, and autocomplete popovers to use `rounded-[20px]`, backdrop blurs, and border alphas. Added item hover states (`hover:scale-[1.01] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)]`).
 
-======================================================================
-ERROR: test_subtract (__main__.TestCalculator.test_subtract)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\self_improvement_loop\test_target_module.py", line 15, in test_subtract
-    self.assertEqual(self.calc.subtract(5, 2), 3)
-                     ^^^^^^^^^^^^^^^^^^
-AttributeError: 'Calculator' object has no attribute 'subtract'
-
-======================================================================
-FAIL: test_add (__main__.TestCalculator.test_add)
-----------------------------------------------------------------------
-Traceback (most recent call last):
-  File "C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\self_improvement_loop\test_target_module.py", line 12, in test_add
-    self.assertEqual(self.calc.add(2, 3), 5)
-    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: -1 != 5
-
-----------------------------------------------------------------------
-Ran 3 tests in 0.003s
-
-FAILED (failures=1, errors=2)
-```
-As expected, `test_add` failed, and `test_subtract` / `test_multiply` raised `AttributeError` due to missing methods.
+### 5. `frontend/src/app/news/NewsClient.tsx`
+- **Sub-component Extraction**: Extracted news items and local notices into memoized sub-components `<NewsCard />` and `<NoticeItemCard />` to optimize re-render performance.
+- **Visual styling upgrade**: Updated lists, modal dialog structures, shimmer loader boxes, and action buttons to follow HIG rounded/glassmorphism styling.
+- **Removed hardcoded background variables**: Updated `getNoticeSourceDetails` and `getNewsCategoryDetails` to use alpha-based backgrounds.

@@ -170,42 +170,212 @@ const isTechnoRelated = (title: string, content?: string) => {
   return keywords.some(k => text.includes(k));
 };
 
+const NoticeCard = React.memo(function NoticeCard({
+  notice,
+  idx,
+  showToast,
+  handleShareNotice,
+}: {
+  notice: LocalNoticeItem;
+  idx: number;
+  showToast: (msg: string) => void;
+  handleShareNotice: (notice: LocalNoticeItem) => void;
+}) {
+  const isCulture = notice.source === 'culture';
+  
+  if (isCulture) {
+    const isLecture = notice.title.includes('[강좌]');
+    
+    const getDDayText = (dateStr: string) => {
+      const target = new Date(dateStr);
+      const today = new Date('2026-06-07');
+      today.setHours(0, 0, 0, 0);
+      target.setHours(0, 0, 0, 0);
+      const diff = target.getTime() - today.getTime();
+      const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+      if (diffDays === 0) return { text: isLecture ? '접수 마감' : '오늘 개최', color: 'bg-rose-500 text-white border-rose-600' };
+      if (diffDays > 0) return { text: isLecture ? `접수 D-${diffDays}` : `D-${diffDays}`, color: 'bg-emerald-500 text-white border-emerald-600 animate-pulse' };
+      return { text: isLecture ? '접수 종료' : '종료됨', color: 'bg-gray-400 text-white border-gray-500' };
+    };
+    
+    const dday = getDDayText(notice.date);
+    const displayTitle = isLecture 
+      ? notice.title.replace(/\[강좌\]\s*/, '') 
+      : notice.title;
+    const displayDesc = isLecture
+      ? '동탄 주민자치센터에서 운영하는 생활밀착형 교양/문화/체육 강좌입니다. 정원 내 선착순 수강 신청으로 저렴하게 고품질 교육 혜택을 이용하세요.'
+      : '본 소식은 동탄 권역의 대표 문화·축제 라이프스타일 정보입니다. 무료 이용 및 인근 주차가 가능하며, 가족 단위 방문에 적합합니다. D-VIEW에서 일정을 공유해보세요!';
+    const displayPrice = isLecture ? '무료 ~ 3만원 선' : '무료';
+    const displayDept = isLecture ? `${notice.dept} 주민센터` : notice.dept;
+    
+    return (
+      <div
+        role="button"
+        tabIndex={0}
+        aria-label={`${isLecture ? '강좌' : '소식'}: ${displayTitle}, ${displayDept} ${notice.date} 상세 보기`}
+        onClick={() => {
+          window.location.hash = `notice=${notice.id}`;
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            window.location.hash = `notice=${notice.id}`;
+          }
+        }}
+        className={`flex flex-col gap-4 p-5 rounded-[20px] border backdrop-blur-md bg-surface/80 dark:bg-zinc-900/80 transition-all duration-300 cursor-pointer w-full group relative overflow-hidden text-left outline-none focus:ring-2 focus:ring-emerald-500/30 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] ${
+          isLecture 
+            ? 'border-teal-500/20 dark:border-teal-500/30' 
+            : 'border-emerald-500/20 dark:border-emerald-500/30'
+        }`}
+      >
+        <div className={`absolute -right-6 -bottom-6 w-20 h-20 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500 ${
+          isLecture ? 'bg-teal-500/10 dark:bg-teal-500/20' : 'bg-emerald-500/10 dark:bg-emerald-500/20'
+        }`} />
+        
+        <div className="flex items-center justify-between gap-3 z-10">
+          <div className="flex items-center gap-2">
+            <span className={`px-2.5 py-1 text-[11px] font-black rounded-lg border ${dday.color} shadow-sm uppercase tracking-wider`}>
+              {dday.text}
+            </span>
+            <span className={`text-[11.5px] font-extrabold px-2 py-1 rounded-lg border ${
+              isLecture 
+                ? 'text-teal-600 bg-teal-500/10 dark:bg-teal-500/20 border-teal-500/20' 
+                : 'text-emerald-600 bg-emerald-500/10 dark:bg-emerald-500/20 border-emerald-500/20'
+            }`}>
+              {isLecture ? '주민센터 강좌' : notice.dept}
+            </span>
+          </div>
+          <span className="text-[12px] font-bold text-secondary/80 dark:text-zinc-400">
+            {isLecture ? `접수개시: ${notice.date}` : `행사일: ${notice.date}`}
+          </span>
+        </div>
+
+        <div className="flex flex-col gap-1.5 z-10">
+          <h4 className={`text-[15.5px] sm:text-[17px] font-extrabold tracking-tight leading-normal transition-colors text-primary/90 dark:text-zinc-100 ${
+            isLecture ? 'group-hover:text-teal-600' : 'group-hover:text-emerald-600'
+          }`}>
+            {displayTitle}
+          </h4>
+          <p className="text-[12.5px] text-secondary/80 dark:text-zinc-400 font-medium leading-relaxed">
+            {displayDesc}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-4 mt-1 z-10">
+          <div className="flex items-center gap-4 text-[12px] font-bold text-secondary/80 dark:text-zinc-400">
+            <span className="flex items-center gap-1">
+              💵 수강료: <strong className={isLecture ? 'text-teal-600' : 'text-emerald-600'}>{displayPrice}</strong>
+            </span>
+            <span className="w-1 h-1 rounded-full bg-border" />
+            <span className="flex items-center gap-1">
+              📍 주관: <strong>{displayDept}</strong>
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => shareLocalNoticeToKakao(notice, showToast)}
+              className="px-3.5 py-2 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
+            >
+              카카오톡 공유
+            </button>
+            <button
+              onClick={() => handleShareNotice(notice)}
+              className="px-3.5 py-2 bg-surface hover:bg-body border border-border text-secondary text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
+            >
+              링크 복사
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <a
+      href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-emerald-500/30"
+    >
+      <div className="flex items-center gap-3 sm:gap-0 shrink-0">
+        <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-emerald-500 font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+          {idx + 1}
+        </div>
+        
+        <div className="flex sm:hidden items-center gap-2">
+          <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide">{notice.dept}</span>
+          <span className="text-[11px] text-gray-300">|</span>
+          <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{notice.date}</span>
+          {notice.isDongtan && (
+            <>
+              <span className="text-[11px] text-gray-300">|</span>
+              <span className="bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
+        <div className="hidden sm:flex items-center gap-4 shrink-0">
+          <span className="w-[115px] text-[13px] font-extrabold text-emerald-600 tracking-wide text-center bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-1.5 rounded-lg truncate border border-emerald-500/20 dark:border-emerald-500/30">{notice.dept}</span>
+          <span className="w-[96px] text-[14px] font-semibold text-tertiary text-center shrink-0">{notice.date}</span>
+        </div>
+        
+        <div className="flex-1 min-w-0">
+          <p className="text-[14.5px] sm:text-[16px] font-bold text-primary/90 dark:text-zinc-100 leading-normal tracking-tight group-hover:text-emerald-600 transition-colors truncate">
+            {notice.title}
+          </p>
+        </div>
+
+        {notice.isDongtan && (
+          <span className="hidden sm:inline-block bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 text-[11px] font-black rounded-lg border border-emerald-500/20 dark:border-emerald-500/30 shrink-0">
+            동탄 관련 소식
+          </span>
+        )}
+      </div>
+    </a>
+  );
+});
+
+
+
 const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const { showToast } = usePWA();
 
   const getCategoryChipStyles = (category: string) => {
     switch (category) {
       case '아파트 이야기':
-        return 'bg-teal-50 text-teal-600 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30';
+        return 'bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 border border-teal-500/20 dark:border-teal-500/30';
       case '동탄 임장/분석':
       case '임장기':
-        return 'bg-[#e8f8f0] text-[#00a06c] dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30';
+        return 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30';
       case '부동산 고민상담':
       case '부동산 기초':
       case '부동산':
-        return 'bg-red-50 text-rose-500 dark:bg-rose-950/20 dark:text-rose-400 border border-red-100/50 dark:border-rose-900/20';
+        return 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/30';
       case '동탄 청약/대출':
       case '정책자금 대출':
-        return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/20';
+        return 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30';
       case '동탄 교통/상권':
       case '인프라':
       case '교통':
-        return 'bg-purple-50 text-purple-600 dark:bg-purple-950/20 dark:text-purple-400 border border-purple-100/50 dark:border-purple-900/20';
+        return 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 border border-purple-500/20 dark:border-purple-500/30';
       case '동탄 육아/교육':
       case '어린이집/유치원':
       case '학원/교육':
       case '교육':
-        return 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-100/50 dark:border-amber-900/20';
+        return 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30';
       case '실시간 오픈런/정보':
       case '소아과/병원':
       case '실시간 제보':
-        return 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/20';
+        return 'bg-rose-500/10 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/30';
       case '동탄 벼룩/나눔':
       case '나눔/벼룩':
       case '공동구매':
-        return 'bg-cyan-50 text-cyan-600 dark:bg-cyan-950/20 dark:text-cyan-400 border border-cyan-100/50 dark:border-cyan-900/20';
+        return 'bg-cyan-500/10 text-cyan-600 dark:bg-cyan-500/20 dark:text-cyan-400 border border-cyan-500/20 dark:border-cyan-500/30';
       default:
-        return 'bg-gray-50 text-gray-600 dark:bg-gray-800/30 dark:text-gray-400 border border-gray-100/50';
+        return 'bg-zinc-500/10 text-zinc-600 dark:bg-zinc-500/20 dark:text-zinc-400 border border-zinc-500/20 dark:border-zinc-500/30';
     }
   };
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -807,7 +977,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 onClick={() => setActiveDongFilter(dong.id)}
                 className={`px-3 py-1.5 text-[12px] font-black rounded-lg transition-all shrink-0 cursor-pointer ${
                   activeDongFilter === dong.id
-                    ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/30'
+                    ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30'
                     : 'bg-surface border border-border text-tertiary hover:bg-body'
                 }`}
               >
@@ -819,7 +989,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
         {noticesLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="flex gap-4 p-5 rounded-2xl border border-border bg-surface animate-pulse">
+            <div key={i} className="flex gap-4 p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md animate-pulse">
               <div className="w-8 h-8 shrink-0 bg-gray-200 rounded-full" />
               <div className="flex flex-col w-full">
                 <div className="w-1/3 h-3 bg-gray-200 rounded mb-2" />
@@ -831,178 +1001,21 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
         ) : (
           <>
             {filteredNotices.length === 0 ? (
-              <div className="bg-surface rounded-2xl p-12 text-center border border-border">
+              <div className="bg-surface rounded-[20px] p-12 text-center border border-border/40 dark:border-white/10">
                 <span className="text-[14px] font-bold text-tertiary">
                   선택하신 조건에 해당하는 공지사항이 없습니다.
                 </span>
               </div>
             ) : (
-            filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => {
-              const isCulture = notice.source === 'culture';
-              if (isCulture) {
-                const isLecture = notice.title.includes('[강좌]');
-                
-                // D-Day 계산 헬퍼
-                const getDDayText = (dateStr: string) => {
-                  const target = new Date(dateStr);
-                  const today = new Date('2026-06-07'); // current date in metadata is 2026-06-07
-                  today.setHours(0, 0, 0, 0);
-                  target.setHours(0, 0, 0, 0);
-                  const diff = target.getTime() - today.getTime();
-                  const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
-                  if (diffDays === 0) return { text: isLecture ? '접수 마감' : '오늘 개최', color: 'bg-rose-500 text-white border-rose-600' };
-                  if (diffDays > 0) return { text: isLecture ? `접수 D-${diffDays}` : `D-${diffDays}`, color: 'bg-emerald-500 text-white border-emerald-600 animate-pulse' };
-                  return { text: isLecture ? '접수 종료' : '종료됨', color: 'bg-gray-400 text-white border-gray-500' };
-                };
-                
-                const dday = getDDayText(notice.date);
-                const displayTitle = isLecture 
-                  ? notice.title.replace(/\[강좌\]\s*/, '') 
-                  : notice.title;
-                const displayDesc = isLecture
-                  ? '동탄 주민자치센터에서 운영하는 생활밀착형 교양/문화/체육 강좌입니다. 정원 내 선착순 수강 신청으로 저렴하게 고품질 교육 혜택을 이용하세요.'
-                  : '본 소식은 동탄 권역의 대표 문화·축제 라이프스타일 정보입니다. 무료 이용 및 인근 주차가 가능하며, 가족 단위 방문에 적합합니다. D-VIEW에서 일정을 공유해보세요!';
-                const displayPrice = isLecture ? '무료 ~ 3만원 선' : '무료';
-                const displayDept = isLecture ? `${notice.dept} 주민센터` : notice.dept;
-                const displayUrlLabel = isLecture ? '화성시 통합예약 이동' : '원문 고시공고 이동';
-                
-                return (
-                  <div
-                    key={notice.id}
-                    role="button"
-                    tabIndex={0}
-                    aria-label={`${isLecture ? '강좌' : '소식'}: ${displayTitle}, ${displayDept} ${notice.date} 상세 보기`}
-                    onClick={() => {
-                      window.location.hash = `notice=${notice.id}`;
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        window.location.hash = `notice=${notice.id}`;
-                      }
-                    }}
-                    className={`flex flex-col gap-4 p-5 rounded-3xl border transition-all cursor-pointer w-full group relative overflow-hidden text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent ${
-                      isLecture 
-                        ? 'border-teal-100/80 dark:border-teal-900/30 bg-gradient-to-br from-teal-500/5 to-emerald-500/5 dark:from-teal-950/10 dark:to-emerald-950/10 hover:border-teal-300 dark:hover:border-teal-700/50 hover:shadow-[0_12px_24px_rgba(20,184,166,0.06)]' 
-                        : 'border-emerald-100/80 dark:border-emerald-900/30 bg-gradient-to-br from-emerald-500/5 to-teal-500/5 dark:from-emerald-950/10 dark:to-emerald-950/10 hover:border-emerald-300 dark:hover:border-emerald-700/50 hover:shadow-[0_12px_24px_rgba(16,185,129,0.06)]'
-                    }`}
-                  >
-                    {/* Decorative Blob */}
-                    <div className={`absolute -right-6 -bottom-6 w-20 h-20 rounded-full blur-xl pointer-events-none group-hover:scale-125 transition-transform duration-500 ${
-                      isLecture ? 'bg-teal-500/10 dark:bg-teal-500/20' : 'bg-emerald-500/10 dark:bg-emerald-500/20'
-                    }`} />
-                    
-                    {/* Top Row: D-Day & Meta */}
-                    <div className="flex items-center justify-between gap-3 z-10">
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2.5 py-1 text-[11px] font-black rounded-lg border ${dday.color} shadow-sm uppercase tracking-wider`}>
-                          {dday.text}
-                        </span>
-                        <span className={`text-[11.5px] font-extrabold px-2 py-1 rounded-lg border ${
-                          isLecture 
-                            ? 'text-teal-600 bg-teal-100/50 dark:bg-teal-950/30 dark:text-teal-400 border-teal-100/30' 
-                            : 'text-emerald-600 bg-emerald-100/50 dark:bg-emerald-950/30 dark:text-emerald-400 border-emerald-100/30'
-                        }`}>
-                          {isLecture ? '주민센터 강좌' : notice.dept}
-                        </span>
-                      </div>
-                      <span className="text-[12px] font-bold text-tertiary">
-                        {isLecture ? `접수개시: ${notice.date}` : `행사일: ${notice.date}`}
-                      </span>
-                    </div>
-
-                    {/* Middle: Title & Description */}
-                    <div className="flex flex-col gap-1.5 z-10">
-                      <h4 className={`text-[15.5px] sm:text-[17px] font-black leading-snug tracking-tight transition-colors ${
-                        isLecture ? 'group-hover:text-teal-600' : 'group-hover:text-emerald-600'
-                      }`}>
-                        {displayTitle}
-                      </h4>
-                      <p className="text-[12.5px] text-secondary font-medium leading-relaxed">
-                        {displayDesc}
-                      </p>
-                    </div>
-
-                    {/* Bottom: Info Grid & Share Actions */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/40 pt-4 mt-1 z-10">
-                      <div className="flex items-center gap-4 text-[12px] font-bold text-secondary">
-                        <span className="flex items-center gap-1">
-                          💵 수강료: <strong className={isLecture ? 'text-teal-600' : 'text-emerald-600'}>{displayPrice}</strong>
-                        </span>
-                        <span className="w-1 h-1 rounded-full bg-border" />
-                        <span className="flex items-center gap-1">
-                          📍 주관: <strong>{displayDept}</strong>
-                        </span>
-                      </div>
-
-                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => shareLocalNoticeToKakao(notice, showToast)}
-                          className="px-3.5 py-2 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
-                        >
-                          카카오톡 공유
-                        </button>
-                        <button
-                          onClick={() => handleShareNotice(notice)}
-                          className="px-3.5 py-2 bg-surface hover:bg-body border border-border text-secondary text-[11.5px] font-black rounded-xl transition-all shadow-sm active:scale-95 flex items-center gap-1 cursor-pointer"
-                        >
-                          링크 복사
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <a
+              filteredNotices.slice(0, visibleNoticesCount).map((notice, idx) => (
+                <NoticeCard
                   key={notice.id}
-                  href={`/api/bypass-notice?url=${encodeURIComponent((notice.url || '').trim())}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5 p-4 sm:p-5 rounded-2xl border border-border bg-surface hover:bg-body hover:border-emerald-500/30 transition-all cursor-pointer group w-full"
-                >
-                  <div className="flex items-center gap-3 sm:gap-0 shrink-0">
-                    <div className="w-8 h-8 sm:w-11 sm:h-11 shrink-0 flex items-center justify-center bg-surface rounded-full border border-border text-emerald-500 font-bold text-[14px] sm:text-[16px] shadow-sm group-hover:bg-emerald-500 group-hover:text-white transition-colors">
-                      {idx + 1}
-                    </div>
-                    
-                    {/* Mobile Meta */}
-                    <div className="flex sm:hidden items-center gap-2">
-                      <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide">{notice.dept}</span>
-                      <span className="text-[11px] text-gray-300">|</span>
-                      <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{notice.date}</span>
-                      {notice.isDongtan && (
-                        <>
-                          <span className="text-[11px] text-gray-300">|</span>
-                          <span className="bg-emerald-50 text-emerald-600 px-1 py-0.5 text-[9px] font-black rounded">동탄</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-     
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-5 flex-1 min-w-0">
-                    {/* Desktop Meta */}
-                    <div className="hidden sm:flex items-center gap-4 shrink-0">
-                      <span className="w-[115px] text-[13px] font-extrabold text-emerald-600 tracking-wide text-center bg-emerald-50 dark:bg-emerald-950/30 px-2 py-1.5 rounded-lg truncate border border-emerald-100 dark:border-emerald-900/30">{notice.dept}</span>
-                      <span className="w-[96px] text-[14px] font-semibold text-tertiary text-center shrink-0">{notice.date}</span>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <p className="text-[14.5px] sm:text-[16px] font-bold text-primary leading-[1.5] sm:leading-normal group-hover:text-emerald-600 transition-colors truncate">
-                        {notice.title}
-                      </p>
-                    </div>
-     
-                    {notice.isDongtan && (
-                      <span className="hidden sm:inline-block bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 px-2.5 py-1.5 text-[11px] font-black rounded-lg border border-emerald-100 dark:border-emerald-900/30 shrink-0">
-                        동탄 관련 소식
-                      </span>
-                    )}
-                  </div>
-                </a>
-              )
-            })
+                  notice={notice}
+                  idx={idx}
+                  showToast={showToast}
+                  handleShareNotice={handleShareNotice}
+                />
+              ))
             )}
           </>
         )}
@@ -1079,31 +1092,31 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 }}
                 aria-label={`공동임차 매칭 공고 "${post.title}", 빌딩 ${post.buildingName} 상세 보기`}
                 onClick={() => setSelectedCoLease(post)}
-                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-5 border border-border/60 hover:border-[#c44d00]/30 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/50 rounded-2xl shadow-sm relative overflow-hidden"
+                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-[20px] relative overflow-hidden"
               >
                 <div className="flex items-center gap-4 flex-1 min-w-0">
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30">
+                      <span className="px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30">
                         {post.buildingName}
                       </span>
                       {post.isMock && (
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-50 text-blue-500 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-100/50">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-blue-500/10 text-blue-500 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20">
                           가상 데이터
                         </span>
                       )}
                       <span className={`px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide ${
                         post.status === 'applied' 
-                          ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 border border-emerald-100/50 dark:border-emerald-900/20'
-                          : 'bg-orange-50 dark:bg-orange-950/20 text-orange-600 border border-orange-100/50 dark:border-orange-900/20'
+                          ? 'bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30'
+                          : 'bg-orange-500/10 dark:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/20 dark:border-orange-500/30'
                       }`}>
                         {post.status === 'applied' ? '신청 완료' : '모집 중'}
                       </span>
                     </div>
-                    <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 mt-2">
+                    <h3 className="text-[15.5px] sm:text-[17px] font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-normal group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 mt-2">
                       {post.title}
                     </h3>
-                    <p className="text-[13px] sm:text-[13.5px] text-secondary font-medium leading-relaxed mt-1">
+                    <p className="text-[13px] sm:text-[13.5px] text-secondary/80 dark:text-zinc-400 font-medium leading-relaxed mt-1">
                       업종: {post.sector} • 공간: {post.spaceType}
                     </p>
                   </div>
@@ -1151,7 +1164,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   window.location.hash = `post=${news.id}`;
                 }
               }} 
-              className="flex gap-4 p-5 border border-border/60 bg-surface/80 dark:bg-surface/60 backdrop-blur-md hover:bg-body/60 dark:hover:bg-body/40 hover:border-[#c44d00]/30 hover:shadow-[0_12px_24px_rgba(196,77,0,0.04)] dark:hover:shadow-[0_12px_24px_rgba(0,0,0,0.2)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/50 rounded-2xl shadow-sm relative overflow-hidden"
+              className="flex gap-4 p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-[20px] relative overflow-hidden"
             >
               {/* Left Content Area */}
               <div className="flex-1 min-w-0 flex flex-col gap-2">
@@ -1164,7 +1177,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                      news.category === '인프라' ? '동탄 교통/상권' : 
                      (news.category || '기타')}
                   </span>
-                  <span className="text-[12px] font-bold text-secondary font-sans">{news.author || '익명'}</span>
+                  <span className="text-[12px] font-bold text-secondary/80 dark:text-zinc-400 font-sans">{news.author || '익명'}</span>
                   <span className="text-[11px] text-tertiary font-medium">{news.meta?.split('·')[0]?.trim() || formatRelativeTime(news.createdAt)}</span>
 
                   {/* Bridge Tags */}
@@ -1174,7 +1187,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                         e.stopPropagation();
                         window.location.href = `/#apt=${encodeURIComponent(news.apartmentName || '')}`;
                       }}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-[#e8f8f0] text-[#00a06c] dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-100/50 dark:border-emerald-900/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer"
                       title="클릭 시 아파트 랩 실거래 지도로 이동"
                     >
                       <Home size={10} />
@@ -1188,7 +1201,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                         e.stopPropagation();
                         window.location.href = `/overview?tab=office`;
                       }}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
                       title="클릭 시 테크노 랩 사무실 탐색으로 이동"
                     >
                       <Briefcase size={10} />
@@ -1199,11 +1212,11 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
                 {/* Title & Comment Count */}
                 <div className="flex items-start gap-2">
-                  <h3 className="text-[15.5px] sm:text-[17px] font-black text-primary leading-snug group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 flex-1">
+                  <h3 className="text-[15.5px] sm:text-[17px] font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-normal group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 flex-1">
                     {news.title}
                   </h3>
                   {news.commentCount > 0 && (
-                    <span className="text-[11px] sm:text-[11.5px] font-black text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-50 dark:bg-emerald-950/30 rounded-md shrink-0 border border-emerald-100/40">
+                    <span className="text-[11px] sm:text-[11.5px] font-black text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-md shrink-0 border border-emerald-500/20 dark:border-emerald-500/30">
                       {news.commentCount}
                     </span>
                   )}
@@ -1211,7 +1224,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
                 {/* Summary (1~2 lines) */}
                 {news.summary && (
-                  <p className="text-[13px] sm:text-[13.5px] text-secondary font-medium leading-relaxed line-clamp-2">
+                  <p className="text-[13px] sm:text-[13.5px] text-secondary/80 dark:text-zinc-400 font-medium leading-relaxed line-clamp-2">
                     {news.summary}
                   </p>
                 )}

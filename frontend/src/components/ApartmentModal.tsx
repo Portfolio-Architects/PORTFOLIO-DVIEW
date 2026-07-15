@@ -29,21 +29,21 @@ const CommentSkeleton = () => (
       <div className="flex-1 h-12 rounded-xl animate-shimmer" />
       <div className="w-16 h-12 rounded-xl animate-shimmer" />
     </div>
-    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-[20px] border border-border/40 animate-shimmer" />
   </div>
 );
 
 const JeonseSafetySkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-[20px] border border-border/40 animate-shimmer" />
   </div>
 );
 
 const EducationAnalysisSkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[350px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-[20px] border border-border/40 animate-shimmer" />
   </div>
 );
 
@@ -51,8 +51,8 @@ const InfraAnalysisSkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[350px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1">
-      <div className="rounded-2xl border border-border/40 animate-shimmer" />
-      <div className="rounded-2xl border border-border/40 animate-shimmer hidden md:block" />
+      <div className="rounded-[20px] border border-border/40 animate-shimmer" />
+      <div className="rounded-[20px] border border-border/40 animate-shimmer hidden md:block" />
     </div>
   </div>
 );
@@ -60,23 +60,23 @@ const InfraAnalysisSkeleton = () => (
 const ScoutingReportDetailSkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-[20px] border border-border/40 animate-shimmer" />
   </div>
 );
 
 const AdvancedValuationSkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[400px]">
     <div className="h-6 rounded-xl w-40 mb-2 animate-shimmer" />
-    <div className="w-full flex-1 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full flex-1 rounded-[20px] border border-border/40 animate-shimmer" />
   </div>
 );
 
 const AnchorTenantSkeleton = () => (
-  <div className="w-full h-24 rounded-2xl border border-border/40 animate-shimmer mt-4" />
+  <div className="w-full h-24 rounded-[20px] border border-border/40 animate-shimmer mt-4" />
 );
 
 const TransactionTableSkeleton = () => (
-  <div className="w-full h-[401px] md:h-full flex flex-col gap-4 p-5 border border-border/40 rounded-2xl">
+  <div className="w-full h-[401px] md:h-full flex flex-col gap-4 p-5 border border-border/40 rounded-[20px]">
     <div className="h-6 w-28 rounded-xl animate-shimmer mb-2" />
     {[1, 2, 3, 4, 5].map(i => (
       <div key={i} className="flex justify-between items-center py-3 border-b border-border/20">
@@ -89,7 +89,7 @@ const TransactionTableSkeleton = () => (
 );
 
 const TransactionChartSkeleton = () => (
-  <div className="w-full h-[470px] md:h-[530px] flex flex-col gap-6 p-6 border border-border/40 rounded-2xl">
+  <div className="w-full h-[470px] md:h-[530px] flex flex-col gap-6 p-6 border border-border/40 rounded-[20px]">
     <div className="flex justify-between items-center">
       <div className="h-6 w-32 rounded bg-neutral-250 dark:bg-zinc-800 animate-shimmer" />
       <div className="flex gap-2">
@@ -97,7 +97,7 @@ const TransactionChartSkeleton = () => (
         <div className="h-8 w-16 rounded-lg bg-neutral-200 dark:bg-zinc-800 animate-shimmer" />
       </div>
     </div>
-    <div className="flex-1 w-full rounded-xl relative overflow-hidden flex items-end p-4 border border-border/20">
+    <div className="flex-1 w-full rounded-[20px] relative overflow-hidden flex items-end p-4 border border-border/20">
       <div className="w-full h-full flex items-end justify-between gap-2">
         {[30, 45, 60, 40, 75, 50, 90, 65, 80, 55, 70, 85].map((h, i) => (
           <div 
@@ -153,7 +153,7 @@ const TransactionSummaryMetrics = dynamic(() => import('@/components/apartment-m
   return () => null;
 }), {
   ssr: false,
-  loading: () => <div className="w-full h-[460px] md:h-[386px] rounded-2xl border border-border/40 animate-shimmer mt-4" />
+  loading: () => <div className="w-full h-[460px] md:h-[386px] rounded-[20px] border border-border/40 animate-shimmer mt-4" />
 });
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 const PhotoUploadModal = dynamic(() => import('@/components/apartment-modal/PhotoUploadModal').then(mod => mod.PhotoUploadModal).catch(err => {
@@ -181,7 +181,7 @@ const BuyOrWaitVote = dynamic(() => import('@/components/apartment-modal/BuyOrWa
 }), { 
   ssr: false,
   loading: () => (
-    <div className="w-full h-[142px] mt-6 rounded-2xl border border-border/40 animate-shimmer" />
+    <div className="w-full h-[142px] mt-6 rounded-[20px] border border-border/40 animate-shimmer" />
   )
 });
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
@@ -198,7 +198,7 @@ const ApartmentSpecsSection = dynamic(() => import('@/components/apartment-modal
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => <div className="w-full h-32 rounded-2xl border border-border/40 animate-shimmer mt-4" />
+  loading: () => <div className="w-full h-32 rounded-[20px] border border-border/40 animate-shimmer mt-4" />
 });
 const EducationAnalysisSection = dynamic(() => import('@/components/apartment-modal/EducationAnalysisSection').catch(err => {
   logger.warn('ApartmentModal.dynamic', 'EducationAnalysisSection Chunk Load failure, initiating fallback reload', undefined, err);
@@ -309,7 +309,7 @@ const LazyRender = React.memo(function LazyRender({
     <div ref={containerRef} style={{ minHeight: isVisible ? 'auto' : `${estimatedHeight}px` }}>
       {isVisible ? children : (
         <div 
-          className="w-full border border-border/40 rounded-2xl animate-shimmer flex items-center justify-center" 
+          className="w-full border border-border/40 rounded-[20px] animate-shimmer flex items-center justify-center" 
           style={{ height: `${estimatedHeight}px` }}
         >
           <span className="text-tertiary text-[12px] font-bold">콘텐츠 구성 중...</span>
@@ -1898,7 +1898,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               </button>
 
               {isToolDropdownOpen && (
-                <div className="absolute right-0 mt-2.5 w-[240px] bg-surface border border-border rounded-2xl shadow-[0_12px_36px_rgba(0,0,0,0.15)] py-2 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
+                <div className="absolute right-0 mt-2.5 w-[240px] bg-surface/85 dark:bg-zinc-900/85 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] py-2 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
                   <div className="px-4 py-1.5 text-[11px] font-black text-tertiary border-b border-border/40 select-none uppercase tracking-wider">
                     AI 진단 & 금융 계산기
                   </div>
@@ -2083,7 +2083,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
       {/* ── 평형별 최근 거래가 + 기간별 평균 ── */}
       {!isAnimationFinished || isTxLoading ? (
-        <div className="w-full h-[460px] md:h-[386px] rounded-2xl border border-border/40 animate-shimmer mt-4" />
+        <div className="w-full h-[460px] md:h-[386px] rounded-[20px] border border-border/40 animate-shimmer mt-4" />
       ) : (
         <TransactionSummaryMetrics 
           transactions={transactions} 
@@ -2114,7 +2114,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                       onClick={() => scrollToSection(tab.id)}
                       role="tab"
                       aria-selected={isActive}
-                      className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[14.5px] font-extrabold tracking-wider transition-all duration-200 outline-none ${
+                      className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[14.5px] font-extrabold tracking-wider transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] outline-none ${
                          isActive ? 'text-primary' : 'text-tertiary hover:text-primary'
                       }`}
                     >
@@ -2295,10 +2295,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                     <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/> 우리 단지 갤러리
                   </h2>
-                  <div className="w-full relative overflow-hidden rounded-2xl bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border/40 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#c44d00] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
-                    <div className="w-16 h-16 bg-surface shadow-sm border border-border rounded-2xl flex items-center justify-center mb-5 relative z-10">
+                    <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">
                       <Camera className="text-[#c44d00] dark:text-[#ea6100]" size={32} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
@@ -2333,7 +2333,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 <button 
                   onClick={handleKakaoShare}
                   disabled={isSharing}
-                  className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-colors shadow-sm group border-none text-left disabled:opacity-85"
+                  className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-[20px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shadow-[0_12px_40px_rgba(0,0,0,0.06)] group border-none text-left disabled:opacity-85"
                 >
                   <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
                     <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
@@ -2598,7 +2598,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               ref={firstFocusRef}
               onClick={handleSafeClose} 
               aria-label="닫기" 
-              className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-colors shadow-lg shrink-0 group"
+              className="bg-surface/90 hover:bg-surface text-secondary border border-border w-10 h-10 flex items-center justify-center rounded-full transition-all duration-300 ease-out hover:scale-[1.05] active:scale-[0.95] shadow-lg shrink-0 group"
             >
               <X size={20} className="group-hover:scale-110 transition-transform" />
             </button>
@@ -2631,7 +2631,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
             <div className="flex items-center gap-2 w-full">
               <button
                 onClick={handleSafeClose}
-                className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm"
+                className="w-[56px] h-[56px] bg-body hover:bg-[#e5e8eb] text-secondary rounded-[20px] flex items-center justify-center transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shrink-0 shadow-sm"
                 title="뒤로가기"
                 aria-label="뒤로가기"
               >
@@ -2641,7 +2641,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               {/* 단톡방 요약 복사 (모바일 숏컷) */}
               <button
                 onClick={handleCopySummary}
-                className={`w-[56px] h-[56px] rounded-2xl flex items-center justify-center transition-all shrink-0 shadow-sm border transform duration-200 active:scale-[0.94] ${
+                className={`w-[56px] h-[56px] rounded-[20px] flex items-center justify-center transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shrink-0 shadow-sm border transform duration-200 ${
                   copiedStatus === 'summary'
                     ? 'bg-emerald-100/80 dark:bg-emerald-900/35 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 scale-[1.05]'
                     : 'bg-emerald-50/50 hover:bg-[#e5e8eb] dark:bg-emerald-950/10 text-emerald-700 dark:text-emerald-300 border-emerald-100/30'
@@ -2659,7 +2659,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
               {/* 인포그래픽 요약 이미지 다운로드 (모바일 숏컷) */}
               <button
                 onClick={handleDownloadShareCard}
-                className="w-[56px] h-[56px] bg-neutral-100 dark:bg-zinc-900 hover:bg-[#e5e8eb] text-secondary rounded-2xl flex items-center justify-center transition-colors shrink-0 shadow-sm border border-border/20 cursor-pointer active:scale-95 transform transition-all duration-200"
+                className="w-[56px] h-[56px] bg-neutral-100 dark:bg-zinc-900 hover:bg-[#e5e8eb] text-secondary rounded-[20px] flex items-center justify-center transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shrink-0 shadow-sm border border-border/20 cursor-pointer"
                 title="인포그래픽 요약 카드 이미지 다운로드"
                 aria-label="인포그래픽 요약 카드 이미지 다운로드"
               >
@@ -2668,7 +2668,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
               <button
                 onClick={handleNativeShare}
-                className={`flex-1 h-[56px] text-white font-extrabold text-[14px] sm:text-[16px] rounded-2xl flex items-center justify-center gap-2 transition-all transform duration-200 active:scale-[0.95] break-keep text-center px-2 ${
+                className={`flex-1 h-[56px] text-white font-extrabold text-[14px] sm:text-[16px] rounded-[20px] flex items-center justify-center gap-2 transition-all transform duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] break-keep text-center px-2 ${
                   copiedStatus === 'all-link'
                     ? 'bg-emerald-600 shadow-[0_8px_16px_rgba(16,185,129,0.2)] hover:shadow-[0_10px_20px_rgba(16,185,129,0.3)]'
                     : 'bg-[#c44d00] active:bg-[#006b50] shadow-[0_8px_16px_rgba(0,130,98,0.2)] hover:shadow-[0_10px_20px_rgba(0,130,98,0.3)] hover:-translate-y-0.5'

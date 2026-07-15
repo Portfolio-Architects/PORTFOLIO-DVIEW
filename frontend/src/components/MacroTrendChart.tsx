@@ -45,7 +45,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     const gapPriceStr = gapPrice > 0 ? `${gapPrice.toFixed(1)}억` : null;
 
     return (
-      <div className="bg-surface/95 dark:bg-zinc-900/90 p-3.5 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2 min-w-[170px] transition-all duration-200">
+      <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md p-3.5 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-border/40 dark:border-white/10 flex flex-col gap-2 min-w-[170px] transition-all duration-300 ease-out">
         <div className="text-[12px] font-extrabold text-tertiary mb-0.5">
           {label}
         </div>

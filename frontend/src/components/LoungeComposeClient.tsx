@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { PenLine, X, ShieldCheck, Building2, ImagePlus, Loader2 } from 'lucide-react';
 import { storage } from '@/lib/firebaseConfig';
@@ -23,6 +23,17 @@ interface Props {
   currentTab: string;
   onRequestLogin?: (message: string) => void;
 }
+
+const MARKDOWN_TEMPLATE = `이웃 주민들과 나누고 싶은 실시간 동탄 소식을 알려주세요! 💚
+(예: 동탄역 맛집, 아파트 셔틀 노선 변경, 학원가 라이딩 꿀팁 등)
+
+## 💡 우리 아파트 단지의 매력/장점
+(예: 동탄역 도보권이라 출퇴근이 정말 편해요, 초품아라 안심하고 키워요)
+
+## 💬 실거주민만 아는 유용한 팁 & 주의점
+(예: 금요일 저녁 주차장 꿀자리 위치, 인근 신규 마트 오픈 정보 등)
+
+다른 이웃들의 동탄 살이에 도움이 되는 사소한 정보라면 무엇이든 대환영입니다!`;
 
 const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab, onRequestLogin }: Props) {
   const { user, userProfile, handleLogin } = useAuth();
@@ -143,7 +154,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     }
   }, [showCompose, isUserAdmin, customNickname]);
 
-  const handleClose = () => {
+  const handleClose = useCallback(() => {
     const hasContent = postTitle.trim() !== '' || (postContent.trim() !== '' && postContent.trim() !== MARKDOWN_TEMPLATE.trim()) || customNickname.trim() !== '';
     if (hasContent) {
       if (confirm('작성 중인 내용이 있습니다. 정말 글쓰기 창을 닫으시겠습니까?')) {
@@ -152,7 +163,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     } else {
       setShowCompose(false);
     }
-  };
+  }, [postTitle, postContent, customNickname]);
 
   // Prevent body scroll when compose modal is open
   useEffect(() => {
@@ -199,7 +210,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
   }, [showCompose]);
 
   // Focus trap keydown handler
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Tab' && modalRef.current) {
       const focusableElements = modalRef.current.querySelectorAll(
         'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
@@ -220,9 +231,9 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
         }
       }
     }
-  };
+  }, []);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -231,18 +242,13 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
     }
     try {
       const compressedFile = await compressImage(file);
-      // 1. Storage Reference with unique name
       const fileExt = compressedFile.name.split('.').pop() || 'jpg';
       const fileName = `lounge_images/${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
       const storageRef = ref(storage, fileName);
 
-      // 2. Upload
       await uploadBytes(storageRef, compressedFile);
-
-      // 3. Get URL
       const url = await getDownloadURL(storageRef);
 
-      // 4. Inject Markdown into textarea at cursor position
       const textarea = textareaRef.current;
       if (textarea) {
         const start = textarea.selectionStart;
@@ -253,7 +259,6 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
           setPostContent(newText);
         }
         
-        // Timeout to set focus back to textarea
         if (uploadFocusTimeoutRef.current) {
           clearTimeout(uploadFocusTimeoutRef.current);
           uploadFocusTimeoutRef.current = null;
@@ -274,10 +279,12 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
       logger.error('LoungeComposeClient.handleImageUpload', 'Image upload failed', undefined, error);
       alert('이미지 업로드에 실패했습니다.');
     } finally {
-      setIsUploadingImage(false);
-      if (fileInputRef.current) fileInputRef.current.value = ''; // Reset input
+      if (mountedRef.current) {
+        setIsUploadingImage(false);
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      }
     }
-  };
+  }, [postContent]);
 
 
 
@@ -285,6 +292,175 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
 
   const displayAuthorName = isUserAdmin ? '매니저' : (userProfile ? getDisplayName(userProfile) : '익명');
   const displayApartment = isUserAdmin ? '마스터' : (userProfile?.verifiedApartment?.replace(/\[.*?\]\s*/, '') || '');
+
+  const handleSubmit = useCallback(async () => {
+    if (submitLockRef.current) return;
+    
+    const trimmedTitle = postTitle.trim();
+    const trimmedContent = postContent.trim();
+    
+    if (!trimmedTitle) {
+      alert('제목을 입력해 주세요.');
+      return;
+    }
+    if (!trimmedContent) {
+      alert('내용을 입력해 주세요.');
+      return;
+    }
+    if (trimmedTitle.length > 200) {
+      alert('제목은 최대 200자까지 작성할 수 있습니다.');
+      return;
+    }
+    if (trimmedContent.length > 20000) {
+      alert('내용은 최대 20,000자까지 작성할 수 있습니다.');
+      return;
+    }
+
+    let activeUid = user?.uid;
+    const activeEmail = user?.email || null;
+    let activeAuthorName = displayAuthorName;
+    let activeApartment = displayApartment;
+    let activeVerificationLevel = isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || '');
+
+    if (!activeUid) {
+      if (typeof window !== 'undefined') {
+        let anonUid: string | null = null;
+        try {
+          anonUid = localStorage.getItem('dview-anon-uid');
+          if (!anonUid) {
+            anonUid = `anon-${Math.random().toString(36).substring(2, 12)}`;
+            localStorage.setItem('dview-anon-uid', anonUid);
+          }
+        } catch (e) {
+          logger.warn('LoungeComposeClient.submit', 'localStorage is unavailable', undefined, e as Error);
+          anonUid = `anon-session-${Math.random().toString(36).substring(2, 12)}`;
+        }
+        activeUid = anonUid || 'anon-guest';
+        
+        let anonNickname = customNickname.trim();
+        if (!anonNickname) {
+          anonNickname = generateMamacafeNickname();
+          setCustomNickname(anonNickname);
+        }
+        activeAuthorName = anonNickname;
+      } else {
+        activeUid = 'anon-guest';
+        activeAuthorName = '익명';
+      }
+      activeApartment = '';
+      activeVerificationLevel = '';
+    }
+
+    submitLockRef.current = true;
+    setIsSubmitting(true);
+
+    if (typeof window !== 'undefined' && !navigator.onLine) {
+      try {
+        await enqueueOfflineRequest({
+          url: '/api/posts',
+          method: 'POST',
+          body: {
+            title: trimmedTitle,
+            content: trimmedContent,
+            category: postCategory,
+            authorUid: activeUid,
+            authorName: activeAuthorName,
+            verifiedApartment: activeApartment,
+            verificationLevel: activeVerificationLevel,
+            imageUrl: null
+          }
+        });
+        setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+        showToast('네트워크가 연결되지 않아 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
+        submitLockRef.current = false;
+      } catch (err) {
+        logger.error('LoungeComposeClient.onSubmit', 'Failed to enqueue post request', undefined, err);
+        alert('글 작성에 실패했습니다.');
+        submitLockRef.current = false;
+      } finally {
+        setIsSubmitting(false);
+      }
+      return;
+    }
+
+    try {
+      await dashboardFacade.addPost(
+        trimmedTitle, 
+        trimmedContent, 
+        postCategory, 
+        activeUid, 
+        undefined, 
+        activeEmail,
+        isUserAdmin ? undefined : activeAuthorName
+      );
+      if (mountedRef.current) {
+        setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+        showToast('글이 성공적으로 등록되었습니다! 이웃 주민의 피드백을 기대해 보세요 💚');
+      }
+      
+      try {
+        const apartments = dashboardFacade.getDongtanApartments ? dashboardFacade.getDongtanApartments() : [];
+        if (apartments.length > 0) {
+          const lockExpiry = Date.now() + 24 * 60 * 60 * 1000;
+          apartments.forEach((aptName) => {
+            localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
+          });
+          if (rewardToastTimeoutRef.current) {
+            clearTimeout(rewardToastTimeoutRef.current);
+            rewardToastTimeoutRef.current = null;
+          }
+          rewardToastTimeoutRef.current = setTimeout(() => {
+            if (mountedRef.current) {
+              showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
+            }
+            rewardToastTimeoutRef.current = null;
+          }, 1000);
+        }
+      } catch (unlockErr) {
+        logger.warn('LoungeComposeClient.onSubmit', 'Failed to set global unlock rewards', undefined, unlockErr);
+      }
+
+      router.refresh();
+    } catch (error) {
+      const isValidationError = error instanceof Error && (
+        error.message.includes('유효하지 않습니다') || 
+        error.message.includes('제목') || 
+        error.message.includes('내용') || 
+        error.message.includes('글 저장 실패')
+      );
+      if (isValidationError) {
+        alert(error.message);
+        submitLockRef.current = false;
+      } else {
+        logger.warn('LoungeComposeClient.onSubmit', 'Post creation failed online, attempting offline fallback', undefined, error);
+        try {
+          await enqueueOfflineRequest({
+            url: '/api/posts',
+            method: 'POST',
+            body: {
+              title: trimmedTitle,
+              content: trimmedContent,
+              category: postCategory,
+              authorUid: activeUid,
+              authorName: activeAuthorName,
+              verifiedApartment: activeApartment,
+              verificationLevel: activeVerificationLevel,
+              imageUrl: null
+            }
+          });
+          setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
+          showToast('네트워크 오류로 인해 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
+        } catch (queueErr) {
+          logger.error('LoungeComposeClient.onSubmit', 'Failed to enqueue post request', undefined, queueErr);
+          alert('글 작성에 실패했습니다.');
+        }
+        submitLockRef.current = false;
+      }
+    }
+    finally {
+      setIsSubmitting(false);
+    }
+  }, [postTitle, postContent, postCategory, customNickname, user, isUserAdmin, displayAuthorName, displayApartment, showToast, router]);
 
   return (
     <>
@@ -324,7 +500,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
             aria-modal="true"
             aria-labelledby="lounge-compose-title"
             aria-describedby="lounge-compose-desc"
-            className="relative w-full sm:max-w-3xl bg-surface rounded-t-3xl sm:rounded-3xl p-6 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-1 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
+            className="relative w-full sm:max-w-3xl bg-surface/95 dark:bg-zinc-900/95 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-t-[20px] sm:rounded-[20px] p-6 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-1 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
           >
             {/* Screen Reader Only Description */}
             <p id="lounge-compose-desc" className="sr-only">주민 라운지에 새로운 소식과 정보를 작성하는 입력 창입니다.</p>
@@ -334,7 +510,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               <button 
                 onClick={handleClose} 
                 aria-label="글쓰기 창 닫기" 
-                className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] transition-colors"
+                className="w-8 h-8 rounded-full bg-body flex items-center justify-center hover:bg-[#e5e8eb] hover:scale-105 active:scale-95 transition-all"
               >
                 <X size={16} className="text-secondary" />
               </button>
@@ -376,7 +552,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               onChange={(e) => setPostTitle(e.target.value)} 
               placeholder="제목을 입력해 주세요 (예: 동탄역 롯데캐슬 주말 임장 후기)" 
               aria-label="게시글 제목 입력" 
-              className="w-full bg-body border border-toss-gray rounded-xl px-4 py-3.5 text-[15px] font-bold outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors mb-2" 
+              className="w-full bg-body border border-border/40 rounded-[14px] px-4 py-3.5 text-[15px] font-extrabold tracking-tight outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] hover:border-border/80 dark:hover:border-white/20 focus:bg-surface transition-all duration-300 mb-2" 
               autoFocus 
             />
             <textarea 
@@ -386,7 +562,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
               placeholder={isUserAdmin ? "동탄 이야기를 자유롭게 나누어 보세요. 줄바꿈을 활용해 자유롭게 내용을 작성할 수 있습니다." : "이웃들과 나누고 싶은 동탄 이야기를 자유롭게 들려주세요."} 
               aria-label="게시글 내용 입력"
               rows={12} 
-              className="w-full bg-body border border-toss-gray rounded-2xl px-4 py-3.5 text-[15px] outline-none focus:border-[#c44d00] dark:focus:border-[#ea6100] focus:bg-surface transition-colors resize-none focus:ring-4 focus:ring-[#c44d00]/10 dark:focus:ring-[#ea6100]/10 mb-4" 
+              className="w-full bg-body border border-border/40 rounded-[16px] px-4 py-3.5 text-[15px] leading-relaxed outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] hover:border-border/80 dark:hover:border-white/20 focus:bg-surface transition-all duration-300 resize-none mb-4" 
             />
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 sm:gap-4">
@@ -410,178 +586,9 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
                 />
               </div>
               <button
-                onClick={async () => {
-                  if (submitLockRef.current) return;
-                  
-                  const trimmedTitle = postTitle.trim();
-                  const trimmedContent = postContent.trim();
-                  
-                  if (!trimmedTitle) {
-                    alert('제목을 입력해 주세요.');
-                    return;
-                  }
-                  if (!trimmedContent) {
-                    alert('내용을 입력해 주세요.');
-                    return;
-                  }
-                  if (trimmedTitle.length > 200) {
-                    alert('제목은 최대 200자까지 작성할 수 있습니다.');
-                    return;
-                  }
-                  if (trimmedContent.length > 20000) {
-                    alert('내용은 최대 20,000자까지 작성할 수 있습니다.');
-                    return;
-                  }
-
-                  let activeUid = user?.uid;
-                  const activeEmail = user?.email || null;
-                  let activeAuthorName = displayAuthorName;
-                  let activeApartment = displayApartment;
-                  let activeVerificationLevel = isUserAdmin ? 'registry_verified' : (userProfile?.verificationLevel || '');
-
-                  if (!activeUid) {
-                    if (typeof window !== 'undefined') {
-                      let anonUid: string | null = null;
-                      try {
-                        anonUid = localStorage.getItem('dview-anon-uid');
-                        if (!anonUid) {
-                          anonUid = `anon-${Math.random().toString(36).substring(2, 12)}`;
-                          localStorage.setItem('dview-anon-uid', anonUid);
-                        }
-                      } catch (e) {
-                        logger.warn('LoungeComposeClient.submit', 'localStorage is unavailable', undefined, e as Error);
-                        anonUid = `anon-session-${Math.random().toString(36).substring(2, 12)}`;
-                      }
-                      activeUid = anonUid || 'anon-guest';
-                      
-                      let anonNickname = customNickname.trim();
-                      if (!anonNickname) {
-                        anonNickname = generateMamacafeNickname();
-                        setCustomNickname(anonNickname);
-                      }
-                      activeAuthorName = anonNickname;
-                    } else {
-                      activeUid = 'anon-guest';
-                      activeAuthorName = '익명';
-                    }
-                    activeApartment = '';
-                    activeVerificationLevel = '';
-                  }
-
-                  submitLockRef.current = true;
-                  setIsSubmitting(true);
-
-                  if (typeof window !== 'undefined' && !navigator.onLine) {
-                    try {
-                      await enqueueOfflineRequest({
-                        url: '/api/posts',
-                        method: 'POST',
-                        body: {
-                          title: trimmedTitle,
-                          content: trimmedContent,
-                          category: postCategory,
-                          authorUid: activeUid,
-                          authorName: activeAuthorName,
-                          verifiedApartment: activeApartment,
-                          verificationLevel: activeVerificationLevel,
-                          imageUrl: null
-                        }
-                      });
-                      setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
-                      showToast('네트워크가 연결되지 않아 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
-                      submitLockRef.current = false;
-                    } catch (err) {
-                      logger.error('LoungeComposeClient.onSubmit', 'Failed to enqueue post request', undefined, err);
-                      alert('글 작성에 실패했습니다.');
-                      submitLockRef.current = false;
-                    } finally {
-                      setIsSubmitting(false);
-                    }
-                    return;
-                  }
-
-                  try {
-                    await dashboardFacade.addPost(
-                      trimmedTitle, 
-                      trimmedContent, 
-                      postCategory, 
-                      activeUid, 
-                      undefined, 
-                      activeEmail,
-                      isUserAdmin ? undefined : activeAuthorName
-                    );
-                    if (mountedRef.current) {
-                      setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
-                      showToast('글이 성공적으로 등록되었습니다! 이웃 주민의 피드백을 기대해 보세요 💚');
-                    }
-                    
-                    // Reward global unlocked privilege for 24h as a leverage for UGC creation
-                    try {
-                      const apartments = dashboardFacade.getDongtanApartments ? dashboardFacade.getDongtanApartments() : [];
-                      if (apartments.length > 0) {
-                        const lockExpiry = Date.now() + 24 * 60 * 60 * 1000;
-                        apartments.forEach((aptName) => {
-                          localStorage.setItem(`dview-unlocked-apt-${aptName}`, lockExpiry.toString());
-                        });
-                        if (rewardToastTimeoutRef.current) {
-                          clearTimeout(rewardToastTimeoutRef.current);
-                          rewardToastTimeoutRef.current = null;
-                        }
-                        rewardToastTimeoutRef.current = setTimeout(() => {
-                          if (mountedRef.current) {
-                            showToast('🎉 라운지 글 작성 감사 혜택! D-VIEW 모든 아파트 분석 리포트가 24시간 동안 즉시 해금되었습니다. 💚');
-                          }
-                          rewardToastTimeoutRef.current = null;
-                        }, 1000);
-                      }
-                    } catch (unlockErr) {
-                      logger.warn('LoungeComposeClient.onSubmit', 'Failed to set global unlock rewards', undefined, unlockErr);
-                    }
-
-                    // Refresh the route to show the new post from the server component
-                    router.refresh();
-                  } catch (error) {
-                    const isValidationError = error instanceof Error && (
-                      error.message.includes('유효하지 않습니다') || 
-                      error.message.includes('제목') || 
-                      error.message.includes('내용') || 
-                      error.message.includes('글 저장 실패')
-                    );
-                    if (isValidationError) {
-                      alert(error.message);
-                      submitLockRef.current = false;
-                    } else {
-                      logger.warn('LoungeComposeClient.onSubmit', 'Post creation failed online, attempting offline fallback', undefined, error);
-                      try {
-                        await enqueueOfflineRequest({
-                          url: '/api/posts',
-                          method: 'POST',
-                          body: {
-                            title: trimmedTitle,
-                            content: trimmedContent,
-                            category: postCategory,
-                            authorUid: activeUid,
-                            authorName: activeAuthorName,
-                            verifiedApartment: activeApartment,
-                            verificationLevel: activeVerificationLevel,
-                            imageUrl: null
-                          }
-                        });
-                        setPostTitle(''); setPostContent(''); setPostCategory('우리동네 이야기'); setCustomNickname(''); setShowCompose(false);
-                        showToast('네트워크 오류로 인해 글이 오프라인 큐에 저장되었습니다. 연결 시 자동으로 게시됩니다 💚');
-                      } catch (queueErr) {
-                        logger.error('LoungeComposeClient.onSubmit', 'Failed to enqueue post request', undefined, queueErr);
-                        alert('글 작성에 실패했습니다.');
-                      }
-                      submitLockRef.current = false;
-                    }
-                  }
-                  finally {
-                    setIsSubmitting(false);
-                  }
-                }}
+                onClick={handleSubmit}
                 disabled={isSubmitting || !postTitle.trim() || !postContent.trim()}
-                className="flex items-center gap-2 px-6 py-3 bg-[#c44d00] hover:bg-[#006b50] disabled:bg-toss-gray text-surface rounded-xl font-bold text-[14px] transition-all active:scale-95 shadow-sm shadow-[#c44d00]/10"
+                className="flex items-center gap-2 px-6 py-3 bg-[#c44d00] hover:bg-[#006b50] hover:scale-[1.02] active:scale-[0.98] disabled:bg-toss-gray text-surface rounded-[14px] font-bold text-[14px] transition-all shadow-sm shadow-[#c44d00]/10"
               >
                 {isSubmitting ? '작성 중...' : '작성 완료'}
               </button>

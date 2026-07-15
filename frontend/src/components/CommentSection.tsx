@@ -2,7 +2,7 @@ import { UserCircle, MessageSquare } from 'lucide-react';
 import type { CommentData } from '@/lib/types/report.types';
 import type { User } from 'firebase/auth';
 import { usePWA } from '@/components/pwa/PWAProvider';
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 
 interface CommentSectionProps {
@@ -75,18 +75,16 @@ const CommentSection = React.memo(function CommentSection({
     };
   }, []);
 
-  const handleAction = () => {
+  const handleAction = useCallback(() => {
     if (isInvalidInputRef.current.test(commentInput)) return;
     onSubmitComment();
-    // 댓글 달면 A2HS 모달 트리거
     triggerCustomA2HSModal();
-  };
+  }, [commentInput, onSubmitComment, triggerCustomA2HSModal]);
 
-  const handleMentionAuthor = (author: string) => {
+  const handleMentionAuthor = useCallback((author: string) => {
     if (!user) return;
     const mentionText = `@${author} `;
     
-    // Only append if it's not already in the input
     if (!commentInput.includes(mentionText)) {
       onCommentChange(commentInput + mentionText);
     }
@@ -101,18 +99,16 @@ const CommentSection = React.memo(function CommentSection({
       }
       focusTimeoutRef.current = null;
     }, 50);
-  };
+  }, [user, commentInput, onCommentChange]);
 
-  const handleInputChange = (text: string) => {
+  const handleInputChange = useCallback((text: string) => {
     onCommentChange(text);
 
-    // Auto-suggest triggered by typing '@'
     const words = text.split(spaceRegexRef.current);
     const lastWord = words[words.length - 1];
 
     if (lastWord.startsWith('@')) {
       const query = lastWord.slice(1).toLowerCase();
-      // Get unique authors from comments to suggest
       const authors = Array.from(new Set(comments.map(c => c.author)));
       const filtered = authors.filter(authName => 
         authName.toLowerCase().includes(query)
@@ -128,9 +124,9 @@ const CommentSection = React.memo(function CommentSection({
     } else {
       setShowSuggestions(false);
     }
-  };
+  }, [comments, onCommentChange]);
 
-  const selectSuggestion = (nickname: string) => {
+  const selectSuggestion = useCallback((nickname: string) => {
     const words = commentInput.split(spaceRegexRef.current);
     words[words.length - 1] = `@${nickname} `;
     onCommentChange(words.join(' '));
@@ -146,9 +142,9 @@ const CommentSection = React.memo(function CommentSection({
       }
       focusTimeoutRef.current = null;
     }, 50);
-  };
+  }, [commentInput, onCommentChange]);
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (showSuggestions && suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -168,7 +164,7 @@ const CommentSection = React.memo(function CommentSection({
         handleAction();
       }
     }
-  };
+  }, [showSuggestions, suggestions, suggestionIndex, selectSuggestion, handleAction]);
 
   // Generate JSON-LD structural data for CommentSection UGC (DiscussionForumPosting)
   const jsonLd = {
@@ -210,7 +206,7 @@ const CommentSection = React.memo(function CommentSection({
   };
 
   return (
-    <div id="sec-comments" className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14">
+    <div id="sec-comments" className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.02)] scroll-mt-14">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -224,7 +220,7 @@ const CommentSection = React.memo(function CommentSection({
       </h2>
       
       {/* 라운지 활성화 유도 배너 */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-[#e8f8f5] to-[#f4fcfb] dark:from-[#03231c] dark:to-[#042a22] border border-[#c44d00]/20 rounded-2xl p-4.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
+      <div className="relative overflow-hidden bg-gradient-to-br from-[#e8f8f5] to-[#f4fcfb] dark:from-[#03231c] dark:to-[#042a22] border border-[#c44d00]/20 rounded-[20px] p-4.5 mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-sm animate-in fade-in duration-300">
         <div className="absolute top-0 right-0 w-24 h-24 bg-[#ea6100]/10 dark:bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
         
         <div className="flex flex-col relative z-10">
@@ -258,7 +254,7 @@ const CommentSection = React.memo(function CommentSection({
           {showSuggestions && suggestions.length > 0 && (
             <div 
               ref={popoverRef}
-              className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-white/95 dark:bg-zinc-950/95 border border-[#ea6100]/30 dark:border-emerald-500/30 rounded-2xl shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200"
+              className="absolute bottom-full left-0 mb-2 w-full max-w-[280px] bg-white/95 dark:bg-zinc-950/95 border border-border/40 dark:border-white/10 rounded-[14px] shadow-xl z-50 overflow-hidden backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200"
             >
               <div className="text-[10px] font-extrabold text-[#ea6100] dark:text-emerald-400 px-3.5 py-2 border-b border-border/40 dark:border-zinc-800/40 uppercase tracking-widest bg-body/50 dark:bg-zinc-950/30">
                 멘션할 대상을 선택하세요
@@ -378,7 +374,7 @@ const CommentSection = React.memo(function CommentSection({
                   <div className="relative">
                     <div className="blur-sm opacity-40 pointer-events-none">
                       {comments.slice(1, 3).map(comment => (
-                        <div key={comment.id} className="flex gap-3 bg-body p-4 rounded-2xl border border-border mb-3">
+                        <div key={comment.id} className="flex gap-3 bg-body p-4 rounded-[14px] border border-border/40 dark:border-white/10 mb-3">
                           <div className="w-8 h-8 rounded-full bg-surface border border-border shadow-sm flex items-center justify-center shrink-0">
                             <UserCircle size={16} className="text-tertiary" />
                           </div>
@@ -390,7 +386,7 @@ const CommentSection = React.memo(function CommentSection({
                       ))}
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="bg-surface border border-border rounded-2xl px-6 py-4 text-center shadow-lg">
+                      <div className="bg-surface border border-border/40 dark:border-white/10 rounded-[14px] px-6 py-4 text-center shadow-lg">
                         <p className="text-[14px] font-bold text-primary mb-1">🔒 {comments.length - 1}개의 이야기가 더 있습니다</p>
                         <p className="text-[12px] text-tertiary">프리미엄 구독으로 모든 이야기를 확인하세요</p>
                       </div>
@@ -447,10 +443,10 @@ const CommentItem = React.memo(function CommentItem({
   return (
     <div 
       id={`comment-${comment.id}`}
-      className={`flex gap-3 bg-body p-4 rounded-2xl border transition-all duration-300 ${
+      className={`flex gap-3 bg-body p-4 rounded-[14px] border transition-all duration-300 hover:scale-[1.01] hover:shadow-[0_8px_30px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_30px_rgba(0,0,0,0.2)] ${
         isHighlighted 
           ? 'comment-highlight border-[#c44d00] dark:border-[#ea6100]' 
-          : 'border-border'
+          : 'border-border/40 dark:border-white/10'
       }`}
     >
       <div className="w-8 h-8 rounded-full bg-surface border border-border shadow-sm flex items-center justify-center shrink-0">

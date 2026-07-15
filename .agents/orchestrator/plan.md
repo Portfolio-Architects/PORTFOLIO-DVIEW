@@ -1,25 +1,24 @@
-# Project Plan — Recursive Background Self-Improvement Loop
+# Project Plan — D-VIEW 2nd-Phase UX Environment Enhancement
 
 ## Goal
-Implement a recursive background self-improvement loop for `target_module.py` starting from version v12. The loop will continuously add mathematical, statistical, and optimization features, update unit tests, save history versions/patches, handle safety guardrails (5-hour timeout, API limits, rollbacks), and support graceful stop on a "중단" command.
+Enhance D-VIEW's visual environment (Lounge feed, Lounge details, Loungecompose, comments, news, office explorer, gap investment explorer) to match the latest Apple HIG styles (acrylic/glassmorphism, fine borders, transitions) and maximize runtime performance (memoization, dynamic import, vanilla Tailwind transitions, no heavy external animation libraries) while maintaining full build integrity (`npm run build`).
 
 ## Complexity Assessment
-- **Scope**: Modifying `engine.py`, `simulator.py`, `config.py`, or writing a continuous `run_background.py` script that can run asynchronously.
-- **Risk**: Infinite loops without resource limits, rate limit issues, and test failures.
-- **Complexity**: Medium. Requires a robust background task running Python, checking for stop flags, and saving incremental versions.
+- **Scope**: Modifying 7 frontend React components in `frontend/src/components` and `frontend/src/app`.
+- **Risk**: Visual breakage, styling mismatches in light/dark modes, memory leaks or infinite re-renders during memoization, Next.js build compilation errors.
+- **Complexity**: Medium. Requires systematic styling adjustments, proper React memoization, and verification of build.
 
 ## Milestones & Decomposition
 
 | Milestone | Name | Objective | Status |
 |-----------|------|-----------|--------|
-| M1 | Exploration & Design | Analyze existing loop engine, simulator, and test suite. Design the v12+ feature expansion and stop-signal mechanism. | PLANNED |
-| M2 | Engine & Simulator Enhancement | Extend the simulator to support v12 (trigonometric), v13 (statistics), v14 (matrix operations), v15 (optimization), and infinite v16+ improvements. Ensure test cases are updated automatically. | PLANNED |
-| M3 | Background Orchestration & Guardrails | Implement `run_background.py` supporting continuous execution, safety timeouts, token budgets, and checking for a "중단" flag file. | PLANNED |
-| M4 | Execution & Monitoring | Launch the background loop, monitor its progress, and verify that it updates `target_module.py` to v12, v13, v14, etc. | PLANNED |
-| M5 | Verification & Stop Handling | Verify that the stop signal gracefully shuts down the loop, saving the final stable version and status report. | PLANNED |
+| M1 | Exploration & Audit | Explore target files, identify specific styling and performance patterns, and draft implementation instructions. | PLANNED |
+| M2 | Lounge & News Enhancements (R1) | Refactor Lounge feed/detail/compose, comments, and news components for Apple HIG design (glassmorphism, 20px curves, focus states). | PLANNED |
+| M3 | Explorer Enhancements (R2) | Refactor Office Explorer and Gap Investment Explorer components with grid layout adjustments, shadow finishes, and scroll fade effects. | PLANNED |
+| M4 | Typography, Themes & Performance (R3 & R4) | Tune letter/line spacing, dark/light glassmorphism opacity, and implement React.memo/useMemo/useCallback memoization. | PLANNED |
+| M5 | Build & Test Verification | Run `npm run build`, `npm run audit`, and existing Playwright UI/UX tests to ensure zero regressions and compiler errors. | PLANNED |
 
 ## Verification Strategy
-- Run unit tests at each iteration.
-- Verify `self_improvement_loop/history/` contains correct `.py` versions and `.diff` patches.
-- Verify log events for rate limits, timeouts, and rollbacks.
-- Verify stop flag file halts execution cleanly.
+- Worker will compile and run `npm run build` after changes.
+- Reviewer will check the visual styles, theme opacity, and component memoization.
+- Auditor/Challenger will run `npm run audit` and E2E/UI-UX tests to ensure zero console errors, no overflows, and no performance regressions.

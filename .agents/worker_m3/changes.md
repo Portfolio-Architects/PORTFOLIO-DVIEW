@@ -1,35 +1,33 @@
-# Milestone 3: Mock LLM Simulator Changes
+# Changes — 2026-07-15T23:05:00+09:00
 
-## Implementation Summary
+## 1. frontend/src/components/OfficeExplorerClient.tsx
 
-We implemented the `MockLLMSimulator` class in `self_improvement_loop/simulator.py`. This class simulates an LLM suggesting improvements to the codebase across multiple iterations of the self-improvement loop.
+- **Performance Optimization (R4)**:
+  - Wrapped the main `OfficeExplorerClient` component in `React.memo` to prevent unnecessary root-level re-renders on parent updates.
+  - Dynamically imported `CoLeasingBoard` with `{ ssr: false }` using Next.js `dynamic()` helper. Included a sleek skeleton screen loading placeholder.
+  - Extracted inline building list mapping item into a separate memoized `<OfficeBuildingCard />` component, which prevents re-rendering the entire building cards list when other filters or state updates occur.
+- **Apple HIG Styling Upgrade (R2)**:
+  - Outer layouts and filter panels updated to `rounded-[20px]`, glassmorphism `bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md`, and fine borders `border-border/40 dark:border-white/10`.
+  - Upgraded drag resizer element border to `bg-border/30 dark:bg-white/10`.
+  - Building card styling enhanced with `rounded-[20px]`, glassmorphism backdrop (`bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md`), shadow finishes, and `hover:scale-[1.01]` transition transitions.
+  - Added smooth scroll fade-in transitions using CSS animations (`animate-in fade-in slide-in-from-bottom-2 duration-300`) and the `scroll-smooth` class on the list wrapper.
+  - Detail modal visual styling upgraded to glassmorphism: `bg-surface/90 dark:bg-zinc-900/90 backdrop-blur-lg rounded-[20px] border-border/40 dark:border-white/10 shadow-2xl`.
+- **Typography & Theme Enhancements (R3)**:
+  - Applied `tracking-tight` and `leading-normal`/`leading-relaxed` to headings and bodies to establish comfortable reading hierarchy.
+  - Improved contrast: replaced generic text styling with `text-primary/95 dark:text-zinc-100` and `text-secondary/70 dark:text-zinc-400`.
+  - Swapped hardcoded pastel backgrounds with alpha values (e.g. `bg-emerald-500/10 dark:bg-emerald-500/20` and `bg-orange-500/10 dark:bg-orange-500/20`).
 
-### Modified/Added Files
-- `self_improvement_loop/simulator.py`: Contains the `MockLLMSimulator` class.
-- `self_improvement_loop/test_simulator.py`: Unit tests for the `MockLLMSimulator` class.
-- `scratch/verify_m3_simulator.py`: Visual verification script to print simulator outputs for different states and iterations.
+## 2. frontend/src/components/GapInvestmentExplorer.tsx
 
-## Simulator Logic
-The `get_improved_code(current_code: str, iteration: int, inject_syntax_error: bool = False) -> str` method performs:
-- **Iteration 1**: Fixes the bug in `add` (changing `return a - b` to `return a + b`).
-- **Iteration 2**: Adds the `subtract` method (`return a - b`).
-- **Iteration 3**: Adds the `multiply` method (`return a * b`).
-- **Syntax Error Injection**: If `inject_syntax_error` is True, it removes the trailing colon in the first `def` signature found.
-- **Fallback**: For any other iteration, it returns `current_code`.
-
-## Verification Details
-
-1. **Unit Tests (`self_improvement_loop/test_simulator.py`)**:
-   - `test_iteration_1_fixes_bug`: Verifies changing `return a - b` to `return a + b`.
-   - `test_iteration_2_adds_subtract`: Verifies appending `subtract(self, a, b)` returning `a - b`.
-   - `test_iteration_3_adds_multiply`: Verifies appending `multiply(self, a, b)` returning `a * b`.
-   - `test_syntax_error_injection`: Verifies removing the colon from the method signature.
-   - `test_fallback_other_iterations`: Verifies fallback to `current_code` for iteration numbers outside 1-3.
-
-   Command run: `.venv\Scripts\python.exe -m unittest self_improvement_loop/test_simulator.py`
-   Result: `Ran 5 tests in 0.000s. OK`
-
-2. **Visual Check (`scratch/verify_m3_simulator.py`)**:
-   - Runs a check to confirm the exact string transformations at each state.
-   - Command run: `.venv\Scripts\python.exe scratch/verify_m3_simulator.py`
-   - Result: Output successfully matched all desired simulator states (bugfix, additions, syntax error injection, and fallback).
+- **Apple HIG Styling Upgrade (R2)**:
+  - Main container layout updated to `rounded-[20px]`, glassmorphic opacity `bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md`, and fine border finishes (`border-border/40 dark:border-white/10`).
+  - Stats container cards updated to `rounded-[20px]`, `bg-body/20 dark:bg-zinc-950/20 border-border/40 dark:border-white/10 shadow-sm`.
+  - Dynamic budget controller panel updated to `rounded-[20px]`, `bg-body/20 dark:bg-zinc-950/20 border-border/40 dark:border-white/10`.
+  - Upgraded quick preset select buttons and show more buttons with `rounded-[10px]` and `rounded-[20px]`, respectively, with smooth scaling transitions (`hover:scale-[1.02] active:scale-[0.98]`).
+  - Upgraded select inputs to HIG standards: `bg-surface/80 dark:bg-zinc-800/80 border-border/40 dark:border-white/10 hover:border-[#ea6100]/30 text-primary dark:text-zinc-100 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#ea6100]/30`.
+  - Upgraded warning banner to glassmorphism: `bg-body/20 dark:bg-zinc-800/30 border-border/40 dark:border-white/10 rounded-[20px] backdrop-blur-sm`.
+  - Upgraded `GapComplexCard` to a uniform acrylic HIG card: `bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 shadow-sm hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[20px] transition-all duration-300`.
+- **Typography & Theme Enhancements (R3)**:
+  - Swapped hardcoded light/dark colors (e.g., `#e8f8f5`, `#042820`) in cards with alpha colors (`bg-[#c44d00]/5 dark:bg-[#ea6100]/10 border-[#c44d00]/10 dark:border-[#ea6100]/25`).
+  - Added `tracking-tight` and `leading-normal` to card titles and descriptions.
+  - Refined typography hierarchy: replaced high-contrast colors with `text-primary/95 dark:text-zinc-100`, `text-secondary/70 dark:text-zinc-400`, and `text-secondary/60 dark:text-zinc-500`.

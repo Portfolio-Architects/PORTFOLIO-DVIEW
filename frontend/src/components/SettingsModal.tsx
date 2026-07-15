@@ -152,7 +152,7 @@ const SettingsModal = React.memo(function SettingsModal() {
         aria-labelledby="settings-title"
         aria-describedby="settings-desc"
         onKeyDown={handleKeyDown}
-        className="relative w-full sm:max-w-md bg-surface sm:rounded-2xl rounded-t-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
+        className="relative w-full sm:max-w-md bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md sm:rounded-[24px] rounded-t-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-border/40 dark:border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
       >
         <div className="px-6 py-4 flex items-center justify-between border-b border-border bg-body/50">
           <h2 id="settings-title" className="text-lg font-bold text-primary flex items-center gap-2">
@@ -160,7 +160,7 @@ const SettingsModal = React.memo(function SettingsModal() {
           </h2>
           <button 
             onClick={() => setIsSettingsModalOpen(false)}
-            className="p-2 -mr-2 text-tertiary hover:text-primary transition-colors rounded-full hover:bg-black/5 dark:bg-surface/5"
+            className="p-2 -mr-2 text-tertiary hover:text-primary transition-all duration-300 ease-out hover:scale-[1.05] active:scale-[0.95] rounded-full hover:bg-black/5 dark:bg-surface/5"
             aria-label="설정 창 닫기"
           >
             <X size={20} />
@@ -175,7 +175,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <Sun size={16} />
               화면 모드
             </h3>
-            <div role="group" aria-label="화면 모드 선택" className="grid grid-cols-3 gap-2 bg-body p-1 rounded-xl">
+            <div role="group" aria-label="화면 모드 선택" className="grid grid-cols-3 gap-2 bg-body p-1 rounded-[20px]">
               {[
                 { id: 'light' as const, label: '라이트', icon: Sun },
                 { id: 'dark' as const, label: '다크', icon: Moon },
@@ -188,7 +188,7 @@ const SettingsModal = React.memo(function SettingsModal() {
                     ref={opt.id === 'light' ? firstOptionRef : undefined}
                     onClick={() => setTheme(opt.id)}
                     aria-pressed={isActive}
-                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg transition-all duration-200 ${
+                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] ${
                       isActive 
                         ? 'bg-surface text-toss-blue shadow-sm font-bold' 
                         : 'text-tertiary hover:text-secondary font-medium'
@@ -208,7 +208,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <Scaling size={16} />
               면적 표시 기준
             </h3>
-            <div role="group" aria-label="면적 표시 기준 선택" className="grid grid-cols-2 gap-2 bg-body p-1 rounded-xl">
+            <div role="group" aria-label="면적 표시 기준 선택" className="grid grid-cols-2 gap-2 bg-body p-1 rounded-[20px]">
               {[
                 { id: 'm2', label: '제곱미터 (m²)' },
                 { id: 'pyeong', label: '평' },
@@ -219,7 +219,7 @@ const SettingsModal = React.memo(function SettingsModal() {
                     key={opt.id}
                     onClick={() => setAreaUnit(opt.id as 'm2' | 'pyeong')}
                     aria-pressed={isActive}
-                    className={`py-3 rounded-lg transition-all duration-200 text-sm ${
+                    className={`py-3 rounded-lg transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] text-sm ${
                       isActive 
                         ? 'bg-surface text-toss-blue shadow-sm font-bold' 
                         : 'text-tertiary hover:text-secondary font-medium'
@@ -240,15 +240,15 @@ const SettingsModal = React.memo(function SettingsModal() {
             </h3>
             
             {!isPushSupported ? (
-              <div className="text-xs text-tertiary bg-body p-4 rounded-xl text-center font-medium">
+              <div className="text-xs text-tertiary bg-body p-4 rounded-[20px] text-center font-medium">
                 이 브라우저는 알림을 지원하지 않습니다.
               </div>
             ) : !pushSubscription ? (
-              <div className="text-xs text-tertiary bg-body p-4 rounded-xl text-center font-medium">
+              <div className="text-xs text-tertiary bg-body p-4 rounded-[20px] text-center font-medium">
                 현재 구독 중인 실거래 알림이 없습니다.
               </div>
             ) : (
-              <div className="flex flex-col gap-2 bg-body p-3 rounded-xl">
+              <div className="flex flex-col gap-2 bg-body p-3 rounded-[20px]">
                 {isLoadingApts ? (
                   <div className="flex items-center justify-center py-4 gap-2 text-xs text-tertiary font-medium">
                     <Loader2 size={14} className="animate-spin text-toss-blue" />
@@ -296,7 +296,7 @@ const SettingsModal = React.memo(function SettingsModal() {
         <div className="p-4 border-t border-border bg-body/30">
           <button
             onClick={() => setIsSettingsModalOpen(false)}
-            className="w-full btn-primary py-3.5 rounded-xl text-base"
+            className="w-full btn-primary py-3.5 rounded-[20px] text-base"
           >
             확인
           </button>

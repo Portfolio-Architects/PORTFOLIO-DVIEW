@@ -1,20 +1,20 @@
 # Project Context
 
 ## Overview
-- Project Name: DVIEW
+- Project Name: DVIEW 2nd-Phase UX Environment Enhancement
 - Directory: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW`
-- Goal: Optimize landing page UX, align colors with Hwaseong BI, structure navigation menus (desktop/mobile), eliminate layout shifts (CLS), and pass audits.
+- Goal: Apply Apple HIG styling (acrylic/glassmorphism, fine borders, focus states) and perform React performance optimization (memoization, dynamic import) across Lounge feed, Lounge detail, Lounge compose, comments, news, office explorer, and gap investment explorer.
 
-## Workspace Structure
-- Frontend Application: `frontend/`
-- Component Files:
-  - `frontend/src/components/LoungeHeader.tsx` (Desktop Navigation)
-  - `frontend/src/components/pwa/MobileDock.tsx` (Mobile Dock Navigation)
-  - `frontend/src/components/PageHeroHeader.tsx` (Individual Page Headers)
-  - `frontend/src/app/page.tsx` (Landing Page)
-  - `frontend/src/app/globals.css` (Tailwind / Theme styles)
-- Verification Tests:
-  - `frontend/tests/ui-ux-audit.spec.ts`
+## Target Files
+- `frontend/src/components/LoungeFeedClient.tsx`
+- `frontend/src/components/LoungeDetailClient.tsx`
+- `frontend/src/components/LoungeComposeClient.tsx`
+- `frontend/src/components/CommentSection.tsx`
+- `frontend/src/app/news/NewsClient.tsx`
+- `frontend/src/components/OfficeExplorerClient.tsx`
+- `frontend/src/components/GapInvestmentExplorer.tsx`
 
-## Active Tasks & Subagents
-- None spawned yet. Currently in initial planning and exploration phase.
+## Verification Tests & Commands
+- Unit/E2E Tests: `frontend/tests/ui-ux-audit.spec.ts`
+- Build Check: `npm run build` inside `frontend`
+- Audit Pipeline: `npm run audit` inside `frontend`

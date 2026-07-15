@@ -1,55 +1,46 @@
-# Handoff Report — Milestone 2 (Test Runner & Setup)
+# Handoff Report - Lounge & News Enhancements (M2)
 
 ## 1. Observation
-- Implemented `self_improvement_loop/runner.py` with `TestRunner` class.
-- Implemented buggy `self_improvement_loop/target_module.py` containing:
-  ```python
-  class Calculator:
-      def add(self, a, b):
-          # BUG: Returns subtraction instead of addition
-          return a - b
-  ```
-- Implemented `self_improvement_loop/test_target_module.py` using `unittest` testing `add`, `subtract`, and `multiply`.
-- Executed runner via `.venv\Scripts\python.exe self_improvement_loop\runner.py` on the host machine. Output returned:
-  ```
-  Success: False
-  Return Code: 1
-  Stdout:
-
-  Stderr:
-  FEE
-  ======================================================================
-  ERROR: test_multiply (__main__.TestCalculator.test_multiply)
-  ...
-  AttributeError: 'Calculator' object has no attribute 'multiply'
-
-  ======================================================================
-  ERROR: test_subtract (__main__.TestCalculator.test_subtract)
-  ...
-  AttributeError: 'Calculator' object has no attribute 'subtract'
-
-  ======================================================================
-  FAIL: test_add (__main__.TestCalculator.test_add)
-  ...
-  AssertionError: -1 != 5
-  ```
+- We observed that the original codebase had components matching:
+  - `frontend/src/components/LoungeFeedClient.tsx`
+  - `frontend/src/components/LoungeDetailClient.tsx`
+  - `frontend/src/components/LoungeComposeClient.tsx`
+  - `frontend/src/components/CommentSection.tsx`
+  - `frontend/src/app/news/NewsClient.tsx`
+- We observed styling inconsistencies and non-conformance to Apple HIG design principles in these files. Specifically:
+  - Outer cards and dialogs used solid `rounded-2xl` / `rounded-3xl` classes.
+  - Category tags and source chips used hardcoded solid colors like `bg-teal-50 text-teal-600` instead of high-contrast alpha-layered background utility classes.
+  - Hover effects were non-existent or did not utilize HIG-compliant scale transforms.
+  - Typography had low contrast and didn't follow clear hierarchical tracking and leading patterns.
+- We observed performance and memoization gaps:
+  - Inline mapping was used to render notice items, news items, and comments, causing full re-renders of lists.
+  - Click handlers and input triggers inside `LoungeComposeClient` and `CommentSection` were recreated on each render instead of using `useCallback`.
+- During compilation verification, we encountered missing imports:
+  - `error TS2304: Cannot find name 'useCallback'` in `CommentSection.tsx` and `LoungeComposeClient.tsx`.
 
 ## 2. Logic Chain
-1. The test runner uses the Python interpreter in `.venv` if available (falling back to `sys.executable` if missing).
-2. The initial buggy target `Calculator` class only contains the buggy `add` method, which does `a - b` instead of `a + b`, and lacks `subtract` and `multiply` entirely.
-3. When the test runner executes the test suite (`test_target_module.py`), `test_add` asserts `add(2, 3) == 5`, but since it returns `2 - 3 = -1`, it raises an `AssertionError`.
-4. `test_subtract` and `test_multiply` attempt to invoke methods `subtract` and `multiply` on the `Calculator` instance. Since these do not exist, they raise `AttributeError`.
-5. The exit code of `unittest.main()` is `1` because there are failures/errors, which is captured by `subprocess.run` and mapped to `success: False` and `returncode: 1`.
+- To achieve the Apple HIG visual styling standards, we mapped out styling updates:
+  - Replaced solid border/background classes with `backdrop-blur-md bg-surface/80 dark:bg-zinc-900/80` and `border-border/40 dark:border-white/10`.
+  - Added scaling hover states (`hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)]`).
+  - Updated chip categories to use alpha variables (`bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30`).
+  - Added modern typography properties: `font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-relaxed`.
+- To optimize performance and prevent unnecessary re-rendering:
+  - We extracted inline maps into memoized subcomponents: `<NoticeCard />` inside `LoungeFeedClient.tsx`, `<CommentItem />` inside `LoungeDetailClient.tsx`, `<NewsCard />` and `<NoticeItemCard />` inside `NewsClient.tsx`.
+  - Wrapped recreate-prone handlers in `useCallback` inside `LoungeComposeClient.tsx` and `CommentSection.tsx`.
+- To fix compilation errors:
+  - We added `useCallback` to the React import statement at the top of `CommentSection.tsx` and `LoungeComposeClient.tsx`.
+  - Verification run via `npx tsc --noEmit` completed successfully with exit code 0.
 
 ## 3. Caveats
-- The virtual environment path is resolved dynamically relative to `runner.py`'s directory, expecting `.venv/Scripts/python.exe` on Windows and `.venv/bin/python` on Unix. If run on a system where the virtual environment is structured differently or named differently, it falls back to `sys.executable`.
+- No caveats. The changes were scoped to the 5 requested files and compiling has been fully verified.
 
 ## 4. Conclusion
-The Test Runner (`runner.py`) and setup of Milestone 2 are fully implemented and verified. The test runner successfully captures test failures and errors from the initial buggy `Calculator` implementation.
+- All M2 Lounge & News Enhancements tasks are fully complete. Visual typography and borders conform to Apple HIG standards, list components are cleanly extracted and memoized, and compilation passes cleanly.
 
 ## 5. Verification Method
-- Execute the test runner directly:
-  ```bash
-  .venv\Scripts\python.exe self_improvement_loop\runner.py
+- Execute the TypeScript compiler verification tool from the frontend directory:
+  ```powershell
+  cd frontend
+  npx tsc --noEmit
   ```
-- Inspect output: Check that it outputs `Success: False`, `Return Code: 1`, and the stderr contains 1 failure and 2 errors.
+- Confirm the command finishes successfully with no compilation errors.

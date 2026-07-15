@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import useSWR from 'swr';
 import { 
   PieChart, 
@@ -15,7 +15,15 @@ import {
   Tooltip 
 } from 'recharts';
 import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
-import RelocationTaxSimulator from '@/components/macro/RelocationTaxSimulator';
+import dynamic from 'next/dynamic';
+
+const RelocationTaxSimulator = dynamic(
+  () => import('@/components/macro/RelocationTaxSimulator'),
+  {
+    ssr: false,
+    loading: () => <div className="w-full h-48 animate-pulse bg-black/5 dark:bg-surface/5 border border-border/40 rounded-[20px]" />
+  }
+);
 
 interface CircularProgressProps {
   percent: number;
@@ -565,6 +573,42 @@ function ChartTooltip({ active, payload, label, metricMode }: CustomTooltipProps
   return null;
 }
 
+interface CompanyCardProps {
+  co: string;
+  sectorColor: string;
+}
+
+const CompanyCard = React.memo(function CompanyCard({ co, sectorColor }: CompanyCardProps) {
+  const [companyName, companyAddr] = co.split(' - ');
+  const firstLetter = companyName ? companyName.charAt(0) : '';
+
+  return (
+    <div className="bg-surface border border-border/55 p-3 rounded-[16px] hover:border-hs-orange/30 hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0">
+      {/* Company Icon (Dynamic Letter Avatar with Gradient) */}
+      <div 
+        className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-[12.5px] font-black text-white select-none shadow-sm"
+        style={{ 
+          background: `linear-gradient(135deg, ${sectorColor}dd, ${sectorColor})`
+        }}
+      >
+        {firstLetter}
+      </div>
+      
+      {/* Company Info */}
+      <div className="flex flex-col min-w-0 flex-1 justify-center">
+        <span className="block text-[12.5px] font-black text-primary truncate whitespace-nowrap leading-tight" title={companyName}>
+          {companyName}
+        </span>
+        {companyAddr && (
+          <span className="block text-[10px] text-tertiary font-bold truncate whitespace-nowrap mt-1 leading-normal" title={companyAddr}>
+            {companyAddr}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+});
+
 export default function TechnoValleyDashboard() {
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
@@ -636,14 +680,14 @@ export default function TechnoValleyDashboard() {
     '정밀기기 및 기타': 12
   });
 
-  const handleToggleSector = (name: string) => {
+  const handleToggleSector = useCallback((name: string) => {
     setExpandedSectors(prev => ({
       ...prev,
       [name]: !prev[name]
     }));
-  };
+  }, []);
 
-  const handleExpandAll = () => {
+  const handleExpandAll = useCallback(() => {
     setExpandedSectors({
       'IT·소프트웨어': true,
       '반도체·첨단제조': true,
@@ -651,9 +695,9 @@ export default function TechnoValleyDashboard() {
       '지식기반 서비스': true,
       '정밀기기 및 기타': true
     });
-  };
+  }, []);
 
-  const handleCollapseAll = () => {
+  const handleCollapseAll = useCallback(() => {
     setExpandedSectors({
       'IT·소프트웨어': false,
       '반도체·첨단제조': false,
@@ -661,9 +705,9 @@ export default function TechnoValleyDashboard() {
       '지식기반 서비스': false,
       '정밀기기 및 기타': false
     });
-  };
+  }, []);
 
-  const handleShowMore = (name: string) => {
+  const handleShowMore = useCallback((name: string) => {
     setVisibleCounts(prev => ({
       ...prev,
       [name]: prev[name] + 50
@@ -676,14 +720,14 @@ export default function TechnoValleyDashboard() {
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }, 80);
-  };
+  }, []);
 
-  const handleResetLimit = (name: string) => {
+  const handleResetLimit = useCallback((name: string) => {
     setVisibleCounts(prev => ({
       ...prev,
       [name]: 12
     }));
-  };
+  }, []);
 
   const { data: responseData } = useSWR('/api/technovalley/industry-distribution', (url: string) => fetch(url).then(res => res.json()), {
     revalidateOnFocus: false,
@@ -837,13 +881,15 @@ export default function TechnoValleyDashboard() {
   }, [latestTrend, trendData, sortConfig]);
 
 
-  const handleSort = (key: 'name' | 'vacancy' | 'rent' | 'change' | 'units') => {
-    let direction: 'asc' | 'desc' = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  const handleSort = useCallback((key: 'name' | 'vacancy' | 'rent' | 'change' | 'units') => {
+    setSortConfig(prev => {
+      let direction: 'asc' | 'desc' = 'asc';
+      if (prev.key === key && prev.direction === 'asc') {
+        direction = 'desc';
+      }
+      return { key, direction };
+    });
+  }, []);
 
   return (
     <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-5 items-stretch">
@@ -1093,10 +1139,10 @@ export default function TechnoValleyDashboard() {
               e.preventDefault();
               document.getElementById('tax-simulator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }}
-            className="bg-surface border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.01] hover:border-hs-orange transition-all duration-300 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-hs-orange/20"
+            className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.02] active:scale-[0.98] hover:border-hs-orange transition-all duration-300 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-hs-orange/20"
           >
             <div className="flex flex-col gap-1 min-w-0">
-              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">법인 세제 감면 계산기</span>
+              <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">세제 혜택 시뮬레이터</span>
               <div className="flex flex-col gap-0.5">
                 <span className="text-[12px] sm:text-[13.5px] font-black text-hs-orange leading-snug">
                   내 예상 절세 혜택 알아보기 (클릭 시 이동)
@@ -1427,39 +1473,9 @@ export default function TechnoValleyDashboard() {
                         <div className={`grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 pr-1.5 overscroll-y-contain ${
                           visibleCount > 12 ? 'max-h-[380px] overflow-y-auto custom-scrollbar' : ''
                         }`}>
-                          {visibleCompanies.map((co: string, idx: number) => {
-                            const [companyName, companyAddr] = co.split(' - ');
-                            const firstLetter = companyName ? companyName.charAt(0) : '';
-
-                            return (
-                              <div
-                                key={idx}
-                                className="bg-surface border border-border/55 p-3 rounded-[16px] hover:border-hs-orange/30 hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0"
-                              >
-                                {/* Company Icon (Dynamic Letter Avatar with Gradient) */}
-                                <div 
-                                  className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-[12.5px] font-black text-white select-none shadow-sm"
-                                  style={{ 
-                                    background: `linear-gradient(135deg, ${sector.color}dd, ${sector.color})`
-                                  }}
-                                >
-                                  {firstLetter}
-                                </div>
-                                
-                                {/* Company Info */}
-                                <div className="flex flex-col min-w-0 flex-1 justify-center">
-                                  <span className="block text-[12.5px] font-black text-primary truncate whitespace-nowrap leading-tight" title={companyName}>
-                                    {companyName}
-                                  </span>
-                                  {companyAddr && (
-                                     <span className="block text-[10px] text-tertiary font-bold truncate whitespace-nowrap mt-1 leading-normal" title={companyAddr}>
-                                      {companyAddr}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
+                          {visibleCompanies.map((co: string, idx: number) => (
+                            <CompanyCard key={idx} co={co} sectorColor={sector.color} />
+                          ))}
                         </div>
 
                         {/* Pagination Buttons */}
