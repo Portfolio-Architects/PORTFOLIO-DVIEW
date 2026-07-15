@@ -1,0 +1,8 @@
+--- target_module.v8.py
++++ target_module.v9.py
+@@ -20,3 +20,5 @@
+         return a ** b
+ 
+ # Continuous optimization v8
++
++# Continuous optimization v9

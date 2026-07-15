@@ -1,0 +1,18 @@
+--- target_module.v33.py
++++ target_module.v34.py
+@@ -99,6 +99,9 @@
+         while b:
+             a, b = b, a % b
+         return abs(a)
++    def std_dev(self, data: list) -> float:
++        """Returns the standard deviation of data."""
++        return math.sqrt(self.variance(data))
+ 
+ # Continuous optimization v8
+ 
+@@ -116,4 +119,4 @@
+ 
+ # Continuous optimization v15
+ 
+-# Continuous optimization v33
++# Continuous optimization v34

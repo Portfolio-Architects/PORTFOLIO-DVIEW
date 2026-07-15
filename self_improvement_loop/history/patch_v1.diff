@@ -1,0 +1,8 @@
+--- target_module.v0.py
++++ target_module.v1.py
+@@ -1,4 +1,4 @@
+ class Calculator:
+     def add(self, a, b):
+         # BUG: Returns subtraction instead of addition
+-        return a - b
++        return a + b

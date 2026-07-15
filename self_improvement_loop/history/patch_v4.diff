@@ -1,0 +1,10 @@
+--- target_module.v3.py
++++ target_module.v4.py
+@@ -6,3 +6,7 @@
+         return a - b
+     def multiply(self, a, b):
+         return a * b
++    def divide(self, a, b):
++        if b == 0:
++            raise ZeroDivisionError("division by zero")
++        return a / b

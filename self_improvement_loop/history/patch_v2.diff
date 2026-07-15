@@ -1,0 +1,8 @@
+--- target_module.v1.py
++++ target_module.v2.py
+@@ -2,3 +2,5 @@
+     def add(self, a, b):
+         # BUG: Returns subtraction instead of addition
+         return a + b
++    def subtract(self, a, b):
++        return a - b

@@ -1,0 +1,8 @@
+--- target_module.v4.py
++++ target_module.v5.py
+@@ -10,3 +10,5 @@
+         if b == 0:
+             raise ZeroDivisionError("division by zero")
+         return a / b
++    def power(self, a, b):
++        return a ** b

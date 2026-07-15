@@ -1,0 +1,35 @@
+--- target_module.v11.py
++++ target_module.v12.py
+@@ -1,8 +1,9 @@
++import math
++
+ class Calculator:
+     """A simple calculator class."""
+     def add(self, a: float, b: float) -> float:
+         """Returns the sum of a and b."""
+-        # BUG: Returns subtraction instead of addition
+         return a + b
+     def subtract(self, a: float, b: float) -> float:
+         """Returns the difference of a and b."""
+@@ -18,6 +19,15 @@
+     def power(self, a: float, b: float) -> float:
+         """Returns a raised to the power of b."""
+         return a ** b
++    def sin(self, x: float) -> float:
++        """Returns the sine of x (in radians)."""
++        return math.sin(x)
++    def cos(self, x: float) -> float:
++        """Returns the cosine of x (in radians)."""
++        return math.cos(x)
++    def tan(self, x: float) -> float:
++        """Returns the tangent of x (in radians)."""
++        return math.tan(x)
+ 
+ # Continuous optimization v8
+ 
+@@ -26,3 +36,5 @@
+ # Continuous optimization v10
+ 
+ # Continuous optimization v11
++
++# Continuous optimization v12

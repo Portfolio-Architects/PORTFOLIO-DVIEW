@@ -1,0 +1,28 @@
+--- target_module.v15.py
++++ target_module.v16.py
+@@ -86,6 +86,19 @@
+         slope = num / den
+         intercept = y_mean - slope * x_mean
+         return slope, intercept
++    def factorial(self, n: int) -> int:
++        """Returns the factorial of n."""
++        if n < 0:
++            raise ValueError("factorial not defined for negative numbers")
++        result = 1
++        for i in range(2, n + 1):
++            result *= i
++        return result
++    def gcd(self, a: int, b: int) -> int:
++        """Returns the greatest common divisor of a and b."""
++        while b:
++            a, b = b, a % b
++        return abs(a)
+ 
+ # Continuous optimization v8
+ 
+@@ -102,3 +115,5 @@
+ # Continuous optimization v14
+ 
+ # Continuous optimization v15
++
++# Continuous optimization v16
