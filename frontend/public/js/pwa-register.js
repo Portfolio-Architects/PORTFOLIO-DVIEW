@@ -42,10 +42,10 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
         }
       };
 
-      if (document.readyState === 'complete') {
+      if (document.readyState === 'complete' || document.readyState === 'interactive') {
         registerSW();
       } else {
-        window.addEventListener('load', registerSW);
+        document.addEventListener('DOMContentLoaded', registerSW);
       }
     }
   } catch (globalErr) {

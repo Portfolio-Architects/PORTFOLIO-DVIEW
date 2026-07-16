@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     const notificationPayload = JSON.stringify({
       title: `💬 D-VIEW: 내 임장기에 댓글이 달렸습니다!`,
       body: `${authorName}: ${commentText.substring(0, 60)}${commentText.length > 60 ? '...' : ''}`,
-      url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/#apt=${encodeURIComponent(apartmentName)}`
+      url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/overview#apt=${encodeURIComponent(apartmentName)}`
     });
 
     let sentCount = 0;

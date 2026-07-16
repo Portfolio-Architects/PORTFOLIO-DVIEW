@@ -1,24 +1,23 @@
-# Project Plan — D-VIEW 2nd-Phase UX Environment Enhancement
+# Project Plan — Techno Lab UI/UX Enhancement & Performance Optimization
 
 ## Goal
-Enhance D-VIEW's visual environment (Lounge feed, Lounge details, Loungecompose, comments, news, office explorer, gap investment explorer) to match the latest Apple HIG styles (acrylic/glassmorphism, fine borders, transitions) and maximize runtime performance (memoization, dynamic import, vanilla Tailwind transitions, no heavy external animation libraries) while maintaining full build integrity (`npm run build`).
+Enhance the 'Techno Lab' page of Dongtan Techno Valley Knowledge Industry Center by removing navigation buttons, redesigning the donut chart with Hwaseong City BI colors and 60fps CSS GPU-accelerated hover effects, implementing lazy accordion DOM rendering, styling the company cards, changing the line chart type to natural, styling responsiveness, and verifying the changes with full compilation/audit validation.
 
 ## Complexity Assessment
-- **Scope**: Modifying 7 frontend React components in `frontend/src/components` and `frontend/src/app`.
-- **Risk**: Visual breakage, styling mismatches in light/dark modes, memory leaks or infinite re-renders during memoization, Next.js build compilation errors.
-- **Complexity**: Medium. Requires systematic styling adjustments, proper React memoization, and verification of build.
+- **Scope**: Modifying two key React components: `frontend/src/app/technovalley/TechnoValleyClient.tsx` and `frontend/src/components/macro/TechnoValleyDashboard.tsx`.
+- **Risk**: Dynamic hydration issues with lazy-rendering accordions, SVG styling mismatch on Recharts rendering, CSS scale/transform layout overflow, and potential Next.js build compilation warnings.
+- **Complexity**: Medium. Requires clean React DOM manipulation, CSS GPU acceleration optimization, and rigorous Next.js build compatibility.
 
 ## Milestones & Decomposition
 
 | Milestone | Name | Objective | Status |
 |-----------|------|-----------|--------|
-| M1 | Exploration & Audit | Explore target files, identify specific styling and performance patterns, and draft implementation instructions. | PLANNED |
-| M2 | Lounge & News Enhancements (R1) | Refactor Lounge feed/detail/compose, comments, and news components for Apple HIG design (glassmorphism, 20px curves, focus states). | PLANNED |
-| M3 | Explorer Enhancements (R2) | Refactor Office Explorer and Gap Investment Explorer components with grid layout adjustments, shadow finishes, and scroll fade effects. | PLANNED |
-| M4 | Typography, Themes & Performance (R3 & R4) | Tune letter/line spacing, dark/light glassmorphism opacity, and implement React.memo/useMemo/useCallback memoization. | PLANNED |
-| M5 | Build & Test Verification | Run `npm run build`, `npm run audit`, and existing Playwright UI/UX tests to ensure zero regressions and compiler errors. | PLANNED |
+| M1 | Exploration & Codebase Analysis | Explore target codebase, inspect components, locate chart styling/state, analyze accordion structures, and outline specific code edits. | PLANNED |
+| M2 | Implementation of Enhancements (R1-R5) | Apply all requested enhancements: R1 (remove navigation buttons), R2 (Hwaseong BI donut colors + CSS GPU transition/transform hover), R3 (lazy rendering accordion + card styles), R4 (natural line chart + ResponsiveContainer min-size fixes), R5 (mobile spacing & momentum scroll tuning). | PLANNED |
+| M3 | Verification, Review & Forensic Audit | Run builds and `npm run audit`, conduct reviews, execute challengers to verify 60fps and DOM size reduction, and perform final forensic audit verification. | PLANNED |
 
 ## Verification Strategy
-- Worker will compile and run `npm run build` after changes.
-- Reviewer will check the visual styles, theme opacity, and component memoization.
-- Auditor/Challenger will run `npm run audit` and E2E/UI-UX tests to ensure zero console errors, no overflows, and no performance regressions.
+- **Worker**: Run `npm run build` and `npm run audit` in `frontend/` to check for compilation/lint/test errors.
+- **Reviewer**: Verify responsiveness, hover styles, styling color accuracy against Hwaseong BI, and type safety of lazy accordions.
+- **Challenger**: Verify GPU acceleration for donut chart hovers and lazy-rendered accordion node count improvements.
+- **Auditor**: Run integrity diagnostics to verify that no mock behaviors or cheat-facades are implemented.

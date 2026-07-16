@@ -1,0 +1,141 @@
+diff --git a/frontend/public/js/pwa-register.js b/frontend/public/js/pwa-register.js
+index f30f6a2..a529be7 100644
+--- a/frontend/public/js/pwa-register.js
++++ b/frontend/public/js/pwa-register.js
+@@ -45,5 +45,5 @@
+-      if (document.readyState === 'complete') {
++      if (document.readyState === 'complete' || document.readyState === 'interactive') {
+         registerSW();
+       } else {
+-        window.addEventListener('load', registerSW);
++        document.addEventListener('DOMContentLoaded', registerSW);
+       }
+
+diff --git a/frontend/src/components/pwa/PWAProvider.tsx b/frontend/src/components/pwa/PWAProvider.tsx
+index bbc5f49..ea35a2d 100644
+--- a/frontend/src/components/pwa/PWAProvider.tsx
++++ b/frontend/src/components/pwa/PWAProvider.tsx
+@@ -353,30 +353,42 @@
+     // 🔧 SW Update monitor
+     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
+-      navigator.serviceWorker.ready.then((reg) => {
+-        if (!isMounted) return;
+-        registeredReg = reg;
+-        swRegistrationRef.current = reg;
+-        
+-        // 1. If SW is already waiting to activate
+-        if (reg.waiting) {
+-          if (sessionStorage.getItem('dview_sw_update_in_progress') !== 'true') {
+-            setSwUpdateAvailable(true);
+-          }
+-        }
+-
+-        // Trigger manual update check on mount to ensure fresh status
+-        reg.update().catch((err) => {
+-          logger.warn('PWAProvider', 'Manual reg.update() failed', undefined, err);
+-        });
+-
+-        // 2. If new SW installation completes
+-        reg.addEventListener('updatefound', handleUpdateFound);
+-        
+-        // Also listen to statechange on current installing worker if present
+-        if (reg.installing) {
+-          registeredWorker = reg.installing;
+-          registeredWorker.addEventListener('statechange', handleStateChange);
+-        }
+-      }).catch((err) => {
+-        logger.warn('PWAProvider', 'serviceWorker.ready failed in update monitor', undefined, err);
+-      });
++      const setupUpdateMonitor = (reg: ServiceWorkerRegistration) => {
++        if (!isMounted || !reg) return;
++        if (swRegistrationRef.current === reg) return; // Prevent double setup
++        
++        registeredReg = reg;
++        swRegistrationRef.current = reg;
++
++        // 1. If SW is already waiting to activate
++        if (reg.waiting) {
++          if (sessionStorage.getItem('dview_sw_update_in_progress') !== 'true') {
++            setSwUpdateAvailable(true);
++          }
++        }
++
++        // Trigger manual update check on mount to ensure fresh status
++        reg.update().catch((err) => {
++          logger.warn('PWAProvider', 'Manual reg.update() failed', undefined, err);
++        });
++
++        // 2. If new SW installation completes
++        reg.addEventListener('updatefound', handleUpdateFound);
++        
++        // Also listen to statechange on current installing worker if present
++        if (reg.installing) {
++          registeredWorker = reg.installing;
++          registeredWorker.addEventListener('statechange', handleStateChange);
++        }
++      };
++
++      // Try to get registration immediately on mount (performance optimization)
++      navigator.serviceWorker.getRegistration().then((reg) => {
++        if (reg) {
++          setupUpdateMonitor(reg);
++        }
++      }).catch((err) => {
++        logger.warn('PWAProvider', 'Initial getRegistration check failed', undefined, err);
++      });
++
++      // Fallback/Ensure we hook into the registration when ready
++      navigator.serviceWorker.ready.then((reg) => {
++        setupUpdateMonitor(reg);
++      }).catch((err) => {
++        logger.warn('PWAProvider', 'serviceWorker.ready failed in update monitor', undefined, err);
++      });
+     }
+
+diff --git a/frontend/src/app/explore/layout.tsx b/frontend/src/app/explore/layout.tsx
+index a6192d7..b148c3b 100644
+--- a/frontend/src/app/explore/layout.tsx
++++ b/frontend/src/app/explore/layout.tsx
+@@ -11,3 +11,3 @@
+-    <div className="min-h-screen bg-surface font-sans selection:bg-toss-blue/20">
++    <div className="min-h-screen bg-body font-sans selection:bg-toss-blue/20">
+
+diff --git a/frontend/src/app/explore/page.tsx b/frontend/src/app/explore/page.tsx
+index c54fde2..d5a9fae 100644
+--- a/frontend/src/app/explore/page.tsx
++++ b/frontend/src/app/explore/page.tsx
+@@ -21,3 +21,3 @@
+-    <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)]">
++    <div className="flex flex-col min-h-[100dvh] bg-body relative pb-[env(safe-area-inset-bottom)]">
+
+diff --git a/frontend/src/app/lounge/layout.tsx b/frontend/src/app/lounge/layout.tsx
+index d2b58ea..f10d7ce 100644
+--- a/frontend/src/app/lounge/layout.tsx
++++ b/frontend/src/app/lounge/layout.tsx
+@@ -13,3 +13,3 @@
+-    <div className="min-h-screen bg-surface font-sans selection:bg-toss-blue/20">
++    <div className="min-h-screen bg-body font-sans selection:bg-toss-blue/20">
+
+diff --git a/frontend/src/components/LoungeContainerClient.tsx b/frontend/src/components/LoungeContainerClient.tsx
+index a41bc8a..d9b4cde 100644
+--- a/frontend/src/components/LoungeContainerClient.tsx
++++ b/frontend/src/components/LoungeContainerClient.tsx
+@@ -304,3 +304,3 @@
+-            <span 
+-              onClick={() => window.location.href = '/'}
++            <span 
++              onClick={() => window.location.href = '/overview'}
+
+diff --git a/frontend/src/components/LoungeFeedClient.tsx b/frontend/src/components/LoungeFeedClient.tsx
+index d3c89b4..f812cd4 100644
+--- a/frontend/src/components/LoungeFeedClient.tsx
++++ b/frontend/src/components/LoungeFeedClient.tsx
+@@ -1153,3 +1153,3 @@
+-                    window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
++                    window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName)}`;
+@@ -1162,3 +1162,3 @@
+-                  window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
++                  window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName)}`;
+@@ -1188,3 +1188,3 @@
+-                        window.location.href = `/#apt=${encodeURIComponent(news.apartmentName || '')}`;
++                        window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName || '')}`;

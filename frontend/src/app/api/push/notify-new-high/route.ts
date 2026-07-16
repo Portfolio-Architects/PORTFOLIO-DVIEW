@@ -142,7 +142,7 @@ export async function POST(req: Request) {
     const notificationPayload = JSON.stringify({
       title: `🛎️ D-VIEW: [${mainHigh.aptName}] ${mainHigh.pyeong}평 ${priceText} 신고가 경신!`,
       body: `실거래가 등록 알림 ${deltaText}. 평형별 입지 분석과 적정 가치를 지금 확인하세요.`,
-      url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com'}/#apt=${encodeURIComponent(mainHigh.aptName)}`
+      url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com'}/overview#apt=${encodeURIComponent(mainHigh.aptName)}`
     });
 
     let sentCount = 0;

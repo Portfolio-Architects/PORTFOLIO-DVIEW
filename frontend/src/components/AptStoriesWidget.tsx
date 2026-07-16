@@ -91,7 +91,7 @@ export default function AptStoriesWidget() {
   const handleCardClick = (aptName: string) => {
     if (!aptName) return;
     // Redirect to home page with apt hash to open detail modal
-    window.location.assign(`/#apt=${encodeURIComponent(aptName)}`);
+    window.location.assign(`/overview#apt=${encodeURIComponent(aptName)}`);
   };
 
   if (loading) {

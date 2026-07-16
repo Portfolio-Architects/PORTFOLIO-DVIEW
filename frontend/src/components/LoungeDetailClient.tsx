@@ -1211,7 +1211,7 @@ const autoLinkApartments = (content: string, apartments: string[]): string => {
     
     protectedContent = protectedContent.replace(regex, (match) => {
       const placeholder = `___NEW_APT_LINK_${newLinkPlaceholders.length}___`;
-      const url = `/#apt=${encodeURIComponent(name)}&utm_source=lounge&utm_medium=internal_link&utm_campaign=lounge_mention`;
+      const url = `/overview#apt=${encodeURIComponent(name)}&utm_source=lounge&utm_medium=internal_link&utm_campaign=lounge_mention`;
       newLinkPlaceholders.push(`[${match}](${url})`);
       return placeholder;
     });

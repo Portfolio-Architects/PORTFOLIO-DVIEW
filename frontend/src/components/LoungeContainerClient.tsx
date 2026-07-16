@@ -300,13 +300,19 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
         subtitleLight={
           <span className="flex items-center gap-1 flex-wrap">
             <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
-            <span 
-              onClick={() => window.location.href = '/'}
-              className="hover:text-primary hover:underline hover:decoration-dashed transition-colors cursor-pointer"
+            <button 
+              onClick={() => window.location.href = '/overview'}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  window.location.href = '/overview';
+                }
+              }}
+              className="bg-transparent border-none p-0 font-normal text-tertiary text-[13px] sm:text-[14.5px] leading-snug cursor-pointer hover:text-primary hover:underline hover:decoration-dashed transition-colors"
               title="아파트 랩 메인 지도로 이동"
             >
               현장 임장기
-            </span>
+            </button>
             <span className="text-[#d1d6db] mx-1">·</span>
             <button 
               onClick={() => handleTabClick('news')}

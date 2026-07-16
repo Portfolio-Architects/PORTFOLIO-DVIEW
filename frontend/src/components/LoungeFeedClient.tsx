@@ -1150,7 +1150,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                   if (news.category === '아파트 이야기' && news.apartmentName) {
-                    window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
+                    window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName)}`;
                   } else {
                     window.location.hash = `post=${news.id}`;
                   }
@@ -1159,7 +1159,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
               aria-label={`${news.category === '임장기' ? '동탄 임장/분석' : news.category === '부동산 기초' ? '부동산 고민상담' : news.category === '정책자금 대출' ? '동탄 청약/대출' : news.category === '인프라' ? '동탄 교통/상권' : (news.category || '기타')} 카테고리 게시글 "${news.title}", 작성자 ${news.author || '익명'} 상세 보기`}
               onClick={() => {
                 if (news.category === '아파트 이야기' && news.apartmentName) {
-                  window.location.href = `/#apt=${encodeURIComponent(news.apartmentName)}`;
+                  window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName)}`;
                 } else {
                   window.location.hash = `post=${news.id}`;
                 }
@@ -1183,11 +1183,20 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                   {/* Bridge Tags */}
                   {news.apartmentName && (
                     <span
+                      role="link"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
-                        window.location.href = `/#apt=${encodeURIComponent(news.apartmentName || '')}`;
+                        window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName || '')}`;
                       }}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName || '')}`;
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30 hover:bg-[#d6f5e3] transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-emerald-500"
                       title="클릭 시 아파트 랩 실거래 지도로 이동"
                     >
                       <Home size={10} />
@@ -1197,11 +1206,20 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
 
                   {isTechnoRelated(news.title, news.summary) && (
                     <span
+                      role="link"
+                      tabIndex={0}
                       onClick={(e) => {
                         e.stopPropagation();
                         window.location.href = `/overview?tab=office`;
                       }}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          window.location.href = '/overview?tab=office';
+                        }
+                      }}
+                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
                       title="클릭 시 테크노 랩 사무실 탐색으로 이동"
                     >
                       <Briefcase size={10} />

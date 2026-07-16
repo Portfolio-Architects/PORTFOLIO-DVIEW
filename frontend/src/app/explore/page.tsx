@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 function ExploreSkeleton() {
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-surface relative pb-[env(safe-area-inset-bottom)]">
+    <div className="flex flex-col min-h-[100dvh] bg-body relative pb-[env(safe-area-inset-bottom)]">
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden">
         <PageHeroHeader 
           title="D-VIEW 아파트 탐색"

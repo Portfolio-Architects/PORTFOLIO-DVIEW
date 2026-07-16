@@ -352,8 +352,10 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // 🔧 SW Update monitor
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
-      navigator.serviceWorker.ready.then((reg) => {
-        if (!isMounted) return;
+      let isConfigured = false;
+      const setupMonitor = (reg: ServiceWorkerRegistration) => {
+        if (!isMounted || isConfigured) return;
+        isConfigured = true;
         registeredReg = reg;
         swRegistrationRef.current = reg;
         
@@ -377,6 +379,20 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           registeredWorker = reg.installing;
           registeredWorker.addEventListener('statechange', handleStateChange);
         }
+      };
+
+      // Immediately check for registration
+      navigator.serviceWorker.getRegistration().then((reg) => {
+        if (reg) {
+          setupMonitor(reg);
+        }
+      }).catch((err) => {
+        logger.warn('PWAProvider', 'getRegistration failed in update monitor', undefined, err);
+      });
+
+      // Fallback via ready promise
+      navigator.serviceWorker.ready.then((reg) => {
+        setupMonitor(reg);
       }).catch((err) => {
         logger.warn('PWAProvider', 'serviceWorker.ready failed in update monitor', undefined, err);
       });

@@ -294,7 +294,7 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
       : `${priceEok}억원`;
 
   const description = customDesc || `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`;
-  const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
+  const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
   const titleText = customTitle || `🧐 지금 사면 호구될까? ${aptName} 가치분석 리포트`;
 
   try {
@@ -492,7 +492,7 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams, 
 
   const titleText = `${aptName} (${dong}) 전세 안심진단`;
   const fallbackDesc = `진단 결과: ${riskLabel} (부채비율 ${debtRatio.toFixed(1)}%)\n매매시세: ${marketPriceStr}\n전세금: ${jeonseStr} | 융자금: ${lienStr}`;
-  const fallbackUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=clipboard&utm_medium=share&utm_campaign=jeonse_share`;
+  const fallbackUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=clipboard&utm_medium=share&utm_campaign=jeonse_share`;
 
   try {
     const sdkOk = await checkKakaoSdkAndFallback(titleText, fallbackDesc, fallbackUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
@@ -502,7 +502,7 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams, 
     const finalImageUrl = `${baseUrl}/api/og?type=jeonse&title=${encodeURIComponent(aptName)}&status=${encodeURIComponent(riskLabel)}&ratio=${debtRatio.toFixed(1)}&price=${encodeURIComponent(marketPriceStr)}&lien=${encodeURIComponent(lienStr)}&totalDebt=${encodeURIComponent(totalDebtStr)}`;
 
     const description = `🚨 HUG 보증보험 가입 여부 및 경매 낙찰 안전마진 진단 결과:\n보증금 ${jeonseStr} | 부채비율 ${debtRatio.toFixed(1)}% [${riskLabel}]\n소중한 보증금 반환 안전 지수를 D-VIEW에서 1초 만에 진단받으세요!`;
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=kakaotalk&utm_medium=share&utm_campaign=jeonse_share`;
+    const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=kakaotalk&utm_medium=share&utm_campaign=jeonse_share`;
 
     window.Kakao!.Share.sendDefault({
       objectType: "feed",
@@ -577,7 +577,7 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams, toastFn?
 
   const titleText = `${aptName} (${dong}) 주담대 진단`;
   const fallbackDesc = `추천 상품: ${bestProduct}\n대출 한도: ${maxLoanStr} (금리 ${finalRate.toFixed(2)}%)\n필요 자기자본: ${ownCapitalStr} | 월 상환액: ${monthlyPayStr}`;
-  const fallbackUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=clipboard&utm_medium=share&utm_campaign=mortgage_share`;
+  const fallbackUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=clipboard&utm_medium=share&utm_campaign=mortgage_share`;
 
   try {
     const sdkOk = await checkKakaoSdkAndFallback(titleText, fallbackDesc, fallbackUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
@@ -587,7 +587,7 @@ export const shareMortgageToKakao = async (params: ShareMortgageParams, toastFn?
     const finalImageUrl = `${baseUrl}/api/og?type=mortgage&title=${encodeURIComponent(aptName)}&bestProduct=${encodeURIComponent(bestProduct)}&price=${encodeURIComponent(maxLoanStr)}&ratio=${finalRate.toFixed(2)}&status=${encodeURIComponent(ownCapitalStr)}&subtitle=${encodeURIComponent(monthlyPayStr)}`;
 
     const description = `추천 상품: ${bestProduct}\n대출 한도: ${maxLoanStr} (금리 ${finalRate.toFixed(2)}%)\n필요 자기자본: ${ownCapitalStr} | 월 상환액: ${monthlyPayStr}`;
-    const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=kakaotalk&utm_medium=share&utm_campaign=mortgage_share`;
+    const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=mortgage&utm_source=kakaotalk&utm_medium=share&utm_campaign=mortgage_share`;
 
     window.Kakao!.Share.sendDefault({
       objectType: "feed",
@@ -667,7 +667,7 @@ export const shareTaxToKakao = async (params: ShareTaxParams, toastFn?: (msg: st
 
   const titleText = `${aptName} (${dong}) 세금/부대비용 진단`;
   const description = `매매가: ${marketPriceStr}\n취득세 등 세금: ${totalTaxStr}\n중개보수: ${brokerFeeStr}\n총 부대비용: ${totalCostStr} (${ownedHousesStr} | ${areaStr})`;
-  const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=tax&utm_source=kakaotalk&utm_medium=share&utm_campaign=tax_share`;
+  const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=tax&utm_source=kakaotalk&utm_medium=share&utm_campaign=tax_share`;
 
   const baseUrl = window.location.origin;
   const finalImageUrl = `${baseUrl}/api/og?type=tax&title=${encodeURIComponent(aptName)}&subtitle=${encodeURIComponent(dong)}&price=${encodeURIComponent(marketPriceStr)}&ratio=${encodeURIComponent(totalCostStr)}&status=${encodeURIComponent(ownedHousesStr)}&lien=${encodeURIComponent(totalTaxStr)}&totalDebt=${encodeURIComponent(brokerFeeStr)}&bestProduct=${encodeURIComponent(areaStr)}`;
@@ -1047,7 +1047,7 @@ export const shareSellTimingToKakao = async (params: ShareSellTimingParams, toas
 
   const titleText = `${aptName} (${dong}) 매도 가치진단`;
   const description = `매도가: ${transferStr} (취득가: ${acqStr})\n호구지수: ${verdictScore}% [${verdictLabel}]\n보유기간: ${holdingYears}년 | 실거주: ${resideYears}년 (${houseStr})\n예상 총 세금: ${taxStr}`;
-  const shareUrl = `${window.location.origin}/#apt=${encodeURIComponent(aptName)}&calc=sell_timing&utm_source=kakaotalk&utm_medium=share&utm_campaign=sell_timing_share`;
+  const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=sell_timing&utm_source=kakaotalk&utm_medium=share&utm_campaign=sell_timing_share`;
 
   const baseUrl = window.location.origin;
   const finalImageUrl = `${baseUrl}/api/og?type=sell_timing&title=${encodeURIComponent(aptName)}&score=${verdictScore}&status=${encodeURIComponent(verdictLabel)}&price=${encodeURIComponent(transferStr)}&ratio=${encodeURIComponent(taxStr)}&subtitle=${encodeURIComponent(dong)}`;
@@ -1106,7 +1106,7 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
   // Utilizes client side hash routing exactly same as shareAptToKakao
-  const shareUrl = `${baseUrl}/#apt=${encodeURIComponent(aptName)}&utm_source=clipboard&utm_medium=share&utm_campaign=apt_detail`;
+  const shareUrl = `${baseUrl}/overview#apt=${encodeURIComponent(aptName)}&utm_source=clipboard&utm_medium=share&utm_campaign=apt_detail`;
 
   let valuationLabel = '⚖️ 적정 수준 (시세와 적정 가치 균형 상태)';
   if (valStatus === 'undervalued') {

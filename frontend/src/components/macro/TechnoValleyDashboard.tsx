@@ -68,11 +68,11 @@ function CircularProgress({ percent, color }: CircularProgressProps) {
 
 // 1. Donut Chart Data
 const DONUT_DATA = [
-  { name: '반도체·첨단제조', value: 33.3, color: '#9a3412', count: 643, companies: ['어플라이드 머티리얼즈 코리아 - 경기도 화성시 동탄기흥로 614-26', '도쿄일렉트론코리아 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', 'ASM 코리아 - 경기도 화성시 동탄기흥로 635', '케이씨텍 - 경기도 화성시 동탄기흥로 642'] },
+  { name: '반도체·첨단제조', value: 33.3, color: '#004696', count: 643, companies: ['어플라이드 머티리얼즈 코리아 - 경기도 화성시 동탄기흥로 614-26', '도쿄일렉트론코리아 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', 'ASM 코리아 - 경기도 화성시 동탄기흥로 635', '케이씨텍 - 경기도 화성시 동탄기흥로 642'] },
   { name: 'IT·소프트웨어', value: 9.5, color: '#dc6e2d', count: 184, companies: ['한국아이티에스 - 경기도 화성시 동탄대로22길 17', '위즈코리아 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '제이앤제이 테크 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '(주)디디오넷코리아 - 경기도 화성시 동탄구 동탄순환대로29길'] },
-  { name: '바이오·헬스케어', value: 1.8, color: '#f59e0b', count: 35, companies: ['한미약품 연구센터 - 경기도 화성시 동탄대로22길 125, 한미약품 연구센터', '서린바이오 - 경기도 화성시 동탄대로21길 15, 서린바이오 글로벌센터', '녹십자웰빙 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', '우정바이오 - 경기도 화성시 동탄기흥로 593-8, 우정바이오 신약클러스터'] },
-  { name: '지식기반 서비스', value: 21.7, color: '#fdba74', count: 419, companies: ['기술보증기금 동탄 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '특허법인 지산 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', '노바메저링인스트루먼트코리아 - 경기도 화성시 동탄구 동탄대로23길', '더몰론코리아 동탄지점 - 경기도 화성시 동탄구 동탄영천로'] },
-  { name: '정밀기기 및 기타', value: 33.7, color: '#e7e5e4', count: 650, companies: ['신도리코 R&D - 경기도 화성시 동탄기흥로 568', '제이앤제이엠컴퍼니 - 경기도 화성시 동탄구 동탄대로', 'VATKOREALTD - 경기도 화성시 동탄구 동탄기흥로', '구뎅코리아 (GUDENG KOREA CO. LTD.) - 경기도 화성시 동탄구 동탄대로23길'] }
+  { name: '바이오·헬스케어', value: 1.8, color: '#10b981', count: 35, companies: ['한미약품 연구센터 - 경기도 화성시 동탄대로22길 125, 한미약품 연구센터', '서린바이오 - 경기도 화성시 동탄대로21길 15, 서린바이오 글로벌센터', '녹십자웰빙 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', '우정바이오 - 경기도 화성시 동탄기흥로 593-8, 우정바이오 신약클러스터'] },
+  { name: '지식기반 서비스', value: 21.7, color: '#38bdf8', count: 419, companies: ['기술보증기금 동탄 - 경기도 화성시 동탄대로21길 26, SH타임스퀘어', '특허법인 지산 - 경기도 화성시 동탄첨단산업1로 27, 금강펜테리움 IX타워', '노바메저링인스트루먼트코리아 - 경기도 화성시 동탄구 동탄대로23길', '더몰론코리아 동탄지점 - 경기도 화성시 동탄구 동탄영천로'] },
+  { name: '정밀기기 및 기타', value: 33.7, color: '#78716c', count: 650, companies: ['신도리코 R&D - 경기도 화성시 동탄기흥로 568', '제이앤제이엠컴퍼니 - 경기도 화성시 동탄구 동탄대로', 'VATKOREALTD - 경기도 화성시 동탄구 동탄기흥로', '구뎅코리아 (GUDENG KOREA CO. LTD.) - 경기도 화성시 동탄구 동탄대로23길'] }
 ];
 
 // 2. Trend Line Chart Data
@@ -582,8 +582,13 @@ const CompanyCard = React.memo(function CompanyCard({ co, sectorColor }: Company
   const [companyName, companyAddr] = co.split(' - ');
   const firstLetter = companyName ? companyName.charAt(0) : '';
 
+  const isBlueTheme = sectorColor === '#004696' || sectorColor === '#38bdf8';
+  const hoverBorderClass = isBlueTheme 
+    ? 'hover:border-hs-blue/30 dark:hover:border-hs-blue/20' 
+    : 'hover:border-hs-orange/30 dark:hover:border-hs-orange/20';
+
   return (
-    <div className="bg-surface border border-border/55 p-3 rounded-[16px] hover:border-hs-orange/30 hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0">
+    <div className={`bg-surface border border-border/55 p-3 rounded-[16px] hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0 ${hoverBorderClass}`}>
       {/* Company Icon (Dynamic Letter Avatar with Gradient) */}
       <div 
         className="w-8 h-8 rounded-xl shrink-0 flex items-center justify-center text-[12.5px] font-black text-white select-none shadow-sm"
@@ -897,7 +902,7 @@ export default function TechnoValleyDashboard() {
       {/* ═══ LEFT PANEL: Donut Chart & KPI Cards (lg:col-span-6) ═══ */}
       <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
         
-        <div id="donut-chart-card" className="bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0">
+        <div id="donut-chart-card" className="bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-hs-orange" />
@@ -935,7 +940,8 @@ export default function TechnoValleyDashboard() {
                              stroke={isSelected ? 'var(--text-primary)' : 'var(--bg-surface)'}
                              strokeWidth={isSelected ? 4 : 2.5}
                              opacity={activeCategory === null || isSelected ? 0.99 : 0.6}
-                             style={{ outline: 'none', cursor: 'pointer' }}
+                             className="transition-transform duration-300 transform hover:scale-105 origin-center focus:outline-none cursor-pointer"
+                             style={{ outline: 'none', transformOrigin: '50% 50%', willChange: 'transform' }}
                              onClick={() => setActiveCategory(isSelected ? null : entry.name)}
                           />
                         );
@@ -1159,7 +1165,7 @@ export default function TechnoValleyDashboard() {
       </div>
 
       {/* ═══ RIGHT PANEL: Trend Line Chart (lg:col-span-6) ═══ */}
-      <div className="lg:col-span-6 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col justify-between lg:h-[566px] min-h-[460px]">
+      <div className="lg:col-span-6 bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between lg:h-[566px] min-h-[460px]">
         
         {/* Chart Header */}
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-5 pb-4 border-b border-border/40">
@@ -1290,7 +1296,7 @@ export default function TechnoValleyDashboard() {
                     {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
                       <Line 
                         key={b.id}
-                        type="monotone" 
+                        type="natural" 
                         dataKey={b.id} 
                         name={b.name}
                         stroke={b.color} 
@@ -1300,7 +1306,7 @@ export default function TechnoValleyDashboard() {
                       />
                     ))}
                     <Line 
-                      type="monotone" 
+                      type="natural" 
                       dataKey="평균공실률" 
                       name="평균 공실률"
                       stroke={AVERAGE_LINE_COLOR} 
@@ -1315,7 +1321,7 @@ export default function TechnoValleyDashboard() {
                     {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
                       <Line 
                         key={b.id}
-                        type="monotone" 
+                        type="natural" 
                         dataKey={b.rentKey} 
                         name={b.name}
                         stroke={b.color} 
@@ -1325,7 +1331,7 @@ export default function TechnoValleyDashboard() {
                       />
                     ))}
                     <Line 
-                      type="monotone" 
+                      type="natural" 
                       dataKey="평균임대료" 
                       name="평균 임대료"
                       stroke={AVERAGE_LINE_COLOR} 
@@ -1357,7 +1363,7 @@ export default function TechnoValleyDashboard() {
       </div>
 
       {/* 업종 구분별 기업 리스트 아코디언 (Full Width) */}
-      <div className="lg:col-span-12 bg-surface border border-border/80 p-6 rounded-[24px] shadow-sm flex flex-col gap-4">
+      <div className="lg:col-span-12 bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col gap-4">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-border/40">
           <div>
             <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
@@ -1597,7 +1603,7 @@ export default function TechnoValleyDashboard() {
             </div>
 
             {/* Modal Body */}
-            <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 pr-1 scrollbar-thin">
+            <div className="flex-1 min-h-0 overflow-y-auto grid grid-cols-1 lg:grid-cols-12 gap-6 pr-1 custom-scrollbar">
               {/* Left Column: Modal Chart (lg:col-span-7) */}
               <div className="lg:col-span-7 flex flex-col gap-4">
                 <div className="flex justify-between items-center bg-body/80 p-3 rounded-2xl border border-border/40">
@@ -1668,7 +1674,7 @@ export default function TechnoValleyDashboard() {
                           {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
                             <Line 
                               key={b.id}
-                              type="monotone" 
+                              type="natural" 
                               dataKey={b.id} 
                               name={b.name}
                               stroke={b.color} 
@@ -1678,7 +1684,7 @@ export default function TechnoValleyDashboard() {
                             />
                           ))}
                           <Line 
-                            type="monotone" 
+                            type="natural" 
                             dataKey="평균공실률" 
                             name="평균 공실률"
                             stroke={AVERAGE_LINE_COLOR} 
@@ -1693,7 +1699,7 @@ export default function TechnoValleyDashboard() {
                           {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
                             <Line 
                               key={b.id}
-                              type="monotone" 
+                              type="natural" 
                               dataKey={b.rentKey} 
                               name={b.name}
                               stroke={b.color} 
@@ -1703,7 +1709,7 @@ export default function TechnoValleyDashboard() {
                             />
                           ))}
                           <Line 
-                            type="monotone" 
+                            type="natural" 
                             dataKey="평균임대료" 
                             name="평균 임대료"
                             stroke={AVERAGE_LINE_COLOR} 
