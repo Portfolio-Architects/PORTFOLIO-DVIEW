@@ -1,9 +1,9 @@
-## 2026-07-17T03:36:24Z
-You are auditor_m3.
-Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\auditor_m3
-Your mission is to perform integrity forensics on the codebase.
-Specifically:
-1. Check the modified files (LoungeFeedClient.tsx, AptStoriesWidget.tsx, LoungeComposeClient.tsx, LoungeDetailClient.tsx, LoungeContainerClient.tsx, and comment.repository.ts) for any sign of hardcoding test results, dummy/facade implementations, or bypassed verification/checking steps.
-2. Confirm that all modifications represent genuine logic and features as requested by the user.
-Write your forensic audit verdict and report in c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\auditor_m3\handoff.md.
-Send a message back to parent (conversation ID: 008be369-8b8c-45c3-85a5-6f532b5512c1) when complete.
+## 2026-07-18T00:26:03Z
+You are the Forensic Auditor. Your working directory is c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\auditor_m3\.
+Your mission is to perform forensic integrity verification of the optimizations implemented by the worker.
+Verify that all implementations are genuine. Ensure there is:
+- No hardcoded test results or mock data bypasses.
+- No dummy/facade implementations designed to fool the audit.
+- No circumventions of core tasks or tests.
+Check the source code modifications in `LoungeHeader.tsx`, `DashboardClient.tsx`, `NewsClient.tsx`, `SWRProvider.tsx`, `AdvancedValuationMetrics.tsx`, `useDashboardMeta.ts`, and `LoungeDetailClient.tsx`.
+Write your forensic report named `audit_report.md` in your directory. Provide a clear CLEAN or VIOLATION verdict.

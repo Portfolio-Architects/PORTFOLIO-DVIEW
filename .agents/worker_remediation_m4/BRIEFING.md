@@ -1,46 +1,46 @@
-# BRIEFING — 2026-07-17T13:46:57Z
+# BRIEFING — 2026-07-18T00:36:56+09:00
 
 ## Mission
-Remediation cleanup of unused code, imports, and hooks in MacroDashboardClient.tsx.
+Resolve minor caching issues identified by Reviewer 1 and Challenger 2 in the SWRProvider.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_worker
+- Archetype: Remediation Worker
 - Roles: implementer, qa, specialist
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4
-- Original parent: d145fd00-94b4-4809-97c4-10e0daedf450
-- Milestone: Remediation Cleanup
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\
+- Original parent: 8429c8ad-29e8-4048-b010-d71ff6f6237f
+- Milestone: milestone_remediation_m4
 
 ## 🔒 Key Constraints
-- Perform remediation cleanup on `frontend/src/components/MacroDashboardClient.tsx`
-- Run type checking and build in the `frontend` directory to verify cleanly compiling project
-- Write handoff report to `.agents/worker_remediation_m4/handoff.md`
+- CODE_ONLY network mode: No external network access.
+- Minimal-change principle: Only modify what is necessary.
+- No cheating: Do not hardcode test results, expected outputs, or verification strings.
 
 ## Current Parent
-- Conversation ID: d145fd00-94b4-4809-97c4-10e0daedf450
-- Updated: 2026-07-17T13:48:58Z
+- Conversation ID: 8429c8ad-29e8-4048-b010-d71ff6f6237f
+- Updated: not yet
 
 ## Task Summary
-- **What to build**: Cleanup of MacroDashboardClient.tsx removing unused imports, constants, helper functions, and hooks.
-- **Success criteria**: Clean compilation (tsc and npm build) and verified removal of specified unused items.
-- **Interface contracts**: PROJECT.md
-- **Code layout**: frontend/src/components/MacroDashboardClient.tsx
+- **What to build**: Fix cache key mismatch for location-scores.json and remove unnecessary preload target '/api/apartments-by-dong' in SWRProvider.tsx.
+- **Success criteria**: Successful production compilation (npm run build) and passing Playwright E2E tests (npm run test:e2e) in frontend/.
+- **Interface contracts**: frontend/src/components/pwa/SWRProvider.tsx
+- **Code layout**: frontend/
 
 ## Key Decisions Made
-- Performed non-contiguous edits in a single `multi_replace_file_content` call to avoid intermediate invalid states.
-- Verified both typechecking and production build in the `frontend` directory.
+- Proceed with direct modification of SWRProvider.tsx using minimal edits.
+
+## Artifact Index
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\changes.md — Summary of modifications made
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\handoff.md — Detailed observations and verification steps
 
 ## Change Tracker
-- **Files modified**: frontend/src/components/MacroDashboardClient.tsx
-- **Build status**: pass
-- **Pending issues**: none
+- **Files modified**: frontend/src/components/pwa/SWRProvider.tsx
+- **Build status**: Pass
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: pass
-- **Lint status**: pass
-- **Tests added/modified**: none
+- **Build/test result**: Pass (npm run build and npm run test:e2e pass successfully)
+- **Lint status**: 0 violations (npm run lint passes successfully)
+- **Tests added/modified**: Checked existing Playwright E2E tests
 
 ## Loaded Skills
 - None
-
-## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\handoff.md

@@ -621,6 +621,7 @@ export default function TechnoValleyDashboard() {
   }, []);
 
   const [metricMode, setMetricMode] = useState<'vacancy' | 'rent'>('vacancy');
+  const [visibleBuildings, setVisibleBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', '테라타워']);
   const [timeframe, setTimeframe] = useState<'3Y' | '6M' | 'YTD' | '1Y' | 'ALL'>('ALL');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
@@ -1240,24 +1241,41 @@ export default function TechnoValleyDashboard() {
           </div>
         </div>
 
-        {/* Legend Indicators */}
-        <div className="flex flex-wrap gap-x-4 gap-y-2 mb-4 border-b border-border/40 pb-3">
-          {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
-            <div key={b.id} className="flex items-center gap-1.5 text-[11px] font-extrabold text-secondary py-1">
-              <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
-              <span>{b.name}</span>
-            </div>
-          ))}
+        {/* Interactive Legend Toggle Grid */}
+        <div className="flex flex-wrap gap-2 mb-4 border-b border-border/40 pb-4">
+          {AVAILABLE_BUILDINGS.map(b => {
+            const isActive = visibleBuildings.includes(b.id);
+            return (
+              <button
+                key={b.id}
+                onClick={() => {
+                  if (isActive) {
+                    if (visibleBuildings.length > 1) {
+                      setVisibleBuildings(visibleBuildings.filter(x => x !== b.id));
+                    }
+                  } else {
+                    setVisibleBuildings([...visibleBuildings, b.id]);
+                  }
+                }}
+                className={`px-2.5 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-black border transition-all duration-200 flex items-center gap-2 cursor-pointer active:scale-[0.97] ${
+                  isActive 
+                    ? 'bg-surface border-primary text-primary shadow-sm' 
+                    : 'bg-body/30 border-border/40 text-tertiary opacity-60 hover:opacity-90'
+                }`}
+              >
+                <span 
+                  className={`w-2 h-2 rounded-full shrink-0 transition-transform ${isActive ? 'scale-110' : 'scale-90 opacity-50'}`} 
+                  style={{ backgroundColor: b.color }} 
+                />
+                <span>{b.name}</span>
+              </button>
+            );
+          })}
           
-          {metricMode === 'rent' ? (
-            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#845ef7] py-1">
+          {metricMode === 'rent' && (
+            <div className="flex items-center gap-1.5 text-[10px] sm:text-[11px] font-extrabold text-[#845ef7] py-1.5 px-3 border border-transparent shrink-0">
               <span className="w-2.5 h-2.5 rounded-full bg-[#845ef7] shrink-0" />
               <span>평균 임대료</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 text-[11px] font-extrabold text-[#845ef7] py-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-[#845ef7] shrink-0" />
-              <span>평균 공실률</span>
             </div>
           )}
         </div>
@@ -1293,7 +1311,7 @@ export default function TechnoValleyDashboard() {
                 <Tooltip content={<ChartTooltip metricMode={metricMode} />} />
                 {metricMode === 'vacancy' ? (
                   <>
-                    {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
+                    {AVAILABLE_BUILDINGS.filter(b => visibleBuildings.includes(b.id)).map(b => (
                       <Line 
                         key={b.id}
                         type="natural" 
@@ -1305,20 +1323,10 @@ export default function TechnoValleyDashboard() {
                         activeDot={{ r: 6 }} 
                       />
                     ))}
-                    <Line 
-                      type="natural" 
-                      dataKey="평균공실률" 
-                      name="평균 공실률"
-                      stroke={AVERAGE_LINE_COLOR} 
-                      strokeWidth={2.5} 
-                      strokeDasharray="4 4"
-                      dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
-                      activeDot={{ r: 5 }} 
-                    />
                   </>
                 ) : (
                   <>
-                    {AVAILABLE_BUILDINGS.filter(b => REPRESENTATIVE_BUILDINGS.includes(b.id)).map(b => (
+                    {AVAILABLE_BUILDINGS.filter(b => visibleBuildings.includes(b.id)).map(b => (
                       <Line 
                         key={b.id}
                         type="natural" 
@@ -1526,7 +1534,7 @@ export default function TechnoValleyDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300">
           <div className="bg-surface/95 border border-border/80 rounded-[32px] shadow-2xl p-10 md:p-12 max-w-4xl w-full relative animate-in fade-in zoom-in-95 duration-200">
             <h4 className="text-[22px] font-black text-primary mb-6 flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-hs-orange" />
+              <span className="w-3.5 h-3.5 rounded-full bg-hs-orange animate-pulse" />
               AI 공실률 추정 메커니즘 (하이브리드 모델)
             </h4>
             
@@ -1538,33 +1546,51 @@ export default function TechnoValleyDashboard() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-2">
                 {/* Layer 1 */}
-                <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
-                  <span className="font-black text-hs-orange text-[14.5px] flex items-center gap-1.5">
-                    🏢 1단계: 실거래 베이스라인
-                  </span>
-                  <p className="text-[13px] text-tertiary leading-relaxed font-medium">
-                    국토교통부 매매/임대 거래량을 파악하고, 거래 면적에 따른 실입주 가중치(Tx Weight)를 부여해 공간의 실질 계약 점유율을 1차 산출합니다.
+                <div className="p-6 bg-hs-orange/5 border border-hs-orange/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[220px]">
+                  <div className="flex items-center justify-between border-b border-hs-orange/10 pb-2">
+                    <span className="font-black text-hs-orange text-[14px]">
+                      1단계: 실거래 베이스라인
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider text-hs-orange bg-hs-orange/10 px-2 py-0.5 rounded-md">Tx Weight</span>
+                  </div>
+                  <p className="text-[13px] text-tertiary leading-relaxed font-medium flex-1">
+                    국토교통부 매매/임대 실거래 데이터를 분석한 뒤, 거래 전용면적에 로그 비례하여 작동하는 <strong>연속형 면적 가중 함수</strong>를 적용하여 실질 공간 점유 비중을 정밀하게 1차 산출합니다.
                   </p>
+                  <div className="pt-2 text-[10px] font-mono text-hs-orange bg-hs-orange/10 p-2 rounded-lg text-center font-bold">
+                    w(s) = log-proportional weight
+                  </div>
                 </div>
 
                 {/* Layer 2 */}
-                <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
-                  <span className="font-black text-blue-600 dark:text-toss-blue text-[14.5px] flex items-center gap-1.5">
-                    📊 2단계: 국민연금 고용 보정
-                  </span>
-                  <p className="text-[13px] text-tertiary leading-relaxed font-medium">
-                    실제 동탄에 상주하는 근로자 수와 고용 증감률을 분석하여, 5인 미만 사업장 누락 및 주소지 불일치 한계를 상쇄한 거시 고용 보정치(macroBonus)를 반영합니다.
+                <div className="p-6 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[220px]">
+                  <div className="flex items-center justify-between border-b border-blue-600/10 pb-2">
+                    <span className="font-black text-blue-600 dark:text-toss-blue text-[14px]">
+                      2단계: 국민연금 고용 보정
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider text-blue-600 bg-blue-600/10 px-2 py-0.5 rounded-md">NPS Job Bonus</span>
+                  </div>
+                  <p className="text-[13px] text-tertiary leading-relaxed font-medium flex-1">
+                    국민연금(NPS) 데이터의 가입자 증감률과 순고용률을 계산하여 **대칭형 매크로 보정치(macroBonus)**를 가동합니다. 경기 호황과 불황에 따라 공실률 추이를 대칭적으로 양/음수 보정합니다.
                   </p>
+                  <div className="pt-2 text-[10px] font-mono text-blue-600 bg-blue-600/10 p-2 rounded-lg text-center font-bold">
+                    growthRate = net job delta
+                  </div>
                 </div>
 
                 {/* Layer 3 */}
-                <div className="p-6 bg-body/80 border border-border/60 rounded-2xl flex flex-col gap-3.5 shadow-sm">
-                  <span className="font-black text-violet-600 text-[14.5px] flex items-center gap-1.5">
-                    🔄 3단계: 자연 퇴거율 결합
-                  </span>
-                  <p className="text-[13px] text-tertiary leading-relaxed font-medium">
-                    지식산업센터의 연면적 규모(GFA 집적 효과)와 계약 만기/기업 이전에 따른 시계열 자연 퇴거율(Dynamic Turnover) 모델을 최종 결합해 실시간 공실률을 도출합니다.
+                <div className="p-6 bg-violet-600/5 border border-violet-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[220px]">
+                  <div className="flex items-center justify-between border-b border-violet-600/10 pb-2">
+                    <span className="font-black text-violet-600 dark:text-violet-400 text-[14px]">
+                      3단계: 자연 퇴거율 결합
+                    </span>
+                    <span className="text-[9px] font-black uppercase tracking-wider text-violet-600 bg-violet-600/10 px-2 py-0.5 rounded-md">Dynamic Decay</span>
+                  </div>
+                  <p className="text-[13px] text-tertiary leading-relaxed font-medium flex-1">
+                    지산별 준공 연도 기준 **신축 입주 가속도 및 기축 자연 퇴거율(Dynamic Turnover)** 모델을 최종 결합합니다. 연식에 따른 지수 감쇄 인자(e^(-0.15 * age)) 및 연면적(GFA) 스케일러로 최종 조율합니다.
                   </p>
+                  <div className="pt-2 text-[10px] font-mono text-violet-600 bg-violet-600/10 p-2 rounded-lg text-center font-bold">
+                    decay = exp(-0.15 * age)
+                  </div>
                 </div>
               </div>
             </div>
@@ -1683,16 +1709,6 @@ export default function TechnoValleyDashboard() {
                               activeDot={{ r: 5 }} 
                             />
                           ))}
-                          <Line 
-                            type="natural" 
-                            dataKey="평균공실률" 
-                            name="평균 공실률"
-                            stroke={AVERAGE_LINE_COLOR} 
-                            strokeWidth={2} 
-                            strokeDasharray="4 4"
-                            dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
-                            activeDot={{ r: 4 }} 
-                          />
                         </>
                       ) : (
                         <>

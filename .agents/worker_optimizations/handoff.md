@@ -1,50 +1,35 @@
-# Performance Optimization Handoff Report
+# Handoff Report — UX & Performance Optimizations
 
 ## 1. Observation
-- File to modify: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\macro\TechnoValleyDashboard.tsx`
-- Static import observed:
-  ```typescript
-  import RelocationTaxSimulator from '@/components/macro/RelocationTaxSimulator';
-  ```
-- Inline company list mapping block observed in the accordion list:
-  ```typescript
-  {visibleCompanies.map((co: string, idx: number) => {
-    const [companyName, companyAddr] = co.split(' - ');
-    const firstLetter = companyName ? companyName.charAt(0) : '';
-
-    return (
-      <div
-        key={idx}
-        className="bg-surface border border-border/55 p-3 rounded-[16px] hover:border-hs-orange/30 hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0"
-      >
-        ...
-      </div>
-    );
-  })}
-  ```
-- Build execution command run: `npm run build` in `frontend` directory.
-- Build result output snippet:
-  ```
-  ✓ Generating static pages using 15 workers (183/183) in 18.7s
-    Finalizing page optimization ...
-  ```
-  Completed successfully with exit code 0.
-- Search for heavy animation libraries (`framer-motion`, `motion`) in imports returned no results.
+- Prefetch Redundancy: `LoungeHeader.tsx` and `DashboardClient.tsx` used `onMouseEnter={() => router.prefetch('/')}` on native Links that already had Next.js native prefetching.
+- Prefetch Gaps: Buttons with `onClick={() => router.push('/explore')}` in `DashboardClient.tsx` and `NewsClient.tsx` lacked hover/touch prefetch event handlers.
+- SWR Caching Mismatches: `SWRProvider.tsx` background preloaded `/api/macro/news` and `/api/local-notices`, which did not match SWR hook queries `/api/macro/news?limit=40` and `/api/local-notices?dongtan=true`. Additionally, `AdvancedValuationMetrics.tsx` and `useDashboardMeta.ts` used native `fetch` in `useEffect`, bypassing SWR deduplication.
+- Tab Transitions: Heavy tab content in `DashboardClient.tsx` was unmounted when inactive, losing DOM/scrolling state.
+- Modal CLS: `LoungeDetailClient.tsx` fallback states used `min-h-screen`, causing layout shifts in modals.
+- Compilation and Test Status: `npm run build` completed successfully, and `npm run test:e2e` passed all 10 tests.
 
 ## 2. Logic Chain
-- **Step 1**: To prevent hydration blocking and statically loading a client-heavy component (`RelocationTaxSimulator`), it should be dynamic-imported with `ssr: false` and a skeleton fallback.
-- **Step 2**: The event handlers (`handleToggleSector`, `handleExpandAll`, `handleCollapseAll`, `handleShowMore`, `handleResetLimit`, and `handleSort`) are currently re-created on every keystroke/searchQuery change because they were defined as standard anonymous functions inside the dashboard. Wrapping them in `useCallback` with stable dependency arrays `[]` ensures identity reference stability.
-- **Step 3**: The inline company card rendering inside the mapped company list causes all company card DOM elements to re-evaluate and re-render during search bar input. Extracting this mapping logic into a memoized `CompanyCard` sub-component ensures they only re-render if their respective `co` or `sectorColor` props change.
-- **Step 4**: A full compilation check via `npm run build` confirms the TypeScript compiler and Next.js bundler accept the modifications without errors or regressions.
+- Redundant prefetching caused multiple duplicate prefetch calls on the browser side. Eliminating manual prefetch handlers on `prefetch={true}` Next.js links resolves this.
+- Programmatic route push on custom button components does not prefetch by default. Adding programmatic hover/touch prefetch events ensures instant navigation on click.
+- SWR requires identical cache keys to hit cached data. Aligning preload targets with query parameters allows immediate cache hits. Utilizing `useSWR` instead of native `fetch` in components/hooks prevents redundant duplicate network requests.
+- Keeping heavy tab containers in the DOM via persistent CSS visibility (`block`/`hidden`) preserves state and scroll positions when switching tabs.
+- Restricting fallback loading/not-found containers in modals to `min-h-[300px]` instead of `min-h-screen` eliminates layout shifts.
 
 ## 3. Caveats
-- No caveats. The build compiled successfully, indicating that all dependencies and types are correctly configured.
+- No caveats.
 
 ## 4. Conclusion
-- The performance optimization requirements have been fully and correctly implemented in `TechnoValleyDashboard.tsx`.
-- The build is fully stable and compiler status verified.
+- All requested UX and performance optimizations (prefetching alignment, SWR key alignment, persistent tab DOM persistence, modal CLS reduction) have been successfully implemented and tested.
 
 ## 5. Verification Method
-- **Command**: Run `npm run build` in `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`.
-- **Files to Inspect**: Verify the modified sections of `frontend/src/components/macro/TechnoValleyDashboard.tsx`.
-- **Invalidation Conditions**: If compiling the frontend folder returns TypeScript or Next.js build errors, or if heavy animation libraries are added, the implementation is invalid.
+- Independent Verification Command (inside `frontend/` directory):
+  - Run production build: `npm run build`
+  - Run Playwright E2E tests: `npm run test:e2e`
+- Files to inspect:
+  - `frontend/src/components/LoungeHeader.tsx`
+  - `frontend/src/components/DashboardClient.tsx`
+  - `frontend/src/app/news/NewsClient.tsx`
+  - `frontend/src/components/pwa/SWRProvider.tsx`
+  - `frontend/src/components/consumer/AdvancedValuationMetrics.tsx`
+  - `frontend/src/hooks/useDashboardMeta.ts`
+  - `frontend/src/components/LoungeDetailClient.tsx`

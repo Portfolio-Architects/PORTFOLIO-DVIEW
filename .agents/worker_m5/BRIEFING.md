@@ -1,55 +1,55 @@
-# BRIEFING — 2026-07-15T00:07:30+09:00
+# BRIEFING — 2026-07-18T01:16:07+09:00
 
 ## Mission
-Implement `self_improvement_loop/run.py` to act as the main CLI entry point, execute it using the virtual environment python interpreter, verify the output of the self-improvement loop and unit tests, and record findings in changes.md and handoff.md.
+Implement fixes for the five edge cases identified by Adversarial Challengers, verify build and tests, and document the results.
 
 ## 🔒 My Identity
-- Archetype: Worker
+- Archetype: Milestone 5 Optimization Worker
 - Roles: implementer, qa, specialist
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5
-- Original parent: ba04d808-e99f-4828-a458-f8bcba3a215b
-- Milestone: Milestone 5 (E2E Verification & Demo)
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5\
+- Original parent: 8429c8ad-29e8-4048-b010-d71ff6f6237f
+- Milestone: Milestone 5 Optimization
 
 ## 🔒 Key Constraints
-- DO NOT CHEAT. All implementations must be genuine. Do not hardcode test results or create dummy/facade implementations.
-- Reset `target_module.py` to its initial buggy state before running.
-- Execute `run.py` with `.venv\Scripts\python.exe` and capture entire output.
-- Perform unittest discovery for the unit tests within the `self_improvement_loop` directory and print results showing that all tests pass.
-- Log details of changes and execution output in `.agents/worker_m5/changes.md`.
-- Produce a 5-component `handoff.md` and send completion message to parent.
+- CODE_ONLY network mode (no external websites/services).
+- Strict verification and testing (run npm run build and npm run test:e2e).
+- Do not cheat, do not hardcode test results.
+- Write only to your own agent folder (c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5\).
 
 ## Current Parent
-- Conversation ID: ba04d808-e99f-4828-a458-f8bcba3a215b
-- Updated: 2026-07-15T00:07:30+09:00
+- Conversation ID: 8429c8ad-29e8-4048-b010-d71ff6f6237f
+- Updated: 2026-07-18T01:16:07+09:00
 
 ## Task Summary
-- **What to build**: `self_improvement_loop/run.py` acting as the CLI entry point.
-- **Success criteria**: Resets target module, runs engine E2E, details execution summary, discovers/runs all unit tests in `self_improvement_loop`, showing they all pass.
-- **Interface contracts**: `.agents/orchestrator_self_improvement/plan.md`
-- **Code layout**: `self_improvement_loop/` directory
-
-## Change Tracker
-- **Files modified**: `self_improvement_loop/run.py` (implemented E2E driver & unit test discovery runner)
-- **Build status**: Passed
-- **Pending issues**: None
-
-## Quality Status
-- **Build/test result**: Passed (14 tests passed in E2E validation run)
-- **Lint status**: Clean python code
-- **Tests added/modified**: Executed all 14 tests inside `self_improvement_loop` via discovery
-
-## Loaded Skills
-None
+- **What to build**: Fixes for NewsClient navigation hashes, SWR Cache Versioning, Tab History popstate sync, and LoungeDetailClient Firestore robustness.
+- **Success criteria**: Fixes pass all functional requirements and tests, compile succeeds, and e2e tests run successfully.
+- **Interface contracts**: [TBD]
+- **Code layout**: [TBD]
 
 ## Key Decisions Made
-- Use python standard library's `unittest` module for test discovery and running inside `run.py`.
-- Re-use the existing logic in `SelfImprovementEngine` for the loop execution.
-- Reset the initial state of `target_module.py` using file writing.
-- Used relative paths during test discovery to avoid Windows file path encoding issues.
-- Standardized print symbols to ASCII to prevent `cp949` terminal output encoding errors on Windows.
+- Adjusted SWR cache getCache selective version check to only purge versionless keys on upgrade while retaining matching versioned keys.
+- Adapted E2E adversarial tests to verify the fixed behavior (asserting correct routing, correct tab sync, correct Firestore fallback, and correct cache purging).
 
 ## Artifact Index
-- `self_improvement_loop/run.py` — Main CLI entry point.
-- `.agents/worker_m5/changes.md` — Captured output and changes description.
-- `.agents/worker_m5/handoff.md` — Self-contained handoff.
-- `.agents/worker_m5/progress.md` — Progress tracker.
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5\ORIGINAL_REQUEST.md — Original task instruction document.
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5\changes.md — Log of code changes.
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5\handoff.md — Handoff report.
+
+## Change Tracker
+- **Files modified**:
+  - `frontend/src/app/news/NewsClient.tsx` (Fixed header links)
+  - `frontend/src/components/pwa/SWRProvider.tsx` (Refined SWR Cache selective version purging)
+  - `frontend/src/components/DashboardClient.tsx` (Added popstate sync listener)
+  - `frontend/src/components/LoungeDetailClient.tsx` (Added try/catch/finally wrapper for Firestore getDoc)
+  - `frontend/tests/swr-preload-audit.spec.ts` (Adapted tests to fixed behavior)
+  - `frontend/tests/performance-ux.spec.ts` (Adapted tests to fixed behavior)
+- **Build status**: Pass (npm run build succeeded on task-93).
+- **Pending issues**: None.
+
+## Quality Status
+- **Build/test result**: All 17 E2E tests passed successfully (task-116).
+- **Lint status**: 0 outstanding violations.
+- **Tests added/modified**: Updated E2E test files to verify correct behaviors.
+
+## Loaded Skills
+- None.

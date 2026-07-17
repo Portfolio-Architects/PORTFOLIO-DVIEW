@@ -1,7 +1,7 @@
-# BRIEFING — 2026-07-17T03:37:00Z
+# BRIEFING — 2026-07-18T00:26:03+09:00
 
 ## Mission
-Empirical verification of the Lounge enhancements: tests, sticky sidebar behavior, and HTML validation (no hydration mismatches, no nested button errors, strict mode button locator violations).
+Empirically verify the correctness of implemented optimizations (navigation speed, tabs DOM preservation, modal layout shifting) by running frontend builds and E2E tests.
 
 ## 🔒 My Identity
 - Archetype: EMPIRICAL CHALLENGER
@@ -17,35 +17,38 @@ Empirical verification of the Lounge enhancements: tests, sticky sidebar behavio
 - Do NOT trust claims or logs, run verification code ourselves.
 
 ## Current Parent
-- Conversation ID: 008be369-8b8c-45c3-85a5-6f532b5512c1
-- Updated: 2026-07-17T03:37:00Z
+- Conversation ID: 0bae7756-0496-4dda-8ac3-ffc93db5137c
+- Updated: 2026-07-18T00:26:03+09:00
 
 ## Review Scope
-- **Files to review**: lounge page and components, sticky sidebar, tests.
-- **Interface contracts**: PROJECT.md or lounge design.
-- **Review criteria**: correctness, style, correctness of sticky behavior, tests pass, no strict mode button locator violations, no hydration mismatches, no nested button errors.
+- **Files to review**: Lounge and general frontend optimization areas (tabs, modal layout, navigation).
+- **Interface contracts**: Correctness of optimizations.
+- **Review criteria**: `npm run build` and `npm run test:e2e` pass, navigation speed optimized, tabs don't unmount on toggle, modal layout doesn't cause shifting.
+
 
 ## Key Decisions Made
-- Executed Jest unit tests: Verified all 30 suites (199 tests) passed.
-- Executed Playwright E2E tests: Observed 7 tests passing and 3 tests failing.
-- Inspected codebase for hydration mismatches and nested button structures.
-- Analyzed the Tailwind class list for the sticky sidebar layout.
+- Checked process logs and cleaned up stray dev server / start server processes that blocked port 5000.
+- Executed production Next.js build (`npm run build`) successfully with 181 static pages generated.
+- Run Playwright E2E tests (`npm run test:e2e`) against the production server; verified 10/10 tests pass (with 1 test passing on retry).
+- Analysed co-location of heavy state hooks to modals to reduce dashboard rendering overhead.
+- Audited tab toggling logic to confirm visibility classes (`hidden`/`block`) are used to preserve state and DOM elements.
+- Verified layout shift mitigation for modals via `scrollbar-gutter: stable` and dynamic padding-right offset matching.
 
 ## Artifact Index
-- handoff.md — Detailed empirical verification report of Lounge enhancements
+- challenger_report.md — Detailed optimization verification report
+- handoff.md — Five-component handoff report
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - *Hypothesis 1*: Lounge Jest unit tests are robust and pass. (Confirmed - 30/30 suites passed).
-  - *Hypothesis 2*: Playwright E2E tests cover edge cases and pass. (Refuted - 3 E2E tests failed: `badge-accessibility.spec.ts` due to timeout on heavy pages, and two `routing-bug.spec.ts` cases due to compilation-induced navigation failures and lack of query parameter forwarding on redirect).
-  - *Hypothesis 3*: Sidebar sticky behavior works correctly on breakpoint. (Confirmed - Tailwind `lg` is configured as 1024px, and class list uses `hidden lg:block lg:sticky lg:top-24`).
-  - *Hypothesis 4*: There are no nested interactive/button violations. (Mostly Confirmed - No direct HTML-level `<button>` inside `<button>` tags found, but ARIA-level nested interactive elements are present in `LoungeFeedClient.tsx`).
+  - *Hypothesis 1*: Production build executes successfully. (Confirmed - PASS).
+  - *Hypothesis 2*: Playwright E2E tests pass completely. (Confirmed - 10/10 tests pass, including performance-ux and accessibility tests).
+  - *Hypothesis 3*: Tabs preserve DOM structure on toggle. (Confirmed - Visited tabs are hidden via CSS instead of unmounting).
+  - *Hypothesis 4*: Modals do not cause layout shifts. (Confirmed - scrollbar-gutter stable and dynamic scrollbarWidth offset padding prevent shifting).
 - **Vulnerabilities found**:
-  - Query parameter loss: `/news?notice=...` redirects to `/lounge?tab=news`, dropping the `notice` parameter, which breaks routing tests.
-  - Test flakiness/timeouts: `/overview` page is too heavy for standard 5s load timeouts during Next.js local compilation, causing `waitForURL` failures.
-  - Interactive nesting: `span` with `role="link"` nested inside `div` with `role="button"` for post cards, and `button` elements nested inside `div` with `role="button"` for notice cards.
+  - Dev server port block: Leftover dev server processes on port 5000 can cause Next.js build locking.
 - **Untested angles**:
-  - Real device behavior of sticky sidebars (tested via breakpoint class verification only).
+  - Layout behavior on browsers lacking `scrollbar-gutter` support (Safari / iOS webviews) was checked by code inspection only.
 
 ## Loaded Skills
 - None
+

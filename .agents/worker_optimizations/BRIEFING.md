@@ -1,48 +1,47 @@
-# BRIEFING — 2026-07-15T22:40:00+09:00
+# BRIEFING — 2026-07-18T00:20:00Z
 
 ## Mission
-Optimize performance in TechnoValleyDashboard.tsx using dynamic imports, useCallback, and React.memo.
+Implement UX and performance optimizations in D-VIEW web application, covering Milestones M2 and M3.
 
 ## 🔒 My Identity
-- Archetype: Performance Optimization Worker
+- Archetype: Optimization Worker
 - Roles: implementer, qa, specialist
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_optimizations
-- Original parent: ac19b12c-af0d-498d-99bc-e931f8fc4f0b
-- Milestone: Performance Optimization
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_optimizations\
+- Original parent: 8429c8ad-29e8-4048-b010-d71ff6f6237f
+- Milestone: M2 & M3 UX/Performance Optimizations
 
 ## 🔒 Key Constraints
-- No heavy animation libraries (Framer Motion, etc.) may be imported or added.
-- Must verify via `npm run build` in the frontend folder.
-- DO NOT CHEAT or hardcode test results.
+- CODE_ONLY network mode: No external websites/services, no curl/wget to external URLs.
+- Do not cheat (no hardcoded test results, no dummy implementations).
+- Must verify changes using build and E2E tests.
 
 ## Current Parent
-- Conversation ID: ac19b12c-af0d-498d-99bc-e931f8fc4f0b
-- Updated: 2026-07-15T22:40:00+09:00
+- Conversation ID: 8429c8ad-29e8-4048-b010-d71ff6f6237f
+- Updated: not yet
 
 ## Task Summary
-- **What to build**: Performance optimizations in TechnoValleyDashboard.tsx: Dynamic import, useCallback hooks, and memoized CompanyCard sub-component.
-- **Success criteria**: Successful Next.js build without compiler or lint errors, meeting all specific optimization instructions.
-- **Interface contracts**: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\macro\TechnoValleyDashboard.tsx
-- **Code layout**: frontend component architecture.
+- **What to build**: Prefetch fixes (redundancy and gaps), SWR cache alignment, persistent tab state, and modal CLS fix.
+- **Success criteria**: Successful production build and all 10 Playwright E2E tests passing.
+- **Interface contracts**: As detailed in user request.
+- **Code layout**: D-VIEW workspace.
 
 ## Change Tracker
-- **Files modified**:
-  - `frontend/src/components/macro/TechnoValleyDashboard.tsx` — Implemented all optimizations (Dynamic Import, useCallback hooks, React.memo for CompanyCard).
-- **Build status**: Pass
+- **Files modified**: LoungeHeader.tsx, DashboardClient.tsx, NewsClient.tsx, SWRProvider.tsx, AdvancedValuationMetrics.tsx, useDashboardMeta.ts, LoungeDetailClient.tsx
+- **Build status**: Production build compiled successfully.
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Pass (via `npm run build` in the `frontend` folder)
-- **Lint status**: Clean
-- **Tests added/modified**: None
+- **Build/test result**: All 10 Playwright E2E tests passed.
+- **Lint status**: 0 violations.
+- **Tests added/modified**: No new tests needed, verified existing E2E tests.
 
 ## Loaded Skills
 - None
 
 ## Key Decisions Made
-- Use Next.js dynamic() function for RelocationTaxSimulator lazy loading with ssr: false and skeleton loader fallback.
-- Extract renderCompanyCard mapping block into a React.memo wrapped CompanyCard component.
-- Ensure dependency arrays for useCallbacks contain all necessary React state variables or refs (e.g. sectors, expandedSectors, sortConfig, etc.).
+- Opted for persistent tab states via local state flags rather than dynamic mount logic to ensure zero state/scroll resets.
+- Kept SWR targets aligned to exact query strings to maximize deduplication.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_optimizations\handoff.md — Handoff report detailing optimizations and build results.
+- changes.md — Summary of modified code files and logic changes
+- handoff.md — Verification details and 5-component report

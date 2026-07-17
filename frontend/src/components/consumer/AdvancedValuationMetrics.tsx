@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
+import useSWR from 'swr';
 import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp, X, MapPin } from 'lucide-react';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
@@ -224,37 +225,17 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
     };
   }, [report.apartmentName]);
 
+  const { data: ratesRes } = useSWR('/api/macro/rates', (url: string) => fetch(url).then(res => res.json()));
+
   useEffect(() => {
-    let active = true;
-    const controller = new AbortController();
-    const fetchMacroRates = async () => {
-      try {
-        const res = await fetch('/api/macro/rates', { signal: controller.signal });
-        if (res.ok) {
-          const json = await res.json();
-          if (active && json.success && json.data) {
-            setMacroConfig(prev => ({
-              ...prev,
-              ...(json.data.riskFreeRate ? { riskFreeRate: json.data.riskFreeRate } : {}),
-              ...(json.data.fundingCost ? { fundingCost: json.data.fundingCost } : {}),
-            }));
-          }
-        }
-      } catch (err) {
-        if (err instanceof Error && err.name === 'AbortError') {
-          return;
-        }
-        if (active) {
-          logger.error('AdvancedValuationMetrics', 'Failed to fetch real-time macro rates', undefined, err);
-        }
-      }
-    };
-    fetchMacroRates();
-    return () => {
-      active = false;
-      controller.abort();
-    };
-  }, []);
+    if (ratesRes && ratesRes.success && ratesRes.data) {
+      setMacroConfig(prev => ({
+        ...prev,
+        ...(ratesRes.data.riskFreeRate ? { riskFreeRate: ratesRes.data.riskFreeRate } : {}),
+        ...(ratesRes.data.fundingCost ? { fundingCost: ratesRes.data.fundingCost } : {}),
+      }));
+    }
+  }, [ratesRes]);
 
   // 1. Transaction 분리
   const txList = Array.isArray(transactions) ? transactions : [];

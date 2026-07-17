@@ -308,7 +308,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
-                onClick={() => router.push('/#overview')}
+                onClick={() => router.push('/overview?tab=overview')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <LayoutDashboard size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
@@ -317,6 +317,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
 
               <button
                 onClick={() => router.push('/explore')}
+                onMouseEnter={() => router.prefetch('/explore')}
+                onTouchStart={() => router.prefetch('/explore')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <Home size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
@@ -324,7 +326,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               </button>
 
               <button
-                onClick={() => router.push('/#lounge')}
+                onClick={() => router.push('/overview?tab=lounge')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <MessageSquare size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
@@ -340,7 +342,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               </button>
               
               <button
-                onClick={() => router.push('/#gap')}
+                onClick={() => router.push('/overview?tab=office')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <Coins size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />

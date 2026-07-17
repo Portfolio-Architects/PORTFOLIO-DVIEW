@@ -102,7 +102,19 @@ const STATIC_HISTORICAL_DATA = [
   }
 ];
 
+const getContinuousWeight = (sizeSqM: number): number => {
+  const minSize = 30;
+  const maxSize = 150;
+  const minWeight = 0.3;
+  const maxWeight = 2.0;
+  if (sizeSqM <= minSize) return minWeight;
+  if (sizeSqM >= maxSize) return maxWeight;
+  return minWeight + ((sizeSqM - minSize) / (maxSize - minSize)) * (maxWeight - minWeight);
+};
 
+const getHistoricalRentKey = (id: string): string => {
+  return `${id.replace(/\s+/g, '')}_임대료`;
+};
 
 // Simple in-memory cache to prevent hitting public API limits excessively
 interface CacheEntry {
@@ -194,7 +206,7 @@ export async function GET(request: NextRequest) {
       BASELINE_VACANCY_2411[b.id] = b.baselineVacancy;
     });
 
-    // Load NPS Macro stats dynamically and calculate multi-factor macro market heat bonus
+    // Load NPS Macro stats dynamically and calculate multi-factor macro market heat bonus (R2)
     let macroBonus = 0;
     try {
       const npsDbPath = path.join(process.cwd(), 'src/lib/data/nps_stats.json');
@@ -205,22 +217,32 @@ export async function GET(request: NextRequest) {
         const newHires = npsData.stats?.yeongcheonDong?.newHires || 0;
         const departures = npsData.stats?.yeongcheonDong?.departures || 0;
         
-        // 1. Regional Scale Factor: based on total employee/employer size
-        const scaleFactor = (totalEmp / 100000) * (compCount / 10000); // e.g. ~0.048% reduction
-        
-        // 2. Job Growth Velocity Factor: based on net hires rate
         const netHires = newHires - departures;
         const jobGrowthRate = totalEmp > 0 ? (netHires / totalEmp) : 0;
-        const growthFactor = jobGrowthRate * 1.5; // Scale net hiring velocity
-        
-        macroBonus = scaleFactor + Math.max(0, growthFactor);
+
+        const baselineEmp = 25000;
+        const baselineComp = 2000;
+        const scaleFactor = 0.05 * (Math.log10(totalEmp || 1) / Math.log10(baselineEmp)) * (Math.log10(compCount || 1) / Math.log10(baselineComp));
+        const growthFactor = jobGrowthRate * 2.0;
+        macroBonus = scaleFactor + growthFactor; // symmetric, allows negative values
       }
     } catch (e) {
       logger.warn('GET /api/technovalley/trend', 'Could not load NPS stats', {}, e);
     }
 
-    // Tracking stateful vacancy across timeline months sequentially
+    // Tracking stateful vacancy and rent across timeline months sequentially
     const currentVacancy = { ...BASELINE_VACANCY_2411 };
+    
+    const lastHist = STATIC_HISTORICAL_DATA[STATIC_HISTORICAL_DATA.length - 1] as Record<string, any>;
+    const currentRent: Record<string, number> = {};
+    const BUILDINGS = [
+      '금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1',
+      '에이팩시티', '테라타워', 'IT타워', '메가비즈타워', '비즈타워'
+    ];
+    BUILDINGS.forEach((key) => {
+      const histKey = getHistoricalRentKey(key);
+      currentRent[key] = lastHist[histKey] || 3.5;
+    });
 
     const calculatedTrend = TARGET_MONTHS.map((ym) => {
       const match = rawResults.find(r => r.ym === ym);
@@ -253,6 +275,14 @@ export async function GET(request: NextRequest) {
 
       txs.forEach((tx) => {
         if (!tx.priceRaw || !tx.sizeSqM) return;
+
+        // Transaction Outlier Filter (R4)
+        if (tx.sizeSqM < 15 || tx.sizeSqM > 500) return;
+        const pyeong = tx.sizeSqM / 3.3058;
+        if (pyeong <= 0) return;
+        const pricePerPyeong = tx.priceRaw / pyeong;
+        const calculatedRent = (pricePerPyeong * 0.035) / 12;
+        if (calculatedRent < 1.5 || calculatedRent > 8.0) return; // filter outlier rents
 
         let key: string | null = null;
 
@@ -311,37 +341,30 @@ export async function GET(request: NextRequest) {
         if (key) {
           rentTxCounts[key] += 1;
           
-          // Apply size-based heuristics (Larger areas have higher prob of actual occupancy)
-          let txWeight = 1.0;
-          if (tx.sizeSqM >= 100) txWeight = 1.5;
-          else if (tx.sizeSqM <= 50) txWeight = 0.5;
+          // Transaction Size Weight (R1) - Continuous Weight
+          const txWeight = getContinuousWeight(tx.sizeSqM);
           rentTxWeights[key] += txWeight;
 
-          const pyeong = tx.sizeSqM / 3.3058;
-          if (pyeong > 0) {
-            const pricePerPyeong = tx.priceRaw / pyeong;
-            // 3.5% rental yield formula: (Price/Pyeong * 3.5%) / 12 months
-            const calculatedRent = (pricePerPyeong * 0.035) / 12;
-            bData[key].sumRent += calculatedRent;
-            bData[key].count += 1;
-          }
+          bData[key].sumRent += calculatedRent;
+          bData[key].count += 1;
         }
       });
 
       // Format date label (e.g. 202501 -> 25.01)
       const dateLabel = `${ym.substring(2, 4)}.${ym.substring(4, 6)}`;
 
-      // Calculate averages and apply fallback if there are no transactions
+      // Calculate averages and apply EMA Rent smoothing (R4)
       const getFinalRent = (key: string): number => {
         const data = bData[key];
-        const calculatedAvg = data.count > 0 ? parseFloat((data.sumRent / data.count).toFixed(2)) : null;
-        const fallback = FALLBACK_RENT_MAP[ym]?.[key] || 3.5;
+        const calculatedAvg = data.count > 0 ? (data.sumRent / data.count) : null;
         
-        // Ensure the calculated average doesn't deviate erratically (sanity bound [2.5, 5.5])
-        if (calculatedAvg !== null && calculatedAvg >= 2.5 && calculatedAvg <= 5.5) {
-          return calculatedAvg;
+        const prevRent = currentRent[key]; // initialized from last element of STATIC_HISTORICAL_DATA
+        let nextRent = prevRent;
+        if (calculatedAvg !== null) {
+          nextRent = 0.4 * calculatedAvg + 0.6 * prevRent;
         }
-        return fallback;
+        currentRent[key] = parseFloat(nextRent.toFixed(2));
+        return currentRent[key];
       };
 
       const rentGold = getFinalRent('금강 IX');
@@ -359,7 +382,7 @@ export async function GET(request: NextRequest) {
       const allRents = [rentGold, rentSilver, rentBronze, rentFirst, rentSk, rentApex, rentTerra, rentIt, rentMega, rentBiz];
       const avgRent = parseFloat((allRents.reduce((a, b) => a + b, 0) / allRents.length).toFixed(2));
 
-      // Calculate vacancy rates based on size-weighted transaction model, NPS macro trends, and building scale (GFA)
+      // Calculate vacancy rates with age-based Dynamic Turnover and time-series decay (R3) and EMA vacancy smoothing (R4)
       const getVacancyRate = (key: string): number => {
         const txWeightSum = rentTxWeights[key] || 0;
         const totalUnits = BUILDING_TOTAL_UNITS[key] || 500;
@@ -368,22 +391,33 @@ export async function GET(request: NextRequest) {
         // 1.5 base units moved per weight, scaled against total building units
         const reductionPercent = (txWeightSum * 1.5 / totalUnits) * 100;
         
-        // 1. Building-specific physical scale factor (GFA agglomeration effect)
-        // Larger buildings with rich infrastructure naturally attract and stabilize tenants faster.
-        const buildingScaleFactor = Math.min(1.5, Math.max(0.8, gfa / 100000));
-        const finalReduction = reductionPercent * buildingScaleFactor;
+        // GFA scaling (R1) - Logarithmic scaling
+        const buildingScaleFactor = Math.min(1.6, Math.max(0.6, 0.70 * Math.log10(gfa) - 2.384));
         
-        // 2. Dynamic turnover modeling: newer buildings have faster natural decay (simulated here)
-        let turnoverRate = 0.2; // base +0.2% vacancy increase (turnover)
-        if (['실리콘앨리', '금강 IX'].includes(key) && Number(ym) < 202601) {
-           // Younger phase: filling up naturally faster
-           turnoverRate = -0.5;
-        }
+        // Building Age (R3)
+        const b = jisanDb.find((item: any) => item.id === key) || {};
+        const currentYear = Number(ym.substring(0, 4));
+        const currentMonth = Number(ym.substring(4, 6));
+        const currentDecimalYear = currentYear + (currentMonth - 1) / 12;
+        const age = Math.max(0, currentDecimalYear - (b.yearBuilt || 2018));
         
-        // Apply decay with GFA-scaled reduction, dynamic turnover, and NPS multi-factor macro bonus
-        const estimatedVacancy = Math.max(2.0, currentVacancy[key] - finalReduction + turnoverRate - macroBonus);
-        currentVacancy[key] = estimatedVacancy;
-        return estimatedVacancy;
+        // Turnover Rate (R3)
+        const turnoverRate = age <= 2.0 ? -0.5 : 0.2;
+        
+        // Time-series decay (R3)
+        const decayFactor = Math.max(0.3, Math.exp(-0.15 * age));
+        const finalReduction = reductionPercent * buildingScaleFactor * decayFactor;
+        
+        // Convergence floor (R3)
+        const convergenceFloor = age > 3.0 ? 4.0 : 2.0;
+        
+        // EMA vacancy smoothing (R4)
+        const prevVacancy = currentVacancy[key]; // initialized from BASELINE_VACANCY_2411
+        const rawVacancy = Math.max(convergenceFloor, prevVacancy - finalReduction + turnoverRate - macroBonus);
+        const smoothedVacancy = 0.5 * rawVacancy + 0.5 * prevVacancy;
+        currentVacancy[key] = smoothedVacancy;
+        
+        return smoothedVacancy;
       };
 
       const vacancyGold = getVacancyRate('금강 IX');

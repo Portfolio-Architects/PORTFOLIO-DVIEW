@@ -1,24 +1,22 @@
-# Project: D-VIEW Performance Optimization Phase
+# Project: D-VIEW Web UX & Performance Optimization Phase
 
 ## Architecture
 - React / Next.js app directory structure in `frontend/src`.
 - Global CSS in `frontend/src/app/globals.css`.
 - Main dashboard client: `frontend/src/components/DashboardClient.tsx`.
 - Macro dashboard client: `frontend/src/components/MacroDashboardClient.tsx`.
+- Community / Lounge page and detail modal: `frontend/src/app/lounge/` and `frontend/src/components/LoungeModal.tsx`.
+- Service worker caching logic in `frontend/public/sw.js`.
 - Playwright E2E and Jest unit test suites in `frontend/tests/` and other test files.
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | Exploration | Analyze codebase layout, styling, and navigation | none | DONE |
-| 2 | R1: Theme & Landing | Hwaseong BI Colors and landing page sections | M1 | DONE |
-| 3 | R2: Navigation | Align menus and active states | M2 | DONE |
-| 4 | R3: CLS & Skeletons | Eliminate Layout Shifts, fix transitions | M3 | DONE |
-| 5 | Verification | Run all UI/UX tests, npm run audit, npm run build | M4 | DONE |
-| 6 | Performance Analysis | Profile overview page rendering bottlenecks | M5 | DONE |
-| 7 | Memoization & Lazy | React.memo, useMemo, useCallback, Lazy Rendering | M6 | DONE |
-| 8 | Code Splitting | Dynamic loading in MacroDashboardClient | M7 | DONE |
-| 9 | Final Verification | Run Playwright, Jest, npm run build, integrity checks | M8 | DONE |
+| 1 | Exploration & Baselining | Explore codebase, run baseline build/test to see failures or metrics, identify bottlenecks in SW, prefetch, tabs, and modals | none | DONE |
+| 2 | R1: Zero-Delay Navigation | Optimize Next.js prefetching, programmatic prefetch on hover, SWR/Context caching, and Service Worker chunk/JSON caching | 1 | DONE |
+| 3 | R2: Zero-Jank Transitions | Eliminate CLS and lag in tab switching (Data Lab, Apartment Lab, Technovalley) and Community detail modal transitions, handle scroll and sticky headers | 2 | DONE |
+| 4 | R3: Final Verification | Verify production build success, run E2E Playwright/Jest tests, check integrity | 3 | DONE |
+| 5 | Phase 2: Adversarial Hardening | Challenger-driven white-box testing to discover and patch edge cases in navigation and transitions | 4 | DONE |
 
 ## Interface Contracts
 ### LoungeHeader ↔ MobileDock
@@ -30,4 +28,3 @@
 - Navigation: `frontend/src/components/`
 - Pages: `frontend/src/app/`
 - Tests: `frontend/tests/`
-

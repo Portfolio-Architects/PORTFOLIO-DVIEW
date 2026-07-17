@@ -325,58 +325,65 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
     let viewIncremented = false;
 
     const fetchPost = async () => {
-      const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
-      if (!active) return;
-      if (snap.exists()) {
-        const data = snap.data();
-        const formatted = {
-          id: snap.id,
-          title: data.title,
-          category: data.category,
-          content: data.content || '',
-          author: data.authorName || '익명',
-          likes: data.likes || 0,
-          views: data.views || 0,
-          authorUid: data.authorUid || null,
-          verifiedApartment: data.verifiedApartment,
-          verificationLevel: data.verificationLevel,
-          createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
-        };
-        manageCacheLimit(postId);
-        postLocalCache[postId] = formatted;
-        setPost(formatted);
-        
-        // Track View Server side once
-        if (!viewIncremented) {
-          viewIncremented = true;
-          try {
-            let isAdminUser = false;
+      try {
+        const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
+        if (!active) return;
+        if (snap.exists()) {
+          const data = snap.data();
+          const formatted = {
+            id: snap.id,
+            title: data.title,
+            category: data.category,
+            content: data.content || '',
+            author: data.authorName || '익명',
+            likes: data.likes || 0,
+            views: data.views || 0,
+            authorUid: data.authorUid || null,
+            verifiedApartment: data.verifiedApartment,
+            verificationLevel: data.verificationLevel,
+            createdAt: data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString('ko-KR') : '방금 전',
+          };
+          manageCacheLimit(postId);
+          postLocalCache[postId] = formatted;
+          setPost(formatted);
+          
+          // Track View Server side once
+          if (!viewIncremented) {
+            viewIncremented = true;
             try {
-              isAdminUser = localStorage.getItem('dview_is_admin') === 'true';
-            } catch (err) {
-              logger.warn('LoungeDetailClient.usePostEffect', 'localStorage is unavailable', undefined, err);
-            }
-            if (!isAdminUser) {
-              dashboardFacade.incrementPostView(postId, data.title).catch((e) => {
-                logger.error('LoungeDetailClient.usePostEffect', 'View tracking failed in background', undefined, e);
-              });
-            }
-            if (!active) return;
-            // Optionally update UI view count locally immediately
-            setPost((p) => {
-              const updated = p ? { ...p, views: (Number(p.views) || 0) + 1 } : p;
-              if (updated) {
-                manageCacheLimit(postId);
-                postLocalCache[postId] = updated;
+              let isAdminUser = false;
+              try {
+                isAdminUser = localStorage.getItem('dview_is_admin') === 'true';
+              } catch (err) {
+                logger.warn('LoungeDetailClient.usePostEffect', 'localStorage is unavailable', undefined, err);
               }
-              return updated;
-            });
-          } catch (e) {
-            logger.error('LoungeDetailClient.usePostEffect', 'View tracking failed', undefined, e);
+              if (!isAdminUser) {
+                dashboardFacade.incrementPostView(postId, data.title).catch((e) => {
+                  logger.error('LoungeDetailClient.usePostEffect', 'View tracking failed in background', undefined, e);
+                });
+              }
+              if (!active) return;
+              // Optionally update UI view count locally immediately
+              setPost((p) => {
+                const updated = p ? { ...p, views: (Number(p.views) || 0) + 1 } : p;
+                if (updated) {
+                  manageCacheLimit(postId);
+                  postLocalCache[postId] = updated;
+                }
+                return updated;
+              });
+            } catch (e) {
+              logger.error('LoungeDetailClient.usePostEffect', 'View tracking failed', undefined, e);
+            }
           }
         }
+      } catch (err) {
+        logger.error('LoungeDetailClient.usePostEffect', 'Failed to fetch Firestore post document', undefined, err);
+      } finally {
+        if (active) {
+          setLoading(false);
+        }
       }
-      setLoading(false);
     };
     fetchPost();
     return () => {
@@ -759,7 +766,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-body flex items-center justify-center">
+      <div className={`${isModal ? 'min-h-[300px]' : 'min-h-screen'} bg-body flex items-center justify-center`}>
         <div className="w-8 h-8 rounded-full border-2 border-toss-blue border-t-transparent animate-spin" />
       </div>
     );
@@ -767,7 +774,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
 
   if (!post) {
     return (
-      <div className="min-h-screen bg-body flex flex-col items-center justify-center gap-4">
+      <div className={`${isModal ? 'min-h-[300px]' : 'min-h-screen'} bg-body flex flex-col items-center justify-center gap-4`}>
         <p className="text-[16px] font-bold text-secondary">글을 찾을 수 없습니다</p>
         <button onClick={() => router.push('/lounge')} className="text-toss-blue font-bold">← 라운지로 돌아가기</button>
       </div>

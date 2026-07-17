@@ -69,7 +69,7 @@ export { TimelineItemCard };
     // Reset render counts
     global.timelineItemCardRenderCounts = {};
 
-    // Import the dynamically created component
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { TimelineItemCard } = require('./TimelineItemCardTemp');
 
     // Create dummy timeline items

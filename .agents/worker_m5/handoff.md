@@ -1,73 +1,66 @@
-# Handoff Report — Milestone 5 (E2E Verification & Demo)
+# Handoff Report — Milestone 5 Optimization
 
 ## 1. Observation
-- **Self-Improvement Loop Codebase**: The prototype consists of `config.py`, `vcs.py`, `runner.py`, `simulator.py`, `engine.py`, `target_module.py`, and test files `test_target_module.py`, `test_simulator.py`, and `test_engine.py` inside the directory `self_improvement_loop/`.
-- **E2E Driver**: Implemented `self_improvement_loop/run.py` to reset the target module, execute the self-improvement loop engine, format and output a detailed run summary, and discover/run unit tests.
-- **Initial buggy state of target_module.py**:
-  ```python
-  class Calculator:
-      def add(self, a, b):
-          # BUG: Returns subtraction instead of addition
-          return a - b
-  ```
-- **Execution Command**: Tested the E2E verification using `.venv\Scripts\python.exe self_improvement_loop\run.py` from the workspace root directory `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW`.
-- **Initial Encoding Issue**:
-  Direct absolute path resolution in `unittest.TestLoader.discover` resulted in an encoding error:
-  `ImportError: Start directory is not importable: 'C:\\Users\\ocs56\\OneDrive\\ ȭ\\PORTFOLIO\\PORTFOLIO - DVIEW\\self_improvement_loop'`
-  Also, unicode characters `[✓]` caused:
-  `UnicodeEncodeError: 'cp949' codec can't encode character '\u2713' in position 5: illegal multibyte sequence`
-- **Resolution**:
-  - Replaced unicode characters in print statements with standard ASCII (e.g., `[✓]` became `[OK]`/`[PASS]`).
-  - Omitted the `top_level_dir` argument in `discover` and kept `start_dir` as a relative path `"self_improvement_loop"`.
-- **Successful Execution Results**:
-  Executing the updated runner completed with exit code 0:
-  ```
-  Starting Self-Improvement Loop Demo...
-  Resetting target file: C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\self_improvement_loop\target_module.py
-  Initializing SelfImprovementEngine...
-  Running self-improvement loop...
-  [2026-07-15 00:06:24] [START] Self-improvement loop started.
-  [2026-07-15 00:06:24] [SUCCESS] Initial code saved as version 0.
-  [2026-07-15 00:06:24] [ITERATION_START] Starting iteration 1.
-  ...
-  [2026-07-15 00:06:26] [ROLLBACK] Iteration 4 failed. Rolled back to stable version 3.
-  Execution log saved to C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\self_improvement_loop\history\execution_log.json
-  
-  ============================================================
-             SELF-IMPROVEMENT LOOP EXECUTION SUMMARY
-  ============================================================
-  ...
-  ============================================================
-             RUNNING UNIT TEST SUITE (DISCOVERY)
-  ============================================================
-  Ran 14 tests in 2.301s
-  OK
-  [PASS] E2E Verification successful! All unit tests passed.
-  ```
+- **NewsClient Navigation Hashes**:
+  - Path: `frontend/src/app/news/NewsClient.tsx`
+  - In header block (lines 310–350), navigation buttons previously routed via `router.push('/#overview')`, `router.push('/#lounge')`, and `router.push('/#gap')` which bypassed correct tab parameter logic:
+    ```typescript
+    onClick={() => router.push('/#overview')}
+    onClick={() => router.push('/#lounge')}
+    onClick={() => router.push('/#gap')}
+    ```
+- **SWR Cache Versioning**:
+  - Path: `frontend/src/components/pwa/SWRProvider.tsx`
+  - The cache provider parsed `app-swr-cache` and only filtered keys containing mismatching `v=` parameters, skipping versionless keys (like `/api/macro/rates` and `/api/dashboard-init`):
+    ```typescript
+    const vMatch = key.match(/[?&]v=([^&]+)/);
+    if (vMatch && vMatch[1] !== BUILD_VERSION) {
+      hasPurged = true;
+      return false;
+    }
+    return true;
+    ```
+- **Tab History popstate Sync**:
+  - Path: `frontend/src/components/DashboardClient.tsx`
+  - Added hash event listener but lacked a `popstate` hook to synchronize routing query parameters (`tab=xxx`) during back/forward history navigation:
+    ```typescript
+    window.addEventListener('hashchange', handleHashChange, { passive: true });
+    ```
+- **LoungeDetailClient Firestore Robustness**:
+  - Path: `frontend/src/components/LoungeDetailClient.tsx`
+  - The `fetchPost()` helper executed `getDoc(...)` without error catching, which caused the spinner (`loading = true`) to hang indefinitely when Firestore was offline or blocked:
+    ```typescript
+    const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
+    ```
+- **E2E Test Execution & Failures**:
+  - In initial run (task-67), tests failed because E2E tests specifically checked for the presence of the bugs (e.g. static search for hash push in `NewsClient`, expecting versionless keys to survive purging, expecting the spinner to remain visible when Firestore was offline):
+    - `Verify Route Mismatches in NewsClient.tsx statically` expected `/#overview`, `/#lounge`, `/#gap`
+    - `SWR Cache versionless entry persistence...` expected `/api/macro/rates` to remain in cache
+    - `Verify Lounge Modal CLS and Robustness...` expected `spinner` to be visible
+    - `Verify Tab Switching Keep-Alive...` expected tab highlight state to not update on back navigation
 
 ## 2. Logic Chain
-- **Requirement**: The system must run through v1 (bug fix), v2 (rate limit retry + subtract), v3 (multiply), v4 (syntax error rollback), and verify that all unit tests pass at the end.
-- **Observation Verification**: The engine output logs verify that:
-  - Version 0 is saved.
-  - Iteration 1 updates `add` to return addition. Tests pass.
-  - Iteration 2 receives a `RateLimitError` on the first call, retries after 2 seconds, and succeeds in adding `subtract`. Tests pass.
-  - Iteration 3 adds `multiply`. Tests pass.
-  - Iteration 4 injects a syntax error (missing colon), resulting in test failure, which correctly triggers `engine.py`'s rollback handler to restore the last stable state (version 3).
-  - Test verification on the rolled-back version 3 passes successfully.
-- **Unit Test Discovery**: Discovered all tests programmatically via `unittest` inside `self_improvement_loop/`. The suite consists of 14 tests (across `test_engine.py`, `test_simulator.py`, and `test_target_module.py`), all of which executed and passed.
-- **Resulting Conclusion**: The prototype behaves exactly as specified in the project requirements.
+1. **NewsClient Navigation**: To fix incorrect route hashes, we replaced push calls with their corresponding query parameter paths (`/overview?tab=overview`, `/overview?tab=lounge`, `/overview?tab=office`). These parameters are correctly hydrated and mapped in `DashboardClient.tsx`.
+2. **SWR Cache Purging**: To ensure versionless keys are cleaned up during build upgrades, we added tracking of the cache build version inside `localStorage` using the key `app-swr-version`. During initialization, if `storedVersion !== BUILD_VERSION`, any cache keys without a version matching `BUILD_VERSION` (including versionless keys) are filtered out and purged.
+3. **Tab History Sync**: To align `activeTab` on history pop states, we renamed the location sync function to `syncTabFromLocation` and attached it as an event listener for `popstate` on `window`. When browser back/forward history updates the query parameters, the tab highlights and visible section update instantly.
+4. **Firestore Robustness**: To prevent hanging loading spinners, we wrapped `getDoc` inside `fetchPost` with a `try/catch/finally` block. If `getDoc` fails, `setLoading(false)` is guaranteed to run inside `finally`, transitioning the UI to a "글을 찾을 수 없습니다" (post not found) graceful fallback.
+5. **E2E Tests Refinement**: Since the adversarial tests asserted the presence of the bugs, we updated the test files `frontend/tests/swr-preload-audit.spec.ts` and `frontend/tests/performance-ux.spec.ts` to assert the correct, fixed behavior. We also registered a console event listener in Playwright to capture the caught error outputs since they are no longer unhandled rejections.
 
 ## 3. Caveats
-- No caveats. The implementation relies entirely on native python packages (`unittest`, `subprocess`, `difflib`, `os`, `sys`) and does not use any hardcoded test results or facade mocks.
+- No caveats. All identified issues have been investigated, fixed, and verified via compilation and the end-to-end Playwright tests.
 
 ## 4. Conclusion
-- The Self-Improvement Loop prototype is fully functional and E2E verified.
-- The `run.py` entry point correctly resets target code, drives loop execution, prints a readable execution summary to stdout, and validates the entire unit test suite.
+- All four functional optimizations and fixes have been successfully implemented.
+- The Next.js production build (`npm run build`) runs and compiles successfully.
+- The Playwright test suite (`npm run test:e2e`) has been updated to reflect the correct behavior and all 17 E2E tests are passing without issues.
 
 ## 5. Verification Method
-- Execute the demonstration runner from the workspace root using:
-  ```powershell
-  .venv\Scripts\python.exe self_improvement_loop\run.py
-  ```
-- Check the stdout. It should reset `target_module.py`, display logs for iterations 1 to 4 (showing the rate limit retry and rollback), output the ASCII summary, run 14 tests, and print `[PASS] E2E Verification successful! All unit tests passed.` at the end.
-- Confirm `target_module.py` has been restored to version 3 state.
+- **Verify Build**:
+  - Run `npm run build` in `frontend/` directory to confirm compilation and static optimization passes cleanly.
+- **Verify Tests**:
+  - Run `npm run test:e2e` in `frontend/` directory to run Playwright E2E verification. All 17 tests should pass.
+- **Inspect Files**:
+  - Check `frontend/src/app/news/NewsClient.tsx` to verify standard route parameters are used.
+  - Check `frontend/src/components/pwa/SWRProvider.tsx` to verify version cache filtering.
+  - Check `frontend/src/components/DashboardClient.tsx` to verify the `popstate` hook implementation.
+  - Check `frontend/src/components/LoungeDetailClient.tsx` to verify the `try/catch/finally` wrapper.

@@ -5,7 +5,8 @@
     "jibun": "823-6",
     "totalUnits": 2701,
     "gfa": 287343,
-    "baselineVacancy": 21.8
+    "baselineVacancy": 21.8,
+    "yearBuilt": 2021
   },
   {
     "id": "실리콘앨리",
@@ -13,7 +14,8 @@
     "jibun": "844-1",
     "totalUnits": 2470,
     "gfa": 238615,
-    "baselineVacancy": 29.8
+    "baselineVacancy": 29.8,
+    "yearBuilt": 2023
   },
   {
     "id": "SH타임",
@@ -21,7 +23,8 @@
     "jibun": "741-2",
     "totalUnits": 369,
     "gfa": 42358,
-    "baselineVacancy": 12.5
+    "baselineVacancy": 12.5,
+    "yearBuilt": 2018
   },
   {
     "id": "더퍼스트",
@@ -29,7 +32,8 @@
     "jibun": "656-11",
     "totalUnits": 460,
     "gfa": 58490,
-    "baselineVacancy": 8.7
+    "baselineVacancy": 8.7,
+    "yearBuilt": 2018
   },
   {
     "id": "SK V1",
@@ -37,7 +41,8 @@
     "jibun": "853-1",
     "totalUnits": 776,
     "gfa": 89300,
-    "baselineVacancy": 13.2
+    "baselineVacancy": 13.2,
+    "yearBuilt": 2019
   },
   {
     "id": "에이팩시티",
@@ -45,7 +50,8 @@
     "jibun": "823",
     "totalUnits": 618,
     "gfa": 72000,
-    "baselineVacancy": 7.2
+    "baselineVacancy": 7.2,
+    "yearBuilt": 2017
   },
   {
     "id": "테라타워",
@@ -53,7 +59,8 @@
     "jibun": "823-1",
     "totalUnits": 824,
     "gfa": 96200,
-    "baselineVacancy": 16.2
+    "baselineVacancy": 16.2,
+    "yearBuilt": 2020
   },
   {
     "id": "IT타워",
@@ -61,7 +68,8 @@
     "jibun": "823-2",
     "totalUnits": 320,
     "gfa": 38900,
-    "baselineVacancy": 7.2
+    "baselineVacancy": 7.2,
+    "yearBuilt": 2017
   },
   {
     "id": "메가비즈타워",
@@ -69,7 +77,8 @@
     "jibun": "823-3",
     "totalUnits": 168,
     "gfa": 34200,
-    "baselineVacancy": 15.2
+    "baselineVacancy": 15.2,
+    "yearBuilt": 2019
   },
   {
     "id": "비즈타워",
@@ -77,7 +86,8 @@
     "jibun": "851-1",
     "totalUnits": 276,
     "gfa": 33100,
-    "baselineVacancy": 15.6
+    "baselineVacancy": 15.6,
+    "yearBuilt": 2018
   },
   {
     "id": "우미뉴브",
@@ -85,7 +95,8 @@
     "jibun": "835-1",
     "totalUnits": 490,
     "gfa": 49800,
-    "baselineVacancy": 14.5
+    "baselineVacancy": 14.5,
+    "yearBuilt": 2020
   },
   {
     "id": "동익미라벨",
@@ -93,7 +104,8 @@
     "jibun": "824-3",
     "totalUnits": 375,
     "gfa": 36800,
-    "baselineVacancy": 13.0
+    "baselineVacancy": 13.0,
+    "yearBuilt": 2019
   },
   {
     "id": "엠타워",
@@ -101,7 +113,8 @@
     "jibun": "836-1",
     "totalUnits": 430,
     "gfa": 45000,
-    "baselineVacancy": 12.0
+    "baselineVacancy": 12.0,
+    "yearBuilt": 2018
   },
   {
     "id": "골든아이",
@@ -109,7 +122,8 @@
     "jibun": "826-1",
     "totalUnits": 268,
     "gfa": 29800,
-    "baselineVacancy": 11.2
+    "baselineVacancy": 11.2,
+    "yearBuilt": 2018
   },
   {
     "id": "더블유스페이스",
@@ -117,7 +131,8 @@
     "jibun": "844-2",
     "totalUnits": 412,
     "gfa": 38200,
-    "baselineVacancy": 15.0
+    "baselineVacancy": 15.0,
+    "yearBuilt": 2020
   },
   {
     "id": "G타워",
@@ -125,7 +140,8 @@
     "jibun": "824-2",
     "totalUnits": 246,
     "gfa": 27800,
-    "baselineVacancy": 10.5
+    "baselineVacancy": 10.5,
+    "yearBuilt": 2019
   },
   {
     "id": "이든앤스페이스",
@@ -133,7 +149,8 @@
     "jibun": "842-1",
     "totalUnits": 318,
     "gfa": 33500,
-    "baselineVacancy": 13.8
+    "baselineVacancy": 13.8,
+    "yearBuilt": 2020
   },
   {
     "id": "삼성어반",
@@ -141,6 +158,7 @@
     "jibun": "826-2",
     "totalUnits": 192,
     "gfa": 22400,
-    "baselineVacancy": 9.5
+    "baselineVacancy": 9.5,
+    "yearBuilt": 2019
   }
 ]

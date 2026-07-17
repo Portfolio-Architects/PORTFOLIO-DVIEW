@@ -1,14 +1,19 @@
-## 2026-07-14T14:40:35Z
-Please review the UI/UX landing page and navigation optimizations implemented by Worker 1.
-Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1
+## 2026-07-18T01:17:00+09:00
+You are Reviewer 1. Your task is to verify the code correctness of the changes made by worker_m5 for Milestone 5.
+Read the worker's handoff file at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m5\handoff.md
+Your working directory is:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1\
+The frontend workspace is:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\
 
-Review target files:
-- LoungeHeader: frontend/src/components/LoungeHeader.tsx
-- MobileDock: frontend/src/components/pwa/MobileDock.tsx
-- PageHeroHeader: frontend/src/components/PageHeroHeader.tsx
-- Landing page: frontend/src/app/technovalley/TechnoValleyClient.tsx and frontend/src/components/macro/TechnoValleyDashboard.tsx
-- Skeletons: frontend/src/app/page.tsx
-
-Verify that all requirements (R1, R2, R3) are cleanly implemented, Hwaseong BI Colors are used correctly, and navigation tab active states match. Run the tests (npm run test:e2e), audit (npm run audit), and build (npm run build) to ensure complete compilation safety and lint cleanliness.
-Write your review report to: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1\review_report.md.
-Send a message to the orchestrator (conversation ID: 0adc2a81-b532-4c1e-a82b-98a1911b9989) with the path when complete.
+Tasks:
+1. Examine the changes in the following files for syntax, logic, and typing errors:
+   - frontend/src/app/news/NewsClient.tsx
+   - frontend/src/components/pwa/SWRProvider.tsx
+   - frontend/src/components/DashboardClient.tsx
+   - frontend/src/components/LoungeDetailClient.tsx
+2. Run build verification (e.g., `npm run build` or `npx tsc --noEmit` in frontend/) to ensure typescript compiles clean.
+3. Verify that the changes are robust, clean, and conform to the project conventions.
+4. Update c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1\progress.md periodically.
+5. Write your detailed review and findings to c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1\handoff.md and report back to the parent (conversation ID: 20400839-5c1a-4b1a-816e-53de9ec2357c) using send_message.

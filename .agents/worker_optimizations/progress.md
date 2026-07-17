@@ -1,16 +1,10 @@
-# Progress - Performance Optimization
+# Progress Tracker
 
-Last visited: 2026-07-15T22:40:00+09:00
+Last visited: 2026-07-18T00:25:00Z
 
-## Completed Steps
-- Initialized briefing and original request documentation.
-- Implemented performance optimizations in `TechnoValleyDashboard.tsx`:
-  1. Converted `RelocationTaxSimulator` to dynamic import with `ssr: false` and a skeleton fallback.
-  2. Wrapped `handleToggleSector`, `handleExpandAll`, `handleCollapseAll`, `handleShowMore`, `handleResetLimit`, and `handleSort` in `useCallback` to avoid recreating them on state changes.
-  3. Extracted the inline company list item render mapping block into a `CompanyCard` component wrapped in `React.memo`.
-- Executed `npm run build` in the `frontend` folder to verify compiler status.
-- Build succeeded without errors.
-
-## Next Steps
-- Write and publish `handoff.md`.
-- Notify the parent agent of task completion.
+- [x] Step 1: Fix Prefetch Redundancy
+- [x] Step 2: Fix Prefetch Gaps
+- [x] Step 3: Fix SWR / Caching Mismatches
+- [x] Step 4: Fix Tab Transitions and State Loss
+- [x] Step 5: Fix Modal CLS
+- [x] Step 6: Build & Test Verification

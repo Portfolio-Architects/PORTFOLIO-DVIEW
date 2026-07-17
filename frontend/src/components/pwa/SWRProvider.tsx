@@ -26,12 +26,11 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
       logger.info('SWRProvider.preload', 'Starting idle-time background preloading of critical static assets');
       
       const targets = [
-        '/data/location-scores.json',
-        '/api/local-notices',
-        '/api/apartments-by-dong',
+        `/data/location-scores.json?v=${BUILD_VERSION}`,
+        '/api/local-notices?dongtan=true',
         '/api/dashboard-init',
         '/api/macro/rates',
-        '/api/macro/news'
+        '/api/macro/news?limit=40'
       ];
 
       targets.forEach(url => {
@@ -64,19 +63,28 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
     let initialEntries: [any, any][] = [];
     try {
       if (typeof window.localStorage !== 'undefined') {
+        const storedVersion = localStorage.getItem('app-swr-version');
         const rawCache = localStorage.getItem('app-swr-cache');
         if (rawCache) {
           const parsed = JSON.parse(rawCache);
           if (Array.isArray(parsed) && parsed.every(entry => Array.isArray(entry) && entry.length === 2)) {
             // Clean up any legacy or empty error objects from cached SWR states
             // Also filter out and purge any key with mismatched v version query param
+            // and versionless keys if the build version has upgraded.
             let hasPurged = false;
             const filtered = parsed.filter(([key]) => {
               if (typeof key !== 'string') return true;
               const vMatch = key.match(/[?&]v=([^&]+)/);
-              if (vMatch && vMatch[1] !== BUILD_VERSION) {
-                hasPurged = true;
-                return false;
+              if (vMatch) {
+                if (vMatch[1] !== BUILD_VERSION) {
+                  hasPurged = true;
+                  return false;
+                }
+              } else {
+                if (storedVersion !== BUILD_VERSION) {
+                  hasPurged = true;
+                  return false;
+                }
               }
               return true;
             });
@@ -90,13 +98,16 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
               return [key, val];
             });
 
-            if (hasPurged) {
-              logger.info('SWRProvider.getCache', 'Purged stale cache version entries from localStorage');
+            if (hasPurged || storedVersion !== BUILD_VERSION) {
+              logger.info('SWRProvider.getCache', 'Purged stale cache version entries and versionless keys from localStorage');
               localStorage.setItem('app-swr-cache', JSON.stringify(initialEntries));
+              localStorage.setItem('app-swr-version', BUILD_VERSION);
             }
           } else {
             logger.warn('SWRProvider.getCache', 'Invalid cache structure inside localStorage');
           }
+        } else if (storedVersion !== BUILD_VERSION) {
+          localStorage.setItem('app-swr-version', BUILD_VERSION);
         }
       }
     } catch (err) {
@@ -148,6 +159,7 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
             return [key, value];
           });
         localStorage.setItem('app-swr-cache', JSON.stringify(appCache));
+        localStorage.setItem('app-swr-version', BUILD_VERSION);
       } catch (err) {
         logger.warn('SWRProvider.syncToLocalStorage', 'Failed to sync SWR cache to localStorage', undefined, err);
       }

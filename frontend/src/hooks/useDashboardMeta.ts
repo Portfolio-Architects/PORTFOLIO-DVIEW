@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import useSWR from 'swr';
 import { logger } from '@/lib/services/logger';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
@@ -155,48 +156,53 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
       return () => { unmounted = true; };
   }, [hasSheetData, startFetch]);
 
-  // Fetch init map only if not provided by server (and not starting the combined lazy fetch yet)
-  useEffect(() => {
-    const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);
-    if (hasInitialTypeMap || startFetch) return;
+  const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);
+  const shouldFetchInit = !hasInitialTypeMap && !startFetch;
 
-    let unmounted = false;
-    fetch('/api/dashboard-init').then(r => r.json()).then(data => {
-      if (unmounted) return;
-      const validation = DashboardInitResponseSchema.safeParse(data);
-      if (!validation.success) {
-        logger.warn('useDashboardMeta.fetchDashboardInit', 'Validation failed for /api/dashboard-init', {
-          errors: validation.error.issues.map(e => e.message),
-        });
-        setNameMapping({});
-        return;
+  const { data: initData, error: initError } = useSWR(
+    shouldFetchInit ? '/api/dashboard-init' : null,
+    (url: string) => fetch(url).then(r => r.json()),
+    { revalidateOnFocus: false }
+  );
+
+  useEffect(() => {
+    if (initError) {
+      setNameMapping({});
+      return;
+    }
+    if (!initData) return;
+    const validation = DashboardInitResponseSchema.safeParse(initData);
+    if (!validation.success) {
+      logger.warn('useDashboardMeta.fetchDashboardInit', 'Validation failed for /api/dashboard-init', {
+        errors: validation.error.issues.map(e => e.message),
+      });
+      setNameMapping({});
+      return;
+    }
+    const validatedData = validation.data;
+    if (validatedData.typeMap) {
+      const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
+      for (const e of validatedData.typeMap) {
+        const key = normalizeAptName(e.aptName);
+        if (!map[key]) map[key] = {};
+        map[key][String(Number(e.area))] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
       }
-      const validatedData = validation.data;
-      if (validatedData.typeMap) {
-        const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
-        for (const e of validatedData.typeMap) {
-          const key = normalizeAptName(e.aptName);
-          if (!map[key]) map[key] = {};
-          map[key][String(Number(e.area))] = { typeM2: e.typeM2, typePyeong: e.typePyeong };
-        }
-        setTypeMap(map);
+      setTypeMap(map);
+    }
+    if (validatedData.apartmentMeta) {
+      const mapping: Record<string, string> = {};
+      const rentals = new Set<string>();
+      for (const [name, meta] of Object.entries(validatedData.apartmentMeta)) {
+        if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
+        if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
+        if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
       }
-      if (validatedData.apartmentMeta) {
-        const mapping: Record<string, string> = {};
-        const rentals = new Set<string>();
-        for (const [name, meta] of Object.entries(validatedData.apartmentMeta)) {
-          if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
-          if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
-          if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
-        }
-        setNameMapping(mapping);
-        setPublicRentalSet(rentals);
-      } else {
-        setNameMapping({});
-      }
-    }).catch(() => !unmounted && setNameMapping({}));
-    return () => { unmounted = true; };
-  }, [initialDashboardData, startFetch]);
+      setNameMapping(mapping);
+      setPublicRentalSet(rentals);
+    } else {
+      setNameMapping({});
+    }
+  }, [initData, initError]);
 
   return {
     sheetApartments,

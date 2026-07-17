@@ -355,6 +355,16 @@ const DashboardClient = React.memo(function DashboardClient({
   const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'>(initialTab);
   const [isPending, startTransition] = useTransition();
 
+  const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview');
+  const [hasOpenedOffice, setHasOpenedOffice] = useState(initialTab === 'office');
+  const [hasOpenedLounge, setHasOpenedLounge] = useState(initialTab === 'lounge');
+
+  useEffect(() => {
+    if (activeTab === 'overview') setHasOpenedOverview(true);
+    if (activeTab === 'office') setHasOpenedOffice(true);
+    if (activeTab === 'lounge') setHasOpenedLounge(true);
+  }, [activeTab]);
+
   // Tab highlight logic removed since boxes are separated now
 
   // Trigger lazy fetching of detailed sheets data on relevant tab switches or deep-links
@@ -443,7 +453,7 @@ const DashboardClient = React.memo(function DashboardClient({
         }
       }
 
-      const handleHashChange = () => {
+      const syncTabFromLocation = () => {
         const queryParams = new URLSearchParams(window.location.search);
         const queryTab = queryParams.get('tab');
         const hasCuration = queryParams.has('chopoomaStep') || queryParams.has('maxGap');
@@ -469,7 +479,8 @@ const DashboardClient = React.memo(function DashboardClient({
           }
         });
       };
-      window.addEventListener('hashchange', handleHashChange, { passive: true });
+      window.addEventListener('hashchange', syncTabFromLocation, { passive: true });
+      window.addEventListener('popstate', syncTabFromLocation, { passive: true });
 
       let scrollTimeout: number | null = null;
       const handleScroll = () => {
@@ -491,7 +502,8 @@ const DashboardClient = React.memo(function DashboardClient({
         if (idleId !== null && window.cancelIdleCallback) {
           window.cancelIdleCallback(idleId);
         }
-        window.removeEventListener('hashchange', handleHashChange);
+        window.removeEventListener('hashchange', syncTabFromLocation);
+        window.removeEventListener('popstate', syncTabFromLocation);
         window.removeEventListener('scroll', handleScroll);
         if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
 
@@ -739,7 +751,7 @@ const DashboardClient = React.memo(function DashboardClient({
       <>
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
         <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
-          {activeTab === 'overview' && (
+          {(activeTab === 'overview' || hasOpenedOverview) && (
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
@@ -771,7 +783,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
         {/* ═══ TAB 1-2: 사무실 탐색 ═══ */}
         <section className={`w-full bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`}>
-          {activeTab === 'office' && (
+          {(activeTab === 'office' || hasOpenedOffice) && (
             !mounted ? (
               <div className="w-full h-80 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
             ) : (
@@ -782,7 +794,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
         <section className={`w-full bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
-          {activeTab === 'lounge' && (
+          {(activeTab === 'lounge' || hasOpenedLounge) && (
             !mounted ? (
               <LoungeSkeleton />
             ) : (
@@ -816,7 +828,10 @@ const DashboardClient = React.memo(function DashboardClient({
     handleOpenTaxCalculator,
     handleOpenSellTimingCalculator,
     handleAptClickByName,
-    handleRequestLogin
+    handleRequestLogin,
+    hasOpenedOverview,
+    hasOpenedOffice,
+    hasOpenedLounge
   ]);
 
   return (
@@ -850,8 +865,6 @@ const DashboardClient = React.memo(function DashboardClient({
                 <Link
                   href="/"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/')}
-                  onTouchStart={() => router.prefetch('/')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'technovalley'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -915,6 +928,8 @@ const DashboardClient = React.memo(function DashboardClient({
 
                 <button
                   onClick={() => router.push('/explore')}
+                  onMouseEnter={() => router.prefetch('/explore')}
+                  onTouchStart={() => router.prefetch('/explore')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'imjang'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
