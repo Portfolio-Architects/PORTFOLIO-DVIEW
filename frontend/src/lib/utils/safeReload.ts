@@ -83,7 +83,7 @@ export function initSafeReloadDiagnostics() {
       const infoStr = sessionStorage.getItem('dview_last_reload_info');
       if (infoStr) {
         const info = JSON.parse(infoStr);
-        logger.error(
+        logger.warn(
           'safeReload.diagnostics',
           `[safeReload Diagnostics] Page was automatically reloaded! Component: ${info.componentName}`,
           info
