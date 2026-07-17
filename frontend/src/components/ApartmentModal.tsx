@@ -21,6 +21,8 @@ import { postConverter } from '@/lib/utils/firestoreConverters';
 import { safeReload } from '@/lib/utils/safeReload';
 import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
+import { useApartmentDetails } from '@/hooks/useApartmentDetails';
+import { useComments } from '@/hooks/useComments';
 
 const CommentSkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[250px]">
@@ -343,37 +345,42 @@ interface EnrichedTransaction extends TransactionRecord {
 }
 
 const FieldReportModal = React.memo(function FieldReportModal({ 
-  report, 
+  report: rawReport, 
   onClose,
-  comments,
-  commentInput,
-  onCommentChange,
-  onSubmitComment,
-  onDeleteComment,
+  comments: rawCommentsProp,
+  commentInput: rawCommentInputProp,
+  onCommentChange: rawOnCommentChangeProp,
+  onSubmitComment: rawOnSubmitCommentProp,
+  onDeleteComment: rawOnDeleteCommentProp,
   user,
-  transactions: rawTransactions,
+  transactions: rawTransactionsProp,
   typeMap,
   isAdmin,
   inline,
-  txSummary,
-  loadAllTransactions,
+  txSummary: txSummaryProp,
+  loadAllTransactions: loadAllTransactionsProp,
   onRequestLogin,
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
   onOpenTaxCalculator,
   onOpenSellTimingCalculator,
-  isTxLoading
+  isTxLoading: isTxLoadingProp,
+  isLoadingDetail: isLoadingDetailProp,
+  sheetApartments,
+  nameMapping,
+  txSummaryData,
+  locationScores,
 }: { 
   report: FieldReportData;
   onClose: () => void;
-  comments: CommentData[];
-  commentInput: string;
-  onCommentChange: (text: string) => void;
-  onSubmitComment: () => void;
+  comments?: CommentData[];
+  commentInput?: string;
+  onCommentChange?: (text: string) => void;
+  onSubmitComment?: () => void;
   onDeleteComment?: (commentId: string, text: string) => void;
   user: User | null;
-  transactions: TransactionRecord[];
+  transactions?: TransactionRecord[];
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   isLoadingDetail?: boolean;
   isAdmin?: boolean;
@@ -387,8 +394,80 @@ const FieldReportModal = React.memo(function FieldReportModal({
   onOpenTaxCalculator?: (aptName: string) => void;
   onOpenSellTimingCalculator?: (aptName: string) => void;
   isTxLoading?: boolean;
+  sheetApartments?: Record<string, import('@/lib/dong-apartments').DongApartment[]>;
+  nameMapping?: Record<string, string>;
+  txSummaryData?: Record<string, import('@/lib/types/transaction').AptTxSummary>;
+  locationScores?: Record<string, import('@/lib/types/transaction').LocationScoreItem>;
 }) {
   useSwipeNavigation({ onBack: onClose });
+
+  const { 
+    txSummaryData: _txSummaryData, 
+    fullReportData, 
+    modalTransactions, 
+    isLoadingDetail: hookIsLoadingDetail, 
+    isTxLoading: hookIsTxLoading, 
+    resolvedReport, 
+    aptTxSummary, 
+    loadAllTransactions: hookLoadAllTransactions 
+  } = useApartmentDetails(
+    rawReport, 
+    sheetApartments || {}, 
+    nameMapping, 
+    user, 
+    txSummaryData || {}, 
+    locationScores || {}
+  );
+
+  const report = resolvedReport || rawReport;
+  const rawTransactions = rawTransactionsProp !== undefined ? rawTransactionsProp : (modalTransactions || []);
+  const txSummary = txSummaryProp !== undefined ? txSummaryProp : aptTxSummary;
+  const isTxLoading = isTxLoadingProp !== undefined ? isTxLoadingProp : hookIsTxLoading;
+  const isLoadingDetail = isLoadingDetailProp !== undefined ? isLoadingDetailProp : hookIsLoadingDetail;
+  const loadAllTransactions = loadAllTransactionsProp !== undefined ? loadAllTransactionsProp : hookLoadAllTransactions;
+
+  const { 
+    commentsData, 
+    commentInput: commentsInputMap, 
+    setCommentInput: setCommentsInputMap, 
+    handleSubmitComment, 
+    handleDeleteComment 
+  } = useComments(
+    rawReport, 
+    fullReportData, 
+    user, 
+    () => { if (onRequestLogin) onRequestLogin('댓글을 작성하려면 로그인이 필요합니다.'); }
+  );
+
+  const activeReportId = report.id;
+  const modalComments = commentsData[activeReportId] || [];
+  const modalCommentInput = commentsInputMap[activeReportId] || '';
+
+  const comments = rawCommentsProp || modalComments;
+  const commentInput = rawCommentInputProp !== undefined ? rawCommentInputProp : modalCommentInput;
+
+  const handleCommentChangeLocal = useCallback((text: string) => {
+    setCommentsInputMap(prev => ({ ...prev, [activeReportId]: text }));
+  }, [activeReportId, setCommentsInputMap]);
+
+  const handleSubmitCommentLocal = useCallback(() => {
+    handleSubmitComment(activeReportId);
+  }, [handleSubmitComment, activeReportId]);
+
+  const handleDeleteCommentLocal = useCallback((commentId: string, text: string) => {
+    handleDeleteComment(activeReportId, commentId, text);
+  }, [handleDeleteComment, activeReportId]);
+
+  const onCommentChange = rawOnCommentChangeProp || handleCommentChangeLocal;
+  const onSubmitComment = rawOnSubmitCommentProp || handleSubmitCommentLocal;
+  const onDeleteComment = rawOnDeleteCommentProp || handleDeleteCommentLocal;
+
+  const preloadCalculators = useCallback(() => {
+    import('@/components/consumer/PropertyTaxCalculator').catch(() => {});
+    import('@/components/consumer/SellTimingCalculator').catch(() => {});
+    import('@/components/consumer/MortgageCalculator').catch(() => {});
+    import('@/components/consumer/JeonseSafetyCalculator').catch(() => {});
+  }, []);
   const { areaUnit, setAreaUnit } = useSettingsValues();
   const { showToast } = usePWA();
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -723,7 +802,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   });
   const deferredFilterOutliers = useDeferredValue(filterOutliers);
 
-  const handleToggleFilter = () => {
+  const handleToggleFilter = useCallback(() => {
     setFilterOutliers(prev => {
       const next = !prev;
       try {
@@ -733,7 +812,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       }
       return next;
     });
-  };
+  }, []);
 
   const [managerPost, setManagerPost] = useState<{ id: string; title: string } | null>(null);
 
@@ -1224,7 +1303,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }, 150);
   };
 
-  const handleDownloadWatermarkedImage = async (imageUrl: string) => {
+  const handleDownloadWatermarkedImage = useCallback(async (imageUrl: string) => {
     try {
       const img = new window.Image();
       
@@ -1303,7 +1382,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       logger.error('ApartmentModal.downloadImage', 'Failed to download watermarked image', undefined, error);
       window.open(imageUrl, '_blank', 'noopener,noreferrer');
     }
-  };
+  }, [displayAptName]);
 
   const handleScroll = useCallback(() => {
     if (!modalRef.current) return;
@@ -1314,7 +1393,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
     } else {
       setShowScrollTop(false);
     }
-
     const sections = ['sec-comments', 'sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-jeonse-safety', 'sec-photos'];
     let current = 'sec-comments';
     for (const id of sections) {
@@ -1360,14 +1438,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
     };
   }, [handleScroll, mounted, inline]);
 
-  // Unused variables (coverImage, rating, badge color utils, type filter constants) removed to optimize code hygiene.
-  const s = report.sections;
-
-  const handleKakaoShare = async () => {
+  const handleKakaoShare = useCallback(async () => {
     if (isSharing) return;
     setIsSharing(true);
     trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'kakao' });
-    const shareTheme = getAutoShareTheme();
     const baseUrl = window.location.origin;
 
     try {
@@ -1388,7 +1462,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const shareTexts = getShareText(shareTheme, priceEok, priceMan, ratio, valuation.status, valuation.amount);
       const status = ratio >= 65 ? "실수요안심" : "인기단지";
 
-      // html2canvas 연산 없이, 서버 사이드 Dynamic OG Image API(/api/og) URL을 직접 빌드하여 즉각 공유 창 연결 (캐시 방지 타임스탬프 탑재)
       let imageUrl = `${baseUrl}/api/og?type=apartment&title=${encodeURIComponent(displayAptName)}&price=${encodeURIComponent(priceStr)}&ratio=${ratio.toFixed(1)}&status=${encodeURIComponent(status)}&valStatus=${valuation.status || ''}&valAmount=${encodeURIComponent(valuation.amount || '')}&t=${Date.now()}`;
 
       if (activeTab === 'sec-education' && eduScoreInfo) {
@@ -1422,9 +1495,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
         setIsSharing(false);
       }
     }
-  };
+  }, [isSharing, report.apartmentName, transactions, valuation.status, valuation.amount, displayAptName, activeTab, eduScoreInfo, infraScoreInfo, showToast]);
 
-  const handleDownloadShareCard = async () => {
+  const handleDownloadShareCard = useCallback(async () => {
     if (isSharing) return;
     setIsSharing(true);
     showToast("📸 요약 카드 이미지를 생성하고 있습니다...");
@@ -1433,7 +1506,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
       if (shareActionTimeoutRef.current) {
         clearTimeout(shareActionTimeoutRef.current);
       }
-      // Allow React to mount the off-screen share card DOM before capture
       await new Promise<void>((resolve) => {
         shareActionTimeoutRef.current = setTimeout(() => {
           shareActionTimeoutRef.current = null;
@@ -1448,7 +1520,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
         const canvas = await safeHtml2canvasPro(html2canvasProInstance, shareCardRef.current, {
           width: 1200,
           height: 630,
-          scale: 2.0, // 고화질 저장용 2.0 스케일
+          scale: 2.0,
           useCORS: true,
           backgroundColor: '#0f172a',
           logging: false
@@ -1469,14 +1541,14 @@ const FieldReportModal = React.memo(function FieldReportModal({
     } catch (error) {
       logger.error('ApartmentModal.downloadCard', 'Image card download failed', undefined, error);
       if (mountedRef.current) {
-        showToast("이미지 저장 중 오류가 발생했습니다. 상단의 '단톡방 요약 복사'를 통해 텍스트로 공유해 보세요!");
+        showToast("이미지 저장 중 오류가 발생했습니다.");
       }
     } finally {
       if (mountedRef.current) {
         setIsSharing(false);
       }
     }
-  };
+  }, [isSharing, report.apartmentName, showToast]);
 
   const fallbackCopyTextToClipboard = (text: string): boolean => {
     const textArea = document.createElement("textarea");
@@ -1504,7 +1576,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }
   };
 
-  const handleCopyLink = () => {
+  const handleCopyLink = useCallback(() => {
     trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'copy_url' });
     const baseUrl = window.location.origin;
     let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
@@ -1551,9 +1623,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
         showToast("링크 복사에 실패했습니다.");
       }
     }
-  };
+  }, [report.apartmentName, activeTab, eduScoreInfo, infraScoreInfo, showToast]);
 
-  const handleCopySummary = async () => {
+  const handleCopySummary = useCallback(async () => {
     trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'copy_summary' });
     const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
     const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -1565,7 +1637,6 @@ const FieldReportModal = React.memo(function FieldReportModal({
     const priceMan = price % 10000;
     const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
     
-    // Calculate maximum sale price
     const salePrices = saleTxs.map(t => t.price).filter(p => p > 0);
     const maxPrice = salePrices.length > 0 ? Math.max(...salePrices) : 0;
     const maxPriceEok = maxPrice > 0 ? maxPrice / 10000 : undefined;
@@ -1596,7 +1667,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
     if (success) {
       if (!mountedRef.current) return;
-      showToast("🎉 단톡방용 요약본 복사 완료! 원하는 단톡방이나 맘카페에 붙여넣기(Ctrl+V) 하세요.");
+      showToast("🎉 단톡방용 요약본 복사 완료!");
       setCopiedStatus('summary');
       if (copiedTimeoutRef.current) {
         clearTimeout(copiedTimeoutRef.current);
@@ -1611,9 +1682,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
     } else {
       showToast("요약본 복사에 실패했습니다.");
     }
-  };
+  }, [report.apartmentName, transactions, eduScoreInfo, infraScoreInfo, displayAptName, valuation.status, valuation.amount, showToast]);
 
-  const handleNativeShare = async () => {
+  const handleNativeShare = useCallback(async () => {
     const baseUrl = window.location.origin;
     let shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
     let title = `${displayAptName} 가치분석 리포트`;
@@ -1624,13 +1695,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const score = eduScoreInfo.score;
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
       title = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
-      desc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+      desc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 상세 분석을 D-VIEW에서 확인하세요.`;
     } else if (activeTab === 'sec-infra-metrics' && infraScoreInfo) {
       const grade = infraScoreInfo.grade;
       const score = infraScoreInfo.score;
       shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
       title = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
-      desc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
+      desc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 상세 분석을 D-VIEW에서 확인하세요.`;
     } else {
       const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
       const jeonseTxs = transactions.filter(t => t.dealType === '전세');
@@ -1645,7 +1716,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const ratio = price > 0 && jeonsePrice > 0 ? (jeonsePrice / price) * 100 : 0;
       const priceStr = priceMan > 0 ? `${priceEok}억 ${priceMan.toLocaleString()}만원` : `${priceEok}억원`;
 
-      desc = `실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\nDVIEW에서 ${displayAptName} 단지의 입지, 학군, 실거래가 밸류에이션 리포트를 지금 확인해보세요.`;
+      desc = `실거래가 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%. DVIEW에서 리포트를 확인해보세요.`;
     }
 
     if (navigator.share) {
@@ -1657,16 +1728,15 @@ const FieldReportModal = React.memo(function FieldReportModal({
         });
       } catch (err) {
         if ((err as Error).name !== 'AbortError') {
-          logger.error('ApartmentModal.nativeShare', 'Native share failed', undefined, err);
           handleKakaoShare();
         }
       }
     } else {
       handleKakaoShare();
     }
-  };
+  }, [report.apartmentName, displayAptName, activeTab, eduScoreInfo, infraScoreInfo, transactions, handleKakaoShare]);
 
-  const handleShareSection = async (type: 'childcare' | 'infra') => {
+  const handleShareSection = useCallback(async (type: 'childcare' | 'infra') => {
     if (!report.metrics) return;
     
     const baseUrl = window.location.origin;
@@ -1677,7 +1747,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
       const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
       
       const customTitle = `🏫 [육아·학군] ${displayAptName} - ${grade}등급`;
-      const customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 초등학교 통학 및 학원가 인프라 상세 분석을 D-VIEW에서 확인하세요.`;
+      const customDesc = `종합 육아 환경 지수 ${score}점 (${eduScoreInfo.description.split(' (')[0]}). 상세 분석을 D-VIEW에서 확인하세요.`;
       const imageUrl = `${baseUrl}/api/og?shareType=childcare&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
       
       if (navigator.share) {
@@ -1690,35 +1760,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
         } catch (err) {
           if ((err as Error).name !== 'AbortError') {
             navigator.clipboard.writeText(shareUrl).then(() => {
-              showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
-              setCopiedStatus('edu-link');
-              if (copiedTimeoutRef.current) {
-                clearTimeout(copiedTimeoutRef.current);
-                copiedTimeoutRef.current = null;
-              }
-              copiedTimeoutRef.current = setTimeout(() => {
-                if (mountedRef.current) {
-                  setCopiedStatus(null);
-                  copiedTimeoutRef.current = null;
-                }
-              }, 1500);
+              showToast("🎉 학군·육아 분석 링크가 복사되었습니다!");
             });
           }
         }
       } else {
         navigator.clipboard.writeText(shareUrl).then(() => {
-          showToast("🎉 학군·육아 분석 공유 링크가 복사되었습니다!");
-          setCopiedStatus('edu-link');
-          if (copiedTimeoutRef.current) {
-            clearTimeout(copiedTimeoutRef.current);
-            copiedTimeoutRef.current = null;
-          }
-          copiedTimeoutRef.current = setTimeout(() => {
-            if (mountedRef.current) {
-              setCopiedStatus(null);
-              copiedTimeoutRef.current = null;
-            }
-          }, 1500);
+          showToast("🎉 학군·육아 분석 링크가 복사되었습니다!");
         });
       }
       
@@ -1735,13 +1783,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
       } catch (e) {
         logger.error('ApartmentModal.shareSection.childcare', 'Failed to share childcare section to Kakao', undefined, e);
       }
-    } else if (infraScoreInfo) {
+    } else if (type === 'infra' && infraScoreInfo) {
       const grade = infraScoreInfo.grade;
       const score = infraScoreInfo.score;
       const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
       
       const customTitle = `🚇 [입지·인프라] ${displayAptName} - ${grade}등급`;
-      const customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 대중교통 접근성 및 핵심 상권 밀집 분석을 D-VIEW에서 확인하세요.`;
+      const customDesc = `종합 생활 인프라 지수 ${score}점 (${infraScoreInfo.description.split(' (')[0]}). 상세 분석을 D-VIEW에서 확인하세요.`;
       const imageUrl = `${baseUrl}/api/og?shareType=infra&grade=${grade}&score=${score}&title=${encodeURIComponent(displayAptName)}`;
       
       if (navigator.share) {
@@ -1754,35 +1802,13 @@ const FieldReportModal = React.memo(function FieldReportModal({
         } catch (err) {
           if ((err as Error).name !== 'AbortError') {
             navigator.clipboard.writeText(shareUrl).then(() => {
-              showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
-              setCopiedStatus('infra-link');
-              if (copiedTimeoutRef.current) {
-                clearTimeout(copiedTimeoutRef.current);
-                copiedTimeoutRef.current = null;
-              }
-              copiedTimeoutRef.current = setTimeout(() => {
-                if (mountedRef.current) {
-                  setCopiedStatus(null);
-                  copiedTimeoutRef.current = null;
-                }
-              }, 1500);
+              showToast("🎉 입지·인프라 분석 링크가 복사되었습니다!");
             });
           }
         }
       } else {
         navigator.clipboard.writeText(shareUrl).then(() => {
-          showToast("🎉 입지·인프라 분석 공유 링크가 복사되었습니다!");
-          setCopiedStatus('infra-link');
-          if (copiedTimeoutRef.current) {
-            clearTimeout(copiedTimeoutRef.current);
-            copiedTimeoutRef.current = null;
-          }
-          copiedTimeoutRef.current = setTimeout(() => {
-            if (mountedRef.current) {
-              setCopiedStatus(null);
-              copiedTimeoutRef.current = null;
-            }
-          }, 1500);
+          showToast("🎉 입지·인프라 분석 링크가 복사되었습니다!");
         });
       }
       
@@ -1800,7 +1826,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
         logger.error('ApartmentModal.shareSection.infra', 'Failed to share infra section to Kakao', undefined, e);
       }
     }
-  };
+  }, [report.metrics, report.apartmentName, displayAptName, eduScoreInfo, infraScoreInfo, showToast]);
+
 
 
   const content = (
@@ -1908,6 +1935,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   {onOpenCompare && (
                     <button
                       onClick={() => { onOpenCompare(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
                       <Radar size={15} className="text-[#c44d00]" />
@@ -1920,6 +1949,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   {onOpenJeonseSafety && (
                     <button
                       onClick={() => { onOpenJeonseSafety(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
                       <Shield size={15} className="text-[#ff8f00]" />
@@ -1932,6 +1963,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   {onOpenMortgage && (
                     <button
                       onClick={() => { onOpenMortgage(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
                       <Calculator size={15} className="text-[#c44d00]" />
@@ -1944,6 +1977,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   {onOpenTaxCalculator && (
                     <button
                       onClick={() => { onOpenTaxCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
                       <GraduationCap size={15} className="text-[#ff8f00]" />
@@ -1956,6 +1991,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   {onOpenSellTimingCalculator && (
                     <button
                       onClick={() => { onOpenSellTimingCalculator(report.apartmentName); setIsToolDropdownOpen(false); }}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent"
                     >
                       <ShieldAlert size={15} className="text-[#f04452]" />
@@ -2048,7 +2085,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           
           {/* Left: 실거래가 전체 리스트 (35%) */}
           <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
-            {isTxLoading ? (
+            {!isAnimationFinished || isTxLoading ? (
               <TransactionTableSkeleton />
             ) : (
               <TransactionTable 
@@ -2063,7 +2100,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           {/* Right: 실거래가 차트 (65%) */}
           <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
             <ErrorBoundary name="실거래 차트">
-              {isTxLoading ? (
+              {!isAnimationFinished || isTxLoading ? (
                 <TransactionChartSkeleton />
               ) : (
                 <TransactionChartSection 
@@ -2214,6 +2251,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   <div className="mt-4 flex justify-center">
                     <button
                       onClick={() => onOpenTaxCalculator(report.apartmentName)}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full max-w-md py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
                     >
                       <Calculator size={16} />
@@ -2227,6 +2266,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
                   <div className="mt-3 flex justify-center">
                     <button
                       onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
+                      onMouseEnter={preloadCalculators}
+                      onFocus={preloadCalculators}
                       className="w-full max-w-md py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
                     >
                       <Calculator size={16} />

@@ -109,3 +109,38 @@ Integrity mode: development
 ### 성능 최적화 검증
 - [ ] 불필요하게 쪼개지지 않은 무거운 컴포넌트들의 추가적인 코드 분할(Code Splitting)이 성공적으로 적용되었는지 검증.
 - [ ] UI 상호작용 시 지연(Lag)이 최소화되고 부드러운 전환이 보장되는지 검증.
+
+## 2026-07-17T04:46:26Z
+
+D-VIEW 웹 애플리케이션의 페이지 간 전환 및 모달(ApartmentModal) 출력 반응 속도를 높이기 위한 전체 레이어 최적화 및 리팩토링 프로젝트입니다. 
+
+Working directory: c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. 페이지 전환 최적화 (Page Transition Optimization)
+- Next.js 라우터/Link 기반 프리프레임/프리페치(`Link` 컴포넌트 프리페치 최적화, 마우스 호버 시 programmatic prefetch 적용)를 최적화하여 페이지 전환 시 딜레이를 최소화합니다.
+- 서비스 워커(`public/sw.js`) 캐싱 정책을 개선하여 정적 JS 청크 및 데이터 JSON 파일의 로딩 속도를 향상시킵니다.
+- 페이지 전환 시 불필요하게 데이터가 중복 요청되거나 상태가 리셋되는 현상을 방지하도록 SWR/React Context 수준의 캐싱을 점검하고 보완합니다.
+
+### R2. 모달 출력 속도 최적화 (Modal Render Speed Optimization)
+- `ApartmentModal` 및 그 내부의 무거운 컴포넌트(차트, 댓글 리스트, 사진 업로드, 부가 정보 계산기 등)를 dynamic import를 사용하여 효율적으로 분할 로딩합니다.
+- 모달이 열리기 전에 마우스 호버(hover)나 포커스 시점에 핵심 청크 및 데이터를 미리 불러오는 프리로드(preload) 메커니즘을 고도화합니다.
+- 렌더링 병목을 유발하는 컴포넌트(리차트, 테이블 뷰 등)에 `React.memo`, `useMemo`, `useCallback` 등을 적용하여 중복 렌더링과 버벅임(Jank) 현상을 해결합니다.
+
+### R3. 빌드 안정성 및 성능 검증 (Verification & Build Stability)
+- 리팩토링 이후 Next.js 프로덕션 빌드(`npm run build`)가 오류 없이 정상 완료되어야 합니다.
+- 기존의 Playwright E2E 성능 테스트 및 라우팅 테스트(`performance-ux.spec.ts`, `routing-bug.spec.ts`)를 모두 성공적으로 통과해야 합니다.
+- 필요 시, 최적화 전후 성능 차이를 정량적으로 측정할 수 있는 커스텀 벤치마크 스크립트를 실행하여 로딩 시간 단축 여부를 검증합니다.
+
+## Acceptance Criteria
+
+### Build & Test Stability
+- [ ] `npm run build` 명령어 실행 시 컴파일 에러나 경고 없이 빌드가 성공해야 함
+- [ ] `npm run test:e2e` 실행 시 `performance-ux.spec.ts` 및 `routing-bug.spec.ts` 테스트가 실패 없이 완료되어야 함
+
+### Performance Optimization
+- [ ] `ApartmentModal` 호출 시 메인 모달 프레임과 스켈레톤이 즉시(100ms 이내) 렌더링되어야 함
+- [ ] 페이지 내 마우스 호버 시 해당 링크의 데이터와 JS 청크 프리로드가 백그라운드에서 동작해야 함
+- [ ] 사용되지 않는 탭의 무거운 라이브러리(Recharts 등)와 컴포넌트가 모달 오픈 초기 시점에 번들을 막지 않도록 lazy 로딩이 정상 작동해야 함

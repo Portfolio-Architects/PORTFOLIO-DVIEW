@@ -4,6 +4,7 @@ import React, { ReactNode, useEffect, useRef, useCallback } from 'react';
 import { SWRConfig, preload } from 'swr';
 import { useNetworkStatus } from '@/lib/hooks/useNetworkStatus';
 import { logger } from '@/lib/services/logger';
+import { BUILD_VERSION } from '@/lib/build-version';
 
 // Default fetcher wrapper for preloading static data assets safely
 const defaultFetcher = async (url: string) => {
@@ -68,7 +69,19 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
           const parsed = JSON.parse(rawCache);
           if (Array.isArray(parsed) && parsed.every(entry => Array.isArray(entry) && entry.length === 2)) {
             // Clean up any legacy or empty error objects from cached SWR states
-            initialEntries = parsed.map(([key, val]) => {
+            // Also filter out and purge any key with mismatched v version query param
+            let hasPurged = false;
+            const filtered = parsed.filter(([key]) => {
+              if (typeof key !== 'string') return true;
+              const vMatch = key.match(/[?&]v=([^&]+)/);
+              if (vMatch && vMatch[1] !== BUILD_VERSION) {
+                hasPurged = true;
+                return false;
+              }
+              return true;
+            });
+
+            initialEntries = filtered.map(([key, val]) => {
               if (val && typeof val === 'object' && 'error' in val) {
                 const cleaned = { ...val };
                 delete cleaned.error;
@@ -76,6 +89,11 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
               }
               return [key, val];
             });
+
+            if (hasPurged) {
+              logger.info('SWRProvider.getCache', 'Purged stale cache version entries from localStorage');
+              localStorage.setItem('app-swr-cache', JSON.stringify(initialEntries));
+            }
           } else {
             logger.warn('SWRProvider.getCache', 'Invalid cache structure inside localStorage');
           }
@@ -102,6 +120,11 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
           .filter(([key, value]) => {
             // Only serialize static JSON assets/APIs and check serializability
             if (typeof key !== 'string') return false;
+            
+            // Check version query param to prevent syncing mismatched versions
+            const vMatch = key.match(/[?&]v=([^&]+)/);
+            if (vMatch && vMatch[1] !== BUILD_VERSION) return false;
+
             const isTarget = key.startsWith('/data/') || 
                              key.startsWith('/api/apartments-by-dong') || 
                              key.startsWith('/api/location-scores') ||

@@ -216,8 +216,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 
 import { useFavorites } from '@/hooks/useFavorites';
-import { useApartmentDetails } from '@/hooks/useApartmentDetails';
-import { useComments } from '@/hooks/useComments';
+import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import LoginGateModal from '@/components/ui/LoginGateModal';
@@ -349,13 +348,7 @@ const DashboardClient = React.memo(function DashboardClient({
     return matchKey ? locationScores[matchKey] : {};
   }, [locationScores, nameMapping]);
   
-  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions, preloadApartmentTx } = useApartmentDetails(
-    selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
-  );
-  
-  const { commentsData, commentInput, setCommentInput, handleSubmitComment, handleDeleteComment } = useComments(
-    selectedReport, fullReportData, user, handleLogin
-  );
+  const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummary);
 
   const { triggerCustomA2HSModal } = usePWA();
 
@@ -730,20 +723,7 @@ const DashboardClient = React.memo(function DashboardClient({
     window.history.replaceState(null, '', window.location.pathname + window.location.search);
   }, [setSelectedReport]);
 
-  const handleCommentChange = useCallback((text: string) => {
-    if (!resolvedReport) return;
-    setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }));
-  }, [resolvedReport?.id, setCommentInput]);
 
-  const handleSubmitCommentCallback = useCallback(() => {
-    if (!resolvedReport) return;
-    handleSubmitComment(resolvedReport.id);
-  }, [resolvedReport?.id, handleSubmitComment]);
-
-  const handleDeleteCommentCallback = useCallback((commentId: string, text: string) => {
-    if (!resolvedReport) return;
-    handleDeleteComment(resolvedReport.id, commentId, text);
-  }, [resolvedReport?.id, handleDeleteComment]);
 
   const handleAptToggleFavorite = useCallback((aptName: string) => {
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
@@ -763,7 +743,7 @@ const DashboardClient = React.memo(function DashboardClient({
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
-                txSummaryData={txSummaryData}
+                txSummaryData={txSummary}
                 recentTransactions={filteredRecentTransactions}
                 macroTrendData={macroTrend}
                 nameMapping={nameMapping || EMPTY_OBJECT}
@@ -816,7 +796,7 @@ const DashboardClient = React.memo(function DashboardClient({
     activeTab,
     mounted,
     sheetApartments,
-    txSummaryData,
+
     macroTrend,
     nameMapping,
     updateFavoriteOrder,
@@ -968,24 +948,18 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
-        {resolvedReport && mobileModalOpen && (
+        {selectedReport && mobileModalOpen && (
           <FieldReportModal
-            report={resolvedReport}
+            report={selectedReport}
             onClose={handleCloseMobileModal}
-            comments={commentsData[resolvedReport.id] || []}
-            commentInput={commentInput[resolvedReport.id] || ''}
-            onCommentChange={handleCommentChange}
-            onSubmitComment={handleSubmitCommentCallback}
-            onDeleteComment={handleDeleteCommentCallback}
             user={user}
-            transactions={modalTransactions}
-            isTxLoading={isTxLoading}
             typeMap={typeMap}
             inline={false}
-            isLoadingDetail={isLoadingDetail}
-            loadAllTransactions={loadAllTransactions}
             isAdmin={dashboardFacade.isAdmin(user?.email)}
-            txSummary={aptTxSummary}
+            sheetApartments={sheetApartments}
+            nameMapping={nameMapping || {}}
+            txSummaryData={txSummary}
+            locationScores={locationScores}
             onRequestLogin={handleRequestLogin}
             onOpenCompare={handleOpenCompare}
             onOpenJeonseSafety={handleOpenJeonseSafety}

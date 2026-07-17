@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useDeferredValue, useEffect, useCallback, useTransition } from "react";
+import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
 import { createPortal } from "react-dom";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
@@ -50,28 +50,21 @@ import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
 import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from "@/lib/utils/apartmentMapping";
-import { haversineDistance } from "@/lib/utils/haversine";
 import { useSettingsValues } from "@/lib/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores } from "@/hooks/useStaticData";
 import { BUILD_VERSION } from "@/lib/build-version";
-import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
 import {
-  ArrowUp,
   Info,
   ChevronDown,
   ChevronUp,
   ChevronRight,
-  ChevronLeft,
-  MessageSquare,
   Compass,
   Shield,
   Calculator,
   TrendingUp,
-  Train,
   Settings,
-  Sparkles,
   X,
   Calendar,
 } from "lucide-react";
@@ -180,15 +173,6 @@ interface MacroDashboardProps {
 }
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
-
-const COLORS = [
-  "#ea6100",
-  "#4196f7",
-  "#f9a825",
-  "#f04452",
-  "#b0b8c1",
-];
-const LINE_COLORS = ["#b0b8c1", "#ea6100", "#f04452", "#00a261", "#f9a825"];
 
 const hexToRgba = (hex: string, alpha: number) => {
   let cleanHex = hex.replace("#", "");
@@ -383,24 +367,6 @@ const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): D
   return null;
 };
 
-const parsePriceEokHelper = (priceStr: string): number => {
-  if (typeof priceStr !== 'string') return 0;
-  let total = 0;
-  const clean = priceStr.replace(/,/g, '').trim();
-  if (clean.includes('억')) {
-    const parts = clean.split('억');
-    total += parseFloat(parts[0]) || 0;
-    if (parts[1]) {
-      const tenMillion = parseFloat(parts[1].replace(/[^0-9.]/g, '')) || 0;
-      total += tenMillion / 10000;
-    }
-  } else {
-    const val = parseFloat(clean.replace(/[^0-9.]/g, '')) || 0;
-    total += val / 10000;
-  }
-  return total;
-};
-
 interface TimelineItemCardProps {
   item: TimelineItem;
   isSelected: boolean;
@@ -548,7 +514,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
   const [mounted, setMounted] = useState(false);
-  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     setMounted(true);
@@ -689,7 +654,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   // Removed unused activeIndex, isTooltipActive, and isTouchDevice states
 
 
-  const [chartMode, setChartMode] = useState<string>("30");
   const [timeframe, setTimeframe] = useState<
     "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL"
   >("3Y");

@@ -40,16 +40,16 @@ const Footer = React.memo(function Footer() {
             </div>
             
             <nav role="navigation" aria-label="하단 서비스 메뉴" className="flex flex-wrap items-center gap-4 sm:gap-5">
-              <Link href="/about" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/about" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 D-VIEW 소개
               </Link>
-              <Link href="/contact" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/contact" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 문의하기
               </Link>
-              <Link href="/terms" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/terms" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 서비스 이용약관
               </Link>
-              <Link href="/privacy" className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
+              <Link href="/privacy" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 개인정보처리방침
               </Link>
             </nav>

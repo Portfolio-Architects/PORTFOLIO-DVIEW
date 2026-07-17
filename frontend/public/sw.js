@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1784263216451';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1784263216451';
+const CACHE_NAME = 'dview-cache-v-1784264630462';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1784264630462';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -117,28 +117,35 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Network First, Fallback to Cache
+  // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Stale-While-Revalidate (SWR)
   // 단, 용량이 크고 실시간 데이터와 정합이 중요한 tx-summary.json은 캐싱 레이턴시 배제를 위해 SWR 캐시에서 제외합니다.
   if ((url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) && !url.pathname.includes('tx-summary.json')) {
     event.respondWith(
-      fetch(req)
-        .then((networkRes) => {
-          if (networkRes.status === 200) {
-            const clone = networkRes.clone();
-            caches.open(DYNAMIC_CACHE_NAME).then((cache) => cache.put(req, addCacheTimestamp(clone)));
+      caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
+        return cache.match(req).then((cachedRes) => {
+          const fetchPromise = fetch(req)
+            .then((networkRes) => {
+              if (networkRes.status === 200) {
+                cache.put(req, addCacheTimestamp(networkRes.clone()));
+              }
+              return networkRes;
+            })
+            .catch(() => {
+              // Ignore background fetch error to keep SWR non-blocking
+            });
+
+          if (cachedRes) {
+            checkCacheExpiration(cachedRes, req);
+            return cachedRes;
           }
-          return networkRes;
-        })
-        .catch(() => {
-          return caches.match(req).then((cachedRes) => {
-            if (cachedRes) {
-              checkCacheExpiration(cachedRes, req);
-              return cachedRes;
-            }
+
+          return fetchPromise.then((networkRes) => {
+            if (networkRes) return networkRes;
             // Offline fallback
             return new Response('[]', { headers: { 'Content-Type': 'application/json' } });
           });
-        })
+        });
+      })
     );
     return;
   }

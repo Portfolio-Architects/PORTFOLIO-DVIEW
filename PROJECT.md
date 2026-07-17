@@ -15,10 +15,10 @@
 | 3 | R2: Navigation | Align menus and active states | M2 | DONE |
 | 4 | R3: CLS & Skeletons | Eliminate Layout Shifts, fix transitions | M3 | DONE |
 | 5 | Verification | Run all UI/UX tests, npm run audit, npm run build | M4 | DONE |
-| 6 | Performance Analysis | Profile overview page rendering bottlenecks | M5 | PLANNED |
-| 7 | Memoization & Lazy | React.memo, useMemo, useCallback, Lazy Rendering | M6 | PLANNED |
-| 8 | Code Splitting | Dynamic loading in MacroDashboardClient | M7 | PLANNED |
-| 9 | Final Verification | Run Playwright, Jest, npm run build, integrity checks | M8 | PLANNED |
+| 6 | Performance Analysis | Profile overview page rendering bottlenecks | M5 | DONE |
+| 7 | Memoization & Lazy | React.memo, useMemo, useCallback, Lazy Rendering | M6 | DONE |
+| 8 | Code Splitting | Dynamic loading in MacroDashboardClient | M7 | DONE |
+| 9 | Final Verification | Run Playwright, Jest, npm run build, integrity checks | M8 | DONE |
 
 ## Interface Contracts
 ### LoungeHeader ↔ MobileDock

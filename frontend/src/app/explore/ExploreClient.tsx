@@ -13,8 +13,7 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useApartmentDetails } from '@/hooks/useApartmentDetails';
-import { useComments } from '@/hooks/useComments';
+import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
@@ -306,13 +305,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     return matchKey ? locationScores[matchKey] : {};
   };
 
-  const { txSummaryData, fullReportData, modalTransactions, isLoadingDetail, isTxLoading, resolvedReport, aptTxSummary, loadAllTransactions, preloadApartmentTx } = useApartmentDetails(
-    selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
-  );
-
-  const { commentsData, commentInput, setCommentInput, handleSubmitComment, handleDeleteComment } = useComments(
-    selectedReport, fullReportData, user, handleLogin
-  );
+  const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummary);
 
   const { triggerCustomA2HSModal } = usePWA();
 
@@ -513,7 +506,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                 />
                 <TossApartmentExploreClient
                   sheetApartments={sheetApartments}
-                  txSummaryData={txSummaryData}
+                  txSummaryData={txSummary}
                   nameMapping={nameMapping || {}}
                   fieldReportsMap={fieldReportsMap}
                   publicRentalSet={publicRentalSet}
@@ -534,28 +527,22 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
 
             {/* Apartment Detail Modal */}
-            {resolvedReport && mobileModalOpen && (
+            {selectedReport && mobileModalOpen && (
               <FieldReportModal
-                report={resolvedReport}
+                report={selectedReport}
                 onClose={() => {
                   setSelectedReport(null);
                   setMobileModalOpen(false);
                   window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 }}
-                comments={commentsData[resolvedReport.id] || []}
-                commentInput={commentInput[resolvedReport.id] || ''}
-                onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
-                onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
-                onDeleteComment={(commentId, text) => handleDeleteComment(resolvedReport.id, commentId, text)}
                 user={user}
-                transactions={modalTransactions}
-                isTxLoading={isTxLoading}
                 typeMap={typeMap}
                 inline={false}
-                isLoadingDetail={isLoadingDetail}
-                loadAllTransactions={loadAllTransactions}
                 isAdmin={dashboardFacade.isAdmin(user?.email)}
-                txSummary={aptTxSummary}
+                sheetApartments={sheetApartments}
+                nameMapping={nameMapping || {}}
+                txSummaryData={txSummary}
+                locationScores={locationScores}
 
                 onRequestLogin={handleRequestLogin}
                 onOpenCompare={(aptName) => {
