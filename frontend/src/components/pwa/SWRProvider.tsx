@@ -157,6 +157,19 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
             // Mute errors in console when offline to avoid spamming
             return;
           }
+          
+          const errMsg = err?.message || String(err);
+          const isNetworkError = errMsg.includes('Failed to fetch') || 
+                                 errMsg.includes('fetch failed') || 
+                                 errMsg.includes('NetworkError') ||
+                                 errMsg.includes('AbortError') ||
+                                 (err?.name === 'AbortError');
+
+          if (isNetworkError) {
+            logger.warn('SWRProvider.onError', 'SWR Transient Network Error', { error: errMsg });
+            return;
+          }
+
           logger.error('SWRProvider.onError', 'SWR Global Error', undefined, err);
         }
       }}
