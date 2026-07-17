@@ -782,7 +782,7 @@ const LoungeDetailClient = React.memo(function LoungeDetailClient({ postId, init
           dangerouslySetInnerHTML={{ __html: loungeDetailJsonLd }}
         />
       )}
-      <div className={`w-full ${isModal ? 'h-full bg-surface relative' : 'min-h-screen bg-body pb-[100px]'} font-sans text-left`}>
+      <div className={`w-full ${isModal ? 'h-full bg-surface/75 dark:bg-zinc-900/75 backdrop-blur-xl relative' : 'min-h-screen bg-body pb-[100px]'} font-sans text-left`}>
         {/* Modal Controls */}
         {isModal && (
           <button 

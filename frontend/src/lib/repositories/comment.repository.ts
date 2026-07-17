@@ -4,7 +4,7 @@
  * Architecture Layer: Repository (CRUD only)
  */
 import { db } from '@/lib/firebaseConfig';
-import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDoc, getDocs, writeBatch } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, doc, updateDoc, increment, serverTimestamp, getDoc, getDocs, writeBatch, where } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
 import type { CommentData } from '@/lib/types/report.types';
 import { commentConverter } from '@/lib/utils/firestoreConverters';
@@ -23,6 +23,7 @@ interface RawCommentDoc {
   data: {
     text?: string;
     authorName?: string;
+    authorUid?: string;
     createdAt?: unknown;
   };
 }
@@ -128,6 +129,7 @@ export function listenToComments(
         id: docSnap.id,
         text: data.text || '',
         authorName: data.authorName || '익명',
+        authorUid: data.authorUid || '',
         createdAt: formatTimestamp(data.createdAt, '방금 전'),
       };
 
@@ -137,6 +139,7 @@ export function listenToComments(
           id: mapped.id,
           text: parsed.data.text,
           author: parsed.data.authorName,
+          authorUid: mapped.authorUid,
           createdAt: mapped.createdAt
         } as CommentData);
       } else {
@@ -145,6 +148,7 @@ export function listenToComments(
           id: mapped.id,
           text: mapped.text,
           author: mapped.authorName,
+          authorUid: mapped.authorUid,
           createdAt: mapped.createdAt
         } as CommentData);
       }
@@ -192,11 +196,12 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
   }
 
   return rawDocs.map(item => {
-    const data = item.data;
+    const data = item.data as any;
     const mapped = {
       id: item.id,
       text: data.text || '',
       authorName: data.authorName || '익명',
+      authorUid: data.authorUid || '',
       createdAt: formatTimestamp(data.createdAt, '방금 전'),
     };
 
@@ -206,6 +211,7 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
         id: mapped.id,
         text: parsed.data.text,
         author: parsed.data.authorName,
+        authorUid: mapped.authorUid,
         createdAt: mapped.createdAt
       } as CommentData;
     } else {
@@ -214,9 +220,60 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
         id: mapped.id,
         text: mapped.text,
         author: mapped.authorName,
+        authorUid: mapped.authorUid,
         createdAt: mapped.createdAt
       } as CommentData;
     }
   });
+}
+
+/**
+ * Atomically deletes a comment from a field report's subcollection, 
+ * deletes its corresponding lounge feed document, and decrements parent comment count.
+ */
+export async function deleteComment(
+  reportId: string,
+  commentId: string,
+  authorUid: string,
+  text: string
+): Promise<void> {
+  try {
+    const batch = writeBatch(db);
+
+    // 1. Delete main comment document
+    const commentRef = doc(db, `field_reports/${reportId}/comments`, commentId);
+    batch.delete(commentRef);
+
+    // 2. Query and delete from lounge_apt_stories (double-written feed)
+    const storiesRef = collection(db, 'lounge_apt_stories');
+    const q = query(
+      storiesRef,
+      where('reportId', '==', reportId),
+      where('authorUid', '==', authorUid),
+      where('text', '==', text)
+    );
+    const storySnaps = await getDocs(q);
+    storySnaps.forEach((docSnap) => {
+      batch.delete(doc(db, 'lounge_apt_stories', docSnap.id));
+    });
+
+    // 3. Decrement parent report's comment count
+    const scoutingRef = doc(db, 'scoutingReports', reportId);
+    const scoutingSnap = await getDoc(scoutingRef);
+    const parentReportRef = scoutingSnap.exists()
+      ? scoutingRef
+      : doc(db, 'field_reports', reportId);
+
+    batch.update(parentReportRef, {
+      commentCount: increment(-1),
+    });
+
+    await throttle(() => batch.commit());
+
+    logger.info('CommentRepository.deleteComment', 'Comment deleted with atomic writeBatch', { reportId, commentId });
+  } catch (error) {
+    logger.error('CommentRepository.deleteComment', 'Failed to delete comment atomically', { reportId, commentId }, error);
+    throw error;
+  }
 }
 

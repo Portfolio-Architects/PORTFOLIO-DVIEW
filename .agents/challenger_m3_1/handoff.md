@@ -1,146 +1,124 @@
-# Handoff Report
+# Lounge Enhancement Verification Report
 
 ## 1. Observation
+- **Jest Unit Tests (npm run test)**: Executed `npm run test` inside the `frontend/` directory. All tests completed successfully.
+  - Verbatim Output Summary:
+    ```
+    PASS src/lib/dongs.test.ts
+    PASS src/lib/utils/valuation.test.ts
+    PASS src/lib/utils/nickname.test.ts
+    PASS src/lib/utils/haversine.test.ts
+    PASS src/lib/utils/localCache.test.ts
+    PASS src/components/pwa/SWRProvider.test.tsx
+    PASS src/lib/utils/firestoreThrottle.test.ts
+    PASS src/components/apartment-modal/ChildcareDetailSection.test.tsx
+    PASS src/lib/utils/brandMapping.test.ts
+    PASS src/lib/services/logger.test.ts
+    PASS src/lib/utils/date.test.ts
+    PASS src/lib/utils/structuredData.test.ts
+    PASS src/lib/utils/analytics.test.ts
+    PASS src/lib/utils/subscribable.test.ts
+    PASS src/components/GapInvestmentExplorer.test.tsx
+    PASS src/components/consumer/SellTimingCalculator.test.tsx
+    PASS src/components/LoungeFeedClient.test.tsx
+    PASS src/components/consumer/PropertyTaxCalculator.test.tsx
+    PASS src/components/consumer/AptCompareModal.test.tsx
+    PASS src/components/consumer/AIRecommendations.test.tsx
+    PASS src/components/consumer/MortgageCalculator.test.tsx
 
-### Donut Chart Hover Optimization
-In the Donut chart component located at `frontend/src/components/macro/TechnoValleyDashboard.tsx`, the SVG `<Cell>` elements are rendered as follows (lines 934-948):
-```tsx
-{donutData.map((entry: any, index: number) => {
-  const isSelected = activeCategory === entry.name;
-  return (
-    <Cell 
-       key={`cell-${index}`} 
-       fill={entry.color} 
-       stroke={isSelected ? 'var(--text-primary)' : 'var(--bg-surface)'}
-       strokeWidth={isSelected ? 4 : 2.5}
-       opacity={activeCategory === null || isSelected ? 0.99 : 0.6}
-       className="transition-transform duration-300 transform hover:scale-105 origin-center focus:outline-none cursor-pointer"
-       style={{ outline: 'none', transformOrigin: '50% 50%', willChange: 'transform' }}
-       onClick={() => setActiveCategory(isSelected ? null : entry.name)}
-    />
-  );
-})}
-```
-No `onMouseEnter`, `onMouseLeave`, `onHover`, or active shape tracking props are declared on `<Cell>` or `<Pie>`. The component relies solely on `onClick` to update the React state variable `activeCategory`.
+    Test Suites: 30 passed, 30 total
+    Tests:       199 passed, 199 total
+    Snapshots:   0 total
+    Time:        51.891 s
+    ```
 
----
+- **Playwright E2E Tests (npm run test:e2e)**: Executed `npm run test:e2e` inside the `frontend/` directory.
+  - Verbatim Output Summary:
+    ```
+      3 failed
+        [chromium] › tests\badge-accessibility.spec.ts:4:7 › Lounge Feed Badge Accessibility › should render badges and handle keyboard focus & navigation correctly 
+        [chromium] › tests\routing-bug.spec.ts:11:7 › Routing Bug Diagnosis › MOBILE: should navigate from news page to curation page correctly via MobileDock 
+        [chromium] › tests\routing-bug.spec.ts:55:7 › Routing Bug Diagnosis › MOBILE: should navigate from news page WITH notice query param to curation page correctly via MobileDock 
+      7 passed (5.6m)
+    ```
+  - **Failure 1**: `tests\badge-accessibility.spec.ts`
+    - Verbatim error log:
+      ```
+      TimeoutError: page.waitForURL: Timeout 5000ms exceeded.
+      =========================== logs ===========================
+      waiting for navigation until "load"
+        navigated to "http://localhost:5000/overview#apt=%EB%8F%99%ED%83%84%EC%97%AD%20%EC%8B%9C%EB%B2%94%EB%8C%80%EC%9B%90%EC%B9%B8%ED%83%80%EB%B9%8C"
+      ```
+  - **Failure 2**: `tests\routing-bug.spec.ts:11`
+    - Verbatim error log:
+      ```
+      Error: expect(received).toBe(expected) // Object.is equality
 
-### Accordion Lazy Rendering
-We observed two patterns of accordions:
-1. **True Lazy Rendering Accordion**:
-   In `frontend/src/components/consumer/AdvancedValuationMetrics.tsx` (lines 1361-1364):
-   ```tsx
-   {/* Accordion Content: 11 Items Detailed List */}
-   {isScoreAccordionOpen && (
-     <div className="mt-6 border-t border-border pt-6 animate-in slide-in-from-top-4 duration-300">
-   ```
-2. **CSS Toggle Accordion (Non-lazy)**:
-   In `frontend/src/components/curation/RegionAccordion.tsx` (lines 368-374):
-   ```tsx
-   {/* Group Panel (Apartments List) */}
-   <div
-     id={`accordion-panel-${group.title.replace(/\s+/g, '-')}`}
-     role="region"
-     aria-labelledby={`accordion-header-${group.title.replace(/\s+/g, '-')}`}
-     className={`${isExpanded ? "block border-t border-border p-4 flex flex-col gap-3 max-h-[380px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full" : "hidden"}`}
-   >
-   ```
+      Expected: true
+      Received: false
+        at C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\tests\routing-bug.spec.ts:51:31
+      ```
+      *Note: Success occurred on retry #1 for this case (due to compilation-induced delay on first runs).*
+  - **Failure 3**: `tests\routing-bug.spec.ts:55`
+    - Verbatim error log:
+      ```
+      Error: expect(received).toBe(expected) // Object.is equality
 
----
+      Expected: true
+      Received: false
+        at C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\tests\routing-bug.spec.ts:95:31
+      ```
+      *Note: Failed consistently on both runs.*
 
-### Scrolling & Responsive Padding
-1. **iOS Scroll Momentum Class**:
-   In `frontend/src/app/globals.css` (lines 228-233):
-   ```css
-   .custom-scrollbar {
-     scrollbar-width: thin; /* Firefox */
-     scrollbar-color: #d1d6db transparent;
-     overflow-x: hidden !important;
-     -webkit-overflow-scrolling: touch;
-   }
-   ```
-   In `frontend/src/components/ApartmentModal.tsx` (lines 2546 and 2607), containers are wrapped with this class:
-   ```tsx
-   <div ref={modalRef} className="bg-surface h-full flex flex-col overflow-y-auto overflow-x-hidden custom-scrollbar">
-   ...
-   <div ref={modalRef} className="w-full h-full overflow-y-auto overflow-x-hidden custom-scrollbar pb-24 md:pb-0 flex flex-col snap-y snap-proximity md:snap-none">
-   ```
-   In `frontend/src/components/apartment-modal/TransactionTable.tsx` (lines 281-285):
-   ```tsx
-   <div 
-   ref={scrollContainerRef}
-   className="overflow-y-visible md:overflow-y-auto touch-pan-y overscroll-y-auto md:overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-auto md:h-[420px] focus:outline-none"
-   style={{ WebkitOverflowScrolling: 'touch', scrollbarGutter: 'stable' }}
-   ```
-2. **Responsive Card Padding**:
-   Section card wrappers inside `frontend/src/components/apartment-modal/` (e.g., `ApartmentSpecsSection.tsx` line 71, `EducationAnalysisSection.tsx` line 132, `InfraAnalysisSection.tsx` line 99, `ScoutingReportDetailSection.tsx` line 108) use `p-6 md:p-8` for outer layout spacing, and sub-components use `p-5 md:p-6` or `p-4 md:p-5`.
-3. **Edge-to-Edge Horizontally Scrolling Layout**:
-   In `frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx` (line 344):
-   ```tsx
-   <div className="overflow-x-auto custom-scrollbar -mx-4 md:-mx-10 px-4 md:px-10 mt-1">
-   ```
+- **Redirection Logic for /news**: In `frontend/src/app/news/page.tsx`, the page calls a server-side redirect:
+  ```typescript
+  export default async function NewsPage() {
+    redirect('/lounge?tab=news');
+  }
+  ```
+  This discards custom query parameters such as `notice=some-notice-id`.
 
----
+- **HTML Nesting Structure & Hydration Warnings**:
+  - No hydration mismatches were printed in the browser logs.
+  - No DOM validation/nesting parser errors occurred in the browser console.
+  - However, in `frontend/src/components/LoungeFeedClient.tsx`, we have two cases of interactive elements nested inside elements with button roles:
+    - Line 1253-1272: A `span` tag with `role="link"` (Apartment Lab badge) is nested inside a `div` element with `role="button"` (lines 1215-1236, wrapping the whole post card).
+    - Line 276-289: `<button>` tags (Kakao Talk Share, Link Copy) are nested inside a `div` with `role="button"` (`NoticeCard`).
 
-### Verification Run Outputs
-1. **Frontend Unit Tests**:
-   `npm run test` completed successfully:
-   ```
-   Test Suites: 30 passed, 30 total
-   Tests:       199 passed, 199 total
-   Snapshots:   0 total
-   Time:        20.051 s
-   Ran all test suites.
-   ```
-2. **Production Build**:
-   `npm run build` failed with exit code 1:
-   ```
-   Failed to type check.
-   Type error: File 'C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/.next/types/cache-life.d.ts' not found.
-   Next.js build worker exited with code: 1 and signal: null
-   ```
-
----
+- **Sticky Sidebar Tailwind break-down**: In `frontend/src/components/LoungeContainerClient.tsx` line 389:
+  ```typescript
+  <aside className="hidden lg:block lg:sticky lg:top-24 w-80 shrink-0 space-y-6">
+  ```
+  Tailwind v4 default breakpoints are untouched, meaning `lg` corresponds to `1024px`.
 
 ## 2. Logic Chain
-
-1. **Donut Chart Hover**:
-   * The presence of `hover:scale-105 transform transition-transform duration-300 origin-center` and style `transformOrigin: '50% 50%'` on the `<Cell>` SVG paths allows the browser to scale chart pieces using the GPU (compositor thread) without needing layout calculations.
-   * Since there are no `onMouseEnter` or `onMouseLeave` handlers modifying React states, hovering over the slices triggers **zero JavaScript activity and zero page reflows**. State changes and React re-renders are only triggered when explicitly clicking the slices (`onClick`).
-2. **Accordion Lazy Rendering**:
-   * In `AdvancedValuationMetrics.tsx`, using `{isScoreAccordionOpen && ( <div ... /> )}` ensures that when the accordion is collapsed, React completely unmounts the 11 detailed value elements, reducing the DOM node count in the browser.
-   * In `RegionAccordion.tsx`, the Tailwind utility class `"hidden"` (`display: none`) is applied dynamically based on `isExpanded`. This hides the accordion visually but leaves all nested components (apartments list buttons, Hots badges, buttons, etc.) mounted in the DOM. This represents a CSS-level visual toggle rather than lazy rendering.
-3. **Scrolling and Padding**:
-   * In `globals.css`, the `.custom-scrollbar` class incorporates `-webkit-overflow-scrolling: touch;`, which forces native inertial momentum scrolling on iOS Safari (rather than jerky WebKit scrolling). This class is applied to all scrollable wrappers in `ApartmentModal.tsx` and related sub-modals.
-   * In `TransactionTable.tsx`, momentum scrolling is explicitly enforced via both the CSS class and inline `style={{ WebkitOverflowScrolling: 'touch' }}`.
-   * Applying `scrollbarGutter: 'stable'` ensures that desktop viewports retain scrollbar track margins when transactions list length changes, eliminating horizontal layout layout-shifts (CLS).
-   * Combining negative margins with equal padding (`-mx-4 md:-mx-10 px-4 md:px-10`) on the horizontally scrolling wrappers allows the table columns to scroll cleanly to the page edge without breaking grid alignment.
-   * Responsive layout spacing (`p-6 md:p-8`) optimizes user experience: tight spacing on mobile increases viewable area, while comfortable padding on desktop increases readability.
-
----
+- **Jest Unit Tests**: Because the test runner output displays `Test Suites: 30 passed, 30 total`, we confirm that all Jest tests are fully functional and pass.
+- **Playwright E2E Tests**:
+  - The E2E tests for the routing bug fail because the server-side redirect of `/news` in `frontend/src/app/news/page.tsx` forwards to `/lounge?tab=news` without passing along query parameters (like `notice=...`). Consequently, deep links to notices are lost on mobile redirect, preventing the corresponding modals from opening.
+  - Clicks on MobileDock links (`/overview`) sometimes fail during initial runs because client-side router compilation (Fast Refresh rebuilds) takes too long, causing user interaction events to be lost or discarded.
+  - The timeout in `badge-accessibility.spec.ts` occurs because `page.waitForURL` defaults to `{ waitUntil: 'load' }`. The `/overview` page is heavy and has compilation latency, taking longer than the strict 5000ms timeout budget.
+- **HTML Validation**:
+  - The absence of console warnings for HTML parsing or hydration errors indicates that the syntax is correct.
+  - Nevertheless, nesting `role="link"` or `<button>` inside an outer wrapper that also has `role="button"` violates accessibility nesting rules (it exposes interactive elements inside another interactive element to screen readers and keyboard navigation flows).
+- **Sticky Sidebar**:
+  - CSS layout classes `hidden lg:block` hide the sidebar on screen sizes < 1024px and show it starting at 1024px.
+  - The `lg:sticky lg:top-24` classes make the element stick to the viewport (at a 6rem offset) on screens >= 1024px. Conforms to requirements.
 
 ## 3. Caveats
-
-* **Physical iOS Safari Testing**: Empirical verification of iOS scrolling behavior was conducted via code inspections and CSS checking since we have no physical iOS device emulator/runner in the current environment.
-* **Build Dependency**: The Next.js production build (`npm run build`) failed due to a missing Next.js cache typings file (`.next/types/cache-life.d.ts`). This is an environment type-generation issue rather than a functional bug, but it blocks compiling production assets.
-
----
+- E2E tests were executed in headless mode. Headless mode might experience higher compilation latency than headed browsers.
+- Real-device viewport behavior was verified only by inspecting the Tailwind classes and matching breakpoints.
 
 ## 4. Conclusion
-
-1. **Donut Chart Transition**: Handles hover scale transitions purely in CSS/SVG selectors (`hover:scale-105 transition-transform duration-300 origin-center`). No JS event hooks are used for hover, preventing reflows and unnecessary state updates. **[SUCCESS]**
-2. **Accordion Lazy Rendering**: Functioning correctly and reducing DOM nodes when collapsed in `AdvancedValuationMetrics.tsx` via conditional expression `{isScoreAccordionOpen && ...}`. However, `RegionAccordion.tsx` relies on CSS `display: none` (`hidden`) and does not reduce DOM nodes when collapsed. **[PARTIAL SUCCESS]**
-3. **Responsive Padding and Scroll Behaviors**: Configured correctly with iOS scrolling momentum (`-webkit-overflow-scrolling: touch`) inside modals, custom scrollbar tracks, and horizontal margins (`-mx-4 md:-mx-10 px-4 md:px-10`) for optimal edge-to-edge scrolling. **[SUCCESS]**
-4. **Build & Test**: Unit tests pass (199/199), but production builds are currently blocked by a Next.js type check error. **[BLOCKED]**
-
----
+1. **Jest unit tests** are fully passing (30/30 suites, 199/199 tests).
+2. **Playwright E2E tests** have 3 failures out of 10.
+   - **Bug 1**: Server-side redirect in `/news/page.tsx` drops query parameters (like `notice=...`), breaking deep-link routing.
+   - **Bug 2**: Navigation under development/compilation pressure is prone to race conditions, causing MobileDock links to fail client-side router hydration.
+   - **Bug 3**: Playwright test wait limits are too tight (5000ms) for heavy page transitions like `/overview`, triggering timeouts on page hash changes.
+3. **HTML validation**: No hydration mismatches or raw HTML nesting violations are present. However, ARIA interactive nested roles exist (e.g. `role="link"` inside `role="button"` for badges, and `<button>` inside `role="button"` for notice cards).
+4. **Sticky sidebar**: Perfectly follows specifications (`hidden lg:block lg:sticky lg:top-24` on default `lg: 1024px` breakpoint).
 
 ## 5. Verification Method
-
-* Run `npm run test` in `frontend` to verify all unit tests pass:
-  ```bash
-  cd frontend
-  npm run test
-  ```
-* Inspect DOM node count under `#accordion-panel-[Group]` when closed vs open inside `AdvancedValuationMetrics.tsx` vs `RegionAccordion.tsx`.
-* Inspect `globals.css` (lines 228-233) to verify `.custom-scrollbar` rules.
+- **Run Unit Tests**: `npm run test` inside `frontend/` folder.
+- **Run E2E Tests**: `npm run test:e2e` inside `frontend/` folder.
+- **Inspect Sidebar styles**: Search for `<aside` in `frontend/src/components/LoungeContainerClient.tsx`.
+- **Inspect redirects**: Search for `redirect` in `frontend/src/app/news/page.tsx`.

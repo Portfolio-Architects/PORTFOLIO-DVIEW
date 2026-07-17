@@ -97,7 +97,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
     <div 
       ref={backdropRef}
       onKeyDown={handleFocusTrap}
-      className="fixed inset-0 z-50 flex justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
+      className="fixed inset-0 z-50 flex justify-center bg-black/40 backdrop-blur-xl animate-in fade-in duration-300 overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
     >
       <button 
         type="button"
@@ -110,7 +110,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
         aria-modal="true"
         aria-labelledby="lounge-modal-title"
         aria-describedby="lounge-modal-desc"
-        className="w-full max-w-[1040px] h-fit bg-surface rounded-2xl shadow-xl overflow-hidden animate-in zoom-in-95 duration-200 relative z-10"
+        className="w-full max-w-[1040px] h-fit bg-surface/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500 ease-out relative z-10"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Screen Reader Only Title and Description */}

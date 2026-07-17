@@ -1,46 +1,51 @@
-# BRIEFING — 2026-07-16T23:21:00+09:00
+# BRIEFING — 2026-07-17T03:37:00Z
 
 ## Mission
-Empirically verify performance and UX optimizations: Donut chart hover scale transitions, accordion lazy rendering, and responsive card padding/scrolling behaviors.
+Empirical verification of the Lounge enhancements: tests, sticky sidebar behavior, and HTML validation (no hydration mismatches, no nested button errors, strict mode button locator violations).
 
 ## 🔒 My Identity
 - Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m3_1
-- Original parent: 50d962c6-6a4c-47d4-b77b-a51cc4ecb889
-- Milestone: Milestone 3
+- Original parent: 008be369-8b8c-45c3-85a5-6f532b5512c1
+- Milestone: Lounge Enhancement Verification
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code
+- Review-only — do NOT modify implementation code.
+- Find bugs by writing and executing tests, checking assumptions, finding failure modes.
+- Do NOT trust claims or logs, run verification code ourselves.
 
 ## Current Parent
-- Conversation ID: 50d962c6-6a4c-47d4-b77b-a51cc4ecb889
-- Updated: 2026-07-16T23:21:00+09:00
+- Conversation ID: 008be369-8b8c-45c3-85a5-6f532b5512c1
+- Updated: 2026-07-17T03:37:00Z
 
 ## Review Scope
-- **Files to review**: Donut chart component, accordion components, card padding configurations, scrollbar styles/implementations.
-- **Interface contracts**: Correctness, performance, and UX optimization.
-- **Review criteria**: Check transition-transform hover behaviors, lazy DOM rendering when accordion is collapsed, and layout responsive classes/scrolling behaviors.
+- **Files to review**: lounge page and components, sticky sidebar, tests.
+- **Interface contracts**: PROJECT.md or lounge design.
+- **Review criteria**: correctness, style, correctness of sticky behavior, tests pass, no strict mode button locator violations, no hydration mismatches, no nested button errors.
+
+## Key Decisions Made
+- Executed Jest unit tests: Verified all 30 suites (199 tests) passed.
+- Executed Playwright E2E tests: Observed 7 tests passing and 3 tests failing.
+- Inspected codebase for hydration mismatches and nested button structures.
+- Analyzed the Tailwind class list for the sticky sidebar layout.
+
+## Artifact Index
+- handoff.md — Detailed empirical verification report of Lounge enhancements
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Donut chart: Tested if scale transforms are handled purely by CSS/SVG selectors (`hover:scale-105 transition-transform duration-300 origin-center`) and don't trigger JS state updates or reflow. (Pass)
-  - Accordion lazy rendering: Tested whether DOM nodes are actually reduced when collapsed. Found difference between true React-based lazy loading in `AdvancedValuationMetrics.tsx` and CSS-based hiding in `RegionAccordion.tsx`. (Partial Pass)
-  - Responsive padding and iOS scrolling momentum: Tested if iOS scrolling momentum is applied (`-webkit-overflow-scrolling: touch`) in `globals.css` and applied inside modal components, and verified responsive padding values (`p-6 md:p-8`). (Pass)
+  - *Hypothesis 1*: Lounge Jest unit tests are robust and pass. (Confirmed - 30/30 suites passed).
+  - *Hypothesis 2*: Playwright E2E tests cover edge cases and pass. (Refuted - 3 E2E tests failed: `badge-accessibility.spec.ts` due to timeout on heavy pages, and two `routing-bug.spec.ts` cases due to compilation-induced navigation failures and lack of query parameter forwarding on redirect).
+  - *Hypothesis 3*: Sidebar sticky behavior works correctly on breakpoint. (Confirmed - Tailwind `lg` is configured as 1024px, and class list uses `hidden lg:block lg:sticky lg:top-24`).
+  - *Hypothesis 4*: There are no nested interactive/button violations. (Mostly Confirmed - No direct HTML-level `<button>` inside `<button>` tags found, but ARIA-level nested interactive elements are present in `LoungeFeedClient.tsx`).
 - **Vulnerabilities found**:
-  - Next.js build command (`npm run build`) failed during TypeScript typecheck due to a missing core cache type declaration (`cache-life.d.ts`). (Compilation blocker).
+  - Query parameter loss: `/news?notice=...` redirects to `/lounge?tab=news`, dropping the `notice` parameter, which breaks routing tests.
+  - Test flakiness/timeouts: `/overview` page is too heavy for standard 5s load timeouts during Next.js local compilation, causing `waitForURL` failures.
+  - Interactive nesting: `span` with `role="link"` nested inside `div` with `role="button"` for post cards, and `button` elements nested inside `div` with `role="button"` for notice cards.
 - **Untested angles**:
-  - Behavior on real physical iOS Safari (only static inspection of code and CSS was possible due to lack of a physical iPhone testing runner).
+  - Real device behavior of sticky sidebars (tested via breakpoint class verification only).
 
 ## Loaded Skills
 - None
-
-## Key Decisions Made
-- Analysed Recharts donut chart SVG transitions in `TechnoValleyDashboard.tsx`.
-- Analysed conditional rendering in `AdvancedValuationMetrics.tsx` vs display toggle in `RegionAccordion.tsx`.
-- Checked `globals.css`, `ApartmentModal.tsx`, `TransactionTable.tsx`, and `TransactionSummaryMetrics.tsx` for scrolling momentum and responsive paddings.
-- Ran Jest unit test suite (30/30 passed) and production build (failed on cache-life type).
-
-## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m3_1\ORIGINAL_REQUEST.md — User request and metadata.

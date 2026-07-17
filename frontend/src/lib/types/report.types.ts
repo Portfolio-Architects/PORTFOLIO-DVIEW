@@ -38,6 +38,8 @@ export interface CommentData {
   text: string;
   /** 작성자 닉네임 */
   author: string;
+  /** 작성자 고유 UID */
+  authorUid?: string;
   /** 작성 시각 */
   createdAt?: unknown;
 }

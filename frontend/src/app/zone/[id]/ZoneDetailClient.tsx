@@ -151,6 +151,23 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     }
   };
 
+  const handleDeleteComment = async (reportId: string, commentId: string, text: string) => {
+    if (!user) return;
+
+    if (!window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      if (dashboardFacade.deleteFieldReportComment) {
+        await dashboardFacade.deleteFieldReportComment(reportId, commentId, user.uid, text);
+      }
+    } catch (error) {
+      logger.error('zone.[id].handleDeleteComment', 'Comment deletion failed', { reportId, commentId }, error as Error);
+      alert("댓글 삭제에 실패했습니다.");
+    }
+  };
+
   // Filter reports that belong to this zone
   const zoneReports = useMemo(() => {
     return fieldReports?.filter(report => dongToZoneId(report.dong) === zoneId) || [];
@@ -274,6 +291,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
           commentInput={commentInput[selectedReport.id] || ''}
           onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
+          onDeleteComment={(commentId, text) => handleDeleteComment(selectedReport.id, commentId, text)}
           user={user}
           transactions={[]}
           typeMap={{}}

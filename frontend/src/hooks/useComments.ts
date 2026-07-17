@@ -17,6 +17,7 @@ export interface UseCommentsReturn {
   commentInput: Record<string, string>;
   setCommentInput: React.Dispatch<React.SetStateAction<Record<string, string>>>;
   handleSubmitComment: (reportId: string) => Promise<void>;
+  handleDeleteComment: (reportId: string, commentId: string, text: string) => Promise<void>;
 }
 
 export function useComments(
@@ -119,10 +120,32 @@ export function useComments(
     }
   }, [user, fullReportData, selectedReport, requestLogin]);
 
+  const handleDeleteComment = useCallback(async (reportId: string, commentId: string, text: string) => {
+    if (!user) {
+      alert("로그인 후 댓글을 삭제할 수 있습니다.");
+      requestLogin();
+      return;
+    }
+
+    if (!window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
+      return;
+    }
+
+    try {
+      if (dashboardFacade.deleteFieldReportComment) {
+        await dashboardFacade.deleteFieldReportComment(reportId, commentId, user.uid, text);
+      }
+    } catch (error) {
+      logger.error('useComments.handleDeleteComment', 'Comment deletion failed', { reportId, commentId }, error as Error);
+      alert("댓글 삭제에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
+    }
+  }, [user, requestLogin]);
+
   return {
     commentsData,
     commentInput,
     setCommentInput,
-    handleSubmitComment
+    handleSubmitComment,
+    handleDeleteComment
   };
 }

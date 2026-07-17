@@ -41,3 +41,39 @@ Integrity mode: development
 - [ ] 아코디언이 닫힌 상태에서는 내부 기업 리스트 노드가 생성되지 않아, 초기 등재 DOM 노드 수가 절감되고 구동 속도가 개선됩니다.
 - [ ] 트렌드 그래프의 선 연결 타입이 `natural`로 변경되어 꺾임선이 부드럽게 표현됩니다.
 - [ ] 빌드(`npm run build`) 및 무결성 진단(`npm run audit`) 파이프라인이 에러 없이 통과해야 합니다.
+
+## Follow-up — 2026-07-17T03:24:01Z
+
+Enhance the community tab design and UX of the D-VIEW Lounge page to create a premium, visually engaging, and highly functional user experience.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. High-Fidelity Community Card Grid Layout
+- Enhance the visual layout of SOHO co-leasing matching cards and Apartment Stories list to use responsive grid structures on desktop and list layouts on mobile.
+- Add premium hover states, smooth spring scaling transitions, and visually refined shadow/border styling using the HSL design tokens.
+
+### R2. Interactive Write Forms & Sleek Modals
+- Redesign the post creation write form (Lounge Compose Client) and detail dialog modals with modern animation transitions, glassmorphic backdrops, and polished typography.
+- Ensure proper W3C WAI-ARIA labels are assigned to the form input elements to maintain accessibility.
+
+### R3. Desktop-Optimized Sticky Sidebar
+- Integrate a sticky, responsive sidebar layout on desktop screen sizes displaying:
+  1. "실시간 인기 토크" (Hot Topics) calculated from `hotPosts`.
+  2. "오늘의 소호 매칭 현황" (SOHO Matching Stats) summary.
+  3. Safe shortcut widgets to real estate calculators (e.g. Jeonse safety, mortgage calculator).
+
+## Acceptance Criteria
+
+### UI/UX & Layout Quality
+- [ ] Segmented tab switches and sub-tab selection controls render cleanly with no jitter or height collapse.
+- [ ] Post cards, stories widget, and status badges display cleanly with cohesive pastel/emerald visual themes.
+- [ ] The desktop sidebar sticks on scroll when resolution is greater than 1024px (`lg:` breakpoint) and hides cleanly on smaller viewports.
+- [ ] Interactive form inputs, buttons, and close actions support micro-animations and proper active/focus visual cues.
+
+### Technical & Verification
+- [ ] App builds successfully without compile errors: `npm run build` or `npx tsc --noEmit` returns exit code 0.
+- [ ] Playwright E2E tests and Jest unit tests pass successfully.
+

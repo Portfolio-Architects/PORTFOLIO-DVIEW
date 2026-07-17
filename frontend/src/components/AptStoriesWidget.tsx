@@ -135,8 +135,8 @@ export default function AptStoriesWidget() {
         </span>
       </div>
 
-      {/* Horizontal Scrollable Container */}
-      <div className="flex gap-3.5 overflow-x-auto pb-1 scrollbar-thin scrollbar-thumb-emerald-500/10 hover:scrollbar-thumb-emerald-500/20 dark:scrollbar-thumb-emerald-500/5 dark:hover:scrollbar-thumb-emerald-500/10">
+      {/* Grid Container */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
         {stories.map((story) => {
           // Convert firestore timestamp to string safely
           let timeText = '방금 전';
@@ -158,7 +158,7 @@ export default function AptStoriesWidget() {
               type="button"
               aria-label={`${story.apartmentName} 입주민 이야기: "${story.text}", 작성자 ${story.authorName}, ${timeText} 상세 보기`}
               onClick={() => handleCardClick(story.apartmentName)}
-              className="min-w-[280px] max-w-[280px] flex flex-col justify-between p-4 bg-surface hover:bg-body border border-border/60 hover:border-emerald-500/30 rounded-2xl cursor-pointer transition-all duration-300 group shadow-sm hover:shadow-[0_8px_16px_rgba(0,130,98,0.06)] dark:hover:shadow-[0_8px_16px_rgba(0,0,0,0.3)] shrink-0 text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+              className="w-full flex flex-col justify-between p-5 bg-surface dark:bg-zinc-900/80 hover:bg-body/50 border border-border/60 hover:border-[#c44d00]/30 dark:hover:border-[#ea6100]/30 rounded-[24px] cursor-pointer transition-all duration-300 ease-out group shadow-sm hover:scale-[1.02] hover:-translate-y-1 hover:shadow-lg text-left outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent min-h-[170px]"
             >
               <div>
                 {/* Header: Apartment Name & Icon */}

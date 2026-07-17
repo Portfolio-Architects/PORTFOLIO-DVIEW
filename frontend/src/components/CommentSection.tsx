@@ -14,6 +14,7 @@ interface CommentSectionProps {
   isUnlocked: boolean;
   selectedCommentId?: string;
   onRequestLogin?: (message: string) => void;
+  onDeleteComment?: (commentId: string, text: string) => void;
 }
 
 // Keep render-dependent regexes static at the module level to avoid recreation lag and react-hooks/refs lint errors
@@ -28,6 +29,7 @@ const CommentSection = React.memo(function CommentSection({
   isUnlocked,
   selectedCommentId,
   onRequestLogin,
+  onDeleteComment,
 }: CommentSectionProps) {
   const { triggerCustomA2HSModal } = usePWA();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -356,6 +358,8 @@ const CommentSection = React.memo(function CommentSection({
                   comment={comment} 
                   isHighlighted={comment.id === selectedCommentId} 
                   onClickAuthor={handleMentionAuthor}
+                  currentUser={user}
+                  onDelete={onDeleteComment}
                 />
               ))}
  
@@ -368,6 +372,8 @@ const CommentSection = React.memo(function CommentSection({
                       comment={comment} 
                       isHighlighted={comment.id === selectedCommentId} 
                       onClickAuthor={handleMentionAuthor}
+                      currentUser={user}
+                      onDelete={onDeleteComment}
                     />
                   ))
                 ) : (
@@ -434,11 +440,15 @@ function renderCommentText(text: string) {
 const CommentItem = React.memo(function CommentItem({ 
   comment, 
   isHighlighted, 
-  onClickAuthor 
+  onClickAuthor,
+  currentUser,
+  onDelete
 }: { 
   comment: CommentData; 
   isHighlighted?: boolean; 
   onClickAuthor?: (author: string) => void;
+  currentUser?: User | null;
+  onDelete?: (commentId: string, text: string) => void;
 }) {
   return (
     <div 
@@ -453,16 +463,28 @@ const CommentItem = React.memo(function CommentItem({
         <UserCircle size={16} className="text-tertiary" />
       </div>
       <div className="flex-1">
-        <div className="flex items-baseline gap-2 mb-1">
-          <button 
-            type="button"
-            onClick={() => onClickAuthor && onClickAuthor(comment.author)}
-            className="font-bold text-[14px] text-primary hover:text-teal-600 dark:hover:text-teal-400 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded"
-            aria-label={`@${comment.author} 멘션하기`}
-          >
-            {comment.author}
-          </button>
-          <span className="text-[12px] text-tertiary">{String(comment.createdAt)}</span>
+        <div className="flex items-baseline justify-between mb-1">
+          <div className="flex items-baseline gap-2">
+            <button 
+              type="button"
+              onClick={() => onClickAuthor && onClickAuthor(comment.author)}
+              className="font-bold text-[14px] text-primary hover:text-teal-600 dark:hover:text-teal-400 hover:underline transition-colors bg-transparent border-none p-0 cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-teal-500 rounded"
+              aria-label={`@${comment.author} 멘션하기`}
+            >
+              {comment.author}
+            </button>
+            <span className="text-[12px] text-tertiary">{String(comment.createdAt)}</span>
+          </div>
+          {currentUser && currentUser.uid === comment.authorUid && onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(comment.id, comment.text)}
+              className="text-[11px] font-bold text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 transition-colors bg-transparent border-none p-0 cursor-pointer outline-none hover:underline focus-visible:ring-2 focus-visible:ring-red-500 rounded"
+              aria-label="댓글 삭제"
+            >
+              삭제
+            </button>
+          )}
         </div>
         <p className="text-[14px] text-secondary leading-relaxed break-all whitespace-pre-wrap">
           {renderCommentText(comment.text)}

@@ -344,7 +344,7 @@ const DashboardClient = React.memo(function DashboardClient({
     selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
   );
   
-  const { commentsData, commentInput, setCommentInput, handleSubmitComment } = useComments(
+  const { commentsData, commentInput, setCommentInput, handleSubmitComment, handleDeleteComment } = useComments(
     selectedReport, fullReportData, user, handleLogin
   );
 
@@ -723,6 +723,11 @@ const DashboardClient = React.memo(function DashboardClient({
     handleSubmitComment(resolvedReport.id);
   }, [resolvedReport?.id, handleSubmitComment]);
 
+  const handleDeleteCommentCallback = useCallback((commentId: string, text: string) => {
+    if (!resolvedReport) return;
+    handleDeleteComment(resolvedReport.id, commentId, text);
+  }, [resolvedReport?.id, handleDeleteComment]);
+
   const handleAptToggleFavorite = useCallback((aptName: string) => {
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
     if (user && !userFavorites.has(aptName)) {
@@ -945,6 +950,7 @@ const DashboardClient = React.memo(function DashboardClient({
             commentInput={commentInput[resolvedReport.id] || ''}
             onCommentChange={handleCommentChange}
             onSubmitComment={handleSubmitCommentCallback}
+            onDeleteComment={handleDeleteCommentCallback}
             user={user}
             transactions={modalTransactions}
             isTxLoading={isTxLoading}

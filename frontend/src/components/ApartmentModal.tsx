@@ -349,6 +349,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   commentInput,
   onCommentChange,
   onSubmitComment,
+  onDeleteComment,
   user,
   transactions: rawTransactions,
   typeMap,
@@ -370,6 +371,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
   commentInput: string;
   onCommentChange: (text: string) => void;
   onSubmitComment: () => void;
+  onDeleteComment?: (commentId: string, text: string) => void;
   user: User | null;
   transactions: TransactionRecord[];
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
@@ -2145,6 +2147,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
                     isUnlocked={true}
                     selectedCommentId={selectedCommentId}
                     onRequestLogin={onRequestLogin}
+                    onDeleteComment={onDeleteComment}
                   />
                 </LazyRender>
               </ErrorBoundary>

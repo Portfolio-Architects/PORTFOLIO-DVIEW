@@ -54,6 +54,7 @@ import {
   IncrementFieldReportViewInputSchema,
   IncrementFieldReportLikeInputSchema,
   IncrementReviewLikeInputSchema,
+  DeleteFieldReportCommentInputSchema,
 } from '@/lib/validation/facade.schemas';
 
 
@@ -72,6 +73,7 @@ export interface DashboardDataStrategy {
   addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   incrementFieldReportView?(reportId: string, title?: string): Promise<void>;
   addFieldReportComment?(reportId: string, text: string, authorUid: string, apartmentName?: string): Promise<void>;
+  deleteFieldReportComment?(reportId: string, commentId: string, authorUid: string, text: string): Promise<void>;
   incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
   incrementReviewLike?(reviewId: string): Promise<void>;
@@ -221,6 +223,15 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
+  async deleteFieldReportComment(reportId: string, commentId: string, authorUid: string, text: string) {
+    try {
+      await this.commentRepo.deleteComment(reportId, commentId, authorUid, text);
+    } catch (e: unknown) {
+      logger.error('DashboardFacade.deleteFieldReportComment', 'Comment deletion failed', { reportId, commentId }, e);
+      throw e;
+    }
+  }
+
   listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
     return this.commentRepo.listenToComments(reportId, callback);
   }
@@ -355,6 +366,16 @@ export class DashboardFacade {
       throw new Error('댓글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
     }
     if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid, apartmentName);
+  }
+
+  public async deleteFieldReportComment(reportId: string, commentId: string, authorUid: string, text: string) {
+    const validation = DeleteFieldReportCommentInputSchema.safeParse({ reportId, commentId, authorUid, text });
+    if (!validation.success) {
+      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
+      logger.warn('DashboardFacade.deleteFieldReportComment', 'Validation failed', { error: validation.error.format() });
+      throw new Error('댓글 삭제 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
+    }
+    if (this.strategy.deleteFieldReportComment) await this.strategy.deleteFieldReportComment(reportId, commentId, authorUid, text);
   }
   
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {

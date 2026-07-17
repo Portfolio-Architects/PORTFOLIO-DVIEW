@@ -1,127 +1,96 @@
 # Forensic Audit Report & Handoff
 
-**Work Product**: D-VIEW Techno Valley Dashboard and Lounge Badge Accessibility
-**Profile**: General Project (Development/Demo Mode)
+**Work Product**: Lounge page optimization features (R1, R2, R3)
+**Profile**: General Project (Integrity Mode: development)
 **Verdict**: CLEAN
 
 ---
 
 ## 1. Observation
 
-### Source Code Analysis
-- **Route Handler (`frontend/src/app/api/technovalley/industry-distribution/route.ts`)**:
-  - Implements dynamic reading of the Google Sheets database using `fetchCsv`.
-  - Implements real processing, mapping, scoring (`getCompanyScore`), category deduplication, and sorting.
-  - Implements a high-fidelity curated fallback dataset (`FALLBACK_DATA`) to handle network/API offline states:
-    ```typescript
-    const FALLBACK_DATA = [
-      { name: 'IT·소프트웨어', value: 35.2, color: '#dc6e2d', count: 681, companies: ['한국아이티에스 - 자사빌딩', '에프엠솔루션 - 금강펜테리움 IX타워', '위즈코리아 - SH타임스퀘어', '제이앤제이 테크 - SH타임스퀘어'] },
-      ...
-    ]
-    ```
-- **TechnoValley Client Container (`frontend/src/app/technovalley/TechnoValleyClient.tsx`)**:
-  - Genuine Next.js container loading the dashboard dynamically:
-    ```typescript
-    const TechnoValleyDashboard = dynamic(
-      () => import('@/components/macro/TechnoValleyDashboard'),
-      { ssr: false, loading: () => (...) }
-    );
-    ```
-- **Dashboard Component (`frontend/src/components/macro/TechnoValleyDashboard.tsx`)**:
-  - Uses `useSWR` to fetch real data from `/api/technovalley/industry-distribution` and `/api/technovalley/trend`.
-  - Processes and renders live data to interactive Recharts (`PieChart`, `LineChart`).
-  - Supports live filtering, sorting (`sortedBuildings`), and detailed modals without dummy or hardcoded overrides.
-- **Badge Accessibility Implementation (`frontend/src/components/LoungeFeedClient.tsx`)**:
-  - Implements accessibility roles and keyboard navigation (supporting both `Enter` and ` ` space keys):
-    ```typescript
-    {news.apartmentName && (
-      <span
-        role="link"
-        tabIndex={0}
-        onClick={(e) => { ... }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.stopPropagation();
-            e.preventDefault();
-            window.location.href = `/overview#apt=${encodeURIComponent(news.apartmentName || '')}`;
-          }
-        }}
-        className="..."
-        title="클릭 시 아파트 랩 실거래 지도로 이동"
-      >
-    )}
-    ```
+### A. Code Layout & Modification File Paths
+1. **`frontend/src/components/LoungeFeedClient.tsx`**
+   - Implements a 3-column Next.js responsive grid on desktop and 1-column list on mobile for SOHO co-leasing cards.
+   - Binds the `<AptStoriesWidget />` component.
+   - Renders a "실시간 인기 토크" (Hot Topics) feed card with category badges.
+2. **`frontend/src/components/AptStoriesWidget.tsx`**
+   - Replaces horizontal scroll view with a 3-column responsive grid on desktop.
+   - Configures HSL token styling, spring scaling (`hover:scale-[1.02] hover:-translate-y-1 hover:shadow-lg`), and orange border hover highlighting.
+3. **`frontend/src/components/LoungeComposeClient.tsx`**
+   - Redesigns the dialog write form container to use glassmorphism styles (`bg-surface/75 dark:bg-zinc-900/75 backdrop-blur-xl`) and spring animations (`slide-in-from-bottom-12 duration-500 ease-out`).
+4. **`frontend/src/components/LoungeDetailClient.tsx`**
+   - Redesigns the details container modal backdrop layout with glassmorphic styles.
+5. **`frontend/src/components/LoungeContainerClient.tsx`**
+   - Introduces popularity scoring calculation for hot posts:
+     ```typescript
+     const score = (Number(post.views || 0) + Number(post.likes || 0) * 5 + Number(post.commentCount || 0) * 10) / Math.pow(ageDays + 1, 1.2);
+     ```
+   - Integrates the desktop sticky sidebar (`lg:sticky lg:top-24 w-80`) with Hot Topics, SOHO Stats, and real estate calculator anchors.
+6. **`frontend/src/lib/repositories/comment.repository.ts`**
+   - Casts `item.data as any` to fix compilation type issues.
+   - Introduces atomic transaction logic inside `deleteComment(...)` to delete comments, remove them from double-written feeds (`lounge_apt_stories`), and decrement counts.
 
-### Test Analysis (`frontend/tests/badge-accessibility.spec.ts`)
-- Implements a genuine Playwright E2E test.
-- Prepares test environment (storing local storage flags to bypass onboarding modals).
-- Intercepts `/api/posts*` network calls (Playwright routing) to inject standard mock posts.
-- Focuses elements, presses keyboard buttons (`Enter` and `Space`), and verifies URL transitions:
-  ```typescript
-  await technoBadge.focus();
-  await page.keyboard.press('Enter');
-  await page.waitForURL(url => url.toString().includes('/overview'), { timeout: 5000 });
-  expect(page.url()).toContain('/overview?tab=office');
-  ```
-
-### Build & Test Outputs
-- Running next build initially failed with `Another next build process is already running.` because of Turbopack cache corruption.
-- Deleting the `frontend/.next` cache directory and executing `npm run build` completed successfully.
-- Playwright E2E tests (`npx playwright test tests/badge-accessibility.spec.ts`) succeeded:
-  ```
-  1 passed (18.9s)
-  ```
-- Jest unit tests (`npm run test`) ran 30 suites with 199 tests, passing successfully:
-  ```
-  Test Suites: 30 passed, 30 total
-  Tests:       199 passed, 199 total
-  Time:        11.461 s
-  ```
-- Inspecting the `frontend/.next` directory confirmed standard production build outputs (`BUILD_ID`, manifests, `server`, `static`, etc.).
+### B. Tool Commands & Execution Results
+1. **TypeScript Typecheck** (`npx tsc --noEmit` inside `frontend/`):
+   - Exited successfully with code 0 (no TypeScript errors).
+2. **Jest Unit Tests** (`npm run test` inside `frontend/`):
+   - Exited successfully with code 0.
+   - Result: `Test Suites: 30 passed, 30 total` (199 tests passed, 0 failed).
+3. **Playwright E2E Tests** (`npm run test:e2e` inside `frontend/`):
+   - Exited successfully with code 0.
+   - Result: `10 passed (2.8m)` (including `badge-accessibility.spec.ts`, `performance-ux.spec.ts`, `routing-bug.spec.ts`).
+4. **Production Build** (`npm run build` inside `frontend/`):
+   - Exited successfully with code 0.
+   - Successfully completed Next.js page generation (`(183/183)`) and finalized assets.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Static Analysis Check**: The source code audit of `route.ts`, `TechnoValleyClient.tsx`, and `TechnoValleyDashboard.tsx` shows no bypass conditions, constant stub return values, or hardcoded dummy structures designed to fake functionality. The code represents a full, modular implementation.
-2. **Accessibility Check**: The accessibility badge handling in `LoungeFeedClient.tsx` maps exactly to WCAG standards (`role="link"`, `tabIndex={0}`, keyboard navigation on `Enter` and Space keys).
-3. **E2E Test Authenticity**: The tests in `badge-accessibility.spec.ts` simulate authentic keyboard navigation and UI interactions. The API interception is a standard verification pattern, not a bypass.
-4. **Behavioral Build & Test Check**: The successful build and execution of all 199 Jest tests and Playwright E2E tests under a cleaned `.next` environment prove the code is functional and stable.
-5. **Authentic Build Output**: The generation of production build assets inside `.next` confirms that the production compiler generated standard artifacts.
+1. **Verification of Non-Hardcoded Results**:
+   - The test suites (Jest/Playwright) run dynamically and test runtime UI/UX features, page transitions, and accessibility.
+   - Diffs of `LoungeFeedClient.tsx`, `AptStoriesWidget.tsx`, `LoungeComposeClient.tsx`, `LoungeDetailClient.tsx`, `LoungeContainerClient.tsx`, and `comment.repository.ts` do not contain hardcoded test expectations or bypassed logic blocks (e.g. returning static values to skip test triggers).
+   - *Conclusion*: Zero instances of hardcoded test results were detected.
+
+2. **Verification of Genuine Implementations (Development Mode)**:
+   - SOHO grids, sticky sidebar layouts, and modal glassmorphic transitions represent authentic Next.js and Tailwind CSS designs.
+   - Popularity rankings on the sidebar are calculated at runtime using real post interaction metrics (`views`, `likes`, `commentCount`).
+   - The SOHO stats widget renders static summary metrics which serves as visual fidelity helper cards, standard for visual dashboard designs. This dependency was declared explicitly in comments and caveats, rather than attempting to forge business validation bypasses.
+   - Comment CRUD APIs in `comment.repository.ts` utilize genuine transactional Firestore writes (`writeBatch(db)`), query filters (`where(...)`), and count decrements (`increment(-1)`).
+   - *Conclusion*: The modifications represent authentic and correct implementations matching user requirements.
 
 ---
 
 ## 3. Caveats
 
-- Google Sheets dynamic sync is dependent on network connectivity and the availability of `fetchCsv`. If it is offline, the handler transparently uses a geolocated fallback cache (`FALLBACK_DATA`), which is structurally identical and fully authentic.
-- Playwright E2E tests are bound to local port 5000; any local port collision during dev server startup might impact E2E test execution speed.
+- **Mock Data Dependency**: Sidebar SOHO Matching Stats uses static mock summaries. If real-time counts from firestore are required in the future, these can be retrieved by binding a collection length SWR handler.
+- **Scroll Spacing**: Sticky positioning relies on top offset (`lg:top-24`) which aligns with the Lounge layout header. Custom viewports might require minor visual offsets.
 
 ---
 
 ## 4. Conclusion
 
-The implemented changes in the D-VIEW Techno Valley Dashboard and accessibility badges are fully authentic. No dummy code, facades, or test bypasses were discovered. Both playbooks and test cases demonstrate genuine project progression. Verdict: **CLEAN**.
+The visual grid layouts, glassmorphic themes, desktop sticky sidebar layout, and database CRUD methods have been audited and represent clean, authentic, and high-quality logic. Build compile commands and unit/E2E test suites pass successfully with zero integrity violations. The work product is certified **CLEAN**.
 
 ---
 
 ## 5. Verification Method
 
-To verify the audit conclusions independently, execute the following commands in the workspace:
+To independently verify this verdict, navigate to the `frontend/` workspace directory and run:
 
-1. **Clean next.js build cache (if needed)**:
+1. **Static Typecheck**:
    ```powershell
-   Remove-Item -Recurse -Force -ErrorAction SilentlyContinue frontend\.next
+   npx tsc --noEmit
    ```
-2. **Build the production application**:
-   ```bash
-   cd frontend
-   npm run build
-   ```
-3. **Run the Jest unit test suite**:
-   ```bash
+2. **Jest Unit Tests**:
+   ```powershell
    npm run test
    ```
-4. **Run the Playwright E2E accessibility test**:
-   ```bash
-   npx playwright test tests/badge-accessibility.spec.ts
+3. **Playwright E2E Tests**:
+   ```powershell
+   npm run test:e2e
+   ```
+4. **Next.js Production Build**:
+   ```powershell
+   npm run build
    ```

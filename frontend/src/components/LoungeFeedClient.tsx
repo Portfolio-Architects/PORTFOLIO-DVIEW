@@ -342,6 +342,14 @@ const NoticeCard = React.memo(function NoticeCard({
 
 const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
   const { showToast } = usePWA();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   const getCategoryChipStyles = (category: string) => {
     switch (category) {
@@ -586,7 +594,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           logger.warn('LoungeFeedClient.useNewsEffect', 'Failed to fetch news', undefined, err);
         })
         .finally(() => {
-          if (active) setNewsLoading(false);
+          if (isMountedRef.current) setNewsLoading(false);
         });
     }
     return () => {
@@ -658,7 +666,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           }
         })
         .finally(() => {
-          if (active) setNoticesLoading(false);
+          if (isMountedRef.current) setNoticesLoading(false);
         });
     }
     return () => {
@@ -1043,6 +1051,11 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
           dangerouslySetInnerHTML={{ __html: loungeJsonLd }}
         />
       )}
+      {/* Real-time Apt Stories Feed */}
+      {currentTab === '모든 이야기' && (
+        <AptStoriesWidget />
+      )}
+
       {/* Topic Selector for 커뮤니티 (모든 이야기) */}
       {currentTab === '모든 이야기' && (
         <div className="flex justify-center mb-6 mt-1 animate-in fade-in slide-in-from-top-1 duration-300">
@@ -1079,7 +1092,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             <p className="text-[15px] font-bold text-secondary">아직 등록된 공동임차 매칭 공고가 없습니다</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-4 w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
             {coLeasingPosts.map((post) => (
               <div
                 key={post.id}
@@ -1092,9 +1105,9 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                 }}
                 aria-label={`공동임차 매칭 공고 "${post.title}", 빌딩 ${post.buildingName} 상세 보기`}
                 onClick={() => setSelectedCoLease(post)}
-                className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-[20px] relative overflow-hidden"
+                className="flex flex-col justify-between p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.02] hover:-translate-y-1 hover:shadow-lg hover:border-[#c44d00]/30 dark:hover:border-[#ea6100]/30 transition-all duration-300 ease-out cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-[24px] relative overflow-hidden min-h-[190px]"
               >
-                <div className="flex items-center gap-4 flex-1 min-w-0">
+                <div className="flex flex-col gap-4 flex-1 min-w-0">
                   <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="px-2.5 py-1 rounded-md text-[11px] font-black tracking-wide bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30">
@@ -1113,18 +1126,18 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
                         {post.status === 'applied' ? '신청 완료' : '모집 중'}
                       </span>
                     </div>
-                    <h3 className="text-[15.5px] sm:text-[17px] font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-normal group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 mt-2">
+                    <h3 className="text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 tracking-tight leading-normal group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 mt-3">
                       {post.title}
                     </h3>
-                    <p className="text-[13px] sm:text-[13.5px] text-secondary/80 dark:text-zinc-400 font-medium leading-relaxed mt-1">
+                    <p className="text-[13px] text-secondary/80 dark:text-zinc-400 font-medium leading-relaxed mt-1.5">
                       업종: {post.sector} • 공간: {post.spaceType}
                     </p>
                   </div>
                 </div>
                 
-                <div className="flex sm:flex-col items-end sm:items-center justify-between sm:justify-center gap-1.5 mt-3 sm:mt-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-border/40 border-dashed shrink-0 pl-0 sm:pl-6 sm:w-28 sm:h-20">
+                <div className="flex items-center justify-between gap-1.5 mt-4 pt-3 border-t border-border/40 border-dashed shrink-0">
                   <span className="text-[10px] text-tertiary font-extrabold tracking-wider uppercase">분담 비용</span>
-                  <span className="text-[15.5px] sm:text-[16.5px] font-black text-[#ea6100] tracking-tight text-right sm:text-center">
+                  <span className="text-[15px] font-black text-[#ea6100] tracking-tight">
                     {post.deposit} / {post.rent}만 원
                   </span>
                 </div>
@@ -1132,6 +1145,61 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             ))}
           </div>
         )
+      )}
+
+      {/* 🔥 실시간 인기 토크 */}
+      {currentTab === '모든 이야기' && communityTopic === 'apartment' && hotPosts.length > 0 && (
+        <div className="bg-surface border border-border/60 rounded-3xl p-5 mb-2 shadow-sm animate-in fade-in slide-in-from-top-3 duration-300">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+            </span>
+            <span className="text-[13.5px] font-black text-rose-500 dark:text-rose-400 flex items-center gap-1.5">
+              실시간 인기 토크
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+            {hotPosts.map((post) => (
+              <div
+                key={post.id}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    window.location.hash = `post=${post.id}`;
+                  }
+                }}
+                onClick={() => {
+                  window.location.hash = `post=${post.id}`;
+                }}
+                className="flex flex-col gap-2 p-4 bg-body hover:bg-body/85 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/60 border border-border/40 hover:border-rose-500/20 rounded-2xl text-left cursor-pointer transition-all duration-300 group shadow-sm outline-none focus:ring-2 focus:ring-rose-500/30"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className={`px-2 py-0.5 rounded-md text-[10px] font-black tracking-wide ${getCategoryChipStyles(post.category)}`}>
+                    {post.category === '임장기' ? '동탄 임장/분석' : 
+                     post.category === '부동산 기초' ? '부동산 고민상담' :
+                     post.category === '정책자금 대출' ? '동탄 청약/대출' :
+                     post.category === '인프라' ? '동탄 교통/상권' : 
+                     (post.category || '기타')}
+                  </span>
+                  <span className="text-[11px] text-tertiary font-bold font-sans">
+                    조회 {post.views} • 추천 {post.likes}
+                  </span>
+                </div>
+                <h5 className="text-[14px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-rose-500 dark:group-hover:text-rose-400 transition-colors line-clamp-1 leading-snug tracking-tight">
+                  {post.title}
+                </h5>
+                {post.summary && (
+                  <p className="text-[12px] sm:text-[12.5px] text-secondary/80 dark:text-zinc-400 font-medium line-clamp-2 leading-relaxed break-all">
+                    {post.summary}
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
       {postsToRender.length === 0 && !hasMore && communityTopic !== 'soho' && (

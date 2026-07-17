@@ -486,11 +486,11 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
       {showCompose && mounted && createPortal(
         <div 
           onKeyDown={handleKeyDown}
-          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center animate-in fade-in duration-300"
         >
           <button 
             type="button"
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm border-none cursor-default" 
+            className="absolute inset-0 bg-black/30 backdrop-blur-xl border-none cursor-default" 
             onClick={handleClose} 
             aria-label="글쓰기 창 닫기"
           />
@@ -500,7 +500,7 @@ const LoungeComposeClient = React.memo(function LoungeComposeClient({ currentTab
             aria-modal="true"
             aria-labelledby="lounge-compose-title"
             aria-describedby="lounge-compose-desc"
-            className="relative w-full sm:max-w-3xl bg-surface/95 dark:bg-zinc-900/95 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-t-[20px] sm:rounded-[20px] p-6 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-1 animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
+            className="relative w-full sm:max-w-3xl bg-surface/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-t-[28px] sm:rounded-[28px] p-6 pb-8 shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col gap-1 animate-in fade-in zoom-in-95 slide-in-from-bottom-12 sm:slide-in-from-bottom-6 duration-500 ease-out"
           >
             {/* Screen Reader Only Description */}
             <p id="lounge-compose-desc" className="sr-only">주민 라운지에 새로운 소식과 정보를 작성하는 입력 창입니다.</p>

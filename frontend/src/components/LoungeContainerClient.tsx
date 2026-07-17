@@ -243,6 +243,26 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
     });
   }, [news, activeNewsSubTab]);
 
+  const hotPosts = useMemo(() => {
+    const now = Date.now();
+    const postsWithScore = (initialPosts || []).map(post => {
+      const rawCreatedAt = post.createdAt;
+      const createdAt = typeof rawCreatedAt === 'number' && !isNaN(rawCreatedAt) 
+        ? rawCreatedAt 
+        : (typeof rawCreatedAt === 'string' ? new Date(rawCreatedAt).getTime() : now);
+      
+      const safeCreatedAt = isNaN(createdAt) ? now : createdAt;
+      const ageDays = Math.max(0, (now - safeCreatedAt) / (1000 * 60 * 60 * 24));
+      const score = (Number(post.views || 0) + Number(post.likes || 0) * 5 + Number(post.commentCount || 0) * 10) / Math.pow(ageDays + 1, 1.2);
+      return { post, score: isNaN(score) ? 0 : score };
+    });
+
+    return postsWithScore
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 3)
+      .map(item => item.post);
+  }, [initialPosts]);
+
   // Auto-open notice modal when noticeId query param is present
   useEffect(() => {
     if (noticeId && notices.length > 0) {
@@ -348,7 +368,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                 onClick={() => handleTabClick(tab.id as 'talk' | 'news' | 'notices')}
                 className={`flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-[14px] text-[13px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                   isActive 
-                    ? 'bg-surface text-primary shadow-[0_4px_16px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
+                    ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_4px_16px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
                 }`}
               >
@@ -361,10 +381,120 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
 
         {/* Tab Contents */}
         {activeTab === 'talk' && (
-          <>
-            <LoungeFeedClient initialPosts={initialPosts} currentTab="모든 이야기" />
-            <LoungeComposeClient currentTab="모든 이야기" onRequestLogin={onRequestLogin} />
-          </>
+          <div className="flex flex-col lg:flex-row gap-8 items-start w-full">
+            <div className="flex-1 w-full min-w-0">
+              <LoungeFeedClient initialPosts={initialPosts} currentTab="모든 이야기" />
+              <LoungeComposeClient currentTab="모든 이야기" onRequestLogin={onRequestLogin} />
+            </div>
+            <aside className="hidden lg:block lg:sticky lg:top-24 w-80 shrink-0 space-y-6">
+              {/* 실시간 인기 토크 */}
+              <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/60 rounded-3xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                  </span>
+                  <h3 className="text-[13.5px] font-black text-rose-500 dark:text-rose-400 flex items-center gap-1.5">
+                    실시간 인기 토크
+                  </h3>
+                </div>
+                {hotPosts.length === 0 ? (
+                  <p className="text-[12px] text-tertiary text-center py-4">인기 게시글이 없습니다.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {hotPosts.map((post) => (
+                      <div
+                        key={post.id}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            window.location.hash = `post=${post.id}`;
+                          }
+                        }}
+                        onClick={() => {
+                          window.location.hash = `post=${post.id}`;
+                        }}
+                        className="w-full flex flex-col gap-1.5 p-3 bg-body hover:bg-body/85 dark:bg-zinc-800/40 dark:hover:bg-zinc-800/60 border border-border/40 hover:border-rose-500/20 rounded-xl text-left cursor-pointer transition-all duration-300 group outline-none focus:ring-2 focus:ring-rose-500/30"
+                      >
+                        <span className="text-[10px] font-bold text-tertiary">
+                          {post.category === '임장기' ? '동탄 임장/분석' : 
+                           post.category === '부동산 고민상담' ? '부동산 고민상담' :
+                           post.category === '정책자금 대출' ? '동탄 청약/대출' :
+                           post.category === '인프라' ? '동탄 교통/상권' : 
+                           (post.category || '기타')}
+                        </span>
+                        <h4 className="text-[13px] font-extrabold text-primary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-1 leading-snug">
+                          {post.title}
+                        </h4>
+                        <span className="text-[10px] text-tertiary font-sans">
+                          조회 {post.views} • 추천 {post.likes}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 오늘의 소호 매칭 현황 */}
+              <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/60 rounded-3xl p-5 shadow-sm">
+                <h3 className="text-[14px] font-black text-primary mb-3">오늘의 소호 매칭 현황</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-secondary font-medium">실시간 등록 공고</span>
+                    <span className="text-[13px] font-black text-[#c44d00] dark:text-[#ea6100]">4건 진행 중</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-[12px] text-secondary font-medium">활동 중인 대표 빌딩</span>
+                    <span className="text-[12px] text-tertiary">금강 IX, 현대 실리콘앨리 등</span>
+                  </div>
+                  <div className="pt-2.5 border-t border-border/40 flex items-center justify-between text-[11px] text-tertiary">
+                    <span>평균 공실 해소 기간</span>
+                    <span className="font-bold text-secondary">18.5일</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* 부동산 계산기 바로가기 */}
+              <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/60 rounded-3xl p-5 shadow-sm space-y-3">
+                <h3 className="text-[14px] font-black text-primary">부동산 간편 계산기</h3>
+                
+                <a
+                  href="/overview?calc=sell_timing"
+                  className="flex items-center justify-between p-3 bg-body hover:bg-body/80 border border-border/40 rounded-xl transition-all duration-200 group text-left w-full outline-none focus:ring-1 focus:ring-[#c44d00]"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-extrabold text-secondary">AI 매도 적합성 계산기</span>
+                    <span className="text-[9.5px] text-tertiary">매도 타이밍 & 적정 가격 시뮬레이션</span>
+                  </div>
+                  <ArrowUpRight size={14} className="text-tertiary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+
+                <a
+                  href="/overview?calc=jeonse"
+                  className="flex items-center justify-between p-3 bg-body hover:bg-body/80 border border-border/40 rounded-xl transition-all duration-200 group text-left w-full outline-none focus:ring-1 focus:ring-emerald-500"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-extrabold text-secondary">전세 안전 진단 계산기</span>
+                    <span className="text-[9.5px] text-tertiary">깡통전세 위험도 & 보증금 안전성 확인</span>
+                  </div>
+                  <ArrowUpRight size={14} className="text-tertiary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+
+                <a
+                  href="/overview?calc=mortgage"
+                  className="flex items-center justify-between p-3 bg-body hover:bg-body/80 border border-border/40 rounded-xl transition-all duration-200 group text-left w-full outline-none focus:ring-1 focus:ring-[#004696]"
+                >
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-extrabold text-secondary">주택 담보 대출 계산기</span>
+                    <span className="text-[9.5px] text-tertiary">월 상환액 및 한도 상세 시뮬레이터</span>
+                  </div>
+                  <ArrowUpRight size={14} className="text-tertiary group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                </a>
+              </div>
+            </aside>
+          </div>
         )}
 
         {activeTab === 'news' && (

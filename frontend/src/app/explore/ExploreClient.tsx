@@ -310,7 +310,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     selectedReport, sheetApartments, nameMapping, user, txSummary, locationScores
   );
 
-  const { commentsData, commentInput, setCommentInput, handleSubmitComment } = useComments(
+  const { commentsData, commentInput, setCommentInput, handleSubmitComment, handleDeleteComment } = useComments(
     selectedReport, fullReportData, user, handleLogin
   );
 
@@ -546,6 +546,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                 commentInput={commentInput[resolvedReport.id] || ''}
                 onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [resolvedReport.id]: text }))}
                 onSubmitComment={() => handleSubmitComment(resolvedReport.id)}
+                onDeleteComment={(commentId, text) => handleDeleteComment(resolvedReport.id, commentId, text)}
                 user={user}
                 transactions={modalTransactions}
                 isTxLoading={isTxLoading}
