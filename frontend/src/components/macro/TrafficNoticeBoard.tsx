@@ -102,7 +102,7 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                 type="button"
                 aria-label={`공고: ${item.title}, 날짜: ${item.date}`}
                 onClick={() => {
-                  window.location.href = `/news?notice=${item.id}`;
+                  window.open(item.url, '_blank', 'noopener,noreferrer');
                 }}
                 className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >

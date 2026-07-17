@@ -77,3 +77,35 @@ Integrity mode: development
 - [ ] App builds successfully without compile errors: `npm run build` or `npx tsc --noEmit` returns exit code 0.
 - [ ] Playwright E2E tests and Jest unit tests pass successfully.
 
+
+## 2026-07-17T04:29:42Z
+
+이 프로젝트는 동탄 아파트 실거래 데이터 분석 플랫폼 'D-VIEW'의 '아파트 랩'(/overview) 페이지 내 전체 레이어 컴포넌트의 렌더링 성능을 심층 분석하고, 메인 스레드 블로킹, 불필요한 재렌더링, 레이아웃 흔들림(CLS), 번들 크기를 최적화하여 서비스 진입 및 상호작용 속도를 극대화하는 것을 목표로 합니다.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 레이어 컴포넌트 렌더링 병목 분석
+- 아파트 랩(/overview) 진입 및 지도/대시보드 상호작용 시 발생하는 렌더링 병목(예: 대규모 리스트 렌더링으로 인한 Main Thread Blocking, 잦은 State 변경에 의한 하위 컴포넌트의 무의미한 Re-rendering 등)을 분석합니다.
+
+### R2. 컴포넌트 렌더링 최적화 및 메모이제이션 적용
+- 대량의 데이터나 복잡한 UI를 다루는 컴포넌트들에 대해 `React.memo`, `useMemo`, `useCallback` 등을 적절히 적용하고 상태 구조를 개선하여 렌더링 성능을 개선합니다.
+- 필요한 경우 화면에 보이지 않는 요소나 긴 리스트 아이템들에 대해 가상화(Virtualization) 또는 지연 렌더링(Lazy Rendering) 기법을 적용합니다.
+
+### R3. 번들 크기 최소화 및 코드 분할
+- `MacroDashboardClient` 내부의 독립적인 대형 하위 컴포넌트(예: 필터, 트렌드 분석, 부동산 계산기 위젯 등)들을 추가적으로 분리하여 동적 로딩(`dynamic()`)을 적용하고 초기 로드 비용을 추가로 줄입니다.
+
+### R4. 기존 기능 및 사용자 경험(UX) 무결성 유지
+- 성능 최적화 작업이 진행된 후에도 지도 탐색, 아파트 상세 조회, 전세 안전진단 등 기존의 모든 핵심 기능이 깨짐 없이 부드럽게 작동해야 합니다.
+
+## Acceptance Criteria
+
+### 빌드 및 구동 안정성
+- [ ] 성능 최적화 후 전체 애플리케이션 빌드(`npm run build`)가 정상적으로 성공하는지 검증.
+- [ ] '아파트 랩'(/overview) 페이지 로드 및 탭 스위칭이 정상적으로 구동되고 콘솔에 렌더링 관련 런타임 에러가 발생하지 않는지 검증.
+
+### 성능 최적화 검증
+- [ ] 불필요하게 쪼개지지 않은 무거운 컴포넌트들의 추가적인 코드 분할(Code Splitting)이 성공적으로 적용되었는지 검증.
+- [ ] UI 상호작용 시 지연(Lag)이 최소화되고 부드러운 전환이 보장되는지 검증.

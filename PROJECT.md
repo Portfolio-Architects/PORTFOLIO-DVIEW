@@ -1,21 +1,24 @@
-# Project: DVIEW Landing Page & Navigation UX Optimization
+# Project: D-VIEW Performance Optimization Phase
 
 ## Architecture
 - React / Next.js app directory structure in `frontend/src`.
-- Global CSS in `frontend/src/app/globals.css` with CSS variables for colors.
-- Desktop layout header in `frontend/src/components/LoungeHeader.tsx`.
-- PWA Mobile bottom dock in `frontend/src/components/pwa/MobileDock.tsx`.
-- Page hero headers in `frontend/src/components/PageHeroHeader.tsx`.
-- Playwright E2E and UI/UX test suites in `frontend/tests/`.
+- Global CSS in `frontend/src/app/globals.css`.
+- Main dashboard client: `frontend/src/components/DashboardClient.tsx`.
+- Macro dashboard client: `frontend/src/components/MacroDashboardClient.tsx`.
+- Playwright E2E and Jest unit test suites in `frontend/tests/` and other test files.
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | Exploration | Analyze codebase layout, styling, and navigation | none | DONE (Report: .agents/explorer_1/analysis.md) |
-| 2 | R1: Theme & Landing | Implement Hwaseong BI Colors and landing page Above the Fold sections | M1 | DONE (Report: .agents/worker_1/handoff.md) |
-| 3 | R2: Navigation | Align desktop, mobile and hero menus, add active state styles | M2 | DONE (Report: .agents/worker_1/handoff.md) |
-| 4 | R3: CLS & Skeletons | Eliminate Layout Shifts, fix transitions | M3 | DONE (Report: .agents/worker_1/handoff.md) |
-| 5 | Verification | Run all UI/UX tests, npm run audit, npm run build | M4 | DONE (Report: .agents/auditor_m5/audit_report.md) |
+| 1 | Exploration | Analyze codebase layout, styling, and navigation | none | DONE |
+| 2 | R1: Theme & Landing | Hwaseong BI Colors and landing page sections | M1 | DONE |
+| 3 | R2: Navigation | Align menus and active states | M2 | DONE |
+| 4 | R3: CLS & Skeletons | Eliminate Layout Shifts, fix transitions | M3 | DONE |
+| 5 | Verification | Run all UI/UX tests, npm run audit, npm run build | M4 | DONE |
+| 6 | Performance Analysis | Profile overview page rendering bottlenecks | M5 | PLANNED |
+| 7 | Memoization & Lazy | React.memo, useMemo, useCallback, Lazy Rendering | M6 | PLANNED |
+| 8 | Code Splitting | Dynamic loading in MacroDashboardClient | M7 | PLANNED |
+| 9 | Final Verification | Run Playwright, Jest, npm run build, integrity checks | M8 | PLANNED |
 
 ## Interface Contracts
 ### LoungeHeader ↔ MobileDock
@@ -27,3 +30,4 @@
 - Navigation: `frontend/src/components/`
 - Pages: `frontend/src/app/`
 - Tests: `frontend/tests/`
+

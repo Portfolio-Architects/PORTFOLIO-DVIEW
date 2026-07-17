@@ -138,6 +138,15 @@ const WriteReviewModal = dynamic(() => import(/* webpackPreload: false */ '@/com
 });
 
 
+const MacroDashboardClient = dynamic(() => import(/* webpackPreload: false */ '@/components/MacroDashboardClient').catch(err => {
+  logger.warn('DashboardClient.dynamic', 'MacroDashboardClient Chunk Load failure, initiating fallback reload', undefined, err);
+  safeReload('MacroDashboardClient');
+  return { default: () => null };
+}), { 
+  ssr: false,
+  loading: () => <MacroDashboardSkeleton />
+});
+
 const LoungeContainerClient = dynamic(() => import(/* webpackPreload: false */ '@/components/LoungeContainerClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeContainerClient');
@@ -205,7 +214,7 @@ import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
-import MacroDashboardClient from '@/components/MacroDashboardClient';
+
 import { useFavorites } from '@/hooks/useFavorites';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
@@ -448,13 +457,21 @@ const DashboardClient = React.memo(function DashboardClient({
 
         if (!isMounted) return;
         startTransition(() => {
-          if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || queryTab === 'lounge') {
+          if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=')) {
             setActiveTab('lounge');
-          } else if (window.location.hash.startsWith('#imjang') || queryTab === 'imjang') {
+          } else if (window.location.hash.startsWith('#imjang')) {
             setActiveTab('imjang');
-          } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap') || queryTab === 'office' || queryTab === 'gap' || hasCuration) {
+          } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap')) {
             setActiveTab('office');
-          } else if (window.location.hash.startsWith('#overview') || window.location.hash === '' || queryTab === 'overview') {
+          } else if (window.location.hash.startsWith('#overview')) {
+            setActiveTab('overview');
+          } else if (queryTab === 'lounge' || queryTab === 'talk' || queryTab === 'news' || queryTab === 'notices') {
+            setActiveTab('lounge');
+          } else if (queryTab === 'imjang') {
+            setActiveTab('imjang');
+          } else if (queryTab === 'office' || queryTab === 'gap' || hasCuration) {
+            setActiveTab('office');
+          } else if (queryTab === 'overview' || window.location.hash === '') {
             setActiveTab('overview');
           }
         });
@@ -866,7 +883,10 @@ const DashboardClient = React.memo(function DashboardClient({
                 </Link>
 
                 <button
-                  onClick={() => startTransition(() => { setActiveTab('office'); window.location.hash = 'office'; })}
+                  onClick={() => startTransition(() => { 
+                    setActiveTab('office'); 
+                    window.history.replaceState(null, '', '/overview?tab=office');
+                  })}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'office'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -881,7 +901,10 @@ const DashboardClient = React.memo(function DashboardClient({
               {/* Box 2: 라운지 */}
               <nav aria-label="라운지 메뉴" className="flex items-center bg-body p-1.5 rounded-[18px] border border-border/40">
                 <button
-                  onClick={() => startTransition(() => { setActiveTab('lounge'); window.location.hash = 'lounge'; })}
+                  onClick={() => startTransition(() => { 
+                    setActiveTab('lounge'); 
+                    window.history.replaceState(null, '', '/overview#lounge');
+                  })}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'lounge'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
@@ -896,7 +919,10 @@ const DashboardClient = React.memo(function DashboardClient({
               {/* Box 3: 아파트 내비 */}
               <nav aria-label="아파트 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
                 <button
-                  onClick={() => startTransition(() => { setActiveTab('overview'); window.location.hash = 'overview'; })}
+                  onClick={() => startTransition(() => { 
+                    setActiveTab('overview'); 
+                    window.history.replaceState(null, '', '/overview');
+                  })}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
                     activeTab === 'overview'
                       ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'

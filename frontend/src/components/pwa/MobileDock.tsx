@@ -71,7 +71,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
 
           let tabElement = null;
           
-          if (onTabClick && tab.id !== 'imjang' && tab.id !== 'lounge' && tab.id !== 'technovalley' && tab.id !== 'overview' && tab.id !== 'office') {
+          if (onTabClick && (tab.id === 'overview' || tab.id === 'office')) {
              // Dashboard usage (if within the same page context)
              tabElement = (
                 <button
@@ -80,9 +80,9 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                     e.preventDefault();
                     onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'office' | 'technovalley');
                     if (tab.id === 'overview') {
-                      window.history.replaceState(null, '', window.location.pathname + window.location.search);
-                    } else {
-                      window.history.replaceState(null, '', window.location.pathname + window.location.search + `#${tab.id}`);
+                      window.history.replaceState(null, '', '/overview');
+                    } else if (tab.id === 'office') {
+                      window.history.replaceState(null, '', '/overview?tab=office');
                     }
                   }}
                   className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${

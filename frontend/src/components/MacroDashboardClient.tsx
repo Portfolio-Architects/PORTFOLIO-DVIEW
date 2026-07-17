@@ -34,6 +34,9 @@ const AptFitFinder = dynamic(() => import(/* webpackPreload: false */ "@/compone
   loading: () => <InlineLoader text="맞춤 단지 매칭 엔진 준비 중" />
 });
 
+const TrafficNoticeBoard = dynamic(() => import("./macro/TrafficNoticeBoard").then(mod => mod.TrafficNoticeBoard), { ssr: false });
+const LoungeTalkWidget = dynamic(() => import("./macro/LoungeTalkWidget").then(mod => mod.LoungeTalkWidget), { ssr: false });
+
 const EMPTY_OBJECT = {};
 
 const DEFAULT_TIMELINE_APTS = [
@@ -54,8 +57,6 @@ import { useLocationScores } from "@/hooks/useStaticData";
 import { BUILD_VERSION } from "@/lib/build-version";
 import FloatingUserBar from "@/components/FloatingUserBar";
 import PageHeroHeader from "./PageHeroHeader";
-import { TrafficNoticeBoard } from "./macro/TrafficNoticeBoard";
-import { LoungeTalkWidget } from "./macro/LoungeTalkWidget";
 import {
   ArrowUp,
   Info,
@@ -400,6 +401,127 @@ const parsePriceEokHelper = (priceStr: string): number => {
   return total;
 };
 
+interface TimelineItemCardProps {
+  item: TimelineItem;
+  isSelected: boolean;
+  areaUnit: string;
+  onCardHover: (aptName: string, dong: string) => void;
+  onCardClick: (aptName: string) => void;
+  onDetailsClick: (aptName: string) => void;
+  onDetailsHover: (aptName: string, dong: string) => void;
+}
+
+const TimelineItemCard = React.memo(function TimelineItemCard({
+  item,
+  isSelected,
+  areaUnit,
+  onCardHover,
+  onCardClick,
+  onDetailsClick,
+  onDetailsHover,
+}: TimelineItemCardProps) {
+  const isRising = item.delta > 0;
+  const isFalling = item.delta < 0;
+
+  return (
+    <div
+      onMouseEnter={() => onCardHover(item.aptName, item.dong)}
+      onTouchStart={() => onCardHover(item.aptName, item.dong)}
+      className={`flex items-center justify-between p-3.5 rounded-xl transition-all border ${
+        isSelected
+          ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
+          : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
+      } group gap-4`}
+    >
+      <button
+        type="button"
+        onClick={() => onCardClick(item.aptName)}
+        aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
+        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-1 bg-transparent border-none min-w-0 cursor-pointer"
+      >
+        {/* Left Column: Apt Name & Info */}
+        <div className="flex flex-col gap-1 min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-[13px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
+              {item.displayAptName || item.aptName}
+            </span>
+            {item.type === 'high' && (
+              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+                신고가
+              </span>
+            )}
+          </div>
+          
+          <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden">
+            <span>{item.dong}</span>
+            <span className="opacity-30 font-normal">•</span>
+            <span>
+              {areaUnit === 'm2'
+                ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+                : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+            </span>
+            <span className="opacity-30 font-normal">•</span>
+            <span>{item.floor}층</span>
+          </div>
+        </div>
+
+        {/* Right Column: Price & Change Badges */}
+        <div className="flex flex-col items-end gap-1 shrink-0 ml-1 sm:ml-2">
+          {/* Price and flow */}
+          <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
+            {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
+              <>
+                <span className="text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
+                  {formatEokWithUnit(item.prevPriceVal * 10000).value}
+                </span>
+                <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
+              </>
+            )}
+            <span className={`text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
+              isRising
+                ? "text-rose-500 dark:text-rose-400"
+                : isFalling
+                  ? "text-slate-500 dark:text-slate-400"
+                  : "text-primary"
+            }`}>
+              {item.priceEok}
+            </span>
+          </div>
+
+          {/* Delta Badge */}
+          <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
+            isRising
+              ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
+              : isFalling
+                ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
+                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+          }`}>
+            {isRising 
+              ? `▲ ${formatDeltaPrice(item.delta)}` 
+              : isFalling 
+                ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
+                : '보합'}
+          </span>
+        </div>
+      </button>
+
+      {/* Details Button */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onDetailsClick(item.aptName);
+        }}
+        onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
+        onTouchStart={() => onDetailsHover(item.aptName, item.dong)}
+        className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
+      >
+        상세
+      </button>
+    </div>
+  );
+});
+
 const MacroDashboardClient = React.memo(function MacroDashboardClient({
   sheetApartments,
   txSummaryData,
@@ -638,6 +760,30 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>("동탄역 롯데캐슬");
   const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
 
+  const handleCardHover = useCallback((aptName: string, dong: string) => {
+    preloadApartmentTx?.(aptName, dong);
+    import('@/components/ApartmentModal').catch(() => {});
+    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+  }, [preloadApartmentTx]);
+
+  const handleCardClick = useCallback((aptName: string) => {
+    setSelectedTimelineApt(aptName);
+    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+      setIsBottomSheetOpen(true);
+    }
+  }, [setSelectedTimelineApt, setIsBottomSheetOpen]);
+
+  const handleDetailsClick = useCallback((aptName: string) => {
+    if (onSelectApt) {
+      onSelectApt(aptName);
+    }
+  }, [onSelectApt]);
+
+  const handleDetailsHover = useCallback((aptName: string, dong: string) => {
+    preloadApartmentTx?.(aptName, dong);
+    preloadApartmentModal();
+  }, [preloadApartmentTx]);
+
   const isDefaultAptSettingUp = useMemo(() => {
     if (!mounted) return true;
     if (authLoading) return true;
@@ -832,78 +978,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
     return maxVal;
   }, [recentTransactions]);
-
-  // 1. Donut Chart Data (실거래 등락 비중 - 상승 vs 하락 vs 보합)
-  const donutData = useMemo(() => {
-    const daysLimit = chartMode === "30" ? 30 : 90;
-    const cutoffTime = maxDateTime - daysLimit * 24 * 60 * 60 * 1000;
-    let upCount = 0;
-    let downCount = 0;
-    let sameCount = 0;
-
-    const aptAreaGroups: Record<string, RecentTransaction[]> = {};
-    recentTransactions.forEach((tx) => {
-      const groupKey = `${tx.txKey}-${Math.floor(tx.area)}`;
-      if (!aptAreaGroups[groupKey]) {
-        aptAreaGroups[groupKey] = [];
-      }
-      aptAreaGroups[groupKey].push(tx);
-    });
-
-    Object.values(aptAreaGroups).forEach((transactions) => {
-      const mapped = transactions
-        .map((tx) => ({
-          tx,
-          dt: parseDateHelper(tx.contractDate),
-        }))
-        .filter((item): item is { tx: typeof item.tx; dt: Date } => item.dt !== null);
-
-      const sorted = mapped.sort((a, b) => a.dt.getTime() - b.dt.getTime());
-
-      for (let j = 1; j < sorted.length; j++) {
-        const current = sorted[j];
-        const prev = sorted[j - 1];
-        if (current.dt.getTime() >= cutoffTime) {
-          const currentPrice = current.tx.priceVal;
-          const prevPrice = prev.tx.priceVal;
-          if (currentPrice > prevPrice) {
-            upCount++;
-          } else if (currentPrice < prevPrice) {
-            downCount++;
-          } else if (currentPrice === prevPrice) {
-            sameCount++;
-          }
-        }
-      }
-    });
-
-    return [
-      { name: "상승 거래", value: upCount },
-      { name: "하락 거래", value: downCount },
-      { name: "보합 거래", value: sameCount },
-    ];
-  }, [recentTransactions, chartMode, maxDateTime]);
-
-  const [totalHouseholds, publicRentalHouseholds] = useMemo(() => {
-    let total = 0;
-    let publicRental = 0;
-    if (!sheetApartments) return [0, 0];
-    Object.values(sheetApartments)
-      .flat()
-      .forEach((apt) => {
-        const hh = apt.householdCount || 0;
-        total += hh;
-        if (publicRentalSet.has(apt.name)) {
-          publicRental += hh;
-        }
-      });
-    return [total, publicRental];
-  }, [sheetApartments, publicRentalSet]);
-
-  // 2. Line Chart Data (동탄 아파트 전체 가격 변화 추이 - 실제 데이터)
-  const benchmarks = useMemo(() => {
-    return ["동탄 아파트 전체"];
-  }, []);
 
   const paddedMacroTrendData = useMemo(() => {
     if (!macroTrendData || macroTrendData.length === 0) return [];
@@ -1187,31 +1261,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return finalChartData;
   }, [selectedAptSummary, deferredMacroTrendData, aptRealTxData]);
 
-  const getAptBriefingMessage = React.useCallback((summary: AptTxSummary, aptName: string) => {
-    const isFav = userFavorites?.has(aptName);
-    const prefix = isFav ? "⭐ 관심 단지 리포트: " : "📊 단지 요약: ";
-    
-    const txCount = summary.avg1MTxCount || summary.avg3MTxCount || 0;
-    const priceStr = summary.avg1MPriceEok || summary.avg3MPriceEok || summary.latestPriceEok || "-";
-    const rentStr = summary.avg1MRentDepositEok || summary.avg3MRentDepositEok || summary.latestRentDepositEok || "-";
-    
-    if (txCount === 0) {
-      return `${prefix}${aptName}은 최근 30일간 실거래 내역이 없지만, 직전 거래 기준 매매 ${priceStr}, 전세 ${rentStr}선에 시세가 형성되어 있습니다.`;
-    }
-    
-    const saleVal = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
-    const rentVal = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
-    const gapVal = saleVal - rentVal;
-    let gapStr = "-";
-    if (gapVal > 0) {
-      gapStr = `${(gapVal / 10000).toFixed(1)}억`;
-    }
-    
-    const rentRate = saleVal > 0 ? Math.round((rentVal / saleVal) * 100) : 0;
-    
-    return `${prefix}${aptName}은 최근 30일 동안 ${txCount}건의 실거래가 발생했습니다. 평균 매매 ${priceStr}, 평균 전세 ${rentStr}선이며, 예상 매매-전세 차액은 약 ${gapStr} (전세가율 ${rentRate}%) 수준입니다.`;
-  }, [userFavorites]);
-
   const lineData = useMemo(() => {
     const sourceData = selectedAptChartData || deferredMacroTrendData;
     if (!sourceData) return [];
@@ -1312,262 +1361,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return typeof val === 'number' ? `${val.toFixed(1)}억` : "4.3억";
   }, [latestMacroPoint]);
 
-
-  // 1안 Card 3: 최근 7일 동탄 실거래량 & 추세 (WoW)
-  const card3Data = useMemo(() => {
-    if (recent7DaysVolume) {
-      return recent7DaysVolume;
-    }
-    const limit7 = 7 * 24 * 60 * 60 * 1000;
-    const cutoff7 = maxDateTime - limit7;
-    const cutoff14 = maxDateTime - 2 * limit7;
-    let currentCount = 0;
-    let prevCount = 0;
-
-    recentTransactions.forEach((tx) => {
-      const dt = parseDateHelper(tx.contractDate);
-      if (dt) {
-        const time = dt.getTime();
-        if (time >= cutoff7) {
-          currentCount++;
-        } else if (time >= cutoff14) {
-          prevCount++;
-        }
-      }
-    });
-
-    const diff = currentCount - prevCount;
-    const rate = prevCount > 0 ? (diff / prevCount) * 100 : 0;
-    const isUp = diff > 0;
-    const isDown = diff < 0;
-    let trendText = "보합 (0%)";
-    let trendColor = "#5d6d7e";
-
-    if (isUp) {
-      trendText = `상승 (+${rate.toFixed(1)}%)`;
-      trendColor = "#ff4b5c";
-    } else if (isDown) {
-      trendText = `하락 (${rate.toFixed(1)}%)`;
-      trendColor = "#2e7cf6";
-    }
-
-    return {
-      currentCount,
-      prevCount,
-      trendText,
-      trendColor,
-      badge: `${diff >= 0 ? "+" : ""}${diff}건 (${diff >= 0 ? "+" : ""}${rate.toFixed(0)}%)`,
-    };
-  }, [recent7DaysVolume, recentTransactions, maxDateTime]);
-
-  // 1안 Card 4: 실시간 최고 관심 단지
-  const card4Data = useMemo(() => {
-    let targetAptName = "-";
-    let maxFavorites = 0;
-
-    if (sheetApartments && favoriteCounts) {
-      Object.values(sheetApartments)
-        .flat()
-        .forEach((apt) => {
-          if (publicRentalSet.has(apt.name)) return;
-          const count = favoriteCounts[apt.name] || 0;
-          if (count > maxFavorites) {
-            maxFavorites = count;
-            targetAptName = apt.name;
-          }
-        });
-    }
-
-    // Fallback: 관심(즐겨찾기) 단지가 아직 없을 시, 리스트 내 임대제외 첫 아파트
-    if (targetAptName === "-" && sheetApartments) {
-      const firstApt = Object.values(sheetApartments)
-        .flat()
-        .find((apt) => !publicRentalSet.has(apt.name));
-      if (firstApt) {
-        targetAptName = firstApt.name;
-      }
-    }
-
-    return {
-      name: targetAptName,
-      badge: maxFavorites > 0 ? `관심 ${maxFavorites}명` : "관심 0명",
-    };
-  }, [sheetApartments, publicRentalSet, favoriteCounts]);
-
-  // 동탄 매수 심리 계산 (Card 2)
-  const globalVotes = useMemo(() => {
-    const buyCount = globalVotesData?.buyCount || 0;
-    const waitCount = globalVotesData?.waitCount || 0;
-    const totalVotes = buyCount + waitCount;
-    const buyPercent = totalVotes > 0 ? Math.round((buyCount / totalVotes) * 100) : 50;
-    
-    let sentimentText = "팽팽함";
-    if (buyPercent > 55) sentimentText = "매수 우세";
-    else if (buyPercent < 45) sentimentText = "관망 우세";
-
-    return {
-      buyPercent,
-      totalVotes,
-      sentimentText,
-    };
-  }, [globalVotesData]);
-
-  // Pre-enriched apartment transaction parameters for gap investment and rates calculations to prevent duplicate loops
-  const enrichedAptList = useMemo(() => {
-    if (!sheetApartments || !txSummaryData) return [];
-    const nameMappingVal = nameMapping || {};
-    const allApts = Object.values(sheetApartments).flat();
-    
-    return allApts
-      .map((apt) => {
-        if (publicRentalSet.has(apt.name)) return null;
-
-        const txKey = findTxKey(apt.name, txSummaryData, nameMappingVal);
-        if (!txKey || !txSummaryData[txKey]) return null;
-
-        const sum = txSummaryData[txKey];
-        const avgSale = sum.avg1MPrice || sum.avg3MPrice || sum.latestPrice || 0;
-        const avgRent = sum.avg1MRentDeposit || sum.avg3MRentDeposit || sum.latestRentDeposit || 0;
-
-        if (avgSale <= 0 || avgRent <= 0) return null;
-
-        const rate = (avgRent / avgSale) * 100;
-        const gapVal = avgSale - avgRent;
-
-        return {
-          name: apt.name,
-          dong: apt.dong,
-          avgSale,
-          avgRent,
-          rate,
-          gapVal,
-          householdCount: apt.householdCount || 0,
-          txCount3M: sum.avg3MTxCount || 0,
-        };
-      })
-      .filter((item): item is NonNullable<typeof item> => item !== null);
-  }, [sheetApartments, txSummaryData, nameMapping, publicRentalSet]);
-
-  // 동탄 전세 안심 1위 (최고 전세가율 단지) 계산
-  const gapInvestment1st = useMemo(() => {
-    let bestAptName = "-";
-    let maxJeonseRate = 0;
-    let bestGapText = "-";
-    let bestJeonseRateText = "-";
-
-    enrichedAptList.forEach((apt) => {
-      if (apt.rate > maxJeonseRate && apt.rate < 98) {
-        maxJeonseRate = apt.rate;
-        bestAptName = apt.name;
-        const fmtGap = formatEokWithUnit(apt.gapVal);
-        const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
-        bestGapText = `차액 ${fmtGap.value}${gapUnitStr}`;
-        bestJeonseRateText = `전세율 ${apt.rate.toFixed(1)}%`;
-      }
-    });
-
-    if (bestAptName === "-" || maxJeonseRate === 0) {
-      return {
-        name: "동탄역 시범 한화꿈에그린",
-        jeonseRateText: "전세율 72.4%",
-        gapText: "차액 2.3억",
-      };
-    }
-
-    return {
-      name: bestAptName,
-      jeonseRateText: bestJeonseRateText,
-      gapText: bestGapText,
-    };
-  }, [enrichedAptList]);
-
-  // 동탄 주거 안심 Top 5 계산 (필터링 및 리스크 포함)
-  const gapInvestmentTop5 = useMemo(() => {
-    const result: Array<{
-      name: string;
-      dong: string;
-      gap: number;
-      gapText: string;
-      jeonseRate: number;
-      jeonseRateText: string;
-      avgSale: number;
-      avgRent: number;
-      risks: {
-        reverseJeonse: 'safe' | 'warning' | 'danger';
-        liquidity: 'safe' | 'warning' | 'danger';
-        volatility: 'safe' | 'warning' | 'danger';
-      }
-    }> = [];
-
-    enrichedAptList.forEach((apt) => {
-      if (gapRankingDong !== "전체" && apt.dong !== gapRankingDong) return;
-
-      if (apt.rate > 50 && apt.rate < 98) {
-        const fmtGap = formatEokWithUnit(apt.gapVal);
-        const gapUnitStr = fmtGap.unit === "만원" ? "만" : fmtGap.unit === "원" ? "" : fmtGap.unit;
-
-        // 3대 리스크 판정
-        // 1) 역전세 리스크
-        let reverseJeonse: 'safe' | 'warning' | 'danger' = 'safe';
-        if (apt.rate >= 80) reverseJeonse = 'danger';
-        else if (apt.rate >= 70) reverseJeonse = 'warning';
-
-        // 2) 유동성 리스크 (3개월 거래수 기준)
-        let liquidity: 'safe' | 'warning' | 'danger' = 'safe';
-        if (apt.txCount3M <= 2) liquidity = 'danger';
-        else if (apt.txCount3M <= 5) liquidity = 'warning';
-
-        // 3) 가격 변동성 리스크 (세대수 기준)
-        let volatility: 'safe' | 'warning' | 'danger' = 'safe';
-        if (apt.householdCount < 500) volatility = 'danger';
-        else if (apt.householdCount < 1000) volatility = 'warning';
-
-        result.push({
-          name: apt.name,
-          dong: apt.dong,
-          gap: apt.gapVal,
-          gapText: `${fmtGap.value}${gapUnitStr}`,
-          jeonseRate: apt.rate,
-          jeonseRateText: `${apt.rate.toFixed(1)}%`,
-          avgSale: apt.avgSale,
-          avgRent: apt.avgRent,
-          risks: {
-            reverseJeonse,
-            liquidity,
-            volatility
-          }
-        });
-      }
-    });
-
-    // 정렬: 전세가율 높은 순 -> 갭 금액 적은 순
-    return result
-      .sort((a, b) => {
-        if (Math.abs(b.jeonseRate - a.jeonseRate) > 0.01) {
-          return b.jeonseRate - a.jeonseRate;
-        }
-        return a.gap - b.gap;
-      })
-      .slice(0, 5);
-  }, [enrichedAptList, gapRankingDong]);
-
-  // 동탄 전역(혹은 gapRankingDong 필터 기준) 평균 전세가율 연산
-  const averageJeonseRateText = useMemo(() => {
-    let totalRate = 0;
-    let count = 0;
-
-    enrichedAptList.forEach((apt) => {
-      if (gapRankingDong !== "전체" && apt.dong !== gapRankingDong) return;
-
-      if (apt.rate > 20 && apt.rate < 100) {
-        totalRate += apt.rate;
-        count++;
-      }
-    });
-
-    if (count === 0) return "71.2%";
-    return `${(totalRate / count).toFixed(1)}%`;
-  }, [enrichedAptList, gapRankingDong]);
 
   // 6차 사이클: 일자별 신고가 타임라인 데이터 계산
   const dailyTimelineData = useMemo(() => {
@@ -1819,131 +1612,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                         {/* Items */}
                         <div className="flex flex-col gap-2.5">
-                          {group.items.map((item, idx) => {
-                            const isRising = item.delta > 0;
-                            const isFalling = item.delta < 0;
-                            const isSelected = selectedTimelineApt === item.aptName;
-
-                            return (
-                              <div
-                                key={`${item.aptName}-${idx}`}
-                                onMouseEnter={() => {
-                                  preloadApartmentTx?.(item.aptName, item.dong);
-                                  import('@/components/ApartmentModal').catch(() => {});
-                                  import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-                                }}
-                                onTouchStart={() => {
-                                  preloadApartmentTx?.(item.aptName, item.dong);
-                                  import('@/components/ApartmentModal').catch(() => {});
-                                  import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-                                }}
-                                className={`flex items-center justify-between p-3.5 rounded-xl transition-all border ${
-                                  isSelected
-                                    ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
-                                    : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
-                                } group gap-4`}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setSelectedTimelineApt(item.aptName);
-                                    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                                      setIsBottomSheetOpen(true);
-                                    }
-                                  }}
-                                  aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-                                  className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-1 bg-transparent border-none min-w-0 cursor-pointer"
-                                >
-                                  {/* Left Column: Apt Name & Info */}
-                                  <div className="flex flex-col gap-1 min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5 min-w-0">
-                                      <span className="text-[13px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
-                                        {item.displayAptName || item.aptName}
-                                      </span>
-                                      {item.type === 'high' && (
-                                        <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-                                          신고가
-                                        </span>
-                                      )}
-                                    </div>
-                                    
-                                    <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden">
-                                      <span>{item.dong}</span>
-                                      <span className="opacity-30 font-normal">•</span>
-                                      <span>
-                                        {areaUnit === 'm2'
-                                          ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-                                          : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
-                                      </span>
-                                      <span className="opacity-30 font-normal">•</span>
-                                      <span>{item.floor}층</span>
-                                    </div>
-                                  </div>
-
-                                  {/* Right Column: Price & Change Badges */}
-                                  <div className="flex flex-col items-end gap-1 shrink-0 ml-1 sm:ml-2">
-                                    {/* Price and flow */}
-                                    <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
-                                      {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
-                                        <>
-                                          <span className="text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
-                                            {formatEokWithUnit(item.prevPriceVal * 10000).value}
-                                          </span>
-                                          <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
-                                        </>
-                                      )}
-                                      <span className={`text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
-                                        isRising
-                                          ? "text-rose-500 dark:text-rose-400"
-                                          : isFalling
-                                            ? "text-slate-500 dark:text-slate-400"
-                                            : "text-primary"
-                                      }`}>
-                                        {item.priceEok}
-                                      </span>
-                                    </div>
-
-                                    {/* Delta Badge */}
-                                    <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
-                                      isRising
-                                        ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
-                                        : isFalling
-                                          ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
-                                          : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-                                    }`}>
-                                      {isRising 
-                                        ? `▲ ${formatDeltaPrice(item.delta)}` 
-                                        : isFalling 
-                                          ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
-                                          : '보합'}
-                                    </span>
-                                  </div>
-                                </button>
-
-                                {/* Details Button */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    if (onSelectApt) {
-                                      onSelectApt(item.aptName);
-                                    }
-                                  }}
-                                  onMouseEnter={() => {
-                                    preloadApartmentTx?.(item.aptName, item.dong);
-                                    preloadApartmentModal();
-                                  }}
-                                  onTouchStart={() => {
-                                    preloadApartmentTx?.(item.aptName, item.dong);
-                                    preloadApartmentModal();
-                                  }}
-                                  className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
-                                >
-                                  상세
-                                </button>
-                              </div>
-                            );
-                          })}
+                          {group.items.map((item, idx) => (
+                            <TimelineItemCard
+                              key={`${item.aptName}-${idx}`}
+                              item={item}
+                              isSelected={selectedTimelineApt === item.aptName}
+                              areaUnit={areaUnit}
+                              onCardHover={handleCardHover}
+                              onCardClick={handleCardClick}
+                              onDetailsClick={handleDetailsClick}
+                              onDetailsHover={handleDetailsHover}
+                            />
+                          ))}
                         </div>
                       </div>
                     );
@@ -2134,7 +1814,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     </div>
                   ) : (
                     <MacroTrendChart
-                      key={selectedTimelineApt || 'all'}
                       lineData={mainLineData}
                       xTicks={mainXTicks}
                       yTicks={mainYTicks}
