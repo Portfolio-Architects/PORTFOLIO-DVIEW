@@ -101,15 +101,15 @@ export const AptRow = memo(({
   const getRankBadgeStyle = (idx: number) => {
     switch (idx) {
       case 0:
-        return 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600 dark:text-emerald-400';
+        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20';
       case 1:
-        return 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600 dark:text-blue-400';
+        return 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20';
       case 2:
-        return 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600 dark:text-orange-400';
+        return 'bg-brand-orange-light text-brand-orange border border-brand-orange/20';
       case 3:
-        return 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-600 dark:text-purple-400';
+        return 'bg-slate-100 dark:bg-zinc-800/80 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-zinc-700/50';
       default:
-        return 'bg-neutral-100 dark:bg-zinc-800 text-neutral-500 dark:text-neutral-400';
+        return 'bg-neutral-100 dark:bg-zinc-900/40 text-neutral-500 dark:text-neutral-400 border border-border/30';
     }
   };
 
@@ -128,7 +128,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">평당 매매가</span>
-          <span className="text-sm md:text-base font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{item.pyeongPrice > 0 ? item.formattedPyeong : '-'}</span>
+          <span className="text-sm md:text-base font-black text-brand-green dark:text-brand-green mt-0.5">{item.pyeongPrice > 0 ? item.formattedPyeong : '-'}</span>
         </div>
       );
     }
@@ -136,7 +136,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">전세가율</span>
-          <span className="text-sm md:text-base font-black text-indigo-600 dark:text-indigo-400 mt-0.5">{item.ratio > 0 ? item.formattedRatio : '-'}</span>
+          <span className="text-sm md:text-base font-black text-brand-blue dark:text-brand-blue mt-0.5">{item.ratio > 0 ? item.formattedRatio : '-'}</span>
         </div>
       );
     }
@@ -176,7 +176,7 @@ export const AptRow = memo(({
           preloadApartmentModal();
         }}
         onClick={() => handleSelectApt(item.apt.name)}
-        className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border hover:border-emerald-500/40 rounded-2xl bg-surface hover:bg-neutral-50/20 dark:hover:bg-zinc-900/10 transition-all cursor-pointer shadow-sm relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+        className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border hover:border-brand-orange/40 rounded-2xl bg-surface hover:bg-neutral-50/20 dark:hover:bg-zinc-900/10 transition-all cursor-pointer shadow-sm relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-brand-orange/50"
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Rank Badge */}
@@ -241,7 +241,7 @@ export const AptRow = memo(({
         {/* Right Side Metric and Action Button */}
         <div className="flex md:flex-col items-end justify-between md:justify-center gap-2.5 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 border-dashed shrink-0 pl-0 md:pl-6 md:w-36">
           {renderRightMetric()}
-          <span className="text-[12px] font-extrabold text-secondary bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 group-hover:bg-emerald-500/10 group-hover:text-emerald-600 group-hover:border-emerald-500/20 transition-all">
+          <span className="text-[12px] font-extrabold text-secondary bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 group-hover:bg-brand-orange-light group-hover:text-brand-orange group-hover:border-brand-orange/20 transition-all">
             상세 분석
           </span>
         </div>

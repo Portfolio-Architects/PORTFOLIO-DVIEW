@@ -39,8 +39,8 @@ export default function TechnoValleyClient() {
         {/* Hero Header */}
         <PageHeroHeader 
           title="D-VIEW 테크노 랩"
-          subtitleStrong="화성시 동탄구 테크노밸리 연구소"
-          subtitleLight="데이터 기반 동탄 테크노밸리 첨단 산업 단지 활성화 솔루션"
+          subtitleStrong="데이터로 분석하는 동탄 테크노밸리 현황"
+          subtitleLight="첨단 산업단지의 입주 동향과 지역 경제 활성화 현황을 다각도로 짚어 드립니다"
           bottomContent={undefined}
         />
 

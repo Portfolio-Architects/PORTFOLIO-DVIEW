@@ -740,7 +740,7 @@ export default function TechnoValleyDashboard() {
     dedupingInterval: 300000
   });
 
-  const { data: trendResponse } = useSWR('/api/technovalley/trend', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: trendResponse, isValidating: isTrendValidating, isLoading: isTrendLoading } = useSWR('/api/technovalley/trend', (url: string) => fetch(url).then(res => res.json()), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });
@@ -1282,6 +1282,14 @@ export default function TechnoValleyDashboard() {
 
         {/* Line Chart Area */}
         <div className="flex-1 w-full relative min-h-[290px]">
+          {(isTrendLoading || isTrendValidating) && (
+            <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/50 backdrop-blur-[2px] transition-all duration-300 rounded-xl">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-[3.5px] border-border/60 border-t-hs-orange rounded-full animate-spin" />
+                <span className="text-xs font-bold text-tertiary animate-pulse">실시간 공실률 데이터 분석 중...</span>
+              </div>
+            </div>
+          )}
           {mounted ? (
             <div className="absolute inset-0">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
@@ -1563,9 +1571,9 @@ export default function TechnoValleyDashboard() {
                 </div>
 
                 {/* Layer 2 */}
-                <div className="p-6 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
-                  <div className="border-b border-blue-600/10 pb-2">
-                    <span className="font-black text-blue-600 dark:text-toss-blue text-[14.5px] block truncate">
+                <div className="p-6 bg-hs-blue/5 border border-hs-blue/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
+                  <div className="border-b border-hs-blue/10 pb-2">
+                    <span className="font-black text-hs-blue text-[14.5px] block truncate">
                       2단계: 국민연금 고용 보정
                     </span>
                   </div>
@@ -1574,15 +1582,15 @@ export default function TechnoValleyDashboard() {
                     <li><strong>대칭형 매크로 보정치(macroBonus)</strong> 가동</li>
                     <li>경기 변동에 따른 공실률 양/음수 보정</li>
                   </ul>
-                  <div className="pt-2 text-[10px] font-mono text-blue-600 bg-blue-600/10 p-2 rounded-lg text-center font-bold">
+                  <div className="pt-2 text-[10px] font-mono text-hs-blue bg-hs-blue/10 p-2 rounded-lg text-center font-bold">
                     growthRate = net job delta
                   </div>
                 </div>
 
                 {/* Layer 3 */}
-                <div className="p-6 bg-violet-600/5 border border-violet-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
-                  <div className="border-b border-violet-600/10 pb-2">
-                    <span className="font-black text-violet-600 dark:text-violet-400 text-[14.5px] block truncate">
+                <div className="p-6 bg-slate-600/5 border border-slate-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
+                  <div className="border-b border-slate-600/10 pb-2">
+                    <span className="font-black text-slate-600 dark:text-slate-400 text-[14.5px] block truncate">
                       3단계: 자연 퇴거율 결합
                     </span>
                   </div>
@@ -1591,7 +1599,7 @@ export default function TechnoValleyDashboard() {
                     <li>기축 <strong>자연 퇴거율(Dynamic Turnover)</strong> 결합</li>
                     <li>연식별 지수 감쇄 및 연면적(GFA) 스케일러 조율</li>
                   </ul>
-                  <div className="pt-2 text-[10px] font-mono text-violet-600 bg-violet-600/10 p-2 rounded-lg text-center font-bold">
+                  <div className="pt-2 text-[10px] font-mono text-slate-600 bg-slate-600/10 dark:bg-slate-600/20 p-2 rounded-lg text-center font-bold">
                     decay = exp(-0.15 * age)
                   </div>
                 </div>
@@ -1680,6 +1688,14 @@ export default function TechnoValleyDashboard() {
 
                 {/* Modal Line Chart */}
                 <div className="w-full h-[360px] relative flex items-end">
+                  {(isTrendLoading || isTrendValidating) && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/50 backdrop-blur-[2px] transition-all duration-300 rounded-xl">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="w-10 h-10 border-[3.5px] border-border/60 border-t-hs-orange rounded-full animate-spin" />
+                        <span className="text-xs font-bold text-tertiary animate-pulse">실시간 공실률 데이터 분석 중...</span>
+                      </div>
+                    </div>
+                  )}
                   <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <LineChart data={filteredTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />

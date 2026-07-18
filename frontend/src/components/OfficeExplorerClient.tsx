@@ -60,7 +60,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'close',
     desc: '대규모 입주 기업 네트워킹과 드라이브인 물류 동선이 최적화된 초대형 랜드마크 지산입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-blue-light to-brand-blue/15 text-brand-blue dark:from-brand-blue-light/10 dark:to-brand-blue/20',
     score: 95,
     totalUnits: 2701,
     vacancyRate: 21.6,
@@ -85,7 +85,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: false,
     stationDistance: 'close',
     desc: '세련된 오피스 인테리어와 업무 편의 시설, 다채로운 먹거리 상권이 융합된 문화형 복합 지산입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20',
     score: 92,
     totalUnits: 2470,
     vacancyRate: 28.5,
@@ -110,7 +110,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: false,
     stationDistance: 'very-close',
     desc: '동탄역과의 지리적 접근성이 가장 뛰어나며, 소자본 스타트업이나 소형 오피스에 안성맞춤입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-amber-500/20 to-orange-500/20 text-orange-600',
+    imgPlaceholder: 'bg-gradient-to-br from-slate-100 to-slate-200/70 text-slate-600 dark:from-zinc-800 dark:to-zinc-900/70 dark:text-zinc-400',
     score: 89,
     totalUnits: 320,
     vacancyRate: 13.5,
@@ -135,7 +135,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'moderate',
     desc: '하역 동선과 중장비 설비 안착이 필요한 고부하 제조 및 물류 적재 업종에 최적화된 맞춤형 센터입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 text-purple-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-blue-light to-brand-blue/15 text-brand-blue dark:from-brand-blue-light/10 dark:to-brand-blue/20',
     score: 87,
     totalUnits: 369,
     vacancyRate: 19.8,
@@ -160,7 +160,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'close',
     desc: '제조형 공장과 스마트 오피스가 조화롭게 융합된 현대엔지니어링 시공의 프리미엄 지식산업센터입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-teal-500/20 to-emerald-500/20 text-teal-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20',
     score: 91,
     totalUnits: 824,
     vacancyRate: 18.2,
@@ -184,7 +184,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: false,
     stationDistance: 'close',
     desc: '동탄테크노밸리 진입로에 위치하여 뛰어난 가시성과 브랜드 파워를 자랑하는 전통의 랜드마크 지산입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-indigo-500/20 to-blue-500/20 text-indigo-600',
+    imgPlaceholder: 'bg-gradient-to-br from-slate-100 to-slate-200/70 text-slate-600 dark:from-zinc-800 dark:to-zinc-900/70 dark:text-zinc-400',
     score: 93,
     totalUnits: 618,
     vacancyRate: 15.4,
@@ -208,7 +208,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'moderate',
     desc: '대형 화물 물류와 하역이 빈번한 정밀 제조 및 가공 조립 업종에 압도적인 편의를 제공하는 대단지 지산입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-red-500/20 to-orange-500/20 text-red-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-blue-light to-brand-blue/15 text-brand-blue dark:from-brand-blue-light/10 dark:to-brand-blue/20',
     score: 90,
     totalUnits: 776,
     vacancyRate: 22.8,
@@ -232,7 +232,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'moderate',
     desc: '스타트업 및 소형 창고 임차가 필요한 소자본 임차인에게 최고의 평단 가성비를 제공하는 실속형 센터입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-emerald-500/20 to-teal-500/20 text-emerald-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20',
     score: 86,
     totalUnits: 276,
     vacancyRate: 25.4,
@@ -256,7 +256,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: false,
     stationDistance: 'very-close',
     desc: '동탄역 접근성이 극대화되고 입주사 비즈니스 편의 시설이 우수한 스마트 사무 특화 지식산업센터입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-pink-500/20 to-rose-500/20 text-rose-600',
+    imgPlaceholder: 'bg-gradient-to-br from-slate-100 to-slate-200/70 text-slate-600 dark:from-zinc-800 dark:to-zinc-900/70 dark:text-zinc-400',
     score: 90,
     totalUnits: 460,
     vacancyRate: 16.8,
@@ -280,7 +280,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: false,
     stationDistance: 'moderate',
     desc: '초기 창업 기업 및 1인 스타트업이 저렴한 고정 비용으로 입주할 수 있도록 유닛을 잘게 쪼갠 가성비 지산입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-violet-500/20 to-purple-500/20 text-violet-600',
+    imgPlaceholder: 'bg-gradient-to-br from-brand-blue-light to-brand-blue/15 text-brand-blue dark:from-brand-blue-light/10 dark:to-brand-blue/20',
     score: 85,
     totalUnits: 168,
     vacancyRate: 23.5,
@@ -454,8 +454,8 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
     <div className="flex flex-col w-full bg-transparent">
       <PageHeroHeader 
         title="D-VIEW 사무실 탐색"
-        subtitleStrong="지식산업센터 공실 매칭 & 혜택 센터"
-        subtitleLight="수도권 최대 규모 산업 클러스터 활성화를 위한 원스톱 오피스 솔루션"
+        subtitleStrong="나에게 맞는 지식산업센터 사무실 찾기"
+        subtitleLight="공실 정보부터 맞춤형 입주 혜택까지, 동탄 테크노밸리 원스톱 매칭 솔루션"
       />
 
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col gap-8">

@@ -263,19 +263,19 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     let schoolBadge = null;
                     if (school.label.includes('초등학교')) {
                       if (dist <= 300) {
-                        schoolBadge = { text: '초품아 (극상)', bg: 'bg-rose-50 dark:bg-rose-950/40 text-rose-600 dark:text-rose-400 border border-rose-100/50 dark:border-rose-900/30' };
+                        schoolBadge = { text: '초품아 (극상)', bg: 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20' };
                       } else if (dist <= 500) {
-                        schoolBadge = { text: '초인접 (우수)', bg: 'bg-teal-50 dark:bg-teal-950/40 text-teal-600 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30' };
+                        schoolBadge = { text: '초인접 (우수)', bg: 'bg-brand-green-light text-brand-green dark:bg-brand-green-light/10 border border-brand-green/20' };
                       }
                     } else {
                       if (perf) {
                         if (school.label.includes('중학교')) {
-                          schoolBadge = { text: `학업 ${perf.achievement} (진학률 ${perf.rate}%)`, bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
+                          schoolBadge = { text: `학업 ${perf.achievement} (진학률 ${perf.rate}%)`, bg: 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20' };
                         } else {
-                          schoolBadge = { text: `진학 ${perf.achievement} (${perf.rate}%)`, bg: 'bg-violet-50 dark:bg-violet-950/40 text-violet-600 dark:text-violet-400 border border-violet-100/50 dark:border-violet-900/30' };
+                          schoolBadge = { text: `진학 ${perf.achievement} (${perf.rate}%)`, bg: 'bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20' };
                         }
                       } else if (dist <= 500) {
-                        schoolBadge = { text: '학세권 (우수)', bg: 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 border border-indigo-100/50 dark:border-indigo-900/30' };
+                        schoolBadge = { text: '학세권 (우수)', bg: 'bg-brand-green-light text-brand-green dark:bg-brand-green-light/10 border border-brand-green/20' };
                       }
                     }
 
@@ -400,7 +400,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     </div>
                   )}
                   <div className="flex-1">
-                    <h4 className="text-[14px] font-bold text-primary mb-2 bg-[#f0fdfa] text-teal-800 dark:bg-teal-950/40 dark:text-teal-400 border border-teal-100/50 dark:border-teal-900/30 inline-block px-3 py-1 rounded-lg">학군 및 통학 안정성 평가</h4>
+                    <h4 className="text-[14px] font-bold mb-2 bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20 inline-block px-3 py-1 rounded-lg">학군 및 통학 안정성 평가</h4>
                     <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{report.sections.ecosystem.schoolText}</p>
                   </div>
                 </div>
@@ -416,8 +416,8 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                 
                 <div className="bg-body rounded-2xl p-5 md:p-6 border border-border flex flex-col gap-5">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0">
-                      <GraduationCap className="text-teal-600" size={24} />
+                    <div className="w-12 h-12 rounded-xl bg-brand-blue-light dark:bg-brand-blue-light/10 flex items-center justify-center shrink-0">
+                      <GraduationCap className="text-brand-blue" size={24} />
                     </div>
                     <div>
                       <p className="text-[13px] font-bold text-secondary leading-none">500m 반경 교육시설</p>
@@ -431,20 +431,20 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   {(() => {
                     const academyData = Object.entries(report.metrics.academyCategories || {}).map(([cat, cnt]) => {
                       let tag = '일반학원';
-                      let color = '#ea6100'; // teal-600
-                      let bg = 'bg-[#ea6100]';
+                      let color = '#ea6100'; // brand-orange
+                      let bg = 'bg-brand-orange';
                       if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
                         tag = '예체능';
-                        color = '#db2777'; // pink-600
-                        bg = 'bg-[#db2777]';
+                        color = '#004696'; // brand-blue
+                        bg = 'bg-brand-blue';
                       } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
                         tag = '체육/활동';
-                        color = '#ea580c'; // orange-600
-                        bg = 'bg-[#ea580c]';
+                        color = '#03c75a'; // brand-green
+                        bg = 'bg-brand-green';
                       } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
                         tag = '건강/취미';
-                        color = '#0284c7'; // sky-600
-                        bg = 'bg-[#0284c7]';
+                        color = '#64748b'; // slate-500
+                        bg = 'bg-slate-500';
                       }
                       return { cat, cnt: cnt as number, tag, color, bg };
                     });

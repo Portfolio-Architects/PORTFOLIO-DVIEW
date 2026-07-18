@@ -84,7 +84,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                   <span className="text-[12px] font-bold text-tertiary">
                     예상 갭차이
                   </span>
-                  <span className="text-[13.5px] font-black text-[#ff8f00]">
+                  <span className="text-[13.5px] font-black text-[var(--brand-orange)]">
                     {gapPriceStr}
                   </span>
                 </div>
@@ -93,7 +93,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                 <span className="text-[12px] font-bold text-tertiary">
                   전세가율
                 </span>
-                <span className="text-[13.5px] font-black text-[#f9a825]">
+                <span className="text-[13.5px] font-black text-[var(--brand-blue)]">
                   {ratio.toFixed(1)}%
                 </span>
               </div>
@@ -251,12 +251,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         >
           <defs>
             <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ea6100" stopOpacity={0.22} />
-              <stop offset="95%" stopColor="#ea6100" stopOpacity={0.0} />
+              <stop offset="5%" stopColor="var(--brand-orange)" stopOpacity={0.22} />
+              <stop offset="95%" stopColor="var(--brand-orange)" stopOpacity={0.0} />
             </linearGradient>
             <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f9a825" stopOpacity={0.18} />
-              <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
+              <stop offset="5%" stopColor="var(--brand-blue)" stopOpacity={0.18} />
+              <stop offset="95%" stopColor="var(--brand-blue)" stopOpacity={0.0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -301,7 +301,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             type="monotone"
             name="평균 매매가"
             dataKey="동탄 아파트 전체"
-            stroke="#ea6100"
+            stroke="var(--brand-orange)"
             strokeWidth={isBottomSheet ? 1.5 : 1.8}
             fill="url(#colorSale)"
             isAnimationActive={false}
@@ -316,7 +316,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
               r: isBottomSheet ? 4.5 : 5,
               strokeWidth: isBottomSheet ? 1.5 : 2,
               stroke: "var(--bg-surface)",
-              fill: "#ea6100"
+              fill: "var(--brand-orange)"
             }}
           />
           <Area
@@ -324,7 +324,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             type="monotone"
             name="평균 전세가"
             dataKey="동탄 아파트 전세 평균"
-            stroke="#f9a825"
+            stroke="var(--brand-blue)"
             strokeWidth={isBottomSheet ? 1.0 : 1.2}
             fill="url(#colorRent)"
             isAnimationActive={false}
@@ -339,7 +339,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
               r: isBottomSheet ? 3.5 : 4,
               strokeWidth: isBottomSheet ? 1.5 : 2,
               stroke: "var(--bg-surface)",
-              fill: "#f9a825"
+              fill: "var(--brand-blue)"
             }}
           />
         </AreaChart>

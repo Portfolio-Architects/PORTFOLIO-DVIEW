@@ -501,8 +501,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
               <section className="w-full bg-transparent">
                 <PageHeroHeader 
                   title="D-VIEW 아파트 탐색"
-                  subtitleStrong="동탄 전역 아파트 비교 분석"
-                  subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
+                  subtitleStrong="나에게 딱 맞는 동탄 아파트 찾기"
+                  subtitleLight="원하는 동네의 시세부터 실거래 추이, 관심도까지 직관적인 지표로 비교해 드립니다"
                 />
                 <TossApartmentExploreClient
                   sheetApartments={sheetApartments}

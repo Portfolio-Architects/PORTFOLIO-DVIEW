@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
+import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
 
 interface TransactionRecord {
   dong: string;
@@ -29,35 +30,57 @@ interface TransactionSummaryMetricsProps {
   transactions: TransactionRecord[];
   apartmentName: string;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  filterOutliers?: boolean;
 }
 
-export const TransactionSummaryMetrics = React.memo(function TransactionSummaryMetrics({ transactions, apartmentName, typeMap }: TransactionSummaryMetricsProps) {
+export const TransactionSummaryMetrics = React.memo(function TransactionSummaryMetrics({ 
+  transactions, 
+  apartmentName, 
+  typeMap,
+  filterOutliers = false
+}: TransactionSummaryMetricsProps) {
   const { areaUnit } = useSettingsValues();
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
 
   const metrics = useMemo(() => {
-    // 실거래가의 가장 최근 계약일을 기준일(now)로 삼아 싱크 지연이나 시스템 시각 불일치 시의 계산 정합성 확보
-    const today = new Date();
-    const todayDateNum = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
-
-    let maxDateNum = 0;
-    for (let i = 0; i < transactions.length; i++) {
-      const tx = transactions[i];
-      const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
-      if (dateNum <= todayDateNum && dateNum > maxDateNum) {
-        maxDateNum = dateNum;
+    // 헬퍼 함수 정의 최상단 배치
+    const getTxPrice = (tx: TransactionRecord) => {
+      if (tx.dealType === '월세') {
+        return (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
       }
-    }
-    
-    let now = new Date();
-    if (maxDateNum > 0) {
-      const year = Math.floor(maxDateNum / 10000);
-      const month = Math.floor((maxDateNum % 10000) / 100);
-      const day = maxDateNum % 100;
-      now = new Date(year, month - 1, day);
-    }
+      return tx.price;
+    };
+
+    const getTxSupplyPyeong = (tx: TransactionRecord) => {
+      const label = tx.areaLabelM2 || (() => {
+        const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
+        return typeData?.typeM2;
+      })();
+      if (label) {
+        const supplyM2Match = label.match(/\d+(\.\d+)?/);
+        if (supplyM2Match) {
+          const val = parseFloat(supplyM2Match[0]) * 0.3025;
+          return val > 0 ? val : Math.max(1, tx.areaPyeong || (tx.area * 0.3025));
+        }
+      }
+      const fallbackVal = tx.area * 0.3025 * 1.33;
+      return fallbackVal > 0 ? fallbackVal : 1; 
+    };
+
+    const formatEok = (priceMan: number) => {
+      if (priceMan >= 10000) {
+        const eok = Math.floor(priceMan / 10000);
+        const rem = Math.round(priceMan % 10000);
+        return `${eok}억${rem > 0 ? rem.toLocaleString() : ''}`;
+      }
+      return `${Math.round(priceMan).toLocaleString()}만`;
+    };
+
+    // Use the actual current date as the baseline for calculations (R5)
+    const now = new Date();
+    const todayDateNum = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
     
     // 1) 타입 필터 칩 목록 구성
     const byArea = new Map<string, { label: string; area: number }>();
@@ -101,48 +124,21 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       if (periodDealType === 'sale' && (tx.dealType === '전세' || tx.dealType === '월세')) return false;
       if (periodDealType === 'jeonse' && tx.dealType !== '전세' && tx.dealType !== '월세') return false;
       
-      // 방어적 미래 일자 필터링 (numeric 비교로 최적화)
       const dateNum = tx.contractDateNum || (tx.contractYm ? parseInt(tx.contractYm + String(tx.contractDay || '15').padStart(2, '0')) : 20260615);
       if (dateNum > todayDateNum) return false;
       
       return true;
     });
 
-    const baseTx = priceTypeFilter === 'ALL'
+    let baseTx = priceTypeFilter === 'ALL'
       ? periodTransactions
       : periodTransactions.filter(tx => String(tx.area) === priceTypeFilter);
 
-    const getTxSupplyPyeong = (tx: TransactionRecord) => {
-      const label = tx.areaLabelM2 || (() => {
-        const typeData = findTypeMapEntry(typeMap, tx.aptName, tx.area);
-        return typeData?.typeM2;
-      })();
-      if (label) {
-        const supplyM2Match = label.match(/\d+(\.\d+)?/);
-        if (supplyM2Match) {
-          const val = parseFloat(supplyM2Match[0]) * 0.3025;
-          return val > 0 ? val : Math.max(1, tx.areaPyeong || (tx.area * 0.3025));
-        }
-      }
-      const fallbackVal = tx.area * 0.3025 * 1.33;
-      return fallbackVal > 0 ? fallbackVal : 1; 
-    };
-
-    const formatEok = (priceMan: number) => {
-      if (priceMan >= 10000) {
-        const eok = Math.floor(priceMan / 10000);
-        const rem = Math.round(priceMan % 10000);
-        return `${eok}억${rem > 0 ? rem.toLocaleString() : ''}`;
-      }
-      return `${Math.round(priceMan).toLocaleString()}만`;
-    };
-
-    const getTxPrice = (tx: TransactionRecord) => {
-      if (tx.dealType === '월세') {
-        return (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
-      }
-      return tx.price;
-    };
+    // 이상치 필터 연동 (R5 비대칭 IQR 알고리즘 및 전월세 multiplier 3.0 적용, 상한선 오타 필터 복구)
+    if (filterOutliers) {
+      const isRent = periodDealType === 'jeonse';
+      baseTx = filterOutliersIQR(baseTx, getTxPrice, isRent ? 3.0 : 1.5, isRent ? 5.0 : 3.5);
+    }
 
     const overallAvgPrice = baseTx.length > 0 ? baseTx.reduce((s, t) => s + getTxPrice(t), 0) / baseTx.length : 0;
     const sortedBaseTx = [...baseTx].sort((a, b) => {

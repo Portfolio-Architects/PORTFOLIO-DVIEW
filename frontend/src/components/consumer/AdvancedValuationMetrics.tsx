@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
 import useSWR from 'swr';
 import { Target, Building, Info, ChevronDown, Users, Car, Calendar, Train, GraduationCap, Store, TreePine, Award, ShieldCheck, TrendingUp, X, MapPin } from 'lucide-react';
 import type { FieldReportData } from '@/lib/DashboardFacade';
@@ -11,6 +11,7 @@ import type { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
 import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
 
 interface TxRecord {
   dealType?: string;
@@ -237,12 +238,26 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
     }
   }, [ratesRes]);
 
-  // 1. Transaction 분리
+  // 1. Transaction 분리 및 정렬
   const txList = Array.isArray(transactions) ? transactions : [];
-  const sales = txList.filter(t => t && t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
-  const rents = txList.filter(t => t && (t.dealType === '전세' || t.dealType === '월세')).sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+  const sales = useMemo(() => txList.filter(t => t && t.dealType !== '전세' && t.dealType !== '월세').sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || '')), [txList]);
+  const rents = useMemo(() => txList.filter(t => t && (t.dealType === '전세' || t.dealType === '월세')).sort((a,b) => (b.contractDate || '').localeCompare(a.contractDate || '')), [txList]);
 
-  const parseTxDate = (t: TxRecord) => {
+  // 전세 환산가 계산 함수
+  const getJeonseEq = useCallback((t: TxRecord) => t.dealType === '월세' 
+    ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
+    : (t.deposit || t.price || 0), []);
+
+  // IQR 이상치 필터링 적용된 유효 실거래 데이터셋 구축 (전월세 multiplier 3.0 적용, 상한선 오타 필터 복구)
+  const validSales = useMemo(() => {
+    return filterOutliersIQR(sales, t => t.price, 1.5, 3.5);
+  }, [sales]);
+
+  const validRents = useMemo(() => {
+    return filterOutliersIQR(rents, t => getJeonseEq(t), 3.0, 5.0);
+  }, [rents, getJeonseEq]);
+
+  const parseTxDate = useCallback((t: TxRecord) => {
     const dateStr = t.contractDate || `${t.contractYm || ''}${String(t.contractDay || '01').padStart(2, '0')}`;
     if (dateStr && dateStr.length === 8) {
       const y = parseInt(dateStr.substring(0, 4), 10);
@@ -252,75 +267,65 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({ 
       if (!isNaN(parsed.getTime())) return parsed;
     }
     return null;
-  };
+  }, []);
 
-  // 1개월 및 3개월 기준일 계산 (최신 거래일 기준)
-  let saleBaseDate = new Date();
-  if (sales.length > 0) {
-    const dt = parseTxDate(sales[0]);
-    if (dt) saleBaseDate = dt;
-  }
-  let rentBaseDate = new Date();
-  if (rents.length > 0) {
-    const dt = parseTxDate(rents[0]);
-    if (dt) rentBaseDate = dt;
-  }
+  // Use the actual current date as the baseline for rolling window calculations (R5)
+  const { saleBaseDate, rentBaseDate } = useMemo(() => {
+    const today = new Date();
+    return { saleBaseDate: today, rentBaseDate: today };
+  }, []);
 
-  const oneMonthAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 1, saleBaseDate.getDate());
-  const threeMonthsAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 3, saleBaseDate.getDate());
+  const oneMonthAgoSale = useMemo(() => new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 1, saleBaseDate.getDate()), [saleBaseDate]);
+  const threeMonthsAgoSale = useMemo(() => new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 3, saleBaseDate.getDate()), [saleBaseDate]);
 
-  const oneMonthAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 1, rentBaseDate.getDate());
-  const threeMonthsAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 3, rentBaseDate.getDate());
+  const oneMonthAgoRent = useMemo(() => new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 1, rentBaseDate.getDate()), [rentBaseDate]);
+  const threeMonthsAgoRent = useMemo(() => new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 3, rentBaseDate.getDate()), [rentBaseDate]);
 
-  const isWithin1MonthSale = (t: TxRecord) => {
+  const isWithin1MonthSale = useCallback((t: TxRecord) => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4));
     const m = parseInt(t.contractYm.slice(4, 6));
     const d = parseInt(t.contractDay || '1');
     const txDate = new Date(y, m - 1, d);
     return txDate >= oneMonthAgoSale;
-  };
+  }, [oneMonthAgoSale]);
 
-  const isWithin3MonthsSale = (t: TxRecord) => {
+  const isWithin3MonthsSale = useCallback((t: TxRecord) => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4));
     const m = parseInt(t.contractYm.slice(4, 6));
     const d = parseInt(t.contractDay || '1');
     const txDate = new Date(y, m - 1, d);
     return txDate >= threeMonthsAgoSale;
-  };
+  }, [threeMonthsAgoSale]);
 
-  const isWithin3MonthsRent = (t: TxRecord) => {
+  const isWithin3MonthsRent = useCallback((t: TxRecord) => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4));
     const m = parseInt(t.contractYm.slice(4, 6));
     const d = parseInt(t.contractDay || '1');
     const txDate = new Date(y, m - 1, d);
     return txDate >= threeMonthsAgoRent;
-  };
+  }, [threeMonthsAgoRent]);
 
-  const recent1MSales = sales.filter(isWithin1MonthSale);
-  const recent3MSales = sales.filter(isWithin3MonthsSale);
-  const recentRents = rents.filter(isWithin3MonthsRent);
+  const recent1MSales = useMemo(() => validSales.filter(isWithin1MonthSale), [validSales, isWithin1MonthSale]);
+  const recent3MSales = useMemo(() => validSales.filter(isWithin3MonthsSale), [validSales, isWithin3MonthsSale]);
+  const recentRents = useMemo(() => validRents.filter(isWithin3MonthsRent), [validRents, isWithin3MonthsRent]);
 
-  // 1개월 평균 매매가 (최근 1개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
-  const avg1MSale = recent1MSales.length > 0
+  // 1개월 평균 매매가 (최근 1개월 거래 없으면 가장 마지막 유효 거래 1건 폴백 적용)
+  const avg1MSale = useMemo(() => recent1MSales.length > 0
     ? Math.round(recent1MSales.reduce((sum, t) => sum + t.price, 0) / recent1MSales.length)
-    : (sales.length > 0 ? sales[0].price : 0);
+    : (validSales.length > 0 ? validSales[0].price : 0), [recent1MSales, validSales]);
 
-  // 3개월 평균 매매가 (최근 3개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
-  const avg3MSale = recent3MSales.length > 0
+  // 3개월 평균 매매가 (최근 3개월 거래 없으면 가장 마지막 유효 거래 1건 폴백 적용)
+  const avg3MSale = useMemo(() => recent3MSales.length > 0
     ? Math.round(recent3MSales.reduce((sum, t) => sum + t.price, 0) / recent3MSales.length)
-    : (sales.length > 0 ? sales[0].price : 0);
-  
-  const getJeonseEq = (t: TxRecord) => t.dealType === '월세' 
-    ? (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055) 
-    : (t.deposit || t.price || 0);
+    : (validSales.length > 0 ? validSales[0].price : 0), [recent3MSales, validSales]);
 
-  // 3개월 평균 전세가 (최근 3개월 거래 없으면 가장 마지막 거래 1건 폴백 적용)
-  const avg3MRent = recentRents.length > 0
+  // 3개월 평균 전세가 (최근 3개월 거래 없으면 가장 마지막 유효 거래 1건 폴백 적용)
+  const avg3MRent = useMemo(() => recentRents.length > 0
     ? Math.round(recentRents.reduce((sum, t) => sum + getJeonseEq(t), 0) / recentRents.length)
-    : (rents.length > 0 ? getJeonseEq(rents[0]) : 0);
+    : (validRents.length > 0 ? getJeonseEq(validRents[0]) : 0), [recentRents, validRents, getJeonseEq]);
 
   // 2. 매매가/전세가 배수 계산 (1건 대신 최근 3개월 평균치 적용)
   const realEstatePER = (avg3MSale > 0 && avg3MRent > 0) ? (avg3MSale / avg3MRent) : 0;

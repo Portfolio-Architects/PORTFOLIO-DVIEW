@@ -84,7 +84,7 @@ const TransitPremiumSchema = z.union([z.string(), z.number()]).transform(val => 
 export function calculateDynamicDCF(
   currentJeonse: number,
   macro: MacroEnvironment,
-  metrics?: ObjectiveMetrics,
+  metrics?: Partial<ObjectiveMetrics>,
   riskPremium: number = 1.5,
   utilityScore: number = 50,
   transitPremium: number = 0,

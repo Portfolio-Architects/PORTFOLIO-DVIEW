@@ -216,4 +216,93 @@ describe('Technovalley Trend API Route', () => {
     // Silicon Alley should have filled up faster (larger reduction in vacancy rate)
     expect(siliconAlleyDiff).toBeGreaterThan(shTimeDiff);
   });
+
+  it('should serve data from local file cache when cached time is within TTL (10 mins)', async () => {
+    const cachedData = [{ date: '25.01', '금강 IX': 10 }];
+    const now = Date.now();
+    
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p.includes('trend-cache.json')) return true;
+      if (p.includes('yeongcheon_jisan_units.json') || p.includes('nps_stats.json')) return true;
+      return realFs.existsSync(p);
+    });
+
+    (fs.readFileSync as jest.Mock).mockImplementation((p: string, encoding?: string) => {
+      if (p.includes('trend-cache.json')) {
+        return JSON.stringify({
+          data: cachedData,
+          timestamp: now - 300000 // 5 minutes ago (valid)
+        });
+      }
+      if (p.includes('yeongcheon_jisan_units.json')) return JSON.stringify(mockBuildings);
+      if (p.includes('nps_stats.json')) return JSON.stringify(mockNpsStats);
+      return '';
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      jest.isolateModules(async () => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { GET: isolatedGET } = require('./route');
+          const req = new NextRequest('http://localhost/api/technovalley/trend');
+          const res = await isolatedGET(req);
+          const json = await res.json();
+          
+          expect(json.success).toBe(true);
+          expect(json.source).toBe('file-cache');
+          expect(json.data).toEqual(cachedData);
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+  });
+
+  it('should recalculate and overwrite cache when cached time exceeds TTL (10 mins)', async () => {
+    const cachedData = [{ date: '25.01', '금강 IX': 10 }];
+    const now = Date.now();
+
+    (fs.existsSync as jest.Mock).mockImplementation((p: string) => {
+      if (p.includes('trend-cache.json')) return true;
+      if (p.includes('yeongcheon_jisan_units.json') || p.includes('nps_stats.json')) return true;
+      return realFs.existsSync(p);
+    });
+
+    (fs.readFileSync as jest.Mock).mockImplementation((p: string, encoding?: string) => {
+      if (p.includes('trend-cache.json')) {
+        return JSON.stringify({
+          data: cachedData,
+          timestamp: now - 700000 // 11.6 minutes ago (expired)
+        });
+      }
+      if (p.includes('yeongcheon_jisan_units.json')) return JSON.stringify(mockBuildings);
+      if (p.includes('nps_stats.json')) return JSON.stringify(mockNpsStats);
+      return '';
+    });
+
+    (getOfficeTransactions as jest.Mock).mockResolvedValue([
+      { priceRaw: 20000, sizeSqM: 50, buildingName: '금강펜테리움 IX타워' }
+    ]);
+
+    await new Promise<void>((resolve, reject) => {
+      jest.isolateModules(async () => {
+        try {
+          // eslint-disable-next-line @typescript-eslint/no-require-imports
+          const { GET: isolatedGET } = require('./route');
+          const req = new NextRequest('http://localhost/api/technovalley/trend');
+          const res = await isolatedGET(req);
+          const json = await res.json();
+          
+          expect(json.success).toBe(true);
+          expect(json.source).toBe('govt-api-calculated'); // should recalculate
+          expect(json.data).not.toEqual(cachedData);
+          expect(json.data.length).toBe(22);
+          resolve();
+        } catch (e) {
+          reject(e);
+        }
+      });
+    });
+  });
 });

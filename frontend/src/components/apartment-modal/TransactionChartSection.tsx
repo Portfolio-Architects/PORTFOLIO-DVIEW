@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { logger } from '@/lib/services/logger';
 import { MapPin, TrendingUp, Camera } from 'lucide-react';
+import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -55,6 +56,29 @@ const formatAvgPriceEok = (avgPrice: number) => {
   const rem = Math.round((roundedAvg % 1) * 10000);
   return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
 };
+
+const CustomActiveDot = React.memo((props: any) => {
+  const { cx, cy, fill } = props;
+  if (cx == null || cy == null || isNaN(cx) || isNaN(cy)) return null;
+  return (
+    <circle
+      cx={cx}
+      cy={cy}
+      r={6}
+      fill={fill || '#ea6100'}
+      stroke="#ffffff"
+      strokeWidth={2}
+      style={{
+        transitionProperty: 'cx, cy, r',
+        transitionDuration: '100ms',
+        transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
+        filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.12))',
+        willChange: 'cx, cy'
+      }}
+    />
+  );
+});
+CustomActiveDot.displayName = 'CustomActiveDot';
 
 export const TransactionChartSection = React.memo(function TransactionChartSection({
   transactions,
@@ -239,25 +263,24 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     });
   }, [relevantTxs, chartType]);
 
-  // Use the latest transaction date as the baseline to prevent computation failure when sync lags or system clock shifts
-  const now = React.useMemo(() => {
-    if (rawData.length === 0) return new Date();
-    const todayMs = Date.now();
-    const validTss = rawData.map(d => d.ts).filter(ts => ts <= todayMs);
-    const maxTs = validTss.length > 0 ? Math.max(...validTss) : todayMs;
-    return new Date(maxTs);
-  }, [rawData]);
+  const validRawData = React.useMemo(() => {
+    const isJeonse = chartType === 'jeonse';
+    return filterOutliersIQR(rawData, d => d.price, isJeonse ? 3.0 : 1.5, isJeonse ? 5.0 : 3.5);
+  }, [rawData, chartType]);
+
+  // Use the actual current date as the baseline for rolling window calculation (R5)
+  const now = React.useMemo(() => new Date(), []);
 
   // Early return moved below hook definitions to satisfy the Rules of Hooks
 
   const getRecentAvgByMonths = (months: number) => {
     const cutoffDate = new Date(now.getFullYear(), now.getMonth() - months, now.getDate());
     const cutoffMs = cutoffDate.getTime();
-    const filtered = rawData.filter(d => d.ts >= cutoffMs);
+    const filtered = validRawData.filter(d => d.ts >= cutoffMs);
     if (filtered.length === 0) {
-      if (rawData.length > 0) {
+      if (validRawData.length > 0) {
         // Fallback to the latest transaction if available
-        const sorted = [...rawData].sort((a, b) => b.ts - a.ts);
+        const sorted = [...validRawData].sort((a, b) => b.ts - a.ts);
         return sorted[0].price;
       }
       return 0;
@@ -273,24 +296,35 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       y1: getRecentAvgByMonths(12),
       y3: getRecentAvgByMonths(36)
     };
-  }, [rawData, now]);
+  }, [validRawData, now]);
   const cutoffMap: Record<string, number> = { '6M': 6, '1Y': 12, '3Y': 36, 'ALL': 9999 };
   const monthsCut = cutoffMap[chartTimeframe];
   const cutoffDate = new Date(now.getFullYear(), now.getMonth() - monthsCut, 1);
   const cutoffYm = cutoffDate.getFullYear() * 100 + (cutoffDate.getMonth() + 1);
   const timeFiltered = rawData.filter(d => d.yearMonth >= cutoffYm);
 
-  const sortedPrices = [...timeFiltered].sort((a, b) => a.price - b.price);
-  const q1 = sortedPrices[Math.floor(sortedPrices.length * 0.05)]?.price || 0;
-  const q3 = sortedPrices[Math.floor(sortedPrices.length * 0.95)]?.price || 10;
-  const iqr = q3 - q1;
-  const bandLow = q1;
-  const bandHigh = q3;
+  const validTimeFiltered = React.useMemo(() => {
+    return filterOutliersIQR(timeFiltered, d => d.price);
+  }, [timeFiltered]);
+
+  const validTimeFilteredSet = React.useMemo(() => {
+    return new Set(validTimeFiltered.map(d => d.ts));
+  }, [validTimeFiltered]);
+
+  const sortedValidPrices = React.useMemo(() => {
+    return [...validTimeFiltered].sort((a, b) => a.price - b.price);
+  }, [validTimeFiltered]);
+
+  const bandLow = sortedValidPrices[0]?.price || 0;
+  const bandHigh = sortedValidPrices[sortedValidPrices.length - 1]?.price || 10;
+
   // Keep outlier marking but stop deleting transaction dots to preserve original dataset integrity
-  const scatterData = timeFiltered.map(d => ({
-    ...d,
-    isOutlier: d.price < q1 - iqr * 2,
-  }));
+  const scatterData = React.useMemo(() => {
+    return timeFiltered.map(d => ({
+      ...d,
+      isOutlier: !validTimeFilteredSet.has(d.ts),
+    }));
+  }, [timeFiltered, validTimeFilteredSet]);
 
   const displayScatterData = React.useMemo(() => {
     if (scatterData.length <= 250) return scatterData;
@@ -540,7 +574,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
           />
         )}
         {/* D-VIEW 워터마크 (평소엔 흐리게, 캡처 시 선명하게) */}
-        <div id="dview-watermark" className="absolute bottom-4 right-4 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
+        <div id="dview-watermark" className="absolute top-[220px] right-6 opacity-0 md:opacity-20 pointer-events-none select-none flex flex-col items-end z-0 transition-opacity">
           <span className="text-[16px] md:text-[20px] font-black text-tertiary tracking-tighter">D-VIEW</span>
           <span className="text-[10px] md:text-[12px] font-bold text-tertiary">dongtanview.com</span>
         </div>
@@ -753,8 +787,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   animationDuration={150}
                 />
                 <Bar dataKey="volume" yAxisId="volume" fill="#ea6100" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#ffffff', fill: '#ea6100', className: 'animate-badge-sparkle' }} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
-                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="url(#jeonseLineGrad)" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={{ r: 6, strokeWidth: 2, stroke: '#ffffff', fill: '#f9a825', className: 'animate-badge-sparkle' }} connectNulls isAnimationActive={false} />
+                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={<CustomActiveDot fill="#ea6100" />} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="url(#jeonseLineGrad)" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={<CustomActiveDot fill="#f9a825" />} connectNulls isAnimationActive={false} />
 
                 <Customized
                   component={(rechartProps: Record<string, unknown>) => {

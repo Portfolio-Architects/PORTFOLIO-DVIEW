@@ -22,8 +22,8 @@ function ExploreSkeleton() {
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden">
         <PageHeroHeader 
           title="D-VIEW 아파트 탐색"
-          subtitleStrong="동탄 전역 아파트 비교 분석"
-          subtitleLight="시세, 거래량, 관심도 등 다양한 지표로 아파트를 탐색하세요"
+          subtitleStrong="나에게 딱 맞는 동탄 아파트 찾기"
+          subtitleLight="원하는 동네의 시세부터 실거래 추이, 관심도까지 직관적인 지표로 비교해 드립니다"
         />
         <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col animate-pulse">
           <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">

@@ -252,7 +252,7 @@ export default function CoLeasingBoard() {
             <span className="text-[11px] text-tertiary font-bold">대기 중인 오피스 메이트</span>
             <span className="text-[20px] font-black text-primary">42 개 기업 / 창업자</span>
           </div>
-          <span className="p-2 bg-violet-500/10 text-violet-600 dark:text-violet-400 rounded-xl">
+          <span className="p-2 bg-hs-blue/10 text-hs-blue rounded-xl">
             <Users size={18} />
           </span>
         </div>

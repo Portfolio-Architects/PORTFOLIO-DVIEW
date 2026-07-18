@@ -385,9 +385,9 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
   }, [aptName, dong, jsonLdElements]);
 
   const gradeStyles = {
-    excellent: { text: 'text-teal-600 dark:text-teal-400', bg: 'bg-teal-50 dark:bg-teal-950/40 border-teal-100/30 dark:border-teal-900/20', label: '최상' },
-    good: { text: 'text-emerald-600 dark:text-emerald-400', bg: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-100/30 dark:border-emerald-900/20', label: '우수' },
-    average: { text: 'text-amber-600 dark:text-amber-400', bg: 'bg-amber-50 dark:bg-amber-950/40 border-amber-100/30 dark:border-amber-900/20', label: '주의' }
+    excellent: { text: 'text-brand-blue dark:text-brand-blue-light', bg: 'bg-brand-blue-light dark:bg-brand-blue-light/10 border-brand-blue/20', label: '최상' },
+    good: { text: 'text-brand-green dark:text-brand-green', bg: 'bg-brand-green-light dark:bg-brand-green-light/10 border-brand-green/20', label: '우수' },
+    average: { text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-700/50', label: '보통' }
   };
 
   return (
@@ -409,7 +409,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
 
         {!childcareData ? (
           <div className="bg-body border border-border/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-[#db2777]/10 text-[#db2777] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 flex items-center justify-center">
               <Clock size={22} className="animate-pulse" />
             </div>
             <div className="flex flex-col gap-1">
@@ -425,7 +425,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               {/* 어린이집 카드 */}
               <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
                 <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
-                  <Heart size={14} className="text-[#db2777]" /> 단지 인근 어린이집 (영유아)
+                  <Heart size={14} className="text-brand-orange" /> 단지 인근 어린이집 (영유아)
                 </h3>
                 
                 <div className="flex flex-col gap-3">
@@ -436,7 +436,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-pink-50 dark:bg-pink-950/40 text-pink-600 dark:text-pink-400 border border-pink-100/30">
+                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-brand-blue-light dark:bg-brand-blue-light/10 text-brand-blue dark:text-brand-blue-light border border-brand-blue/10">
                               {item.type}
                             </span>
                           </div>
@@ -466,7 +466,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               {/* 유치원 카드 */}
               <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
                 <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
-                  <Smile size={14} className="text-[#ea580c]" /> 단지 인근 유치원 (5-7세)
+                  <Smile size={14} className="text-brand-orange" /> 단지 인근 유치원 (5-7세)
                 </h3>
 
                 <div className="flex flex-col gap-3">
@@ -477,7 +477,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 border border-orange-100/30">
+                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-brand-orange-light text-brand-orange border border-brand-orange/10">
                               {item.type}
                             </span>
                           </div>
@@ -520,16 +520,16 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#ea6100] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">초등 통학로 안심 길목 진단</span>
-          <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-100/30">
+          <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 ml-1">
             준비 중
           </span>
         </div>
 
         <div className="bg-body border border-border/45 rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-400/30 via-teal-400/40 to-emerald-400/30 animate-pulse" />
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-brand-orange/20 via-brand-orange-light to-brand-orange/20 animate-pulse" />
           
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 max-w-[450px]">
-            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-[#ea6100] flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-brand-orange-light text-brand-orange flex items-center justify-center">
               <Clock size={22} className="animate-spin" style={{ animationDuration: '6s' }} />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -547,7 +547,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-ping" />
                 <span>스쿨존 어린이 보호구역 반경 진단</span>
               </div>
               <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">

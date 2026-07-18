@@ -1042,12 +1042,17 @@ const FieldReportModal = React.memo(function FieldReportModal({
           const stdDev = Math.sqrt(variance);
           const p = t.calculatedPrice;
           
+          const isRent = t.dealType === '전세' || t.dealType === '월세';
+          const lowerMult = isRent ? 3.5 : 2;
+          const upperMult = isRent ? 4.5 : 3;
+          const devRatio = isRent ? 0.15 : 0.05;
+
           if (p < mean) {
-            if ((mean - p) <= 2 * Math.max(stdDev, mean * 0.05)) {
+            if ((mean - p) <= lowerMult * Math.max(stdDev, mean * devRatio)) {
               validTxs.push(t);
             }
           } else {
-            if ((p - mean) <= 3 * Math.max(stdDev, mean * 0.05)) {
+            if ((p - mean) <= upperMult * Math.max(stdDev, mean * devRatio)) {
               validTxs.push(t);
             }
           }
@@ -2125,9 +2130,10 @@ const FieldReportModal = React.memo(function FieldReportModal({
         <div className="w-full h-[460px] md:h-[386px] rounded-[20px] border border-border/40 animate-shimmer mt-4" />
       ) : (
         <TransactionSummaryMetrics 
-          transactions={transactions} 
+          transactions={filteredTransactions} 
           apartmentName={report.apartmentName}
           typeMap={typeMap}
+          filterOutliers={filterOutliers}
         />
       )}
 

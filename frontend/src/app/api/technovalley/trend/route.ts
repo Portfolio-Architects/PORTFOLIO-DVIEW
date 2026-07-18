@@ -150,23 +150,28 @@ export async function GET(request: NextRequest) {
         const fileContent = fs.readFileSync(cachePath, 'utf8');
         const fileCached = JSON.parse(fileContent);
         if (fileCached && fileCached.data) {
-          logger.info('GET /api/technovalley/trend', 'Serving trend data from local file cache.');
-          
-          memoryCache = {
-            data: fileCached.data,
-            timestamp: fileCached.timestamp || now
-          };
+          const cachedTime = fileCached.timestamp || 0;
+          if (now - cachedTime < CACHE_TTL_MS) {
+            logger.info('GET /api/technovalley/trend', 'Serving trend data from local file cache.');
+            
+            memoryCache = {
+              data: fileCached.data,
+              timestamp: cachedTime
+            };
 
-          return NextResponse.json({
-            success: true,
-            source: 'file-cache',
-            data: fileCached.data
-          }, {
-            status: 200,
-            headers: {
-              'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
-            }
-          });
+            return NextResponse.json({
+              success: true,
+              source: 'file-cache',
+              data: fileCached.data
+            }, {
+              status: 200,
+              headers: {
+                'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+              }
+            });
+          } else {
+            logger.info('GET /api/technovalley/trend', 'Local file cache has expired. Recalculating.');
+          }
         }
       }
     } catch (err) {
