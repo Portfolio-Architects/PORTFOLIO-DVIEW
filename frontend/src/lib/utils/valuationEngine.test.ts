@@ -11,30 +11,34 @@ describe('valuationEngine Utility', () => {
         50000, // Jeonse = 5억
         {
           riskFreeRate: 3.5, // 3.5%
-          fundingCost: 4.2, // 4.2% -> fundingSpread = (4.2 - 4.0) * 0.5 = 0.1%
+          fundingCost: 4.2, // 4.2% -> fundingSpread = (4.2 - 3.5) * 0.3 = 0.21%
           jeonseConversionRate: 0.055, // 5.5%
           baseInflationRate: 2.0, // 2%
           baseDate: '2026-06-24',
         },
+        undefined, // metrics
         1.5, // riskPremium = 1.5%
-        50, // utilityScore = 50 -> growthPremium = 50 * 0.0001 = 0.005% -> 0.005%
+        50, // utilityScore = 50 -> growthPremium = 50 * 0.0001 = 0.005% (0.5%)
         0.5 // transitPremium = 0.5%
       );
 
-      // discountRate = (3.5 + 1.5 + 0.1) / 100 = 5.1%
-      expect(result.discountRate).toBeCloseTo(5.1);
+      // finalPremium = 1.5%
+      // fundingSpread = (4.2 - 3.5) * 0.3 = 0.21%
+      // fundingCostPenalty = (4.2 - 3.5) * 0.4 = 0.28%
+      // discountRate = (3.5 + 1.5 + 0.21 + 0.28) / 100 = 5.49%
+      expect(result.discountRate).toBeCloseTo(5.49);
 
       // growthRate = (2.0 + 0.5) / 100 + (50 * 0.0001) = 0.025 + 0.005 = 0.030 (3.0%)
       expect(result.growthRate).toBeCloseTo(3.0);
 
-      // capRate = discountRate - growthRate = 5.1% - 3.0% = 2.1%
-      expect(result.capRate).toBeCloseTo(2.1);
+      // capRate = discountRate - growthRate = 5.49% - 3.0% = 2.49%
+      expect(result.capRate).toBeCloseTo(2.49);
 
-      // annualRent = 50000 * 0.055 = 2750
-      // impliedValue = 2750 / 0.021 = 130952.38
-      expect(result.impliedValue).toBeCloseTo(130952.38, 1);
-      expect(result.fairPER).toBeCloseTo(1 / 0.021, 2);
-      expect(result.fairJeonseMultiple).toBeCloseTo(130952.38 / 50000, 3);
+      // rawConversionRate = 0.055 -> dynamic conversion rate = 0.055 + (3.5 - 3.25)*0.005 = 0.05625 (5.625%)
+      // annualRent = 50000 * 0.05625 = 2812.5
+      // impliedValue = 2812.5 / 0.0249 = 112951.8
+      expect(result.impliedValue).toBeCloseTo(112951.8, 1);
+      expect(result.fairPER).toBeCloseTo(1 / 0.0249, 2);
     });
 
     it('should fall back to defaults when input validation fails', () => {
@@ -46,10 +50,116 @@ describe('valuationEngine Utility', () => {
         } as any
       );
 
-      // Default riskFreeRate = 3.25, fundingCost = 3.8 (fundingSpread = 0)
-      // discountRate = 3.25 + 1.5 = 4.75%
-      expect(result.discountRate).toBeCloseTo(4.75);
+      // Default riskFreeRate = 3.25, fundingCost = 3.8
+      // rawPremium = 1.5
+      // fundingSpread = (3.8 - 3.25) * 0.3 = 0.165
+      // fundingCostPenalty = (3.8 - 3.5) * 0.4 = 0.12
+      // discountRate = 3.25 + 1.5 + 0.165 + 0.12 = 5.035%
+      expect(result.discountRate).toBeCloseTo(5.035);
       expect(result.impliedValue).toBe(0); // jeonse = 0
+    });
+
+    it('should adjust risk premium dynamically based on small household count', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 },
+        { householdCount: 300, yearBuilt: 2026 } // Small household penalty: +0.15%
+      );
+      expect(result.dynamicPremium).toBeCloseTo(1.65);
+    });
+
+    it('should adjust risk premium dynamically based on large household count (premium applied)', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 },
+        { householdCount: 2000, yearBuilt: 2026 } // Large household discount: -0.3%
+      );
+      expect(result.dynamicPremium).toBeCloseTo(1.2);
+    });
+
+    it('should penalize risk premium based on old built year', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0, baseDate: '2026-01-01' },
+        { householdCount: 800, yearBuilt: 1998 } // Age = 28 -> built penalty: +0.4%
+      );
+      expect(result.dynamicPremium).toBeCloseTo(1.9);
+    });
+
+    it('should reward risk premium based on new built year', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0, baseDate: '2026-01-01' },
+        { householdCount: 800, yearBuilt: 2024 } // Age = 2 -> built reward: -0.2%
+      );
+      expect(result.dynamicPremium).toBeCloseTo(1.3);
+    });
+
+    it('should apply penalty for high density far and bcr', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 },
+        { householdCount: 800, yearBuilt: 2016, far: 280, bcr: 25 } // far > 250 (+0.1) & bcr > 20 (+0.1) -> +0.2%
+      );
+      expect(result.dynamicPremium).toBeCloseTo(1.7);
+    });
+
+    it('should increase growth rate (g) for close proximity to elementary school', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 },
+        { distanceToElementary: 200 } // school premium: +0.1% growth rate
+      );
+      // inflation 2% + 50*0.0001 (0.5%) + 0.1% = 2.6%
+      expect(result.growthRate).toBeCloseTo(2.6);
+    });
+
+    it('should increase growth rate (g) for high academy density', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 },
+        { academyDensity: 60 } // academy premium: +0.15% growth rate
+      );
+      expect(result.growthRate).toBeCloseTo(2.65);
+    });
+
+    it('should increase growth rate (g) for subway proximity', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 3.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 },
+        { distanceToSubway: 300 } // subway premium: +0.2% growth rate
+      );
+      expect(result.growthRate).toBeCloseTo(2.7);
+    });
+
+    it('should dynamically adjust jeonse conversion rate under high riskFreeRate environment', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 5.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 } // 5.25% (+2% from base) -> conversion rate + 1%
+      );
+      expect(result.dynamicJeonseConversionRate).toBeCloseTo(6.5);
+    });
+
+    it('should dynamically adjust jeonse conversion rate under low riskFreeRate environment', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 1.25, fundingCost: 3.8, jeonseConversionRate: 0.055, baseInflationRate: 2.0 } // 1.25% (-2% from base) -> conversion rate - 1%
+      );
+      expect(result.dynamicJeonseConversionRate).toBeCloseTo(4.5);
+    });
+
+    it('should handle edge case with extreme high rates and verify cap rate floor is maintained (1.0%)', () => {
+      const result = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 10.0, fundingCost: 12.0, jeonseConversionRate: 0.055, baseInflationRate: 2.0 }
+      );
+      // High discount rate compared to growth rate will result in high capRate. 
+      // But if we reverse the rates to make r - g < 1.0%, it should enforce the 1.0% floor.
+      const reverseResult = calculateDynamicDCF(
+        50000,
+        { riskFreeRate: 1.0, fundingCost: 2.0, jeonseConversionRate: 0.055, baseInflationRate: 6.0 }
+      );
+      expect(reverseResult.capRate).toBeCloseTo(1.0); // Enforced minimum Cap Rate (1.0%)
     });
   });
 

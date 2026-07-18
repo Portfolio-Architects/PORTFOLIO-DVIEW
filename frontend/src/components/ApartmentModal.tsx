@@ -1166,7 +1166,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
     }
     const transitPremium = savedTime * 0.015;
 
-    const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, 1.5, utilityScore, transitPremium);
+    const dcf = calculateDynamicDCF(avg3MRent, dynamicMacroConfig, report.metrics, 1.5, utilityScore, transitPremium);
 
     const priceEok = Math.floor(avg3MSale / 10000);
     const priceMan = avg3MSale % 10000;

@@ -1546,48 +1546,51 @@ export default function TechnoValleyDashboard() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-2">
                 {/* Layer 1 */}
-                <div className="p-6 bg-hs-orange/5 border border-hs-orange/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[220px]">
-                  <div className="flex items-center justify-between border-b border-hs-orange/10 pb-2">
-                    <span className="font-black text-hs-orange text-[14px]">
+                <div className="p-6 bg-hs-orange/5 border border-hs-orange/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
+                  <div className="border-b border-hs-orange/10 pb-2">
+                    <span className="font-black text-hs-orange text-[14.5px] block truncate">
                       1단계: 실거래 베이스라인
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-hs-orange bg-hs-orange/10 px-2 py-0.5 rounded-md">Tx Weight</span>
                   </div>
-                  <p className="text-[13px] text-tertiary leading-relaxed font-medium flex-1">
-                    국토교통부 매매/임대 실거래 데이터를 분석한 뒤, 거래 전용면적에 로그 비례하여 작동하는 <strong>연속형 면적 가중 함수</strong>를 적용하여 실질 공간 점유 비중을 정밀하게 1차 산출합니다.
-                  </p>
+                  <ul className="text-[12.5px] text-tertiary dark:text-zinc-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
+                    <li>국토부 매매/임대 실거래 데이터 분석</li>
+                    <li>전용면적 로그 비례 <strong>연속형 면적 가중</strong> 적용</li>
+                    <li>실질 공간 점유 비중 기반의 1차 기초 산출</li>
+                  </ul>
                   <div className="pt-2 text-[10px] font-mono text-hs-orange bg-hs-orange/10 p-2 rounded-lg text-center font-bold">
                     w(s) = log-proportional weight
                   </div>
                 </div>
 
                 {/* Layer 2 */}
-                <div className="p-6 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[220px]">
-                  <div className="flex items-center justify-between border-b border-blue-600/10 pb-2">
-                    <span className="font-black text-blue-600 dark:text-toss-blue text-[14px]">
+                <div className="p-6 bg-blue-600/5 border border-blue-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
+                  <div className="border-b border-blue-600/10 pb-2">
+                    <span className="font-black text-blue-600 dark:text-toss-blue text-[14.5px] block truncate">
                       2단계: 국민연금 고용 보정
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-blue-600 bg-blue-600/10 px-2 py-0.5 rounded-md">NPS Job Bonus</span>
                   </div>
-                  <p className="text-[13px] text-tertiary leading-relaxed font-medium flex-1">
-                    국민연금(NPS) 데이터의 가입자 증감률과 순고용률을 계산하여 **대칭형 매크로 보정치(macroBonus)**를 가동합니다. 경기 호황과 불황에 따라 공실률 추이를 대칭적으로 양/음수 보정합니다.
-                  </p>
+                  <ul className="text-[12.5px] text-tertiary dark:text-zinc-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
+                    <li>국민연금(NPS) 가입자 증감 및 순고용률 계산</li>
+                    <li><strong>대칭형 매크로 보정치(macroBonus)</strong> 가동</li>
+                    <li>경기 변동에 따른 공실률 양/음수 보정</li>
+                  </ul>
                   <div className="pt-2 text-[10px] font-mono text-blue-600 bg-blue-600/10 p-2 rounded-lg text-center font-bold">
                     growthRate = net job delta
                   </div>
                 </div>
 
                 {/* Layer 3 */}
-                <div className="p-6 bg-violet-600/5 border border-violet-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[220px]">
-                  <div className="flex items-center justify-between border-b border-violet-600/10 pb-2">
-                    <span className="font-black text-violet-600 dark:text-violet-400 text-[14px]">
+                <div className="p-6 bg-violet-600/5 border border-violet-600/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
+                  <div className="border-b border-violet-600/10 pb-2">
+                    <span className="font-black text-violet-600 dark:text-violet-400 text-[14.5px] block truncate">
                       3단계: 자연 퇴거율 결합
                     </span>
-                    <span className="text-[9px] font-black uppercase tracking-wider text-violet-600 bg-violet-600/10 px-2 py-0.5 rounded-md">Dynamic Decay</span>
                   </div>
-                  <p className="text-[13px] text-tertiary leading-relaxed font-medium flex-1">
-                    지산별 준공 연도 기준 **신축 입주 가속도 및 기축 자연 퇴거율(Dynamic Turnover)** 모델을 최종 결합합니다. 연식에 따른 지수 감쇄 인자(e^(-0.15 * age)) 및 연면적(GFA) 스케일러로 최종 조율합니다.
-                  </p>
+                  <ul className="text-[12.5px] text-tertiary dark:text-zinc-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
+                    <li>준공 연도 기준 <strong>신축 입주 가속도</strong> 반영</li>
+                    <li>기축 <strong>자연 퇴거율(Dynamic Turnover)</strong> 결합</li>
+                    <li>연식별 지수 감쇄 및 연면적(GFA) 스케일러 조율</li>
+                  </ul>
                   <div className="pt-2 text-[10px] font-mono text-violet-600 bg-violet-600/10 p-2 rounded-lg text-center font-bold">
                     decay = exp(-0.15 * age)
                   </div>

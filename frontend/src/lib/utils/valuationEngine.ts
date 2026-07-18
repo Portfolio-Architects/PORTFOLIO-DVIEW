@@ -6,6 +6,7 @@
 import { MacroEnvironment, SupplyPipeline } from '../types/macro.types';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import type { ObjectiveMetrics } from '../types/scoutingReport';
 
 export const MacroEnvironmentSchema = z.object({
   riskFreeRate: z.union([z.string(), z.number()]).transform(val => Number(val) || 3.25),
@@ -23,6 +24,19 @@ export const SupplyPipelineSchema = z.object({
   populationTrend: z.enum(['증가', '보합', '감소']).catch('보합'),
 }).passthrough();
 
+export const ObjectiveMetricsSchema = z.object({
+  brand: z.string().optional().default(''),
+  householdCount: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional().default(0),
+  yearBuilt: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional().default(0),
+  far: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional().default(0),
+  bcr: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional().default(0),
+  distanceToElementary: z.union([z.string(), z.number()]).transform(val => Number(val) || 1000).optional().default(1000),
+  distanceToMiddle: z.union([z.string(), z.number()]).transform(val => Number(val) || 1000).optional().default(1000),
+  distanceToHigh: z.union([z.string(), z.number()]).transform(val => Number(val) || 1000).optional().default(1000),
+  distanceToSubway: z.union([z.string(), z.number()]).transform(val => Number(val) || 2000).optional().default(2000),
+  academyDensity: z.union([z.string(), z.number()]).transform(val => Number(val) || 0).optional().default(0),
+}).passthrough().optional();
+
 export const DCFResultSchema = z.object({
   capRate: z.number(),
   fairPER: z.number(),
@@ -30,6 +44,8 @@ export const DCFResultSchema = z.object({
   impliedValue: z.number(),
   discountRate: z.number(),
   growthRate: z.number(),
+  dynamicPremium: z.number().optional(), // 동적 프리미엄 반환 필드 추가
+  dynamicJeonseConversionRate: z.number().optional(), // 동적 전환율 반환 필드 추가
 });
 
 export type DCFResult = z.infer<typeof DCFResultSchema>;
@@ -57,21 +73,25 @@ const UtilityScoreSchema = z.union([z.string(), z.number()]).transform(val => Nu
 const TransitPremiumSchema = z.union([z.string(), z.number()]).transform(val => Number(val) || 0);
 
 /**
- * 1. 동태적 할인율(DCF) 기반 적정 매매가 및 PER 도출
- * 무위험 국채 금리와 조달 비용을 반영하여 이론적인 적정 자본환원율(Cap Rate) 및 전세가 배수를 산출합니다.
+ * 1. 동태적 할인율(DCF) 기반 적정 매매가 및 PER 도출 (고도화 모델)
  * @param currentJeonse 현재 3개월 평균 전세가
  * @param macro 거시 경제 지표
- * @param riskPremium 자산 고유 리스크 프리미엄 (기본 1.5%)
+ * @param metrics 단지 객관적 지표 (동적 프리미엄 & 성장률 세분화용)
+ * @param riskPremium 기본 리스크 프리미엄 (기본 1.5%)
+ * @param utilityScore 기본 유틸리티 점수
+ * @param transitPremium 교통 호재 프리미엄
  */
 export function calculateDynamicDCF(
   currentJeonse: number,
   macro: MacroEnvironment,
+  metrics?: ObjectiveMetrics,
   riskPremium: number = 1.5,
   utilityScore: number = 50,
   transitPremium: number = 0,
 ): DCFResult {
   const jeonseParsed = CurrentJeonseSchema.safeParse(currentJeonse);
   const macroParsed = MacroEnvironmentSchema.safeParse(macro);
+  const metricsParsed = ObjectiveMetricsSchema.safeParse(metrics);
   const premiumParsed = RiskPremiumSchema.safeParse(riskPremium);
   const utilityParsed = UtilityScoreSchema.safeParse(utilityScore);
   const transitParsed = TransitPremiumSchema.safeParse(transitPremium);
@@ -88,37 +108,105 @@ export function calculateDynamicDCF(
     baseInflationRate: 2.0,
     baseDate: ''
   };
+  const validatedMetrics = metricsParsed.success ? metricsParsed.data : undefined;
   const validatedPremium = premiumParsed.success ? premiumParsed.data : (Number(riskPremium) || 1.5);
   const validatedUtility = utilityParsed.success ? utilityParsed.data : (Number(utilityScore) || 50);
   const validatedTransit = transitParsed.success ? transitParsed.data : (Number(transitPremium) || 0);
 
-  // 1. Discount Rate (r) 산출: 국채금리 + 리스크 프리미엄 + 조달비용 스프레드
-  // 전세대출금리가 4.0%를 초과할 경우 유동성 프리미엄 가산
   const fundingCostVal = validatedMacro.fundingCost;
   const riskFreeRateVal = validatedMacro.riskFreeRate;
   let baseInflationRateVal = validatedMacro.baseInflationRate;
   if (baseInflationRateVal > 0 && baseInflationRateVal <= 0.1) {
     baseInflationRateVal = baseInflationRateVal * 100;
   }
-  const jeonseConversionRateVal = validatedMacro.jeonseConversionRate;
 
-  const fundingSpread = Math.max(0, fundingCostVal - 4.0) * 0.5;
-  const discountRate = (riskFreeRateVal + validatedPremium + fundingSpread) / 100;
+  // A. 동적 리스크 프리미엄 계산
+  let scaleAdjustment = 0;
+  let ageAdjustment = 0;
+  let densityAdjustment = 0;
 
-  // 2. Expected Growth Rate (g) 산출: 장기 인플레이션 + 유틸리티 점수 기반 성장 프리미엄 + 교통 호재 프리미엄
+  if (validatedMetrics) {
+    // 1) 세대수 보정 (대단지 프리미엄)
+    const household = validatedMetrics.householdCount || 0;
+    if (household >= 1500) scaleAdjustment = -0.3;
+    else if (household >= 1000) scaleAdjustment = -0.15;
+    else if (household < 500 && household > 0) scaleAdjustment = 0.15;
+
+    // 2) 준공년도 보정 (신축 vs 구축 감가)
+    const baseYear = validatedMacro.baseDate ? new Date(validatedMacro.baseDate).getFullYear() : 2026;
+    const yearBuiltVal = validatedMetrics.yearBuilt || 0;
+    if (yearBuiltVal > 0) {
+      const age = baseYear - yearBuiltVal;
+      if (age <= 5) ageAdjustment = -0.2;
+      else if (age > 25) ageAdjustment = 0.4;
+      else if (age > 15) ageAdjustment = 0.2;
+    }
+
+    // 3) 용적률 및 건폐율 보정 (쾌적성)
+    if ((validatedMetrics.far || 0) > 250) densityAdjustment += 0.1;
+    if ((validatedMetrics.bcr || 0) > 20) densityAdjustment += 0.1;
+  }
+
+  const rawPremium = validatedPremium + scaleAdjustment + ageAdjustment + densityAdjustment;
+  // 리스크 프리미엄 한계값 제어 (0.8% ~ 3.0%)
+  const finalPremium = Math.max(0.8, Math.min(3.0, rawPremium));
+
+  // B. 할인율 (r) 산출: 국채금리 + 리스크 프리미엄 + 조달 스프레드 + 조달 페널티
+  // 주담대 금리와 국채금리 스프레드 가중 (스프레드가 넓을수록 조달비용 상승 반영)
+  const fundingSpread = Math.max(0, fundingCostVal - riskFreeRateVal) * 0.3;
+
+  // 조달 페널티 다단계 세분화
+  let fundingCostPenalty = 0;
+  if (fundingCostVal > 5.5) {
+    fundingCostPenalty = 1.1 + (fundingCostVal - 5.5) * 1.0;
+  } else if (fundingCostVal > 4.5) {
+    fundingCostPenalty = 0.4 + (fundingCostVal - 4.5) * 0.7;
+  } else if (fundingCostVal > 3.5) {
+    fundingCostPenalty = (fundingCostVal - 3.5) * 0.4;
+  }
+
+  const discountRate = (riskFreeRateVal + finalPremium + fundingSpread + fundingCostPenalty) / 100;
+
+  // C. 성장률 (g) 산출: 장기 인플레이션 + 유틸리티 성장 프리미엄 + 인프라 가중치
+  let infraGrowthPremium = 0;
+  if (validatedMetrics) {
+    // 1) 초등학교 인접성
+    const distElem = validatedMetrics.distanceToElementary;
+    if (typeof distElem === 'number' && distElem > 0) {
+      if (distElem <= 300) infraGrowthPremium += 0.1;
+      else if (distElem > 1000) infraGrowthPremium -= 0.1;
+    }
+    // 2) 학원가 밀집도
+    const academy = validatedMetrics.academyDensity;
+    if (typeof academy === 'number') {
+      if (academy >= 50) infraGrowthPremium += 0.15;
+      else if (academy >= 20) infraGrowthPremium += 0.05;
+    }
+    // 3) 지하철역 거리 (역세권 가중치)
+    const distSubway = validatedMetrics.distanceToSubway;
+    if (typeof distSubway === 'number' && distSubway > 0) {
+      if (distSubway <= 500) infraGrowthPremium += 0.2;
+      else if (distSubway <= 1000) infraGrowthPremium += 0.1;
+    }
+  }
+
   const growthPremium = validatedUtility * 0.0001;
-  const growthRate = Math.max(0.000, Math.min(0.050, (baseInflationRateVal + validatedTransit) / 100 + growthPremium));
+  // 성장률의 범위 제한 0% ~ 6%
+  const growthRate = Math.max(0.000, Math.min(0.060, (baseInflationRateVal + validatedTransit) / 100 + growthPremium + (infraGrowthPremium / 100)));
 
-  // 3. Cap Rate (자본환원율) 산출: r - g
+  // D. Cap Rate (자본환원율) 산출: r - g (하한선 1.0% 보장)
   const capRate = Math.max(0.01, discountRate - growthRate);
 
-  // 4. Implied Annual Rent (연간 예상 환산 임대료)
+  // E. 동적 전월세전환율 (Conversion Rate) 계산: 국고채 금리에 연동
+  const rawConversionRate = validatedMacro.jeonseConversionRate;
+  const jeonseConversionRateVal = Math.max(0.035, Math.min(0.080, rawConversionRate + (riskFreeRateVal - 3.25) * 0.005));
+
+  // F. 연간 예상 환산 임대료
   const annualRent = validatedJeonse * jeonseConversionRateVal;
 
-  // 5. Implied Value (적정 매매가) = 연간 임대료 / Cap Rate
+  // G. 적정 매매가 = 연간 임대료 / Cap Rate
   const impliedValue = annualRent / capRate;
 
-  // 6. 도출된 지표들
   const fairPER = 1 / capRate;
   const fairJeonseMultiple = validatedJeonse > 0 ? impliedValue / validatedJeonse : 0;
 
@@ -128,7 +216,9 @@ export function calculateDynamicDCF(
     fairJeonseMultiple,
     impliedValue,
     discountRate: discountRate * 100, // %
-    growthRate: growthRate * 100 // %
+    growthRate: growthRate * 100, // %
+    dynamicPremium: finalPremium, // %
+    dynamicJeonseConversionRate: jeonseConversionRateVal * 100 // %
   };
 
   const outputParsed = DCFResultSchema.safeParse(result);
@@ -140,7 +230,9 @@ export function calculateDynamicDCF(
       fairJeonseMultiple,
       impliedValue,
       discountRate: discountRate * 100,
-      growthRate: growthRate * 100
+      growthRate: growthRate * 100,
+      dynamicPremium: finalPremium,
+      dynamicJeonseConversionRate: jeonseConversionRateVal * 100
     };
   }
 
