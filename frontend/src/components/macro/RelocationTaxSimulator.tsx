@@ -47,9 +47,10 @@ export default function RelocationTaxSimulator() {
 
   // 가격 포맷팅 (원 단위 한글)
   const formatKoreanPrice = (valueManWon: number) => {
-    if (valueManWon === 0) return '0원';
-    const eok = Math.floor(valueManWon / 10000);
-    const remainder = Math.round(valueManWon % 10000);
+    const rounded = Math.round(valueManWon);
+    if (rounded === 0) return '0원';
+    const eok = Math.floor(rounded / 10000);
+    const remainder = rounded % 10000;
     
     if (eok === 0) return `${remainder.toLocaleString()}만 원`;
     if (remainder === 0) return `${eok}억 원`;

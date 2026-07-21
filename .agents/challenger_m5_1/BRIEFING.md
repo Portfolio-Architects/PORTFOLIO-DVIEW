@@ -1,43 +1,58 @@
-# BRIEFING — 2026-07-18T01:23:45+09:00
+# BRIEFING — 2026-07-21T13:42:45Z
 
 ## Mission
-Empirically challenge and verify the functional correctness of the Milestone 5 changes (SWR caching, Lounge Detail error robustness, and popstate/tab keep-alive).
+Conduct empirical verification and stress testing for M5 in D-VIEW project.
 
 ## 🔒 My Identity
-- Archetype: Empirical Challenger
+- Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m5_1\
-- Original parent: 20400839-5c1a-4b1a-816e-53de9ec2357c
-- Milestone: Milestone 5
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m5_1
+- Original parent: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Milestone: M5 Verification
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code
-- Run build and tests to verify the work product. Report any failures as findings — do NOT fix them yourself.
+- Review-only for main production codebase — write tests and run verification code empirically.
+- Write challenge report to c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m5_1\challenge.md
+- Deliver handoff report in handoff.md.
 
 ## Current Parent
-- Conversation ID: 20400839-5c1a-4b1a-816e-53de9ec2357c
-- Updated: 2026-07-18T01:23:45+09:00
+- Conversation ID: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Updated: 2026-07-21T13:42:45Z
 
 ## Review Scope
-- **Files to review**: SWR caching, Lounge Detail loading error robustness, and popstate/tab switching keep-alive implementation and tests.
-- **Interface contracts**: SWR caching requirements, robust error UI for Lounge Details, tab switching/popstate.
-- **Review criteria**: Functional correctness, test suite passes, edge cases covered.
+- **Files to review**:
+  - `frontend/src/components/consumer/PropertyTaxCalculator.tsx`
+  - Currency formatters (`formatEokMan`, `formatKoreanPrice`)
+  - `frontend/src/components/consumer/AptFitFinder.tsx`
+  - `frontend/src/lib/services/officeTx.service.ts`
+  - `frontend/src/lib/validation/facade.schemas.ts`
+- **Interface contracts**: PROJECT.md
+- **Review criteria**: Correctness, edge cases, numerical precision, schema validation, XML parsing safety.
 
 ## Key Decisions Made
-- Executed Playwright E2E tests (`npm run test:e2e`) using the `--reporter=list` flag to capture clean console logs.
-- Verified SWR cache behavior, popstate tab synchronizations, and Firestore unavailable error handling in details.
+- Created custom Jest empirical verification test suite `frontend/src/m5_empirical_verification.test.ts` with 19 assertions.
+- Verified all 40 test suites (278 tests) in `frontend/` pass.
+- Produced `challenge.md` and `handoff.md`.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m5_1\handoff.md — Handoff report
+- ORIGINAL_REQUEST.md — Initial task instructions
+- challenge.md — Detailed challenge report
+- handoff.md — 5-component handoff report
+- `frontend/src/m5_empirical_verification.test.ts` — Empirical test suite
 
 ## Attack Surface
-- **Hypotheses tested**: 
-  - SWR cache properly cleans stale and versionless cache data on build upgrade (CONFIRMED)
-  - Lounge Detail Client gracefully handles Firestore network failures without freezing (CONFIRMED)
-  - Popstate syncs browser navigation back to correct tabs (CONFIRMED)
-- **Vulnerabilities found**: None. Rate limiting (HTTP 429) was observed in E2E logs when running sequential fetches, but was gracefully handled by SWR retries.
-- **Untested angles**: Production build execution (already checked by worker and verified compilation passes).
+- **Hypotheses tested**:
+  - Property Tax rate calculation correctness for 1, 2, 3, 4+ houses and <=85m2 / >85m2 area options.
+  - Brokerage fee tier caps and thresholds at 5k, 20k, 90k, 120k, 150k 만원.
+  - Currency formatter rounding at 9999.6, 19999.6, 10000, 20000.
+  - AptFitFinder match percentage distribution below 50% without floor clamp.
+  - Office XML parser fallback safety on missing/corrupted tags.
+  - Zod schema transformations and validation rules.
+- **Vulnerabilities found**:
+  - UI spacing discrepancy between `formatEokMan` ("1억원") and `formatKoreanPrice` ("1억 원").
+  - Brokerage fee statutory tier jump at 9억원 (8.9999억 360만 vs 9.0억 450만).
+- **Untested angles**: Live Firestore security rules (out of scope).
 
 ## Loaded Skills
-- [None]
+- None

@@ -1,54 +1,44 @@
-# BRIEFING — 2026-07-18T01:17:00+09:00
+# BRIEFING — 2026-07-21T13:40:00Z
 
 ## Mission
-Verify worker_m5 changes for Milestone 5 and perform adversarial/quality review.
+M5 verification of data pipeline integrity, Zod schemas, Google Sheets SSOT parser, Ministry of Land XML parser, Redis L2 cache, SWR sync, audit-pipeline.js, and running test suite.
 
 ## 🔒 My Identity
-- Archetype: reviewer_and_adversarial_critic
+- Archetype: Reviewer & Adversarial Critic
 - Roles: reviewer, critic
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_2\
-- Original parent: 20400839-5c1a-4b1a-816e-53de9ec2357c
-- Milestone: Milestone 5 Verification
-- Instance: 1 of 1
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_2
+- Original parent: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Milestone: M5
+- Instance: 2 of 2
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
+- Check for integrity violations (hardcoded test results, facade implementations, self-certifying shortcuts)
+- Verify commands in frontend/: npm run audit, npm test, npx tsc --noEmit, npx eslint . --max-warnings=10
 
 ## Current Parent
-- Conversation ID: 20400839-5c1a-4b1a-816e-53de9ec2357c
-- Updated: not yet
+- Conversation ID: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Updated: 2026-07-21T13:40:00Z
 
 ## Review Scope
-- **Files to review**:
-  - `frontend/src/app/news/NewsClient.tsx`
-  - `frontend/src/components/DashboardClient.tsx`
-  - `frontend/src/components/LoungeDetailClient.tsx`
-  - `frontend/src/components/pwa/SWRProvider.tsx`
-- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md
-- **Review criteria**: correctness, completeness, style, conformance
-
-## Review Checklist
-- **Items reviewed**:
-  - NewsClient route navigation
-  - SWRProvider cache purging for versionless keys
-  - DashboardClient popstate / history navigation and active tab sync
-  - LoungeDetailClient Firestore query try/catch block and loading spinner
-- **Verdict**: pending
-- **Unverified claims**:
-  - Playwright E2E tests passing
-  - Next.js production build compiling
-
-## Attack Surface
-- **Hypotheses tested**:
-  - SWR version upgrade purges versionless keys
-  - popstate does not overwrite query parameters
-  - Firebase load failures do not hang loading spinner
-- **Vulnerabilities found**: none yet
-- **Untested angles**:
-  - Unit/E2E test execution on actual repository
+- **Files to review**: `frontend/src/lib/validation/facade.schemas.ts`, Google Sheets SSOT parser, Ministry of Land XML parser, Redis L2 cache (`redis.ts`), SWR sync, `frontend/scripts/audit-pipeline.js`
+- **Interface contracts**: PROJECT.md / SCOPE.md
+- **Review criteria**: correctness, style, conformance, pipeline integrity, adversarial attack surface
 
 ## Key Decisions Made
-- Proceed with verification of build and running E2E tests.
+- Initiated M5 review step 1: context and file discovery.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_2\handoff.md — Handoff report of the review
+- ORIGINAL_REQUEST.md — Original request instructions
+- BRIEFING.md — Persistent briefing context
+- progress.md — Heartbeat progress file
+
+## Review Checklist
+- **Items reviewed**: pending
+- **Verdict**: pending
+- **Unverified claims**: all
+
+## Attack Surface
+- **Hypotheses tested**: pending
+- **Vulnerabilities found**: pending
+- **Untested angles**: Zod schema bypasses, parser fallback logic, dummy implementations, mock data hardcoding

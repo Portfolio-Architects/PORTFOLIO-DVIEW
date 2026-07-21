@@ -310,12 +310,19 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
     // 2. Taxes in Man-won
     const acquisitionTax = Math.round(acquisitionPrice * (acqTaxRate / 100));
     
-    // 지방교육세 = 취득세율의 10%
-    const localEducationTaxRate = acqTaxRate * 0.1;
+    // 지방교육세 = 중과세(3주택 이상, 8% 또는 12%) 적용 시 0.4% 고정 (지방세법 제151조), 일반과세 시 취득세율의 10%
+    const localEducationTaxRate = ownedHouses >= 3 ? 0.4 : Math.round(acqTaxRate * 0.1 * 100) / 100;
     const localEducationTax = Math.round(acquisitionPrice * (localEducationTaxRate / 100));
 
-    // 농어촌특별세 = 85m2 초과 시 0.2%, 이하 시 0%
-    const ruralSpecialTaxRate = exclusiveArea === '85over' ? 0.2 : 0;
+    // 농어촌특별세 = 8% 중과 시 (>85m² 0.6%, <=85m² 0.2%), 12% 중과 시 (>85m² 1.0%, <=85m² 0.4%), 일반 시 (>85m² 0.2%, <=85m² 0%)
+    let ruralSpecialTaxRate = 0;
+    if (ownedHouses === 3) {
+      ruralSpecialTaxRate = exclusiveArea === '85over' ? 0.6 : 0.2;
+    } else if (ownedHouses >= 4) {
+      ruralSpecialTaxRate = exclusiveArea === '85over' ? 1.0 : 0.4;
+    } else {
+      ruralSpecialTaxRate = exclusiveArea === '85over' ? 0.2 : 0;
+    }
     const ruralSpecialTax = Math.round(acquisitionPrice * (ruralSpecialTaxRate / 100));
 
     const totalTax = acquisitionTax + localEducationTax + ruralSpecialTax;
@@ -386,12 +393,13 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   };
 
   const formatEokMan = (manWon: number) => {
-    const eok = Math.floor(manWon / 10000);
-    const man = Math.round(manWon % 10000);
+    const rounded = Math.round(manWon);
+    const eok = Math.floor(rounded / 10000);
+    const remainder = rounded % 10000;
     if (eok > 0) {
-      return man > 0 ? `${eok}억 ${man.toLocaleString()}만원` : `${eok}억원`;
+      return remainder > 0 ? `${eok}억 ${remainder.toLocaleString()}만원` : `${eok}억원`;
     }
-    return `${man.toLocaleString()}만원`;
+    return `${remainder.toLocaleString()}만원`;
   };
 
   const handleShare = () => {

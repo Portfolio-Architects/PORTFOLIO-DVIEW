@@ -1,58 +1,63 @@
-# BRIEFING — 2026-07-18T01:26:00+09:00
+# BRIEFING — 2026-07-21T13:42:35Z
 
 ## Mission
-Verify the code correctness, typescript compiling, and quality of worker_m5's Milestone 5 changes.
+Perform independent quality review and adversarial challenge for M5 verification in D-VIEW Data Integrity & Audit Suite project.
 
 ## 🔒 My Identity
-- Archetype: reviewer_critic
+- Archetype: reviewer / critic
 - Roles: reviewer, critic
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1\
-- Original parent: 20400839-5c1a-4b1a-816e-53de9ec2357c
-- Milestone: Milestone 5
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_1
+- Original parent: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Milestone: M5
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Network restriction: CODE_ONLY mode (no external websites/services, no curl/wget/lynx, etc.)
+- Audit integrity violations actively (hardcoded test results, facade implementations, shortcuts, self-certifying work)
+- Verify code changes in specified files and run verification tools (npm test, npx tsc --noEmit)
 
 ## Current Parent
-- Conversation ID: 20400839-5c1a-4b1a-816e-53de9ec2357c
-- Updated: not yet
+- Conversation ID: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Updated: 2026-07-21T13:42:35Z
 
 ## Review Scope
 - **Files to review**:
-  - frontend/src/app/news/NewsClient.tsx
-  - frontend/src/components/pwa/SWRProvider.tsx
-  - frontend/src/components/DashboardClient.tsx
-  - frontend/src/components/LoungeDetailClient.tsx
-- **Interface contracts**: [TBD]
-- **Review criteria**: correctness, style, conformance, typescript compiling, adversarial robustness
+  - `frontend/src/components/consumer/PropertyTaxCalculator.tsx`
+  - `frontend/src/components/macro/RelocationTaxSimulator.tsx`
+  - `frontend/src/components/consumer/AptFitFinder.tsx`
+  - `frontend/src/lib/services/officeTx.service.ts`
+  - `frontend/src/lib/validation/facade.schemas.ts`
+  - `frontend/scripts/audit-pipeline.js`
+- **Interface contracts**: PROJECT.md / SCOPE.md
+- **Review criteria**: Local Education Tax fixed 0.4% for heavy rate, Rural Special Tax rates (0.6%/1.0%/0.2%/0.4%), currency formatting rounding logic (`formatEokMan` and `formatKoreanPrice`), fit score clamping removal, XML parser error handling, build & test passing.
 
 ## Review Checklist
-- **Items reviewed**:
-  - `NewsClient.tsx` (navigation parameters, prefetch on mouseEnter/touchStart)
-  - `SWRProvider.tsx` (`app-swr-version` logic, localStorage try/catch, purging logic)
-  - `DashboardClient.tsx` (keep-alive state variables, popstate/hashchange hook, useMemo deps)
-  - `LoungeDetailClient.tsx` (fetchPost try-catch-finally, setLoading(false), isModal min-height)
-- **Verdict**: APPROVE
-- **Unverified claims**: none
+- **Items reviewed**: PropertyTaxCalculator.tsx, RelocationTaxSimulator.tsx, AptFitFinder.tsx, officeTx.service.ts, facade.schemas.ts, audit-pipeline.js
+- **Verdict**: REQUEST_CHANGES
+- **Unverified claims**: none remaining
 
 ## Attack Surface
-- **Hypotheses tested**:
-  - TypeScript compilation checks (ran `npx tsc --noEmit` and completed with 0 errors)
-  - Playwright E2E tests (ran full suite of 17 tests on a fresh dev server, and all 17 passed successfully)
-  - SecurityError on localStorage checked (SWRProvider wraps all access in try-catch blocks)
-  - Hanging loading spinner (checked finally block guarantees setLoading(false) in LoungeDetailClient)
-- **Vulnerabilities found**: none
-- **Untested angles**: none
+- **Hypotheses tested**: 
+  - Verification of Local Education Tax 0.4% fixed rate under Local Tax Law Art. 151
+  - Verification of Rural Special Tax rates (0.6%/1.0%/0.2%/0.4%)
+  - Boundary stress testing of `formatEokMan` and `formatKoreanPrice` rounding logic
+  - Verification of Fit Score unclamping (0% to 99% dynamic range)
+  - XML Parser edge cases and repository failover to `MOCK_XML_RESPONSE`
+  - Build & test execution (`npx tsc --noEmit` & `npm test`)
+- **Vulnerabilities found**:
+  - `npx tsc --noEmit` fails with 6 compilation errors due to unexported symbol imports (`parseOfficeXml`, `safeParseInt`, `safeParseFloat`, `formatPrice`) and stale `@ts-expect-error` directives in `src/m5_empirical_verification.test.ts`.
+  - Self-certifying local function duplicates in `src/m5_empirical_verification.test.ts`.
+- **Untested angles**: Production deployment build (`npm run build`)
 
 ## Key Decisions Made
-- Performed typescript check (successful)
-- Performed E2E playwright checks (successful)
-- Drafted Quality and Adversarial reviews.
+- Executed `npm test` (40 passed, 0 failed).
+- Executed `npx tsc --noEmit` (failed with 6 errors).
+- Issued `REQUEST_CHANGES` verdict based on TypeScript compilation failure and integrity guidelines.
+- Generated `review.md` and `handoff.md`.
 
 ## Artifact Index
-- ORIGINAL_REQUEST.md — Original request details.
-- BRIEFING.md — Context and status memory.
-- progress.md — Heartbeat progress file.
-- handoff.md — Verification results and reviews.
+- `.agents/reviewer_m5_1/ORIGINAL_REQUEST.md` — Original request log
+- `.agents/reviewer_m5_1/BRIEFING.md` — Agent working memory
+- `.agents/reviewer_m5_1/progress.md` — Liveness heartbeat
+- `.agents/reviewer_m5_1/review.md` — Detailed review report
+- `.agents/reviewer_m5_1/handoff.md` — 5-Component handoff report

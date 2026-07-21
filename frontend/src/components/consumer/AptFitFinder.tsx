@@ -523,7 +523,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
       if (m.distanceToStarbucks && m.distanceToStarbucks <= 500) tags.push('스세권');
 
       // Max absolute score is 145 (35 baseline + 110 from matched weights). Normalize to percentage.
-      const matchPercentage = Math.min(99, Math.max(50, Math.round((score / 145) * 100)));
+      const matchPercentage = Math.min(99, Math.max(0, Math.round((score / 145) * 100)));
 
       // 4-Dimensional normalized sub-scores for breakdown (0-100)
       let budgetScoreVal = 50;

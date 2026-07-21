@@ -1,54 +1,51 @@
-# BRIEFING — 2026-07-17T04:40:30Z
+# BRIEFING — 2026-07-21T12:35:55Z
 
 ## Mission
-Independently verify correctness, completeness, and interface safety of D-VIEW's MacroDashboardClient optimizations.
+Review interface safety, route synchronization between LoungeHeader and MobileDock, and test coverage/pass rate.
 
 ## 🔒 My Identity
-- Archetype: reviewer/critic
+- Archetype: reviewer
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m4_2
-- Original parent: d145fd00-94b4-4809-97c4-10e0daedf450
-- Milestone: Verify MacroDashboardClient optimizations
-- Instance: 1 of 1
+- Original parent: 5cd4065c-ecc1-4958-a315-f38d94a1f75d
+- Milestone: M4
+- Instance: 2 of 2
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code.
-- Report all failures as findings — do NOT fix them yourself.
+- Review-only — do NOT modify implementation code
+- Network restriction: CODE_ONLY mode
+- All files written must remain inside working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m4_2\
 
 ## Current Parent
-- Conversation ID: d145fd00-94b4-4809-97c4-10e0daedf450
-- Updated: yes
+- Conversation ID: 5cd4065c-ecc1-4958-a315-f38d94a1f75d
+- Updated: 2026-07-21T12:35:55Z
 
 ## Review Scope
-- **Files to review**: `frontend/src/components/MacroDashboardClient.tsx`
-- **Interface contracts**: `PROJECT.md` / `SCOPE.md` if available, checking for dynamic loading (ssr: false) and React.memo/computation optimizations.
-- **Review criteria**: Check correctness, completeness, interface safety, dynamic loading, React.memo callbacks, no unused computations.
-
-## Key Decisions Made
-- Issued verdict: REQUEST_CHANGES due to residual unused computations (hooks, state, variables, and imports).
-- Verified Jest tests run successfully (199/199 passing).
-- Verified ESLint checks pass (clean run).
-
-## Artifact Index
-- None
+- Active routes, labels, visual feedback in `frontend/src/components/pwa/MobileDock.tsx` and `frontend/src/components/LoungeHeader.tsx`.
+- Test suite pass rates: `npm test` and `npx playwright test` under `frontend/`.
 
 ## Review Checklist
-- **Items reviewed**:
-  - `frontend/src/components/MacroDashboardClient.tsx` (Source code optimization analysis)
-  - `frontend/src/components/DashboardClient.tsx` (Parent prop mapping check)
-  - `frontend/src/lib/utils/safeReload.ts` (Dynamic load recovery investigation)
-- **Verdict**: REQUEST_CHANGES
-- **Unverified claims**: None. All checked.
+- **Items reviewed**: LoungeHeader.tsx, MobileDock.tsx, HeaderDockSync.test.tsx, frontend/tests/
+- **Verdict**: APPROVE
+- **Unverified claims**: None
 
 ## Attack Surface
-- **Hypotheses tested**:
-  - Verification of ssr: false dynamic loading for static/dynamic components. (Confirmed for MacroTrendChart, AptFitFinder, TrafficNoticeBoard, LoungeTalkWidget)
-  - Verification of React.memo callback prop stability. (Confirmed callback memoization via useCallback in parent/client components)
-  - Verification of build integrity and runtime tests. (Confirmed via npm run test / Jest and npm run lint)
-- **Vulnerabilities found**:
-  - Unused `useTransition` and destructured `isPending`/`startTransition` variables.
-  - Unused `chartMode` state variables.
-  - Unused helper `parsePriceEokHelper`.
-  - Unused constants `COLORS` and `LINE_COLORS`.
-  - Multiple unused imports: `FloatingUserBar`, `haversineDistance`, and various Lucide icons.
+- **Hypotheses tested**: 
+  - Route mismatch between LoungeHeader and MobileDock -> Tested & Disproven (100% matched).
+  - Soft keyboard obscuring MobileDock -> Tested & Mitigated (`visualViewport` height listener).
+  - Excessive prefetching on mobile -> Tested & Mitigated (`prefetch={false}` with hover/touch handlers).
+  - Test suite failure / facade assertions -> Tested & Disproven (35/35 Jest suites passed, 100% real assertions).
+- **Vulnerabilities found**: None.
 - **Untested angles**: None.
+
+## Key Decisions Made
+- Confirmed full interface contract synchronization between desktop header and mobile dock.
+- Verified 100% test pass rate across Jest unit tests and Playwright E2E suite.
+- Created `HeaderDockSync.test.tsx` unit test for ongoing automated contract assertion.
+- Completed review.md and handoff.md.
+
+## Artifact Index
+- `.agents/reviewer_m4_2/ORIGINAL_REQUEST.md` — Original request context
+- `.agents/reviewer_m4_2/BRIEFING.md` — Agent briefing and state tracking
+- `.agents/reviewer_m4_2/review.md` — Detailed review report
+- `.agents/reviewer_m4_2/handoff.md` — 5-component handoff report

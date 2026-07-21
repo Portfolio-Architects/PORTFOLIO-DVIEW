@@ -1,46 +1,53 @@
-# BRIEFING — 2026-07-18T00:36:56+09:00
+# BRIEFING — 2026-07-21T22:46:30Z
 
 ## Mission
-Resolve minor caching issues identified by Reviewer 1 and Challenger 2 in the SWRProvider.
+Fix build/test errors identified by Reviewer 2 in frontend (TypeScript compilation errors TS2459/TS2578 and Cheerio ESM import error in Jest), and ensure all verification commands pass (tsc, eslint, jest test, audit).
 
 ## 🔒 My Identity
-- Archetype: Remediation Worker
+- Archetype: implementer/qa/specialist
 - Roles: implementer, qa, specialist
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\
-- Original parent: 8429c8ad-29e8-4048-b010-d71ff6f6237f
-- Milestone: milestone_remediation_m4
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4
+- Original parent: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Milestone: Remediation M4
 
 ## 🔒 Key Constraints
-- CODE_ONLY network mode: No external network access.
-- Minimal-change principle: Only modify what is necessary.
-- No cheating: Do not hardcode test results, expected outputs, or verification strings.
+- Fix 6 TypeScript compilation errors (TS2459 & TS2578) in frontend ts test file.
+- Fix Cheerio ESM import error in Jest environment.
+- Pass `npx tsc --noEmit` with 0 errors.
+- Pass `npx eslint . --max-warnings=10` with exit code 0.
+- Pass `npm test` with 100% pass rate.
+- Pass `npm run audit` with exit code 0.
 
 ## Current Parent
-- Conversation ID: 8429c8ad-29e8-4048-b010-d71ff6f6237f
-- Updated: not yet
+- Conversation ID: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Updated: 2026-07-21T22:46:30Z
 
 ## Task Summary
-- **What to build**: Fix cache key mismatch for location-scores.json and remove unnecessary preload target '/api/apartments-by-dong' in SWRProvider.tsx.
-- **Success criteria**: Successful production compilation (npm run build) and passing Playwright E2E tests (npm run test:e2e) in frontend/.
-- **Interface contracts**: frontend/src/components/pwa/SWRProvider.tsx
-- **Code layout**: frontend/
+- **What to build**: Fix frontend TS compiler errors and Jest Cheerio ESM module loading issue.
+- **Success criteria**: All 4 verification commands pass cleanly.
 
 ## Key Decisions Made
-- Proceed with direct modification of SWRProvider.tsx using minimal edits.
+- Exported helper functions (`parseOfficeXml`, `safeParseInt`, `safeParseFloat`, `formatPrice`) from `officeTx.service.ts` to allow direct test imports.
+- Added module mapping `'^cheerio$': '<rootDir>/node_modules/cheerio/dist/commonjs/index.js'` in `frontend/jest.config.ts` to resolve Cheerio CommonJS build in Jest context.
+- Added direct test suite for exported helpers in `m5_empirical_verification.test.ts`.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\changes.md — Summary of modifications made
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_remediation_m4\handoff.md — Detailed observations and verification steps
+- ORIGINAL_REQUEST.md — Initial task instructions
+- changes.md — Remediation report
+- handoff.md — 5-component handoff report
 
 ## Change Tracker
-- **Files modified**: frontend/src/components/pwa/SWRProvider.tsx
-- **Build status**: Pass
-- **Pending issues**: None
+- **Files modified**:
+  - `frontend/src/lib/services/officeTx.service.ts` (Exported helper functions)
+  - `frontend/jest.config.ts` (Mapped cheerio to commonjs entrypoint)
+  - `frontend/src/m5_empirical_verification.test.ts` (Updated imports and added test 4-4)
+- **Build status**: PASS (0 errors)
+- **Pending issues**: none
 
 ## Quality Status
-- **Build/test result**: Pass (npm run build and npm run test:e2e pass successfully)
-- **Lint status**: 0 violations (npm run lint passes successfully)
-- **Tests added/modified**: Checked existing Playwright E2E tests
+- **Build/test result**: PASS (40 suites, 279 tests)
+- **Lint status**: PASS (0 warnings)
+- **Audit status**: SUCCESS (All 7 stages passed)
 
 ## Loaded Skills
 - None

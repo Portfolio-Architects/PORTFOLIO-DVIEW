@@ -1,36 +1,47 @@
-# BRIEFING — 2026-07-17T04:43:26Z
+# BRIEFING — 2026-07-21T21:42:00Z
 
 ## Mission
-Verify rendering profiling and React.memo rendering behavior on the D-VIEW Overview page, ensure only changed cards re-render when switching timeline items, and verify clean transpilation of the extracted `<TimelineItemCard>`.
+Stress verification of frontend build bundle, Playwright E2E integration, and PWA offline fallback / local cache resilience.
 
 ## 🔒 My Identity
-- Archetype: Empirical Challenger
+- Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_2
-- Original parent: d145fd00-94b4-4809-97c4-10e0daedf450
+- Original parent: 03c85cf3-2ee1-4020-b237-aca583caa131
 - Milestone: M4
 - Instance: 2 of 2
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code.
-- CODE_ONLY network mode — no external web access or curl/wget targeting external URLs.
-- Run build and test commands to verify.
-- Do NOT fix errors yourself; report any failures as findings.
+- Stress-test build bundle footprint, Playwright E2E tests, and PWA offline behavior.
+- Run commands empirical evidence only. Do NOT trust claims without execution output.
+- Write challenge_report.md and handoff.md in workspace directory.
 
 ## Current Parent
-- Conversation ID: d145fd00-94b4-4809-97c4-10e0daedf450
-- Updated: not yet
+- Conversation ID: 03c85cf3-2ee1-4020-b237-aca583caa131 (Dispatch reference: 5cd4065c-ecc1-4958-a315-f38d94a1f75d)
+- Updated: 2026-07-21T21:42:00Z
 
 ## Review Scope
-- **Files to review**: D-VIEW Overview page and React.memo rendering behavior (TimelineItemCard component and its usage)
-- **Interface contracts**: PROJECT.md
-- **Review criteria**: Check if only changed cards re-render on timeline switch; check if build transpiles correctly.
+- **Files to review**: `frontend/` (Next.js app, package.json, playwright configs, service workers/PWA setups, E2E tests)
+- **Review criteria**: Build bundle footprint, static/dynamic distribution, Playwright test suite execution, PWA offline fallback resilience.
 
 ## Key Decisions Made
-- [initial decision] Investigate codebase to locate TimelineItemCard and its usages.
-- [verification] Wrote a dynamic rendering test (`TimelineItemCardRender.test.tsx`) that compiles and runs the component with render-counters to verify memoization.
-- [transpilation] Ran `npx tsc --noEmit` and `npm run build` to verify transpilation.
+- [Initial] Started empirical stress testing on frontend directory.
+- [Execution] Executed `npm run build` — 181 pages generated statically/SSG in 56.6s total compile time.
+- [Execution] Executed `npx playwright test` — 16/17 passed in full suite; 100% passed in isolated re-runs.
+- [Execution] Executed `node scratch/test_pwa_offline.js` — 8/8 PWA offline & cache resilience checks passed.
+- [Reporting] Generated `challenge_report.md` and `handoff.md` in workspace directory.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_2\handoff.md — Handoff report of validation findings.
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\TimelineItemCardRender.test.tsx — Regression test verifying React.memo rendering behavior.
+- `ORIGINAL_REQUEST.md` — Original prompt request
+- `BRIEFING.md` — Agent briefing & state
+- `progress.md` — Liveness heartbeat & task progress log
+- `challenge_report.md` — Detailed challenge and stress test report
+- `handoff.md` — 5-component handoff report
+
+## Attack Surface
+- **Hypotheses tested**: Dev server rate-limiting during fast E2E test runs, Next.js NFT file tracing, PWA offline fallback, SWR versioned cache purging.
+- **Vulnerabilities found**: Dev server HTTP 429 rate-limiting flakiness in E2E tests, NFT tracing warning in `fileReader.ts`, `/apartment/[aptName]` dynamic metadata fallback.
+- **Untested angles**: Hardware-level native iOS Safari rubber-band scrolling and live Web Push FCM delivery.
+
+## Loaded Skills
+- None

@@ -81,6 +81,19 @@ function auditESLint() {
   }
 }
 
+// 3.5. Perform Jest Unit Test Suite Check
+function auditUnitTestSuite() {
+  log(colors.cyan, '🔄 Running Jest Unit Test Suite audit (npx jest)...');
+  try {
+    execSync('npx jest', { stdio: 'inherit' });
+    log(colors.green, '✅ Jest Unit Test Suite check: PASSED');
+    return true;
+  } catch (error) {
+    log(colors.red, '❌ Jest Unit Test Suite check: FAILED');
+    return false;
+  }
+}
+
 // 4. Perform Data Consistency & Integrity Check
 function auditDataConsistency() {
   log(colors.cyan, '🔄 Running Data Consistency & Integrity audit...');
@@ -383,6 +396,8 @@ async function run() {
   console.log('');
   const eslintPassed = auditESLint();
   console.log('');
+  const unitTestsPassed = auditUnitTestSuite();
+  console.log('');
   const consistencyPassed = auditDataConsistency();
   console.log('');
   const sizesPassed = auditBundleSizes();
@@ -396,6 +411,7 @@ async function run() {
     metrics: {
       typescript: tsPassed,
       eslint: eslintPassed,
+      unitTests: unitTestsPassed,
       dataConsistency: consistencyPassed,
       bundleSizes: sizesPassed,
       e2e: e2ePassed,
@@ -418,7 +434,7 @@ async function run() {
   }
 
   log(colors.magenta, '\n==================================================');
-  if (tsPassed && eslintPassed && consistencyPassed && sizesPassed && e2ePassed && firestorePassed) {
+  if (tsPassed && eslintPassed && unitTestsPassed && consistencyPassed && sizesPassed && e2ePassed && firestorePassed) {
     log(colors.green, '✅ Pipeline Status: SUCCESS (All essential checks passed)');
     process.exit(0);
   } else {

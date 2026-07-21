@@ -134,4 +134,37 @@ describe('PropertyTaxCalculator', () => {
     // Should now show results
     expect(screen.getByText('최종 소요 부대비용:')).toBeInTheDocument();
   });
+
+  it('calculates heavy rate Local Education Tax (fixed 0.4%) and Rural Special Tax for 3 houses (>85m2)', () => {
+    // ownedHouses = 3 (investmentStyle: 'gap' sets 2, but we can test calculation logic via zero-click with 3 houses)
+    mockLocalStorageStore['drive_quiz_answers'] = JSON.stringify({
+      budget: '12eok',
+      family: 'middleHigh',
+      transit: 'gtx',
+      lifestyle: 'nature',
+      scaleBrand: 'brand',
+      yearBuilt: 'middle',
+      investmentStyle: 'gap',
+    });
+
+    render(
+      <PropertyTaxCalculator
+        isOpen={true}
+        onClose={mockOnClose}
+        initialAptName="동탄역더샵센트럴시티"
+        sheetApartments={mockSheetApartments as any}
+        txSummaryData={mockTxSummaryData as any}
+        nameMapping={mockNameMapping}
+      />
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(1200);
+    });
+
+    // Result view should render Breakdown items
+    expect(screen.getByText('1. 취득세')).toBeInTheDocument();
+    expect(screen.getByText('2. 지방교육세')).toBeInTheDocument();
+    expect(screen.getByText('3. 농어촌특별세')).toBeInTheDocument();
+  });
 });

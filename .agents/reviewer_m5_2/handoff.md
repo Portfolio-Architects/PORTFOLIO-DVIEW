@@ -1,174 +1,55 @@
-# Review & Handoff Report — Milestone 5 Verification
+# Handoff Report — Reviewer M5-2
 
 ## 1. Observation
-- **NewsClient Navigation**:
-  - Path: `frontend/src/app/news/NewsClient.tsx`
-  - Exact lines changed: 310–345
-  - Verbatim lines after change:
-    ```typescript
-    onClick={() => router.push('/overview?tab=overview')}
-    onClick={() => router.push('/overview?tab=lounge')}
-    onClick={() => router.push('/overview?tab=office')}
+- Target project: D-VIEW Data Integrity & Audit Suite (`frontend/`).
+- Verified commands and exit codes:
+  - `npx eslint . --max-warnings=10`: Exit Code **0** (PASSED).
+  - `npx tsc --noEmit`: Exit Code **1** (FAILED).
+    ```text
+    src/m5_empirical_verification.test.ts(6,10): error TS2459: Module '"@/lib/services/officeTx.service"' declares 'parseOfficeXml' locally, but it is not exported.
+    src/m5_empirical_verification.test.ts(6,26): error TS2459: Module '"@/lib/services/officeTx.service"' declares 'safeParseInt' locally, but it is not exported.
+    src/m5_empirical_verification.test.ts(6,40): error TS2459: Module '"@/lib/services/officeTx.service"' declares 'safeParseFloat' locally, but it is not exported.
+    src/m5_empirical_verification.test.ts(6,56): error TS2459: Module '"@/lib/services/officeTx.service"' declares 'formatPrice' locally, but it is not exported.
+    src/m5_empirical_verification.test.ts(544,7): error TS2578: Unused '@ts-expect-error' directive.
+    src/m5_empirical_verification.test.ts(546,7): error TS2578: Unused '@ts-expect-error' directive.
     ```
-- **SWR Cache Purging**:
-  - Path: `frontend/src/components/pwa/SWRProvider.tsx`
-  - Exact lines changed: 63–115
-  - Verbatim lines after change:
-    ```typescript
-    const filtered = parsed.filter(([key]) => {
-      if (typeof key !== 'string') return true;
-      const vMatch = key.match(/[?&]v=([^&]+)/);
-      if (vMatch) {
-        if (vMatch[1] !== BUILD_VERSION) {
-          hasPurged = true;
-          return false;
-        }
-      } else {
-        if (storedVersion !== BUILD_VERSION) {
-          hasPurged = true;
-          return false;
-        }
-      }
-      return true;
-    });
+  - `npm test` (Jest): Exit Code **1** (FAILED).
+    ```text
+    C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\node_modules\cheerio\dist\browser\index.js:1
+    export { contains, merge } from './static.js';
+    ^^^^^^
+    SyntaxError: Unexpected token 'export'
+      at Runtime.createScriptFromCode (node_modules/jest-runtime/build/index.js:1314:40)
+      at Object.<anonymous> (src/lib/services/officeTx.service.ts:1:1)
+      at Object.<anonymous> (src/m5_empirical_verification.test.ts:6:1)
     ```
-- **Tab History popstate Sync**:
-  - Path: `frontend/src/components/DashboardClient.tsx`
-  - Exact lines changed: 456–484
-  - Verbatim lines after change:
-    ```typescript
-    const syncTabFromLocation = () => {
-      const queryParams = new URLSearchParams(window.location.search);
-      const queryTab = queryParams.get('tab');
-      const hasCuration = queryParams.has('chopoomaStep') || queryParams.has('maxGap');
-
-      if (!isMounted) return;
-      startTransition(() => {
-        if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=')) {
-          setActiveTab('lounge');
-        } else if (window.location.hash.startsWith('#imjang')) {
-          setActiveTab('imjang');
-        } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap')) {
-          setActiveTab('office');
-        } else if (window.location.hash.startsWith('#overview')) {
-          setActiveTab('overview');
-        } else if (queryTab === 'lounge' || queryTab === 'talk' || queryTab === 'news' || queryTab === 'notices') {
-          setActiveTab('lounge');
-        } else if (queryTab === 'imjang') {
-          setActiveTab('imjang');
-        } else if (queryTab === 'office' || queryTab === 'gap' || hasCuration) {
-          setActiveTab('office');
-        } else if (queryTab === 'overview' || window.location.hash === '') {
-          setActiveTab('overview');
-        }
-      });
-    };
-    window.addEventListener('hashchange', syncTabFromLocation, { passive: true });
-    window.addEventListener('popstate', syncTabFromLocation, { passive: true });
-    ```
-- **LoungeDetailClient Firestore Robustness**:
-  - Path: `frontend/src/components/LoungeDetailClient.tsx`
-  - Exact lines changed: 700–760
-  - Verbatim lines after change:
-    ```typescript
-    try {
-      const snap = await getDoc(doc(db, 'posts', postId).withConverter(postConverter));
-      if (active) {
-        if (!snap.exists()) {
-          setLoading(false);
-          return;
-        }
-        ...
-      }
-    } catch (err) {
-      logger.error('LoungeDetailClient.usePostEffect', 'Failed to fetch Firestore post document', undefined, err);
-    } finally {
-      if (active) {
-        setLoading(false);
-      }
-    }
-    ```
-- **Test Executions**:
-  - Next.js production build (`npm run build`) exited successfully with exit code 0.
-  - Playwright E2E test suite (`npm run test:e2e`) passed all 17 tests:
-    `17 passed (2.4m)`
-  - Jest unit test suite (`npm run test`) passed all 216 tests:
-    `Test Suites: 33 passed, 33 total; Tests: 216 passed, 216 total`
-
----
+  - `npm run audit`: Exit Code **1** (FAILED) due to failure in TypeScript and Jest test stages.
+- Code review inspects:
+  - `frontend/src/lib/validation/facade.schemas.ts`: 674 lines defining isomorphic Zod schemas.
+  - `frontend/src/lib/services/googleSheets.ts` and `frontend/src/lib/repositories/googleSheets.repository.ts`: Multi-level caching parser.
+  - `frontend/src/lib/services/officeTx.service.ts` and `frontend/src/lib/repositories/officeTx.repository.ts`: Cheerio XML parser and MOLIT API fallback.
+  - `frontend/src/lib/redis.ts`: Resilient Redis wrapper.
+  - `frontend/src/components/pwa/SWRProvider.tsx` and `frontend/src/hooks/useStaticData.ts`: SWR offline sync and memory merging.
+  - `frontend/scripts/audit-pipeline.js`: Continuous audit pipeline runner.
 
 ## 2. Logic Chain
-1. **Routing Accuracy**: By replacing the relative hash paths (`/#overview`, etc.) in `NewsClient.tsx` with explicit search parameter query paths (`/overview?tab=overview`, etc.), the client now routes users to fully qualified URLs. When loaded, these parameters are correctly picked up by Next.js and passed down to `<DashboardClient />`.
-2. **Dynamic Cache Purging**: The newly introduced logic in `SWRProvider.tsx` checks both versioned keys (using `?v=`) and versionless keys. If the build version changes (`storedVersion !== BUILD_VERSION`), any versionless key is filtered out during initialization and written back to local storage, ensuring no stale build data persists.
-3. **Popstate Synchronization**: Registering the `syncTabFromLocation` function on the `popstate` event listener enables instantaneous synchronization of browser history back/forward navigation. Because `syncTabFromLocation` only reads window state and invokes `setActiveTab`, it updates the active tab component dynamically without triggering URL parameter rewrites or page reloads.
-4. **Hanging Spinner Prevention**: By introducing a proper `try/catch/finally` block inside the async `fetchPost` call, any network exception (such as Firestore database timeouts or client offline state) is caught. The `finally` block guarantees that `setLoading(false)` is invoked, ensuring that the loading spinner is unmounted and the UI falls back to the "글을 찾을 수 없습니다" grace state.
-
----
+1. *Observation*: Executing `npx tsc --noEmit` returns 6 TypeScript compiler errors in `src/m5_empirical_verification.test.ts`.
+2. *Reasoning*: `m5_empirical_verification.test.ts` attempts to import non-exported functions from `officeTx.service.ts` (`parseOfficeXml`, `safeParseInt`, `safeParseFloat`, `formatPrice`) and contains unused `@ts-expect-error` directives. This directly causes `npx tsc --noEmit` to fail with exit code 1.
+3. *Observation*: Executing `npm test` returns exit code 1, throwing a Jest syntax error in `node_modules/cheerio/dist/browser/index.js`.
+4. *Reasoning*: When Jest loads `m5_empirical_verification.test.ts` which transitively imports `officeTx.service.ts`, Node/Jest tries to parse Cheerio's browser ESM distribution file containing `export` syntax instead of CommonJS.
+5. *Observation*: Executing `npm run audit` runs `audit-pipeline.js`, which executes `npx tsc --noEmit` and `npx jest` sequentially, exiting with status 1.
+6. *Conclusion*: Because `npm run audit`, `npm test`, and `npx tsc --noEmit` all exit with code 1 instead of 0, the milestone M5 verification requirements are not fulfilled.
 
 ## 3. Caveats
-- **Local Storage Availability**: The code assumes `localStorage` is available and functioning in the user's browser. If the user has disabled local storage (e.g., in strict private browsing), SWR caching is skipped, which is the expected graceful degradation.
-- **Offline Mode Fallback**: The mock tests simulate offline Firestore queries returning error messages. In production, this causes a "글을 찾을 수 없습니다" fallback page, which is correct given no connection, but doesn't implement a partial/cached view for offline reading of posts. This is acceptable for current requirements.
-
----
+- No caveats. All target code files and command outputs were directly executed, observed, and documented.
 
 ## 4. Conclusion
-- The changes made by `worker_m5` satisfy all functional requirements in `PROJECT.md` and `ORIGINAL_REQUEST.md`.
-- No integrity violations, hardcoded test bypasses, or dummy implementations were found.
-- The build compiles correctly, and the unit/E2E test suites pass successfully.
-- Verdict is **APPROVE**.
-
----
+Verdict is **REQUEST_CHANGES**. The implementation of the data pipeline, Zod schemas, Google Sheets parser, Redis wrapper, and SWR sync is architecturally sound. However, the newly introduced test suite `src/m5_empirical_verification.test.ts` breaks TypeScript compilation and Jest execution, preventing `npm run audit`, `npm test`, and `npx tsc --noEmit` from returning exit code 0.
 
 ## 5. Verification Method
-- **Run E2E Suite**:
-  ```bash
-  cd frontend/
-  npm run test:e2e
-  ```
-- **Run Unit Suite**:
-  ```bash
-  cd frontend/
-  npm run test
-  ```
-- **Verify Build Output**:
-  ```bash
-  cd frontend/
-  npm run build
-  ```
-
----
-
-## 6. Review Report
-
-### Review Summary
-**Verdict**: APPROVE
-
-### Findings
-- No critical or major findings. The code implementation is clean, follows modular hooks patterns, and properly handles edge cases.
-
-### Verified Claims
-- **Tab History popstate Sync** → verified via `tests/performance-ux.spec.ts` ("4. Verify Tab Switching Keep-Alive, URL Sync, and Navigation Mismatch") and manual inspection of `DashboardClient.tsx` → **PASS**
-- **SWR Cache Purging of Versionless Keys** → verified via `tests/swr-preload-audit.spec.ts` ("Adversarial: SWR Cache versionless entry persistence after build version upgrade") and inspection of `SWRProvider.tsx` → **PASS**
-- **NewsClient Hash Navigation** → verified via `tests/swr-preload-audit.spec.ts` ("Adversarial: Verify route mismatches in NewsClient.tsx statically") and inspection of `NewsClient.tsx` → **PASS**
-- **LoungeDetailClient Spinner Hanging** → verified via `tests/performance-ux.spec.ts` ("5. Verify Lounge Modal CLS and Robustness under Unavailable Firebase") and inspection of `LoungeDetailClient.tsx` → **PASS**
-
-### Coverage Gaps
-- None. All requested components and failure paths are fully covered by integration/E2E tests.
-
-### Unverified Items
-- None.
-
----
-
-## 7. Adversarial Challenge Report
-
-### Challenge Summary
-**Overall risk assessment**: LOW
-
-### Challenges
-
-#### [Low] Challenge 1: LocalStorage Quota Exhaustion
-- **Assumption challenged**: Assumes `localStorage.setItem` for SWR cache won't throw quota exceeded errors.
-- **Attack scenario**: If the SWR cache grows very large, or other apps consume localStorage quota, `localStorage.setItem('app-swr-cache', ...)` will throw.
-- **Blast radius**: SWR cache will not sync to localStorage, but since the block is wrapped in a `try/catch` and SWR continues in memory, the application continues to run without crashing.
-- **Mitigation**: The code already wraps local storage access inside try/catch blocks with logger warnings. No further changes needed.
+To independently verify:
+1. Open terminal in `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`.
+2. Run `npx tsc --noEmit` -> verify 0 errors.
+3. Run `npm test` -> verify 40/40 passed test suites.
+4. Run `npm run audit` -> verify exit code 0 and `Pipeline Status: SUCCESS`.
+5. Run `npx eslint . --max-warnings=10` -> verify exit code 0.

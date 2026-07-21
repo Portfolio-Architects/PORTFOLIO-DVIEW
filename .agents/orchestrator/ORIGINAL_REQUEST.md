@@ -1,30 +1,59 @@
 # Original User Request
 
-## 2026-07-17T13:30:04+09:00
+## Initial Request — 2026-07-21T12:30:38Z
 
-<USER_REQUEST>
-You are the Project Orchestrator for the D-VIEW performance optimization task.
-Your task is to satisfy the requirements defined in the latest entry of c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md.
-The workspace directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend.
-Please structure your metadata workspace under c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator/.
-Make sure to:
-1. Decompose the task into milestones and write your plan to plan.md.
-2. Update progress continuously in progress.md.
-3. Create/delegate implementation tasks to specialists (e.g., explorer, implementer, reviewer) as needed.
-4. Verify the performance optimizations and build success.
-5. Report completion back to me (the Sentinel) once all requirements are fully satisfied and verified.
-</USER_REQUEST>
+Refactor and upgrade the D-VIEW (디뷰) Real Estate & Techno-Valley Data Analytics Web Application to achieve a competition-winning (공모전 우승) standard across visual aesthetic design, sub-100ms navigation performance, modular architecture, and zero-error testing.
 
-## 2026-07-17T15:14:10Z
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
 
-<USER_REQUEST>
-You are the Project Orchestrator. Your mission is to coordinate and implement UX optimization for the D-VIEW web application, meeting all requirements in ORIGINAL_REQUEST.md. Ensure Zero-Delay Navigation, Zero-Jank Transitions, and Build & E2E Test stability. Check and follow instructions in ORIGINAL_REQUEST.md. Please initialize your workspace under .agents/orchestrator/ or a dedicated milestone sub-folder. Generate plan.md and progress.md in your directory, and update them regularly. Coordinate with workers/reviewers as needed to fulfill the requirements.
-</USER_REQUEST>
+## Requirements
 
-## 2026-07-18T01:16:26+09:00
+### R1. UI/UX Aesthetic & Visual Polish (Competition Top-Tier Standard)
+- Transform key components (DashboardClient, MacroDashboardClient, LoungeModal, MobileDock, LoungeHeader) into modern, highly-polished user interfaces using dark/light theme consistency, smooth Glassmorphism cards, micro-interactions, clean typography, and interactive data visualization.
+- Ensure all charts, tables, and maps adapt seamlessly across desktop, tablet, and mobile displays without horizontal scroll breaks or dynamic layout shifts (Cumulative Layout Shift < 0.05).
 
-<USER_REQUEST>
-Resume work at c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator\. Read handoff.md, BRIEFING.md, ORIGINAL_REQUEST.md, and progress.md for current state.
-Your parent is 8429c8ad-29e8-4048-b010-d71ff6f6237f — use this ID for all escalation and status reporting (send_message).
-Your first action must be to spawn the validation loop (2 Reviewers, 2 Challengers, 1 Forensic Auditor) to verify the worker_m5 changes, and once they approve, report completion back to the parent.
-</USER_REQUEST>
+### R2. Sub-100ms Zero-Delay & Zero-Jank Navigation
+- Enhance prefetching (Next.js Link hover prefetching & SWR cache strategies) and optimize client-side data state updates.
+- Eliminate tab-switching delays across Data Lab, Apartment Lab, Technovalley, and Lounge detail modals.
+- Ensure scroll positions, sticky headers, and active state indicators in the top bar and mobile dock remain strictly synchronized.
+
+### R3. Modular Architecture, Type Safety & Strict Standardizing
+- Enforce strict TypeScript typing across all components, API hooks, and data models.
+- Clearly separate React Server Components (RSC) and Client Components with minimal client bundle size footprint.
+
+### R4. Automated Testing & End-to-End Quality Verification
+- Verify that npm run build in frontend/ passes without any TypeScript or linter errors.
+- Ensure all unit tests (npm test) and E2E Playwright tests (npx playwright test) pass cleanly.
+
+## Follow-up — 2026-07-21T13:26:44Z
+
+Audit, verify, and harden the data integrity, calculation consistency, and algorithm correctness across all data models, API parsers, tax simulation formulas, and analytics score computations in the D-VIEW (디뷰) Web Application.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. Tax Benefit & Business Matching Algorithm Verification
+- Audit tax reduction simulation formulas (acquisition tax, property tax, corporate tax reduction rates for Dongtan Techno-Valley migration) to match official local tax ordinances without precision drift.
+- Verify Office FitFinder and Share-Office roommate matching algorithms for logical consistency and accurate scoring calculation.
+
+### R2. Data Pipeline & Schema Integrity (SSOT & Public API Parsers)
+- Audit data mapping and Zod validation schemas across Google Sheets SSOT, Ministry of Land XML transaction APIs, Hwaseong enterprise data, and Firestore DB.
+- Ensure Upstash Redis L2 caching and SWR synchronization do not introduce stale data or desynchronization bugs.
+
+### R3. Comprehensive Automated Audit Suite (npm run audit & Jest)
+- Implement rigorous Jest unit and integration tests covering every data formula, parser edge-case, and schema validator.
+- Ensure npm run audit executes cleanly with 100% pass rate across TypeScript compilation, ESLint, data consistency, and E2E test suites.
+
+## Acceptance Criteria
+
+### Data & Algorithm Precision
+- [ ] All tax reduction simulation results match official tax ordinance formulas with 0 precision error.
+- [ ] Data parsers handle all edge-case XML/JSON responses cleanly without falling back to corrupted or unvalidated states.
+
+### Automated Test Passing
+- [ ] npm run audit in frontend/ succeeds with exit code 0.
+- [ ] All Jest unit/data tests (npm test) pass with 100% success rate.
+- [ ] Zero TypeScript or linter warnings across data layer services and facades.

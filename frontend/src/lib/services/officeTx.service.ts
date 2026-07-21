@@ -13,21 +13,40 @@ export interface OfficeTransaction {
   readonly jibun?: string;
 }
 
+export function safeParseInt(val: string | null | undefined, fallback: number = 0): number {
+  if (!val) return fallback;
+  const cleaned = val.replace(/,/g, '').trim();
+  if (!cleaned) return fallback;
+  const parsed = parseInt(cleaned, 10);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
+export function safeParseFloat(val: string | null | undefined, fallback: number = 0): number {
+  if (!val) return fallback;
+  const cleaned = val.replace(/,/g, '').trim();
+  if (!cleaned) return fallback;
+  const parsed = parseFloat(cleaned);
+  return Number.isNaN(parsed) ? fallback : parsed;
+}
+
 /**
  * Format string price to client-friendly wording
  * e.g., "41,000" (10000 KRW unit) -> "4억 1,000만원"
  */
-function formatPrice(type: '매매' | '임대', priceRaw: string, depositRaw?: string): string {
+export function formatPrice(type: '매매' | '임대', priceRaw: string, depositRaw?: string): string {
   if (type === '임대') {
-    const depVal = depositRaw ? parseInt(depositRaw.replace(/,/g, ''), 10) : 0;
-    const rentVal = parseInt(priceRaw.replace(/,/g, ''), 10);
+    const depVal = safeParseInt(depositRaw, 0);
+    const rentVal = safeParseInt(priceRaw, 0);
     const depStr = depVal >= 10000 
-      ? `${Math.floor(depVal / 10000)}억 ${depVal % 10000 > 0 ? (depVal % 10000).toLocaleString() : ''}`.trim() + '만' 
+      ? `${Math.floor(depVal / 10000)}억 ${depVal % 10000 > 0 ? (depVal % 10000).toLocaleString() + '만' : ''}`.trim() 
       : `${depVal.toLocaleString()}만`;
     return `보증금 ${depStr} / 월세 ${rentVal.toLocaleString()}만`;
   }
 
-  const priceVal = parseInt(priceRaw.replace(/,/g, ''), 10);
+  const priceVal = safeParseInt(priceRaw, 0);
+  if (priceVal <= 0) {
+    return '0원';
+  }
   if (priceVal >= 10000) {
     const bill = Math.floor(priceVal / 10000);
     const remain = priceVal % 10000;
@@ -39,23 +58,24 @@ function formatPrice(type: '매매' | '임대', priceRaw: string, depositRaw?: s
 /**
  * Parses Public Office XML data using Cheerio
  */
-function parseOfficeXml(xml: string): OfficeTransaction[] {
+export function parseOfficeXml(xml: string): OfficeTransaction[] {
+  if (!xml || typeof xml !== 'string') return [];
   const $ = cheerio.load(xml, { xmlMode: true });
   const list: OfficeTransaction[] = [];
 
   $('item').each((_, elem) => {
     const $item = $(elem);
-    const buildingName = $item.find('건물명').text().trim();
+    const buildingName = $item.find('건물명').text().trim() || '미상 건물';
     const type = ($item.find('구분').text().trim() || '매매') as '매매' | '임대';
     const priceRaw = $item.find('거래금액').text().trim();
     const depositRaw = $item.find('보증금액').text().trim();
-    const priceVal = parseInt(priceRaw.replace(/,/g, ''), 10) || 0;
-    const year = $item.find('년').text().trim();
-    const monthRaw = $item.find('월').text().trim();
-    const dayRaw = $item.find('일').text().trim();
-    const sizeSqM = parseFloat($item.find('전용면적').text().trim() || '0');
-    const floor = parseInt($item.find('층').text().trim() || '1', 10);
-    const jibun = $item.find('지번').text().trim() || $item.find('jibun').text().trim();
+    const priceVal = safeParseInt(priceRaw, 0);
+    const year = $item.find('년').text().trim() || '1970';
+    const monthRaw = $item.find('월').text().trim() || '01';
+    const dayRaw = $item.find('일').text().trim() || '01';
+    const sizeSqM = safeParseFloat($item.find('전용면적').text().trim(), 0);
+    const floor = safeParseInt($item.find('층').text().trim(), 1);
+    const jibun = $item.find('지번').text().trim() || $item.find('jibun').text().trim() || '';
 
     const month = monthRaw.length === 1 ? `0${monthRaw}` : monthRaw;
     const day = dayRaw.length === 1 ? `0${dayRaw}` : dayRaw;

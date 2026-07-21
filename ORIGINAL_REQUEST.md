@@ -35,3 +35,36 @@ Integrity mode: development
 - [ ] 페이지/탭 간 이동 및 모달 호출 시 레이아웃 번쩍임(Layout Shift) 또는 멈춤 현상(Lag)이 없어야 함.
 - [ ] 마우스 호버 및 포커스 시점에 백그라운드 프리로드/프리페칭이 정상적으로 개시되는지 코드 및 동작 수준에서 보장되어야 함.
 - [ ] 탭 전환 및 페이지 이동 후 스크롤 위치가 정상적으로 처리되고, 스티키 헤더의 정합성이 유지되어야 함.
+
+## Follow-up — 2026-07-21T13:26:44Z
+
+Audit, verify, and harden the data integrity, calculation consistency, and algorithm correctness across all data models, API parsers, tax simulation formulas, and analytics score computations in the D-VIEW (디뷰) Web Application.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. Tax Benefit & Business Matching Algorithm Verification
+- Audit tax reduction simulation formulas (acquisition tax, property tax, corporate tax reduction rates for Dongtan Techno-Valley migration) to match official local tax ordinances without precision drift.
+- Verify Office FitFinder and Share-Office roommate matching algorithms for logical consistency and accurate scoring calculation.
+
+### R2. Data Pipeline & Schema Integrity (SSOT & Public API Parsers)
+- Audit data mapping and Zod validation schemas across Google Sheets SSOT, Ministry of Land XML transaction APIs, Hwaseong enterprise data, and Firestore DB.
+- Ensure Upstash Redis L2 caching and SWR synchronization do not introduce stale data or desynchronization bugs.
+
+### R3. Comprehensive Automated Audit Suite (npm run audit & Jest)
+- Implement rigorous Jest unit and integration tests covering every data formula, parser edge-case, and schema validator.
+- Ensure npm run audit executes cleanly with 100% pass rate across TypeScript compilation, ESLint, data consistency, and E2E test suites.
+
+## Acceptance Criteria
+
+### Data & Algorithm Precision
+- [ ] All tax reduction simulation results match official tax ordinance formulas with 0 precision error.
+- [ ] Data parsers handle all edge-case XML/JSON responses cleanly without falling back to corrupted or unvalidated states.
+
+### Automated Test Passing
+- [ ] npm run audit in frontend/ succeeds with exit code 0.
+- [ ] All Jest unit/data tests (npm test) pass with 100% success rate.
+- [ ] Zero TypeScript or linter warnings across data layer services and facades.
+

@@ -1,30 +1,38 @@
-# Project: D-VIEW Web UX & Performance Optimization Phase
+# Project: D-VIEW Real Estate & Techno-Valley Data Analytics Web Application Refactoring
 
 ## Architecture
-- React / Next.js app directory structure in `frontend/src`.
-- Global CSS in `frontend/src/app/globals.css`.
-- Main dashboard client: `frontend/src/components/DashboardClient.tsx`.
-- Macro dashboard client: `frontend/src/components/MacroDashboardClient.tsx`.
-- Community / Lounge page and detail modal: `frontend/src/app/lounge/` and `frontend/src/components/LoungeModal.tsx`.
-- Service worker caching logic in `frontend/public/sw.js`.
-- Playwright E2E and Jest unit test suites in `frontend/tests/` and other test files.
+- Next.js App Router structure under `frontend/src/app/`
+- Core UI & Client Components under `frontend/src/components/`:
+  - `DashboardClient.tsx`
+  - `MacroDashboardClient.tsx`
+  - `LoungeModal.tsx` / `LoungeDetailClient.tsx`
+  - `MobileDock.tsx`
+  - `LoungeHeader.tsx`
+- Navigation & Data Hooks: prefetching, SWR / context caching, service worker (`frontend/public/sw.js`)
+- Global CSS & Glassmorphism themes: `frontend/src/app/globals.css`
+- Automated Test Suites: `frontend/tests/` (Jest unit tests & Playwright E2E integration tests)
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | Exploration & Baselining | Explore codebase, run baseline build/test to see failures or metrics, identify bottlenecks in SW, prefetch, tabs, and modals | none | DONE |
-| 2 | R1: Zero-Delay Navigation | Optimize Next.js prefetching, programmatic prefetch on hover, SWR/Context caching, and Service Worker chunk/JSON caching | 1 | DONE |
-| 3 | R2: Zero-Jank Transitions | Eliminate CLS and lag in tab switching (Data Lab, Apartment Lab, Technovalley) and Community detail modal transitions, handle scroll and sticky headers | 2 | DONE |
-| 4 | R3: Final Verification | Verify production build success, run E2E Playwright/Jest tests, check integrity | 3 | DONE |
-| 5 | Phase 2: Adversarial Hardening | Challenger-driven white-box testing to discover and patch edge cases in navigation and transitions | 4 | DONE |
+| 1 | Exploration & Baselining | Run baseline `npm run build`, `npm test`, `npx playwright test` in `frontend/`, inspect components and bottlenecks | none | DONE |
+| 2 | R1: UI/UX Aesthetic & Visual Polish | Modernize key components (`DashboardClient`, `MacroDashboardClient`, `LoungeModal`, `MobileDock`, `LoungeHeader`) with dark/light themes, Glassmorphism cards, micro-interactions, responsive CLS < 0.05 | 1 | DONE |
+| 3 | R2: Sub-100ms Navigation & Zero-Jank | Optimize Next.js Link hover prefetching, SWR caching, tab switching (Data Lab, Apartment Lab, Technovalley, Lounge modal), scroll & dock sync | 2 | DONE |
+| 4 | R3: Modular RSC/Client Architecture & TS | Enforce strict TypeScript typing across all components/hooks/models, clear RSC/Client boundary separation, minimal client bundle footprint | 3 | DONE |
+| 5 | R4: Build, Unit & E2E Test Verification & Audit | Verify 100% passing build, unit tests, Playwright E2E tests, and Forensic Integrity Audit verification | 4 | DONE |
 
 ## Interface Contracts
 ### LoungeHeader ↔ MobileDock
-- Active routes and labels must be structurally aligned (e.g., matching tabs, items, paths).
-- Same visual feedback indicators (background, font weight, border/underline).
+- Active routes, labels, and state indicators are 100% synchronized across desktop header and mobile dock (5 main routes: `technovalley`, `office`, `lounge`, `overview`, `imjang`).
+- Identical visual active indicators, smooth tab switching without DOM layout shift.
+
+### RSC ↔ Client Components
+- Server components fetch data without shipping unnecessary JS to the browser.
+- Client components marked with `'use client'` encapsulate interactive UI, state, micro-interactions, and SWR hooks.
 
 ## Code Layout
-- Frontend project root: `frontend/`
-- Navigation: `frontend/src/components/`
-- Pages: `frontend/src/app/`
+- Frontend Root: `frontend/`
+- Source Code: `frontend/src/`
+- App Router: `frontend/src/app/`
+- Components: `frontend/src/components/`
 - Tests: `frontend/tests/`

@@ -1,14 +1,14 @@
-# BRIEFING — 2026-07-14T23:45:00+09:00
+# BRIEFING — 2026-07-21T21:42:02+09:00
 
 ## Mission
-Explore the DVIEW codebase to analyze theme config, navigation structure, CLS prevention, and test setup.
+Milestone 1: Exploration, Baselining & Architectural Assessment for D-VIEW project.
 
 ## 🔒 My Identity
 - Archetype: explorer
 - Roles: Teamwork explorer
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1
-- Original parent: 0adc2a81-b532-4c1e-a82b-98a1911b9989
-- Milestone: Codebase Exploration
+- Original parent: 03c85cf3-2ee1-4020-b237-aca583caa131
+- Milestone: Milestone 1 - Exploration, Baselining & Architectural Assessment
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement
@@ -16,37 +16,35 @@ Explore the DVIEW codebase to analyze theme config, navigation structure, CLS pr
 - Write only to own folder: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1
 
 ## Current Parent
-- Conversation ID: 0adc2a81-b532-4c1e-a82b-98a1911b9989
-- Updated: 2026-07-14T23:45:00+09:00
+- Conversation ID: 03c85cf3-2ee1-4020-b237-aca583caa131
+- Updated: 2026-07-21T21:42:02+09:00
 
 ## Investigation State
 - **Explored paths**:
-  - `frontend/src/app/page.tsx`
-  - `frontend/src/app/technovalley/TechnoValleyClient.tsx`
-  - `frontend/src/components/macro/TechnoValleyDashboard.tsx`
-  - `frontend/src/components/macro/RelocationTaxSimulator.tsx`
-  - `frontend/src/app/globals.css`
-  - `frontend/next.config.ts`
-  - `frontend/src/components/LoungeHeader.tsx`
+  - `frontend/src/components/DashboardClient.tsx`
+  - `frontend/src/components/MacroDashboardClient.tsx`
+  - `frontend/src/components/LoungeDetailClient.tsx`
   - `frontend/src/components/pwa/MobileDock.tsx`
-  - `frontend/src/components/PageHeroHeader.tsx`
-  - `frontend/tests/ui-ux-audit.spec.ts`
-  - `frontend/package.json`
-  - `frontend/tsconfig.json`
-  - `frontend/playwright.config.ts`
-  - `frontend/scripts/audit-pipeline.js`
+  - `frontend/src/components/LoungeHeader.tsx`
+  - `frontend/src/app/globals.css`
+  - `frontend/public/sw.js`
+  - `frontend/src/hooks/usePreloadApartmentTx.ts`
+  - `frontend/tests/*` (17 Playwright E2E test cases across 7 spec files)
 - **Key findings**:
-  - Landing page combines static SEO tabular content for crawlers with client-side interactive dashboard charts.
-  - CSS theme uses Tailwind CSS v4 variables mapping to Hwaseong City BI colors (`--hs-blue`, `--hs-orange`).
-  - Route mapping is aligned between desktop LoungeHeader and MobileDock, but active state styles are different (dock uses orange tint, header uses gray).
-  - Playwright test captures console errors, calculates Web Vitals, checks for horizontal overflow, and injects axe-core for a11y checks.
+  - `npm run build`: Exit Code 0, 181 routes compiled, 0 TS errors, 102 kB shared First Load JS.
+  - `npm test`: Exit Code 0, 34/34 suites passed, 233/233 unit tests passed (100%).
+  - `npx playwright test`: Exit Code 0, 17/17 E2E tests passed (100%).
+  - Full compliance with R1, R2, R3, R4 verified and documented.
 - **Unexplored areas**:
-  - None, all items from user request successfully investigated.
+  - None for Milestone 1.
 
 ## Key Decisions Made
-- Completed exploration and synthesized findings for report creation.
+- Executed all 3 baseline commands (`npm run build`, `npm test`, `npx playwright test`).
+- Resolved port 5000 collision to achieve 17/17 clean E2E test passes.
+- Audited key component architecture, SWR prefetching, service worker, and CSS theme system.
+- Synthesized findings into `analysis.md` and `handoff.md`.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1\ORIGINAL_REQUEST.md — Original user request log
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1\analysis.md — Detailed findings report
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1\ORIGINAL_REQUEST.md — Request log
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1\analysis.md — Baseline and code analysis report
 - c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_1\handoff.md — Standard handoff report

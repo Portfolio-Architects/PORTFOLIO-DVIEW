@@ -42,42 +42,42 @@ export const ApartmentPOISchema = POISchema.extend({
 });
 
 export const SheetApartmentSchema = z.object({
-  ticker: z.string().optional(),
+  ticker: z.string().optional().nullable(),
   name: z.string(),
   dong: z.string(),
-  lat: z.number(),
-  lng: z.number(),
-  householdCount: z.number().optional(),
-  yearBuilt: z.string().optional(),
-  far: z.number().optional(),
-  bcr: z.number().optional(),
-  parkingCount: z.number().optional(),
-  parkingPerHousehold: z.number().optional(),
-  brand: z.string().optional(),
-  maxFloor: z.number().optional(),
-  minFloor: z.number().optional(),
-  txKey: z.string().optional(),
-  isPublicRental: z.boolean().optional(),
-  starbucksName: z.string().optional(),
-  starbucksAddress: z.string().optional(),
-  starbucksCoordinates: z.string().optional(),
-  distanceToStarbucks: z.number().optional(),
-  mcdonaldsName: z.string().optional(),
-  mcdonaldsAddress: z.string().optional(),
-  mcdonaldsCoordinates: z.string().optional(),
-  distanceToMcDonalds: z.number().optional(),
-  oliveYoungName: z.string().optional(),
-  oliveYoungAddress: z.string().optional(),
-  oliveYoungCoordinates: z.string().optional(),
-  distanceToOliveYoung: z.number().optional(),
-  daisoName: z.string().optional(),
-  daisoAddress: z.string().optional(),
-  daisoCoordinates: z.string().optional(),
-  distanceToDaiso: z.number().optional(),
-  supermarketName: z.string().optional(),
-  supermarketAddress: z.string().optional(),
-  supermarketCoordinates: z.string().optional(),
-  distanceToSupermarket: z.number().optional(),
+  lat: z.coerce.number(),
+  lng: z.coerce.number(),
+  householdCount: z.coerce.number().optional().nullable(),
+  yearBuilt: z.string().optional().nullable(),
+  far: z.coerce.number().optional().nullable(),
+  bcr: z.coerce.number().optional().nullable(),
+  parkingCount: z.coerce.number().optional().nullable(),
+  parkingPerHousehold: z.coerce.number().optional().nullable(),
+  brand: z.string().optional().nullable(),
+  maxFloor: z.coerce.number().optional().nullable(),
+  minFloor: z.coerce.number().optional().nullable(),
+  txKey: z.string().optional().nullable(),
+  isPublicRental: z.boolean().optional().nullable(),
+  starbucksName: z.string().optional().nullable(),
+  starbucksAddress: z.string().optional().nullable(),
+  starbucksCoordinates: z.string().optional().nullable(),
+  distanceToStarbucks: z.coerce.number().optional().nullable(),
+  mcdonaldsName: z.string().optional().nullable(),
+  mcdonaldsAddress: z.string().optional().nullable(),
+  mcdonaldsCoordinates: z.string().optional().nullable(),
+  distanceToMcDonalds: z.coerce.number().optional().nullable(),
+  oliveYoungName: z.string().optional().nullable(),
+  oliveYoungAddress: z.string().optional().nullable(),
+  oliveYoungCoordinates: z.string().optional().nullable(),
+  distanceToOliveYoung: z.coerce.number().optional().nullable(),
+  daisoName: z.string().optional().nullable(),
+  daisoAddress: z.string().optional().nullable(),
+  daisoCoordinates: z.string().optional().nullable(),
+  distanceToDaiso: z.coerce.number().optional().nullable(),
+  supermarketName: z.string().optional().nullable(),
+  supermarketAddress: z.string().optional().nullable(),
+  supermarketCoordinates: z.string().optional().nullable(),
+  distanceToSupermarket: z.coerce.number().optional().nullable(),
 });
 
 export const NicknameSchema = z
@@ -628,6 +628,43 @@ export const FieldReportDataSchema = z.object({
 }).passthrough();
 
 export type InitialPageData = z.infer<typeof InitialPageDataSchema>;
+
+export const HwaseongEnterpriseSchema = z.object({
+  id: z.string().optional(),
+  name: z.string().optional(),
+  category: z.string().optional(),
+  employees: z.coerce.number().optional().nullable(),
+  address: z.string().optional(),
+  statDate: z.string().optional(),
+  stats: z.object({
+    yeongcheonDong: z.object({
+      totalEmployees: z.coerce.number().default(0),
+      companiesCount: z.coerce.number().default(0),
+      newHires: z.coerce.number().default(0),
+      departures: z.coerce.number().default(0),
+    }).passthrough().optional(),
+  }).passthrough().optional(),
+}).passthrough();
+
+export const MolTransactionXmlSchema = z.object({
+  buildingName: z.string().default('미상 건물'),
+  type: z.enum(['매매', '임대']).default('매매'),
+  priceRaw: z.string().default('0'),
+  depositRaw: z.string().optional().default('0'),
+  sizeSqM: z.coerce.number().default(0),
+  floor: z.coerce.number().default(1),
+  year: z.string().default('1970'),
+  month: z.string().default('01'),
+  day: z.string().default('01'),
+  jibun: z.string().optional().default(''),
+});
+
+export const RedisCacheEnvelopeSchema = z.object({
+  data: z.unknown(),
+  timestamp: z.coerce.number(),
+  ttl: z.coerce.number().optional(),
+  source: z.string().optional(),
+});
 
 
 

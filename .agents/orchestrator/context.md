@@ -1,20 +1,11 @@
-# Project Context
+# Orchestrator Initial Context — Data Integrity & Audit Suite Project
 
-## Overview
-- Project Name: DVIEW 2nd-Phase UX Environment Enhancement
-- Directory: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW`
-- Goal: Apply Apple HIG styling (acrylic/glassmorphism, fine borders, focus states) and perform React performance optimization (memoization, dynamic import) across Lounge feed, Lounge detail, Lounge compose, comments, news, office explorer, and gap investment explorer.
+Project: D-VIEW Real Estate & Techno-Valley Data Analytics Web Application
+Original Request Path: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator\ORIGINAL_REQUEST.md
+Working Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator
+Project Root: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
 
-## Target Files
-- `frontend/src/components/LoungeFeedClient.tsx`
-- `frontend/src/components/LoungeDetailClient.tsx`
-- `frontend/src/components/LoungeComposeClient.tsx`
-- `frontend/src/components/CommentSection.tsx`
-- `frontend/src/app/news/NewsClient.tsx`
-- `frontend/src/components/OfficeExplorerClient.tsx`
-- `frontend/src/components/GapInvestmentExplorer.tsx`
-
-## Verification Tests & Commands
-- Unit/E2E Tests: `frontend/tests/ui-ux-audit.spec.ts`
-- Build Check: `npm run build` inside `frontend`
-- Audit Pipeline: `npm run audit` inside `frontend`
+## Core Focus:
+1. R1: Tax Benefit & Business Matching Algorithm Verification (acquisition, property, corporate tax reduction simulation formulas matching local tax ordinances with 0 precision error; Office FitFinder and Roommate matching scoring logic).
+2. R2: Data Pipeline & Schema Integrity (Zod validation schemas across Google Sheets SSOT, Ministry of Land XML transaction API, Hwaseong enterprise data, Firestore DB, Upstash Redis L2 cache, SWR sync).
+3. R3: Comprehensive Automated Audit Suite (npm run audit in frontend/ succeeding with exit code 0, 100% Jest test pass rate, 0 TypeScript/linter errors).

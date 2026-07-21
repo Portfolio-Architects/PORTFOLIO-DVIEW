@@ -1,22 +1,20 @@
-## 2026-07-15T13:26:27Z
-You are the Codebase Auditor.
-Identity: teamwork_preview_explorer
-Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_audit_1
+## 2026-07-21T13:29:16Z
+You are an Explorer subagent for the D-VIEW Web Application Data Integrity & Audit Suite project.
+Your working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_audit_1
+Project root: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
 
-Your task is to conduct a UX and performance audit of the frontend.
-Please read and analyze:
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\app\technovalley\TechnoValleyClient.tsx
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\macro\TechnoValleyDashboard.tsx
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\ApartmentModal.tsx
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\SettingsModal.tsx
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroTrendChart.tsx
-- Tailwind/PostCSS configs under c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
-- package.json under c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Your objective is to conduct a thorough exploration of all data layer services, tax simulation formulas, matching scoring algorithms, data parsers, Zod validation schemas, caching layers, and automated test scripts in the D-VIEW codebase (`frontend/`).
 
-And inspect:
-1. The button labels and visual styling (glassmorphism/hover/transition etc.) in TechnoValleyClient.tsx and TechnoValleyDashboard.tsx.
-2. The Apple HIG styling (rounded radius, shadows, borders, HSL typography/colors, smooth transitions) in ApartmentModal.tsx, SettingsModal.tsx, MacroTrendChart.tsx.
-3. Optimization opportunities (where to use dynamic imports, useCallback, useMemo, React.memo, skeleton UI, any heavy imports like framer-motion/recharts).
-4. Identify if there are any existing Next.js dynamic imports, React.memo/useCallback/useMemo, skeleton UI or Framer Motion usage in these files.
+Specifically:
+1. Locate and inspect all tax reduction simulation formulas (acquisition tax, property tax, corporate tax reduction rates for Dongtan Techno-Valley migration). Check against local tax ordinances and identify any potential precision errors, floating point rounding drift, or edge-case bugs.
+2. Locate and inspect Office FitFinder and Share-Office roommate matching scoring logic. Check scoring algorithms, weighting, normalization, and corner-case handling.
+3. Locate and inspect data mapping and Zod validation schemas across:
+   - Google Sheets SSOT parser/loader
+   - Ministry of Land XML transaction APIs parser
+   - Hwaseong enterprise data parser
+   - Firestore DB schemas/models
+   - Upstash Redis L2 caching and SWR synchronization hooks
+4. Inspect `frontend/package.json` and existing test scripts (npm test, npm run audit, etc.). Run baseline build (`npm run build`), unit tests (`npm test`), and audit check (`npm run audit` or check if `audit` script is defined and what it does).
+5. Document all file locations, current implementations, identified flaws/bugs, missing tests, and concrete recommendations.
 
-Please write a detailed audit report audit_report.md in your working directory and send a message when done.
+Write your findings to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_audit_1\analysis.md` and deliver a handoff report when complete. Send a message to the orchestrator with the link to your report.
