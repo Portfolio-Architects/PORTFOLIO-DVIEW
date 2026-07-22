@@ -29,4 +29,5 @@ export function preloadDashboardFeatures() {
   import('@/components/GapInvestmentExplorer').catch(() => {});
   import('@/components/LoungeContainerClient').catch(() => {});
   import('@/components/MacroDashboardClient').catch(() => {});
+  import('@/components/OfficeExplorerClient').catch(() => {});
 }

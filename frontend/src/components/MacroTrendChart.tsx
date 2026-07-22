@@ -131,11 +131,20 @@ const formatXAxisTick = (value: string) => {
 
 // Custom ResizeObserver hook with callback ref pattern to ensure ResizeObserver is bound when the DOM element mounts.
 function useResizeObserver(delay = 150) {
-  const [size, setSize] = useState({ width: 0, height: 0 });
-  const sizeRef = useRef({ width: 0, height: 0 });
+  const [size, setSize] = useState({ width: 600, height: 330 });
+  const sizeRef = useRef({ width: 600, height: 330 });
   const [element, setElement] = useState<HTMLDivElement | null>(null);
 
   const refCallback = React.useCallback((node: HTMLDivElement | null) => {
+    if (node) {
+      const rect = node.getBoundingClientRect();
+      const initialW = rect.width > 0 ? rect.width : (node.clientWidth > 0 ? node.clientWidth : 600);
+      const initialH = rect.height > 0 ? rect.height : (node.clientHeight > 0 ? node.clientHeight : 330);
+      if (initialW > 0 && initialH > 0) {
+        sizeRef.current = { width: initialW, height: initialH };
+        setSize({ width: initialW, height: initialH });
+      }
+    }
     setElement(node);
   }, []);
 
@@ -236,11 +245,11 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     : {};
 
   if (!mounted) {
-    return <div className="w-full h-full bg-transparent" />;
+    return <div className="w-full min-h-[330px] h-[330px] bg-transparent" />;
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full touch-pan-y relative">
+    <div ref={containerRef} className="w-full min-h-[330px] h-[330px] touch-pan-y relative">
       {width > 0 && height > 0 && (
         <AreaChart
           width={width}

@@ -68,3 +68,36 @@ Integrity mode: development
 - [ ] All Jest unit/data tests (npm test) pass with 100% success rate.
 - [ ] Zero TypeScript or linter warnings across data layer services and facades.
 
+## Follow-up — 2026-07-22T07:19:44Z
+
+Refactor the D-VIEW Real Estate & Techno-Valley Data Analytics Web Application (`frontend/`) and its Python Self-Improvement Loop (`self_improvement_loop/`) to achieve competition-winning quality (sub-100ms navigation, zero-jank glassmorphism UI/UX, 100% test coverage, and recursive feedback loops).
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. Web App Performance & UI/UX Perfection (Next.js App Router)
+Refactor `frontend/src/` to ensure sub-100ms client route navigation across main routes (`technovalley`, `office`, `lounge`, `overview`, `imjang`), zero Cumulative Layout Shift (CLS < 0.05), seamless desktop header & mobile dock state synchronization, prefetching, and dark/light glassmorphism visual polish.
+
+### R2. Recursive Feedback & Self-Improvement Loop Engine
+Harden and expand the Python self-improvement engine (`self_improvement_loop/`) including `engine.py`, `simulator.py`, and `vcs.py`. Ensure automated code evaluation, recursive feedback ingestion, regression guardrails with automatic rollback, and continuous metric optimization.
+
+### R3. Automated Test Verification & Forensic Audit
+Ensure 100% test pass rate across all unit and integration test suites (`npm test`, `npx playwright test`, `pytest self_improvement_loop/`) and clean TypeScript build (`npm run build`). Generate a comprehensive forensic audit report summarizing performance gains, verification proof, and system architecture.
+
+## Acceptance Criteria
+
+### Web App Performance & UI Polish
+- [ ] `npm run build` inside `frontend/` succeeds without TypeScript compilation errors or warnings.
+- [ ] Route navigation transitions between all main sections (`technovalley`, `office`, `lounge`, `overview`, `imjang`) render seamlessly under 100ms.
+- [ ] Visual layout shift score (CLS) stays strictly below 0.05 during interactive state changes and tab switches.
+- [ ] Desktop `LoungeHeader` and `MobileDock` maintain 100% active route and state indicator synchronization.
+
+### Self-Improvement & Recursive Feedback Engine
+- [ ] `pytest self_improvement_loop/` executes cleanly with 100% passing tests.
+- [ ] Simulation engine (`simulator.py`) demonstrates multi-iteration recursive feedback loops with automated metrics scoring and rollback safety.
+
+### Verification & Forensic Integrity
+- [ ] Jest unit tests (`npm test` in `frontend/`) and Playwright E2E tests (`npx playwright test`) pass with zero failing assertions.
+- [ ] Final architecture summary and test result verification log generated.

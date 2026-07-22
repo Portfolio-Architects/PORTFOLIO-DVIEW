@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
+import LoungeHeader from '@/components/LoungeHeader';
 import PageHeroHeader from '@/components/PageHeroHeader';
 
 import dynamic from 'next/dynamic';
@@ -23,62 +24,79 @@ import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
 const MacroDashboardSkeleton = () => (
-  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
-    {/* Title */}
-    <div className="min-h-[144px] py-6 flex flex-col gap-3">
-      <div className="w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
-      <div className="w-96 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+  <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]">
+    {/* PageHeroHeader Skeleton */}
+    <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full border-b border-border/60">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
+        <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      </div>
+      <div className="w-72 sm:w-96 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
     </div>
-    {/* 4 Cards grid */}
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-      {[1, 2, 3, 4].map(i => (
-        <div key={i} className="h-24 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      ))}
-    </div>
-    {/* Hybrid Chart & List */}
-    <div className="flex flex-col lg:flex-row gap-6">
-      <div className="flex-1 h-[380px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      <div className="w-full lg:w-[350px] h-[380px] bg-black/5 dark:bg-surface/5 rounded-2xl" />
+    {/* Content Grid Skeleton matching MacroDashboardClient */}
+    <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full min-h-[85vh] min-h-[800px]">
+      <div className="flex flex-col md:flex-row gap-4 w-full md:h-[870px]">
+        <div className="w-full md:w-1/2 h-[420px] md:h-full bg-black/5 dark:bg-surface/5 rounded-2xl" />
+        <div className="w-full md:w-1/2 h-[420px] md:h-full bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      </div>
     </div>
   </div>
 );
 
 const GapExplorerSkeleton = () => (
-  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
-    {/* Title */}
-    <div className="min-h-[144px] py-6 flex flex-col gap-3">
+  <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]">
+    <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full border-b border-border/60">
       <div className="w-56 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
       <div className="w-80 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
     </div>
-    {/* Recommendation horizontally scrollable boxes */}
-    <div className="flex gap-4 overflow-x-hidden mb-6">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="w-72 h-44 bg-black/5 dark:bg-surface/5 rounded-2xl shrink-0" />
-      ))}
+    <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 w-full min-h-[85vh] min-h-[800px]">
+      <div className="flex gap-4 overflow-x-hidden mb-6">
+        {[1, 2, 3].map(i => (
+          <div key={i} className="w-72 h-44 bg-black/5 dark:bg-surface/5 rounded-2xl shrink-0" />
+        ))}
+      </div>
+      <div className="w-full h-80 bg-black/5 dark:bg-surface/5 rounded-2xl" />
     </div>
-    {/* Section Card */}
-    <div className="w-full h-80 bg-black/5 dark:bg-surface/5 rounded-2xl" />
   </div>
 );
 
 const LoungeSkeleton = () => (
-  <div className="w-full flex flex-col bg-transparent animate-pulse px-4 sm:px-6 md:px-10 lg:px-16 pt-3">
-    {/* Title */}
-    <div className="min-h-[144px] py-6 flex flex-col gap-3">
-      <div className="w-40 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
-      <div className="w-64 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+  <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]">
+    <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full border-b border-border/60">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
+        <div className="w-40 sm:w-56 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      </div>
+      <div className="w-64 sm:w-80 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
     </div>
-    {/* Hot Talk boxes */}
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-      {[1, 2].map(i => (
-        <div key={i} className="h-28 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      ))}
+    <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 w-full gap-4 min-h-[85vh] min-h-[800px]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
+        <div className="h-28 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+        <div className="h-28 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      </div>
+      <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
     </div>
-    {/* Feed list */}
-    <div className="flex flex-col gap-4">
-      {[1, 2, 3].map(i => (
-        <div key={i} className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      ))}
+  </div>
+);
+
+const OfficeSkeleton = () => (
+  <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]">
+    <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full border-b border-border/60">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
+        <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      </div>
+      <div className="w-64 sm:w-80 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+    </div>
+    <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 w-full min-h-[85vh] min-h-[750px] gap-4">
+      <div className="w-full h-12 bg-black/5 dark:bg-surface/5 rounded-xl" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="h-64 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+        <div className="h-64 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+        <div className="h-64 bg-black/5 dark:bg-surface/5 rounded-2xl" />
+      </div>
     </div>
   </div>
 );
@@ -138,7 +156,7 @@ const WriteReviewModal = dynamic(() => import(/* webpackPreload: false */ '@/com
 });
 
 
-const MacroDashboardClient = dynamic(() => import(/* webpackPreload: false */ '@/components/MacroDashboardClient').catch(err => {
+const MacroDashboardClient = dynamic(() => import(/* webpackPreload: true */ '@/components/MacroDashboardClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'MacroDashboardClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroDashboardClient');
   return { default: () => null };
@@ -147,7 +165,7 @@ const MacroDashboardClient = dynamic(() => import(/* webpackPreload: false */ '@
   loading: () => <MacroDashboardSkeleton />
 });
 
-const LoungeContainerClient = dynamic(() => import(/* webpackPreload: false */ '@/components/LoungeContainerClient').catch(err => {
+const LoungeContainerClient = dynamic(() => import(/* webpackPreload: true */ '@/components/LoungeContainerClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('LoungeContainerClient');
   return { default: () => null };
@@ -156,13 +174,13 @@ const LoungeContainerClient = dynamic(() => import(/* webpackPreload: false */ '
   loading: () => <LoungeSkeleton />
 });
 
-const OfficeExplorerClient = dynamic(() => import(/* webpackPreload: false */ '@/components/OfficeExplorerClient').catch(err => {
+const OfficeExplorerClient = dynamic(() => import(/* webpackPreload: true */ '@/components/OfficeExplorerClient').catch(err => {
   logger.warn('DashboardClient.dynamic', 'OfficeExplorerClient Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('OfficeExplorerClient');
   return { default: () => null };
 }), { 
   ssr: false,
-  loading: () => <div className="w-full h-80 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
+  loading: () => <OfficeSkeleton />
 });
 const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
@@ -432,25 +450,18 @@ const DashboardClient = React.memo(function DashboardClient({
         setActiveTab('lounge');
       }
 
-      // Preload heavy chunks during idle time to improve LCP & Interaction responsiveness
+      // Preload heavy chunks immediately to eliminate interaction latency & CLS
       const preloadHeavyComponents = () => {
         if (!isMounted) return;
         preloadApartmentModal();
         preloadDashboardFeatures();
+        import('@/components/OfficeExplorerClient').catch(() => {});
+        import('@/components/LoungeContainerClient').catch(() => {});
+        import('@/components/MacroDashboardClient').catch(() => {});
       };
-      if (process.env.NODE_ENV === 'production') {
-        if (window.requestIdleCallback) {
-          idleId = window.requestIdleCallback(preloadHeavyComponents, { timeout: 2000 });
-        } else {
-          if (preloadTimeoutRef.current) {
-            clearTimeout(preloadTimeoutRef.current);
-            preloadTimeoutRef.current = null;
-          }
-          preloadTimeoutRef.current = setTimeout(() => {
-            preloadHeavyComponents();
-            preloadTimeoutRef.current = null;
-          }, 1000);
-        }
+      preloadHeavyComponents();
+      if (window.requestIdleCallback) {
+        idleId = window.requestIdleCallback(preloadHeavyComponents, { timeout: 500 });
       }
 
       const syncTabFromLocation = () => {
@@ -641,7 +652,8 @@ const DashboardClient = React.memo(function DashboardClient({
 
     // Backfill detailed metrics asynchronously if missing (e.g. when entered from quiz before explore data loads)
     if (!apt.householdCount) {
-      fetch('/api/apartments-by-dong')
+      const controller = new AbortController();
+      fetch('/api/apartments-by-dong', { signal: controller.signal })
         .then(res => res.json())
         .then(data => {
           if (data && data.byDong) {
@@ -662,7 +674,11 @@ const DashboardClient = React.memo(function DashboardClient({
             }
           }
         })
-        .catch(err => logger.warn('DashboardClient.handleAptClick', 'Failed to backfill apartment details', undefined, err));
+        .catch(err => {
+          if (err.name !== 'AbortError') {
+            logger.warn('DashboardClient.handleAptClick', 'Failed to backfill apartment details', undefined, err);
+          }
+        });
     }
 
     // Record viewed history for AI recommendation engine
@@ -748,10 +764,10 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const memoizedTabContents = useMemo(() => {
     return (
-      <>
+      <div className="grid w-full min-h-[85vh] min-h-[800px] relative bg-transparent">
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
-        <section className={`w-full bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' ? 'block' : 'hidden'}`}>
-          {(activeTab === 'overview' || hasOpenedOverview) && (
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' || activeTab === 'technovalley' ? 'block' : 'hidden'}`}>
+          {(activeTab === 'overview' || activeTab === 'technovalley' || hasOpenedOverview) && (
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
@@ -780,12 +796,11 @@ const DashboardClient = React.memo(function DashboardClient({
           )}
         </section>
 
-
         {/* ═══ TAB 1-2: 사무실 탐색 ═══ */}
-        <section className={`w-full bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`}>
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`}>
           {(activeTab === 'office' || hasOpenedOffice) && (
             !mounted ? (
-              <div className="w-full h-80 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
+              <OfficeSkeleton />
             ) : (
               <OfficeExplorerClient />
             )
@@ -793,7 +808,7 @@ const DashboardClient = React.memo(function DashboardClient({
         </section>
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
-        <section className={`w-full bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
           {(activeTab === 'lounge' || hasOpenedLounge) && (
             !mounted ? (
               <LoungeSkeleton />
@@ -802,7 +817,7 @@ const DashboardClient = React.memo(function DashboardClient({
             )
           )}
         </section>
-      </>
+      </div>
     );
   }, [
     activeTab,
@@ -847,117 +862,28 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
       
-      {/* Main Header — Logo + Nav integrated */}
-      <header className="hidden md:block shrink-0 bg-surface border-b border-border sticky top-0 z-50" role="banner">
-        <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
-          <div className="flex flex-col md:flex-row md:items-center justify-between h-[80px] gap-4 md:gap-0">
-            
-            {/* Mobile: Top Bar */}
-            <div className="md:hidden flex items-center justify-end w-full">
-              <FloatingUserBar />
-            </div>
-
-            {/* Center: Nav Tabs (Segmented Control Style - Separated Boxes) */}
-            <div className="hidden md:flex shrink-0 items-center gap-3" aria-label="메인 메뉴">
-              
-              {/* Box 1: 테크노 랩 내비 */}
-              <nav aria-label="테크노 랩 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
-                <Link
-                  href="/"
-                  prefetch={true}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                    activeTab === 'technovalley'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <LayoutDashboard size={18} className={activeTab === 'technovalley' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                  <span>테크노 랩</span>
-                </Link>
-
-                <button
-                  onClick={() => startTransition(() => { 
-                    setActiveTab('office'); 
-                    window.history.replaceState(null, '', '/overview?tab=office');
-                  })}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                    activeTab === 'office'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <Building2 size={18} className={activeTab === 'office' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                  <span>사무실 탐색</span>
-                </button>
-              </nav>
-
-              {/* Box 2: 라운지 */}
-              <nav aria-label="라운지 메뉴" className="flex items-center bg-body p-1.5 rounded-[18px] border border-border/40">
-                <button
-                  onClick={() => startTransition(() => { 
-                    setActiveTab('lounge'); 
-                    window.history.replaceState(null, '', '/overview#lounge');
-                  })}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                    activeTab === 'lounge'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <MessageSquare size={18} className={activeTab === 'lounge' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                  <span>동탄 라운지</span>
-                </button>
-              </nav>
-
-              {/* Box 3: 아파트 내비 */}
-              <nav aria-label="아파트 메뉴" className="flex items-center gap-1 bg-body p-1.5 rounded-[18px] border border-border/40">
-                <button
-                  onClick={() => startTransition(() => { 
-                    setActiveTab('overview'); 
-                    window.history.replaceState(null, '', '/overview');
-                  })}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                    activeTab === 'overview'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <Building2 size={18} className={activeTab === 'overview' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                  <span>아파트 랩</span>
-                </button>
-
-                <button
-                  onClick={() => router.push('/explore')}
-                  onMouseEnter={() => router.prefetch('/explore')}
-                  onTouchStart={() => router.prefetch('/explore')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] ${
-                    activeTab === 'imjang'
-                      ? 'bg-surface text-primary shadow-[0_2px_12px_rgba(0,0,0,0.06)] ring-1 ring-black/5 dark:ring-white/10'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-white/5'
-                  }`}
-                >
-                  <Home size={18} className={activeTab === 'imjang' ? 'text-primary' : 'text-tertiary group-hover:scale-110 transition-transform duration-200'} />
-                  <span>아파트 탐색</span>
-                </button>
-              </nav>
-
-            </div>
-
-            {/* Right: Desktop Extra Nav & User Bar */}
-            <div className="hidden md:flex items-center justify-end gap-4">
-              <FloatingUserBar />
-            </div>
-            
-          </div>
-        </div>
-      </header>
+      {/* Main Header — Reused LoungeHeader component */}
+      <LoungeHeader 
+        activeTab={activeTab} 
+        onTabChange={(tab) => {
+          const targetTab = tab as 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley';
+          setActiveTab(targetTab);
+          let href = '/overview';
+          if (targetTab === 'office') href = '/overview?tab=office';
+          else if (targetTab === 'lounge') href = '/lounge';
+          else if (targetTab === 'imjang') href = '/explore';
+          else if (targetTab === 'technovalley') href = '/';
+          window.history.pushState(null, '', href);
+          try { router.replace(href, { scroll: false }); } catch (err) {}
+        }}
+      />
 
       {/* Main Container */}
       <main 
         id="main-content" 
-        className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500"
+        className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500 min-h-[85vh] min-h-[750px]"
       >
-        <div className={mobileModalOpen ? "invisible" : ""}>
+        <div className={`min-h-[85vh] min-h-[750px] ${mobileModalOpen ? "invisible" : ""}`}>
           {memoizedTabContents}
         </div>
 
@@ -998,9 +924,14 @@ const DashboardClient = React.memo(function DashboardClient({
       <MobileDock 
         activeTab={activeTab} 
         onTabClick={(tab) => {
-          if (tab !== 'lounge' && tab !== 'technovalley' && tab !== 'imjang') {
-            setActiveTab(tab);
-          }
+          setActiveTab(tab);
+          let href = '/overview';
+          if (tab === 'office') href = '/overview?tab=office';
+          else if (tab === 'lounge') href = '/lounge';
+          else if (tab === 'imjang') href = '/explore';
+          else if (tab === 'technovalley') href = '/';
+          window.history.pushState(null, '', href);
+          try { router.replace(href, { scroll: false }); } catch (err) {}
         }}
       />
     )}

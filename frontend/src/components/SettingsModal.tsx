@@ -138,7 +138,7 @@ const SettingsModal = React.memo(function SettingsModal() {
   if (!mounted || !isSettingsModalOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[10500] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200">
       <button 
         type="button"
         className="absolute inset-0 bg-black/40 backdrop-blur-sm border-none cursor-default"

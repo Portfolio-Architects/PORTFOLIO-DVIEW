@@ -4,6 +4,7 @@ import time
 import sys
 import re
 import hashlib
+import ast
 
 try:
     from self_improvement_loop import config
@@ -43,6 +44,7 @@ class SelfImprovementEngine:
         self.consecutive_rollbacks = 0
         self.last_error_message = None
         self.perturbation_feedback = None
+        self.error_feedback = None
 
         self.api_requests_count = 0
         self.total_token_budget = getattr(config, "TOTAL_TOKEN_BUDGET", 1000000)
@@ -101,7 +103,7 @@ class SelfImprovementEngine:
         """
         log_path = os.path.join(self.history_dir, "execution_log.json")
         try:
-            with open(log_path, "w", encoding="utf-8") as f:
+            with open(log_path, "w", encoding="utf-8", errors="replace") as f:
                 json.dump(self.execution_log, f, indent=4)
             print(f"Execution log saved to {log_path}")
         except Exception as e:
@@ -124,7 +126,7 @@ class SelfImprovementEngine:
         command_file = getattr(config, "COMMAND_FILE", os.path.join(config.BASE_DIR, "command.txt"))
         if os.path.exists(command_file):
             try:
-                with open(command_file, "r", encoding="utf-8") as f:
+                with open(command_file, "r", encoding="utf-8", errors="replace") as f:
                     cmd = f.read().strip()
                 if cmd in ("중단", "stop"):
                     try:
@@ -161,7 +163,7 @@ class SelfImprovementEngine:
         
         # Read the current target code
         try:
-            with open(self.target_file, "r", encoding="utf-8") as f:
+            with open(self.target_file, "r", encoding="utf-8", errors="replace") as f:
                 current_code = f.read()
         except Exception as e:
             self.log_event("ERROR", f"Failed to read current target code: {str(e)}")
@@ -170,7 +172,7 @@ class SelfImprovementEngine:
 
         if version_idx == 0:
             try:
-                with open(self.test_file, "r", encoding="utf-8") as f:
+                with open(self.test_file, "r", encoding="utf-8", errors="replace") as f:
                     initial_test_code = f.read()
             except Exception:
                 initial_test_code = ""
@@ -265,9 +267,11 @@ class SelfImprovementEngine:
                         current_code,
                         iteration,
                         inject_syntax_error=inject_syntax_error,
-                        perturbation_feedback=self.perturbation_feedback
+                        perturbation_feedback=self.perturbation_feedback,
+                        error_feedback=self.error_feedback
                     )
                     self.perturbation_feedback = None
+                    self.error_feedback = None
                     break
                 except RateLimitError as rle:
                     self.log_event("RATE_LIMIT", f"Rate limit encountered on iteration {iteration}. {str(rle)} Sleeping for {rle.reset_seconds}s before retry.")
@@ -312,9 +316,65 @@ class SelfImprovementEngine:
             if len(self.recent_hashes) > 3:
                 self.recent_hashes.pop(0)
 
+            # AST Syntax Pre-validation prior to writing code or subprocess execution
+            try:
+                ast.parse(improved_code)
+            except SyntaxError as se:
+                error_msg = f"SyntaxError: {se.msg} at line {se.lineno}"
+                normalized_error_msg = self.normalize_error_message(error_msg)
+                self.error_feedback = normalized_error_msg
+                self.log_event("AST_SYNTAX_ERROR", f"AST syntax pre-validation failed on iteration {iteration}: {normalized_error_msg}")
+
+                # Save debug failed version
+                failed_path = os.path.join(self.history_dir, f"target_module.v{iteration}.failed.py")
+                try:
+                    with open(failed_path, "w", encoding="utf-8", errors="replace") as f:
+                        f.write(improved_code)
+                except Exception as e:
+                    self.log_event("ERROR", f"Failed to save debug failed version: {str(e)}")
+
+                diff_str = self.vcs.generate_diff(iteration, last_stable_code, improved_code)
+                self.vcs.rollback(version_idx)
+
+                is_stuck_by_error = (normalized_error_msg and normalized_error_msg == self.last_error_message)
+                self.last_error_message = normalized_error_msg
+                self.consecutive_rollbacks += 1
+                is_stuck_by_rollbacks = self.consecutive_rollbacks >= 3
+
+                if is_stuck_by_error or is_stuck_by_rollbacks:
+                    self.log_event("STUCK_DETECTED", f"Stuck state detected on iteration {iteration}. Repeating error: {is_stuck_by_error}, rollbacks: {self.consecutive_rollbacks}.")
+                    self.perturbation_feedback = "Warning: Stuck state detected due to repeating error or multiple rollbacks. Please change your design/strategy to fix the error."
+
+                verify_result = self.runner.run_tests()
+                verify_success = verify_result["success"]
+
+                rollback_details = {
+                    "iteration": iteration,
+                    "diff": diff_str,
+                    "test_failure": {
+                        "stdout": "",
+                        "stderr": error_msg,
+                        "returncode": 1
+                    },
+                    "rollback_verification": {
+                        "success": verify_success,
+                        "stdout": verify_result["stdout"],
+                        "stderr": verify_result["stderr"]
+                    }
+                }
+
+                self.log_event("ROLLBACK", f"Iteration {iteration} failed AST syntax pre-validation. Rolled back to stable version {version_idx}.", rollback_details)
+
+                if not verify_success:
+                    self.save_execution_log()
+                    return False
+
+                time.sleep(1.0)
+                continue
+
             # Write the improved code to the target module
             try:
-                with open(self.target_file, "w", encoding="utf-8") as f:
+                with open(self.target_file, "w", encoding="utf-8", errors="replace") as f:
                     f.write(improved_code)
             except Exception as e:
                 self.log_event("ERROR", f"Failed to write improved code to target module in iteration {iteration}: {str(e)}")
@@ -331,9 +391,10 @@ class SelfImprovementEngine:
                 self.consecutive_rollbacks = 0
                 self.last_error_message = None
                 self.perturbation_feedback = None
+                self.error_feedback = None
 
                 try:
-                    with open(self.test_file, "r", encoding="utf-8") as f:
+                    with open(self.test_file, "r", encoding="utf-8", errors="replace") as f:
                         test_code = f.read()
                 except Exception:
                     test_code = ""
@@ -357,7 +418,7 @@ class SelfImprovementEngine:
                 # Save the failed version for debug reference
                 failed_path = os.path.join(self.history_dir, f"target_module.v{iteration}.failed.py")
                 try:
-                    with open(failed_path, "w", encoding="utf-8") as f:
+                    with open(failed_path, "w", encoding="utf-8", errors="replace") as f:
                         f.write(improved_code)
                 except Exception as e:
                     self.log_event("ERROR", f"Failed to save debug failed version: {str(e)}")
@@ -371,6 +432,7 @@ class SelfImprovementEngine:
                 # Stuck detection: error message & rollback count
                 error_msg = test_result.get("stderr", "") or test_result.get("stdout", "")
                 normalized_error_msg = self.normalize_error_message(error_msg)
+                self.error_feedback = normalized_error_msg
                 
                 is_stuck_by_error = False
                 if normalized_error_msg and normalized_error_msg == self.last_error_message:

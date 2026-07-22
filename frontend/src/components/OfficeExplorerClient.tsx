@@ -17,7 +17,7 @@ import dynamic from 'next/dynamic';
 
 const CoLeasingBoard = dynamic(() => import('@/components/macro/CoLeasingBoard'), {
   ssr: false,
-  loading: () => <div className="w-full h-48 bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
+  loading: () => <div className="w-full h-[230px] min-h-[230px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
 });
 
 interface OfficeTransaction {
@@ -451,19 +451,19 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   }, [searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
 
   return (
-    <div className="flex flex-col w-full bg-transparent">
+    <div className="flex flex-col w-full bg-transparent min-h-[85vh] min-h-[800px]">
       <PageHeroHeader 
         title="D-VIEW 사무실 탐색"
         subtitleStrong="나에게 맞는 지식산업센터 사무실 찾기"
         subtitleLight="공실 정보부터 맞춤형 입주 혜택까지, 동탄 테크노밸리 원스톱 매칭 솔루션"
       />
 
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col gap-8">
+      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-8">
         
         {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
         <CoLeasingBoard />
 
-        <div className="flex w-full bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md md:rounded-[20px] md:border md:border-border/40 md:dark:border-white/10 md:shadow-[0_8px_30px_rgb(0,0,0,0.02)] items-stretch flex-1 min-h-[500px]">
+        <div className="flex w-full bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md md:rounded-[20px] md:border md:border-border/40 md:dark:border-white/10 md:shadow-[0_8px_30px_rgb(0,0,0,0.02)] items-stretch flex-1 min-h-[85vh] min-h-[800px]">
           
           {/* Sidebar 필터 영역 */}
           <aside 

@@ -111,18 +111,22 @@ export const AuthProvider = React.memo(function AuthProvider({ children }: { chi
       setUser(currentUser);
       if (currentUser) {
         // Parallelize session cookie synchronization and Firestore data loading to eliminate network waterfall
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 3000);
         const cookiePromise = currentUser.getIdToken()
           .then((idToken) => {
             if (!mounted) return;
             return fetch('/api/auth/session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ idToken })
+              body: JSON.stringify({ idToken }),
+              signal: controller.signal
             });
           })
           .catch((cookieErr) => {
             logger.warn('AuthProvider.onAuthStateChanged', 'Failed to set session cookie', {}, cookieErr);
-          });
+          })
+          .finally(() => clearTimeout(timeoutId));
 
         const dataPromise = Promise.all([
           dashboardFacade.getUserProfile(currentUser.uid),

@@ -79,7 +79,7 @@ const AnchorTenantSkeleton = () => (
 
 const TransactionTableSkeleton = () => (
   <div className="w-full h-[401px] md:h-full flex flex-col gap-4 p-5 border border-border/40 rounded-[20px]">
-    <div className="h-6 w-28 rounded-xl animate-shimmer mb-2" />
+    <h2 className="text-[14px] font-bold text-secondary shrink-0 mb-2">실거래가 (로딩 중...)</h2>
     {[1, 2, 3, 4, 5].map(i => (
       <div key={i} className="flex justify-between items-center py-3 border-b border-border/20">
         <div className="h-4 w-20 rounded-lg animate-shimmer" />

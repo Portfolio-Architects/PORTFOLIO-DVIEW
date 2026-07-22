@@ -1,0 +1,86 @@
+{
+  "desktopNavLinks": [
+    {
+      "label": "테크노 랩",
+      "href": "/"
+    },
+    {
+      "label": "사무실 탐색",
+      "href": "/overview?tab=office"
+    },
+    {
+      "label": "동탄 라운지",
+      "href": "/lounge"
+    },
+    {
+      "label": "아파트 랩",
+      "href": "/overview"
+    },
+    {
+      "label": "아파트 탐색",
+      "href": "/explore"
+    },
+    {
+      "label": "테크노 랩",
+      "href": "/"
+    },
+    {
+      "label": "사무실 탐색",
+      "href": "/overview?tab=office"
+    },
+    {
+      "label": "동탄 라운지",
+      "href": "/lounge"
+    },
+    {
+      "label": "아파트 랩",
+      "href": "/overview"
+    },
+    {
+      "label": "아파트 탐색",
+      "href": "/explore"
+    }
+  ],
+  "mobileDockLinks": [
+    {
+      "label": "테크노 랩",
+      "href": "/"
+    },
+    {
+      "label": "사무실 탐색",
+      "href": "/overview?tab=office"
+    },
+    {
+      "label": "동탄 라운지",
+      "href": "/lounge"
+    },
+    {
+      "label": "아파트 랩",
+      "href": "/overview"
+    },
+    {
+      "label": "아파트 탐색",
+      "href": "/explore"
+    },
+    {
+      "label": "테크노 랩",
+      "href": "/"
+    },
+    {
+      "label": "사무실 탐색",
+      "href": "/overview?tab=office"
+    },
+    {
+      "label": "동탄 라운지",
+      "href": "/lounge"
+    },
+    {
+      "label": "아파트 랩",
+      "href": "/overview"
+    },
+    {
+      "label": "아파트 탐색",
+      "href": "/explore"
+    }
+  ]
+}

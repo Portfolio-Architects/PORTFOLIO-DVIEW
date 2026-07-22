@@ -5,34 +5,43 @@ class Calculator:
     def add(self, a: float, b: float) -> float:
         """Returns the sum of a and b."""
         return a + b
+
     def subtract(self, a: float, b: float) -> float:
         """Returns the difference of a and b."""
         return a - b
+
     def multiply(self, a: float, b: float) -> float:
         """Returns the product of a and b."""
         return a * b
+
     def divide(self, a: float, b: float) -> float:
         """Returns the quotient of a and b."""
         if b == 0:
             raise ZeroDivisionError("division by zero")
         return a / b
+
     def power(self, a: float, b: float) -> float:
         """Returns a raised to the power of b."""
         return a ** b
+
     def sin(self, x: float) -> float:
         """Returns the sine of x (in radians)."""
         return math.sin(x)
+
     def cos(self, x: float) -> float:
         """Returns the cosine of x (in radians)."""
         return math.cos(x)
+
     def tan(self, x: float) -> float:
         """Returns the tangent of x (in radians)."""
         return math.tan(x)
+
     def mean(self, data: list) -> float:
         """Returns the arithmetic mean of data."""
         if not data:
             raise ValueError("data must not be empty")
         return sum(data) / len(data)
+
     def median(self, data: list) -> float:
         """Returns the median of data."""
         if not data:
@@ -43,20 +52,24 @@ class Calculator:
             return sorted_data[n // 2]
         else:
             return (sorted_data[n // 2 - 1] + sorted_data[n // 2]) / 2.0
+
     def variance(self, data: list) -> float:
         """Returns the sample variance of data."""
         if len(data) < 2:
             raise ValueError("variance requires at least two data points")
         m = self.mean(data)
         return sum((x - m) ** 2 for x in data) / (len(data) - 1)
+
     def matrix_addition(self, A: list, B: list) -> list:
         """Returns the sum of two matrices A and B."""
         if len(A) != len(B) or len(A[0]) != len(B[0]):
             raise ValueError("Matrices must have the same dimensions")
         return [[A[i][j] + B[i][j] for j in range(len(A[0]))] for i in range(len(A))]
+
     def matrix_transpose(self, A: list) -> list:
         """Returns the transpose of matrix A."""
         return [[A[i][j] for i in range(len(A))] for j in range(len(A[0]))]
+
     def matrix_multiplication(self, A: list, B: list) -> list:
         """Returns the product of two matrices A and B."""
         if len(A[0]) != len(B):
@@ -67,12 +80,14 @@ class Calculator:
                 for k in range(len(B)):
                     result[i][j] += A[i][k] * B[k][j]
         return result
+
     def gradient_descent(self, f_prime, x_start: float, learning_rate: float = 0.1, iterations: int = 100) -> float:
         """Performs gradient descent optimization."""
         x = x_start
         for _ in range(iterations):
             x = x - learning_rate * f_prime(x)
         return x
+
     def linear_regression(self, x: list, y: list) -> tuple:
         """Returns (slope, intercept) for linear regression y = mx + c."""
         if len(x) != len(y) or len(x) < 2:
@@ -86,6 +101,7 @@ class Calculator:
         slope = num / den
         intercept = y_mean - slope * x_mean
         return slope, intercept
+
     def factorial(self, n: int) -> int:
         """Returns the factorial of n."""
         if n < 0:
@@ -94,14 +110,17 @@ class Calculator:
         for i in range(2, n + 1):
             result *= i
         return result
+
     def gcd(self, a: int, b: int) -> int:
         """Returns the greatest common divisor of a and b."""
         while b:
             a, b = b, a % b
         return abs(a)
+
     def std_dev(self, data: list) -> float:
         """Returns the standard deviation of data."""
         return math.sqrt(self.variance(data))
+
     def percentile(self, data: list, p: float) -> float:
         """Returns the p-th percentile of data."""
         if not data:
@@ -117,6 +136,7 @@ class Calculator:
         d0 = sorted_data[int(f)] * (c - k)
         d1 = sorted_data[int(c)] * (k - f)
         return d0 + d1
+
     def z_score(self, data: list) -> list:
         """Returns Z-scores for the data."""
         if len(data) < 2:
@@ -126,21 +146,3 @@ class Calculator:
         if sd == 0:
             raise ValueError("standard deviation is zero, cannot compute Z-scores")
         return [(x - m) / sd for x in data]
-
-# Continuous optimization v8
-
-# Continuous optimization v9
-
-# Continuous optimization v10
-
-# Continuous optimization v11
-
-# Continuous optimization v12
-
-# Continuous optimization v13
-
-# Continuous optimization v14
-
-# Continuous optimization v15
-
-# Continuous optimization v75

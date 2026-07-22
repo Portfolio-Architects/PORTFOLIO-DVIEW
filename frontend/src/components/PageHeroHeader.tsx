@@ -85,12 +85,12 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full bg-transparent border-b border-border/60 shrink-0 z-20 relative">
+      <div className="h-[156px] sm:h-[144px] min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full bg-transparent border-b border-border/60 shrink-0 z-20 relative overflow-hidden">
         <div className="flex items-start justify-between w-full">
           <div className="flex flex-col gap-[19px] sm:gap-[23px] w-full">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
-                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
+                <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
                   <Image
                     src="/hwaseong-symbol.png"
                     alt="화성시 심볼"
@@ -100,7 +100,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
                     className="object-contain p-0.5 sm:p-1"
                   />
                 </div>
-                <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
+                <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] min-h-[22px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
                   {title}
                 </TitleTag>
               </div>

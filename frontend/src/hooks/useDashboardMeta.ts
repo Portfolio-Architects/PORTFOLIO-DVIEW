@@ -147,13 +147,17 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
         }
       })
       .catch((err) => { 
-        logger.warn('DashboardMeta', 'Failed to lazy fetch search data', {}, err); 
+        if (!unmounted) {
+          logger.warn('DashboardMeta', 'Failed to lazy fetch search data', {}, err); 
+        }
       })
       .finally(() => {
         if (!unmounted) setIsLoading(false);
       });
 
-      return () => { unmounted = true; };
+      return () => { 
+        unmounted = true; 
+      };
   }, [hasSheetData, startFetch]);
 
   const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);

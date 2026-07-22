@@ -90,6 +90,20 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
         root.classList.remove('dark');
         root.style.colorScheme = 'light';
       }
+
+      const color = isDark ? "#121212" : "#ffffff";
+      const metas = document.querySelectorAll('meta[name="theme-color"]');
+      if (metas.length > 0) {
+        metas.forEach((meta) => {
+          meta.setAttribute("content", color);
+          meta.removeAttribute("media");
+        });
+      } else {
+        const meta = document.createElement("meta");
+        meta.setAttribute("name", "theme-color");
+        meta.setAttribute("content", color);
+        document.head.appendChild(meta);
+      }
     } catch (err) {
       logger.error('SettingsProvider.applyTheme', 'Failed to toggle html class', {}, err as Error);
     }

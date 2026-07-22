@@ -18,19 +18,19 @@ class CustomVCS:
         """
         os.makedirs(self.history_dir, exist_ok=True)
         version_path = os.path.join(self.history_dir, f"target_module.v{version_idx}.py")
-        with open(version_path, "w", encoding="utf-8") as f:
+        with open(version_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(target_code)
 
         if test_code is not None:
             test_version_path = os.path.join(self.history_dir, f"test_target_module.v{version_idx}.py")
-            with open(test_version_path, "w", encoding="utf-8") as f:
+            with open(test_version_path, "w", encoding="utf-8", errors="replace") as f:
                 f.write(test_code)
         elif self.test_file and os.path.exists(self.test_file):
             test_version_path = os.path.join(self.history_dir, f"test_target_module.v{version_idx}.py")
             try:
-                with open(self.test_file, "r", encoding="utf-8") as f:
+                with open(self.test_file, "r", encoding="utf-8", errors="replace") as f:
                     t_code = f.read()
-                with open(test_version_path, "w", encoding="utf-8") as f:
+                with open(test_version_path, "w", encoding="utf-8", errors="replace") as f:
                     f.write(t_code)
             except Exception:
                 pass
@@ -57,7 +57,7 @@ class CustomVCS:
         
         os.makedirs(self.history_dir, exist_ok=True)
         patch_path = os.path.join(self.history_dir, f"patch_v{version_idx}.diff")
-        with open(patch_path, "w", encoding="utf-8") as f:
+        with open(patch_path, "w", encoding="utf-8", errors="replace") as f:
             f.write(diff_str)
         return diff_str
 
@@ -68,18 +68,21 @@ class CustomVCS:
         Returns the target file content.
         """
         version_path = os.path.join(self.history_dir, f"target_module.v{version_idx}.py")
-        with open(version_path, "r", encoding="utf-8") as f:
+        if not os.path.exists(version_path):
+            raise FileNotFoundError(f"Version snapshot not found: {version_path}")
+
+        with open(version_path, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
         
-        with open(self.target_file, "w", encoding="utf-8") as f:
+        with open(self.target_file, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
         
         if self.test_file:
             test_version_path = os.path.join(self.history_dir, f"test_target_module.v{version_idx}.py")
             if os.path.exists(test_version_path):
-                with open(test_version_path, "r", encoding="utf-8") as f:
+                with open(test_version_path, "r", encoding="utf-8", errors="replace") as f:
                     test_content = f.read()
-                with open(self.test_file, "w", encoding="utf-8") as f:
+                with open(self.test_file, "w", encoding="utf-8", errors="replace") as f:
                     f.write(test_content)
         
         return content
@@ -89,4 +92,11 @@ class CustomVCS:
         Rolls back the target and test files to the specified version.
         """
         return self.restore_version(version_idx)
+
+    def has_version(self, version_idx: int) -> bool:
+        """
+        Checks whether snapshot files for version_idx exist.
+        """
+        version_path = os.path.join(self.history_dir, f"target_module.v{version_idx}.py")
+        return os.path.exists(version_path)
 

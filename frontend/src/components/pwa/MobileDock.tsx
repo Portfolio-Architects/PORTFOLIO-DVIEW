@@ -15,15 +15,26 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
   const { setIsSettingsModalOpen } = useSettingsUi();
   const router = useRouter();
   const [shouldHide, setShouldHide] = React.useState(false);
+  const initialHeightRef = React.useRef<number>(0);
+
+  React.useEffect(() => {
+    // Proactively prefetch core routes on mount
+    router.prefetch('/');
+    router.prefetch('/overview?tab=office');
+    router.prefetch('/lounge');
+    router.prefetch('/overview');
+    router.prefetch('/explore');
+  }, [router]);
 
   React.useEffect(() => {
     if (typeof window === 'undefined' || !window.visualViewport) return;
+    initialHeightRef.current = window.innerHeight || 800;
     const vv = window.visualViewport;
 
     const handleResize = () => {
       // If viewport height drops significantly (e.g. by more than 120px), 
       // it strongly indicates that the on-screen keyboard is open.
-      const initialHeight = window.innerHeight;
+      const initialHeight = initialHeightRef.current || window.innerHeight || 800;
       if (vv.height < initialHeight - 120) {
         setShouldHide(true);
       } else {
@@ -54,7 +65,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
   ];
 
   return (
-    <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface shadow-[0_-8px_32px_rgba(0,0,0,0.04)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40 transition-all duration-300 ${
+    <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40 transition-all duration-300 ${
       shouldHide ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
     }`}>
       {/* 5개 탭 */}
@@ -69,54 +80,34 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             ? 'bg-hs-blue-light border border-hs-blue/15' 
             : 'bg-hs-orange-light border border-hs-orange/15';
 
-          let tabElement = null;
-          
-          if (onTabClick && (tab.id === 'overview' || tab.id === 'office')) {
-             // Dashboard usage (if within the same page context)
-             tabElement = (
-                <button
-                  key={tab.id}
-                  onClick={(e: React.MouseEvent<HTMLButtonElement>) => {
-                    e.preventDefault();
-                    onTabClick(tab.id as 'imjang' | 'lounge' | 'overview' | 'office' | 'technovalley');
-                    if (tab.id === 'overview') {
-                      window.history.replaceState(null, '', '/overview');
-                    } else if (tab.id === 'office') {
-                      window.history.replaceState(null, '', '/overview?tab=office');
-                    }
-                  }}
-                  className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
-                    isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
-                  }`}
-                >
-                 {isActive && (
-                    <div className={`absolute inset-0 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95 ${activeBgClass}`} />
-                 )}
-                 <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
-                 <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
-               </button>
-             );
-          } else {
-             // Cross-page links or other routes
-             tabElement = (
-              <Link
-                key={tab.id}
-                href={tab.href}
-                prefetch={false}
-                onMouseEnter={() => router.prefetch(tab.href)}
-                onTouchStart={() => router.prefetch(tab.href)}
-                className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
-                  isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
-                }`}
-              >
-                {isActive && (
-                   <div className={`absolute inset-0 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95 ${activeBgClass}`} />
-                )}
-                <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
-                <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
-              </Link>
-             );
-          }
+          const tabElement = (
+            <Link
+              key={tab.id}
+              href={tab.href}
+              prefetch={true}
+              onMouseEnter={() => router.prefetch(tab.href)}
+              onTouchStart={() => router.prefetch(tab.href)}
+              onClick={(e) => {
+                if (onTabClick) {
+                  e.preventDefault();
+                  window.history.pushState(null, '', tab.href);
+                  onTabClick(tab.id);
+                  try {
+                    router.replace(tab.href, { scroll: false });
+                  } catch (err) {}
+                }
+              }}
+              className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
+                isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
+              }`}
+            >
+              {isActive && (
+                 <div className={`absolute inset-0 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95 ${activeBgClass}`} />
+              )}
+              <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
+              <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
+            </Link>
+          );
 
           return (
             <React.Fragment key={tab.id}>

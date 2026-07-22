@@ -19,7 +19,7 @@ const getGlobalStaticDataCache = (): Record<string, StaticDataCacheEntry<unknown
 };
 
 export async function readJsonFileCached<T>(relativePath: string, fallback: T): Promise<T> {
-  const filePath = path.resolve(process.cwd(), relativePath);
+  const filePath = path.join(/*turbopackIgnore: true*/ process.cwd(), relativePath);
   try {
     const stats = await fs.promises.stat(filePath);
     const mtimeMs = stats.mtimeMs;

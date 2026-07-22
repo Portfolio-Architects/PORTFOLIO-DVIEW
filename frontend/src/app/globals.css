@@ -54,8 +54,8 @@
     --text-secondary: #4e5968;
     --text-tertiary: #5d6d7e;
 
-    /* Unified Brand Palette (Harmonized) */
-    --brand-orange: #ea6100;
+    /* Unified Brand Palette (Harmonized & WCAG AA Compliant) */
+    --brand-orange: #c44d00;
     --brand-orange-light: #fff3e0;
     --brand-blue: #004696;
     --brand-blue-light: #e6eef8;
@@ -76,6 +76,10 @@
     --hs-orange: var(--brand-orange);
     --hs-blue-light: var(--brand-blue-light);
     --hs-orange-light: var(--brand-orange-light);
+
+    /* Glassmorphism Custom Variables */
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(229, 232, 235, 0.6);
 
     --border-radius-xl: 24px;
     --border-radius-lg: 16px;
@@ -137,6 +141,10 @@
     --hs-orange: var(--brand-orange);
     --hs-blue-light: var(--brand-blue-light);
     --hs-orange-light: var(--brand-orange-light);
+
+    /* Glassmorphism Custom Variables for Dark Mode */
+    --glass-bg: rgba(30, 30, 30, 0.85);
+    --glass-border: rgba(55, 65, 81, 0.6);
 
     --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);

@@ -460,39 +460,21 @@ export function useTxData(
 }
 
 export function useLocationScores() {
-  const [shouldFetch, setShouldFetch] = useState(false);
-  
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    let idleId: number | null = null;
-    let timerId: NodeJS.Timeout | null = null;
-
-    if ('requestIdleCallback' in window) {
-      idleId = (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
-    } else {
-      timerId = setTimeout(() => setShouldFetch(true), 100);
+  const { data, error, isLoading } = useSWR<Record<string, LocationScoreItem>>(
+    `/data/location-scores.json?v=${BUILD_VERSION}`,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnMount: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 3600000 // 1 hour cache
     }
-
-    return () => {
-      if (idleId !== null) {
-        (window as any).cancelIdleCallback(idleId);
-      }
-      if (timerId !== null) {
-        clearTimeout(timerId);
-      }
-    };
-  }, []);
-
-  const { data, error, isLoading } = useSWR<Record<string, LocationScoreItem>>(shouldFetch ? `/data/location-scores.json?v=${BUILD_VERSION}` : null, fetcher, {
-    revalidateOnFocus: false,
-    revalidateIfStale: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 3600000 // 1 hour cache
-  });
+  );
   
   return {
     locationScores: data,
-    isLoading: !shouldFetch || isLoading,
+    isLoading: isLoading || !data,
     error
   };
 }

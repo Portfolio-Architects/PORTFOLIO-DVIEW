@@ -72,5 +72,26 @@ class TestMockLLMSimulator(unittest.TestCase):
         improved_zero = self.simulator.get_improved_code(self.initial_code, iteration=0)
         self.assertEqual(improved_zero, self.initial_code)
 
+    def test_calculate_metrics(self):
+        code = (
+            "class Calculator:\n"
+            "    \"\"\"Docstring\"\"\"\n"
+            "    def add(self, a: float, b: float) -> float:\n"
+            "        return a + b\n"
+        )
+        metrics = self.simulator.calculate_metrics(code)
+        self.assertEqual(metrics["method_count"], 1)
+        self.assertTrue(metrics["ast_valid"])
+        self.assertGreater(metrics["quality_score"], 40.0)
+
+    def test_error_feedback_ingestion(self):
+        improved = self.simulator.get_improved_code(
+            self.initial_code,
+            iteration=1,
+            error_feedback="SyntaxError: invalid syntax"
+        )
+        self.assertEqual(self.simulator.last_error_feedback, "SyntaxError: invalid syntax")
+        self.assertIsNotNone(self.simulator.last_metrics)
+
 if __name__ == '__main__':
     unittest.main()

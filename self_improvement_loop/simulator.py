@@ -11,6 +11,51 @@ class MockLLMSimulator:
         self.iteration_2_attempts = 0
         self.simulate_stuck_hash = False
         self.simulate_stuck_error = False
+        self.last_error_feedback = None
+        self.last_metrics = None
+
+    def calculate_metrics(self, code: str) -> dict:
+        """
+        Calculates automated metrics for the given code snippet.
+        """
+        if not code:
+            return {
+                "lines_of_code": 0,
+                "method_count": 0,
+                "docstrings_count": 0,
+                "type_annotations_count": 0,
+                "ast_valid": False,
+                "quality_score": 0.0
+            }
+
+        lines = code.splitlines()
+        loc = len(lines)
+        method_count = sum(1 for line in lines if line.strip().startswith("def "))
+        docstrings_count = sum(1 for line in lines if '"""' in line or "'''" in line) // 2
+        type_annotations_count = sum(1 for line in lines if "->" in line or ": float" in line or ": list" in line or ": int" in line)
+
+        ast_valid = True
+        try:
+            import ast
+            ast.parse(code)
+        except Exception:
+            ast_valid = False
+
+        score = 0.0
+        if ast_valid:
+            score += 40.0
+        score += min(30.0, method_count * 3.0)
+        score += min(15.0, docstrings_count * 2.5)
+        score += min(15.0, type_annotations_count * 1.5)
+
+        return {
+            "lines_of_code": loc,
+            "method_count": method_count,
+            "docstrings_count": docstrings_count,
+            "type_annotations_count": type_annotations_count,
+            "ast_valid": ast_valid,
+            "quality_score": round(score, 2)
+        }
 
     def update_tests(self, iteration: int) -> None:
         """
@@ -27,7 +72,7 @@ class MockLLMSimulator:
             if not os.path.exists(test_file_path):
                 return
 
-            with open(test_file_path, "r", encoding="utf-8") as f:
+            with open(test_file_path, "r", encoding="utf-8", errors="replace") as f:
                 content = f.read()
 
             test_methods = []
@@ -174,12 +219,14 @@ class MockLLMSimulator:
                 if insert_idx != -1:
                     new_lines = lines[:insert_idx] + test_methods + lines[insert_idx:]
                     new_content = "\n".join(new_lines) + "\n"
-                    with open(test_file_path, "w", encoding="utf-8") as f:
+                    with open(test_file_path, "w", encoding="utf-8", errors="replace") as f:
                         f.write(new_content)
         except Exception as e:
             print(f"Error dynamically updating test file: {e}")
 
-    def get_improved_code(self, current_code: str, iteration: int, inject_syntax_error: bool = False, perturbation_feedback: str = None) -> str:
+    def get_improved_code(self, current_code: str, iteration: int, inject_syntax_error: bool = False, perturbation_feedback: str = None, error_feedback: str = None) -> str:
+        self.last_error_feedback = error_feedback
+
         # Check if called from test simulator
         is_test_simulator = False
         try:
@@ -739,6 +786,7 @@ class MockLLMSimulator:
         if inject_syntax_error:
             improved_code = self._inject_syntax_error(improved_code)
 
+        self.last_metrics = self.calculate_metrics(improved_code)
         return improved_code
 
     def _inject_syntax_error(self, code: str) -> str:

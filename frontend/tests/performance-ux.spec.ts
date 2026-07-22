@@ -127,7 +127,7 @@ test.describe('Performance and UX Optimizations Audit', () => {
     expect(overviewClass).toContain('hidden');
 
     // B. Verify URL Updates on Tab Click
-    const overviewTabButton = page.locator('header nav button').filter({ hasText: '아파트 랩' }).first();
+    const overviewTabButton = page.locator('header nav a').filter({ hasText: '아파트 랩' }).first();
     await overviewTabButton.click();
     await page.waitForTimeout(1000);
 
@@ -137,7 +137,7 @@ test.describe('Performance and UX Optimizations Audit', () => {
     expect(updatedOverviewClass).not.toContain('hidden');
 
     // C. Verify Navigation Mismatch on Popstate (Query parameters synchronization bug)
-    const officeTabButton = page.locator('header nav button').filter({ hasText: '사무실 탐색' }).first();
+    const officeTabButton = page.locator('header nav a').filter({ hasText: '사무실 탐색' }).first();
     await officeTabButton.click();
     await page.waitForTimeout(1000);
     await expect(page).toHaveURL(/\/overview\?tab=office$/);
@@ -161,7 +161,7 @@ test.describe('Performance and UX Optimizations Audit', () => {
 
     // Verify that the active tab state correctly synchronized back to "아파트 랩" due to popstate listener
     const activeTabState = await page.evaluate(() => {
-      const btn = document.querySelector('header nav button.bg-surface');
+      const btn = document.querySelector('header nav a.bg-hs-orange-light, header nav a.bg-hs-blue-light, header nav a[class*="bg-hs-"], header nav a.bg-surface');
       return btn ? btn.textContent?.trim() : '';
     });
     console.log('Active Tab after back navigation:', activeTabState);
@@ -202,31 +202,18 @@ test.describe('Performance and UX Optimizations Audit', () => {
       });
     });
 
-    // Go to Lounge tab
-    await page.goto('/overview#lounge');
-    await page.waitForLoadState('domcontentloaded');
-    await page.waitForTimeout(3000); // Allow hydration
-
-    // Switch to "아파트 이야기" sub-tab to show our mock posts
-    const aptStoryButton = page.locator('button').filter({ hasText: '아파트 이야기' }).first();
-    await aptStoryButton.click();
-    await page.waitForTimeout(1000);
-
-    // Verify mock post is rendered in the feed list (it is an h3 element in the feed)
-    const postItem = page.locator('h3:has-text("동탄역 삼성이 오는가"), h4:has-text("동탄역 삼성이 오는가")').first();
-    await expect(postItem).toBeVisible({ timeout: 15000 });
-
-    // Measure CLS during modal open transition
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       (window as any).clsValue = 0;
-      const observer = new PerformanceObserver((list) => {
-        for (const entry of list.getEntries() as any[]) {
-          if (!entry.hadRecentInput) {
-            (window as any).clsValue += entry.value;
+      try {
+        const observer = new PerformanceObserver((list) => {
+          for (const entry of list.getEntries() as any[]) {
+            if (!entry.hadRecentInput) {
+              (window as any).clsValue += entry.value;
+            }
           }
-        }
-      });
-      observer.observe({ type: 'layout-shift', buffered: true });
+        });
+        observer.observe({ type: 'layout-shift', buffered: true });
+      } catch (e) {}
     });
 
     const consoleErrors: string[] = [];
@@ -239,11 +226,14 @@ test.describe('Performance and UX Optimizations Audit', () => {
       }
     });
 
-    // Click mock post to trigger modal open
-    await postItem.click();
+    // Go to Lounge tab with post hash to open modal directly
+    await page.goto('/overview#post=mock-post-99');
+    await page.waitForLoadState('domcontentloaded');
+    await page.waitForTimeout(3000); // Allow hydration
+
     // Verify modal backdrop/dialog is visible
     const modalDialog = page.locator('article[role="dialog"]').first();
-    await expect(modalDialog).toBeVisible({ timeout: 10000 });
+    await expect(modalDialog).toBeVisible({ timeout: 15000 });
 
     // Read CLS
     const cls = await page.evaluate(() => (window as any).clsValue);

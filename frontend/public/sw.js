@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1784640698628';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1784640698628';
+const CACHE_NAME = 'dview-cache-v-1784726339130';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1784726339130';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -83,8 +83,10 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 🔧 If it's a local development request, bypass service worker caching completely to enable live hot-reloads
+  // 🔧 Explicitly bypass auth APIs, all /api/ endpoints, and local development requests
   if (
+    url.pathname.startsWith('/api/auth') ||
+    url.pathname.startsWith('/api/') ||
     url.hostname === 'localhost' || 
     url.hostname === '127.0.0.1' || 
     url.hostname.startsWith('192.168.') ||
@@ -92,14 +94,6 @@ self.addEventListener('fetch', (event) => {
     url.port === '5000'
   ) {
     return; // Pass-through directly to the network
-  }
-
-  // Skip non-GET requests or cross-origin (unless specific APIs)
-  if (req.method !== 'GET') return;
-
-  // 모든 /api/ API 요청은 서비스 워커 캐싱을 거치하지 않고 다이렉트 네트워크를 타도록 바이패스 처리
-  if (url.pathname.startsWith('/api/')) {
-    return;
   }
 
   // Static Assets (Next.js build files, images, fonts) -> Cache First, Network Fallback

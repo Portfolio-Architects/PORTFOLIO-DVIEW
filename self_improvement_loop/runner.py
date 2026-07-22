@@ -39,6 +39,8 @@ class TestRunner:
                 [python_executable, self.test_file],
                 capture_output=True,
                 text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=60
             )
             return {

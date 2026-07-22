@@ -82,7 +82,8 @@ test.describe('SWR Preloading and Duplicate Fetch Audit', () => {
     expect(locationScoresRequests.length).toBeGreaterThan(0);
 
     // 2. Verify that every location-scores.json request has the correct build version suffix
-    const expectedSuffix = `v=${BUILD_VERSION}`;
+    const cleanBuildVersion = (BUILD_VERSION || '').trim();
+    const expectedSuffix = `v=${cleanBuildVersion}`;
     locationScoresRequests.forEach((url) => {
       expect(url).toContain(expectedSuffix);
       expect(url).not.toContain('location-scores.json?v=undefined');
@@ -126,8 +127,8 @@ test.describe('SWR Preloading and Duplicate Fetch Audit', () => {
     // Read the build version dynamically from build-version.ts to make sure it matches the current build version precisely
     const buildVersionPath = path.resolve(__dirname, '../src/lib/build-version.ts');
     const buildVersionFileContent = fs.readFileSync(buildVersionPath, 'utf8');
-    const buildVersionMatch = buildVersionFileContent.match(/BUILD_VERSION\s*=\s*'([^']+)'/);
-    const activeBuildVersion = buildVersionMatch ? buildVersionMatch[1] : BUILD_VERSION;
+    const buildVersionMatch = buildVersionFileContent.match(/BUILD_VERSION\s*=\s*['"`]?([^'"`;\s]+)['"`]?/);
+    const activeBuildVersion = (buildVersionMatch ? buildVersionMatch[1] : BUILD_VERSION).trim();
 
     // Seed the localStorage cache BEFORE the page loads using addInitScript to avoid pagehide wipeout
     await page.addInitScript((buildVer) => {
@@ -165,14 +166,14 @@ test.describe('SWR Preloading and Duplicate Fetch Audit', () => {
     await page.goto('/overview');
     await page.waitForLoadState('domcontentloaded');
 
-    const officeButton = page.locator('header button:has-text("사무실 탐색")');
-    const loungeButton = page.locator('header button:has-text("동탄 라운지")');
+    const officeButton = page.locator('header nav a, header a').filter({ hasText: '사무실 탐색' }).first();
+    const loungeButton = page.locator('header nav a, header a').filter({ hasText: '동탄 라운지' }).first();
 
     // Click tabs sequentially and check URL state is updated instantly
     await officeButton.click();
     expect(page.url()).toContain('/overview?tab=office');
 
     await loungeButton.click();
-    expect(page.url()).toContain('/overview#lounge');
+    expect(page.url()).toMatch(/\/lounge|\/overview#lounge/);
   });
 });

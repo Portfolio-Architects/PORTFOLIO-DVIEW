@@ -22,9 +22,9 @@ import {
 } from 'lucide-react';
 
 const LoungeFeedSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 animate-pulse min-h-[400px]">
-    {[1, 2, 3].map(i => (
-      <div key={i} className="w-full h-[110px] bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
+  <div className="w-full flex flex-col gap-4 animate-pulse min-h-[85vh] min-h-[800px]">
+    {[1, 2, 3, 4].map(i => (
+      <div key={i} className="w-full h-[165px] min-h-[165px] bg-body/20 dark:bg-surface/5 rounded-2xl border border-border/40" />
     ))}
   </div>
 );
@@ -312,7 +312,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   }, []);
 
   return (
-    <div className="flex flex-col w-full bg-transparent">
+    <div className="flex flex-col w-full bg-transparent min-h-[85vh] min-h-[800px]">
       {/* Standardized Hero Header */}
       <PageHeroHeader 
         title="D-VIEW 라운지"

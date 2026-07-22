@@ -6,7 +6,7 @@ import { safeReload } from "@/lib/utils/safeReload";
 import { logger } from "@/lib/services/logger";
 import { preloadApartmentModal } from "@/lib/utils/preloadHelpers";
 const InlineLoader = ({ text }: { text: string }) => (
-  <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl p-6 gap-3 backdrop-blur-md">
+  <div className="w-full h-[330px] min-h-[330px] flex flex-col items-center justify-center bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl p-6 gap-3 backdrop-blur-md">
     <div className="relative w-10 h-10 flex items-center justify-center">
       <div className="absolute inset-0 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
       <svg className="w-4 h-4 text-toss-blue animate-pulse" viewBox="0 0 24 24" fill="currentColor">
@@ -749,13 +749,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [preloadApartmentTx]);
 
   const isDefaultAptSettingUp = useMemo(() => {
-    if (!mounted) return true;
-    if (authLoading) return true;
+    if (!mounted) return false;
     if (user && isFavoritesLoading) return true;
     // 유저가 로그인되어 있고 관심단지가 존재하는데, 아직 디폴트 단지 설정이 완료되지 않은 상태
     if (user && userFavorites && userFavorites.size > 0 && !hasSetDefaultApt) return true;
     return false;
-  }, [mounted, authLoading, user, isFavoritesLoading, userFavorites, hasSetDefaultApt]);
+  }, [mounted, user, isFavoritesLoading, userFavorites, hasSetDefaultApt]);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
 
@@ -1483,7 +1482,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const mainYTicks = yTicks;
 
   return (
-    <div className="w-full flex flex-col bg-transparent relative">
+    <div className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px]">
       {macroTrendJsonLd && (
         <script
           type="application/ld+json"
@@ -1505,7 +1504,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         }
         rightSideContent={null}
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full min-h-[85vh] min-h-[800px]">
 
 
 
@@ -1756,7 +1755,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 </div>
 
-                <div className="w-full flex-grow mt-2 sm:mt-0 md:h-[330px] md:min-h-[330px] h-[260px] min-h-[260px] relative">
+                <div className="w-full flex-grow mt-2 sm:mt-0 min-h-[330px] h-[330px] relative">
                   {isDefaultAptSettingUp ? (
                     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                       {/* 백그라운드 블러 글로우 효과 */}

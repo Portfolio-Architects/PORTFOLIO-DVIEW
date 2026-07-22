@@ -4,7 +4,6 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   turbopack: {
-    ...(process.env.VERCEL ? {} : { root: path.resolve(import.meta.dirname, '..') }),
     resolveAlias: {
       '@/lib/firebaseAdmin': {
         browser: './src/lib/firebaseAdmin.client.ts',
@@ -57,17 +56,6 @@ const nextConfig: NextConfig = {
   async headers() {
     const isDev = process.env.NODE_ENV === 'development';
     return [
-      {
-        source: '/_next/static/:path*',
-        headers: [
-          {
-            key: 'Cache-Control',
-            value: isDev 
-              ? 'no-store, no-cache, must-revalidate, max-age=0'
-              : 'public, max-age=31536000, immutable',
-          },
-        ],
-      },
       {
         source: '/:path*\\.(png|jpg|jpeg|svg|gif|webp|ico|woff2|woff)',
         headers: [
