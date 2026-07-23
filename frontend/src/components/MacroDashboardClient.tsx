@@ -1510,16 +1510,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-4 sm:px-5 py-5 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden">
-              <div className="flex justify-between items-center gap-2 mb-4">
-                <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-3.5 sm:px-5 py-4 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-4 border-b sm:border-b-0 border-border/40 pb-3 sm:pb-0">
+                <h2 className="text-[15px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래
                 </h2>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
                   <select
                     value={timelineDongFilter}
                     onChange={(e) => setTimelineDongFilter(e.target.value)}
-                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0"
+                    className="px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0"
                   >
                     <option value="전체">전체 동</option>
                     {availableDongs.map((dong) => (
@@ -1531,7 +1531,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineAptFilter}
                     onChange={(e) => setTimelineAptFilter(e.target.value)}
-                    className="px-2 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[110px] sm:w-[130px] truncate shrink-0"
+                    className="px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[95px] sm:w-[130px] truncate shrink-0"
                   >
                     <option value="전체">전체 단지</option>
                     {availableApts.map((apt) => (

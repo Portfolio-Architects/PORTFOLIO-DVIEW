@@ -451,19 +451,19 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   }, [searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
 
   return (
-    <div className="flex flex-col w-full bg-transparent min-h-[85vh] min-h-[800px]">
+    <div className="flex flex-col w-full max-w-full overflow-x-hidden min-w-0 bg-transparent min-h-[85vh] min-h-[800px]">
       <PageHeroHeader 
         title="D-VIEW 사무실 탐색"
         subtitleStrong="나에게 맞는 지식산업센터 사무실 찾기"
         subtitleLight="공실 정보부터 맞춤형 입주 혜택까지, 동탄 테크노밸리 원스톱 매칭 솔루션"
       />
 
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-8">
+      <div className="w-full max-w-full overflow-x-hidden min-w-0 px-3.5 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
         
         {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
         <CoLeasingBoard />
 
-        <div className="flex w-full bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md md:rounded-[20px] md:border md:border-border/40 md:dark:border-white/10 md:shadow-[0_8px_30px_rgb(0,0,0,0.02)] items-stretch flex-1 min-h-[85vh] min-h-[800px]">
+        <div className="flex w-full max-w-full min-w-0 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md md:rounded-[20px] md:border md:border-border/40 md:dark:border-white/10 md:shadow-[0_8px_30px_rgb(0,0,0,0.02)] items-stretch flex-1 min-h-[85vh] min-h-[800px]">
           
           {/* Sidebar 필터 영역 */}
           <aside 
@@ -557,10 +557,10 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
           />
 
           {/* 메인 리스트 영역 */}
-          <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-[20px]">
+          <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-[20px] max-w-full overflow-hidden">
             
             {/* 상단 검색 / 소팅 바 */}
-            <div className="px-0 py-3 md:py-4 border-b border-border/40 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-transparent">
+            <div className="px-0 py-3 md:py-4 border-b border-border/40 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-transparent min-w-0 max-w-full overflow-hidden">
               <div>
                 <h2 className="text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">지식산업센터 탐색</h2>
                 <p className="text-[12px] text-secondary/80 dark:text-zinc-400 mt-1 leading-relaxed">
@@ -568,7 +568,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center">
+              <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center min-w-0 max-w-full">
                 {/* 검색 인풋 */}
                 <div className="relative w-full sm:w-[220px]">
                   <input
@@ -582,7 +582,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                 </div>
 
                 {/* 정렬 필터 */}
-                <div className="flex gap-1 overflow-x-auto no-scrollbar shrink-0 py-1">
+                <div className="flex gap-1 overflow-x-auto no-scrollbar shrink-0 py-1 max-w-full">
                   {[
                     { id: 'score', label: '종합 점수순' },
                     { id: 'rentPerPy', label: '저렴한 임대료순' },
