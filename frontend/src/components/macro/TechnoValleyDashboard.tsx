@@ -1169,10 +1169,10 @@ export default function TechnoValleyDashboard() {
       <div className="lg:col-span-6 bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between lg:h-[566px] min-h-[460px]">
         
         {/* Chart Header */}
-        <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4 mb-5 pb-4 border-b border-border/40">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-border/40 w-full min-w-0 overflow-hidden">
           {/* Left Panel: Title & Unit Inline */}
-          <div className="flex items-center gap-2 flex-wrap min-w-0">
-            <h3 className="text-[14.5px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 flex-nowrap whitespace-nowrap">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap">
+            <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
               <span className="w-2.5 h-2.5 rounded-full bg-hs-orange shrink-0" />
               <span>{metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}</span>
               {metricMode === 'vacancy' && (
@@ -1188,14 +1188,14 @@ export default function TechnoValleyDashboard() {
           </div>
 
           {/* Right Panel: Sleek unified control bar */}
-          <div className="flex flex-wrap items-center gap-2.5 self-stretch xl:self-auto justify-start xl:justify-end">
+          <div className="flex flex-wrap items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end w-full sm:w-auto">
             {/* Timeframe selector */}
             <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
               {(['6M', 'YTD', '1Y', '3Y', 'ALL'] as const).map(tf => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                  className={`px-1.5 py-0.5 sm:px-2 sm:py-1 text-[9.5px] sm:text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
                     timeframe === tf 
                       ? 'bg-surface text-primary shadow-sm' 
                       : 'text-tertiary hover:text-secondary'
@@ -1206,38 +1206,40 @@ export default function TechnoValleyDashboard() {
               ))}
             </div>
 
-            {/* Metric Mode Selector */}
-            <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
+            <div className="flex items-center gap-2">
+              {/* Metric Mode Selector */}
+              <div className="flex bg-body/80 p-0.5 border border-border/40 rounded-lg shadow-inner">
+                <button
+                  onClick={() => setMetricMode('vacancy')}
+                  className={`px-2 py-0.5 sm:py-1 text-[9.5px] sm:text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                    metricMode === 'vacancy' 
+                      ? 'bg-surface text-primary shadow-sm' 
+                      : 'text-tertiary hover:text-secondary'
+                  }`}
+                >
+                  공실률
+                </button>
+                <button
+                  onClick={() => setMetricMode('rent')}
+                  className={`px-2 py-0.5 sm:py-1 text-[9.5px] sm:text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
+                    metricMode === 'rent' 
+                      ? 'bg-surface text-primary shadow-sm' 
+                      : 'text-tertiary hover:text-secondary'
+                  }`}
+                >
+                  임대료
+                </button>
+              </div>
+
+              {/* Detailed Modal Trigger Button */}
               <button
-                onClick={() => setMetricMode('vacancy')}
-                className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
-                  metricMode === 'vacancy' 
-                    ? 'bg-surface text-primary shadow-sm' 
-                    : 'text-tertiary hover:text-secondary'
-                }`}
+                onClick={() => setShowDetailModal(true)}
+                className="h-[24px] sm:h-[26px] px-2 sm:px-2.5 rounded-lg border border-hs-orange/30 hover:border-hs-orange/50 bg-hs-orange/5 hover:bg-hs-orange/10 text-[9.5px] sm:text-[10px] font-black flex items-center gap-0.5 cursor-pointer transition-all text-hs-orange shadow-sm active:scale-[0.98] shrink-0"
               >
-                공실률
-              </button>
-              <button
-                onClick={() => setMetricMode('rent')}
-                className={`px-2 py-1 text-[10px] font-extrabold rounded-md transition-all cursor-pointer ${
-                  metricMode === 'rent' 
-                    ? 'bg-surface text-primary shadow-sm' 
-                    : 'text-tertiary hover:text-secondary'
-                }`}
-              >
-                임대료
+                <span>상세</span>
+                <ChevronRight className="w-3 h-3" />
               </button>
             </div>
-
-            {/* Detailed Modal Trigger Button */}
-            <button
-              onClick={() => setShowDetailModal(true)}
-              className="h-[26px] px-2.5 rounded-lg border border-hs-orange/30 hover:border-hs-orange/50 bg-hs-orange/5 hover:bg-hs-orange/10 text-[10px] font-black flex items-center gap-1 cursor-pointer transition-all text-hs-orange shadow-sm active:scale-[0.98] shrink-0"
-            >
-              <span>상세보기</span>
-              <ChevronRight className="w-3 h-3" />
-            </button>
           </div>
         </div>
 

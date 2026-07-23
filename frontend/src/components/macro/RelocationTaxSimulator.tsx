@@ -87,9 +87,9 @@ export default function RelocationTaxSimulator() {
       
       {/* Unified Main Header */}
       <div className="flex flex-col gap-1 border-b border-border/40 pb-5">
-        <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-hs-orange animate-pulse" />
-          <h3 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight whitespace-nowrap truncate max-w-[65vw] sm:max-w-none" title="테크노밸리 이전 세금 감면 시뮬레이터">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+          <span className="w-2.5 h-2.5 rounded-full bg-hs-orange animate-pulse shrink-0" />
+          <h3 className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight break-keep" title="테크노밸리 이전 세금 감면 시뮬레이터">
             테크노밸리 이전 세금 감면 시뮬레이터
           </h3>
           <span className="text-[9.5px] font-extrabold text-[#00a37b] dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full select-none shrink-0">
@@ -105,7 +105,7 @@ export default function RelocationTaxSimulator() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:divide-x lg:divide-border/40">
         
         {/* ═══ LEFT COLUMN: Input Form (Step 1) ═══ */}
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-5 min-w-0">
           {/* Step 1 Title */}
           <div className="text-[13px] font-black text-primary flex items-center gap-2 mb-1">
             <span className="w-5 h-5 rounded-full bg-hs-orange/10 text-hs-orange flex items-center justify-center text-[10px] font-black">1</span>
@@ -113,7 +113,7 @@ export default function RelocationTaxSimulator() {
           </div>
  
           {/* Input 1: Location Toggle */}
-          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
+          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm min-w-0">
             <div className="text-[11.5px] font-black text-secondary flex items-center gap-1">
               <span>기존 법인(사업자) 소재지</span>
               <div className="group relative cursor-pointer">
@@ -123,11 +123,11 @@ export default function RelocationTaxSimulator() {
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-2 bg-body/80 p-1 border border-border/40 rounded-xl shadow-inner">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-1 bg-body/80 p-1 border border-border/40 rounded-xl shadow-inner">
               <button
                 type="button"
                 onClick={() => setExistingLocation('overconcentrated')}
-                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all cursor-pointer ${
+                className={`py-2 px-2.5 text-[10.5px] sm:text-[11.5px] font-black rounded-lg transition-all cursor-pointer break-keep text-center ${
                   existingLocation === 'overconcentrated'
                     ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary'
@@ -138,7 +138,7 @@ export default function RelocationTaxSimulator() {
               <button
                 type="button"
                 onClick={() => setExistingLocation('other')}
-                className={`py-2 px-3 text-[11.5px] font-black rounded-lg transition-all cursor-pointer ${
+                className={`py-2 px-2.5 text-[10.5px] sm:text-[11.5px] font-black rounded-lg transition-all cursor-pointer break-keep text-center ${
                   existingLocation === 'other'
                     ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
                     : 'text-tertiary hover:text-secondary'

@@ -1504,15 +1504,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         }
         rightSideContent={null}
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full min-h-[85vh] min-h-[800px]">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full overflow-x-hidden min-w-0 min-h-[85vh] min-h-[800px]">
 
-
-
-        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0 md:h-[870px]">
+        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full">
           {/* Left Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full">
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-4 sm:px-5 py-5 sm:py-6 md:h-full md:min-h-[420px] min-w-0">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-4 sm:px-5 py-5 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden">
               <div className="flex justify-between items-center gap-2 mb-4">
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래

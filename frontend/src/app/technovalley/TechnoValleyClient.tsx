@@ -44,7 +44,7 @@ export default function TechnoValleyClient() {
           bottomContent={undefined}
         />
 
-        <div className="max-w-[2000px] mx-auto w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0">
+        <div className="max-w-[2000px] mx-auto w-full max-w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 overflow-x-hidden min-w-0">
           <TechnoValleyDashboard />
         </div>
       </div>
