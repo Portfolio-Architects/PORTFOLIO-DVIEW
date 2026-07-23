@@ -1512,7 +1512,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 md:h-full min-h-[420px] min-w-0">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-4 sm:px-5 py-5 sm:py-6 md:h-full md:min-h-[420px] min-w-0">
               <div className="flex justify-between items-center gap-2 mb-4">
                 <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래
@@ -1545,7 +1545,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 </div>
               </div>
 
-              <div className="flex-1 overflow-y-auto md:max-h-none max-h-[320px] pr-1 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0">
+              <div className={`flex-1 ${isMobileViewport && !isTimelineExpanded ? "max-h-none overflow-visible" : "max-h-[360px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0`}>
                 {filteredTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     최근 실거래 내역이 없습니다.
@@ -1618,9 +1618,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           {/* Right Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full">
             {/* Right Panel: Interactive Market Feed & Trend */}
-            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 min-h-[420px] min-w-0">
-              <div className="flex-1 flex flex-col min-h-[300px]">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 md:min-h-[420px] min-w-0">
+              <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                   <div className="flex flex-col gap-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 
@@ -1630,7 +1630,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       </h3>
 
                       {isDefaultAptSettingUp ? (
-                        <div className="w-[150px] sm:w-[190px] h-[28px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
+                        <div className="w-[130px] sm:w-[190px] h-[28px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
                       ) : (
                         mounted && (
                           user && userFavorites && userFavorites.size > 0 ? (
@@ -1642,7 +1642,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   const val = e.target.value;
                                   setSelectedTimelineApt(val === "" ? null : val);
                                 }}
-                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
+                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[130px] sm:w-[190px] truncate shrink-0"
                               >
                                 <option value="">전체 추이 보기</option>
                                 {favoritesArray.map((fav) => (
@@ -1699,7 +1699,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                   const val = e.target.value;
                                   setSelectedTimelineApt(val === "" ? null : val);
                                 }}
-                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[150px] sm:w-[190px] truncate shrink-0"
+                                className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[130px] sm:w-[190px] truncate shrink-0"
                               >
                                 {DEFAULT_TIMELINE_APTS.map((apt) => (
                                   <option key={apt} value={apt}>
@@ -1739,12 +1739,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     </div>
                   </div>
 
-                  <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-end sm:self-auto shrink-0">
+                  <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-start sm:self-auto shrink-0 mt-1 sm:mt-0">
                     {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
                       <button
                         key={tf}
                         onClick={() => setTimeframe(tf)}
-                        className={`px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
+                        className={`px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${timeframe === tf
                           ? "bg-surface text-primary shadow-sm"
                           : "text-tertiary hover:text-secondary"
                           }`}
@@ -1755,7 +1755,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 </div>
 
-                <div className="w-full flex-grow mt-2 sm:mt-0 min-h-[330px] h-[330px] relative">
+                <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] md:h-[330px] min-h-[260px] md:min-h-[330px] relative">
                   {isDefaultAptSettingUp ? (
                     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                       {/* 백그라운드 블러 글로우 효과 */}

@@ -245,11 +245,11 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     : {};
 
   if (!mounted) {
-    return <div className="w-full min-h-[330px] h-[330px] bg-transparent" />;
+    return <div className="w-full h-full min-h-[240px] md:min-h-[330px] bg-transparent" />;
   }
 
   return (
-    <div ref={containerRef} className="w-full min-h-[330px] h-[330px] touch-pan-y relative">
+    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative">
       {width > 0 && height > 0 && (
         <AreaChart
           width={width}

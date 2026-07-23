@@ -201,7 +201,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                   <p className="text-[11.5px] text-secondary mt-0.5">매일 유입된 활성 유저(DAU)와 페이지뷰 트렌드</p>
                 </div>
                 <div className="h-64 w-full text-[11px] font-mono">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <AreaChart data={gaData.daily} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <defs>
                         <linearGradient id="colorDau" x1="0" y1="0" x2="0" y2="1">
@@ -232,7 +232,7 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                   <p className="text-[11.5px] text-secondary mt-0.5">월간 순 활성 사용자(MAU) 및 일별 평균(DAU) 추이</p>
                 </div>
                 <div className="h-64 w-full text-[11px] font-mono">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={100} minHeight={100}>
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <ComposedChart data={gaData.monthly} margin={{ top: 10, right: 10, left: -15, bottom: 0 }}>
                       <defs>
                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
