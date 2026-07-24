@@ -393,7 +393,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
       onTouchStart={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-3.5 rounded-xl transition-all border ${
+      className={`flex items-center justify-between p-3.5 rounded-xl transition-all border w-auto max-w-full box-border ${
         isSelected
           ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
@@ -1504,13 +1504,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         }
         rightSideContent={null}
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full overflow-x-hidden min-w-0 min-h-[85vh] min-h-[800px]">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full overflow-x-hidden min-w-0 min-h-[85vh] min-h-[800px] box-border">
 
-        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full">
+        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full box-border">
           {/* Left Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full">
+          <div className="w-auto md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full box-border">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-3.5 sm:px-5 py-4 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-3.5 sm:px-5 py-4 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden w-auto box-border">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-4 border-b sm:border-b-0 border-border/40 pb-3 sm:pb-0">
                 <h2 className="text-[15px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래
@@ -1543,7 +1543,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 </div>
               </div>
 
-              <div className={`flex-1 ${isMobileViewport && !isTimelineExpanded ? "max-h-none overflow-visible" : "max-h-[360px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0`}>
+              <div className={`flex-1 ${isMobileViewport && !isTimelineExpanded ? "max-h-none overflow-visible" : "max-h-[360px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0 w-auto box-border`}>
                 {filteredTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     최근 실거래 내역이 없습니다.
@@ -1557,7 +1557,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       ) : false
                     );
                     return (
-                      <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 border-l-2 border-slate-100 dark:border-slate-800/80">
+                      <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 border-l-2 border-slate-100 dark:border-slate-800/80 w-auto box-border">
                         {/* Timeline Dot */}
                         <div className={`absolute left-[-6.5px] top-1.5 w-3 h-3 rounded-full border-2 border-surface transition-all duration-300 ${
                           isGroupSelected
@@ -1572,7 +1572,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         </h3>
 
                         {/* Items */}
-                        <div className="flex flex-col gap-2.5">
+                        <div className="flex flex-col gap-2.5 w-auto box-border">
                           {group.items.map((item, idx) => (
                             <TimelineItemCard
                               key={`${item.aptName}-${idx}`}
@@ -1614,9 +1614,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right Column Container */}
-          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full">
+          <div className="w-auto md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full box-border">
             {/* Right Panel: Interactive Market Feed & Trend */}
-            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 md:min-h-[420px] min-w-0">
+            <div className="w-auto flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 md:min-h-[420px] min-w-0 box-border">
               <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                   <div className="flex flex-col gap-1 min-w-0">
