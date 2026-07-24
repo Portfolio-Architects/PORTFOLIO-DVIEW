@@ -764,9 +764,9 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const memoizedTabContents = useMemo(() => {
     return (
-      <div className="grid w-full min-h-[85vh] min-h-[800px] relative bg-transparent">
+      <div className="grid w-full min-h-[85vh] min-h-[800px] relative bg-transparent min-w-0 max-w-full">
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
-        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 ${activeTab === 'overview' || activeTab === 'technovalley' ? 'block' : 'hidden'}`}>
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 min-w-0 max-w-full ${activeTab === 'overview' || activeTab === 'technovalley' ? 'block' : 'hidden'}`}>
           {(activeTab === 'overview' || activeTab === 'technovalley' || hasOpenedOverview) && (
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
@@ -797,7 +797,7 @@ const DashboardClient = React.memo(function DashboardClient({
         </section>
 
         {/* ═══ TAB 1-2: 사무실 탐색 ═══ */}
-        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`}>
+        <section className={`w-full max-w-full min-w-0 overflow-x-hidden col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`}>
           {(activeTab === 'office' || hasOpenedOffice) && (
             !mounted ? (
               <OfficeSkeleton />

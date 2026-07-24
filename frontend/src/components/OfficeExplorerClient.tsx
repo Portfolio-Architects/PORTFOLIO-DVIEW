@@ -311,15 +311,15 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
   return (
     <div 
       onClick={() => onSelect(building)}
-      className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:scale-[1.01] rounded-[20px] transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 w-auto max-w-full box-border"
+      className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:scale-[1.01] rounded-[20px] transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 w-full max-w-full box-border min-w-0"
     >
-      <div className="flex items-center gap-2.5 sm:gap-4 flex-1 min-w-0">
+      <div className="flex items-center gap-2.5 sm:gap-4 flex-1 min-w-0 max-w-full">
         <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 text-base sm:text-lg font-black ${building.imgPlaceholder}`}>
           {idx + 1}
         </div>
-        <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
-            <h3 className="text-sm sm:text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate min-w-0 flex-1">{building.name}</h3>
+        <div className="flex flex-col min-w-0 flex-1 max-w-full">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0 max-w-full">
+            <h3 className="text-sm sm:text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate min-w-0 max-w-full">{building.name}</h3>
             <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
               {building.type}
             </span>
@@ -329,10 +329,10 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
               </span>
             )}
           </div>
-          <p className="text-[11.5px] sm:text-[12px] text-secondary/75 dark:text-zinc-400 mt-1.5 leading-relaxed truncate md:max-w-[500px]">
+          <p className="text-[11.5px] sm:text-[12px] text-secondary/75 dark:text-zinc-400 mt-1.5 leading-relaxed truncate md:max-w-[500px] min-w-0 max-w-full">
             {building.desc}
           </p>
-          <div className="flex items-center gap-2 mt-2 text-[10px] sm:text-[10.5px] font-bold text-secondary/60 dark:text-zinc-400">
+          <div className="flex items-center gap-2 mt-2 text-[10px] sm:text-[10.5px] font-bold text-secondary/60 dark:text-zinc-400 min-w-0 max-w-full">
             <span>총 {building.totalUnits.toLocaleString()}호</span>
             <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-zinc-700 shrink-0" />
             <span>공실률 {building.vacancyRate}%</span>
@@ -340,12 +340,12 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
         </div>
       </div>
 
-      <div className="flex md:flex-col items-end justify-between md:justify-center gap-2 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-white/10 border-dashed shrink-0">
+      <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-2 mt-3 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-white/10 border-dashed shrink-0 w-full md:w-auto min-w-0 box-border">
         <div className="flex flex-col items-start md:items-end">
-          <span className="text-[11px] font-bold text-secondary/60 dark:text-zinc-400">평당 임대료</span>
-          <span className="text-sm font-black text-[#ea6100] mt-0.5">{building.rentPerPy}</span>
+          <span className="text-[10.5px] sm:text-[11px] font-bold text-secondary/60 dark:text-zinc-400">평당 임대료</span>
+          <span className="text-xs sm:text-sm font-black text-[#ea6100] mt-0.5">{building.rentPerPy}</span>
         </div>
-        <span className="text-[12px] font-extrabold text-secondary/90 dark:text-zinc-300 bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 dark:border-white/10 group-hover:bg-[#ea6100]/10 group-hover:text-[#ea6100] group-hover:border-[#ea6100]/20 dark:group-hover:bg-[#ea6100]/20 dark:group-hover:border-[#ea6100]/30 transition-all duration-300">
+        <span className="text-[11.5px] sm:text-[12px] font-extrabold text-secondary/90 dark:text-zinc-300 bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 dark:border-white/10 group-hover:bg-[#ea6100]/10 group-hover:text-[#ea6100] group-hover:border-[#ea6100]/20 dark:group-hover:bg-[#ea6100]/20 dark:group-hover:border-[#ea6100]/30 transition-all duration-300 shrink-0">
           상세 정보
         </span>
       </div>
@@ -458,7 +458,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
         subtitleLight="공실 정보부터 맞춤형 입주 혜택까지, 동탄 테크노밸리 원스톱 매칭 솔루션"
       />
 
-      <div className="w-full max-w-full overflow-x-hidden min-w-0 box-border px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
+      <div className="w-full max-w-full overflow-x-hidden min-w-0 box-border px-3 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
         
         {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
         <CoLeasingBoard />
@@ -560,15 +560,15 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
           <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-[20px] max-w-full overflow-hidden">
             
             {/* 상단 검색 / 소팅 바 */}
-            <div className="px-0 py-3 md:py-4 border-b border-border/40 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-transparent min-w-0 max-w-full overflow-hidden">
+            <div className="px-0 py-3 md:py-4 border-b border-border/40 dark:border-white/10 flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-transparent min-w-0 w-full max-w-full overflow-hidden box-border">
               <div>
-                <h2 className="text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">지식산업센터 탐색</h2>
-                <p className="text-[12px] text-secondary/80 dark:text-zinc-400 mt-1 leading-relaxed">
+                <h2 className="text-base sm:text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">지식산업센터 탐색</h2>
+                <p className="text-[11.5px] sm:text-[12px] text-secondary/80 dark:text-zinc-400 mt-1 leading-relaxed">
                   총 <span className="text-[#ea6100] font-extrabold">{filteredBuildings.length}</span>개의 빌딩이 탐색되었습니다.
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center min-w-0 max-w-full">
+              <div className="flex flex-col sm:flex-row gap-2.5 items-stretch sm:items-center min-w-0 max-w-full w-full md:w-auto">
                 {/* 검색 인풋 */}
                 <div className="relative w-full sm:w-[220px]">
                   <input
@@ -582,7 +582,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                 </div>
 
                 {/* 정렬 필터 */}
-                <div className="flex gap-1 overflow-x-auto no-scrollbar shrink-0 py-1 max-w-full">
+                <div className="flex gap-1 overflow-x-auto no-scrollbar py-1 w-full max-w-full min-w-0 box-border">
                   {[
                     { id: 'score', label: '종합 점수순' },
                     { id: 'rentPerPy', label: '저렴한 임대료순' },
@@ -593,7 +593,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                     <button
                       key={opt.id}
                       onClick={() => setSortBy(opt.id as 'score' | 'rentPerPy' | 'station' | 'units' | 'vacancy')}
-                      className={`px-3 py-1.5 rounded-full text-[11.5px] font-extrabold border transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98] duration-200 ${
+                      className={`px-3 py-1.5 rounded-full text-[11px] sm:text-[11.5px] font-extrabold border transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                         sortBy === opt.id
                           ? 'bg-[#c44d00] border-[#c44d00] text-white shadow-sm'
                           : 'bg-body border-border/40 dark:border-white/10 text-secondary/80 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/5'

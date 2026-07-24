@@ -85,9 +85,9 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="h-[156px] sm:h-[144px] min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full max-w-full overflow-x-hidden min-w-0 bg-transparent border-b border-border/60 shrink-0 z-20 relative">
+      <div className="min-h-[140px] sm:min-h-[144px] h-auto flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[18px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full max-w-full overflow-x-hidden min-w-0 bg-transparent border-b border-border/60 shrink-0 z-20 relative">
         <div className="flex items-start justify-between w-full max-w-full min-w-0">
-          <div className="flex flex-col gap-[19px] sm:gap-[23px] w-full">
+          <div className="flex flex-col gap-3 sm:gap-4 w-full min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
@@ -100,7 +100,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
                     className="object-contain p-0.5 sm:p-1"
                   />
                 </div>
-                <TitleTag className="font-extrabold text-primary tracking-tight leading-none whitespace-nowrap text-[22px] sm:text-[30px] lg:text-[36px] min-h-[22px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px]">
+                <TitleTag className="font-extrabold text-primary tracking-tight leading-none text-[20px] sm:text-[30px] lg:text-[36px] min-h-[20px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px] truncate min-w-0 flex-1">
                   {title}
                 </TitleTag>
               </div>
@@ -112,13 +112,13 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
             </div>
 
             {/* Subtitle */}
-            <div className="flex flex-col justify-end mb-0 sm:mb-0">
-              <div className="flex w-full">
-                <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2">
-                  <strong className="text-primary text-[14px] sm:text-[16px] whitespace-nowrap">
+            <div className="flex flex-col justify-end mb-0 sm:mb-0 min-w-0 max-w-full">
+              <div className="flex w-full min-w-0 max-w-full">
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-0.5 sm:gap-2 min-w-0 max-w-full">
+                  <strong className="text-primary text-[12px] sm:text-[16px] leading-snug break-all whitespace-normal min-w-0 max-w-full sm:truncate">
                     {subtitleStrong}
                   </strong>
-                  <div className="text-tertiary font-normal text-[13px] sm:text-[14.5px] leading-snug truncate block w-full max-w-[70vw] sm:max-w-none sm:inline-block mt-0.5 sm:mt-0">
+                  <div className="text-tertiary font-normal text-[10.5px] xs:text-[11px] sm:text-[14.5px] leading-snug break-all whitespace-normal block w-full min-w-0 max-w-full sm:inline-block sm:truncate mt-0.5 sm:mt-0">
                     {typeof subtitleLight === 'string' ? (
                       <>
                         <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>

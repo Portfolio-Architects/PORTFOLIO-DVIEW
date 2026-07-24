@@ -7,7 +7,7 @@
     "uuid": "^11.1.1"
   },
   "scripts": {
-    "dev": "node scripts/update-sw-version.js && next dev -p 5000 --turbo",
+    "dev": "node scripts/update-sw-version.js && next dev -p 5000",
     "build": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build",
     "build:full": "node scripts/update-sw-version.js && npm run sync-all && next build",
     "start": "next start",

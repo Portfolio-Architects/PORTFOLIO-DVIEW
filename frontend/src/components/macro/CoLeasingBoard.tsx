@@ -218,17 +218,17 @@ export default function CoLeasingBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-6 w-auto max-w-full min-w-0 box-border">
-      <div className="flex flex-col gap-6 animate-in fade-in duration-300 w-auto max-w-full min-w-0 box-border">
+    <div className="flex flex-col gap-6 w-full max-w-full min-w-0 box-border">
+      <div className="flex flex-col gap-6 animate-in fade-in duration-300 w-full max-w-full min-w-0 box-border">
       
       {/* ═══ TOP: Co-Leasing KPIs ═══ */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-6 w-auto min-w-0 max-w-full box-border">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 w-full min-w-0 max-w-full box-border">
         
         {/* KPI 1 */}
-        <div className="bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-auto box-border">
+        <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-full box-border">
           <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-            <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold">이번 달 매칭 성사</span>
-            <span className="text-[18px] sm:text-[20px] font-black text-primary tracking-tight">14 건 완료</span>
+            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">이번 달 매칭 성사</span>
+            <span className="text-[16px] sm:text-[20px] font-black text-primary tracking-tight truncate">14 건 완료</span>
           </div>
           <span className="p-2 bg-emerald-500/10 text-[#00a37b] rounded-xl shrink-0">
             <Check size={18} />
@@ -236,10 +236,10 @@ export default function CoLeasingBoard() {
         </div>
 
         {/* KPI 2 */}
-        <div className="bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-auto box-border">
+        <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-full box-border">
           <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-            <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold">평균 공실 해소 기간</span>
-            <span className="text-[18px] sm:text-[20px] font-black text-primary tracking-tight">18.5 일 소요</span>
+            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">평균 공실 해소 기간</span>
+            <span className="text-[16px] sm:text-[20px] font-black text-primary tracking-tight truncate">18.5 일 소요</span>
           </div>
           <span className="p-2 bg-hs-orange/10 text-hs-orange rounded-xl shrink-0">
             <Calendar size={18} />
@@ -247,10 +247,10 @@ export default function CoLeasingBoard() {
         </div>
 
         {/* KPI 3 */}
-        <div className="bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-auto box-border">
+        <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-full box-border">
           <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-            <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold">대기 중인 오피스 파트너</span>
-            <span className="text-[18px] sm:text-[20px] font-black text-primary tracking-tight">42 개기업 / 창업자</span>
+            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">대기 중인 오피스 파트너</span>
+            <span className="text-[16px] sm:text-[20px] font-black text-primary tracking-tight truncate">42 개기업 / 창업자</span>
           </div>
           <span className="p-2 bg-hs-blue/10 text-hs-blue rounded-xl shrink-0">
             <Users size={18} />
@@ -260,18 +260,18 @@ export default function CoLeasingBoard() {
       </div>
 
       {/* ═══ MIDDLE: Filter Controls & Action Button ═══ */}
-      <div className="bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3.5 w-auto min-w-0 max-w-full overflow-hidden box-border">
+      <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 w-full min-w-0 max-w-full overflow-hidden box-border">
         
         {/* Filters */}
-        <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2.5 w-auto md:w-auto min-w-0 box-border">
+        <div className="flex flex-wrap items-center justify-between sm:justify-start gap-2 sm:gap-2.5 w-full md:w-auto min-w-0 box-border">
           
           {/* Building Select */}
-          <div className="flex items-center gap-1 bg-body/80 border border-border/40 rounded-xl px-2 sm:px-2.5 py-1.5 min-w-0 shrink-0">
+          <div className="flex items-center gap-1 bg-body/80 border border-border/40 rounded-xl px-2 sm:px-2.5 py-1.5 min-w-0 max-w-full">
             <Filter size={12} className="text-tertiary shrink-0" />
             <select
               value={selectedBuilding}
               onChange={(e) => setSelectedBuilding(e.target.value)}
-              className="bg-transparent text-[10.5px] sm:text-[11px] font-black text-secondary focus:outline-none border-none cursor-pointer max-w-[120px] sm:max-w-none truncate"
+              className="bg-transparent text-[10.5px] sm:text-[11px] font-black text-secondary focus:outline-none border-none cursor-pointer max-w-[110px] sm:max-w-none truncate"
             >
               {AVAILABLE_BUILDING_OPTIONS.map(b => (
                 <option key={b} value={b} className="bg-surface text-primary">
@@ -282,9 +282,9 @@ export default function CoLeasingBoard() {
           </div>
 
           {/* Max Rent Range */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold">월세 상한선:</span>
-            <span className="text-[10.5px] sm:text-[11.5px] font-extrabold text-hs-orange">{maxRent === 100 ? '전체' : `${maxRent}만 원 이하`}</span>
+          <div className="flex items-center gap-1.5 flex-wrap min-w-0 max-w-full">
+            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold shrink-0">월세 상한선:</span>
+            <span className="text-[10px] sm:text-[11.5px] font-extrabold text-hs-orange shrink-0">{maxRent === 100 ? '전체' : `${maxRent}만 원`}</span>
             <input
               type="range"
               min="20"
@@ -292,7 +292,7 @@ export default function CoLeasingBoard() {
               step="5"
               value={maxRent}
               onChange={(e) => setMaxRent(Number(e.target.value))}
-              className="w-16 sm:w-28 h-1 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
+              className="w-14 sm:w-28 h-1 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
             />
           </div>
 
@@ -301,7 +301,7 @@ export default function CoLeasingBoard() {
         {/* Create Ad Button */}
         <button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center gap-1 px-3.5 py-2.5 bg-hs-orange hover:bg-hs-orange/95 text-white text-[11px] sm:text-[11.5px] font-black rounded-xl cursor-pointer shadow-sm transition-all active:scale-[0.98] w-auto max-w-full box-border md:w-auto justify-center shrink-0"
+          className="flex items-center gap-1 px-3 py-2 sm:px-3.5 sm:py-2.5 bg-hs-orange hover:bg-hs-orange/95 text-white text-[11px] sm:text-[11.5px] font-black rounded-xl cursor-pointer shadow-sm transition-all active:scale-[0.98] w-full sm:w-auto max-w-full box-border justify-center shrink-0"
         >
           <Plus size={14} />
           <span>공동임차 구인 등록</span>
@@ -437,8 +437,8 @@ export default function CoLeasingBoard() {
 
       {/* ═══ DETAIL & APPLY MODAL ═══ */}
       {mounted && activeDetailPost && createPortal(
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-3xl w-full max-w-lg p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4 max-w-full overflow-hidden">
+          <div className="bg-surface border border-border rounded-3xl w-full max-w-lg p-5 sm:p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto box-border">
             {/* Close Button */}
             <button
               onClick={() => {
@@ -593,8 +593,8 @@ export default function CoLeasingBoard() {
 
       {/* ═══ CREATE POST AD MODAL ═══ */}
       {mounted && isCreateModalOpen && createPortal(
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-surface border border-border rounded-3xl w-full max-w-md p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-3 sm:p-4 max-w-full overflow-hidden">
+          <div className="bg-surface border border-border rounded-3xl w-full max-w-md p-5 sm:p-6 shadow-2xl relative animate-in zoom-in-95 duration-200 max-h-[90vh] overflow-y-auto box-border">
             {/* Close Button */}
             <button
               onClick={() => setIsCreateModalOpen(false)}

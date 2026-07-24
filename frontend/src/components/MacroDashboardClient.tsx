@@ -408,7 +408,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
         {/* Left Column: Apt Name & Info */}
         <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
           <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 w-full overflow-hidden">
-            <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 max-w-[85px] xs:max-w-[125px] sm:max-w-none flex-1" title={item.displayAptName || item.aptName}>
+            <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 flex-1" title={item.displayAptName || item.aptName}>
               {item.displayAptName || item.aptName}
             </span>
             {item.type === 'high' && (
@@ -1506,7 +1506,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const mainYTicks = yTicks;
 
   return (
-    <div className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px]">
+    <div className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full">
       {macroTrendJsonLd && (
         <script
           type="application/ld+json"
@@ -1528,13 +1528,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         }
         rightSideContent={null}
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full overflow-x-hidden min-w-0 min-h-[85vh] min-h-[800px] box-border">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-hidden min-w-0 min-h-[85vh] min-h-[800px] box-border">
 
-        <div className="flex flex-col md:flex-row items-start md:items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full box-border">
+        <div className="flex flex-col md:flex-row items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full box-border">
           {/* Left Column Container */}
-          <div className="w-auto md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full box-border">
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full box-border">
             {/* Daily Timeline Card */}
-            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-3.5 sm:px-5 py-4 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden w-auto box-border">
+            <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-3.5 sm:px-5 py-4 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-4 border-b sm:border-b-0 border-border/40 pb-3 sm:pb-0">
                 <h2 className="text-[15px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래
@@ -1543,7 +1543,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineDongFilter}
                     onChange={(e) => setTimelineDongFilter(e.target.value)}
-                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0 min-w-0 max-w-[85px] sm:max-w-none truncate"
+                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0 min-w-0 w-[85px] sm:w-[110px] truncate"
                   >
                     <option value="전체">전체 동</option>
                     {availableDongs.map((dong) => (
@@ -1555,19 +1555,19 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineAptFilter}
                     onChange={(e) => setTimelineAptFilter(e.target.value)}
-                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm flex-1 sm:flex-initial min-w-0 max-w-[95px] sm:max-w-[140px] truncate shrink-0"
+                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm sm:flex-initial min-w-0 w-[95px] sm:w-[140px] truncate shrink-0"
                   >
                     <option value="전체">전체 단지</option>
                     {availableApts.map((apt) => (
                       <option key={apt} value={apt}>
-                        {getDisplayAptName(apt)}
+                        {getDisplayAptName(apt).length > 10 ? getDisplayAptName(apt).substring(0, 10) + "..." : getDisplayAptName(apt)}
                       </option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className={`flex-1 ${isMobileViewport && !isTimelineExpanded ? "max-h-none overflow-visible" : "max-h-[360px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0 w-auto box-border`}>
+              <div className={`flex-1 ${isMobileViewport && !isTimelineExpanded ? "max-h-none overflow-visible" : "max-h-[360px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0 w-full box-border`}>
                 {filteredTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     최근 실거래 내역이 없습니다.
@@ -1581,7 +1581,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       ) : false
                     );
                     return (
-                      <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 border-l-2 border-slate-100 dark:border-slate-800/80 w-auto box-border">
+                      <div key={group.dateStr} className="flex flex-col gap-3 relative pl-5 pr-5 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border">
                         {/* Timeline Dot */}
                         <div className={`absolute left-[-6.5px] top-1.5 w-3 h-3 rounded-full border-2 border-surface transition-all duration-300 ${
                           isGroupSelected
@@ -1596,7 +1596,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         </h3>
 
                         {/* Items */}
-                        <div className="flex flex-col gap-2.5 w-auto box-border">
+                        <div className="flex flex-col gap-2.5 w-full box-border">
                           {group.items.map((item, idx) => (
                             <TimelineItemCard
                               key={`${item.aptName}-${idx}`}
@@ -1638,9 +1638,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right Column Container */}
-          <div className="w-auto md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full box-border">
+          <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full box-border">
             {/* Right Panel: Interactive Market Feed & Trend */}
-            <div className="w-auto flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 md:min-h-[420px] min-w-0 box-border">
+            <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 md:min-h-[420px] min-w-0 box-border">
               <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
                   <div className="flex flex-col gap-1 min-w-0">

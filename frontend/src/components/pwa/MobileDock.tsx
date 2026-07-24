@@ -65,11 +65,11 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
   ];
 
   return (
-    <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-5 pt-2.5 pb-[calc(env(safe-area-inset-bottom)+12px)] flex items-center justify-between border-t border-border/40 transition-all duration-300 ${
+    <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-2.5 pt-2 pb-[calc(env(safe-area-inset-bottom)+10px)] flex items-center justify-between border-t border-border/40 transition-all duration-300 ${
       shouldHide ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
     }`}>
       {/* 5개 탭 */}
-      <div className="flex items-center justify-between flex-1 gap-1">
+      <div className="flex items-center justify-between w-full min-w-0 gap-0.5">
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
           const showDivider = tab.id === 'office' || tab.id === 'lounge';
@@ -97,7 +97,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                   } catch (err) {}
                 }
               }}
-              className={`group flex flex-col items-center justify-center w-full min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
+              className={`group flex flex-1 min-w-0 flex-col items-center justify-center min-h-[48px] rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.94] will-change-transform select-none touch-manipulation relative ${
                 isActive ? activeTextColor : 'text-tertiary hover:text-secondary'
               }`}
             >
@@ -105,7 +105,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                  <div className={`absolute inset-0 rounded-[18px] transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] animate-in zoom-in-95 ${activeBgClass}`} />
               )}
               <tab.icon size={19} strokeWidth={isActive ? 2.5 : 2} className={`mb-0.5 relative z-10 transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${isActive ? 'scale-110' : 'group-hover:scale-105'}`} />
-              <span className="text-[11px] font-bold tracking-tight relative z-10">{tab.label}</span>
+              <span className="text-[10.5px] font-bold tracking-tight relative z-10 whitespace-nowrap">{tab.label}</span>
             </Link>
           );
 
@@ -113,7 +113,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             <React.Fragment key={tab.id}>
               {tabElement}
               {showDivider && (
-                <div className="w-[1px] h-5 bg-border/40 mx-0.5 shrink-0 self-center" aria-hidden="true" />
+                <div className="w-[1px] h-4 bg-border/40 mx-0.5 shrink-0 self-center" aria-hidden="true" />
               )}
             </React.Fragment>
           );
