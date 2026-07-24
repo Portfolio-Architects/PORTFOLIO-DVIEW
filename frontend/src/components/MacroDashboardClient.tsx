@@ -432,7 +432,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
         </div>
 
         {/* Right Column: Price & Change Badges */}
-        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-1.5 sm:ml-2">
+        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-1 sm:ml-2 min-w-0">
           {/* Price and flow */}
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
@@ -443,30 +443,54 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
                 <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
               </>
             )}
-            <span className={`text-xs sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
+            <span className={`text-[12.5px] sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
               isRising
                 ? "text-rose-500 dark:text-rose-400"
                 : isFalling
                   ? "text-slate-500 dark:text-slate-400"
                   : "text-primary"
             }`}>
-              {item.priceEok}
+              {/* 모바일 370px 해상도 최적화: 21억 6,000만 -> 21.6억 */}
+              <span className="inline sm:hidden">
+                {item.priceEok ? item.priceEok.replace(/억\s*([0-9,]+)만?/, (_, m) => {
+                  const num = parseInt(m.replace(/,/g, ''), 10);
+                  return num > 0 ? `.${Math.floor(num / 1000)}억` : '억';
+                }) : item.priceEok}
+              </span>
+              <span className="hidden sm:inline">
+                {item.priceEok}
+              </span>
             </span>
           </div>
 
           {/* Delta Badge */}
-          <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
+          <span className={`text-[9px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
             isRising
               ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
               : isFalling
                 ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
                 : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
           }`}>
-            {isRising 
-              ? `▲ ${formatDeltaPrice(item.delta)}` 
-              : isFalling 
-                ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
-                : '보합'}
+            <span className="inline sm:hidden">
+              {isRising 
+                ? `▲ ${formatDeltaPrice(item.delta).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
+                    const num = parseInt(m.replace(/,/g, ''), 10);
+                    return num > 0 ? `.${Math.floor(num / 1000)}억` : '억';
+                  })}`
+                : isFalling
+                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta)).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
+                      const num = parseInt(m.replace(/,/g, ''), 10);
+                      return num > 0 ? `.${Math.floor(num / 1000)}억` : '억';
+                    })}`
+                  : "보합"}
+            </span>
+            <span className="hidden sm:inline">
+              {isRising 
+                ? `▲ ${formatDeltaPrice(item.delta)}` 
+                : isFalling 
+                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
+                  : "보합"}
+            </span>
           </span>
         </div>
       </button>
