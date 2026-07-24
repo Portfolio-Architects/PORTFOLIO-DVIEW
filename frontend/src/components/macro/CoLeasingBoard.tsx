@@ -218,8 +218,8 @@ export default function CoLeasingBoard() {
   };
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col gap-6 animate-in fade-in duration-300">
+    <div className="flex flex-col gap-6 w-full max-w-full min-w-0 box-border">
+      <div className="flex flex-col gap-6 animate-in fade-in duration-300 w-full max-w-full min-w-0 box-border">
       
       {/* ═══ TOP: Co-Leasing KPIs ═══ */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-6 w-full min-w-0 max-w-full">
