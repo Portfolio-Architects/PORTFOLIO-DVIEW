@@ -318,8 +318,8 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
           {idx + 1}
         </div>
         <div className="flex flex-col min-w-0">
-          <div className="flex items-center gap-2">
-            <h3 className="text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate">{building.name}</h3>
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
+            <h3 className="text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate max-w-full">{building.name}</h3>
             <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
               {building.type}
             </span>

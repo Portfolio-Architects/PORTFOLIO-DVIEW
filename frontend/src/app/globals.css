@@ -157,9 +157,14 @@
     min-height: 100vh;
     overflow-x: hidden;
     overscroll-behavior-y: none;
-    scrollbar-gutter: stable;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+  }
+
+  @media (min-width: 768px) {
+    body {
+      scrollbar-gutter: stable;
+    }
   }
 
   button, a, [role="button"], summary, select {
