@@ -313,26 +313,26 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
       onClick={() => onSelect(building)}
       className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:scale-[1.01] rounded-[20px] transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300"
     >
-      <div className="flex items-center gap-4 flex-1 min-w-0">
-        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-black ${building.imgPlaceholder}`}>
+      <div className="flex items-center gap-2.5 sm:gap-4 flex-1 min-w-0">
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 text-base sm:text-lg font-black ${building.imgPlaceholder}`}>
           {idx + 1}
         </div>
-        <div className="flex flex-col min-w-0">
+        <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
-            <h3 className="text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate max-w-full">{building.name}</h3>
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
+            <h3 className="text-sm sm:text-base font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal truncate min-w-0 flex-1">{building.name}</h3>
+            <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
               {building.type}
             </span>
             {building.driveIn && (
-              <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+              <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
                 드라이브인
               </span>
             )}
           </div>
-          <p className="text-[12px] text-secondary/75 dark:text-zinc-400 mt-1.5 leading-relaxed truncate md:max-w-[500px]">
+          <p className="text-[11.5px] sm:text-[12px] text-secondary/75 dark:text-zinc-400 mt-1.5 leading-relaxed truncate md:max-w-[500px]">
             {building.desc}
           </p>
-          <div className="flex items-center gap-2 mt-2 text-[10.5px] font-bold text-secondary/60 dark:text-zinc-400">
+          <div className="flex items-center gap-2 mt-2 text-[10px] sm:text-[10.5px] font-bold text-secondary/60 dark:text-zinc-400">
             <span>총 {building.totalUnits.toLocaleString()}호</span>
             <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-zinc-700 shrink-0" />
             <span>공실률 {building.vacancyRate}%</span>
@@ -458,7 +458,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
         subtitleLight="공실 정보부터 맞춤형 입주 혜택까지, 동탄 테크노밸리 원스톱 매칭 솔루션"
       />
 
-      <div className="w-full max-w-full overflow-x-hidden min-w-0 box-border px-3.5 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
+      <div className="w-full max-w-full overflow-x-hidden min-w-0 box-border px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
         
         {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
         <CoLeasingBoard />

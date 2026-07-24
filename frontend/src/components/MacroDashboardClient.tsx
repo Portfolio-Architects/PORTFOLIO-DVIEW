@@ -406,44 +406,44 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
         className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-1 bg-transparent border-none min-w-0 cursor-pointer"
       >
         {/* Left Column: Apt Name & Info */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-[13px] sm:text-[14px] font-extrabold text-primary break-keep group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate" title={item.displayAptName || item.aptName}>
+        <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 w-full">
+            <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 flex-1" title={item.displayAptName || item.aptName}>
               {item.displayAptName || item.aptName}
             </span>
             {item.type === 'high' && (
-              <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+              <span className="text-[8.5px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
               </span>
             )}
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden">
-            <span>{item.dong}</span>
-            <span className="opacity-30 font-normal">•</span>
-            <span>
+          <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden min-w-0">
+            <span className="truncate">{item.dong}</span>
+            <span className="opacity-30 font-normal shrink-0">•</span>
+            <span className="shrink-0">
               {areaUnit === 'm2'
                 ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
                 : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
             </span>
-            <span className="opacity-30 font-normal">•</span>
-            <span>{item.floor}층</span>
+            <span className="opacity-30 font-normal shrink-0">•</span>
+            <span className="shrink-0">{item.floor}층</span>
           </div>
         </div>
 
         {/* Right Column: Price & Change Badges */}
-        <div className="flex flex-col items-end gap-1 shrink-0 ml-1 sm:ml-2">
+        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-1.5 sm:ml-2">
           {/* Price and flow */}
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
               <>
-                <span className="text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
+                <span className="text-[10px] sm:text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
                   {formatEokWithUnit(item.prevPriceVal * 10000).value}
                 </span>
                 <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
               </>
             )}
-            <span className={`text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
+            <span className={`text-xs sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
               isRising
                 ? "text-rose-500 dark:text-rose-400"
                 : isFalling
@@ -1515,11 +1515,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 <h2 className="text-[15px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                   일자별 최근 실거래
                 </h2>
-                <div className="flex items-center gap-1.5 w-full sm:w-auto justify-end shrink-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 w-full sm:w-auto justify-end shrink-0 min-w-0">
                   <select
                     value={timelineDongFilter}
                     onChange={(e) => setTimelineDongFilter(e.target.value)}
-                    className="px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0"
+                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0 min-w-0 max-w-[85px] sm:max-w-none truncate"
                   >
                     <option value="전체">전체 동</option>
                     {availableDongs.map((dong) => (
@@ -1531,7 +1531,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineAptFilter}
                     onChange={(e) => setTimelineAptFilter(e.target.value)}
-                    className="px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[95px] sm:w-[130px] truncate shrink-0"
+                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm flex-1 sm:flex-initial min-w-0 max-w-[95px] sm:max-w-[140px] truncate shrink-0"
                   >
                     <option value="전체">전체 단지</option>
                     {availableApts.map((apt) => (
