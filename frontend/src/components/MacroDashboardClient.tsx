@@ -393,33 +393,33 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
       onTouchStart={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-3.5 rounded-xl transition-all border w-auto max-w-full box-border ${
+      className={`flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl transition-all border w-auto max-w-full box-border ${
         isSelected
           ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
-      } group gap-4`}
+      } group gap-1.5 sm:gap-3`}
     >
       <button
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-1 bg-transparent border-none min-w-0 cursor-pointer"
+        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-1 sm:gap-2"
       >
         {/* Left Column: Apt Name & Info */}
         <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
-          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 w-full">
-            <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 flex-1" title={item.displayAptName || item.aptName}>
+          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 w-full overflow-hidden">
+            <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 max-w-[85px] xs:max-w-[125px] sm:max-w-none flex-1" title={item.displayAptName || item.aptName}>
               {item.displayAptName || item.aptName}
             </span>
             {item.type === 'high' && (
-              <span className="text-[8.5px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+              <span className="text-[8px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
               </span>
             )}
           </div>
           
-          <div className="flex items-center gap-1 sm:gap-1.5 text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden min-w-0">
-            <span className="truncate">{item.dong}</span>
+          <div className="flex items-center gap-0.5 sm:gap-1.5 text-[9.5px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden min-w-0">
+            <span className="truncate max-w-[45px] sm:max-w-none">{item.dong}</span>
             <span className="opacity-30 font-normal shrink-0">•</span>
             <span className="shrink-0">
               {areaUnit === 'm2'
@@ -432,7 +432,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
         </div>
 
         {/* Right Column: Price & Change Badges */}
-        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-1 sm:ml-2 min-w-0">
+        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-0.5 sm:ml-2 min-w-0">
           {/* Price and flow */}
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
