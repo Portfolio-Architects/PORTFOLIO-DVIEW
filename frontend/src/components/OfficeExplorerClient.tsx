@@ -311,7 +311,7 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
   return (
     <div 
       onClick={() => onSelect(building)}
-      className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:scale-[1.01] rounded-[20px] transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300"
+      className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:shadow-[0_12px_30px_rgba(0,0,0,0.04)] hover:scale-[1.01] rounded-[20px] transition-all duration-300 cursor-pointer shadow-sm relative overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-300 w-auto max-w-full box-border"
     >
       <div className="flex items-center gap-2.5 sm:gap-4 flex-1 min-w-0">
         <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center shrink-0 text-base sm:text-lg font-black ${building.imgPlaceholder}`}>
