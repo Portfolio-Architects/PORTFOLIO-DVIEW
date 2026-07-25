@@ -496,13 +496,13 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         disabled={mobileModalOpen || !!selectedReport}
       >
         <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
-          <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden animate-in fade-in duration-500">
+          <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-clip animate-in fade-in duration-500">
             <div className={mobileModalOpen ? "invisible" : ""}>
               <section className="w-full bg-transparent">
                 <PageHeroHeader 
                   title="D-VIEW 아파트 탐색"
-                  subtitleStrong="나에게 딱 맞는 동탄 아파트 찾기"
-                  subtitleLight="원하는 동네의 시세부터 실거래 추이, 관심도까지 직관적인 지표로 비교해 드립니다"
+                  subtitleStrong="동탄 아파트 조건별 맞춤 탐색"
+                  subtitleLight="입지 점수·학군·동탄역 접근성 기준 조건 비교"
                 />
                 <TossApartmentExploreClient
                   sheetApartments={sheetApartments}

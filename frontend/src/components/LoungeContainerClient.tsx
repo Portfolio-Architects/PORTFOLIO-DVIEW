@@ -316,7 +316,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
       {/* Standardized Hero Header */}
       <PageHeroHeader 
         title="D-VIEW 라운지"
-        subtitleStrong="이웃과 함께 나누는 동탄 생생 정보"
+        subtitleStrong="동탄 주민 실시간 커뮤니티"
         subtitleLight={
           <span className="flex items-center gap-1 flex-wrap">
             <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>

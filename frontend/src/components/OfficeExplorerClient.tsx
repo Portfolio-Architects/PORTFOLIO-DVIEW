@@ -451,14 +451,14 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   }, [searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
 
   return (
-    <div className="flex flex-col w-full max-w-full overflow-x-hidden min-w-0 box-border bg-transparent min-h-[85vh] min-h-[800px]">
+    <div className="flex flex-col w-full max-w-full overflow-x-clip min-w-0 box-border bg-transparent min-h-[85vh] min-h-[800px]">
       <PageHeroHeader 
         title="D-VIEW 사무실 탐색"
-        subtitleStrong="나에게 맞는 지식산업센터 사무실 찾기"
-        subtitleLight="공실 정보부터 맞춤형 입주 혜택까지, 동탄 테크노밸리 원스톱 매칭 솔루션"
+        subtitleStrong="지식산업센터 맞춤 사무실 탐색"
+        subtitleLight="공실 현황 데이터 및 입주 혜택 원스톱 매칭"
       />
 
-      <div className="w-full max-w-full overflow-x-hidden min-w-0 box-border px-3 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
+      <div className="w-full max-w-full overflow-x-clip min-w-0 box-border px-3 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">
         
         {/* 소형 오피스 공동임차 매칭 보드 상단 배치 */}
         <CoLeasingBoard />

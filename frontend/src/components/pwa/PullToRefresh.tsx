@@ -26,6 +26,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
   const [isRefreshing, setIsRefreshing] = useState(false);
   
   const startY = useRef<number | null>(null);
+  const startX = useRef<number | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const progressRef = useRef<number>(0);
   const isRefreshingRef = useRef<boolean>(false);
@@ -62,9 +63,13 @@ const PullToRefresh = React.memo(function PullToRefresh({
     const getScrollTop = () => {
       if (scrollContainerId) {
         const el = document.getElementById(scrollContainerId);
-        if (el) return el.scrollTop;
+        if (el) {
+          const style = window.getComputedStyle(el);
+          const isScrollable = (style.overflowY === 'auto' || style.overflowY === 'scroll') && el.scrollHeight > el.clientHeight;
+          if (isScrollable) return el.scrollTop;
+        }
       }
-      return window.scrollY;
+      return window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
     };
 
     const isInsideScrollable = (target: HTMLElement | null): boolean => {
@@ -91,23 +96,25 @@ const PullToRefresh = React.memo(function PullToRefresh({
       if (getScrollTop() > 0) return;
       if (isInsideScrollable(e.target as HTMLElement)) return;
       startY.current = e.touches[0].clientY;
+      startX.current = e.touches[0].clientX;
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-      if (disabled || startY.current === null || isRefreshingRef.current) return;
+      if (disabled || startY.current === null || startX.current === null || isRefreshingRef.current) return;
       
       const y = e.touches[0].clientY;
+      const x = e.touches[0].clientX;
       const deltaY = y - startY.current;
+      const deltaX = x - startX.current;
 
-      if (deltaY > 0 && getScrollTop() === 0) {
-        // We are pulling down
-        setIsPulling(true);
-        // Add some resistance
+      // Only trigger pull-to-refresh state when at the top limit with dominant vertical pull down
+      if (deltaY > 15 && Math.abs(deltaY) > Math.abs(deltaX) * 1.8 && getScrollTop() <= 0) {
         const progress = Math.min((deltaY / pullThreshold) * 100, 150);
         setPullProgress(progress);
+        setIsPulling(true);
         
-        // Prevent default browser scroll/refresh behavior
-        if (e.cancelable) {
+        // Prevent browser native refresh bounce ONLY when user has pulled PTR past 60% threshold
+        if (progress > 60 && e.cancelable) {
           try {
             e.preventDefault();
           } catch (err) {
@@ -146,6 +153,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
             setPullProgress(0);
           }
           startY.current = null;
+          startX.current = null;
         }
       } else {
         if (mountedRef.current) {
@@ -153,6 +161,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
           setPullProgress(0);
         }
         startY.current = null;
+        startX.current = null;
       }
     };
 
@@ -161,6 +170,7 @@ const PullToRefresh = React.memo(function PullToRefresh({
       setIsPulling(false);
       setPullProgress(0);
       startY.current = null;
+      startX.current = null;
     };
 
     if (element) {
@@ -184,32 +194,34 @@ const PullToRefresh = React.memo(function PullToRefresh({
   }, [disabled, scrollContainerId, pullThreshold, router]);
 
   return (
-    <div ref={contentRef} className="min-h-screen">
+    <div ref={contentRef} className="min-h-screen touch-pan-x touch-pan-y">
       {/* PTR Indicator */}
-      <div 
-        className="fixed top-0 left-0 right-0 flex justify-center z-50 pointer-events-none transition-transform duration-200 ease-out will-change-transform"
-        style={{
-          transform: `translateY(${Math.min(pullProgress * 0.6 - 40, 20)}px)`,
-          opacity: Math.min(pullProgress / 100, 1),
-        }}
-      >
-        <div className="bg-surface rounded-full p-2.5 shadow-md flex items-center justify-center">
-          <RefreshCw 
-            size={20} 
-            className={`text-emerald-500 transition-transform ${isRefreshing ? 'animate-spin' : ''}`}
-            style={{
-              transform: isRefreshing ? 'none' : `rotate(${pullProgress * 3.6}deg)`
-            }}
-          />
+      {(isPulling || isRefreshing) && (
+        <div 
+          className="fixed top-0 left-0 right-0 flex justify-center z-50 pointer-events-none transition-all duration-200 ease-out"
+          style={{
+            transform: `translateY(${Math.min(pullProgress * 0.6 - 40, 20)}px)`,
+            opacity: Math.min(pullProgress / 100, 1),
+          }}
+        >
+          <div className="bg-surface rounded-full p-2.5 shadow-md flex items-center justify-center">
+            <RefreshCw 
+              size={20} 
+              className={`text-emerald-500 transition-transform ${isRefreshing ? 'animate-spin' : ''}`}
+              style={{
+                transform: isRefreshing ? 'none' : `rotate(${pullProgress * 3.6}deg)`
+              }}
+            />
+          </div>
         </div>
-      </div>
+      )}
       
-      {/* Content wrapper. Moves down slightly when pulled */}
+      {/* Content wrapper. Only applies transform when actively pulling or refreshing */}
       <div 
-        className="transition-transform duration-200 ease-out will-change-transform"
-        style={{
-          transform: isPulling || isRefreshing ? `translateY(${Math.min(pullProgress * 0.4, 40)}px)` : 'none',
-        }}
+        className={isPulling || isRefreshing ? "transition-transform duration-200 ease-out" : ""}
+        style={isPulling || isRefreshing ? {
+          transform: `translateY(${Math.min(pullProgress * 0.4, 40)}px)`,
+        } : undefined}
       >
         {children}
       </div>

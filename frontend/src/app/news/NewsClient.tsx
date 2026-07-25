@@ -363,8 +363,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
       <div className="w-full flex flex-col bg-transparent pb-16 min-h-screen">
         <PageHeroHeader
           title="D-VIEW 동탄 소식"
-          subtitleStrong="동탄 소식 가장 빠르게 받아보기"
-          subtitleLight="실시간 부동산 뉴스부터 화성시와 동탄구청의 주요 행정 고시공고까지 모아 드립니다"
+          subtitleStrong="동탄 시정·부동산 뉴스 수집"
+          subtitleLight="화성시 고시공고 및 지역 주요 뉴스 브리핑"
         />
 
         <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 mt-6 w-full max-w-[1400px] mx-auto">

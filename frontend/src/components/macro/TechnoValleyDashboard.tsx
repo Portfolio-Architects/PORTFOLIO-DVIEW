@@ -1283,7 +1283,7 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* Line Chart Area */}
-        <div className="flex-1 w-full relative min-h-[290px]">
+        <div className="flex-1 w-full relative min-h-[290px] h-[320px]">
           {(isTrendLoading || isTrendValidating) && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/50 backdrop-blur-[2px] transition-all duration-300 rounded-xl">
               <div className="flex flex-col items-center gap-3">

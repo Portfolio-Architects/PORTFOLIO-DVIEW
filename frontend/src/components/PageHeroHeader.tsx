@@ -85,7 +85,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="min-h-[140px] sm:min-h-[144px] h-auto flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[18px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full max-w-full overflow-x-hidden min-w-0 bg-transparent border-b border-border/60 shrink-0 z-20 relative">
+      <div className="min-h-[140px] sm:min-h-[144px] h-auto flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-border/60 shrink-0 z-20 relative">
         <div className="flex items-start justify-between w-full max-w-full min-w-0">
           <div className="flex flex-col gap-3 sm:gap-4 w-full min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -107,18 +107,18 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
               {rightContent}
             </div>
             
-            <div className="md:hidden flex items-center justify-end absolute right-4 top-[34px]">
+            <div className="md:hidden flex items-center justify-end absolute right-4 top-[28px]">
               <FloatingUserBar />
             </div>
 
             {/* Subtitle */}
             <div className="flex flex-col justify-end mb-0 sm:mb-0 min-w-0 max-w-full">
               <div className="flex w-full min-w-0 max-w-full">
-                <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-0.5 sm:gap-2 min-w-0 max-w-full">
-                  <strong className="text-primary text-[12px] sm:text-[16px] leading-snug break-all whitespace-normal min-w-0 max-w-full sm:truncate">
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2 min-w-0 max-w-full">
+                  <strong className="text-primary text-[13px] sm:text-[15px] font-extrabold leading-snug break-keep sm:whitespace-nowrap shrink-0">
                     {subtitleStrong}
                   </strong>
-                  <div className="text-tertiary font-normal text-[10.5px] xs:text-[11px] sm:text-[14.5px] leading-snug break-all whitespace-normal block w-full min-w-0 max-w-full sm:inline-block sm:truncate mt-0.5 sm:mt-0">
+                  <div className="text-tertiary font-medium text-[13px] sm:text-[15px] leading-snug break-keep whitespace-normal min-w-0 shrink sm:shrink-0 mt-0.5 sm:mt-0">
                     {typeof subtitleLight === 'string' ? (
                       <>
                         <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>

@@ -161,9 +161,12 @@ function useResizeObserver(delay = 150) {
       }
 
       if (!entries || !entries.length) return;
-      const { width, height } = entries[0].contentRect;
-      
-      // 2px 이하 미세 변화는 리사이즈 무시하여 불필요한 차트 리렌더 억제
+      const rawW = entries[0].contentRect.width;
+      const rawH = entries[0].contentRect.height;
+      const width = Math.max(0, Math.floor(rawW));
+      const height = Math.max(0, Math.floor(rawH));
+
+      // Skip minuscule updates <= 2px to prevent chart re-render thrashing
       const diffW = Math.abs(width - sizeRef.current.width);
       const diffH = Math.abs(height - sizeRef.current.height);
       if (sizeRef.current.width > 0 && sizeRef.current.height > 0 && diffW <= 2 && diffH <= 2) {

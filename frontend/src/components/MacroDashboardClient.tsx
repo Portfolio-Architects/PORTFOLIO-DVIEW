@@ -1518,32 +1518,32 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         compactTitle="D-VIEW 아파트 랩"
         subtitleStrong={
           <>
-            살기 좋은 <span className="text-[#ea6100] font-extrabold px-0.5">동탄 아파트</span>, 한눈에 분석하고 안심 거래 하세요
+            동탄 아파트 <span className="text-[#ea6100] font-extrabold px-0.5">실거래가·인프라</span> 종합 분석
           </>
         }
-        subtitleLight="생활 밀착형 인프라(돌봄·교통) 정보와 전세 사기 예방을 위한 실거래 가치 리포트"
+        subtitleLight="돌봄·교통 지수 분석 및 안심 거래 가치 리포트 제공"
         rightContent={
           <div className="hidden sm:flex items-center gap-2">
           </div>
         }
         rightSideContent={null}
       />
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-hidden min-w-0 min-h-[85vh] min-h-[800px] box-border">
+      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
 
         <div className="flex flex-col md:flex-row items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full box-border">
           {/* Left Column Container */}
           <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 md:h-full max-w-full box-border">
             {/* Daily Timeline Card */}
             <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-3.5 sm:px-5 py-4 sm:py-6 md:h-full md:min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2.5 mb-4 border-b sm:border-b-0 border-border/40 pb-3 sm:pb-0">
-                <h2 className="text-[15px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
+              <div className="flex flex-row items-center justify-between gap-1.5 sm:gap-2.5 mb-3.5 sm:mb-4 w-full">
+                <h2 className="text-[13.5px] xs:text-[14.5px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap shrink-0">
                   일자별 최근 실거래
                 </h2>
-                <div className="flex items-center gap-1 sm:gap-1.5 w-full sm:w-auto justify-end shrink-0 min-w-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 shrink-0 min-w-0">
                   <select
                     value={timelineDongFilter}
                     onChange={(e) => setTimelineDongFilter(e.target.value)}
-                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0 min-w-0 w-[85px] sm:w-[110px] truncate"
+                    className="px-1 sm:px-2 h-[25px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0 min-w-0 w-[72px] xs:w-[80px] sm:w-[110px] truncate"
                   >
                     <option value="전체">전체 동</option>
                     {availableDongs.map((dong) => (
@@ -1555,7 +1555,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   <select
                     value={timelineAptFilter}
                     onChange={(e) => setTimelineAptFilter(e.target.value)}
-                    className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm sm:flex-initial min-w-0 w-[95px] sm:w-[140px] truncate shrink-0"
+                    className="px-1 sm:px-2 h-[25px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm shrink-0 min-w-0 w-[80px] xs:w-[92px] sm:w-[140px] truncate"
                   >
                     <option value="전체">전체 단지</option>
                     {availableApts.map((apt) => (

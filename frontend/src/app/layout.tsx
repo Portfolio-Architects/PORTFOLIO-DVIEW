@@ -124,7 +124,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-hidden aurora-bg">
+      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 overflow-x-clip overflow-y-auto aurora-bg">
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 
