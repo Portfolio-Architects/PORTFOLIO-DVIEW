@@ -163,8 +163,12 @@ function useResizeObserver(delay = 150) {
       if (!entries || !entries.length) return;
       const rawW = entries[0].contentRect.width;
       const rawH = entries[0].contentRect.height;
-      const width = Math.max(0, Math.floor(rawW));
-      const height = Math.max(0, Math.floor(rawH));
+
+      // Layout recalculation or initial hidden frame: ignore zero dimensions to prevent chart unmounting lock
+      if (rawW <= 0 || rawH <= 0) return;
+
+      const width = Math.floor(rawW);
+      const height = Math.floor(rawH);
 
       // Skip minuscule updates <= 2px to prevent chart re-render thrashing
       const diffW = Math.abs(width - sizeRef.current.width);

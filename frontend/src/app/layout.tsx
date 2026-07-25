@@ -86,8 +86,13 @@ export const metadata: Metadata = {
     images: ['https://dongtanview.com/api/og?title=D-VIEW&subtitle=동탄 아파트 가치분석 및 임장 리포트'],
   },
   icons: {
-    icon: '/icon-192x192.png',
-    apple: '/icon-192x192.png'
+    icon: [
+      { url: '/icon-192x192.png?v=10', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.ico?v=10', sizes: 'any' }
+    ],
+    apple: [
+      { url: '/icon-192x192.png?v=10', sizes: '192x192', type: 'image/png' }
+    ]
   },
   manifest: '/manifest.webmanifest?v=10',
   appleWebApp: {

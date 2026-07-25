@@ -1065,8 +1065,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const selectedAptSummary = useMemo(() => {
     if (!selectedTimelineApt || !txSummaryData) return null;
-    const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping);
-    return txKey ? txSummaryData[txKey] : null;
+    const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
+    if (txSummaryData[txKey]) return txSummaryData[txKey];
+    const normKey = normalizeAptName(txKey);
+    if (txSummaryData[normKey]) return txSummaryData[normKey];
+    const matchedKey = Object.keys(txSummaryData).find(k => normalizeAptName(k) === normKey);
+    return matchedKey ? txSummaryData[matchedKey] : null;
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   const selectedAptChartData = useMemo(() => {
@@ -1480,6 +1484,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       if (sale > maxVal) maxVal = sale;
       if (rent > maxVal) maxVal = rent;
     });
+
+    if (maxVal <= 0) return [0, 2, 4, 6, 8];
 
     let step = 2;
     if (maxVal <= 5) {
