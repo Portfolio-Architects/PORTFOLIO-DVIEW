@@ -257,8 +257,8 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   }
 
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative">
-      <ResponsiveContainer width="100%" height="100%">
+    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative overflow-hidden">
+      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={isBottomSheet ? 220 : 300}>
         <AreaChart
           data={processedData}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}

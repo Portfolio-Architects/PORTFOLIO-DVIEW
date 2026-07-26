@@ -1818,7 +1818,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 </div>
 
-                <div className="w-full flex-grow mt-2 sm:mt-0 h-[260px] md:h-[330px] min-h-[260px] md:min-h-[330px] relative">
+                <div className="w-full h-[260px] md:h-[330px] min-h-[260px] md:min-h-[330px] relative shrink-0 overflow-hidden mt-2 sm:mt-0">
                   {isDefaultAptSettingUp ? (
                     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                       {/* 백그라운드 블러 글로우 효과 */}
