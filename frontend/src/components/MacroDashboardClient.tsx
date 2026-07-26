@@ -555,9 +555,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
       DEFAULT_TIMELINE_APTS.forEach((apt) => {
         if (signal.aborted) return;
-        const resolved = findTxKey(apt, summaryMap, nameMapping) || apt;
-        if (!resolved) return;
+        const normalizedName = normalizeAptName(apt);
+        let rawApt: DongApartment | null = null;
+        if (sheetApartments) {
+          const allApts = Object.values(sheetApartments).flat();
+          rawApt = allApts.find(a => isSameApartment(a.name, apt, nameMapping, a.dong)) || null;
+        }
+        const rawAptTxKey = (rawApt as { txKey?: string })?.txKey;
+        const overrideKey = HARDCODED_MAPPING[normalizedName];
+        const summaryResolved = findTxKey(apt, summaryMap, nameMapping);
+        const resolved = rawAptTxKey || overrideKey || summaryResolved || apt;
         const txKey = normalizeAptName(resolved);
+
         fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal }).catch((err) => {
           if (signal.aborted) return;
           if (err.name !== "AbortError" && err.message !== "Failed to fetch" && err.name !== "TypeError") {
