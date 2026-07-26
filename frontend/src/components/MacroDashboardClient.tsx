@@ -711,7 +711,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [mounted, authLoading, isFavoritesLoading, userFavorites]);
 
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const [visibleTimelineCount, setVisibleTimelineCount] = useState(3);
+  const [visibleTimelineCount, setVisibleTimelineCount] = useState(8);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -719,10 +719,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const handleResize = () => {
       if (debounceTimer) clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        setIsMobileViewport(window.innerWidth < 1024);
+        const isMob = window.innerWidth < 768;
+        setIsMobileViewport(isMob);
       }, 100);
     };
-    setIsMobileViewport(window.innerWidth < 1024);
+    const isMob = window.innerWidth < 768;
+    setIsMobileViewport(isMob);
+    setVisibleTimelineCount(isMob ? 3 : 8);
     window.addEventListener("resize", handleResize, { passive: true });
     return () => {
       window.removeEventListener("resize", handleResize);
@@ -1260,13 +1263,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         }
       }
 
-      const numSale = (typeof finalSale === 'number' && !isNaN(finalSale) && finalSale > 0) ? Math.round(finalSale * 100) / 100 : 8.5;
-      const numRent = (typeof finalRent === 'number' && !isNaN(finalRent) && finalRent > 0) ? Math.round(finalRent * 100) / 100 : 4.5;
+      let safeSale = (typeof finalSale === 'number' && !isNaN(finalSale) && finalSale > 0) ? finalSale : 8.5;
+      if (safeSale > 100) safeSale = safeSale / 10000;
+      safeSale = Math.round(safeSale * 100) / 100;
+
+      let safeRent = (typeof finalRent === 'number' && !isNaN(finalRent) && finalRent > 0) ? finalRent : 4.5;
+      if (safeRent > 100) safeRent = safeRent / 10000;
+      safeRent = Math.round(safeRent * 100) / 100;
 
       return {
         name: key,
-        '동탄 아파트 전체': numSale,
-        '동탄 아파트 전세 평균': numRent,
+        '동탄 아파트 전체': safeSale,
+        '동탄 아파트 전세 평균': safeRent,
       };
     });
 
@@ -1493,10 +1501,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       .filter((group) => group.items.length > 0);
   }, [dailyTimelineData, timelineDongFilter, timelineAptFilter]);
 
-  // 동/단지 필터 변경 시 표시 개수를 다시 초기 3개로 리셋
+  // 동/단지 필터 변경 시 표시 개수를 반응형 기본값(모바일 3개, 데스크톱 8개)으로 리셋
   useEffect(() => {
-    setVisibleTimelineCount(3);
-  }, [timelineDongFilter, timelineAptFilter]);
+    setVisibleTimelineCount(isMobileViewport ? 3 : 8);
+  }, [timelineDongFilter, timelineAptFilter, isMobileViewport]);
 
   // 실거래 총 카드 개수 계산
   const totalTimelineCardsCount = useMemo(() => {
@@ -1697,7 +1705,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     if (totalTimelineCardsCount > visibleTimelineCount) {
                       setVisibleTimelineCount((prev) => prev + 20);
                     } else {
-                      setVisibleTimelineCount(3);
+                      setVisibleTimelineCount(isMobileViewport ? 3 : 8);
                     }
                   }}
                   className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
