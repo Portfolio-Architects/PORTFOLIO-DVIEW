@@ -256,10 +256,15 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     return <div className="w-full h-full min-h-[240px] md:min-h-[330px] bg-transparent" />;
   }
 
+  const chartW = Math.max(300, width);
+  const chartH = Math.max(isBottomSheet ? 220 : 280, height);
+
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative overflow-hidden">
-      <ResponsiveContainer width="100%" height="100%" minWidth={300} minHeight={isBottomSheet ? 220 : 300}>
+    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative overflow-hidden flex items-center justify-center">
+      {chartW > 0 && chartH > 0 && (
         <AreaChart
+          width={chartW}
+          height={chartH}
           data={processedData}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
           {...desktopEventHandlers}
@@ -360,7 +365,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             }}
           />
         </AreaChart>
-      </ResponsiveContainer>
+      )}
     </div>
   );
 });

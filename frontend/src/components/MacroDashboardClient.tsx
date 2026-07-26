@@ -711,6 +711,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [mounted, authLoading, isFavoritesLoading, userFavorites]);
 
   const [isMobileViewport, setIsMobileViewport] = useState(false);
+  const [visibleTimelineCount, setVisibleTimelineCount] = useState(3);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -1485,19 +1486,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       .filter((group) => group.items.length > 0);
   }, [dailyTimelineData, timelineDongFilter, timelineAptFilter]);
 
+  // 동/단지 필터 변경 시 표시 개수를 다시 초기 3개로 리셋
+  useEffect(() => {
+    setVisibleTimelineCount(3);
+  }, [timelineDongFilter, timelineAptFilter]);
+
   // 실거래 총 카드 개수 계산
   const totalTimelineCardsCount = useMemo(() => {
     return filteredTimelineData.reduce((acc, group) => acc + group.items.length, 0);
   }, [filteredTimelineData]);
 
-  // 접힘 디폴트 상태일 때 아이템 개수 기준 정확히 3개만 잘라서 렌더링하는 데이터 생성
+  // visibleTimelineCount 개수만큼 누적하여 잘라 보여주는 데이터 생성 (초기 3개 → 더보기 클릭 시 +20개씩 증분)
   const displayedTimelineData = useMemo(() => {
-    if (isTimelineExpanded) return filteredTimelineData;
     let count = 0;
     const result = [];
     for (const group of filteredTimelineData) {
-      if (count >= 3) break;
-      const remaining = 3 - count;
+      if (count >= visibleTimelineCount) break;
+      const remaining = visibleTimelineCount - count;
       const slicedItems = group.items.slice(0, remaining);
       if (slicedItems.length > 0) {
         result.push({ ...group, items: slicedItems });
@@ -1505,7 +1510,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       }
     }
     return result;
-  }, [filteredTimelineData, isTimelineExpanded]);
+  }, [filteredTimelineData, visibleTimelineCount]);
 
 
 
@@ -1681,18 +1686,26 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
               {totalTimelineCardsCount > 3 && (
                 <button
-                  onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
-                  className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                  onClick={() => {
+                    if (totalTimelineCardsCount > visibleTimelineCount) {
+                      setVisibleTimelineCount((prev) => prev + 20);
+                    } else {
+                      setVisibleTimelineCount(3);
+                    }
+                  }}
+                  className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer shadow-sm active:scale-[0.99]"
                 >
-                  {isTimelineExpanded ? (
+                  {totalTimelineCardsCount > visibleTimelineCount ? (
                     <>
-                      <span>접기</span>
-                      <ChevronUp size={14} />
+                      <span>
+                        최근 실거래 더보기 ({Math.min(20, totalTimelineCardsCount - visibleTimelineCount)}개 더보기 / 남은 {totalTimelineCardsCount - visibleTimelineCount}개)
+                      </span>
+                      <ChevronDown size={14} />
                     </>
                   ) : (
                     <>
-                      <span>최근 실거래 더보기 ({totalTimelineCardsCount - 3}개 더보기)</span>
-                      <ChevronDown size={14} />
+                      <span>접기</span>
+                      <ChevronUp size={14} />
                     </>
                   )}
                 </button>
