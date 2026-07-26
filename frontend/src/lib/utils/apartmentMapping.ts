@@ -70,6 +70,8 @@ export function normalizeAptName(name: string | undefined | null): string {
 }
 
 export const HARDCODED_MAPPING: Record<string, string> = {
+  '동탄역힐스테이트': '힐스테이트동탄역',
+  '힐스테이트동탄역': '동탄역힐스테이트',
   '동탄역센트럴자이': '동탄역센트럴자이A-10',
   '그린힐반도유보라아이비파크10.0': '그린힐반도유보라아이비파크101단지',
   '레이크힐반도유보라아이비파크10.0': '레이크힐반도유보라아이비파크10.2',
@@ -515,6 +517,23 @@ export function findTxKey<T>(
     const res = normalizedTxMap[norm];
     resolvedMap.set(cacheKey, res);
     return res;
+  }
+
+  // 1.5단계: 단어 순서 반전 매칭 (예: "동탄역 힐스테이트" ↔ "힐스테이트동탄역")
+  const tokens = vAptName.trim().split(/\s+/);
+  if (tokens.length >= 2) {
+    for (let i = 0; i < tokens.length; i++) {
+      for (let j = 0; j < tokens.length; j++) {
+        if (i !== j) {
+          const revNorm = normalizeAptName(`${tokens[i]}${tokens[j]}`);
+          if (revNorm && revNorm in normalizedTxMap) {
+            const res = normalizedTxMap[revNorm];
+            resolvedMap.set(cacheKey, res);
+            return res;
+          }
+        }
+      }
+    }
   }
 
   // 2단계: 접두사 및 접미사 제거 후 매칭
