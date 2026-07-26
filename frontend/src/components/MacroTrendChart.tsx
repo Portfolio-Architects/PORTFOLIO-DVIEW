@@ -6,6 +6,7 @@ import {
   YAxis,
   Tooltip as RechartsTooltip,
   CartesianGrid,
+  ResponsiveContainer,
 } from "recharts";
 import type { DongtanMacroTrendPoint } from "@/lib/types/transaction";
 
@@ -257,10 +258,8 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 
   return (
     <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative">
-      {width > 0 && height > 0 && (
+      <ResponsiveContainer width="100%" height="100%">
         <AreaChart
-          width={width}
-          height={height}
           data={processedData}
           margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
           {...desktopEventHandlers}
@@ -361,7 +360,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             }}
           />
         </AreaChart>
-      )}
+      </ResponsiveContainer>
     </div>
   );
 });
