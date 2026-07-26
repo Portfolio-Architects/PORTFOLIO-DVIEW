@@ -1614,7 +1614,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     최근 실거래 내역이 없습니다.
                   </div>
                 ) : (
-                  ((!isMobileViewport || isTimelineExpanded) ? filteredTimelineData : filteredTimelineData.slice(0, 3)).map((group) => {
+                  ((isTimelineExpanded ? filteredTimelineData : filteredTimelineData.slice(0, 3)).map((group) => {
                     const isGroupSelected = group.items.some(item => 
                       selectedTimelineApt ? (
                         selectedTimelineApt === item.aptName ||
@@ -1653,11 +1653,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         </div>
                       </div>
                     );
-                  })
+                  }))
                 )}
               </div>
 
-              {isMobileViewport && filteredTimelineData.length > 3 && (
+              {filteredTimelineData.length > 3 && (
                 <button
                   onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
                   className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
@@ -1818,7 +1818,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 </div>
 
-                <div className="w-full h-[260px] md:h-[330px] min-h-[260px] md:min-h-[330px] relative shrink-0 overflow-hidden mt-2 sm:mt-0">
+                <div className="w-full h-[260px] md:h-[330px] min-h-[260px] md:min-h-[330px] relative shrink-0 overflow-hidden mt-2 sm:mt-0" style={{ width: '100%', height: '320px', minHeight: '260px' }}>
                   {isDefaultAptSettingUp ? (
                     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                       {/* 백그라운드 블러 글로우 효과 */}
