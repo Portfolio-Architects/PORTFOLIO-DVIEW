@@ -1575,9 +1575,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       step = 5;
     }
 
-    const roundedMax = Math.ceil(maxVal / step) * step;
-    // Y축 최대값과 데이터 최대값의 차이가 너무 타이트할 때(step의 10% 미만)만 한 step을 추가하여 상단 여백 확보
-    const finalMax = (roundedMax - maxVal < step * 0.1) ? roundedMax + step : roundedMax;
+    const finalMax = (Math.floor(maxVal / step) + 1) * step;
 
     const ticks = [];
     for (let i = 0; i <= finalMax; i += step) {
