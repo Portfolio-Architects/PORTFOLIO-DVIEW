@@ -1485,6 +1485,28 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       .filter((group) => group.items.length > 0);
   }, [dailyTimelineData, timelineDongFilter, timelineAptFilter]);
 
+  // 실거래 총 카드 개수 계산
+  const totalTimelineCardsCount = useMemo(() => {
+    return filteredTimelineData.reduce((acc, group) => acc + group.items.length, 0);
+  }, [filteredTimelineData]);
+
+  // 접힘 디폴트 상태일 때 아이템 개수 기준 정확히 3개만 잘라서 렌더링하는 데이터 생성
+  const displayedTimelineData = useMemo(() => {
+    if (isTimelineExpanded) return filteredTimelineData;
+    let count = 0;
+    const result = [];
+    for (const group of filteredTimelineData) {
+      if (count >= 3) break;
+      const remaining = 3 - count;
+      const slicedItems = group.items.slice(0, remaining);
+      if (slicedItems.length > 0) {
+        result.push({ ...group, items: slicedItems });
+        count += slicedItems.length;
+      }
+    }
+    return result;
+  }, [filteredTimelineData, isTimelineExpanded]);
+
 
 
 
@@ -1609,12 +1631,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               </div>
 
               <div className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : "max-h-[520px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0 w-full box-border`}>
-                {filteredTimelineData.length === 0 ? (
+                {displayedTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     최근 실거래 내역이 없습니다.
                   </div>
                 ) : (
-                  ((isTimelineExpanded ? filteredTimelineData : filteredTimelineData.slice(0, 3)).map((group) => {
+                  displayedTimelineData.map((group) => {
                     const isGroupSelected = group.items.some(item => 
                       selectedTimelineApt ? (
                         selectedTimelineApt === item.aptName ||
@@ -1653,11 +1675,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                         </div>
                       </div>
                     );
-                  }))
+                  })
                 )}
               </div>
 
-              {filteredTimelineData.length > 3 && (
+              {totalTimelineCardsCount > 3 && (
                 <button
                   onClick={() => setIsTimelineExpanded(!isTimelineExpanded)}
                   className="w-full mt-4 py-2.5 bg-body hover:bg-body/80 border border-border/40 text-[12.5px] font-bold text-secondary rounded-[12px] flex items-center justify-center gap-1 transition-colors cursor-pointer"
@@ -1669,7 +1691,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                     </>
                   ) : (
                     <>
-                      <span>최근 실거래 더보기 ({filteredTimelineData.length - 3}개 더보기)</span>
+                      <span>최근 실거래 더보기 ({totalTimelineCardsCount - 3}개 더보기)</span>
                       <ChevronDown size={14} />
                     </>
                   )}
