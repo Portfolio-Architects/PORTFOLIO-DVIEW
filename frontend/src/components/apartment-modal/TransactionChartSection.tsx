@@ -327,11 +327,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   }, [timeFiltered, validTimeFilteredSet]);
 
   const displayScatterData = React.useMemo(() => {
-    if (scatterData.length <= 250) return scatterData;
-    const step = Math.ceil(scatterData.length / 200);
+    if (scatterData.length <= 150) return scatterData;
+    const targetCount = 130;
+    const step = Math.ceil(scatterData.length / targetCount);
+    const totalLen = scatterData.length;
     return scatterData.filter((d, idx) => {
-      if (idx === 0 || idx === scatterData.length - 1) return true;
+      if (idx === 0 || idx === totalLen - 1) return true;
       if (d.isOutlier) return true;
+      if (idx >= totalLen * 0.8) return idx % Math.max(1, Math.floor(step / 2)) === 0;
       return idx % step === 0;
     });
   }, [scatterData]);

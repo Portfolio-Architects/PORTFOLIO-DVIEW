@@ -979,7 +979,9 @@ const FieldReportModal = React.memo(function FieldReportModal({
         ? (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)
          : tx.price;
       
-      const dateNum = parseInt(tx.contractYm + String(tx.contractDay || '01').padStart(2, '0'));
+      const ymNum = Number(tx.contractYm) || 202601;
+      const dayNum = Number(tx.contractDay) || 1;
+      const dateNum = ymNum * 100 + dayNum;
 
       return {
         ...tx,
@@ -992,6 +994,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
     // 3. transactions (이상치 필터링)
     const filterOutliersRolling = (txs: typeof enrichedTxs) => {
+      if (txs.length < 5) return txs;
       const sortedTxs = [...txs].sort((a, b) => a.contractDateNum - b.contractDateNum);
       const byArea: Record<number, typeof enrichedTxs> = {};
       const sortedLen = sortedTxs.length;

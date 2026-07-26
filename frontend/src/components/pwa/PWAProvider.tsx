@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState, ReactNode, useRef, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode, useRef } from 'react';
 import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { initSafeReloadDiagnostics } from '@/lib/utils/safeReload';
@@ -113,8 +113,6 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const [showCacheExpiredModal, setShowCacheExpiredModal] = useState(false);
   const [expiredCacheUrl, setExpiredCacheUrl] = useState<string | null>(null);
 
-  // SW Update state
-  const [swUpdateAvailable, setSwUpdateAvailable] = useState(false);
 
   const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const installRewardTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -332,9 +330,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     const handleStateChange = () => {
       if (registeredWorker && registeredWorker.state === 'installed' && registeredReg && registeredReg.waiting) {
-        if (sessionStorage.getItem('dview_sw_update_in_progress') !== 'true') {
-          setSwUpdateAvailable(true);
-        }
+        registeredReg.waiting.postMessage({ type: 'SKIP_WAITING' });
       }
     };
 
@@ -359,11 +355,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         registeredReg = reg;
         swRegistrationRef.current = reg;
         
-        // 1. If SW is already waiting to activate
+        // 1. If SW is already waiting to activate, silently apply update
         if (reg.waiting) {
-          if (sessionStorage.getItem('dview_sw_update_in_progress') !== 'true') {
-            setSwUpdateAvailable(true);
-          }
+          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
         }
 
         // Trigger manual update check on mount to ensure fresh status
@@ -422,61 +416,6 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         }
       }
     };
-  }, []);
-
-  const handleApplyUpdate = useCallback(() => {
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      if (isReloadingRef.current) return;
-      if (sessionStorage.getItem('dview_sw_reloading') === 'true') return;
-      
-      sessionStorage.setItem('dview_sw_update_in_progress', 'true');
-      setSwUpdateAvailable(false); // 즉시 팝업 모달을 꺼서 사용자 액션 피드백 제공 및 중복 클릭 방지
-
-      const performUpdate = async (waitingWorker: ServiceWorker) => {
-        try {
-          if (typeof window !== 'undefined' && window.caches) {
-            const keys = await window.caches.keys();
-            await Promise.all(keys.map(key => window.caches.delete(key)));
-            logger.info('PWAProvider', 'Cleared all caches before applying SW update');
-          }
-        } catch (e) {
-          logger.warn('PWAProvider', 'Failed to clear caches before update', undefined, e);
-        }
-
-        logger.info('PWAProvider', 'Applying SW update via SKIP_WAITING...');
-        waitingWorker.postMessage({ type: 'SKIP_WAITING' });
-
-        // 서비스 워커 교체가 비동기로 처리될 때까지 충분한 마진(4초)을 두고 대기한 후 폴백 리로드 실행
-        setTimeout(() => {
-          if (isReloadingRef.current) return;
-          if (sessionStorage.getItem('dview_sw_reloading') === 'true') return;
-          isReloadingRef.current = true;
-          sessionStorage.setItem('dview_sw_reloading', 'true');
-          logger.warn('PWAProvider', 'SW Update fallback reload triggered.');
-          window.location.reload();
-        }, 4000);
-      };
-
-      const reg = swRegistrationRef.current;
-      if (reg && reg.waiting) {
-        performUpdate(reg.waiting);
-      } else {
-        navigator.serviceWorker.getRegistrations().then((registrations) => {
-          let updated = false;
-          registrations.forEach(r => {
-            if (r.waiting) {
-              performUpdate(r.waiting);
-              updated = true;
-            }
-          });
-          if (!updated) {
-            isReloadingRef.current = true;
-            sessionStorage.setItem('dview_sw_reloading', 'true');
-            window.location.reload();
-          }
-        });
-      }
-    }
   }, []);
 
   const triggerA2HSPrompt = async () => {
@@ -702,29 +641,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         </div>
       )}
 
-      {swUpdateAvailable && (
-        <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[24px] shadow-2xl flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none">
-          <div className="flex items-center gap-2.5">
-            <span className="text-[12.5px] leading-relaxed flex-1">
-              🚀 새로운 버전의 DVIEW 앱이 준비되었습니다. 최신 시세 정보와 기능을 바로 적용해 보세요!
-            </span>
-          </div>
-          <div className="flex gap-2">
-            <button 
-              onClick={handleApplyUpdate}
-              className="flex-1 bg-[#ea6100] hover:bg-[#00b083] text-neutral-950 text-[12.5px] font-black py-2.5 rounded-xl transition-colors cursor-pointer shadow-md"
-            >
-              업데이트 적용
-            </button>
-            <button 
-              onClick={() => setSwUpdateAvailable(false)}
-              className="px-4 bg-white/10 hover:bg-white/20 text-white text-[12px] font-bold py-2.5 rounded-xl transition-colors cursor-pointer"
-            >
-              나중에
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {showCacheExpiredModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">

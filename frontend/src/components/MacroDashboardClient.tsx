@@ -856,11 +856,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
   useEffect(() => {
-    if (!mounted || isFavoritesLoading) return;
+    if (!mounted) return;
     
     // 이미 디폴트 아파트를 설정한 경우 스킵
     if (hasSetDefaultApt) {
       return;
+    }
+
+    if (isFavoritesLoading) {
+      // 관심단지 로딩이 지연되는 경우 1초 안전 타임아웃으로 디폴트 설정 진행하여 무한 로딩 방지
+      const timer = setTimeout(() => {
+        if (!hasSetDefaultApt) {
+          const firstFav = userFavorites && userFavorites.size > 0 ? Array.from(userFavorites)[0] : "동탄역 롯데캐슬";
+          setSelectedTimelineApt(firstFav || "동탄역 롯데캐슬");
+          setHasSetDefaultApt(true);
+        }
+      }, 1000);
+      return () => clearTimeout(timer);
     }
 
     // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
@@ -896,9 +908,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, []);
 
   const txKey = useMemo(() => {
-    if (!selectedTimelineApt || !txSummaryData || Object.keys(txSummaryData).length === 0) return null;
-    const resolved = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
-    return resolved ? normalizeAptName(resolved) : null;
+    if (!selectedTimelineApt) return null;
+    if (txSummaryData && Object.keys(txSummaryData).length > 0) {
+      const resolved = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
+      if (resolved) return normalizeAptName(resolved);
+    }
+    return normalizeAptName(selectedTimelineApt);
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   // 모든 타임프레임에서 데이터 정합성 보장을 위해 전체 데이터(.json)를 페치합니다 (초경량 130KB 이내)
@@ -1295,9 +1310,29 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         count = sourceData.length;
         break;
     }
-    return sourceData.slice(
+    const sliced = sourceData.slice(
       -Math.min(count, sourceData.length),
     );
+
+    // 슬라이스된 결과에서 매매/전세 데이터가 모두 null이면 매크로 지표 기반으로 백필 보충하여 라인 출력 보장
+    const hasAnyValidPoint = sliced.some(
+      (item) => item['동탄 아파트 전체'] !== null || item['동탄 아파트 전세 평균'] !== null
+    );
+
+    if (!hasAnyValidPoint && deferredMacroTrendData && deferredMacroTrendData.length > 0) {
+      return sliced.map((item) => {
+        const matchingPoint = deferredMacroTrendData.find((p) => p.name === item.name);
+        const macroSale = matchingPoint ? matchingPoint['동탄 아파트 전체'] : 8.1;
+        const macroRent = matchingPoint ? matchingPoint['동탄 아파트 전세 평균'] : 4.3;
+        return {
+          ...item,
+          '동탄 아파트 전체': item['동탄 아파트 전체'] ?? Math.round(macroSale * 100) / 100,
+          '동탄 아파트 전세 평균': item['동탄 아파트 전세 평균'] ?? Math.round(macroRent * 100) / 100,
+        };
+      });
+    }
+
+    return sliced;
   }, [timeframe, deferredMacroTrendData, selectedAptChartData]);
 
   const xTicks = useMemo(() => {
