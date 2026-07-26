@@ -107,15 +107,8 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-interface MacroTrendPoint {
-  name: string;
-  "동탄 아파트 전체": number | null;
-  "동탄 아파트 전세 평균": number | null;
-  [key: string]: unknown;
-}
-
 interface MacroTrendChartProps {
-  lineData: MacroTrendPoint[];
+  lineData: DongtanMacroTrendPoint[] | Array<{ name: string; "동탄 아파트 전체": number | null; "동탄 아파트 전세 평균": number | null; [key: string]: unknown }>;
   xTicks: string[];
   yTicks: number[];
   timeframe: string;

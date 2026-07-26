@@ -1193,73 +1193,80 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
     // 첫 실거래 기준 매크로 가격 비율 계산 (과거 데이터 백필용)
     let saleFactor = 1;
-    if (realFirstSaleIndex !== -1) {
+    if (realFirstSaleIndex !== -1 && deferredMacroTrendData[realFirstSaleIndex]) {
       const anchorPoint = deferredMacroTrendData[realFirstSaleIndex];
-      const anchorMacroSale = anchorPoint ? anchorPoint['동탄 아파트 전체'] || 8.1 : 8.1;
-      const firstAptSale = monthlyAverages[anchorPoint.name].sale || fallbackSalePrice;
-      saleFactor = firstAptSale / anchorMacroSale;
+      const anchorMacroSale = anchorPoint ? (anchorPoint['동탄 아파트 전체'] || 8.1) : 8.1;
+      const firstAptSale = (monthlyAverages[anchorPoint.name] && monthlyAverages[anchorPoint.name].sale) || fallbackSalePrice;
+      saleFactor = anchorMacroSale > 0 ? firstAptSale / anchorMacroSale : 1;
     } else {
       const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
-      const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
-      saleFactor = fallbackSalePrice / macroSaleVal;
+      const macroSaleVal = latestMacroPoint ? (latestMacroPoint['동탄 아파트 전체'] || 8.1) : 8.1;
+      saleFactor = macroSaleVal > 0 ? fallbackSalePrice / macroSaleVal : 1;
     }
+    if (isNaN(saleFactor) || saleFactor <= 0) saleFactor = 1;
 
     let rentFactor = 1;
-    if (realFirstRentIndex !== -1) {
+    if (realFirstRentIndex !== -1 && deferredMacroTrendData[realFirstRentIndex]) {
       const anchorPoint = deferredMacroTrendData[realFirstRentIndex];
-      const anchorMacroRent = anchorPoint ? anchorPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
-      const firstAptRent = monthlyAverages[anchorPoint.name].rent || fallbackRentPrice;
-      rentFactor = firstAptRent / anchorMacroRent;
+      const anchorMacroRent = anchorPoint ? (anchorPoint['동탄 아파트 전세 평균'] || 4.3) : 4.3;
+      const firstAptRent = (monthlyAverages[anchorPoint.name] && monthlyAverages[anchorPoint.name].rent) || fallbackRentPrice;
+      rentFactor = anchorMacroRent > 0 ? firstAptRent / anchorMacroRent : 1;
     } else {
       const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
-      const macroRentVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
-      rentFactor = fallbackRentPrice / macroRentVal;
+      const macroRentVal = latestMacroPoint ? (latestMacroPoint['동탄 아파트 전세 평균'] || 4.3) : 4.3;
+      rentFactor = macroRentVal > 0 ? fallbackRentPrice / macroRentVal : 1;
     }
+    if (isNaN(rentFactor) || rentFactor <= 0) rentFactor = 1;
 
     const macroTrendList = deferredMacroTrendData;
     const runningLastSaleRef = { current: saleAnchorValue };
     const runningLastRentRef = { current: rentAnchorValue };
 
     const interpolatedSale = macroTrendList.map((point, i) => {
-      const val = monthlyAverages[point.name].sale;
-      if (val !== null) runningLastSaleRef.current = val;
+      const val = monthlyAverages[point.name] ? monthlyAverages[point.name].sale : null;
+      if (val !== null && val !== undefined && !isNaN(val)) runningLastSaleRef.current = val;
       return i < firstSaleAnchorIndex ? null : runningLastSaleRef.current;
     });
 
     const interpolatedRent = macroTrendList.map((point, i) => {
-      const val = monthlyAverages[point.name].rent;
-      if (val !== null) runningLastRentRef.current = val;
+      const val = monthlyAverages[point.name] ? monthlyAverages[point.name].rent : null;
+      if (val !== null && val !== undefined && !isNaN(val)) runningLastRentRef.current = val;
       return i < firstRentAnchorIndex ? null : runningLastRentRef.current;
     });
 
     const finalChartData = macroTrendList.map((point, idx) => {
       const key = point.name;
+      const monthAvg = monthlyAverages[key];
       
-      // 실제 데이터가 없으면,
-      // 첫 거래 이후 기간에는 기존 보간법(interpolated)을 쓰고,
-      // 첫 거래 이전(과거) 기간에는 null을 대입해 그래프 선이 노출되지 않도록 가드 (실거래 0건인 경우에만 기존 백필 유지)
-      let finalSale = monthlyAverages[key].sale;
-      if (finalSale === null) {
-        if (realFirstSaleIndex !== -1 && idx > realFirstSaleIndex) {
+      let finalSale = monthAvg ? monthAvg.sale : null;
+      if (finalSale === null || finalSale === undefined || isNaN(finalSale)) {
+        if (realFirstSaleIndex !== -1 && idx >= realFirstSaleIndex) {
           finalSale = interpolatedSale[idx];
-        } else {
-          finalSale = point['동탄 아파트 전체'] * saleFactor;
+        }
+        if (finalSale === null || finalSale === undefined || isNaN(finalSale)) {
+          const macroSale = point['동탄 아파트 전체'] || 8.1;
+          finalSale = macroSale * saleFactor;
         }
       }
 
-      let finalRent = monthlyAverages[key].rent;
-      if (finalRent === null) {
-        if (realFirstRentIndex !== -1 && idx > realFirstRentIndex) {
+      let finalRent = monthAvg ? monthAvg.rent : null;
+      if (finalRent === null || finalRent === undefined || isNaN(finalRent)) {
+        if (realFirstRentIndex !== -1 && idx >= realFirstRentIndex) {
           finalRent = interpolatedRent[idx];
-        } else {
-          finalRent = point['동탄 아파트 전세 평균'] * rentFactor;
+        }
+        if (finalRent === null || finalRent === undefined || isNaN(finalRent)) {
+          const macroRent = point['동탄 아파트 전세 평균'] || 4.3;
+          finalRent = macroRent * rentFactor;
         }
       }
+
+      const numSale = (typeof finalSale === 'number' && !isNaN(finalSale) && finalSale > 0) ? Math.round(finalSale * 100) / 100 : 8.5;
+      const numRent = (typeof finalRent === 'number' && !isNaN(finalRent) && finalRent > 0) ? Math.round(finalRent * 100) / 100 : 4.5;
 
       return {
         name: key,
-        '동탄 아파트 전체': finalSale !== null ? Math.round(finalSale * 100) / 100 : null,
-        '동탄 아파트 전세 평균': finalRent !== null ? Math.round(finalRent * 100) / 100 : null,
+        '동탄 아파트 전체': numSale,
+        '동탄 아파트 전세 평균': numRent,
       };
     });
 
