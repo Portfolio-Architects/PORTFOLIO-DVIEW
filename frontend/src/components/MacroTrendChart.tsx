@@ -209,6 +209,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   const [containerWidth, setContainerWidth] = useState(380);
+  const [containerHeight, setContainerHeight] = useState(300);
  
   React.useLayoutEffect(() => {
     if (typeof window !== "undefined") {
@@ -219,10 +220,20 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     if (rect.width > 0) {
       setContainerWidth(Math.floor(rect.width));
     }
+    if (rect.height > 0) {
+      setContainerHeight(Math.floor(rect.height));
+    }
 
     const observer = new ResizeObserver((entries) => {
-      if (entries && entries[0] && entries[0].contentRect.width > 0) {
-        setContainerWidth(Math.max(300, Math.floor(entries[0].contentRect.width)));
+      if (entries && entries[0]) {
+        const rawW = entries[0].contentRect.width;
+        const rawH = entries[0].contentRect.height;
+        if (rawW > 0) {
+          setContainerWidth(Math.max(300, Math.floor(rawW)));
+        }
+        if (rawH > 0) {
+          setContainerHeight(Math.max(200, Math.floor(rawH)));
+        }
       }
     });
 
@@ -258,7 +269,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     : {};
 
   const chartW = containerWidth > 0 ? containerWidth : 380;
-  const chartH = isBottomSheet ? 220 : 300;
+  const chartH = isBottomSheet ? 220 : (containerHeight > 0 ? containerHeight : 300);
 
   return (
     <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[300px] touch-pan-y relative overflow-hidden flex items-center justify-center">

@@ -112,8 +112,9 @@ export function useApartmentDetails(
     if (!rawApt) {
       rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping, a.dong, selectedReport.dong)) || null;
     }
+    const rawAptTxKey = (rawApt as { txKey?: string })?.txKey;
     const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping, false, selectedReport.dong);
+    const rawTxKey = rawAptTxKey || overrideKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping, false, selectedReport.dong);
     const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
     return txKey || normalizedName;
   }, [selectedReport, flatApartments, apartmentsMap, txSummaryData, nameMapping]);
@@ -184,11 +185,12 @@ export function useApartmentDetails(
         };
       }
 
-      const isRent = r.dealType === '전세' || r.dealType === '월세';
+      const trimmedDealType = (r.dealType || '').trim();
+      const isRent = trimmedDealType === '전세' || trimmedDealType === '월세';
       let eokStr = '';
       if (isRent) {
          eokStr = formatPriceEok(r.deposit || 0);
-         if (r.dealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
+         if (trimmedDealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
       } else {
          eokStr = formatPriceEok(r.price || 0);
       }
@@ -201,7 +203,7 @@ export function useApartmentDetails(
         price: r.price || 0, priceEok: eokStr,
         deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
         floor: r.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
-        cancelDate: r.cancelDate || '', dealType: r.dealType || '',
+        cancelDate: r.cancelDate || '', dealType: trimmedDealType,
         agentLocation: '', registrationDate: '-', housingType: '',
         reqGb: r.reqGb || '', rnuYn: r.rnuYn || '',
         isOutlier: !!r.isOutlier

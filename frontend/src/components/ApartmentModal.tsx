@@ -955,7 +955,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // ── 실거래가 분석 및 밸류에이션 계산 파이프라인 (useMemo 일원화로 4중 리렌더링 완화) ──
   const calculations = useMemo(() => {
-    if (!isAnimationFinished || !rawTransactions || rawTransactions.length === 0) {
+    if (!rawTransactions || rawTransactions.length === 0) {
       return {
         transactions: [] as EnrichedTransaction[],
         valuation: { status: 'fair', amount: '0', ratio: 0, priceStr: '0' } as CalculatedValuation,
@@ -1236,13 +1236,12 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
   // 필터링된 실거래 목록 (사전 계산된 필드 활용)
   const filteredTransactions = useMemo(() => {
-    if (!isAnimationFinished) return [];
     if (deferredAreaFilter === '전체') return transactions;
     return transactions.filter(tx => {
       const label = areaUnit === 'm2' ? tx.areaLabelM2 : tx.areaLabelPyeong;
       return label === deferredAreaFilter;
     });
-  }, [transactions, deferredAreaFilter, areaUnit, isAnimationFinished]);
+  }, [transactions, deferredAreaFilter, areaUnit]);
 
   // Hydration-safe portal mount
   useEffect(() => {
