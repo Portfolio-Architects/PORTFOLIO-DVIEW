@@ -1012,22 +1012,34 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return maxVal;
   }, [recentTransactions]);
 
+  const { data: directMacroTrendData } = useSWR<DongtanMacroTrendPoint[]>(
+    (!macroTrendData || macroTrendData.length === 0) && mounted ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 3600000 }
+  );
+
+  const activeMacroData = useMemo(() => {
+    if (macroTrendData && macroTrendData.length > 0) return macroTrendData;
+    if (directMacroTrendData && directMacroTrendData.length > 0) return directMacroTrendData;
+    return [];
+  }, [macroTrendData, directMacroTrendData]);
+
   const paddedMacroTrendData = useMemo(() => {
-    if (!macroTrendData || macroTrendData.length === 0) return [];
+    if (!activeMacroData || activeMacroData.length === 0) return [];
     
     const currentYear = 2026;
     const currentMonth = 6;
     
-    const lastPoint = macroTrendData[macroTrendData.length - 1];
-    if (!lastPoint || !lastPoint.name) return macroTrendData;
+    const lastPoint = activeMacroData[activeMacroData.length - 1];
+    if (!lastPoint || !lastPoint.name) return activeMacroData;
     
     const parts = lastPoint.name.split(".");
-    if (parts.length !== 2) return macroTrendData;
+    if (parts.length !== 2) return activeMacroData;
     
     let lastYear = 2000 + parseInt(parts[0]);
     let lastMonth = parseInt(parts[1]);
     
-    const padded = [...macroTrendData];
+    const padded = [...activeMacroData];
     
     while (true) {
       if (lastYear > currentYear || (lastYear === currentYear && lastMonth >= currentMonth)) {
@@ -1048,12 +1060,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
     
     return padded;
-  }, [macroTrendData]);
+  }, [activeMacroData]);
 
   const deferredMacroTrendData = useDeferredValue(paddedMacroTrendData);
 
   const macroTrendJsonLd = useMemo(() => {
-    if (!macroTrendData || macroTrendData.length === 0) return null;
+    if (!activeMacroData || activeMacroData.length === 0) return null;
 
     const formatDateStr = (nameStr: string) => {
       const parts = nameStr.split('.');
@@ -1065,8 +1077,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       return nameStr;
     };
 
-    const firstPoint = macroTrendData[0];
-    const lastPoint = macroTrendData[macroTrendData.length - 1];
+    const firstPoint = activeMacroData[0];
+    const lastPoint = activeMacroData[activeMacroData.length - 1];
     const startDate = firstPoint ? formatDateStr(firstPoint.name) : "2023-01";
     const endDate = lastPoint ? formatDateStr(lastPoint.name) : "2026-06";
 
@@ -1107,7 +1119,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     };
 
     return JSON.stringify(datasetSchema);
-  }, [macroTrendData]);
+  }, [activeMacroData]);
 
   const selectedAptSummary = useMemo(() => {
     if (!selectedTimelineApt || !txSummaryData) return null;

@@ -308,6 +308,8 @@ export function useTxData(
     };
   }, []);
 
+  const isBrowser = typeof window !== 'undefined';
+
   // 1. 정적 요약본 페칭 (tx-summary.json)
   const { data: summaryData, error: summaryError, isLoading: isSummaryLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
@@ -318,7 +320,7 @@ export function useTxData(
       trendColor: string;
       badge: string;
     };
-  }>(shouldFetch ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, fetcher, {
+  }>(isBrowser ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, fetcher, {
     fallbackData: (initialTxSummary && Object.keys(initialTxSummary).length > 0) ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume } : undefined,
     revalidateOnFocus: false,
     revalidateIfStale: true,
@@ -328,7 +330,7 @@ export function useTxData(
 
   // 1-2. 최근 전체 실거래 플랫 리스트 페칭 (recent-transactions.json)
   const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<RecentTransaction[]>(
-    shouldFetch ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
+    isBrowser ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
     fetcher,
     {
       fallbackData: initialRecentTransactions,
@@ -416,7 +418,7 @@ export function useTxData(
   }, [summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   const { data: trendData, error: trendError, isLoading: isTrendLoading } = useSWR<DongtanMacroTrendPoint[]>(
-    shouldFetch ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
+    isBrowser ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
     fetcher,
     {
       fallbackData: initialMacroTrend,
