@@ -1242,11 +1242,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         if (realFirstSaleIndex !== -1 && idx > realFirstSaleIndex) {
           finalSale = interpolatedSale[idx];
         } else {
-          if (realFirstSaleIndex === -1) {
-            finalSale = point['동탄 아파트 전체'] * saleFactor;
-          } else {
-            finalSale = null;
-          }
+          finalSale = point['동탄 아파트 전체'] * saleFactor;
         }
       }
 
@@ -1255,11 +1251,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         if (realFirstRentIndex !== -1 && idx > realFirstRentIndex) {
           finalRent = interpolatedRent[idx];
         } else {
-          if (realFirstRentIndex === -1) {
-            finalRent = point['동탄 아파트 전세 평균'] * rentFactor;
-          } else {
-            finalRent = null;
-          }
+          finalRent = point['동탄 아파트 전세 평균'] * rentFactor;
         }
       }
 

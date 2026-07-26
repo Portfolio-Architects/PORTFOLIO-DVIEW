@@ -321,6 +321,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             strokeWidth={isBottomSheet ? 1.5 : 1.8}
             fill="url(#colorSale)"
             isAnimationActive={false}
+            connectNulls={true}
             dot={
               isBottomSheet
                 ? false
@@ -344,6 +345,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
             strokeWidth={isBottomSheet ? 1.0 : 1.2}
             fill="url(#colorRent)"
             isAnimationActive={false}
+            connectNulls={true}
             dot={
               isBottomSheet
                 ? false
