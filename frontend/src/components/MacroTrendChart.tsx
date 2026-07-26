@@ -205,17 +205,29 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   timeframe,
   isBottomSheet = false,
 }: MacroTrendChartProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [containerWidth, setContainerWidth] = useState(380);
  
-  const [containerRef, { width, height }] = useResizeObserver(150);
- 
-  useEffect(() => {
-    setMounted(true);
+  React.useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
     }
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    if (rect.width > 0) {
+      setContainerWidth(Math.floor(rect.width));
+    }
+
+    const observer = new ResizeObserver((entries) => {
+      if (entries && entries[0] && entries[0].contentRect.width > 0) {
+        setContainerWidth(Math.max(300, Math.floor(entries[0].contentRect.width)));
+      }
+    });
+
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, []);
 
   const fontSize = isBottomSheet ? 11 : 12;
@@ -245,120 +257,114 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
       }
     : {};
 
-  if (!mounted) {
-    return <div className="w-full h-full min-h-[240px] md:min-h-[330px] bg-transparent" />;
-  }
-
-  const chartW = Math.max(300, width);
-  const chartH = Math.max(isBottomSheet ? 220 : 280, height);
+  const chartW = containerWidth > 0 ? containerWidth : 380;
+  const chartH = isBottomSheet ? 220 : 300;
 
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[330px] touch-pan-y relative overflow-hidden flex items-center justify-center">
-      {chartW > 0 && chartH > 0 && (
-        <AreaChart
-          width={chartW}
-          height={chartH}
-          data={processedData}
-          margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
-          {...desktopEventHandlers}
-        >
-          <defs>
-            <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#ea6100" stopOpacity={0.30} />
-              <stop offset="95%" stopColor="#ea6100" stopOpacity={0.0} />
-            </linearGradient>
-            <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#f9a825" stopOpacity={0.25} />
-              <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            strokeWidth={0.7}
-            vertical={false}
-            horizontal={true}
-            stroke="rgba(148, 163, 184, 0.18)"
-            strokeDasharray="3 3"
-          />
-          <XAxis
-            dataKey="name"
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#64748b", fontSize, fontFamily: "inherit", fontWeight: 700 }}
-            dy={10}
-            ticks={xTicks}
-            tickFormatter={formatXAxisTick}
-          />
-          <YAxis
-            axisLine={false}
-            tickLine={false}
-            tick={{ fill: "#64748b", fontSize, fontFamily: "inherit", fontWeight: 700 }}
-            tickFormatter={(value: number) =>
-              value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
-            }
-            domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
-            ticks={yTicks}
-            width={yWidth}
-          />
-          <RechartsTooltip
-            active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
-            content={<CustomTooltip />}
-            cursor={{
-              stroke: "rgba(148, 163, 184, 0.4)",
-              strokeWidth: 1.5,
-              strokeDasharray: "3 3",
-            }}
-            isAnimationActive={false}
-          />
-          <Area
-            key="동탄 아파트 전체"
-            type="monotone"
-            name="평균 매매가"
-            dataKey="동탄 아파트 전체"
-            stroke="#ea6100"
-            strokeWidth={isBottomSheet ? 1.8 : 2.2}
-            fill="url(#colorSale)"
-            isAnimationActive={false}
-            connectNulls={true}
-            dot={
-              isBottomSheet
-                ? false
-                : timeframe === "ALL" || timeframe === "5Y"
-                ? false
-                : { r: 3.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#ea6100" }
-            }
-            activeDot={{
-              r: isBottomSheet ? 4.5 : 5.5,
-              strokeWidth: isBottomSheet ? 1.5 : 2,
-              stroke: "#ffffff",
-              fill: "#ea6100"
-            }}
-          />
-          <Area
-            key="동탄 아파트 전세 평균"
-            type="monotone"
-            name="평균 전세가"
-            dataKey="동탄 아파트 전세 평균"
-            stroke="#f9a825"
-            strokeWidth={isBottomSheet ? 1.2 : 1.5}
-            fill="url(#colorRent)"
-            isAnimationActive={false}
-            connectNulls={true}
-            dot={
-              isBottomSheet
-                ? false
-                : timeframe === "ALL" || timeframe === "5Y"
-                ? false
-                : { r: 2.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#f9a825" }
-            }
-            activeDot={{
-              r: isBottomSheet ? 3.5 : 4.5,
-              strokeWidth: isBottomSheet ? 1.5 : 2,
-              stroke: "#ffffff",
-              fill: "#f9a825"
-            }}
-          />
-        </AreaChart>
-      )}
+    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[300px] touch-pan-y relative overflow-hidden flex items-center justify-center">
+      <AreaChart
+        width={chartW}
+        height={chartH}
+        data={processedData}
+        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        {...desktopEventHandlers}
+      >
+        <defs>
+          <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#ea6100" stopOpacity={0.30} />
+            <stop offset="95%" stopColor="#ea6100" stopOpacity={0.0} />
+          </linearGradient>
+          <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#f9a825" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid
+          strokeWidth={0.7}
+          vertical={false}
+          horizontal={true}
+          stroke="rgba(148, 163, 184, 0.18)"
+          strokeDasharray="3 3"
+        />
+        <XAxis
+          dataKey="name"
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "#64748b", fontSize, fontFamily: "inherit", fontWeight: 700 }}
+          dy={10}
+          ticks={xTicks}
+          tickFormatter={formatXAxisTick}
+        />
+        <YAxis
+          axisLine={false}
+          tickLine={false}
+          tick={{ fill: "#64748b", fontSize, fontFamily: "inherit", fontWeight: 700 }}
+          tickFormatter={(value: number) =>
+            value === 0 ? "0" : `${Number.isInteger(value) ? value : value.toFixed(1)}억`
+          }
+          domain={[0, yTicks && yTicks.length > 0 ? yTicks[yTicks.length - 1] : "auto"]}
+          ticks={yTicks}
+          width={yWidth}
+        />
+        <RechartsTooltip
+          active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
+          content={<CustomTooltip />}
+          cursor={{
+            stroke: "rgba(148, 163, 184, 0.4)",
+            strokeWidth: 1.5,
+            strokeDasharray: "3 3",
+          }}
+          isAnimationActive={false}
+        />
+        <Area
+          key="동탄 아파트 전체"
+          type="monotone"
+          name="평균 매매가"
+          dataKey="동탄 아파트 전체"
+          stroke="#ea6100"
+          strokeWidth={isBottomSheet ? 1.8 : 2.2}
+          fill="url(#colorSale)"
+          isAnimationActive={false}
+          connectNulls={true}
+          dot={
+            isBottomSheet
+              ? false
+              : timeframe === "ALL" || timeframe === "5Y"
+              ? false
+              : { r: 3.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#ea6100" }
+          }
+          activeDot={{
+            r: isBottomSheet ? 4.5 : 5.5,
+            strokeWidth: isBottomSheet ? 1.5 : 2,
+            stroke: "#ffffff",
+            fill: "#ea6100"
+          }}
+        />
+        <Area
+          key="동탄 아파트 전세 평균"
+          type="monotone"
+          name="평균 전세가"
+          dataKey="동탄 아파트 전세 평균"
+          stroke="#f9a825"
+          strokeWidth={isBottomSheet ? 1.2 : 1.5}
+          fill="url(#colorRent)"
+          isAnimationActive={false}
+          connectNulls={true}
+          dot={
+            isBottomSheet
+              ? false
+              : timeframe === "ALL" || timeframe === "5Y"
+              ? false
+              : { r: 2.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#f9a825" }
+          }
+          activeDot={{
+            r: isBottomSheet ? 3.5 : 4.5,
+            strokeWidth: isBottomSheet ? 1.5 : 2,
+            stroke: "#ffffff",
+            fill: "#f9a825"
+          }}
+        />
+      </AreaChart>
     </div>
   );
 });
