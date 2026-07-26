@@ -49,7 +49,7 @@ const DEFAULT_TIMELINE_APTS = [
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import type { FieldReportData } from "@/lib/types/report.types";
-import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName } from "@/lib/utils/apartmentMapping";
+import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
 import { useSettingsValues } from "@/lib/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores } from "@/hooks/useStaticData";
@@ -914,15 +914,28 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const txKey = useMemo(() => {
     if (!selectedTimelineApt) return null;
+    const normalizedName = normalizeAptName(selectedTimelineApt);
+
+    let rawApt: DongApartment | null = null;
+    if (sheetApartments) {
+      const allApts = Object.values(sheetApartments).flat();
+      rawApt = allApts.find(a => isSameApartment(a.name, selectedTimelineApt, nameMapping, a.dong)) || null;
+    }
+
+    const rawAptTxKey = (rawApt as { txKey?: string })?.txKey;
+    const overrideKey = HARDCODED_MAPPING[normalizedName];
+
+    let summaryResolved: string | null = null;
     if (txSummaryData) {
       const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
       if (Object.keys(summaryMap).length > 0) {
-        const resolved = findTxKey(selectedTimelineApt, summaryMap, nameMapping) || selectedTimelineApt;
-        if (resolved) return normalizeAptName(resolved);
+        summaryResolved = findTxKey(selectedTimelineApt, summaryMap, nameMapping);
       }
     }
-    return normalizeAptName(selectedTimelineApt);
-  }, [selectedTimelineApt, txSummaryData, nameMapping]);
+
+    const resolved = rawAptTxKey || overrideKey || summaryResolved || selectedTimelineApt;
+    return normalizeAptName(resolved);
+  }, [selectedTimelineApt, sheetApartments, txSummaryData, nameMapping]);
 
   // 모든 타임프레임에서 데이터 정합성 보장을 위해 전체 데이터(.json)를 페치합니다 (초경량 130KB 이내)
   const fetchUrl = useMemo(() => {
