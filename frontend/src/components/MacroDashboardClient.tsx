@@ -1608,7 +1608,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 </div>
               </div>
 
-              <div className={`flex-1 ${isMobileViewport && !isTimelineExpanded ? "max-h-none overflow-visible" : "max-h-[360px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0 w-full box-border`}>
+              <div className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : "max-h-[520px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-2 min-h-0 w-full box-border`}>
                 {filteredTimelineData.length === 0 ? (
                   <div className="flex-1 flex items-center justify-center text-tertiary text-[14px]">
                     최근 실거래 내역이 없습니다.
