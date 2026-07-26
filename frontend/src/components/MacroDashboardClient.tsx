@@ -552,9 +552,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
     const prefetchApts = () => {
       if (signal.aborted) return;
+      const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
       DEFAULT_TIMELINE_APTS.forEach((apt) => {
         if (signal.aborted) return;
-        const resolved = findTxKey(apt, txSummaryData, nameMapping) || apt;
+        const resolved = findTxKey(apt, summaryMap, nameMapping) || apt;
         if (!resolved) return;
         const txKey = normalizeAptName(resolved);
         fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal }).catch((err) => {
@@ -909,9 +910,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const txKey = useMemo(() => {
     if (!selectedTimelineApt) return null;
-    if (txSummaryData && Object.keys(txSummaryData).length > 0) {
-      const resolved = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
-      if (resolved) return normalizeAptName(resolved);
+    if (txSummaryData) {
+      const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
+      if (Object.keys(summaryMap).length > 0) {
+        const resolved = findTxKey(selectedTimelineApt, summaryMap, nameMapping) || selectedTimelineApt;
+        if (resolved) return normalizeAptName(resolved);
+      }
     }
     return normalizeAptName(selectedTimelineApt);
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
@@ -1080,12 +1084,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const selectedAptSummary = useMemo(() => {
     if (!selectedTimelineApt || !txSummaryData) return null;
-    const txKey = findTxKey(selectedTimelineApt, txSummaryData, nameMapping) || selectedTimelineApt;
-    if (txSummaryData[txKey]) return txSummaryData[txKey];
+    const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
+    const txKey = findTxKey(selectedTimelineApt, summaryMap, nameMapping) || selectedTimelineApt;
+    if (summaryMap[txKey]) return summaryMap[txKey];
     const normKey = normalizeAptName(txKey);
-    if (txSummaryData[normKey]) return txSummaryData[normKey];
-    const matchedKey = Object.keys(txSummaryData).find(k => normalizeAptName(k) === normKey);
-    return matchedKey ? txSummaryData[matchedKey] : null;
+    if (summaryMap[normKey]) return summaryMap[normKey];
+    const matchedKey = Object.keys(summaryMap).find(k => normalizeAptName(k) === normKey);
+    return matchedKey ? summaryMap[matchedKey] : null;
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   const selectedAptChartData = useMemo(() => {
@@ -1405,6 +1410,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       }
     }
 
+    const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
+
     recentTransactions.forEach((tx) => {
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(tx.aptName)) return;
 
@@ -1438,7 +1445,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         groups[dateKey].items.push({
           aptName: customAptName,
           displayAptName: getDisplayAptName(customAptName),
-          dong: txSummaryData[tx.txKey]?.dong || "",
+          dong: summaryMap[tx.txKey]?.dong || txSummaryData[tx.txKey]?.dong || "",
           priceEok: tx.priceEok,
           priceVal: tx.priceVal,
           areaPyeong: tx.areaPyeong,
