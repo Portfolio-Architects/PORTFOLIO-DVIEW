@@ -939,7 +939,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 300000, // 5분
+      revalidateOnMount: true,
+      dedupingInterval: 1000, // 1초 단위 즉시 갱신
     }
   );
 
