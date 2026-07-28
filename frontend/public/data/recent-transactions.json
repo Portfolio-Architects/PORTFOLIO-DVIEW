@@ -86,6 +86,23 @@
     "dateLabel": "7월 4일"
   },
   {
+    "aptName": "푸른마을두산위브",
+    "txKey": "푸른마을두산위브",
+    "date": "07.04",
+    "contractDate": "20260704",
+    "priceVal": 5.65,
+    "priceEok": "5억6,500",
+    "area": 73.33,
+    "areaPyeong": 29.947499999999998,
+    "floor": 35,
+    "dealType": " ",
+    "isNewHigh": false,
+    "prevPriceVal": 5.3,
+    "delta": 0.35,
+    "deltaPercent": 6.60377358490566,
+    "dateLabel": "7월 4일"
+  },
+  {
     "aptName": "푸른마을모아미래도",
     "txKey": "푸른마을모아미래도",
     "date": "07.04",
@@ -17253,23 +17270,6 @@
     "prevPriceVal": 6.98,
     "delta": 0.72,
     "deltaPercent": 10.315186246418339,
-    "dateLabel": "6월 12일"
-  },
-  {
-    "aptName": "호반베르디움센트럴포레",
-    "txKey": "호반베르디움센트럴포레",
-    "date": "06.12",
-    "contractDate": "20260612",
-    "priceVal": 7,
-    "priceEok": "7억",
-    "area": 84.8388,
-    "areaPyeong": 33.275,
-    "floor": 7,
-    "dealType": " ",
-    "isNewHigh": false,
-    "prevPriceVal": 6.2,
-    "delta": 0.8,
-    "deltaPercent": 12.903225806451612,
     "dateLabel": "6월 12일"
   }
 ]
