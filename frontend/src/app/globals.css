@@ -253,6 +253,17 @@
     -webkit-tap-highlight-color: transparent !important;
   }
 
+  /* Focus Ring Outline Defense for overflow-hidden containers */
+  .focus-ring-container {
+    padding: 2px;
+    margin: -2px;
+  }
+  .focus-ring-inset,
+  .focus-ring-inset:focus,
+  .focus-ring-inset:focus-visible {
+    outline-offset: -2px !important;
+  }
+
 
 
   /* Custom Scrollbar (Vertical only) */

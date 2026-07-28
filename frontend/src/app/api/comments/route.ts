@@ -5,6 +5,7 @@ import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 function escapeHtml(str: string): string {

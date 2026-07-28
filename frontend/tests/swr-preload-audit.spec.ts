@@ -138,6 +138,7 @@ test.describe('SWR Preloading and Duplicate Fetch Audit', () => {
         [`/data/location-scores.json?v=${buildVer}`, { data: 'matching_data' }]
       ];
       localStorage.setItem('app-swr-cache', JSON.stringify(cacheData));
+      localStorage.setItem('app-swr-version', 'stale_version');
     }, activeBuildVersion);
 
     await page.goto('/overview'); 

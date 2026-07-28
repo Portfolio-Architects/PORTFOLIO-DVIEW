@@ -4,6 +4,7 @@ import { adminAuth } from '@/lib/firebaseAdmin';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const SessionInputSchema = z.object({

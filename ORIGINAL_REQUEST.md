@@ -101,3 +101,38 @@ Ensure 100% test pass rate across all unit and integration test suites (`npm tes
 ### Verification & Forensic Integrity
 - [ ] Jest unit tests (`npm test` in `frontend/`) and Playwright E2E tests (`npx playwright test`) pass with zero failing assertions.
 - [ ] Final architecture summary and test result verification log generated.
+
+## Follow-up — 2026-07-28T10:41:05Z
+
+디뷰(DVIEW) 웹/앱 모바일 뷰 및 그래프 시스템의 2차 재귀적 자기개선(Recursive Self-Improvement) 루프 구동: 프레임 렌더링 성능 극대화, 메모리/네트워크 방어 로직 고도화 및 자동화 벤치마크/회귀 테스트 체계 완비
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. 모바일 UI 프레임 & 렌더링 퍼포먼스 극대화 (60FPS 보장)
+- 모바일 디바이스 인터랙션(터치 스크롤, 모달 오픈, 탭 전환) 시 불필요한 메인 쓰레드 블로킹 제거 및 Layout Shift (CLS) 0 달성.
+- CSS transform/opacity 렌더링 최적화 및 모바일 터치 제스처 반응성 강화.
+
+### R2. 차트 대용량 데이터 스트리밍 & 메모리 누수 방어 고도화
+- 실시간 또는 대용량 그래프 포인트 업데이트 시 메모리 누수(Memory Leak) 완전 방지 및 GC 압박 감소.
+- Unmount / Viewport departure 시 애니메이션 프레임(requestAnimationFrame) 및 Event Listener 완전 해제 구조 검증.
+
+### R3. 네트워크 지연/오프라인 상태 렌더링 방어 & 상태 복구
+- 모바일 3G/Slow-network 및 순간 오프라인 전환 시 차트 및 모바일 컨텐츠의 Skeleton / Stale-While-Revalidate 방어 UI 노출.
+- 네트워크 재연결 시 상태 자동 복구(Auto-Reconnection Sync) 파이프라인 적용.
+
+### R4. 2차 회귀 검증 & 자동 벤치마크 스크립트 구축
+- 모바일 뷰포트 & 그래프 렌더링 성능 벤치마크 검증 스크립트 작성 및 전체 단위/통합 테스트 green 상태 유지.
+
+## Acceptance Criteria
+
+### 모바일 UI/UX 성능 검증
+- [ ] 모바일 터치 인터랙션 시 Frame Drop 최소화 (60FPS 유지) 및 CLS (Cumulative Layout Shift) < 0.01.
+- [ ] 화면 전환 및 모달 토글 시 렌더링 딜레이 100ms 이내 유지.
+
+### 그래프 메모리 & 네트워크 방어 검증
+- [ ] 대용량 그래프 재렌더링 10회 연속 실행 후에도 Heap Memory 증가율 5% 이내 제어 (메모리 누수 0건).
+- [ ] 오프라인/네트워크 오류 시 에러 화면 대신 Skeleton/Stale 캐시 데이터 노출 및 자동 재연결 복구 동작 성공.
+

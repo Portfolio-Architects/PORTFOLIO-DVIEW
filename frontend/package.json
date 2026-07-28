@@ -13,6 +13,7 @@
     "start": "next start",
     "lint": "eslint",
     "audit": "node scripts/audit-pipeline.js",
+    "benchmark": "node scripts/benchmark.js",
     "sync-apartments": "node scripts/sync-apartments.js",
     "sync-transactions": "node scripts/sync-transactions.js",
     "sync-macro": "node scripts/sync-macro.js",
@@ -22,7 +23,9 @@
     "sync-nps": "node scripts/sync-nps.js",
     "sync-all": "node scripts/sync-nps.js && node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js && node scripts/fetch-local-notices.js && npm run sync-static",
     "test": "jest",
-    "test:e2e": "playwright test"
+    "test:unit": "jest",
+    "test:e2e": "playwright test",
+    "test:e2e:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'"
   },
   "dependencies": {
     "@google-analytics/data": "^5.2.1",

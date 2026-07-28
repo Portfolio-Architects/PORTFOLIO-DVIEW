@@ -5,6 +5,7 @@ import { logger } from '@/lib/services/logger';
 import { redis } from '@/lib/redis';
 import { buildInitialApartments } from '@/lib/dong-apartments';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const IndexingInputSchema = z.object({

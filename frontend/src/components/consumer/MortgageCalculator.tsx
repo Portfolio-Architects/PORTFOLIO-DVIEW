@@ -1081,9 +1081,10 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                             fontSize: '11px',
                             fontWeight: 'bold'
                           }} 
+                          isAnimationActive={false}
                         />
-                        <Area type="monotone" dataKey="남은 대출 원금" stroke="#ea6100" fillOpacity={1} fill="url(#colorPrincipal)" />
-                        <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" />
+                        <Area type="monotone" dataKey="남은 대출 원금" stroke="#ea6100" fillOpacity={1} fill="url(#colorPrincipal)" isAnimationActive={false} />
+                        <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" isAnimationActive={false} />
                       </AreaChart>
                     </ResponsiveContainer>
                   ) : (

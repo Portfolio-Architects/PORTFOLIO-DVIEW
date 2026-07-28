@@ -1,0 +1,10 @@
+▲ Next.js 16.2.6 (Turbopack)
+- Environments: .env.local
+- Experiments (use with caution):
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+
+> Build error occurred
+Error: ENOENT: no such file or directory, open 'C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\.next\static\IlrR8IHRXgT77GFx-nt1L\_buildManifest.js.tmp.zoi4zr0t7yb'
+    at ignore-listed frames

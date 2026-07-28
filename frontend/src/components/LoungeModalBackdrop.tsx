@@ -31,13 +31,19 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
     }
   };
 
-  // Prevent body scroll when modal is open
+  // Prevent body scroll when modal is open and preserve scrollbar gutter to prevent CLS
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    const originalStyle = window.getComputedStyle(document.body).overflow;
+    const originalOverflow = window.getComputedStyle(document.body).overflow;
+    const originalPaddingRight = document.body.style.paddingRight;
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+    }
     document.body.style.overflow = 'hidden';
     return () => {
-      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
+      document.body.style.overflow = originalOverflow === 'hidden' ? '' : originalOverflow;
+      document.body.style.paddingRight = originalPaddingRight;
     };
   }, []);
 
@@ -97,7 +103,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
     <div 
       ref={backdropRef}
       onKeyDown={handleFocusTrap}
-      className="fixed inset-0 z-50 flex justify-center bg-black/40 backdrop-blur-xl animate-in fade-in duration-300 overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
+      className="fixed inset-0 z-50 flex justify-center bg-black/40 backdrop-blur-md animate-in fade-in duration-300 transform-gpu overflow-y-auto w-full pt-6 pb-6 px-2 sm:pt-16 sm:pb-16 sm:px-4"
     >
       <button 
         type="button"
@@ -110,7 +116,7 @@ const LoungeModalBackdrop = React.memo(function LoungeModalBackdrop({ children, 
         aria-modal="true"
         aria-labelledby="lounge-modal-title"
         aria-describedby="lounge-modal-desc"
-        className="w-full max-w-[1040px] h-fit bg-surface/75 dark:bg-zinc-900/75 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-500 ease-out relative z-10"
+        className="w-full max-w-[1040px] h-fit bg-surface/95 dark:bg-zinc-900/95 border border-white/20 dark:border-white/5 rounded-3xl shadow-2xl overflow-hidden transition-[transform,opacity] duration-300 ease-out transform-gpu animate-in fade-in zoom-in-95 relative z-10"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Screen Reader Only Title and Description */}

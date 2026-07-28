@@ -146,27 +146,30 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
   // 🔧 Nextjs-Toploader progress bar cleanup is handled by NProgressCleaner
 
-  // 🔧 모바일 웹 뷰 내 차트 툴팁 호버 잔존 방지 전역 터치 가드
+  // 🔧 모바일/데스크톱 웹 뷰 내 차트 툴팁 잔존 방지 전역 클릭/터치 가드
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleGlobalTouch = (e: TouchEvent) => {
+    const handleGlobalInteraction = (e: MouseEvent | TouchEvent) => {
       const target = e.target as HTMLElement;
       if (target && !target.closest('.recharts-wrapper')) {
         const tooltips = document.querySelectorAll('.recharts-tooltip-wrapper') as NodeListOf<HTMLElement>;
         tooltips.forEach((tooltip) => {
           tooltip.style.opacity = '0';
+          tooltip.style.pointerEvents = 'none';
           tooltip.style.transition = 'opacity 0.12s ease';
         });
       }
     };
 
-    window.addEventListener('touchend', handleGlobalTouch, { passive: true });
-    window.addEventListener('touchstart', handleGlobalTouch, { passive: true });
+    window.addEventListener('click', handleGlobalInteraction, { passive: true });
+    window.addEventListener('touchend', handleGlobalInteraction, { passive: true });
+    window.addEventListener('touchstart', handleGlobalInteraction, { passive: true });
 
     return () => {
-      window.removeEventListener('touchend', handleGlobalTouch);
-      window.removeEventListener('touchstart', handleGlobalTouch);
+      window.removeEventListener('click', handleGlobalInteraction);
+      window.removeEventListener('touchend', handleGlobalInteraction);
+      window.removeEventListener('touchstart', handleGlobalInteraction);
     };
   }, []);
 

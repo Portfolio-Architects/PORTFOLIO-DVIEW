@@ -1,6 +1,7 @@
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
 export const revalidate = 1800; // Cache for 30 minutes
 
 export async function GET() {

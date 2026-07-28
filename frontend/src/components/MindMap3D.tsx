@@ -92,14 +92,16 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
 
   // 1. Build nodes and links dynamically from actual workspace data
   const { nodes, links } = useMemo(() => {
-    const allApts = Object.values(sheetApartments)
+    const safeSheet = sheetApartments || {};
+    const safeTx = txSummaryData || {};
+    const allApts = Object.values(safeSheet)
       .flat()
       .filter((a) => a && a.name);
 
     // Get top 25 apartments with transaction data
     const enriched = allApts
       .map((apt) => {
-        const sum = txSummaryData[apt.txKey || apt.name];
+        const sum = safeTx[apt.txKey || apt.name];
         const price = sum ? sum.avg1MPrice || sum.latestPrice || 0 : 0;
         const jeonse = sum ? sum.avg1MRentDeposit || sum.latestRentDeposit || 0 : 0;
         const ratio = price > 0 ? (jeonse / price) * 100 : 50;
@@ -174,11 +176,14 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
     if (!ctx) return;
 
     let animationFrameId: number;
-    const width = 600;
-    const height = 400;
-    canvas.width = width * window.devicePixelRatio;
-    canvas.height = height * window.devicePixelRatio;
-    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    const container = containerRef.current;
+    const rect = container ? container.getBoundingClientRect() : null;
+    const dpr = window.devicePixelRatio || 1;
+    const width = Math.max(280, Math.floor(rect?.width || container?.clientWidth || (window.innerWidth < 600 ? window.innerWidth - 32 : 600)));
+    const height = Math.max(260, Math.floor(rect?.height || container?.clientHeight || 400));
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    ctx.scale(dpr, dpr);
 
     const simulationNodes = [...nodes];
     const simulationLinks = [...links];
@@ -436,6 +441,22 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
       document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
+    const handleWindowResize = () => {
+      if (!canvas || !containerRef.current) return;
+      const r = containerRef.current.getBoundingClientRect();
+      const newW = Math.max(280, Math.floor(r.width || containerRef.current.clientWidth || 600));
+      const newH = Math.max(260, Math.floor(r.height || containerRef.current.clientHeight || 400));
+      const currentDpr = window.devicePixelRatio || 1;
+      canvas.width = newW * currentDpr;
+      canvas.height = newH * currentDpr;
+      const currentCtx = canvas.getContext('2d');
+      if (currentCtx) currentCtx.scale(currentDpr, currentDpr);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleWindowResize, { passive: true });
+    }
+
     const handleWheel = (e: WheelEvent) => {
       if (e.ctrlKey) {
         e.preventDefault();
@@ -463,6 +484,9 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
       canvas.removeEventListener('wheel', handleWheel);
       if (typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('resize', handleWindowResize);
       }
       if (observer) {
         observer.disconnect();

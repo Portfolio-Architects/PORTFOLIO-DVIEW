@@ -241,7 +241,12 @@ export async function generateMetadata(props: {
   
   try {
     const params = props.params ? (await props.params) : null;
-    const searchParams = props.searchParams ? (await props.searchParams) : {};
+    let searchParams: { [key: string]: string | string[] | undefined } = {};
+    try {
+      searchParams = props.searchParams ? (await props.searchParams) : {};
+    } catch {
+      searchParams = {};
+    }
     
     if (!params?.aptName) {
       return getDefaultMetadata(baseUrl);
@@ -375,6 +380,9 @@ export async function generateMetadata(props: {
       }
     };
   } catch (err) {
+    if (err && typeof err === 'object' && ('digest' in err || (err as Error).message?.includes('Dynamic server usage'))) {
+      throw err;
+    }
     logger.warn('ApartmentPage.generateMetadata', '[SEO] Failed to generate metadata, returning default', {}, err as Error);
     try {
       const params = props.params ? (await props.params) : null;
@@ -388,11 +396,12 @@ export async function generateMetadata(props: {
 import { createInitialKPIs } from '@/lib/services/kpi.service';
 
 export const revalidate = 3600;
+export const dynamicParams = true;
 
 export async function generateStaticParams() {
   const txSummary = await getTxSummaryData();
   const aptNames = Object.keys(txSummary || {});
-  // Pre-render all apartments (184 complexes) to guarantee 100% SSG pages for search engine indexing
+  // Pre-render apartments
   return aptNames.map((name) => ({
     aptName: name,
   }));

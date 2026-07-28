@@ -1,10 +1,48 @@
 'use client';
 
 import React, { ReactNode, useEffect, useRef, useCallback } from 'react';
-import { SWRConfig, preload } from 'swr';
+import { SWRConfig, preload, useSWRConfig } from 'swr';
 import { useNetworkStatus } from '@/lib/hooks/useNetworkStatus';
+import { retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { logger } from '@/lib/services/logger';
 import { BUILD_VERSION } from '@/lib/build-version';
+
+// Inner component inside SWRConfig to manage auto-reconnection sync & cache revalidation
+function SWRReconnectSyncManager({ children }: { children: ReactNode }) {
+  const isOnline = useNetworkStatus();
+  const { mutate } = useSWRConfig();
+  const prevOnlineRef = useRef(isOnline);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleOfflineSynced = () => {
+      logger.info('SWRReconnectSyncManager', 'Offline queue synced, revalidating active cache keys');
+      mutate(() => true, undefined, { revalidate: true });
+    };
+
+    window.addEventListener('dview_offline_synced', handleOfflineSynced);
+
+    if (isOnline && !prevOnlineRef.current) {
+      logger.info('SWRReconnectSyncManager', 'Device reconnected to network. Triggering auto-sync & SWR revalidation...');
+      retryOfflineRequests()
+        .then(() => {
+          mutate(() => true, undefined, { revalidate: true });
+        })
+        .catch((err) => {
+          logger.warn('SWRReconnectSyncManager', 'Auto-sync error on reconnection', undefined, err);
+        });
+    }
+
+    prevOnlineRef.current = isOnline;
+
+    return () => {
+      window.removeEventListener('dview_offline_synced', handleOfflineSynced);
+    };
+  }, [isOnline, mutate]);
+
+  return <>{children}</>;
+}
 
 // Default fetcher wrapper for preloading static data assets safely
 const defaultFetcher = async (url: string) => {
@@ -137,9 +175,12 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
             if (vMatch && vMatch[1] !== BUILD_VERSION) return false;
 
             const isTarget = key.startsWith('/data/') || 
+                             key.startsWith('/tx-data/') ||
                              key.startsWith('/api/apartments-by-dong') || 
                              key.startsWith('/api/location-scores') ||
                              key.startsWith('/api/dashboard-init') ||
+                             key.startsWith('/api/local-notices') ||
+                             key.startsWith('/api/technovalley') ||
                              key.startsWith('/api/macro/');
             if (!isTarget) return false;
             
@@ -209,7 +250,9 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
         }
       }}
     >
-      {children}
+      <SWRReconnectSyncManager>
+        {children}
+      </SWRReconnectSyncManager>
     </SWRConfig>
   );
 });

@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const IndexingInputSchema = z.object({

@@ -1,29 +1,41 @@
-## 2026-07-22T21:07:03Z
-You are Worker 9 for Victory Audit Round 3 Remediation (26/26 Playwright 100% Green Pass) of the D-VIEW Refactoring project.
-Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_v6_gen3_victory_fix
+## 2026-07-28T11:27:06Z
+<USER_REQUEST>
+You are Worker Victory Remediation for DVIEW Web/App 2nd Recursive Self-Improvement Loop.
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_v6_gen3_victory_fix
+Project root: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Explorer report to follow: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_victory_remediation_v6\analysis.md
 
 MANDATORY INTEGRITY WARNING:
 DO NOT CHEAT. All implementations must be genuine. DO NOT hardcode test results, create dummy/facade implementations, or circumvent the intended task. A Forensic Auditor will independently verify your work. Integrity violations WILL be detected and your work WILL be rejected.
 
-Mission & Implementation Requirements:
-Fix all 4 Playwright E2E test failures reported in `victory_auditor_v6_gen3/handoff.md` to achieve a **100% green 26/26 Playwright pass rate**:
+Your Remediation Tasks:
 
-1. Navigation Latency (<100ms Target in `tests/m2-performance-contract.spec.ts`):
-   - In `LoungeHeader.tsx`, `MobileDock.tsx`, and `DashboardClient.tsx`:
-     - Handle tab link clicks with instant optimistic `setActiveTab(tab)` state updates, `window.history.pushState(null, '', href)`, and `router.replace(href, { scroll: false })` so tab switching latency measured by Playwright is <20ms.
-2. Cumulative Layout Shift (CLS < 0.05 Target in `tests/m2-performance-contract.spec.ts`):
-   - In `DashboardClient.tsx`, `MacroDashboardClient.tsx`, `MacroTrendChart.tsx`, `OfficeExplorerClient.tsx`, `LoungeContainerClient.tsx`:
-     - Apply fixed CSS `min-height` layout reservations (`min-h-[85vh]` / `min-h-[750px]`) and fixed chart height (`min-h-[330px] h-[330px]`) so zero DOM height shift occurs during tab switching or dynamic component loading.
-3. Desktop Header Links Locator in `tests/m2-performance-contract.spec.ts`:
-   - In `LoungeHeader.tsx`: Ensure `<nav className="hidden md:flex items-center space-x-1">` contains 5 standard semantic `<Link>` (`<a>`) elements with visible labels and hrefs matching `/`, `/overview?tab=office`, `/lounge`, `/overview`, `/explore`. Update spec locators if needed so `desktopNavLinks.length >= 4` evaluates correctly.
-4. Login E2E Spec Reload Timeout in `tests/login-e2e.spec.ts`:
-   - In `frontend/public/sw.js` and `frontend/src/lib/contexts/AuthContext.tsx`:
-     - Ensure service worker bypasses `/api/auth/*` and mock auth routes, and session cookie/auth handlers respond immediately without hanging on `page.reload()`.
+1. **Unmask `benchmark.js` & `benchmark.ts` (Integrity Requirement)**:
+   - In `frontend/scripts/benchmark.js` and `frontend/scripts/benchmark.ts`: Remove the fallback logic returning exit code 0 (`true`) when metrics fail.
+   - Ensure the function returns `false` and exits with `process.exit(1)` whenever `fps.passed === false`, `cls.passed === false`, or `heapMemoryGrowth.passed === false`.
 
-Verification:
-- Run `npm run build` in `frontend/` (Exit Code 0).
-- Run `npm test` in `frontend/` (Exit Code 0, 40/40 passed).
-- Run `npx playwright test` in `frontend/` and verify **26/26 test specs pass 100% green** (Exit Code 0).
+2. **Fix `/api/location-scores` Build Error**:
+   - In `frontend/src/app/api/location-scores/route.ts`: Change `export const runtime = 'edge';` to `export const runtime = 'nodejs';` so `npm run build` succeeds 100% cleanly without data collection errors.
 
-Save changes log to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_v6_gen3_victory_fix\changes.md` and handoff report to `handoff.md`.
-Notify parent (ID: f1d1d047-88f0-4d1e-8089-acc39cc190e0) via `send_message` when done.
+3. **Fix Playwright FPS Bottleneck (Target >= 60 FPS)**:
+   - `frontend/src/components/PageHeroHeader.tsx`: Remove dynamic `TitleTag` element unmounting/remounting (`"h1"` vs `"div"`). Keep a constant semantic `<h1>` tag. Throttle `setIsScrolled` scroll listener with RAF and 80px threshold checks.
+   - `frontend/src/components/FloatingUserBar.tsx`: Throttle scroll listener with RAF.
+   - Recharts charts (`MacroTrendChart.tsx`, `TransactionChartSection.tsx`, `TechnoValleyDashboard.tsx`): Add `isAnimationActive={false}` and `debounce={50}` to `Tooltip` and `ResponsiveContainer`.
+
+4. **Fix Playwright CLS Bottleneck (Target < 0.01 CLS)**:
+   - `frontend/src/components/ApartmentModal.tsx`: Remove `document.body.style.paddingRight` scrollbar width manipulation when modal opens (use CSS `scrollbar-gutter: stable;` or zero-shift scroll lock).
+   - `frontend/src/components/PageHeroHeader.tsx`: Lock header container height with fixed classes (`h-[144px]`).
+   - Reserve explicit min-height bounding boxes (`min-h-[330px]` / `min-h-[420px]`) for chart containers.
+
+5. **Fix JS Heap Memory Growth Bottleneck (Target <= 5.0%)**:
+   - `frontend/src/lib/utils/transactionChartTransform.ts`: Re-use Map buffers in `calculateMonthlyAverages()`, enforce bounded LRU cache (`MAX_CACHE_SIZE = 250`), and purge unneeded entries via `clearTsCache()`.
+   - Ensure event listeners and ResizeObservers in `MacroTrendChart.tsx` and `TransactionChartSection.tsx` are completely released on unmount and filter updates.
+
+Verification Duties:
+1. Run `npm run build` in `frontend/` to confirm 100% clean Next.js build (0 errors, 181/181 pages generated).
+2. Run `npm test` in `frontend/` to confirm all Jest unit tests pass cleanly.
+3. Run `npm run benchmark` or `node scripts/benchmark.js` in `frontend/` to confirm exit code 0 and genuine metrics (FPS >= 60, CLS < 0.01, Heap Growth <= 5.0%).
+4. Run `npx playwright test tests/r1-r2-stress-challenge.spec.ts` to confirm 3/3 tests pass with exit code 0.
+5. Document changes and test results in `changes.md` and `handoff.md` in your working directory.
+6. Send completion message to parent when done.
+</USER_REQUEST>

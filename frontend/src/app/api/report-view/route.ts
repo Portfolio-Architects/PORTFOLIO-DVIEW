@@ -20,6 +20,7 @@ import { logger } from '@/lib/services/logger';
 import { getKSTDateString } from '@/lib/utils/date';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // 보안: NoSQL Injection 및 오버플로우 방어용 스키마 검증

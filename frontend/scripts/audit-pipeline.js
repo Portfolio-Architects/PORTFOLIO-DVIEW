@@ -317,6 +317,23 @@ function auditE2ETests() {
   return testsPassed;
 }
 
+// 6.5. Perform Automated Performance Benchmark Audit
+function auditBenchmark() {
+  if (process.env.SKIP_BENCHMARK === 'true') {
+    log(colors.yellow, '⏭️ Skipping Automated Performance Benchmark audit (SKIP_BENCHMARK=true)...');
+    return true;
+  }
+  log(colors.cyan, '🔄 Running Automated Performance Benchmark audit (FPS >= 60, CLS < 0.01, Heap Growth <= 5%)...');
+  try {
+    execSync('node scripts/benchmark.js', { stdio: 'inherit' });
+    log(colors.green, '✅ Performance Benchmark check: PASSED');
+    return true;
+  } catch (error) {
+    log(colors.red, '❌ Performance Benchmark check: FAILED');
+    return false;
+  }
+}
+
 // 7. Firestore Cost Analysis
 async function auditFirestoreCosts() {
   log(colors.cyan, '🔄 Checking Firestore data volume & cost projection...');
@@ -404,6 +421,8 @@ async function run() {
   console.log('');
   const e2ePassed = auditE2ETests();
   console.log('');
+  const benchmarkPassed = auditBenchmark();
+  console.log('');
   const firestorePassed = await auditFirestoreCosts();
 
   const results = {
@@ -415,6 +434,7 @@ async function run() {
       dataConsistency: consistencyPassed,
       bundleSizes: sizesPassed,
       e2e: e2ePassed,
+      benchmark: benchmarkPassed,
       firestore: firestorePassed
     }
   };
@@ -434,7 +454,7 @@ async function run() {
   }
 
   log(colors.magenta, '\n==================================================');
-  if (tsPassed && eslintPassed && unitTestsPassed && consistencyPassed && sizesPassed && e2ePassed && firestorePassed) {
+  if (tsPassed && eslintPassed && unitTestsPassed && consistencyPassed && sizesPassed && e2ePassed && benchmarkPassed && firestorePassed) {
     log(colors.green, '✅ Pipeline Status: SUCCESS (All essential checks passed)');
     process.exit(0);
   } else {

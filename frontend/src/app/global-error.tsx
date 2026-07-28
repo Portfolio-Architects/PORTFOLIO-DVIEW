@@ -8,11 +8,13 @@ export default function GlobalError({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error?: Error & { digest?: string };
+  reset?: () => void;
 }) {
   useEffect(() => {
-    logger.error('app.GlobalError', 'Global error occurred', undefined, error);
+    if (error) {
+      logger.error('app.GlobalError', 'Global error occurred', undefined, error);
+    }
   }, [error]);
 
   return (
@@ -53,7 +55,7 @@ export default function GlobalError({
               잠시 후 다시 시도하거나 새로고침 해주세요.
             </p>
             <button
-              onClick={reset}
+              onClick={() => reset?.()}
               style={{
                 display: 'inline-flex', alignItems: 'center', gap: '8px',
                 padding: '12px 28px',
@@ -66,7 +68,7 @@ export default function GlobalError({
               <RefreshCw size={18} />
               다시 시도
             </button>
-            {error.digest && (
+            {error?.digest && (
               <p style={{ fontSize: '0.75rem', color: '#adb5bd', marginTop: '1.5rem' }}>
                 오류 코드: {error.digest}
               </p>

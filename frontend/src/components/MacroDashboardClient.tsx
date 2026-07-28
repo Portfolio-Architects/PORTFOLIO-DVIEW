@@ -34,8 +34,14 @@ const AptFitFinder = dynamic(() => import(/* webpackPreload: false */ "@/compone
   loading: () => <InlineLoader text="맞춤 단지 매칭 엔진 준비 중" />
 });
 
-const TrafficNoticeBoard = dynamic(() => import("./macro/TrafficNoticeBoard").then(mod => mod.TrafficNoticeBoard), { ssr: false });
-const LoungeTalkWidget = dynamic(() => import("./macro/LoungeTalkWidget").then(mod => mod.LoungeTalkWidget), { ssr: false });
+const TrafficNoticeBoard = dynamic(() => import("./macro/TrafficNoticeBoard").then(mod => mod.TrafficNoticeBoard), {
+  ssr: false,
+  loading: () => <div className="w-full h-[260px] min-h-[260px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
+});
+const LoungeTalkWidget = dynamic(() => import("./macro/LoungeTalkWidget").then(mod => mod.LoungeTalkWidget), {
+  ssr: false,
+  loading: () => <div className="w-full h-[260px] min-h-[260px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
+});
 
 const EMPTY_OBJECT = {};
 
@@ -225,7 +231,7 @@ const InfoBox = ({
     <Tag
       type={onClick ? "button" : undefined}
       onClick={onClick}
-      className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border min-h-[82px] sm:min-h-[88px] md:min-h-[96px] h-auto min-w-0 transition-all duration-300 ease-[cubic-bezier(0.25,1,0.5,1)] group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
+      className={`relative rounded-2xl p-2.5 sm:p-3 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.03)] dark:shadow-[0_2px_8px_rgba(0,0,0,0.2)] border min-h-[82px] sm:min-h-[88px] md:min-h-[96px] h-auto min-w-0 transition-[transform,border-color,box-shadow] duration-200 ease-out group/card bg-[var(--card-bg-gradient)] dark:bg-[var(--card-bg-gradient-dark)] border-[var(--card-border)] dark:border-[var(--card-border-dark)] ${
         onClick
           ? "cursor-pointer hover:-translate-y-1 hover:scale-[1.01] hover:border-[var(--card-border-hover)] dark:hover:border-[var(--card-border-hover-dark)] hover:shadow-[0_12px_24px_var(--card-glow)] dark:hover:shadow-[0_12px_32px_var(--card-glow-dark)] active:scale-[0.98] text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
           : "cursor-default"
@@ -392,8 +398,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      onTouchStart={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl transition-all border w-auto max-w-full box-border ${
+      className={`flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-auto max-w-full box-border ${
         isSelected
           ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
@@ -406,7 +411,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
         className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-1 sm:gap-2"
       >
         {/* Left Column: Apt Name & Info */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
+        <div className="flex flex-col gap-1 min-w-0 flex-1 max-w-[45%] sm:max-w-none overflow-hidden">
           <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 w-full overflow-hidden">
             <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 flex-1" title={item.displayAptName || item.aptName}>
               {item.displayAptName || item.aptName}
@@ -503,8 +508,7 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
           onDetailsClick(item.aptName);
         }}
         onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-        onTouchStart={() => onDetailsHover(item.aptName, item.dong)}
-        className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
+        className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
       >
         상세
       </button>
@@ -981,7 +985,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const handleScroll = () => {
       if (scrollFrame) return;
       scrollFrame = window.requestAnimationFrame(() => {
-        setIsScrolled(window.scrollY > 80);
+        const scrolled = window.scrollY > 80;
+        setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
         scrollFrame = null;
       });
     };
@@ -1621,7 +1626,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const mainYTicks = yTicks;
 
   return (
-    <div className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full">
+    <div className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
       {macroTrendJsonLd && (
         <script
           type="application/ld+json"
@@ -1809,7 +1814,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
                                 {/* 팝오버 UI */}
                                 {showOrderEditor && (
-                                  <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
+                                  <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-w-[calc(100vw-32px)] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
                                     <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
                                       <span>⭐ 관심 단지 순서 편집</span>
                                       <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
@@ -1975,7 +1980,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             type="button"
             onClick={() => setIsQuizOpen(true)}
             aria-label="나만의 동탄 안심 정착 단지 찾기 Quiz 상세 보기"
-            className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#ea6100]/8 to-surface dark:from-[#ea6100]/4 border border-[#ea6100]/15 hover:border-[#ea6100]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+            className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#ea6100]/8 to-surface dark:from-[#ea6100]/4 border border-[#ea6100]/15 hover:border-[#ea6100]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
           >
             <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#ea6100]/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
             <div className="relative z-10 flex flex-col gap-4">
@@ -2015,7 +2020,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               type="button"
               onClick={() => onOpenJeonseSafety()}
               aria-label="전세금 반환 안전진단 및 역전세 계산기 상세 보기"
-              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
@@ -2056,7 +2061,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               type="button"
               onClick={() => onOpenMortgage()}
               aria-label="내집마련 정책자금 대출 계산기 상세 보기"
-              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
@@ -2097,7 +2102,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               type="button"
               onClick={() => onOpenSellTimingCalculator()}
               aria-label="우리집 적정 가치 및 주거 자산 안정성 진단 상세 보기"
-              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-rose-500/8 to-surface dark:from-rose-500/4 border border-rose-500/15 hover:border-rose-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
+              className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-rose-500/8 to-surface dark:from-rose-500/4 border border-rose-500/15 hover:border-rose-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
             >
               <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-rose-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
               <div className="relative z-10 flex flex-col gap-4">
@@ -2304,7 +2309,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               {/* 차트 영역 */}
               <div className="w-full h-[200px] relative mb-4 shrink-0">
                 <MacroTrendChart
-                  key={`${selectedTimelineApt || 'all'}-${timeframe}`}
+                  key={selectedTimelineApt || 'all'}
                   lineData={lineData}
                   xTicks={xTicks}
                   yTicks={yTicks}

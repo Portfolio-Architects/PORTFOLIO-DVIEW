@@ -74,7 +74,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   href="/"
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/')}
-                  onTouchStart={() => router.prefetch('/')}
                   onClick={(e) => handleNavClick(e, '/', 'technovalley')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'technovalley'
@@ -90,7 +89,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   href="/overview?tab=office"
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/overview?tab=office')}
-                  onTouchStart={() => router.prefetch('/overview?tab=office')}
                   onClick={(e) => handleNavClick(e, '/overview?tab=office', 'office')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'office'
@@ -106,7 +104,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   href="/lounge"
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/lounge')}
-                  onTouchStart={() => router.prefetch('/lounge')}
                   onClick={(e) => handleNavClick(e, '/lounge', 'lounge')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'lounge'
@@ -122,11 +119,10 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   href="/overview"
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/overview')}
-                  onTouchStart={() => router.prefetch('/overview')}
                   onClick={(e) => {
                     handleNavClick(e, '/overview', 'overview');
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
-                    scrollTimeoutRef.current = setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 50);
+                    scrollTimeoutRef.current = setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 50);
                   }}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'overview'
@@ -142,7 +138,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   href="/explore"
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/explore')}
-                  onTouchStart={() => router.prefetch('/explore')}
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'imjang'

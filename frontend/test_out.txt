@@ -1,0 +1,763 @@
+
+> frontend@0.1.0 test
+> jest
+
+PASS src/lib/utils/valuationEngine.test.ts
+  ● Console
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:45.823Z","level":"WARN","context":"ValuationEngine","message":"Failed to validate calculateDynamicDCF inputs","data":{"currentJeonse":"invalid-jeonse","macro":{"riskFreeRate":"invalid-rate","fundingCost":"invalid-cost"}}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at calculateDynamicDCF (src/lib/utils/valuationEngine.ts:100:12)
+      at Object.<anonymous> (src/lib/utils/valuationEngine.test.ts:45:41)
+
+PASS src/lib/utils/offlineQueue.test.ts
+  ● Console
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.693Z","level":"INFO","context":"OfflineSync","message":"Request enqueued to offline DB","data":{"id":"req-1785164745686-qifw2gj","url":"/api/v1/posts"}}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.711Z","level":"INFO","context":"OfflineSync","message":"Registered sync-mutations tag in Service Worker"}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.745Z","level":"INFO","context":"OfflineSync","message":"Request enqueued to offline DB","data":{"id":"req-1785164745729-9fn0okt","url":"/api/v1/posts"}}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:45.745Z","level":"WARN","context":"OfflineSync","message":"Background Sync registration failed, will rely on next online event","data":{},"error":{"name":"TypeError","message":"Cannot read properties of undefined (reading 'sync')","stack":"TypeError: Cannot read properties of undefined (reading 'sync')\n    at enqueueOfflineRequest (C:\\Users\\ocs56\\OneDrive\\바탕 화면\\PORTFOLIO\\PORTFOLIO - DVIEW\\frontend\\src\\lib\\utils\\offlineQueue.ts:74:125)\n    at Object.<anonymous> (C:\\Users\\ocs56\\OneDrive\\바탕 화면\\PORTFOLIO\\PORTFOLIO - DVIEW\\frontend\\src\\lib\\utils\\offlineQueue.test.ts:167:7)"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at enqueueOfflineRequest (src/lib/utils/offlineQueue.ts:80:14)
+      at Object.<anonymous> (src/lib/utils/offlineQueue.test.ts:167:7)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.795Z","level":"INFO","context":"OfflineSync","message":"Manual sync replayed successfully","data":{"id":"req-123"}}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:45.828Z","level":"WARN","context":"OfflineSync","message":"Manual sync failed (Retry #2). Next in 4794ms","data":{"id":"req-123"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at handleManualSyncFailure (src/lib/utils/offlineQueue.ts:171:12)
+      at retryOfflineRequests (src/lib/utils/offlineQueue.ts:136:15)
+      at Object.<anonymous> (src/lib/utils/offlineQueue.test.ts:237:7)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:45.870Z","level":"WARN","context":"OfflineSync","message":"Manual sync discarded (Client Error 400)","data":{"id":"req-400"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at retryOfflineRequests (src/lib/utils/offlineQueue.ts:134:22)
+      at Object.<anonymous> (src/lib/utils/offlineQueue.test.ts:261:7)
+
+    console.error
+      {"timestamp":"2026-07-27T15:05:45.919Z","level":"ERROR","context":"OfflineSync","message":"Manual sync discarded after 5 retries","data":{"id":"req-limit"}}
+
+    [0m [90m 64 |[39m
+     [90m 65 |[39m   [36mswitch[39m (level) {
+    [31m[1m>[22m[39m[90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                           [31m[1m^[22m[39m
+     [90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m[0m
+
+      at log (src/lib/services/logger.ts:66:27)
+      at Object.error (src/lib/services/logger.ts:77:97)
+      at handleManualSyncFailure (src/lib/utils/offlineQueue.ts:159:12)
+      at retryOfflineRequests (src/lib/utils/offlineQueue.ts:136:15)
+      at Object.<anonymous> (src/lib/utils/offlineQueue.test.ts:282:7)
+
+PASS src/lib/utils/structuredData.test.ts
+PASS src/app/api/technovalley/trend/route.test.ts
+  ● Console
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.861Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.922Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.923Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.935Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.937Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.938Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.945Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.948Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.948Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.953Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.955Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.955Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.956Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.957Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.958Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.962Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.963Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.964Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.982Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Serving trend data from local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.007Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Local file cache has expired. Recalculating."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.008Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.011Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.012Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+PASS src/app/api/technovalley/trend/route.challenge.test.ts
+  ● Console
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.896Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.981Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.981Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      NaN inputs output sample: {
+        date: '25.01',
+        '금강 IX': 21.9,
+        '실리콘앨리': 29.5,
+        'SH타임': 12.6,
+        '더퍼스트': 8.8,
+        'SK V1': 13.3,
+        '에이팩시티': 7.3,
+        '테라타워': 16.3,
+        'IT타워': 7.3,
+        '메가비즈타워': 15.3,
+        '비즈타워': 15.7,
+        '금강IX_임대료': 3.6,
+        '실리콘앨리_임대료': 3.25,
+        'SH타임_임대료': 3.15,
+        '더퍼스트_임대료': 2.92,
+        'SKV1_임대료': 3.15,
+        '에이팩시티_임대료': 3.25,
+        '테라타워_임대료': 2.88,
+        'IT타워_임대료': 2.98,
+        '메가비즈타워_임대료': 2.78,
+        '비즈타워_임대료': 2.72,
+        '평균임대료': 3.07
+      }
+
+      at Object.<anonymous> (src/app/api/technovalley/trend/route.challenge.test.ts:100:15)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.990Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.992Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.992Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.997Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.999Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:45.999Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.003Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.005Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.006Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.011Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.013Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.013Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      Negative NPS output sample: {
+        date: '25.01',
+        '금강 IX': null,
+        '실리콘앨리': null,
+        'SH타임': null,
+        '더퍼스트': null,
+        'SK V1': null,
+        '에이팩시티': null,
+        '테라타워': null,
+        'IT타워': null,
+        '메가비즈타워': null,
+        '비즈타워': null,
+        '금강IX_임대료': 3.6,
+        '실리콘앨리_임대료': 3.25,
+        'SH타임_임대료': 3.15,
+        '더퍼스트_임대료': 2.92,
+        'SKV1_임대료': 3.15,
+        '에이팩시티_임대료': 3.25,
+        '테라타워_임대료': 2.88,
+        'IT타워_임대료': 2.98,
+        '메가비즈타워_임대료': 2.78,
+        '비즈타워_임대료': 2.72,
+        '평균임대료': 3.07
+      }
+
+      at Object.<anonymous> (src/app/api/technovalley/trend/route.challenge.test.ts:181:15)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.019Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.021Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.021Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.033Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.034Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.035Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      Massive NPS output sample: {
+        date: '25.01',
+        '금강 IX': 21.7,
+        '실리콘앨리': 29.4,
+        'SH타임': 12.4,
+        '더퍼스트': 8.6,
+        'SK V1': 13.1,
+        '에이팩시티': 7.1,
+        '테라타워': 16.1,
+        'IT타워': 7.1,
+        '메가비즈타워': 15.1,
+        '비즈타워': 15.5,
+        '금강IX_임대료': 3.6,
+        '실리콘앨리_임대료': 3.25,
+        'SH타임_임대료': 3.15,
+        '더퍼스트_임대료': 2.92,
+        'SKV1_임대료': 3.15,
+        '에이팩시티_임대료': 3.25,
+        '테라타워_임대료': 2.88,
+        'IT타워_임대료': 2.98,
+        '메가비즈타워_임대료': 2.78,
+        '비즈타워_임대료': 2.72,
+        '평균임대료': 3.07
+      }
+
+      at Object.<anonymous> (src/app/api/technovalley/trend/route.challenge.test.ts:226:15)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.038Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.040Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.040Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.043Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.048Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.048Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      NaN yearBuilt output sample: null
+
+      at Object.<anonymous> (src/app/api/technovalley/trend/route.challenge.test.ts:259:15)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.054Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.056Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.057Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      Zero totalUnits output sample: 21.6
+
+      at Object.<anonymous> (src/app/api/technovalley/trend/route.challenge.test.ts:276:15)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.061Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Fetching raw transactions in parallel..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.063Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully wrote trend data to local file cache."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:46.064Z","level":"INFO","context":"GET /api/technovalley/trend","message":"Successfully calculated rents from raw sales transactions."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      NaN GFA output sample: 21.8
+
+      at Object.<anonymous> (src/app/api/technovalley/trend/route.challenge.test.ts:292:15)
+
+PASS src/lib/utils/apartmentMapping.test.ts
+PASS src/lib/utils/sellTimingEngine.test.ts
+PASS src/m5_empirical_verification.test.ts
+PASS src/lib/utils/scoring.test.ts
+PASS src/components/TimelineItemCardRender.test.tsx
+PASS src/lib/utils/localCache.test.ts
+  ● Console
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:53.623Z","level":"INFO","context":"localCache.get","message":"Cache expired for key: test-cache-key. Clearing cache.","data":{"key":"test-cache-key"}}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:47.664Z","level":"WARN","context":"localCache.get","message":"Schema validation failed for key: test-cache-key. Clearing cache.","data":{"key":"test-cache-key","error":{"_errors":[],"id":{"_errors":["Invalid input: expected number, received string"]}}}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at Object.get (src/lib/utils/localCache.ts:77:20)
+      at Object.<anonymous> (src/lib/utils/localCache.test.ts:65:23)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:47.697Z","level":"WARN","context":"localCache.get","message":"Corrupted JSON for key: test-cache-key. Clearing cache.","data":{"key":"test-cache-key"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at Object.get (src/lib/utils/localCache.ts:57:16)
+      at Object.<anonymous> (src/lib/utils/localCache.test.ts:107:31)
+
+PASS src/lib/utils/autoSuggest.test.ts
+  ● Console
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:47.626Z","level":"WARN","context":"autoSuggest.editDistance","message":"Parameter validation failed","data":{"error":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"a\"\n    ],\n    \"message\": \"Invalid input: expected string, received null\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at editDistance (src/lib/utils/autoSuggest.ts:53:12)
+      at Object.<anonymous> (src/lib/utils/autoSuggest.test.ts:29:26)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:47.742Z","level":"WARN","context":"autoSuggest.editDistance","message":"Parameter validation failed","data":{"error":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"b\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at editDistance (src/lib/utils/autoSuggest.ts:53:12)
+      at Object.<anonymous> (src/lib/utils/autoSuggest.test.ts:31:26)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:47.765Z","level":"WARN","context":"autoSuggest.autoSuggest","message":"Parameter validation failed","data":{"error":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"aptName\"\n    ],\n    \"message\": \"Invalid input: expected string, received null\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at autoSuggest (src/lib/utils/autoSuggest.ts:72:12)
+      at Object.<anonymous> (src/lib/utils/autoSuggest.test.ts:97:25)
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:47.766Z","level":"WARN","context":"autoSuggest.autoSuggest","message":"Parameter validation failed","data":{"error":"[\n  {\n    \"expected\": \"record\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"txSummaryData\"\n    ],\n    \"message\": \"Invalid input: expected record, received null\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at autoSuggest (src/lib/utils/autoSuggest.ts:72:12)
+      at Object.<anonymous> (src/lib/utils/autoSuggest.test.ts:99:25)
+
+PASS src/lib/validation/facade.schemas.test.ts
+PASS src/lib/utils/date.test.ts
+PASS src/lib/utils/priceCalculation.test.ts
+PASS src/lib/services/officeTx.service.test.ts
+PASS src/components/LoungeFeedClient.test.tsx
+PASS src/lib/utils/firestoreThrottle.test.ts
+  ● Console
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:48.692Z","level":"INFO","context":"FirestoreThrottle","message":"Throttled Firestore connection/request spike","data":{"activeRequests":3,"queuedRequests":1}}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:48.735Z","level":"INFO","context":"FirestoreThrottle","message":"Throttled Firestore connection/request spike","data":{"activeRequests":3,"queuedRequests":1}}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+PASS src/components/apartment-modal/ChildcareDetailSection.test.tsx
+PASS src/components/consumer/SellTimingCalculator.test.tsx
+PASS src/lib/utils/haversine.test.ts
+PASS src/lib/services/logger.test.ts
+PASS src/lib/utils/analytics.test.ts
+PASS src/components/consumer/JeonseSafetyCalculator.test.tsx
+PASS src/lib/utils/macroChartTransform.test.ts
+PASS src/components/GapInvestmentExplorer.test.tsx (5.889 s)
+PASS src/components/consumer/AIRecommendations.test.tsx (6.154 s)
+  ● Console
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:48.519Z","level":"WARN","context":"firebaseConfig.init","message":"Firebase configuration validation failed","data":{"error":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"apiKey\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"authDomain\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"projectId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"storageBucket\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"messagingSenderId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"appId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at Object.<anonymous> (src/lib/firebaseConfig.ts:44:10)
+      at Object.<anonymous> (src/lib/repositories/post.repository.ts:9:1)
+      at Object.<anonymous> (src/lib/DashboardFacade.ts:28:1)
+      at Object.<anonymous> (src/hooks/useDashboardData.ts:2:1)
+      at Object.<anonymous> (src/components/consumer/AIRecommendations.tsx:6:1)
+      at Object.<anonymous> (src/components/consumer/AIRecommendations.test.tsx:2:1)
+
+PASS src/lib/utils/valuation.test.ts
+PASS src/lib/utils/transactionChartTransform.test.ts
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "{"timestamp":"2026-07-27T15:05:50.043Z","level":"INFO","context":"ApartmentRepository.fetch","message":"Loaded 180 apartments successfully"}".
+
+    [0m [90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 70 |[39m   }
+     [90m 71 |[39m }
+     [90m 72 |[39m[0m
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at log (src/lib/services/logger.ts:69:22)
+      at Object.info (src/lib/services/logger.ts:75:79)
+      at Object.fetchApartmentNames (src/lib/repositories/apartment.repository.ts:175:25)
+
+PASS src/lib/dongs.test.ts
+PASS src/lib/utils/subscribable.test.ts
+PASS src/lib/utils/nickname.test.ts
+PASS src/lib/utils/brandMapping.test.ts
+  ● Console
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:50.757Z","level":"WARN","context":"brandMapping.getBrandStyle","message":"Parameter validation failed","data":{"error":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"aptName\"\n    ],\n    \"message\": \"Invalid input: expected string, received null\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at getBrandStyle (src/lib/utils/brandMapping.ts:83:12)
+      at Object.<anonymous> (src/lib/utils/brandMapping.test.ts:46:34)
+
+PASS src/components/ui/ErrorBoundary.test.tsx
+  ● Console
+
+    console.log
+      {"timestamp":"2026-07-27T15:05:50.948Z","level":"INFO","context":"ErrorBoundary","message":"[ErrorBoundary:Test Boundary] Network restored. Triggering self-healing auto-recovery..."}
+
+      at log (src/lib/services/logger.ts:69:22)
+
+PASS src/components/apartment-modal/JeonseSafetyReport.test.tsx
+PASS src/components/common/ChartErrorBoundary.test.tsx
+PASS src/components/pwa/SWRProvider.test.tsx
+PASS src/components/consumer/AptCompareModal.test.tsx (7.352 s)
+PASS src/components/macro/RelocationTaxSimulator.test.tsx
+PASS src/components/consumer/PropertyTaxCalculator.test.tsx (5.891 s)
+PASS src/components/consumer/MortgageCalculator.test.tsx (6.036 s)
+PASS src/components/HeaderDockSync.test.tsx
+  ● Console
+
+    console.warn
+      {"timestamp":"2026-07-27T15:05:51.192Z","level":"WARN","context":"firebaseConfig.init","message":"Firebase configuration validation failed","data":{"error":"[\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"apiKey\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"authDomain\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"projectId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"storageBucket\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"messagingSenderId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  },\n  {\n    \"expected\": \"string\",\n    \"code\": \"invalid_type\",\n    \"path\": [\n      \"appId\"\n    ],\n    \"message\": \"Invalid input: expected string, received undefined\"\n  }\n]"}}
+
+    [0m [90m 65 |[39m   [36mswitch[39m (level) {
+     [90m 66 |[39m     [36mcase[39m [32m'ERROR'[39m[33m:[39m console[33m.[39merror(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m    |[39m                          [31m[1m^[22m[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m 70 |[39m   }[0m
+
+      at log (src/lib/services/logger.ts:67:26)
+      at Object.warn (src/lib/services/logger.ts:76:96)
+      at Object.<anonymous> (src/lib/firebaseConfig.ts:44:10)
+      at Object.<anonymous> (src/lib/repositories/post.repository.ts:9:1)
+      at Object.<anonymous> (src/lib/DashboardFacade.ts:28:1)
+      at Object.<anonymous> (src/components/FloatingUserBar.tsx:6:1)
+      at Object.<anonymous> (src/components/LoungeHeader.tsx:7:1)
+      at Object.<anonymous> (src/components/HeaderDockSync.test.tsx:3:1)
+
+PASS src/components/consumer/AptFitFinder.test.tsx
+
+  ●  Cannot log after tests are done. Did you forget to wait for something async in your test?
+    Attempted to log "{"timestamp":"2026-07-27T15:05:52.158Z","level":"INFO","context":"ApartmentRepository.fetch","message":"Loaded 180 apartments successfully"}".
+
+    [0m [90m 67 |[39m     [36mcase[39m [32m'WARN'[39m[33m:[39m console[33m.[39mwarn(output)[33m;[39m [36mbreak[39m[33m;[39m
+     [90m 68 |[39m     [36mcase[39m [32m'DEBUG'[39m[33m:[39m console[33m.[39mdebug(output)[33m;[39m [36mbreak[39m[33m;[39m
+    [31m[1m>[22m[39m[90m 69 |[39m     [36mdefault[39m[33m:[39m console[33m.[39mlog(output)[33m;[39m
+     [90m    |[39m                      [31m[1m^[22m[39m
+     [90m 70 |[39m   }
+     [90m 71 |[39m }
+     [90m 72 |[39m[0m
+
+      at console.log (node_modules/@jest/console/build/index.js:147:10)
+      at log (src/lib/services/logger.ts:69:22)
+      at Object.info (src/lib/services/logger.ts:75:79)
+      at Object.fetchApartmentNames (src/lib/repositories/apartment.repository.ts:175:25)
+
+PASS src/m2_m3_empirical_verification.test.tsx
+
+Test Suites: 44 passed, 44 total
+Tests:       314 passed, 314 total
+Snapshots:   0 total
+Time:        11.716 s
+Ran all test suites.

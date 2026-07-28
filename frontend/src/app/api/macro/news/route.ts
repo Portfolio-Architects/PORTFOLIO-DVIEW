@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { getMacroNews } from '@/lib/services/newsData';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const macroNewsQuerySchema = z.object({

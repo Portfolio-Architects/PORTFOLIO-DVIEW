@@ -5,6 +5,7 @@ import path from 'path';
 import fs from 'fs';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // Initialize web-push VAPID details

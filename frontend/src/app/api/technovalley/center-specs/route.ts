@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Curated official data matching the KICOX National Knowledge Industrial Center registry
 const CURATED_CENTER_SPECS: Record<string, any> = {
   '금강펜테리움 IX타워': {

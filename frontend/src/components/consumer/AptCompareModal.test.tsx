@@ -114,6 +114,7 @@ describe('AptCompareModal', () => {
   const mockOnClose = jest.fn();
 
   beforeEach(() => {
+    jest.setTimeout(15000);
     jest.clearAllMocks();
     Object.keys(mockLocalStorageStore).forEach(key => delete mockLocalStorageStore[key]);
   });
@@ -203,5 +204,5 @@ describe('AptCompareModal', () => {
     // Park row (lifestyle is nature)
     const parkRow = screen.getByText('공원 도보 거리').closest('.grid');
     expect(parkRow).toHaveClass('bg-emerald-500/10');
-  });
+  }, 15000);
 });

@@ -451,7 +451,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   }, [searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
 
   return (
-    <div className="flex flex-col w-full max-w-full overflow-x-clip min-w-0 box-border bg-transparent min-h-[85vh] min-h-[800px]">
+    <div className="flex flex-col w-full max-w-full overflow-x-clip min-w-0 box-border bg-transparent min-h-[85vh] min-h-[800px]" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
       <PageHeroHeader 
         title="D-VIEW 사무실 탐색"
         subtitleStrong="지식산업센터 맞춤 사무실 탐색"

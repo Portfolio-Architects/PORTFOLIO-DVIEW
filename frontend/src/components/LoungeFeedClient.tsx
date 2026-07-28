@@ -16,7 +16,7 @@ import { logger } from '@/lib/services/logger';
 
 const CalculatorLoader = ({ text }: { text: string }) => (
   <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
-    <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-5 text-center min-w-[280px] max-w-[320px] backdrop-blur-2xl">
+    <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col items-center gap-5 text-center w-[calc(100vw-32px)] min-w-[260px] max-w-[320px] backdrop-blur-2xl">
       <div className="relative w-14 h-14 flex items-center justify-center">
         {/* outer spin */}
         <div className="absolute inset-0 rounded-full border-[3px] border-transparent border-t-toss-blue animate-spin" style={{ animationDuration: '0.8s' }} />
@@ -303,10 +303,10 @@ const NoticeCard = React.memo(function NoticeCard({
           {idx + 1}
         </div>
         
-        <div className="flex sm:hidden items-center gap-2">
-          <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide">{notice.dept}</span>
-          <span className="text-[11px] text-gray-300">|</span>
-          <span className="text-[11px] font-semibold text-tertiary truncate max-w-[100px]">{notice.date}</span>
+        <div className="flex sm:hidden items-center gap-2 min-w-0">
+          <span className="text-[11px] font-extrabold text-emerald-600 tracking-wide min-w-0 truncate max-w-[90px]">{notice.dept}</span>
+          <span className="text-[11px] text-gray-300 shrink-0">|</span>
+          <span className="text-[11px] font-semibold text-tertiary min-w-0 truncate max-w-[90px]">{notice.date}</span>
           {notice.isDongtan && (
             <>
               <span className="text-[11px] text-gray-300">|</span>

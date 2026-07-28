@@ -6,6 +6,7 @@ import { logger } from '@/lib/services/logger';
 import { getKSTDateString } from '@/lib/utils/date';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const trafficSchema = z.object({

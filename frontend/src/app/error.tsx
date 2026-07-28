@@ -9,11 +9,13 @@ export default function Error({
   error,
   reset,
 }: {
-  error: Error & { digest?: string };
-  reset: () => void;
+  error?: Error & { digest?: string };
+  reset?: () => void;
 }) {
   useEffect(() => {
-    logger.error('app.Error', 'Route error occurred', undefined, error);
+    if (error) {
+      logger.error('app.Error', 'Route error occurred', undefined, error);
+    }
   }, [error]);
 
   return (
@@ -31,7 +33,7 @@ export default function Error({
         </p>
         <div className="flex items-center justify-center gap-3">
           <button
-            onClick={reset}
+            onClick={() => reset?.()}
             className="flex items-center gap-2 px-6 py-3 bg-[#c44d00] dark:bg-[#ff8f00] text-surface rounded-xl font-bold text-[14px] hover:bg-[#9e3c00] dark:hover:bg-[#c44d00] transition-colors shadow-lg shadow-[#ea6100]/20"
           >
             <RefreshCw size={16} />
@@ -45,7 +47,7 @@ export default function Error({
             홈으로
           </Link>
         </div>
-        {error.message && (
+        {error?.message && (
           <details className="mt-8 text-left">
             <summary className="text-[12px] text-[#adb5bd] cursor-pointer hover:text-[#6b7684]">
               오류 상세 정보

@@ -1,0 +1,34 @@
+
+> frontend@0.1.0 build
+> node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build
+
+[dotenv@17.3.1] injecting env (27) from .env.local -- tip: ⚙️  load multiple .env files with { path: ['.env.local', '.env'] }
+📥 [Incremental] 로컬 JSON 캐시(기존 실거래가)를 로드합니다...
+✅ 180개 아파트의 기존 데이터 로드 완료
+📡 Firestore에서 실거래가 데이터 읽는 중... (Incremental: 20260401 이후)
+📋 transactions 컬렉션에서 8678건 로드 완료
+📡 Firestore transactionSync (임대차 등) 로딩 중... (Incremental: 202604 이후)
+📋 transactionSync 컬렉션에서 0건 로드 완료
+🧹 raw 거래 데이터 중복 제거 수행 중...
+🔗 타입 맵 다운로드 중 (공급면적 기준 평당가 계산)...
+🗺️ 법정동 매핑 다운로드 중...
+   127개 아파트-동 매핑 로드 완료. 유효 아파트: 212개. 원본 txKey: 127개
+🧹 전체 675개 중 동탄 지역 148개 아파트만 필터링 완료
+
+✅ 요약 완료: 148개 아파트 (매매+전월세 통합)
+📁 파일 생성: C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\public\data\tx-summary.json
+📁 파일 생성: C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\public\data\recent-transactions.json
+📁 파일 생성: C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\public\data\macro-trend.json
+🎉 동기화 완료!
+📁 JSON 청크: C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\public\tx-data
+   180개 아파트, 156218건, 총 35432KB
+   (기존 16MB .ts → 35432KB 분할)
+[SW Update] Bumped service worker cache name to version v-1785164653040
+[Version Update] Updated src/lib/build-version.ts to 1785164653040
+⨯ Another next build process is already running.
+
+  This could be:
+  - A next build still in progress
+  - A previous build that didn't exit cleanly
+
+  Suggestion: Wait for the build to complete.

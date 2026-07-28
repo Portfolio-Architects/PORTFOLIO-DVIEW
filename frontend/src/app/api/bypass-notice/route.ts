@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const bypassNoticeQuerySchema = z.object({

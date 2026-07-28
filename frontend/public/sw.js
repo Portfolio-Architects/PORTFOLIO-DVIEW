@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1785077820859';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1785077820859';
+const CACHE_NAME = 'dview-cache-v-1785246745441';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1785246745441';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -83,10 +83,21 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
-  // 🔧 Explicitly bypass auth APIs, all /api/ endpoints, and local development requests
+  // Read-only API endpoints for offline defense & fast caching
+  const isReadOnlyApi = req.method === 'GET' && (
+    url.pathname.startsWith('/api/dashboard-init') ||
+    url.pathname.startsWith('/api/location-scores') ||
+    url.pathname.startsWith('/api/local-notices') ||
+    url.pathname.startsWith('/api/macro') ||
+    url.pathname.startsWith('/api/apartments-by-dong') ||
+    url.pathname.startsWith('/api/technovalley')
+  );
+
+  // 🔧 Explicitly bypass auth APIs, push/action APIs, non-GET API requests, and local development requests
   if (
     url.pathname.startsWith('/api/auth') ||
-    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/api/push') ||
+    (url.pathname.startsWith('/api/') && !isReadOnlyApi) ||
     url.hostname === 'localhost' || 
     url.hostname === '127.0.0.1' || 
     url.hostname.startsWith('192.168.') ||
@@ -111,9 +122,13 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   
-  // Static Data & JSON files (e.g. /data/*.json, /tx-data/*.json) -> Stale-While-Revalidate (SWR)
-  // 단, 용량이 크고 실시간 데이터와 정합이 중요한 tx-summary.json은 캐싱 레이턴시 배제를 위해 SWR 캐시에서 제외합니다.
-  if ((url.pathname.includes('/data/') || url.pathname.includes('/tx-data/') || url.pathname.endsWith('.json')) && !url.pathname.includes('tx-summary.json')) {
+  // Static Data, JSON files (including tx-summary.json), and Read-only GET APIs -> Stale-While-Revalidate (SWR)
+  if (
+    url.pathname.includes('/data/') || 
+    url.pathname.includes('/tx-data/') || 
+    url.pathname.endsWith('.json') ||
+    isReadOnlyApi
+  ) {
     event.respondWith(
       caches.open(DYNAMIC_CACHE_NAME).then((cache) => {
         return cache.match(req).then((cachedRes) => {
@@ -136,7 +151,9 @@ self.addEventListener('fetch', (event) => {
           return fetchPromise.then((networkRes) => {
             if (networkRes) return networkRes;
             // Offline fallback
-            return new Response('[]', { headers: { 'Content-Type': 'application/json' } });
+            return new Response(isReadOnlyApi ? '{"offline":true}' : '[]', { 
+              headers: { 'Content-Type': 'application/json' } 
+            });
           });
         });
       })

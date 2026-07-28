@@ -19,6 +19,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
 
 // 보안 및 정합성: 유입 데이터 스키마 정의

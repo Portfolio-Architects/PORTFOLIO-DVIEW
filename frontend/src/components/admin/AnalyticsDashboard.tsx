@@ -216,10 +216,10 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                       <XAxis dataKey="date" tickLine={false} axisLine={false} tickFormatter={(val) => val.substring(5)} />
                       <YAxis tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }} isAnimationActive={false} />
                       <Legend iconSize={8} iconType="circle" />
-                      <Area type="monotone" name="활성 사용자 (DAU)" dataKey="activeUsers" stroke="#ea6100" strokeWidth={2} fillOpacity={1} fill="url(#colorDau)" />
-                      <Area type="monotone" name="페이지 뷰" dataKey="pageViews" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" />
+                      <Area type="monotone" name="활성 사용자 (DAU)" dataKey="activeUsers" stroke="#ea6100" strokeWidth={2} fillOpacity={1} fill="url(#colorDau)" isAnimationActive={false} />
+                      <Area type="monotone" name="페이지 뷰" dataKey="pageViews" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#colorViews)" isAnimationActive={false} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -243,10 +243,10 @@ const AnalyticsDashboard = React.memo(function AnalyticsDashboard() {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
                       <XAxis dataKey="month" tickLine={false} axisLine={false} />
                       <YAxis tickLine={false} axisLine={false} />
-                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }} />
+                      <Tooltip contentStyle={{ borderRadius: '12px', border: '1px solid rgba(0,0,0,0.08)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)', backgroundColor: 'var(--bg-surface)', color: 'var(--text-primary)' }} isAnimationActive={false} />
                       <Legend iconSize={8} iconType="circle" />
-                      <Bar name="월간 사용자 (MAU)" dataKey="mau" fill="url(#barGradient)" radius={[6, 6, 0, 0]} maxBarSize={45} />
-                      <Line type="monotone" name="일간 평균 (Avg DAU)" dataKey="avgDau" stroke="#ff8a3d" strokeWidth={2.5} dot={{ r: 4, stroke: '#ff8a3d', strokeWidth: 2, fill: '#fff' }} />
+                      <Bar name="월간 사용자 (MAU)" dataKey="mau" fill="url(#barGradient)" radius={[6, 6, 0, 0]} maxBarSize={45} isAnimationActive={false} />
+                      <Line type="monotone" name="일간 평균 (Avg DAU)" dataKey="avgDau" stroke="#ff8a3d" strokeWidth={2.5} dot={{ r: 4, stroke: '#ff8a3d', strokeWidth: 2, fill: '#fff' }} isAnimationActive={false} />
                     </ComposedChart>
                   </ResponsiveContainer>
                 </div>

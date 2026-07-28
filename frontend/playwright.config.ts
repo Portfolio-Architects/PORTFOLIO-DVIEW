@@ -15,11 +15,30 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--js-flags=--expose-gc',
+            '--enable-precise-memory-info',
+            '--disable-frame-rate-limit',
+            '--disable-gpu-vsync',
+            '--disable-backgrounding-occluded-windows'
+          ]
+        }
+      },
+    },
+    {
+      name: 'Mobile Chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
     },
   ],
   webServer: {
-    command: 'npm run start -- -p 5000',
+    command: 'npx next dev -p 5000',
     url: 'http://localhost:5000',
     reuseExistingServer: !process.env.CI,
     timeout: 120000,

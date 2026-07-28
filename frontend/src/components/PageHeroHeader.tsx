@@ -23,10 +23,8 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
   rightSideContent,
   compactTitle,
   bottomContent,
-  isTitleDiv,
 }: PageHeroHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [hasModalOpen, setHasModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -34,7 +32,8 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
     const handleScroll = () => {
       if (scrollFrame) return;
       scrollFrame = window.requestAnimationFrame(() => {
-        setIsScrolled(window.scrollY > 80);
+        const scrolled = window.scrollY > 80;
+        setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
         scrollFrame = null;
       });
     };
@@ -45,28 +44,11 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const checkModal = () => {
-      const hash = window.location.hash;
-      setHasModalOpen(
-        hash.includes("apt=") ||
-        hash.includes("post=") ||
-        hash.includes("notice=")
-      );
-    };
-    checkModal();
-    window.addEventListener("hashchange", checkModal, { passive: true });
-    return () => window.removeEventListener("hashchange", checkModal);
-  }, []);
-
-  const TitleTag = (isTitleDiv || hasModalOpen) ? "div" : "h1";
-
   return (
     <>
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
       <div
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-all duration-300 ${
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-transform transition-opacity duration-300 ${
           isScrolled
             ? "opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
             : "opacity-0 pointer-events-none"
@@ -85,7 +67,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="min-h-[140px] sm:min-h-[144px] h-auto flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-border/60 shrink-0 z-20 relative">
+      <div className="h-[144px] flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-border/60 shrink-0 z-20 relative">
         <div className="flex items-start justify-between w-full max-w-full min-w-0">
           <div className="flex flex-col gap-3 sm:gap-4 w-full min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
@@ -100,9 +82,9 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
                     className="object-contain p-0.5 sm:p-1"
                   />
                 </div>
-                <TitleTag className="font-extrabold text-primary tracking-tight leading-none text-[20px] sm:text-[30px] lg:text-[36px] min-h-[20px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px] truncate min-w-0 flex-1">
+                <h1 className="font-extrabold text-primary tracking-tight leading-none text-[20px] sm:text-[30px] lg:text-[36px] min-h-[20px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px] truncate min-w-0 flex-1">
                   {title}
-                </TitleTag>
+                </h1>
               </div>
               {rightContent}
             </div>

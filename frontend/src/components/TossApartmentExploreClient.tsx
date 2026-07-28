@@ -345,7 +345,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     const handleScroll = () => {
       if (scrollFrame) return;
       scrollFrame = window.requestAnimationFrame(() => {
-        setIsScrolled(window.scrollY > 80);
+        const scrolled = window.scrollY > 80;
+        setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
         scrollFrame = null;
       });
     };

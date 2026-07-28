@@ -5,6 +5,7 @@ import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
 import * as admin from 'firebase-admin';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const debugReportsQuerySchema = z.object({

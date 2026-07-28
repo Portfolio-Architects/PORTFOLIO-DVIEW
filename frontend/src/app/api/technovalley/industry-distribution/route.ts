@@ -180,6 +180,7 @@ function formatCompanyWithCenter(name: string, address: string): string {
   return cleanName;
 }
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {

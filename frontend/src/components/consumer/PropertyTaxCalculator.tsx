@@ -747,6 +747,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                               fontSize: '11px',
                               fontWeight: 'bold',
                             }}
+                            isAnimationActive={false}
                           />
                         </PieChart>
                       ) : (

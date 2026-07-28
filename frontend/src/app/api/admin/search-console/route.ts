@@ -3,6 +3,7 @@ import { getSearchConsoleStatus } from '@/lib/services/searchConsole';
 import { verifyAdmin } from '@/lib/authUtils';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {

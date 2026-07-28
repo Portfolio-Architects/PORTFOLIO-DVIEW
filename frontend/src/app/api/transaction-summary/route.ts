@@ -4,6 +4,7 @@ import { logger } from '@/lib/services/logger';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 async function getTxSummary(): Promise<Record<string, any>> {

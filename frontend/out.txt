@@ -1,0 +1,2 @@
+src/components/apartment-modal/TransactionChartSection.tsx(798,217): error TS2304: Cannot find name 'CustomActiveDot'.
+src/components/apartment-modal/TransactionChartSection.tsx(799,183): error TS2304: Cannot find name 'CustomActiveDot'.

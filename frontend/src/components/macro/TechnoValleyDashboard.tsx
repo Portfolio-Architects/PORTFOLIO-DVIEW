@@ -626,16 +626,24 @@ export default function TechnoValleyDashboard() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [showHelpModal, setShowHelpModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [chartSize, setChartSize] = useState(220);
+  const [chartSize, setChartSize] = useState(210);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const mediaQuery = window.matchMedia('(min-width: 640px)');
-    const handleQueryChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      setChartSize(e.matches ? 260 : 220);
+    const mediaSm = window.matchMedia('(min-width: 640px)');
+    const mediaXs = window.matchMedia('(min-width: 375px)');
+    const handleQueryChange = () => {
+      if (mediaSm.matches) setChartSize(260);
+      else if (mediaXs.matches) setChartSize(210);
+      else setChartSize(180);
     };
-    handleQueryChange(mediaQuery);
-    mediaQuery.addEventListener('change', handleQueryChange);
+    handleQueryChange();
+    mediaSm.addEventListener('change', handleQueryChange);
+    mediaXs.addEventListener('change', handleQueryChange);
+    return () => {
+      mediaSm.removeEventListener('change', handleQueryChange);
+      mediaXs.removeEventListener('change', handleQueryChange);
+    };
   }, []);
 
   // Click outside donut chart card to reset activeCategory
@@ -919,7 +927,7 @@ export default function TechnoValleyDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-10 gap-6 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
             {/* Donut Chart Container (60%) */}
             <div className="col-span-1 sm:col-span-6 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-8 py-2">
-              <div className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
+              <div className="w-[180px] h-[180px] xs:w-[210px] xs:h-[210px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0">
                 {mounted ? (
                   <PieChart width={chartSize} height={chartSize}>
                     <Pie
@@ -1283,7 +1291,7 @@ export default function TechnoValleyDashboard() {
         </div>
 
         {/* Line Chart Area */}
-        <div className="flex-1 w-full relative min-h-[290px] h-[320px]">
+        <div className="flex-1 w-full relative min-h-[330px] h-[320px]">
           {(isTrendLoading || isTrendValidating) && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-surface/50 backdrop-blur-[2px] transition-all duration-300 rounded-xl">
               <div className="flex flex-col items-center gap-3">
@@ -1294,7 +1302,7 @@ export default function TechnoValleyDashboard() {
           )}
           {mounted ? (
             <div className="absolute inset-0">
-              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0} debounce={50}>
                 <LineChart data={filteredTrendData} margin={{ top: 15, right: 10, left: -5, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
                 <XAxis 
@@ -1309,7 +1317,7 @@ export default function TechnoValleyDashboard() {
                   width={42}
                   tickLine={false} 
                   axisLine={false} 
-                  domain={metricMode === 'vacancy' ? [0, 26] : [3.2, 3.9]}
+                  domain={metricMode === 'vacancy' ? [0, 'auto'] : ['auto', 'auto']}
                   tick={{ fontSize: 10.5, fontWeight: 700, fill: '#6b7280' }}
                   tickFormatter={(value) => {
                     const num = Number(value);
@@ -1318,7 +1326,7 @@ export default function TechnoValleyDashboard() {
                   }}
                   unit={metricMode === 'vacancy' ? '%' : '만'}
                 />
-                <Tooltip content={<ChartTooltip metricMode={metricMode} />} />
+                <Tooltip content={<ChartTooltip metricMode={metricMode} />} isAnimationActive={false} />
                 {metricMode === 'vacancy' ? (
                   <>
                     {AVAILABLE_BUILDINGS.filter(b => visibleBuildings.includes(b.id)).map(b => (
@@ -1331,6 +1339,7 @@ export default function TechnoValleyDashboard() {
                         strokeWidth={3} 
                         dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
                         activeDot={{ r: 6 }} 
+                        isAnimationActive={false}
                       />
                     ))}
                   </>
@@ -1346,6 +1355,7 @@ export default function TechnoValleyDashboard() {
                         strokeWidth={3} 
                         dot={{ r: 4, strokeWidth: 2, fill: '#ffffff' }}
                         activeDot={{ r: 6 }} 
+                        isAnimationActive={false}
                       />
                     ))}
                     <Line 
@@ -1357,6 +1367,7 @@ export default function TechnoValleyDashboard() {
                       strokeDasharray="4 4"
                       dot={{ r: 3.5, strokeWidth: 2, fill: '#ffffff' }}
                       activeDot={{ r: 5 }} 
+                      isAnimationActive={false}
                     />
                   </>
                 )}
@@ -1715,7 +1726,7 @@ export default function TechnoValleyDashboard() {
                         tick={{ fontSize: 9.5, fontWeight: 700, fill: '#6b7280' }}
                         unit={metricMode === 'vacancy' ? '%' : '만'}
                       />
-                      <Tooltip content={<ChartTooltip metricMode={metricMode} />} />
+                      <Tooltip content={<ChartTooltip metricMode={metricMode} />} isAnimationActive={false} />
                       {metricMode === 'vacancy' ? (
                         <>
                           {AVAILABLE_BUILDINGS.filter(b => selectedBuildings.includes(b.id)).map(b => (
@@ -1728,6 +1739,7 @@ export default function TechnoValleyDashboard() {
                               strokeWidth={2.5} 
                               dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
                               activeDot={{ r: 5 }} 
+                              isAnimationActive={false}
                             />
                           ))}
                         </>
@@ -1743,6 +1755,7 @@ export default function TechnoValleyDashboard() {
                               strokeWidth={2.5} 
                               dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
                               activeDot={{ r: 5 }} 
+                              isAnimationActive={false}
                             />
                           ))}
                           <Line 
@@ -1754,6 +1767,7 @@ export default function TechnoValleyDashboard() {
                             strokeDasharray="4 4"
                             dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }}
                             activeDot={{ r: 4 }} 
+                            isAnimationActive={false}
                           />
                         </>
                       )}

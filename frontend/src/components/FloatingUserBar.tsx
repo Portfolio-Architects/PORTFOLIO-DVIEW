@@ -47,7 +47,8 @@ const FloatingUserBar = React.memo(function FloatingUserBar() {
       if (scrollTimeoutRef.current) return;
       scrollTimeoutRef.current = window.requestAnimationFrame(() => {
         if (active) {
-          setIsScrolled(window.scrollY > 80);
+          const scrolled = window.scrollY > 80;
+          setIsScrolled((prev) => (prev !== scrolled ? scrolled : prev));
         }
         scrollTimeoutRef.current = null;
       });

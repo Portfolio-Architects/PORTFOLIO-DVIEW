@@ -1,37 +1,46 @@
-# BRIEFING — 2026-07-22T08:12:00Z
+# BRIEFING — 2026-07-28T20:26:55+09:00
 
 ## Mission
-Analyze all 13 Playwright test spec failures from Victory Audit Round 2 and formulate a comprehensive, genuine technical remediation plan to achieve 26/26 passing specs.
+Investigate benchmark integrity masking in benchmark.js and performance bottlenecks causing FPS (37.7-40.8 < 60), CLS (0.0318 >= 0.01), and JS Heap Memory Growth (11.72% > 5.0%) failures, as well as the build failure in /api/location-scores, and formulate a detailed remediation plan.
 
 ## 🔒 My Identity
 - Archetype: Explorer
-- Roles: Read-only investigation and technical plan formulation
+- Roles: Read-only investigator & performance analyst
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_victory_remediation_v6
-- Original parent: 30641c5e-2edf-4e25-aa58-f578c6aab4db
-- Milestone: Victory Audit Round 2 Remediation
+- Original parent: fc7d6c5e-5bdb-4118-87b8-ac9db899a7a2
+- Milestone: Victory Remediation v6
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement source code changes directly.
-- Genuine fixes only — no cheat strategies, disabling tests, or hardcoding mock returns.
-- Output detailed analysis in `analysis.md` and structured 5-component handoff report in `handoff.md`.
+- Read-only investigation — do NOT implement changes in project source files (only write files in agent working directory).
+- CODE_ONLY mode (no external network requests).
 
 ## Current Parent
-- Conversation ID: 30641c5e-2edf-4e25-aa58-f578c6aab4db
-- Updated: 2026-07-22T08:12:00Z
+- Conversation ID: fc7d6c5e-5bdb-4118-87b8-ac9db899a7a2
+- Updated: 2026-07-28T20:26:55+09:00
 
 ## Investigation State
-- **Explored paths**: `frontend/tests/`, `frontend/src/components/`, `frontend/src/hooks/`, `frontend/src/app/`.
-- **Key findings**: Root causes identified for all 13 Playwright failures (SWR deduplication, latency/CLS contract, badge accessibility, dashboard filters/chart, login mock auth, mobile dock responsiveness, theme toggle meta tags, 5-route & back/forward history sync).
-- **Unexplored areas**: None. Complete coverage of all 13 failure items achieved.
+- **Explored paths**:
+  - `frontend/scripts/benchmark.js` & `frontend/scripts/benchmark.ts`
+  - `frontend/tests/benchmark.spec.ts` & `frontend/tests/r1-r2-stress-challenge.spec.ts`
+  - `frontend/src/app/api/location-scores/route.ts`
+  - `frontend/src/components/PageHeroHeader.tsx` & `FloatingUserBar.tsx`
+  - `frontend/src/components/ApartmentModal.tsx`
+  - `frontend/src/components/DashboardClient.tsx` & `MacroDashboardClient.tsx`
+  - `frontend/src/lib/utils/transactionChartTransform.ts`
+- **Key findings**:
+  - Masking defect in `benchmark.js`/`benchmark.ts` returning exit code 0 unconditionally when metrics fail.
+  - FPS drops caused by dynamic `TitleTag` unmounting in `PageHeroHeader.tsx`, un-throttled scroll handlers, and Recharts main-thread tooltip rendering.
+  - CLS caused by `document.body.style.paddingRight` modification on modal open and un-reserved chart dimensions.
+  - JS Heap growth caused by object/Map allocation churn in `transactionChartTransform.ts` and unpurged timestamp LRU cache.
+  - Build failure caused by `export const runtime = 'edge';` in `/api/location-scores/route.ts`.
+- **Unexplored areas**: None. Investigation complete.
 
 ## Key Decisions Made
-- Completed deep-dive analysis of all 13 failed Playwright test specs.
-- Documented step-by-step technical remediation plan in `analysis.md`.
-- Formulated 5-component Hard Handoff report in `handoff.md`.
+- Formulated complete step-by-step remediation plan documented in `analysis.md` and `handoff.md`.
 
 ## Artifact Index
-- ORIGINAL_REQUEST.md — Copy of dispatch prompt.
-- BRIEFING.md — Working memory index.
-- progress.md — Heartbeat progress log.
-- analysis.md — Detailed root cause analysis and technical remediation plan.
-- handoff.md — 5-component Hard Handoff report.
+- ORIGINAL_REQUEST.md — Original user prompt and parent message log
+- BRIEFING.md — Current operational context
+- progress.md — Liveness heartbeat & checklist
+- analysis.md — Full technical analysis and step-by-step remediation guide
+- handoff.md — 5-component handoff report

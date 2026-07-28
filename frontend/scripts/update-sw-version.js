@@ -55,6 +55,14 @@ try {
   const newVersionContent = `export const BUILD_VERSION = '${buildId}';\n`;
   fs.writeFileSync(versionPath, newVersionContent, 'utf8');
   console.log(`[Version Update] Updated src/lib/build-version.ts to ${buildId}`);
+
+  // Clear any stale lock file in .next to prevent build lock conflicts
+  const nextLockPath = path.join(__dirname, '../.next/lock');
+  const nextLockfilePath = path.join(__dirname, '../.next/lockfile');
+  try {
+    if (fs.existsSync(nextLockPath)) fs.unlinkSync(nextLockPath);
+    if (fs.existsSync(nextLockfilePath)) fs.unlinkSync(nextLockfilePath);
+  } catch (err) {}
 } catch (error) {
   console.error('[SW Update] Failed to update service worker cache name:', error.message || error);
   process.exit(1);

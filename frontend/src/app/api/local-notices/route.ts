@@ -4,6 +4,7 @@ import { logger } from '@/lib/services/logger';
 import { getLocalNotices } from '@/lib/services/newsData';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const LocalNoticesQuerySchema = z.object({

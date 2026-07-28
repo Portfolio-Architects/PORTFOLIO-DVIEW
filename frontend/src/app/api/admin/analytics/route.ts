@@ -3,6 +3,7 @@ import { verifyAdmin } from '@/lib/authUtils';
 import { getAdminAnalyticsLKG } from '@/lib/analytics-service';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {

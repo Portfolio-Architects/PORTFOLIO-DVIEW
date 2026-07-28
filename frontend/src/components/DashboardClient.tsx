@@ -493,20 +493,6 @@ const DashboardClient = React.memo(function DashboardClient({
       window.addEventListener('hashchange', syncTabFromLocation, { passive: true });
       window.addEventListener('popstate', syncTabFromLocation, { passive: true });
 
-      let scrollTimeout: number | null = null;
-      const handleScroll = () => {
-        if (scrollTimeout) return;
-        scrollTimeout = window.requestAnimationFrame(() => {
-          if (isMounted) {
-            setIsScrolled(window.scrollY > 200);
-          }
-          scrollTimeout = null;
-        });
-      };
-      window.addEventListener('scroll', handleScroll, { passive: true });
-
-
-
       return () => {
         isMounted = false;
         mountedRef.current = false;
@@ -515,8 +501,6 @@ const DashboardClient = React.memo(function DashboardClient({
         }
         window.removeEventListener('hashchange', syncTabFromLocation);
         window.removeEventListener('popstate', syncTabFromLocation);
-        window.removeEventListener('scroll', handleScroll);
-        if (scrollTimeout) window.cancelAnimationFrame(scrollTimeout);
 
         if (preloadTimeoutRef.current) {
           clearTimeout(preloadTimeoutRef.current);
@@ -569,7 +553,6 @@ const DashboardClient = React.memo(function DashboardClient({
     return () => window.removeEventListener('hashchange', checkHashForApt);
   }, [mounted, !!sheetApartments]);
 
-  const [isScrolled, setIsScrolled] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
 
 
@@ -764,9 +747,9 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const memoizedTabContents = useMemo(() => {
     return (
-      <div className="grid w-full min-h-[85vh] min-h-[800px] relative bg-transparent min-w-0 max-w-full">
+      <div className="grid w-full min-h-[85vh] min-h-[800px] relative bg-transparent min-w-0 max-w-full" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
-        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 min-w-0 max-w-full ${activeTab === 'overview' || activeTab === 'technovalley' ? 'block' : 'hidden'}`}>
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 min-w-0 max-w-full ${activeTab === 'overview' || activeTab === 'technovalley' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
           {(activeTab === 'overview' || activeTab === 'technovalley' || hasOpenedOverview) && (
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
@@ -797,7 +780,7 @@ const DashboardClient = React.memo(function DashboardClient({
         </section>
 
         {/* ═══ TAB 1-2: 사무실 탐색 ═══ */}
-        <section className={`w-full max-w-full min-w-0 overflow-x-hidden col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`}>
+        <section className={`w-full max-w-full min-w-0 overflow-x-hidden col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
           {(activeTab === 'office' || hasOpenedOffice) && (
             !mounted ? (
               <OfficeSkeleton />
@@ -808,13 +791,20 @@ const DashboardClient = React.memo(function DashboardClient({
         </section>
 
         {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
-        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`}>
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
           {(activeTab === 'lounge' || hasOpenedLounge) && (
             !mounted ? (
               <LoungeSkeleton />
             ) : (
               <LoungeContainerClient initialPosts={EMPTY_ARRAY} onRequestLogin={handleRequestLogin} />
             )
+          )}
+        </section>
+
+        {/* ═══ TAB 3: 임장 (탐색) ═══ */}
+        <section className={`w-full max-w-full min-w-0 overflow-x-hidden col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'imjang' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
+          {activeTab === 'imjang' && (
+            <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]" />
           )}
         </section>
       </div>
@@ -882,8 +872,9 @@ const DashboardClient = React.memo(function DashboardClient({
       <main 
         id="main-content" 
         className="flex-1 w-full max-w-[2000px] max-w-full mx-auto overflow-x-clip min-w-0 animate-in fade-in duration-500 min-h-[85vh] min-h-[750px]"
+        style={{ contain: 'layout paint', containIntrinsicSize: '750px' }}
       >
-        <div className={`w-full max-w-full min-w-0 overflow-x-clip min-h-[85vh] min-h-[750px] ${mobileModalOpen ? "invisible" : ""}`}>
+        <div className={`w-full max-w-full min-w-0 overflow-x-clip min-h-[85vh] min-h-[750px] ${mobileModalOpen ? "invisible" : ""}`} style={{ contain: 'layout paint', containIntrinsicSize: '750px' }}>
           {memoizedTabContents}
         </div>
 

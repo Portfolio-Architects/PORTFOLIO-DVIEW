@@ -4,6 +4,7 @@ import webpush from 'web-push';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const NotifyCommentInputSchema = z.object({

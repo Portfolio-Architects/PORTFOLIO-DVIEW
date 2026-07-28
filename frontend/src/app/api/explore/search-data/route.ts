@@ -5,6 +5,9 @@ import { logger } from '@/lib/services/logger';
 import { rateLimiter } from '@/lib/rate-limit';
 import { redis } from '@/lib/redis';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+
 // Set L1 Cache TTL (10 minutes)
 const CACHE_TTL_MS = 600 * 1000;
 

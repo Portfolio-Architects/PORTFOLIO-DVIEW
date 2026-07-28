@@ -40,6 +40,9 @@
   "exclude": [
     "node_modules",
     "tests",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "jest.setup.ts"
   ]
 }

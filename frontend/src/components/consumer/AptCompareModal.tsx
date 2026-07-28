@@ -1926,7 +1926,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                             }}
                             formatter={(value: unknown) => [priceMetric === 'perPyeong' ? `${Number(value).toLocaleString()}만 원` : `${value}억원`]}
                             useTranslate3d={true}
-                            animationDuration={150}
+                            isAnimationActive={false}
                           />
                           <Legend
                             verticalAlign="top"
@@ -1943,8 +1943,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                             dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
                             activeDot={{ r: 5 }}
                             connectNulls
-                            animationDuration={300}
-                            animationEasing="ease-out"
+                            isAnimationActive={false}
                           />
                           <Line
                             type="monotone"
@@ -1954,8 +1953,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                             dot={{ r: 3, strokeWidth: 1.5, fill: '#fff' }}
                             activeDot={{ r: 5 }}
                             connectNulls
-                            animationDuration={300}
-                            animationEasing="ease-out"
+                            isAnimationActive={false}
                           />
                         </LineChart>
                       </ResponsiveContainer>

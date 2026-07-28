@@ -6,9 +6,10 @@ import {
   YAxis,
   Tooltip as RechartsTooltip,
   CartesianGrid,
-  ResponsiveContainer,
 } from "recharts";
 import type { DongtanMacroTrendPoint } from "@/lib/types/transaction";
+import { processMacroTrendData, formatXAxisTick } from "@/lib/utils/macroChartTransform";
+import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 
 interface TooltipPayloadEntry {
   dataKey?: string | number;
@@ -115,21 +116,18 @@ interface MacroTrendChartProps {
   isBottomSheet?: boolean;
 }
 
-const formatXAxisTick = (value: string) => {
-  if (typeof value === "string" && /^\d{2}\.\d{2}$/.test(value)) {
-    const parts = value.split(".");
-    return `${parts[0]}년 ${parts[1]}월`;
-  }
-  return value;
-};
-
-// Custom ResizeObserver hook with callback ref pattern to ensure ResizeObserver is bound when the DOM element mounts.
+// Custom ResizeObserver hook with 150ms debouncing to prevent layout thrashing
 function useResizeObserver(delay = 150) {
   const [size, setSize] = useState({ width: 600, height: 330 });
   const sizeRef = useRef({ width: 600, height: 330 });
   const [element, setElement] = useState<HTMLDivElement | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const refCallback = React.useCallback((node: HTMLDivElement | null) => {
+    if (!node && timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
     if (node) {
       const rect = node.getBoundingClientRect();
       const initialW = rect.width > 0 ? rect.width : (node.clientWidth > 0 ? node.clientWidth : 600);
@@ -145,11 +143,7 @@ function useResizeObserver(delay = 150) {
   useEffect(() => {
     if (!element) return;
 
-    let timeoutId: NodeJS.Timeout;
-
     function handleResize(entries: ResizeObserverEntry[]) {
-      // Prevent ResizeObserver from firing layout updates while scroll lock (overflow: hidden) is active.
-      // This eliminates rendering overhead on background charts when the apartment modal is opening/active.
       if (typeof document !== 'undefined' && document.body.style.overflow === 'hidden') {
         return;
       }
@@ -158,27 +152,27 @@ function useResizeObserver(delay = 150) {
       const rawW = entries[0].contentRect.width;
       const rawH = entries[0].contentRect.height;
 
-      // Layout recalculation or initial hidden frame: ignore zero dimensions to prevent chart unmounting lock, unless initial size is fallback
       if (rawW <= 0 || rawH <= 0) return;
 
       const width = Math.max(300, Math.floor(rawW));
       const height = Math.max(240, Math.floor(rawH));
 
-      // Skip minuscule updates <= 2px to prevent chart re-render thrashing
       const diffW = Math.abs(width - sizeRef.current.width);
       const diffH = Math.abs(height - sizeRef.current.height);
       if (sizeRef.current.width > 0 && sizeRef.current.height > 0 && diffW <= 2 && diffH <= 2) {
         return;
       }
 
-      // Debounce state update to prevent UI rendering thrashing during resizing or animations
       if (sizeRef.current.width === 0 || sizeRef.current.height === 0) {
         const newSize = { width, height };
         sizeRef.current = newSize;
         setSize(newSize);
       } else {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => {
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+          timeoutRef.current = null;
+        }
+        timeoutRef.current = setTimeout(() => {
           const newSize = { width, height };
           sizeRef.current = newSize;
           setSize(newSize);
@@ -191,7 +185,10 @@ function useResizeObserver(delay = 150) {
 
     return () => {
       observer.disconnect();
-      clearTimeout(timeoutId);
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
     };
   }, [element, delay]);
 
@@ -205,55 +202,53 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   timeframe,
   isBottomSheet = false,
 }: MacroTrendChartProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [refCallback, size] = useResizeObserver(150);
   const [isTooltipActive, setIsTooltipActive] = useState(false);
   const [isTouchDevice, setIsTouchDevice] = useState(false);
-  const [containerWidth, setContainerWidth] = useState(380);
-  const [containerHeight, setContainerHeight] = useState(300);
  
   React.useLayoutEffect(() => {
     if (typeof window !== "undefined") {
       setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
     }
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    if (rect.width > 0) {
-      setContainerWidth(Math.floor(rect.width));
-    }
-    if (rect.height > 0) {
-      setContainerHeight(Math.floor(rect.height));
-    }
-
-    const observer = new ResizeObserver((entries) => {
-      if (entries && entries[0]) {
-        const rawW = entries[0].contentRect.width;
-        const rawH = entries[0].contentRect.height;
-        if (rawW > 0) {
-          setContainerWidth(Math.max(300, Math.floor(rawW)));
-        }
-        if (rawH > 0) {
-          setContainerHeight(Math.max(200, Math.floor(rawH)));
-        }
-      }
-    });
-
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
   }, []);
 
   const fontSize = isBottomSheet ? 11 : 12;
   const yWidth = isBottomSheet ? 35 : 40;
 
-  // 0원 또는 null인 전세 데이터를 null로 필터링하여 라인이 바닥에 붙지 않게 처리
+  // Process data with null/undefined guards
   const processedData = useMemo(() => {
-    return lineData.map((d) => ({
-      ...d,
-      "동탄 아파트 전세 평균":
-        d["동탄 아파트 전세 평균"] === 0 || d["동탄 아파트 전세 평균"] === null
-          ? null
-          : d["동탄 아파트 전세 평균"],
-    }));
+    return processMacroTrendData(lineData);
   }, [lineData]);
+
+  const tooltipCursorStyle = useMemo(() => ({
+    stroke: "rgba(148, 163, 184, 0.4)",
+    strokeWidth: 1.5,
+    strokeDasharray: "3 3",
+  }), []);
+
+  const saleDotProp = useMemo(() => {
+    if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
+    return { r: 3.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#ea6100" };
+  }, [isBottomSheet, timeframe]);
+
+  const saleActiveDotProp = useMemo(() => ({
+    r: isBottomSheet ? 4.5 : 5.5,
+    strokeWidth: isBottomSheet ? 1.5 : 2,
+    stroke: "#ffffff",
+    fill: "#ea6100"
+  }), [isBottomSheet]);
+
+  const rentDotProp = useMemo(() => {
+    if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
+    return { r: 2.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#f9a825" };
+  }, [isBottomSheet, timeframe]);
+
+  const rentActiveDotProp = useMemo(() => ({
+    r: isBottomSheet ? 3.5 : 4.5,
+    strokeWidth: isBottomSheet ? 1.5 : 2,
+    stroke: "#ffffff",
+    fill: "#f9a825"
+  }), [isBottomSheet]);
 
   const desktopEventHandlers = (isTouchDevice && !isBottomSheet)
     ? {
@@ -268,11 +263,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
       }
     : {};
 
-  const chartW = containerWidth > 0 ? containerWidth : 380;
-  const chartH = isBottomSheet ? 220 : (containerHeight > 0 ? containerHeight : 300);
+  const chartW = size.width > 0 ? size.width : 380;
+  const chartH = isBottomSheet ? 220 : (size.height > 0 ? size.height : 300);
 
   return (
-    <div ref={containerRef} className="w-full h-full min-h-[240px] md:min-h-[300px] touch-pan-y relative overflow-hidden flex items-center justify-center">
+    <ChartErrorBoundary fallbackText="동탄 매크로 트렌드 차트를 로드할 수 없습니다.">
+      <div ref={refCallback} className="w-full h-full min-h-[330px] touch-pan-y relative overflow-hidden flex items-center justify-center">
       <AreaChart
         width={chartW}
         height={chartH}
@@ -320,11 +316,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         <RechartsTooltip
           active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
           content={<CustomTooltip />}
-          cursor={{
-            stroke: "rgba(148, 163, 184, 0.4)",
-            strokeWidth: 1.5,
-            strokeDasharray: "3 3",
-          }}
+          cursor={tooltipCursorStyle}
           isAnimationActive={false}
         />
         <Area
@@ -337,19 +329,8 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           fill="url(#colorSale)"
           isAnimationActive={false}
           connectNulls={true}
-          dot={
-            isBottomSheet
-              ? false
-              : timeframe === "ALL" || timeframe === "5Y"
-              ? false
-              : { r: 3.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#ea6100" }
-          }
-          activeDot={{
-            r: isBottomSheet ? 4.5 : 5.5,
-            strokeWidth: isBottomSheet ? 1.5 : 2,
-            stroke: "#ffffff",
-            fill: "#ea6100"
-          }}
+          dot={saleDotProp}
+          activeDot={saleActiveDotProp}
         />
         <Area
           key="동탄 아파트 전세 평균"
@@ -361,22 +342,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           fill="url(#colorRent)"
           isAnimationActive={false}
           connectNulls={true}
-          dot={
-            isBottomSheet
-              ? false
-              : timeframe === "ALL" || timeframe === "5Y"
-              ? false
-              : { r: 2.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#f9a825" }
-          }
-          activeDot={{
-            r: isBottomSheet ? 3.5 : 4.5,
-            strokeWidth: isBottomSheet ? 1.5 : 2,
-            stroke: "#ffffff",
-            fill: "#f9a825"
-          }}
+          dot={rentDotProp}
+          activeDot={rentActiveDotProp}
         />
       </AreaChart>
     </div>
+  </ChartErrorBoundary>
   );
 });
 

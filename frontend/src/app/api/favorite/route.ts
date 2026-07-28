@@ -14,6 +14,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { rateLimiter } from '@/lib/rate-limit';
 
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 // 보안: NoSQL Injection 및 오버플로우 공격 방어용 인바운드 스키마 검증

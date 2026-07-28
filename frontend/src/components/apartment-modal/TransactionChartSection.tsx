@@ -21,43 +21,105 @@ import SegmentedControl from '../ui/SegmentedControl';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
+import ChartErrorBoundary from '@/components/common/ChartErrorBoundary';
+import { getCachedTimestamp, formatAvgPriceEok, clearTsCache } from '@/lib/utils/transactionChartTransform';
 
-interface TransactionChartSectionProps {
-  transactions: TransactionRecord[];
-  chartType: 'sale' | 'jeonse';
-  setChartType: (type: 'sale' | 'jeonse') => void;
-  displayAptName: string;
-  dong: string;
-  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
-  normalizeAptName: (name: string) => string;
-  txSummary?: AptTxSummary;
-}
+const TOOLTIP_CURSOR_SECTION = { stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' };
+const BAR_RADIUS_SECTION: [number, number, number, number] = [2, 2, 0, 0];
+const DOT_SALE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff' };
+const DOT_JEONSE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff' };
 
-// ── DATE/TIMESTAMP CACHING TO PREVENT SYNCHRONOUS INSTANTIATION OVERHEAD ──
-const globalTsCache = new Map<string, number>();
-const getCachedTimestamp = (ymStr: string, dayStr: string) => {
-  const key = `${ymStr}-${dayStr}`;
-  let ts = globalTsCache.get(key);
-  if (ts === undefined) {
-    const year = parseInt(ymStr.slice(0, 4)) || 2026;
-    const month = parseInt(ymStr.slice(4, 6)) || 6;
-    const day = parseInt(dayStr) || 15;
-    const tsVal = new Date(year, month - 1, day).getTime();
-    ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
-    globalTsCache.set(key, ts);
-  }
-  return ts;
-};
+const TransactionChartTooltip = React.memo(({ active, payload }: any) => {
+  if (!active || !payload?.length) return null;
+  const item = payload[0]?.payload;
+  const vol = item?.volume;
+  const hasRatio = item?.saleAvg != null && item?.jeonseAvg != null && item.saleAvg > 0;
+  const ratioValue = hasRatio ? ((item.jeonseAvg / item.saleAvg) * 100).toFixed(1) : null;
 
-const formatAvgPriceEok = (avgPrice: number) => {
-  if (!avgPrice) return '-';
-  const roundedAvg = Math.round(avgPrice * 100) / 100;
-  const eok = Math.floor(roundedAvg);
-  const rem = Math.round((roundedAvg % 1) * 10000);
-  return `${eok >= 1 ? `${eok}억` : ''}${rem > 0 ? rem.toLocaleString() : (eok > 0 ? '' : '0')}`;
-};
+  return (
+    <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
+      <div className="text-tertiary text-[12px] font-bold mb-2">
+        {new Date(item?.ts).getFullYear()}년 {String(new Date(item?.ts).getMonth() + 1).padStart(2, '0')}월
+      </div>
+      <div className="flex flex-col gap-1.5">
+        {item?.saleAvg != null && (
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
+            <span className="text-[#ea6100] text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
+          </div>
+        )}
+        {item?.jeonseAvg != null && (
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
+            <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
+          </div>
+        )}
 
-const CustomActiveDot = React.memo((props: any) => {
+        {ratioValue != null && (
+          <div className="flex items-center justify-between gap-4 border-t border-border/20 pt-1.5 mt-0.5">
+            <span className="text-tertiary text-[13px] font-bold">전세가율</span>
+            <span className="text-toss-blue text-[15px] font-extrabold">{ratioValue}%</span>
+          </div>
+        )}
+        {vol != null && vol > 0 && (
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-tertiary text-[13px] font-bold">거래량</span>
+            <span className="text-primary text-[14px] font-extrabold">{vol}건</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+});
+TransactionChartTooltip.displayName = 'TransactionChartTooltip';
+
+const ScatterCustomizedDots = React.memo(({
+  xAxisMap,
+  yAxisMap,
+  displayScatterData,
+  hoveredDot,
+  setHoveredDot,
+  isTouchDevice,
+  getFloorColor,
+}: any) => {
+  if (!xAxisMap || !yAxisMap) return null;
+  const xAx = Object.values(xAxisMap)[0] as any;
+  const yAx = Object.values(yAxisMap)[0] as any;
+  if (!xAx?.scale || !yAx?.scale) return null;
+  return (
+    <g>
+      {displayScatterData.map((d: any, i: number) => {
+        const cx = xAx.scale ? xAx.scale(d.ts) : 0;
+        const cy = yAx.scale ? yAx.scale(d.price) : 0;
+        if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+        const isHov = hoveredDot?.data === d;
+        const floorColor = getFloorColor(d.dealType);
+        return (
+          <circle
+            key={i}
+            cx={cx}
+            cy={cy}
+            r={isHov ? 5 : 3}
+            fill={floorColor}
+            opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
+            stroke={isHov ? '#fbbf24' : 'none'}
+            strokeWidth={isHov ? 2 : 0}
+            style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s', WebkitTapHighlightColor: 'transparent' }}
+            onMouseEnter={isTouchDevice ? undefined : () => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
+            onMouseLeave={isTouchDevice ? undefined : () => setHoveredDot(null)}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+              setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } });
+            }}
+          />
+        );
+      })}
+    </g>
+  );
+});
+ScatterCustomizedDots.displayName = 'ScatterCustomizedDots';
+
+const CustomActiveDot = React.memo((props: { cx?: number; cy?: number; fill?: string; stroke?: string; r?: number }) => {
   const { cx, cy, fill } = props;
   if (cx == null || cy == null || isNaN(cx) || isNaN(cy)) return null;
   return (
@@ -80,6 +142,20 @@ const CustomActiveDot = React.memo((props: any) => {
 });
 CustomActiveDot.displayName = 'CustomActiveDot';
 
+const ACTIVE_DOT_SALE = <CustomActiveDot fill="#ea6100" />;
+const ACTIVE_DOT_JEONSE = <CustomActiveDot fill="#f9a825" />;
+
+interface TransactionChartSectionProps {
+  transactions: TransactionRecord[];
+  chartType: 'sale' | 'jeonse';
+  setChartType: (type: 'sale' | 'jeonse') => void;
+  displayAptName: string;
+  dong: string;
+  typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  normalizeAptName: (name: string) => string;
+  txSummary?: AptTxSummary;
+}
+
 export const TransactionChartSection = React.memo(function TransactionChartSection({
   transactions,
   chartType,
@@ -91,6 +167,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   txSummary
 }: TransactionChartSectionProps) {
   const { areaUnit, setAreaUnit } = useSettingsValues();
+
+  const safeTransactions = useMemo(() => transactions || [], [transactions]);
 
   type ScatterData = {
     ts: number; yearMonth: number; contractDay: number; price: number; area: number;
@@ -122,6 +200,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     }
     return () => {
       mountedRef.current = false;
+      clearTsCache();
       if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
       if (resizeObserverRef.current) {
         resizeObserverRef.current.disconnect();
@@ -192,6 +271,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   });
 
   const handleTimeframeChange = (val: string) => {
+    clearTsCache();
     setChartTimeframe(val as '6M' | '1Y' | '3Y' | 'ALL');
     setZoomDomain({ left: 'dataMin', right: 'dataMax' });
   };
@@ -221,12 +301,12 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   };
 
   const relevantTxs = React.useMemo(() => {
-    return transactions.filter(tx => 
+    return safeTransactions.filter(tx => 
       chartType === 'sale' 
         ? (tx.dealType !== '전세' && tx.dealType !== '월세') 
         : (tx.dealType === '전세' || tx.dealType === '월세')
     );
-  }, [transactions, chartType]);
+  }, [safeTransactions, chartType]);
 
   const rawData = React.useMemo(() => {
     const today = new Date();
@@ -395,7 +475,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   
   // Calculate secondary line data and monthly average stats (Jeonse/Sale averages) - Cached to avoid mousemove lag
   const monthlyData = React.useMemo(() => {
-    const secondaryTxs = transactions.filter(tx => 
+    const secondaryTxs = safeTransactions.filter(tx => 
       chartType === 'sale' 
         ? (tx.dealType === '전세' || tx.dealType === '월세') 
         : (tx.dealType !== '전세' && tx.dealType !== '월세')
@@ -453,7 +533,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       })
       .filter(d => !isNaN(d.ts))
       .sort((a, b) => a.ts - b.ts);
-  }, [transactions, chartType, cutoffYm, byMonthTier, bandHigh, bandLow]);
+  }, [safeTransactions, chartType, cutoffYm, byMonthTier, bandHigh, bandLow]);
 
 
   const minTs = monthlyData.length > 0 ? monthlyData[0].ts : new Date(2021, 2, 15).getTime();
@@ -472,7 +552,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       const val = Math.round(priceEokNum * 1000) / 1000;
       return isNaN(val) ? 0 : val;
     };
-    const sPrices = transactions.filter(tx => {
+    const sPrices = safeTransactions.filter(tx => {
       const ym = String(tx.contractYm || '');
       if ((parseInt(ym) || 0) < cutoffYm) return false;
       if (tx.dealType === '전세' || tx.dealType === '월세') return false;
@@ -483,7 +563,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       return true;
     }).map(tx => getEokPrice(tx, false)).filter(p => !isNaN(p)).sort((a,b)=>a-b);
 
-    const jPrices = transactions.filter(tx => {
+    const jPrices = safeTransactions.filter(tx => {
       const ym = String(tx.contractYm || '');
       if ((parseInt(ym) || 0) < cutoffYm) return false;
       if (tx.dealType !== '전세' && tx.dealType !== '월세') return false;
@@ -519,11 +599,34 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
       dMax = dMax + 0.5;
     }
     return { domainMin: dMin, domainMax: dMax, prices: pricesList };
-  }, [transactions, cutoffYm, zoomDomain, scatterData]);
+  }, [safeTransactions, cutoffYm, zoomDomain, scatterData]);
 
   const maxVol = Math.max(...monthlyData.map(d => d.volume), 1);
 
+  const customizedScatterComponent = useCallback((rechartProps: Record<string, unknown>) => (
+    <ScatterCustomizedDots
+      {...rechartProps}
+      displayScatterData={displayScatterData}
+      hoveredDot={hoveredDot}
+      setHoveredDot={setHoveredDot}
+      isTouchDevice={isTouchDevice}
+      getFloorColor={getFloorColor}
+    />
+  ), [displayScatterData, hoveredDot, setHoveredDot, isTouchDevice, getFloorColor]);
 
+  const hoveredDotInfo = useMemo(() => {
+    if (!hoveredDot) return null;
+    const d = hoveredDot.data;
+    const typeName = (areaUnit === 'm2' ? d.areaLabelM2 : d.areaLabelPyeong) || (() => {
+      const typeData = findTypeMapEntry(typeMap, displayAptName, d.rawArea);
+      return typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
+    })();
+    return {
+      d,
+      typeName,
+      floorColor: getFloorColor(d.dealType),
+    };
+  }, [hoveredDot, areaUnit, typeMap, displayAptName, getFloorColor]);
 
   const currentMarketPrice = momentum.m1 || momentum.m3 || (txSummary?.avg3MPrice ? txSummary.avg3MPrice / 10000 : 0);
 
@@ -568,7 +671,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   }
 
   return (
-    <div className="w-full flex flex-col h-full">
+    <ChartErrorBoundary fallbackText="아파트 실거래가 차트를 로드할 수 없습니다.">
+      <div className="w-full flex flex-col h-full">
       <div ref={chartRef} className="bg-surface rounded-2xl p-4 md:p-6 ring-1 ring-black/5 dark:ring-white/10 flex-1 flex flex-col h-full relative overflow-hidden touch-pan-y">
         {jsonLd && (
           <script
@@ -677,9 +781,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         
 
         
-        <div ref={containerRefCallback} className="h-[320px] md:h-[360px] w-full relative">
+        <div ref={containerRefCallback} className="h-[320px] md:h-[360px] min-h-[330px] w-full relative">
           {typeof window !== 'undefined' && isChartReady && dimensions.width > 0 && dimensions.height > 0 ? (
-            <ResponsiveContainer width={dimensions.width} height={dimensions.height} minWidth={0} minHeight={0} debounce={100}>
+            <ResponsiveContainer width={dimensions.width} height={dimensions.height} minWidth={0} minHeight={0} debounce={50}>
               <ComposedChart 
                 data={monthlyData} 
                 margin={{ top: 10, right: 10, left: 0, bottom: 5 }}
@@ -743,102 +847,23 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   />
                 )}
                 <RechartsTooltip
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
-                    const item = payload[0]?.payload;
-                    const vol = item?.volume;
-                    const hasRatio = item?.saleAvg != null && item?.jeonseAvg != null && item.saleAvg > 0;
-                    const ratioValue = hasRatio ? ((item.jeonseAvg / item.saleAvg) * 100).toFixed(1) : null;
-
-                    return (
-                      <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
-                        <div className="text-tertiary text-[12px] font-bold mb-2">
-                          {new Date(item?.ts).getFullYear()}년 {String(new Date(item?.ts).getMonth()+1).padStart(2,'0')}월
-                        </div>
-                        <div className="flex flex-col gap-1.5">
-                          {item?.saleAvg != null && (
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
-                              <span className="text-[#ea6100] text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
-                            </div>
-                          )}
-                          {item?.jeonseAvg != null && (
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
-                              <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
-                            </div>
-                          )}
-
-                          {ratioValue != null && (
-                            <div className="flex items-center justify-between gap-4 border-t border-border/20 pt-1.5 mt-0.5">
-                              <span className="text-tertiary text-[13px] font-bold">전세가율</span>
-                              <span className="text-toss-blue text-[15px] font-extrabold">{ratioValue}%</span>
-                            </div>
-                          )}
-                          {vol != null && vol > 0 && (
-                            <div className="flex items-center justify-between gap-4">
-                              <span className="text-tertiary text-[13px] font-bold">거래량</span>
-                              <span className="text-primary text-[14px] font-extrabold">{vol}건</span>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  }}
-                  cursor={{ stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' }}
-                  isAnimationActive={true}
-                  animationDuration={150}
+                  content={<TransactionChartTooltip />}
+                  cursor={TOOLTIP_CURSOR_SECTION}
+                  isAnimationActive={false}
+                  animationDuration={0}
                 />
-                <Bar dataKey="volume" yAxisId="volume" fill="#ea6100" radius={[2, 2, 0, 0]} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
-                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={<CustomActiveDot fill="#ea6100" />} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
-                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="url(#jeonseLineGrad)" strokeWidth={2.5} dot={{ r: 3, strokeWidth: 1.5, fill: '#ffffff' }} activeDot={<CustomActiveDot fill="#f9a825" />} connectNulls isAnimationActive={false} />
+                <Bar dataKey="volume" yAxisId="volume" fill="#ea6100" radius={BAR_RADIUS_SECTION} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
+                <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={DOT_SALE_SECTION} activeDot={ACTIVE_DOT_SALE} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
+                <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="url(#jeonseLineGrad)" strokeWidth={2.5} dot={DOT_JEONSE_SECTION} activeDot={ACTIVE_DOT_JEONSE} connectNulls isAnimationActive={false} />
 
-                <Customized
-                  component={(rechartProps: Record<string, unknown>) => {
-                    const { xAxisMap, yAxisMap } = rechartProps as { xAxisMap?: Record<string, { scale?: (val: number) => number }>; yAxisMap?: Record<string, { scale?: (val: number) => number }> };
-                    if (!xAxisMap || !yAxisMap) return null;
-                    const xAx = Object.values(xAxisMap)[0];
-                    const yAx = Object.values(yAxisMap)[0];
-                    if (!xAx?.scale || !yAx?.scale) return null;
-                    return (
-                      <g>
-                        {displayScatterData.map((d, i) => {
-                          const cx = xAx.scale ? xAx.scale(d.ts) : 0;
-                          const cy = yAx.scale ? yAx.scale(d.price) : 0;
-                          if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-                          const isHov = hoveredDot?.data === d;
-                          const floorColor = getFloorColor(d.dealType);
-                          return (
-                            <circle key={i} cx={cx} cy={cy}
-                              r={isHov ? 5 : 3} fill={floorColor}
-                              opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
-                              stroke={isHov ? '#fbbf24' : 'none'}
-                              strokeWidth={isHov ? 2 : 0}
-                              style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s', WebkitTapHighlightColor: 'transparent' }}
-                              onMouseEnter={isTouchDevice ? undefined : () => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
-                              onMouseLeave={isTouchDevice ? undefined : () => setHoveredDot(null)}
-                              onTouchStart={(e) => {
-                                e.stopPropagation();
-                                setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } });
-                              }}
-                            />
-                          );
-                        })}
-                      </g>
-                    );
-                  }}
-                />
+                <Customized component={customizedScatterComponent} />
               </ComposedChart>
             </ResponsiveContainer>
           ) : (
             <div className="w-full h-full rounded-xl border border-border/20 animate-shimmer" />
           )}
-          {hoveredDot && (() => {
-            const d = hoveredDot.data;
-            const typeName = (areaUnit === 'm2' ? d.areaLabelM2 : d.areaLabelPyeong) || (() => {
-              const typeData = findTypeMapEntry(typeMap, displayAptName, d.rawArea);
-              return typeData ? (areaUnit === 'm2' ? typeData.typeM2 : (typeData.typePyeong || typeData.typeM2)) : undefined;
-            })();
+          {hoveredDot && hoveredDotInfo && (() => {
+            const { d, typeName, floorColor } = hoveredDotInfo;
             return (
               <div 
                 className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-10 whitespace-nowrap text-left"
@@ -853,7 +878,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                 </div>
                 <div className="text-tertiary text-[11px] flex gap-1.5 items-center">
                   {typeName ? <span className="text-[#ea6100] font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
-                  <span>·</span><span style={{ color: getFloorColor(d.dealType) }}>{d.floor}층</span>
+                  <span>·</span><span style={{ color: floorColor }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>
               </div>
@@ -868,6 +893,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
         </div>
       </div>
     </div>
+  </ChartErrorBoundary>
   );
 });
 

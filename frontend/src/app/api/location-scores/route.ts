@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { rateLimiter } from '@/lib/rate-limit';
 
-export const runtime = 'edge';
+export const runtime = 'nodejs';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { Coord, haversineDistance, findNearest, countWithinRadius, parseCoordString } from '@/lib/utils/haversine';
 

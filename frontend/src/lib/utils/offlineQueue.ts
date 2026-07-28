@@ -99,6 +99,7 @@ export async function retryOfflineRequests(): Promise<void> {
     });
 
     const now = Date.now();
+    let replayedCount = 0;
     for (const m of mutations) {
       if (m.nextAttempt && m.nextAttempt > now) continue;
 
@@ -121,6 +122,7 @@ export async function retryOfflineRequests(): Promise<void> {
               req.onsuccess = () => resolve();
               req.onerror = () => reject(req.error);
             });
+            replayedCount++;
             logger.info('OfflineSync', 'Manual sync replayed successfully', { id: m.id });
           } else {
             if (res.status >= 400 && res.status < 500 && res.status !== 429) {
@@ -140,6 +142,9 @@ export async function retryOfflineRequests(): Promise<void> {
           await handleManualSyncFailure(db, m);
         }
       }
+    }
+    if (replayedCount > 0 && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('dview_offline_synced', { detail: { count: replayedCount } }));
     }
   } catch (err: unknown) {
     logger.error('OfflineSync', 'Manual queue processing failed', {}, err instanceof Error ? err : new Error(String(err)));
