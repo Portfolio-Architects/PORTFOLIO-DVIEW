@@ -1,38 +1,24 @@
-# Project: D-VIEW Real Estate & Techno-Valley Data Analytics Web Application Refactoring
+# Project: DVIEW Mobile Apt Card UI Refactoring
 
 ## Architecture
-- Next.js App Router structure under `frontend/src/app/`
-- Core UI & Client Components under `frontend/src/components/`:
-  - `DashboardClient.tsx`
-  - `MacroDashboardClient.tsx`
-  - `LoungeModal.tsx` / `LoungeDetailClient.tsx`
-  - `MobileDock.tsx`
-  - `LoungeHeader.tsx`
-- Navigation & Data Hooks: prefetching, SWR / context caching, service worker (`frontend/public/sw.js`)
-- Global CSS & Glassmorphism themes: `frontend/src/app/globals.css`
-- Automated Test Suites: `frontend/tests/` (Jest unit tests & Playwright E2E integration tests)
+DVIEW is a Next.js / React application with Tailwind CSS for styling.
+The target UI is the mobile timeline/feed cards showing real estate transaction cards (신고가 / 실거래가 카드).
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | Exploration & Baselining | Run baseline `npm run build`, `npm test`, `npx playwright test` in `frontend/`, inspect components and bottlenecks | none | DONE |
-| 2 | R1: UI/UX Aesthetic & Visual Polish | Modernize key components (`DashboardClient`, `MacroDashboardClient`, `LoungeModal`, `MobileDock`, `LoungeHeader`) with dark/light themes, Glassmorphism cards, micro-interactions, responsive CLS < 0.05 | 1 | DONE |
-| 3 | R2: Sub-100ms Navigation & Zero-Jank | Optimize Next.js Link hover prefetching, SWR caching, tab switching (Data Lab, Apartment Lab, Technovalley, Lounge modal), scroll & dock sync | 2 | DONE |
-| 4 | R3: Modular RSC/Client Architecture & TS | Enforce strict TypeScript typing across all components/hooks/models, clear RSC/Client boundary separation, minimal client bundle footprint | 3 | DONE |
-| 5 | R4: Build, Unit & E2E Test Verification & Audit | Verify 100% passing build, unit tests, Playwright E2E tests, and Forensic Integrity Audit verification | 4 | DONE |
-
-## Interface Contracts
-### LoungeHeader ↔ MobileDock
-- Active routes, labels, and state indicators are 100% synchronized across desktop header and mobile dock (5 main routes: `technovalley`, `office`, `lounge`, `overview`, `imjang`).
-- Identical visual active indicators, smooth tab switching without DOM layout shift.
-
-### RSC ↔ Client Components
-- Server components fetch data without shipping unnecessary JS to the browser.
-- Client components marked with `'use client'` encapsulate interactive UI, state, micro-interactions, and SWR hooks.
+| 1 | Exploration & Analysis | Identify all components rendering apt timeline cards (`MacroDashboardClient.tsx`, etc.) and document CSS structure | none | DONE |
+| 2 | Implementation | Refactor card text layout to 2-row structure (Row 1: [Badge] + [Dong/Pyeong/Floor], Row 2: [Full Apt Name]), align price/button, unify feed cards | M1 | DONE |
+| 3 | Verification & Build | Review, challenge, audit integrity, run `npx tsc --noEmit` & `npm run build` | M2 | DONE |
+| 4 | Completion | Final handoff & report victory to Sentinel | M3 | DONE |
 
 ## Code Layout
-- Frontend Root: `frontend/`
-- Source Code: `frontend/src/`
-- App Router: `frontend/src/app/`
-- Components: `frontend/src/components/`
-- Tests: `frontend/tests/`
+- `frontend/src/`
+  - Components: `MacroDashboardClient.tsx` (refactored `TimelineItemCard`)
+  - Tests: `TimelineItemCardRender.test.tsx`, `TimelineItemCardEmpirical.test.tsx`, `TimelineItemCardStress.test.tsx`
+
+## Interface Contracts
+- Mobile viewport breakpoint: `width < 480px` (or `xs:`, `sm:` breakpoints in Tailwind CSS).
+- Row 1: Flex layout containing Badge element (if `item.type === 'high'`) + Dong/Pyeong/Floor text. Compact font sizes (`text-[9.5px]` to `text-[11px]`). Max-width dong guard (`max-w-[80px] xs:max-w-[110px] sm:max-w-none truncate`).
+- Row 2: Block/flex container for Full Apt Name spanning 100% available horizontal width (`flex-1 min-w-0`).
+- Right Section: Price (억/만원 with exact 2-decimal mobile regex formatting), price change (상승/하락), [Detail (상세)] button vertically centered with border separator (`border-l border-border/20`), touch height (`min-h-[32px]`), and explicit `aria-label`.

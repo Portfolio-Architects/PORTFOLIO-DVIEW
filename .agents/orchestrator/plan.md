@@ -1,20 +1,31 @@
-# Project Plan: D-VIEW Data Integrity, Tax Formula Verification & Automated Audit Suite
+# Execution Plan — DVIEW Mobile Apt Card UI Refactoring
 
 ## Objectives
-Audit, verify, and harden data integrity, calculation consistency, tax reduction simulation formulas, matching scoring logic, Zod validation schemas across Google Sheets SSOT, Ministry of Land XML API parser, Hwaseong enterprise data, Firestore DB, Upstash Redis L2 cache, SWR sync, and `npm run audit` automation suite.
+1. **R1. Mobile Apt Card 2-Row Vertical Layout Refactoring**
+   - In mobile viewports (< 480px), refactor apt card text layout into 2 rows:
+     - Row 1: [New High Badge (신고가 뱃지)] + [Dong / Pyeong / Floor (동 / 평형 / 층수)]
+     - Row 2: [Full Apt Name (아파트 Full Name)] (maximizing horizontal space to minimize text truncation)
+2. **R2. Price & Detail Button Alignment Optimization**
+   - Adjust vertical alignment and padding for the right price display (transaction price, change amount/rate) and [Detail (상세)] button.
+3. **R3. Feed UI Consistency**
+   - Apply consistent design specifications across all components rendering real transaction / new high timeline cards (`MacroDashboardClient.tsx`, `RealtimeClient.tsx`, and any other feed components).
 
-## Milestones
+## Milestones & Workflow
 
-| Milestone | Name | Objective | Requirements Covered | Dependencies | Status |
-|-----------|------|-----------|----------------------|--------------|--------|
-| **M1** | Baseline Exploration & Codebase Audit | Investigate data services, tax calculators, matching scoring algorithms, API parsers, Zod schemas, Redis/SWR caching layer, current Jest unit tests, and `npm run audit` configuration. | Pre-flight Baseline | None | DONE |
-| **M2** | R1: Tax Benefit & Business Matching Algorithm Verification | Audit tax reduction simulation formulas (acquisition, property, corporate tax for Dongtan Techno-Valley migration) against local ordinances for 0 precision error; audit and harden Office FitFinder and Roommate matching scoring logic. | R1 | M1 | DONE |
-| **M3** | R2: Data Pipeline & Schema Integrity | Audit and enforce Zod validation schemas across Google Sheets SSOT, Ministry of Land XML API parser, Hwaseong enterprise data, Firestore DB, Upstash Redis L2 cache, and SWR sync to ensure zero unvalidated fallback and zero state desync. | R2 | M2 | DONE |
-| **M4** | R3: Comprehensive Automated Audit Suite | Implement unit and integration tests covering every data formula, parser edge-case, and schema validator; configure and verify `npm run audit` script in `frontend/` to execute cleanly with 100% pass rate. | R3 | M3 | DONE |
-| **M5** | Final Verification, Challenger Stress Test & Forensic Integrity Audit | Run independent Reviewer quality audit, Challenger stress verification, and Forensic Integrity Audit veto check to confirm 0 integrity violations and 100% test pass rate. | Verification & Sign-off | M4 | DONE |
+### Milestone 1: Codebase Exploration & Analysis
+- **Goal**: Identify all components rendering apt transaction cards (e.g., `MacroDashboardClient.tsx`, `RealtimeClient.tsx`, reusable card components like `AptCard`, `TimelineCard`, etc.) and document current layout structure and styling (Tailwind CSS classes, flex/grid layouts).
+- **Subagent**: Spawn 3 `teamwork_preview_explorer` instances for broad analysis.
 
-## Execution Methodology
-1. **Explorer Investigation**: Dispatched `teamwork_preview_explorer` to inspect data services, parsers, tax formulas, matching scoring models, schemas, and current audit scripts. (DONE)
-2. **Worker Implementation**: Dispatched `teamwork_preview_worker` to harden formulas, parsers, Zod schemas, Redis/SWR sync, Jest test suites, and `npm run audit` script. (DONE)
-3. **Independent Verification Loop**: Dispatched `teamwork_preview_reviewer` (code & logic review), `teamwork_preview_challenger` (edge-case calculation & stress test harness), and `teamwork_preview_auditor` (integrity verification). (DONE)
-4. **Forensic Audit Veto Gate**: Forensic Auditor verdict confirmed **CLEAN**. (DONE)
+### Milestone 2: Implementation & Refactoring
+- **Goal**: Refactor the card layout to 2-row structure, optimize price and detail button alignment, and ensure all feed components share the updated layout or updated reusable component.
+- **Subagent**: Spawn 1 `teamwork_preview_worker` to implement changes and verify build/type-check locally.
+
+### Milestone 3: Multi-layer Verification & Hardening
+- **Goal**: Rigorous review, empirical validation, and forensic integrity audit.
+- **Subagents**:
+  - 2 `teamwork_preview_reviewer` (Review correctness, UI consistency, code cleanliness)
+  - 2 `teamwork_preview_challenger` (Test responsiveness across mobile viewports 360px ~ 430px)
+  - 1 `teamwork_preview_auditor` (Forensic integrity verification)
+
+### Milestone 4: Final Acceptance & Sentinel Reporting
+- **Goal**: Confirm build/type-check status (`npx tsc --noEmit` and `npm run build`), verify acceptance criteria, and claim victory to Sentinel.

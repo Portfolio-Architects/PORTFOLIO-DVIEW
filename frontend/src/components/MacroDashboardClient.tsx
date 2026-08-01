@@ -398,33 +398,31 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-2.5 sm:p-3.5 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-auto max-w-full box-border ${
+      className={`flex items-center justify-between p-2.5 xs:p-3 sm:p-3.5 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-full max-w-full box-border ${
         isSelected
           ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
-      } group gap-1.5 sm:gap-3`}
+      } group gap-2 sm:gap-3`}
     >
+      {/* Clickable Card Body Button */}
       <button
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-1 sm:gap-2"
+        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-2"
       >
-        {/* Left Column: Apt Name & Info */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1 max-w-[45%] sm:max-w-none overflow-hidden">
-          <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 w-full overflow-hidden">
-            <span className="text-xs sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate min-w-0 flex-1" title={item.displayAptName || item.aptName}>
-              {item.displayAptName || item.aptName}
-            </span>
+        {/* Left Column: 2-Row Layout */}
+        <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
+          {/* Row 1: [신고가 Badge] + [동 / 평형 / 층수] */}
+          <div className="flex items-center gap-1.5 min-w-0 w-full overflow-hidden text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap">
             {item.type === 'high' && (
-              <span className="text-[8px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
               </span>
             )}
-          </div>
-          
-          <div className="flex items-center gap-0.5 sm:gap-1.5 text-[9.5px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap overflow-hidden min-w-0">
-            <span className="truncate max-w-[45px] sm:max-w-none">{item.dong}</span>
+            <span className="shrink-0 font-extrabold text-secondary max-w-[80px] xs:max-w-[110px] sm:max-w-none truncate min-w-0" title={item.dong}>
+              {item.dong}
+            </span>
             <span className="opacity-30 font-normal shrink-0">•</span>
             <span className="shrink-0">
               {areaUnit === 'm2'
@@ -434,11 +432,20 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
             <span className="opacity-30 font-normal shrink-0">•</span>
             <span className="shrink-0">{item.floor}층</span>
           </div>
+
+          {/* Row 2: [아파트 Full Name] (Full Width, Zero Truncation Bottleneck) */}
+          <div className="flex items-center min-w-0 w-full overflow-hidden">
+            <span
+              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate break-keep min-w-0 flex-1"
+              title={item.displayAptName || item.aptName}
+            >
+              {item.displayAptName || item.aptName}
+            </span>
+          </div>
         </div>
 
-        {/* Right Column: Price & Change Badges */}
-        <div className="flex flex-col items-end gap-0.5 shrink-0 ml-0.5 sm:ml-2 min-w-0">
-          {/* Price and flow */}
+        {/* Right Section Column 1: Price & Delta Badges */}
+        <div className="flex flex-col items-end justify-center gap-0.5 shrink-0 ml-1.5 sm:ml-2 min-w-0">
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
               <>
@@ -448,70 +455,81 @@ const TimelineItemCard = React.memo(function TimelineItemCard({
                 <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
               </>
             )}
-            <span className={`text-[12.5px] sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
-              isRising
-                ? "text-rose-500 dark:text-rose-400"
-                : isFalling
-                  ? "text-slate-500 dark:text-slate-400"
-                  : "text-primary"
-            }`}>
-              {/* 모바일 370px 해상도 최적화: 21억 6,000만 -> 21.6억 */}
+            <span
+              className={`text-[12.5px] xs:text-[13px] sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
+                isRising
+                  ? "text-rose-500 dark:text-rose-400"
+                  : isFalling
+                    ? "text-slate-500 dark:text-slate-400"
+                    : "text-primary"
+              }`}
+            >
               <span className="inline sm:hidden">
-                {item.priceEok ? item.priceEok.replace(/억\s*([0-9,]+)만?/, (_, m) => {
-                  const num = parseInt(m.replace(/,/g, ''), 10);
-                  return num > 0 ? `.${Math.floor(num / 1000)}억` : '억';
-                }) : item.priceEok}
+                {item.priceEok
+                  ? item.priceEok.replace(/억\s*([0-9,]+)만?/, (_, m) => {
+                      const num = parseInt(m.replace(/,/g, ''), 10);
+                      if (!num || num <= 0) return '억';
+                      const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
+                      return `${dec}억`;
+                    })
+                  : item.priceEok}
               </span>
-              <span className="hidden sm:inline">
-                {item.priceEok}
-              </span>
+              <span className="hidden sm:inline">{item.priceEok}</span>
             </span>
           </div>
 
-          {/* Delta Badge */}
-          <span className={`text-[9px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
-            isRising
-              ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
-              : isFalling
-                ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
-                : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
-          }`}>
+          <span
+            className={`text-[9px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
+              isRising
+                ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
+                : isFalling
+                  ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
+                  : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
+            }`}
+          >
             <span className="inline sm:hidden">
-              {isRising 
+              {isRising
                 ? `▲ ${formatDeltaPrice(item.delta).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
                     const num = parseInt(m.replace(/,/g, ''), 10);
-                    return num > 0 ? `.${Math.floor(num / 1000)}억` : '억';
+                    if (!num || num <= 0) return '억';
+                    const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
+                    return `${dec}억`;
                   })}`
                 : isFalling
                   ? `▼ ${formatDeltaPrice(Math.abs(item.delta)).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
                       const num = parseInt(m.replace(/,/g, ''), 10);
-                      return num > 0 ? `.${Math.floor(num / 1000)}억` : '억';
+                      if (!num || num <= 0) return '억';
+                      const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
+                      return `${dec}억`;
                     })}`
                   : "보합"}
             </span>
             <span className="hidden sm:inline">
-              {isRising 
-                ? `▲ ${formatDeltaPrice(item.delta)}` 
-                : isFalling 
-                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}` 
+              {isRising
+                ? `▲ ${formatDeltaPrice(item.delta)}`
+                : isFalling
+                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}`
                   : "보합"}
             </span>
           </span>
         </div>
       </button>
 
-      {/* Details Button */}
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onDetailsClick(item.aptName);
-        }}
-        onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-        className="px-2 sm:px-2.5 py-1 sm:py-1.5 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50"
-      >
-        상세
-      </button>
+      {/* Right Section Column 2: Detail (상세) Action Button */}
+      <div className="flex items-center justify-center shrink-0 pl-1 sm:pl-2 border-l border-border/20 dark:border-zinc-800/50 my-0.5">
+        <button
+          type="button"
+          aria-label={`${item.aptName} 상세 정보 보기`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDetailsClick(item.aptName);
+          }}
+          onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
+          className="px-2 xs:px-2.5 py-1.5 min-h-[32px] rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50 whitespace-nowrap"
+        >
+          상세
+        </button>
+      </div>
     </div>
   );
 });

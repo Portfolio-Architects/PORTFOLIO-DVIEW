@@ -1,112 +1,68 @@
-# Victory Audit Report — D-VIEW Data Integrity, Tax Formula Verification & Automated Audit Suite
-
-**Project**: D-VIEW (디뷰) Real Estate & Techno-Valley Data Analytics Web Application
-**Auditor**: Victory Auditor (`victory_verifier`)
-**Date**: 2026-07-21
-**Target**: Full Project (Follow-up Task: Data Integrity, Tax Formula Verification & Automated Audit Suite)
-
----
+# VICTORY AUDIT REPORT — DVIEW Apt Lab Mobile UI Refactoring
 
 === VICTORY AUDIT REPORT ===
 
 VERDICT: VICTORY CONFIRMED
 
-PHASE A — TIMELINE & PROCESS AUDIT:
+PHASE A — TIMELINE & REQUIREMENTS COVERAGE:
   Result: PASS
-  Anomalies: None. Verified full iterative progression across Milestones M1 through M5 recorded in subagent handoff logs (.agents/explorer_m1, worker_m2_m3_m4, reviewer_m5_1, reviewer_m5_2, challenger_m5_1, challenger_m5_2, auditor_m5).
+  Anomalies: none
+  Milestone Verification:
+    - M1 (Exploration & Analysis): Executed by 3 Explorers (9f2a2db9-2f80-4017-bb68-d2e61b6e7126, 04ca2c89-c595-4d82-8aa8-fbe2816c44c2, d26c0859-1eaf-498b-8b12-05b1b33a2ef1). Identified `TimelineItemCard` in `MacroDashboardClient.tsx` as the core timeline card component.
+    - M2 (Refactoring & Layout Alignment): Executed by Worker 1 (1aeb0f9f-e3bc-4cf2-8d4b-f4ad21140cb2) & Worker 2 (f9db0dd4-cfe9-4ecd-989e-8e7cb95d1478).
+    - M3 (Verification & Hardening): Reviewed & tested by 2 Reviewers, 2 Challengers, and 1 Forensic Auditor.
+    - M4 (Final Acceptance & Victory Claim): Executed by Orchestrator.
+  Requirements Audit:
+    - R1 (2-Row Vertical Layout): Row 1 displays [신고가 Badge] + [Dong / Pyeong / Floor] metadata; Row 2 displays [Full Apt Name] (`item.displayAptName || item.aptName`) using 100% horizontal container width (`flex-1 min-w-0 truncate break-keep`), completely eliminating early title truncation on mobile (< 480px).
+    - R2 (Price & Alignment): Center-aligned price & delta flex column, exact decimal precision regex formatting `(num / 10000).toFixed(2)`, and visually separated [상세] button with `border-l`, `min-h-[32px]`, and explicit `aria-label`.
+    - R3 (Feed UI Consistency): Standardized `TimelineItemCard` used across real-time feeds in `MacroDashboardClient.tsx`.
 
-PHASE B — CHEATING DETECTION & CODE INSPECTION:
+PHASE B — ANTI-CHEATING & CODE/TEST INTEGRITY CHECK:
   Result: PASS
-  Details: Codebase inspection across PropertyTaxCalculator.tsx, RelocationTaxSimulator.tsx, AptFitFinder.tsx, officeTx.service.ts, facade.schemas.ts, audit-pipeline.js, and 40 test files revealed zero fake test assertions, zero suppressed error blocks, zero hardcoded facade returns, and zero bypassed audit steps.
+  Details:
+    - Source Inspection (`MacroDashboardClient.tsx` lines 376-535): Verified that `TimelineItemCard` uses authentic dynamic calculations for price formatting, area conversion (`m2` / `pyeong`), floor display, delta indicators, and status badges. Zero hardcoded returns, zero fake fallbacks, zero facade functions.
+    - Test Suite Inspection (`TimelineItemCardEmpirical.test.tsx`, `TimelineItemCardRender.test.tsx`, `TimelineItemCardStress.test.tsx`): Dynamic extraction of component logic from `MacroDashboardClient.tsx` ensures tests execute against actual source code. Includes empirical edge case testing (sub-1000만원 price precision, ultra-long dong names, ultra-long apt names, zero/negative deltas, memoization re-render checks). Zero suppressed errors, zero fake assertions.
 
 PHASE C — INDEPENDENT TEST EXECUTION:
-  Test command 1: npx tsc --noEmit
-  Your results: 0 TypeScript compiler errors (exit code 0)
-  Claimed results: 0 TypeScript compiler errors
-  Match: YES
-
-  Test command 2: npx jest (npm test)
-  Your results: 40/40 test suites passed, 279/279 tests passed (100% pass rate)
-  Claimed results: 39/39 test suites passed, 259/259 tests passed
-  Match: YES (exceeds claimed test count due to new M5 empirical stress test suite added)
-
-  Test command 3: npm run audit
-  Your results: Pipeline Status: SUCCESS (exit code 0)
-  Claimed results: Pipeline Status: SUCCESS (exit code 0)
-  Match: YES
+  Test command: `npx tsc --noEmit` && `npm test` && `npm run build` (in `frontend/`)
+  Your results: 
+    - `npx tsc --noEmit`: Exit code 0, 0 TypeScript errors.
+    - `npm test`: 49 test suites passed, 352 unit tests passed (100% PASS rate).
+    - `npm run build`: Compiled Next.js 14.2.3 production build successfully (181/181 static & dynamic pages generated).
+  Claimed results: 100% PASS rate across all suites, zero build or type errors.
+  Match: YES — 0 discrepancies found.
 
 EVIDENCE:
-  - PropertyTaxCalculator.tsx (Line 313): Local Education Tax statutory fixed rate 0.4% under Local Tax Law Art. 151 correctly enforced for 3+ houses.
-  - RelocationTaxSimulator.tsx (Lines 26–46): Authentic 6-year corporate tax savings, 35% acquisition tax reduction, and 5-year property tax reduction math.
-  - AptFitFinder.tsx (Line 526): 50% score floor clamp removed (Math.max(0, ...)), restoring full match percentage distribution (0%–99%).
-  - officeTx.service.ts (Lines 16–30): safeParseInt and safeParseFloat fallbacks prevent NaN propagation.
-  - facade.schemas.ts (Lines 44–668): Zod schemas strictly validate Google Sheets SSOT, Ministry of Land XML, Hwaseong enterprise data, and Redis L2 envelopes.
-  - scripts/audit-pipeline.js (Lines 85–95, 399): auditUnitTestSuite() enforces exit code 0 on Jest unit test execution.
-
----
+  1. `npx tsc --noEmit`: Executed directly in `frontend/` directory. Result: Exit code 0.
+  2. `npm test`: Executed directly in `frontend/` directory. Result: `Test Suites: 49 passed, 49 total; Tests: 352 passed, 352 total`.
+  3. `npm run build`: Executed directly in `frontend/` directory. Result: `✓ Compiled successfully`, `Generating static pages (181/181)`.
 
 ## 1. Observation
-
-1. **Phase 1: Timeline & Process Audit**:
-   - Reviewed `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md` and `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator\handoff.md`.
-   - Verified that all milestones M1 through M5 were executed sequentially by dedicated subagents with complete handoffs:
-     - **M1**: Baseline Exploration & Codebase Audit (`explorer_m1_phase2`)
-     - **M2**: R1 Tax Benefit & Business Matching Algorithm Verification (`worker_m2_m3_m4`)
-     - **M3**: R2 Data Pipeline & Schema Integrity (`worker_m2_m3_m4`)
-     - **M4**: R3 Comprehensive Automated Audit Suite (`worker_m2_m3_m4`)
-     - **M5**: Verification & Stress Testing (`reviewer_m5_1`, `reviewer_m5_2`, `challenger_m5_1`, `auditor_m5`)
-
-2. **Phase 2: Cheating Detection & Code Inspection**:
-   - Inspected `PropertyTaxCalculator.tsx`: verified Local Education Tax (0.4% fixed rate for 3+ houses), Rural Special Tax scaling (0.6%/1.0%/0.2%/0.4%), and currency rounding remainder fix (`Math.round(manWon)` preventing `"10,000만 원"` output).
-   - Inspected `RelocationTaxSimulator.tsx`: verified 5x corporate tax savings formula, 35% acquisition tax reduction, 5-year property tax reduction, and clean Korean currency formatting.
-   - Inspected `AptFitFinder.tsx`: verified removal of `Math.max(50, ...)` clamp, allowing match percentages from 0% to 99%.
-   - Inspected `officeTx.service.ts`: verified `safeParseInt` and `safeParseFloat` helpers handling missing/empty XML tags cleanly.
-   - Inspected `facade.schemas.ts`: verified strict Zod schemas for all data models.
-   - Inspected `scripts/audit-pipeline.js`: verified full automated gate checking TypeScript compilation, ESLint hygiene, Jest unit test suite, data consistency, bundle sizes, Playwright E2E tests, and Firestore cost projection.
-   - Inspected 40 test files including `m5_empirical_verification.test.ts`: verified 0 fake assertions, 0 mock bypasses, and 0 suppressed errors.
-
-3. **Phase 3: Independent Test Execution**:
-   - Executed `npx tsc --noEmit` in `frontend/`: 0 errors.
-   - Executed `npx jest` in `frontend/`: 40/40 test suites passed, 279/279 tests passed.
-   - Executed `npm run audit` in `frontend/`: `Pipeline Status: SUCCESS` (exit code 0).
-
----
+- Verified codebase in `frontend/src/components/MacroDashboardClient.tsx`.
+- `TimelineItemCard` implements the required 2-row layout:
+  - Row 1: `[신고가 Badge]` (conditional render with pulse animation and badge styling) + `[동 / 평형 / 층수]` tags (`text-[9.5px]` to `text-[11px]`). Dong tag has `max-w-[80px] xs:max-w-[110px] sm:max-w-none truncate min-w-0`.
+  - Row 2: `[아파트 Full Name]` (`item.displayAptName || item.aptName`) using 100% available horizontal space (`flex-1 min-w-0 truncate break-keep`).
+- Price & delta formatters use exact decimal precision conversion `(num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '')`.
+- All Jest test suites (49/49) pass cleanly.
+- TypeScript compiler returns 0 errors.
+- Next.js production build succeeds for 181 pages.
 
 ## 2. Logic Chain
-
-1. **Timeline Authenticity**: The timeline is fully supported by immutable workspace logs across 97 agent artifact directories in `.agents/`. Each milestone was subjected to independent review and challenger stress testing before victory claim.
-2. **Implementation Quality**: Code inspection proves that all tax formulas, currency formatters, XML parsers, and Zod schemas implement genuine, mathematically accurate business logic without shortcuts or fake hardcoded returns.
-3. **Empirical Proof**: Independent execution of `npx tsc --noEmit`, `npx jest`, and `npm run audit` produced 100% clean passes without error, confirming that the claimed deliverables are fully operational and robust.
-
----
+1. **Requirements Verification**: Traced R1, R2, R3 in `MacroDashboardClient.tsx`. The 2-row structure ensures long apartment names have maximum horizontal space in Row 2, while Row 1 houses metadata and badges. Alignment and padding match UI requirements.
+2. **Integrity Forensics**: Searched for hardcoded values, dummy returns, or suppressed errors. None were found. Component logic is dynamic, reactive, and authentic.
+3. **Independent Execution**: Executed `npx tsc --noEmit`, `npm test`, and `npm run build` independently in `frontend/`. All commands passed with 0 failures, matching claimed scores.
 
 ## 3. Caveats
-
-- No caveats. All tests, static compilation, and audit pipelines executed cleanly and passed unconditionally.
-
----
+- No caveats. All 3 phases passed independently without qualification.
 
 ## 4. Conclusion
-
-The Project Orchestrator's victory claim on the **D-VIEW Data Integrity, Tax Formula Verification & Automated Audit Suite** project is **100% genuine, verified, and confirmed**.
-
-Final Verdict: **VICTORY CONFIRMED**.
-
----
+The team's victory claim for the DVIEW Apt Lab Mobile UI refactoring task is **CONFIRMED**.
 
 ## 5. Verification Method
-
-To independently re-verify this verdict at any time:
-
-```powershell
+Commands to independently verify:
+```bash
 cd frontend
-
-# 1. Verify clean TypeScript compilation
 npx tsc --noEmit
-
-# 2. Run unit & empirical test suite
-npx jest
-
-# 3. Run full automated audit pipeline
-npm run audit
+npm test
+npm run build
 ```
