@@ -1,0 +1,24 @@
+--- target_module.v35.py
++++ target_module.v36.py
+@@ -117,6 +117,15 @@
+         d0 = sorted_data[int(f)] * (c - k)
+         d1 = sorted_data[int(c)] * (k - f)
+         return d0 + d1
++    def z_score(self, data: list) -> list:
++        """Returns Z-scores for the data."""
++        if len(data) < 2:
++            raise ValueError("z_score requires at least two data points")
++        m = self.mean(data)
++        sd = self.std_dev(data)
++        if sd == 0:
++            raise ValueError("standard deviation is zero, cannot compute Z-scores")
++        return [(x - m) / sd for x in data]
+ 
+ # Continuous optimization v8
+ 
+@@ -134,4 +143,4 @@
+ 
+ # Continuous optimization v15
+ 
+-# Continuous optimization v35
++# Continuous optimization v36

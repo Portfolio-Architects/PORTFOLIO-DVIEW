@@ -1,114 +1,159 @@
-# Handoff Report: R1 Mobile Layout & Outline Defense
-
-**Agent:** `explorer_m1_1`  
-**Milestone:** M1 (Read-Only Investigation & Analysis)  
-**Working Directory:** `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_m1_1`  
-**Date:** 2026-07-27  
-
----
+# Milestone 1 (Core Engine & Safety Setup) Implementation Handoff Report
 
 ## 1. Observation
 
-Direct code inspection of `frontend/src/` revealed the following specific file paths, line numbers, and verbatim CSS/Tailwind class structures:
+### Analyzed Baseline Prototype (`self_improvement_loop/`)
+We conducted a comprehensive analysis of all modules in `self_improvement_loop/`:
+1. `config.py` (25 lines):
+   - Path definitions: `BASE_DIR`, `TARGET_FILE` (`target_module.py`), `TEST_FILE` (`test_target_module.py`), `HISTORY_DIR` (`history/`), `STOP_FLAG_FILE` (`stop.flag`), `COMMAND_FILE` (`command.txt`).
+   - Safety thresholds: `MAX_ITERATIONS = 75`, `TIMEOUT_SECONDS = 18000`, `SESSION_TIMEOUT_SECONDS = 18000`, `MAX_API_REQUESTS = 500`, `TOTAL_TOKEN_BUDGET = 1000000`, `TOKEN_BUDGET_PER_ITERATION = 5000`.
+2. `vcs.py` (103 lines):
+   - `CustomVCS` class: dual-file snapshotting (`target_module.v{N}.py` and `test_target_module.v{N}.py`), diff patch creation using `difflib.unified_diff` saved to `patch_v{N}.diff`, and atomic dual-file rollback via `rollback(version_idx)`.
+3. `runner.py` (81 lines):
+   - `TestRunner` class: executes unit tests via `subprocess.run` using `.venv` python executable (or `sys.executable` fallback) with 60-second subprocess timeout. Captures `stdout`, `stderr`, `returncode`, `success`.
+4. `simulator.py` (802 lines):
+   - `MockLLMSimulator` class: calculates code metrics (`calculate_metrics`: LOC, method_count, docstrings_count, type_annotations_count, ast_valid, quality_score), dynamically updates `test_target_module.py` (`update_tests`), and simulates LLM optimization iterations (v1 to v16+), rate limits (`RateLimitError`), and stuck loop recovery.
+5. `engine.py` (481 lines):
+   - `SelfImprovementEngine` class: orchestrates loop, history resume detection (`target_module.v(\d+).py`), stop signal check (`check_stop_signal`), AST pre-validation (`ast.parse()`), stuck state detection (code hash tracking `recent_hashes`, normalized repeating error tracking `normalize_error_message`, consecutive rollback threshold `>=3`), rollback verification (`verify_result = runner.run_tests()`), event logging (`log_event`), and saving `history/execution_log.json`.
+6. `target_module.py` (149 lines) & `test_target_module.py` (802 lines):
+   - Baseline target module (`Calculator` class) and test suite.
+7. `run.py` (100 lines):
+   - CLI entrypoint: initializes engine, runs self-improvement loop, prints execution summary, and runs test discovery.
+8. Unit Test Suite (`test_engine.py`, `test_simulator.py`, `test_vcs.py`):
+   - 21 total unit tests covering engine safety guardrails, AST pre-validation, rate limit retries, stuck detection, VCS dual snapshots, diff generation, and rollback verification.
 
-1. **Global Focus Outline & Clipping:**
-   - File `frontend/src/app/globals.css`, Lines 178–182:
-     ```css
-     :focus-visible {
-       outline: 2px solid #ea6100;
-       outline-offset: 2px;
-       border-radius: inherit;
-     }
-     ```
-   - File `frontend/src/components/MacroDashboardClient.tsx`, Lines 1978, 2018, 2059, 2100:
-     ```tsx
-     className="... cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-transparent"
-     ```
-   - File `frontend/src/components/LoungeFeedClient.tsx`, Lines 225, 299, 1108, 1235:
-     ```tsx
-     className="... cursor-pointer group w-full text-left outline-none focus:ring-2 focus:ring-[#c44d00]/30 ... rounded-[24px] relative overflow-hidden"
-     ```
-   - File `frontend/src/components/explore/AptRow.tsx`, Line 179:
-     ```tsx
-     className="group flex ... rounded-2xl bg-surface ... relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-brand-orange/50"
-     ```
+### Baseline Test Execution Results
+Executed test suite discovery command:
+```bash
+python -m unittest discover -s self_improvement_loop -p "test_*.py"
+```
+Result:
+```
+Ran 21 tests in 0.127s
+OK
+```
 
-2. **Flexbox `min-w-0` Omissions:**
-   - File `frontend/src/components/MacroDashboardClient.tsx`, Lines 406–411:
-     - Outer `<button>` at line 406 has `flex-1 flex items-center justify-between ... min-w-0`, but left flex column inside `<div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">` can push against right price column on ultra-narrow viewports (< 360px).
-   - File `frontend/src/components/pwa/MobileDock.tsx`, Lines 72–108:
-     - Line 72: `<div className="flex items-center justify-between w-full min-w-0 gap-0.5">`
-     - Line 108: `<span className="text-[10.5px] font-bold tracking-tight relative z-10 whitespace-nowrap">{tab.label}</span>`
-     - On 320px screen (300px net available width), 5 tabs ("테크노 랩", "사무실 탐색", "동탄 라운지", "아파트 랩", "아파트 탐색") with `whitespace-nowrap` consume 50px-52px each plus icon & dividers, leading to label collision or clipping on 320px viewports.
-   - File `frontend/src/components/LoungeFeedClient.tsx`, Lines 306–316:
-     - `<div className="flex sm:hidden items-center gap-2">` holding department name (`notice.dept`) without `truncate` or `min-w-0` on parent container.
-
-3. **Fixed Pixel Width Violations:**
-   - File `frontend/src/components/DashboardClient.tsx` (Line 106) & `LoungeFeedClient.tsx` (Line 19):
-     ```tsx
-     className="... min-w-[280px] max-w-[320px] backdrop-blur-2xl"
-     ```
-     On a 320px mobile display with outer padding (e.g. `p-4` = 32px), `max-w-[320px]` creates a card width of 320px + padding = 352px, exceeding 320px viewport boundaries.
-   - File `frontend/src/components/MacroDashboardClient.tsx`, Line 1812:
-     ```tsx
-     className="absolute right-0 top-[32px] z-[50] w-[260px] max-h-[320px] ..."
-     ```
-     Popover with `w-[260px]` anchored to `right-0` can extend past the left screen edge on 320px viewports when the parent container has margin/padding.
-   - File `frontend/src/components/macro/TechnoValleyDashboard.tsx`, Line 922:
-     ```tsx
-     className="w-[220px] h-[220px] sm:w-[260px] sm:h-[260px] relative flex items-center justify-center shrink-0"
-     ```
-     Fixed 220px donut chart container on 320px screen leaves only 68px for card padding and legend grid layout.
+### Current Target Directory Status
+Directory `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/` does not exist yet.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Observation:** `globals.css:178-182` sets `outline-offset: 2px` for `:focus-visible`, while multiple component cards (`MacroDashboardClient.tsx:1978`, `LoungeFeedClient.tsx:1108`, `AptRow.tsx:179`) combine `overflow-hidden` with `focus:ring-2` / `focus-visible:ring-2`.
-2. **Logic:** In CSS geometry, `overflow-hidden` clips any content rendering outside an element's bounding box. An outline with offset 2px renders 4px beyond the border. Therefore, combining `overflow-hidden` on interactive card containers physically cuts off focus ring indicators, violating accessible outline defense rules.
+1. **Baseline Assessment**:
+   - The baseline prototype in `self_improvement_loop/` provides a complete, robust, and verified implementation of the Core Engine and Safety Setup required for Milestone 1.
+   - All 21 baseline unit tests pass cleanly.
 
-3. **Observation:** `MobileDock.tsx:108` applies `whitespace-nowrap` to 5 tab label strings rendered inside a 320px wide fixed bottom navigation dock (`px-2.5` padding = 300px usable width).
-4. **Logic:** 300px divided by 5 tabs yields 60px max width per tab. Korean text strings such as "사무실 탐색" (5 chars * ~10.5px font size = ~52px width) combined with icons (19px) and vertical dividers leave 0px safety margin. On 320px devices (iPhone SE 1st gen, Galaxy Fold outer display), text labels get squeezed or clipped against tab borders.
+2. **Milestone 1 Feature Mapping**:
+   - **Feature 1 (Baseline Directory & Setup)**: Create `recursive_self_improvement/` directory structure and port code modules (`config`, `vcs`, `runner`, `simulator`, `engine`, `target_module`, `test_target_module`, `run`).
+   - **Feature 2 (Self-Improvement Engine Loop - R1)**: Port `SelfImprovementEngine` with history auto-resume, code optimization loop, and stuck state detection/recovery.
+   - **Feature 3 (AST Pre-Validation)**: Validate code syntax using `ast.parse()` before file write and test execution; log `AST_SYNTAX_ERROR`, save failed code snapshot, rollback VCS, and feed back error context.
+   - **Feature 4 (Safety Guardrails & Limits)**: Enforce iteration timeouts, session timeouts, total token budget, MAX_API_REQUESTS, MAX_ITERATIONS, and graceful shutdown via `stop.flag` / `command.txt`.
 
-5. **Observation:** `DashboardClient.tsx:106` sets `CalculatorLoader` dialog card bounds to `min-w-[280px] max-w-[320px]`.
-6. **Logic:** On a 320px screen, any outer container padding (e.g. 16px on each side) subtracts 32px from the screen width, leaving 288px. Specifying `max-w-[320px]` causes the modal box to be wider than the available content area (288px), causing horizontal scrollbars or off-screen clipping.
+3. **Required Code Adaptations for `recursive_self_improvement/`**:
+   - Module imports must support relative or module-qualified imports (e.g., `from recursive_self_improvement import config`).
+   - `BASE_DIR` in `config.py` must point to `recursive_self_improvement/`.
+   - Test runner in `runner.py` must find `.venv` relative to workspace root (`Path(__file__).parent.parent.resolve() / ".venv"`).
+   - Test discovery in `run.py` must target `recursive_self_improvement`.
 
 ---
 
 ## 3. Caveats
 
-- **Device Hardware Testing:** Investigation was performed via static code analysis and structural layout tracing in CODE_ONLY mode without physical iOS Safari or Android Chrome rendering runtime.
-- **Dynamic Content Variances:** Real API response lengths for apartment names or community post titles could vary. The recommendations account for worst-case long Korean strings.
-- **Third-Party Libraries:** Recharts SVG containers use custom global style overrides (`globals.css:246-254`) to strip default SVG focus rings (`outline: none !important`). This is intentional to prevent black rectangle artifacts on touch tap in Recharts.
+1. **Scope Boundary**: Milestone 1 focuses on Core Engine & Safety Setup. `evaluator.py` (M2 quantitative metric benchmark collector) and `reporter.py` (M3 markdown report generator) will be fully developed in subsequent milestones, but module boundaries established in `PROJECT.md` should be strictly maintained.
+2. **Environment Dependency**: Tests rely on Python 3 environment. Subprocess test execution in `runner.py` uses `.venv` python executable if present, or `sys.executable` as fallback.
 
 ---
 
 ## 4. Conclusion
 
-The frontend codebase has a strong mobile-first foundation with clean Tailwind responsive utility usage (`sm:`, `md:`, `lg:`). However, 4 specific layout defense deficiencies exist that require targeted remediation by the implementer in M2:
-1. Focus ring clipping caused by `overflow-hidden` on interactive cards with `focus:ring-2`.
-2. Mobile dock label crowding on 320px viewports.
-3. Fixed width modal loaders (`max-w-[320px]`) and popover menus (`w-[260px]`) breaching 320px screen bounds.
-4. Selective missing `min-w-0` on mobile notice list flex items.
-
-Detailed fix recommendations and code diff proposals have been written to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_m1_1\analysis.md`.
+Milestone 1 is ready for implementation in `recursive_self_improvement/`. Below are the concrete step-by-step instructions and code specifications for the implementer agent.
 
 ---
 
-## 5. Verification Method
+## 5. Implementation Instructions & Code Specifications for Milestone 1
 
-1. **Static Analysis & Inspection:**
-   - Inspect `frontend/src/app/globals.css` and check focus ring definitions.
-   - Inspect `frontend/src/components/pwa/MobileDock.tsx` lines 72-108.
-   - Inspect `frontend/src/components/MacroDashboardClient.tsx` lines 1812 & 1978.
-2. **Build Verification:**
+### Step 1: Create Directory Structure
+Create directory `recursive_self_improvement/` and `recursive_self_improvement/history/`.
+
+### Step 2: Implement `recursive_self_improvement/config.py`
+```python
+import os
+from pathlib import Path
+
+# Absolute path of recursive_self_improvement directory
+BASE_DIR = str(Path(__file__).parent.resolve())
+
+# Paths inside recursive_self_improvement
+TARGET_FILE = str(Path(BASE_DIR) / "target_module.py")
+TEST_FILE = str(Path(BASE_DIR) / "test_target_module.py")
+HISTORY_DIR = str(Path(BASE_DIR) / "history")
+
+# Stop flag and control files
+STOP_FLAG_FILE = str(Path(BASE_DIR) / "stop.flag")
+COMMAND_FILE = str(Path(BASE_DIR) / "command.txt")
+
+# Loop settings & safety guardrails
+MAX_ITERATIONS = 75
+TIMEOUT_SECONDS = 18000
+SESSION_TIMEOUT_SECONDS = 18000
+MAX_API_REQUESTS = 500
+TOTAL_TOKEN_BUDGET = 1000000
+TOKEN_BUDGET_PER_ITERATION = 5000
+INJECT_SYNTAX_ERROR_ITERATION = 4
+```
+
+### Step 3: Implement `recursive_self_improvement/vcs.py`
+Implement `CustomVCS` class supporting:
+- `save_version(version_idx, target_code, test_code=None)`
+- `generate_diff(version_idx, old_code, new_code)` -> writes `history/patch_v{version_idx}.diff`
+- `restore_version(version_idx)` & `rollback(version_idx)` -> restores target and test files
+- `has_version(version_idx)`
+
+### Step 4: Implement `recursive_self_improvement/runner.py`
+Implement `TestRunner(test_file)` class:
+- Resolves `.venv` python executable from workspace root `Path(__file__).parent.parent.resolve() / ".venv"`.
+- Runs subprocess execution of `test_file` with timeout=60.
+- Returns dict: `{"success": bool, "stdout": str, "stderr": str, "returncode": int}`.
+
+### Step 5: Implement `recursive_self_improvement/simulator.py`
+Implement `MockLLMSimulator` and `RateLimitError`:
+- `calculate_metrics(code: str) -> dict`
+- `update_tests(iteration: int) -> None`
+- `get_improved_code(current_code, iteration, inject_syntax_error=False, perturbation_feedback=None, error_feedback=None) -> str`
+
+### Step 6: Implement `recursive_self_improvement/engine.py`
+Implement `SelfImprovementEngine`:
+- Load configuration from `recursive_self_improvement.config`.
+- Methods: `normalize_error_message`, `log_event`, `save_execution_log`, `check_stop_signal`, `run`.
+- Features in `run()`:
+  - History version detection (`target_module.v(\d+).py`).
+  - AST pre-validation (`ast.parse()`) catching `SyntaxError`.
+  - Guardrail checks: `check_stop_signal`, iteration timeout, session timeout, token budget, API limit, MAX_ITERATIONS.
+  - Stuck loop detection: code hash matching (last 3 hashes), repeating error normalization, consecutive rollbacks (>=3).
+  - Rollback verification via `runner.run_tests()`.
+  - Event logging and `history/execution_log.json` output.
+
+### Step 7: Port Target Module & Unit Tests
+- `target_module.py`: Calculator baseline code.
+- `test_target_module.py`: Initial test suite.
+- Port test suite: `test_vcs.py`, `test_simulator.py`, `test_engine.py` targeting `recursive_self_improvement`.
+- `run.py`: CLI entrypoint executing engine loop and running unittest discovery.
+
+---
+
+## 6. Verification Method
+
+To verify the implementation of Milestone 1:
+
+1. **Run Unit Test Suite**:
    ```bash
-   npm run build
+   python -m unittest discover -s recursive_self_improvement -p "test_*.py"
    ```
-3. **Playwright Mobile E2E Layout Test:**
+   *Expected Result*: All unit tests pass cleanly (21+ tests).
+
+2. **Run E2E CLI Entrypoint**:
    ```bash
-   npx playwright test --project="Mobile Chrome"
+   python recursive_self_improvement/run.py
    ```
-4. **Invalidation Conditions:**
-   - Any horizontal scrollbar appearing on `html` or `body` at 320px viewport width.
-   - Any clipped focus outline when pressing Tab key to navigate card items.
+   *Expected Result*: Self-improvement loop executes, logs events, handles iterations, saves history snapshots/execution_log.json, and prints pass summary.

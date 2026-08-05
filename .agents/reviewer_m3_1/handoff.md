@@ -1,66 +1,148 @@
-# Handoff Report
+# Handoff Report — Milestone 3 Review (Requirement R3)
 
 ## 1. Observation
 
-- **Unit Tests Execution**: Ran `npm test` inside the `frontend` folder (Task ID: `77aa41e0-cc2a-425f-b759-1dad34562d93/task-13`). The command outputs:
-  ```
-  Test Suites: 33 passed, 33 total
-  Tests:       216 passed, 216 total
-  Snapshots:   0 total
-  Time:        9.645 s
-  Ran all test suites.
-  ```
-- **Data Integrity Report**: Read `frontend/missing_report.txt` which states:
-  ```
-  Sheet count: 127
-  TX_SUMMARY index count: 180
-  Total Households in Sheet: 99604
-  Households missing/corrupted: 0 (0.00% of total)
-  Total Issues Found: 0
-  ```
-- **SWR Cache Mismatch Observation**:
-  - In `frontend/src/components/pwa/SWRProvider.tsx` line 29:
-    ```tsx
-    '/data/location-scores.json',
-    ```
-  - In `frontend/src/hooks/useStaticData.ts` line 486:
-    ```tsx
-    const { data, error, isLoading } = useSWR<Record<string, LocationScoreItem>>(shouldFetch ? `/data/location-scores.json?v=${BUILD_VERSION}` : null, fetcher, {
-    ```
-- **Direct Fetch Observation**:
-  - In `frontend/src/components/DashboardClient.tsx` line 642:
-    ```tsx
-    fetch('/api/apartments-by-dong')
-    ```
-  - In `frontend/src/lib/repositories/apartment.repository.ts` line 115:
-    ```tsx
-    const response = await fetch('/api/apartments-by-dong', {
-    ```
-- **Layout Shift and Image Aspect Ratio**:
-  - In `frontend/src/components/LoungeDetailClient.tsx` line 1029:
-    ```tsx
-    <span className="block relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-border my-3 bg-body flex items-center justify-center min-h-[250px] group">
-    ```
+### Implementation & Test Files Inspected
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/reporter.py` (`ReportGenerator`)
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/vcs.py` (`CustomVCS`)
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/engine.py` (`SelfImprovementEngine`)
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/IMPROVEMENT_REPORT.md`
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_reporter.py`
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_vcs.py`
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_e2e_suite.py`
+- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_challenger_m1_3_stress.py`
+
+### Test Suite Execution Output
+Command executed:
+`python -m unittest discover -s recursive_self_improvement -p "test_*.py"`
+
+Output:
+```
+Ran 168 tests in 71.456s
+FAILED (failures=2)
+
+FAIL: test_rollback_missing_version_raises_when_no_v0 (tests.test_challenger_m1_3_stress.VCSMissingSnapshotFallbackStressTest.test_rollback_missing_version_raises_when_no_v0)
+AssertionError: FileNotFoundError not raised
+
+FAIL: test_t2_f7_b1_rollback_to_nonexistent_version_raises (tests.test_e2e_suite.TestTier2BoundaryCases.test_t2_f7_b1_rollback_to_nonexistent_version_raises)
+AssertionError: FileNotFoundError not raised
+```
+
+### Observation 1: Contract Violation in `vcs.py` causing 2 Test Failures
+In `vcs.py`, lines 70–90:
+Docstring:
+`Raises FileNotFoundError only if neither target_module.v{version_idx}.py nor target_module.v0.py exists.`
+Code implementation:
+```python
+76: if os.path.exists(version_path):
+77:     with open(version_path, "r", encoding="utf-8", errors="replace") as f:
+78:         content = f.read()
+79: else:
+80:     # Fallback to initial baseline file (v0) if available, or current target file
+81:     v0_path = os.path.join(self.history_dir, "target_module.v0.py")
+82:     if os.path.exists(v0_path):
+83:         with open(v0_path, "r", encoding="utf-8", errors="replace") as f:
+84:             content = f.read()
+85:     elif os.path.exists(self.target_file):
+86:         with open(self.target_file, "r", encoding="utf-8", errors="replace") as f:
+87:             content = f.read()
+88:     else:
+89:         content = ""
+```
+Lines 85–89 silently fall back to reading `self.target_file` or returning `""` instead of raising `FileNotFoundError` when neither `version_path` nor `v0_path` exists. This directly breaks `test_rollback_missing_version_raises_when_no_v0` and `test_t2_f7_b1_rollback_to_nonexistent_version_raises`.
+
+### Observation 2: Trajectory Table Column Count Mismatch in `reporter.py`
+In `recursive_self_improvement/reporter.py`, line 267 defines `trajectory_table_header`:
+```python
+267: trajectory_table_header = "| Iteration | Event | Quality Score | LOC | Methods | Pass Rate (%) | Latency (s) | Memory (MB) | Accuracy |\n|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
+```
+- Header row contains **9 columns**: `Iteration`, `Event`, `Quality Score`, `LOC`, `Methods`, `Pass Rate (%)`, `Latency (s)`, `Memory (MB)`, `Accuracy`.
+- Alignment delimiter row contains **8 columns**: `|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|` (missing one `:---:|` column specifier).
+- Data rows (line 185) contain **9 columns**:
+  `| {iter_val if iter_val is not None else 'N/A'} | {event_type} | {quality_score_str} | {loc_str} | {methods_str} | {pass_rate_str} | {latency_str} | {memory_str} | {accuracy_str} |`
+
+In generated `IMPROVEMENT_REPORT.md` (lines 50-55):
+```markdown
+### Generation Trajectory Table
+| Iteration | Event | Quality Score | LOC | Methods | Pass Rate (%) | Latency (s) | Memory (MB) | Accuracy |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| 0 | SUCCESS | 43.00 | 6 | 1 | 100.0% | N/A | N/A | N/A |
+```
+Because line 51 has 8 alignment blocks while lines 50 and 52 have 9 columns, GFM/CommonMark Markdown table renderers drop or misalign the 9th column (`Accuracy`).
+
+### Observation 3: Test Discovery Pattern Collision with History Snapshots
+In `recursive_self_improvement/vcs.py` (lines 25, 29, 111), test snapshots saved to `history/` are named `test_target_module.v{version_idx}.py`.
+When running test discovery via `python -m unittest discover -s recursive_self_improvement -p "test_*.py"`, `unittest` scans `history/` and executes historical snapshot files matching `test_*.py`.
+
+### Observation 4: Integrity & Non-Facade Verification
+- No hardcoded test outputs or dummy facade implementations were found in `reporter.py`, `vcs.py`, or `engine.py`.
+- `ReportGenerator` dynamically parses `execution_log.json`, calculates quantitative LOC/method/AST metrics, extracts unified diff patches from `.diff` files, and generates safety audit attestations.
+- `CustomVCS` uses `difflib.unified_diff` to record real `.diff` patch files and supports dual-file version snapshotting.
+- `SelfImprovementEngine._finalize_and_generate_report()` automatically generates `IMPROVEMENT_REPORT.md` on loop completion or early signal termination.
+
+---
 
 ## 2. Logic Chain
 
-1. **Test Success**: Observation of the `npm test` output confirms that the unit tests for the components, including `valuationEngine`, `brandMapping`, and `AptCompareModal`, run and pass completely.
-2. **Data Consistency**: Observation of `missing_report.txt` confirms that all 127 sheets map without data corruption or missing physical JSON files in the workspace.
-3. **Tab Switch Smoothness & State Persistence**: Observation of `DashboardClient.tsx` shows that tab states are tracked with `hasOpenedOverview` etc. to lazy-render contents, and the hidden states are controlled using the `hidden` class in Tailwind CSS. This preserves tab state and eliminates transition lag.
-4. **Cache Key Mismatch**: Comparison of SWR key `'/data/location-scores.json'` preloaded in `SWRProvider.tsx` and the query `'/data/location-scores.json?v=${BUILD_VERSION}'` in `useStaticData.ts` shows that SWR will treat these as two different keys. This results in a cache miss for location scores.
-5. **Direct Fetch Bypass**: Direct fetch calls bypass SWR's cache entirely, rendering SWR's preload for `/api/apartments-by-dong` ineffective for these calls (though SW caching can intercept them).
-6. **CLS Mitigation**: Wrapping images in `aspect-[16/10]` containers and setting static loader skeletons for dynamic tabs prevents layout shift (CLS) during transition and load.
+1. **Premise**: Requirement R3 and Milestone 3 require an automated markdown report generator (`reporter.py`), unified `.diff` patch loggers, execution event logging (`execution_log.json`), valid report formatting, and 100% test suite passage.
+2. **Analysis of Test Suite Execution**:
+   - Running `python -m unittest discover -s recursive_self_improvement -p "test_*.py"` resulted in 2 test failures out of 168 tests.
+   - Both failures stem from `vcs.py` `restore_version()`: when neither `target_module.v{version}.py` nor `target_module.v0.py` exists, `vcs.py` falls back to `self.target_file` instead of raising `FileNotFoundError` as documented and required by unit tests.
+3. **Analysis of Trajectory Table Formatting**:
+   - `reporter.py` constructs a table with 9 header columns and 9 data columns per row.
+   - Line 267 of `reporter.py` constructs the delimiter row with only 8 alignment specifiers (`|:---:|` x 8).
+   - This creates malformed Markdown tables in all generated reports (`IMPROVEMENT_REPORT.md`).
+4. **Conclusion**:
+   - The implementation core logic is genuine and comprehensive (no integrity cheating), but fails 2 unit tests and produces malformed Markdown tables.
+   - Therefore, the verdict MUST be `REQUEST_CHANGES`.
+
+---
 
 ## 3. Caveats
 
-- Playwright E2E tests and actual browser layout shift scores were not measured under throttling due to headless test constraints. We assume selector matching and CSS layout behavior is correct based on code inspection.
+- Subprocess stderr output printed during `test_e2e_suite.py` execution is normal artifact output from the benchmark evaluation of intentional baseline errors.
+
+---
 
 ## 4. Conclusion
 
-The code optimizations for Zero-Delay Navigation (Milestone 2) and Zero-Jank Transitions (Milestone 3) are functionally sound, robust, and unit-tested. Preloaded data keys and components match in most cases (excluding location scores mismatch), preventing duplicate API requests, and layout shifts (CLS) are well mitigated. The changes are APPROVED.
+**Verdict**: **REQUEST_CHANGES**
+
+### Findings Summary
+
+#### [Critical] Finding 1: Unit Test Suite Failures in `vcs.py` (`FileNotFoundError` Not Raised)
+- **Location**: `recursive_self_improvement/vcs.py`, lines 70–90
+- **Why**: `restore_version` docstring states: *"Raises FileNotFoundError only if neither target_module.v{version_idx}.py nor target_module.v0.py exists."* However, lines 85–89 fall back to reading `self.target_file` or returning `""` instead of raising `FileNotFoundError`.
+- **Impact**: Fails 2 unit tests (`test_rollback_missing_version_raises_when_no_v0` and `test_t2_f7_b1_rollback_to_nonexistent_version_raises`).
+- **Fix Suggestion**: Update `vcs.py` lines 85–89 to raise `FileNotFoundError` when neither `version_path` nor `v0_path` exists:
+  ```python
+  elif os.path.exists(v0_path):
+      with open(v0_path, "r", encoding="utf-8", errors="replace") as f:
+          content = f.read()
+  else:
+      raise FileNotFoundError(f"Neither version {version_idx} nor baseline version 0 found in history.")
+  ```
+
+#### [Major] Finding 2: Trajectory Table Column Count Mismatch in `reporter.py`
+- **Location**: `recursive_self_improvement/reporter.py`, line 267
+- **Why**: Header has 9 columns and data rows have 9 columns, but the alignment delimiter row has only 8 specifiers (`|:---:|` x 8).
+- **Impact**: Produces malformed GFM/CommonMark Markdown tables in `IMPROVEMENT_REPORT.md`.
+- **Fix Suggestion**: Update line 267 in `reporter.py` to:
+  ```python
+  trajectory_table_header = "| Iteration | Event | Quality Score | LOC | Methods | Pass Rate (%) | Latency (s) | Memory (MB) | Accuracy |\n|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
+  ```
+
+#### [Minor] Finding 3: History Snapshot Filename Collision with `unittest discover`
+- **Location**: `recursive_self_improvement/vcs.py`, lines 25, 29, 111
+- **Why**: Snapshot test files saved to `history/` are named `test_target_module.v{idx}.py`, matching pattern `test_*.py`.
+- **Fix Suggestion**: Rename history test snapshots (e.g. `target_test.v{idx}.py` or `history_test.v{idx}.py`) so `unittest discover` targets only unit test files in `tests/`.
+
+---
 
 ## 5. Verification Method
 
-To independently verify:
-1. Run `npm test` in the `frontend` folder to check that all 216 unit tests continue to pass.
-2. Open `frontend/src/components/pwa/SWRProvider.tsx` (line 29) and `frontend/src/hooks/useStaticData.ts` (line 486) to check the difference in preloaded vs. queried keys.
+To verify the required fixes:
+1. Update `vcs.py` to raise `FileNotFoundError` when neither version snapshot nor baseline `v0` exists.
+2. Update `reporter.py` line 267 to include 9 `:---:|` column specifiers.
+3. Re-run: `python -m unittest discover -s recursive_self_improvement -p "test_*.py"` and confirm 100% test passage.
+4. Verify `IMPROVEMENT_REPORT.md` trajectory table alignment.

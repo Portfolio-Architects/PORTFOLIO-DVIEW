@@ -1,0 +1,8 @@
+--- target_module.v2.py
++++ target_module.v3.py
+@@ -4,3 +4,5 @@
+         return a + b
+     def subtract(self, a, b):
+         return a - b
++    def multiply(self, a, b):
++        return a * b

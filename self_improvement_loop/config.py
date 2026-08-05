@@ -20,5 +20,8 @@ SESSION_TIMEOUT_SECONDS = 18000  # 5-hour timeout (18000 seconds)
 MAX_API_REQUESTS = 500  # Elevated for continuous background run
 TOTAL_TOKEN_BUDGET = 1000000  # Elevated for continuous background run
 TOKEN_BUDGET_PER_ITERATION = 5000
-INJECT_SYNTAX_ERROR_ITERATION = 4
+INJECT_SYNTAX_ERROR_ITERATION = 4  # Injection test iteration target
 
+# Performance degradation regression thresholds
+LATENCY_REGRESSION_THRESHOLD = 0.5  # Latency regression threshold in seconds
+MEMORY_REGRESSION_THRESHOLD = 5.0  # Memory regression threshold in MB

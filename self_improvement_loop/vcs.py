@@ -1,5 +1,6 @@
 import os
 import difflib
+import time
 
 class CustomVCS:
     def __init__(self, history_dir: str, target_file: str, test_file: str = None):
@@ -74,8 +75,14 @@ class CustomVCS:
         with open(version_path, "r", encoding="utf-8", errors="replace") as f:
             content = f.read()
         
+        time.sleep(0.01)
         with open(self.target_file, "w", encoding="utf-8", errors="replace") as f:
             f.write(content)
+        try:
+            os.utime(self.target_file, None)
+        except Exception:
+            pass
+        time.sleep(0.01)
         
         if self.test_file:
             test_version_path = os.path.join(self.history_dir, f"test_target_module.v{version_idx}.py")
@@ -84,7 +91,18 @@ class CustomVCS:
                     test_content = f.read()
                 with open(self.test_file, "w", encoding="utf-8", errors="replace") as f:
                     f.write(test_content)
+                try:
+                    os.utime(self.test_file, None)
+                except Exception:
+                    pass
         
+        pycache_dir = os.path.join(os.path.dirname(self.target_file), "__pycache__")
+        if os.path.exists(pycache_dir):
+            try:
+                shutil.rmtree(pycache_dir)
+            except Exception:
+                pass
+
         return content
 
     def rollback(self, version_idx: int) -> str:

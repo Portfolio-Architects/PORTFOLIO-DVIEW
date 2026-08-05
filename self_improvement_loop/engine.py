@@ -5,17 +5,28 @@ import sys
 import re
 import hashlib
 import ast
+from typing import Optional, Tuple, List
+
 
 try:
     from self_improvement_loop import config
     from self_improvement_loop.vcs import CustomVCS
     from self_improvement_loop.runner import TestRunner
+    from self_improvement_loop.evaluator import BenchmarkRunner, BenchmarkMetrics
     from self_improvement_loop.simulator import MockLLMSimulator, RateLimitError
 except ImportError:
-    import config
-    from vcs import CustomVCS
-    from runner import TestRunner
-    from simulator import MockLLMSimulator, RateLimitError
+    try:
+        from recursive_self_improvement import config
+        from recursive_self_improvement.vcs import CustomVCS
+        from recursive_self_improvement.runner import TestRunner
+        from recursive_self_improvement.evaluator import BenchmarkRunner, BenchmarkMetrics
+        from recursive_self_improvement.simulator import MockLLMSimulator, RateLimitError
+    except ImportError:
+        import config
+        from vcs import CustomVCS
+        from runner import TestRunner
+        from evaluator import BenchmarkRunner, BenchmarkMetrics
+        from simulator import MockLLMSimulator, RateLimitError
 
 
 class SelfImprovementEngine:
@@ -37,7 +48,12 @@ class SelfImprovementEngine:
 
         self.vcs = CustomVCS(self.history_dir, self.target_file, self.test_file)
         self.runner = TestRunner(self.test_file)
+        self.evaluator = BenchmarkRunner(self.target_file, self.test_file)
         self.simulator = MockLLMSimulator()
+
+        self.baseline_metrics = None
+        self.latency_regression_threshold = getattr(config, "LATENCY_REGRESSION_THRESHOLD", 0.5)
+        self.memory_regression_threshold = getattr(config, "MEMORY_REGRESSION_THRESHOLD", 5.0)
 
         # Stuck/loop detection state
         self.recent_hashes = []
@@ -59,22 +75,11 @@ class SelfImprovementEngine:
         """
         if not error_msg:
             return ""
-        # Remove line numbers from python tracebacks (e.g., File "...", line 123)
         normalized = re.sub(r'File\s+"[^"]+",\s+line\s+\d+', 'File "<path>", line <line>', error_msg)
-        
-        # Remove line numbers from standard formats
         normalized = re.sub(r'\bline\s+\d+\b', 'line <line>', normalized)
-        
-        # Replace paths in single or double quotes
         normalized = re.sub(r"(['\"])[^\n\r'\"]*?[/\\].*?\1", r"\1<path>\1", normalized)
-        
-        # Replace unquoted Windows paths (drive letter followed by backslash and path chars)
         normalized = re.sub(r'[a-zA-Z]:\\[^\n\r\s:]+', '<path>', normalized)
-        
-        # Replace unquoted Unix paths (must contain at least one slash)
         normalized = re.sub(r'/[^\n\r\s:]+/[^\n\r\s:]*', '<path>', normalized)
-        
-        # Strip all lines and join them to ignore minor whitespace differences
         lines = [line.strip() for line in normalized.splitlines() if line.strip()]
         return "\n".join(lines)
 
@@ -113,7 +118,6 @@ class SelfImprovementEngine:
         """
         Checks if a stop flag file or a stop command is present.
         """
-        # Check stop.flag file
         stop_flag_file = getattr(config, "STOP_FLAG_FILE", os.path.join(config.BASE_DIR, "stop.flag"))
         if os.path.exists(stop_flag_file):
             try:
@@ -122,7 +126,6 @@ class SelfImprovementEngine:
                 pass
             return True
 
-        # Check command.txt file
         command_file = getattr(config, "COMMAND_FILE", os.path.join(config.BASE_DIR, "command.txt"))
         if os.path.exists(command_file):
             try:
@@ -138,6 +141,62 @@ class SelfImprovementEngine:
                 pass
 
         return False
+
+    def evaluate_performance_degradation(self, candidate_metrics: BenchmarkMetrics) -> tuple[Optional[str], list[str]]:
+        """
+        Compares candidate metrics against baseline metrics for performance degradation.
+        Returns (degraded_event_type: Optional[str], degradation_reasons: list[str]).
+        Rejection categories:
+        - REJECT_PASS_RATE_DEGRADED: pass_rate < baseline pass_rate
+        - REJECT_ACCURACY_DEGRADED: accuracy_score drops below baseline
+        - REJECT_LATENCY_DEGRADED: execution_time_sec exceeds baseline by latency regression threshold
+        - REJECT_MEMORY_DEGRADED: peak_memory_mb exceeds baseline by memory regression threshold
+        """
+        base = getattr(self, "stable_baseline_metrics", None) or getattr(self, "baseline_metrics", None)
+        if not base or not candidate_metrics:
+            return None, []
+
+        lat_reg = getattr(self, "latency_regression_threshold", getattr(config, "LATENCY_REGRESSION_THRESHOLD", 0.5))
+        mem_reg = getattr(self, "memory_regression_threshold", getattr(config, "MEMORY_REGRESSION_THRESHOLD", 5.0))
+        lat_deg = getattr(config, "LATENCY_DEGRADATION_THRESHOLD", 0.15)
+        mem_deg = getattr(config, "MEMORY_DEGRADATION_THRESHOLD", 0.20)
+        acc_deg = getattr(config, "ACCURACY_DEGRADATION_THRESHOLD", 0.001)
+
+        reasons = []
+
+        # 1. Pass rate degradation
+        if candidate_metrics.pass_rate < base.pass_rate:
+            reasons.append(f"pass_rate dropped from {base.pass_rate}% to {candidate_metrics.pass_rate}%")
+            return "REJECT_PASS_RATE_DEGRADED", reasons
+
+        # 2. Accuracy score degradation
+        if candidate_metrics.accuracy_score < base.accuracy_score - acc_deg:
+            reasons.append(f"accuracy_score dropped from {base.accuracy_score} to {candidate_metrics.accuracy_score}")
+            return "REJECT_ACCURACY_DEGRADED", reasons
+
+        # 3. Latency degradation
+        is_lat_degraded = False
+        if base.execution_time_sec > 0 and candidate_metrics.execution_time_sec > base.execution_time_sec * (1.0 + lat_deg) and (candidate_metrics.execution_time_sec - base.execution_time_sec > 0.001):
+            is_lat_degraded = True
+        elif candidate_metrics.execution_time_sec > base.execution_time_sec + lat_reg:
+            is_lat_degraded = True
+
+        if is_lat_degraded:
+            reasons.append(f"execution_time_sec ({candidate_metrics.execution_time_sec:.6f}s) exceeded baseline ({base.execution_time_sec:.6f}s)")
+            return "REJECT_LATENCY_DEGRADED", reasons
+
+        # 4. Memory degradation
+        is_mem_degraded = False
+        if base.peak_memory_mb > 0 and candidate_metrics.peak_memory_mb > base.peak_memory_mb * (1.0 + mem_deg) and (candidate_metrics.peak_memory_mb - base.peak_memory_mb > 0.05):
+            is_mem_degraded = True
+        elif candidate_metrics.peak_memory_mb > base.peak_memory_mb + mem_reg:
+            is_mem_degraded = True
+
+        if is_mem_degraded:
+            reasons.append(f"peak_memory_mb ({candidate_metrics.peak_memory_mb:.4f}MB) exceeded baseline ({base.peak_memory_mb:.4f}MB)")
+            return "REJECT_MEMORY_DEGRADED", reasons
+
+        return None, []
 
     def run(self) -> bool:
         """
@@ -161,7 +220,7 @@ class SelfImprovementEngine:
             version_idx = latest_v
             self.log_event("INFO", f"Resuming improvement loop. Detected latest version from history: v{version_idx}")
         
-        # Read the current target code
+        # Read current target code
         try:
             with open(self.target_file, "r", encoding="utf-8", errors="replace") as f:
                 current_code = f.read()
@@ -170,7 +229,7 @@ class SelfImprovementEngine:
             self.save_execution_log()
             return False
 
-        if version_idx == 0:
+        if not self.vcs.has_version(0):
             try:
                 with open(self.test_file, "r", encoding="utf-8", errors="replace") as f:
                     initial_test_code = f.read()
@@ -179,22 +238,50 @@ class SelfImprovementEngine:
             self.vcs.save_version(0, current_code, initial_test_code)
             self.log_event("SUCCESS", "Initial code saved as version 0.")
 
+        # Calculate baseline metrics before improvement iterations begin
+        try:
+            self.baseline_metrics = self.evaluator.run_benchmark()
+            self.log_event(
+                "BASELINE_METRICS",
+                f"Baseline metrics calculated: pass_rate={self.baseline_metrics.pass_rate}%, "
+                f"accuracy={self.baseline_metrics.accuracy_score}%, "
+                f"execution_time={self.baseline_metrics.execution_time_sec}s, "
+                f"peak_memory={self.baseline_metrics.peak_memory_mb}MB",
+                {
+                    "pass_rate": self.baseline_metrics.pass_rate,
+                    "accuracy_score": self.baseline_metrics.accuracy_score,
+                    "execution_time_sec": self.baseline_metrics.execution_time_sec,
+                    "peak_memory_mb": self.baseline_metrics.peak_memory_mb,
+                    "ast_valid": self.baseline_metrics.ast_valid
+                }
+            )
+        except Exception as e:
+            self.log_event("ERROR", f"Failed to calculate baseline metrics: {str(e)}")
+            self.baseline_metrics = BenchmarkMetrics(
+                pass_rate=0.0,
+                passed_tests=0,
+                failed_tests=1,
+                total_tests=1,
+                execution_time_sec=0.0,
+                peak_memory_mb=0.0,
+                accuracy_score=0.0,
+                ast_valid=True,
+                error_message=str(e)
+            )
+
         last_stable_code = current_code
         loop_iteration = 0
 
-        # Loop executes continuously until stopped or limit reached
         while True:
             iteration_start_time = time.time()
             loop_iteration += 1
             iteration = version_idx + 1
 
-            # Check graceful stop signal
             if self.check_stop_signal():
                 self.log_event("STOP_SIGNAL", "Graceful shutdown requested. Exiting loop.")
                 self.save_execution_log()
                 return True
 
-            # Check iteration-level timeout
             iteration_elapsed = time.time() - iteration_start_time
             if iteration_elapsed >= self.timeout_seconds:
                 self.log_event("TIMEOUT", f"Aborting loop: Iteration duration {iteration_elapsed:.2f}s exceeded TIMEOUT_SECONDS of {self.timeout_seconds}s.")
@@ -202,7 +289,6 @@ class SelfImprovementEngine:
                 self.save_execution_log()
                 return False
 
-            # Check cumulative session runtime limit (elapsed run time across iterations)
             session_elapsed = time.time() - start_time
             if session_elapsed >= self.session_timeout_seconds:
                 self.log_event("SESSION_TIMEOUT", f"Aborting loop: Total duration {session_elapsed:.2f}s exceeded SESSION_TIMEOUT_SECONDS of {self.session_timeout_seconds}s.")
@@ -210,7 +296,6 @@ class SelfImprovementEngine:
                 self.save_execution_log()
                 return False
 
-            # Check remaining token budget
             remaining_budget = self.total_token_budget - self.cumulative_tokens_used
             if remaining_budget < self.token_budget_per_iteration:
                 self.log_event("TOKEN_BUDGET_EXCEEDED", f"Aborting loop: Remaining budget {remaining_budget} is insufficient for the next iteration budget of {self.token_budget_per_iteration}.")
@@ -218,24 +303,20 @@ class SelfImprovementEngine:
                 self.save_execution_log()
                 return False
 
-            # Check max loop iterations limit
-            if iteration > self.max_iterations:
+            if loop_iteration > self.max_iterations:
                 self.log_event("FINISHED", f"Reached configured MAX_ITERATIONS limit of {self.max_iterations}. Exiting.")
                 self.save_execution_log()
                 return True
 
             self.log_event("ITERATION_START", f"Starting iteration {iteration} (Loop run {loop_iteration}).")
 
-            # Trigger a syntax error injection if configured and matches current iteration
             if getattr(self, "inject_syntax_error_iteration", None) is not None:
                 inject_syntax_error = (loop_iteration == self.inject_syntax_error_iteration)
             else:
                 inject_syntax_error = False
 
-            # Query the simulator with RateLimitError retry handling
             improved_code = None
             while True:
-                # Check iteration-level timeout inside retry loop
                 iteration_elapsed = time.time() - iteration_start_time
                 if iteration_elapsed >= self.timeout_seconds:
                     self.log_event("TIMEOUT", f"Aborting loop: Iteration duration {iteration_elapsed:.2f}s exceeded TIMEOUT_SECONDS of {self.timeout_seconds}s.")
@@ -243,7 +324,6 @@ class SelfImprovementEngine:
                     self.save_execution_log()
                     return False
 
-                # Check cumulative session runtime limit inside retry loop
                 session_elapsed = time.time() - start_time
                 if session_elapsed >= self.session_timeout_seconds:
                     self.log_event("SESSION_TIMEOUT", f"Aborting loop: Total duration {session_elapsed:.2f}s exceeded SESSION_TIMEOUT_SECONDS of {self.session_timeout_seconds}s.")
@@ -251,14 +331,12 @@ class SelfImprovementEngine:
                     self.save_execution_log()
                     return False
 
-                # Check cumulative API/Request Limit
                 if self.api_requests_count >= self.max_api_requests:
                     self.log_event("API_LIMIT", f"Aborting loop: Total API requests {self.api_requests_count} reached MAX_API_REQUESTS limit of {self.max_api_requests}.")
                     self.vcs.rollback(version_idx)
                     self.save_execution_log()
                     return False
 
-                # Increment API requests and mock token usage (1000 tokens per call)
                 self.api_requests_count += 1
                 self.cumulative_tokens_used += 1000
 
@@ -275,7 +353,6 @@ class SelfImprovementEngine:
                     break
                 except RateLimitError as rle:
                     self.log_event("RATE_LIMIT", f"Rate limit encountered on iteration {iteration}. {str(rle)} Sleeping for {rle.reset_seconds}s before retry.")
-                    # Sleep, but also check for stop flag during wait
                     sleep_end = time.time() + rle.reset_seconds
                     while time.time() < sleep_end:
                         if self.check_stop_signal():
@@ -283,7 +360,6 @@ class SelfImprovementEngine:
                             self.save_execution_log()
                             return True
 
-                        # Check timeouts during sleep
                         iteration_elapsed = time.time() - iteration_start_time
                         if iteration_elapsed >= self.timeout_seconds:
                             self.log_event("TIMEOUT", f"Aborting loop: Iteration duration {iteration_elapsed:.2f}s exceeded TIMEOUT_SECONDS of {self.timeout_seconds}s during rate limit wait.")
@@ -306,7 +382,6 @@ class SelfImprovementEngine:
                     self.save_execution_log()
                     return False
 
-            # Stuck detection by code hash tracking
             code_hash = hashlib.md5(improved_code.encode("utf-8")).hexdigest()
             if code_hash in self.recent_hashes:
                 self.log_event("STUCK_DETECTED", f"Stuck state detected on iteration {iteration}: code hash matched one of the last 3 iterations.")
@@ -316,7 +391,7 @@ class SelfImprovementEngine:
             if len(self.recent_hashes) > 3:
                 self.recent_hashes.pop(0)
 
-            # AST Syntax Pre-validation prior to writing code or subprocess execution
+            # AST Syntax Pre-validation
             try:
                 ast.parse(improved_code)
             except SyntaxError as se:
@@ -325,7 +400,6 @@ class SelfImprovementEngine:
                 self.error_feedback = normalized_error_msg
                 self.log_event("AST_SYNTAX_ERROR", f"AST syntax pre-validation failed on iteration {iteration}: {normalized_error_msg}")
 
-                # Save debug failed version
                 failed_path = os.path.join(self.history_dir, f"target_module.v{iteration}.failed.py")
                 try:
                     with open(failed_path, "w", encoding="utf-8", errors="replace") as f:
@@ -365,14 +439,14 @@ class SelfImprovementEngine:
 
                 self.log_event("ROLLBACK", f"Iteration {iteration} failed AST syntax pre-validation. Rolled back to stable version {version_idx}.", rollback_details)
 
-                if not verify_success:
+                if version_idx > 0 and not verify_success:
                     self.save_execution_log()
                     return False
 
                 time.sleep(1.0)
                 continue
 
-            # Write the improved code to the target module
+            # Write improved code to target module
             try:
                 with open(self.target_file, "w", encoding="utf-8", errors="replace") as f:
                     f.write(improved_code)
@@ -382,15 +456,26 @@ class SelfImprovementEngine:
                 self.save_execution_log()
                 return False
 
-            # Run tests using the test runner
+            # Execute unit tests via runner
             test_result = self.runner.run_tests()
 
+            # Evaluate quantitative benchmark metrics if tests succeeded
+            candidate_metrics = None
+            is_degraded = False
+            degradation_reasons = []
+
             if test_result["success"]:
-                # Save the new code version
+                try:
+                    candidate_metrics = self.evaluator.run_benchmark()
+                    is_degraded, degradation_reasons = self.evaluate_performance_degradation(candidate_metrics)
+                except Exception as e:
+                    self.log_event("ERROR", f"Failed to evaluate candidate benchmark metrics in iteration {iteration}: {str(e)}")
+
+            if test_result["success"] and not is_degraded:
+                # Acceptance
                 version_idx = iteration
                 self.consecutive_rollbacks = 0
                 self.last_error_message = None
-                self.perturbation_feedback = None
                 self.error_feedback = None
 
                 try:
@@ -398,24 +483,37 @@ class SelfImprovementEngine:
                         test_code = f.read()
                 except Exception:
                     test_code = ""
+
+                # Dual-file VCS snapshot
                 self.vcs.save_version(version_idx, improved_code, test_code)
 
-                # Generate and save the diff patch
+                # Generate diff patch
                 diff_str = self.vcs.generate_diff(version_idx, last_stable_code, improved_code)
 
-                self.log_event("SUCCESS", f"Iteration {iteration} succeeded. Tests passed.", {
+                # Update baseline metrics to candidate metrics
+                if candidate_metrics:
+                    self.baseline_metrics = candidate_metrics
+
+                log_details = {
                     "iteration": iteration,
                     "diff": diff_str,
                     "stdout": test_result["stdout"],
                     "stderr": test_result["stderr"]
-                })
+                }
+                if candidate_metrics:
+                    log_details["metrics"] = {
+                        "pass_rate": candidate_metrics.pass_rate,
+                        "accuracy_score": candidate_metrics.accuracy_score,
+                        "execution_time_sec": candidate_metrics.execution_time_sec,
+                        "peak_memory_mb": candidate_metrics.peak_memory_mb
+                    }
 
-                # Update the current code state and last stable version index
+                self.log_event("SUCCESS", f"Iteration {iteration} succeeded. Tests passed and performance metrics accepted.", log_details)
+
                 current_code = improved_code
                 last_stable_code = improved_code
             else:
-                # Tests failed (including compile or syntax errors)
-                # Save the failed version for debug reference
+                # Rejection (due to test failure or performance degradation)
                 failed_path = os.path.join(self.history_dir, f"target_module.v{iteration}.failed.py")
                 try:
                     with open(failed_path, "w", encoding="utf-8", errors="replace") as f:
@@ -423,21 +521,23 @@ class SelfImprovementEngine:
                 except Exception as e:
                     self.log_event("ERROR", f"Failed to save debug failed version: {str(e)}")
 
-                # Generate the diff patch comparing last stable code with this failed code
                 diff_str = self.vcs.generate_diff(iteration, last_stable_code, improved_code)
 
-                # Trigger rollback back to the last stable version
+                # Dual-file atomic rollback
                 self.vcs.rollback(version_idx)
 
-                # Stuck detection: error message & rollback count
-                error_msg = test_result.get("stderr", "") or test_result.get("stdout", "")
+                if is_degraded:
+                    error_msg = "Performance degradation detected: " + "; ".join(degradation_reasons)
+                else:
+                    error_msg = test_result.get("stderr", "") or test_result.get("stdout", "")
+
                 normalized_error_msg = self.normalize_error_message(error_msg)
                 self.error_feedback = normalized_error_msg
-                
+
                 is_stuck_by_error = False
                 if normalized_error_msg and normalized_error_msg == self.last_error_message:
                     is_stuck_by_error = True
-                
+
                 self.last_error_message = normalized_error_msg
                 self.consecutive_rollbacks += 1
                 is_stuck_by_rollbacks = self.consecutive_rollbacks >= 3
@@ -446,9 +546,11 @@ class SelfImprovementEngine:
                     self.log_event("STUCK_DETECTED", f"Stuck state detected on iteration {iteration}. Repeating error: {is_stuck_by_error}, rollbacks: {self.consecutive_rollbacks}.")
                     self.perturbation_feedback = "Warning: Stuck state detected due to repeating error or multiple rollbacks. Please change your design/strategy to fix the error."
 
-                # Run tests one final time to verify that the restored code is clean and passes tests
                 verify_result = self.runner.run_tests()
                 verify_success = verify_result["success"]
+
+                event_type = "PERFORMANCE_DEGRADATION" if is_degraded else "ROLLBACK"
+                log_msg = f"Iteration {iteration} failed performance check ({'; '.join(degradation_reasons)}). Rolled back to stable version {version_idx}." if is_degraded else f"Iteration {iteration} failed unit tests. Rolled back to stable version {version_idx}."
 
                 rollback_details = {
                     "iteration": iteration,
@@ -464,14 +566,15 @@ class SelfImprovementEngine:
                         "stderr": verify_result["stderr"]
                     }
                 }
+                if is_degraded:
+                    rollback_details["degradation_reasons"] = degradation_reasons
 
-                self.log_event("ROLLBACK", f"Iteration {iteration} failed. Rolled back to stable version {version_idx}.", rollback_details)
+                self.log_event(event_type, log_msg, rollback_details)
 
-                if not verify_success:
+                if version_idx > 0 and not verify_success:
                     self.save_execution_log()
                     return False
 
-            # Add a brief sleep between background runs
             time.sleep(1.0)
 
 

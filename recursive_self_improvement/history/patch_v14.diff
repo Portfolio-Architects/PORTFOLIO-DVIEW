@@ -1,0 +1,33 @@
+--- target_module.v13.py
++++ target_module.v14.py
+@@ -49,6 +49,24 @@
+             raise ValueError("variance requires at least two data points")
+         m = self.mean(data)
+         return sum((x - m) ** 2 for x in data) / (len(data) - 1)
++    def matrix_addition(self, A: list, B: list) -> list:
++        """Returns the sum of two matrices A and B."""
++        if len(A) != len(B) or len(A[0]) != len(B[0]):
++            raise ValueError("Matrices must have the same dimensions")
++        return [[A[i][j] + B[i][j] for j in range(len(A[0]))] for i in range(len(A))]
++    def matrix_transpose(self, A: list) -> list:
++        """Returns the transpose of matrix A."""
++        return [[A[i][j] for i in range(len(A))] for j in range(len(A[0]))]
++    def matrix_multiplication(self, A: list, B: list) -> list:
++        """Returns the product of two matrices A and B."""
++        if len(A[0]) != len(B):
++            raise ValueError("Number of columns in A must equal number of rows in B")
++        result = [[0.0 for _ in range(len(B[0]))] for _ in range(len(A))]
++        for i in range(len(A)):
++            for j in range(len(B[0])):
++                for k in range(len(B)):
++                    result[i][j] += A[i][k] * B[k][j]
++        return result
+ 
+ # Continuous optimization v8
+ 
+@@ -61,3 +79,5 @@
+ # Continuous optimization v12
+ 
+ # Continuous optimization v13
++
++# Continuous optimization v14

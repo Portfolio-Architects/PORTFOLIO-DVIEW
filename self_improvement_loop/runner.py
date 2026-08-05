@@ -35,8 +35,15 @@ class TestRunner:
 
         try:
             # Execute the test script
+            env = os.environ.copy()
+            test_dir = str(Path(self.test_file).parent.resolve())
+            env["PYTHONPATH"] = test_dir
+            env["PYTHONDONTWRITEBYTECODE"] = "1"
+
             result = subprocess.run(
                 [python_executable, self.test_file],
+                cwd=test_dir,
+                env=env,
                 capture_output=True,
                 text=True,
                 encoding="utf-8",
