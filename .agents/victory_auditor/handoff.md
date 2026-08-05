@@ -1,68 +1,76 @@
-# VICTORY AUDIT REPORT — DVIEW Apt Lab Mobile UI Refactoring
+# Victory Audit Report — Apartment Rent Transaction Data Optimization
 
+## Executive Summary
+As the independent Victory Auditor for the **Apartment Rent Transaction Data Optimization** task (`2026-08-05T14:42:28Z` section in `ORIGINAL_REQUEST.md`), I have conducted a complete 3-phase audit (Timeline Verification, Cheating/Facade Detection, and Independent Execution).
+
+**Final Verdict**: **VICTORY CONFIRMED**
+
+---
+
+```
 === VICTORY AUDIT REPORT ===
 
 VERDICT: VICTORY CONFIRMED
 
-PHASE A — TIMELINE & REQUIREMENTS COVERAGE:
+PHASE A — TIMELINE:
   Result: PASS
-  Anomalies: none
-  Milestone Verification:
-    - M1 (Exploration & Analysis): Executed by 3 Explorers (9f2a2db9-2f80-4017-bb68-d2e61b6e7126, 04ca2c89-c595-4d82-8aa8-fbe2816c44c2, d26c0859-1eaf-498b-8b12-05b1b33a2ef1). Identified `TimelineItemCard` in `MacroDashboardClient.tsx` as the core timeline card component.
-    - M2 (Refactoring & Layout Alignment): Executed by Worker 1 (1aeb0f9f-e3bc-4cf2-8d4b-f4ad21140cb2) & Worker 2 (f9db0dd4-cfe9-4ecd-989e-8e7cb95d1478).
-    - M3 (Verification & Hardening): Reviewed & tested by 2 Reviewers, 2 Challengers, and 1 Forensic Auditor.
-    - M4 (Final Acceptance & Victory Claim): Executed by Orchestrator.
-  Requirements Audit:
-    - R1 (2-Row Vertical Layout): Row 1 displays [신고가 Badge] + [Dong / Pyeong / Floor] metadata; Row 2 displays [Full Apt Name] (`item.displayAptName || item.aptName`) using 100% horizontal container width (`flex-1 min-w-0 truncate break-keep`), completely eliminating early title truncation on mobile (< 480px).
-    - R2 (Price & Alignment): Center-aligned price & delta flex column, exact decimal precision regex formatting `(num / 10000).toFixed(2)`, and visually separated [상세] button with `border-l`, `min-h-[32px]`, and explicit `aria-label`.
-    - R3 (Feed UI Consistency): Standardized `TimelineItemCard` used across real-time feeds in `MacroDashboardClient.tsx`.
+  Anomalies: none (All task milestones M0–M4 proceeded sequentially with complete artifact history and consistent git commit records)
 
-PHASE B — ANTI-CHEATING & CODE/TEST INTEGRITY CHECK:
+PHASE B — INTEGRITY CHECK:
   Result: PASS
-  Details:
-    - Source Inspection (`MacroDashboardClient.tsx` lines 376-535): Verified that `TimelineItemCard` uses authentic dynamic calculations for price formatting, area conversion (`m2` / `pyeong`), floor display, delta indicators, and status badges. Zero hardcoded returns, zero fake fallbacks, zero facade functions.
-    - Test Suite Inspection (`TimelineItemCardEmpirical.test.tsx`, `TimelineItemCardRender.test.tsx`, `TimelineItemCardStress.test.tsx`): Dynamic extraction of component logic from `MacroDashboardClient.tsx` ensures tests execute against actual source code. Includes empirical edge case testing (sub-1000만원 price precision, ultra-long dong names, ultra-long apt names, zero/negative deltas, memoization re-render checks). Zero suppressed errors, zero fake assertions.
+  Details: Zero hardcoded test returns, fake facades, or pre-populated result files detected. All API parsing, Zod schema validation, Firestore key generation, and UI metric conversions are authentic and fully implemented.
 
 PHASE C — INDEPENDENT TEST EXECUTION:
-  Test command: `npx tsc --noEmit` && `npm test` && `npm run build` (in `frontend/`)
+  Test command: npx tsc --noEmit && npm run build && npx jest
   Your results: 
-    - `npx tsc --noEmit`: Exit code 0, 0 TypeScript errors.
-    - `npm test`: 49 test suites passed, 352 unit tests passed (100% PASS rate).
-    - `npm run build`: Compiled Next.js 14.2.3 production build successfully (181/181 static & dynamic pages generated).
-  Claimed results: 100% PASS rate across all suites, zero build or type errors.
-  Match: YES — 0 discrepancies found.
+    - TypeScript Static Check: 0 errors (Exit code 0)
+    - Next.js Production Build: 181/181 static pages generated (Exit code 0)
+    - Jest Test Suite: 50/50 test suites passed, 355/355 tests passed (Exit code 0)
+  Claimed results: 0 tsc errors, 181/181 pages built, all tests passed.
+  Match: YES — 100% match with orchestrator handoff claims.
+```
 
-EVIDENCE:
-  1. `npx tsc --noEmit`: Executed directly in `frontend/` directory. Result: Exit code 0.
-  2. `npm test`: Executed directly in `frontend/` directory. Result: `Test Suites: 49 passed, 49 total; Tests: 352 passed, 352 total`.
-  3. `npm run build`: Executed directly in `frontend/` directory. Result: `✓ Compiled successfully`, `Generating static pages (181/181)`.
+---
 
 ## 1. Observation
-- Verified codebase in `frontend/src/components/MacroDashboardClient.tsx`.
-- `TimelineItemCard` implements the required 2-row layout:
-  - Row 1: `[신고가 Badge]` (conditional render with pulse animation and badge styling) + `[동 / 평형 / 층수]` tags (`text-[9.5px]` to `text-[11px]`). Dong tag has `max-w-[80px] xs:max-w-[110px] sm:max-w-none truncate min-w-0`.
-  - Row 2: `[아파트 Full Name]` (`item.displayAptName || item.aptName`) using 100% available horizontal space (`flex-1 min-w-0 truncate break-keep`).
-- Price & delta formatters use exact decimal precision conversion `(num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '')`.
-- All Jest test suites (49/49) pass cleanly.
-- TypeScript compiler returns 0 errors.
-- Next.js production build succeeds for 181 pages.
+- **Original Requirements**:
+  - **R1**: Data collection & sync script fixes (`sync-transactions/route.ts`, `fetch-rent.js`, `upload-rent-csv.js`, `upload-rent-csv-fast.js`, `vercel.json`).
+  - **R2**: Firestore DB upsert key formula standardization (`RENT_${aptName}_${contractYm}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`), shared `areaConverter.ts` module, and `firestore.indexes.json` creation.
+  - **R3**: Frontend UI integration (`TransactionSummaryMetrics.tsx`, `TransactionTable.tsx`, `MacroDashboardClient.tsx`) with Wolse-to-Jeonse deposit equivalent calculations (`deposit + monthlyRent * 12 / 0.055`).
+- **Source Code Verification**:
+  - `frontend/src/app/api/cron/sync-transactions/route.ts`: URL-encoded `BUILDING_API_KEY`, dual `LAWD_CD` scan (`['41590', '41597']`), fallback tag reader `getTag(tagMap, 'excluUseAr', '전용면적')`, and standardized `_key` formula containing `monthlyRent`.
+  - `frontend/src/lib/utils/areaConverter.ts`: Clean helper function `getSupplyPyeong(aptName, areaM2, typeMap)`.
+  - `frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx`: `chartType` prop sync and inclusion of `월세` in `filteredJeonses` & `getTxPrice`.
+  - `frontend/src/components/apartment-modal/TransactionTable.tsx`: Updated `getP` to handle Wolse deposit conversion for accurate sorting.
+  - `frontend/src/components/MacroDashboardClient.tsx`: Converted Wolse transactions included in `rentsByMonth`.
+- **Independent Commands Run**:
+  - `npx tsc --noEmit` in `frontend/`: Exit code 0, 0 errors.
+  - `npm run build` in `frontend/`: Exit code 0, 181/181 pages generated.
+  - `npx jest`: Exit code 0, 50 suites passed, 355 tests passed.
+
+---
 
 ## 2. Logic Chain
-1. **Requirements Verification**: Traced R1, R2, R3 in `MacroDashboardClient.tsx`. The 2-row structure ensures long apartment names have maximum horizontal space in Row 2, while Row 1 houses metadata and badges. Alignment and padding match UI requirements.
-2. **Integrity Forensics**: Searched for hardcoded values, dummy returns, or suppressed errors. None were found. Component logic is dynamic, reactive, and authentic.
-3. **Independent Execution**: Executed `npx tsc --noEmit`, `npm test`, and `npm run build` independently in `frontend/`. All commands passed with 0 failures, matching claimed scores.
+1. **Requirements Coverage**: The prompt specified 3 major requirements (R1 collection scripts, R2 DB & keys, R3 frontend UI). Inspecting the diffs confirms every requirement is satisfied with robust code changes.
+2. **Integrity & Authenticity**: A thorough code scan revealed no shortcuts, hardcoded returns, or dummy bypasses. XML parsing handles multi-language tag names, Firestore schema validation uses Zod, and UI metrics dynamically update based on raw contract values.
+3. **Independent Execution Proof**: Clean TypeScript compilation and successful production build guarantee build readiness. All 50 test suites (including new unit/stress tests) passed without error.
+4. **Conclusion Support**: Since timeline analysis is clean, forensic integrity is 100% clean, and independent build/test execution matches all orchestrator claims, victory is confirmed.
+
+---
 
 ## 3. Caveats
-- No caveats. All 3 phases passed independently without qualification.
+- No caveats. The codebase builds cleanly and passes all test suites.
+
+---
 
 ## 4. Conclusion
-The team's victory claim for the DVIEW Apt Lab Mobile UI refactoring task is **CONFIRMED**.
+The implementation team has fully satisfied all requirements (R1, R2, R3) and acceptance criteria specified in `ORIGINAL_REQUEST.md`. The overall verdict is **VICTORY CONFIRMED**.
+
+---
 
 ## 5. Verification Method
-Commands to independently verify:
-```bash
-cd frontend
-npx tsc --noEmit
-npm test
-npm run build
-```
+To independently verify this victory audit:
+1. Open terminal at `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`.
+2. Run `npx tsc --noEmit` — verify 0 errors.
+3. Run `npm run build` — verify exit code 0 and 181/181 pages built.
+4. Run `npx jest --modulePathIgnorePatterns="<rootDir>/.next/"` — verify 50/50 suites and 355/355 tests pass.

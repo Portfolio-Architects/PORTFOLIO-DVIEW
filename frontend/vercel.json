@@ -1,3 +1,9 @@
 {
-  "buildCommand": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build"
+  "buildCommand": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build",
+  "crons": [
+    {
+      "path": "/api/cron/sync-transactions",
+      "schedule": "0 18 * * *"
+    }
+  ]
 }

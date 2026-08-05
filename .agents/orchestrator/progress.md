@@ -1,37 +1,27 @@
-# Progress Tracker — DVIEW Mobile Apt Card UI Refactoring
+# Progress Tracker
 
 ## Current Status
-Last visited: 2026-08-01T16:33:30+09:00
+Last visited: 2026-08-06T00:22:00+09:00
 
 ## Iteration Status
-Current iteration: 1 / 32
+Current iteration: 3 / 32
 
-## Milestone Progress
-- [x] **Milestone 1: Codebase Exploration & Analysis**
-  - [x] Spawn Explorers to identify components rendering apt timeline cards
-  - [x] Aggregate exploration findings into report (Target: `TimelineItemCard` in `MacroDashboardClient.tsx`)
-- [x] **Milestone 2: Card Layout Refactoring & Feed UI Alignment**
-  - [x] Dispatch Worker to implement 2-row vertical layout in card components
-  - [x] Refactor Row 1: [Badge] + [Dong / Pyeong / Floor]
-  - [x] Refactor Row 2: [Full Apt Name]
-  - [x] Align price & detail button layout
-  - [x] Ensure consistency across `MacroDashboardClient.tsx`, `RealtimeClient.tsx`, etc.
-- [x] **Milestone 3: Verification & Auditing**
-  - [x] Dispatch Reviewers for code quality & layout audit (Reviewer 1 & 2: APPROVED)
-  - [x] Dispatch Challengers for viewport stress testing (Challenger 1 & 2: PASSED & hardened)
-  - [x] Dispatch Forensic Auditor for integrity check (Auditor 1: CLEAN)
-  - [x] TypeScript check (`npx tsc --noEmit`) verified (0 errors)
-  - [x] Next.js production build (`npm run build`) verified (100% pass)
-- [x] **Milestone 4: Completion & Reporting**
-  - [x] Report final completion to Sentinel
+## Checklist
+- [x] Task Assessment & Plan Creation
+- [x] Phase 0: Parallel Codebase Survey (3 Explorers)
+  - [x] Explorer 1: R1 Rent Data Collection & Scripts Investigation (Conv: `3ec8b617-06c5-4747-9546-d2c529567da1`)
+  - [x] Explorer 2: R2 Firestore DB & Data Integrity Investigation (Conv: `fddae396-5a4b-493e-a96b-a056481db968`)
+  - [x] Explorer 3: R3 Frontend UI & Metric Calculation Investigation (Conv: `d877d738-0b6c-445b-a99d-1e5f3fc34a97`)
+- [x] Phase 1: Milestone 1 - Rent Collection & API Script Fixes (R1) (Conv: `21cbef53-9b52-4ea7-8256-107e7d84d1ed`)
+- [x] Phase 2: Milestone 2 - Firestore DB Upsert & Key Generation (R2) (Conv: `0ee8523f-e5e4-4edd-8802-18b5147087de`)
+- [x] Phase 3: Milestone 3 - Frontend Integration & UI Verification (R3) (Conv: `2ada89b4-83be-43ee-8a52-f1e419817f0a`)
+- [x] Phase 4: Milestone 4 - End-to-End Verification & Forensic Audit
+  - [x] Reviewer 1: Verdict APPROVE
+  - [x] Reviewer 2: Verdict APPROVE
+  - [x] Challenger 1: Verdict APPROVE
+  - [x] Challenger 2: Verdict APPROVE
+  - [x] Forensic Auditor: Verdict CLEAN
 
-## Log
-- 2026-08-01T16:25:45+09:00: Orchestrator initialized. BRIEFING.md, plan.md created.
-- 2026-08-01T16:26:05+09:00: Dispatched 3 Explorers (Conv IDs: 9f2a2db9-2f80-4017-bb68-d2e61b6e7126, 04ca2c89-c595-4d82-8aa8-fbe2816c44c2, d26c0859-1eaf-498b-8b12-05b1b33a2ef1).
-- 2026-08-01T16:26:52+09:00: Explorer 2 delivered complete 2-row layout JSX specification. Milestone 1 complete.
-- 2026-08-01T16:27:15+09:00: Dispatched Worker 1 (`1aeb0f9f-e3bc-4cf2-8d4b-f4ad21140cb2`).
-- 2026-08-01T16:28:54+09:00: Worker 1 completed refactoring. `npm test`, `npx tsc --noEmit`, and `npm run build` all PASS. Milestone 2 complete.
-- 2026-08-01T16:29:07+09:00: Dispatched Milestone 3 verification team (Reviewers 1 & 2, Challengers 1 & 2, Forensic Auditor).
-- 2026-08-01T16:31:39+09:00: Dispatched Worker 2 (`f9db0dd4-cfe9-4ecd-989e-8e7cb95d1478`) for precision and dong truncation fixes.
-- 2026-08-01T16:33:16+09:00: Worker 2 completed precision fixes.
-- 2026-08-01T16:33:18+09:00: Forensic Auditor issued CLEAN verdict. All tests and builds pass. Milestone 3 & 4 complete.
+## Retrospective & Notes
+- Task fully completed across R1, R2, R3.
+- All 5 gate checks pass. `npx tsc --noEmit` 0 errors, `npm run build` exit code 0.

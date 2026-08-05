@@ -47,7 +47,7 @@ try {
   logger.warn("proxy.init", "Failed to initialize Upstash Ratelimit", {}, error);
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // 0.5. 메인페이지 tab=imjang 리다이렉트 처리 (Edge 단에서 고속 리다이렉트)

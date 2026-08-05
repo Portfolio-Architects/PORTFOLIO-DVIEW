@@ -13,6 +13,7 @@ const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
 const { z } = require('zod');
+const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
 
 // Zod schema for validation of Rent Transaction Record before DB upload
 const RentTransactionSchema = z.object({
@@ -37,7 +38,7 @@ const RentTransactionSchema = z.object({
 });
 
 const API_KEY = process.env.BUILDING_API_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
-const LAWD_CD = '41597'; // 동탄구
+const LAWD_CDS = ['41590', '41597']; // 화성시 및 동탄구 모두 스캔
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
 
 const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
@@ -84,7 +85,7 @@ async function main() {
   const db = admin.firestore();
   const collRef = db.collection('transactions');
 
-  // 1. 최신 전월세 데이터 연월 대신 고정 6개월치 스캔 (인덱스 에러 회피)
+  // 1. 최신 전월세 데이터 연월 6개월치 스캔
   const now = new Date();
   const monthsToSync = new Set();
   
@@ -97,117 +98,209 @@ async function main() {
 
   // 3. API 호출
   let totalNew = 0;
-  const syncLog = [];
 
   for (const ym of Array.from(monthsToSync).sort()) {
-    let page = 1;
-    let totalCount = 0;
+    console.log(`\n📅 ${ym} 전월세 처리 중...`);
     const monthRecords = [];
 
-    console.log(`\n📅 ${ym} 전월세 처리 중...`);
+    for (const currentLawd of LAWD_CDS) {
+      let page = 1;
+      let totalCount = 0;
 
-    do {
-      const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${LAWD_CD}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
+      do {
+        const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
 
-      let text = '';
-      let success = false;
-      for (let attempt = 1; attempt <= 3; attempt++) {
-        let timeoutId;
-        try {
-          const controller = new AbortController();
-          timeoutId = setTimeout(() => controller.abort(), 15000);
-          const res = await fetch(url, { signal: controller.signal });
-          if (!res.ok) {
-            console.error(`   ❌ HTTP ${res.status}`);
+        let text = '';
+        let success = false;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+          let timeoutId;
+          try {
+            const controller = new AbortController();
+            timeoutId = setTimeout(() => controller.abort(), 15000);
+            const res = await fetch(url, { signal: controller.signal });
+            if (!res.ok) {
+              console.error(`   ❌ HTTP ${res.status}`);
+              clearTimeout(timeoutId);
+              break;
+            }
+            text = await res.text();
             clearTimeout(timeoutId);
+            success = true;
+            break;
+          } catch (e) {
+            if (timeoutId) clearTimeout(timeoutId);
+            console.error(`   ⚠️ API 호출 지연 (시도 ${attempt}/3)... ${e.message}`);
+            await new Promise(r => setTimeout(r, 2000));
+          }
+        }
+
+        if (!success) {
+          console.error(`   ❌ API 응답 실패로 (${ym}, ${currentLawd}) 건너뜀`);
+          break;
+        }
+
+        const isXml = text.trim().startsWith('<');
+
+        if (isXml) {
+          // XML response handling
+          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
+          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
+          const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+          const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+
+          if (resultCode && resultCode !== '00' && resultCode !== '000') {
+            console.error(`   ❌ Gov API Rent Error [${resultCode}]: ${resultMsg}`);
             break;
           }
-          text = await res.text();
-          if (text.trim().startsWith('<')) {
-            console.error(`   ⚠️ API 응답이 XML 형식입니다 (예상 JSON): ${text.slice(0, 50)}...`);
-            text = { response: { header: { resultCode: '99', resultMsg: 'XML 응답이 반환됨' } } };
-          } else {
-            text = JSON.parse(text);
+
+          const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+          totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+          if (totalCount === 0) break;
+
+          const itemsXml = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+          for (const itemXml of itemsXml) {
+            const tagMap = new Map();
+            const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
+            let tagMatch;
+            while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+              tagMap.set(tagMatch[1], tagMatch[2].trim());
+            }
+            const getTag = (...keys) => {
+              for (const k of keys) {
+                const val = tagMap.get(k);
+                if (val !== undefined && val !== null && val !== '') return val;
+              }
+              return '';
+            };
+
+            const dong = getTag('umdNm', '법정동', 'dong');
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
+
+            const aptName = getTag('aptNm', '아파트');
+            const depositStr = getTag('deposit', '보증금액', '보증금').replace(/,/g, '').trim();
+            const monthlyRentStr = getTag('monthlyRent', '월세금액', '월세') ? getTag('monthlyRent', '월세금액', '월세').replace(/,/g, '').trim() : '0';
+
+            const deposit = parseInt(depositStr, 10) || 0;
+            const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
+            const dealType = monthlyRent > 0 ? '월세' : '전세';
+
+            const area = parseFloat(getTag('excluUseAr', '전용면적')) || 0;
+            const contractDay = getTag('dealDay', '일').padStart(2, '0');
+            const floor = parseInt(getTag('floor', '층'), 10) || 0;
+
+            const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const record = {
+              sigungu: `경기도 화성시 동탄구 ${dong}`,
+              dong,
+              aptName,
+              area,
+              areaPyeong: getSupplyPyeong(aptName, area),
+              contractYm: ym,
+              contractDay,
+              contractDate: `${ym}${contractDay}`,
+              price: deposit,
+              deposit,
+              monthlyRent,
+              floor,
+              buildYear: parseInt(getTag('buildYear', '건축년도'), 10) || 0,
+              dealType,
+              source: 'govt_api_rent',
+              reqGb: getTag('contractType', '계약구분') || '',
+              rnuYn: getTag('useRRRight', '갱신요구권사용여부') || '',
+              _key,
+            };
+
+            const parsed = RentTransactionSchema.safeParse(record);
+            if (parsed.success) {
+              monthRecords.push(parsed.data);
+            } else {
+              console.warn(`⚠️ [Fetch Rent XML] Invalid rent transaction record at apt ${aptName}:`, parsed.error.format());
+            }
           }
-          clearTimeout(timeoutId);
-          success = true;
-          break;
-        } catch (e) {
-          if (timeoutId) clearTimeout(timeoutId);
-          console.error(`   ⚠️ API 호출 지연 (시도 ${attempt}/3)... ${e.message}`);
-          await new Promise(r => setTimeout(r, 2000));
-        }
-      }
-
-      if (!success) {
-        console.error(`   ❌ API 응답 실패로 해당 연월(${ym}) 건너뜀`);
-        break;
-      }
-
-      // 에러 응답 체크 (JSON 지원)
-      if (text.response?.header?.resultCode !== '000' && text.response?.header?.resultCode !== '00') {
-        const errMsg = text.response?.header?.resultMsg || JSON.stringify(text);
-        console.error(`   ❌ API 에러: ${errMsg} (아직 인증키가 동기화되지 않았을 수 있습니다.)`);
-        break;
-      }
-
-      totalCount = text.response?.body?.totalCount || 0;
-      if (totalCount === 0) break;
-
-      let items = text.response?.body?.items?.item || [];
-      if (!Array.isArray(items)) items = [items];
-
-      for (const item of items) {
-        const dong = item.umdNm || '';
-        
-        // 동탄 지역 필터링
-        if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
-
-        const aptName = item.aptNm || '';
-        const depositStr = String(item.deposit || '0').replace(/,/g, '').trim();
-        const monthlyRentStr = String(item.monthlyRent || '0').replace(/,/g, '').trim();
-        
-        const deposit = parseInt(depositStr, 10) || 0;
-        const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
-        const dealType = monthlyRent > 0 ? '월세' : '전세';
-
-        const area = parseFloat(item.excluUseAr) || 0;
-        const contractDay = String(item.dealDay || '').padStart(2, '0');
-        const floor = parseInt(item.floor || '0', 10) || 0;
-
-        const record = {
-          sigungu: `경기도 화성시 동탄구 ${dong}`,
-          dong,
-          aptName,
-          area,
-          areaPyeong: Math.round(area / 3.3058 * 10) / 10,
-          contractYm: ym,
-          contractDay,
-          contractDate: `${ym}${contractDay}`,
-          price: deposit, // 전세 보증금을 기준 가격으로 저장 (UI 매매 호환성)
-          deposit: deposit,
-          monthlyRent: monthlyRent,
-          floor,
-          buildYear: parseInt(item.buildYear, 10) || 0,
-          dealType: dealType,
-          source: 'govt_api_rent',
-          reqGb: item.contractType || '',
-          rnuYn: item.useRRRight || '',
-          _key: `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${floor}`,
-        };
-
-        const parsed = RentTransactionSchema.safeParse(record);
-        if (parsed.success) {
-          monthRecords.push(parsed.data);
+          if (itemsXml.length === 0) break;
         } else {
-          console.warn(`⚠️ [Fetch Rent] Invalid rent transaction record at apt ${aptName}:`, parsed.error.format());
-          console.log(`Record Details: ${JSON.stringify(record)}`);
-        }
-      }
+          // JSON response handling
+          let jsonObj;
+          try {
+            jsonObj = JSON.parse(text);
+          } catch (e) {
+            console.error(`   ❌ JSON 파싱 실패: ${e.message}`);
+            break;
+          }
 
-      if (items.length === 0) break; // 무한 루프 방지
-      page++;
-    } while (page * 1000 <= totalCount + 1000); // numOfRows 기준 안전한 루프 탈출
+          const resultCode = jsonObj.response?.header?.resultCode;
+          if (resultCode !== '000' && resultCode !== '00') {
+            const errMsg = jsonObj.response?.header?.resultMsg || JSON.stringify(jsonObj);
+            console.error(`   ❌ API 에러: ${errMsg}`);
+            break;
+          }
+
+          totalCount = jsonObj.response?.body?.totalCount || 0;
+          if (totalCount === 0) break;
+
+          let items = jsonObj.response?.body?.items?.item || [];
+          if (!Array.isArray(items)) items = [items];
+
+          const getJsonVal = (item, ...keys) => {
+            for (const k of keys) {
+              if (item[k] !== undefined && item[k] !== null && item[k] !== '') {
+                return String(item[k]).trim();
+              }
+            }
+            return '';
+          };
+
+          for (const item of items) {
+            const dong = getJsonVal(item, 'umdNm', '법정동', 'dong');
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
+
+            const aptName = getJsonVal(item, 'aptNm', '아파트');
+            const depositStr = getJsonVal(item, 'deposit', '보증금액', '보증금').replace(/,/g, '').trim();
+            const monthlyRentStr = getJsonVal(item, 'monthlyRent', '월세금액', '월세').replace(/,/g, '').trim();
+
+            const deposit = parseInt(depositStr, 10) || 0;
+            const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
+            const dealType = monthlyRent > 0 ? '월세' : '전세';
+
+            const area = parseFloat(getJsonVal(item, 'excluUseAr', '전용면적')) || 0;
+            const contractDay = getJsonVal(item, 'dealDay', '일').padStart(2, '0');
+            const floor = parseInt(getJsonVal(item, 'floor', '층'), 10) || 0;
+
+            const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const record = {
+              sigungu: `경기도 화성시 동탄구 ${dong}`,
+              dong,
+              aptName,
+              area,
+              areaPyeong: getSupplyPyeong(aptName, area),
+              contractYm: ym,
+              contractDay,
+              contractDate: `${ym}${contractDay}`,
+              price: deposit,
+              deposit,
+              monthlyRent,
+              floor,
+              buildYear: parseInt(getJsonVal(item, 'buildYear', '건축년도'), 10) || 0,
+              dealType,
+              source: 'govt_api_rent',
+              reqGb: getJsonVal(item, 'contractType', '계약구분') || '',
+              rnuYn: getJsonVal(item, 'useRRRight', '갱신요구권사용여부') || '',
+              _key,
+            };
+
+            const parsed = RentTransactionSchema.safeParse(record);
+            if (parsed.success) {
+              monthRecords.push(parsed.data);
+            } else {
+              console.warn(`⚠️ [Fetch Rent JSON] Invalid rent transaction record at apt ${aptName}:`, parsed.error.format());
+            }
+          }
+          if (items.length === 0) break;
+        }
+
+        page++;
+      } while (page * 1000 <= totalCount + 1000);
+    }
 
     // 4. Firestore에 배치 쓰기
     if (monthRecords.length > 0) {

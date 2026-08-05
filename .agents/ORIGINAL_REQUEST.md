@@ -62,3 +62,32 @@ Integrity mode: development
 ### 결과 보고서 및 기록 (Documentation & Audit Log)
 - [ ] 실행 과정 전체의 이력과 세대별(Generation/Iteration) 성과 변동 추이가 markdown 리포트로 저장될 것.
 
+## 2026-08-05T14:42:28Z
+
+동탄 등 대상 지역 아파트 전월세 거래 내역이 최신 데이터로 업데이트되지 않는 원인(국토부 공공데이터 API, 파이어스토어 동기화 Cron/스크립트, 법정동/타입 매핑 등)을 정밀 분석하고, 실거래가 수집부터 프론트엔드 표출까지의 전 과정을 최적화하는 프로젝트입니다.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+## Requirements
+
+### R1. 전월세 데이터 수집 및 Cron/스크립트 동기화 로직 최적화
+- `sync-transactions/route.ts`, `fetch-rent.js`, `upload-rent-csv.js` 등 전월세 데이터 수집 스크립트 및 API Route를 점검하여 최근 거래 내역이 최신 월까지 누락 없이 정상 갱신되도록 수집 로직을 수정/개선합니다.
+- 법정동 코드(`LAWD_CD` 41590/41597 등), 거래유형('전세'/'월세'), 보증금 및 월세 파싱, 날짜 파싱 오류가 발생하는지 검토하고 조치합니다.
+
+### R2. 파이어스토어 DB 업서트 및 데이터 정합성 보장
+- Firestore `transactions` 컬렉션 생성/업데이트 시 고유 키(`_key`) 생성 방식 및 복합 인덱스, 쿼리 필터링 조건을 정비하여 중복 입력 및 누락을 방지합니다.
+- 평수/타입 매핑(`TYPE_MAP` 또는 `areaPyeong` 계산식)이 정확히 반영되는지 검증합니다.
+
+### R3. 프론트엔드 연동 및 UI 표출/계산 검증
+- 전월세 실거래 데이터 변경사항이 프론트엔드 컴포넌트(`TransactionTable`, `TransactionChartSection`, `TransactionSummaryMetrics` 등)에 실시간/정상 반영되는지 확인하고 메트릭 계산식을 최적화합니다.
+
+## Acceptance Criteria
+
+### 1. 동기화 스크립트 & API 정상 수집 검증
+- [ ] `sync-transactions` API Route 및 `fetch-rent.js` 실행 시 최신 연월의 전월세 데이터가 국토부 API로부터 오류 없이 파싱되는지 검증
+- [ ] 수집된 전월세 거래 데이터가 Firestore `transactions` 컬렉션에 유효한 스키마로 저장되는지 확인
+
+### 2. UI 및 메트릭 데이터 표출 검증
+- [ ] 단지 모달 및 상세 분석 화면에서 최신 전월세 거래 내역 및 실거래가 차트/요약 수치가 정확히 표시되는지 검증
+- [ ] 자동 및 수동 동기화 후 데이터 갱신 지연이나 렌더링 에러가 발생하지 않는지 확인

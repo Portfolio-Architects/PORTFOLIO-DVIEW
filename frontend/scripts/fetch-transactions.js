@@ -18,6 +18,7 @@ const path = require('path');
 const { HttpsProxyAgent } = require('https-proxy-agent');
 const axios = require('axios');
 const { z } = require('zod');
+const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
 
 // Zod schema for validation of Apartment Trade Transaction Record before DB upload
 const AptTransactionRecordSchema = z.object({
@@ -229,7 +230,7 @@ async function main() {
               dong,
               aptName,
               area,
-              areaPyeong: Math.round(area / 3.3058 * 10) / 10,
+              areaPyeong: getSupplyPyeong(aptName, area),
               contractYm: ym,
               contractDay,
               contractDate: `${ym}${contractDay}`,

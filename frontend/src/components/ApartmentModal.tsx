@@ -2130,6 +2130,7 @@ const FieldReportModal = React.memo(function FieldReportModal({
           apartmentName={report.apartmentName}
           typeMap={typeMap}
           filterOutliers={filterOutliers}
+          chartType={chartType}
         />
       )}
 

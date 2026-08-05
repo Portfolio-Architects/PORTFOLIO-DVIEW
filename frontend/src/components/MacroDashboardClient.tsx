@@ -1187,13 +1187,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       const mm = tx.contractYm.substring(4, 6);
       const key = `${yy}.${mm}`;
 
-      if (tx.dealType === '전세') {
-        const depositVal = (tx.deposit || tx.price || 0) / 10000;
+      if (tx.dealType === '전세' || tx.dealType === '월세') {
+        const depositVal = tx.dealType === '월세'
+          ? ((tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)) / 10000
+          : (tx.deposit || tx.price || 0) / 10000;
         if (depositVal > 0) {
           if (!rentsByMonth[key]) rentsByMonth[key] = [];
           rentsByMonth[key].push(depositVal);
         }
-      } else if (tx.dealType !== '월세') {
+      } else {
         const priceVal = (tx.price || 0) / 10000;
         if (priceVal > 0) {
           if (!salesByMonth[key]) salesByMonth[key] = [];

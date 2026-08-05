@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { useSettingsValues } from '@/lib/contexts/SettingsContext';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
@@ -31,18 +31,24 @@ interface TransactionSummaryMetricsProps {
   apartmentName: string;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   filterOutliers?: boolean;
+  chartType?: 'sale' | 'jeonse';
 }
 
 export const TransactionSummaryMetrics = React.memo(function TransactionSummaryMetrics({ 
   transactions, 
   apartmentName, 
   typeMap,
-  filterOutliers = false
+  filterOutliers = false,
+  chartType
 }: TransactionSummaryMetricsProps) {
   const { areaUnit } = useSettingsValues();
   const [priceTypeFilter, setPriceTypeFilter] = useState<string>('ALL');
   const [showPriceHelp, setShowPriceHelp] = useState(false);
   const [periodDealType, setPeriodDealType] = useState<'sale' | 'jeonse'>('sale');
+
+  useEffect(() => {
+    if (chartType) setPeriodDealType(chartType);
+  }, [chartType]);
 
   const metrics = useMemo(() => {
     // 헬퍼 함수 정의 최상단 배치
@@ -50,7 +56,10 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
       if (tx.dealType === '월세') {
         return (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
       }
-      return tx.price;
+      if (tx.dealType === '전세') {
+        return tx.deposit || tx.price || 0;
+      }
+      return tx.price || tx.deposit || 0;
     };
 
     const getTxSupplyPyeong = (tx: TransactionRecord) => {
@@ -186,8 +195,11 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
     }).filter(p => p.count > 0 || p.avgPrice > 0);
 
     // 3) 실구매 필요자금 및 전세가율 계산 (최근 6개월 평균 기준, 거래 부족시 전체 기준)
-    const filteredSales = baseTx.filter(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
-    const filteredJeonses = baseTx.filter(tx => tx.dealType === '전세');
+    const targetTx = priceTypeFilter === 'ALL'
+      ? transactions
+      : transactions.filter(tx => String(tx.area) === priceTypeFilter);
+    const filteredSales = targetTx.filter(tx => tx.dealType !== '전세' && tx.dealType !== '월세');
+    const filteredJeonses = targetTx.filter(tx => tx.dealType === '전세' || tx.dealType === '월세');
 
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 6, now.getDate());
     const sixMonthsAgoNum = sixMonthsAgo.getFullYear() * 10000 + (sixMonthsAgo.getMonth() + 1) * 100 + sixMonthsAgo.getDate();
@@ -206,7 +218,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
 
     const getAvgForGap = (txs: TransactionRecord[], recentTxs: TransactionRecord[]) => {
       const targetList = recentTxs.length > 0 ? recentTxs : txs;
-      return targetList.length > 0 ? targetList.reduce((sum, tx) => sum + tx.price, 0) / targetList.length : 0;
+      return targetList.length > 0 ? targetList.reduce((sum, tx) => sum + getTxPrice(tx), 0) / targetList.length : 0;
     };
 
     const avgSalePrice = getAvgForGap(filteredSales, recentSales);

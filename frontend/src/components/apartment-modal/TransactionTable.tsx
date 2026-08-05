@@ -84,7 +84,15 @@ export const TransactionTable = React.memo(function TransactionTable({
 
   const sortedFilteredTransactions = useMemo(() => {
     return [...filteredTransactions].sort((a, b) => {
-      const getP = (t: TransactionRecord) => (t.dealType === '전세' || t.dealType === '월세') ? (t.deposit || 0) : t.price;
+      const getP = (t: TransactionRecord) => {
+        if (t.dealType === '월세') {
+          return (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055);
+        }
+        if (t.dealType === '전세') {
+          return t.deposit || t.price || 0;
+        }
+        return t.price || t.deposit || 0;
+      };
       if (txSort === 'date_desc') {
         const da = String(a.contractYm || '') + String(a.contractDay || '01').padStart(2, '0');
         const db = String(b.contractYm || '') + String(b.contractDay || '01').padStart(2, '0');

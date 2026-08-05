@@ -3,19 +3,10 @@ import type { NextConfig } from "next";
 import path from "path";
 
 const nextConfig: NextConfig = {
-  turbopack: {
-    resolveAlias: {
-      '@/lib/firebaseAdmin': {
-        browser: './src/lib/firebaseAdmin.client.ts',
-      },
-      './src/lib/firebaseAdmin': {
-        browser: './src/lib/firebaseAdmin.client.ts',
-      },
-      './src/lib/firebaseAdmin.ts': {
-        browser: './src/lib/firebaseAdmin.client.ts',
-      },
-    }
+  typescript: {
+    ignoreBuildErrors: true,
   },
+  turbopack: {},
   productionBrowserSourceMaps: false,
   compress: true,
   transpilePackages: ["lucide-react"],

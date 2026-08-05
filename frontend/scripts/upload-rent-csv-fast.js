@@ -4,6 +4,7 @@ const path = require('path');
 const iconv = require('iconv-lite');
 
 const { z } = require('zod');
+const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
 
 // Zod schema to validate uploaded rent CSV records
 const RentCsvRecordSchema = z.object({
@@ -22,7 +23,8 @@ const RentCsvRecordSchema = z.object({
   contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.'),
   source: z.literal('csv_rent_import'),
   reqGb: z.string().optional(),
-  rnuYn: z.string().optional()
+  rnuYn: z.string().optional(),
+  _key: z.string().optional()
 });
 
 function getAdminCredentials() {
@@ -178,7 +180,9 @@ async function main() {
     
     if (!aptName || !contractYm) continue;
 
-    const areaPyeong = Math.round(area / 3.3058 * 10) / 10;
+    const areaPyeong = getSupplyPyeong(aptName, area);
+    const contractDayPadded = contractDay.padStart(2, '0');
+    const _key = `RENT_${aptName}_${contractYm}_${contractDayPadded}_${area}_${deposit}_${monthlyRent}_${floor}`;
 
     records.push({
       dong,
@@ -186,7 +190,7 @@ async function main() {
       area,
       areaPyeong,
       contractYm,
-      contractDay,
+      contractDay: contractDayPadded,
       price: deposit,
       deposit: deposit,
       monthlyRent: monthlyRent,
@@ -195,8 +199,9 @@ async function main() {
       floor,
       buildYear,
       dealType,
-      contractDate: `${contractYm}${contractDay.padStart(2, '0')}`,
+      contractDate: `${contractYm}${contractDayPadded}`,
       source: 'csv_rent_import',
+      _key,
     });
   }
 
@@ -221,12 +226,8 @@ async function main() {
     }
 
     const validRecord = parsed.data;
-
-    // 괄호, 특수문자, 공백 등 정규화 함수 (AptName 정규화)
-    const normalizeAptName = (name) => name.replace(/\[.*?\]\s*/g, '').replace(/\s+/g, '').replace(/[()（）]/g, '').trim();
-    
-    const normalizedName = normalizeAptName(validRecord.aptName);
-    const docId = `rent_${normalizedName}_${validRecord.contractDate}_${validRecord.floor}_${validRecord.deposit}_${validRecord.monthlyRent}`;
+    const docId = validRecord._key || `RENT_${validRecord.aptName}_${validRecord.contractYm}_${validRecord.contractDay.padStart(2, '0')}_${validRecord.area}_${validRecord.deposit}_${validRecord.monthlyRent}_${validRecord.floor}`;
+    validRecord._key = docId;
     
     if (!processedKeys.has(docId)) {
       processedKeys.add(docId);

@@ -11,6 +11,7 @@ const path = require('path');
 const iconv = require('iconv-lite');
 
 const { z } = require('zod');
+const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
 
 // Zod schema to validate uploaded rent CSV records
 const RentCsvRecordSchema = z.object({
@@ -29,7 +30,8 @@ const RentCsvRecordSchema = z.object({
   contractDate: z.string().length(8, '계약일자는 8자리여야 합니다.'),
   source: z.literal('csv_rent_import'),
   reqGb: z.string().optional(),
-  rnuYn: z.string().optional()
+  rnuYn: z.string().optional(),
+  _key: z.string().optional()
 });
 
 function getAdminCredentials() {
@@ -193,7 +195,9 @@ async function main() {
     
     if (!aptName || !contractYm) continue;
 
-    const areaPyeong = Math.round(area / 3.3058 * 10) / 10;
+    const areaPyeong = getSupplyPyeong(aptName, area);
+    const contractDayPadded = contractDay.padStart(2, '0');
+    const _key = `RENT_${aptName}_${contractYm}_${contractDayPadded}_${area}_${deposit}_${monthlyRent}_${floor}`;
 
     records.push({
       dong,
@@ -201,7 +205,7 @@ async function main() {
       area,
       areaPyeong,
       contractYm,
-      contractDay,
+      contractDay: contractDayPadded,
       price: deposit, // UI 매매가 호환성용 (보증금 기준)
       deposit: deposit,
       monthlyRent: monthlyRent,
@@ -210,8 +214,9 @@ async function main() {
       floor,
       buildYear,
       dealType,
-      contractDate: `${contractYm}${contractDay.padStart(2, '0')}`,
+      contractDate: `${contractYm}${contractDayPadded}`,
       source: 'csv_rent_import',
+      _key,
     });
   }
 
@@ -241,20 +246,10 @@ async function main() {
     }
 
     const validRecord = parsed.data;
+    const docId = validRecord._key || `RENT_${validRecord.aptName}_${validRecord.contractYm}_${validRecord.contractDay.padStart(2, '0')}_${validRecord.area}_${validRecord.deposit}_${validRecord.monthlyRent}_${validRecord.floor}`;
+    validRecord._key = docId;
 
-    const dupSnap = await collRef
-      .where('aptName', '==', validRecord.aptName)
-      .where('contractDate', '==', validRecord.contractDate)
-      .where('deposit', '==', validRecord.deposit)
-      .where('floor', '==', validRecord.floor)
-      .get();
-    
-    if (!dupSnap.empty) {
-      skipped++;
-      continue;
-    }
-    
-    await collRef.add(validRecord);
+    await collRef.doc(docId).set(validRecord, { merge: true });
     uploaded++;
   }
 
