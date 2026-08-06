@@ -6,7 +6,19 @@ const nextConfig: NextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  turbopack: {},
+  serverExternalPackages: [
+    'firebase-admin',
+    '@google-cloud/storage',
+    'google-auth-library',
+    'gaxios',
+    'gcp-metadata',
+    'google-gax',
+  ],
+  turbopack: {
+    resolveAlias: {
+      '@/lib/firebaseAdmin': './src/lib/firebaseAdmin.client.ts',
+    },
+  },
   productionBrowserSourceMaps: false,
   compress: true,
   transpilePackages: ["lucide-react"],
