@@ -40,7 +40,7 @@ jobs:
         if: github.event_name == 'push'
         run: echo "Skipped data synchronization during standard push events. This job safely exists to satisfy branch protection rules without duplicate api calls."
 
-      # Step 1: 국토부 API → Firestore
+      # Step 1: 국토부 API → Firestore (매매 + 전월세)
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
         run: |
@@ -49,6 +49,7 @@ jobs:
             exit 0
           fi
           node scripts/fetch-transactions.js
+          node scripts/fetch-rent.js
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           PROXY_URL: ${{ secrets.PROXY_URL }}

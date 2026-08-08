@@ -85,21 +85,24 @@ async function main() {
   const db = admin.firestore();
   const collRef = db.collection('transactions');
 
-  // 1. 최신 전월세 데이터 연월 6개월치 스캔
+  // 1. 최신 전월세 데이터 연월 스캔 (기본 6개월, --full 옵션 시 17개월)
+  const isFullSync = process.argv.includes('--full');
+  const monthCount = isFullSync ? 17 : 6;
   const now = new Date();
   const monthsToSync = new Set();
   
-  for (let i = 0; i < 17; i++) {
+  for (let i = 0; i < monthCount; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
 
-  console.log(`   동기화 대상 월: ${Array.from(monthsToSync).sort().join(', ')}`);
+  const sortedMonths = Array.from(monthsToSync).sort((a, b) => b.localeCompare(a));
+  console.log(`   동기화 대상 월: ${sortedMonths.join(', ')}`);
 
   // 3. API 호출
   let totalNew = 0;
 
-  for (const ym of Array.from(monthsToSync).sort()) {
+  for (const ym of sortedMonths) {
     console.log(`\n📅 ${ym} 전월세 처리 중...`);
     const monthRecords = [];
 
