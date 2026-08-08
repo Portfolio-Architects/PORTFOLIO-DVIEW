@@ -324,6 +324,9 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
             <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
               {building.type}
             </span>
+            <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 text-[#ea6100] shrink-0">
+              종합 {building.score}점
+            </span>
             {building.driveIn && (
               <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
                 드라이브인
@@ -423,6 +426,46 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
     dedupingInterval: 60000,
   });
 
+function calculateJisanScore(item: any, existingScore?: number): number {
+  if (existingScore) return existingScore;
+
+  let score = 40;
+
+  // 1. 건축/입주 상태 (최대 30점)
+  const status = item.buildingStatus || '';
+  if (status.includes('완공') || status.includes('완료')) score += 30;
+  else if (status.includes('건축중')) score += 18;
+  else score += 5; // 미착공 / 사업승인
+
+  // 2. 단지 규모 (최대 20점)
+  const units = item.unitCount || 0;
+  const area = item.totalFloorArea || 0;
+  if (units >= 800 || area >= 100000) score += 20;
+  else if (units >= 400 || area >= 50000) score += 15;
+  else if (units >= 200 || area >= 20000) score += 10;
+  else score += 5;
+
+  // 3. 입지 및 도로 교통 (최대 20점)
+  const address = (item.roadAddress || item.jibunAddress || '');
+  if (address.includes('동탄대로') || address.includes('동탄기흥로')) score += 20;
+  else if (address.includes('동탄첨단산업1로') || address.includes('영천동')) score += 14;
+  else score += 8;
+
+  // 4. 드라이브인 / 제조 하역 시설 (최대 15점)
+  const name = item.name || '';
+  const isDriveIn = name.includes('IX') || name.includes('V1') || name.includes('드라이브') || name.includes('SH') || (item.regType || '').includes('제조');
+  if (isDriveIn) score += 15;
+  else score += 8;
+
+  // 5. 시공사 브랜드 (최대 15점)
+  const builder = item.builder || '';
+  if (builder.includes('현대') || builder.includes('금강') || builder.includes('SK') || builder.includes('포스코') || builder.includes('DL') || builder.includes('한화')) score += 15;
+  else if (builder && builder !== '미착공') score += 8;
+  else score += 2;
+
+  return Math.min(99, Math.max(50, score));
+}
+
   const allBuildings = useMemo<OfficeBuilding[]>(() => {
     const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
     if (!centers.length) return BUILDINGS_DB;
@@ -465,7 +508,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
           : (idx % 3 === 1 
             ? 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20'
             : 'bg-gradient-to-br from-slate-100 to-slate-200/70 text-slate-600 dark:from-zinc-800 dark:to-zinc-900/70 dark:text-zinc-400'),
-        score: Math.max(70, 95 - (idx % 25)),
+        score: calculateJisanScore(item),
         totalUnits: item.unitCount || 100,
         vacancyRate: item.buildingStatus === '건축완료' ? 18.5 : (item.buildingStatus === '건축중' ? 45.0 : 90.0),
         recentTransactions: [],
