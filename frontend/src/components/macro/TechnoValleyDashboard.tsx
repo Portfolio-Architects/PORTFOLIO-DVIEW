@@ -753,6 +753,20 @@ export default function TechnoValleyDashboard() {
     dedupingInterval: 300000
   });
 
+  const { data: jisanStatusRes } = useSWR('/api/technovalley/jisan-status', (url: string) => fetch(url).then(res => res.json()), {
+    revalidateOnFocus: false,
+    dedupingInterval: 300000
+  });
+
+  const jisanSummary = useMemo(() => {
+    const total = jisanStatusRes?.total || 56;
+    const completed = jisanStatusRes?.completedCount || 43;
+    const building = jisanStatusRes?.underConstructionCount || 3;
+    const planned = jisanStatusRes?.notStartedCount || 10;
+    const list = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
+    return { total, completed, building, planned, list };
+  }, [jisanStatusRes]);
+
   const donutData = useMemo(() => {
     if (responseData?.success && Array.isArray(responseData.data)) {
       return responseData.data;
@@ -1638,10 +1652,10 @@ export default function TechnoValleyDashboard() {
               <div className="flex flex-col gap-1">
                 <h4 className="text-[17px] font-black text-primary flex items-center gap-2">
                   <span className="w-3 h-3 rounded-full bg-hs-orange" />
-                  동탄테크노밸리 지식산업센터 전체 분석 (10개 단지)
+                  동탄테크노밸리 지식산업센터 전체 현황 분석 (총 {jisanSummary.total}개소: 완공 {jisanSummary.completed} / 건축중 {jisanSummary.building} / 미착공 {jisanSummary.planned})
                 </h4>
                 <p className="text-[11px] text-tertiary font-bold">
-                  국가건물에너지사용량 API 추정 공실률 및 국토교통부 실거래 기반 임대료 비교
+                  구글 시트 SSOT (지식산업센터_현황) 마스터 데이터 기반 실시간 통합 현황
                 </p>
               </div>
               <button

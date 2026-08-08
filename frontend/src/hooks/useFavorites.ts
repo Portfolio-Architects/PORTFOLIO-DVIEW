@@ -22,9 +22,34 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     return () => { isMountedRef.current = false; };
   }, []);
 
+  // Helper to read local guest favorites
+  const getGuestFavorites = useCallback((): string[] => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const saved = localStorage.getItem('dview_guest_favorites');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      logger.warn('useFavorites.getGuestFavorites', 'Failed to parse guest favorites', {}, e as Error);
+    }
+    return [];
+  }, []);
+
+  // Helper to save local guest favorites
+  const saveGuestFavorites = useCallback((favs: Set<string> | string[]) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const list = Array.isArray(favs) ? favs : Array.from(favs);
+      localStorage.setItem('dview_guest_favorites', JSON.stringify(list));
+    } catch (e) {
+      logger.warn('useFavorites.saveGuestFavorites', 'Failed to save guest favorites', {}, e as Error);
+    }
+  }, []);
+
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
-    // Prevent memory leaks and state updates on unmounted components using a boolean flag
     let unmounted = false;
     fetch('/api/favorite-counts')
       .then(res => res.json())
@@ -50,7 +75,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     let unmounted = false;
     if (user) {
       setIsFavoritesLoading(true);
-      // E2E Mock Auth Bypass to prevent 401 Unauthorized API fetch errors
+      // E2E Mock Auth Bypass
       if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
         const timer = setTimeout(() => {
           if (!unmounted) {
@@ -63,7 +88,25 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
           clearTimeout(timer);
         };
       }
-      user.getIdToken().then(idToken => {
+
+      user.getIdToken().then(async (idToken) => {
+        // Sync any guest favorites saved while unauthenticated
+        const guestFavs = getGuestFavorites();
+        if (guestFavs.length > 0) {
+          for (const aptName of guestFavs) {
+            try {
+              await fetch('/api/favorite', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                body: JSON.stringify({ aptName }),
+              });
+            } catch (e) {
+              logger.warn('useFavorites.syncGuest', 'Failed to sync guest favorite', { aptName }, e as Error);
+            }
+          }
+          try { localStorage.removeItem('dview_guest_favorites'); } catch {}
+        }
+
         fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } })
           .then(r => r.json())
           .then(data => {
@@ -93,18 +136,17 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
         }
       });
     } else {
-      setUserFavorites(new Set());
+      // Guest mode: load favorites from localStorage
+      const guestFavs = getGuestFavorites();
+      setUserFavorites(new Set(guestFavs));
       setIsFavoritesLoading(false);
     }
     return () => { unmounted = true; };
-  }, [user]);
+  }, [user, getGuestFavorites]);
 
-  const handleToggleFavorite = useCallback(async (aptName: string, requestLogin: () => void) => {
-    if (!user) {
-      requestLogin();
-      return;
-    }
+  const handleToggleFavorite = useCallback(async (aptName: string, requestLogin?: () => void) => {
     const wasFavorited = userFavorites.has(aptName);
+
     setUserFavorites(prev => {
       const next = new Set(prev);
       if (wasFavorited) {
@@ -112,10 +154,20 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       } else {
         next.add(aptName);
       }
+      saveGuestFavorites(next);
       return next;
     });
-    setFavoriteCounts(prev => ({ ...prev, [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1)) }));
-    
+
+    setFavoriteCounts(prev => ({
+      ...prev,
+      [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1))
+    }));
+
+    if (!user) {
+      // Optionally request login if caller passed callback, but guest favorite is already saved
+      return;
+    }
+
     // E2E Mock Auth Bypass
     if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
       return;
@@ -131,6 +183,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       if (!res.ok) throw new Error();
     } catch {
       if (!isMountedRef.current) return;
+      // Rollback on failure
       setUserFavorites(prev => {
         const next = new Set(prev);
         if (wasFavorited) {
@@ -138,17 +191,23 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
         } else {
           next.delete(aptName);
         }
+        saveGuestFavorites(next);
         return next;
       });
-      setFavoriteCounts(prev => ({ ...prev, [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1)) }));
+      setFavoriteCounts(prev => ({
+        ...prev,
+        [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1))
+      }));
     }
-  }, [user, userFavorites]);
+  }, [user, userFavorites, saveGuestFavorites]);
 
   const updateFavoriteOrder = useCallback(async (newOrder: string[]) => {
-    if (!user) return;
     if (!isMountedRef.current) return;
 
     setUserFavorites(new Set(newOrder));
+    saveGuestFavorites(newOrder);
+
+    if (!user) return;
 
     // E2E Mock Auth Bypass
     if (typeof window !== 'undefined' && (window as any).__E2E_MOCK_AUTH__) {
@@ -170,7 +229,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       if (!isMountedRef.current) return;
       logger.warn('useFavorites.updateFavoriteOrder', 'Failed to save order to Firestore', {}, err as Error);
     }
-  }, [user]);
+  }, [user, saveGuestFavorites]);
 
   return {
     userFavorites,

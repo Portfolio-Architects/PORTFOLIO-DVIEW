@@ -810,11 +810,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const isDefaultAptSettingUp = useMemo(() => {
     if (!mounted) return false;
-    if (user && isFavoritesLoading) return true;
-    // 유저가 로그인되어 있고 관심단지가 존재하는데, 아직 디폴트 단지 설정이 완료되지 않은 상태
-    if (user && userFavorites && userFavorites.size > 0 && !hasSetDefaultApt) return true;
+    if (isFavoritesLoading) return true;
+    if (userFavorites && userFavorites.size > 0 && !hasSetDefaultApt) return true;
     return false;
-  }, [mounted, user, isFavoritesLoading, userFavorites, hasSetDefaultApt]);
+  }, [mounted, isFavoritesLoading, userFavorites, hasSetDefaultApt]);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
 
@@ -911,8 +910,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       return () => clearTimeout(timer);
     }
 
-    // 유저가 로그아웃 상태이거나 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
-    if (!user || !userFavorites || userFavorites.size === 0) {
+    // 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
+    if (!userFavorites || userFavorites.size === 0) {
       setSelectedTimelineApt("동탄역 롯데캐슬");
       setHasSetDefaultApt(true);
       return;
@@ -924,7 +923,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       setSelectedTimelineApt(firstFav);
       setHasSetDefaultApt(true);
     }
-  }, [user, userFavorites, mounted, hasSetDefaultApt, isFavoritesLoading]);
+  }, [userFavorites, mounted, hasSetDefaultApt, isFavoritesLoading]);
 
   // 로그인 상태 변화 감지 및 세션 전환 시 디폴트 설정 리셋
   const [prevUser, setPrevUser] = useState<string | null>(null);
@@ -1796,14 +1795,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                       <h3 
                         className="text-[15px] font-bold text-primary tracking-tight shrink-0"
                       >
-                        {user ? "내 관심 단지 시세 추이" : "동탄 대표 아파트 시세 추이"}
+                        {userFavorites && userFavorites.size > 0 ? "내 관심 단지 시세 추이" : "동탄 대표 아파트 시세 추이"}
                       </h3>
 
                       {isDefaultAptSettingUp ? (
                         <div className="w-[130px] sm:w-[190px] h-[28px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
                       ) : (
                         mounted && (
-                          user && userFavorites && userFavorites.size > 0 ? (
+                          userFavorites && userFavorites.size > 0 ? (
                             <div className="relative flex items-center gap-1">
                               <select
                                 value={selectedTimelineApt || ""}

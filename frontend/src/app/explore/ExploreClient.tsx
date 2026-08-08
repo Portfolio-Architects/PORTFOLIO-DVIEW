@@ -469,10 +469,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     const isAdding = !userFavorites.has(aptName);
     trackEvent('toggle_favorite', { apt_name: aptName, status: isAdding ? 'added' : 'removed' });
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
-    if (user && !userFavorites.has(aptName)) {
-      triggerCustomA2HSModal();
-    }
-  }, [handleToggleFavorite, handleRequestLogin, user, userFavorites, triggerCustomA2HSModal]);
+  }, [handleToggleFavorite, handleRequestLogin, userFavorites]);
 
   const handleOpenCompare = useCallback(() => {
     setCompareInitialApt(undefined);

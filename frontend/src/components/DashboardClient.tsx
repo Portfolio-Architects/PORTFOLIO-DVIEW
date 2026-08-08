@@ -738,10 +738,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleAptToggleFavorite = useCallback((aptName: string) => {
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
-    if (user && !userFavorites.has(aptName)) {
-      triggerCustomA2HSModal();
-    }
-  }, [handleToggleFavorite, handleRequestLogin, user, userFavorites, triggerCustomA2HSModal]);
+  }, [handleToggleFavorite, handleRequestLogin]);
 
   // Note: Unused apartment calculations removed to offload CPU and keep bundle thin (TossApartmentExploreClient handles explore view now)
 

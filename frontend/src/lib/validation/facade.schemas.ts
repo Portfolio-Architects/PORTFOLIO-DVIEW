@@ -80,6 +80,47 @@ export const SheetApartmentSchema = z.object({
   distanceToSupermarket: z.coerce.number().optional().nullable(),
 });
 
+export const JisanStatusItemSchema = z.object({
+  seq: z.string().optional().default(''),
+  name: z.string(),
+  companyName: z.string().optional().default(''),
+  regType: z.string().optional().default(''),
+  complexName: z.string().optional().default(''),
+  jurisdiction: z.string().optional().default(''),
+  industrialParkType: z.string().optional().default(''),
+  status: z.string().optional().default(''),
+  initialApprovalDate: z.string().optional().default(''),
+  approvalDate: z.string().optional().default(''),
+  constructionStartDate: z.string().optional().default(''),
+  completionDate: z.string().optional().default(''),
+  phone: z.string().optional().default(''),
+  landType: z.string().optional().default(''),
+  landArea: z.coerce.number().optional().default(0),
+  totalFloorArea: z.coerce.number().optional().default(0),
+  factoryArea: z.coerce.number().optional().default(0),
+  auxiliaryArea: z.coerce.number().optional().default(0),
+  roadAddress: z.string().optional().default(''),
+  jibunAddress: z.string().optional().default(''),
+  saleType: z.string().optional().default(''),
+  buildingStatus: z.string().optional().default(''),
+  zoning1: z.string().optional().default(''),
+  zoning2: z.string().optional().default(''),
+  installer: z.string().optional().default(''),
+  unitCount: z.coerce.number().optional().default(0),
+  developer: z.string().optional().default(''),
+  builder: z.string().optional().default(''),
+});
+
+export const JisanStatusResponseSchema = z.object({
+  success: z.boolean(),
+  total: z.number(),
+  completedCount: z.number(),
+  underConstructionCount: z.number(),
+  notStartedCount: z.number(),
+  centers: z.array(JisanStatusItemSchema),
+  message: z.string().optional(),
+});
+
 export const NicknameSchema = z
   .string()
   .transform((val) => val.trim())

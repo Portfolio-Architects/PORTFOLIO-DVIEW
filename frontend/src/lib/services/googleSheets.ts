@@ -4,9 +4,10 @@ import { logger } from '@/lib/services/logger';
 import coordCorrections from '../../../public/data/coordinate-corrections.json';
 import typeMapStatic from '../../../public/data/type-map.json';
 import apartmentsByDongStatic from '../../../public/data/apartments-by-dong.json';
+import jisanStatusStatic from '../../../public/data/jisan-status-list.json';
 import { FULL_DONG_DATA } from '../dong-apartments';
 import { normalizeAptName, isSameApartment } from '../utils/apartmentMapping';
-import { SheetApartmentSchema } from '@/lib/validation/facade.schemas';
+import { SheetApartmentSchema, JisanStatusItemSchema } from '@/lib/validation/facade.schemas';
 import * as SheetsRepo from '@/lib/repositories/googleSheets.repository';
 
 declare global {
@@ -21,6 +22,7 @@ function parseCoordString(s: string): { lat: number; lng: number } | null {
 }
 
 export type SheetApartment = z.infer<typeof SheetApartmentSchema>;
+export type JisanStatusItem = z.infer<typeof JisanStatusItemSchema>;
 
 // In-memory cache to bypass Redis roundtrips in local/serverless environments
 const sheetsMemoryCache = globalThis._sheetsMemoryCache || {};
@@ -70,6 +72,78 @@ export async function fetchSheetTypeMap(bypassLocalCache: boolean = false): Prom
   }
   sheetsMemoryCache[cacheKey] = { data: result, timestamp: now };
   return result;
+}
+
+export async function fetchSheetJisanStatus(bypassLocalCache: boolean = false): Promise<JisanStatusItem[]> {
+  if (!bypassLocalCache) {
+    return jisanStatusStatic as JisanStatusItem[];
+  }
+
+  const cacheKey = 'DTDLS:parsed:jisanStatus';
+  const now = Date.now();
+  const memCached = sheetsMemoryCache[cacheKey];
+  if (memCached && (now - memCached.timestamp) < SHEETS_CACHE_TTL * 1000) {
+    return memCached.data as JisanStatusItem[];
+  }
+
+  try {
+    const rows = await fetchCsv(SHEET_TABS.JISAN_STATUS);
+    if (rows.length < 2) return jisanStatusStatic as JisanStatusItem[];
+
+    const result: JisanStatusItem[] = [];
+    for (let i = 2; i < rows.length; i++) {
+      const cols = rows[i];
+      const name = cols[1]?.trim();
+      if (!name) continue;
+
+      const rawItem = {
+        seq: cols[0] || '',
+        name: cols[1] || '',
+        companyName: cols[2] || '',
+        regType: cols[3] || '',
+        complexName: cols[4] || '',
+        jurisdiction: cols[5] || '',
+        industrialParkType: cols[6] || '',
+        status: cols[7] || '',
+        initialApprovalDate: cols[8] || '',
+        approvalDate: cols[9] || '',
+        constructionStartDate: cols[10] || '',
+        completionDate: cols[11] || '',
+        phone: cols[12] || '',
+        landType: cols[13] || '',
+        landArea: parseFloat(cols[14]) || 0,
+        totalFloorArea: parseFloat(cols[15]) || 0,
+        factoryArea: parseFloat(cols[16]) || 0,
+        auxiliaryArea: parseFloat(cols[17]) || 0,
+        roadAddress: cols[18] || '',
+        jibunAddress: cols[19] || '',
+        saleType: cols[20] || '',
+        buildingStatus: cols[21] || '',
+        zoning1: cols[22] || '',
+        zoning2: cols[23] || '',
+        installer: cols[24] || '',
+        unitCount: parseInt(cols[27]) || 0,
+        developer: cols[28] || '',
+        builder: cols[29] || ''
+      };
+
+      const parsed = JisanStatusItemSchema.safeParse(rawItem);
+      if (parsed.success) {
+        result.push(parsed.data);
+      } else {
+        logger.warn('fetchSheetJisanStatus', 'Skipped invalid Jisan row', { name, issues: parsed.error.issues });
+      }
+    }
+
+    if (result.length > 0) {
+      sheetsMemoryCache[cacheKey] = { data: result, timestamp: now };
+      return result;
+    }
+  } catch (err) {
+    logger.warn('fetchSheetJisanStatus', 'Failed live sheet fetch, falling back to static cache', {}, err as Error);
+  }
+
+  return jisanStatusStatic as JisanStatusItem[];
 }
 
 function findColIndex(headers: string[], possibleNames: string[]): number {

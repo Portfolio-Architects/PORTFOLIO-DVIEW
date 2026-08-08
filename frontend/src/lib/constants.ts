@@ -18,6 +18,7 @@ export const SHEET_TABS = {
   RESTAURANTS: 'restaurants',
   SBOYDS: 'SBOYDS',
   MACRO_DATA: 'MACRO_DATA',
+  JISAN_STATUS: '지식산업센터_현황',
 } as const;
 
 /** CSV line parser (shared between transaction and type-map routes) */

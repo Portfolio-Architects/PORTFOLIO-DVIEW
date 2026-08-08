@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/services/logger';
+import { fetchSheetJisanStatus } from '@/lib/services/googleSheets';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,13 +48,34 @@ const CURATED_CENTER_SPECS: Record<string, any> = {
 export async function GET(request: NextRequest) {
   const serviceKey = process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_API_KEY || '';
 
+  // Load Google Sheet SSOT items
+  const sheetItems = await fetchSheetJisanStatus().catch(() => []);
+  const sheetMap: Record<string, any> = {};
+  sheetItems.forEach(item => {
+    sheetMap[item.name] = item;
+  });
+
   if (!serviceKey) {
-    logger.info('GET /api/technovalley/center-specs', 'Returning curated KICOX center specs cache');
+    logger.info('GET /api/technovalley/center-specs', 'Returning curated KICOX center specs cache merged with Google Sheet SSOT');
+    const mergedCurated: Record<string, any> = {};
+    for (const key of Object.keys(CURATED_CENTER_SPECS)) {
+      const sheetInfo = sheetMap[key];
+      mergedCurated[key] = {
+        ...CURATED_CENTER_SPECS[key],
+        landArea: sheetInfo?.landArea ? `${sheetInfo.landArea.toLocaleString()} ㎡` : CURATED_CENTER_SPECS[key].landArea,
+        totalFloorArea: sheetInfo?.totalFloorArea ? `${sheetInfo.totalFloorArea.toLocaleString()} ㎡` : CURATED_CENTER_SPECS[key].totalFloorArea,
+        address: sheetInfo?.roadAddress || sheetInfo?.jibunAddress || CURATED_CENTER_SPECS[key].address,
+        status: sheetInfo?.buildingStatus || CURATED_CENTER_SPECS[key].status,
+        developer: sheetInfo?.developer || CURATED_CENTER_SPECS[key].developer,
+        builder: sheetInfo?.builder || ''
+      };
+    }
     return NextResponse.json({
       success: true,
       source: 'curated-cache',
-      centers: CURATED_CENTER_SPECS,
-      message: '공공데이터 API 인증키가 설정되지 않아 한국산업단지공단 지산현황 고증 캐시 데이터를 반환했습니다.'
+      centers: mergedCurated,
+      sheetTotalCount: sheetItems.length,
+      message: '한국산업단지공단 지산현황 고증 캐시 및 구글 시트 SSOT 데이터를 반환했습니다.'
     }, {
       status: 200,
       headers: {
