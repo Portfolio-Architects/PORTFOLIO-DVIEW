@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
+import useSWR from 'swr';
 import { 
   Building2, 
   Search, 
@@ -417,8 +418,69 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const { data: jisanStatusRes } = useSWR('/api/technovalley/jisan-status', (url: string) => fetch(url).then(res => res.json()), {
+    revalidateOnFocus: false,
+    dedupingInterval: 60000,
+  });
+
+  const allBuildings = useMemo<OfficeBuilding[]>(() => {
+    const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
+    if (!centers.length) return BUILDINGS_DB;
+
+    const existingMap = new Map(BUILDINGS_DB.map(b => [b.name.replace(/\s+/g, ''), b]));
+    
+    return centers.map((item, idx) => {
+      const cleanName = item.name ? item.name.replace(/\s+/g, '') : '';
+      const existing = existingMap.get(cleanName);
+      if (existing) {
+        return {
+          ...existing,
+          totalUnits: item.unitCount || existing.totalUnits,
+          specs: {
+            ...existing.specs,
+            gfa: item.totalFloorArea ? `${Math.round(item.totalFloorArea).toLocaleString()}㎡ (약 ${Math.round(item.totalFloorArea * 0.3025).toLocaleString()}평)` : existing.specs.gfa,
+            completion: item.completionDate ? `${item.completionDate.slice(0,4)}년 ${item.completionDate.slice(4,6)}월` : existing.specs.completion
+          }
+        };
+      }
+
+      const driveIn = (item.name || '').includes('IX') || (item.name || '').includes('V1') || (item.name || '').includes('드라이브') || (item.name || '').includes('SH') || (item.regType || '').includes('제조');
+      const isVeryClose = (item.roadAddress || '').includes('동탄대로') || (item.roadAddress || '').includes('동탄기흥로');
+      
+      return {
+        name: item.name || '지식산업센터',
+        type: item.buildingStatus ? `${item.buildingStatus} 지식산업센터` : '지식산업센터',
+        dong: ((item.roadAddress || '').includes('오산동') || (item.jibunAddress || '').includes('오산동')) ? '동탄오산동' : '동탄영천동',
+        rentPerPy: '3.0만 ~ 4.0만원',
+        features: [
+          item.buildingStatus ? `상태: ${item.buildingStatus}` : '동탄테크노밸리 입지',
+          item.builder && item.builder !== '미착공' ? `시공: ${item.builder}` : '지식산업센터 현황',
+          item.totalFloorArea ? `연면적 ${Math.round(item.totalFloorArea).toLocaleString()}㎡` : '신규 센터'
+        ],
+        driveIn,
+        stationDistance: isVeryClose ? 'close' : 'moderate',
+        desc: item.roadAddress || item.jibunAddress || `${item.name} 지식산업센터입니다.`,
+        imgPlaceholder: idx % 3 === 0 
+          ? 'bg-gradient-to-br from-brand-blue-light to-brand-blue/15 text-brand-blue dark:from-brand-blue-light/10 dark:to-brand-blue/20'
+          : (idx % 3 === 1 
+            ? 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20'
+            : 'bg-gradient-to-br from-slate-100 to-slate-200/70 text-slate-600 dark:from-zinc-800 dark:to-zinc-900/70 dark:text-zinc-400'),
+        score: Math.max(70, 95 - (idx % 25)),
+        totalUnits: item.unitCount || 100,
+        vacancyRate: item.buildingStatus === '건축완료' ? 18.5 : (item.buildingStatus === '건축중' ? 45.0 : 90.0),
+        recentTransactions: [],
+        specs: {
+          gfa: item.totalFloorArea ? `${Math.round(item.totalFloorArea).toLocaleString()}㎡ (약 ${Math.round(item.totalFloorArea * 0.3025).toLocaleString()}평)` : '-',
+          scale: item.buildingStatus || '지식산업센터',
+          parking: item.unitCount ? `${Math.round(item.unitCount * 1.2)}대` : '법정대비 넉넉함',
+          completion: item.completionDate ? `${item.completionDate.slice(0,4)}년 ${item.completionDate.slice(4,6)}월` : (item.buildingStatus || '-')
+        }
+      };
+    });
+  }, [jisanStatusRes]);
+
   const filteredBuildings = useMemo(() => {
-    return BUILDINGS_DB.filter(building => {
+    return allBuildings.filter(building => {
       const matchesSearch = building.name.includes(searchQuery) || building.desc.includes(searchQuery);
       const matchesDriveIn = selectedDriveIn === 'all' || 
         (selectedDriveIn === 'yes' && building.driveIn) || 
@@ -448,7 +510,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
       }
       return 0;
     });
-  }, [searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
+  }, [allBuildings, searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
 
   return (
     <div className="flex flex-col w-full max-w-full overflow-x-clip min-w-0 box-border bg-transparent min-h-[85vh] min-h-[800px]" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
