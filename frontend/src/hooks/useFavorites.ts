@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from 'firebase/auth';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
+import { normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
 
 const FavoriteCountsResponseSchema = z.object({
   counts: z.record(z.string(), z.number()).optional().catch(undefined),
@@ -144,14 +145,31 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     return () => { unmounted = true; };
   }, [user, getGuestFavorites]);
 
+  const isFavorited = useCallback((aptName: string): boolean => {
+    if (!aptName) return false;
+    if (userFavorites.has(aptName)) return true;
+    const targetNorm = normalizeAptName(aptName);
+    return Array.from(userFavorites).some(
+      item => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
+    );
+  }, [userFavorites]);
+
   const handleToggleFavorite = useCallback(async (aptName: string, requestLogin?: () => void) => {
-    const wasFavorited = userFavorites.has(aptName);
+    const targetNorm = normalizeAptName(aptName);
+    const existingMatch = Array.from(userFavorites).find(
+      item => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
+    );
+    const wasFavorited = !!existingMatch;
+    const keyToModify = existingMatch || aptName;
 
     setUserFavorites(prev => {
-      const next = new Set(prev);
-      if (wasFavorited) {
-        next.delete(aptName);
-      } else {
+      const next = new Set<string>();
+      for (const item of prev) {
+        if (normalizeAptName(item) !== targetNorm && !isSameApartment(item, aptName)) {
+          next.add(item);
+        }
+      }
+      if (!wasFavorited) {
         next.add(aptName);
       }
       saveGuestFavorites(next);
@@ -160,11 +178,10 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
 
     setFavoriteCounts(prev => ({
       ...prev,
-      [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? -1 : 1))
+      [keyToModify]: Math.max(0, (prev[keyToModify] || 0) + (wasFavorited ? -1 : 1))
     }));
 
     if (!user) {
-      // Optionally request login if caller passed callback, but guest favorite is already saved
       return;
     }
 
@@ -178,25 +195,25 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       const res = await fetch('/api/favorite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ aptName }),
+        body: JSON.stringify({ aptName: keyToModify }),
       });
       if (!res.ok) throw new Error();
     } catch {
       if (!isMountedRef.current) return;
       // Rollback on failure
       setUserFavorites(prev => {
-        const next = new Set(prev);
+        const next = new Set<string>(prev);
         if (wasFavorited) {
-          next.add(aptName);
+          next.add(keyToModify);
         } else {
-          next.delete(aptName);
+          next.delete(keyToModify);
         }
         saveGuestFavorites(next);
         return next;
       });
       setFavoriteCounts(prev => ({
         ...prev,
-        [aptName]: Math.max(0, (prev[aptName] || 0) + (wasFavorited ? 1 : -1))
+        [keyToModify]: Math.max(0, (prev[keyToModify] || 0) + (wasFavorited ? 1 : -1))
       }));
     }
   }, [user, userFavorites, saveGuestFavorites]);
@@ -235,6 +252,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     userFavorites,
     favoriteCounts,
     handleToggleFavorite,
+    isFavorited,
     updateFavoriteOrder,
     isFavoritesLoading
   };

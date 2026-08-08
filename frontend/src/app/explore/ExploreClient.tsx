@@ -533,6 +533,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   window.history.replaceState(null, '', window.location.pathname + window.location.search);
                 }}
                 user={user}
+                userFavorites={userFavorites}
+                onToggleFavorite={handleAptToggleFavorite}
                 typeMap={typeMap}
                 inline={false}
                 isAdmin={dashboardFacade.isAdmin(user?.email)}

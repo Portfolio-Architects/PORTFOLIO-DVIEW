@@ -2,14 +2,14 @@
 
 import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
-  MapPin, X, Camera,
+  MapPin, X, Camera, Heart,
   Building, Info, Shield, ShieldAlert, Radar, ChevronDown, ArrowLeft, Download, Share, Check,
   Crown, ChevronRight, GraduationCap, Calculator, MessageSquare, Bell
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
-import { normalizeAptName, getDisplayAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, getDisplayAptName, findTypeMapEntry, isSameApartment } from '@/lib/utils/apartmentMapping';
 import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { doc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
@@ -371,6 +371,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
   nameMapping,
   txSummaryData,
   locationScores,
+  userFavorites,
+  onToggleFavorite,
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -398,6 +400,8 @@ const FieldReportModal = React.memo(function FieldReportModal({
   nameMapping?: Record<string, string>;
   txSummaryData?: Record<string, import('@/lib/types/transaction').AptTxSummary>;
   locationScores?: Record<string, import('@/lib/types/transaction').LocationScoreItem>;
+  userFavorites?: Set<string>;
+  onToggleFavorite?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
 
@@ -1831,6 +1835,14 @@ const FieldReportModal = React.memo(function FieldReportModal({
 
 
 
+  const isFavoritedModal = useMemo(() => {
+    if (!userFavorites || !report.apartmentName) return false;
+    const targetNorm = normalizeAptName(report.apartmentName);
+    return Array.from(userFavorites).some(
+      item => normalizeAptName(item) === targetNorm || isSameApartment(item, report.apartmentName, nameMapping)
+    );
+  }, [userFavorites, report.apartmentName, nameMapping]);
+
   const content = (
     <>
       {/* ── Unified Header ── */}
@@ -1849,9 +1861,36 @@ const FieldReportModal = React.memo(function FieldReportModal({
                 <span>지도보기</span>
               </a>
             </div>
-            <h1 className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px] font-extrabold leading-[1.25] tracking-tight text-primary w-full min-w-0">
-              <span className="break-keep break-words block w-full">{displayAptName}</span>
-            </h1>
+            <div className="flex items-center justify-between gap-3 w-full">
+              <h1 className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1">
+                <span className="break-keep break-words block w-full">{displayAptName}</span>
+              </h1>
+              {onToggleFavorite && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleFavorite(report.apartmentName);
+                  }}
+                  className={`px-3 py-1.5 rounded-xl border transition-all duration-200 active:scale-95 shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                    isFavoritedModal
+                      ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
+                      : 'bg-neutral-100 dark:bg-zinc-800/80 border-border/40 text-neutral-400 hover:text-rose-400'
+                  }`}
+                  title={isFavoritedModal ? '관심 단지 해제' : '관심 단지 등록'}
+                  aria-label={`${displayAptName} 관심 단지 ${isFavoritedModal ? '해제' : '등록'}`}
+                >
+                  <Heart
+                    size={18}
+                    className={`transition-all duration-300 ${
+                      isFavoritedModal ? 'text-rose-500 fill-current scale-110' : 'text-neutral-400'
+                    }`}
+                  />
+                  <span className="text-xs font-black">
+                    {isFavoritedModal ? '관심 단지' : '관심 등록'}
+                  </span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div 
