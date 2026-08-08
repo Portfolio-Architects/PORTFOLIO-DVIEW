@@ -18,6 +18,7 @@ import typeMapStatic from '../../../../public/data/type-map.json';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { rateLimiter } from '@/lib/rate-limit';
+import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
@@ -175,6 +176,23 @@ export async function GET(request: NextRequest) {
 
   result.favoriteCounts = favoriteCountsRes;
   result.apartmentMeta = apartmentMetaRes;
+
+  if (Object.keys(result.apartmentMeta).length === 0) {
+    const parsed = await readJsonFileCached<{ byDong?: Record<string, Array<{ name: string; txKey?: string }>> } | null>(
+      'public/data/apartments-by-dong.json',
+      null
+    );
+    if (parsed && parsed.byDong) {
+      const fallbackMeta: Record<string, { dong: string; txKey: string }> = {};
+      Object.entries(parsed.byDong).forEach(([dongName, apts]) => {
+        apts.forEach((a) => {
+          fallbackMeta[a.name] = { dong: dongName, txKey: a.txKey || a.name };
+        });
+      });
+      result.apartmentMeta = fallbackMeta;
+      logger.info('DashboardInitAPI.GET', 'Injected fallback apartmentMeta from static json file');
+    }
+  }
 
   // Type map (Static JSON Cache first -> Google Sheets Fallback)
   try {

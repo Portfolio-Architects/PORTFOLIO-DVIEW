@@ -342,7 +342,7 @@ const DashboardClient = React.memo(function DashboardClient({
   );
 
   const filteredRecentTransactions = useMemo(() => {
-    if (!recentTransactions || recentTransactions.length === 0 || !nameMapping) return recentTransactions;
+    if (!recentTransactions || recentTransactions.length === 0 || !nameMapping || Object.keys(nameMapping).length === 0) return recentTransactions;
     
     const targetTxKeys = new Set<string>();
     for (const [_, tKey] of Object.entries(nameMapping)) {
