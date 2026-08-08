@@ -34,6 +34,7 @@ interface OfficeBuilding {
   name: string;
   type: string;
   dong: '동탄영천동' | '동탄오산동' | '동탄목동' | '동탄장지동';
+  address?: string;
   rentPerPy: string;
   features: string[];
   driveIn: boolean;
@@ -57,6 +58,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '금강펜테리움 IX타워',
     type: '초대형 지식산업센터',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄기흥로 590 (영천동 98-1)',
     rentPerPy: '3.5만 ~ 4.2만원',
     features: ['드라이브인 (지하 2층 ~ 지상 7층)', '동탄역 셔틀버스 상시 운행', '최대 층고 5.8m 제조 특화', '피트니스 & 옥상정원 인프라'],
     driveIn: true,
@@ -66,11 +68,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 95,
     totalUnits: 2701,
     vacancyRate: 21.6,
-    recentTransactions: [
-      { date: '2026-05-12', type: '임대', sizeSqM: 45.2, floor: 15, price: '보증금 1,000만 / 월세 90만' },
-      { date: '2026-05-03', type: '임대', sizeSqM: 88.9, floor: 3, price: '보증금 1,500만 / 월세 150만' },
-      { date: '2026-04-18', type: '매매', sizeSqM: 108.5, floor: 7, price: '4억 1,000만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '286,970㎡ (약 8.6만 평, 남부권 최대)',
       scale: '지하 2층 ~ 지상 38층 (총 3개동)',
@@ -82,6 +80,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '현대 실리콘앨리 동탄',
     type: '문화복합형 지식산업센터',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄첨단산업1로 57 (영천동 98-4)',
     rentPerPy: '3.8만 ~ 4.5만원',
     features: ['뉴욕 스트리트형 대형 상권 연계', '섹션 오피스 레이아웃 최적화', '공유 라운지 & 세미나실 제공', '친환경 태양광 발전 및 에너지 절감'],
     driveIn: false,
@@ -91,11 +90,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 92,
     totalUnits: 2470,
     vacancyRate: 28.5,
-    recentTransactions: [
-      { date: '2026-05-20', type: '임대', sizeSqM: 51.6, floor: 8, price: '보증금 1,000만 / 월세 110만' },
-      { date: '2026-04-11', type: '임대', sizeSqM: 102.3, floor: 4, price: '보증금 2,000만 / 월세 210만' },
-      { date: '2026-03-29', type: '매매', sizeSqM: 72.4, floor: 12, price: '2억 9,500만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '238,615㎡ (약 7.2만 평, 초대형 단지)',
       scale: '지하 4층 ~ 지상 30층 (총 2개동)',
@@ -107,6 +102,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 IT타워',
     type: '도보 역세권 지식산업센터',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄대로21길 10 (영천동 651-1500)',
     rentPerPy: '3.2만 ~ 3.7만원',
     features: ['동탄역 도보 10분권', '소형 사무실(10~15평) 섹션 특화', '합리적인 가성비 임대료', '개별 냉난방 및 조용한 환경'],
     driveIn: false,
@@ -116,11 +112,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 89,
     totalUnits: 320,
     vacancyRate: 13.5,
-    recentTransactions: [
-      { date: '2026-05-24', type: '임대', sizeSqM: 33.1, floor: 9, price: '보증금 500만 / 월세 65만' },
-      { date: '2026-04-15', type: '임대', sizeSqM: 66.2, floor: 11, price: '보증금 1,000만 / 월세 115만' },
-      { date: '2026-02-28', type: '매매', sizeSqM: 33.1, floor: 5, price: '1억 2,000만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '41,200㎡ (실속형 비즈니스 특화)',
       scale: '지하 2층 ~ 지상 15층 (단일동)',
@@ -132,6 +124,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: 'SH타임스퀘어',
     type: '제조/도어투도어 지식산업센터',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄첨단산업1로 51 (영천동 98-3)',
     rentPerPy: '3.0만 ~ 3.5만원',
     features: ['도어투도어 (호실 앞 주차 가능)', '하중 설계 평당 4톤 이상', '화물용 엘리베이터 인접', '소형 공장 등록 가능'],
     driveIn: true,
@@ -141,11 +134,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 87,
     totalUnits: 369,
     vacancyRate: 19.8,
-    recentTransactions: [
-      { date: '2026-05-18', type: '임대', sizeSqM: 75.4, floor: 2, price: '보증금 800만 / 월세 85만' },
-      { date: '2026-03-05', type: '임대', sizeSqM: 150.8, floor: 1, price: '보증금 2,000만 / 월세 200만' },
-      { date: '2026-01-20', type: '매매', sizeSqM: 75.4, floor: 4, price: '2억 1,000만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '56,700㎡ (제조·물류 특화형)',
       scale: '지하 2층 ~ 지상 12층 (단일동)',
@@ -157,6 +146,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 테라타워',
     type: '제조·오피스 하이브리드 지산',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄순환대로 823 (영천동 620-1)',
     rentPerPy: '3.3만 ~ 3.9만원',
     features: ['드라이브인 시스템 완비', '동탄역세권 대중교통 인접', '초고속 화물 승강기', '커뮤니티 및 회의실 연계'],
     driveIn: true,
@@ -166,10 +156,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 91,
     totalUnits: 824,
     vacancyRate: 18.2,
-    recentTransactions: [
-      { date: '2026-05-15', type: '임대', sizeSqM: 60.5, floor: 5, price: '보증금 1,000만 / 월세 100만' },
-      { date: '2026-04-20', type: '매매', sizeSqM: 120.4, floor: 8, price: '3억 8,000만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '143,600㎡ (중대형급 복합 지산)',
       scale: '지하 2층 ~ 지상 29층',
@@ -181,6 +168,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 에이팩시티',
     type: '랜드마크형 IT 지식산업센터',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄첨단산업1로 27 (영천동 103)',
     rentPerPy: '3.4만 ~ 4.0만원',
     features: ['초대형 하역 데크 시스템', '입주 기업 전용 네트워킹 라운지', '동탄테크노밸리 초입 입지', '주변 풍부한 근린 상가'],
     driveIn: false,
@@ -190,10 +178,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 93,
     totalUnits: 618,
     vacancyRate: 15.4,
-    recentTransactions: [
-      { date: '2026-05-10', type: '임대', sizeSqM: 48.2, floor: 12, price: '보증금 1,000만 / 월세 95만' },
-      { date: '2026-04-05', type: '임대', sizeSqM: 92.4, floor: 6, price: '보증금 1,500만 / 월세 155만' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '72,000㎡ (랜드마크 비즈니스)',
       scale: '지하 3층 ~ 지상 17층',
@@ -205,6 +190,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 SK V1',
     type: '대단지 도어투도어 제조형 지산',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄기흥로 557 (영천동 99-6)',
     rentPerPy: '3.1만 ~ 3.6만원',
     features: ['전 층 드라이브인 램프', '램프 입구 폭 9m로 대형차 통행 원활', '평당 5톤 하중 바닥', '집하 및 하역 공간 분리'],
     driveIn: true,
@@ -214,10 +200,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 90,
     totalUnits: 776,
     vacancyRate: 22.8,
-    recentTransactions: [
-      { date: '2026-05-19', type: '임대', sizeSqM: 99.5, floor: 3, price: '보증금 1,200만 / 월세 115만' },
-      { date: '2026-03-24', type: '매매', sizeSqM: 99.5, floor: 2, price: '2억 6,000만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '89,800㎡ (대규모 제조 물류망)',
       scale: '지하 2층 ~ 지상 20층',
@@ -229,6 +212,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 비즈타워',
     type: '실속형 콤팩트 지식산업센터',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄기흥로 565 (영천동 99-3)',
     rentPerPy: '2.8만 ~ 3.3만원',
     features: ['가장 합리적인 평단 임대 가격', '드라이브인 하역 램프 탑재', '소규모 분할 섹션 오피스 다수', '주차 100% 이상 확보'],
     driveIn: true,
@@ -238,10 +222,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 86,
     totalUnits: 276,
     vacancyRate: 25.4,
-    recentTransactions: [
-      { date: '2026-05-22', type: '임대', sizeSqM: 40.5, floor: 7, price: '보증금 500만 / 월세 55만' },
-      { date: '2026-04-12', type: '임대', sizeSqM: 80.2, floor: 4, price: '보증금 1,000만 / 월세 95만' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '32,500㎡ (소규모 실속 임차)',
       scale: '지하 1층 ~ 지상 10층',
@@ -253,6 +234,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 더퍼스트타워',
     type: '역세권 스마트 섹션 지산',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄대로 636-14 (영천동 651-1502)',
     rentPerPy: '3.3만 ~ 3.8만원',
     features: ['동탄역 도보 8분권', '소형 오피스 전용 섹션 설계', '공동 회의실 지원', '쾌적한 중앙 광장 조경'],
     driveIn: false,
@@ -262,10 +244,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 90,
     totalUnits: 460,
     vacancyRate: 16.8,
-    recentTransactions: [
-      { date: '2026-05-14', type: '임대', sizeSqM: 40.2, floor: 10, price: '보증금 1,000만 / 월세 85만' },
-      { date: '2026-04-19', type: '매매', sizeSqM: 80.5, floor: 15, price: '2억 4,000만원' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '58,200㎡ (역세권 랜드마크)',
       scale: '지하 3층 ~ 지상 20층 (단일동)',
@@ -277,6 +256,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     name: '동탄 메가비즈타워',
     type: '소규모 실속형 섹션 지산',
     dong: '동탄영천동',
+    address: '경기도 화성시 동탄첨단산업1로 51-9 (영천동 98-7)',
     rentPerPy: '2.9만 ~ 3.4만원',
     features: ['스타트업 소형 사무실 특화', '기흥IC 차량 3분 최적 진입', '구내 식당 및 편의점 연계', '저렴한 관리비용'],
     driveIn: false,
@@ -286,10 +266,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     score: 85,
     totalUnits: 168,
     vacancyRate: 23.5,
-    recentTransactions: [
-      { date: '2026-05-18', type: '임대', sizeSqM: 33.1, floor: 8, price: '보증금 500만 / 월세 50만' },
-      { date: '2026-04-02', type: '임대', sizeSqM: 66.2, floor: 12, price: '보증금 1,000만 / 월세 90만' }
-    ],
+    recentTransactions: [],
     specs: {
       gfa: '21,800㎡ (스타트업 비즈니스 특화)',
       scale: '지하 2층 ~ 지상 12층',
@@ -477,14 +454,24 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
     const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
     if (!centers.length) return BUILDINGS_DB;
 
-    const existingMap = new Map(BUILDINGS_DB.map(b => [b.name.replace(/\s+/g, ''), b]));
+    const normalizeKey = (s: string) => s.replace(/동탄|\s+/g, '');
+    const existingMap = new Map(BUILDINGS_DB.map(b => [normalizeKey(b.name), b]));
     
     return centers.map((item, idx) => {
-      const cleanName = item.name ? item.name.replace(/\s+/g, '') : '';
-      const existing = existingMap.get(cleanName);
+      const cleanName = item.name ? normalizeKey(item.name) : '';
+      let existing = existingMap.get(cleanName);
+      if (!existing && cleanName) {
+        existing = BUILDINGS_DB.find(b => {
+          const bKey = normalizeKey(b.name);
+          return bKey.includes(cleanName) || cleanName.includes(bKey);
+        });
+      }
+
       if (existing) {
         return {
           ...existing,
+          name: item.name || existing.name,
+          address: existing.address || item.roadAddress || item.jibunAddress,
           totalUnits: item.unitCount || existing.totalUnits,
           score: calculateJisanScore(item, existing.score),
           specs: {
@@ -507,6 +494,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
         name: item.name || '지식산업센터',
         type: item.buildingStatus ? `${item.buildingStatus} 지식산업센터` : '지식산업센터',
         dong: ((item.roadAddress || '').includes('오산동') || (item.jibunAddress || '').includes('오산동')) ? '동탄오산동' : '동탄영천동',
+        address: item.roadAddress || item.jibunAddress || `경기도 화성시 ${((item.roadAddress || '').includes('오산동') || (item.jibunAddress || '').includes('오산동')) ? '오산동' : '영천동'}`,
         rentPerPy: '3.0만 ~ 4.0만원',
         features: [
           item.buildingStatus ? `상태: ${item.buildingStatus}` : '동탄테크노밸리 입지',

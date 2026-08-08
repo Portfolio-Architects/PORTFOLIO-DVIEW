@@ -7,18 +7,17 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
-  const lawdCd = searchParams.get('lawdCd') || '41590';
-  const dealYmd = searchParams.get('dealYmd') || '202605';
+  const lawdCd = searchParams.get('lawdCd') || '41591';
+  const dealYmd = searchParams.get('dealYmd') || 'all';
 
   try {
     const list = await getOfficeTransactions(lawdCd, dealYmd);
     logger.info('GET /api/technovalley/transactions', 'Fetched office transactions successfully', { count: list.length, lawdCd, dealYmd });
     
-    // Add brief cache header for performance (max-age 60s, stale-while-revalidate 30s)
     return NextResponse.json(list, {
       status: 200,
       headers: {
-        'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=60'
       }
     });
   } catch (err) {

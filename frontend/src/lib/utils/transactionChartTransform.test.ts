@@ -87,10 +87,50 @@ describe('transactionChartTransform utilities', () => {
       byMonthTier.set(202405, { all: [8.5] });
 
       const res = calculateMonthlyAverages(mockTxs as any, 'sale', 202401, byMonthTier);
-      expect(res).toHaveLength(1);
-      expect(res[0].ym).toBe(202405);
-      expect(res[0].saleAvg).toBe(8.5);
-      expect(res[0].jeonseAvg).toBe(5);
+      const m202405 = res.find((item) => item.ym === 202405);
+      expect(m202405).toBeDefined();
+      expect(m202405?.saleAvg).toBe(8.5);
+      expect(m202405?.jeonseAvg).toBe(5);
+    });
+
+    it('carries over June price (202606) to July (202607) when July transactions are missing', () => {
+      const mockTxs = [
+        {
+          price: 222500,
+          contractYm: '202606',
+          contractDay: '04',
+          dealType: '매매',
+          area: 114,
+          floor: 33,
+        },
+        {
+          price: 73500,
+          deposit: 73500,
+          contractYm: '202607',
+          contractDay: '10',
+          dealType: '전세',
+          area: 114,
+          floor: 12,
+        },
+      ];
+
+      const byMonthTier = new Map();
+      byMonthTier.set(202606, { all: [22.25] }); // June has sale average 22.25억
+
+      // July (202607) has no sale transactions in byMonthTier
+      const res = calculateMonthlyAverages(mockTxs as any, 'sale', 202601, byMonthTier);
+
+      const junePoint = res.find((d) => d.ym === 202606);
+      const julyPoint = res.find((d) => d.ym === 202607);
+
+      expect(junePoint).toBeDefined();
+      expect(junePoint?.saleAvg).toBe(22.25);
+      expect(junePoint?.isSaleCarriedOver).toBe(false);
+
+      expect(julyPoint).toBeDefined();
+      expect(julyPoint?.saleAvg).toBe(22.25); // Carried over June price!
+      expect(julyPoint?.isSaleCarriedOver).toBe(true);
+      expect(julyPoint?.jeonseAvg).toBe(7.35); // July rent price
     });
   });
 });

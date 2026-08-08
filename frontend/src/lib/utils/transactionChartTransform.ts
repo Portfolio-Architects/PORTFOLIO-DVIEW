@@ -72,10 +72,13 @@ export interface ProcessedMonthlyPoint {
   ym: number;
   bandHigh?: number;
   bandLow?: number;
+  isSaleCarriedOver?: boolean;
+  isJeonseCarriedOver?: boolean;
 }
 
 /**
- * Safely compute monthly transaction averages and price boundaries using reusable Map buffers
+ * Safely compute monthly transaction averages and price boundaries using reusable Map buffers.
+ * Forward fills prices when a month (e.g. July) has no transactions from the preceding month (e.g. June).
  */
 export const calculateMonthlyAverages = (
   transactions: TransactionRecord[] | null | undefined,
@@ -86,7 +89,7 @@ export const calculateMonthlyAverages = (
   bandLow?: number
 ): ProcessedMonthlyPoint[] => {
   const safeList = transactions || [];
-  if (!safeList.length) return [];
+  if (!safeList.length && byMonthTier.size === 0) return [];
 
   sharedSecondaryByMonth.clear();
   sharedSecondaryMonthly.clear();
@@ -140,9 +143,26 @@ export const calculateMonthlyAverages = (
     return Math.round((sum / arr.length) * 1000) / 1000;
   };
 
-  const allYms = Array.from(new Set([...byMonthTier.keys(), ...sharedSecondaryMonthly.keys()]));
+  const allYmsSet = new Set([...byMonthTier.keys(), ...sharedSecondaryMonthly.keys()]);
+  const sortedYms = Array.from(allYmsSet).sort((a, b) => a - b);
 
-  const result = allYms
+  if (sortedYms.length > 0) {
+    const minYm = sortedYms[0];
+    const maxYm = Math.max(sortedYms[sortedYms.length - 1], 202607);
+    let cur = minYm;
+    while (cur <= maxYm) {
+      allYmsSet.add(cur);
+      let y = Math.floor(cur / 100);
+      let m = (cur % 100) + 1;
+      if (m > 12) {
+        y += 1;
+        m = 1;
+      }
+      cur = y * 100 + m;
+    }
+  }
+
+  const rawList = Array.from(allYmsSet)
     .map((ym) => {
       const buckets = byMonthTier.get(ym);
       const tsVal = new Date(Math.floor(ym / 100) || 2026, ((ym % 100) || 6) - 1, 15).getTime();
@@ -160,13 +180,44 @@ export const calculateMonthlyAverages = (
         ym,
         bandHigh,
         bandLow,
+        isSaleCarriedOver: false,
+        isJeonseCarriedOver: false,
       };
     })
     .filter((d) => !isNaN(d.ts))
     .sort((a, b) => a.ts - b.ts);
 
+  // Forward fill logic (6월 등 이전 가격 승계)
+  let lastSaleAvg: number | undefined = undefined;
+  let lastJeonseAvg: number | undefined = undefined;
+  let lastMonthAvg: number | undefined = undefined;
+
+  for (let i = 0; i < rawList.length; i++) {
+    const item = rawList[i];
+
+    if (item.saleAvg !== undefined) {
+      lastSaleAvg = item.saleAvg;
+    } else if (lastSaleAvg !== undefined) {
+      item.saleAvg = lastSaleAvg;
+      item.isSaleCarriedOver = true;
+    }
+
+    if (item.jeonseAvg !== undefined) {
+      lastJeonseAvg = item.jeonseAvg;
+    } else if (lastJeonseAvg !== undefined) {
+      item.jeonseAvg = lastJeonseAvg;
+      item.isJeonseCarriedOver = true;
+    }
+
+    if (item.monthAvg !== undefined) {
+      lastMonthAvg = item.monthAvg;
+    } else if (lastMonthAvg !== undefined) {
+      item.monthAvg = lastMonthAvg;
+    }
+  }
+
   sharedSecondaryByMonth.clear();
   sharedSecondaryMonthly.clear();
 
-  return result;
+  return rawList;
 };

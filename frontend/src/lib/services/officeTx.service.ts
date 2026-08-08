@@ -100,15 +100,38 @@ export function parseOfficeXml(xml: string): OfficeTransaction[] {
 
 /**
  * Fetches office transaction data from public portal API.
- * Falls back to mock XML if KEY is missing or server is unreachable.
+ * Supports multi-month fetching when dealYmd is 'all' or omitted.
  */
-export async function getOfficeTransactions(lawdCd: string = '41590', dealYmd: string = '202605'): Promise<OfficeTransaction[]> {
+export async function getOfficeTransactions(lawdCd: string = '41591', dealYmd: string = 'all'): Promise<OfficeTransaction[]> {
   try {
-    const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(lawdCd, dealYmd);
-    return parseOfficeXml(xml);
+    const targetLawdCd = lawdCd === '41590' ? '41591' : lawdCd;
+
+    if (dealYmd !== 'all') {
+      const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, dealYmd);
+      return parseOfficeXml(xml);
+    }
+
+    const recentMonths = [
+      '202406', '202405', '202404', '202403', '202402', '202401',
+      '202312', '202311', '202310', '202309', '202308', '202307'
+    ];
+
+    const results = await Promise.all(
+      recentMonths.map(async (ym) => {
+        try {
+          const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, ym);
+          return parseOfficeXml(xml);
+        } catch {
+          return [];
+        }
+      })
+    );
+
+    const flattened = results.flat();
+    return flattened.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   } catch (err) {
-    logger.error('OfficeTxService.getOfficeTransactions', 'Error fetching or parsing office transactions, falling back to mock.', { error: err instanceof Error ? err.message : String(err) });
-    return parseOfficeXml(OfficeTxRepo.MOCK_XML_RESPONSE);
+    logger.error('OfficeTxService.getOfficeTransactions', 'Error fetching or parsing office transactions.', { error: err instanceof Error ? err.message : String(err) });
+    return [];
   }
 }
 

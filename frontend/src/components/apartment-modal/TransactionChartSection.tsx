@@ -22,7 +22,7 @@ import { AptTxSummary } from '@/lib/types/transaction';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import ChartErrorBoundary from '@/components/common/ChartErrorBoundary';
-import { getCachedTimestamp, formatAvgPriceEok, clearTsCache } from '@/lib/utils/transactionChartTransform';
+import { getCachedTimestamp, formatAvgPriceEok, clearTsCache, calculateMonthlyAverages } from '@/lib/utils/transactionChartTransform';
 
 const TOOLTIP_CURSOR_SECTION = { stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' };
 const BAR_RADIUS_SECTION: [number, number, number, number] = [2, 2, 0, 0];
@@ -484,64 +484,14 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   
   // Calculate secondary line data and monthly average stats (Jeonse/Sale averages) - Cached to avoid mousemove lag
   const monthlyData = React.useMemo(() => {
-    const secondaryTxs = safeTransactions.filter(tx => 
-      chartType === 'sale' 
-        ? (tx.dealType === '전세' || tx.dealType === '월세') 
-        : (tx.dealType !== '전세' && tx.dealType !== '월세')
+    return calculateMonthlyAverages(
+      safeTransactions,
+      chartType,
+      cutoffYm,
+      byMonthTier,
+      bandHigh,
+      bandLow
     );
-    
-    const secondaryByMonth = new Map<number, number[]>();
-    secondaryTxs.forEach(tx => {
-      let rawPrice = tx.price;
-      if (chartType === 'sale') { // secondary is jeonse
-        rawPrice = (tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055);
-      }
-      let priceEokNum = rawPrice / 10000;
-      if (priceEokNum > 100) priceEokNum = rawPrice / 100000000;
-      const price = Math.round(priceEokNum * 1000) / 1000;
-      
-      const ym = parseInt(tx.contractYm);
-      if (ym >= cutoffYm) {
-        if (!secondaryByMonth.has(ym)) secondaryByMonth.set(ym, []);
-        secondaryByMonth.get(ym)!.push(price);
-      }
-    });
-
-    const secondaryMonthly = new Map<number, number>();
-    secondaryByMonth.forEach((prices, ym) => {
-      if (prices.length > 0) {
-        const sorted = [...prices].sort((a,b)=>a-b);
-        const q1 = sorted[Math.floor(sorted.length * 0.1)] || 0;
-        const q3 = sorted[Math.floor(sorted.length * 0.9)] || 10;
-        const filtered = prices.filter(p => p >= q1 * 0.8 && p <= q3 * 1.2);
-        const valid = filtered.length > 0 ? filtered : prices;
-        secondaryMonthly.set(ym, Math.round((valid.reduce((a, b) => a + b, 0) / valid.length) * 1000) / 1000);
-      }
-    });
-
-    const avg = (arr: number[]) => arr.length > 0 ? Math.round((arr.reduce((a, b) => a + b, 0) / arr.length) * 1000) / 1000 : undefined;
-    
-    const allYms = Array.from(new Set([...byMonthTier.keys(), ...secondaryMonthly.keys()]));
-    
-    return allYms
-      .map(ym => {
-        const buckets = byMonthTier.get(ym);
-        const tsVal = new Date(Math.floor(ym / 100) || 2026, ((ym % 100) || 6) - 1, 15).getTime();
-        const ts = isNaN(tsVal) ? new Date(2026, 5, 15).getTime() : tsVal;
-
-        return {
-          ts,
-          monthAvg: buckets ? avg(buckets.all) : undefined,
-          secondaryAvg: secondaryMonthly.get(ym),
-          saleAvg: chartType === 'sale' ? (buckets ? avg(buckets.all) : undefined) : secondaryMonthly.get(ym),
-          jeonseAvg: chartType === 'sale' ? secondaryMonthly.get(ym) : (buckets ? avg(buckets.all) : undefined),
-          volume: buckets ? buckets.all.length : 0, 
-          ym,
-          bandHigh, bandLow,
-        };
-      })
-      .filter(d => !isNaN(d.ts))
-      .sort((a, b) => a.ts - b.ts);
   }, [safeTransactions, chartType, cutoffYm, byMonthTier, bandHigh, bandLow]);
 
 

@@ -221,44 +221,6 @@ export default function CoLeasingBoard() {
     <div className="flex flex-col gap-6 w-full max-w-full min-w-0 box-border">
       <div className="flex flex-col gap-6 animate-in fade-in duration-300 w-full max-w-full min-w-0 box-border">
       
-      {/* ═══ TOP: Co-Leasing KPIs ═══ */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-6 w-full min-w-0 max-w-full box-border">
-        
-        {/* KPI 1 */}
-        <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-full box-border">
-          <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">이번 달 매칭 성사</span>
-            <span className="text-[16px] sm:text-[20px] font-black text-primary tracking-tight truncate">14 건 완료</span>
-          </div>
-          <span className="p-2 bg-emerald-500/10 text-[#00a37b] rounded-xl shrink-0">
-            <Check size={18} />
-          </span>
-        </div>
-
-        {/* KPI 2 */}
-        <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-full box-border">
-          <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">평균 공실 해소 기간</span>
-            <span className="text-[16px] sm:text-[20px] font-black text-primary tracking-tight truncate">18.5 일 소요</span>
-          </div>
-          <span className="p-2 bg-hs-orange/10 text-hs-orange rounded-xl shrink-0">
-            <Calendar size={18} />
-          </span>
-        </div>
-
-        {/* KPI 3 */}
-        <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] shadow-sm flex items-center justify-between hover:scale-[1.01] transition-all min-w-0 overflow-hidden w-full box-border">
-          <div className="flex flex-col gap-0.5 sm:gap-1 min-w-0">
-            <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">대기 중인 오피스 파트너</span>
-            <span className="text-[16px] sm:text-[20px] font-black text-primary tracking-tight truncate">42 개기업 / 창업자</span>
-          </div>
-          <span className="p-2 bg-hs-blue/10 text-hs-blue rounded-xl shrink-0">
-            <Users size={18} />
-          </span>
-        </div>
-
-      </div>
-
       {/* ═══ MIDDLE: Filter Controls & Action Button ═══ */}
       <div className="bg-surface border border-border/80 p-3.5 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col md:flex-row justify-between items-stretch md:items-center gap-3 w-full min-w-0 max-w-full overflow-hidden box-border">
         

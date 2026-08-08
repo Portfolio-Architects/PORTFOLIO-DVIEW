@@ -178,6 +178,8 @@ export const MOCK_XML_RESPONSE = `
 </response>
 `;
 
+const EMPTY_XML_RESPONSE = `<response><header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header><body><items></items></body></response>`;
+
 export async function fetchOfficeXmlFromPublicPortal(lawdCd: string, dealYmd: string): Promise<string> {
   const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
   const endpoint = 'https://apis.data.go.kr/1613000/RTMSDataSvcNrgTrade/getRTMSDataSvcNrgTrade';
@@ -193,15 +195,15 @@ export async function fetchOfficeXmlFromPublicPortal(lawdCd: string, dealYmd: st
     if (response.status === 200 && response.data && typeof response.data === 'string') {
       const xml = response.data;
       if (xml.includes('SERVICE KEY IS INVALID') || xml.includes('LIMITED NUMBER OF SERVICE') || xml.includes('SERVICE_KEY_IS_NOT_REGISTERED_ERROR')) {
-        logger.warn('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'Public API key issue detected, falling back to mock.', { xmlSnippet: xml.substring(0, 200) });
-        return MOCK_XML_RESPONSE;
+        logger.warn('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'Public API key issue detected, returning empty response without mock data.', { xmlSnippet: xml.substring(0, 200) });
+        return EMPTY_XML_RESPONSE;
       }
       return xml;
     }
-    logger.warn('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'Invalid API response format, falling back to mock.', { status: response.status });
-    return MOCK_XML_RESPONSE;
+    logger.warn('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'Invalid API response format, returning empty response.', { status: response.status });
+    return EMPTY_XML_RESPONSE;
   } catch (err) {
-    logger.error('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'Error during Public API request, falling back to mock.', { error: err instanceof Error ? err.message : String(err) });
-    return MOCK_XML_RESPONSE;
+    logger.error('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'Error during Public API request, returning empty response.', { error: err instanceof Error ? err.message : String(err) });
+    return EMPTY_XML_RESPONSE;
   }
 }
