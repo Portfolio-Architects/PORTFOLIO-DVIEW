@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import dynamic from 'next/dynamic';
+import OfficeDetailModal from '@/components/OfficeDetailModal';
 
 const CoLeasingBoard = dynamic(() => import('@/components/macro/CoLeasingBoard'), {
   ssr: false,
@@ -359,6 +360,52 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
 
 OfficeBuildingCard.displayName = 'OfficeBuildingCard';
 
+function calculateJisanScore(item: any, existingScore?: number): number {
+  let score = 10;
+
+  // 1. 건축/입주 상태 (최대 20점)
+  const status = item.buildingStatus || '';
+  if (status.includes('완공') || status.includes('완료')) score += 20;
+  else if (status.includes('건축중')) score += 10;
+  else score += 2; // 미착공 / 사업승인
+
+  // 2. 단지 규모 (연면적 & 총 호수) (최대 20점)
+  const units = item.unitCount || 0;
+  const area = item.totalFloorArea || 0;
+  if (area >= 200000 || units >= 1500) score += 20;
+  else if (area >= 100000 || units >= 800) score += 16;
+  else if (area >= 50000 || units >= 400) score += 12;
+  else if (area >= 20000 || units >= 200) score += 8;
+  else score += 4;
+
+  // 3. 입지 및 도로 교통 (최대 20점)
+  const address = (item.roadAddress || item.jibunAddress || '');
+  if (address.includes('동탄대로')) score += 20;
+  else if (address.includes('동탄기흥로')) score += 16;
+  else if (address.includes('동탄첨단산업1로') || address.includes('동탄첨단산업2로')) score += 12;
+  else score += 8;
+
+  // 4. 드라이브인 / 제조 하역 시설 (최대 15점)
+  const name = item.name || '';
+  const isDriveIn = name.includes('IX') || 
+                    name.includes('V1') || 
+                    name.includes('드라이브') || 
+                    name.includes('테라타워') || 
+                    name.includes('SH타임스퀘어') ||
+                    (item.regType || '').includes('제조');
+  if (isDriveIn) score += 15;
+  else score += 8;
+
+  // 5. 시공사 브랜드 (최대 15점)
+  const builder = item.builder || item.developer || '';
+  if (builder.includes('현대') || builder.includes('금강') || builder.includes('SK') || builder.includes('포스코') || builder.includes('DL') || builder.includes('한화') || builder.includes('GS') || builder.includes('대우')) score += 15;
+  else if (builder && builder !== '미착공') score += 8;
+  else score += 2;
+
+  const calculated = Math.min(98, Math.max(45, score));
+  return existingScore ? Math.max(existingScore, calculated) : calculated;
+}
+
 const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [searchQuery, setSearchQuery] = useState('');
@@ -426,46 +473,6 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
     dedupingInterval: 60000,
   });
 
-function calculateJisanScore(item: any, existingScore?: number): number {
-  if (existingScore) return existingScore;
-
-  let score = 40;
-
-  // 1. 건축/입주 상태 (최대 30점)
-  const status = item.buildingStatus || '';
-  if (status.includes('완공') || status.includes('완료')) score += 30;
-  else if (status.includes('건축중')) score += 18;
-  else score += 5; // 미착공 / 사업승인
-
-  // 2. 단지 규모 (최대 20점)
-  const units = item.unitCount || 0;
-  const area = item.totalFloorArea || 0;
-  if (units >= 800 || area >= 100000) score += 20;
-  else if (units >= 400 || area >= 50000) score += 15;
-  else if (units >= 200 || area >= 20000) score += 10;
-  else score += 5;
-
-  // 3. 입지 및 도로 교통 (최대 20점)
-  const address = (item.roadAddress || item.jibunAddress || '');
-  if (address.includes('동탄대로') || address.includes('동탄기흥로')) score += 20;
-  else if (address.includes('동탄첨단산업1로') || address.includes('영천동')) score += 14;
-  else score += 8;
-
-  // 4. 드라이브인 / 제조 하역 시설 (최대 15점)
-  const name = item.name || '';
-  const isDriveIn = name.includes('IX') || name.includes('V1') || name.includes('드라이브') || name.includes('SH') || (item.regType || '').includes('제조');
-  if (isDriveIn) score += 15;
-  else score += 8;
-
-  // 5. 시공사 브랜드 (최대 15점)
-  const builder = item.builder || '';
-  if (builder.includes('현대') || builder.includes('금강') || builder.includes('SK') || builder.includes('포스코') || builder.includes('DL') || builder.includes('한화')) score += 15;
-  else if (builder && builder !== '미착공') score += 8;
-  else score += 2;
-
-  return Math.min(99, Math.max(50, score));
-}
-
   const allBuildings = useMemo<OfficeBuilding[]>(() => {
     const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
     if (!centers.length) return BUILDINGS_DB;
@@ -479,6 +486,7 @@ function calculateJisanScore(item: any, existingScore?: number): number {
         return {
           ...existing,
           totalUnits: item.unitCount || existing.totalUnits,
+          score: calculateJisanScore(item, existing.score),
           specs: {
             ...existing.specs,
             gfa: item.totalFloorArea ? `${Math.round(item.totalFloorArea).toLocaleString()}㎡ (약 ${Math.round(item.totalFloorArea * 0.3025).toLocaleString()}평)` : existing.specs.gfa,
@@ -487,7 +495,12 @@ function calculateJisanScore(item: any, existingScore?: number): number {
         };
       }
 
-      const driveIn = (item.name || '').includes('IX') || (item.name || '').includes('V1') || (item.name || '').includes('드라이브') || (item.name || '').includes('SH') || (item.regType || '').includes('제조');
+      const driveIn = (item.name || '').includes('IX') || 
+                      (item.name || '').includes('V1') || 
+                      (item.name || '').includes('드라이브') || 
+                      (item.name || '').includes('테라타워') || 
+                      (item.name || '').includes('SH타임스퀘어') || 
+                      (item.regType || '').includes('제조');
       const isVeryClose = (item.roadAddress || '').includes('동탄대로') || (item.roadAddress || '').includes('동탄기흥로');
       
       return {
@@ -554,6 +567,24 @@ function calculateJisanScore(item: any, existingScore?: number): number {
       return 0;
     });
   }, [allBuildings, searchQuery, selectedDriveIn, selectedStation, selectedScale, sortBy]);
+
+  // Handle #building= hash to open modal automatically
+  useEffect(() => {
+    if (typeof window === 'undefined' || !allBuildings.length) return;
+    const handleHashChange = () => {
+      const hash = decodeURIComponent(window.location.hash || '');
+      if (hash.includes('#building=')) {
+        const buildingName = hash.split('#building=')[1]?.trim();
+        if (buildingName) {
+          const match = allBuildings.find(b => b.name === buildingName || b.name.replace(/\s+/g, '') === buildingName.replace(/\s+/g, ''));
+          if (match) setSelectedBuilding(match);
+        }
+      }
+    };
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, [allBuildings]);
 
   return (
     <div className="flex flex-col w-full max-w-full overflow-x-clip min-w-0 box-border bg-transparent min-h-[85vh] min-h-[800px]" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
@@ -738,127 +769,11 @@ function calculateJisanScore(item: any, existingScore?: number): number {
         </div>
       </div>
 
-      {/* 상세 정보 모달 */}
-      {selectedBuilding && (
-        <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-surface/90 dark:bg-zinc-900/90 backdrop-blur-lg w-full max-w-[580px] h-[82vh] max-h-[640px] rounded-[20px] shadow-2xl border border-border/40 dark:border-white/10 p-6 sm:p-8 flex flex-col justify-between animate-in zoom-in-95 duration-200 relative">
-            
-            <button 
-              onClick={() => setSelectedBuilding(null)}
-              className="absolute top-5 right-5 p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-secondary dark:text-zinc-400 transition-all cursor-pointer"
-            >
-              <X size={20} />
-            </button>
-
-            <div className="flex items-center gap-3.5 mb-2 mt-2 shrink-0">
-              <div className="p-3 bg-[#ea6100]/10 text-[#ea6100] rounded-2xl">
-                <Building2 size={24} />
-              </div>
-              <div>
-                <h3 className="text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">{selectedBuilding.name}</h3>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-xs font-bold text-secondary/70 dark:text-zinc-400">{selectedBuilding.type}</span>
-                  <span className="w-1 h-1 rounded-full bg-neutral-300 dark:bg-zinc-700 shrink-0" />
-                  <span className="text-xs font-extrabold text-[#ea6100]">{selectedBuilding.dong}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Scrollable Content Area with Stable Height */}
-            <div className="flex-1 overflow-y-auto pr-1 my-4 space-y-5 scrollbar-thin select-none">
-              
-              {/* 빌딩 주요 제원 */}
-              <div>
-                <h4 className="text-xs font-black text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2.5">빌딩 주요 제원</h4>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
-                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Maximize2 size={16} /></div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">연면적 (GFA)</span>
-                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.gfa}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
-                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Layers size={16} /></div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">건물 규모</span>
-                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.scale}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
-                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Car size={16} /></div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">주차 시설</span>
-                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.parking}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-body/40 dark:bg-zinc-800/40 border border-border/40 dark:border-white/10 rounded-[20px] flex items-center gap-3">
-                    <div className="text-secondary/70 dark:text-zinc-400 shrink-0"><Calendar size={16} /></div>
-                    <div className="flex flex-col min-w-0">
-                      <span className="text-[10px] text-secondary/60 dark:text-zinc-400 font-bold">준공 연월</span>
-                      <span className="text-[11px] text-secondary/90 dark:text-zinc-300 font-extrabold mt-0.5 truncate">{selectedBuilding.specs.completion}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* 빌딩 상세 특징 */}
-              <div>
-                <h4 className="text-xs font-bold text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2.5">빌딩 상세 특징</h4>
-                <div className="flex flex-wrap gap-1.5">
-                  {selectedBuilding.features.map(feat => (
-                    <span key={feat} className="text-[11px] font-extrabold px-3 py-1.5 bg-neutral-50/50 dark:bg-zinc-800/50 rounded-xl border border-border/30 dark:border-white/5 text-secondary dark:text-zinc-300">
-                      {feat}
-                    </span>
-                  ))}
-                </div>
-              </div>
-
-              {/* 빌딩 설명 */}
-              <div>
-                <h4 className="text-xs font-bold text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2">빌딩 설명</h4>
-                <p className="text-[12.5px] leading-relaxed text-secondary/90 dark:text-zinc-300 font-medium">
-                  {selectedBuilding.desc}
-                </p>
-              </div>
-
-              {/* 최근 3개월 실거래/시세 현황 */}
-              <div>
-                <h4 className="text-xs font-bold text-secondary/90 dark:text-zinc-300 tracking-tight leading-normal mb-2.5">최근 3개월 실거래/시세 현황</h4>
-                <div className="border border-border/40 dark:border-white/10 rounded-[20px] overflow-hidden divide-y divide-border/40 dark:divide-white/10 bg-body/20">
-                  {selectedBuilding.recentTransactions.map((tx, idx) => (
-                    <div key={idx} className="flex items-center justify-between px-4 py-3.5 text-[12px] font-bold hover:bg-body/20 dark:hover:bg-zinc-800/20 transition-all duration-300">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full ${
-                          tx.type === '매매' ? 'bg-orange-500/10 dark:bg-orange-500/20 text-orange-600' : 'bg-blue-500/10 dark:bg-blue-500/20 text-blue-600'
-                        }`}>
-                          {tx.type}
-                        </span>
-                        <span className="text-secondary dark:text-zinc-300">{tx.sizeSqM}㎡ (실평수)</span>
-                        <span className="text-secondary/70 dark:text-zinc-400">{tx.floor}층</span>
-                      </div>
-                      <div className="text-primary/95 dark:text-zinc-100 font-black">{tx.price}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex gap-2.5 w-full mt-2 shrink-0">
-              <button
-                onClick={() => setSelectedBuilding(null)}
-                className="flex-1 py-3.5 bg-[#c44d00] hover:bg-[#9e3c00] dark:bg-[#ff8f00] dark:hover:bg-[#c44d00] text-white font-extrabold text-[13px] rounded-2xl shadow-md transition-all active:scale-[0.98] cursor-pointer"
-              >
-                확인
-              </button>
-            </div>
-
-          </div>
-        </div>
-      )}
+      {/* 고도화된 지식산업센터 상세정보 모달 (Portal 기반) */}
+      <OfficeDetailModal 
+        building={selectedBuilding} 
+        onClose={() => setSelectedBuilding(null)} 
+      />
     </div>
   );
 });
