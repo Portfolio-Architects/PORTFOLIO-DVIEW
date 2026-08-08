@@ -95,23 +95,32 @@ const ScatterCustomizedDots = React.memo(({
         const isHov = hoveredDot?.data === d;
         const floorColor = getFloorColor(d.dealType);
         return (
-          <circle
-            key={i}
-            cx={cx}
-            cy={cy}
-            r={isHov ? 5 : 3}
-            fill={floorColor}
-            opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.35)}
-            stroke={isHov ? '#fbbf24' : 'none'}
-            strokeWidth={isHov ? 2 : 0}
-            style={{ cursor: 'pointer', transition: 'r 0.15s, opacity 0.15s', WebkitTapHighlightColor: 'transparent' }}
-            onMouseEnter={isTouchDevice ? undefined : () => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
-            onMouseLeave={isTouchDevice ? undefined : () => setHoveredDot(null)}
-            onTouchStart={(e) => {
-              e.stopPropagation();
-              setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } });
-            }}
-          />
+          <g key={i} style={{ cursor: 'pointer' }}>
+            {/* 12px 히트 영역 (마우스 오버/터치 영역 확장) */}
+            <circle
+              cx={cx}
+              cy={cy}
+              r={12}
+              fill="transparent"
+              onMouseEnter={isTouchDevice ? undefined : () => setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } })}
+              onMouseLeave={isTouchDevice ? undefined : () => setHoveredDot(null)}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                setHoveredDot({ x: cx, y: cy, data: { ...d, dealType: d.dealType || '' } });
+              }}
+            />
+            {/* 시각적 점 */}
+            <circle
+              cx={cx}
+              cy={cy}
+              r={isHov ? 5.5 : 3.5}
+              fill={floorColor}
+              opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.4)}
+              stroke={isHov ? '#fbbf24' : 'none'}
+              strokeWidth={isHov ? 2 : 0}
+              style={{ pointerEvents: 'none', transition: 'r 0.15s, opacity 0.15s' }}
+            />
+          </g>
         );
       })}
     </g>
@@ -851,6 +860,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   cursor={TOOLTIP_CURSOR_SECTION}
                   isAnimationActive={false}
                   animationDuration={0}
+                  wrapperStyle={{ zIndex: 30, pointerEvents: 'none' }}
                 />
                 <Bar dataKey="volume" yAxisId="volume" fill="#ea6100" radius={BAR_RADIUS_SECTION} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
                 <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={DOT_SALE_SECTION} activeDot={ACTIVE_DOT_SALE} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
@@ -866,10 +876,10 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
             const { d, typeName, floorColor } = hoveredDotInfo;
             return (
               <div 
-                className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-10 whitespace-nowrap text-left"
+                className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-20 whitespace-nowrap text-left"
                 style={{
-                  left: hoveredDot.x + 48, top: hoveredDot.y + 10,
-                  transform: 'translate(-50%, -100%) translateY(-12px)',
+                  left: hoveredDot.x, top: hoveredDot.y,
+                  transform: 'translate(-50%, -100%) translateY(-10px)',
                 }}
               >
                 <div className="text-tertiary text-[11px] mb-1">{d.fullDate}</div>
