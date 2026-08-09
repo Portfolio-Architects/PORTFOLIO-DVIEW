@@ -756,6 +756,7 @@ const DashboardClient = React.memo(function DashboardClient({
                 macroTrendData={macroTrend}
                 nameMapping={nameMapping || EMPTY_OBJECT}
                 updateFavoriteOrder={updateFavoriteOrder}
+                onToggleFavorite={handleAptToggleFavorite}
                 publicRentalSet={publicRentalSet}
                 userFavorites={userFavorites}
                 isFavoritesLoading={isFavoritesLoading}

@@ -26,6 +26,11 @@ const favoriteQuerySchema = z.object({
   userId: z.string().min(1),
 });
 
+function toSafeDocId(userId: string, aptName: string): string {
+  const safeAptName = aptName.replace(/\//g, '__SLASH__');
+  return `${userId}_${safeAptName}`;
+}
+
 export async function POST(request: NextRequest) {
   try {
     if (rateLimiter) {
@@ -64,9 +69,9 @@ export async function POST(request: NextRequest) {
     }
     const { aptName } = parsed.data;
 
-    const docId = `${userId}_${aptName}`;
+    const docId = toSafeDocId(userId, aptName);
     const favRef = adminDb.collection('favorites').doc(docId);
-    const countRef = adminDb.collection('favoriteCounts').doc(aptName);
+    const countRef = adminDb.collection('favoriteCounts').doc(aptName.replace(/\//g, '__SLASH__'));
 
     const favorited = await adminDb.runTransaction(async (transaction) => {
       const favSnap = await transaction.get(favRef);

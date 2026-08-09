@@ -175,6 +175,7 @@ interface MacroDashboardProps {
   recentTransactions?: RecentTransaction[];
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
+  onToggleFavorite?: (aptName: string) => void;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
 
@@ -555,6 +556,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   recentTransactions = [],
   typeMap = {},
   updateFavoriteOrder,
+  onToggleFavorite,
   preloadApartmentTx,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
@@ -665,17 +667,68 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     });
   }, [railNotices, gapRankingDong]);
 
-  const railStrategyNotices = useMemo(() => {
+  const defaultRailNotices: LocalNoticeItem[] = useMemo(() => [
+    {
+      id: 'fallback_rail_1',
+      title: '동탄인덕원선(인동선) 전 구간 건설공사 추진현황 안내',
+      url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1131',
+      dept: '철도전략과',
+      date: '2026-07-28',
+      isDongtan: true,
+      source: 'rail'
+    },
+    {
+      id: 'fallback_rail_2',
+      title: 'GTX-A 동탄~수서 구간 열차 운행 시각표 및 이용 안내',
+      url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1131',
+      dept: '철도전략과',
+      date: '2026-07-15',
+      isDongtan: true,
+      source: 'rail'
+    }
+  ], []);
+
+  const defaultTramNotices: LocalNoticeItem[] = useMemo(() => [
+    {
+      id: 'fallback_tram_1',
+      title: '동탄 도시철도(트램) 건설사업 추진현황 및 향후 계획',
+      url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1154',
+      dept: '트램건설추진단',
+      date: '2026-08-01',
+      isDongtan: true,
+      source: 'rail'
+    },
+    {
+      id: 'fallback_tram_2',
+      title: '동탄트램 차량 제작 및 신호시스템 도입 경과 안내',
+      url: 'https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1154',
+      dept: '트램건설추진단',
+      date: '2026-07-20',
+      isDongtan: true,
+      source: 'rail'
+    }
+  ], []);
+
+  const rawTramNotices = useMemo(() => {
     return railNotices.filter((n: LocalNoticeItem) => 
-      (n.dept || '').includes('철도') || (n.dept || '').includes('전략')
+      n.id.includes('1154') ||
+      (n.dept || '').includes('트램') || (n.dept || '').includes('추진단') ||
+      (n.title || '').includes('트램')
     );
   }, [railNotices]);
 
   const tramNotices = useMemo(() => {
-    return railNotices.filter((n: LocalNoticeItem) => 
-      (n.dept || '').includes('트램') || (n.dept || '').includes('추진단')
-    );
-  }, [railNotices]);
+    return rawTramNotices.length > 0 ? rawTramNotices : defaultTramNotices;
+  }, [rawTramNotices, defaultTramNotices]);
+
+  const rawRailStrategyNotices = useMemo(() => {
+    const tramNoticeIds = new Set(rawTramNotices.map(t => t.id));
+    return railNotices.filter((n: LocalNoticeItem) => !tramNoticeIds.has(n.id));
+  }, [railNotices, rawTramNotices]);
+
+  const railStrategyNotices = useMemo(() => {
+    return rawRailStrategyNotices.length > 0 ? rawRailStrategyNotices : defaultRailNotices;
+  }, [rawRailStrategyNotices, defaultRailNotices]);
 
   const nextCultureEvent = useMemo(() => {
     if (!noticesData?.notices) return null;

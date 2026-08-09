@@ -497,30 +497,27 @@ export async function GET(request: NextRequest) {
           const date = $(tds[4]).text().trim();
 
           if (originalId && title && link) {
-            const isDongtan = checkIfDongtan(title, dept);
-            if (isDongtan) {
-              const absoluteUrl = link.startsWith('http') 
-                ? link 
-                : `https://www.hscity.go.kr${link}`;
+            const absoluteUrl = link.startsWith('http') 
+              ? link 
+              : `https://www.hscity.go.kr${link}`;
 
-              const item = {
-                id: `rail_${originalId}`,
-                originalId,
-                title,
-                url: absoluteUrl,
-                dept,
-                date,
-                isDongtan: true,
-                source: 'rail' as const,
-                createdAt: new Date().toISOString()
-              };
+            const item = {
+              id: `rail_${originalId}`,
+              originalId,
+              title,
+              url: absoluteUrl,
+              dept: dept || '철도전략과',
+              date,
+              isDongtan: true,
+              source: 'rail' as const,
+              createdAt: new Date().toISOString()
+            };
 
-              const parsedItem = noticeItemSchema.safeParse(item);
-              if (parsedItem.success) {
-                notices.push(parsedItem.data);
-              } else {
-                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 3)', { errors: parsedItem.error.format() });
-              }
+            const parsedItem = noticeItemSchema.safeParse(item);
+            if (parsedItem.success) {
+              notices.push(parsedItem.data);
+            } else {
+              logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 3)', { errors: parsedItem.error.format() });
             }
           }
         });
@@ -569,30 +566,27 @@ export async function GET(request: NextRequest) {
           const date = $(tds[4]).text().trim();
 
           if (originalId && title && link) {
-            const isDongtan = checkIfDongtan(title, dept);
-            if (isDongtan) {
-              const absoluteUrl = link.startsWith('http') 
-                ? link 
-                : `https://www.hscity.go.kr${link}`;
+            const absoluteUrl = link.startsWith('http') 
+              ? link 
+              : `https://www.hscity.go.kr${link}`;
 
-              const item = {
-                id: `rail_1154_${originalId}`,
-                originalId,
-                title,
-                url: absoluteUrl,
-                dept,
-                date,
-                isDongtan: true,
-                source: 'rail' as const,
-                createdAt: new Date().toISOString()
-              };
+            const item = {
+              id: `rail_1154_${originalId}`,
+              originalId,
+              title,
+              url: absoluteUrl,
+              dept: dept || '트램건설추진단',
+              date,
+              isDongtan: true,
+              source: 'rail' as const,
+              createdAt: new Date().toISOString()
+            };
 
-              const parsedItem = noticeItemSchema.safeParse(item);
-              if (parsedItem.success) {
-                notices.push(parsedItem.data);
-              } else {
-                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 5)', { errors: parsedItem.error.format() });
-              }
+            const parsedItem = noticeItemSchema.safeParse(item);
+            if (parsedItem.success) {
+              notices.push(parsedItem.data);
+            } else {
+              logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 5)', { errors: parsedItem.error.format() });
             }
           }
         });

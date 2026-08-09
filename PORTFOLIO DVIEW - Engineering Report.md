@@ -198,8 +198,9 @@ src/
 
 ## 5. Feature Inventory (기능 명세)
 
-| 도메인 분류 | 핵심 기능명 | 파일 및 API 라우트 경로 | 기능 명세 및 상세 내용 |
-|:---|:---|:---|:---|
+| 도메인 분류 | 핵심 기능명 | 파일 및 API 라우트| 일시 | 주요 항목 | 요약 내용 |
+|:---|:---|:---|:---|:---|:---|
+| 2026-08-09 | **동탄 철도 교통 게시판 복원 및 관심 아파트 설정 오류 전면 수정 (Traffic Board Restore & Favorite Complex Fix - Phase 915)** | 1) 메인 대시보드 내 '동탄 철도 교통 게시판'([MacroDashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/MacroDashboardClient.tsx))의 '철도전략과 소식' 및 '트램건설추진단 소식' 필터링 가드를 개편하여, 시청 데이터의 부서명(`dept`)이 '화성시' 또는 '관리자'로 오거나 공백인 경우에도 게시판 ID(`1154` 등) 및 제목 키워드로 100% 정밀 분류되도록 수정하고 2중 폴백(Fallback) 방어막을 구축했습니다. 2) 행정망 크롤러([fetch-local-notices.js](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/scripts/fetch-local-notices.js), [sync-local-notices/route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/cron/sync-local-notices/route.ts))에서 철도전용(BBS 1131) 및 트램전용(BBS 1154) 소식 수집 시 키워드 필터 유실 없이 `isDongtan = true`로 전수 수집되도록 조치했습니다. 3) 슬래시(`/`)가 포함된 단지명(`동탄역 롯데캐슬 / C7`, `84A/B` 등) 관심 아파트 등록 시 발생하던 Firestore 경로 세그먼트 500 에러를 [route.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/app/api/favorite/route.ts) 내 `toSafeDocId` 인코딩 치환으로 해결하였습니다. 4) [useFavorites.ts](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/hooks/useFavorites.ts)를 강화하여 게스트 및 로그인 사용자 모두 로컬 스토리지 하이브리드 이중 보관과 네트워크 지연 무손실 동기화를 구성하고 [DashboardClient.tsx](file:///c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend/src/components/DashboardClient.tsx)의 `onToggleFavorite` props 전달을 내실화했습니다. 5) TypeScript 컴파일 검사(`npx tsc --noEmit`)를 무결하게 패스했습니다. |:---|
 | **Techno Valley** | 테크노밸리 거시 대시보드 | `TechnoValleyDashboard.tsx` | 업종 분포 도넛 차트(텍스트 스펙 비율 조정), 3대 지산(금강IX, 실리콘앨리, SH타임) 임대료/공실률 시계열 추이 차트, dynamic KPI 카드 그리드(총 근로자 수 및 평균 규모 실시간 갱신). |
 | **Techno Valley** | 지산 오피스 익스플로러 | `OfficeExplorerClient.tsx` | 10대 지식산업센터 단지 데이터베이스, 다중 복합 조건 필터(드라이브인/초역세권/GFA 스케일) 및 레이아웃 요동이 제거된 안정적 높이의 스크롤 오피스 탐색기. |
 | **Techno Valley** | 실거래가 OpenAPI 연동 | `/api/technovalley/transactions` | 국토교통부 상업업무용 실거래 API 실시간 연동, Cheerio XML 파서 및 API 장애 복원력을 보장하는 Mock XML 폴백 핸들러 탑재. |

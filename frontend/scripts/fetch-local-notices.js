@@ -232,21 +232,18 @@ async function main() {
         const date = $(tds[dateIdx]).text().trim();
 
         if (originalId && title && link) {
-          const isDongtan = checkIfDongtan(title, dept);
-          if (isDongtan) {
-            const absoluteUrl = link.startsWith('http') ? link : `https://www.hscity.go.kr${link}`;
-            notices.push({
-              id: `rail_${originalId}`,
-              originalId,
-              title,
-              url: absoluteUrl,
-              dept,
-              date,
-              isDongtan: true,
-              source: 'rail',
-              createdAt: new Date().toISOString()
-            });
-          }
+          const absoluteUrl = link.startsWith('http') ? link : `https://www.hscity.go.kr${link}`;
+          notices.push({
+            id: `rail_${originalId}`,
+            originalId,
+            title,
+            url: absoluteUrl,
+            dept: dept || '철도전략과',
+            date,
+            isDongtan: true,
+            source: 'rail',
+            createdAt: new Date().toISOString()
+          });
         }
       });
     } catch (err) {
@@ -295,21 +292,18 @@ async function main() {
         const date = $(tds[dateIdx]).text().trim();
 
         if (originalId && title && link) {
-          const isDongtan = checkIfDongtan(title, dept);
-          if (isDongtan) {
-            const absoluteUrl = link.startsWith('http') ? link : `https://www.hscity.go.kr${link}`;
-            notices.push({
-              id: `rail_1154_${originalId}`,
-              originalId,
-              title,
-              url: absoluteUrl,
-              dept,
-              date,
-              isDongtan: true,
-              source: 'rail',
-              createdAt: new Date().toISOString()
-            });
-          }
+          const absoluteUrl = link.startsWith('http') ? link : `https://www.hscity.go.kr${link}`;
+          notices.push({
+            id: `rail_1154_${originalId}`,
+            originalId,
+            title,
+            url: absoluteUrl,
+            dept: dept || '트램건설추진단',
+            date,
+            isDongtan: true,
+            source: 'rail',
+            createdAt: new Date().toISOString()
+          });
         }
       });
     } catch (err) {

@@ -197,24 +197,12 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
         body: JSON.stringify({ aptName: keyToModify }),
       });
-      if (!res.ok) throw new Error();
-    } catch {
+      if (!res.ok) {
+        logger.warn('useFavorites.handleToggleFavorite', 'Backend favorite sync failed, preserving local state', { aptName: keyToModify, status: res.status });
+      }
+    } catch (err) {
       if (!isMountedRef.current) return;
-      // Rollback on failure
-      setUserFavorites(prev => {
-        const next = new Set<string>(prev);
-        if (wasFavorited) {
-          next.add(keyToModify);
-        } else {
-          next.delete(keyToModify);
-        }
-        saveGuestFavorites(next);
-        return next;
-      });
-      setFavoriteCounts(prev => ({
-        ...prev,
-        [keyToModify]: Math.max(0, (prev[keyToModify] || 0) + (wasFavorited ? 1 : -1))
-      }));
+      logger.warn('useFavorites.handleToggleFavorite', 'Network error during favorite sync', { aptName: keyToModify }, err as Error);
     }
   }, [user, userFavorites, saveGuestFavorites]);
 

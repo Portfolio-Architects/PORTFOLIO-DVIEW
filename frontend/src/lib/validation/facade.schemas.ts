@@ -190,6 +190,7 @@ export const googleNewsItemSchema = z.object({
 
 export const noticeSchema = z.object({
   id: z.string(),
+  originalId: z.string().optional(),
   title: z.string().optional(),
   url: z.string().optional(),
   dept: z.string().optional(),
@@ -197,6 +198,7 @@ export const noticeSchema = z.object({
   isDongtan: z.boolean(),
   source: z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture']).optional(),
   createdAt: z.string().optional(),
+  content: z.string().optional(),
 });
 
 // Report Service Validation Schemas
