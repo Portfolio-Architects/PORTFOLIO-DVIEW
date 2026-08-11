@@ -105,38 +105,41 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
               logger.warn('useFavorites.syncGuest', 'Failed to sync guest favorite', { aptName }, e as Error);
             }
           }
-          try { localStorage.removeItem('dview_guest_favorites'); } catch {}
         }
 
-        fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } })
-          .then(r => r.json())
-          .then(data => {
-            if (unmounted) return;
-            const validation = FavoriteListResponseSchema.safeParse(data);
-            if (!validation.success) {
-              logger.warn('useFavorites.fetchFavorites', 'Validation failed for /api/favorite', {
-                errors: validation.error.issues.map(e => e.message),
-              });
-              return;
-            }
-            if (data?.error || data?.warning) {
-              logger.warn('useFavorites.fetchFavorites', 'API returned warning/error, preserving local state', {
-                error: data?.error,
-                warning: data?.warning,
-              });
-              return;
-            }
-            const validatedData = validation.data;
-            if (validatedData.favorites) {
-              setUserFavorites(new Set(validatedData.favorites));
-            }
-          })
-          .catch(err => logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err))
-          .finally(() => {
-            if (!unmounted) {
-              setIsFavoritesLoading(false);
-            }
-          });
+        try {
+          const r = await fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } });
+          const data = await r.json();
+          if (unmounted) return;
+
+          if (data?.error || data?.warning) {
+            logger.warn('useFavorites.fetchFavorites', 'API returned warning/error, preserving local state', {
+              error: data?.error,
+              warning: data?.warning,
+            });
+            return;
+          }
+
+          const validation = FavoriteListResponseSchema.safeParse(data);
+          if (validation.success && Array.isArray(validation.data?.favorites)) {
+            const serverFavorites = validation.data.favorites;
+            setUserFavorites(prev => {
+              const merged = new Set<string>([
+                ...Array.from(prev),
+                ...guestFavs,
+                ...serverFavorites,
+              ]);
+              saveGuestFavorites(merged);
+              return merged;
+            });
+          }
+        } catch (err) {
+          logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err);
+        } finally {
+          if (!unmounted) {
+            setIsFavoritesLoading(false);
+          }
+        }
       }).catch(err => {
         logger.warn('useFavorites.authToken', 'Auth token fetch failed', {}, err);
         if (!unmounted) {
