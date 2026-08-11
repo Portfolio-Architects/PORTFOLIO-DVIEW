@@ -89,7 +89,7 @@ DVIEW의 핵심 목적함수는 **2026년 시민·공무원 AI 공모전(화성�
 
 ## Git 커밋 및 푸시 자동화 프로토콜 (Git Commit & Push Protocol)
 사용자가 **"커밋"**, **"푸시"** (또는 이와 유사한 Git 제출 프롬프트)을 입력할 경우, 에이전트는 커밋/푸시 전에 다음 작업을 **반드시** 완료해야 합니다:
-1. **엔지니어링 리포트 기록**: `PORTFOLIO DVIEW - Engineering Report.md` 파일의 **11. Maintenance Policy** 섹션(패치노트)에 현재 세션에서 수행한 패치 및 업데이트 내역을 육하원칙에 맞게 정밀하게 기록합니다.
+1. **엔지니어링 리포트 기록 및 동기화**: `PORTFOLIO DVIEW - Engineering Report.md` 파일의 **11. Maintenance Policy & Changelog** 섹션(패치노트)에 현재 세션에서 수행한 패치 및 업데이트 내역을 육하원칙에 맞게 정밀하게 기록하고, Vercel 배포 번들 동기화를 위해 `frontend/src/data/engineering-report.md`에도 동일하게 사본을 동기화(복사)합니다.
 2. **AGENT.md 검토 및 정합성 검증**: 엔지니어링 리포트 기록과 연계하여 `AGENT.md`도 업데이트가 필요한지 항상 검증하고 업데이트하여, 두 문서 간의 논리적 정합성 및 무결성을 사전에 점검합니다.
 3. **변경 파일 커밋 & 푸시**: 변경된 모든 내용(코드, 리포트, AGENT.md)을 스테이징(`git add -A`)하고 커밋 메시지 규칙에 맞춰 커밋 후 원격지에 푸시합니다.
 
