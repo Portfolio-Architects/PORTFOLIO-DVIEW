@@ -899,38 +899,19 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
   useEffect(() => {
     if (!mounted) return;
-    
-    // 이미 디폴트 아파트를 설정한 경우 스킵
-    if (hasSetDefaultApt) {
-      return;
-    }
 
-    if (isFavoritesLoading) {
-      // 관심단지 로딩이 지연되는 경우 1초 안전 타임아웃으로 디폴트 설정 진행하여 무한 로딩 방지
-      const timer = setTimeout(() => {
-        if (!hasSetDefaultApt) {
-          const firstFav = userFavorites && userFavorites.size > 0 ? Array.from(userFavorites)[0] : "동탄역 롯데캐슬";
-          setSelectedTimelineApt(firstFav || "동탄역 롯데캐슬");
-          setHasSetDefaultApt(true);
-        }
-      }, 1000);
-      return () => clearTimeout(timer);
-    }
-
-    // 관심단지가 없는 경우 동탄역 롯데캐슬로 기본 설정
     if (!userFavorites || userFavorites.size === 0) {
-      setSelectedTimelineApt("동탄역 롯데캐슬");
-      setHasSetDefaultApt(true);
+      if (!selectedTimelineApt) {
+        setSelectedTimelineApt("동탄역 롯데캐슬");
+      }
       return;
     }
-    
-    // Set의 첫 번째 요소를 기본 관심 단지로 선택
-    const firstFav = Array.from(userFavorites)[0];
-    if (firstFav) {
-      setSelectedTimelineApt(firstFav);
-      setHasSetDefaultApt(true);
+
+    const favArray = Array.from(userFavorites);
+    if (!selectedTimelineApt || !favArray.some(fav => normalizeAptName(fav) === normalizeAptName(selectedTimelineApt) || isSameApartment(fav, selectedTimelineApt))) {
+      setSelectedTimelineApt(favArray[0]);
     }
-  }, [userFavorites, mounted, hasSetDefaultApt, isFavoritesLoading]);
+  }, [userFavorites, mounted, selectedTimelineApt]);
 
   // 로그인 상태 변화 감지 및 세션 전환 시 디폴트 설정 리셋
   const [prevUser, setPrevUser] = useState<string | null>(null);

@@ -38,16 +38,43 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     return [];
   }, []);
 
-  // Helper to save local guest favorites
+  // Helper to save local guest favorites and broadcast across components/tabs
   const saveGuestFavorites = useCallback((favs: Set<string> | string[]) => {
     if (typeof window === 'undefined') return;
     try {
       const list = Array.isArray(favs) ? favs : Array.from(favs);
       localStorage.setItem('dview_guest_favorites', JSON.stringify(list));
+      window.dispatchEvent(new CustomEvent('dview_favorites_updated', { detail: list }));
     } catch (e) {
       logger.warn('useFavorites.saveGuestFavorites', 'Failed to save guest favorites', {}, e as Error);
     }
   }, []);
+
+  // Listen for storage changes across tabs and custom events across components
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const syncFavorites = (e?: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent && customEvent.detail && Array.isArray(customEvent.detail)) {
+        setUserFavorites(new Set(customEvent.detail));
+      } else {
+        const guestFavs = getGuestFavorites();
+        if (guestFavs.length > 0) {
+          setUserFavorites(prev => {
+            const merged = new Set<string>([...Array.from(prev), ...guestFavs]);
+            return merged;
+          });
+        }
+      }
+    };
+
+    window.addEventListener('dview_favorites_updated', syncFavorites);
+    window.addEventListener('storage', syncFavorites);
+    return () => {
+      window.removeEventListener('dview_favorites_updated', syncFavorites);
+      window.removeEventListener('storage', syncFavorites);
+    };
+  }, [getGuestFavorites]);
 
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
