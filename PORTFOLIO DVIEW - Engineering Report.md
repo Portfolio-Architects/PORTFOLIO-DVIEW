@@ -279,8 +279,14 @@ Golden ratio established from Splash Screen parameters on a standard `200x200` v
 
 ---
 
-## 11. Maintenance Policy
-본 문서는 살아있는 SSOT입니다. 메이저 업데이트 시 지표를 갱신하고 패치노트를 기록합니다.
+## 11. Maintenance Policy & Changelog
+
+### 11-1. Maintenance Policy (유지보수 정책 및 운영 원칙)
+- **살아있는 SSOT(Single Source of Truth) 원칙**: 본 엔지니어링 리포트는 DVIEW 시스템 아키텍처, 성능 지표, 비즈니스 로드맵과 100% 동기화되는 살아있는 문서입니다. 메이저 업데이트 및 시스템 개선 시 지표를 갱신하고 패치노트를 정밀 기록합니다.
+- **무결성 검증 패스 후 이관**: 모든 코드 변경은 TypeScript 타입 검사(`npx tsc --noEmit`), Jest 단위 테스트(358개 테스트 100% 통과), 빌드 검증을 통과한 경우에만 패치 기록으로 승인됩니다.
+- **Zero-Jank UX & 데이터 무결성 수호**: 모바일 레이아웃 시프트(CLS 0.0039 이내) 유지 및 가짜 데이터(Fake/Mock Data) 절대 표출 금지 원칙을 지속적으로 모니터링하고 수호합니다.
+
+### 11-2. Patch History & Revision Log (패치노트 및 변경 이력)
 
 | 일시 | 주요 항목 | 요약 내용 |
 |:---|:---|:---|
