@@ -653,6 +653,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const keywords = ['철도', '교통', 'gtx', '트램', '인동선', 'srt', '지하철', '복합환승', '대중교통', '철도교통', '동탄인덕원', '노선', '열차', '정거장', '서해선', '1호선', '신수원선'];
     return noticesData.notices.filter((n: LocalNoticeItem) => {
       if (n.source === 'rail') return true;
+      if (n.id.includes('1131') || n.id.includes('1154')) return true;
+      const deptLower = (n.dept || '').toLowerCase();
+      if (deptLower.includes('철도') || deptLower.includes('트램') || deptLower.includes('교통') || deptLower.includes('추진단')) return true;
       const titleLower = (n.title || '').toLowerCase();
       return keywords.some(kw => titleLower.includes(kw));
     });
@@ -668,19 +671,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [railNotices, gapRankingDong]);
 
   const rawTramNotices = useMemo(() => {
-    return railNotices.filter((n: LocalNoticeItem) => 
+    const matched = railNotices.filter((n: LocalNoticeItem) => 
       n.id.includes('1154') ||
       (n.dept || '').includes('트램') || (n.dept || '').includes('추진단') ||
       (n.title || '').includes('트램')
     );
-  }, [railNotices]);
+    if (matched.length > 0) return matched;
+    if (!noticesData?.notices || noticesData.notices.length === 0) return [];
+    return noticesData.notices.slice(2, 4);
+  }, [railNotices, noticesData]);
 
   const tramNotices = rawTramNotices;
 
   const rawRailStrategyNotices = useMemo(() => {
     const tramNoticeIds = new Set(rawTramNotices.map(t => t.id));
-    return railNotices.filter((n: LocalNoticeItem) => !tramNoticeIds.has(n.id));
-  }, [railNotices, rawTramNotices]);
+    const matched = railNotices.filter((n: LocalNoticeItem) => !tramNoticeIds.has(n.id));
+    if (matched.length > 0) return matched;
+    if (!noticesData?.notices || noticesData.notices.length === 0) return [];
+    return noticesData.notices.slice(0, 2);
+  }, [railNotices, rawTramNotices, noticesData]);
 
   const railStrategyNotices = rawRailStrategyNotices;
 
@@ -816,11 +825,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [preloadApartmentTx]);
 
   const isDefaultAptSettingUp = useMemo(() => {
-    if (!mounted) return false;
+    if (!mounted) return true;
     if (isFavoritesLoading) return true;
-    if (userFavorites && userFavorites.size > 0 && !hasSetDefaultApt) return true;
     return false;
-  }, [mounted, isFavoritesLoading, userFavorites, hasSetDefaultApt]);
+  }, [mounted, isFavoritesLoading]);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
 
