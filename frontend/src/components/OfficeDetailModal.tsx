@@ -36,12 +36,14 @@ export interface OfficeTransaction {
   readonly sizeSqM: number;
   readonly floor: number;
   readonly price: string;
+  readonly buildingName?: string;
 }
 
 export interface OfficeBuilding {
   name: string;
   type: string;
   dong: '동탄영천동' | '동탄오산동' | '동탄목동' | '동탄장지동';
+  address?: string;
   rentPerPy: string;
   features: string[];
   driveIn: boolean;

@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useDeferredValue, useCallback } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { Search, ArrowUp, ArrowDown, ChevronDown, X, Sparkles } from 'lucide-react';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { DONGS } from '@/lib/dongs';
-import { findTxKey } from '@/lib/utils/apartmentMapping';
+import { findTxKey, normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
