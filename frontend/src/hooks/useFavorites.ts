@@ -119,6 +119,13 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
               });
               return;
             }
+            if (data?.error || data?.warning) {
+              logger.warn('useFavorites.fetchFavorites', 'API returned warning/error, preserving local state', {
+                error: data?.error,
+                warning: data?.warning,
+              });
+              return;
+            }
             const validatedData = validation.data;
             if (validatedData.favorites) {
               setUserFavorites(new Set(validatedData.favorites));

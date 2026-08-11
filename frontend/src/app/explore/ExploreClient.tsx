@@ -204,7 +204,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const { user, userProfile, handleLogin } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch } = useDashboardMeta(initialDashboardData);
-  const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder } = useFavorites(user, initialDashboardData?.favoriteCounts);
+  const { userFavorites, favoriteCounts, handleToggleFavorite, isFavorited, updateFavoriteOrder } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
   // Trigger lazy fetching of detailed sheets data on mount for the Explore page
   useEffect(() => {
@@ -466,10 +466,10 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
   const handleAptToggleFavorite = useCallback((aptName: string) => {
-    const isAdding = !userFavorites.has(aptName);
+    const isAdding = !isFavorited(aptName);
     trackEvent('toggle_favorite', { apt_name: aptName, status: isAdding ? 'added' : 'removed' });
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
-  }, [handleToggleFavorite, handleRequestLogin, userFavorites]);
+  }, [handleToggleFavorite, handleRequestLogin, isFavorited]);
 
   const handleOpenCompare = useCallback(() => {
     setCompareInitialApt(undefined);
@@ -508,6 +508,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   fieldReportsMap={fieldReportsMap}
                   publicRentalSet={publicRentalSet}
                   userFavorites={userFavorites}
+                  isFavorited={isFavorited}
                   favoriteCounts={favoriteCounts}
                   typeMap={typeMap}
                   handleSelectApt={handleAptClickByName}

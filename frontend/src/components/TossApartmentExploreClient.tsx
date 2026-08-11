@@ -75,6 +75,7 @@ interface TossApartmentExploreClientProps {
   fieldReportsMap: Map<string, FieldReportData>;
   publicRentalSet: Set<string>;
   userFavorites: Set<string>;
+  isFavorited?: (aptName: string) => boolean;
   favoriteCounts: Record<string, number>;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   handleSelectApt: (name: string) => void;
@@ -107,6 +108,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   fieldReportsMap,
   publicRentalSet,
   userFavorites,
+  isFavorited,
   favoriteCounts,
   typeMap,
   handleSelectApt,
@@ -125,6 +127,15 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, []);
 
   const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
+  const checkFavorited = useCallback((aptName: string) => {
+    if (!aptName) return false;
+    if (isFavorited) return isFavorited(aptName);
+    if (userFavorites.has(aptName)) return true;
+    const targetNorm = normalizeAptName(aptName);
+    return Array.from(userFavorites).some(
+      item => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName, nameMapping)
+    );
+  }, [isFavorited, userFavorites, nameMapping]);
   const isResizingRef = useRef(false);
   const animationFrameIdRef = useRef<number | null>(null);
   const resizeListenersRef = useRef<{
@@ -426,7 +437,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     let filtered = [...enrichedApts];
 
     if (currentCategory === 'favorites') {
-      filtered = filtered.filter(a => userFavorites.has(a.apt.name));
+      filtered = filtered.filter(a => checkFavorited(a.apt.name));
     } else if (currentCategory.startsWith('dong-')) {
       const dongName = currentCategory.replace('dong-', '');
       filtered = filtered.filter(a => a.apt.dong === dongName);
@@ -997,7 +1008,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       handleSelectApt={handleSelectApt} 
                       onToggleFavorite={onToggleFavorite} 
                       currentCategory={currentCategory}
-                      isFavorited={userFavorites.has(item.apt.name)}
+                      isFavorited={checkFavorited(item.apt.name)}
                       likes={favoriteCounts[item.apt.name] || 0}
                       photoCount={fieldReportsMap.get(item.apt.name)?.images?.length || 0}
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
