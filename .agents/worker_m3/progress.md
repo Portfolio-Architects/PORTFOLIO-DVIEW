@@ -1,13 +1,13 @@
-# Progress — 2026-07-15T23:08:00+09:00
+# Progress — Milestone 3 (M3)
 
-Last visited: 2026-07-15T23:08:00+09:00
+Last visited: 2026-08-12T12:07:30Z
 
-- [x] Initialize BRIEFING.md and progress.md
-- [x] Read analysis.md from explorer_m1_phase2 for requirements
-- [x] Analyze OfficeExplorerClient.tsx and GapInvestmentExplorer.tsx code structure
-- [x] Apply HIG styling and typography to OfficeExplorerClient.tsx
-- [x] Apply HIG styling and typography to GapInvestmentExplorer.tsx
-- [x] Optimize performance: React.memo on OfficeExplorerClient, extract <OfficeBuildingCard />, dynamic import of CoLeasingBoard
-- [x] Run typescript compile checks in frontend/
-- [x] Write changes.md and handoff.md
-- [x] Send handoff message to parent agent
+- [x] Read DISPATCH.md, ORIGINAL_REQUEST.md, explorer_r3_survey handoff report
+- [x] Updated `frontend/src/hooks/useStaticData.ts`:
+  - Adjusted `fetchRecentTxsFromFirestore` cutoff date window from 7 days ago to 30 days ago
+  - Configured SWR for `recent-transactions.json` with `revalidateOnMount: true` and 5-minute `dedupingInterval`
+- [x] Updated `frontend/src/components/DashboardClient.tsx`:
+  - Enhanced `filteredRecentTransactions` logic with fallback matching across `aptName`, `txKey`, and `nameMapping` keys/values
+- [x] Verified unit tests: `npm test` passed (51 test suites, 358 tests)
+- [x] Verified production build: `npm run build` passed cleanly
+- [x] Generated handoff report: `.agents/worker_m3/handoff.md`

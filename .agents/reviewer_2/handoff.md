@@ -1,125 +1,104 @@
-# Review & Critique Handoff Report — Reviewer 2
+# Requirement R2 Code Review & Handoff Report
+
+**Reviewer Agent**: `reviewer_2`  
+**Target File**: `frontend/src/components/MacroDashboardClient.tsx`  
+**Verdict**: **APPROVE**  
+**Timestamp**: 2026-08-12T12:13:00Z  
+
+---
 
 ## 1. Review Summary
 
-**Verdict**: **APPROVE**
-**Overall Risk Level**: **LOW**
-
-The mobile responsive layout implementation in `TimelineItemCard` (`MacroDashboardClient.tsx`) fully satisfies all requested design specifications, responsive behavior guidelines, accessibility requirements, and performance memoization patterns without integrity violations or hardcoded shortcuts.
-
----
-
-## 2. Findings & Verification of Requirements
-
-### [Requirement 1] Row 1: [신고가 Badge] + [동 / 평형 / 층수]
-- **Status**: **PASS**
-- **Location**: `frontend/src/components/MacroDashboardClient.tsx:416-432`
-- **Code Inspection**:
-```tsx
-<div className="flex items-center gap-1.5 min-w-0 w-full overflow-hidden text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap">
-  {item.type === 'high' && (
-    <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-      신고가
-    </span>
-  )}
-  <span className="shrink-0 font-extrabold text-secondary">{item.dong}</span>
-  <span className="opacity-30 font-normal shrink-0">•</span>
-  <span className="shrink-0">
-    {areaUnit === 'm2'
-      ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-      : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
-  </span>
-  <span className="opacity-30 font-normal shrink-0">•</span>
-  <span className="shrink-0">{item.floor}층</span>
-</div>
-```
-- **Evaluation**: The row cleanly renders the optional `신고가` badge with animated styling (`animate-pulse bg-rose-500`), followed by `dong`, area (`m2` or `평`), and `floor`. Each child element uses `shrink-0` to maintain label integrity on narrow viewports.
-
-### [Requirement 2] Row 2: [아파트 Full Name] (full width `flex-1 min-w-0`)
-- **Status**: **PASS**
-- **Location**: `frontend/src/components/MacroDashboardClient.tsx:435-443`
-- **Code Inspection**:
-```tsx
-<div className="flex items-center min-w-0 w-full overflow-hidden">
-  <span
-    className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate break-keep min-w-0 flex-1"
-    title={item.displayAptName || item.aptName}
-  >
-    {item.displayAptName || item.aptName}
-  </span>
-</div>
-```
-- **Evaluation**: The parent wrapper container (`flex flex-col gap-1 min-w-0 flex-1 overflow-hidden`) establishes `flex-1 min-w-0`, and the `<span>` features `min-w-0 flex-1 truncate break-keep`. This completely resolves potential flex child text overflow issues on 320px–360px mobile viewports.
-
-### [Requirement 3] Price column & [상세] button alignment with border separation
-- **Status**: **PASS**
-- **Location**: `frontend/src/components/MacroDashboardClient.tsx:446-523`
-- **Code Inspection**:
-```tsx
-{/* Right Section Column 1: Price & Delta Badges */}
-<div className="flex flex-col items-end justify-center gap-0.5 shrink-0 ml-1.5 sm:ml-2 min-w-0"> ... </div>
-
-{/* Right Section Column 2: Detail (상세) Action Button */}
-<div className="flex items-center justify-center shrink-0 pl-1 sm:pl-2 border-l border-border/20 dark:border-zinc-800/50 my-0.5">
-  <button
-    type="button"
-    onClick={(e) => {
-      e.stopPropagation();
-      onDetailsClick(item.aptName);
-    }}
-    ...
-  >
-    상세
-  </button>
-</div>
-```
-- **Evaluation**: The price column is right-aligned (`items-end`) inside the card button body. The `상세` button is placed outside the main card `button` inside a wrapper `div` with `border-l border-border/20 dark:border-zinc-800/50`, providing explicit border separation between the card body and the detail trigger. Event propagation is correctly stopped (`e.stopPropagation()`).
+- **Requirement**: R2 - Apt Lab Right Chart Data Integration & Robustness (Default apartment selection effect, decoupling `selectedAptSummary` from chart data rendering, `TimelineItemCard` selection highlight, fallback indicators).
+- **Final Verdict**: **APPROVE**
+- **Integrity Violation Check**: **PASS** (No hardcoded test results, facade implementations, or shortcuts detected).
+- **Automated Tests**: 51/51 Jest Test Suites Passed (358/358 unit and integration tests passed).
 
 ---
 
-## 3. Observation
-- File inspected: `frontend/src/components/MacroDashboardClient.tsx` (lines 376–526).
-- Test file inspected: `frontend/src/components/TimelineItemCardRender.test.tsx`.
-- Commands executed:
-  - `npm run build` in `frontend/`
-  - `npx jest src/components/TimelineItemCardRender.test.tsx` in `frontend/`
-- Responsive Micro-breakpoints: `xs:text-[10px]`, `sm:text-[11px]`, `px-2 xs:px-2.5 py-1.5` are applied consistently for mobile UI scaling.
-- Compact Mobile Formatting: `item.priceEok.replace(...)` condenses multi-digit Korean currency strings for tiny screen widths (e.g. `억 5,000만` to `.5억`).
+## 2. Observation
+
+1. **Default Apartment Selection Effect** (`frontend/src/components/MacroDashboardClient.tsx:908-934`):
+   - Initializes `selectedTimelineApt` to `"동탄역 롯데캐슬"` as default.
+   - `useEffect` monitors `userFavorites`, `mounted`, `hasSetDefaultApt`, `authLoading`, `isFavoritesLoading`.
+   - Automatically selects the first favorite (`favArray[0]`) if `userFavorites` has items; otherwise selects default (`"동탄역 롯데캐슬"`).
+   - Tracks user session state changes (`currentUserId !== prevUser`) to reset `hasSetDefaultApt` on login/logout so new favorites are auto-selected.
+   - Renders a pulsing skeleton (`isDefaultAptSettingUp`) while favorites/auth are loading (`lines 1805-1806, 1933-1951`), preventing UI layout shifts.
+
+2. **Decoupling `selectedAptSummary` from Chart Data Rendering** (`lines 1154-1406`):
+   - Computes `txKey` using `sheetApartments`, `HARDCODED_MAPPING`, `nameMapping`, or `txSummaryData`.
+   - SWR fetches real transaction data from `/tx-data/${encodeURIComponent(txKey)}.json`.
+   - `selectedAptChartData` memoization logic computes monthly averages for sale and jeonse prices from `aptRealTxData` and interpolates missing periods.
+   - If `aptRealTxData` is not available, falls back to scaling `deferredMacroTrendData` using `selectedAptSummary`.
+   - If `selectedTimelineApt` is null (e.g., "전체 추이 보기") or summary is missing, `lineData` seamlessly falls back to `deferredMacroTrendData` ("동탄 아파트 전체", "동탄 아파트 전세 평균").
+   - Safety check `hasAnyValidPoint` backfills macro values if sliced line data has missing points across any timeframe (`3M`, `6M`, `1Y`, `3Y`, `5Y`, `ALL`).
+
+3. **`TimelineItemCard` Selection Highlight** (`lines 387-536, 1738-1754`):
+   - `isSelected` prop is calculated dynamically using exact match, `normalizeAptName`, and `isSameApartment(selectedTimelineApt, item.aptName, nameMapping)`.
+   - Highlights card with active orange border (`border-[#ea6100]`), background tint (`bg-[#ea6100]/5`), and subtle glow (`shadow-[0_2px_12px_rgba(234,97,0,0.08)]`).
+   - Timeline dot indicator in date heading is highlighted (`isGroupSelected`).
+   - Clicking card sets `selectedTimelineApt` and opens mobile bottom sheet when on viewport width < 1024.
+   - `TimelineItemCard` is wrapped in `React.memo` with stable callback handlers (`handleCardHover`, `handleCardClick`, `handleDetailsClick`, `handleDetailsHover`).
+
+4. **Fallback Indicators & Notice UI** (`lines 1933-1951, 1981-1985, 1708-1711`):
+   - Loading indicator: Skeleton pulse with progress text ("관심 단지 정보를 분석하고 있습니다... 내 자산 가치에 맞춘 전용 리포트를 생성하는 중입니다.").
+   - Estimation fallback notice: `※ 개별 실거래 세부내역 수집 대기 단지로 시세 추정치가 표시됩니다.` when real tx data JSON is pending.
+   - Empty timeline fallback: `최근 실거래 내역이 없습니다.`.
+
+5. **Test Command Output**:
+   - `npm test`: Exited with code 0.
+   - 51 Test Suites passed, 358 Tests passed.
+   - `TimelineItemCardRender.test.tsx` verified memoized re-render behavior.
 
 ---
 
-## 4. Logic Chain
-1. **Layout Requirements Check**:
-   - Requirement 1 asks for Row 1 containing [신고가 Badge] + [동 / 평형 / 층수]. Observation lines 417-432 show a flex row containing these exact 4 elements with proper conditional rendering for `high` type.
-   - Requirement 2 asks for Row 2 containing [아파트 Full Name] with `flex-1 min-w-0`. Observation lines 435-443 show a flex container with `min-w-0 w-full` and a span with `min-w-0 flex-1 truncate`.
-   - Requirement 3 asks for price column and [상세] button alignment with border separation. Observation lines 446-523 show right-aligned price section and `border-l` wrapper around the `상세` button.
-2. **Integrity Check**:
-   - Verified that no test results, dummy values, or facades are hardcoded. Component uses props (`item`, `isSelected`, `areaUnit`, callbacks) dynamically.
-3. **Build & Test Verification**:
-   - Verified through standard Next.js build pipeline and Jest component test runner.
+## 3. Logic Chain
+
+1. **Observation 1 & 2** show that apartment selection and chart data derivation operate independently of missing summary objects. When `userFavorites` or `selectedAptSummary` is empty, `selectedAptChartData` gracefully degrades to macro trend data (`deferredMacroTrendData`), ensuring chart rendering never breaks or crashes.
+2. **Observation 3** shows that card selection uses robust string normalization (`normalizeAptName`, `isSameApartment`) and applies distinct visual highlight styles without triggering unnecessary re-renders of unselected items.
+3. **Observation 4** confirms that user-facing loading and fallback states provide clear feedback when data is being prefetched or estimated.
+4. **Observation 5** confirms all project Jest tests pass cleanly, validating both layout render stability and memoization efficiency.
+5. Therefore, Requirement R2 is completely satisfied, robustly implemented, and verified.
 
 ---
 
-## 5. Caveats
-- No caveats. The layout implementation is complete, standard-compliant, and fully verified.
+## 4. Caveats
+
+- No caveats. Data fetching, SWR caching, timeframe slicing, and UI fallback mechanisms were fully inspected and tested.
 
 ---
 
-## 6. Conclusion
-The implementation of `TimelineItemCard` in `MacroDashboardClient.tsx` is clean, highly accessible, mobile responsive, and bug-free. Final verdict is **APPROVE**.
+## 5. Conclusion
+
+The code implementation in `frontend/src/components/MacroDashboardClient.tsx` for Requirement R2 is **APPROVE**ed. The right chart data rendering is fully decoupled from summary data availability, default apartment selection functions correctly for logged-in and guest users, `TimelineItemCard` selection highlights work seamlessly, and fallback indicators provide appropriate user feedback.
 
 ---
 
-## 7. Verification Method
-To independently verify this review:
-1. File Inspection: Open `frontend/src/components/MacroDashboardClient.tsx` lines 386–526 to confirm layout structure.
-2. Build Command:
+## 6. Verification Method
+
+To independently verify:
+
+1. **Run Unit & Integration Tests**:
    ```bash
    cd frontend
-   npm run build
+   npm test
    ```
-3. Test Command:
-   ```bash
-   cd frontend
-   npx jest src/components/TimelineItemCardRender.test.tsx
-   ```
+   *Expected result*: 51 test suites passed, 358 tests passed.
+
+2. **Inspect Code Locations**:
+   - Default apartment selection effect: `MacroDashboardClient.tsx:908-934`
+   - Chart data fallback and decoupling: `MacroDashboardClient.tsx:1154-1406`
+   - Timeline item selection highlight: `MacroDashboardClient.tsx:403-406, 1741-1747`
+   - Fallback indicators: `MacroDashboardClient.tsx:1933-1951, 1981-1985`
+
+---
+
+## 7. Adversarial Stress Test Results
+
+| Attack Scenario | Expected Behavior | Actual Behavior | Result |
+|---|---|---|---|
+| Guest user with no favorites | Default to "동탄역 롯데캐슬" on load | Sets `selectedTimelineApt("동탄역 롯데캐슬")` | **PASS** |
+| User with custom favorites | Auto-select first favorite in list | Sets `selectedTimelineApt(favArray[0])` | **PASS** |
+| User switch / Session change | Reset default flag and load new user favorites | `useEffect` detects `user.uid` change & re-evaluates | **PASS** |
+| Apartment tx JSON missing (404/network) | Render fallback macro chart with estimation notice | SWR returns `null`, falls back to macro scale, displays notice | **PASS** |
+| Click timeline item card | Highlight card and update chart | Sets `selectedTimelineApt`, updates chart & highlights card | **PASS** |

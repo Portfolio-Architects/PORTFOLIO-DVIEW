@@ -54,17 +54,13 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const syncFavorites = (e?: Event) => {
+      if (user) return;
       const customEvent = e as CustomEvent;
       if (customEvent && customEvent.detail && Array.isArray(customEvent.detail)) {
         setUserFavorites(new Set(customEvent.detail));
       } else {
         const guestFavs = getGuestFavorites();
-        if (guestFavs.length > 0) {
-          setUserFavorites(prev => {
-            const merged = new Set<string>([...Array.from(prev), ...guestFavs]);
-            return merged;
-          });
-        }
+        setUserFavorites(new Set(guestFavs));
       }
     };
 
@@ -74,7 +70,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       window.removeEventListener('dview_favorites_updated', syncFavorites);
       window.removeEventListener('storage', syncFavorites);
     };
-  }, [getGuestFavorites]);
+  }, [getGuestFavorites, user]);
 
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
@@ -118,21 +114,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       }
 
       user.getIdToken().then(async (idToken) => {
-        // Sync any guest favorites saved while unauthenticated
-        const guestFavs = getGuestFavorites();
-        if (guestFavs.length > 0) {
-          for (const aptName of guestFavs) {
-            try {
-              await fetch('/api/favorite', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                body: JSON.stringify({ aptName }),
-              });
-            } catch (e) {
-              logger.warn('useFavorites.syncGuest', 'Failed to sync guest favorite', { aptName }, e as Error);
-            }
-          }
-        }
+        if (unmounted) return;
 
         try {
           const r = await fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } });
@@ -149,16 +131,46 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
 
           const validation = FavoriteListResponseSchema.safeParse(data);
           if (validation.success && Array.isArray(validation.data?.favorites)) {
-            const serverFavorites = validation.data.favorites;
-            setUserFavorites(prev => {
-              const merged = new Set<string>([
-                ...Array.from(prev),
-                ...guestFavs,
-                ...serverFavorites,
-              ]);
-              saveGuestFavorites(merged);
-              return merged;
-            });
+            const serverFavorites = [...validation.data.favorites];
+
+            // Sync any guest favorites saved while unauthenticated
+            const guestFavs = getGuestFavorites();
+            if (guestFavs.length > 0) {
+              const missingFromServer = guestFavs.filter(guestApt => {
+                const guestNorm = normalizeAptName(guestApt);
+                return !serverFavorites.some(serverApt =>
+                  normalizeAptName(serverApt) === guestNorm || isSameApartment(serverApt, guestApt)
+                );
+              });
+
+              if (missingFromServer.length > 0) {
+                for (const aptName of missingFromServer) {
+                  try {
+                    await fetch('/api/favorite', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
+                      body: JSON.stringify({ aptName, action: 'add' }),
+                    });
+                    serverFavorites.push(aptName);
+                  } catch (e) {
+                    logger.warn('useFavorites.syncGuest', 'Failed to sync guest favorite', { aptName }, e as Error);
+                  }
+                }
+              }
+
+              // Clear dview_guest_favorites key in localStorage immediately after guest sync is completed
+              if (typeof window !== 'undefined') {
+                try {
+                  localStorage.removeItem('dview_guest_favorites');
+                } catch (e) {
+                  logger.warn('useFavorites.clearGuestFavorites', 'Failed to clear guest favorites', {}, e as Error);
+                }
+              }
+            }
+
+            if (!unmounted) {
+              setUserFavorites(new Set(serverFavorites));
+            }
           }
         } catch (err) {
           logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err);
@@ -209,7 +221,9 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       if (!wasFavorited) {
         next.add(aptName);
       }
-      saveGuestFavorites(next);
+      if (!user) {
+        saveGuestFavorites(next);
+      }
       return next;
     });
 
@@ -232,7 +246,7 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       const res = await fetch('/api/favorite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ aptName: keyToModify }),
+        body: JSON.stringify({ aptName: keyToModify, action: wasFavorited ? 'remove' : 'add' }),
       });
       if (!res.ok) {
         logger.warn('useFavorites.handleToggleFavorite', 'Backend favorite sync failed, preserving local state', { aptName: keyToModify, status: res.status });
@@ -247,7 +261,9 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     if (!isMountedRef.current) return;
 
     setUserFavorites(new Set(newOrder));
-    saveGuestFavorites(newOrder);
+    if (!user) {
+      saveGuestFavorites(newOrder);
+    }
 
     if (!user) return;
 

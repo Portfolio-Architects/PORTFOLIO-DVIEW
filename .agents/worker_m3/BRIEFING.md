@@ -1,53 +1,52 @@
-# BRIEFING — 2026-07-15T23:07:00+09:00
+# BRIEFING — 2026-08-12T12:07:30Z
 
 ## Mission
-Implement Explorer Enhancements (Milestone M3), including typography and performance optimization (R2, R3, R4) in target explorer files.
+Execute Milestone 3 (M3): Apartment Lab Left Tab Recent Real Estate Transactions Update.
 
 ## 🔒 My Identity
 - Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m3
-- Original parent: 096e3341-0c24-4d57-8a6f-025dbc85a899
+- Original parent: d609439f-5a37-40dd-a6ab-b033ee08bb24
 - Milestone: M3
 
 ## 🔒 Key Constraints
-- CODE_ONLY network mode.
-- Apple HIG visual styling standards: rounded-[20px], glassmorphism bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md, fine borders (border-border/40 dark:border-white/10).
-- Card listings: rounded-[20px], glassmorphic acrylic, scale-[1.01] hover.
-- React.memo on OfficeExplorerClient and OfficeBuildingCard, dynamic import of CoLeasingBoard.
-- Verify integrity with `npx tsc --noEmit` in frontend/.
+- Exclusive write ownership of:
+  - `frontend/src/hooks/useStaticData.ts`
+  - `frontend/src/components/DashboardClient.tsx`
+- Do NOT modify any other files.
 
 ## Current Parent
-- Conversation ID: 096e3341-0c24-4d57-8a6f-025dbc85a899
-- Updated: 2026-07-15T23:07:00+09:00
+- Conversation ID: d609439f-5a37-40dd-a6ab-b033ee08bb24
+- Updated: 2026-08-12T12:07:30Z
 
 ## Task Summary
-- **What to build**: Visual enhancements, typography improvements, and performance optimizations for OfficeExplorerClient and GapInvestmentExplorer.
-- **Success criteria**: Code compiles with TypeScript compile check, visual styling conforms to Apple HIG, typography refined, performance optimizations applied.
-- **Interface contracts**: frontend/src/components/OfficeExplorerClient.tsx, frontend/src/components/GapInvestmentExplorer.tsx
-- **Code layout**: frontend/src/components/
-
-## Key Decisions Made
-- Wrapped root explorer clients and cards in `React.memo` for rendering performance optimization.
-- Extracted building cards list items into `OfficeBuildingCard` components to prevent layout shifts and redundant recalculations.
-- Used Next.js dynamic import with `{ ssr: false }` for importing the complex `CoLeasingBoard` component.
-- Used alpha opacity levels and backdrop blur to achieve modern Apple HIG glassmorphism design.
-
-## Artifact Index
-- changes.md — Change logs detailing target component upgrades
-- handoff.md — Verification details, observations, and results handoff
+- **What to build**: Fix Firestore query window in `useStaticData.ts` (7 days -> 30 days cutoff date), adjust SWR config for fresh revalidation (`revalidateOnMount: true`, `dedupingInterval: 300000`), enhance `filteredRecentTransactions` in `DashboardClient.tsx` with robust fallback matching for `aptName` / `txKey` / `nameMapping`.
+- **Success criteria**: Clean build (`npm run build`), all tests passing (`npm test`), correct transaction display without cutoff gaps.
+- **Interface contracts**: PROJECT.md
+- **Code layout**: frontend/src/
 
 ## Change Tracker
 - **Files modified**:
-  - `frontend/src/components/OfficeExplorerClient.tsx`
-  - `frontend/src/components/GapInvestmentExplorer.tsx`
-- **Build status**: PASS
+  - `frontend/src/hooks/useStaticData.ts`: 7-day to 30-day Firestore query window cutoff date fix & SWR revalidation setup.
+  - `frontend/src/components/DashboardClient.tsx`: Enhanced fallback filtering in `filteredRecentTransactions`.
+- **Build status**: `npm test` passed (51/51 suites, 358/358 tests), `npm run build` passed cleanly.
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: PASS (TypeScript compiler diagnostic run passed with zero errors)
+- **Build/test result**: PASS
 - **Lint status**: PASS
-- **Tests added/modified**: None
+- **Tests added/modified**: Verified all existing 358 tests pass without regressions.
 
 ## Loaded Skills
 - None
+
+## Key Decisions Made
+- Expanded Firestore query window from 7 days ago to 30 days ago in `fetchRecentTxsFromFirestore` to bridge reporting latency and static JSON generation gap.
+- Configured SWR for `recent-transactions.json` with `revalidateOnMount: true` and 5-minute deduping interval.
+- Enhanced `filteredRecentTransactions` to include normalized keys and values from `nameMapping` and check both `txKey` and `aptName` with automatic fallback to unfiltered transactions if matching is empty.
+
+## Artifact Index
+- DISPATCH.md
+- progress.md
+- handoff.md

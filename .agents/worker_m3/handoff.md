@@ -1,32 +1,61 @@
-# Handoff Report — 2026-07-15T23:06:00+09:00
+# Handoff Report: Milestone 3 (M3) — Apartment Lab Left Tab Recent Real Estate Transactions Update
+
+**Agent**: Worker M3 (`worker_m3`)  
+**Target Milestone**: Milestone 3 (M3) — Apartment Lab Left Tab Recent Real Estate Transactions Update (아파트 랩 좌측 일자별 최근 실거래 최신화)  
+**Parent Agent ID**: `d609439f-5a37-40dd-a6ab-b033ee08bb24`  
+**Date**: 2026-08-12  
+
+---
 
 ## 1. Observation
-- Invocation request target files:
-  - `frontend/src/components/OfficeExplorerClient.tsx`
-  - `frontend/src/components/GapInvestmentExplorer.tsx`
-- Baseline check command `npx tsc --noEmit` inside `frontend/` ran with task ID `68b3f64f-21a5-40a0-aff2-a7dec3b73f8e/task-19` and succeeded with zero errors.
-- Visual check: Outer layouts had rounded properties like `rounded-2xl` and `rounded-3xl` with hardcoded background opacity classes and colors.
-- Performance check: `CoLeasingBoard` was imported statically. List mappings of buildings and cards were mapped inline. Main components were not wrapped in `React.memo`.
-- Verification check command after modifications: `npx tsc --noEmit` inside `frontend/` ran with task ID `68b3f64f-21a5-40a0-aff2-a7dec3b73f8e/task-62` and completed successfully with exit code 0.
+
+### Files Inspected & Modified
+1. `frontend/src/hooks/useStaticData.ts`:
+   - Line 258: Previous calculation was `const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);`. When today is `2026-08-12`, the query `contractDate >= 20260805` created a data gap with static JSON ending on `2026-07-29`.
+   - Modified to: `const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);` (`cutoffDateStr = `${y}${m}${d}``), querying Firestore for transactions within the last 30 days.
+   - Line 332-342: Updated SWR hook configuration for `recent-transactions.json`: added `revalidateOnMount: true` and lowered `dedupingInterval` to `300000` (5 minutes) to ensure fresh data revalidation.
+2. `frontend/src/components/DashboardClient.tsx`:
+   - Line 344-360: Previous implementation of `filteredRecentTransactions` only extracted `tKey` values from `nameMapping` and checked `tx.txKey`, dropping valid items if `txKey` was missing or if matching produced an empty array.
+   - Modified to populate `targetTxKeys` with normalized strings from BOTH `nameMapping` keys and values, check both `tx.txKey` and `tx.aptName`, and fallback to unfiltered `recentTransactions` if filtering produces 0 results.
+
+### Commands Executed & Results
+- `npm test`: PASS (51 test suites, 358 tests passed).
+- `npm run build`: PASS (`node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build` compiled successfully without errors).
+
+---
 
 ## 2. Logic Chain
-- Standardizing design requires applying uniform Apple HIG classes. Consequently, elements matching target filters, outer layouts, and card listings in `OfficeExplorerClient.tsx` and `GapInvestmentExplorer.tsx` were updated to use `rounded-[20px]`, `bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md`, and fine borders `border-border/40 dark:border-white/10`.
-- Optimizing rendering performance in React lists containing search states requires avoiding inline-mapped lists that re-evaluate completely. Thus, the list item in `OfficeExplorerClient.tsx` was extracted into the memoized `OfficeBuildingCard` component, and root components were wrapped in `React.memo`.
-- Lazy loading non-critical page components splits bundle chunks and minimizes initial page load size. Thus, Next.js `dynamic()` with `ssr: false` was used to import `CoLeasingBoard`.
-- Compiling code with strict typing ensures that the newly introduced types and structures do not break any existing contracts. `npx tsc --noEmit` was executed to verify that the build compiles cleanly with zero TS errors.
+
+1. **Gap Resolution**: Static transaction JSON `public/data/recent-transactions.json` contains build-time snapshot data up to `2026-07-29`. By expanding the runtime Firestore query window in `fetchRecentTxsFromFirestore` from 7 days ago (`20260805`) to 30 days ago (`20260713`), all real-time transaction records reported during the gap window (2026-07-30 through 2026-08-04) are retrieved from Firestore and merged seamlessly with static transactions via `mergeRecentTransactions`.
+2. **Fresh Data SWR Revalidation**: Configuring `revalidateOnMount: true` and a 5-minute deduplication interval for `recent-transactions.json` ensures client sessions automatically fetch and merge updated transaction snapshots upon mounting.
+3. **Robust Fallback Filtering**: In `DashboardClient.tsx`, `filteredRecentTransactions` now checks both `tx.aptName` and `tx.txKey` against normalized keys and values in `nameMapping`. If name mapping entries are missing or matching returns empty results, the fallback returns `recentTransactions`, preventing valid transaction items from being inadvertently hidden.
+
+---
 
 ## 3. Caveats
-- No caveats. The optimizations were fully implemented within the scope of the target components, and compile checks verified full integrity.
+
+- **Firestore Online Data Dependency**: Live transaction fetch relies on valid Firebase client credentials and network availability. If Firestore is offline or unconfigured, `fetchRecentTxsFromFirestore` safely logs a warning and returns `[]`, gracefully falling back to static JSON data without breaking the page.
+
+---
 
 ## 4. Conclusion
-- Visual upgrades, typography enhancements, and performance optimizations (R2, R3, R4) have been fully and correctly implemented in both target components (`OfficeExplorerClient.tsx` and `GapInvestmentExplorer.tsx`) according to Apple HIG and Next.js optimization standards.
+
+Milestone 3 (M3) implementation is complete. All changes strictly adhere to exclusive file ownership (`useStaticData.ts` and `DashboardClient.tsx`). Unit tests and production build pass cleanly with 0 errors.
+
+---
 
 ## 5. Verification Method
-- Execute the typecheck command inside `frontend/`:
-  ```bash
-  npx tsc --noEmit
-  ```
-  Expected output: Clean completion with exit code 0 (no errors).
-- Inspect files directly to verify structural changes:
-  - `frontend/src/components/OfficeExplorerClient.tsx`
-  - `frontend/src/components/GapInvestmentExplorer.tsx`
+
+To independently verify M3:
+1. **Unit Tests**:
+   ```bash
+   cd frontend
+   npm test
+   ```
+   Confirm all 51 test suites (358 tests) pass cleanly.
+2. **Production Build**:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+   Confirm Next.js compilation succeeds with zero errors.

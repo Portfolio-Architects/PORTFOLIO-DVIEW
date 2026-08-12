@@ -20,6 +20,7 @@ export const dynamic = 'force-dynamic';
 // 보안: NoSQL Injection 및 오버플로우 공격 방어용 인바운드 스키마 검증
 const favSchema = z.object({
   aptName: z.string().min(1).max(100).trim(), // 아파트 이름 길이 제한 및 스크러빙
+  action: z.enum(['add', 'remove', 'toggle']).optional().default('toggle'),
 });
 
 const favoriteQuerySchema = z.object({
@@ -67,32 +68,44 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
     }
-    const { aptName } = parsed.data;
+    const { aptName, action } = parsed.data;
 
     const docId = toSafeDocId(userId, aptName);
     const favRef = adminDb.collection('favorites').doc(docId);
     const countRef = adminDb.collection('favoriteCounts').doc(aptName.replace(/\//g, '__SLASH__'));
 
-    const favorited = await adminDb.runTransaction(async (transaction) => {
+    const { favorited, changed } = await adminDb.runTransaction(async (transaction) => {
       const favSnap = await transaction.get(favRef);
       const exists = favSnap.exists;
 
-      if (exists) {
-        // Remove favorite
-        transaction.delete(favRef);
-        // Decrement count
-        transaction.set(countRef, { count: FieldValue.increment(-1), aptName }, { merge: true });
-        return false;
-      } else {
-        // Add favorite
+      if (action === 'add') {
+        if (exists) {
+          return { favorited: true, changed: false };
+        }
         transaction.set(favRef, { userId, aptName, createdAt: FieldValue.serverTimestamp() });
-        // Increment count
         transaction.set(countRef, { count: FieldValue.increment(1), aptName }, { merge: true });
-        return true;
+        return { favorited: true, changed: true };
+      } else if (action === 'remove') {
+        if (!exists) {
+          return { favorited: false, changed: false };
+        }
+        transaction.delete(favRef);
+        transaction.set(countRef, { count: FieldValue.increment(-1), aptName }, { merge: true });
+        return { favorited: false, changed: true };
+      } else {
+        if (exists) {
+          transaction.delete(favRef);
+          transaction.set(countRef, { count: FieldValue.increment(-1), aptName }, { merge: true });
+          return { favorited: false, changed: true };
+        } else {
+          transaction.set(favRef, { userId, aptName, createdAt: FieldValue.serverTimestamp() });
+          transaction.set(countRef, { count: FieldValue.increment(1), aptName }, { merge: true });
+          return { favorited: true, changed: true };
+        }
       }
     });
 
-    if (redis) {
+    if (redis && changed) {
       const diff = favorited ? 1 : -1;
       Promise.all([
         redis.hincrby('DTDLS:cache:favoriteCounts', aptName, diff),

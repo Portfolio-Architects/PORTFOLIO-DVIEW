@@ -251,15 +251,15 @@ function mergeRecentTransactions(
   return merged;
 }
 
-// 5. Firestore 최근 7일 거래 조회 fetcher
+// 5. Firestore 최근 30일 거래 조회 fetcher
 const fetchRecentTxsFromFirestore = async (): Promise<FirestoreTransaction[]> => {
   if (!db) return [];
   try {
     const now = new Date();
-    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-    const y = sevenDaysAgo.getFullYear();
-    const m = String(sevenDaysAgo.getMonth() + 1).padStart(2, '0');
-    const d = String(sevenDaysAgo.getDate()).padStart(2, '0');
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const y = thirtyDaysAgo.getFullYear();
+    const m = String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0');
+    const d = String(thirtyDaysAgo.getDate()).padStart(2, '0');
     const cutoffDateStr = `${y}${m}${d}`;
 
     const q = query(
@@ -336,8 +336,9 @@ export function useTxData(
       fallbackData: initialRecentTransactions,
       revalidateOnFocus: false,
       revalidateIfStale: true,
+      revalidateOnMount: true,
       revalidateOnReconnect: false,
-      dedupingInterval: 3600000
+      dedupingInterval: 300000
     }
   );
 

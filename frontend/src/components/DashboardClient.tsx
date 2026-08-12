@@ -342,20 +342,24 @@ const DashboardClient = React.memo(function DashboardClient({
   );
 
   const filteredRecentTransactions = useMemo(() => {
-    if (!recentTransactions || recentTransactions.length === 0 || !nameMapping || Object.keys(nameMapping).length === 0) return recentTransactions;
+    if (!recentTransactions || recentTransactions.length === 0) return [];
+    if (!nameMapping || Object.keys(nameMapping).length === 0) return recentTransactions;
     
     const targetTxKeys = new Set<string>();
-    for (const [_, tKey] of Object.entries(nameMapping)) {
-      if (tKey) {
-        targetTxKeys.add(normalizeAptName(tKey));
-      }
+    for (const [key, tKey] of Object.entries(nameMapping)) {
+      if (key) targetTxKeys.add(normalizeAptName(key));
+      if (tKey) targetTxKeys.add(normalizeAptName(tKey));
     }
 
-    return recentTransactions.filter((tx: { txKey?: string }) => {
-      if (!tx || !tx.txKey) return false;
-      const normTxKey = normalizeAptName(tx.txKey);
-      return targetTxKeys.has(normTxKey);
+    const filtered = recentTransactions.filter((tx: { aptName?: string; txKey?: string }) => {
+      if (!tx) return false;
+      const normTxKey = tx.txKey ? normalizeAptName(tx.txKey) : '';
+      const normAptName = tx.aptName ? normalizeAptName(tx.aptName) : '';
+      return (normTxKey !== '' && targetTxKeys.has(normTxKey)) || 
+             (normAptName !== '' && targetTxKeys.has(normAptName));
     });
+
+    return filtered.length > 0 ? filtered : recentTransactions;
   }, [recentTransactions, nameMapping]);
 
   const { locationScores = EMPTY_OBJECT } = useLocationScores();

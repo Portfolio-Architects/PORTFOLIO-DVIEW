@@ -904,22 +904,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     setSelectedTimelineApt(favoritesArray[nextIndex]);
   }, [favoritesArray, favIndex]);
 
-  // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택
+  // 1. 로그인 여부 및 관심 단지에 따라 디폴트 아파트 선택 (최초 1회만 실행)
   useEffect(() => {
     if (!mounted) return;
+    if (hasSetDefaultApt) return;
+    if (authLoading || isFavoritesLoading) return;
 
-    if (!userFavorites || userFavorites.size === 0) {
+    if (userFavorites && userFavorites.size > 0) {
+      const favArray = Array.from(userFavorites);
+      setSelectedTimelineApt(favArray[0]);
+      setHasSetDefaultApt(true);
+    } else {
       if (!selectedTimelineApt) {
         setSelectedTimelineApt("동탄역 롯데캐슬");
       }
-      return;
+      setHasSetDefaultApt(true);
     }
-
-    const favArray = Array.from(userFavorites);
-    if (!selectedTimelineApt || !favArray.some(fav => normalizeAptName(fav) === normalizeAptName(selectedTimelineApt) || isSameApartment(fav, selectedTimelineApt))) {
-      setSelectedTimelineApt(favArray[0]);
-    }
-  }, [userFavorites, mounted, selectedTimelineApt]);
+  }, [userFavorites, mounted, hasSetDefaultApt, authLoading, isFavoritesLoading, selectedTimelineApt]);
 
   // 로그인 상태 변화 감지 및 세션 전환 시 디폴트 설정 리셋
   const [prevUser, setPrevUser] = useState<string | null>(null);
@@ -1151,10 +1152,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   const selectedAptChartData = useMemo(() => {
-    if (!selectedAptSummary || !deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
+    if (!selectedTimelineApt || !deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
 
     // 만약 실제 거래 데이터가 로드되지 않았거나 로딩 중이면, 안전한 fallback으로 기존의 Mock 스케일링 데이터를 제공
     if (!Array.isArray(aptRealTxData) || aptRealTxData.length === 0) {
+      if (!selectedAptSummary) return null;
       const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
       const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
       const macroJeonseVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
@@ -1229,8 +1231,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const realFirstSaleIndex = firstSaleAnchorIndex;
     const realFirstRentIndex = firstRentAnchorIndex;
 
-    const fallbackSalePrice = (selectedAptSummary.avg1MPrice || selectedAptSummary.avg3MPrice || selectedAptSummary.latestPrice || 80000) / 10000;
-    const fallbackRentPrice = (selectedAptSummary.avg1MRentDeposit || selectedAptSummary.avg3MRentDeposit || selectedAptSummary.latestRentDeposit || 48000) / 10000;
+    const fallbackSalePrice = ((selectedAptSummary?.avg1MPrice || selectedAptSummary?.avg3MPrice || selectedAptSummary?.latestPrice) || 80000) / 10000;
+    const fallbackRentPrice = ((selectedAptSummary?.avg1MRentDeposit || selectedAptSummary?.avg3MRentDeposit || selectedAptSummary?.latestRentDeposit) || 48000) / 10000;
 
     if (firstSaleAnchorIndex === -1) {
       firstSaleAnchorIndex = deferredMacroTrendData.length - 1;
@@ -1736,7 +1738,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                             <TimelineItemCard
                               key={`${item.aptName}-${idx}`}
                               item={item}
-                              isSelected={selectedTimelineApt === item.aptName}
+                              isSelected={
+                                !!selectedTimelineApt && (
+                                  selectedTimelineApt === item.aptName ||
+                                  normalizeAptName(selectedTimelineApt) === normalizeAptName(item.aptName) ||
+                                  isSameApartment(selectedTimelineApt, item.aptName, nameMapping)
+                                )
+                              }
                               areaUnit={areaUnit}
                               onCardHover={handleCardHover}
                               onCardClick={handleCardClick}
@@ -1866,6 +1874,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                                 }}
                                 className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-sm w-[130px] sm:w-[190px] truncate shrink-0"
                               >
+                                <option value="">전체 추이 보기</option>
                                 {DEFAULT_TIMELINE_APTS.map((apt) => (
                                   <option key={apt} value={apt}>
                                     {getDisplayAptName(apt)}
@@ -1921,7 +1930,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 </div>
 
                 <div className="w-full flex-1 min-h-[240px] md:min-h-[280px] relative overflow-hidden mt-2 sm:mt-0">
-                  {isDefaultAptSettingUp ? (
+                  {isDefaultAptSettingUp || (isAptTxLoading && !aptRealTxData && !!selectedTimelineApt) ? (
                     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                       {/* 백그라운드 블러 글로우 효과 */}
                       <div className="absolute w-[180px] h-[180px] rounded-full bg-[#ea6100]/4 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
@@ -1969,7 +1978,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </div>
                 )}
 
-
+                {selectedTimelineApt && (!aptRealTxData || aptRealTxData.length === 0) && !isAptTxLoading && !isDefaultAptSettingUp && (
+                  <div className="text-[10.5px] text-tertiary text-center mt-1.5 font-medium flex items-center justify-center gap-1">
+                    <span>※ 개별 실거래 세부내역 수집 대기 단지로 시세 추정치가 표시됩니다.</span>
+                  </div>
+                )}
               </div>
             </div>
 
