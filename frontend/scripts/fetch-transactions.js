@@ -172,32 +172,86 @@ async function main() {
       console.log(`📅 ${ym} (LAWD_CD: ${currentLawd}) 처리 중...`);
 
       do {
-        const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
+        const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
 
         const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
         try {
           // axios.get 대신 지수 백오프 재시도가 연동된 fetchWithRetry 호출
           const res = await fetchWithRetry(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
-          const data = res.data;
+          const rawData = res.data;
+          const text = typeof rawData === 'string' ? rawData : JSON.stringify(rawData);
+          const isXml = typeof rawData === 'string' && rawData.trim().startsWith('<');
 
-          // 에러 응답 체크 (JSON 구조 지원)
-          if (data.response?.header?.resultCode !== '000' && data.response?.header?.resultCode !== '00') {
-             const errMsg = data.response?.header?.resultMsg || JSON.stringify(data);
-             console.error(`   ❌ API 에러: ${errMsg}`);
-             syncLog.push(`${ym} (${currentLawd}): API 에러 - ${errMsg}`);
-             break;
+          let items = [];
+
+          if (isXml) {
+            const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
+            const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
+            const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+            const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+
+            if (resultCode && resultCode !== '00' && resultCode !== '000') {
+              console.error(`   ❌ Gov API Trade Error [${resultCode}]: ${resultMsg}`);
+              break;
+            }
+
+            const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+            totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+            if (totalCount === 0) break;
+
+            const itemsXml = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+            for (const itemXml of itemsXml) {
+              const tagMap = new Map();
+              const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
+              let tagMatch;
+              while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+                tagMap.set(tagMatch[1], tagMatch[2].trim());
+              }
+              const getTag = (...keys) => {
+                for (const k of keys) {
+                  const val = tagMap.get(k);
+                  if (val !== undefined && val !== null && val !== '') return val;
+                }
+                return '';
+              };
+              items.push({
+                umdNm: getTag('umdNm', '법정동', 'dong'),
+                aptNm: getTag('aptNm', '아파트'),
+                dealAmount: getTag('dealAmount', '거래금액'),
+                excluUseAr: getTag('excluUseAr', '전용면적'),
+                dealDay: getTag('dealDay', '일'),
+                floor: getTag('floor', '층'),
+                cdealDay: getTag('cdealDay', '해제사유발생일'),
+                buyerGbn: getTag('buyerGbn', '매수자'),
+                slerGbn: getTag('slerGbn', '매도자'),
+                buildYear: getTag('buildYear', '건축년도'),
+                roadNm: getTag('roadNm', '도로명'),
+                cdealType: getTag('cdealType', '해제여부'),
+                dealingGbn: getTag('dealingGbn', '거래유형'),
+                estateAgentSggNm: getTag('estateAgentSggNm', '중개사소재지'),
+                rgstDate: getTag('rgstDate', '등기일자'),
+              });
+            }
+          } else {
+            // JSON response handling
+            if (rawData.response?.header?.resultCode !== '000' && rawData.response?.header?.resultCode !== '00') {
+               const errMsg = rawData.response?.header?.resultMsg || JSON.stringify(rawData);
+               console.error(`   ❌ API 에러: ${errMsg}`);
+               syncLog.push(`${ym} (${currentLawd}): API 에러 - ${errMsg}`);
+               break;
+            }
+
+            const body = rawData.response?.body;
+            if (!body) {
+              console.warn(`   ⚠️ API 응답 body가 비어 있습니다.`);
+              break;
+            }
+            totalCount = body.totalCount || 0;
+            if (totalCount === 0) break;
+
+            items = body.items?.item || [];
+            if (!Array.isArray(items)) items = [items];
           }
-
-          const body = data.response?.body;
-          if (!body) {
-            console.warn(`   ⚠️ API 응답 body가 비어 있습니다.`);
-            break;
-          }
-          totalCount = body.totalCount || 0;
-          if (totalCount === 0) break;
-
-          let items = body.items?.item || [];
-          if (!Array.isArray(items)) items = [items];
 
           for (const item of items) {
             const dong = item.umdNm || '';
