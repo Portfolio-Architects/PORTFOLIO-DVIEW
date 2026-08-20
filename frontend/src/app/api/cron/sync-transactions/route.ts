@@ -5,12 +5,14 @@
  * Vercel Cron에서 매일 1회 호출 (vercel.json에서 설정)
  * 수동 호출도 가능: fetch('/api/cron/sync-transactions')
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { sendMail } from '@/lib/utils/server/mailService';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { resilientFetch, resilientFetchText } from '@/lib/api/resilientFetch';
 import { getSupplyPyeong } from '@/lib/utils/areaConverter';
 
 export const runtime = 'nodejs';
@@ -20,27 +22,6 @@ const API_KEY = process.env.BUILDING_API_KEY || '';
 const LAWD_CDS = ['41590', '41597']; // 화성시(기존) 및 동탄구(신설) 모두 스캔
 const API_BASE_TRADE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 const API_BASE_RENT = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
-
-interface GovApiItem {
-  aptNm: string;
-  dealAmount: string;
-  dealDay: string;
-  dealMonth: string;
-  dealYear: string;
-  excluUseAr: string;
-  floor: string;
-  buildYear: string;
-  umdNm: string;
-  roadNm: string;
-  buyerGbn: string;
-  slerGbn: string;
-  cdealDay: string;
-  cdealType: string;
-  dealingGbn: string;
-  estateAgentSggNm: string;
-  rgstDate: string;
-  sggCd: string;
-}
 
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
@@ -77,34 +58,26 @@ async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
   const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=TYPE_MAP`;
-    const res = await fetch(csvUrl, { signal: AbortSignal.timeout(5000) });
-    if (res.ok) {
-      const csvText = await res.text();
-      const lines = csvText.split('\n').filter(l => l.trim());
-      for (let i = 1; i < lines.length; i++) {
-        const cols = parseCsvLine(lines[i]);
-        if (cols.length < 3) continue;
-        const aptName = normalizeAptName(cols[1] || '');
-        const area = (cols[2] || '').trim();
-        const typeM2Str = (cols[3] || '').trim();
-        if (aptName && area && typeM2Str) {
-          if (!typeMap[aptName]) typeMap[aptName] = {};
-          const match = typeM2Str.match(/\d+(\.\d+)?/);
-          if (match) {
-            typeMap[aptName][area] = parseFloat(match[0]) * 0.3025;
-          }
+    const csvText = await resilientFetchText(csvUrl, { timeoutMs: 5000, retries: 2 });
+    const lines = csvText.split('\n').filter(l => l.trim());
+    for (let i = 1; i < lines.length; i++) {
+      const cols = parseCsvLine(lines[i]);
+      if (cols.length < 3) continue;
+      const aptName = normalizeAptName(cols[1] || '');
+      const area = (cols[2] || '').trim();
+      const typeM2Str = (cols[3] || '').trim();
+      if (aptName && area && typeM2Str) {
+        if (!typeMap[aptName]) typeMap[aptName] = {};
+        const match = typeM2Str.match(/\d+(\.\d+)?/);
+        if (match) {
+          typeMap[aptName][area] = parseFloat(match[0]) * 0.3025;
         }
       }
     }
-  } catch(e) {
+  } catch (e) {
     logger.error('SyncTransactionsAPI.fetchTypeMap', 'Failed to fetch typeMap in cron sync', {}, e as Error);
   }
   return typeMap;
-}
-
-
-function extractDong(umdNm: string): string {
-  return umdNm || '';
 }
 
 function getTag(map: Map<string, string>, ...keys: string[]): string {
@@ -148,17 +121,13 @@ const transactionRecordSchema = z.object({
   rnuYn: z.string().optional(),
 });
 
+type TransactionRecord = z.infer<typeof transactionRecordSchema>;
+
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_cron_synctransactions_get_${rawIp}`);
-      if (!success) {
-        logger.warn('SyncTransactionsAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimitResult = await checkRateLimit(request, { prefix: 'cron_sync_transactions' });
+    if (!rateLimitResult.success) {
+      return rateLimitResult.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     if (process.env.NODE_ENV !== 'development') {
@@ -169,28 +138,22 @@ export async function GET(request: NextRequest) {
           authHeader: authHeader ? 'Present' : 'Missing',
           error: authResult.error.message,
         });
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return apiError('UNAUTHORIZED', 'Unauthorized', 401);
       }
     }
 
     if (!API_KEY) {
       logger.error('SyncTransactionsAPI.GET', 'BUILDING_API_KEY is not configured', {});
-      return NextResponse.json({ error: 'BUILDING_API_KEY not set' }, { status: 500 });
+      return apiError('CONFIG_ERROR', 'BUILDING_API_KEY not set', 500);
     }
     if (!db) {
       logger.error('SyncTransactionsAPI.GET', 'Firebase DB not initialized', {});
-      return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
+      return apiError('DATABASE_ERROR', 'Firebase DB not initialized', 500);
     }
 
-    const typeMap = await fetchTypeMap();
+    // Preload typeMap
+    await fetchTypeMap();
     const collRef = db.collection('transactions');
-    const latestSnap = await collRef.orderBy('contractDate', 'desc').limit(1).get();
-    
-    let latestYm = '';
-    if (!latestSnap.empty) {
-      const latestDoc = latestSnap.docs[0].data();
-      latestYm = latestDoc.contractYm || '';
-    }
 
     // 2. Determine months to sync (당월부터 6개월간 M~M-5 동기화하여 실거래 신고 지연 대응)
     const now = new Date();
@@ -204,12 +167,12 @@ export async function GET(request: NextRequest) {
     // 3. Fetch from 국토부 API for each month
     let totalNew = 0;
     const syncLog: string[] = [];
-    const allNewTransactions: z.infer<typeof transactionRecordSchema>[] = [];
+    const allNewTransactions: TransactionRecord[] = [];
     
     const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
 
     for (const ym of Array.from(monthsToSync).sort()) {
-      // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
+      // 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
       const existingMap = new Map<string, string>(); // _key -> cancelDate
       try {
         const existingSnap = await collRef
@@ -224,8 +187,8 @@ export async function GET(request: NextRequest) {
         logger.warn('SyncTransactionsAPI.GET', `[${ym}] 기존 데이터 조회 실패`, { message: errMsg });
       }
 
-      const monthRecords: z.infer<typeof transactionRecordSchema>[] = [];
-      const newTransactionsOfMonth: z.infer<typeof transactionRecordSchema>[] = [];
+      const monthRecords: TransactionRecord[] = [];
+      const newTransactionsOfMonth: TransactionRecord[] = [];
 
       // 매매 데이터 수집
       for (const currentLawd of LAWD_CDS) {
@@ -234,14 +197,14 @@ export async function GET(request: NextRequest) {
 
         do {
           const url = `${API_BASE_TRADE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
-          const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-          if (!res.ok) { 
-            syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${res.status}`); 
-            logger.error('SyncTransactionsAPI.GET', `Failed to fetch trade data page ${page}`, { ym, currentLawd, status: res.status });
-            break; 
+          let text = '';
+          try {
+            text = await resilientFetchText(url, { timeoutMs: 5000, retries: 2 });
+          } catch (fetchErr) {
+            syncLog.push(`${ym} (${currentLawd}) page ${page}: Fetch Failed`);
+            logger.error('SyncTransactionsAPI.GET', `Failed to fetch trade data page ${page}`, { ym, currentLawd }, fetchErr as Error);
+            break;
           }
-
-          const text = await res.text();
 
           // 1. Validate Government API Response structure and check for API-level errors
           const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
@@ -254,7 +217,7 @@ export async function GET(request: NextRequest) {
             logger.error('SyncTransactionsAPI.GET', errMsg, { ym, currentLawd, page });
             syncLog.push(`Gov API Error ${resultCode} on ${ym} (${currentLawd}) page ${page}: ${resultMsg}`);
             
-            // Critical API Error (e.g. invalid key, expired, call limit exceeded) - Send email alert
+            // Critical API Error - Send email alert
             try {
               await sendMail({
                 to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
@@ -271,24 +234,20 @@ export async function GET(request: NextRequest) {
                       <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px; font-size: 13px;">
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569; width: 120px;">감지 시각</td>
-                          <td style="padding: 10px 8px; color: #1e293b;">\${new Date().toLocaleString('ko-KR')}</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">${new Date().toLocaleString('ko-KR')}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569;">연월 / 지역코드</td>
-                          <td style="padding: 10px 8px; color: #1e293b;">\${ym} / \${currentLawd} (페이지: \${page})</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">${ym} / ${currentLawd} (페이지: ${page})</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569;">결과 코드</td>
-                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">\${resultCode}</td>
+                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">${resultCode}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">에러 메시지</td>
-                          <td style="padding: 10px 8px; color: #1e293b;">\${resultMsg}</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">${resultMsg}</td>
                         </tr>
                       </table>
-                      <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
-                        본 배치 수집 단계가 중단되었습니다. 공공데이터포털의 API 트래픽 한도 초과 또는 서비스 인증키 등록 상태를 즉시 정밀 진단해 주시기 바랍니다.
-                      </p>
                     </div>
                   </div>
                 `
@@ -315,7 +274,6 @@ export async function GET(request: NextRequest) {
               tagMap.set(tagMatch[1], tagMatch[2].trim());
             }
             const dong = getTag(tagMap, 'umdNm', '법정동', 'dong');
-            // 동탄 권역 속하는 동 이름만 메모리 필터링
             if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
 
             const aptName = getTag(tagMap, 'aptNm', '아파트');
@@ -327,7 +285,6 @@ export async function GET(request: NextRequest) {
             const key = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
             const cancelDate = getTag(tagMap, 'cdealDay', '해제사유발생일') || '';
 
-            // Firestore 쓰기 절감 및 중복 체크: 이미 존재하고 cancelDate가 같으면 제외
             if (existingMap.has(key)) {
               const existingCancelDate = existingMap.get(key);
               if (cancelDate === existingCancelDate) {
@@ -383,16 +340,15 @@ export async function GET(request: NextRequest) {
         let rentTotalCount = 0;
         do {
           const url = `${API_BASE_RENT}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
-          const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
-          if (!res.ok) { 
-            syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: HTTP ${res.status}`); 
-            logger.error('SyncTransactionsAPI.GET', `Failed to fetch rent data page ${rentPage}`, { ym, currentLawd, status: res.status });
-            break; 
+          let text = '';
+          try {
+            text = await resilientFetchText(url, { timeoutMs: 5000, retries: 2 });
+          } catch (fetchErr) {
+            syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: Fetch Failed`);
+            logger.error('SyncTransactionsAPI.GET', `Failed to fetch rent data page ${rentPage}`, { ym, currentLawd }, fetchErr as Error);
+            break;
           }
 
-          const text = await res.text();
-
-          // 1. Validate Government API Response structure and check for API-level errors
           const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
           const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
           const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
@@ -403,7 +359,6 @@ export async function GET(request: NextRequest) {
             logger.error('SyncTransactionsAPI.GET', errMsg, { ym, currentLawd, rentPage });
             syncLog.push(`Gov API Rent Error ${resultCode} on ${ym} (${currentLawd}) page ${rentPage}: ${resultMsg}`);
             
-            // API 장애 발생 시 관리자에게 이메일 경고 발송
             try {
               await sendMail({
                 to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
@@ -420,24 +375,20 @@ export async function GET(request: NextRequest) {
                       <table style="width: 100%; border-collapse: collapse; text-align: left; margin-bottom: 24px; font-size: 13px;">
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569; width: 120px;">감지 시각</td>
-                          <td style="padding: 10px 8px; color: #1e293b;">\${new Date().toLocaleString('ko-KR')}</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">${new Date().toLocaleString('ko-KR')}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569;">연월 / 지역코드</td>
-                          <td style="padding: 10px 8px; color: #1e293b;">\${ym} / \${currentLawd} (페이지: \${rentPage})</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">${ym} / ${currentLawd} (페이지: ${rentPage})</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569;">결과 코드</td>
-                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">\${resultCode}</td>
+                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">${resultCode}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
-                          <td style="padding: 10px 8px; font-weight: bold; color: #475569;">에러 메시지</td>
-                          <td style="padding: 10px 8px; color: #1e293b;">\${resultMsg}</td>
+                          <td style="padding: 10px 8px; color: #1e293b;">${resultMsg}</td>
                         </tr>
                       </table>
-                      <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">
-                        본 배치 수집 단계가 중단되었습니다. 공공데이터포털의 API 트래픽 한도 초과 또는 서비스 인증키 등록 상태를 즉시 정밀 진단해 주시기 바랍니다.
-                      </p>
                     </div>
                   </div>
                 `
@@ -461,7 +412,6 @@ export async function GET(request: NextRequest) {
               tagMap.set(tagMatch[1], tagMatch[2].trim());
             }
             const dong = getTag(tagMap, 'umdNm', '법정동', 'dong');
-            // 동탄 권역 속하는 동 이름만 메모리 필터링
             if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
 
             const aptName = getTag(tagMap, 'aptNm', '아파트');
@@ -477,9 +427,8 @@ export async function GET(request: NextRequest) {
             const floor = parseInt(getTag(tagMap, 'floor', '층'), 10) || 0;
             const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
 
-            // 중복 검사
             if (existingMap.has(_key)) {
-              continue; // 렌트는 취소일이 없으므로 단순 키 존재여부만 체크
+              continue;
             }
 
             const record = {
@@ -491,7 +440,7 @@ export async function GET(request: NextRequest) {
               contractYm: ym,
               contractDay,
               contractDate: `${ym}${contractDay}`,
-              price: deposit, // For UI compatibility, use deposit as price
+              price: deposit,
               deposit,
               monthlyRent,
               floor,
@@ -649,7 +598,7 @@ export async function GET(request: NextRequest) {
     // 5. Trigger Vercel Deploy Hook if there are new transactions
     if (totalNew > 0 && process.env.VERCEL_DEPLOY_HOOK_URL) {
       try {
-        const deployRes = await fetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST', signal: AbortSignal.timeout(5000) });
+        const deployRes = await resilientFetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST', timeoutMs: 5000, retries: 2 });
         if (deployRes.ok) {
           syncLog.push('Vercel Deploy Hook Triggered Successfully');
           logger.info('SyncTransactionsAPI.GET', 'Vercel Deploy Hook Triggered Successfully', {});
@@ -667,11 +616,12 @@ export async function GET(request: NextRequest) {
     if (totalNew > 0) {
       try {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000';
-        const pushRes = await fetch(`${appUrl}/api/push/notify-new-high`, {
+        const pushRes = await resilientFetch(`${appUrl}/api/push/notify-new-high`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({}),
-          signal: AbortSignal.timeout(5000)
+          timeoutMs: 5000,
+          retries: 2,
         });
         if (pushRes.ok) {
           const pushResult = await pushRes.json();
@@ -688,8 +638,7 @@ export async function GET(request: NextRequest) {
     }
 
     const errorCount = syncLog.filter(line => line.toLowerCase().includes('error') || line.toLowerCase().includes('failed')).length;
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       synced: totalNew,
       months: Array.from(monthsToSync),
       logCount: syncLog.length,
@@ -697,6 +646,6 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: unknown) {
     logger.error('SyncTransactionsAPI.GET', 'Sync error', {}, error as Error);
-    return NextResponse.json({ error: 'Sync error' }, { status: 500 });
+    return apiError('SYNC_ERROR', 'Sync error', 500, error instanceof Error ? error.message : String(error));
   }
 }

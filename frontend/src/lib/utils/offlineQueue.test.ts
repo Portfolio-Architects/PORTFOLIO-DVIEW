@@ -109,7 +109,7 @@ describe('offlineQueue Utility', () => {
       writable: true,
     });
 
-    (window as any).SyncManager = {};
+    window.SyncManager = {};
 
     // Mock fetch
     global.fetch = jest.fn();

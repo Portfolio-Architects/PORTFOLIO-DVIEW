@@ -21,6 +21,14 @@ if (!global.Response) {
   global.Response = nodeFetch.Response;
 }
 
+if (global.Response && !(global.Response as any).json) {
+  (global.Response as any).json = (data: any, init?: any) => {
+    const res = new (global.Response as any)(JSON.stringify(data), init);
+    res.headers.set('Content-Type', 'application/json');
+    return res;
+  };
+}
+
 // Global Polyfills for DOM observers & media queries
 if (typeof window !== 'undefined') {
   if (!global.ResizeObserver) {

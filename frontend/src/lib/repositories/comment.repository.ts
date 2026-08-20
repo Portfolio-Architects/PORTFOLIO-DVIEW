@@ -196,7 +196,7 @@ export async function getComments(reportId: string): Promise<CommentData[]> {
   }
 
   return rawDocs.map(item => {
-    const data = item.data as any;
+    const data = item.data;
     const mapped = {
       id: item.id,
       text: data.text || '',

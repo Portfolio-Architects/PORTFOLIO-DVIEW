@@ -1,13 +1,14 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import useSWR, { preload } from 'swr';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import useSWR from 'swr';
 import { User } from 'firebase/auth';
 import type { AptTxSummary, LocationScoreItem } from '@/lib/types/transaction';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
-import { normalizeAptName, findTxKey, isSameApartment, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, findTxKey, isSameApartment } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { logger } from '@/lib/services/logger';
+import { usePreloadApartmentTx, getApartmentFileKey } from './usePreloadApartmentTx';
 
 export interface TransactionRecord {
   no: number;
@@ -81,6 +82,7 @@ export function useApartmentDetails(
 ): UseApartmentDetailsReturn {
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
+  const activeRequestIdRef = useRef(0);
 
   const flatApartments = useMemo(() => {
     if (!sheetApartments) return [];
@@ -107,16 +109,14 @@ export function useApartmentDetails(
 
   const fileKey = useMemo(() => {
     if (!selectedReport) return null;
-    const normalizedName = normalizeAptName(selectedReport.apartmentName);
-    let rawApt = apartmentsMap.get(normalizedName) || null;
-    if (!rawApt) {
-      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping, a.dong, selectedReport.dong)) || null;
-    }
-    const rawAptTxKey = (rawApt as { txKey?: string })?.txKey;
-    const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = rawAptTxKey || overrideKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping, false, selectedReport.dong);
-    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    return txKey || normalizedName;
+    return getApartmentFileKey(
+      selectedReport.apartmentName,
+      selectedReport.dong,
+      apartmentsMap,
+      flatApartments,
+      nameMapping,
+      txSummaryData
+    );
   }, [selectedReport, flatApartments, apartmentsMap, txSummaryData, nameMapping]);
 
 
@@ -213,56 +213,81 @@ export function useApartmentDetails(
 
   useEffect(() => {
     if (!selectedReport) { 
+      activeRequestIdRef.current += 1;
       setFullReportData(null);
       setIsLoadingDetail(false);
       return; 
     }
     
+    const currentRequestId = ++activeRequestIdRef.current;
+    const targetReportId = selectedReport.id;
+    const targetAptName = selectedReport.apartmentName;
+    const isStubReport = targetReportId.startsWith('stub-');
+
     setFullReportData(null);
-    setIsLoadingDetail(!selectedReport.id.startsWith('stub-'));
+    setIsLoadingDetail(!isStubReport);
     
     let unmounted = false;
 
     // Fetch Full Report & View count
-    const isStubReport = selectedReport.id.startsWith('stub-');
     if (!isStubReport) {
       if (dashboardFacade.getFullReport) {
-        dashboardFacade.getFullReport(selectedReport.id).then((data) => {
-          if (!unmounted) {
+        dashboardFacade.getFullReport(targetReportId).then((data) => {
+          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
             setFullReportData(data);
             setIsLoadingDetail(false);
           }
-        }).catch(() => { if (!unmounted) setIsLoadingDetail(false); });
+        }).catch(() => {
+          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+            setIsLoadingDetail(false);
+          }
+        });
       } else {
-        setIsLoadingDetail(false);
+        if (activeRequestIdRef.current === currentRequestId) {
+          setIsLoadingDetail(false);
+        }
       }
 
       const trackView = () => {
-        if (unmounted) return;
-        fetch('/api/report-view', { method: 'POST', body: JSON.stringify({ reportId: selectedReport.id, userEmail: user?.email }) }).catch(() => {});
+        if (unmounted || activeRequestIdRef.current !== currentRequestId) return;
+        fetch('/api/report-view', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ reportId: targetReportId, userEmail: user?.email })
+        }).catch(() => {});
       };
 
       if (user) {
         user.getIdTokenResult().then(idTokenResult => {
-          if (!unmounted && !idTokenResult.claims.admin) trackView();
+          if (!unmounted && activeRequestIdRef.current === currentRequestId && !idTokenResult.claims.admin) {
+            trackView();
+          }
         }).catch(() => {
-          if (!unmounted) trackView();
+          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+            trackView();
+          }
         });
       } else {
         trackView();
       }
     } else {
       if (dashboardFacade.getFullReportByApartmentName) {
-        dashboardFacade.getFullReportByApartmentName(selectedReport.apartmentName).then((data) => {
-          if (!unmounted) {
+        dashboardFacade.getFullReportByApartmentName(targetAptName).then((data) => {
+          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
             setFullReportData(data);
             setIsLoadingDetail(false);
           }
-        }).catch(() => { if (!unmounted) setIsLoadingDetail(false); });
+        }).catch(() => {
+          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+            setIsLoadingDetail(false);
+          }
+        });
       }
     }
     
-    return () => { unmounted = true; };
+    return () => { 
+      unmounted = true; 
+    };
   }, [selectedReport, user]);
 
   const resolvedReport = useMemo(() => {
@@ -304,48 +329,18 @@ export function useApartmentDetails(
 
   const aptTxSummary = useMemo(() => {
     if (!selectedReport) return undefined;
-    const normalizedName = normalizeAptName(selectedReport.apartmentName);
-    let rawApt = apartmentsMap.get(normalizedName) || null;
-    if (!rawApt) {
-      rawApt = flatApartments.find(a => isSameApartment(a.name, selectedReport.apartmentName, nameMapping, a.dong, selectedReport.dong)) || null;
-    }
-    const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(selectedReport.apartmentName, txSummaryData, nameMapping, false, selectedReport.dong);
-    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    const fileKey = txKey || normalizedName;
-    return txSummaryData[fileKey];
+    const key = getApartmentFileKey(
+      selectedReport.apartmentName,
+      selectedReport.dong,
+      apartmentsMap,
+      flatApartments,
+      nameMapping,
+      txSummaryData
+    );
+    return txSummaryData[key];
   }, [selectedReport, flatApartments, apartmentsMap, nameMapping, txSummaryData]);
 
-  const preloadApartmentTx = useCallback((apartmentName: string, dong: string) => {
-    if (!apartmentName) return;
-    const normalizedName = normalizeAptName(apartmentName);
-    let rawApt = apartmentsMap.get(normalizedName) || null;
-    if (!rawApt) {
-      rawApt = flatApartments.find(a => isSameApartment(a.name, apartmentName, nameMapping, a.dong, dong)) || null;
-    }
-    const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(apartmentName, txSummaryData, nameMapping, false, dong);
-    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    const fileKey = txKey || normalizedName;
-
-    if (fileKey) {
-      const buildId = BUILD_VERSION;
-      const recentUrl = `/tx-data/${encodeURIComponent(fileKey)}-recent.json?v=${buildId}`;
-      const fullUrl = `/tx-data/${encodeURIComponent(fileKey)}.json?v=${buildId}`;
-      
-      try {
-        preload(recentUrl, fetcher);
-      } catch (e) {
-        fetch(recentUrl).catch(() => {});
-      }
-      
-      try {
-        preload(fullUrl, fetcher);
-      } catch (e) {
-        fetch(fullUrl).catch(() => {});
-      }
-    }
-  }, [flatApartments, apartmentsMap, txSummaryData, nameMapping]);
+  const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummaryData);
 
   return {
     txSummaryData,
@@ -359,3 +354,4 @@ export function useApartmentDetails(
     preloadApartmentTx
   };
 }
+

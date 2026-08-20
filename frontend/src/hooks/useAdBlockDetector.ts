@@ -25,8 +25,8 @@ export function useAdBlockDetector() {
 
     const checkAdBlock = () => {
       // 2. Check if window.adsbygoogle is loaded and initialized
-      const adsbygoogle = (window as any).adsbygoogle;
-      const scriptBlocked = !adsbygoogle || adsbygoogle.push === Array.prototype.push;
+      const adsbygoogle = window.adsbygoogle;
+      const scriptBlocked = !adsbygoogle || (adsbygoogle as { push?: unknown }).push === Array.prototype.push;
 
       // 3. Check if the DOM element is hidden or collapsed by the adblock extension
       const rect = testDiv.getBoundingClientRect();

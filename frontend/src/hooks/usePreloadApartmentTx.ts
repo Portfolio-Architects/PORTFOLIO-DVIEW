@@ -7,6 +7,45 @@ import { BUILD_VERSION } from '@/lib/build-version';
 
 const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : []);
 
+export function getApartmentFileKey(
+  apartmentName: string,
+  dong?: string,
+  apartmentsMap?: Map<string, DongApartment>,
+  flatApartments?: DongApartment[],
+  nameMapping?: Record<string, string>,
+  txSummaryData: Record<string, AptTxSummary> = {}
+): string {
+  if (!apartmentName) return '';
+  const normalizedName = normalizeAptName(apartmentName);
+  let rawApt = apartmentsMap?.get(normalizedName) || null;
+  if (!rawApt && flatApartments) {
+    rawApt = flatApartments.find(a => isSameApartment(a.name, apartmentName, nameMapping, a.dong, dong)) || null;
+  }
+  const overrideKey = HARDCODED_MAPPING[normalizedName];
+  const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(apartmentName, txSummaryData, nameMapping, false, dong);
+  const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
+  return txKey || normalizedName;
+}
+
+export function preloadApartmentTxData(fileKey: string): void {
+  if (!fileKey) return;
+  const buildId = BUILD_VERSION;
+  const recentUrl = `/tx-data/${encodeURIComponent(fileKey)}-recent.json?v=${buildId}`;
+  const fullUrl = `/tx-data/${encodeURIComponent(fileKey)}.json?v=${buildId}`;
+  
+  try {
+    preload(recentUrl, fetcher);
+  } catch {
+    fetch(recentUrl).catch(() => {});
+  }
+  
+  try {
+    preload(fullUrl, fetcher);
+  } catch {
+    fetch(fullUrl).catch(() => {});
+  }
+}
+
 export function usePreloadApartmentTx(
   sheetApartments: Record<string, DongApartment[]>,
   nameMapping: Record<string, string> | undefined,
@@ -27,35 +66,12 @@ export function usePreloadApartmentTx(
   }, [sheetApartments]);
 
   const preloadApartmentTx = useCallback((apartmentName: string, dong: string) => {
-    if (!apartmentName) return;
-    const normalizedName = normalizeAptName(apartmentName);
-    let rawApt = apartmentsMap.get(normalizedName) || null;
-    if (!rawApt) {
-      rawApt = flatApartments.find(a => isSameApartment(a.name, apartmentName, nameMapping, a.dong, dong)) || null;
-    }
-    const overrideKey = HARDCODED_MAPPING[normalizedName];
-    const rawTxKey = overrideKey || (rawApt as { txKey?: string })?.txKey || findTxKey(apartmentName, txSummaryData, nameMapping, false, dong);
-    const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-    const fileKey = txKey || normalizedName;
-
+    const fileKey = getApartmentFileKey(apartmentName, dong, apartmentsMap, flatApartments, nameMapping, txSummaryData);
     if (fileKey) {
-      const buildId = BUILD_VERSION;
-      const recentUrl = `/tx-data/${encodeURIComponent(fileKey)}-recent.json?v=${buildId}`;
-      const fullUrl = `/tx-data/${encodeURIComponent(fileKey)}.json?v=${buildId}`;
-      
-      try {
-        preload(recentUrl, fetcher);
-      } catch (e) {
-        fetch(recentUrl).catch(() => {});
-      }
-      
-      try {
-        preload(fullUrl, fetcher);
-      } catch (e) {
-        fetch(fullUrl).catch(() => {});
-      }
+      preloadApartmentTxData(fileKey);
     }
   }, [flatApartments, apartmentsMap, txSummaryData, nameMapping]);
 
   return preloadApartmentTx;
 }
+

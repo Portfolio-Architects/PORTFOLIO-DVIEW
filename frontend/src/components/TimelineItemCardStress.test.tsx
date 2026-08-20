@@ -4,7 +4,6 @@ import React, { useState, useCallback } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 
 declare global {
-  // eslint-disable-next-line no-var
   var stressCardRenderCounts: Record<string, number>;
 }
 

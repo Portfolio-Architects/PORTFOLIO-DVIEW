@@ -1,12 +1,44 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/services/logger';
-import { fetchSheetJisanStatus } from '@/lib/services/googleSheets';
+import { fetchSheetJisanStatus, JisanStatusItem } from '@/lib/services/googleSheets';
+import { apiSuccess } from '@/lib/api/apiResponse';
+import { resilientFetch } from '@/lib/api/resilientFetch';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+export interface CenterSpecItem {
+  landArea: string;
+  buildingArea: string;
+  totalFloorArea: string;
+  address: string;
+  status: string;
+  developer: string;
+  tenants: string[];
+  builder?: string;
+}
+
+export interface OdcloudCenterItem {
+  지식산업센터명?: string;
+  용지면적?: string | number;
+  건축면적?: string | number;
+  연면적?: string | number;
+  '공장대표주소(도로명)'?: string;
+  상태?: string;
+  설치자?: string;
+  [key: string]: unknown;
+}
+
+export interface OdcloudFactoryItem {
+  회사명?: string;
+  지식산업센터명?: string;
+  공장주소?: string;
+  [key: string]: unknown;
+}
+
 // Curated official data matching the KICOX National Knowledge Industrial Center registry
-const CURATED_CENTER_SPECS: Record<string, any> = {
+const CURATED_CENTER_SPECS: Record<string, CenterSpecItem> = {
   '금강펜테리움 IX타워': {
     landArea: '51,801 ㎡',
     buildingArea: '23,541 ㎡',
@@ -46,18 +78,24 @@ const CURATED_CENTER_SPECS: Record<string, any> = {
 };
 
 export async function GET(request: NextRequest) {
+  // Rate limiting check
+  const rateLimitResult = await checkRateLimit(request, { prefix: 'technovalley_center_specs' });
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response || NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+  }
+
   const serviceKey = process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_API_KEY || '';
 
   // Load Google Sheet SSOT items
-  const sheetItems = await fetchSheetJisanStatus().catch(() => []);
-  const sheetMap: Record<string, any> = {};
-  sheetItems.forEach(item => {
+  const sheetItems: JisanStatusItem[] = await fetchSheetJisanStatus().catch(() => []);
+  const sheetMap: Record<string, JisanStatusItem> = {};
+  sheetItems.forEach((item: JisanStatusItem) => {
     sheetMap[item.name] = item;
   });
 
   if (!serviceKey) {
     logger.info('GET /api/technovalley/center-specs', 'Returning curated KICOX center specs cache merged with Google Sheet SSOT');
-    const mergedCurated: Record<string, any> = {};
+    const mergedCurated: Record<string, CenterSpecItem> = {};
     for (const key of Object.keys(CURATED_CENTER_SPECS)) {
       const sheetInfo = sheetMap[key];
       mergedCurated[key] = {
@@ -70,18 +108,21 @@ export async function GET(request: NextRequest) {
         builder: sheetInfo?.builder || ''
       };
     }
-    return NextResponse.json({
-      success: true,
-      source: 'curated-cache',
-      centers: mergedCurated,
-      sheetTotalCount: sheetItems.length,
-      message: '한국산업단지공단 지산현황 고증 캐시 및 구글 시트 SSOT 데이터를 반환했습니다.'
-    }, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+    return apiSuccess(
+      null,
+      {
+        source: 'curated-cache',
+        centers: mergedCurated,
+        sheetTotalCount: sheetItems.length,
+        message: '한국산업단지공단 지산현황 고증 캐시 및 구글 시트 SSOT 데이터를 반환했습니다.'
+      },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+        }
       }
-    });
+    );
   }
 
   try {
@@ -90,21 +131,22 @@ export async function GET(request: NextRequest) {
 
     logger.info('GET /api/technovalley/center-specs', 'Fetching from KICOX Knowledge Industrial Center API');
 
-    const response = await fetch(url, {
+    const response = await resilientFetch(url, {
       method: 'GET',
       headers: { 'Accept': 'application/json' },
-      next: { revalidate: 3600 }
+      timeoutMs: 5000,
+      retries: 2,
     });
 
     if (!response.ok) {
       throw new Error(`API response status error: ${response.status}`);
     }
 
-    const json = await response.json();
+    const json = (await response.json()) as { data?: OdcloudCenterItem[] };
     const data = json?.data || [];
 
     // Filter and map centers belonging to Hwaseong Yeongcheon-dong
-    const liveSpecs: Record<string, any> = {};
+    const liveSpecs: Record<string, CenterSpecItem> = {};
     for (const key of Object.keys(CURATED_CENTER_SPECS)) {
       liveSpecs[key] = {
         ...CURATED_CENTER_SPECS[key],
@@ -113,7 +155,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (Array.isArray(data) && data.length > 0) {
-      data.forEach((item: any) => {
+      data.forEach((item: OdcloudCenterItem) => {
         const centerName = item['지식산업센터명'] || '';
         if (CURATED_CENTER_SPECS[centerName]) {
           liveSpecs[centerName] = {
@@ -136,14 +178,15 @@ export async function GET(request: NextRequest) {
       const factoriesUrl = `https://api.odcloud.kr/api/15106170/v1/uddi:c5988948-73f2-41dd-af38-c0f1cee398b1?page=1&perPage=300&${factKey}=${factVal}&serviceKey=${serviceKey}`;
 
       logger.info('GET /api/technovalley/center-specs', 'Fetching tenants from KICOX Factory Registry API');
-      const factoriesRes = await fetch(factoriesUrl, {
+      const factoriesRes = await resilientFetch(factoriesUrl, {
         method: 'GET',
         headers: { 'Accept': 'application/json' },
-        next: { revalidate: 3600 }
+        timeoutMs: 5000,
+        retries: 2,
       });
 
       if (factoriesRes.ok) {
-        const factoriesJson = await factoriesRes.json();
+        const factoriesJson = (await factoriesRes.json()) as { data?: OdcloudFactoryItem[] };
         const factoriesData = factoriesJson?.data || [];
 
         if (Array.isArray(factoriesData) && factoriesData.length > 0) {
@@ -152,7 +195,7 @@ export async function GET(request: NextRequest) {
             liveSpecs[key].tenants = [];
           }
 
-          factoriesData.forEach((item: any) => {
+          factoriesData.forEach((item: OdcloudFactoryItem) => {
             const cmpNm = item['회사명'] || '';
             const centerField = item['지식산업센터명'] || '';
             const addr = item['공장주소'] || '';
@@ -181,25 +224,27 @@ export async function GET(request: NextRequest) {
       logger.error('GET /api/technovalley/center-specs', 'Failed to fetch factories for tenant mapping, keeping curated fallback', {}, factErr);
     }
 
-    return NextResponse.json({
-      success: true,
-      source: 'live-api',
-      centers: liveSpecs,
-      message: '공공데이터포털 실시간 지식산업센터 및 입주기업 API 동기화 완료'
-    }, {
-      status: 200
-    });
+    return apiSuccess(
+      null,
+      {
+        source: 'live-api',
+        centers: liveSpecs,
+        message: '공공데이터포털 실시간 지식산업센터 및 입주기업 API 동기화 완료'
+      },
+      { status: 200 }
+    );
 
   } catch (err) {
     logger.error('GET /api/technovalley/center-specs', 'Failed to fetch live API, using fallback data', {}, err);
-    return NextResponse.json({
-      success: true,
-      source: 'curated-cache',
-      centers: CURATED_CENTER_SPECS,
-      message: '실시간 API 호출 실패로 로컬 고증 지산현황 및 입주기업 캐시 데이터를 반환했습니다.',
-      error: err instanceof Error ? err.message : String(err)
-    }, {
-      status: 200
-    });
+    return apiSuccess(
+      null,
+      {
+        source: 'curated-cache',
+        centers: CURATED_CENTER_SPECS,
+        message: '실시간 API 호출 실패로 로컬 고증 지산현황 및 입주기업 캐시 데이터를 반환했습니다.',
+        error: err instanceof Error ? err.message : String(err)
+      },
+      { status: 200 }
+    );
   }
 }

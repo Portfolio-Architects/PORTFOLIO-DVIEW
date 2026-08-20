@@ -292,15 +292,15 @@ export function useTxData(
     let idleId: number | null = null;
     let timerId: NodeJS.Timeout | null = null;
 
-    if ('requestIdleCallback' in window) {
-      idleId = (window as any).requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window && window.requestIdleCallback) {
+      idleId = window.requestIdleCallback(() => setShouldFetch(true), { timeout: 150 });
     } else {
       timerId = setTimeout(() => setShouldFetch(true), 100);
     }
 
     return () => {
-      if (idleId !== null) {
-        (window as any).cancelIdleCallback(idleId);
+      if (idleId !== null && window.cancelIdleCallback) {
+        window.cancelIdleCallback(idleId);
       }
       if (timerId !== null) {
         clearTimeout(timerId);

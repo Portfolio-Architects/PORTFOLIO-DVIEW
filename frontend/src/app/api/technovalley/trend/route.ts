@@ -1,11 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOfficeTransactions } from '@/lib/services/officeTx.service';
 import { logger } from '@/lib/services/logger';
+import { apiSuccess } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 import fs from 'fs';
 import path from 'path';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+export interface TrendRecord {
+  date: string;
+  '금강 IX'?: number | null;
+  '실리콘앨리'?: number | null;
+  'SH타임'?: number | null;
+  '더퍼스트'?: number | null;
+  'SK V1'?: number | null;
+  '에이팩시티'?: number | null;
+  '테라타워'?: number | null;
+  'IT타워'?: number | null;
+  '메가비즈타워'?: number | null;
+  '비즈타워'?: number | null;
+
+  '금강IX_임대료'?: number | null;
+  '실리콘앨리_임대료'?: number | null;
+  'SH타임_임대료'?: number | null;
+  '더퍼스트_임대료'?: number | null;
+  'SKV1_임대료'?: number | null;
+  '에이팩시티_임대료'?: number | null;
+  '테라타워_임대료'?: number | null;
+  'IT타워_임대료'?: number | null;
+  '메가비즈타워_임대료'?: number | null;
+  '비즈타워_임대료'?: number | null;
+  '평균임대료'?: number | null;
+  [key: string]: string | number | null | undefined;
+}
+
+export interface JisanBuilding {
+  id: string;
+  name: string;
+  jibun?: string;
+  totalUnits: number;
+  gfa?: number;
+  baselineVacancy: number;
+  yearBuilt?: number | string;
+}
+
+export interface NpsStatsData {
+  stats?: {
+    yeongcheonDong?: {
+      companiesCount?: number;
+      totalEmployees?: number;
+      newHires?: number;
+      departures?: number;
+    };
+  };
+}
 
 // 6 timeline months represented in the chart
 const TARGET_MONTHS = ['202501', '202505', '202509', '202511', '202601', '202605'];
@@ -20,7 +70,7 @@ const FALLBACK_RENT_MAP: Record<string, Record<string, number>> = {
   '202605': { '금강 IX': 3.88, '실리콘앨리': 3.68, 'SH타임': 3.48, '더퍼스트': 3.38, 'SK V1': 3.55, '에이팩시티': 3.58, '테라타워': 3.48, 'IT타워': 3.44, '메가비즈타워': 3.34, '비즈타워': 3.28, '평균임대료': 3.68 }
 };
 
-const STATIC_HISTORICAL_DATA = [
+const STATIC_HISTORICAL_DATA: TrendRecord[] = [
   {
     date: '21.01',
     '금강 IX': null, '실리콘앨리': null, 'SH타임': 18.5, '더퍼스트': 13.2, 'SK V1': 20.4, '에이팩시티': 12.1, '테라타워': 35.5, 'IT타워': 11.5, '메가비즈타워': 25.8, '비즈타워': 26.2,
@@ -119,13 +169,19 @@ const getHistoricalRentKey = (id: string): string => {
 
 // Simple in-memory cache to prevent hitting public API limits excessively
 interface CacheEntry {
-  data: any;
+  data: TrendRecord[];
   timestamp: number;
 }
 let memoryCache: CacheEntry | null = null;
 const CACHE_TTL_MS = 600000; // 10 minutes
 
 export async function GET(request: NextRequest) {
+  // Rate limiting check
+  const rateLimitResult = await checkRateLimit(request, { prefix: 'technovalley_trend' });
+  if (!rateLimitResult.success) {
+    return rateLimitResult.response || NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const bypassCache = searchParams.get('refresh') === 'true' || searchParams.get('bypassCache') === 'true';
   const now = Date.now();
@@ -134,22 +190,22 @@ export async function GET(request: NextRequest) {
   if (!bypassCache) {
     if (memoryCache && (now - memoryCache.timestamp) < CACHE_TTL_MS) {
       logger.info('GET /api/technovalley/trend', 'Serving trend data from in-memory cache.');
-      return NextResponse.json({
-        success: true,
-        source: 'memory-cache',
-        data: memoryCache.data
-      }, {
-        status: 200,
-        headers: {
-          'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+      return apiSuccess(
+        memoryCache.data,
+        { source: 'memory-cache' },
+        {
+          status: 200,
+          headers: {
+            'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+          }
         }
-      });
+      );
     }
 
     try {
       if (fs.existsSync(cachePath)) {
         const fileContent = fs.readFileSync(cachePath, 'utf8');
-        const fileCached = JSON.parse(fileContent);
+        const fileCached = JSON.parse(fileContent) as { data: TrendRecord[]; timestamp?: number };
         if (fileCached && fileCached.data) {
           const cachedTime = fileCached.timestamp || 0;
           if (now - cachedTime < CACHE_TTL_MS) {
@@ -160,16 +216,16 @@ export async function GET(request: NextRequest) {
               timestamp: cachedTime
             };
 
-            return NextResponse.json({
-              success: true,
-              source: 'file-cache',
-              data: fileCached.data
-            }, {
-              status: 200,
-              headers: {
-                'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+            return apiSuccess(
+              fileCached.data,
+              { source: 'file-cache' },
+              {
+                status: 200,
+                headers: {
+                  'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+                }
               }
-            });
+            );
           } else {
             logger.info('GET /api/technovalley/trend', 'Local file cache has expired. Recalculating.');
           }
@@ -200,13 +256,13 @@ export async function GET(request: NextRequest) {
 
     // Load building metadata dynamically from JSON database
     const jisanDbPath = path.join(process.cwd(), 'src/lib/data/yeongcheon_jisan_units.json');
-    const jisanDb = JSON.parse(fs.readFileSync(jisanDbPath, 'utf8'));
+    const jisanDb = JSON.parse(fs.readFileSync(jisanDbPath, 'utf8')) as JisanBuilding[];
 
     const BUILDING_TOTAL_UNITS: Record<string, number> = {};
     const BUILDING_GFA: Record<string, number> = {};
     const BASELINE_VACANCY_2411: Record<string, number> = {};
 
-    jisanDb.forEach((b: any) => {
+    jisanDb.forEach((b: JisanBuilding) => {
       BUILDING_TOTAL_UNITS[b.id] = b.totalUnits;
       BUILDING_GFA[b.id] = b.gfa || 50000;
       BASELINE_VACANCY_2411[b.id] = b.baselineVacancy;
@@ -217,7 +273,7 @@ export async function GET(request: NextRequest) {
     try {
       const npsDbPath = path.join(process.cwd(), 'src/lib/data/nps_stats.json');
       if (fs.existsSync(npsDbPath)) {
-        const npsData = JSON.parse(fs.readFileSync(npsDbPath, 'utf8'));
+        const npsData = JSON.parse(fs.readFileSync(npsDbPath, 'utf8')) as NpsStatsData;
         const totalEmp = npsData.stats?.yeongcheonDong?.totalEmployees || 0;
         const compCount = npsData.stats?.yeongcheonDong?.companiesCount || 1;
         const newHires = npsData.stats?.yeongcheonDong?.newHires || 0;
@@ -239,7 +295,7 @@ export async function GET(request: NextRequest) {
     // Tracking stateful vacancy and rent across timeline months sequentially
     const currentVacancy = { ...BASELINE_VACANCY_2411 };
     
-    const lastHist = STATIC_HISTORICAL_DATA[STATIC_HISTORICAL_DATA.length - 1] as Record<string, any>;
+    const lastHist = STATIC_HISTORICAL_DATA[STATIC_HISTORICAL_DATA.length - 1];
     const currentRent: Record<string, number> = {};
     const BUILDINGS = [
       '금강 IX', '실리콘앨리', 'SH타임', '더퍼스트', 'SK V1',
@@ -247,10 +303,11 @@ export async function GET(request: NextRequest) {
     ];
     BUILDINGS.forEach((key) => {
       const histKey = getHistoricalRentKey(key);
-      currentRent[key] = lastHist[histKey] || 3.5;
+      const val = lastHist[histKey];
+      currentRent[key] = typeof val === 'number' ? val : 3.5;
     });
 
-    const calculatedTrend = TARGET_MONTHS.map((ym) => {
+    const calculatedTrend: TrendRecord[] = TARGET_MONTHS.map((ym) => {
       const match = rawResults.find(r => r.ym === ym);
       const txs = match ? match.list : [];
 
@@ -268,11 +325,6 @@ export async function GET(request: NextRequest) {
         '비즈타워': { sumRent: 0, count: 0 }
       };
 
-      // Count monthly transactions per building to reflect actual movement
-      const rentTxCounts: Record<string, number> = {
-        '금강 IX': 0, '실리콘앨리': 0, 'SH타임': 0, '더퍼스트': 0, 'SK V1': 0,
-        '에이팩시티': 0, '테라타워': 0, 'IT타워': 0, '메가비즈타워': 0, '비즈타워': 0
-      };
       // Count size-scaled transaction weights per building
       const rentTxWeights: Record<string, number> = {
         '금강 IX': 0, '실리콘앨리': 0, 'SH타임': 0, '더퍼스트': 0, 'SK V1': 0,
@@ -318,7 +370,7 @@ export async function GET(request: NextRequest) {
           }
         }
 
-        // 2. Fallback: Match by Jibun (lot number) if name didn't match or is empty (extremely common in MOLIT data)
+        // 2. Fallback: Match by Jibun (lot number) if name didn't match or is empty
         if (!key && tx.jibun) {
           const j = tx.jibun.trim();
           if (j.includes('844')) {
@@ -345,9 +397,6 @@ export async function GET(request: NextRequest) {
         }
 
         if (key) {
-          rentTxCounts[key] += 1;
-          
-          // Transaction Size Weight (R1) - Continuous Weight
           const txWeight = getContinuousWeight(tx.sizeSqM);
           rentTxWeights[key] += txWeight;
 
@@ -364,7 +413,7 @@ export async function GET(request: NextRequest) {
         const data = bData[key];
         const calculatedAvg = data.count > 0 ? (data.sumRent / data.count) : null;
         
-        const prevRent = currentRent[key]; // initialized from last element of STATIC_HISTORICAL_DATA
+        const prevRent = currentRent[key];
         let nextRent = prevRent;
         if (calculatedAvg !== null) {
           nextRent = 0.4 * calculatedAvg + 0.6 * prevRent;
@@ -394,31 +443,22 @@ export async function GET(request: NextRequest) {
         const totalUnits = BUILDING_TOTAL_UNITS[key] || 500;
         const gfa = BUILDING_GFA[key] || 50000;
         
-        // 1.5 base units moved per weight, scaled against total building units
         const reductionPercent = (txWeightSum * 1.5 / totalUnits) * 100;
-        
-        // GFA scaling (R1) - Logarithmic scaling
         const buildingScaleFactor = Math.min(1.6, Math.max(0.6, 0.70 * Math.log10(gfa) - 2.384));
         
-        // Building Age (R3)
-        const b = jisanDb.find((item: any) => item.id === key) || {};
+        const b = jisanDb.find((item: JisanBuilding) => item.id === key);
         const currentYear = Number(ym.substring(0, 4));
         const currentMonth = Number(ym.substring(4, 6));
         const currentDecimalYear = currentYear + (currentMonth - 1) / 12;
-        const age = Math.max(0, currentDecimalYear - (b.yearBuilt || 2018));
+        const yearBuiltNum = typeof b?.yearBuilt === 'number' ? b.yearBuilt : (Number(b?.yearBuilt) || 2018);
+        const age = Math.max(0, currentDecimalYear - yearBuiltNum);
         
-        // Turnover Rate (R3)
         const turnoverRate = age <= 2.0 ? -0.5 : 0.2;
-        
-        // Time-series decay (R3)
         const decayFactor = Math.max(0.3, Math.exp(-0.15 * age));
         const finalReduction = reductionPercent * buildingScaleFactor * decayFactor;
-        
-        // Convergence floor (R3)
         const convergenceFloor = age > 3.0 ? 4.0 : 2.0;
         
-        // EMA vacancy smoothing (R4)
-        const prevVacancy = currentVacancy[key]; // initialized from BASELINE_VACANCY_2411
+        const prevVacancy = currentVacancy[key];
         const rawVacancy = Math.max(convergenceFloor, prevVacancy - finalReduction + turnoverRate - macroBonus);
         const smoothedVacancy = 0.5 * rawVacancy + 0.5 * prevVacancy;
         currentVacancy[key] = smoothedVacancy;
@@ -466,7 +506,7 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    const finalTrend = [...STATIC_HISTORICAL_DATA, ...calculatedTrend];
+    const finalTrend: TrendRecord[] = [...STATIC_HISTORICAL_DATA, ...calculatedTrend];
 
     memoryCache = {
       data: finalTrend,
@@ -487,21 +527,21 @@ export async function GET(request: NextRequest) {
 
     logger.info('GET /api/technovalley/trend', 'Successfully calculated rents from raw sales transactions.');
 
-    return NextResponse.json({
-      success: true,
-      source: 'govt-api-calculated',
-      data: finalTrend
-    }, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+    return apiSuccess(
+      finalTrend,
+      { source: 'govt-api-calculated' },
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+        }
       }
-    });
+    );
 
   } catch (err) {
     logger.error('GET /api/technovalley/trend', 'Failed to calculate rent trend from API', {}, err);
     // Ultimate fallback if calculations throw
-    const ultimateCalculated = TARGET_MONTHS.map(ym => {
+    const ultimateCalculated: TrendRecord[] = TARGET_MONTHS.map(ym => {
       const dateLabel = `${ym.substring(2, 4)}.${ym.substring(4, 6)}`;
       const fm = FALLBACK_RENT_MAP[ym];
       return {
@@ -531,15 +571,15 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    const ultimateFallback = [...STATIC_HISTORICAL_DATA, ...ultimateCalculated];
+    const ultimateFallback: TrendRecord[] = [...STATIC_HISTORICAL_DATA, ...ultimateCalculated];
 
-    return NextResponse.json({
-      success: true,
-      source: 'static-fallback',
-      data: ultimateFallback,
-      error: err instanceof Error ? err.message : String(err)
-    }, {
-      status: 200
-    });
+    return apiSuccess(
+      ultimateFallback,
+      {
+        source: 'static-fallback',
+        error: err instanceof Error ? err.message : String(err)
+      },
+      { status: 200 }
+    );
   }
 }

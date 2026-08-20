@@ -50,6 +50,9 @@ interface Window {
   requestIdleCallback?: (callback: (deadline: { didTimeout: boolean; timeRemaining: () => number }) => void, options?: { timeout: number }) => number;
   cancelIdleCallback?: (id: number) => void;
   gc?: () => void;
+  adsbygoogle?: Array<Record<string, unknown>> | { push?: (...args: unknown[]) => void } | unknown[];
+  __E2E_MOCK_AUTH__?: boolean;
+  SyncManager?: unknown;
 }
 
 interface Navigator {

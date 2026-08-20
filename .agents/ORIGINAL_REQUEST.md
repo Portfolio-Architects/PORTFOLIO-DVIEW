@@ -1,28 +1,28 @@
 # Original User Request
 
-## 2026-08-12T12:02:50Z
+## Initial Request — 2026-08-20T23:36:31+09:00
 
-Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
-Integrity mode: development
+You are the Project Orchestrator for the D-VIEW comprehensive refactoring task.
 
-# Goal: 아파트 탐색 탭 관심 단지 저장 기능 지속적 오류 발생(저장이 안됨), 이에 따른 아파트 랩 페이지 우측 그래프 연동 안되고 있는 현상, 아파트 랩 좌측 일자별 최근 실거래 탭 실거래 최신화 안되는 오류 발생중, 수정해보자
+Your Working Directory: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator_1`
+Original User Request: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+Project / Codebase Root: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
 
-## Requirements
+Task Details:
+D-VIEW 아파트 데이터 랩스 프론트엔드 및 데이터 파이프라인 전반의 아키텍처, 성능, 타입 안전성, 모듈 분리 및 코드 품질을 고도화하는 전면 종합 리팩토링을 수행합니다.
 
-### R1. 관심 단지 저장(즐겨찾기) 기능 오류 해결 및 영속화
-- 아파트 탐색 탭에서 사용자가 관심 단지를 추가/제거할 때 발생하는 오류를 수정합니다.
-- 관심 단지 정보가 정상 저장 및 영속화(State / Storage / API)되어 새로고침 후에도 유지되도록 구현합니다.
+Requirements:
+- R1. 컴포넌트 아키텍처 모듈화 및 렌더링 성능 최적화 (거대 컴포넌트 MacroDashboardClient.tsx 등의 책임 분리, 도메인별 하위 컴포넌트 및 전용 훅, 메모이제이션)
+- R2. 데이터 수집/동기화 파이프라인 및 백엔드 API 레이어 표준화 (fetch-transactions.js, fetch-rent.js, sync-transactions.js 및 Route Handlers 에러 핸들링, 프록시/재시도, 로깅, Firestore/Redis 정합성)
+- R3. 전역 상태 관리 및 커스텀 훅 레이스 컨디션 방어 (useFavorites, useStaticData, useApartmentDetails, 금융/세제 계산 훅 이벤트 동기화/캐싱)
+- R4. 엄격한 타입 안전성 및 기능 회귀(Regression) 방지 (any 제거, Zod/엄격 타입, 기존 기능/UI 100% 보존)
 
-### R2. 아파트 랩 우측 그래프 연동 정상화
-- 관심 단지 데이터 및 실거래 내역 데이터와 연동하여 아파트 랩 우측 차트/그래프가 정상 렌더링되도록 수정합니다.
-- 데이터 로딩 실패나 누락 시 처리(Fallback/Error handling)를 보완합니다.
+Acceptance Criteria:
+- `npx tsc --noEmit` 0 에러 (100% PASS)
+- `npm run lint` 에러 없이 통과
+- Jest 전체 51개 테스트 수트 (358개 유닛/통합 테스트) 🟢 100% PASS 유지
+- `npm run sync-transactions` 정상 구동 및 유효 산출물 생성 확인
+- `npm run build` Turbopack 빌드 성공 완료
+- 대형 파일 단일 책임 원칙 분리 완료
 
-### R3. 아파트 랩 좌측 일자별 최근 실거래 최신화
-- 좌측 실거래 목록 탭에 최신 실거래 내역 데이터가 정상 최신화되어 표시되도록 수정을 진행합니다.
-
-## Acceptance Criteria
-
-### 기능 정상화 및 검증
-- [ ] 아파트 탐색 탭에서 관심 단지 저장/삭제 동작이 오류 없이 수행된다.
-- [ ] 아파트 랩 우측 그래프가 최신 관심 단지/실거래 데이터와 올바르게 연동되어 차트가 표시된다.
-- [ ] 아파트 랩 좌측 일자별 최근 실거래 목록에 최신 거래 정보가 올바르게 로드 및 업데이트된다.
+Please manage your team, maintain your `BRIEFING.md` and `progress.md`, and report completion when all acceptance criteria are fully met and verified.

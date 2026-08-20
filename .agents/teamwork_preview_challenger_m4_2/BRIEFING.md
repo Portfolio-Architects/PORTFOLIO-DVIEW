@@ -1,48 +1,49 @@
-# BRIEFING — 2026-08-06T00:05:00Z
+# BRIEFING — 2026-08-21T00:41:30+09:00
 
 ## Mission
-Perform Frontend UI & Metrics empirical stress testing for Milestone 4.
+Adversarial empirical testing and stress testing for Milestone 4 (Frontend Monolith Modularization & Rendering Performance — Requirement R1) in D-VIEW.
 
 ## 🔒 My Identity
-- Archetype: empirical_challenger
+- Archetype: Empirical Challenger
 - Roles: critic, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\teamwork_preview_challenger_m4_2
-- Original parent: 11be321a-c047-4c6e-bda3-fc4c778cc528
-- Milestone: Milestone 4
-- Instance: 1 of 1
+- Original parent: 26cd80d0-2b50-462d-b916-4076f6f905bd
+- Milestone: Milestone 4 (Frontend Monolith Modularization & Rendering Performance — Requirement R1)
+- Instance: 2 of 2
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code. Report findings as bugs; do not fix implementation yourself.
-- Execute verification code and tests directly.
+- Review-only — do NOT modify implementation code directly unless reproducing/testing via temporary test scripts or harnesses
+- Empirical validation required — every claim must be backed by executed code/tests
+- Test files/metadata must be strictly managed
 
 ## Current Parent
-- Conversation ID: 11be321a-c047-4c6e-bda3-fc4c778cc528
-- Updated: 2026-08-06T00:05:00Z
+- Conversation ID: 26cd80d0-2b50-462d-b916-4076f6f905bd
+- Updated: 2026-08-21T00:41:30+09:00
 
 ## Review Scope
-- **Files to review**:
-  - `TransactionSummaryMetrics.tsx`
-  - `TransactionTable.tsx`
-  - `MacroDashboardClient.tsx`
-  - `frontend/` build & type safety (`npx tsc --noEmit`, jest tests)
-- **Review criteria**: correctness, empirical reproduction of edge cases, type safety, buildability.
+- **Files reviewed**:
+  - `src/lib/utils/calculatorEngines.ts`
+  - `src/components/consumer/AptCompareModal.tsx`
+  - `src/components/consumer/compare/*`
+  - `src/components/macro/TechnoValleyDashboard.tsx`
+  - `src/components/macro/techno/*`
+- **Interface contracts**: PROJECT.md, TEST_INFRA.md, ORIGINAL_REQUEST.md
+- **Review criteria**: Extreme input resilience, edge case safety, layout compliance, 100% test pass rate.
+
+## Key Decisions Made
+- Executed empirical adversarial test suites covering extreme math inputs (0, negative, boundary, NaN, overflow), empty/identical apartment comparisons, and empty tenant/rent data.
+- Verified TypeScript typechecking (0 errors), ESLint (0 errors), and full test suite (67 passed suites, 491 passed tests).
+- Determined verdict: APPROVE.
+
+## Artifact Index
+- DISPATCH.md — Dispatch log
+- progress.md — Liveness & task progress
+- handoff.md — Final handoff report & verdict
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. `TransactionSummaryMetrics` gap cards rendering when only `월세` contracts exist -> **FAILED** (bug reproduced; gap cards do not render when `periodDealType` filters `baseTx`).
-  2. `TransactionTable` `getP(t)` sorting for `월세` -> **PASSED** (10,000만 + 50만/월 = 20,909만 > 1,500만).
-  3. `MacroDashboardClient` `rentsByMonth` conversion -> **PASSED** (`depositVal` converted to 2.0909억).
-  4. Type check `npx tsc --noEmit` -> **PASSED** (0 errors).
-- **Vulnerabilities found**:
-  - Critical bug in `TransactionSummaryMetrics.tsx` (lines 198-199): `filteredSales` and `filteredJeonses` filter from `baseTx`, which is already filtered by `periodDealType`. When `periodDealType === 'sale'`, `filteredJeonses` is empty, setting `avgJeonsePrice = 0`. When `periodDealType === 'jeonse'`, `filteredSales` is empty, setting `avgSalePrice = 0`. Thus, `{metrics.avgSalePrice > 0 && metrics.avgJeonsePrice > 0}` is NEVER true, hiding the gap cards in all views.
-- **Untested angles**: None within specified scope.
-
-## Key Decisions Made
-- Executed empirical Jest test harness `M4_Frontend_Stress.test.tsx`.
-- Verdict: **REJECT** due to gap cards display logic failure in `TransactionSummaryMetrics`.
-
-## Artifact Index
-- `.agents/teamwork_preview_challenger_m4_2/DISPATCH.md` — Task dispatch log
-- `.agents/teamwork_preview_challenger_m4_2/BRIEFING.md` — Briefing document
-- `frontend/src/components/apartment-modal/M4_Frontend_Stress.test.tsx` — Empirical test harness
-- `.agents/teamwork_preview_challenger_m4_2/handoff.md` — Final handoff report
+  1. `calculatorEngines.ts`: 0/negative prices, 0% interest rate, division by zero, float precision, boundary tax brackets, senior debt collateral, 깡통전세 (jeonse > sale). [PASSED]
+  2. `AptCompareModal.tsx`: 1 apartment, 2 identical apartments, missing specs/reports, failed tx fetches. [PASSED]
+  3. `TechnoValleyDashboard.tsx` & subcomponents: empty tenant sectors, 0 companies, missing rent data, malformed company strings, 0/negative metric cards. [PASSED]
+- **Vulnerabilities found**: None that broke production code; all fallbacks and guards operate cleanly.
+- **Untested angles**: None within Milestone 4 scope.

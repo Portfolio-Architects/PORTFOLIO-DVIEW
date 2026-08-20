@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
 let typeMapData = [];
 try {
   typeMapData = require('../../../public/data/type-map.json');

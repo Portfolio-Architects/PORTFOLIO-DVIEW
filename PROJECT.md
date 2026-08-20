@@ -1,38 +1,89 @@
-# Project: PORTFOLIO - DVIEW
+# Project: D-VIEW Comprehensive Refactoring Master Plan
 
 ## Architecture
-- **Framework**: Next.js 16.2.4 (App Router), React 19, TypeScript 5.x, Tailwind CSS 4, SWR 2.4, Firebase Admin / Client (Firestore)
-- **State & Data Flow**:
-  - Favorite State: `useFavorites.ts` hook syncs client state with `POST /api/favorite` (Firestore `favorites` collection) and `localStorage` (`dview_guest_favorites`).
-  - Apartment Lab (Overview): `overview/page.tsx` -> `DashboardClient.tsx` -> `MacroDashboardClient.tsx` -> `MacroTrendChart.tsx`.
-  - Data Sources: Firestore `transactions` collection + static fallback JSON files (`public/data/recent-transactions.json`, `public/tx-data/*.json`).
+- **Framework**: Next.js 16.2.6 (App Router, Turbopack) + React 19 + TypeScript + Tailwind CSS
+- **Data Stores**: Firebase Firestore + Upstash Redis (Multi-tier cache: LRU -> Redis -> In-Memory) + Static JSON Chunks (`public/tx-data/*.json`)
+- **Backend API**: Route Handlers under `src/app/api/` with unified response envelope and rate limiting
+- **Data Pipeline**: Sync scripts in `scripts/` (Google Sheets + MOLIT Open Data -> Firestore -> JSON Chunk generators)
 
 ## Feature Inventory
 | # | Feature | Description | Milestone | Source |
 |---|---------|-------------|-----------|--------|
-| 1 | R1. Favorite Complex Add/Delete & Persistence | Fix favorite saving/deletion & page refresh state loss in `useFavorites.ts` and `/api/favorite` | M1 | Survey |
-| 2 | R2. Apartment Lab Right Graph Integration | Fix right chart rendering based on favorite complexes & transaction data with fallbacks in `MacroDashboardClient.tsx` | M2 | Survey |
-| 3 | R3. Apartment Lab Left Tab Recent Transactions Update | Fix left tab recent transactions updates, date grouping & cutoff window in `useStaticData.ts` & `DashboardClient.tsx` | M3 | Survey |
-| 4 | E2E & Integration Verification | Comprehensive end-to-end verification, unit tests, and empirical test runner across all requirements | M4 | Survey |
+| 1 | ESLint & AreaConverter TS Migration | Migrate `areaConverter.ts` to pure ESM TS, fix test unused directives, achieve 0 lint errors | M1 | Survey 2/3 (DONE) |
+| 2 | Strict Types & Global Declarations | Expand `global.d.ts`, eliminate `as any` in repositories and hooks, enforce type safety | M1 | Survey 3 (DONE) |
+| 3 | Pipeline Script Modularization | Decompose 1,204-line `sync-transactions.js` into modular SRP units with isolated unit tests | M2 | Survey 2 (DONE) |
+| 4 | API Layer Standardization & Resilience | Standardize Route Handlers (`apiSuccess`, `apiError`, rate limiting, resilient fetch) | M2 | Survey 2 (DONE) |
+| 5 | Custom Hooks Race Condition Defense | Harden `useApartmentDetails`, `useFavorites`, `useStaticData`, deduplicate preloading | M3 | Survey 3 (DONE) |
+| 6 | MacroDashboardClient Modularization | Decompose 2,422-line `MacroDashboardClient.tsx` into sub-components, custom hooks, and memoized views | M4 | Survey 1 (DONE) |
+| 7 | ApartmentModal & Modals Modularization | Decompose 2,960-line `ApartmentModal.tsx` & `AptCompareModal.tsx`, extract Kakao share card & tabs | M4 | Survey 1 (DONE) |
+| 8 | Complex Dashboards & Calculators | Modularize `TechnoValleyDashboard`, `AdvancedValuationMetrics`, and consumer calculators | M4 | Survey 1 (DONE) |
+| 9 | Full Regression Suite & Verification | Execute `tsc`, `lint`, `jest` (67 suites, 491+ tests), `sync-transactions`, and Turbopack `build` | M5 | Survey 1/2/3 (DONE) |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| 1 | M1: Favorite Complex Persistence | Fix `useFavorites.ts` and `POST /api/favorite` transaction logic | none | DONE |
-| 2 | M2: Apartment Lab Right Graph Integration | Fix `MacroDashboardClient.tsx` selection effect & chart data guards | M1 | DONE |
-| 3 | M3: Apartment Lab Left Tab Recent Transactions | Fix `useStaticData.ts` cutoff date, grouping keys & filter fallbacks | none | DONE |
-| 4 | M4: E2E & Final Integration Verification | Run test suite, verify acceptance criteria for R1, R2, R3 | M1, M2, M3 | DONE |
+| M1 | Lint Fixes, Foundation & Strict Types | Fix areaConverter ESM TS, clean ESLint, add global types, remove unnecessary `as any` | none | DONE |
+| M2 | Pipeline Modularization & API Standardization | Decompose `sync-transactions.js`, standardize Route Handlers (`src/app/api`), resilient fetch | M1 | DONE |
+| M3 | Custom Hooks & State Race Condition Defense | Harden `useApartmentDetails`, `useFavorites`, `useStaticData`, eliminate waterfalls & race hazards | M1 | DONE |
+| M4 | Frontend Monolith Modularization & Rendering | Decompose `MacroDashboardClient`, `ApartmentModal`, `AptCompareModal`, `TechnoValleyDashboard`, calculators | M1, M3 | DONE |
+| M5 | E2E Integration, Dual-Track Gate & Audit | Verify 100% tests, 0 lint/type errors, pipeline generation, production build, forensic audit | M1, M2, M3, M4 | DONE |
 
 ## Interface Contracts
-### Favorites API & Hook ↔ UI Components
-- `POST /api/favorite`: Request body `{ aptName: string, action?: 'add' | 'remove' | 'toggle' }`. Returns `{ success: true, favorited: boolean, aptName: string }`.
-- `useFavorites(user, initialFavoriteCounts)`: Returns `{ userFavorites: Set<string>, favoriteCounts: Record<string, number>, isFavorited: (name: string) => boolean, handleAptToggleFavorite: (name: string) => Promise<void> }`.
-- `MacroDashboardClient`: Consumes `userFavorites: Set<string>`, `selectedTimelineApt: string | null`, `txSummaryData`, `recentTransactions`.
+### API Standard Response Envelope
+```typescript
+interface ApiResponseSuccess<T> {
+  success: true;
+  data: T;
+  meta?: {
+    total?: number;
+    page?: number;
+    timestamp: string;
+    cached?: boolean;
+  };
+}
+
+interface ApiResponseError {
+  success: false;
+  error: {
+    code: string;
+    message: string;
+    details?: unknown;
+  };
+}
+```
+
+### Pipeline Module Decomposition
+- `scripts/pipeline/outlierFilters.ts` / `.js`: 11-point rolling window outlier filters and IQR bounding.
+- `scripts/pipeline/macroTrendCalculator.ts` / `.js`: Macro trend and time-series volume aggregators.
+- `scripts/pipeline/apartmentSummarizer.ts` / `.js`: Price metrics, recent transaction formatting, summary generators.
+- `scripts/pipeline/fileGenerators.ts` / `.js`: JSON chunk writing to `public/tx-data/` and summary files.
+
+### Component Decomposition Contract
+- All refactored subcomponents MUST preserve 100% existing prop types and test-ids.
+- Dynamic imports (`dynamic(() => import(...))`) MUST be preserved for heavy modals and calculators.
+- Leaf nodes (charts, table rows, cards) MUST use `React.memo` with proper comparison or stable callbacks.
 
 ## Code Layout
-- `frontend/src/app/api/favorite/route.ts` — Favorites API transaction endpoint
-- `frontend/src/hooks/useFavorites.ts` — Client favorites state & guest sync hook
-- `frontend/src/hooks/useStaticData.ts` — SWR data hooks & Firestore transaction query fetcher
-- `frontend/src/components/MacroDashboardClient.tsx` — Apartment Lab dashboard & right trend chart integrator
-- `frontend/src/components/DashboardClient.tsx` — Overview wrapper & transaction filtering
-- `frontend/src/components/TossApartmentExploreClient.tsx` — Search tab UI & favorite toggles
+```
+frontend/
+├── scripts/
+│   ├── pipeline/            # Modularized pipeline units (outlierFilters, macroTrendCalculator, etc.)
+│   ├── sync-transactions.js # Lightweight orchestrator entry point
+│   ├── fetch-transactions.js
+│   └── fetch-rent.js
+├── src/
+│   ├── app/
+│   │   ├── api/             # Standardized Next.js Route Handlers
+│   │   └── ...
+│   ├── components/
+│   │   ├── macro/           # MacroDashboard modular subcomponents
+│   │   ├── apartment/       # ApartmentModal modular subcomponents
+│   │   ├── consumer/        # Calculators & valuation modular subcomponents
+│   │   └── ...
+│   ├── hooks/               # Hardened custom hooks with race condition protection
+│   ├── lib/
+│   │   ├── api/             # apiSuccess, apiError, rateLimit, resilient fetch helpers
+│   │   ├── utils/           # Pure ESM TypeScript utilities
+│   │   └── ...
+│   └── types/               # Strict TypeScript definitions & global ambient types
+```
