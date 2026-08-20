@@ -43,13 +43,14 @@ jobs:
       # Step 1: 국토부 API → Firestore (매매 + 전월세)
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
+        continue-on-error: true
         run: |
           if [ -z "${BUILDING_API_KEY}" ]; then
             echo "BUILDING_API_KEY is not set. Skipping api fetch."
             exit 0
           fi
-          node scripts/fetch-transactions.js
-          node scripts/fetch-rent.js
+          node scripts/fetch-transactions.js || echo "⚠️ Warning: fetch-transactions encountered an issue, proceeding."
+          node scripts/fetch-rent.js || echo "⚠️ Warning: fetch-rent encountered an issue, proceeding."
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           PROXY_URL: ${{ secrets.PROXY_URL }}

@@ -2,7 +2,7 @@
 /**
  * 🔄 국토부 전월세 실거래가 API → Firestore 동기화
  * 
- * 사용법: node scripts/fetch-rent.js
+ * 사용법: node scripts/fetch-rent.js [--full]
  * 
  * 국토부 전월세 실거래가 공공데이터 API에서 동탄구(화성시) 최신 전월세 거래 데이터를 가져와
  * Firestore 'transactions' 컬렉션에 upsert합니다.
@@ -12,6 +12,8 @@ require('dotenv').config({ path: '.env.local' });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
+const { HttpsProxyAgent } = require('https-proxy-agent');
+const axios = require('axios');
 const { z } = require('zod');
 const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
 
@@ -37,11 +39,31 @@ const RentTransactionSchema = z.object({
   _key: z.string().min(1)
 });
 
-const API_KEY = process.env.BUILDING_API_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+const API_KEY = process.env.BUILDING_API_KEY || '';
 const LAWD_CDS = ['41590', '41597']; // 화성시 및 동탄구 모두 스캔
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
-
 const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
+
+// 헬퍼: 타임아웃 및 지수 백오프 기반 재시도 로직이 탑재된 HTTP 클라이언트
+async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const response = await axios.get(url, {
+        ...options,
+        timeout: 25000
+      });
+      return response;
+    } catch (err) {
+      const isLastActive = i === retries - 1;
+      const status = err.response ? err.response.status : null;
+      console.warn(`   ⚠️ [Rent API] 호출 시도 ${i + 1}/${retries} 실패: ${err.message} (HTTP status: ${status})`);
+      if (isLastActive) throw err;
+      
+      const backoffDelay = delay * Math.pow(2, i);
+      await new Promise(resolve => setTimeout(resolve, backoffDelay));
+    }
+  }
+}
 
 async function main() {
   if (!API_KEY) {
@@ -85,9 +107,9 @@ async function main() {
   const db = admin.firestore();
   const collRef = db.collection('transactions');
 
-  // 1. 최신 전월세 데이터 연월 스캔 (기본 6개월, --full 옵션 시 17개월)
+  // 1. 최신 전월세 데이터 연월 스캔 (기본 3개월, --full 옵션 시 17개월)
   const isFullSync = process.argv.includes('--full');
-  const monthCount = isFullSync ? 17 : 6;
+  const monthCount = isFullSync ? 17 : 3;
   const now = new Date();
   const monthsToSync = new Set();
   
@@ -99,12 +121,28 @@ async function main() {
   const sortedMonths = Array.from(monthsToSync).sort((a, b) => b.localeCompare(a));
   console.log(`   동기화 대상 월: ${sortedMonths.join(', ')}`);
 
-  // 3. API 호출
+  // 2. API 호출 및 Firestore 중복 제거 쓰기
   let totalNew = 0;
 
   for (const ym of sortedMonths) {
     console.log(`\n📅 ${ym} 전월세 처리 중...`);
     const monthRecords = [];
+
+    // 기존 Firestore에 저장된 해당 월 키 조회
+    const existingMap = new Set();
+    try {
+      const existingSnap = await collRef
+        .where('contractYm', '==', ym)
+        .where('source', '==', 'govt_api_rent')
+        .select('_key')
+        .get();
+      existingSnap.docs.forEach(doc => {
+        existingMap.add(doc.id);
+      });
+      console.log(`   📂 [${ym}] Firestore 기존 전월세 로드: ${existingMap.size}건`);
+    } catch (err) {
+      console.warn(`   ⚠️ [${ym}] 기존 전월세 데이터 조회 실패: ${err.message}`);
+    }
 
     for (const currentLawd of LAWD_CDS) {
       let page = 1;
@@ -112,37 +150,19 @@ async function main() {
 
       do {
         const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
+        const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
 
-        let text = '';
-        let success = false;
-        for (let attempt = 1; attempt <= 3; attempt++) {
-          let timeoutId;
-          try {
-            const controller = new AbortController();
-            timeoutId = setTimeout(() => controller.abort(), 15000);
-            const res = await fetch(url, { signal: controller.signal });
-            if (!res.ok) {
-              console.error(`   ❌ HTTP ${res.status}`);
-              clearTimeout(timeoutId);
-              break;
-            }
-            text = await res.text();
-            clearTimeout(timeoutId);
-            success = true;
-            break;
-          } catch (e) {
-            if (timeoutId) clearTimeout(timeoutId);
-            console.error(`   ⚠️ API 호출 지연 (시도 ${attempt}/3)... ${e.message}`);
-            await new Promise(r => setTimeout(r, 2000));
-          }
-        }
-
-        if (!success) {
-          console.error(`   ❌ API 응답 실패로 (${ym}, ${currentLawd}) 건너뜀`);
+        let rawData;
+        try {
+          const res = await fetchWithRetry(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
+          rawData = res.data;
+        } catch (err) {
+          console.error(`   ❌ API 응답 실패로 (${ym}, ${currentLawd}) page ${page} 건너뜀: ${err.message}`);
           break;
         }
 
-        const isXml = text.trim().startsWith('<');
+        const text = typeof rawData === 'string' ? rawData : JSON.stringify(rawData);
+        const isXml = typeof rawData === 'string' && rawData.trim().startsWith('<');
 
         if (isXml) {
           // XML response handling
@@ -192,6 +212,10 @@ async function main() {
             const floor = parseInt(getTag('floor', '층'), 10) || 0;
 
             const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            if (existingMap.has(_key)) {
+              continue; // 이미 저장된 동일 건 건너뜀
+            }
+
             const record = {
               sigungu: `경기도 화성시 동탄구 ${dong}`,
               dong,
@@ -217,19 +241,13 @@ async function main() {
             if (parsed.success) {
               monthRecords.push(parsed.data);
             } else {
-              console.warn(`⚠️ [Fetch Rent XML] Invalid rent transaction record at apt ${aptName}:`, parsed.error.format());
+              console.warn(`⚠️ [Fetch Rent XML] Invalid record:`, parsed.error.format());
             }
           }
           if (itemsXml.length === 0) break;
         } else {
           // JSON response handling
-          let jsonObj;
-          try {
-            jsonObj = JSON.parse(text);
-          } catch (e) {
-            console.error(`   ❌ JSON 파싱 실패: ${e.message}`);
-            break;
-          }
+          const jsonObj = rawData;
 
           const resultCode = jsonObj.response?.header?.resultCode;
           if (resultCode !== '000' && resultCode !== '00') {
@@ -259,7 +277,7 @@ async function main() {
 
             const aptName = getJsonVal(item, 'aptNm', '아파트');
             const depositStr = getJsonVal(item, 'deposit', '보증금액', '보증금').replace(/,/g, '').trim();
-            const monthlyRentStr = getJsonVal(item, 'monthlyRent', '월세금액', '월세').replace(/,/g, '').trim();
+            const monthlyRentStr = getJsonVal(item, 'monthlyRent', '월세금액', '월세') ? getJsonVal(item, 'monthlyRent', '월세금액', '월세').replace(/,/g, '').trim() : '0';
 
             const deposit = parseInt(depositStr, 10) || 0;
             const monthlyRent = parseInt(monthlyRentStr, 10) || 0;
@@ -270,6 +288,10 @@ async function main() {
             const floor = parseInt(getJsonVal(item, 'floor', '층'), 10) || 0;
 
             const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            if (existingMap.has(_key)) {
+              continue;
+            }
+
             const record = {
               sigungu: `경기도 화성시 동탄구 ${dong}`,
               dong,
@@ -295,7 +317,7 @@ async function main() {
             if (parsed.success) {
               monthRecords.push(parsed.data);
             } else {
-              console.warn(`⚠️ [Fetch Rent JSON] Invalid rent transaction record at apt ${aptName}:`, parsed.error.format());
+              console.warn(`⚠️ [Fetch Rent JSON] Invalid record:`, parsed.error.format());
             }
           }
           if (items.length === 0) break;
@@ -305,7 +327,7 @@ async function main() {
       } while (page * 1000 <= totalCount + 1000);
     }
 
-    // 4. Firestore에 배치 쓰기
+    // 4. Firestore에 배치 쓰기 (신규 건만)
     if (monthRecords.length > 0) {
       const BATCH_SIZE = 500;
       let written = 0;
