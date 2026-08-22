@@ -1,72 +1,92 @@
-# Milestone 1 Handoff Report: Domain & Types Layer Refactoring
+# Milestone M1 Handoff Report: Main Routing & Tab Navigation Reordering
+
+**Date**: 2026-08-22  
+**Author**: Worker M1 (Milestone M1 Implementer & QA)  
+**Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
+
+---
 
 ## 1. Observation
-- **Pre-existing State**:
-  - The codebase lacked a dedicated `src/types/` domain folder; domain models were scattered across `src/lib/types/` alongside runtime helpers (such as `createEmojiAvatar`, `getDisplayName`, `DEFAULT_AVATARS` inside `src/lib/types/user.types.ts`).
-  - Presentation concerns leaked into domain contracts (e.g. `KPIData` and `NewsItemData` used `ReactNode` and `ElementType`).
-  - Numerous core components and schemas contained `any` and unsafe casts:
-    - `src/lib/validation/facade.schemas.ts` contained 10 instances of `z.any()`.
-    - `src/components/apartment/ApartmentModalKakaoCard.tsx` had `transactions?: any[]`.
-    - `src/components/apartment/ApartmentModalPriceSummary.tsx` had `transactions?: any[]`.
-    - `src/components/apartment/ApartmentModalTransactionsTable.tsx` had `filteredTransactions: any[]`.
-    - `src/components/apartment-modal/TransactionChartSection.tsx` had untyped tooltips and scatter dot renderers using `any` and `as any`.
-    - `src/components/apartment-modal/TransactionTable.tsx` defined a local `TransactionRecord` with conflicting property definitions.
-    - `src/components/MindMap3D.tsx` had `sheetApartments: Record<string, any[]>`, `txSummaryData: Record<string, any>`, and `zoomHintTimeout = useRef<any>(null)`.
-    - `src/components/OfficeExplorerClient.tsx` had `calculateJisanScore(item: any)` and `centers: any[]`.
 
-- **Current Implementation State**:
-  - Created 14 canonical type files in `frontend/src/types/`:
-    - `api.ts`, `apartment.ts`, `transaction.ts`, `report.ts`, `lounge.ts`, `review.ts`, `user.ts`, `macro.ts`, `technovalley.ts`, `valuation.ts`, `calculator.ts`, `notice.ts`, `inquiry.ts`, and `index.ts`.
-  - Extracted user runtime helpers to `frontend/src/lib/utils/userUtils.ts` and created `userUtils.test.ts`.
-  - Re-exported all canonical domain types and helpers from `frontend/src/lib/types/*.ts` to ensure 100% backward compatibility.
-  - Converted `KPIData` and `NewsItemData` to pure string/primitive structures.
-  - Eliminated all `any` and unsafe casts across `facade.schemas.ts` and the UI components listed above.
+Direct observations and changes across all 7 owned files:
+
+1. **`frontend/src/app/page.tsx`**:
+   - Replaced `TechnoValleyClient` with `DashboardDataLoader` and `DashboardSkeleton` as default export.
+   - Updated metadata title to: `"D-VIEW 아파트 랩 | 동탄 아파트 실거래가·시세·상대가치 분석 허브"`.
+   - Updated canonical URL to: `https://dongtanview.com`.
+   - Injected Apartment Real Estate JSON-LD schema (`getMainPageSchema(baseUrl)`).
+   - Injected SSR semantic SEO summary for Top 10 leaderboards and recent transactions.
+
+2. **`frontend/src/app/technovalley/page.tsx`**:
+   - Removed `redirect('/')`.
+   - Rendered `TechnoValleyClient` and `TechnoValleySkeleton` directly.
+   - Updated metadata title to: `"D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터"`.
+   - Updated canonical URL to: `https://dongtanview.com/technovalley`.
+   - Injected Techno Valley specific JSON-LD schema and SSR content.
+
+3. **`frontend/src/components/LoungeHeader.tsx`**:
+   - Reordered desktop navigation links to:
+     1. `href="/"`, activeTab `'overview'`, label `'아파트 랩'` (Building2 icon, hs-orange color)
+     2. `href="/explore"`, activeTab `'imjang'`, label `'아파트 탐색'` (Home icon, hs-orange color)
+     3. `href="/technovalley"`, activeTab `'technovalley'`, label `'테크노 랩'` (LayoutDashboard icon, hs-blue color)
+     4. `href="/overview?tab=office"`, activeTab `'office'`, label `'사무실 탐색'` (Building2 icon, hs-blue color)
+   - Updated `handlePopState` to map `path === '/'` to `'overview'`, `path === '/technovalley'` to `'technovalley'`, and `path === '/overview'` to `'overview'` (or `'office'` if `tab=office`).
+   - Updated proactive prefetching routes on mount.
+
+4. **`frontend/src/components/pwa/MobileDock.tsx`**:
+   - Reordered `TABS` array to:
+     `[ { id: 'overview', label: '아파트 랩', href: '/' }, { id: 'imjang', label: '아파트 탐색', href: '/explore' }, { id: 'technovalley', label: '테크노 랩', href: '/technovalley' }, { id: 'office', label: '사무실 탐색', href: '/overview?tab=office' } ]`
+   - Moved `showDivider` to `tab.id === 'imjang'` separating residential tabs from commercial/techno tabs.
+   - Updated route prefetching on mount.
+
+5. **`frontend/src/components/DashboardClient.tsx`**:
+   - Updated `LoungeHeader` `onTabChange` and `MobileDock` `onTabClick` navigation handlers to push `'/'` for `'overview'` and `'/technovalley'` for `'technovalley'`.
+   - Updated `syncTabFromLocation` to synchronize `#technovalley`, `queryTab === 'technovalley'`, and map `/` to `'overview'`.
+
+6. **`frontend/src/app/manifest.ts`**:
+   - Updated shortcut item for `'동탄 아파트 랩'` from `url: '/overview'` to `url: '/'`.
+
+7. **`frontend/src/components/HeaderDockSync.test.tsx`**:
+   - Updated `expectedRoutes` to match sequence `[overview (/), imjang (/explore), technovalley (/technovalley), office (/overview?tab=office)]`.
+   - Verified active state highlighting for all 4 tabs across both components.
+
+---
 
 ## 2. Logic Chain
-1. **Separation of Domain Types & Runtime Utilities**:
-   Moving runtime functions out of `user.types.ts` into `userUtils.ts` isolates pure TypeScript interfaces from executable code. Re-exporting them from `src/lib/types/user.types.ts` prevents breaking any existing callers while establishing a single source of truth under `src/types/`.
-2. **Presentation Leak Remediation**:
-   Replacing `ReactNode` / `ElementType` in `KPIData` and `NewsItemData` with pure primitives (e.g. icon name strings or SVG strings) decouples domain and data validation layers from React runtime dependencies.
-3. **Zod Schema & Dynamic Object Index Signatures**:
-   Placing `ReportSpecsSchema`, `ReportInfraSchema`, `ReportEcosystemSchema`, `ReportLocationSchema`, `ReportAssessmentSchema`, and `ReportSectionsSchema` before input schemas in `facade.schemas.ts` eliminates temporal dead zone reference errors. Strictly typing `IsomorphicFileSchema` and `CreateFieldReportInputSchema.imageEntries.file` with `z.custom<File>` guarantees isomorphic safety and strict typing for the upload service.
-4. **Strong Typing in Chart & Modal Components**:
-   Defining top-level `ScatterData`, `ScatterCustomizedDotsProps`, and `TransactionChartTooltipProps` in `TransactionChartSection.tsx` and typing `transactions` as `TransactionRecord[]` eliminates all `any` casts while ensuring that recharts custom components receive strictly verified props.
+
+1. **Route Priority Alignment**:
+   - Root `/` serves as the primary gateway for residential apartment analytics, matching the service's primary core value proposition.
+   - `/technovalley` serves as the dedicated lab for commercial office and knowledge industrial center vacancies.
+2. **Navigation Symmetry**:
+   - Both Desktop Header (`LoungeHeader`) and Mobile Dock (`MobileDock`) share the identical 4-tab sequence: `[아파트 랩, 아파트 탐색, 테크노 랩, 사무실 탐색]`.
+   - Visual grouping aligns with functional domain: Orange theme for residential (`overview`, `imjang`), Blue theme for techno/commercial (`technovalley`, `office`).
+   - Visual divider in `MobileDock` sits cleanly between `imjang` and `technovalley`.
+3. **State & History Synchronization**:
+   - Client-side soft navigation (`pushState` / `replaceState`), browser back/forward buttons (`popstate`), and URL hash changes (`hashchange`) all maintain 1:1 bidirectional parity with active tab states.
+
+---
 
 ## 3. Caveats
-- No breaking API changes were introduced; all legacy imports from `@/lib/types/*` continue to work via re-exports.
-- In future milestones (e.g., repository and service refactorings), consumers importing from `@/lib/types/*` should gradually migrate to import directly from `@/types`.
-- `TransactionRecord` floor is canonicalized as `number`. Any component displaying floor values as a string should format it at the presentation boundary.
+
+- `src/app/overview/page.tsx` continues to exist as a functional alias/deep-link destination supporting query params such as `?tab=office`, guaranteeing backward compatibility for external bookmarks.
+- No caveats. All changes strictly adhere to the minimal change principle without affecting other modules.
+
+---
 
 ## 4. Conclusion
-Milestone 1 (M1: Domain & Types Layer Refactoring) has been completely and genuinely implemented in accordance with the project specification and integrity mandates:
-- A clean canonical domain type system under `frontend/src/types/` is fully operational with zero logic and zero external dependencies.
-- Runtime helpers and presentation leaks have been cleanly relocated.
-- All specified `any` and unsafe casts have been removed.
-- All verification gates (`tsc`, `lint`, `test`, `build`) pass cleanly with 0 errors.
 
-## 5. Verification Method
-The changes can be independently verified by running the following commands from `frontend/`:
+Milestone M1 implementation is completely finished with 100% test pass rate and 0 compiler errors. The routing and navigation hierarchy has been reorganized as requested.
 
-1. **TypeScript Type Check**:
-   ```bash
-   npx tsc --noEmit
-   ```
-   *Expected result*: Exit code 0, 0 type errors.
+---
 
-2. **ESLint Verification**:
-   ```bash
-   npm run lint
-   ```
-   *Expected result*: Exit code 0, 0 warnings/errors.
+## 5. Verification Method & Results
 
-3. **Jest Unit Test Suite**:
-   ```bash
-   npm test
-   ```
-   *Expected result*: 68 test suites passed, 497 tests passed, 0 failures.
-
-4. **Next.js Production Build**:
-   ```bash
-   npm run build
-   ```
-   *Expected result*: Exit code 0, all 177 routes compiled and optimized cleanly.
+1. **TypeScript Static Type Check**:
+   - Command: `npx tsc --noEmit`
+   - Result: `0 errors` (Exited with code 0)
+2. **Navigation Contract Unit & Integration Tests**:
+   - Command: `npm test -- HeaderDockSync.test.tsx`
+   - Result: `1 passed, 1 total` (6 tests passed, 0 failures)
+3. **Full Test Suite Regression Check**:
+   - Command: `npm test`
+   - Result: `86 passed, 86 total` (845 tests passed, 0 failures, 100% Green)

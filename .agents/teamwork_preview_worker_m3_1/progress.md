@@ -1,14 +1,17 @@
-# Progress Log
+# Progress Log - M3 Worker
 
-Last visited: 2026-08-05T23:56:06+09:00
+Last visited: 2026-08-22T11:37:45Z
 
-## Steps Completed
-- [x] Create worker workspace and initialize `DISPATCH.md`, `BRIEFING.md`, `progress.md`.
-- [x] Read `ORIGINAL_REQUEST.md` and `handoff.md` from explorer_r3_1.
-- [x] Implement Task 1: State Sync in `TransactionSummaryMetrics.tsx` and `ApartmentModal.tsx`.
-- [x] Implement Task 2: Fix Rent Metric & Gap Calculations in `TransactionSummaryMetrics.tsx`.
-- [x] Implement Task 3: Fix Rent Sorting in `TransactionTable.tsx`.
-- [x] Implement Task 4: Include Monthly Rent in `MacroDashboardClient.tsx`.
-- [x] Implement Task 5: Verify with `npx tsc --noEmit` (0 errors) and `npm run build` (PASSED, exit code 0).
-- [x] Write worker `handoff.md` report.
-- [x] Notify orchestrator when complete.
+## Completed Steps
+1. Inspected `useMacroFilters.ts`, `MacroTimelineView.tsx`, `MacroDashboardClient.tsx`, and existing tests.
+2. Extracted `quickFilter, setQuickFilter, searchQuery, setSearchQuery, sortOrder, setSortOrder, viewMode, setViewMode, resetFilters` from `useMacroFilters` in `MacroDashboardClient.tsx`.
+3. Integrated quick filters, inline search, and multi-sort criteria into `filteredTimelineData`.
+4. Added `highestPriceApt` computation in `dailyTimelineData` and `filteredTimelineData`.
+5. Upgraded `TimelineItemCard` with favorite bookmark heart button, price per pyeong, previous price strikethrough, delta badges, and "상세" modal deep linking.
+6. Implemented `TimelineItemRow` for compact list view with clean dense horizontal layout.
+7. Preserved exact AST regex signatures for `formatEokWithUnit`, `formatDeltaPrice`, `TimelineItemCardProps`, `TimelineItemCard`, and anchor `const isRising = item.delta > 0;`.
+8. Passed all new props and `renderTimelineItemRowNode` to `MacroTimelineView`.
+9. Added `TimelineIntegration.test.tsx` integration test suite.
+10. Ran `npx tsc --noEmit` -> 0 errors.
+11. Ran `npm test` -> 97/97 suites passed, 975/975 tests passed (100% Green).
+12. Ready for handoff report.

@@ -1,93 +1,103 @@
-# TEST_READY: Hwaseong & Dongtan Administrative Notices Data Integration & Normalization
+# Test Ready Report: Milestone 4 (M4: E2E Testing & Coverage Hardening)
 
-**Date:** 2026-08-22  
-**Status:** **READY / ALL PASSING (95/95, 100%)**  
-**Author:** Test Writer Subagent (`test_writer_1`)  
-**Track:** E2E Testing & Quality Assurance  
-
----
-
-## 1. Test Suite Summary
-
-- **Test Suite Path:** `frontend/src/__tests__/local-notices-e2e.test.tsx`
-- **Framework:** Jest & React Testing Library (TypeScript, jsdom)
-- **Total Test Cases:** **95 tests**
-- **Passed:** **95 (100%)**
-- **Failed:** **0**
-- **Execution Time:** ~2.3 seconds
+**Date**: 2026-08-22
+**Project**: D-VIEW (동탄 하이퍼로컬 슈퍼앱) - Apartment Lab MacroTimelineView Upgrade
+**Scope**: Milestone 4 E2E Test Suite Creation & Verification
+**Status**: 🟢 **100% PASS (TEST READY)**
 
 ---
 
-## 2. Test Execution Command
+## 1. Test Suite Architecture & File Deliverables
 
-To execute the full E2E opaque-box test suite:
+| Target Module | Test Suite File | Test Count | Status |
+|---------------|-----------------|:----------:|:------:|
+| **MacroTimelineView E2E Master Suite** | `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx` | 33 | 🟢 PASS |
+| **MacroTimelineView Unit Suite** | `frontend/src/components/__tests__/MacroTimelineView.test.tsx` | 13 | 🟢 PASS |
+| **MacroControls Component Suite** | `frontend/src/components/__tests__/MacroControls.test.tsx` | 15 | 🟢 PASS |
+| **useMacroFilters Hook Suite** | `frontend/src/components/__tests__/useMacroFilters.test.tsx` | 12 | 🟢 PASS |
+| **Timeline Integration Suite** | `frontend/src/components/__tests__/TimelineIntegration.test.tsx` | 7 | 🟢 PASS |
+| **TimelineItemCard Render Suite** | `frontend/src/components/TimelineItemCardRender.test.tsx` | 5 | 🟢 PASS |
+| **Total Test Suite (Frontend Project)** | **98 Test Suites** | **1,008 Tests** | 🟢 **100% PASS** |
+
+---
+
+## 2. 4-Tier Test Matrix Coverage Verification
+
+### Tier 1: Feature Coverage (F1 ~ F8)
+- [x] **F1. All 7 Smart Quick Filter Chips**:
+  - `전체`, `동탄1`, `동탄2`, `신고가🔥`, `30평대 국평`, `10억 클럽`, `대장단지` rendering & active state styling.
+  - Accurate item filtering by region, price threshold, area/pyeong category, new high flag, and landmark list.
+- [x] **F2. Real-Time Inline Search Input**:
+  - Real-time filtering by apartment name or dong name.
+  - Active search clear button (`X`) and state restoration.
+- [x] **F3. 4-Way Multi-Sort Selection Engine**:
+  - `latest` (최신 계약순 / default), `price_desc` (실거래가 높은순), `delta_desc` (상승률 높은순), `area_desc` (전용면적순).
+- [x] **F4. Dual View Mode Controller**:
+  - Dynamic switching between Wide Card Grid View (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3`) and Compact List View (`flex flex-col divide-y`).
+- [x] **F5. Sticky Date Summary Header & Peak Price 👑 Highlight Badge**:
+  - Real-time calculation of daily total transaction count (`총 N건 거래`).
+  - Formatted daily average price (`평균 X억 Y만`).
+  - Auto-computed or explicit highest price badge (`👑 최고가: [단지명] [가격]`).
+- [x] **F6. Favorite Bookmark Heart Toggle & Event Isolation**:
+  - Toggling bookmark state (`Set<string>` user favorites).
+  - Event isolation via `e.stopPropagation()` ensuring card selection is not triggered when heart is clicked.
+- [x] **F7. Price Per Pyeong Conversion & Delta Badges**:
+  - Formula: `Math.round((priceVal * 10000) / areaPyeong)` rendered as `평당 N만`.
+  - Rising (`▲`) and falling (`▼`) delta prices with percentage and colored styling.
+- [x] **F8. Detail Modal Deep-Linking Callback**:
+  - `onDetailsClick(aptName)` triggered on "상세" button click with event propagation isolation.
+
+### Tier 2: Boundary & Corner Cases (B1 ~ B4)
+- [x] **B1. Empty Search/Filter Results**:
+  - User-friendly empty prompt with emoji indicator.
+  - "필터 조건 초기화" button appears and restores default dataset upon click.
+- [x] **B2. Extreme Price Values**:
+  - Ultra-high luxury transactions (e.g. 20.5억 -> `20억 5,000만`).
+  - Sub-2억 transactions (e.g. 1.2억 -> `1억 2,000만`).
+- [x] **B3. Long Apartment Name Layout Protection**:
+  - Complex names exceeding 35+ characters render without crashing or overflowing layout (`truncate`).
+- [x] **B4. Special Characters, Whitespace & Unicode Search Queries**:
+  - Leading/trailing whitespace normalization (`trim()`).
+  - Regex special meta-characters (`[()+*?]`) handled safely without evaluation syntax errors.
+
+### Tier 3: Cross-Feature Combinations (C1 ~ C3)
+- [x] **C1. Simultaneous Multi-Dimensional Filtering**:
+  - Quick Chip (`동탄2`) + Search Query (`시범`) + Multi-Sort (`price_desc`) + View Mode (`list`) executing concurrently without state conflict.
+- [x] **C2. Favorite State Persistence across View Modes**:
+  - Adding bookmark in Compact List View retains active status when toggling to Wide Card Grid View.
+- [x] **C3. Filter Cascade & Reset Recovery**:
+  - Conflicting filters cascading to empty state recover smoothly when clicking "필터 조건 초기화".
+
+### Tier 4: Real-World Workload Scenarios (S1 ~ S2)
+- [x] **Scenario A: Dongtan 2 Homebuyer Flow**:
+  - Filter `동탄2` -> Filter `30평대 국평` -> Sort `실거래가 높은순` -> Select top card for deep trend chart analysis.
+- [x] **Scenario B: Landmark Complex Investor Flow**:
+  - Filter `대장단지` -> Switch to `list` view mode -> Bookmark landmark complex -> Click `상세` button to open deep field report modal.
+
+---
+
+## 3. How to Execute Test Suites
+
+From the `frontend/` directory:
 
 ```bash
-cd "frontend"
-npm test -- src/__tests__/local-notices-e2e.test.tsx --watchAll=false
-# or using npx jest:
-npx jest src/__tests__/local-notices-e2e.test.tsx --watchAll=false
+# 1. Run TypeScript Compilation Check (0 errors expected)
+npx tsc --noEmit
+
+# 2. Run the newly created Milestone 4 E2E test suite
+npm test -- MacroTimelineViewE2E.test.tsx
+
+# 3. Run all tests across the frontend workspace (100% green pass)
+npm test
 ```
 
 ---
 
-## 3. Tier-by-Tier Coverage Matrix
+## 4. Verification Evidence & Summary
 
-### Tier 1: Feature Coverage (55 tests — 5 per feature across 11 features)
-| Feature ID | Feature Description | Test Range | Status |
-| :--- | :--- | :--- | :--- |
-| **F1** | Gosi BD_notice Extraction & Validation (`opGosiView`, canonical URLs, ID prefixing) | 1.1 ~ 1.5 (5 tests) | **PASSED** (5/5) |
-| **F2** | BBS 1154 Tram 6-Column Alignment (Dynamic headers, dept fallback, absolute link mapping) | 2.1 ~ 2.5 (5 tests) | **PASSED** (5/5) |
-| **F3** | BBS 1049 Dongtan 1~9 dong Normalization & Filtering (Dept codes, name normalization) | 3.1 ~ 3.5 (5 tests) | **PASSED** (5/5) |
-| **F4** | Batch Script Zod Schema Validation (`gosi`, `bbs`, `rail`, `dong`, `culture` schemas) | 4.1 ~ 4.5 (5 tests) | **PASSED** (5/5) |
-| **F5** | Deduplication Logic in `newsData.ts` (Title+date, URL matching, date/ID sorting) | 5.1 ~ 5.5 (5 tests) | **PASSED** (5/5) |
-| **F6** | Backend API `/api/local-notices` Envelope & Query Param (`?dongtan=true/false`, caching) | 6.1 ~ 6.5 (5 tests) | **PASSED** (5/5) |
-| **F7** | Anti-WAF Bypass Proxy Whitelist (`/api/bypass-notice` domain whitelist, XSS escaping) | 7.1 ~ 7.5 (5 tests) | **PASSED** (5/5) |
-| **F8** | SSR Prop Hydration in Lounge Clients (`initialNotices`, URL param sync, SEO links) | 8.1 ~ 8.5 (5 tests) | **PASSED** (5/5) |
-| **F9** | Frontend Category Tab Switching & Dongtan 1~9 Filtering in `LoungeFeedClient` | 9.1 ~ 9.5 (5 tests) | **PASSED** (5/5) |
-| **F10** | Dynamic D-Day Badge Computation & Modal / Kakao Share (`D-5`, `오늘 개최`, `종료됨`, `접수 D-13`) | 10.1 ~ 10.5 (5 tests) | **PASSED** (5/5) |
-| **F11** | Static Fallback Data & Graceful Degradation (0% blank screens, Markdown viewer, schema invariants) | 11.1 ~ 11.5 (5 tests) | **PASSED** (5/5) |
+- **TypeScript Compilation**: `npx tsc --noEmit` exited with code `0` (0 errors).
+- **MacroTimelineViewE2E Suite Result**: `33 passed, 33 total` in `2.986 s`.
+- **Entire Frontend Test Run**: `98 test suites passed, 1008 tests passed, 0 failures` in `11.381 s`.
+- **Implementation Bugs Discovered**: 0 (all implementation contracts and features passed cleanly).
 
-### Tier 2: Boundary & Corner Cases (20 tests — 5 per category across 4 categories)
-| Category ID | Boundary Domain | Test Range | Status |
-| :--- | :--- | :--- | :--- |
-| **C1** | Scraper Malformed HTML & Boundary Parsing (Empty tables, missing TDs, whitespace stripping, regex date failures) | 2.1.1 ~ 2.1.5 (5 tests) | **PASSED** (5/5) |
-| **C2** | URL Protocols, Encoding & XSS Security Boundaries (URI encoding, subdomain spoofing, uppercase HTTPS, prototype pollution) | 2.2.1 ~ 2.2.5 (5 tests) | **PASSED** (5/5) |
-| **C3** | Database & Network Outage Boundaries (Empty DB, null/corrupt docs, timeouts, 500-item chunking, Redis fallback) | 2.3.1 ~ 2.3.5 (5 tests) | **PASSED** (5/5) |
-| **C4** | Feed State & Filter Boundaries (0-item dong filter, leap day Feb 29, year transition, markdownless cards, pagination) | 2.4.1 ~ 2.4.5 (5 tests) | **PASSED** (5/5) |
-
-### Tier 3: Cross-Feature Interactions (10 tests)
-| Test ID | Interaction Scenario | Status |
-| :--- | :--- | :--- |
-| **3.1** | Sequential tab switches (`전체` -> `시정공고` -> `교통·철도` -> `동네행정` -> `문화·행사`) with zero state pollution | **PASSED** |
-| **3.2** | End-to-end scraper output normalization through deduplication to API response envelope | **PASSED** |
-| **3.3** | Fallback dataset rendering across all 5 category tabs without blank views | **PASSED** |
-| **3.4** | Card click routing to `/api/bypass-notice` endpoint with proper URL encoding and target attributes | **PASSED** |
-| **3.5** | Synchronizing SSR hydration with client hash navigation (`#lounge-notices-rail`) | **PASSED** |
-| **3.6** | Synchronizing SSR hydration with client hash navigation (`#lounge-notices-culture`) | **PASSED** |
-| **3.7** | Handling post and notice modal open/close transitions without breaking feed tab state | **PASSED** |
-| **3.8** | Simultaneous multi-feed integration of news and local administrative notices in `LoungeContainerClient` | **PASSED** |
-| **3.9** | Rate limiter verification and header propagation on repeated local notice queries | **PASSED** |
-| **3.10** | Relative timestamp formatter robustness across diverse dates | **PASSED** |
-
-### Tier 4: Real-World Scenarios (10 tests)
-| Test ID | Real-World Scenario | Status |
-| :--- | :--- | :--- |
-| **4.1** | Complete End-to-End Pipeline: HTML parsing -> Zod validation -> Deduplication -> API -> UI rendering | **PASSED** |
-| **4.2** | Citizen Lifestyle Flow: Luna Show festival discovery, D-Day verification, and Kakao Share execution | **PASSED** |
-| **4.3** | Dongtan 7 Resident Journey: Community center 3rd quarter lecture search and filtering | **PASSED** |
-| **4.4** | WAF 403 Security Interception Mitigation: Resilient fallback to static verified event dataset | **PASSED** |
-| **4.5** | AI Real Estate Analysis Notice: Markdown rendering and interactive risk calculator route link navigation | **PASSED** |
-| **4.6** | High-Concurrency Burst API Traffic: 10 concurrent requests returning stable identical envelope data | **PASSED** |
-| **4.7** | Full Timeline Progression: 4-stage event lifecycles (`D-30`, `D-1`, `오늘 개최`, `종료됨`) | **PASSED** |
-| **4.8** | Anti-Phishing Security Enforcement: Host whitelist interception of malicious external redirects | **PASSED** |
-| **4.9** | Cold-Start Empty Database Scenario: Graceful handling without uncaught server exceptions | **PASSED** |
-| **4.10** | Complete Multi-Step User Journey: Landing -> Tab Switch -> Sub-filter -> Modal Open -> Close -> Community Tab | **PASSED** |
-
----
-
-## 4. Verification & QA Sign-Off
-
-- **Deterministic Assertions**: All dynamic time-dependent tests use relative date offsets (`formatDateOffset`) to guarantee permanent determinism across future run dates.
-- **Security & Safety**: Reflected XSS protection, host spoofing rejection, dangerous URI scheme (`javascript:`, `data:`, `ftp:`) interception fully covered and verified.
-- **Progressive Testability**: Zero dependency on external network access or uncommitted backend services; all external boundaries cleanly mocked and polyfilled.
+**Sign-off**: Test Writer (Milestone 4: E2E Testing & Coverage Hardening)

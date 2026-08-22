@@ -1,61 +1,52 @@
-# BRIEFING — 2026-08-20T15:37:30Z
+# BRIEFING — 2026-08-22T11:42:05Z
 
 ## Mission
-Perform quality review and adversarial challenge for Milestone 4 (Frontend Monolith Modularization & Rendering Performance — Requirement R1) in D-VIEW.
+Review and adversarially challenge Milestone 4 (M4: E2E Verification & System Health) for D-VIEW MacroTimelineView upgrade.
 
 ## 🔒 My Identity
-- Archetype: reviewer / critic
+- Archetype: reviewer_critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\teamwork_preview_reviewer_m4_1
-- Original parent: 26cd80d0-2b50-462d-b916-4076f6f905bd
-- Milestone: Milestone 4 (Frontend Monolith Modularization & Rendering Performance — Requirement R1)
+- Original parent: 8bc13738-6280-44bb-b987-3a58b5c109bb
+- Milestone: M4: E2E Verification & System Health
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Actively check for integrity violations: hardcoded test outputs, dummy implementations, task bypasses, fabricated verification logs, self-certifying work without genuine verification.
-- Evidence-based findings with exact locations and commands.
+- Actively check for integrity violations: hardcoded test results, facade implementations, shortcuts, fake verification outputs.
+- Verify R1-R5 requirements, responsive layout, dark mode, run tsc and npm test.
+- Output verdict (APPROVE or REQUEST_CHANGES) in handoff.md.
+- Send message to parent.
 
 ## Current Parent
-- Conversation ID: 26cd80d0-2b50-462d-b916-4076f6f905bd
-- Updated: not yet
+- Conversation ID: 8bc13738-6280-44bb-b987-3a58b5c109bb
+- Updated: 2026-08-22T11:42:05Z
 
 ## Review Scope
 - **Files to review**:
-  - `src/components/MacroDashboardClient.tsx`
-  - `src/components/macro/components/` (`MacroHeader.tsx`, `MacroControls.tsx`, `MacroTimelineView.tsx`, `MacroChartSection.tsx`, `MacroMobileDrawer.tsx`, `MacroUtilityCards.tsx`, `MacroBriefingModal.tsx`)
-  - `src/components/macro/hooks/` (`useMacroFilters.ts`, `useMacroDragDrop.ts`)
-  - `src/components/TimelineItemCardStress.test.tsx`
-  - `src/lib/utils/calculatorEngines.ts` & `calculatorEngines.test.ts`
-  - Worker handoff: `.agents/teamwork_preview_worker_m4/handoff.md`
-- **Interface contracts**: `PROJECT.md`, `TEST_INFRA.md`, `ORIGINAL_REQUEST.md`
-- **Review criteria**: correctness, modularization completeness, rendering performance, backward compatibility, prop interfaces, event handlers, test IDs, static exports.
-
-## Review Checklist
-- **Items reviewed**:
-  - `src/components/MacroDashboardClient.tsx`: Verified AST regex preservation, static exports, memoization, orchestration.
-  - `src/components/macro/hooks/useMacroFilters.ts`: Verified state synchronization, memoized options.
-  - `src/components/macro/hooks/useMacroDragDrop.ts`: Verified outside click listener cleanup, drag events.
-  - `src/components/macro/components/*`: Verified props, memoization, portals, accessibility.
-  - `src/lib/utils/calculatorEngines.ts`: Verified mathematical correctness of mortgage, tax, acquisition, and jeonse engines.
-  - Test suites: Verified `npx tsc --noEmit` (0 errors), `npm run lint` (0 errors/warnings), `npx jest src/components/TimelineItemCardStress.test.tsx` (6/6 pass), `npm test` (63/63 suites, 441/441 tests pass).
-- **Verdict**: APPROVE
-- **Unverified claims**: None. All claims independently verified.
-
-## Attack Surface
-- **Hypotheses tested**:
-  - AST Regex extraction in `TimelineItemCardStress.test.tsx`: Pass (all 4 regex patterns match).
-  - Unstable callback re-rendering breakdown: Pass (stable callbacks wrapped with `useCallback` prevent unwanted re-renders).
-  - Modal portal unmounting/SSR safety: Pass (all portals check `typeof window !== 'undefined'` and `mounted`).
-  - Integrity violation checks: Pass (no dummy implementations, no bypasses, genuine calculation engines).
-- **Vulnerabilities found**: None.
-- **Untested angles**: None.
+  - `frontend/src/hooks/useMacroFilters.ts`
+  - `frontend/src/components/MacroControls.tsx`
+  - `frontend/src/components/MacroTimelineView.tsx`
+  - `frontend/src/components/MacroDashboardClient.tsx`
+  - `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx`
+  - Unit/integration tests: `useMacroFilters.test.tsx`, `MacroControls.test.tsx`, `MacroTimelineView.test.tsx`, `TimelineIntegration.test.tsx`
+- **Interface contracts**: `PROJECT.md`, `TEST_READY.md`, `ORIGINAL_REQUEST.md`
+- **Review criteria**: correctness, integrity, boundary cases, adversarial attack surface, style & responsiveness, zero CLS
 
 ## Key Decisions Made
-- Issued verdict: APPROVE with detailed evidence-based findings.
+- Initializing independent audit and stress testing.
 
 ## Artifact Index
-- `.agents/teamwork_preview_reviewer_m4_1/DISPATCH.md` — Inbound message log
-- `.agents/teamwork_preview_reviewer_m4_1/BRIEFING.md` — Persistent working memory
-- `.agents/teamwork_preview_reviewer_m4_1/progress.md` — Liveness heartbeat
-- `.agents/teamwork_preview_reviewer_m4_1/handoff.md` — Final review report
+- `.agents/teamwork_preview_reviewer_m4_1/DISPATCH.md` — Incoming dispatch log
+- `.agents/teamwork_preview_reviewer_m4_1/progress.md` — Liveness and progress tracker
+- `.agents/teamwork_preview_reviewer_m4_1/handoff.md` — Final review report and verdict
+
+## Review Checklist
+- **Items reviewed**: pending
+- **Verdict**: pending
+- **Unverified claims**: all
+
+## Attack Surface
+- **Hypotheses tested**: pending
+- **Vulnerabilities found**: pending
+- **Untested angles**: R1-R5 edge cases, concurrent filter/sort/view-mode state transitions, empty states, unicode/special characters, price per pyeong formulas, sticky header layout shifts, dark mode styling.

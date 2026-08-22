@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores } from "@/hooks/useStaticData";
 import { BUILD_VERSION } from "@/lib/build-version";
 
-import { useMacroFilters } from "./macro/hooks/useMacroFilters";
+import { useMacroFilters, DONGTAN1_DONGS, DONGTAN2_DONGS, LANDMARK_APTS } from "./macro/hooks/useMacroFilters";
 import { useMacroDragDrop } from "./macro/hooks/useMacroDragDrop";
 import { MacroHeader } from "./macro/components/MacroHeader";
 import { MacroTimelineView } from "./macro/components/MacroTimelineView";
@@ -20,6 +20,9 @@ import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { MacroUtilityCards } from "./macro/components/MacroUtilityCards";
 import { MacroBriefingModal } from "./macro/components/MacroBriefingModal";
+import { AptDonutSection } from "./macro/components/AptDonutSection";
+import { AptMetricCards } from "./macro/components/AptMetricCards";
+
 
 const InlineLoader = ({ text }: { text: string }) => (
   <div className="w-full h-[330px] min-h-[330px] flex flex-col items-center justify-center bg-surface/50 dark:bg-surface/50 border border-border/50 rounded-2xl p-6 gap-3 backdrop-blur-md">
@@ -85,6 +88,7 @@ export interface TimelineItem {
   areaLabelM2?: string;
   areaLabelPyeong?: string;
   displayAptName?: string;
+  isNewHigh?: boolean;
 }
 
 interface LocalNoticeItem {
@@ -242,6 +246,8 @@ export interface TimelineItemCardProps {
   item: TimelineItem;
   isSelected: boolean;
   areaUnit: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: (aptName: string) => void;
   onCardHover: (aptName: string, dong: string) => void;
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
@@ -252,6 +258,8 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   item,
   isSelected,
   areaUnit,
+  isFavorite = false,
+  onToggleFavorite,
   onCardHover,
   onCardClick,
   onDetailsClick,
@@ -259,6 +267,8 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
 }: TimelineItemCardProps) {
   const isRising = item.delta > 0;
   const isFalling = item.delta < 0;
+  const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
+  const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
 
   return (
     <div
@@ -269,6 +279,38 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
       } group gap-2 sm:gap-3`}
     >
+      {/* Optional Favorite Heart Button */}
+      {onToggleFavorite && (
+        <button
+          type="button"
+          aria-label={`${item.aptName} 관심 단지 등록`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(item.aptName);
+          }}
+          className="p-1 -ml-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0 outline-none cursor-pointer"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill={isFavorite ? "currentColor" : "none"}
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className={`transition-colors ${
+              isFavorite
+                ? "fill-rose-500 text-rose-500"
+                : "text-slate-300 dark:text-zinc-600 hover:text-rose-400"
+            }`}
+          >
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        </button>
+      )}
+
       {/* Clickable Card Body Button */}
       <button
         type="button"
@@ -278,7 +320,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
       >
         {/* Left Column: 2-Row Layout */}
         <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
-          {/* Row 1: [신고가 Badge] + [동 / 평형 / 층수] */}
+          {/* Row 1: [신고가 Badge] + [동 / 평형 / 층수 / 평당가] */}
           <div className="flex items-center gap-1.5 min-w-0 w-full overflow-hidden text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap">
             {item.type === 'high' && (
               <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
@@ -296,6 +338,14 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             </span>
             <span className="opacity-30 font-normal shrink-0">•</span>
             <span className="shrink-0">{item.floor}층</span>
+            {pyeongPriceMan > 0 && (
+              <>
+                <span className="opacity-30 font-normal shrink-0 hidden sm:inline">•</span>
+                <span className="shrink-0 text-slate-400 dark:text-zinc-500 font-medium hidden sm:inline">
+                  평당 {pyeongPriceMan.toLocaleString()}만
+                </span>
+              </>
+            )}
           </div>
 
           {/* Row 2: [아파트 Full Name] */}
@@ -371,9 +421,9 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             </span>
             <span className="hidden sm:inline">
               {isRising
-                ? `▲ ${formatDeltaPrice(item.delta)}`
+                ? `▲ ${formatDeltaPrice(item.delta)}${item.deltaPercent ? ` (${item.deltaPercent > 0 ? '+' : ''}${item.deltaPercent}%)` : ''}`
                 : isFalling
-                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}`
+                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}${item.deltaPercent ? ` (${item.deltaPercent}%)` : ''}`
                   : "보합"}
             </span>
           </span>
@@ -391,6 +441,136 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           }}
           onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
           className="px-2 xs:px-2.5 py-1.5 min-h-[32px] rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50 whitespace-nowrap"
+        >
+          상세
+        </button>
+      </div>
+    </div>
+  );
+});
+
+export interface TimelineItemRowProps {
+  item: TimelineItem;
+  isSelected: boolean;
+  areaUnit?: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: (aptName: string) => void;
+  onCardHover?: (aptName: string, dong: string) => void;
+  onCardClick: (aptName: string) => void;
+  onDetailsClick: (aptName: string) => void;
+  onDetailsHover?: (aptName: string, dong: string) => void;
+}
+
+export const TimelineItemRow = React.memo(function TimelineItemRow({
+  item,
+  isSelected,
+  areaUnit = 'p',
+  isFavorite = false,
+  onToggleFavorite,
+  onCardHover,
+  onCardClick,
+  onDetailsClick,
+  onDetailsHover,
+}: TimelineItemRowProps) {
+  const isRising = item.delta > 0;
+  const isFalling = item.delta < 0;
+  const displayName = item.displayAptName || item.aptName;
+  const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
+  const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
+
+  return (
+    <div
+      data-testid={`timeline-row-${item.aptName}`}
+      onMouseEnter={() => onCardHover?.(item.aptName, item.dong)}
+      className={`px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer border-b border-border/40 last:border-b-0 ${
+        isSelected ? 'bg-orange-50/20 dark:bg-orange-950/20' : ''
+      }`}
+    >
+      {/* Left: Favorite Button + Apt info */}
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        {onToggleFavorite && (
+          <button
+            type="button"
+            aria-label={`${item.aptName} 관심 단지 등록`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(item.aptName);
+            }}
+            className="p-1 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors shrink-0 outline-none cursor-pointer"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill={isFavorite ? "currentColor" : "none"}
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className={`transition-colors ${
+                isFavorite
+                  ? "fill-rose-500 text-rose-500"
+                  : "text-slate-300 dark:text-zinc-600 hover:text-rose-400"
+              }`}
+            >
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onCardClick(item.aptName)}
+          aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
+          className="flex flex-col min-w-0 text-left bg-transparent border-none p-0 cursor-pointer flex-1"
+        >
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-[12px] sm:text-[13px] font-extrabold text-primary truncate max-w-[180px] sm:max-w-[280px]">
+              {displayName}
+            </span>
+            {item.type === 'high' && (
+              <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider">
+                신고가
+              </span>
+            )}
+          </div>
+          <span className="text-[10px] text-tertiary font-medium">
+            {item.dong} · {item.floor}층 · {areaUnit === 'm2' ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`) : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+            {pyeongPriceMan > 0 && <span className="hidden sm:inline"> · 평당 {pyeongPriceMan.toLocaleString()}만</span>}
+          </span>
+        </button>
+      </div>
+
+      {/* Right: Price, Delta, and Details Button */}
+      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+        <div className="text-right flex flex-col items-end justify-center">
+          <div className="text-[12.5px] sm:text-[13.5px] font-black text-primary leading-tight">
+            {item.priceEok}
+          </div>
+          {item.delta !== undefined && item.delta !== 0 ? (
+            <div
+              className={`text-[9.5px] font-extrabold flex items-center gap-0.5 ${
+                isRising ? 'text-rose-500' : isFalling ? 'text-blue-500' : 'text-slate-400'
+              }`}
+            >
+              {isRising ? '▲' : '▼'} {formatDeltaPrice(Math.abs(item.delta))}
+              {item.deltaPercent ? ` (${item.deltaPercent > 0 ? '+' : ''}${item.deltaPercent}%)` : ''}
+            </div>
+          ) : (
+            <div className="text-[9.5px] font-bold text-slate-400">보합</div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          aria-label={`${item.aptName} 상세 정보 보기`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDetailsClick(item.aptName);
+          }}
+          onMouseEnter={() => onDetailsHover?.(item.aptName, item.dong)}
+          className="px-2 py-1 rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-all cursor-pointer shadow-xs"
         >
           상세
         </button>
@@ -420,7 +600,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   recentTransactions = [],
   typeMap = {},
   updateFavoriteOrder,
-  onToggleFavorite: _onToggleFavorite,
+  onToggleFavorite,
   preloadApartmentTx,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
@@ -488,10 +668,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   // Use custom filter hook
   const {
+    quickFilter,
+    setQuickFilter,
+    searchQuery,
+    setSearchQuery,
+    sortOrder,
+    setSortOrder,
+    viewMode,
+    setViewMode,
+    resetFilters,
+    regionFilter,
+    setRegionFilter,
     timelineDongFilter,
     setTimelineDongFilter,
     timelineAptFilter,
     setTimelineAptFilter,
+    pyeongFilter,
+    setPyeongFilter,
+    tradeTypeFilter,
+    setTradeTypeFilter,
     timeframe,
     setTimeframe,
     availableDongs,
@@ -1218,6 +1413,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           area: tx.area,
           floor: typeof tx.floor === 'string' ? (parseInt(tx.floor, 10) || 0) : tx.floor,
           type: tx.isNewHigh ? "high" : "normal",
+          isNewHigh: tx.isNewHigh,
           delta: tx.delta || 0,
           deltaPercent: tx.deltaPercent || 0,
           prevPriceVal: tx.prevPriceVal || (tx.priceVal - (tx.delta || 0)),
@@ -1230,36 +1426,181 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return Object.values(groups)
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((group) => {
-        const sortedItems = group.items.sort((a, b) => b.priceVal - a.priceVal);
+        const sortedItems = [...group.items].sort((a, b) => b.priceVal - a.priceVal);
+        const totalCount = sortedItems.length;
+        const avgVal = totalCount > 0 ? (sortedItems.reduce((s, it) => s + it.priceVal, 0) / totalCount) : 0;
+        const avgRoundedMan = Math.round(avgVal * 10000);
+        const eok = Math.floor(avgRoundedMan / 10000);
+        const man = avgRoundedMan % 10000;
+        const avgPriceEok = eok === 0 ? `${man.toLocaleString()}만` : man === 0 ? `${eok}억` : `${eok}억 ${man.toLocaleString()}만`;
+
+        const highest = sortedItems[0];
+        const highestPriceApt = highest
+          ? {
+              aptName: highest.aptName,
+              displayAptName: highest.displayAptName || highest.aptName,
+              priceEok: highest.priceEok,
+              priceVal: highest.priceVal,
+            }
+          : undefined;
+
         return {
           ...group,
           items: sortedItems,
+          totalCount,
+          avgPriceVal: avgVal,
+          avgPriceEok,
+          highestPriceApt,
         };
       });
   }, [txSummaryData, recentTransactions, publicRentalSet, nameMapping, maxDateTime, typeMap]);
 
   const filteredTimelineData = useMemo(() => {
-    if (timelineDongFilter === "전체" && timelineAptFilter === "전체") return dailyTimelineData;
+    const isAllRegion = (regionFilter === "all" || regionFilter === "전체") && (timelineDongFilter === "전체" || timelineDongFilter === "all");
+    const isAllApt = timelineAptFilter === "전체" || timelineAptFilter === "all";
+    const isAllPyeong = pyeongFilter === "all";
+    const isAllTradeType = tradeTypeFilter === "all";
+    const isAllQuick = quickFilter === "all";
+    const hasSearchQuery = !!(searchQuery && searchQuery.trim());
+    const isDefaultSort = sortOrder === "latest";
+
+    if (isAllRegion && isAllApt && isAllPyeong && isAllTradeType && isAllQuick && !hasSearchQuery && isDefaultSort) {
+      return dailyTimelineData;
+    }
+
+    const trimmedSearch = searchQuery ? searchQuery.trim().toLowerCase() : "";
+
     return dailyTimelineData
       .map((group) => {
         const filteredItems = group.items.filter((item) => {
-          const matchesDong = timelineDongFilter === "전체" || item.dong === timelineDongFilter;
-          const matchesApt = timelineAptFilter === "전체" || 
-            item.aptName === timelineAptFilter || 
-            normalizeAptName(item.aptName) === normalizeAptName(timelineAptFilter);
-          return matchesDong && matchesApt;
+          // 1. Quick Filter Check
+          if (quickFilter === 'dongtan1') {
+            if (!DONGTAN1_DONGS.includes(item.dong)) return false;
+          } else if (quickFilter === 'dongtan2') {
+            if (!DONGTAN2_DONGS.includes(item.dong)) return false;
+          } else if (quickFilter === 'high') {
+            if (item.type !== 'high' && !item.isNewHigh) return false;
+          } else if (quickFilter === 'pyeong30') {
+            const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 0);
+            const inPyeong30 = (pyeong >= 30 && pyeong < 40) || (item.area >= 74 && item.area < 102);
+            if (!inPyeong30) return false;
+          } else if (quickFilter === 'billion10') {
+            if (item.priceVal < 10.0) return false;
+          } else if (quickFilter === 'landmark') {
+            const isLandmark = LANDMARK_APTS.some(
+              (lm) =>
+                item.aptName.includes(lm) ||
+                lm.includes(item.aptName) ||
+                (item.displayAptName && (item.displayAptName.includes(lm) || lm.includes(item.displayAptName))) ||
+                isSameApartment(item.aptName, lm, nameMapping)
+            );
+            if (!isLandmark) return false;
+          }
+
+          // 2. Region / Dong match
+          if (regionFilter === 'dongtan1') {
+            if (!DONGTAN1_DONGS.includes(item.dong)) return false;
+          } else if (regionFilter === 'dongtan2') {
+            if (!DONGTAN2_DONGS.includes(item.dong)) return false;
+          } else if (regionFilter !== 'all' && regionFilter !== '전체') {
+            if (item.dong !== regionFilter) return false;
+          } else if (timelineDongFilter !== '전체' && timelineDongFilter !== 'all') {
+            if (item.dong !== timelineDongFilter) return false;
+          }
+
+          // 3. Apt match
+          if (timelineAptFilter !== '전체' && timelineAptFilter !== 'all') {
+            const matchesApt =
+              item.aptName === timelineAptFilter ||
+              normalizeAptName(item.aptName) === normalizeAptName(timelineAptFilter) ||
+              isSameApartment(item.aptName, timelineAptFilter, nameMapping);
+            if (!matchesApt) return false;
+          }
+
+          // 4. Pyeong match
+          const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 0);
+          if (pyeongFilter === 'under20') {
+            if (pyeong >= 20) return false;
+          } else if (pyeongFilter === '20s') {
+            if (pyeong < 20 || pyeong >= 30) return false;
+          } else if (pyeongFilter === '30s') {
+            if (pyeong < 30 || pyeong >= 40) return false;
+          } else if (pyeongFilter === '40plus') {
+            if (pyeong < 40) return false;
+          }
+
+          // 5. Trade Type match
+          if (tradeTypeFilter === 'high') {
+            if (item.type !== 'high' && !item.isNewHigh) return false;
+          } else if (tradeTypeFilter === 'rising') {
+            if (item.delta <= 0) return false;
+          } else if (tradeTypeFilter === 'falling') {
+            if (item.delta >= 0) return false;
+          }
+
+          // 6. Search Query match
+          if (trimmedSearch) {
+            const nameMatch = item.aptName && item.aptName.toLowerCase().includes(trimmedSearch);
+            const displayNameMatch = item.displayAptName && item.displayAptName.toLowerCase().includes(trimmedSearch);
+            const dongMatch = item.dong && item.dong.toLowerCase().includes(trimmedSearch);
+            if (!nameMatch && !displayNameMatch && !dongMatch) return false;
+          }
+
+          return true;
         });
+
+        // Apply Sorting inside each date group
+        const sortedItems = [...filteredItems].sort((a, b) => {
+          if (sortOrder === 'price_desc') {
+            return b.priceVal - a.priceVal;
+          }
+          if (sortOrder === 'delta_desc') {
+            const bDeltaPct = b.deltaPercent ?? (b.prevPriceVal && b.prevPriceVal > 0 ? (b.delta / b.prevPriceVal) * 100 : b.delta);
+            const aDeltaPct = a.deltaPercent ?? (a.prevPriceVal && a.prevPriceVal > 0 ? (a.delta / a.prevPriceVal) * 100 : a.delta);
+            if (bDeltaPct !== aDeltaPct) {
+              return bDeltaPct - aDeltaPct;
+            }
+            return b.delta - a.delta;
+          }
+          if (sortOrder === 'area_desc') {
+            return (b.area || b.areaPyeong) - (a.area || a.areaPyeong);
+          }
+          // 'latest' or default: keep natural / priceVal order
+          return b.priceVal - a.priceVal;
+        });
+
+        const totalCount = sortedItems.length;
+        const avgVal = totalCount > 0 ? (sortedItems.reduce((s, it) => s + it.priceVal, 0) / totalCount) : 0;
+        const avgRoundedMan = Math.round(avgVal * 10000);
+        const eok = Math.floor(avgRoundedMan / 10000);
+        const man = avgRoundedMan % 10000;
+        const avgPriceEok = eok === 0 ? `${man.toLocaleString()}만` : man === 0 ? `${eok}억` : `${eok}억 ${man.toLocaleString()}만`;
+
+        const highest = sortedItems.reduce((max, cur) => (cur.priceVal > max.priceVal ? cur : max), sortedItems[0]);
+        const highestPriceApt = highest
+          ? {
+              aptName: highest.aptName,
+              displayAptName: highest.displayAptName || highest.aptName,
+              priceEok: highest.priceEok,
+              priceVal: highest.priceVal,
+            }
+          : undefined;
+
         return {
           ...group,
-          items: filteredItems,
+          items: sortedItems,
+          totalCount,
+          avgPriceVal: avgVal,
+          avgPriceEok,
+          highestPriceApt,
         };
       })
       .filter((group) => group.items.length > 0);
-  }, [dailyTimelineData, timelineDongFilter, timelineAptFilter]);
+  }, [dailyTimelineData, regionFilter, timelineDongFilter, timelineAptFilter, pyeongFilter, tradeTypeFilter, quickFilter, searchQuery, sortOrder, nameMapping]);
 
   useEffect(() => {
     setVisibleTimelineCount(isMobileViewport ? 3 : 8);
-  }, [timelineDongFilter, timelineAptFilter, isMobileViewport]);
+  }, [timelineDongFilter, regionFilter, timelineAptFilter, pyeongFilter, tradeTypeFilter, quickFilter, searchQuery, sortOrder, isMobileViewport]);
 
   const totalTimelineCardsCount = useMemo(() => {
     return filteredTimelineData.reduce((acc, group) => acc + group.items.length, 0);
@@ -1280,18 +1621,41 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return result;
   }, [filteredTimelineData, visibleTimelineCount]);
 
-  const renderTimelineItemCardNode = useCallback((item: TimelineItem, isSelected: boolean) => (
-    <TimelineItemCard
-      key={`${item.aptName}-${item.floor}-${item.priceVal}`}
-      item={item}
-      isSelected={isSelected}
-      areaUnit={areaUnit}
-      onCardHover={handleCardHover}
-      onCardClick={handleCardClick}
-      onDetailsClick={handleDetailsClick}
-      onDetailsHover={handleDetailsHover}
-    />
-  ), [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  const renderTimelineItemCardNode = useCallback((item: TimelineItem, isSelected: boolean) => {
+    const isFav = userFavorites ? (userFavorites instanceof Set ? userFavorites.has(item.aptName) : Array.isArray(userFavorites) ? (userFavorites as string[]).includes(item.aptName) : false) : false;
+    return (
+      <TimelineItemCard
+        key={`${item.aptName}-${item.floor}-${item.priceVal}`}
+        item={item}
+        isSelected={isSelected}
+        areaUnit={areaUnit}
+        isFavorite={isFav}
+        onToggleFavorite={onToggleFavorite}
+        onCardHover={handleCardHover}
+        onCardClick={handleCardClick}
+        onDetailsClick={handleDetailsClick}
+        onDetailsHover={handleDetailsHover}
+      />
+    );
+  }, [areaUnit, userFavorites, onToggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+
+  const renderTimelineItemRowNode = useCallback((item: TimelineItem, isSelected: boolean) => {
+    const isFav = userFavorites ? (userFavorites instanceof Set ? userFavorites.has(item.aptName) : Array.isArray(userFavorites) ? (userFavorites as string[]).includes(item.aptName) : false) : false;
+    return (
+      <TimelineItemRow
+        key={`${item.aptName}-${item.floor}-${item.priceVal}`}
+        item={item}
+        isSelected={isSelected}
+        areaUnit={areaUnit}
+        isFavorite={isFav}
+        onToggleFavorite={onToggleFavorite}
+        onCardHover={handleCardHover}
+        onCardClick={handleCardClick}
+        onDetailsClick={handleDetailsClick}
+        onDetailsHover={handleDetailsHover}
+      />
+    );
+  }, [areaUnit, userFavorites, onToggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderChart = useCallback(() => (
     <MacroTrendChart
@@ -1327,11 +1691,65 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       <MacroHeader macroTrendJsonLd={macroTrendJsonLd} />
 
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
-        <div className="flex flex-col md:flex-row items-stretch gap-4 w-full px-0 mt-0 md:h-[870px] min-w-0 max-w-full box-border">
-          {/* Left Column: Timeline View */}
+        {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
+          {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
+            <AptDonutSection
+              mounted={mounted}
+              recentTransactions={recentTransactions}
+              txSummaryData={txSummaryData}
+              nameMapping={nameMapping}
+              publicRentalSet={publicRentalSet}
+              onSelectApt={onSelectApt}
+              preloadApartmentTx={preloadApartmentTx}
+            />
+            <AptMetricCards
+              recentTransactions={recentTransactions}
+              txSummaryData={txSummaryData}
+              macroTrendData={deferredMacroTrendData}
+              onOpenSellTimingCalculator={onOpenSellTimingCalculator}
+            />
+          </div>
+
+          {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
+            <MacroChartSection
+              userFavorites={userFavorites}
+              isDefaultAptSettingUp={isDefaultAptSettingUp}
+              mounted={mounted}
+              selectedTimelineApt={selectedTimelineApt}
+              setSelectedTimelineApt={setSelectedTimelineApt}
+              preloadApartmentModal={preloadApartmentModal}
+              favoritesArray={favoritesArray}
+              defaultTimelineApts={DEFAULT_TIMELINE_APTS}
+              onSelectApt={onSelectApt}
+              onHoverApt={handleHoverApt}
+              timeframe={timeframe}
+              setTimeframe={setTimeframe}
+              isAptTxLoading={isAptTxLoading}
+              aptRealTxData={aptRealTxData}
+              mainLineData={lineData}
+              mainXTicks={xTicks}
+              mainYTicks={yTicks}
+              renderChart={renderChart}
+              showOrderEditor={showOrderEditor}
+              setShowOrderEditor={setShowOrderEditor}
+              orderEditorRef={orderEditorRef}
+              draggedIndex={draggedIndex}
+              handleDragStart={handleDragStart}
+              handleDragOver={handleDragOver}
+              handleDragEnd={handleDragEnd}
+            />
+          </div>
+        </div>
+
+        {/* Daily Real Transactions Section (Wide Layout) */}
+        <div className="w-full flex flex-col gap-4 mb-6 box-border">
           <MacroTimelineView
             displayedTimelineData={displayedTimelineData}
             selectedTimelineApt={selectedTimelineApt}
+            selectedApt={selectedTimelineApt}
             nameMapping={nameMapping}
             areaUnit={areaUnit}
             isMobileViewport={isMobileViewport}
@@ -1340,50 +1758,42 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             setVisibleTimelineCount={setVisibleTimelineCount}
             onCardHover={handleCardHover}
             onCardClick={handleCardClick}
+            onSelectApt={handleCardClick}
             onDetailsClick={handleDetailsClick}
             onDetailsHover={handleDetailsHover}
+            userFavorites={userFavorites}
+            onToggleFavorite={onToggleFavorite}
             timelineDongFilter={timelineDongFilter}
             setTimelineDongFilter={setTimelineDongFilter}
             timelineAptFilter={timelineAptFilter}
             setTimelineAptFilter={setTimelineAptFilter}
             availableDongs={availableDongs}
             availableApts={availableApts}
+            regionFilter={regionFilter}
+            setRegionFilter={setRegionFilter}
+            pyeongFilter={pyeongFilter}
+            setPyeongFilter={setPyeongFilter}
+            tradeTypeFilter={tradeTypeFilter}
+            setTradeTypeFilter={setTradeTypeFilter}
+            quickFilter={quickFilter}
+            setQuickFilter={setQuickFilter}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            sortOrder={sortOrder}
+            setSortOrder={setSortOrder}
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            onResetFilters={resetFilters}
             renderTimelineItemCard={renderTimelineItemCardNode}
+            renderTimelineItemRow={renderTimelineItemRowNode}
           />
+        </div>
 
-          {/* Right Column: Chart Section */}
-          <MacroChartSection
-            userFavorites={userFavorites}
-            isDefaultAptSettingUp={isDefaultAptSettingUp}
-            mounted={mounted}
-            selectedTimelineApt={selectedTimelineApt}
-            setSelectedTimelineApt={setSelectedTimelineApt}
-            preloadApartmentModal={preloadApartmentModal}
-            favoritesArray={favoritesArray}
-            defaultTimelineApts={DEFAULT_TIMELINE_APTS}
-            onSelectApt={onSelectApt}
-            onHoverApt={handleHoverApt}
-            timeframe={timeframe}
-            setTimeframe={setTimeframe}
-            isAptTxLoading={isAptTxLoading}
-            aptRealTxData={aptRealTxData}
-            mainLineData={lineData}
-            mainXTicks={xTicks}
-            mainYTicks={yTicks}
-            renderChart={renderChart}
-            trafficNoticeBoardNode={
-              <TrafficNoticeBoard
-                railStrategyNotices={railStrategyNotices}
-                tramNotices={tramNotices}
-              />
-            }
-            showOrderEditor={showOrderEditor}
-            setShowOrderEditor={setShowOrderEditor}
-            orderEditorRef={orderEditorRef}
-            draggedIndex={draggedIndex}
-            handleDragStart={handleDragStart}
-            handleDragOver={handleDragOver}
-            handleDragEnd={handleDragEnd}
+        {/* Traffic Notice Board Widget */}
+        <div className="w-full flex flex-col gap-4 mb-2">
+          <TrafficNoticeBoard
+            railStrategyNotices={railStrategyNotices}
+            tramNotices={tramNotices}
           />
         </div>
 

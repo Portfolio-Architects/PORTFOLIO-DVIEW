@@ -1,100 +1,122 @@
-# Milestone 1 Challenger 2 Handoff Report: UI Component Typing & Chart Contracts
+# Milestone M1 Empirical Challenge & Verification Report
 
+**Date**: 2026-08-22  
+**Challenger**: Challenger 2 (Empirical Challenger, critic / specialist)  
+**Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
 **Verdict**: **APPROVE**
 
 ---
 
 ## 1. Observation
-- **Inspected Files**:
-  - `frontend/src/components/apartment-modal/TransactionChartSection.tsx`
-  - `frontend/src/components/apartment/ApartmentModalKakaoCard.tsx`
-  - `frontend/src/components/apartment/ApartmentModalPriceSummary.tsx`
-  - `frontend/src/components/apartment/ApartmentModalTransactionsTable.tsx`
-  - `frontend/src/components/apartment-modal/TransactionTable.tsx`
-  - `frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx`
-  - `frontend/src/types/transaction.ts` & `frontend/src/types/index.ts`
-- **Empirical Test Suite Execution**:
-  - Authored and ran comprehensive empirical test harness `frontend/src/components/apartment-modal/Challenger2_EmpiricalVerification.test.tsx` (16 test cases across 6 verification suites).
-  - Executed static type check:
-    ```bash
-    npx tsc --noEmit
-    ```
-    *Result*: Exit code 0, 0 type errors.
-  - Executed ESLint:
-    ```bash
-    npm run lint
-    ```
-    *Result*: Exit code 0, 0 errors, 0 warnings.
-  - Executed Jest full test suite:
-    ```bash
-    npm test
-    ```
-    *Result*: 70 test suites passed, 544 tests passed, 0 failures.
+
+Direct observations obtained through source code inspection, empirical verification script execution, TypeScript type checking, and Jest test suite runs:
+
+1. **Tab Navigation Symmetry (`LoungeHeader` ↔ `MobileDock`)**:
+   - **`frontend/src/components/LoungeHeader.tsx`**:
+     - Line 72–89: Tab 1: `href="/"`, activeTab `'overview'`, label `'아파트 랩'` (Building2 icon, hs-orange color)
+     - Line 92–105: Tab 2: `href="/explore"`, activeTab `'imjang'`, label `'아파트 탐색'` (Home icon, hs-orange color)
+     - Line 108–121: Tab 3: `href="/technovalley"`, activeTab `'technovalley'`, label `'테크노 랩'` (LayoutDashboard icon, hs-blue color)
+     - Line 124–137: Tab 4: `href="/overview?tab=office"`, activeTab `'office'`, label `'사무실 탐색'` (Building2 icon, hs-blue color)
+     - Line 26–33: `handlePopState` synchronously maps `/` -> `'overview'`, `/explore` -> `'imjang'`, `/technovalley` & `/techno` -> `'technovalley'`, `/overview?tab=office` -> `'office'`, `/overview` -> `'overview'`.
+   - **`frontend/src/components/pwa/MobileDock.tsx`**:
+     - Lines 20–23:
+       ```typescript
+       { id: 'overview', label: '아파트 랩', icon: Building2, href: '/' },
+       { id: 'imjang', label: '아파트 탐색', icon: Home, href: '/explore' },
+       { id: 'technovalley', label: '테크노 랩', icon: LayoutDashboard, href: '/technovalley' },
+       { id: 'office', label: '사무실 탐색', icon: Building2, href: '/overview?tab=office' },
+       ```
+     - Line 73: `const showDivider = tab.id === 'imjang';` — renders visual separator between residential tabs and commercial/techno tabs.
+
+2. **Root & Route Component Integrity**:
+   - **`frontend/src/app/page.tsx`**:
+     - Line 4: Imports `DashboardClient` (Apartment Lab landing).
+     - Lines 27–33:
+       ```typescript
+       export const metadata: Metadata = {
+         title: 'D-VIEW 아파트 랩 | 동탄 아파트 실거래가·시세·상대가치 분석 허브',
+         description: '동탄 신도시 아파트 실거래 시세 분석, 상승/하락 트렌드, 전세 안전진단부터 실거래가 데이터 분석을 제공합니다.',
+         alternates: {
+           canonical: 'https://dongtanview.com',
+         },
+       };
+       ```
+     - Line 159: Injects `getMainPageSchema(baseUrl)` JSON-LD schema.
+     - Lines 107–139: Injects semantic HTML containing Top 10 leaderboards and recent 15 transactions.
+   - **`frontend/src/app/technovalley/page.tsx`**:
+     - Line 4: Imports `TechnoValleyClient`. No redirects to `/`.
+     - Lines 43–49:
+       ```typescript
+       export const metadata: Metadata = {
+         title: 'D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터',
+         description: '동탄 테크노밸리 지식산업센터의 공실 해소를 위한 원스톱 솔루션. 빌딩별 공실 정보, 소형 오피스 공동임차 매칭, 입주 혜택 시뮬레이터 및 맞춤형 오피스 핏파인더를 제공합니다.',
+         alternates: {
+           canonical: 'https://dongtanview.com/technovalley',
+         },
+       };
+       ```
+     - Lines 55–97: Injects dedicated Techno Valley JSON-LD WebPage + RealEstateAgent schema.
+     - Lines 108–189: Injects semantic HTML table of representative knowledge industry centers and co-working bulletin board.
+   - **`frontend/src/app/manifest.ts`**:
+     - Lines 44–49: Shortcut for `'동탄 아파트 랩'` points to `url: '/'`.
+
+3. **Empirical Script & Test Results**:
+   - Executed empirical assertion suite (`verify-m1.js`): All 18 automated contract assertions passed.
+   - TypeScript Static Type Check (`npx tsc --noEmit`): Exited with code 0 (0 compilation errors).
+   - Navigation Contract Test (`npm test -- HeaderDockSync.test.tsx`): 1 test suite, 6 tests passed (0 failures).
+   - Full Jest Test Suite (`npm test`): 86 test suites, 845 tests passed (100% green, 0 failures).
 
 ---
 
 ## 2. Logic Chain
 
-1. **`TransactionChartSection.tsx` Verification**:
-   - **Empty Dataset**: Evaluated `transactions = []` across both `chartType="sale"` and `chartType="jeonse"`. The component safely identifies `relevantTxs.length === 0` and renders the designated fallback state ("현재 숨고르기 중인 단지입니다") without calling undefined index operations or throwing runtime errors.
-   - **Single-Point Dataset**: Evaluated single-item records for sale, jeonse, and rent. The momentum averages, gauge bars, time filtering, and rolling 1M/3M calculations correctly compute values (e.g. `13억5,000`, `7억`) without `NaN`, division-by-zero, or undefined index errors.
-   - **Multi-Point & High-Volume Stress (500+ items)**: Evaluated 500+ heterogeneous records including missing fields, zero prices, ground/negative floors, outliers, and cancellations. The chart smoothly computes `bandHigh`/`bandLow`, sorts prices, downsamples points when exceeding 150 items (`displayScatterData`), and correctly renders structured JSON-LD data (`Place` schema).
-   - **Tooltips & Scatter Dots**:
-     - `TransactionChartTooltip` guards against null/empty payloads (`!active || !payload?.length`), calculates 전세가율 ratio only when `hasRatio && saleAvg > 0`, and renders date, average prices, and volume cleanly.
-     - `ScatterCustomizedDots` verifies scale functions on `xAxisMap` and `yAxisMap`, checks coordinate finiteness (`!Number.isFinite(cx) || !Number.isFinite(cy)`), distinguishes touch devices (`isTouchDevice`), and applies conditional opacity/stroke for outliers and hovered dots.
-     - `CustomActiveDot` validates coordinate numbers (`cx == null || cy == null || isNaN(cx) || isNaN(cy)` returning null) avoiding SVG rendering exceptions.
-
-2. **`ApartmentModalKakaoCard.tsx` Verification**:
-   - Strictly typed with `FieldReportData`, `TransactionRecord[]`, and optional `valuation`.
-   - Default parameter `transactions = []` guarantees null safety.
-   - Accurately filters sales vs jeonse, computes `gap` and `ratio`, gracefully formats zero/negative gaps as `"갭 없음"`, and maps all valuation statuses (`undervalued`, `overvalued`, `fair`).
-
-3. **`ApartmentModalPriceSummary.tsx` Verification**:
-   - Strictly typed with canonical `FieldReportData`, `AptTxSummary`, and `TransactionRecord[]`.
-   - Correctly prioritizes real transaction array entries, falling back to `txSummary` when transactions are empty.
-   - Handles zero prices without division-by-zero crashes, rendering `'-'` fallback strings.
-   - Safely executes 84m² normalization calculation via `normalize84Price`.
-
-4. **`ApartmentModalTransactionsTable.tsx` Verification**:
-   - Strictly typed with `filteredTransactions: TransactionRecord[]`.
-   - Dynamically adapts UI: renders HTML `<select>` dropdown when `areaFilterChips > 5`, and `<SegmentedControl>` when `<= 5`.
-   - Correctly integrates outlier filter switch and executes render props (`renderTransactionTable`, `renderTransactionChart`, `renderTransactionSummaryMetrics`) in complete isolation.
-
-5. **`TransactionTable.tsx` & `TransactionSummaryMetrics.tsx` Verification**:
-   - Correctly formats and renders cancelled transactions with date strikethrough, identifies outlier alerts, supports 4-way sorting (date desc/asc, price desc/asc), and manages pagination.
-   - Computes multi-period arithmetic averages (1M, 3M, 6M, 1Y, 3Y, 5Y, 10Y, ALL) and per-pyeong conversion metrics.
+1. **User Requirement & Contract Fulfillment**:
+   - The user request specified making Apartment Lab the #1 landing at `/` and rearranging the 4 tabs across Desktop Header and Mobile Dock in the order: `[1. 아파트 랩 (/), 2. 아파트 탐색 (/explore), 3. 테크노 랩 (/technovalley), 4. 사무실 탐색 (/overview?tab=office)]`.
+   - Inspection confirms both `LoungeHeader` and `MobileDock` strictly follow this order with matching label text, icon assignments, domain-specific color highlights (orange for residential, blue for commercial), and href destinations.
+2. **Browser History & URL Synchrony**:
+   - Both `LoungeHeader.tsx` and `DashboardClient.tsx` listen to `popstate` and `hashchange` events.
+   - Forward/backward navigation between `/`, `/explore`, `/technovalley`, and `/overview?tab=office` accurately updates internal active tab state without flashing or inconsistent state.
+3. **SEO & SSR Integrity**:
+   - Canonical URLs on `/` (`https://dongtanview.com`) and `/technovalley` (`https://dongtanview.com/technovalley`) prevent duplicate content issues.
+   - Semantic HTML and structured data (JSON-LD) are cleanly separated per domain.
+4. **Empirical Hardening**:
+   - Verified that no regressions were introduced across the entire 86-suite codebase.
 
 ---
 
 ## 3. Caveats
-- No caveats. All chart components, modal subcomponents, domain models, and props contracts are strictly typed, robust against edge cases, and completely passing static and dynamic test gates.
+
+- `/overview` is preserved as a functional backward-compatible route for external deep-links (e.g., `?tab=office`), which is intended and safe.
+- No caveats or blocking issues detected.
 
 ---
 
 ## 4. Conclusion
-The UI component typing, chart contracts, and modal integrations refactored in Milestone 1 have been empirically stress-tested and verified. All components handle empty, single-point, multi-point, and adversarial edge-case datasets with zero runtime exceptions and zero type regressions.
 
-**Final Verdict**: **APPROVE**
+**Verdict: APPROVE**
+
+Milestone M1 has met all technical and user-specified acceptance criteria. Routing, tab order, visual indicators, SSR metadata, and browser history synchronization are verified and robust.
 
 ---
 
 ## 5. Verification Method
-To independently verify this evaluation from `frontend/`:
 
-1. Run the static typecheck:
-   ```bash
-   npx tsc --noEmit
-   ```
-   *Expected*: Exit code 0, 0 errors.
+To independently verify this verdict:
 
-2. Run the ESLint linter:
+1. **TypeScript Type Check**:
    ```bash
-   npm run lint
+   cd frontend && npx tsc --noEmit
    ```
-   *Expected*: Exit code 0, 0 errors.
+   *Expected: Exit code 0, 0 errors.*
 
-3. Run the complete Jest test suite including Challenger 2 empirical tests:
+2. **Navigation Unit Test**:
    ```bash
-   npm test
+   cd frontend && npm test -- HeaderDockSync.test.tsx
    ```
-   *Expected*: 70 test suites passed, 544 tests passed, 0 failures.
+   *Expected: 1 suite passed, 6 tests passed.*
+
+3. **Full Regression Test Suite**:
+   ```bash
+   cd frontend && npm test
+   ```
+   *Expected: 86 suites passed, 845 tests passed (100% green).*

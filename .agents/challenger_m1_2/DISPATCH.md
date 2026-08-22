@@ -1,18 +1,26 @@
-## 2026-08-21T14:45:36Z
-You are Challenger 2 for Milestone 1 (Domain & Types Layer Refactoring) on the D-VIEW project.
+## 2026-08-22T07:12:08Z
 
-Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2`
-Authoritative user request: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
-Project scope: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
-Worker 1 handoff: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md`
-Frontend codebase root: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
+<USER_REQUEST>
+You are Challenger 2 for Milestone M1 (Main Routing & Tab Navigation Reordering).
+Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2
 
-Task:
-Empirically challenge UI component typing and chart contracts:
-1. Verify that `TransactionChartSection.tsx` tooltips and scatter plots render and function without runtime errors under empty, single-point, and multi-point transaction datasets.
-2. Verify that `ApartmentModalKakaoCard`, `ApartmentModalPriceSummary`, and `ApartmentModalTransactionsTable` correctly handle varied `TransactionRecord[]` inputs.
-3. Run the component test suites (`npm test`) and static typecheck (`npx tsc --noEmit`).
-4. Write your findings to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2\handoff.md`.
-5. Provide an explicit verdict: **APPROVE** or **REQUEST_CHANGES**.
+Read the authoritative user request at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
 
-Send a completion message back to the orchestrator when finished.
+Read the project specification at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md
+
+Read Worker M1's handoff report at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md
+
+Your mission:
+1. Verify tab order and UI contract between LoungeHeader and MobileDock:
+   - Tab 1: Apartment Lab (overview) -> '/'
+   - Tab 2: Apartment Explore (imjang) -> '/explore'
+   - Tab 3: Techno Lab (technovalley) -> '/technovalley'
+   - Tab 4: Office Explore (office) -> '/overview?tab=office'
+2. Run empirical tests and verify SSR metadata integrity.
+3. Formulate your verdict: APPROVE or REJECT.
+4. Write your handoff report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2\handoff.md` and notify the orchestrator.
+Do NOT modify any source code files.
+</USER_REQUEST>

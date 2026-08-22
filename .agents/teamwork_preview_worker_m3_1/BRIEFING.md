@@ -1,45 +1,63 @@
-# BRIEFING — 2026-08-05T23:56:05+09:00
+# BRIEFING — 2026-08-22T11:37:30Z
 
 ## Mission
-Implement Milestone 3: Frontend Integration & UI Display Verification (R3) for DVIEW Portfolio project.
+Implement Milestone 3 (M3: Interactive Items & Modal Integration) of the D-VIEW MacroTimelineView upgrade in `MacroDashboardClient.tsx`.
 
 ## 🔒 My Identity
-- Archetype: implementer / qa / specialist
-- Roles: implementer, qa, specialist
+- Archetype: implementer
+- Roles: [implementer, qa, specialist]
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\teamwork_preview_worker_m3_1
-- Original parent: 11be321a-c047-4c6e-bda3-fc4c778cc528
-- Milestone: Milestone 3 (R3)
+- Original parent: 8bc13738-6280-44bb-b987-3a58b5c109bb
+- Milestone: M3 (Interactive Items & Modal Integration)
 
 ## 🔒 Key Constraints
-- Follow minimal change principle
-- No hardcoded test results or facade implementations
-- Must pass `npx tsc --noEmit` and `npm run build` in `frontend/`
+- Write Ownership: `frontend/src/components/MacroDashboardClient.tsx` and `frontend/src/components/__tests__/TimelineIntegration.test.tsx`.
+- MANDATORY INTEGRITY MANDATE: Genuine logic, no hardcoded cheating.
+- Regex AST Compatibility Guard:
+  - Exact export statements:
+    - `export const formatEokWithUnit = ...`
+    - `export const formatDeltaPrice = ...`
+    - `export interface TimelineItemCardProps { ... }`
+    - `export const TimelineItemCard = React.memo(function TimelineItemCard(...) { ... });`
+    - `export const TimelineItemRow = React.memo(function TimelineItemRow(...) { ... });`
+  - Keep regex anchor string inside `TimelineItemCard`: `const isRising = item.delta > 0;`
 
 ## Current Parent
-- Conversation ID: 11be321a-c047-4c6e-bda3-fc4c778cc528
-- Updated: 2026-08-05T23:56:05+09:00
+- Conversation ID: 8bc13738-6280-44bb-b987-3a58b5c109bb
+- Updated: 2026-08-22T11:37:30Z
 
 ## Task Summary
-- **What to build**: State sync in modal, rent metric & gap calculations in TransactionSummaryMetrics, rent sorting in TransactionTable, and monthly rent conversion in MacroDashboardClient.
-- **Success criteria**: TypeScript compilation and Next build pass with 0 errors. All 4 requested R3 frontend tasks implemented genuinely.
-- **Interface contracts**: TransactionRecord schema, dealType handling.
+- **What was built**:
+  1. Extracted `quickFilter, setQuickFilter, searchQuery, setSearchQuery, sortOrder, setSortOrder, viewMode, setViewMode, resetFilters` from `useMacroFilters`.
+  2. Implemented quickFilter (all, dongtan1, dongtan2, high, pyeong30, billion10, landmark), searchQuery, and multi-sortOrder (latest, price_desc, delta_desc, area_desc) in `filteredTimelineData`.
+  3. Calculated `highestPriceApt` in `dailyTimelineData` and `filteredTimelineData`.
+  4. Upgraded `TimelineItemCard`: Heart favorite button (`onToggleFavorite`, `userFavorites`, `stopPropagation`), Price per pyeong (`평당 ...만`), previous price strikethrough & delta badge, "상세" button.
+  5. Implemented `TimelineItemRow` for compact list view mode.
+  6. Preserved regex AST compatibility and exact exported function signatures.
+  7. Passed all new props and `renderTimelineItemRowNode` to `MacroTimelineView`.
+  8. Created integration tests in `TimelineIntegration.test.tsx`.
+- **Success criteria**:
+  - `npx tsc --noEmit` 0 errors.
+  - `npm test` 97/97 suites passed (975/975 tests green).
+- **Interface contracts**: PROJECT.md, MacroTimelineView.tsx, useMacroFilters.ts
+
+## Key Decisions Made
+- Used standalone inline SVG for heart icon inside `TimelineItemCard` and `TimelineItemRow` so that regex test harnesses (`TimelineItemCardRender`, `TimelineItemCardEmpirical`, `TimelineItemCardStress`) that copy-paste the component into temp files without external icon imports compile and execute cleanly with 0 dependencies.
+- Handled both Set and Array for `userFavorites` prop safely to prevent runtime type errors.
+
+## Artifact Index
+- `frontend/src/components/MacroDashboardClient.tsx` — Main component file modified.
+- `frontend/src/components/__tests__/TimelineIntegration.test.tsx` — Integration test suite created.
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\teamwork_preview_worker_m3_1\handoff.md` — Handoff report.
 
 ## Change Tracker
 - **Files modified**:
-  - `frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx`: Added `chartType` prop & `useEffect` sync; updated `getTxPrice`, `filteredJeonses`, and `getAvgForGap` to include `월세` deposit conversion.
-  - `frontend/src/components/ApartmentModal.tsx`: Passed `chartType={chartType}` to `<TransactionSummaryMetrics />`.
-  - `frontend/src/components/apartment-modal/TransactionTable.tsx`: Updated `getP` helper to convert `월세` for sorting.
-  - `frontend/src/components/MacroDashboardClient.tsx`: Converted `월세` to Jeonse deposit equivalent and pushed to `rentsByMonth`.
-- **Build status**: `npx tsc --noEmit` PASSED (0 errors). `npm run build` PASSED (exit code 0).
-- **Pending issues**: none
+  - `frontend/src/components/MacroDashboardClient.tsx`: Integrated M3 interactive items, compact list row, filtering & sorting pipeline, highest price calculation, and prop drilling.
+  - `frontend/src/components/__tests__/TimelineIntegration.test.tsx`: Comprehensive integration test suite.
+- **Build status**: Pass (0 errors)
+- **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: `npx tsc --noEmit` clean pass. Next.js production build succeeded with 0 errors.
-- **Lint status**: PASS
-- **Tests added/modified**: Verified type checking and production build.
-
-## Key Decisions Made
-- Used 5.5% conversion rate constant (`(deposit + monthlyRent * 12 / 0.055)`) consistently across all components.
-
-## Artifact Index
-- `.agents/teamwork_preview_worker_m3_1/handoff.md` — Final Handoff Report
+- **Build/test result**: 97/97 suites passed, 975/975 tests passed
+- **Lint status**: Clean
+- **Tests added/modified**: `TimelineIntegration.test.tsx` added covering favorite bookmarking, price per pyeong, strikethrough, compact row, and utility functions.

@@ -1,13 +1,13 @@
-# Progress — Milestone 2 (Infrastructure & Repository Layer Refactoring)
+# Progress Tracking - Worker M2
 
-Last visited: 2026-08-22T00:23:00Z
+- [x] Read DISPATCH.md and initialize workspace
+- [x] Review Explorer 2 & Explorer 3 reports and relevant codebase files
+- [x] Implement useMacroFilters.ts multi-filter enhancements
+- [x] Implement MacroControls.tsx multi-filter UI controls
+- [x] Implement MacroDashboardClient.tsx filter integration, daily grouping stats, and card enhancements
+- [x] Implement MacroTimelineView.tsx sticky headers and infinite scrolling with react-intersection-observer
+- [x] Add comprehensive test suite in m2_macro_multifilter.test.tsx
+- [x] Run tsc check (0 errors) and Jest test suites (Timeline tests + full test suite: 87/87 suites, 854/854 tests Green)
+- [x] Finalize handoff.md and report to parent
 
-## Status
-- [x] Initial dispatch received & environment initialized
-- [x] Read Explorer Survey 2 analysis and handoff, PROJECT.md, and ORIGINAL_REQUEST.md
-- [x] Task 1: Repository DTO Standardization & Type Cleanup (`report.repository.ts`, `post.repository.ts`, `traffic.repository.ts`)
-- [x] Task 2: Elimination of Upward Layer Imports (`DashboardFacade.ts`, `preloadHelpers.ts`, `transactionChartTransform.ts`)
-- [x] Task 3: Application State & Context Relocation (`src/lib/contexts/` -> `src/contexts/`, decouple modal)
-- [x] Task 4: Security & Config Hardening (`officeTx.repository.ts`, `energy.repository.ts`, `api.config.ts`)
-- [x] Task 5: Verification (TypeScript check, lint, test, build) — ALL PASSED (tsc: 0 errors, lint: 0 errors/warnings, test: 73 suites/556 tests, build: 177 pages)
-- [x] Task 6: Document handoff report & notify orchestrator
+Last visited: 2026-08-22T07:21:00Z

@@ -1,51 +1,41 @@
-# BRIEFING — 2026-08-22T03:50:55Z
+# BRIEFING — 2026-08-22T05:53:15Z
 
 ## Mission
-Investigate Backend API, Repository, Firestore Data Layer, Zod Schemas, and Caching for Hwaseong City Hall & Dongtan Administrative Notices.
+Analyze SSOT & Agent Guidelines (`AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, frontend test/build setup) for the Super-App Transformation and formulate upgrade recommendations.
 
 ## 🔒 My Identity
 - Archetype: explorer
 - Roles: investigation, synthesis
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2
-- Original parent: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
-- Milestone: Survey and Architecture Analysis of Data/API Layer
+- Original parent: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
+- Milestone: Super-App Transformation Exploration
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT modify production source code in this role.
-- Provide comprehensive analysis of API endpoints, repositories, schemas, Firestore, Redis caching, and category mapping.
+- Read-only investigation — do NOT implement
+- Base findings strictly on verified codebase observations
+- Deliver findings in 5-component handoff report
 
 ## Current Parent
-- Conversation ID: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
-- Updated: not yet
+- Conversation ID: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
+- Updated: 2026-08-22T05:53:15Z
 
 ## Investigation State
-- **Explored paths**:
-  - `frontend/src/app/api/local-notices/route.ts`
-  - `frontend/src/lib/repositories/news.repository.ts`
-  - `frontend/src/lib/services/newsData.ts`
-  - `frontend/src/lib/validation/facade.schemas.ts`
-  - `frontend/src/types/notice.ts`
-  - `frontend/scripts/fetch-local-notices.js`
-  - `frontend/src/app/api/cron/sync-local-notices/route.ts`
-  - `frontend/src/app/api/bypass-notice/route.ts`
-  - `frontend/src/components/LoungeContainerClient.tsx`
-  - `frontend/src/components/LoungeFeedClient.tsx`
-  - `frontend/src/app/news/NewsClient.tsx`
-  - `frontend/src/components/MacroDashboardClient.tsx`
-  - `frontend/src/components/LocalEventCuration.tsx`
-  - `frontend/src/components/pwa/SWRProvider.tsx`
+- **Explored paths**: `ORIGINAL_REQUEST.md`, `AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, `PORTFOLIO DVIEW - Engineering Report.md`, `frontend/package.json`, `frontend/tsconfig.json`, `frontend/jest.config.ts`, `frontend/jest.setup.ts`.
 - **Key findings**:
-  1. Deduplication logic in `newsData.ts` falsely collapses items sharing generic URLs, dropping culture and lecture events.
-  2. Scrapers save unnormalized sub-team dept strings, breaking dong sub-filtering in `LoungeFeedClient.tsx`.
-  3. Batch crawler `fetch-local-notices.js` missing `'culture'` in `NoticeSchema.source` enum.
-  4. `LoungeContainerClient` does not pass `initialNotices` to `LoungeFeedClient`.
-  5. `bypass-notice` blocks valid domains like `hcf.or.kr`.
-  6. Backend lacks a bundled static fallback dataset when DB or upstream network fails.
-- **Unexplored areas**: None. Full investigation complete.
+  - `npx tsc --noEmit` is clean (0 errors).
+  - Jest test suite has 86 suites and 846 tests, all passing 100%.
+  - `AGENT.md` currently focuses on contest/vacancy objective and needs expansion to 5 Super-App domains.
+  - `PROJECT.md` is currently scoped only to administrative crawlers and needs elevation to the full Super-App platform SSOT.
+  - `PORTFOLIO DVIEW - Patch History.md` needs Phase 999 entry for the Super-App milestone.
+- **Unexplored areas**: None for Explorer 2 scope. Investigation complete.
 
 ## Key Decisions Made
-- Completed deep inspection and produced detailed `analysis.md` and standard 5-component `handoff.md`.
+- Formulated concrete upgrade templates for `AGENT.md`, `PROJECT.md`, and `PORTFOLIO DVIEW - Patch History.md`.
+- Verified TypeScript compilation and Jest unit tests.
+- Generated full 5-component `handoff.md`.
 
 ## Artifact Index
-- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\analysis.md` — Detailed analysis report
-- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\handoff.md` — 5-component handoff report
+- DISPATCH.md — Stored dispatch message
+- BRIEFING.md — Situational awareness
+- progress.md — Liveness heartbeat (Completed)
+- handoff.md — Comprehensive 5-component investigation and recommendation report

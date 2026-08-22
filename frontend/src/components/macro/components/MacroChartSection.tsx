@@ -29,6 +29,7 @@ export interface MacroChartSectionProps {
   handleDragStart: (e: React.DragEvent, index: number) => void;
   handleDragOver: (e: React.DragEvent, index: number) => void;
   handleDragEnd: () => void;
+  className?: string;
 }
 
 export const MacroChartSection = React.memo(function MacroChartSection({
@@ -55,18 +56,19 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   handleDragStart,
   handleDragOver,
   handleDragEnd,
+  className,
 }: MacroChartSectionProps) {
   return (
-    <div className="w-full md:w-1/2 flex flex-col gap-4 min-w-0 mt-2 md:mt-0 md:h-full box-border">
+    <div className={`w-full flex flex-col gap-4 min-w-0 lg:h-[586px] box-border ${className || ''}`}>
       {/* Right Panel: Interactive Market Feed & Trend */}
-      <div className="w-full flex flex-col bg-surface rounded-2xl shadow-sm border border-border p-4 sm:p-5 md:flex-1 md:min-h-[420px] min-w-0 box-border">
+      <div className="w-full flex flex-col bg-surface rounded-[20px] sm:rounded-[24px] shadow-sm border border-border/80 p-4 sm:p-6 flex-1 lg:h-[586px] min-h-[460px] min-w-0 box-border justify-between">
         <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-3">
-            <div className="flex flex-col gap-1 min-w-0">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h3 className="text-[15px] font-bold text-primary tracking-tight shrink-0">
-                  {userFavorites && userFavorites.size > 0 ? "내 관심 단지 시세 추이" : "동탄 대표 아파트 시세 추이"}
-                </h3>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4 pb-3 border-b border-border/40 w-full min-w-0 overflow-hidden">
+            <div className="flex items-center gap-2 min-w-0 flex-wrap">
+              <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#ea6100] shrink-0" />
+                <span>{userFavorites && userFavorites.size > 0 ? "내 관심 단지 시세 추이" : "동탄 대표 아파트 시세 추이"}</span>
+              </h3>
 
                 {isDefaultAptSettingUp ? (
                   <div className="w-[130px] sm:w-[190px] h-[28px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
@@ -136,7 +138,6 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                   </button>
                 )}
               </div>
-            </div>
 
             <TimeframeSelector
               timeframe={timeframe}

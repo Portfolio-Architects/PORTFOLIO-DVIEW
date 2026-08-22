@@ -7,8 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#f2f4f6',
-    theme_color: '#ffffff',
+    background_color: '#fcfbfa',
+    theme_color: '#fcfbfa',
     // Note: W3C PWA standards mandate PNG format for standalone launch icons.
     // Instead of converting to WebP, we apply lossy compression and cache-busting (?v=10) to optimize load time.
     icons: [
@@ -41,10 +41,10 @@ export default function manifest(): MetadataRoute.Manifest {
         icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
       },
       {
-        name: '동탄 라운지',
-        short_name: '라운지',
-        description: '동탄 주민들의 부동산 소통 커뮤니티',
-        url: '/lounge',
+        name: '동탄 아파트 랩',
+        short_name: '아파트 랩',
+        description: '동탄 179개 단지 밸류에이션 및 실거래가 분석',
+        url: '/',
         icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
       }
     ]

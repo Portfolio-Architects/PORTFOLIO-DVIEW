@@ -1,109 +1,51 @@
-# Project: Hwaseong & Dongtan Administrative Network Data Integration & Normalization
+# Project: D-VIEW Apartment Lab 'MacroTimelineView' UX & Architecture Upgrade
 
 ## Architecture
-- **Crawling & Batch Sync Pipeline**:
-  - `frontend/scripts/fetch-local-notices.js`: Node.js standalone batch script run via cron / GitHub Actions.
-  - `frontend/src/app/api/cron/sync-local-notices/route.ts`: Next.js Route Handler for on-demand & scheduled crawl synchronization.
-  - Data sources:
-    1. Hwaseong City Hall BD_notice (`gosi`: 화성시 고시공고)
-    2. Hwaseong City Hall BBS 1019 (`bbs`: 타기관 고시공고)
-    3. Hwaseong City Hall BBS 1131 (`rail`: 철도사업 추진현황)
-    4. Hwaseong City Hall BBS 1154 (`rail`: 동탄트램 추진현황)
-    5. Hwaseong City Hall BBS 1049 (`dong`: 동탄 1~9동 동별 공지사항)
-    6. Culture / Civic Events & AI Reports (`culture`)
-- **Backend Data & API Layer**:
-  - `frontend/src/lib/repositories/news.repository.ts`: Raw Firestore repository for `local_notices` collection.
-  - `frontend/src/lib/services/newsData.ts`: Service layer providing caching, deduplication, fallback, and category aggregation.
-  - `frontend/src/app/api/local-notices/route.ts`: Public GET API returning categorized notices (`rail`, `gosi`, `bbs`, `dong`, `culture`).
-  - `frontend/src/app/api/bypass-notice/route.ts`: Anti-WAF proxy route for opening notices safely.
-- **Frontend UI & State Layer**:
-  - `frontend/src/app/lounge/page.tsx`: SSR page loading initial notices via `getLocalNotices(true)`.
-  - `frontend/src/components/LoungeContainerClient.tsx`: Top-level lounge client component holding tab states and forwarding SSR props.
-  - `frontend/src/components/LoungeFeedClient.tsx`: Notice feed client component with tab switching (`전체`, `시정공고`, `교통·철도`, `동네행정`, `문화·행사`), Dongtan 1~9 dong filtering, modal viewer, and Kakao share.
-- **Resilient Fallback System**:
-  - `frontend/public/data/local-notices-backup.json`: Static fallback seed dataset.
-  - In-memory fallback provider in `newsData.ts` and `local-notices/route.ts` guaranteeing 0% blank screens during network/DB outages.
+D-VIEW Apartment Lab (`frontend/src/components/MacroDashboardClient.tsx`) provides high-frequency real estate transaction intelligence for Dongtan.
+The 'MacroTimelineView' component displays recent transaction history grouped by date.
+This project refactors and upgrades the timeline architecture into a modular, high-performance, responsive system with smart filter chips, inline search, 4-way multi-sort, dual view modes (Card vs Compact List), sticky date summary headers with highest price highlights, favorite bookmarking, and modal deep-linking.
 
----
+### Data Flow & Component Hierarchy
+```
+DashboardClient
+  └── MacroDashboardClient (Manages transactions, favorites, active modal)
+        ├── MacroControls (Smart Filter Chips, Search, Multi-Sort, View Mode Toggle)
+        │     └── uses useMacroFilters hook
+        └── MacroTimelineView
+              ├── Sticky Date Header (Count, Average Price, 👑 Highest Price Badge)
+              ├── [View Mode = 'card'] -> TimelineItemCard (3-column responsive grid)
+              │     └── Favorite Heart, Price, Pyeong Price, Delta, Modal Trigger
+              └── [View Mode = 'list'] -> TimelineItemRow (Dense compact table row)
+                    └── Favorite Heart, Truncated Name, Area/Floor, Price/Delta, Detail Button
+```
 
 ## Feature Inventory
-| # | Feature | Description | Milestone | Source |
+| # | Feature | Description | Milestone | Status |
 |---|---------|-------------|-----------|--------|
-| 1 | Gosi `BD_notice` Extraction Fix | Parse `href="javascript:opGosiView(...)"` as well as `onclick` to extract 100% of Hwaseong gosi items. | M1 | Survey (Explorer 1) |
-| 2 | BBS 1154 (동탄트램) 6-Column Alignment | Fix column index mapping for BBS 1154 so `dept` is `담당부서` and `date` is `등록일자` (YYYY-MM-DD), passing Zod regex validation. | M1 | Survey (Explorer 1) |
-| 3 | BBS 1049 (동탄 1~9동) Normalization | Normalize `dept` to standardized dong names (`동탄1동`~`동탄9동`) and mark `isDongtan: true` for all 9 boards. | M1 | Survey (Explorer 1, 2) |
-| 4 | Batch Script Schema & Culture Parity | Update `fetch-local-notices.js` Zod schema to include `'culture'` in `source` enum and generate culture & AI summaries. | M1 | Survey (Explorer 1, 2) |
-| 5 | Deduplication Logic Fix in `newsData.ts` | Fix URL collision bug where generic base URLs caused unrelated culture/lecture notices to be dropped. | M2 | Survey (Explorer 2) |
-| 6 | `/api/local-notices` & Repository Integration | Verify Firestore `local_notices` query, Redis caching, and category payload containing `rail`, `gosi`, `bbs`, `dong`, `culture`. | M2 | Survey (Explorer 2) |
-| 7 | Anti-WAF Bypass Proxy Whitelist Expansion | Expand allowed domains in `/api/bypass-notice` to include `hcf.or.kr`, `dongtanview.com`, and related civic subdomains. | M2 | Survey (Explorer 2) |
-| 8 | SSR Prop Hydration in Lounge Clients | Forward `initialNotices` from `page.tsx` through `LoungeContainerClient.tsx` into `LoungeFeedClient.tsx`. | M3 | Survey (Explorer 3) |
-| 9 | Category & Dongtan 1~9 Filtering Normalization | Fix tab switching (`전체`, `시정공고`, `교통·철도`, `동네행정`, `문화·행사`) and Dongtan 1~9 sub-filtering in `LoungeFeedClient.tsx`. | M3 | Survey (Explorer 3) |
-| 10 | Dynamic D-Day & Modal / Kakao Share Fix | Replace hardcoded `'2026-06-07'` D-Day reference with dynamic current date; unify modal link routing and Kakao share. | M3 | Survey (Explorer 3) |
-| 11 | Static Fallback Data & Graceful Degradation | Build static backup dataset in `public/data/local-notices-backup.json` and fallback resolution in `newsData.ts` when DB is empty / network down. | M4 | Survey (Explorer 1, 2, 3) |
-| 12 | End-to-End Verification & Adversarial Coverage | Verify 100% E2E test suite (Tiers 1-4) and Tier 5 adversarial tests across crawlers, API, UI, and fallback. | M5 | User Request / Project Pattern |
-
----
+| 1 | F1. Smart One-Touch Filter Chip Bar | [전체, 동탄1, 동탄2, 신고가🔥, 30평대 국평, 10억 클럽, 대장단지] chips synced with region/dong dropdowns | M1 | DONE (Verified) |
+| 2 | F2. Real-Time Inline Search | Instant debounce search by complex name with clear button | M1 | DONE (Verified) |
+| 3 | F3. Multi-Sort Engine | 4-way sort: 최신 계약순, 실거래가 높은순, 상승률 높은순, 전용면적순 | M1 | DONE (Verified) |
+| 4 | F4. View Mode Controller State | State and toggle for Card Grid vs Compact List view modes | M1 | DONE (Verified) |
+| 5 | F5. Sticky Date Summary Header | Date header with total count, average price, and 👑 최고가 [단지명] [가격] badge | M2 | DONE (Verified) |
+| 6 | F6. Card Grid View Layout | 3-column responsive card layout with zero CLS | M2 | DONE (Verified) |
+| 7 | F7. Compact List View Layout | Dense table/row layout for rapid scanning with full info | M2 | DONE (Verified) |
+| 8 | F8. Favorite Bookmark Heart Toggle | Optimistic heart toggle on cards/rows with event isolation (`stopPropagation`) | M3 | DONE (Verified) |
+| 9 | F9. Price per Pyeong & Delta Info | Formatted `평당 N만` and `+X.X%` / `-X.X%` delta comparison | M3 | DONE (Verified) |
+| 10 | F10. Modal Deep-Linking | One-touch navigation to `FieldReportModal` / `AptModal` on item click | M3 | DONE (Verified) |
+| 11 | F11. Legacy Regex Compatibility | Maintain exported signatures & anchors in `MacroDashboardClient.tsx` | M3 | DONE (Verified) |
+| 12 | F12. E2E Test Suite & Adversarial Verification | Comprehensive Jest/RTL tests across all 4 tiers + CLS/performance check | M4 | DONE (Verified) |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Crawling & Parsing Pipeline Normalization | Fix scrapers for BBS 1019, BD_notice, BBS 1131, BBS 1154, BBS 1049, update `fetch-local-notices.js` and `sync-local-notices/route.ts`, normalize Zod schemas. | none | DONE |
-| M2 | Repository & Backend API Layer | Fix deduplication in `newsData.ts`, expand `/api/bypass-notice` domain whitelist, normalize `/api/local-notices` response format with Redis/Firestore. | M1 | DONE |
-| M3 | Frontend Rendering & Tab Integration | Fix SSR prop hydration in `LoungeContainerClient` / `LoungeFeedClient`, normalize sub-category and Dong 1~9 filtering, fix D-Day calculation and modal/Kakao share. | M2 | DONE |
-| M4 | Resilient Fallback System | Implement static backup dataset (`public/data/local-notices-backup.json`) and fallback resolution in `newsData.ts` & `/api/local-notices`. | M2 | DONE |
-| M5 | Final Milestone (E2E Test Pass & Adversarial Hardening) | Phase 1: 100% pass of E2E Test Suite (Tiers 1-4). Phase 2: Adversarial Coverage Hardening (Tier 5) with Challenger. | M1, M2, M3, M4, Test Suite | DONE |
-
----
-
-## Interface Contracts
-
-### Crawler -> Firestore `local_notices`
-```typescript
-interface LocalNoticeDocument {
-  id: string; // e.g. 'gosi_149229', 'rail_1154_123', 'dong_57700100000_456', 'bbs_1019_789', 'culture_101'
-  title: string;
-  url: string;
-  link?: string; // alias for url
-  date: string; // YYYY-MM-DD
-  dept: string; // Standardized dong name ('동탄1동'~'동탄9동') or department name ('트램건설추진단')
-  category: 'gosi' | 'bbs' | 'rail' | 'dong' | 'culture';
-  source: 'gosi' | 'bbs' | 'rail' | 'dong' | 'culture';
-  isDongtan: boolean;
-  viewCount?: number;
-  originalId?: string;
-  createdAt?: string | Date;
-  updatedAt?: string | Date;
-}
-```
-
-### Backend API `/api/local-notices` -> Frontend
-```typescript
-interface LocalNoticesResponse {
-  notices?: LocalNoticeItem[]; // Flat array of all notices
-  categorized?: {
-    gosi: LocalNoticeItem[];
-    bbs: LocalNoticeItem[];
-    rail: LocalNoticeItem[];
-    dong: LocalNoticeItem[];
-    culture: LocalNoticeItem[];
-  };
-  lastUpdated: string | null;
-  fromCache?: boolean;
-  fromFallback?: boolean;
-  total?: number;
-}
-```
-
----
+| M1 | Filter & State Engine | `useMacroFilters.ts`, `MacroControls.tsx` (Chips, Search, Sort, ViewMode) | None | DONE |
+| M2 | Timeline Presentation & Views | `MacroTimelineView.tsx` (Card Grid, Compact List, Sticky Header + 👑 Badge) | M1 | DONE |
+| M3 | Interactive Items & Integration | `MacroDashboardClient.tsx` (Card/Row components, Favorite, Modal, Regex compatibility) | M1, M2 | DONE |
+| M4 | E2E Testing & Verification | Comprehensive test suites, `TEST_READY.md`, type check, 100% green tests | M1, M2, M3 | DONE |
 
 ## Code Layout
-- `frontend/scripts/fetch-local-notices.js` — Batch scraper script (M1)
-- `frontend/src/app/api/cron/sync-local-notices/route.ts` — Internal crawler sync route (M1)
-- `frontend/src/lib/services/newsData.ts` — Service layer with deduplication & fallback (M2, M4)
-- `frontend/src/lib/repositories/news.repository.ts` — Firestore repository (M2)
-- `frontend/src/app/api/local-notices/route.ts` — Public notices API (M2, M4)
-- `frontend/src/app/api/bypass-notice/route.ts` — Anti-WAF proxy route (M2)
-- `frontend/src/components/LoungeContainerClient.tsx` — SSR container client (M3)
-- `frontend/src/components/LoungeFeedClient.tsx` — Lounge notices feed client (M3)
-- `frontend/public/data/local-notices-backup.json` — Static backup dataset (M4)
-- `frontend/tests/e2e/` — E2E test suite (E2E Testing Track)
+- `frontend/src/components/macro/hooks/useMacroFilters.ts`: Filter state hook.
+- `frontend/src/components/macro/components/MacroControls.tsx`: Smart chip bar, search box, sort & view mode controls.
+- `frontend/src/components/macro/components/MacroTimelineView.tsx`: Timeline grouped view, sticky headers, card/list rendering.
+- `frontend/src/components/MacroDashboardClient.tsx`: Data grouping, highest price calculation, `TimelineItemCard`, `TimelineItemRow`, modal handlers.
+- `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx`: Comprehensive 4-tier E2E test suite.

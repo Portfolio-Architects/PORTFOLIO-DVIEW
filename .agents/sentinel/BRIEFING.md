@@ -1,26 +1,31 @@
-# BRIEFING — 2026-08-21T19:56:00Z
+# BRIEFING — 2026-08-22T09:52:25Z
 
 ## Mission
-Execute an end-to-end architectural layer refactoring across the D-VIEW project (`frontend/`), establishing clean layer boundaries, eliminating circular dependencies, standardizing domain contracts, and ensuring zero regressions across all verification gates.
+Route and monitor the implementation of interactive AptDonutSection and AptMetricCards in MacroDashboardClient.
 
 ## 🔒 My Identity
 - Archetype: sentinel
-- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\sentinel\
-- Orchestrator: da9374d7-02d0-4544-a7c6-dc957200cd5c (completed)
-- Victory Auditor: 18a6f3a9-b811-45df-b101-d379afe5ed55 (completed)
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\sentinel
+- Orchestrator: 8efc9ceb-9150-4110-9065-d1e01765b291
+- Victory Auditor: b37a9e6b-bb7b-4a12-b085-2cf773a04460
 
 ## 🔒 Key Constraints
 - No technical decisions — relay only
 - Victory Audit is MANDATORY before reporting completion
-- Must not write code, analyze problems, or make any technical decisions. Keep context ultra-light.
+- Must not write code or make technical decisions
 
 ## User Context
-- **Last user request**: Execute end-to-end architectural layer refactoring across frontend/ with zero regressions.
+- **Last user request**: Single self-contained feature: AptDonutSection & AptMetricCards in Apartment Lab.
 - **Pending clarifications**: none
-- **Delivered results**: End-to-end architectural layer refactoring complete and verified with VICTORY CONFIRMED.
+- **Delivered results**:
+  - `AptDonutSection.tsx` with Recharts interactive donut & representative transaction drill-down
+  - `AptMetricCards.tsx` with 4 key metrics & AI valuation CTA
+  - `MacroDashboardClient.tsx` seamless integration and modal linking
 
 ## Project Status
 - **Phase**: complete
+- **Route**: SWE Light (`teamwork_preview_swe`)
+- **Active Agent**: None (All terminated upon victory confirmation)
 
 ## Victory Audit Status
 - **Triggered**: yes
@@ -29,5 +34,4 @@ Execute an end-to-end architectural layer refactoring across the D-VIEW project 
 
 ## Artifact Index
 - c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md — Authoritative record of user request
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator_1\handoff.md — Orchestrator handoff report
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\victory_auditor_1\handoff.md — Victory Auditor handoff report
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\sentinel\handoff.md — Sentinel final handoff report

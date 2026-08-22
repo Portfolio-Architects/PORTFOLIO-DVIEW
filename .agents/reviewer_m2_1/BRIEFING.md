@@ -1,71 +1,61 @@
-# BRIEFING — 2026-08-22T00:32:30+09:00
+# BRIEFING — 2026-08-22T07:23:20Z
 
 ## Mission
-Perform objective review and adversarial challenge for Milestone 2 (Infrastructure & Repository Layer Refactoring) changes in D-VIEW.
+Perform objective quality review and adversarial challenge for Milestone M2 (Daily Real Transactions UX/UI & Multi-Filtering Overhaul).
 
 ## 🔒 My Identity
-- Archetype: reviewer_critic
+- Archetype: reviewer / critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1
-- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
-- Milestone: milestone_2
+- Original parent: bb27f800-16a9-421d-8e63-c35873a4f762
+- Milestone: M2 (Daily Real Transactions UX/UI & Multi-Filtering Overhaul)
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Evidence-based review and adversarial challenge
-- Active integrity checks for facades, shortcuts, hardcoded results
-- Must run build and tests (tsc, lint, test, build)
+- Review and challenge work product from worker_m2 against requirements and constraints
+- Run independent typecheck and tests
+- Issue definitive verdict: APPROVE or REQUEST_CHANGES
 
 ## Current Parent
-- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
-- Updated: not yet
+- Conversation ID: bb27f800-16a9-421d-8e63-c35873a4f762
+- Updated: 2026-08-22T07:23:20Z
 
 ## Review Scope
 - **Files to review**:
-  - `frontend/src/lib/DashboardFacade.ts` [VERIFIED: Clean, no hook imports]
-  - `frontend/src/lib/utils/preloadHelpers.ts` [VERIFIED: Clean, zero UI imports]
-  - `frontend/src/lib/utils/transactionChartTransform.ts` [VERIFIED: Imports from @/types]
-  - `frontend/src/contexts/AuthContext.tsx` [VERIFIED: Canonical context layer]
-  - `frontend/src/contexts/SettingsContext.tsx` [VERIFIED: Decoupled headless provider]
-  - `frontend/src/lib/contexts/*` [VERIFIED: Backward-compatibility re-exports]
-  - `frontend/src/app/layout.tsx` [VERIFIED: SettingsModal mounted at layout boundary]
-  - Upstream handoff: `.agents/worker_m2/handoff.md`
-- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`
-- **Review criteria**: correctness, layer boundaries (no upward imports), context relocation, test coverage, build verification
+  - `frontend/src/components/macro/hooks/useMacroFilters.ts`
+  - `frontend/src/components/macro/components/MacroControls.tsx`
+  - `frontend/src/components/MacroDashboardClient.tsx`
+  - `frontend/src/components/macro/components/MacroTimelineView.tsx`
+  - `frontend/src/__tests__/m2_macro_multifilter.test.tsx`
+- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md, .agents/worker_m2/handoff.md
+- **Review criteria**: correctness, integrity, UI/UX consistency, sticky header behavior, summary metrics calculation, m2/pyeong toggle, FieldReportModal card linkage, infinite scroll, typecheck, test coverage.
 
 ## Review Checklist
 - **Items reviewed**:
-  - `src/lib/DashboardFacade.ts` (PASS - hook re-export removed)
-  - `src/lib/utils/preloadHelpers.ts` (PASS - UI components moved to `src/components/common/preload.ts`)
-  - `src/lib/utils/transactionChartTransform.ts` (PASS - types from `@/types`)
-  - `src/contexts/` & `src/lib/contexts/` (PASS - contexts relocated, stubs provided)
-  - `src/app/layout.tsx` (PASS - SettingsModal mounted at root layout)
-  - `src/lib/repositories/post.repository.ts` (PASS - Lucide icon imports removed)
-  - `src/lib/repositories/officeTx.repository.ts` & `energy.repository.ts` (PASS - hardcoded keys removed)
-  - `npx tsc --noEmit` (PASS - 0 errors)
-  - `npm run lint` (FAIL - 2 `@typescript-eslint/no-require-imports` errors in `m2_challenger_adversarial.test.ts`)
-  - `npm test` (PASS - 74 suites / 569 tests passed)
-  - `npm run build` (FAIL - exit code 1)
-- **Verdict**: REQUEST_CHANGES
-- **Unverified claims**: Worker 2 claimed `npm run lint` passed with 0 errors/warnings and `npm run build` completed with code 0.
+  - `useMacroFilters.ts`: Validated multi-filter states (region, pyeong, tradeType), dong group presets, dynamic `availableApts` computation and reset logic.
+  - `MacroControls.tsx`: Validated `TimelineFilterControls` rendering, region optgroups, pyeong chips, trade type chips, and responsive classes.
+  - `MacroDashboardClient.tsx`: Validated multi-dimensional filter pipeline (`filteredTimelineData`), daily summary calculation, preserved regex test exports, hover preloading, detail click modal dispatch.
+  - `MacroTimelineView.tsx`: Validated sticky date header with summary badges, responsive scroll container, and `useInView` infinite scroll sentinel.
+  - `m2_macro_multifilter.test.tsx`: Validated 9 comprehensive unit and integration tests.
+- **Verdict**: APPROVE
+- **Unverified claims**: None. All claims independently verified via static analysis, code audit, and full test suite execution.
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Upward imports in `src/lib/` (Tested via ripgrep across `@/components`, `@/app`, `@/hooks` -> 0 upward imports found)
-  - Decoupling of `SettingsModal` from `SettingsContext` (Tested via AST inspection and `SettingsContext.test.tsx` -> PASS)
-  - Resilient error handling when `PUBLIC_DATA_PORTAL_KEY` is missing (Tested via unit test suite -> PASS)
-  - Lint conformance of newly introduced test files (Tested via `npm run lint` -> FAILED on `require()` imports)
-- **Vulnerabilities found**:
-  - Lint rule violation in `src/__tests__/m2_challenger_adversarial.test.ts` (Lines 144, 241)
-  - Build failure during production static page generation
-- **Untested angles**: Full production deployment environment (mock vs live firebase in CI)
+  1. Integrity violation check: No facade or hardcoded logic found.
+  2. Filter dimension combinations (e.g. specific dong + 40평+ + 하락): Handled seamlessly without NaN or runtime crashes.
+  3. Empty result handling: Friendly fallback empty state rendered.
+  4. Unit toggle (㎡ vs 평): Correctly propagated and rendered in card.
+  5. Empirical regex tests (`TimelineItemCard*.test.tsx`): 100% passing.
+- **Vulnerabilities found**: 0 critical, 0 major vulnerabilities.
+- **Untested angles**: None.
 
 ## Key Decisions Made
-- Issued verdict `REQUEST_CHANGES` due to `npm run lint` failure and `npm run build` failure.
-- Documented concrete fix recommendations for Worker 2.
+- All acceptance criteria for Milestone M2 are verified and approved. Handoff report prepared.
 
 ## Artifact Index
-- `.agents/reviewer_m2_1/handoff.md` — Final review and challenge report
-- `.agents/reviewer_m2_1/progress.md` — Progress tracker and heartbeat
-- `.agents/reviewer_m2_1/DISPATCH.md` — Dispatch log
+- `.agents/reviewer_m2_1/DISPATCH.md` — Inbound instructions
+- `.agents/reviewer_m2_1/BRIEFING.md` — Persistent working memory
+- `.agents/reviewer_m2_1/progress.md` — Liveness heartbeat
+- `.agents/reviewer_m2_1/handoff.md` — Final review report

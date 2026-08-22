@@ -376,13 +376,12 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'>(initialTab);
   const [isPending, startTransition] = useTransition();
-
-  const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview');
+  const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview' || initialTab === 'technovalley');
   const [hasOpenedOffice, setHasOpenedOffice] = useState(initialTab === 'office');
   const [hasOpenedLounge, setHasOpenedLounge] = useState(initialTab === 'lounge');
 
   useEffect(() => {
-    if (activeTab === 'overview') setHasOpenedOverview(true);
+    if (activeTab === 'overview' || activeTab === 'technovalley') setHasOpenedOverview(true);
     if (activeTab === 'office') setHasOpenedOffice(true);
     if (activeTab === 'lounge') setHasOpenedLounge(true);
   }, [activeTab]);
@@ -479,6 +478,8 @@ const DashboardClient = React.memo(function DashboardClient({
             setActiveTab('lounge');
           } else if (window.location.hash.startsWith('#imjang')) {
             setActiveTab('imjang');
+          } else if (window.location.hash.startsWith('#technovalley') || window.location.hash.startsWith('#techno')) {
+            setActiveTab('technovalley');
           } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap')) {
             setActiveTab('office');
           } else if (window.location.hash.startsWith('#overview')) {
@@ -487,9 +488,11 @@ const DashboardClient = React.memo(function DashboardClient({
             setActiveTab('lounge');
           } else if (queryTab === 'imjang') {
             setActiveTab('imjang');
+          } else if (queryTab === 'technovalley') {
+            setActiveTab('technovalley');
           } else if (queryTab === 'office' || queryTab === 'gap' || hasCuration) {
             setActiveTab('office');
-          } else if (queryTab === 'overview' || window.location.hash === '') {
+          } else if (queryTab === 'overview' || window.location.hash === '' || window.location.pathname === '/') {
             setActiveTab('overview');
           }
         });
@@ -858,13 +861,13 @@ const DashboardClient = React.memo(function DashboardClient({
       <LoungeHeader 
         activeTab={activeTab} 
         onTabChange={(tab) => {
-          const targetTab = tab as 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley';
+          const targetTab = tab as 'overview' | 'imjang' | 'office' | 'technovalley';
           setActiveTab(targetTab);
-          let href = '/overview';
+          let href = '/';
           if (targetTab === 'office') href = '/overview?tab=office';
-          else if (targetTab === 'lounge') href = '/lounge';
           else if (targetTab === 'imjang') href = '/explore';
-          else if (targetTab === 'technovalley') href = '/';
+          else if (targetTab === 'technovalley') href = '/technovalley';
+          else if (targetTab === 'overview') href = '/';
           window.history.pushState(null, '', href);
           try { router.replace(href, { scroll: false }); } catch (err) {}
         }}
@@ -873,10 +876,9 @@ const DashboardClient = React.memo(function DashboardClient({
       {/* Main Container */}
       <main 
         id="main-content" 
-        className="flex-1 w-full max-w-[2000px] max-w-full mx-auto overflow-x-clip min-w-0 animate-in fade-in duration-500 min-h-[85vh] min-h-[750px]"
-        style={{ contain: 'layout paint', containIntrinsicSize: '750px' }}
+        className="flex-1 w-full max-w-[2000px] max-w-full mx-auto min-w-0 min-h-[85vh] min-h-[750px]"
       >
-        <div className={`w-full max-w-full min-w-0 overflow-x-clip min-h-[85vh] min-h-[750px] ${mobileModalOpen ? "invisible" : ""}`} style={{ contain: 'layout paint', containIntrinsicSize: '750px' }}>
+        <div className={`w-full max-w-full min-w-0 min-h-[85vh] min-h-[750px] ${mobileModalOpen ? "invisible" : ""}`}>
           {memoizedTabContents}
         </div>
 
@@ -920,11 +922,11 @@ const DashboardClient = React.memo(function DashboardClient({
         activeTab={activeTab} 
         onTabClick={(tab) => {
           setActiveTab(tab);
-          let href = '/overview';
+          let href = '/';
           if (tab === 'office') href = '/overview?tab=office';
-          else if (tab === 'lounge') href = '/lounge';
           else if (tab === 'imjang') href = '/explore';
-          else if (tab === 'technovalley') href = '/';
+          else if (tab === 'technovalley') href = '/technovalley';
+          else if (tab === 'overview') href = '/';
           window.history.pushState(null, '', href);
           try { router.replace(href, { scroll: false }); } catch (err) {}
         }}

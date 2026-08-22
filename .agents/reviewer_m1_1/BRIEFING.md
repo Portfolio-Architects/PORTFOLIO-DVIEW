@@ -1,60 +1,62 @@
-# BRIEFING — 2026-08-21T14:50:00Z
+# BRIEFING — 2026-08-22T07:13:30Z
 
 ## Mission
-Adversarially review Milestone 1 (Domain & Types Layer Refactoring) on D-VIEW project, verify integrity, type purity, backward compatibility, and test suite results, and issue a rigorous verdict.
+Review and adversarial stress-test Milestone M1 (Main Routing & Tab Navigation Reordering).
 
 ## 🔒 My Identity
-- Archetype: reviewer_critic
+- Archetype: reviewer-critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_1
-- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
-- Milestone: Milestone 1 - Domain & Types Layer Refactoring
+- Original parent: bb27f800-16a9-421d-8e63-c35873a4f762
+- Milestone: M1
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Actively check for integrity violations: hardcoded test results, facade implementations, bypassed tasks, fabricated logs, self-certifying work without genuine verification
-- Verify pure types (zero runtime code, zero JSX/React imports in `src/types/`)
-- Verify separation in `src/lib/utils/userUtils.ts` and `src/lib/types/user.types.ts`
-- Verify backward compatibility re-exports in `src/lib/types/*.ts`
-- Independently execute and verify `tsc`, `lint`, and `test`
+- Check for integrity violations (hardcoded test facades, shortcuts, fake verifications)
+- Verify popstate, deep linking, 404/redirect loops, mobile dock divider position, active tab styling
 
 ## Current Parent
-- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
-- Updated: not yet
+- Conversation ID: bb27f800-16a9-421d-8e63-c35873a4f762
+- Updated: 2026-08-22T07:13:30Z
 
 ## Review Scope
 - **Files to review**:
-  - `src/types/` (14 canonical type files: `index.ts`, `api.ts`, `apartment.ts`, `transaction.ts`, `valuation.ts`, `report.ts`, `lounge.ts`, `review.ts`, `user.ts`, `macro.ts`, `technovalley.ts`, `calculator.ts`, `notice.ts`, `inquiry.ts`)
-  - `src/lib/utils/userUtils.ts` & `src/lib/types/user.types.ts`
-  - `src/lib/types/*.ts` backward compatibility shims
-  - Related test suites and imports
-- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_m1/handoff.md`
-- **Review criteria**: Correctness, purity, backward compatibility, completeness, test suite execution, integrity
+  - `frontend/src/app/page.tsx`
+  - `frontend/src/app/technovalley/page.tsx`
+  - `frontend/src/components/LoungeHeader.tsx`
+  - `frontend/src/components/pwa/MobileDock.tsx`
+  - `frontend/src/components/DashboardClient.tsx`
+  - `frontend/src/app/manifest.ts`
+  - `frontend/src/components/HeaderDockSync.test.tsx`
+- **Interface contracts**: `PROJECT.md`, `.agents/ORIGINAL_REQUEST.md`
+- **Review criteria**: correctness, style, conformance, adversarial robustness
 
 ## Review Checklist
 - **Items reviewed**:
-  - `src/types/` (14 domain type files verified pure)
-  - `src/lib/utils/userUtils.ts` and unit tests (`userUtils.test.ts`)
-  - `src/lib/types/*.ts` (7 backward-compatibility shim files)
-  - `src/lib/validation/facade.schemas.ts`
-  - `src/components/apartment/*` and `src/components/apartment-modal/*`
+  - `frontend/src/app/page.tsx` (PASS)
+  - `frontend/src/app/technovalley/page.tsx` (PASS)
+  - `frontend/src/components/LoungeHeader.tsx` (PASS)
+  - `frontend/src/components/pwa/MobileDock.tsx` (PASS)
+  - `frontend/src/components/DashboardClient.tsx` (PASS)
+  - `frontend/src/app/manifest.ts` (PASS)
+  - `frontend/src/components/HeaderDockSync.test.tsx` (PASS)
 - **Verdict**: APPROVE
-- **Unverified claims**: 0 unverified claims
+- **Unverified claims**: none
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Potential runtime code / exports in `src/types/`: Confirmed 0 runtime code, 0 React/JSX imports
-  - Presentation leaks in `KPIData` and `NewsItemData`: Confirmed clean primitive decoupling
-  - Backward compatibility breakage in legacy imports: Confirmed 100% covered by shims
-  - Integrity violation checks: Confirmed authentic implementations and genuine test passes
+  - Route loop/404 on `/technovalley` vs `/`: Verified safe; `redirect('/')` eliminated from `technovalley/page.tsx`.
+  - Browser back/forward `popstate` & deep linking: Verified complete bidirectional synchronization in `LoungeHeader.tsx` and `DashboardClient.tsx`.
+  - Mobile dock divider placement: Verified cleanly separating residential (`imjang`) from techno/commercial (`technovalley`).
+  - Active tab styling & theme colors: Verified orange theme for residential and blue theme for techno/commercial.
+  - Integrity violation checks: Verified genuine DOM test coverage and no facades.
 - **Vulnerabilities found**: None.
 - **Untested angles**: None within M1 scope.
 
 ## Key Decisions Made
-- Confirmed full compliance with M1 architectural specifications and issued APPROVE verdict.
+- Confirmed full compliance with Milestone M1 requirements. Verdict: APPROVE.
 
 ## Artifact Index
-- `.agents/reviewer_m1_1/handoff.md` — Final review & handoff report
+- `.agents/reviewer_m1_1/handoff.md` — Review & critic report
 - `.agents/reviewer_m1_1/progress.md` — Progress tracker
-- `.agents/reviewer_m1_1/DISPATCH.md` — Dispatch log

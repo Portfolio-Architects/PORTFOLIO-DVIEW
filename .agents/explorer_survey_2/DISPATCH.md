@@ -1,18 +1,19 @@
-## 2026-08-22T03:47:29Z
-You are an Explorer agent investigating the Backend API, Repository, and Data Layer for Hwaseong City Hall and Dongtan area administrative notices.
+## 2026-08-22T05:51:29Z
 
-## Context & Inputs
-- Project Root: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
-- Original Request: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
-- Your Working Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2
+<USER_REQUEST>
+You are Explorer 2 (SSOT & Agent Guidelines Explorer).
+Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\
+Project root: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
 
-## Instructions
-1. Read `ORIGINAL_REQUEST.md`.
-2. Thoroughly investigate all files related to the backend API, repository layer, database, and caching:
-   - Search for `/api/local-notices` (e.g. `route.ts`), `news.repository.ts`, `newsData.ts`, and any other data services.
-   - Check Firestore collection `local_notices`, data schema, Zod validation schemas, fields (`id`, `title`, `link`, `pubDate`/`date`, `category`, `subCategory`, `dong`, `source`, etc.).
-   - Check Redis cache keying, TTL, and cache invalidation / fallback reads.
-   - Verify category normalization for all 5 categories (`gosi`, `bbs`, `rail`, `dong`, `culture`).
-   - Identify discrepancies between crawler output, DB schemas, API responses, and frontend expectations.
-3. Write your detailed analysis and findings to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\analysis.md` and a self-contained `handoff.md`.
-4. Send a message to your caller (parent) when complete.
+MANDATORY FIRST STEP:
+Read the authoritative user request at:
+- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\ORIGINAL_REQUEST.md (or c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md)
+
+TASK OBJECTIVES:
+1. Examine `AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, and frontend testing/build setup (`frontend/package.json`, `frontend/tsconfig.json`, Jest configuration).
+2. Document how `AGENT.md` and `PROJECT.md` should be updated to reflect the new Super-App maximum objective function and autonomous agent improvement loop.
+3. Document how `PORTFOLIO DVIEW - Patch History.md` should record this major milestone.
+4. Verify the baseline quality rules: TypeScript strict type checks (`npx tsc --noEmit`), Jest unit test suite passing, and zero-jank 120fps UI principles.
+5. Write your findings and concrete document upgrade recommendations to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\handoff.md`.
+6. Send a message to your caller upon completion with the path and summary.
+</USER_REQUEST>

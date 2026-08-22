@@ -1,29 +1,22 @@
-## 2026-08-21T14:45:36Z
+## 2026-08-22T07:12:08Z
+You are Reviewer 2 for Milestone M1 (Main Routing & Tab Navigation Reordering).
+Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_2
 
-You are Reviewer 2 for Milestone 1 (Domain & Types Layer Refactoring) on the D-VIEW project.
+Read the authoritative user request at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
 
-Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_2`
-Authoritative user request: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
-Project scope: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
-Worker 1 handoff: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md`
-Frontend codebase root: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
+Read the project specification at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md
 
-Task:
-1. Review type safety and elimination of `any` across:
-   - `src/lib/validation/facade.schemas.ts`
-   - `src/components/apartment/ApartmentModalKakaoCard.tsx`
-   - `src/components/apartment/ApartmentModalPriceSummary.tsx`
-   - `src/components/apartment/ApartmentModalTransactionsTable.tsx`
-   - `src/components/apartment-modal/TransactionChartSection.tsx`
-   - `src/components/MindMap3D.tsx`
-   - `src/components/OfficeExplorerClient.tsx`
-2. Ensure presentation leaks (`ReactNode`/`ElementType`) were completely removed from `KPIData` and `NewsItemData`.
-3. Run verification commands in `frontend/`:
-   - `npx tsc --noEmit`
-   - `npm run lint`
-   - `npm test`
-   - `npm run build`
-4. Write your review report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_2\handoff.md`.
-5. Provide a clear, explicit verdict: **APPROVE** or **REQUEST_CHANGES**.
+Read Worker M1's handoff report at:
+c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md
 
-Send a completion message back to the orchestrator when finished.
+Your mission:
+1. Independently review the routing and navigation changes across desktop header, mobile dock, SSR pages, SEO metadata, JSON-LD schemas, and PWA manifest.
+2. Verify interface conformance with PROJECT.md and compatibility with existing /overview and ?tab=office deep links.
+3. Run verification commands:
+   - `cd frontend && npx tsc --noEmit`
+   - `cd frontend && npm test -- HeaderDockSync.test.tsx`
+4. Formulate your verdict: APPROVE or REQUEST_CHANGES.
+5. Write your handoff report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_2\handoff.md` and notify the orchestrator.
+Do NOT modify any source code files.

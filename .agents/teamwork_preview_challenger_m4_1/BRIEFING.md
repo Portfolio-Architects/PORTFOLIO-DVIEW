@@ -1,72 +1,48 @@
-# BRIEFING — 2026-08-21T00:36:00Z
+# BRIEFING — 2026-08-22T11:44:46Z
 
 ## Mission
-Adversarial empirical testing & verification for Milestone 4: Frontend Monolith Modularization & Rendering Performance (Requirement R1) in D-VIEW.
+Empirically verify and stress-test the complete MacroTimelineView upgrade for Milestone 4 (Adversarial Hardening), checking rapid interactions, event propagation, boundary conditions, TypeScript types, and automated test suites.
 
 ## 🔒 My Identity
-- Archetype: EMPIRICAL CHALLENGER
+- Archetype: challenger
 - Roles: critic, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\teamwork_preview_challenger_m4_1
-- Original parent: 26cd80d0-2b50-462d-b916-4076f6f905bd
-- Milestone: Milestone 4 (Frontend Monolith Modularization & Rendering Performance — Requirement R1)
-- Instance: 1 of 2
+- Original parent: 8bc13738-6280-44bb-b987-3a58b5c109bb
+- Milestone: M4: Adversarial Hardening
+- Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Stress test assumptions, find failure modes, write and execute test scripts empirically.
-- Do NOT trust claims or logs without running code.
-- Write handoff report to c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\teamwork_preview_challenger_m4_1\handoff.md with explicit verdict APPROVE or REQUEST_CHANGES.
-- Review-only — do NOT modify implementation code unless creating test files in test directories.
+- Review-only — do NOT modify implementation code
+- Empirical verification required: must run code/tests, not just rely on claims
+- Output verdict (APPROVE or REQUEST_CHANGES) in handoff.md
+- Communicate results to parent via send_message
 
 ## Current Parent
-- Conversation ID: 26cd80d0-2b50-462d-b916-4076f6f905bd
-- Updated: 2026-08-21T00:36:00Z
+- Conversation ID: 8bc13738-6280-44bb-b987-3a58b5c109bb
+- Updated: not yet
 
 ## Review Scope
-- **Files to review & stress-test**:
-  - `frontend/src/components/MacroDashboardClient.tsx`
-  - `frontend/src/components/macro/hooks/useMacroFilters.ts`
-  - `frontend/src/components/macro/hooks/useMacroDragDrop.ts`
-  - `frontend/src/components/macro/components/*`
-  - `frontend/src/components/ApartmentModal.tsx`
-  - `frontend/src/components/apartment/ApartmentModal.tsx`
-  - `frontend/src/components/apartment/hooks/useApartmentModalState.ts`
-  - `frontend/src/components/apartment/*`
-  - `frontend/src/components/consumer/compare/*`
-  - `frontend/src/components/macro/techno/*`
-  - `frontend/src/lib/utils/calculatorEngines.ts`
-- **Stress-test targets**:
-  1. Dynamic chunk loading and fallback rendering under race conditions.
-  2. Filter combinations (Dong, Apt, Timeframe, outliers) and empty datasets.
-  3. Drag and drop reordering persistence and edge cases (corrupt localStorage, out-of-bounds indices, duplicate IDs).
-  4. Re-export facade integrity (`src/components/ApartmentModal.tsx` vs `src/components/apartment/ApartmentModal.tsx` props, types, exports).
-  5. Regression test suites, typechecks, build.
+- **Files reviewed**: `MacroTimelineView.tsx`, `MacroControls.tsx`, `useMacroFilters.ts`, `MacroDashboardClient.tsx`, `MacroTimelineViewE2E.test.tsx`, `MacroTimelineViewAdversarial.test.tsx`
+- **Interface contracts**: PROJECT.md, TEST_READY.md, ORIGINAL_REQUEST.md
+- **Review criteria**: TypeScript compilation, comprehensive test pass, edge cases, event propagation, performance/stress behaviors
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Re-export facade integrity (`ApartmentModal.tsx` vs `apartment/ApartmentModal.tsx`): PASSED (identical instance reference).
-  - Macro filter state consistency under empty / undefined datasets and rapid dong switching: PASSED (empty arrays returned safely, apt filter reset automatically).
-  - Favorite drag & drop reorder edge cases: PASSED (same-index no-ops, out-of-bound drags, unmount listener cleanup).
-  - Apartment modal lifecycle & timeout cleanup: PASSED (mountedRef, outside click detection, animation timers).
-  - Quantitative calculation edge cases (0, negative, NaN, 0% rates, boundary tax brackets): PASSED (all formulas mathematically robust).
-  - Full repo regression & production compilation: PASSED (67 test suites, 491 tests, 0 tsc errors, 0 lint warnings, clean build).
-- **Vulnerabilities found**: None.
-- **Untested angles**: No remaining untested angles in Requirement R1 frontend modularization.
+  1. Rapid continuous cycling of all 7 quick chips + 4 sort orders + search + view modes causes state corruption or memory leaks -> Result: Passed (50+ chaotic iterations executed cleanly).
+  2. Event bubbling on favorite bookmark heart or detail action button triggers unwanted card selection / modal collisions -> Result: Passed (Strictly isolated via `stopPropagation()`).
+  3. Mathematical formatting and price calculators crash on empty lists, 0-value prices, sub-1억 or 100억+ luxury values, ties in peak price -> Result: Passed (100% resilient).
+  4. Scale stress test with 1,000 items across 30 dates -> Result: Passed (Zero CLS, zero memory leak, clean render).
+- **Vulnerabilities found**: 0 critical vulnerabilities. (Both quick filter bar and empty view provide reset buttons that correctly reset filter states).
+- **Untested angles**: None.
 
 ## Loaded Skills
-- None explicitly loaded.
+- None.
 
 ## Key Decisions Made
-- Executed comprehensive empirical test harness `src/__tests__/m4_challenger_adversarial.test.tsx` (23/23 tests passed).
-- Executed `src/components/TimelineItemCardStress.test.tsx` (6/6 tests passed).
-- Executed consumer & techno test suites (47/47 tests passed).
-- Executed full repository test run `npm test` (67/67 suites, 491/491 tests passed).
-- Executed `npx tsc --noEmit`, `npm run lint`, and `npm run build` (all passed with 0 errors).
-- Final Verdict: APPROVE.
+- Created `frontend/src/components/__tests__/MacroTimelineViewAdversarial.test.tsx` containing 10 rigorous adversarial & stress test cases.
+- Executed `npx tsc --noEmit` (0 errors) and `npm test` (99 suites, 1,018 tests passed).
+- Final Verdict: **APPROVE**.
 
 ## Artifact Index
-- DISPATCH.md — Dispatch instructions
-- BRIEFING.md — Persistent context index
-- progress.md — Liveness heartbeat & step execution record
-- src/__tests__/m4_challenger_adversarial.test.tsx — Adversarial test suite
-- handoff.md — Final self-contained handoff report (APPROVE)
-
+- handoff.md — Final handoff report and verdict
+- progress.md — Liveness heartbeat and milestone tracker

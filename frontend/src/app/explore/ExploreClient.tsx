@@ -492,10 +492,10 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         scrollContainerId="apartment-list-scroll"
         disabled={mobileModalOpen || !!selectedReport}
       >
-        <div className="flex flex-col min-h-[100dvh] min-h-[800px] bg-transparent relative pb-[env(safe-area-inset-bottom)]" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
-          <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-clip animate-in fade-in duration-500 min-h-[85vh] min-h-[800px]" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
+        <div className="flex flex-col min-h-[100dvh] min-h-[800px] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
+          <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto min-h-[85vh] min-h-[800px]">
             <div className={mobileModalOpen ? "invisible" : ""}>
-              <section className="w-full bg-transparent min-h-[85vh] min-h-[800px]" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
+              <section className="w-full bg-transparent min-h-[85vh] min-h-[800px]">
                 <PageHeroHeader 
                   title="D-VIEW 아파트 탐색"
                   subtitleStrong="동탄 아파트 조건별 맞춤 탐색"

@@ -1,35 +1,76 @@
 # Original User Request
 
-## Initial Request — 2026-08-22T03:47:05Z
+## Initial Request — 2026-08-22T09:29:06Z
 
-You are the Project Orchestrator for this task.
+This is a single self-contained feature; keep it small and focused.
 
-Working Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
-Your Metadata Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator_1
-Original Request Path: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
-Integrity Mode: demo
+동탄 하이퍼로컬 슈퍼앱 D-VIEW의 메인 아파트 랩(Apartment Lab)에 테크노랩 스타일의 인터랙티브 도넛 차트(`AptDonutSection`) 및 4대 핵심 메트릭 카드(`AptMetricCards`)를 구현하여, 최근 실거래 시장 에너지(신고가🔥, 상승거래, 보합, 하락거래) 분포와 아파트 상세 리포트 연동 기능을 제공합니다.
 
-## Task Overview
-Resolve data integration errors for Hwaseong City Hall and Dongtan area administrative network in D-VIEW Lounge (/lounge?tab=notices) '행정 고시공고' tab (시정공고, 교통·철도, 동네행정, 문화·행사), and normalize the entire flow from crawler/pipeline to frontend rendering and fallback handling.
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
 
 ## Requirements
-R1. Crawling & Parsing Pipeline Normalization
-- Fix scrapers for Hwaseong City Hall BBS 1019 (타기관 고시공고), BD_notice (화성시 고시공고), BBS 1131 (철도사업 추진현황), BBS 1154 (동탄트램 추진현황), BBS 1049 (동탄 1~9동 동별 공지사항) based on HTML structure and encoding.
-- Ensure batch script `fetch-local-notices.js` and internal API `sync-local-notices/route.ts` parse data properly and populate Firestore `local_notices` and Redis cache.
 
-R2. Lounge Admin Notice Tab & API Integration
-- Validate `/api/local-notices` endpoint, repository layer (`news.repository.ts`, `newsData.ts`), and pass all categories (`gosi`, `bbs`, `rail`, `dong`, `culture`) to frontend.
-- Fix `LoungeFeedClient.tsx` and `LoungeContainerClient.tsx` tab switching (`전체`, `시정공고`, `교통·철도`, `동네행정`, `문화·행사`) and Dongtan 1~9 sub-filtering so valid cards render without empty screens.
+### R1. 실거래 시장 에너지 도넛 차트 컴포넌트 (`AptDonutSection.tsx`)
+- 최근 실거래 데이터(`recent-transactions.json` 및 실시간 트랜잭션 데이터)를 분석하여 4대 시장 에너지(신고가🔥, 상승거래, 보합, 하락거래)의 건수 및 비중(%)을 계산하고 Recharts 기반 도넛 차트로 렌더링합니다.
+- 차트 중앙에 총 거래 건수를 표시하고, 우측 항목(범례) 클릭 시 하단에 해당 유형의 대표 실거래 아파트 리스트(단지명, 거래가격, 변동률 등)를 펼쳐 보여주는 인터랙션을 지원합니다.
+- 카드 클릭 또는 상세 보기 액션 시 해당 아파트 단지의 상세 모달(`FieldReportModal` / `AptModal`)로 매끄럽게 연결됩니다.
 
-R3. Fallback System for Outages / Network Block / Empty DB
-- Implement resilient fallback mechanism so if Hwaseong City Hall WAF blocks or times out or DB is empty, user sees up-to-date static backup data / guidance rather than blank screen.
+### R2. 아파트랩 4대 핵심 서브 지표 카드 (`AptMetricCards.tsx`)
+- 도넛 차트 하단에 2x2 그리드로 핵심 지표 3개(신고가 달성 건수 및 증감, 평당 평균 실거래가, 평균 전세가율)와 1개의 자산 진단 CTA 카드('우리집 적정 가치 & 매도 타이밍 진단')를 배치합니다.
+- 테크노랩의 `TechnoMetricCards` 디자인 규격 및 인터랙티브 호버/클릭 효과를 일관되게 계승합니다.
+
+### R3. 아파트 랩 대시보드 (`MacroDashboardClient.tsx`) 통합 및 디자인 시스템 통일
+- 신규 컴포넌트를 아파트 랩 메인 피드 상단/적정 위치에 매끄럽게 마운트하고, 모바일 및 데스크톱 뷰포트에서 깨짐 없는 반응형 레이아웃을 제공합니다.
+- `#fcfbfa` 초경량 웜 화이트 테마, 다크 모드, `rounded-2xl` 라운딩, 글래스모피즘 및 터치 제스처 성능(60fps/Zero-Jank)을 완벽히 유지합니다.
 
 ## Acceptance Criteria
-- Valid items extracted & pass Zod schema.
-- Firestore & Redis loading runs without error.
-- `/api/local-notices` returns JSON containing `rail`, `gosi`, `bbs`, `dong`, `culture`.
-- All tabs and subcategories render cards properly.
-- Card click opens source / modal / Kakao share correctly.
-- Fallback data displays gracefully when external network fails.
 
-Please maintain your plan.md, progress.md, and briefing in your metadata directory and report back when finished.
+### 데이터 연동 및 UI 인터랙션 검증
+- [ ] 4개 세그먼트(신고가, 상승, 보합, 하락)의 비중 합이 100%로 정확히 산출되고 도넛 차트 및 우측 범례에 일치하게 표시되어야 함.
+- [ ] 도넛 섹터나 범례 클릭 시 하단에 해당 조건의 대표 실거래 아파트 목록이 즉시 표시되고, 단지 클릭 시 상세 분석 리포트가 정상 오픈되어야 함.
+- [ ] 하단 4개 메트릭 카드가 실제 데이터 기반의 수치를 표시하고 CTA 버튼이 정상 동작해야 함.
+- [ ] 모바일/데스크톱 환경에서 Layout Shift(CLS < 0.01) 및 부드러운 스크롤/인터랙션이 유지되어야 함.
+
+### 시스템 품질 및 테스트 통과
+- [ ] `npx tsc --noEmit` 실행 시 TypeScript 컴파일 에러 0건.
+- [ ] Jest 단위/통합 테스트(`npm test`) 전수 통과 (100% Green).
+
+## Follow-up — 2026-08-22T11:13:27Z
+
+동탄 하이퍼로컬 슈퍼앱 D-VIEW의 아파트 랩(Apartment Lab) 메인 피드 하단 '일자별 최근 실거래(MacroTimelineView)' 섹션의 컴포넌트 아키텍처 및 UX를 고도화하여, 스마트 원터치 필터 칩 바, 실시간 검색 및 다중 정렬, 카드/컴팩트 리스트 뷰 전환 토글, 일자별 거래 요약 헤더(최고가 하이라이트), 관심 단지 토글 및 상세 리포트 연동 기능을 구현합니다.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 스마트 원터치 필터 칩 바 & 검색/다중 정렬 시스템
+- [전체, 동탄1, 동탄2, 신고가🔥, 30평대 국평, 10억 클럽, 대장단지] 등의 원터치 퀵 필터 칩 바를 제공하고, 기존 권역/법정동/단지 드롭다운과 유기적으로 동기화합니다.
+- 단지명 실시간 인라인 검색창과 다중 정렬 기준(최신 계약순, 실거래가 높은순, 상승률 높은순, 전용면적순) 선택 기능을 지원합니다.
+
+### R2. 와이드 카드 그리드 뷰 vs 컴팩트 리스트 뷰 모드 토글
+- 사용자가 데이터 탐색 목적에 따라 카드 그리드 뷰(3열 와이드 카드 형태)와 컴팩트 리스트 뷰(다량의 거래를 한눈에 스캔하는 테이블/행 형태)를 원터치로 전환할 수 있는 뷰 모드 컨트롤러를 제공합니다.
+- 모바일과 데스크톱 뷰포트에서 각각 최적화된 레이아웃과 서체 스케일을 유지합니다.
+
+### R3. 일자별 거래 요약 헤더 & 최고가 하이라이트 배지
+- 스티키 일자 헤더에 당일 총 거래 건수, 평균 실거래가 요약뿐만 아니라 당일 최고가 거래 단지 하이라이트 배지(예: 👑 최고가: 동탄역 롯데캐슬 16.5억)를 직관적으로 표시합니다.
+
+### R4. 실거래 카드/리스트 인터랙션 확장 및 모달 딥링크
+- 개별 실거래 아이템에 관심 단지(즐겨찾기 하트) 토글 버튼, 직전 실거래 대비 변동폭 및 평당 환산가 안내, 클릭 시 해당 단지의 상세 분석 리포트(`FieldReportModal` / `AptModal`) 원터치 진입 인터랙션을 지원합니다.
+
+### R5. 제로 레이아웃 시프트(CLS < 0.01) 및 성능 최적화
+- `#fcfbfa` 초경량 웜 화이트 테마, 다크 모드, `rounded-2xl` 라운딩, 스티키 헤더 고정, 무한 스크롤/가상화 및 60fps 부드러운 스크롤 성능을 완벽히 유지합니다.
+
+## Acceptance Criteria
+
+### 데이터 연동 및 UI/UX 인터랙션 검증
+- [ ] 원터치 필터 칩(전체, 동탄1/2, 신고가, 30평대, 10억+ 등) 및 검색/정렬 조건 변경 시 실거래 목록이 실시간으로 정확하게 필터링 및 재정렬되어야 함.
+- [ ] 뷰 모드 토글(카드 뷰 / 리스트 뷰) 전환 시 레이아웃 시프트 없이 즉시 반응하고 현재 필터 상태가 온전히 유지되어야 함.
+- [ ] 일자별 헤더에 당일 거래량, 평균가, 최고가 단지 하이라이트가 데이터 기반으로 정확히 렌더링되어야 함.
+- [ ] 실거래 항목 클릭 시 단지 상세 모달이 정상 오픈되고, 즐겨찾기 토글이 정상 동작해야 함.
+- [ ] 모바일/데스크톱 환경에서 스티키 헤더 및 반응형 레이아웃이 깨짐 없이 동작해야 함.
+
+### 시스템 품질 및 테스트 통과
+- [ ] `npx tsc --noEmit` 실행 시 TypeScript 컴파일 에러 0건.
+- [ ] Jest 단위/통합 테스트(`npm test`) 전수 통과 (100% Green).

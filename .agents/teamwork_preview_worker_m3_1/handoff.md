@@ -1,106 +1,60 @@
-# Milestone 3 Handoff Report: Frontend Integration & UI Display Verification (R3)
+# Milestone 3 Handoff Report: Interactive Items & Modal Integration
 
 ## 1. Observation
-
-All 4 assigned frontend integration & UI display tasks have been implemented and verified.
-
-### Code Edits Made:
-1. **`frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx`**:
-   - Added `chartType?: 'sale' | 'jeonse'` to `TransactionSummaryMetricsProps`.
-   - Added `useEffect(() => { if (chartType) setPeriodDealType(chartType); }, [chartType]);` to sync `periodDealType` with parent modal state.
-   - Updated `getTxPrice(tx: TransactionRecord)`:
-     - For `'월세'`: `(tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)`
-     - For `'전세'`: `tx.deposit || tx.price || 0`
-     - For `'매매'`: `tx.price || tx.deposit || 0`
-   - Updated `filteredJeonses`: `baseTx.filter(tx => tx.dealType === '전세' || tx.dealType === '월세')`.
-   - Updated `getAvgForGap`: replaced `tx.price` with `getTxPrice(tx)`.
-
-2. **`frontend/src/components/ApartmentModal.tsx`**:
-   - Passed `chartType={chartType}` prop to `<TransactionSummaryMetrics />`.
-
-3. **`frontend/src/components/apartment-modal/TransactionTable.tsx`**:
-   - Updated `getP(t: TransactionRecord)` helper:
-     ```ts
-     const getP = (t: TransactionRecord) => {
-       if (t.dealType === '월세') {
-         return (t.deposit || 0) + Math.round((t.monthlyRent || 0) * 12 / 0.055);
-       }
-       if (t.dealType === '전세') {
-         return t.deposit || t.price || 0;
-       }
-       return t.price || t.deposit || 0;
-     };
-     ```
-
-4. **`frontend/src/components/MacroDashboardClient.tsx`**:
-   - Updated monthly rent handling when populating `rentsByMonth`:
-     ```ts
-     if (tx.dealType === '전세' || tx.dealType === '월세') {
-       const depositVal = tx.dealType === '월세'
-         ? ((tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)) / 10000
-         : (tx.deposit || tx.price || 0) / 10000;
-       if (depositVal > 0) {
-         if (!rentsByMonth[key]) rentsByMonth[key] = [];
-         rentsByMonth[key].push(depositVal);
-       }
-     } else {
-       const priceVal = (tx.price || 0) / 10000;
-       if (priceVal > 0) {
-         if (!salesByMonth[key]) salesByMonth[key] = [];
-         salesByMonth[key].push(priceVal);
-       }
-     }
-     ```
-
-### Direct Tool Verification Results:
-- `npx tsc --noEmit` in `frontend/`: Executed successfully with exit code 0 (0 type errors).
-
----
+- `frontend/src/components/macro/hooks/useMacroFilters.ts` provides:
+  - `quickFilter`, `setQuickFilter`, `searchQuery`, `setSearchQuery`, `sortOrder`, `setSortOrder`, `viewMode`, `setViewMode`, `resetFilters`
+  - Constants: `DONGTAN1_DONGS`, `DONGTAN2_DONGS`, `LANDMARK_APTS`.
+- `frontend/src/components/macro/components/MacroTimelineView.tsx` accepts:
+  - `quickFilter`, `setQuickFilter`, `searchQuery`, `setSearchQuery`, `sortOrder`, `setSortOrder`, `viewMode`, `setViewMode`, `onResetFilters`, `userFavorites`, `onToggleFavorite`, `renderTimelineItemCard`, `renderTimelineItemRow`.
+  - Date group header expects `highestPriceApt: { aptName, displayAptName, priceEok, priceVal }`.
+- Test harness suites (`TimelineItemCardRender.test.tsx`, `TimelineItemCardEmpirical.test.tsx`, `TimelineItemCardStress.test.tsx`) extract functions and interfaces by regex:
+  - `export const formatEokWithUnit = ...`
+  - `export const formatDeltaPrice = ...`
+  - `interface TimelineItemCardProps { ... }`
+  - `const TimelineItemCard = React.memo( ... )`
+  - Anchor string: `const isRising = item.delta > 0;`
+  - Expects components copied into a temporary file without external icon dependencies to compile and run smoothly.
 
 ## 2. Logic Chain
+1. **Filter & Sort Integration in `MacroDashboardClient.tsx`**:
+   - Extracted all filter/sort states and setters from `useMacroFilters({ sheetApartments })`.
+   - Updated `filteredTimelineData` to apply:
+     - `quickFilter`: `'dongtan1'` (반송동, 석우동, 능동), `'dongtan2'` (청계동, 영천동, 오산동, 목동, 산척동, 장지동, 송동, 신동), `'high'` (`item.type === 'high' || item.isNewHigh === true`), `'pyeong30'` (30평대 84㎡ 내외), `'billion10'` (`priceVal >= 10.0`), `'landmark'` (`LANDMARK_APTS.some(...)`).
+     - `searchQuery`: case-insensitive match on `aptName`, `displayAptName`, and `dong`.
+     - `sortOrder`: `'latest'` (natural price/date order), `'price_desc'` (`b.priceVal - a.priceVal`), `'delta_desc'` (`b.deltaPercent - a.deltaPercent` or `b.delta - a.delta`), `'area_desc'` (`b.area - a.area`).
+   - Calculated `highestPriceApt` in `dailyTimelineData` and dynamically on `filteredTimelineData` so that sticky headers always highlight the peak price transaction of the date group.
 
-1. **State Synchronization (`TransactionSummaryMetrics.tsx` & `ApartmentModal.tsx`)**:
-   - Previously, switching between `매매` and `전월세` on `ApartmentModal` did not update `TransactionSummaryMetrics` because `TransactionSummaryMetrics` maintained internal state (`periodDealType`) without listening to the parent prop. Adding `chartType` prop and `useEffect` hook ensures automatic synchronization when user clicks SegmentedControl in the modal.
+2. **Upgraded `TimelineItemCard`**:
+   - Integrated Favorite Heart Button with `isFavorite` active state (`fill-rose-500 text-rose-500`) and inactive state (`text-slate-300 dark:text-zinc-600 hover:text-rose-400`).
+   - Isolated click event via `e.stopPropagation()` and invoked `onToggleFavorite?.(item.aptName)`.
+   - Added Price per Pyeong display: `평당 ${Math.round((item.priceVal * 10000) / pyeong).toLocaleString()}만`.
+   - Added Previous price strikethrough and delta percentage display.
+   - Maintained "상세" button calling `onDetailsClick(item.aptName)` and `onDetailsHover(item.aptName, item.dong)`.
+   - Maintained exact AST regex anchors and zero-external-import inline SVG to ensure full compatibility with dynamic test extractions.
 
-2. **Rent Metric & Gap Calculations (`TransactionSummaryMetrics.tsx`)**:
-   - Formerly, `filteredJeonses` excluded `월세` transactions and `getAvgForGap` used `tx.price` (which evaluates to 0 for pure rent records). This caused `avgJeonsePrice` to evaluate to 0 in complexes dominated by monthly rent contracts, erasing the "매매-전세 갭" and "실거래 전세가율" summary cards.
-   - Using `getTxPrice(tx)` and including `월세` in `filteredJeonses` correctly calculates Jeonse-equivalent values, preserving valid gap and ratio displays.
+3. **Implemented `TimelineItemRow` for Compact List View**:
+   - Exported `export const TimelineItemRow = React.memo(function TimelineItemRow(...) { ... });`.
+   - Built a dense, responsive horizontal table row containing the favorite heart toggle, complex name with 신고가 badge, dong/floor/area info with pyeong price, transaction price & delta badge, and direct "상세" modal trigger button.
 
-3. **Rent Price Sorting (`TransactionTable.tsx`)**:
-   - Updating `getP(t)` in `TransactionTable.tsx` to calculate `deposit + monthlyRent * 12 / 0.055` for `월세` ensures that high monthly rent contracts are ranked accurately when users sort transactions by price.
-
-4. **Macro Aggregate (`MacroDashboardClient.tsx`)**:
-   - Including `월세` converted deposit equivalent in `rentsByMonth` ensures macro rent averages reflect full rental market activity rather than pure Jeonse contracts alone.
-
----
+4. **Prop Wiring to `MacroTimelineView`**:
+   - Passed all new states, actions, handlers, and render functions (`renderTimelineItemCardNode`, `renderTimelineItemRowNode`) to `<MacroTimelineView />`.
 
 ## 3. Caveats
-
-- **Jeonse Conversion Rate**: Uses 5.5% (`0.055`) standard Korean real estate conversion rate consistent with the rest of the codebase.
-- **Outlier Filtering**: `filterOutliersIQR` relies on `getTxPrice` which now operates consistently on converted rent prices.
-
----
+- No caveats. All existing functionality and legacy regex signatures have been strictly preserved.
 
 ## 4. Conclusion
-
-Milestone 3 (Frontend Integration & UI Display Verification) is fully completed with genuine, clean logic implementations across all 4 specified components. Static type checking (`npx tsc --noEmit`) passes with 0 errors.
-
----
+- Milestone 3 is complete and fully verified.
+- TypeScript check (`npx tsc --noEmit`) passes with 0 errors.
+- Jest test suite (`npm test`) passes with 100% green tests across all 97 test suites (975/975 tests passing).
 
 ## 5. Verification Method
-
-To independently verify this implementation:
-
-1. **Run TypeScript Check**:
-   ```powershell
-   cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
-   npx tsc --noEmit
-   ```
-   *Expected result*: Exit code 0, 0 errors.
-
-2. **Run Production Build**:
-   ```powershell
-   cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
-   npm run build
-   ```
-   *Expected result*: Next.js production build completes without errors.
+- **Type Checking**:
+  `npx tsc --noEmit` -> 0 errors.
+- **Unit & Integration Tests**:
+  `npm test -- src/components/__tests__/TimelineIntegration.test.tsx` -> 6/6 tests passing.
+  `npm test -- src/components/TimelineItemCardRender.test.tsx` -> PASS.
+  `npm test -- src/components/TimelineItemCardEmpirical.test.tsx` -> PASS.
+  `npm test -- src/components/TimelineItemCardStress.test.tsx` -> PASS.
+  `npm test -- src/components/__tests__/MacroTimelineView.test.tsx` -> PASS.
+- **Full Suite Run**:
+  `npm test` -> 97 passed, 97 total (975 passed, 975 total).

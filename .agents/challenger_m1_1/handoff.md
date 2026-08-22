@@ -1,85 +1,113 @@
-# Empirical Challenger 1 Handoff Report: Milestone 1 (Domain & Types Layer Refactoring)
+# Challenger 1 Handoff Report: Milestone M1 (Main Routing & Tab Navigation Reordering)
+
+**Date**: 2026-08-22  
+**Challenger**: Challenger 1 (Empirical Challenger & Adversarial Reviewer)  
+**Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
+**Verdict**: **APPROVE**  
+
+---
 
 ## 1. Observation
-- **Deliverable Inspection**:
-  - **Canonical Domain Models (`frontend/src/types/`)**:
-    - Created 14 canonical type files: `api.ts`, `apartment.ts`, `transaction.ts`, `report.ts`, `lounge.ts`, `review.ts`, `user.ts`, `macro.ts`, `technovalley.ts`, `valuation.ts`, `calculator.ts`, `notice.ts`, `inquiry.ts`, and central barrel `index.ts`.
-    - Zero external dependencies and zero runtime logic in `src/types/`. All models are pure TypeScript types and interfaces.
-  - **Runtime Helper Decoupling (`src/lib/utils/userUtils.ts`)**:
-    - Extracted `getDisplayName`, `createEmojiAvatar`, `DEFAULT_AVATARS`, and `getRandomDefaultAvatar` from `user.types.ts` into `src/lib/utils/userUtils.ts`.
-    - `src/lib/types/user.types.ts` re-exports both types from `@/types/user` and runtime functions from `@/lib/utils/userUtils` for 100% backward compatibility.
-  - **Backward-Compatibility Barrels (`src/lib/types/*.ts`)**:
-    - `dashboard.types.ts`, `macro.types.ts`, `report.types.ts`, `review.types.ts`, `scoutingReport.ts`, `transaction.ts`, and `user.types.ts` re-export all domain types seamlessly.
-  - **Presentation Leak Sanitization**:
-    - `KPIData` and `NewsItemData` have replaced React-dependent `ReactNode` / `ElementType` with serialized strings (e.g. `icon: string`), isolating data layers from React.
-  - **`any` Cast Removal in Validation Schemas**:
-    - Refactored `facade.schemas.ts` removing untyped `z.any()`, introducing strict types like `IsomorphicFileSchema`, `ReportSectionsSchema.passthrough()`, and concrete object shapes.
 
-- **Empirical Adversarial Test Suite (`src/__tests__/m1_challenger_adversarial.test.ts`)**:
-  - Authored and executed 31 comprehensive stress tests covering:
-    1. `NicknameSchema`: Boundary lengths (0, 1, 2, 10, 11 chars), whitespace trimming, Hangul jamo (`ㅋㅋ`), regex constraint against special chars/HTML injection/emojis.
-    2. `SheetApartmentSchema`: Numeric string coercion (`lat`, `lng`, `far`, `householdCount`), nullable/optional fields, mandatory `name`/`dong` checks, non-numeric coordinate rejection.
-    3. `ObjectiveMetricsSchema`: String `yearBuilt` preprocessing (`'2015년'` -> `2015`, `'신축'` -> `0`), fallback defaults for missing metrics (`9999` for distances), negative number rejection.
-    4. `KPIDataSchema` & `NewsItemData`: Rejection of React elements in `icon`, acceptance of string icons and style properties.
-    5. `userUtils.ts`: Null/undefined/empty profile handling, XSS string handling, unicode composite emojis (`👨‍👩‍👧‍👦`, `🏳️‍🌈`), 1000-trial uniform distribution test for `getRandomDefaultAvatar` (10/10 avatars sampled).
-    6. Static Type Equivalence: Verified compile-time bi-directional assignability across 35 domain types between `@/types` and `@/lib/types/*`, and exact runtime reference equality for re-exported helpers.
-  - Result: **31 passed, 0 failed (100% pass rate)**.
+Direct empirical observations and command outputs executed during verification:
 
-- **Verification Gates Execution**:
-  1. **TypeScript Type Check** (`npx tsc --noEmit --incremental false`): Exited with status code 0, 0 type errors.
-  2. **ESLint Static Analysis** (`npm run lint`): Exited with status code 0, 0 errors, 0 warnings.
-  3. **Full Jest Test Suite** (`npm test`): 68 out of 70 test suites passed, 529 tests passed. 2 test suites failed due to a pre-existing CommonJS `require('./areaConverter.js')` path inside `src/lib/utils/areaConverter.test.ts` and `src/lib/utils/areaConverter.adversarial.test.ts`.
-  4. **Next.js Production Build** (`npm run build`): Exited with status code 0; all 177 static and dynamic routes compiled and optimized cleanly.
+1. **Static Typecheck (`cd frontend && npx tsc --noEmit`)**:
+   - Clean compilation after removing stale build info (`tsconfig.tsbuildinfo`).
+   - Output: `0 errors` (Exit code 0).
+
+2. **Navigation Unit & Contract Tests (`cd frontend && npm test -- HeaderDockSync.test.tsx`)**:
+   - Output:
+     ```
+     PASS src/components/HeaderDockSync.test.tsx
+       LoungeHeader & MobileDock Route & Contract Synchronization
+         √ renders all 4 main navigation links with identical labels and hrefs in LoungeHeader (73 ms)
+         √ renders all 4 main navigation links with identical labels and hrefs in MobileDock (17 ms)
+         √ highlights activeTab "overview" correctly with expected visual feedback in LoungeHeader and MobileDock (17 ms)
+         √ highlights activeTab "imjang" correctly with expected visual feedback in LoungeHeader and MobileDock (17 ms)
+         √ highlights activeTab "technovalley" correctly with expected visual feedback in LoungeHeader and MobileDock (19 ms)
+         √ highlights activeTab "office" correctly with expected visual feedback in LoungeHeader and MobileDock (14 ms)
+
+     Test Suites: 1 passed, 1 total
+     Tests:       6 passed, 6 total
+     ```
+
+3. **Full Regression Suite (`cd frontend && npm test`)**:
+   - Output:
+     ```
+     Test Suites: 86 passed, 86 total
+     Tests:       845 passed, 845 total
+     Snapshots:   0 total
+     Time:        14.365 s
+     Ran all test suites.
+     ```
+
+4. **Adversarial Browser Navigation & History Stress Test**:
+   - Tested simulated `popstate` transitions across `/`, `/explore`, `/technovalley`, `/techno`, and `/overview?tab=office`.
+   - Verified that `LoungeHeader`'s `handlePopState` listener correctly updates active tab state (`overview`, `imjang`, `technovalley`, `office`) without desynchronization.
+   - Verified that clicking tabs in `LoungeHeader` and `MobileDock` triggers `window.history.pushState` and `router.replace(..., { scroll: false })` properly.
+   - Verified route prefetching on mount for all 4 routes (`/`, `/explore`, `/technovalley`, `/overview?tab=office`).
+
+5. **Codebase Structural Inspection**:
+   - `frontend/src/app/page.tsx`: Renders `DashboardDataLoader` and `DashboardClient` with canonical URL `https://dongtanview.com` and apartment metadata/schema.
+   - `frontend/src/app/technovalley/page.tsx`: Renders `TechnoValleyClient` directly with canonical `https://dongtanview.com/technovalley` (no redirect loop).
+   - `frontend/src/app/overview/page.tsx`: Retained as functional alias for backward compatibility and `?tab=office`.
+   - `frontend/src/components/LoungeHeader.tsx`: 4 desktop navigation links arranged strictly in order `[아파트 랩 (/), 아파트 탐색 (/explore), 테크노 랩 (/technovalley), 사무실 탐색 (/overview?tab=office)]`.
+   - `frontend/src/components/pwa/MobileDock.tsx`: 4 tabs in matching order with `showDivider` positioned after `imjang` (residential vs techno/commercial).
+   - `frontend/src/app/manifest.ts`: Shortcut `'동탄 아파트 랩'` URL updated to `'/'`.
+
+---
 
 ## 2. Logic Chain
-1. **Purity of Domain Layer**:
-   Inspecting `src/types/` confirmed 0 imports of React, JSX, or infrastructure libraries. Every file contains only `export type` or `export interface`. This satisfies Requirement R1.1 and the Domain Layer Invariant in `PROJECT.md`.
-2. **Backward Compatibility & Type Equivalence**:
-   The static type equivalence test in `src/__tests__/m1_challenger_adversarial.test.ts` proved that importing any domain type from `@/types` is completely identical to importing from `@/lib/types/*`. Legacy codebases importing from `@/lib/types` experience zero type drift or breaking changes.
-3. **Zod Schema Robustness**:
-   Stress tests confirmed that `facade.schemas.ts` robustly handles dirty string inputs from Google Sheets (`SheetApartmentSchema`), applies sensible defaults for missing metrics (`ObjectiveMetricsSchema`), sanitizes user nicknames (`NicknameSchema`), and avoids SSR errors via `IsomorphicFileSchema`.
-4. **Presentation Decoupling**:
-   Replacing `ReactNode` / `ElementType` in `KPIData` and `NewsItemData` with pure primitives guarantees that data structures can be serialized, cached in Redis/JSON, and validated without bundling React DOM runtimes into data layers.
+
+1. **Requirement Alignment**:
+   - User requirement R1 mandates placing Apartment Lab at root `/` as tab 1, and arranging header/dock navigation strictly as `[1. 아파트 랩 (/), 2. 아파트 탐색 (/explore), 3. 테크노 랩 (/technovalley), 4. 사무실 탐색 (/overview?tab=office)]`.
+   - Inspection of `LoungeHeader.tsx` (lines 71–138), `MobileDock.tsx` (lines 14–24), `page.tsx`, and `technovalley/page.tsx` confirms complete adherence to this specification (Observation 5).
+
+2. **Bidirectional State Synchronization**:
+   - Navigating via clicks updates history stack via `pushState` and Next.js router.
+   - Navigating via browser back/forward buttons triggers `popstate` events, which `LoungeHeader` and `DashboardClient` capture and synchronize with active tab highlighting and component rendering (Observations 4 & 5).
+
+3. **No Regressions & Strict Typing**:
+   - TypeScript static analysis passed with 0 errors across the entire codebase (Observation 1).
+   - All 86 test suites comprising 845 tests passed green (Observations 2 & 3).
+
+---
 
 ## 3. Caveats
-1. **Pre-existing Test Suite Path Issue in `areaConverter.test.ts`**:
-   `src/lib/utils/areaConverter.test.ts` and `src/lib/utils/areaConverter.adversarial.test.ts` contain `const areaConverterCjs = require('./areaConverter.js');` at line 3. Because `areaConverter.ts` is in TypeScript without a co-located `.js` file, Jest throws `Cannot find module './areaConverter.js'`. This was not introduced by Milestone 1's domain types refactoring, but should be addressed in subsequent milestones (e.g. Milestone 2 / Infrastructure utilities).
-2. **TypeScript Incremental Build Cache**:
-   When running `npx tsc --noEmit`, use `--incremental false` or clean cache if temporary test files (such as `TimelineItemCardEmpiricalTemp.tsx` created dynamically by Jest test fixtures) leave stale entries in `.tsbuildinfo`.
+
+No caveats. All routing contracts, SSR entry points, metadata canonical tags, PWA manifests, and interactive state handlers function as expected with zero regressions.
+
+---
 
 ## 4. Conclusion
-**Verdict**: **APPROVE**
 
-Milestone 1 (Domain & Types Layer Refactoring) satisfies all architectural contracts, type invariants, and functional requirements:
-- The canonical domain type system is strictly structured under `frontend/src/types/` with zero runtime logic.
-- Runtime utilities are cleanly isolated in `frontend/src/lib/utils/userUtils.ts`.
-- Backward-compatibility re-exports in `frontend/src/lib/types/` are 100% equivalent.
-- Zod schemas are resilient against boundary conditions and malformed inputs.
-- All primary verification gates (`tsc`, `lint`, `next build`) pass cleanly with zero errors.
+**Verdict: APPROVE**
+
+Milestone M1 (Main Routing & Tab Navigation Reordering) satisfies all acceptance criteria with robust bidirectional state synchronization, full regression safety, and zero compiler or test errors.
+
+---
 
 ## 5. Verification Method
-The empirical findings can be independently reproduced from `frontend/`:
 
-1. **Adversarial M1 Test Suite**:
-   ```bash
-   npm test -- src/__tests__/m1_challenger_adversarial.test.ts
-   ```
-   *Expected Result*: 1 test suite passed, 31 tests passed, 0 failures.
+To independently reproduce and verify this verdict:
 
-2. **TypeScript Type Check**:
+1. **TypeScript Typecheck**:
    ```bash
-   npx tsc --noEmit --incremental false
+   cd frontend
+   npx tsc --noEmit
    ```
-   *Expected Result*: Exit code 0, 0 type errors.
+   *Expected: Exits with code 0.*
 
-3. **ESLint Verification**:
+2. **Navigation Unit Tests**:
    ```bash
-   npm run lint
+   cd frontend
+   npm test -- HeaderDockSync.test.tsx
    ```
-   *Expected Result*: Exit code 0, 0 errors, 0 warnings.
+   *Expected: 6/6 tests pass.*
 
-4. **Next.js Production Build**:
+3. **Full Test Suite Execution**:
    ```bash
-   npm run build
+   cd frontend
+   npm test
    ```
-   *Expected Result*: Exit code 0, 177 routes generated cleanly.
+   *Expected: 86 passed, 86 total.*
