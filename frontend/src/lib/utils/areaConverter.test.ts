@@ -1,6 +1,6 @@
 import { getSupplyPyeong } from './areaConverter';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const areaConverterCjs = require('./areaConverter.js');
+const areaConverterCjs = require('./areaConverter');
 
 describe('areaConverter (ESM & CJS compatibility)', () => {
   it('handles invalid or zero area gracefully', () => {

@@ -9,8 +9,8 @@ import { Settings, UserCircle, X, Camera, Sun, Moon, Monitor, Scaling } from 'lu
 import { uploadImage } from '@/lib/services/storage.service';
 import { logger } from '@/lib/services/logger';
 
-import { DEFAULT_AVATARS } from '@/lib/types/user.types';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { DEFAULT_AVATARS } from '@/lib/utils/userUtils';
+import { useSettings } from '@/contexts/SettingsContext';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
 import { useAuth } from '@/hooks/useAuth';

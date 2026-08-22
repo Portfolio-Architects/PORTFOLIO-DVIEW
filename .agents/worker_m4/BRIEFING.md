@@ -1,58 +1,51 @@
-# BRIEFING — 2026-07-15T00:01:25+09:00
+# BRIEFING — 2026-08-22T02:04:00+09:00
 
 ## Mission
-Implement the `SelfImprovementEngine` in `self_improvement_loop/engine.py` to orchestrate the loop execution, integrate config, VCS, runner, and simulator, handle versioning, diff patch generation, logs, rollback on failure, and execution history.
+Execute Milestone 4 (Presentation & API Routes Layer Refactoring) for D-VIEW: standardizing API route responses and rate limiting, decoupling server component data-crunching from page presentation in `src/app/apartment/[aptName]/page.tsx`, preserving all component contracts and test-ids, and ensuring all TypeScript, lint, test, and build checks pass cleanly.
 
 ## 🔒 My Identity
-- Archetype: worker_m4
+- Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m4
-- Original parent: ba04d808-e99f-4828-a458-f8bcba3a215b
-- Milestone: Milestone 4 (Orchestrator Engine)
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Milestone 4 - Presentation & API Routes Layer Refactoring
 
 ## 🔒 Key Constraints
-- CODE_ONLY network mode: No external websites or HTTP clients.
-- Use precise editing tools. No whole-file replacement.
-- DO NOT CHEAT. All implementations must be genuine. No hardcoding or facade implementations.
+- DO NOT CHEAT. Genuine implementation only.
+- Preserve all props interfaces, Recharts data series, and `data-testid` attributes.
+- Maintain compatibility for client routes and existing test expectations.
+- API route envelope & rate limiting standardization: use `apiSuccess`, `apiError` from `@/lib/api/apiResponse`, standard status codes, and `checkRateLimit` from `@/lib/api/rateLimiter`.
+- In `src/app/apartment/[aptName]/page.tsx`, extract inline data-crunching, price trend calculations, percentile rankings, and analytics into dedicated domain service functions. The page component must focus purely on layout, SEO metadata, and presentation rendering.
+- All verification steps (`tsc --noEmit`, `lint`, `test`, `build`) must pass with zero errors.
 
 ## Current Parent
-- Conversation ID: ba04d808-e99f-4828-a458-f8bcba3a215b
-- Updated: 2026-07-15T00:01:25+09:00
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: not yet
 
 ## Task Summary
-- **What to build**: SelfImprovementEngine in `self_improvement_loop/engine.py` orchestrating version control, test running, LLM simulation, code writing, and rollbacks.
-- **Success criteria**: Full loop run (iterations 1-3 success, iteration 4 syntax error/failure, rollback to v3, verified v3 tests pass, loop terminated, history log written, diffs generated).
-- **Interface contracts**: `self_improvement_loop/config.py`, `vcs.py`, `runner.py`, `simulator.py`.
-- **Code layout**: Source in `self_improvement_loop/`, tests co-located.
+- **What to build**: API route refactoring with standard envelope and rate limiting; Presentation decoupling for apartment detail page into clean service functions; contract and test preservation.
+- **Success criteria**: All API routes use standard envelope and rate limiting; `apartment/[aptName]/page.tsx` delegates business logic to dedicated service; all existing tests pass; full build passes.
+- **Interface contracts**: PROJECT.md & ORIGINAL_REQUEST.md
+- **Code layout**: `frontend/src/app/api/...`, `frontend/src/app/apartment/[aptName]/page.tsx`, `frontend/src/lib/services/...`, `frontend/src/lib/api/...`
+
+## Key Decisions Made
+- [Initial turn: Initializing briefing and scoping the codebase]
+
+## Artifact Index
+- `.agents/worker_m4/DISPATCH.md` — Assignment instructions
+- `.agents/worker_m4/BRIEFING.md` — Agent working memory
+- `.agents/worker_m4/progress.md` — Liveness & progress heartbeat
+- `.agents/worker_m4/handoff.md` — Final handoff report
 
 ## Change Tracker
-- **Files modified**:
-  - `self_improvement_loop/config.py` - added resource limit parameters.
-  - `self_improvement_loop/vcs.py` - implemented rollback mapping to restore_version.
-  - `self_improvement_loop/simulator.py` - defined RateLimitError and mocked rate-limit.
-  - `self_improvement_loop/engine.py` - created SelfImprovementEngine.
-  - `self_improvement_loop/test_target_module.py` - skipped tests dynamically.
-  - `self_improvement_loop/test_engine.py` - created unit tests for engine.
-  - `self_improvement_loop/test_simulator.py` - added rate limit error tests.
-- **Build status**: Pass (14 tests passed)
+- **Files modified**: None yet
+- **Build status**: Pending baseline check
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: Pass (14/14 tests pass)
-- **Lint status**: Clean (no style violations)
-- **Tests added/modified**: 5 new tests in `test_engine.py`, 1 new test in `test_simulator.py`, skipped tests in `test_target_module.py`.
+- **Build/test result**: Pending
+- **Lint status**: Pending
+- **Tests added/modified**: Pending
 
 ## Loaded Skills
 - None
-
-## Key Decisions Made
-- Skipped `subtract` and `multiply` assertions dynamically using `skipTest` so that the incremental iterations do not fail before those methods are implemented by the simulator.
-- Implemented `rollback` on `CustomVCS` mapping directly to `restore_version` for engine compatibility.
-- Implemented rate limit auto-resume with `time.sleep` and custom `RateLimitError` parsing `reset_seconds`.
-
-## Artifact Index
-- `self_improvement_loop/engine.py` — Engine class orchestrating self-improvement loop
-- `self_improvement_loop/test_engine.py` — Unit tests for SelfImprovementEngine
-- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m4\changes.md` — Changes record
-- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m4\handoff.md` — Handoff report
-

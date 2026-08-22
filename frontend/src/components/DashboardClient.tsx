@@ -240,7 +240,7 @@ import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import LoginGateModal from '@/components/ui/LoginGateModal';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import { isValidNickname } from '@/lib/services/nickname.service';
-import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/utils/preloadHelpers';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/preload';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 

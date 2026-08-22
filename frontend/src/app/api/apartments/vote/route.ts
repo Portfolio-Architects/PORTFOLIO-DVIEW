@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -19,15 +20,12 @@ const VotePostSchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_apartmentsvote_get_${rawIp}`);
-      if (!success) {
-        logger.warn('ApartmentVoteAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_apartmentsvote_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     const { searchParams } = request.nextUrl;
@@ -36,13 +34,13 @@ export async function GET(request: NextRequest) {
     const parsed = VoteGetSchema.safeParse({ aptName: aptNameParam });
     if (!parsed.success) {
       logger.warn('ApartmentVoteAPI.GET', 'Invalid query parameters', { errors: parsed.error.format() });
-      return NextResponse.json({ error: 'Invalid parameters' }, { status: 400 });
+      return apiError('INVALID_PARAMETERS', 'Invalid parameters', 400);
     }
 
     const { aptName } = parsed.data;
 
     if (!adminDb) {
-      return NextResponse.json({ buyCount: 0, waitCount: 0 });
+      return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 });
     }
 
     const isDev = process.env.NODE_ENV === 'development';
@@ -61,7 +59,7 @@ export async function GET(request: NextRequest) {
           clearTimeout(timeoutId);
           throw err;
         }),
-        timeoutPromise
+        timeoutPromise,
       ]);
     };
 
@@ -69,12 +67,12 @@ export async function GET(request: NextRequest) {
       const snap = await withTimeout(adminDb.collection('apartmentVotes').get(), timeoutMs);
       let buyCount = 0;
       let waitCount = 0;
-      snap.forEach(doc => {
+      snap.forEach((doc) => {
         const data = doc.data();
         buyCount += data.buyCount || 0;
         waitCount += data.waitCount || 0;
       });
-      return NextResponse.json({ buyCount, waitCount });
+      return apiSuccess({ buyCount, waitCount }, { buyCount, waitCount });
     }
 
     const docId = normalizeAptName(aptName);
@@ -82,54 +80,54 @@ export async function GET(request: NextRequest) {
     const docSnap = await withTimeout(docRef.get(), timeoutMs);
 
     if (!docSnap.exists) {
-      return NextResponse.json({ buyCount: 0, waitCount: 0 });
+      return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 });
     }
 
     const data = docSnap.data() || { buyCount: 0, waitCount: 0 };
-    return NextResponse.json({
+    return apiSuccess({
+      buyCount: data.buyCount || 0,
+      waitCount: data.waitCount || 0,
+    }, {
       buyCount: data.buyCount || 0,
       waitCount: data.waitCount || 0,
     });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.warn('ApartmentVoteAPI.GET', 'Error fetching votes, using fallback', {}, err);
-    return NextResponse.json({ buyCount: 0, waitCount: 0 });
+    return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 });
   }
 }
 
 export async function POST(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_apartmentsvote_post_${rawIp}`);
-      if (!success) {
-        logger.warn('ApartmentVoteAPI.POST', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_apartmentsvote_post',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     let body: unknown;
     try {
       body = await request.json();
-    } catch (jsonErr) {
+    } catch {
       logger.warn('ApartmentVoteAPI.POST', 'Malformed JSON payload', {});
-      return NextResponse.json({ error: 'Malformed JSON body payload' }, { status: 400 });
+      return apiError('MALFORMED_JSON', 'Malformed JSON body payload', 400);
     }
 
     const parsed = VotePostSchema.safeParse(body);
-    
     if (!parsed.success) {
       logger.warn('ApartmentVoteAPI.POST', 'Invalid request body payload', { errors: parsed.error.format() });
-      return NextResponse.json({ error: 'Invalid parameters', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PARAMETERS', 'Invalid parameters', 400, parsed.error.issues);
     }
 
     const { aptName, voteType } = parsed.data;
 
     if (!adminDb) {
       logger.warn('ApartmentVoteAPI.POST', 'adminDb is not configured. Falling back to dummy success responses.');
-      return NextResponse.json({ success: true, buyCount: voteType === 'buy' ? 1 : 0, waitCount: voteType === 'wait' ? 1 : 0 });
+      const fallbackData = { buyCount: voteType === 'buy' ? 1 : 0, waitCount: voteType === 'wait' ? 1 : 0 };
+      return apiSuccess(fallbackData, fallbackData);
     }
 
     const docId = normalizeAptName(aptName);
@@ -162,14 +160,16 @@ export async function POST(request: NextRequest) {
 
     logger.info('ApartmentVoteAPI.POST', 'Vote recorded successfully', { aptName, voteType });
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
+      buyCount: updatedData.buyCount,
+      waitCount: updatedData.waitCount,
+    }, {
       buyCount: updatedData.buyCount,
       waitCount: updatedData.waitCount,
     });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.error('ApartmentVoteAPI.POST', 'Error recording vote', {}, err);
-    return NextResponse.json({ error: 'Failed to record vote' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to record vote', 500);
   }
 }

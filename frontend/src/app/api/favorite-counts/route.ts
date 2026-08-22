@@ -1,24 +1,22 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { redis } from '@/lib/redis';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. IP 속도 제한 (Rate Limiting) 가드
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_favoritecounts_${rawIp}`);
-      if (!success) {
-        logger.warn('FavoriteCountsAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_favoritecounts',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('FavoriteCountsAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     if (redis) {
@@ -29,14 +27,14 @@ export async function GET(request: NextRequest) {
           for (const [key, val] of Object.entries(cachedCounts)) {
             coerced[key] = Number(val);
           }
-          return NextResponse.json({ counts: coerced });
+          return apiSuccess({ counts: coerced }, { counts: coerced });
         }
       } catch (err) {
         logger.warn('FavoriteCountsAPI.GET', 'Redis read error, falling back to Firestore', {}, err as Error);
       }
     }
 
-    if (!adminDb) return NextResponse.json({ counts: {} });
+    if (!adminDb) return apiSuccess({ counts: {} }, { counts: {} });
 
     const isDev = process.env.NODE_ENV === 'development';
     const timeoutMs = isDev ? 1000 : 3000;
@@ -54,13 +52,13 @@ export async function GET(request: NextRequest) {
           clearTimeout(timeoutId);
           throw err;
         }),
-        timeoutPromise
+        timeoutPromise,
       ]);
     };
 
     const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), timeoutMs);
     const counts: Record<string, number> = {};
-    snap.docs.forEach(doc => {
+    snap.docs.forEach((doc) => {
       const data = doc.data();
       if (data.count > 0) {
         counts[data.aptName || doc.id] = data.count;
@@ -68,15 +66,14 @@ export async function GET(request: NextRequest) {
     });
 
     if (redis && Object.keys(counts).length > 0) {
-      await redis.hset('DTDLS:cache:favoriteCounts', counts).catch(err => {
+      await redis.hset('DTDLS:cache:favoriteCounts', counts).catch((err) => {
         logger.warn('FavoriteCountsAPI.GET', 'Redis HSET error', {}, err as Error);
       });
     }
 
-    return NextResponse.json({ counts });
+    return apiSuccess({ counts }, { counts });
   } catch (error) {
     logger.error('FavoriteCountsAPI.GET', 'Failed to fetch favorite counts', {}, error as Error);
-    return NextResponse.json({ counts: {} });
+    return apiSuccess({ counts: {} }, { counts: {} });
   }
 }
-

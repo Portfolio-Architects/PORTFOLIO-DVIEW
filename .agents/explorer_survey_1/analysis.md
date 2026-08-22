@@ -1,204 +1,322 @@
-# Survey & Architectural Analysis Report: Requirement R1 (Recursive Self-Improvement Engine)
+# Domain & Types Layer Comprehensive Survey Report (Milestone 1 Survey)
 
-**Author**: explorer_survey_1  
-**Working Directory**: `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_1`  
-**Target Path**: `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement`  
-**Date**: 2026-08-04  
-
----
-
-## 1. Executive Summary
-
-This report delivers a comprehensive survey of the local environment, existing codebase, and architectural requirements for **Requirement R1 (Recursive Self-Improvement Engine / Loop)** as mandated in `ORIGINAL_REQUEST.md`.
-
-### Key Findings
-1. **Target Directory Status**: The target directory `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement` does not yet exist on disk. However, a reference prototype directory `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/self_improvement_loop` already exists at the repository root.
-2. **Existing Reference Implementation**: `self_improvement_loop/` contains a fully functional Python implementation of a self-improvement loop engine, complete with custom version control (`vcs.py`), test runner (`runner.py`), mock LLM simulator (`simulator.py`), and main engine controller (`engine.py`).
-3. **Environment & Test Suite Execution**:
-   - Local environment includes Python 3.13.1, Node.js v24.14.0, a root virtual environment `.venv/`, and git repository master branch.
-   - Discovered 44 unit tests in `self_improvement_loop/` (`test_engine.py`, `test_simulator.py`, `test_target_module.py`, `test_vcs.py`). 43 tests pass cleanly.
-   - Identified 1 edge-case bug in baseline `engine.py`: `test_engine_api_limit` raises `FileNotFoundError` during rollback when `MAX_API_REQUESTS` is reached on an unsaved version index.
-4. **Architectural Blueprint for R1**: R1 requires an autonomous, self-contained loop engine capable of executing target code, evaluating results, detecting syntax/runtime/semantic errors, applying automated code modifications, handling stuck states, performing automatic rollbacks upon failure, and enforcing hard safety boundaries.
+**Agent**: Explorer 1 (`explorer_survey_1`)  
+**Target Codebase**: `frontend/src/`  
+**Date**: 2026-08-21  
+**Status**: Complete & Verified (tsc check passes with 0 errors)
 
 ---
 
-## 2. Environment & Tech Stack Survey
+## Executive Summary
 
-| Component | Detected Version / Details | Path / Environment Location | Status |
-|-----------|---------------------------|-----------------------------|--------|
-| **Python Interpreter** | Python 3.13.1 (Windows 64-bit) | `python` / `C:\Users\ocs56\.venv` | Ready & Operational |
-| **Virtual Environment** | Python `.venv` | `C:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.venv` | Ready |
-| **Node / NPM** | Node.js v24.14.0 | `node` | Operational (Frontend Stack) |
-| **Testing Framework** | Standard library `unittest` | `python -m unittest discover -s self_improvement_loop` | 43/44 Tests Passing (1 edge-case fix needed) |
-| **VCS / Repository** | Git (Branch: `master`, origin/master) | Workspace Root | Clean working tree |
-| **Target Directory** | `recursive_self_improvement` | `C:\...\PORTFOLIO - DVIEW\recursive_self_improvement` | Needs creation / setup |
-| **Reference Prototype** | `self_improvement_loop` | `C:\...\PORTFOLIO - DVIEW\self_improvement_loop` | Baseline source code |
+A comprehensive, read-only survey of the Domain & Types layer and overall Type Safety across the `frontend/` codebase was conducted. The survey revealed that while TypeScript strict mode is enabled in `tsconfig.json`, type definitions are heavily fragmented, duplicated, and mislocated across `src/lib/types/`, `src/lib/validation/`, `src/lib/utils/`, page routes, and UI components. Furthermore, several untyped `any` leaks, unsafe type assertions, and presentation leaks (e.g., React JSX nodes / Lucide icons in domain interfaces) violate the architectural layer boundaries defined in `ORIGINAL_REQUEST.md`.
+
+This report provides an exhaustive inventory of domain entities, value objects, DTOs, API contracts, duplicates, `any` occurrences, and tsconfig evaluation, concluding with a blueprint for a centralized domain model in `src/types/` and a zero-regression migration roadmap for Milestone 1.
 
 ---
 
-## 3. Inventory & Analysis of Reference Prototype (`self_improvement_loop/`)
+## 1. tsconfig.json & TypeScript Strictness Review
 
-The existing `self_improvement_loop/` directory provides a clean, modular foundation for building the production engine under `recursive_self_improvement/`. Below is a component-by-component analysis:
+### 1.1 Current Configuration (`frontend/tsconfig.json`)
 
-### 3.1 `config.py` — Centralized Control Settings
-- **Role**: Defines file paths, loop limits, timeouts, and resource budgets.
-- **Key Parameters**:
-  - `TARGET_FILE`: Path to target module (`target_module.py`).
-  - `TEST_FILE`: Path to unit tests (`test_target_module.py`).
-  - `HISTORY_DIR`: Directory storing generation snapshots (`history/`).
-  - `STOP_FLAG_FILE` & `COMMAND_FILE`: Flag paths for graceful external shutdown (`stop.flag`, `command.txt`).
-  - `MAX_ITERATIONS`: Configurable loop cap (default 75).
-  - `TIMEOUT_SECONDS` & `SESSION_TIMEOUT_SECONDS`: Per-iteration (18,000s) and total session timeouts.
-  - `MAX_API_REQUESTS` & `TOTAL_TOKEN_BUDGET`: Safety caps (500 requests, 1,000,000 tokens).
-
-### 3.2 `vcs.py` (`CustomVCS`) — Version Tracking & Rollback Engine
-- **Role**: Manages code snapshots, patch generation, and deterministic rollbacks.
-- **Key Capabilities**:
-  - `save_version(version_idx, target_code, test_code)`: Persists code snapshots as `target_module.v{idx}.py` and `test_target_module.v{idx}.py`.
-  - `generate_diff(version_idx, old_code, new_code)`: Uses `difflib.unified_diff` to create and save `.diff` patches (`patch_v{idx}.diff`).
-  - `rollback(version_idx)` / `restore_version(version_idx)`: Restores target and test files back to specified stable version snapshot upon verification failure.
-
-### 3.3 `runner.py` (`TestRunner`) — Subprocess Execution Engine
-- **Role**: Sandboxed test execution and result capture.
-- **Key Capabilities**:
-  - Automatically resolves Python executable: checks `.venv/Scripts/python.exe` (Windows) / `.venv/bin/python` (Unix) before falling back to `sys.executable`.
-  - Runs tests via `subprocess.run(..., timeout=60, capture_output=True)`.
-  - Captures `stdout`, `stderr`, and `returncode` cleanly in structured dictionary format.
-
-### 3.4 `simulator.py` (`MockLLMSimulator`) — Code Generation & Metric Evaluator
-- **Role**: Simulates code improvements, dynamic test generation, and metric scoring.
-- **Key Capabilities**:
-  - `calculate_metrics(code)`: Analyzes AST validity, lines of code (LOC), method count, docstrings count, and type annotations count to return a composite `quality_score` (0.0 – 100.0).
-  - Dynamic test injection across iterations (e.g. adding trig, statistical, matrix, and ML test cases).
-  - Handles `RateLimitError` simulation with reset timers.
-
-### 3.5 `engine.py` (`SelfImprovementEngine`) — Autonomous Orchestration Engine & Edge Case Analysis
-- **Role**: Core self-improvement loop controller.
-- **Key Capabilities**:
-  - **AST Pre-Validation**: Parses code (`ast.parse`) prior to execution; on syntax error, saves `target_module.v{N}.failed.py`, triggers rollback, and sets error feedback without corrupting execution state.
-  - **Error Normalization**: `normalize_error_message()` strips volatile file paths and line numbers using regular expressions to ensure consistent error pattern matching.
-  - **Stuck / Loop Detection**: MD5 hash tracking (last 3 iterations), error message repetition matching, and consecutive rollback tracking (triggers perturbation after 3 rollbacks).
-  - **Execution Logging**: Appends all events (`START`, `ITERATION_START`, `SUCCESS`, `ROLLBACK`, `AST_SYNTAX_ERROR`, `STUCK_DETECTED`) to `execution_log.json`.
-- **Empirical Edge-Case Bug Discovered**:
-  - In `engine.py` lines 209, 217, 257, when `SESSION_TIMEOUT`, `TOKEN_BUDGET_EXCEEDED`, or `API_LIMIT` triggers on iteration $N$ before version snapshot $v_N$ is saved, `self.vcs.rollback(version_idx)` is called with `version_idx = N`. If $v_N$ snapshot does not exist in `history/`, `vcs.restore_version(N)` raises `FileNotFoundError: Version snapshot not found: target_module.v1.py`.
-  - **Fix for Implementation**: `rollback()` must check `if self.vcs.has_version(version_idx)` or safely roll back to `last_stable_version_idx`.
-
----
-
-## 4. Architectural Requirements & Blueprint for Requirement R1
-
-Requirement R1 specifies:
-> **R1. 재귀적 자기개선 루프 (Recursive Self-Improvement Engine)**  
-> 대상이 되는 시스템/코드/알고리즘을 실행하고, 실행 결과를 수집하며, 실패 원인이나 성능 목표 격차를 분석하여 코드를 자동 수정 및 리팩토링한 후 재실행하는 자율 반복 루프(Self-Improvement Loop)를 구축합니다.
-
-### 4.1 Core Architecture & Lifecycle Sequence
-
-```
-                      +-----------------------------+
-                      |   1. Baseline Code / State  |
-                      +--------------+--------------+
-                                     |
-                                     v
-                      +-----------------------------+
-                      |   2. Pre-Execution AST      |
-                      |      Syntax Pre-Validation  |
-                      +--------------+--------------+
-                                     |
-                       Pass / Valid  |  Fail / Syntax Error
-              +----------------------+----------------------+
-              |                                             |
-              v                                             v
-+---------------------------+                 +---------------------------+
-| 3. Subprocess Test        |                 | Save Debug Failed Code    |
-|    Execution (runner.py)  |                 | Log AST Syntax Error      |
-+-------------+-------------+                 | Safe VCS Rollback Guard   |
-              |                               +-------------+-------------+
-              |                                             |
-     Pass /   |   Fail /                                    |
-     Passed   |   Unpassed                                  |
-              v                                             v
-+---------------------------+                 +---------------------------+
-| 4. Save Version Snapshot  |                 | 5. Re-verify Baseline     |
-|    Generate .diff Patch   |                 |    Inject Perturbation /  |
-|    Reset Rollback Count   |                 |    Error Feedback to LLM  |
-+-------------+-------------+                 +-------------+-------------+
-              |                                             |
-              +----------------------+----------------------+
-                                     |
-                                     v
-                      +-----------------------------+
-                      | 6. Check Safety Boundaries  |
-                      |    (Iterations, Timeouts,   |
-                      |     Token/API Budget, Stop) |
-                      +--------------+--------------+
-                                     |
-                                     v
-                      +-----------------------------+
-                      | 7. Proceed to Next          |
-                      |    Self-Improvement Iter    |
-                      +-----------------------------+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [{ "name": "next" }],
+    "types": ["jest", "node"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    "**/*.mts",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "tests",
+    "playwright.config.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "jest.setup.ts"
+  ]
+}
 ```
 
-### 4.2 Detailed Component Responsibilities for R1
+### 1.2 Evaluation & Strictness Gaps
 
-1. **Self-Improvement Engine (`engine.py`)**:
-   - Manages main execution loop (`while True` with configurable iteration limit).
-   - Coordinates VCS, TestRunner, Metric Evaluator, and LLM Optimizer.
-   - Performs error normalization (`re.sub` path/line stripper) for stable feedback.
-   - Includes rollback safety guards (`has_version` check before restoring).
-2. **Version Control System (`vcs.py`)**:
-   - Manages atomic snapshot saving (`target_module.v{idx}.py`, `test_target_module.v{idx}.py`).
-   - Generates standard unified diff files (`patch_v{idx}.diff`).
-   - Guarantees 100% clean state restoration on rollback.
-3. **Execution & Test Harness (`runner.py`)**:
-   - Runs target tests in isolated Python process (`subprocess.run`).
-   - Handles interpreter discovery (`.venv` priority) and execution timeouts (60s).
-4. **Safety & Boundary Protection**:
-   - `MAX_ITERATIONS` limit guard.
-   - Iteration & Session timeout guards (`TIMEOUT_SECONDS`, `SESSION_TIMEOUT_SECONDS`).
-   - API request count & total token budget guards (`MAX_API_REQUESTS`, `TOTAL_TOKEN_BUDGET`).
-   - File-based graceful stop signal checking (`stop.flag`, `command.txt`).
-5. **Stuck / Loop Detection & Resolution**:
-   - Hash sliding window (last 3 iterations) to catch code duplication loops.
-   - Consecutive rollback tracking (>= 3 consecutive failures).
-   - Automatic perturbation feedback injection to prompt strategy shifts.
+| Setting | Current Status | Assessment & Recommendation |
+|---|---|---|
+| `strict: true` | Enabled | Covers `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `alwaysStrict`. Baseline check `npx tsc --noEmit` passes with 0 errors. |
+| `noUncheckedIndexedAccess` | **Disabled** (default false) | **High Risk**: Object and array lookups (e.g. `Record<string, T>[key]` or `arr[0]`) return `T` instead of `T \| undefined`. Enabling this during Milestone 1 would prevent runtime `TypeError: undefined is not an object` errors in data transformation pipelines. |
+| `exactOptionalPropertyTypes` | **Disabled** | Optional properties allow `undefined` explicitly. Keep as-is for now to prevent widespread breaks with Zod schemas. |
+| `noImplicitOverride` | **Disabled** | Class-based strategies (e.g. `FirebaseDashboardDataStrategy`) do not enforce `override` keyword. Recommended to enable for clean OOP contracts. |
+| `noFallthroughCasesInSwitch` | **Disabled** | Recommended to enable for switch statements in parsers/reducers. |
+| `paths` | Single alias `@/*` | Only `@/*` is mapped. Recommending domain sub-aliases or clean module boundaries such as `@/types/*` for centralized domain imports. |
+| `exclude` | Excludes test files | Unit tests are checked separately by Jest/ts-jest. The production build compilation strictly checks `src/`. |
 
 ---
 
-## 5. Target Directory Blueprint & Migration Plan
+## 2. Inventory of Domain Entities, Value Objects, DTOs & API Contracts
 
-The implementation in `recursive_self_improvement/` will adopt the verified patterns from `self_improvement_loop/` while resolving discovered edge cases and enhancing modularity for Requirements R2 and R3.
+### 2.1 Domain Entities
 
-### Recommended Directory Structure
-```
-recursive_self_improvement/
-├── config.py                 # Configuration settings, paths, timeouts & budgets
-├── vcs.py                    # CustomVCS: snapshot manager, diff generator, rollback engine (with safety guard)
-├── runner.py                 # TestRunner: isolated subprocess test execution
-├── evaluator.py              # MetricEvaluator: test pass rate, execution time, memory, AST quality
-├── simulator.py              # LLM / Optimization simulator & code generator
-├── engine.py                 # SelfImprovementEngine: R1 autonomous loop controller
-├── reporter.py               # AuditReporter: R3 markdown report generator
-├── target_module.py          # Baseline algorithm / module targeted for self-improvement
-├── test_target_module.py     # Unit test suite for target module
-├── run.py                    # Main CLI entrypoint
-├── history/                  # Version snapshots, diff patches, failed attempts, execution logs
-└── tests/                    # Unit test suite for the engine itself
-    ├── test_config.py
-    ├── test_vcs.py
-    ├── test_runner.py
-    ├── test_evaluator.py
-    ├── test_simulator.py
-    └── test_engine.py
-```
+| Entity | Primary Attributes | Current Locations |
+|---|---|---|
+| **ApartmentComplex** | `id`, `name`, `dong`, `brand`, `householdCount`, `yearBuilt`, `far`, `bcr`, `parkingPerHousehold`, `parkingCount`, `maxFloor`, `minFloor`, `lat`, `lng`, `txKey`, `isPublicRental` | `src/lib/dong-apartments.ts`<br>`src/lib/apartment-data.ts`<br>`src/lib/validation/facade.schemas.ts` |
+| **Transaction / TransactionRecord** | `aptName`, `dong`, `dealType`, `contractYm`, `contractDay`, `contractDate`, `price`, `priceEok`, `deposit`, `monthlyRent`, `area`, `areaPyeong`, `floor`, `buildYear`, `buyer`, `seller`, `roadName`, `cancelDate`, `isOutlier`, `reqGb`, `rnuYn` | `src/lib/types/transaction.ts`<br>`src/hooks/useApartmentDetails.ts`<br>`src/hooks/useStaticData.ts`<br>`src/app/apartment/[aptName]/page.tsx` |
+| **FieldReport / ScoutingReport** | `id`, `dong`, `apartmentName`, `thumbnailUrl`, `images`, `metrics`, `sections`, `premiumScores`, `premiumContent`, `isPremium`, `likes`, `commentCount`, `viewCount`, `authorUid`, `author`, `scoutingDate`, `createdAt`, `updatedAt` | `src/lib/types/report.types.ts`<br>`src/lib/types/scoutingReport.ts`<br>`src/lib/validation/facade.schemas.ts` |
+| **LoungePost / Post** | `id`, `title`, `content`, `category`, `author`, `authorUid`, `imageUrl`, `likes`, `views`, `commentCount`, `verifiedApartment`, `verificationLevel`, `createdAt` | `src/lib/types/dashboard.types.ts`<br>`src/lib/repositories/post.repository.ts`<br>`src/components/LoungeContainerClient.tsx` |
+| **Comment (Report & Lounge)** | `id`, `text`, `author`, `authorUid`, `apartmentName`, `createdAt` | `src/lib/types/report.types.ts`<br>`src/components/LoungeDetailClient.tsx`<br>`src/lib/repositories/comment.repository.ts` |
+| **UserReview** | `id`, `apartmentName`, `dong`, `rating`, `content`, `photoURL`, `author`, `authorUid`, `verifiedApartment`, `verificationLevel`, `likes`, `createdAt` | `src/lib/types/review.types.ts`<br>`src/lib/repositories/review.repository.ts` |
+| **UserProfile** | `nickname`, `hasSetNickname`, `photoURL`, `verifiedApartment`, `verificationLevel`, `createdAt`, `uploaderPoints`, `uploaderTier` | `src/lib/types/user.types.ts`<br>`src/lib/repositories/user.repository.ts` |
+| **JisanCenter / CenterSpec / JisanBuilding** | `name`, `companyName`, `regType`, `complexName`, `status`, `landArea`, `buildingArea`, `totalFloorArea`, `roadAddress`, `developer`, `builder`, `unitCount`, `tenants`, `baselineVacancy` | `src/app/api/technovalley/center-specs/route.ts`<br>`src/app/api/technovalley/trend/route.ts`<br>`src/lib/services/googleSheets.ts`<br>`src/lib/validation/facade.schemas.ts` |
+| **LocalNotice / Notice** | `id`, `title`, `url`, `dept`, `date`, `isDongtan`, `source`, `createdAt`, `content` | `src/app/api/cron/sync-local-notices/route.ts`<br>`src/components/LocalEventCuration.tsx`<br>`src/app/news/NewsClient.tsx`<br>`src/lib/validation/facade.schemas.ts` |
+| **AdInquiry & Subscription** | `id`, `companyName`, `contactInfo`, `message`, `email`, `realtime`, `weekly`, `status`, `createdAt`, `updatedAt` | `src/app/admin/inquiries/page.tsx` |
 
 ---
 
-## 6. Recommendations & Next Steps
+### 2.2 Value Objects & Quantitative Domain Models
 
-1. **Directory Creation**: Implementers should create target directory `recursive_self_improvement/` and copy/refactor baseline modules.
-2. **Rollback Guard Fix**: Ensure `vcs.rollback(version_idx)` in `recursive_self_improvement/vcs.py` checks `has_version(version_idx)` before restoring, defaulting to `last_stable_version_idx` to prevent `FileNotFoundError` when aborting early on budget/limit triggers.
-3. **Engine Validation**: Run `python -m unittest discover -s recursive_self_improvement/tests` to achieve 100% test pass rate across all engine test cases.
-4. **Integration with R2 & R3**:
-   - Connect quantitative metric tracking (`evaluator.py`) to the R1 loop decision boundary.
-   - Hook automated markdown report generation (`reporter.py`) to persist iteration history to `IMPROVEMENT_REPORT.md`.
+| Value Object | Description & Key Fields | Current Locations |
+|---|---|---|
+| **ObjectiveMetrics** | 25+ quantitative spatial and facility distance metrics (`distanceToElementary`, `distanceToSubway`, `distanceToStarbucks`, `academyDensity`, `restaurantDensity`, etc.) | `src/lib/types/scoutingReport.ts`<br>`src/lib/validation/facade.schemas.ts`<br>`src/lib/utils/valuationEngine.ts` |
+| **PremiumScores & ScoreBreakdown** | Composite scoring structure with dimension weights (`education`, `transport`, `livingComfort`, `complex`, `lifestyle`, `totalScore`, `details`) | `src/lib/utils/scoring.ts`<br>`src/lib/validation/facade.schemas.ts` |
+| **ValuationResult & ValuationBreakdown** | PUR (Price-to-Utility Ratio), DCF implied value, cap rate, discount rate, estimated yield, fair value gap, investment grade | `src/lib/utils/valuation.ts`<br>`src/lib/utils/valuationEngine.ts` |
+| **VerdictResult & TaxResult** | AI Sell Timing score ('호구 지수'), rotation rate, capital gains tax breakdown (`transferProfit`, `taxableBase`, `computedTax`, `localTax`, `totalTax`, `isTaxFree`) | `src/lib/utils/sellTimingEngine.ts` |
+| **AcquisitionCostResult & MortgageLoanResult** | Acquisition tax, brokerage fee, equal principal & interest monthly payment, amortization schedule | `src/lib/utils/calculatorEngines.ts` |
+| **MacroEnvironment & SupplyPipeline** | Macro risk-free rate, funding cost, COFIX, jeonse conversion rate, inflation, expected move-in volume, historical avg volume | `src/lib/types/macro.types.ts`<br>`src/lib/utils/valuationEngine.ts` |
+| **AptTxSummary & PyeongSummary** | Aggregated price metrics (`latestPrice`, `latestPriceEok`, `avg1MPrice`, `avg3MPrice`, `maxPrice`, `minPrice`, `txCount`, `recent`) | `src/lib/types/transaction.ts`<br>`src/app/apartment/[aptName]/page.tsx`<br>`src/lib/validation/facade.schemas.ts` |
+| **ImageMeta & PhotoItem** | Image metadata with location tags, EXIF capturedAt timestamp, isPremium flag, caption, uploader info | `src/lib/types/scoutingReport.ts`<br>`src/lib/types/report.types.ts`<br>`src/lib/validation/facade.schemas.ts` |
+
+---
+
+### 2.3 API Envelopes, DTOs & Contracts
+
+| Contract / DTO | Purpose & Signature | File Location |
+|---|---|---|
+| `ApiResponse<T>` | Standard response union: `ApiSuccessResponse<T> \| ApiErrorResponse` | `src/lib/api/apiResponse.ts` |
+| `ApiSuccessResponse<T>` | `{ success: true, data: T, source?: string, message?: string }` | `src/lib/api/apiResponse.ts` |
+| `ApiErrorResponse` | `{ success: false, error: string, code?: string, message?: string, details?: unknown }` | `src/lib/api/apiResponse.ts` |
+| `InitialPageData` | Composite SSR payload for `/overview` and `/` (`favoriteCounts`, `typeMap`, `apartmentMeta`, `sheetApartments`, `fieldReports`, `kpis`, `macroTrend`, `txSummary`, `recent7DaysVolume`, `recentTransactions`) | `src/lib/validation/facade.schemas.ts:673`<br>`src/lib/services/dashboardData.ts` |
+| `JisanStatusResponse` | `{ success: boolean, total: number, completedCount: number, underConstructionCount: number, notStartedCount: number, centers: JisanStatusItem[] }` | `src/lib/validation/facade.schemas.ts:114` |
+| `CenterSpecsResponse` | Specs, curated tenant lists, and floor areas for 지식산업센터 | `src/app/api/technovalley/center-specs/route.ts` |
+| `TrendResponse` | Jisan price/rent trends over time (`TrendRecord[]`) | `src/app/api/technovalley/trend/route.ts` |
+| `TypeMapResponse` | Type mapping entries (`TypeMapItem[]` / `TypeMapEntry[]`) | `src/lib/services/googleSheets.ts`<br>`src/app/api/type-map/route.ts` |
+
+---
+
+## 3. Detailed Audit of Duplications, Inconsistencies & Type Safety Defects
+
+### 3.1 Type Definition Duplication Matrix
+
+```
+[Problem: Fragmented Single-Source-of-Truth]
+             ┌───────────────────────────────┐
+             │   Apartment Model (5 defs)    │
+             ├───────────────────────────────┤
+             │ • DongApartment (dong-apts.ts)│
+             │ • StaticApartment (apt-data)  │
+             │ • StaticApartment (Dashboard) │
+             │ • AptMeta (admin/page.tsx)    │
+             │ • DongApartmentSchema (facade)│
+             └───────────────────────────────┘
+                            │
+             ┌──────────────┴────────────────┐
+             │   Transaction Model (8 defs)  │
+             ├───────────────────────────────┤
+             │ • RecentTx (transaction.ts)   │
+             │ • RecentTransaction (trans.ts)│
+             │ • TransactionRecord (useApt)  │
+             │ • RawTransactionRecord (useApt│
+             │ • Transaction (apt/[name])    │
+             │ • Transaction (cron/notify)   │
+             │ • HomeTransactionRecord (over)│
+             │ • FirestoreTransaction (static│
+             └───────────────────────────────┘
+```
+
+#### Detailed Breakdown of Duplicates:
+
+1. **Apartment Entities**:
+   - `src/lib/dong-apartments.ts:90`: `interface DongApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; lat?: number; lng?: number; txKey?: string; }`
+   - `src/lib/apartment-data.ts:9`: `interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }`
+   - `src/components/DashboardClient.tsx:228`: `interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }` (Exact duplicate defined inside component file!)
+   - `src/app/admin/apartments/[name]/page.tsx:41` & `src/app/admin/page.tsx:43`: `interface AptMeta { householdCount?: number; yearBuilt?: string; brand?: string; far?: number; bcr?: number; parkingPerHousehold?: number; }`
+   - `src/lib/validation/facade.schemas.ts:463`: `DongApartmentSchema`
+
+2. **Transaction Entities & Records**:
+   - `src/lib/types/transaction.ts:1`: `interface RecentTx`
+   - `src/lib/types/transaction.ts:74`: `interface RecentTransaction`
+   - `src/hooks/useApartmentDetails.ts:13`: `interface TransactionRecord` (24 fields)
+   - `src/hooks/useApartmentDetails.ts:42`: `interface RawTransactionRecord`
+   - `src/app/apartment/[aptName]/page.tsx:53`: `interface Transaction`
+   - `src/app/api/cron/send-tx-notifications/route.ts:25`: `interface Transaction`
+   - `src/app/api/cron/sync-transactions/route.ts:124`: `type TransactionRecord = z.infer<typeof transactionRecordSchema>`
+   - `src/app/overview/page.tsx:8`: `interface HomeTransactionRecord`
+   - `src/hooks/useStaticData.ts:24`: `type FirestoreTransaction = z.infer<typeof FirestoreTransactionSchema>`
+   - `src/lib/validation/facade.schemas.ts:379`: `TransactionRecordSchema`
+
+3. **Notices and News**:
+   - `src/app/api/cron/sync-local-notices/route.ts:45`: `interface NoticeItem`
+   - `src/app/news/NewsClient.tsx:46`: `interface NoticeItem`
+   - `src/components/LoungeContainerClient.tsx:74`: `interface NoticeItem`
+   - `src/components/LocalEventCuration.tsx:8`: `interface LocalNoticeItem`
+   - `src/lib/types/dashboard.types.ts:37`: `interface NewsItemData`
+   - `src/app/news/NewsClient.tsx:37`: `interface NewsItem`
+   - `src/components/LoungeContainerClient.tsx:86`: `interface NewsItem`
+
+4. **Posts, Stories & Comments**:
+   - `src/components/LoungeContainerClient.tsx:59`: `interface Post`
+   - `src/lib/repositories/post.repository.ts:22`: `interface PostDetailData`
+   - `src/lib/repositories/post.repository.ts:36`: `interface RecentLoungeItem`
+   - `src/lib/repositories/post.repository.ts:56`: `interface DbPostDoc`
+   - `src/lib/repositories/post.repository.ts:73`: `interface ProcessablePost`
+   - `src/app/api/posts/route.ts:31`: `interface CombinedPostItem`
+   - `src/lib/types/report.types.ts:34`: `interface CommentData`
+   - `src/components/LoungeDetailClient.tsx:39`: `interface PostComment`
+   - `src/lib/repositories/post.repository.ts:90`: `interface ProcessableComment`
+   - `src/components/AptStoriesWidget.tsx:10`: `interface AptStory`
+
+5. **Type Map**:
+   - `src/lib/services/googleSheets.ts:39`: `interface TypeMapItem`
+   - `src/app/api/type-map/route.ts:13`: `interface TypeMapEntry`
+   - `src/lib/validation/facade.schemas.ts:448`: `TypeMapItemSchema`
+   - `src/app/api/type-map/route.ts:24`: `typeMapEntrySchema`
+
+6. **Objective Metrics & Location Scores**:
+   - `src/lib/types/scoutingReport.ts:20`: `interface ObjectiveMetrics`
+   - `src/lib/validation/facade.schemas.ts:214`: `ObjectiveMetricsSchema`
+   - `src/lib/utils/valuationEngine.ts:27`: `ObjectiveMetricsSchema` (Re-defined separately with different transforms)
+   - `src/app/apartment/[aptName]/page.tsx:29`: `interface LocationScore`
+   - `src/lib/types/transaction.ts:62`: `interface LocationScoreItem`
+
+---
+
+### 3.2 Architectural Boundary Violations
+
+1. **Presentation Layer Leaking into Domain Types**:
+   - `src/lib/types/dashboard.types.ts:6`: `import { type ElementType } from 'react';`
+   - `src/lib/types/dashboard.types.ts:21-27`:
+     ```typescript
+     export interface KPIData {
+       mainValue: string | React.ReactNode;
+       subValue: string | React.ReactNode;
+       description: string | React.ReactNode;
+       icon: string | ElementType; // Embedding React Component in domain type!
+     }
+     export interface NewsItemData {
+       icon: ElementType; // Embedding React Component in domain type!
+     }
+     ```
+   - **Impact**: Makes domain data structures non-serializable across SSR/Client boundaries and tightly couples the domain data contract to React.
+
+2. **Runtime Logic Placed Inside Types Directory**:
+   - `src/lib/types/user.types.ts`: Contains runtime functions `getDisplayName()`, `createEmojiAvatar()`, `DEFAULT_AVATARS` array, and `getRandomDefaultAvatar()`.
+   - **Impact**: Violates "Types: zero dependencies, zero logic". Types files must contain only type definitions and interfaces.
+
+3. **Domain Contracts Mislocated in Infrastructure & Validation**:
+   - `src/types/` contains only 2 files (`global.d.ts`, `modules.d.ts`). All actual domain types are scattered in `src/lib/types/`, `src/lib/validation/`, and `src/lib/repositories/`.
+
+---
+
+### 3.3 Untyped `any` Usages & Unsafe Assertions Inventory
+
+| File Path | Line Number | Exact Code Snippet | Category / Risk |
+|---|---|---|---|
+| `src/lib/validation/facade.schemas.ts` | 6 | `export const IsomorphicFileSchema = z.custom<any>((val) => ...` | Schema `any` bypass |
+| `src/lib/validation/facade.schemas.ts` | 150-153 | `mainValue: z.any()`, `subValue: z.any()`, `description: z.any()`, `icon: z.any()` | Weak Zod schema validation |
+| `src/lib/validation/facade.schemas.ts` | 291 | `premiumScores: z.any().optional()` | Unchecked scoring schema |
+| `src/lib/validation/facade.schemas.ts` | 299, 303 | `sections: z.any()`, `file: z.any()` | Untyped form input payload |
+| `src/lib/validation/facade.schemas.ts` | 320 | `sections: z.record(z.string(), z.any())` | Untyped dictionary payload |
+| `src/lib/repositories/post.repository.ts` | 431 | `rawStories: any[],` | Untyped DB query result |
+| `src/components/MindMap3D.tsx` | 34 | `sheetApartments: Record<string, any[]>;` | Untyped component prop |
+| `src/components/MindMap3D.tsx` | 35 | `txSummaryData: Record<string, any>;` | Untyped summary dictionary |
+| `src/components/MindMap3D.tsx` | 47 | `const zoomHintTimeout = useRef<any>(null);` | `NodeJS.Timeout \| number` typed as `any` |
+| `src/components/OfficeExplorerClient.tsx` | 340 | `function calculateJisanScore(item: any, existingScore?: number): number` | Untyped business parameter |
+| `src/components/OfficeExplorerClient.tsx` | 454 | `const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];` | Untyped array fallback |
+| `src/components/apartment-modal/TransactionChartSection.tsx` | 32 | `const TransactionChartTooltip = React.memo(({ active, payload }: any) => {` | Recharts tooltip payload `any` |
+| `src/components/apartment-modal/TransactionChartSection.tsx` | 84, 86, 87 | `}: any) => { ... const xAx = Object.values(xAxisMap)[0] as any;` | Unsafe chart axis type assertion |
+| `src/components/apartment-modal/TransactionChartSection.tsx` | 91 | `{displayScatterData.map((d: any, i: number) => {` | Untyped scatter plot data point |
+| `src/components/apartment/ApartmentModalKakaoCard.tsx` | 8 | `transactions?: any[];` | Untyped modal prop |
+| `src/components/apartment/ApartmentModalPriceSummary.tsx` | 9 | `transactions?: any[];` | Untyped modal prop |
+| `src/components/apartment/ApartmentModalTransactionsTable.tsx` | 11 | `filteredTransactions: any[];` | Untyped table prop |
+| `src/components/TossApartmentExploreClient.tsx` | 92 | `data: null as any[] | null,` | Untyped initial state |
+| `src/components/admin/report-editor/ImageUploadSection.tsx` | 38 | `const fieldsRef = useRef<any[]>([]);` | Untyped ref array |
+| `src/app/admin/page.tsx` | 38 | `function autoSuggest(aptName: string, TX_SUMMARY: Record<string, any>): string | null` | Untyped admin helper |
+| `src/app/api/transaction-summary/route.ts` | 10, 12 | `async function getTxSummary(): Promise<Record<string, any>>` | Untyped API route response |
+| `src/app/explore/ExploreClient.tsx` | 200 | `const EMPTY_OBJECT: Record<string, any> = {};` | Untyped fallback object |
+| `src/app/lounge/[id]/page.tsx` | 93 | `let initialPost: Record<string, any> | undefined = undefined;` | Untyped SSR post state |
+| `src/app/news/NewsClient.tsx` | 111 | `icon: React.ComponentType<any>;` | Untyped React icon component |
+| `src/components/OfficeDetailModal.tsx` | 328, 535 | `onClick={() => setActiveTab(tab.id as any)}`, `setTxFilter(f.id as any)` | Unsafe enum/tab type casting |
+
+---
+
+## 4. Proposed Centralized Domain Model Architecture (Milestone 1)
+
+### 4.1 Target Directory Layout (`src/types/`)
+
+Consolidate all type definitions and domain contracts into `src/types/` organized by business domain with clear submodules and zero UI/presentation dependencies:
+
+```
+src/types/
+├── index.ts                 # Central public re-export barrel
+├── api.ts                   # ApiResponse<T>, ApiSuccessResponse, ApiErrorResponse, standard envelopes
+├── apartment.ts             # ApartmentComplex, DongApartment, StaticApartment, AptMeta, TypeMapItem
+├── transaction.ts           # TransactionRecord, RecentTx, RecentTransaction, AptTxSummary, PyeongSummary
+├── report.ts                # FieldReportData, ScoutingReport, ReportSections, ImageMeta, PhotoItem
+├── lounge.ts                # LoungePost, PostDetail, RecentLoungeItem, PostComment, AptStory
+├── review.ts                # UserReview, ReviewInput
+├── user.ts                  # UserProfile, VerificationLevel, UserTier
+├── macro.ts                 # MacroEnvironment, SupplyPipeline, MacroDataConfig, DongtanMacroTrendPoint
+├── technovalley.ts          # JisanCenter, CenterSpecItem, JisanBuilding, TrendRecord, NpsStatsData
+├── valuation.ts             # ValuationResult, ValuationBreakdown, DCFResult, DongSpreadResult, ScoreDetail, PremiumScores
+├── calculator.ts            # AcquisitionCostResult, MortgageLoanResult, VerdictResult, TaxResult
+├── notice.ts                # LocalNoticeItem, NoticeItem, GoogleNewsItem
+├── inquiry.ts               # AdInquiry, SubscriptionItem, AdBannerData, AdSlot
+├── global.d.ts              # Ambient Window, KakaoSDK, external declarations (retained)
+└── modules.d.ts             # Third-party module declarations (retained)
+```
+
+### 4.2 Migration Rules & Clean Separation of Concerns
+
+1. **Zero UI Leaks**:
+   - `KPIData` and `NewsItemData` must use string icon identifiers (`iconName: string`) or serialize primitives (`string | number`) in domain models. UI components map icon names to Lucide icons at render time.
+2. **Move Runtime Helpers Out of Types**:
+   - Move `getDisplayName`, `DEFAULT_AVATARS`, `getRandomDefaultAvatar`, and `createEmojiAvatar` from `src/lib/types/user.types.ts` to `src/lib/utils/userUtils.ts` or `src/lib/utils/avatar.ts`.
+3. **Single Source of Truth for Schemas**:
+   - Derive TypeScript types directly from canonical Zod schemas using `z.infer<typeof ...>` or maintain synchronized contract interfaces that Zod schemas enforce (`z.ZodType<DomainInterface>`).
+4. **Backward Compatibility via Barrel Exports**:
+   - Maintain `src/lib/types/*.ts` during transition by re-exporting from `@/types/*` so existing imports throughout `src/lib/` and `src/components/` do not break.
+
+---
+
+## 5. Milestone 1 Actionable Migration Plan
+
+| Step | Scope | Target Files | Verification Method |
+|---|---|---|---|
+| **Step 1** | Create centralized `src/types/*.ts` modules | `src/types/api.ts`, `apartment.ts`, `transaction.ts`, `report.ts`, `lounge.ts`, `review.ts`, `user.ts`, `macro.ts`, `technovalley.ts`, `valuation.ts`, `calculator.ts`, `notice.ts`, `inquiry.ts`, `index.ts` | `npx tsc --noEmit` |
+| **Step 2** | Extract runtime logic from types | Create `src/lib/utils/userUtils.ts`, clean `src/lib/types/user.types.ts` | `npm test` |
+| **Step 3** | Eliminate duplicate interface definitions across components & API routes | Replace inline interfaces in `src/app/overview/page.tsx`, `src/app/apartment/[aptName]/page.tsx`, `src/app/admin/inquiries/page.tsx`, `src/app/admin/pending-photos/page.tsx`, `src/components/DashboardClient.tsx`, `src/components/LoungeContainerClient.tsx`, `src/components/LocalEventCuration.tsx` with imports from `@/types` | `npx tsc --noEmit` |
+| **Step 4** | Eliminate `any` and unsafe type assertions in production code | Update `facade.schemas.ts`, `MindMap3D.tsx`, `OfficeExplorerClient.tsx`, `TransactionChartSection.tsx`, `ApartmentModalKakaoCard.tsx`, `ApartmentModalPriceSummary.tsx`, `ApartmentModalTransactionsTable.tsx`, `TossApartmentExploreClient.tsx`, `transaction-summary/route.ts` | `npx tsc --noEmit` |
+| **Step 5** | Align Zod schemas with centralized domain types | Update `src/lib/validation/facade.schemas.ts` to implement/infer domain contracts strictly without `z.any()` | `npx tsc --noEmit` & `npm test` |
+| **Step 6** | Deprecate and proxy legacy `src/lib/types/` | Add barrel re-exports from `src/lib/types/*.ts` pointing to `@/types/*` | `npx tsc --noEmit` & `npm run build` |
+| **Step 7** | Execute Full Verification Gate | Run full verification suite | `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build` |

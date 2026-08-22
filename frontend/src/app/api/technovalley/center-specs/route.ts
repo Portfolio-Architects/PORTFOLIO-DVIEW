@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { logger } from '@/lib/services/logger';
 import { fetchSheetJisanStatus, JisanStatusItem } from '@/lib/services/googleSheets';
-import { apiSuccess } from '@/lib/api/apiResponse';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { resilientFetch } from '@/lib/api/resilientFetch';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   // Rate limiting check
   const rateLimitResult = await checkRateLimit(request, { prefix: 'technovalley_center_specs' });
   if (!rateLimitResult.success) {
-    return rateLimitResult.response || NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+    return rateLimitResult.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
   }
 
   const serviceKey = process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_API_KEY || '';

@@ -4,8 +4,10 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Camera, MapPin, ArrowLeft } from 'lucide-react';
 import Image from 'next/image';
-import { useDashboardData, dashboardFacade, FieldReportData, CommentData } from '@/lib/DashboardFacade';
 import dynamic from 'next/dynamic';
+import { dashboardFacade } from '@/lib/DashboardFacade';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import type { FieldReportData, CommentData } from '@/types';
 import { getZoneById, dongToZoneId } from '@/lib/zones';
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
@@ -289,9 +291,9 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
           onClose={handleCloseModal} 
           comments={commentsData[selectedReport.id] || []}
           commentInput={commentInput[selectedReport.id] || ''}
-          onCommentChange={(text) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
+          onCommentChange={(text: string) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
           onSubmitComment={() => handleSubmitComment(selectedReport.id)}
-          onDeleteComment={(commentId, text) => handleDeleteComment(selectedReport.id, commentId, text)}
+          onDeleteComment={(commentId: string, text: string) => handleDeleteComment(selectedReport.id, commentId, text)}
           user={user}
           transactions={[]}
           typeMap={{}}

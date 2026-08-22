@@ -1,8 +1,8 @@
 {
-  "timestamp": "2026-07-28T13:34:41.026Z",
-  "initialHeapBytes": 56163710,
-  "finalHeapBytes": 48797349,
-  "growthPercent": 0,
+  "timestamp": "2026-08-21T19:51:58.788Z",
+  "initialHeapBytes": 65730222,
+  "finalHeapBytes": 83753289,
+  "growthPercent": 27.42,
   "targetPercent": 5,
-  "passed": true
+  "passed": false
 }

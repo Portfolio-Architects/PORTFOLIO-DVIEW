@@ -181,7 +181,11 @@ export const MOCK_XML_RESPONSE = `
 const EMPTY_XML_RESPONSE = `<response><header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header><body><items></items></body></response>`;
 
 export async function fetchOfficeXmlFromPublicPortal(lawdCd: string, dealYmd: string): Promise<string> {
-  const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+  const key = process.env.PUBLIC_DATA_PORTAL_KEY;
+  if (!key) {
+    logger.warn('officeTx.repository.fetchOfficeXmlFromPublicPortal', 'PUBLIC_DATA_PORTAL_KEY environment variable is not configured. Returning empty response.');
+    return EMPTY_XML_RESPONSE;
+  }
   const endpoint = 'https://apis.data.go.kr/1613000/RTMSDataSvcNrgTrade/getRTMSDataSvcNrgTrade';
   const url = `${endpoint}?serviceKey=${encodeURIComponent(key)}&LAWD_CD=${lawdCd}&DEAL_YMD=${dealYmd}`;
 

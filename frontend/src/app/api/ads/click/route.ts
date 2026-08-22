@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,45 +17,36 @@ const AdClickInputSchema = z.object({
 
 export async function POST(request: NextRequest) {
   try {
-    // 1. IP 속도 제한 (Rate Limiting) 가드
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_adclick_${rawIp}`);
-      if (!success) {
-        logger.warn('AdClick.POST', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ success: false, error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_adclick',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
-    // 2. JSON 파싱 방어 가드
     let rawBody: unknown;
     try {
       const text = await request.text();
       if (!text.trim()) {
         logger.warn('AdClick.POST', 'Empty request body', {});
-        return NextResponse.json({ success: false, error: 'Bad Request: Empty Payload' }, { status: 400 });
+        return apiError('BAD_REQUEST', 'Bad Request: Empty Payload', 400);
       }
       rawBody = JSON.parse(text);
     } catch (jsonErr) {
       logger.warn('AdClick.POST', 'Invalid JSON format', {}, jsonErr as Error);
-      return NextResponse.json({ success: false, error: 'Bad Request: Invalid JSON' }, { status: 400 });
+      return apiError('BAD_REQUEST', 'Bad Request: Invalid JSON', 400);
     }
-    
-    // Zod schema validation
+
     const parsed = AdClickInputSchema.safeParse(rawBody);
     if (!parsed.success) {
       logger.warn('AdClick.POST', 'Validation failed for ad click payload', { errors: parsed.error.format() });
-      return NextResponse.json({ success: false, error: 'Invalid request payload' }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Invalid request payload', 400, parsed.error.issues);
     }
 
     const { adId, apartmentName, dong, clickedAt } = parsed.data;
-
-    // Log the click event to server console via structured logger
     logger.info('AdClick.POST', `Ad clicked: ${adId} at ${apartmentName}`, { adId, apartmentName, dong, clickedAt });
 
-    // 3. Store in Firestore as Non-blocking Background Task with Exception Isolation
     if (adminDb) {
       adminDb.collection('ad_clicks').add({
         adId,
@@ -72,10 +64,10 @@ export async function POST(request: NextRequest) {
       logger.warn('AdClick.POST', 'adminDb is not configured. Click logged only to console.', { adId, apartmentName });
     }
 
-    return NextResponse.json({ success: true, message: 'Click logged successfully' }, { status: 200 });
+    return apiSuccess({ message: 'Click logged successfully' }, { message: 'Click logged successfully' });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.error('AdClick.POST', 'Unexpected error during ad click logging', {}, err);
-    return NextResponse.json({ success: false, error: 'Server error' }, { status: 500 });
+    return apiError('SERVER_ERROR', 'Server error', 500);
   }
 }

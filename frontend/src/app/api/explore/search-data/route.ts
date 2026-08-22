@@ -1,39 +1,39 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { fetchSheetApartmentsByDong, fetchSheetTypeMap } from '@/lib/services/googleSheets';
 import { serverLruCache } from '@/lib/utils/server/lruCache';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 import { redis } from '@/lib/redis';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// Set L1 Cache TTL (10 minutes)
 const CACHE_TTL_MS = 600 * 1000;
 
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_explore_searchdata_get_${rawIp}`);
-      if (!success) {
-        logger.warn('ExploreSearchDataAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_explore_searchdata_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('ExploreSearchDataAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
+
+    const headers = {
+      'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=1800',
+    };
 
     // 1. Try to read from L1 Cache (Memory)
     const cachedData = serverLruCache.get('exploreSearchData');
     if (cachedData) {
-      return new NextResponse(JSON.stringify(cachedData), {
-        status: 200,
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=1800',
-        },
-      });
+      return apiSuccess(
+        cachedData,
+        typeof cachedData === 'object' && cachedData !== null ? (cachedData as Record<string, unknown>) : undefined,
+        { headers }
+      );
     }
 
     // 2. Try to read from L2 Cache (Redis)
@@ -46,15 +46,12 @@ export async function GET(request: NextRequest) {
           if (typeof l2Cached === 'string') {
             parsedL2 = JSON.parse(l2Cached);
           }
-          // Save to L1 Cache
           serverLruCache.set('exploreSearchData', parsedL2, CACHE_TTL_MS);
-          return new NextResponse(JSON.stringify(parsedL2), {
-            status: 200,
-            headers: {
-              'Content-Type': 'application/json',
-              'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=1800',
-            },
-          });
+          return apiSuccess(
+            parsedL2,
+            typeof parsedL2 === 'object' && parsedL2 !== null ? (parsedL2 as Record<string, unknown>) : undefined,
+            { headers }
+          );
         }
       } catch (redisError) {
         logger.warn('ExploreSearchDataAPI', 'L2 Redis read failed, falling back to Google Sheets', {}, redisError as Error);
@@ -84,20 +81,14 @@ export async function GET(request: NextRequest) {
 
     // 5. Save to L2 Cache (Redis)
     if (redis) {
-      redis.set('DTDLS:cache:exploreSearchData', JSON.stringify(result), { ex: 86400 }).catch((e: unknown) => 
+      redis.set('DTDLS:cache:exploreSearchData', JSON.stringify(result), { ex: 86400 }).catch((e: unknown) =>
         logger.warn('ExploreSearchDataAPI', 'Failed to write back to Redis L2 cache', {}, e as Error)
       );
     }
 
-    return new NextResponse(JSON.stringify(result), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'public, max-age=60, s-maxage=3600, stale-while-revalidate=1800',
-      },
-    });
+    return apiSuccess(result, result, { headers });
   } catch (error) {
-    logger.error('ExploreSearchDataAPI', 'Unhandled error in GET', {}, error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    logger.error('ExploreSearchDataAPI', 'Unhandled error in GET', {}, error as Error);
+    return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
   }
 }

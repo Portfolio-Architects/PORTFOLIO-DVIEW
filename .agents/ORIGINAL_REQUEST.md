@@ -1,28 +1,44 @@
 # Original User Request
 
-## Initial Request — 2026-08-20T23:36:31+09:00
+## 2026-08-21T14:27:33Z
 
-You are the Project Orchestrator for the D-VIEW comprehensive refactoring task.
+Execute an end-to-end architectural layer refactoring across the D-VIEW project (`frontend/`), establishing clean layer boundaries, eliminating circular dependencies, standardizing domain contracts, and ensuring zero regressions across all verification gates.
 
-Your Working Directory: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator_1`
-Original User Request: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
-Project / Codebase Root: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
+Working directory: frontend
+Integrity mode: development
 
-Task Details:
-D-VIEW 아파트 데이터 랩스 프론트엔드 및 데이터 파이프라인 전반의 아키텍처, 성능, 타입 안전성, 모듈 분리 및 코드 품질을 고도화하는 전면 종합 리팩토링을 수행합니다.
+## Requirements
 
-Requirements:
-- R1. 컴포넌트 아키텍처 모듈화 및 렌더링 성능 최적화 (거대 컴포넌트 MacroDashboardClient.tsx 등의 책임 분리, 도메인별 하위 컴포넌트 및 전용 훅, 메모이제이션)
-- R2. 데이터 수집/동기화 파이프라인 및 백엔드 API 레이어 표준화 (fetch-transactions.js, fetch-rent.js, sync-transactions.js 및 Route Handlers 에러 핸들링, 프록시/재시도, 로깅, Firestore/Redis 정합성)
-- R3. 전역 상태 관리 및 커스텀 훅 레이스 컨디션 방어 (useFavorites, useStaticData, useApartmentDetails, 금융/세제 계산 훅 이벤트 동기화/캐싱)
-- R4. 엄격한 타입 안전성 및 기능 회귀(Regression) 방지 (any 제거, Zod/엄격 타입, 기존 기능/UI 100% 보존)
+### R1. Architectural Layer Boundary & Separation of Concerns
+Establish clear architectural layer isolation across the codebase:
+1. **Domain & Types Layer (`src/types/`, Domain Entities/Value Objects)**: Centralize data contracts, DTOs, and type interfaces. Eliminate duplicate type definitions and unsafe `any`/type assertions across modules.
+2. **Infrastructure & Repository Layer (`src/lib/`, DB/Cache/External APIs)**: Encapsulate data fetching (Firestore, Upstash Redis, Google Sheets, MOLIT Open Data) into clean repository and adapter interfaces with uniform error handling and retry resilience.
+3. **Application & Hook Layer (`src/hooks/`)**: Separate business/application orchestration and data synchronization from UI rendering. Ensure custom hooks handle race conditions, cancellation, and deduplicated caching safely.
+4. **Presentation Layer (`src/components/`, `src/app/`)**: Enforce unidirectional data flow and modular SRP (Single Responsibility Principle) composition. Ensure high-frequency render paths and heavy components use appropriate memoization and lazy-loading boundaries without breaking test IDs or props contracts.
+5. **Data Pipeline Layer (`scripts/`)**: Maintain modular decomposition of ETL scripts (outlier filters, trend aggregators, file chunk generators) with clean interfaces and isolated execution paths.
 
-Acceptance Criteria:
-- `npx tsc --noEmit` 0 에러 (100% PASS)
-- `npm run lint` 에러 없이 통과
-- Jest 전체 51개 테스트 수트 (358개 유닛/통합 테스트) 🟢 100% PASS 유지
-- `npm run sync-transactions` 정상 구동 및 유효 산출물 생성 확인
-- `npm run build` Turbopack 빌드 성공 완료
-- 대형 파일 단일 책임 원칙 분리 완료
+### R2. Strict Interface Contracts & Cross-Layer Dependency Rules
+Enforce clean dependency direction (UI → Application → Infrastructure → Domain):
+1. Prevent upward/circular dependencies (e.g. presentation logic leaking into domain/data layers or infrastructure leaking UI state).
+2. Standardize all API route handlers (`src/app/api/`) using the unified response envelope (`success`, `data`, `error`, `meta`) with standardized status codes and rate limiting.
 
-Please manage your team, maintain your `BRIEFING.md` and `progress.md`, and report completion when all acceptance criteria are fully met and verified.
+### R3. Verification & Zero-Regression Guardrail
+The refactoring must pass all static analysis, type checking, test suites, and production build pipelines without regression:
+1. TypeScript strict type check passes with 0 errors (`npx tsc --noEmit`).
+2. ESLint checks pass with 0 errors and 0 warnings (`npm run lint`).
+3. Full test suite passes without flaky or failing tests (`npm test`).
+4. Production build completes successfully with Turbopack (`npm run build`).
+
+## Acceptance Criteria
+
+### Layer Separation & Clean Code Quality
+- [ ] No circular dependencies or upward imports across domain, infrastructure, application, and UI layers.
+- [ ] Domain models and API DTO contracts are strictly typed without untyped `any` leaks in repositories or custom hooks.
+- [ ] API routes consistently utilize the standard response envelope and resilient error handling.
+- [ ] UI components preserve all existing user-facing props interfaces, behavioral contracts, and data-testid attributes.
+
+### Objective Verification Gates
+- [ ] `npx tsc --noEmit` exits with status code 0 and 0 errors.
+- [ ] `npm run lint` exits with status code 0 and 0 errors.
+- [ ] `npm test` executes the complete test suite and passes 100% of tests with 0 failures.
+- [ ] `npm run build` completes the Next.js production build without errors.

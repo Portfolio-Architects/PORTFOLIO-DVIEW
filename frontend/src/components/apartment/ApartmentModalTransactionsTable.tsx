@@ -2,13 +2,13 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary, TransactionRecord } from '@/types';
 
 export interface ApartmentModalTransactionsTableProps {
   inline?: boolean;
   isAnimationFinished: boolean;
   isTxLoading?: boolean;
-  filteredTransactions: any[];
+  filteredTransactions: TransactionRecord[];
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   chartType: 'sale' | 'jeonse';
   setChartType: (type: 'sale' | 'jeonse') => void;

@@ -1,35 +1,53 @@
-# BRIEFING — 2026-08-04T10:48:40Z
+# BRIEFING — 2026-08-21T14:32:45Z
 
 ## Mission
-Investigate recursive_self_improvement directory and local environment to analyze existing tech stack, tools, files, and architectural requirements for Requirement R1 (Recursive Self-Improvement Engine / Loop).
+Comprehensive read-only survey of Domain & Types layer and overall Type Safety across frontend/
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_explorer
-- Roles: Explorer, Surveyor
-- Working directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_1
-- Original parent: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Milestone: Survey & Architectural Requirements for R1
+- Archetype: explorer
+- Roles: domain-types-surveyor
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Milestone 0 - Survey & Discovery / Milestone 1 - Domain & Types
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement code outside .agents/explorer_survey_1
-- Follow Handoff Protocol and 5-component handoff report
+- Read-only investigation — do NOT implement / modify source code
+- Write only to .agents/explorer_survey_1/
+- Produce analysis.md and handoff.md
 
 ## Current Parent
-- Conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Updated: 2026-08-04T10:48:40Z
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: not yet
 
 ## Investigation State
-- **Explored paths**: `ORIGINAL_REQUEST.md`, `self_improvement_loop/`, root `.venv`, `.agents/orchestrator_rsi/`
-- **Key findings**: Target path `recursive_self_improvement/` is uncreated, but reference prototype `self_improvement_loop/` exists with 44 unittests (43 passing, 1 rollback edge-case identified). Python 3.13.1, Node v24.14.0, and `.venv` are operational. R1 architecture and rollback fix documented.
-- **Unexplored areas**: None for this subtask survey scope.
+- **Explored paths**:
+  - `ORIGINAL_REQUEST.md`
+  - `frontend/tsconfig.json`, `frontend/package.json`
+  - `frontend/src/types/` (`global.d.ts`, `modules.d.ts`)
+  - `frontend/src/lib/types/` (all 7 files)
+  - `frontend/src/lib/validation/facade.schemas.ts`
+  - `frontend/src/lib/repositories/` (post, apartment, officeTx, report, review, etc.)
+  - `frontend/src/lib/services/` (googleSheets, dashboardData, etc.)
+  - `frontend/src/lib/utils/` (scoring, valuation, valuationEngine, calculatorEngines, sellTimingEngine)
+  - `frontend/src/hooks/` (useApartmentDetails, useStaticData, etc.)
+  - `frontend/src/components/` (MindMap3D, OfficeExplorerClient, TransactionChartSection, apartment modals, explore types, report editor types)
+  - `frontend/src/app/` (overview, apartment/[aptName], admin pages, API routes)
+- **Key findings**:
+  - `src/types/` currently contains ONLY ambient files; actual domain types are fragmented across `src/lib/types/`, `src/lib/validation/`, and components.
+  - Apartment model duplicated in 5 places; Transaction record duplicated in 8 places; Notice/News in 6 places; TypeMap in 3 places.
+  - Presentation leaks in domain types (`KPIData`, `NewsItemData` importing React/ElementType/ReactNode).
+  - Runtime code inside types (`user.types.ts` has SVG generator and avatar constants).
+  - Multiple untyped `any` and unsafe type assertions in `facade.schemas.ts`, modal props, and components.
+  - `tsconfig.json` has `strict: true` (baseline passes with 0 errors), but lacks `noUncheckedIndexedAccess`, `noImplicitOverride`, `noFallthroughCasesInSwitch`.
+- **Unexplored areas**: none (survey is complete)
 
 ## Key Decisions Made
-- Completed environment and codebase survey.
-- Identified rollback `FileNotFoundError` edge case in `engine.py` line 257 when budget/api limit triggers.
-- Authored comprehensive architectural analysis report in `analysis.md`.
-- Authored 5-component completion handoff in `handoff.md`.
+- Documented full domain model inventory and duplicate matrix in `analysis.md`
+- Formulated 5-component hard handoff in `handoff.md`
+- Outlined 7-step zero-regression migration roadmap for Milestone 1
 
 ## Artifact Index
-- `.agents/explorer_survey_1/DISPATCH.md` — Dispatch log
-- `.agents/explorer_survey_1/analysis.md` — R1 Survey & Architectural Analysis Report
-- `.agents/explorer_survey_1/handoff.md` — Completion Handoff Report
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\analysis.md` — Comprehensive survey report
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\handoff.md` — Structured 5-component handoff report
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\progress.md` — Progress tracker
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\DISPATCH.md` — Dispatch log

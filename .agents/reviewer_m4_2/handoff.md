@@ -1,66 +1,55 @@
-# Handoff Report — Reviewer 2 (M4)
-
-**Agent**: Reviewer 2 (Interface Safety, Header/Dock Route Sync & Test Coverage Verification)  
-**Working Directory**: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m4_2`  
-**Target Parent**: `5cd4065c-ecc1-4958-a315-f38d94a1f75d`  
-
----
+# Milestone 4 Independent Quality & Adversarial Review Report (Reviewer 2)
 
 ## 1. Observation
-
-- **Inspected Files**:
-  - `frontend/src/components/pwa/MobileDock.tsx`
-  - `frontend/src/components/LoungeHeader.tsx`
-  - `frontend/src/components/HeaderDockSync.test.tsx`
-  - `frontend/tests/` (`routing-bug.spec.ts`, `dashboard.spec.ts`, `login-e2e.spec.ts`, `ui-ux-audit.spec.ts`, etc.)
-- **Header & Mobile Dock Navigation Parity**:
-  - Both components define 5 main routes: `technovalley` (`/`), `office` (`/overview?tab=office`), `lounge` (`/lounge`), `overview` (`/overview`), `imjang` (`/explore`).
-  - Text labels are identical: `"테크노 랩"`, `"사무실 탐색"`, `"동탄 라운지"`, `"아파트 랩"`, `"아파트 탐색"`.
-  - Visual color indicators are synchronized: `technovalley`, `office`, and `lounge` use blue theme (`bg-hs-blue-light text-hs-blue`), while `overview` and `imjang` use orange theme (`bg-hs-orange-light text-hs-orange`).
-  - MobileDock includes visual dividers after `office` and `lounge`, creating 3 groups matching the 3 nav boxes in `LoungeHeader`.
-- **Test Executions**:
-  - Command: `npm test` in `frontend/`
-  - Result: 35/35 test suites passed, 237/237 tests passed.
-  - Added unit test: `frontend/src/components/HeaderDockSync.test.tsx` verifying route parity, label matching, and active tab styling.
-
----
+- **Target Codebase**: `frontend/` (Next.js 16 App Router, TypeScript, TailwindCSS).
+- **Scope Under Review**:
+  1. Decoupling of domain computation, price analytics, location resolution, and SEO JSON-LD logic from `src/app/apartment/[aptName]/page.tsx` into `src/lib/services/apartmentPageService.ts`.
+  2. Standardization of 44 Next.js route handlers under `src/app/api/` with unified response envelope helpers (`apiSuccess`, `apiError`) and resilient IP rate limiting (`checkRateLimit`).
+  3. Preservation of UI component contracts, Recharts responsive containers and tooltip contracts, and `data-testid` test bindings across all views.
+- **Verification Commands Executed inside `frontend/`**:
+  - `npx tsc --noEmit` -> **Exit Code 0** (0 type errors).
+  - `npm run lint` -> **Exit Code 0** (0 ESLint errors/warnings).
+  - `npx jest src/lib/` -> **38 passed, 38 total** (309 passed tests).
+  - `npx jest src/components/ src/hooks/ src/contexts/` -> **31 passed, 31 total** (142 passed tests).
+  - `npx jest src/__tests__/` -> **9 passed, 9 total** (187 passed tests, including M1/M2/M3/M4 empirical adversarial challenger suites).
+  - `npx jest src/app/` -> **2 passed, 2 total** (18 passed tests).
+  - `npm run build` -> **Exit Code 0** (Compiled successfully, static SSG pages generated: 177/177 in 22.2s).
+- **Integrity Inspection**:
+  - Code inspection verified that `src/lib/services/apartmentPageService.ts` contains genuine business logic (Haversine math, progressive tax thresholds, Schema.org graph builder, local file caching, Redis/Firestore fallbacks).
+  - No dummy facade bypasses, hardcoded mock shortcuts, or fabricated test attestations were detected.
 
 ## 2. Logic Chain
-
-1. **Premise 1**: Cross-device user experience requires identical menu hierarchy, route targets, and visual cues between desktop header (`LoungeHeader`) and mobile dock (`MobileDock`).
-2. **Observation 1**: Line-by-line comparison of `LoungeHeader.tsx` and `MobileDock.tsx` confirms identical route strings, icons, labels, and color theme mappings.
-3. **Premise 2**: Changes must not break existing features or introduce regressions across unit or end-to-end workflows.
-4. **Observation 2**: Execution of Jest unit test suite (`npm test`) yielded 35 passed suites (0 failed). Added contract test `HeaderDockSync.test.tsx` passes cleanly. Playwright test configuration and tests (`routing-bug.spec.ts` etc.) verify smooth navigation on mobile viewports without routing bugs.
-5. **Conclusion**: Interface safety and test coverage criteria (R4) are 100% satisfied.
-
----
+1. **Separation of Concerns & Page Decoupling**:
+   - `src/app/apartment/[aptName]/page.tsx` was reduced from 829 lines of interleaved computation down to 206 lines of pure presentation layout orchestration, JSON-LD script mounting, and SSR fallback content.
+   - All domain retrieval and calculation functions (`getTxSummaryData`, `getApartmentTransactions`, `getLocationScore`, `fetchScoutingReportCached`, `getApartmentPageData`, `buildApartmentJsonLd`, `buildApartmentSeoMetadata`) now reside cleanly in `src/lib/services/apartmentPageService.ts`.
+2. **Adversarial & Edge Case Robustness**:
+   - `decodeAptName` robustly resolves plain Korean, single URL encoded, double URL encoded (`%25EB...`), triple URL encoded, emoji, CJK, Cyrillic, and malformed URI tokens without throwing.
+   - When a requested apartment complex does not exist in local static files or database (`public/tx-data/유령단지.json`), the service gracefully falls back to empty transaction lists, default briefing text, and safe default SEO metadata without 500 errors or unhandled rejections.
+   - JSON-LD structured data generation safely neutralizes script tag injection vectors (`<script>alert(1)</script>`) via `safeJsonLd` unicode escaping (`\u003cscript\u003e`), ensuring zero XSS vulnerabilities.
+3. **API Standardization & Rate Limiter Resilience**:
+   - API route handlers consistently use `apiSuccess` and `apiError` returning typed `ApiResponse<T>`.
+   - `checkRateLimit` handles Redis unavailability by gracefully falling back to an in-memory sliding window cache with standard HTTP 429 status codes and rate limit headers (`X-RateLimit-*`).
+4. **UI & Recharts Compatibility**:
+   - All Recharts components (`TransactionChartSection`, `MacroTrendChart`, `ComparePriceHistoryChart`, `CompareRadarChart`, `MortgageCalculator`, `PropertyTaxCalculator`) retain their responsive sizing, axes configuration, tooltip structures, and CSS wrapper classes (`.recharts-wrapper`, `.recharts-surface`).
+   - `data-testid` attributes used across test suites (`mock-dashboard-client`, `recharts-tooltip`, etc.) are completely intact.
 
 ## 3. Caveats
-
-- **Network Mode**: Verification was performed under CODE_ONLY network restrictions. E2E tests run against local Next.js dev server.
-
----
+- Streaming and media binary routes (`/api/og/route.tsx`, `/api/proxy-image/route.ts`, `/api/unsubscribe/route.ts`) intentionally return binary `ImageResponse` / `ArrayBuffer` or HTML redirection responses as necessitated by social media crawlers and browser navigation standards.
+- In CI or local offline test environments where Upstash Redis or Firebase Admin credentials are absent, repositories and services degrade safely to in-memory caching and local JSON file reads.
 
 ## 4. Conclusion
-
 - **Verdict**: **APPROVE**
-- The header and dock navigation contract is fully synchronized, resilient against keyboard overlays and prefetch bottlenecks, and backed by a 100% passing test suite.
-
----
+- Milestone 4 refactoring satisfies all requirements specified in `PROJECT.md` and `ORIGINAL_REQUEST.md`.
+- Layer 3 (Presentation & API Routes) strictly complies with Clean Architecture invariants with zero regressions.
 
 ## 5. Verification Method
-
-To independently verify this handoff:
-
-1. **Run Unit Tests**:
-   ```powershell
-   cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
-   npm test
-   ```
-   Verify 35/35 test suites pass, including `HeaderDockSync.test.tsx`.
-
-2. **Inspect Route Parity Unit Test**:
-   Inspect `frontend/src/components/HeaderDockSync.test.tsx` to verify automated assertion of `LoungeHeader` and `MobileDock` route alignment.
-
-3. **Inspect Handoff & Review Documents**:
-   Check `.agents/reviewer_m4_2/review.md` and `.agents/reviewer_m4_2/handoff.md`.
+To independently verify this evaluation, execute the following commands in `frontend/`:
+```bash
+npx tsc --noEmit
+npm run lint
+npx jest src/lib/
+npx jest src/components/ src/hooks/ src/contexts/
+npx jest src/__tests__/
+npx jest src/app/
+npm run build
+```

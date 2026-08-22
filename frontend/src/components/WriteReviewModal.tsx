@@ -3,7 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Camera, Send } from 'lucide-react';
-import { useDashboardData, dashboardFacade } from '@/lib/DashboardFacade';
+import { dashboardFacade } from '@/lib/DashboardFacade';
+import { useDashboardData } from '@/hooks/useDashboardData';
 import { logger } from '@/lib/services/logger';
 
 interface WriteReviewModalProps {

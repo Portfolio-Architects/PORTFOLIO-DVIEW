@@ -9,8 +9,7 @@
 import { db } from '@/lib/firebaseConfig';
 import { collection, onSnapshot, query, orderBy, limit, addDoc, doc, updateDoc, increment, deleteDoc, serverTimestamp, getDoc, getDocs, collectionGroup } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
-import type { NewsItemData } from '@/lib/types/dashboard.types';
-import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
+import type { NewsItemData } from '@/types';
 import { postConverter, PostDocument } from '@/lib/utils/firestoreConverters';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { PostDataSchema } from '@/lib/validation/facade.schemas';
@@ -106,6 +105,16 @@ export interface ProcessableComment {
   [key: string]: unknown;
 }
 
+export interface ProcessableStory {
+  id: string;
+  apartmentName?: string;
+  text?: string;
+  createdAt?: unknown;
+  authorName?: string;
+  authorUid?: string | null;
+  [key: string]: unknown;
+}
+
 // Module-level cache for dynamic imports
 let cachedRedis: Redis | null = null;
 let isRedisLoaded = false;
@@ -163,12 +172,12 @@ export function listenToPosts(callback: (posts: NewsItemData[]) => void): () => 
     snapshot.forEach((docSnap) => {
       const data = docSnap.data();
 
-      let icon = MessageSquare;
+      let icon = 'message';
       let tagClass = 'tag-culture';
 
-      if (data.category === '교통') { icon = Train; tagClass = 'tag-traffic'; }
-      else if (data.category === '부동산') { icon = Building; tagClass = 'tag-realestate'; }
-      else if (data.category === '교육') { icon = BookOpen; tagClass = 'tag-edu'; }
+      if (data.category === '교통') { icon = 'train'; tagClass = 'tag-traffic'; }
+      else if (data.category === '부동산') { icon = 'building'; tagClass = 'tag-realestate'; }
+      else if (data.category === '교육') { icon = 'book'; tagClass = 'tag-edu'; }
 
       const dateStr = formatTimestamp(data.createdAt, '방금 전');
 
@@ -428,7 +437,7 @@ export async function getRecentPosts(limitCount: number = 30): Promise<RecentLou
 async function processCombinedPosts(
   rawPosts: ProcessablePost[],
   rawComments: ProcessableComment[],
-  rawStories: any[],
+  rawStories: ProcessableStory[],
   limitCount: number
 ): Promise<RecentLoungeItem[]> {
   // Filter comments to only include those under field_reports
@@ -568,6 +577,110 @@ async function processCombinedPosts(
     .sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
     .slice(0, limitCount);
 }
+
+/**
+ * Alias for incrementPostLike
+ */
+export async function likePost(postId: string): Promise<void> {
+  return incrementPostLike(postId);
+}
+
+/**
+ * Subscribes to real-time comments for a post
+ */
+export function listenToComments(
+  postId: string,
+  callback: (comments: Array<{ id: string; text: string; authorName: string; createdAt: unknown; authorUid?: string }>) => void
+): () => void {
+  if (!postId || !db) return () => {};
+
+  try {
+    const commentsRef = collection(db, 'posts', postId, 'comments');
+    const q = query(commentsRef, orderBy('createdAt', 'asc'));
+
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const comments = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data();
+          return {
+            id: docSnap.id,
+            text: data.text || '',
+            authorName: data.authorName || '익명',
+            createdAt: data.createdAt ? (typeof data.createdAt.toDate === 'function' ? data.createdAt.toDate().toISOString() : String(data.createdAt)) : new Date().toISOString(),
+            authorUid: data.authorUid,
+          };
+        });
+        callback(comments);
+      },
+      (err) => {
+        logger.warn('post.repository.listenToComments', 'Failed to listen to comments', { postId }, err);
+      }
+    );
+
+    return unsubscribe;
+  } catch (err) {
+    logger.warn('post.repository.listenToComments', 'Error setting up comment listener', { postId }, err as Error);
+    return () => {};
+  }
+}
+
+/**
+ * Adds a new comment to a post
+ */
+export async function addComment(
+  postId: string,
+  text: string,
+  authorName: string,
+  authorUid: string
+): Promise<string> {
+  if (!postId || !db) throw new Error('Invalid post ID or db not initialized');
+
+  try {
+    const commentsRef = collection(db, 'posts', postId, 'comments');
+    const docRef = await throttle(() =>
+      addDoc(commentsRef, {
+        text,
+        authorName,
+        authorUid,
+        createdAt: serverTimestamp(),
+      })
+    );
+
+    const postRef = doc(db, 'posts', postId);
+    await throttle(() => updateDoc(postRef, { commentCount: increment(1) })).catch(() => {});
+    await invalidatePostCache(postId);
+
+    return docRef.id;
+  } catch (error) {
+    logger.error('post.repository.addComment', 'Failed to add comment', { postId }, error as Error);
+    throw error;
+  }
+}
+
+/**
+ * Deletes a comment from a post
+ */
+export async function deleteComment(
+  postId: string,
+  commentId: string,
+  _authorUid: string
+): Promise<void> {
+  if (!postId || !commentId || !db) throw new Error('Invalid parameters or db not initialized');
+
+  try {
+    const commentRef = doc(db, 'posts', postId, 'comments', commentId);
+    await throttle(() => deleteDoc(commentRef));
+
+    const postRef = doc(db, 'posts', postId);
+    await throttle(() => updateDoc(postRef, { commentCount: increment(-1) })).catch(() => {});
+    await invalidatePostCache(postId);
+  } catch (error) {
+    logger.error('post.repository.deleteComment', 'Failed to delete comment', { postId, commentId }, error as Error);
+    throw error;
+  }
+}
+
 
 
 

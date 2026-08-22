@@ -1,46 +1,60 @@
-# BRIEFING — 2026-08-04T11:10:48Z
+# BRIEFING — 2026-08-21T14:50:00Z
 
 ## Mission
-Review Milestone 1 code in `recursive_self_improvement/` for correctness, code layout compliance, safety guardrails, AST validation, integrity violations, and test coverage. Deliver handoff with explicit Verdict: REQUEST_CHANGES.
+Adversarially review Milestone 1 (Domain & Types Layer Refactoring) on D-VIEW project, verify integrity, type purity, backward compatibility, and test suite results, and issue a rigorous verdict.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_reviewer
+- Archetype: reviewer_critic
 - Roles: reviewer, critic
-- Working directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m1_1
-- Original parent: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Milestone: Milestone 1
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_1
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Milestone 1 - Domain & Types Layer Refactoring
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Report test failures or code bugs as findings, do NOT fix them yourself
-- Actively check for integrity violations (hardcoded test outputs, dummy implementations, shortcuts, self-certifying work)
+- Actively check for integrity violations: hardcoded test results, facade implementations, bypassed tasks, fabricated logs, self-certifying work without genuine verification
+- Verify pure types (zero runtime code, zero JSX/React imports in `src/types/`)
+- Verify separation in `src/lib/utils/userUtils.ts` and `src/lib/types/user.types.ts`
+- Verify backward compatibility re-exports in `src/lib/types/*.ts`
+- Independently execute and verify `tsc`, `lint`, and `test`
 
 ## Current Parent
-- Conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Updated: 2026-08-04T11:10:48Z
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: not yet
 
 ## Review Scope
-- **Files to review**: config.py, vcs.py, runner.py, simulator.py, engine.py, target_module.py, test_*.py
-- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md
-- **Review criteria**: correctness, safety guardrails, AST validation, layout compliance, test coverage, integrity
+- **Files to review**:
+  - `src/types/` (14 canonical type files: `index.ts`, `api.ts`, `apartment.ts`, `transaction.ts`, `valuation.ts`, `report.ts`, `lounge.ts`, `review.ts`, `user.ts`, `macro.ts`, `technovalley.ts`, `calculator.ts`, `notice.ts`, `inquiry.ts`)
+  - `src/lib/utils/userUtils.ts` & `src/lib/types/user.types.ts`
+  - `src/lib/types/*.ts` backward compatibility shims
+  - Related test suites and imports
+- **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`, `worker_m1/handoff.md`
+- **Review criteria**: Correctness, purity, backward compatibility, completeness, test suite execution, integrity
 
 ## Review Checklist
-- **Items reviewed**: config.py, vcs.py, runner.py, simulator.py, engine.py, target_module.py, test_target_module.py, tests/
-- **Verdict**: REQUEST_CHANGES
-- **Unverified claims**: None (test execution confirmed 2 failing tests in test_engine.py)
+- **Items reviewed**:
+  - `src/types/` (14 domain type files verified pure)
+  - `src/lib/utils/userUtils.ts` and unit tests (`userUtils.test.ts`)
+  - `src/lib/types/*.ts` (7 backward-compatibility shim files)
+  - `src/lib/validation/facade.schemas.ts`
+  - `src/components/apartment/*` and `src/components/apartment-modal/*`
+- **Verdict**: APPROVE
+- **Unverified claims**: 0 unverified claims
 
 ## Attack Surface
-- **Hypotheses tested**: Checked for integrity violations, exception safety in VCS rollback, budget enforcement, test discovery.
-- **Vulnerabilities found**: Unhandled FileNotFoundError in `vcs.py` when rolling back to non-existent version snapshot or missing v0 fallback during budget/error exit.
-- **Untested angles**: M2/M3/M4 features (evaluator, reporter, run CLI - planned for later milestones).
+- **Hypotheses tested**:
+  - Potential runtime code / exports in `src/types/`: Confirmed 0 runtime code, 0 React/JSX imports
+  - Presentation leaks in `KPIData` and `NewsItemData`: Confirmed clean primitive decoupling
+  - Backward compatibility breakage in legacy imports: Confirmed 100% covered by shims
+  - Integrity violation checks: Confirmed authentic implementations and genuine test passes
+- **Vulnerabilities found**: None.
+- **Untested angles**: None within M1 scope.
 
 ## Key Decisions Made
-- Executed `python -m unittest discover -s recursive_self_improvement -p "test_*.py"`.
-- Identified root cause of test failures in `test_engine.py` (`test_stuck_detection_by_repeating_error`, `test_engine_token_budget`).
-- Formulated verdict: REQUEST_CHANGES due to failing unit test suite.
+- Confirmed full compliance with M1 architectural specifications and issued APPROVE verdict.
 
 ## Artifact Index
-- `.agents/reviewer_m1_1/BRIEFING.md` — Working briefing
+- `.agents/reviewer_m1_1/handoff.md` — Final review & handoff report
+- `.agents/reviewer_m1_1/progress.md` — Progress tracker
 - `.agents/reviewer_m1_1/DISPATCH.md` — Dispatch log
-- `.agents/reviewer_m1_1/handoff.md` — Handoff report

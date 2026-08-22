@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { fetchSheetApartmentsByDong } from '@/lib/services/googleSheets';
-import { rateLimiter } from '@/lib/rate-limit';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,14 +14,12 @@ const ApartmentsQuerySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_${rawIp}`);
-      if (!success) {
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_apartments_by_dong',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     const { searchParams } = request.nextUrl;
@@ -30,20 +29,25 @@ export async function GET(request: NextRequest) {
 
     if (!queryParse.success) {
       logger.warn('ApartmentsByDongAPI.GET', 'Invalid query parameters', { errors: queryParse.error.format() });
-      return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
+      return apiError('INVALID_QUERY', 'Invalid query parameters', 400);
     }
 
     const { bypassCache } = queryParse.data;
     const result = await fetchSheetApartmentsByDong(bypassCache);
-    return NextResponse.json(result, {
-      headers: {
-        'Cache-Control': bypassCache
-          ? 'no-store, no-cache, must-revalidate, max-age=0'
-          : 'public, s-maxage=3600, stale-while-revalidate=600',
-      },
-    });
+
+    return apiSuccess(
+      result,
+      typeof result === 'object' && result !== null ? (result as Record<string, unknown>) : undefined,
+      {
+        headers: {
+          'Cache-Control': bypassCache
+            ? 'no-store, no-cache, must-revalidate, max-age=0'
+            : 'public, s-maxage=3600, stale-while-revalidate=600',
+        },
+      }
+    );
   } catch (err: unknown) {
     logger.error('ApartmentsByDongAPI.GET', 'Error loading apartments', {}, err as Error);
-    return NextResponse.json({ error: 'Failed to load apartments' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to load apartments', 500);
   }
 }

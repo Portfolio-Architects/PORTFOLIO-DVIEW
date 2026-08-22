@@ -1,9 +1,20 @@
-# Progress Log - Reviewer M5-2
+﻿# Progress — Reviewer M5-2
 
-Last visited: 2026-07-21T13:42:30Z
+Last visited: 2026-08-21T18:58:30Z
 
-- [x] Step 1: Initialize ORIGINAL_REQUEST.md, BRIEFING.md, progress.md
-- [x] Step 2: Locate all target files in `frontend/` and project root
-- [x] Step 3: Run required build, test, audit, tsc, eslint commands in `frontend/`
-- [x] Step 4: Perform detailed integrity & adversarial code review of Zod schemas, Google Sheets SSOT parser, Ministry of Land XML parser, Redis cache, SWR sync, and `audit-pipeline.js`
-- [x] Step 5: Document findings and write `review.md` and `handoff.md`
+- [x] Initialized DISPATCH.md and BRIEFING.md
+- [ ] Task 1: Check circular dependencies (
+px madge --circular --extensions ts,tsx src/)
+- [ ] Task 2: Type safety check & ny audit (
+px tsc --noEmit & static grep analysis)
+- [ ] Task 3: Lint check (
+pm run lint)
+- [ ] Task 4: Unit/Integration tests (
+pm test)
+- [ ] Task 5: E2E tests (
+pm run test:e2e)
+- [ ] Task 6: Production build (
+pm run build)
+- [ ] Task 7: Adversarial verification & Integrity checks
+- [ ] Task 8: Handoff report & Verdict
+- [ ] Task 9: Send completion message to parent

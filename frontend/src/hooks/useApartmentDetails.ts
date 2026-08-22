@@ -1,14 +1,21 @@
+/**
+ * @module useApartmentDetails
+ * @description Hook for managing apartment detail views, transactional records, objective metrics,
+ * and view tracking with active request tracking and race condition prevention.
+ * Architecture Layer: Application / Hooks (`src/hooks/`)
+ */
+
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { User } from 'firebase/auth';
-import type { AptTxSummary, LocationScoreItem } from '@/lib/types/transaction';
+import type { AptTxSummary, LocationScoreItem } from '@/types/transaction';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { normalizeAptName, findTxKey, isSameApartment } from '@/lib/utils/apartmentMapping';
 import { DongApartment } from '@/lib/dong-apartments';
-import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import type { ObjectiveMetrics } from '@/types/report';
 import { BUILD_VERSION } from '@/lib/build-version';
-import { logger } from '@/lib/services/logger';
 import { usePreloadApartmentTx, getApartmentFileKey } from './usePreloadApartmentTx';
+import { apiClient } from '@/lib/api/apiClient';
 
 export interface TransactionRecord {
   no: number;
@@ -55,7 +62,8 @@ interface RawTransactionRecord {
   isOutlier?: boolean;
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.ok ? res.json() : []);
+const fetcher = (url: string) =>
+  apiClient.get<RawTransactionRecord[]>(url).catch(() => []);
 
 const EMPTY_ARRAY: RawTransactionRecord[] = [];
 const EMPTY_TX_ARRAY: TransactionRecord[] = [];
@@ -92,12 +100,11 @@ export function useApartmentDetails(
   const apartmentsMap = useMemo(() => {
     const map = new Map<string, DongApartment>();
     if (!sheetApartments) return map;
-    Object.values(sheetApartments).flat().forEach(apt => {
+    Object.values(sheetApartments).flat().forEach((apt) => {
       map.set(normalizeAptName(apt.name), apt);
     });
     return map;
   }, [sheetApartments]);
-
 
   const formatPriceEok = (priceMan: number) => {
     const eok = Math.floor(priceMan / 10000);
@@ -119,7 +126,6 @@ export function useApartmentDetails(
     );
   }, [selectedReport, flatApartments, apartmentsMap, txSummaryData, nameMapping]);
 
-
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
 
   useEffect(() => {
@@ -128,11 +134,11 @@ export function useApartmentDetails(
       return;
     }
     setShouldFetchFull(false); // Reset on new report selection
-    
+
     const timer = setTimeout(() => {
       setShouldFetchFull(true);
     }, 250); // 250ms delay to balance transition performance and fast initial rendering
-    
+
     return () => clearTimeout(timer);
   }, [selectedReport]);
 
@@ -142,7 +148,7 @@ export function useApartmentDetails(
 
   const buildId = BUILD_VERSION;
 
-  // 1. 최근 15건 실거래 데이터 초고속 로드 (보통 2KB 미만)
+  // 1. Load recent 15 transactions (< 2KB)
   const { data: recentRecords, isLoading: isRecentLoading } = useSWR<RawTransactionRecord[]>(
     fileKey ? `/tx-data/${encodeURIComponent(fileKey)}-recent.json?v=${buildId}` : null,
     fetcher,
@@ -152,8 +158,8 @@ export function useApartmentDetails(
     }
   );
 
-  // 2. 전체 실거래 데이터 백그라운드 지연 로드 (용량 무관하게 UX 정체 없음)
-  const { data: fullRecords, isLoading: isFullLoading } = useSWR<RawTransactionRecord[]>(
+  // 2. Full transactions background lazy load
+  const { data: fullRecords } = useSWR<RawTransactionRecord[]>(
     fileKey && shouldFetchFull ? `/tx-data/${encodeURIComponent(fileKey)}.json?v=${buildId}` : null,
     fetcher,
     {
@@ -163,7 +169,7 @@ export function useApartmentDetails(
   );
 
   const records = Array.isArray(fullRecords) ? fullRecords : (Array.isArray(recentRecords) ? recentRecords : EMPTY_ARRAY);
-  const isTxLoading = isRecentLoading && !recentRecords; // 최근 데이터가 왔거나 이미 캐시가 있으면 로딩 해제
+  const isTxLoading = isRecentLoading && !recentRecords;
 
   const modalTransactions = useMemo(() => {
     if (!records || records.length === 0) return EMPTY_TX_ARRAY;
@@ -171,16 +177,31 @@ export function useApartmentDetails(
     return records.map((r: RawTransactionRecord, i) => {
       if (!r || typeof r !== 'object') {
         return {
-          no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
-          area: 0, areaPyeong: 0,
-          contractYm: '', contractDay: '1',
+          no: i + 1,
+          sigungu: '',
+          dong: '',
+          aptName: fileKey || '',
+          area: 0,
+          areaPyeong: 0,
+          contractYm: '',
+          contractDay: '1',
           contractDate: '',
-          price: 0, priceEok: '-',
-          deposit: 0, monthlyRent: 0,
-          floor: 0, buyer: '', seller: '', buildYear: 0, roadName: '',
-          cancelDate: '', dealType: '',
-          agentLocation: '', registrationDate: '-', housingType: '',
-          reqGb: '', rnuYn: '',
+          price: 0,
+          priceEok: '-',
+          deposit: 0,
+          monthlyRent: 0,
+          floor: 0,
+          buyer: '',
+          seller: '',
+          buildYear: 0,
+          roadName: '',
+          cancelDate: '',
+          dealType: '',
+          agentLocation: '',
+          registrationDate: '-',
+          housingType: '',
+          reqGb: '',
+          rnuYn: '',
           isOutlier: false,
         };
       }
@@ -189,59 +210,78 @@ export function useApartmentDetails(
       const isRent = trimmedDealType === '전세' || trimmedDealType === '월세';
       let eokStr = '';
       if (isRent) {
-         eokStr = formatPriceEok(r.deposit || 0);
-         if (trimmedDealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
+        eokStr = formatPriceEok(r.deposit || 0);
+        if (trimmedDealType === '월세' && r.monthlyRent) eokStr += ` / ${r.monthlyRent}만`;
       } else {
-         eokStr = formatPriceEok(r.price || 0);
+        eokStr = formatPriceEok(r.price || 0);
       }
 
       return {
-        no: i + 1, sigungu: '', dong: '', aptName: fileKey || '',
-        area: r.area || 0, areaPyeong: r.areaPyeong || 0,
-        contractYm: r.contractYm || '', contractDay: String(r.contractDay || '1'),
+        no: i + 1,
+        sigungu: '',
+        dong: '',
+        aptName: fileKey || '',
+        area: r.area || 0,
+        areaPyeong: r.areaPyeong || 0,
+        contractYm: r.contractYm || '',
+        contractDay: String(r.contractDay || '1'),
         contractDate: r.contractYm ? `${r.contractYm}${String(r.contractDay || '1').padStart(2, '0')}` : '',
-        price: r.price || 0, priceEok: eokStr,
-        deposit: r.deposit || 0, monthlyRent: r.monthlyRent || 0,
-        floor: r.floor || 0, buyer: '', seller: '', buildYear: 0, roadName: '',
-        cancelDate: r.cancelDate || '', dealType: trimmedDealType,
-        agentLocation: '', registrationDate: '-', housingType: '',
-        reqGb: r.reqGb || '', rnuYn: r.rnuYn || '',
-        isOutlier: !!r.isOutlier
+        price: r.price || 0,
+        priceEok: eokStr,
+        deposit: r.deposit || 0,
+        monthlyRent: r.monthlyRent || 0,
+        floor: r.floor || 0,
+        buyer: '',
+        seller: '',
+        buildYear: 0,
+        roadName: '',
+        cancelDate: r.cancelDate || '',
+        dealType: trimmedDealType,
+        agentLocation: '',
+        registrationDate: '-',
+        housingType: '',
+        reqGb: r.reqGb || '',
+        rnuYn: r.rnuYn || '',
+        isOutlier: !!r.isOutlier,
       };
     });
   }, [records, fileKey]);
 
   useEffect(() => {
-    if (!selectedReport) { 
+    if (!selectedReport) {
       activeRequestIdRef.current += 1;
       setFullReportData(null);
       setIsLoadingDetail(false);
-      return; 
+      return;
     }
-    
+
     const currentRequestId = ++activeRequestIdRef.current;
     const targetReportId = selectedReport.id;
     const targetAptName = selectedReport.apartmentName;
     const isStubReport = targetReportId.startsWith('stub-');
+    const controller = new AbortController();
 
     setFullReportData(null);
     setIsLoadingDetail(!isStubReport);
-    
+
     let unmounted = false;
 
     // Fetch Full Report & View count
     if (!isStubReport) {
       if (dashboardFacade.getFullReport) {
-        dashboardFacade.getFullReport(targetReportId).then((data) => {
-          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
-            setFullReportData(data);
-            setIsLoadingDetail(false);
-          }
-        }).catch(() => {
-          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
-            setIsLoadingDetail(false);
-          }
-        });
+        dashboardFacade
+          .getFullReport(targetReportId)
+          .then((data) => {
+            if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+              setFullReportData(data);
+              setIsLoadingDetail(false);
+            }
+          })
+          .catch(() => {
+            if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+              setIsLoadingDetail(false);
+            }
+          });
       } else {
         if (activeRequestIdRef.current === currentRequestId) {
           setIsLoadingDetail(false);
@@ -250,43 +290,52 @@ export function useApartmentDetails(
 
       const trackView = () => {
         if (unmounted || activeRequestIdRef.current !== currentRequestId) return;
-        fetch('/api/report-view', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ reportId: targetReportId, userEmail: user?.email })
-        }).catch(() => {});
+        apiClient
+          .post(
+            '/api/report-view',
+            { reportId: targetReportId, userEmail: user?.email },
+            { signal: controller.signal }
+          )
+          .catch(() => {});
       };
 
       if (user) {
-        user.getIdTokenResult().then(idTokenResult => {
-          if (!unmounted && activeRequestIdRef.current === currentRequestId && !idTokenResult.claims.admin) {
-            trackView();
-          }
-        }).catch(() => {
-          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
-            trackView();
-          }
-        });
+        user
+          .getIdTokenResult()
+          .then((idTokenResult) => {
+            if (!unmounted && activeRequestIdRef.current === currentRequestId && !idTokenResult.claims.admin) {
+              trackView();
+            }
+          })
+          .catch(() => {
+            if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+              trackView();
+            }
+          });
       } else {
         trackView();
       }
     } else {
       if (dashboardFacade.getFullReportByApartmentName) {
-        dashboardFacade.getFullReportByApartmentName(targetAptName).then((data) => {
-          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
-            setFullReportData(data);
-            setIsLoadingDetail(false);
-          }
-        }).catch(() => {
-          if (!unmounted && activeRequestIdRef.current === currentRequestId) {
-            setIsLoadingDetail(false);
-          }
-        });
+        dashboardFacade
+          .getFullReportByApartmentName(targetAptName)
+          .then((data) => {
+            if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+              setFullReportData(data);
+              setIsLoadingDetail(false);
+            }
+          })
+          .catch(() => {
+            if (!unmounted && activeRequestIdRef.current === currentRequestId) {
+              setIsLoadingDetail(false);
+            }
+          });
       }
     }
-    
-    return () => { 
-      unmounted = true; 
+
+    return () => {
+      unmounted = true;
+      controller.abort();
     };
   }, [selectedReport, user]);
 
@@ -296,9 +345,9 @@ export function useApartmentDetails(
     const normalizedName = normalizeAptName(raw.apartmentName);
     let fallback = apartmentsMap.get(normalizedName) || null;
     if (!fallback) {
-      fallback = flatApartments.find(a => isSameApartment(a.name, raw.apartmentName, nameMapping, a.dong, raw.dong)) || null;
+      fallback = flatApartments.find((a) => isSameApartment(a.name, raw.apartmentName, nameMapping, a.dong, raw.dong)) || null;
     }
-    
+
     // Find location scores dynamically from public/data/location-scores.json
     const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping, false, raw.dong);
     const locScore = (matchKey ? locationScores[matchKey] : {}) as LocationScoreItem;
@@ -312,7 +361,7 @@ export function useApartmentDetails(
             const hasExisting = mergedMetrics[k] && typeof mergedMetrics[k] === 'object' && Object.keys(mergedMetrics[k]).length > 0;
             const isNewValid = v && typeof v === 'object' && !Array.isArray(v) && Object.keys(v).length > 0;
             if (hasExisting && !isNewValid) {
-              continue; // Do not overwrite populated locScore categories with empty/invalid values
+              continue;
             }
           }
           // If v is an empty object (like empty categories/schools), do not overwrite the populated values
@@ -323,7 +372,7 @@ export function useApartmentDetails(
         }
       }
     }
-    
+
     return { ...raw, metrics: mergedMetrics as unknown as ObjectiveMetrics };
   }, [selectedReport, fullReportData, flatApartments, apartmentsMap, nameMapping, locationScores]);
 
@@ -351,7 +400,6 @@ export function useApartmentDetails(
     resolvedReport,
     aptTxSummary,
     loadAllTransactions,
-    preloadApartmentTx
+    preloadApartmentTx,
   };
 }
-

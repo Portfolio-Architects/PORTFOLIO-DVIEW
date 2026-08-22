@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { adminDb as db } from '@/lib/firebaseAdmin';
-import { Timestamp } from 'firebase-admin/firestore';
+import { NextRequest } from 'next/server';
+import { adminDb as db, Timestamp } from '@/lib/firebaseAdmin';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -20,12 +20,12 @@ const postItemSchema = z.object({
   createdAt: z.number(),
   meta: z.string(),
   summary: z.string().default(''),
-  apartmentName: z.string().optional()
+  apartmentName: z.string().optional(),
 });
 
 const postsResponseSchema = z.object({
   status: z.string(),
-  posts: z.array(postItemSchema)
+  posts: z.array(postItemSchema),
 });
 
 interface CombinedPostItem {
@@ -64,24 +64,22 @@ const PostCreateSchema = z.object({
 
 let cachedData: z.infer<typeof postsResponseSchema> | null = null;
 let lastCacheTime = 0;
-const CACHE_TTL = 15000; // 15 seconds
+const CACHE_TTL = 15000;
 
 export async function GET(req: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = req.headers.get('x-forwarded-for');
-      const realIp = req.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_posts_get_${rawIp}`);
-      if (!success) {
-        logger.warn('PostsAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(req, {
+      prefix: 'ratelimit_posts_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('PostsAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     if (!db) {
       logger.warn('PostsAPI.GET', 'Firebase Admin DB not initialized');
-      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+      return apiError('DATABASE_UNAVAILABLE', 'Firebase Admin not initialized', 500);
     }
     const adminDb = db;
 
@@ -93,23 +91,21 @@ export async function GET(req: NextRequest) {
 
     if (!queryParse.success) {
       logger.warn('PostsAPI.GET', 'Invalid query parameters', { errors: queryParse.error.format() });
-      return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
+      return apiError('INVALID_QUERY', 'Invalid query parameters', 400);
     }
 
     const { lastCreatedAt: lastCreatedAtStr, limit: limitVal } = queryParse.data;
 
-    // Cache key checks: apply only for default first page to preserve fresh paging and compose updates
     const isFirstPage = !lastCreatedAtStr && limitVal === 20;
     const now = Date.now();
     if (isFirstPage && cachedData && (now - lastCacheTime < CACHE_TTL)) {
-      return NextResponse.json(cachedData);
+      return apiSuccess(cachedData.posts, cachedData);
     }
 
     let q = adminDb.collection('posts')
       .orderBy('createdAt', 'desc')
       .limit(limitVal);
 
-    // Fetch lounge_apt_stories directly to sync with the top widget stories
     const storyQ = adminDb.collection('lounge_apt_stories')
       .limit(200);
 
@@ -124,11 +120,11 @@ export async function GET(req: NextRequest) {
 
     const [postSnapshot, storySnapshot] = await Promise.all([
       q.get(),
-      storyQ.get()
+      storyQ.get(),
     ]);
-    
+
     const postsList: CombinedPostItem[] = [];
-    postSnapshot.docs.forEach(doc => {
+    postSnapshot.docs.forEach((doc) => {
       try {
         const data = doc.data();
         const rawContent = data.content || '';
@@ -153,7 +149,7 @@ export async function GET(req: NextRequest) {
             .replace(/[#*~_\-`(]/g, '')
             .replace(/\s+/g, ' ')
             .replace(/https?:\/\/[^\s]+/g, '')
-            .trim()
+            .trim(),
         });
       } catch (itemErr) {
         logger.error('PostsAPI.GET', `Error processing post doc ${doc.id}`, {}, itemErr as Error);
@@ -163,12 +159,11 @@ export async function GET(req: NextRequest) {
     const commentsList: CombinedPostItem[] = [];
     const lastCreatedAtMs = lastCreatedAtStr ? parseInt(lastCreatedAtStr, 10) : NaN;
 
-    storySnapshot.docs.forEach(doc => {
+    storySnapshot.docs.forEach((doc) => {
       try {
         const data = doc.data();
         const createdAtMs = data.createdAt ? data.createdAt.toMillis() : Date.now();
-        
-        // In-memory pagination filtering
+
         if (!isNaN(lastCreatedAtMs) && createdAtMs >= lastCreatedAtMs) {
           return;
         }
@@ -188,7 +183,7 @@ export async function GET(req: NextRequest) {
           createdAt: createdAtMs,
           meta: `${dateStr} · 아파트 이야기`,
           summary: data.text || '',
-          apartmentName
+          apartmentName,
         });
       } catch (itemErr) {
         logger.error('PostsAPI.GET', `Error processing story doc ${doc.id}`, {}, itemErr as Error);
@@ -200,7 +195,7 @@ export async function GET(req: NextRequest) {
       .slice(0, limitVal);
 
     const posts: z.infer<typeof postItemSchema>[] = [];
-    combined.forEach(item => {
+    combined.forEach((item) => {
       const parsedItem = postItemSchema.safeParse(item);
       if (parsedItem.success) {
         posts.push(parsedItem.data);
@@ -211,12 +206,12 @@ export async function GET(req: NextRequest) {
 
     const parsedResponse = postsResponseSchema.safeParse({
       status: 'success',
-      posts
+      posts,
     });
 
     const responseData = parsedResponse.success ? parsedResponse.data : {
       status: 'success',
-      posts: []
+      posts: [],
     };
 
     if (isFirstPage) {
@@ -224,57 +219,55 @@ export async function GET(req: NextRequest) {
       lastCacheTime = now;
     }
 
-    return NextResponse.json(responseData);
+    return apiSuccess(responseData.posts, responseData);
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.error('PostsAPI.GET', 'Fetch posts api error', {}, err);
-    return NextResponse.json({ error: 'Failed to fetch posts' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to fetch posts', 500);
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = req.headers.get('x-forwarded-for');
-      const realIp = req.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_posts_post_${rawIp}`);
-      if (!success) {
-        logger.warn('PostsAPI.POST', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(req, {
+      prefix: 'ratelimit_posts_post',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('PostsAPI.POST', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     if (!db) {
       logger.warn('PostsAPI.POST', 'Firebase Admin DB not initialized');
-      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+      return apiError('DATABASE_UNAVAILABLE', 'Firebase Admin not initialized', 500);
     }
     const adminDb = db;
 
-    let body;
+    let body: unknown;
     try {
       body = await req.json();
     } catch (jsonErr) {
       logger.warn('PostsAPI.POST', 'Invalid JSON body structure', {}, jsonErr as Error);
-      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+      return apiError('BAD_REQUEST', 'Invalid JSON body structure', 400);
     }
 
     const parsed = PostCreateSchema.safeParse(body);
-    
+
     if (!parsed.success) {
       logger.warn('PostsAPI.POST', 'Invalid post creation payload', { errors: parsed.error.format() });
-      return NextResponse.json({ error: 'Invalid request payload', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Invalid request payload', 400, parsed.error.issues);
     }
 
-    const { 
-      title, 
-      content, 
-      category, 
-      authorUid, 
-      authorName, 
-      verifiedApartment, 
-      verificationLevel, 
-      imageUrl 
+    const {
+      title,
+      content,
+      category,
+      authorUid,
+      authorName,
+      verifiedApartment,
+      verificationLevel,
+      imageUrl,
     } = parsed.data;
 
     const docRef = await adminDb.collection('posts').add({
@@ -292,7 +285,6 @@ export async function POST(req: NextRequest) {
       createdAt: Timestamp.now(),
     });
 
-    // Invalidate lounge recent posts cache in Redis to keep the feed fresh
     try {
       const { redis } = await import('@/lib/redis');
       if (redis) {
@@ -303,10 +295,10 @@ export async function POST(req: NextRequest) {
     }
 
     logger.info('PostsAPI.POST', 'Post created via background sync API', { id: docRef.id });
-    return NextResponse.json({ status: 'success', id: docRef.id });
+    return apiSuccess({ id: docRef.id }, { status: 'success', id: docRef.id });
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.error('PostsAPI.POST', 'Create post api error', {}, err);
-    return NextResponse.json({ error: 'Failed to create post' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to create post', 500);
   }
 }

@@ -10,7 +10,7 @@ import { throttle } from '@/lib/utils/firestoreThrottle';
 import Image from 'next/image';
 import type { User } from 'firebase/auth';
 import { auth } from '@/lib/firebaseConfig';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface PhotoUploadModalProps {
   isOpen: boolean;

@@ -1,30 +1,11 @@
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import { ChevronDown, AlertTriangle, AlertCircle } from 'lucide-react';
-import { useSettingsValues } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/contexts/SettingsContext';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-export interface TransactionRecord {
-  dong?: string;
-  aptName: string;
-  area: number;
-  areaPyeong: number;
-  contractYm: string;
-  contractDay: string;
-  price: number;
-  priceEok: string;
-  deposit?: number;
-  monthlyRent?: number;
-  floor: number;
-  buildYear: number;
-  dealType?: string;
-  reqGb?: string;
-  rnuYn?: string;
-  cancelDate?: string;
-  isOutlier?: boolean;
-  areaLabelM2?: string;
-  areaLabelPyeong?: string;
-}
+import type { TransactionRecord } from '@/types';
+export type { TransactionRecord };
 
 interface TransactionTableProps {
   transactions: TransactionRecord[];

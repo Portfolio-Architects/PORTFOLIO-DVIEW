@@ -21,7 +21,7 @@ jest.mock('@/hooks/useAuth', () => ({
   }),
 }));
 
-jest.mock('@/lib/contexts/SettingsContext', () => ({
+jest.mock('@/contexts/SettingsContext', () => ({
   useSettingsUi: () => ({
     isSettingsModalOpen: false,
     setIsSettingsModalOpen: jest.fn(),

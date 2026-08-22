@@ -4,7 +4,7 @@ import React from 'react';
 import { Compass, MessageSquare, Home, Settings, LayoutDashboard, FileText, Coins, TrendingUp, Newspaper, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSettingsUi } from '@/lib/contexts/SettingsContext';
+import { useSettingsUi } from '@/contexts/SettingsContext';
 
 interface MobileDockProps {
   activeTab: 'imjang' | 'lounge' | 'overview' | 'office' | 'technovalley';

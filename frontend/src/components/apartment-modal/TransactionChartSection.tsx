@@ -15,31 +15,80 @@ import {
   Customized,
   ReferenceArea
 } from 'recharts';
-import { TransactionRecord } from './TransactionTable';
-import { useSettingsValues } from '@/lib/contexts/SettingsContext';
+import type { TransactionRecord, AptTxSummary } from '@/types';
+import { useSettingsValues } from '@/contexts/SettingsContext';
 import SegmentedControl from '../ui/SegmentedControl';
-import { AptTxSummary } from '@/lib/types/transaction';
 import { findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import ChartErrorBoundary from '@/components/common/ChartErrorBoundary';
 import { getCachedTimestamp, formatAvgPriceEok, clearTsCache, calculateMonthlyAverages } from '@/lib/utils/transactionChartTransform';
+
+export interface ScatterData {
+  ts: number;
+  yearMonth: number;
+  contractDay: number;
+  price: number;
+  area: number;
+  rawArea: number;
+  floor: number | string;
+  priceEok: string;
+  dealType?: string;
+  fullDate: string;
+  isOutlier: boolean;
+  areaLabelM2?: string;
+  areaLabelPyeong?: string;
+}
+
+interface TooltipPayloadItem {
+  payload?: {
+    ts?: number;
+    saleAvg?: number | null;
+    jeonseAvg?: number | null;
+    volume?: number;
+    monthAvg?: number | null;
+    [key: string]: unknown;
+  };
+  value?: number | string;
+  name?: string;
+  dataKey?: string;
+}
+
+interface TransactionChartTooltipProps {
+  active?: boolean;
+  payload?: TooltipPayloadItem[];
+  label?: number | string;
+}
+
+interface AxisMapEntry {
+  scale?: (val: number) => number;
+}
+
+interface ScatterCustomizedDotsProps {
+  xAxisMap?: Record<string, AxisMapEntry>;
+  yAxisMap?: Record<string, AxisMapEntry>;
+  displayScatterData: ScatterData[];
+  hoveredDot: { x: number; y: number; data: ScatterData } | null;
+  setHoveredDot: (dot: { x: number; y: number; data: ScatterData } | null) => void;
+  isTouchDevice: boolean;
+  getFloorColor: (dealType: string | undefined) => string;
+}
 
 const TOOLTIP_CURSOR_SECTION = { stroke: 'var(--border-color)', strokeWidth: 1, strokeDasharray: '4 4' };
 const BAR_RADIUS_SECTION: [number, number, number, number] = [2, 2, 0, 0];
 const DOT_SALE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff' };
 const DOT_JEONSE_SECTION = { r: 3, strokeWidth: 1.5, fill: '#ffffff' };
 
-const TransactionChartTooltip = React.memo(({ active, payload }: any) => {
+const TransactionChartTooltip = React.memo(({ active, payload }: TransactionChartTooltipProps) => {
   if (!active || !payload?.length) return null;
   const item = payload[0]?.payload;
   const vol = item?.volume;
   const hasRatio = item?.saleAvg != null && item?.jeonseAvg != null && item.saleAvg > 0;
-  const ratioValue = hasRatio ? ((item.jeonseAvg / item.saleAvg) * 100).toFixed(1) : null;
+  const ratioValue = (hasRatio && item?.jeonseAvg != null && item?.saleAvg != null) ? ((item.jeonseAvg / item.saleAvg) * 100).toFixed(1) : null;
 
   return (
     <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
       <div className="text-tertiary text-[12px] font-bold mb-2">
-        {new Date(item?.ts).getFullYear()}년 {String(new Date(item?.ts).getMonth() + 1).padStart(2, '0')}월
+        {item?.ts ? `${new Date(item.ts).getFullYear()}년 ${String(new Date(item.ts).getMonth() + 1).padStart(2, '0')}월` : ''}
       </div>
       <div className="flex flex-col gap-1.5">
         {item?.saleAvg != null && (
@@ -81,14 +130,14 @@ const ScatterCustomizedDots = React.memo(({
   setHoveredDot,
   isTouchDevice,
   getFloorColor,
-}: any) => {
+}: ScatterCustomizedDotsProps) => {
   if (!xAxisMap || !yAxisMap) return null;
-  const xAx = Object.values(xAxisMap)[0] as any;
-  const yAx = Object.values(yAxisMap)[0] as any;
+  const xAx = Object.values(xAxisMap)[0];
+  const yAx = Object.values(yAxisMap)[0];
   if (!xAx?.scale || !yAx?.scale) return null;
   return (
     <g>
-      {displayScatterData.map((d: any, i: number) => {
+      {displayScatterData.map((d: ScatterData, i: number) => {
         const cx = xAx.scale ? xAx.scale(d.ts) : 0;
         const cy = yAx.scale ? yAx.scale(d.price) : 0;
         if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
@@ -178,13 +227,6 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   const { areaUnit, setAreaUnit } = useSettingsValues();
 
   const safeTransactions = useMemo(() => transactions || [], [transactions]);
-
-  type ScatterData = {
-    ts: number; yearMonth: number; contractDay: number; price: number; area: number;
-    rawArea: number; floor: number; priceEok: string; dealType: string; fullDate: string; isOutlier: boolean;
-    areaLabelM2?: string;
-    areaLabelPyeong?: string;
-  };
 
   const [chartTimeframe, setChartTimeframe] = useState<'6M' | '1Y' | '3Y' | 'ALL'>('3Y');
   const [hoveredDot, setHoveredDot] = useState<{ x: number; y: number; data: ScatterData } | null>(null);
@@ -564,7 +606,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
 
   const customizedScatterComponent = useCallback((rechartProps: Record<string, unknown>) => (
     <ScatterCustomizedDots
-      {...rechartProps}
+      xAxisMap={rechartProps.xAxisMap as Record<string, AxisMapEntry> | undefined}
+      yAxisMap={rechartProps.yAxisMap as Record<string, AxisMapEntry> | undefined}
       displayScatterData={displayScatterData}
       hoveredDot={hoveredDot}
       setHoveredDot={setHoveredDot}

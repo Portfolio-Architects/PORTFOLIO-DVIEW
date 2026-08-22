@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { logger } from '@/lib/services/logger';
 import { fetchCsv } from '@/lib/services/googleSheets';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 // Curated Fallback / High-Fidelity Cured Dataset with Center Suffixes (100% Geolocated to Yeongcheon-dong, No Revenue)
 const FALLBACK_DATA = [
@@ -184,11 +186,17 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await checkRateLimit(request, {
+    prefix: 'ratelimit_technovalley_industry_distribution',
+    requestsPerLimit: 60,
+  });
+  if (!rateLimit.success) {
+    return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+  }
+
   const { searchParams } = new URL(request.url);
   const refresh = searchParams.get('refresh') === 'true';
 
-  const serviceKey = process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_API_KEY || '';
-  
   // Initialize dynamic anchors with code hardcoded constants first
   let dynamicAnchors: Record<string, string[]> = { ...ANCHOR_COMPANIES };
   let sheetLoaded = false;
@@ -211,10 +219,10 @@ export async function GET(request: NextRequest) {
 
   // Parse Google Sheet rows if successfully loaded
   if (sheetLoaded && sheetRows.length > 1) {
-    const header = sheetRows[0].map(h => h.trim());
-    const catIdx = header.findIndex(h => h.includes('구분') || h.includes('분류') || h.includes('Category'));
-    const nameIdx = header.findIndex(h => h.includes('회사명') || h.includes('기업명') || h.includes('상호') || h.includes('Name'));
-    const bldIdx = header.findIndex(h => h.includes('주소') || h.includes('입주건물') || h.includes('건물명') || h.includes('건물') || h.includes('Building'));
+    const header = sheetRows[0].map((h) => h.trim());
+    const catIdx = header.findIndex((h) => h.includes('구분') || h.includes('분류') || h.includes('Category'));
+    const nameIdx = header.findIndex((h) => h.includes('회사명') || h.includes('기업명') || h.includes('상호') || h.includes('Name'));
+    const bldIdx = header.findIndex((h) => h.includes('주소') || h.includes('입주건물') || h.includes('건물명') || h.includes('건물') || h.includes('Building'));
 
     const cIdx = catIdx !== -1 ? catIdx : 0;
     const nIdx = nameIdx !== -1 ? nameIdx : 1;
@@ -225,7 +233,7 @@ export async function GET(request: NextRequest) {
       '반도체·첨단제조': [],
       '바이오·헬스케어': [],
       '지식기반 서비스': [],
-      '정밀기기 및 기타': []
+      '정밀기기 및 기타': [],
     };
 
     let validRowsCount = 0;
@@ -261,18 +269,20 @@ export async function GET(request: NextRequest) {
 
   if (!sheetLoaded) {
     logger.warn('GET /api/technovalley/industry-distribution', 'Google Sheet failed to load, returning curated FALLBACK_DATA.');
-    return NextResponse.json({
-      success: true,
-      source: 'curated-cache',
-      data: FALLBACK_DATA,
-      message: '구글 스프레드시트 로드 실패로 로컬 고증 캐시 데이터를 반환했습니다.',
-      googleSheetSync: 'failed'
-    }, {
-      status: 200,
-      headers: {
-        'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600'
+    return apiSuccess(
+      FALLBACK_DATA,
+      {
+        source: 'curated-cache',
+        data: FALLBACK_DATA,
+        message: '구글 스프레드시트 로드 실패로 로컬 고증 캐시 데이터를 반환했습니다.',
+        googleSheetSync: 'failed',
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, max-age=86400, stale-while-revalidate=3600',
+        },
       }
-    });
+    );
   }
 
   try {
@@ -442,27 +452,21 @@ export async function GET(request: NextRequest) {
 
     logger.info('GET /api/technovalley/industry-distribution', 'Fetched and parsed successfully from Google Sheets (SSOT)', { total });
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess(calculatedData, {
       source: 'google-sheet-ssot',
       data: calculatedData,
       message: '구글 스프레드시트 싱글소스(SSOT) 동기화 성공',
       googleSheetSync: 'active',
-      totalCount: total
-    }, {
-      status: 200
+      totalCount: total,
     });
 
   } catch (err) {
     logger.error('GET /api/technovalley/industry-distribution', 'Failed to fetch live APIs, using fallback data', {}, err);
-    return NextResponse.json({
-      success: true,
+    return apiSuccess(FALLBACK_DATA, {
       source: 'curated-cache',
       data: FALLBACK_DATA,
       message: '실시간 API 호출 실패로 로컬 고증 캐시 데이터를 반환했습니다.',
-      error: err instanceof Error ? err.message : String(err)
-    }, {
-      status: 200
+      error: err instanceof Error ? err.message : String(err),
     });
   }
 }

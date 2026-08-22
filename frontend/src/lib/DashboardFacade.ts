@@ -512,6 +512,3 @@ if (process.env.NODE_ENV !== 'production') {
   globalForFacade.dashboardFacade = dashboardFacade;
 }
 
-// --- React Hook (re-exported for backward compatibility) ---
-export { useDashboardData } from '@/hooks/useDashboardData';
-

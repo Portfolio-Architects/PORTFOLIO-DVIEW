@@ -13,7 +13,9 @@
 /** MOLIT 공공데이터 실거래가 API 설정 */
 export const MOLIT_API_CONFIG = {
   /** API Service Key (공공데이터포털 발급) */
-  serviceKey: '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff',
+  get serviceKey(): string {
+    return process.env.PUBLIC_DATA_PORTAL_KEY || '';
+  },
   /** 법정동 코드 (화성시: 41590) */
   lawdCode: '41590',
   /** 거래년월 (조회 기준 YYYYMM) */

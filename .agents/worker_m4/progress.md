@@ -1,21 +1,20 @@
-# Progress — Milestone 4 (Orchestrator Engine)
+# Progress — Worker 4 (Milestone 4)
 
-- Last visited: 2026-07-15T00:03:15+09:00
+Last visited: 2026-08-22T02:04:10+09:00
 
-## Done
-- Initialized workspace metadata: `ORIGINAL_REQUEST.md`, `BRIEFING.md`
-- Explored codebase files (`config.py`, `vcs.py`, `runner.py`, `simulator.py`, `target_module.py`, `test_target_module.py`, `test_simulator.py`)
-- Added `SESSION_TIMEOUT_SECONDS` and `MAX_API_REQUESTS` to `config.py`
-- Implemented initial version of `SelfImprovementEngine` in `engine.py`
-- Fixed `test_target_module.py` to skip unimplemented tests on intermediate iterations
-- Successfully ran the main loop (succeeded 1-3, failed 4, rolled back to v3, verified, terminated)
+## Status: IN_PROGRESS
 
-## In Progress
-- Implementing Token Budget Distribution: `TOTAL_TOKEN_BUDGET`, `TOKEN_BUDGET_PER_ITERATION` in `config.py`, tracking cumulative tokens in `engine.py`.
-- Implementing Rate Limit Handling: `RateLimitError` in `simulator.py`, mock rate limit error on first attempt of Iteration 2, auto-resume/retry logic in `engine.py`.
-- Writing engine unit tests.
+### Completed Steps
+- Initialized DISPATCH.md and BRIEFING.md
 
-## Next Steps
-- Verify the updated engine, simulator, and config.
-- Record changes in `changes.md`.
-- Handoff and completion message.
+### Current Step
+- Investigating codebase: API routes, apartment page, apiResponse/rateLimiter, tests, and baseline build.
+
+### Next Steps
+1. Run baseline verification (`tsc`, `lint`, `test`).
+2. Audit all API routes in `frontend/src/app/api/` and existing helpers `@/lib/api/apiResponse`, `@/lib/api/rateLimiter`.
+3. Standardize API routes with envelope & rate limiter without breaking client callers / tests.
+4. Refactor `frontend/src/app/apartment/[aptName]/page.tsx` to extract domain service functions to `frontend/src/lib/services/apartmentPageService.ts`.
+5. Verify test preservation and write/update tests as needed.
+6. Run full verification (`tsc`, `lint`, `test`, `build`).
+7. Write handoff report and notify orchestrator.

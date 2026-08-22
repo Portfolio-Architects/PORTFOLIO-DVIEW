@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -11,15 +11,13 @@ const ProxyImageParamsSchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
-  if (rateLimiter) {
-    const forwarded = request.headers.get('x-forwarded-for');
-    const realIp = request.headers.get('x-real-ip');
-    const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-    const { success } = await rateLimiter.limit(`ratelimit_proxyimage_get_${rawIp}`);
-    if (!success) {
-      logger.warn('ProxyImageAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-      return new NextResponse('Too Many Requests', { status: 429 });
-    }
+  const rateLimit = await checkRateLimit(request, {
+    prefix: 'ratelimit_proxyimage_get',
+    requestsPerLimit: 60,
+  });
+  if (!rateLimit.success) {
+    logger.warn('ProxyImageAPI.GET', 'Rate limit exceeded');
+    return new NextResponse('Too Many Requests', { status: 429 });
   }
 
   const urlParam = request.nextUrl.searchParams.get('url');
@@ -34,7 +32,7 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
-    
+
     if (!response.ok) {
       logger.warn('ProxyImageAPI.GET', 'Failed to fetch remote image', { url, statusText: response.statusText, status: response.status });
       return new NextResponse(`Failed to fetch image: ${response.statusText}`, { status: response.status });
@@ -56,4 +54,3 @@ export async function GET(request: NextRequest) {
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
-

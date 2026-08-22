@@ -1,12 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * @module useDashboardMeta
+ * @description Hook for managing dashboard metadata, apartment name mapping, unit type mapping,
+ * and public rental flags with lazy fetching and request cancellation.
+ * Architecture Layer: Application / Hooks (`src/hooks/`)
+ */
+
+import { useState, useEffect, useCallback, useRef } from 'react';
 import useSWR from 'swr';
 import { logger } from '@/lib/services/logger';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { KPIData } from '@/lib/types/dashboard.types';
 import type { FieldReportData } from '@/lib/types/report.types';
-import type { DongtanMacroTrendPoint, AptTxSummary, Recent7DaysVolume, RecentTransaction } from '@/lib/types/transaction';
+import type { DongtanMacroTrendPoint, AptTxSummary, Recent7DaysVolume, RecentTransaction } from '@/types/transaction';
 import { z } from 'zod';
+import { apiClient } from '@/lib/api/apiClient';
 
 const TypeMapEntrySchema = z.object({
   aptName: z.string().catch(''),
@@ -20,10 +28,6 @@ const ApartmentMetaValueSchema = z.object({
   txKey: z.string().optional().catch(undefined),
   isPublicRental: z.boolean().optional().catch(undefined),
 }).catchall(z.any());
-
-const ApartmentsByDongResponseSchema = z.object({
-  byDong: z.record(z.string(), z.array(z.any())).optional().catch(undefined),
-}).passthrough();
 
 const DashboardInitResponseSchema = z.object({
   typeMap: z.array(TypeMapEntrySchema).optional().catch(undefined),
@@ -43,14 +47,25 @@ export interface DashboardInitialDataLocal {
   recentTransactions?: RecentTransaction[];
 }
 
+const dashboardInitFetcher = (url: string) => apiClient.get(url);
+
 export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLocal) {
   const [startFetch, setStartFetch] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const [sheetApartments, setSheetApartments] = useState<Record<string, DongApartment[]>>(() => {
     if (initialDashboardData?.sheetApartments && Object.keys(initialDashboardData.sheetApartments).length > 0) {
       const updatedByDong = Object.fromEntries(
         Object.entries(initialDashboardData.sheetApartments).map(([dong, apts]) => {
-          const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a.name) }));
+          const mappedApts = (apts as DongApartment[]).map((a) => ({ ...a, name: getDisplayAptName(a.name) }));
           const dedupedMap = new Map<string, DongApartment>();
           for (const a of mappedApts) {
             const existing = dedupedMap.get(a.name);
@@ -65,6 +80,7 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     }
     return buildInitialApartments();
   });
+
   const [typeMap, setTypeMap] = useState<Record<string, Record<string, { typeM2: string; typePyeong: string }>>>(() => {
     if (initialDashboardData?.typeMap) {
       const map: Record<string, Record<string, { typeM2: string; typePyeong: string }>> = {};
@@ -77,6 +93,7 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     }
     return {};
   });
+
   const [nameMapping, setNameMapping] = useState<Record<string, string> | undefined>(() => {
     if (initialDashboardData?.apartmentMeta) {
       const mapping: Record<string, string> = {};
@@ -88,6 +105,7 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     }
     return undefined;
   });
+
   const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(() => {
     if (initialDashboardData?.apartmentMeta) {
       const rentals = new Set<string>();
@@ -109,19 +127,22 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
   // Fetch combined sheet apartments and typeMap on demand (Lazy Fetching)
   useEffect(() => {
     if (hasSheetData || !startFetch) return;
-    
-    let unmounted = false;
+
+    const controller = new AbortController();
     setIsLoading(true);
-    
-    fetch('/api/explore/search-data')
-      .then(r => r.json())
-      .then(data => {
-        if (unmounted) return;
-        
+
+    apiClient
+      .get<{
+        sheetApartments?: Record<string, DongApartment[]>;
+        typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
+      }>('/api/explore/search-data', { signal: controller.signal })
+      .then((data) => {
+        if (!isMountedRef.current || controller.signal.aborted) return;
+
         if (data.sheetApartments && Object.keys(data.sheetApartments).length > 0) {
           const updatedByDong = Object.fromEntries(
             Object.entries(data.sheetApartments).map(([dong, apts]) => {
-              const mappedApts = (apts as DongApartment[]).map(a => ({ ...a, name: getDisplayAptName(a?.name || '') }));
+              const mappedApts = (apts as DongApartment[]).map((a) => ({ ...a, name: getDisplayAptName(a?.name || '') }));
               const dedupedMap = new Map<string, DongApartment>();
               for (const a of mappedApts) {
                 if (!a) continue;
@@ -146,18 +167,20 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
           setTypeMap(map);
         }
       })
-      .catch((err) => { 
-        if (!unmounted) {
-          logger.warn('DashboardMeta', 'Failed to lazy fetch search data', {}, err); 
+      .catch((err) => {
+        if (isMountedRef.current && !controller.signal.aborted) {
+          logger.warn('DashboardMeta', 'Failed to lazy fetch search data', {}, err);
         }
       })
       .finally(() => {
-        if (!unmounted) setIsLoading(false);
+        if (isMountedRef.current && !controller.signal.aborted) {
+          setIsLoading(false);
+        }
       });
 
-      return () => { 
-        unmounted = true; 
-      };
+    return () => {
+      controller.abort();
+    };
   }, [hasSheetData, startFetch]);
 
   const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);
@@ -165,7 +188,7 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
 
   const { data: initData, error: initError } = useSWR(
     shouldFetchInit ? '/api/dashboard-init' : null,
-    (url: string) => fetch(url).then(r => r.json()),
+    dashboardInitFetcher,
     { revalidateOnFocus: false }
   );
 
@@ -178,7 +201,7 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     const validation = DashboardInitResponseSchema.safeParse(initData);
     if (!validation.success) {
       logger.warn('useDashboardMeta.fetchDashboardInit', 'Validation failed for /api/dashboard-init', {
-        errors: validation.error.issues.map(e => e.message),
+        errors: validation.error.issues.map((e) => e.message),
       });
       setNameMapping({});
       return;
@@ -214,6 +237,6 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     nameMapping,
     publicRentalSet,
     triggerFetch,
-    isLoading
+    isLoading,
   };
 }

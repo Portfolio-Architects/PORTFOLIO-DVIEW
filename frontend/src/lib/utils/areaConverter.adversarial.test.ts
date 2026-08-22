@@ -1,6 +1,6 @@
 import { getSupplyPyeong as esmGetSupply } from './areaConverter';
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const areaConverterCjs = require('./areaConverter.js');
+const areaConverterCjs = require('./areaConverter');
 import fs from 'fs';
 import path from 'path';
 

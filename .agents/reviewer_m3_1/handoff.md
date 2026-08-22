@@ -1,148 +1,111 @@
-# Handoff Report — Milestone 3 Review (Requirement R3)
+# Milestone 3 (Application & Hooks Layer Refactoring) — Reviewer 1 Report
 
 ## 1. Observation
 
-### Implementation & Test Files Inspected
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/reporter.py` (`ReportGenerator`)
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/vcs.py` (`CustomVCS`)
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/engine.py` (`SelfImprovementEngine`)
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/IMPROVEMENT_REPORT.md`
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_reporter.py`
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_vcs.py`
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_e2e_suite.py`
-- `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/tests/test_challenger_m1_3_stress.py`
+### 1.1 Decoupling of `src/hooks/useStaticData.ts` from Firestore SDK
+- **File Checked**: `src/hooks/useStaticData.ts` (lines 1–205)
+- **Import Analysis**:
+  - `src/hooks/useStaticData.ts` contains **zero direct imports** from `firebase/firestore`, `@firebase/*`, or direct database clients.
+  - Line 20–26 imports:
+    ```typescript
+    import {
+      staticDataService,
+      FirestoreTransaction,
+      FirestoreTransactionSchema,
+      mergeTransactions,
+      mergeRecentTransactions,
+      computeRecent7DaysVolume,
+    } from '@/lib/services/staticDataService';
+    ```
+  - Static JSON data fetching is delegated to `staticDataService.fetchJson<T>(url)` (line 31).
+  - Real-time Firestore transaction fetching is delegated to `staticDataService.fetchRecentTransactionsFromFirestore(30)` (line 110).
+  - Merged calculations (`mergedSummary`, `mergedRecentTxs`, `mergedRecent7DaysVolume`) invoke pure domain utilities exported by `staticDataService`.
+  - Lifecycle cleanup is properly implemented using `requestIdleCallback` / `setTimeout` with `isMountedRef` cancellation (lines 42–68).
 
-### Test Suite Execution Output
-Command executed:
-`python -m unittest discover -s recursive_self_improvement -p "test_*.py"`
+### 1.2 Encapsulation in `src/lib/services/staticDataService.ts`
+- **File Checked**: `src/lib/services/staticDataService.ts` (lines 1–440)
+- **Firestore Operations**:
+  - Encapsulates `collection`, `query`, `where`, `getDocs` from `firebase/firestore` (line 8) and `db` from `@/lib/firebaseConfig` (line 9).
+  - Validates document shapes at runtime via Zod schema `FirestoreTransactionSchema` (lines 21–35).
+- **In-Memory Caching & TTL**:
+  - Uses `memoryCache = new Map<string, CacheEntry<unknown>>()` with `DEFAULT_FIRESTORE_CACHE_TTL = 300000` (5 minutes) (lines 48–49).
+  - `fetchRecentTransactionsFromFirestore(days, forceRefresh)` returns cached data if `!forceRefresh && cached && now - cached.timestamp < DEFAULT_FIRESTORE_CACHE_TTL` (lines 342–352).
+  - Provides `clearCache(): void` for cache eviction (lines 436–438).
+- **Offline & Error Resilience**:
+  - Checks if `db` is unavailable (`if (!db) return cached?.data || [];`, lines 354–356).
+  - Wraps query execution in `try / catch`, logs errors via `logger.error`, and gracefully falls back to cached data or empty array without throwing unhandled exceptions (lines 382–391).
+- **Static File Fetching & Pure Domain Helpers**:
+  - `fetchJson<T>`, `fetchTxSummary`, `fetchRecentTransactions`, `fetchMacroTrend`, `fetchLocationScores` with `AbortSignal` support (lines 397–431).
+  - Pure calculation functions: `formatPriceEok`, `parsePriceEokToMan`, `updateSaleAveragesWithNewTx`, `mergeTransactions`, `mergeRecentTransactions`, `computeRecent7DaysVolume` (lines 54–333).
 
-Output:
-```
-Ran 168 tests in 71.456s
-FAILED (failures=2)
+### 1.3 Typed API Client & Consumer Hooks
+- **Typed API Client**: `src/lib/api/apiClient.ts` provides typed `get`, `post`, `put`, `patch`, `delete`, `getEnvelope` with `ApiResponse<T>` support, automatic JSON serialization, `AbortSignal` cancellation, 5xx exponential backoff retries, and typed `ApiClientError`.
+- **Refactored Consumer Hooks**:
+  - `src/hooks/useFavorites.ts`: Replaced raw `fetch()` with `apiClient`, added `AbortController` cancellation and `isMountedRef` lifecycle guards.
+  - `src/hooks/useComments.ts`: Replaced push notification and Google Indexing API `fetch()` with `apiClient.post`.
+  - `src/hooks/useApartmentDetails.ts`: Replaced view tracking `fetch()` with `apiClient.post`, integrated `AbortController`, and retained `activeRequestIdRef` to reject out-of-order stale responses.
+  - `src/hooks/usePostDetail.ts`: Implemented `activeRequestIdRef` guards against race conditions on rapid post selection, and typed operations for likes and comments.
+  - `src/hooks/useMacroData.ts` & `src/hooks/useTechnoValleyData.ts`: Encapsulated domain fetching with `apiClient` / `staticDataService`.
+  - `src/hooks/useDashboardMeta.ts` & `src/hooks/usePreloadApartmentTx.ts`: Switched search data and preload fetchers to `apiClient`.
 
-FAIL: test_rollback_missing_version_raises_when_no_v0 (tests.test_challenger_m1_3_stress.VCSMissingSnapshotFallbackStressTest.test_rollback_missing_version_raises_when_no_v0)
-AssertionError: FileNotFoundError not raised
-
-FAIL: test_t2_f7_b1_rollback_to_nonexistent_version_raises (tests.test_e2e_suite.TestTier2BoundaryCases.test_t2_f7_b1_rollback_to_nonexistent_version_raises)
-AssertionError: FileNotFoundError not raised
-```
-
-### Observation 1: Contract Violation in `vcs.py` causing 2 Test Failures
-In `vcs.py`, lines 70–90:
-Docstring:
-`Raises FileNotFoundError only if neither target_module.v{version_idx}.py nor target_module.v0.py exists.`
-Code implementation:
-```python
-76: if os.path.exists(version_path):
-77:     with open(version_path, "r", encoding="utf-8", errors="replace") as f:
-78:         content = f.read()
-79: else:
-80:     # Fallback to initial baseline file (v0) if available, or current target file
-81:     v0_path = os.path.join(self.history_dir, "target_module.v0.py")
-82:     if os.path.exists(v0_path):
-83:         with open(v0_path, "r", encoding="utf-8", errors="replace") as f:
-84:             content = f.read()
-85:     elif os.path.exists(self.target_file):
-86:         with open(self.target_file, "r", encoding="utf-8", errors="replace") as f:
-87:             content = f.read()
-88:     else:
-89:         content = ""
-```
-Lines 85–89 silently fall back to reading `self.target_file` or returning `""` instead of raising `FileNotFoundError` when neither `version_path` nor `v0_path` exists. This directly breaks `test_rollback_missing_version_raises_when_no_v0` and `test_t2_f7_b1_rollback_to_nonexistent_version_raises`.
-
-### Observation 2: Trajectory Table Column Count Mismatch in `reporter.py`
-In `recursive_self_improvement/reporter.py`, line 267 defines `trajectory_table_header`:
-```python
-267: trajectory_table_header = "| Iteration | Event | Quality Score | LOC | Methods | Pass Rate (%) | Latency (s) | Memory (MB) | Accuracy |\n|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
-```
-- Header row contains **9 columns**: `Iteration`, `Event`, `Quality Score`, `LOC`, `Methods`, `Pass Rate (%)`, `Latency (s)`, `Memory (MB)`, `Accuracy`.
-- Alignment delimiter row contains **8 columns**: `|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|` (missing one `:---:|` column specifier).
-- Data rows (line 185) contain **9 columns**:
-  `| {iter_val if iter_val is not None else 'N/A'} | {event_type} | {quality_score_str} | {loc_str} | {methods_str} | {pass_rate_str} | {latency_str} | {memory_str} | {accuracy_str} |`
-
-In generated `IMPROVEMENT_REPORT.md` (lines 50-55):
-```markdown
-### Generation Trajectory Table
-| Iteration | Event | Quality Score | LOC | Methods | Pass Rate (%) | Latency (s) | Memory (MB) | Accuracy |
-|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| 0 | SUCCESS | 43.00 | 6 | 1 | 100.0% | N/A | N/A | N/A |
-```
-Because line 51 has 8 alignment blocks while lines 50 and 52 have 9 columns, GFM/CommonMark Markdown table renderers drop or misalign the 9th column (`Accuracy`).
-
-### Observation 3: Test Discovery Pattern Collision with History Snapshots
-In `recursive_self_improvement/vcs.py` (lines 25, 29, 111), test snapshots saved to `history/` are named `test_target_module.v{version_idx}.py`.
-When running test discovery via `python -m unittest discover -s recursive_self_improvement -p "test_*.py"`, `unittest` scans `history/` and executes historical snapshot files matching `test_*.py`.
-
-### Observation 4: Integrity & Non-Facade Verification
-- No hardcoded test outputs or dummy facade implementations were found in `reporter.py`, `vcs.py`, or `engine.py`.
-- `ReportGenerator` dynamically parses `execution_log.json`, calculates quantitative LOC/method/AST metrics, extracts unified diff patches from `.diff` files, and generates safety audit attestations.
-- `CustomVCS` uses `difflib.unified_diff` to record real `.diff` patch files and supports dual-file version snapshotting.
-- `SelfImprovementEngine._finalize_and_generate_report()` automatically generates `IMPROVEMENT_REPORT.md` on loop completion or early signal termination.
+### 1.4 Verification Command Results
+All 4 verification gates were independently executed in `frontend/`:
+1. `npx tsc --noEmit`:
+   - Exit code: `0`
+   - Output: 0 errors
+2. `npm run lint`:
+   - Exit code: `0`
+   - Output: 0 errors, 0 warnings
+3. `npm test`:
+   - Exit code: `0`
+   - Output: 79 test suites passed, 610 tests passed (100% pass rate)
+4. `npm run build`:
+   - Exit code: `0`
+   - Output: Next.js 16.2.6 (Turbopack) production build completed, 177/177 static pages generated.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Premise**: Requirement R3 and Milestone 3 require an automated markdown report generator (`reporter.py`), unified `.diff` patch loggers, execution event logging (`execution_log.json`), valid report formatting, and 100% test suite passage.
-2. **Analysis of Test Suite Execution**:
-   - Running `python -m unittest discover -s recursive_self_improvement -p "test_*.py"` resulted in 2 test failures out of 168 tests.
-   - Both failures stem from `vcs.py` `restore_version()`: when neither `target_module.v{version}.py` nor `target_module.v0.py` exists, `vcs.py` falls back to `self.target_file` instead of raising `FileNotFoundError` as documented and required by unit tests.
-3. **Analysis of Trajectory Table Formatting**:
-   - `reporter.py` constructs a table with 9 header columns and 9 data columns per row.
-   - Line 267 of `reporter.py` constructs the delimiter row with only 8 alignment specifiers (`|:---:|` x 8).
-   - This creates malformed Markdown tables in all generated reports (`IMPROVEMENT_REPORT.md`).
-4. **Conclusion**:
-   - The implementation core logic is genuine and comprehensive (no integrity cheating), but fails 2 unit tests and produces malformed Markdown tables.
-   - Therefore, the verdict MUST be `REQUEST_CHANGES`.
+1. **Decoupling Verified**: Inspection of `src/hooks/useStaticData.ts` demonstrates complete elimination of direct `firebase/firestore` imports from the React hooks layer, satisfying R1.3 (Application & Hook Layer boundary) and R2.1 (clean dependency direction: Application → Infrastructure → Domain).
+2. **Encapsulation & Resilience Verified**: `src/lib/services/staticDataService.ts` centralizes Firestore queries and static JSON file fetching behind a clean service repository interface with in-memory caching (5-min TTL), Zod schema validation, and graceful offline fallback.
+3. **Concurrency & Race Condition Safety Verified**: Custom hooks (`useApartmentDetails.ts`, `usePostDetail.ts`, `useFavorites.ts`, `useComments.ts`) enforce `AbortController` cleanup and `activeRequestIdRef` / `isMountedRef` guards to prevent memory leaks and out-of-order state overwrites.
+4. **Zero Regressions Across All Verification Gates**: All static analysis, linting, unit/integration test suites (79 suites / 610 tests), and production Turbopack builds pass with status code 0 and zero errors.
+5. **No Integrity Violations**: No hardcoded test responses, dummy facades, or shortcuts were found in source code or test suites.
 
 ---
 
 ## 3. Caveats
 
-- Subprocess stderr output printed during `test_e2e_suite.py` execution is normal artifact output from the benchmark evaluation of intentional baseline errors.
+- In `TechnoValleyDashboard.tsx`, dynamic property indexing for Recharts series is preserved via `apiClient.get<any>`, which maintains compatibility with the charting contract.
+- No caveats regarding regressions or interface breaking changes; 100% of test suites and builds pass cleanly.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict**: **REQUEST_CHANGES**
+**Verdict: APPROVE**
 
-### Findings Summary
-
-#### [Critical] Finding 1: Unit Test Suite Failures in `vcs.py` (`FileNotFoundError` Not Raised)
-- **Location**: `recursive_self_improvement/vcs.py`, lines 70–90
-- **Why**: `restore_version` docstring states: *"Raises FileNotFoundError only if neither target_module.v{version_idx}.py nor target_module.v0.py exists."* However, lines 85–89 fall back to reading `self.target_file` or returning `""` instead of raising `FileNotFoundError`.
-- **Impact**: Fails 2 unit tests (`test_rollback_missing_version_raises_when_no_v0` and `test_t2_f7_b1_rollback_to_nonexistent_version_raises`).
-- **Fix Suggestion**: Update `vcs.py` lines 85–89 to raise `FileNotFoundError` when neither `version_path` nor `v0_path` exists:
-  ```python
-  elif os.path.exists(v0_path):
-      with open(v0_path, "r", encoding="utf-8", errors="replace") as f:
-          content = f.read()
-  else:
-      raise FileNotFoundError(f"Neither version {version_idx} nor baseline version 0 found in history.")
-  ```
-
-#### [Major] Finding 2: Trajectory Table Column Count Mismatch in `reporter.py`
-- **Location**: `recursive_self_improvement/reporter.py`, line 267
-- **Why**: Header has 9 columns and data rows have 9 columns, but the alignment delimiter row has only 8 specifiers (`|:---:|` x 8).
-- **Impact**: Produces malformed GFM/CommonMark Markdown tables in `IMPROVEMENT_REPORT.md`.
-- **Fix Suggestion**: Update line 267 in `reporter.py` to:
-  ```python
-  trajectory_table_header = "| Iteration | Event | Quality Score | LOC | Methods | Pass Rate (%) | Latency (s) | Memory (MB) | Accuracy |\n|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|"
-  ```
-
-#### [Minor] Finding 3: History Snapshot Filename Collision with `unittest discover`
-- **Location**: `recursive_self_improvement/vcs.py`, lines 25, 29, 111
-- **Why**: Snapshot test files saved to `history/` are named `test_target_module.v{idx}.py`, matching pattern `test_*.py`.
-- **Fix Suggestion**: Rename history test snapshots (e.g. `target_test.v{idx}.py` or `history_test.v{idx}.py`) so `unittest discover` targets only unit test files in `tests/`.
+The Milestone 3 implementation cleanly decouples `src/hooks/useStaticData.ts` from direct Firestore SDK imports, encapsulates data synchronization in `src/lib/services/staticDataService.ts` with in-memory TTL caching and offline fallback, introduces a robust typed `ApiClient`, hardens custom hooks against race conditions with `AbortController`, and satisfies all 4 verification gates with zero errors.
 
 ---
 
 ## 5. Verification Method
 
-To verify the required fixes:
-1. Update `vcs.py` to raise `FileNotFoundError` when neither version snapshot nor baseline `v0` exists.
-2. Update `reporter.py` line 267 to include 9 `:---:|` column specifiers.
-3. Re-run: `python -m unittest discover -s recursive_self_improvement -p "test_*.py"` and confirm 100% test passage.
-4. Verify `IMPROVEMENT_REPORT.md` trajectory table alignment.
+To independently verify the implementation:
+
+```bash
+cd frontend
+
+# 1. Type check
+npx tsc --noEmit
+
+# 2. Lint check
+npm run lint
+
+# 3. Unit and integration tests (79 suites, 610 tests)
+npm test
+
+# 4. Production build (Turbopack)
+npm run build
+```

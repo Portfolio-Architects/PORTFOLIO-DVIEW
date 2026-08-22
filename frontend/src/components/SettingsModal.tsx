@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Moon, Sun, Monitor, Scaling, Bell, BellOff, Loader2 } from 'lucide-react';
-import { useSettings } from '@/lib/contexts/SettingsContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { usePWA } from './pwa/PWAProvider';
 
 const SettingsModal = React.memo(function SettingsModal() {

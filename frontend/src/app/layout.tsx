@@ -28,8 +28,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import Script from 'next/script';
 import NextTopLoader from 'nextjs-toploader';
 import { ThemeProvider } from '@/components/ThemeProvider';
-import { SettingsProvider } from '@/lib/contexts/SettingsContext';
-import { AuthProvider } from '@/lib/contexts/AuthContext';
+import { SettingsProvider, AuthProvider } from '@/contexts';
 import Footer from '@/components/Footer';
 
 import dynamic from 'next/dynamic';
@@ -37,6 +36,8 @@ import WelcomeModal from '@/components/ui/WelcomeModal';
 import { safeReload } from '@/lib/utils/safeReload';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import { logger } from '@/lib/services/logger';
+
+import SettingsModal from '@/components/SettingsModal';
 
 
 export const metadata: Metadata = {
@@ -166,6 +167,7 @@ export default function RootLayout({
                   <Footer />
                   <CustomA2HSModal />
                   <WelcomeModal />
+                  <SettingsModal />
                   <ScrollToTop />
                 </PWAProvider>
                 <div id="modal-root" />

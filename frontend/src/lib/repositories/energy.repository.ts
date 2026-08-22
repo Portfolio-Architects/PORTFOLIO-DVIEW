@@ -16,7 +16,11 @@ export async function fetchEnergyJsonFromPublicPortal(
   bun: string,
   ji: string
 ): Promise<string> {
-  const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+  const key = process.env.PUBLIC_DATA_PORTAL_KEY;
+  if (!key) {
+    logger.warn('energy.repository.fetchEnergyJsonFromPublicPortal', 'PUBLIC_DATA_PORTAL_KEY environment variable is not configured. Returning empty response.');
+    return JSON.stringify({ response: { header: { resultCode: '99', resultMsg: 'PUBLIC_DATA_PORTAL_KEY is not configured' }, body: { items: { item: [] } } } });
+  }
   
   // Official 건축HUB 건물에너지정보 서비스 endpoint and getBeElctyUsgInfo (electricity) operation
   const endpoint = 'https://apis.data.go.kr/1613000/BldEngyHubService/getBeElctyUsgInfo';

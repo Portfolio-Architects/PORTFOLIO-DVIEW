@@ -1,78 +1,165 @@
-# Completion Handoff Report: Requirement R2 Survey & Analysis
+# Handoff Report — Infrastructure, Data Access, Repositories, and Hooks Survey
 
-**Agent**: `explorer_survey_2` (teamwork_preview_explorer)  
-**Working Directory**: `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2`  
-**Parent Conversation ID**: `bab2aefd-8e23-49be-ba79-37982d8851c4`  
-**Handoff Type**: Hard (Task Complete)  
+**Author**: Explorer 2  
+**Role**: Teamwork Explorer (Investigator & Synthesizer)  
+**Date**: 2026-08-21  
+**Handoff Type**: Hard (Task Complete)
 
 ---
 
 ## 1. Observation
 
-1. **Target Module Location**:
-   - The workspace root `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW` contains an existing implementation folder `self_improvement_loop/`.
-   - Files inspected in `self_improvement_loop/`: `config.py`, `vcs.py`, `runner.py`, `engine.py`, `simulator.py`, `run.py`, `target_module.py`, `test_target_module.py`, `test_engine.py`, `test_simulator.py`, `test_vcs.py`.
+Direct code observations with exact file paths and line numbers:
 
-2. **Existing Verification Infrastructure (`runner.py` & `engine.py`)**:
-   - `runner.py`, Lines 38-51: Test execution uses `subprocess.run([python_executable, self.test_file], timeout=60)` and returns `{"success": result.returncode == 0, "stdout": result.stdout, "stderr": result.stderr, "returncode": result.returncode}`.
-   - `engine.py`, Lines 319-373 & 386-472:
-     - Pre-validates AST syntax with `ast.parse()`.
-     - Executes tests via `runner.run_tests()`.
-     - Triggers `self.vcs.rollback(version_idx)` when AST validation fails or `test_result["success"] == False`.
-     - Unconditionally accepts new code versions when `test_result["success"] == True`.
+1. **Upward Layer Dependencies & Circularities**:
+   - `frontend/src/lib/DashboardFacade.ts:516`:
+     ```typescript
+     // --- React Hook (re-exported for backward compatibility) ---
+     export { useDashboardData } from '@/hooks/useDashboardData';
+     ```
+     `DashboardFacade` in the infrastructure layer (`src/lib/`) directly imports and re-exports a React hook from the application hook layer (`src/hooks/`).
+   - `frontend/src/lib/contexts/SettingsContext.tsx:9-13`:
+     ```typescript
+     const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => {
+       logger.warn('SettingsContext.SettingsModal', 'SettingsModal Chunk Load failure, initiating fallback reload', undefined, err);
+       safeReload('SettingsModal');
+       return { default: () => null };
+     }), {
+     ```
+     `SettingsContext` in `src/lib/contexts/` directly imports a React UI modal component from `src/components/SettingsModal`.
+   - `frontend/src/lib/repositories/post.repository.ts:13`:
+     ```typescript
+     import { Train, Building, BookOpen, MessageSquare } from 'lucide-react';
+     ```
+     A repository data access module imports React icon presentation components.
+   - `frontend/src/lib/repositories/traffic.repository.ts:57`:
+     ```typescript
+     await fetch('/api/traffic', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/json' },
+       body: JSON.stringify({ action: 'websiteVisit' })
+     });
+     ```
+     A repository calls an internal Next.js HTTP Route Handler (`/api/traffic`), which in turn calls Firestore Admin SDK. `report.repository.ts:300` and `post.repository.ts:272` also call `TrafficRepo.incrementContentView`, forming an indirect HTTP loop.
 
-3. **Current Missing R2 Capabilities**:
-   - `runner.py` does not track wall-clock execution latency (`time.perf_counter()`), peak memory allocation (`tracemalloc`), test pass rates (passed/total count), or numerical accuracy metrics.
-   - `engine.py` lacks performance degradation detection logic. It does not compare candidate metrics against baseline metrics and does not trigger rollbacks on slowdowns, memory spikes, or accuracy drops.
+2. **Scattered Data Access & Missing Client Adapters in Hooks**:
+   - `frontend/src/hooks/useStaticData.ts:3-4, 265-275`:
+     ```typescript
+     import { collection, query, where, getDocs } from 'firebase/firestore';
+     import { db } from '@/lib/firebaseConfig';
+     ...
+     const q = query(
+       collection(db, 'transactions'),
+       where('contractDate', '>=', cutoffDateStr)
+     );
+     const snap = await getDocs(q);
+     ```
+     `useStaticData.ts` executes raw client-side Firestore queries directly inside a custom React hook without utilizing any repository or data adapter.
+   - `frontend/src/hooks/useComments.ts:89, 105`:
+     ```typescript
+     await fetch('/api/push/notify-comment', { ... });
+     fetch('/api/indexing/apartment', { ... });
+     ```
+   - `frontend/src/hooks/useFavorites.ts:80, 122, 151, 260, 291`:
+     Direct raw `fetch('/api/favorite-counts')` and `fetch('/api/favorite')` calls scattered across multiple effects and callbacks without an API client wrapper.
 
-4. **Environment Execution Verification**:
-   - Command executed: `.venv\Scripts\python.exe -m unittest discover -s self_improvement_loop -p "test_*.py"`
-   - Result: 21 unit tests executed in 0.087 seconds; status `OK`.
+3. **Untyped `any` Types in Repository Contracts**:
+   - `frontend/src/lib/repositories/report.repository.ts:310, 413, 431, 448`:
+     ```typescript
+     export async function fetchRecentScoutingReports(limitCount: number = 30): Promise<any[]>
+     export async function saveScoutingReport(reportData: any): Promise<string>
+     export async function updateScoutingReport(reportId: string, updateData: any): Promise<void>
+     export async function saveFieldReport(fieldReportData: any): Promise<string>
+     ```
+   - `frontend/src/lib/repositories/post.repository.ts:431`:
+     ```typescript
+     async function processCombinedPosts(..., rawStories: any[], limitCount: number)
+     ```
+
+4. **Hardcoded Fallback API Keys in Source Files**:
+   - `frontend/src/lib/repositories/officeTx.repository.ts:184`:
+     ```typescript
+     const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+     ```
+   - `frontend/src/lib/repositories/energy.repository.ts:19`:
+     ```typescript
+     const key = process.env.PUBLIC_DATA_PORTAL_KEY || '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+     ```
+   - `frontend/src/lib/config/api.config.ts:16`:
+     ```typescript
+     serviceKey: '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff',
+     ```
+
+5. **Inconsistent API Route Response Envelope & Rate Limiting**:
+   - `frontend/src/app/api/apartments-by-dong/route.ts:20, 22, 47`:
+     Direct `rateLimiter.limit(...)` call instead of `checkRateLimit()`, returns `{ error: 'Too Many Requests' }` and `{ error: 'Failed to load apartments' }` instead of using `apiError()`.
+   - `frontend/src/app/api/favorite/route.ts:77-106`:
+     Route handler directly executes Firestore Admin transactions (`adminDb.runTransaction`), Redis operations (`redis.hincrby`), and returns `{ favorited }` instead of using `apiSuccess()`.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Observation 1 & 2** established that `self_improvement_loop/` has working VCS snapshot versioning (`vcs.py`) and test runner subprocess execution (`runner.py`).
-2. **Observation 3** showed that `runner.py` and `engine.py` currently check only process return code (`returncode == 0`) and AST syntax validity (`ast.parse()`).
-3. **Requirement R2 Specification** (from `ORIGINAL_REQUEST.md`) requires:
-   - Quantitative measurement of 4 metrics: pass rate (%), execution time, memory usage, and accuracy score.
-   - Automated rollback mechanism triggered when candidate code encounters errors OR degrades quantitative performance indicators.
-4. **Synthesis & Deduction**:
-   - Therefore, the current codebase satisfies basic safety rollback for syntax/compile errors, but fails Requirement R2 for quantitative benchmark metrics and performance degradation rollbacks.
-5. **Proposed Solution**:
-   - Implement `benchmark_runner.py` to collect `BenchmarkMetrics` using `tracemalloc`, `time.perf_counter()`, and custom test result parsers.
-   - Integrate `DegradationDetector` into `engine.py` with performance regression thresholds ($\tau_{time} = 15\%$, $\tau_{mem} = 20\%$, $\tau_{acc} = 1\%$).
-   - Expand `engine.py` rollback logic to revert code and provide alternative optimization feedback whenever performance degradation is detected.
+1. **Premise**: Architectural cleanliness requires strict unidirectional dependency flow: Presentation (`src/components/`, `src/app/`) → Application / State (`src/hooks/`, `src/contexts/`) → Infrastructure / Repositories (`src/lib/`, `src/repositories/`) → Domain (`src/types/`, `src/domain/`).
+2. **From Observation 1**: When `DashboardFacade` re-exports `useDashboardData`, `SettingsContext` renders `SettingsModal`, and `post.repository` imports Lucide icons, lower layers depend directly on higher-level Presentation/Application constructs. This creates circular build dependencies and hinders modular tree-shaking and isolation.
+3. **From Observation 2**: When custom hooks perform raw Firestore queries (`useStaticData`) and scattered `fetch()` calls (`useFavorites`, `useComments`), the data fetching layer cannot be tested in isolation, mocked cleanly in SSR/E2E, or centralized for global retry, caching, and auth token management.
+4. **From Observation 3**: When repository methods accept or return `any`, domain type safety is lost at the data boundary, allowing schema drift and runtime type assertion errors.
+5. **From Observation 4**: Hardcoded fallback API keys in repositories violate secure configuration standards and prevent dynamic environment key rotation.
+6. **From Observation 5**: When API routes bypass `apiSuccess`/`apiError` and `checkRateLimit`, client adapters cannot rely on a uniform response contract (`{ success, data, error, meta }`), leading to defensive ad-hoc parsing across UI hooks.
+7. **Conclusion**: Establishing explicit repository/adapter interfaces, isolating React contexts into an application layer, creating a unified HTTP client adapter, and enforcing API envelope standardization will eliminate all circularities and satisfy R1, R2, and R3.
 
 ---
 
 ## 3. Caveats
 
-1. **Execution Directory Naming**: The user prompt mentions target directory `recursive_self_improvement`, while the existing project code is located in `self_improvement_loop`. The orchestrator/implementer must ensure proper mapping or directory creation if required by system specs.
-2. **Memory Profiling Precision**: `tracemalloc` tracks Python heap memory allocations cross-platform. System-level C-extension memory allocations outside the Python heap would require `psutil` or platform-specific APIs if required.
-3. **Execution Noise Tolerance**: Wall-clock latency measurement (`time.perf_counter()`) on Windows OS can experience slight jitter due to background thread scheduling; a 15% tolerance threshold ($\tau_{time} = 0.15$) is recommended to prevent false-positive rollbacks.
+1. **Static Data Fallbacks**: Several services (`googleSheets.ts`, `dashboardData.ts`) rely on static JSON files in `public/data/` (e.g., `apartments-by-dong.json`, `macro-trend.json`, `type-map.json`) as fallbacks. Refactoring must preserve these local cache fallbacks so that offline and test environments function seamlessly.
+2. **E2E Mock Auth Bridge**: `AuthContext.tsx` contains special mock auth hooks (`window.__E2E_MOCK_AUTH__`) tailored for Playwright testing. Any relocation of `AuthContext` must preserve this interface.
+3. **Double-Write Operations**: `comment.repository.ts` writes atomically to both `field_reports/{id}/comments` and `lounge_apt_stories`. This behavioral double-write is intentional for cross-feed discovery and must be preserved during repository restructuring.
 
 ---
 
 ## 4. Conclusion
 
-Requirement R2 (Evaluation & Verification Framework) can be fully met by building upon the existing `self_improvement_loop/` architecture. The required quantitative metrics (pass rate, execution time, peak memory, accuracy) and degradation rollback engine are fully analyzed and specified in `.agents/explorer_survey_2/analysis.md`. The design is modular, cross-platform, and backwards-compatible with all existing tests.
+The data and infrastructure layer is functionally resilient (supported by Upstash Redis fallbacks, in-memory caching, firestore throttles, and offline queues), but requires systematic structural realignment across Milestones 2 and 3:
+
+1. **Milestone 2 Priority**:
+   - Extract domain types and DTOs into `src/types/`.
+   - Remove upward and circular dependencies (`SettingsModal` from `SettingsContext`, `useDashboardData` from `DashboardFacade`, Lucide icons from `post.repository`).
+   - Move `src/lib/contexts/` to `src/contexts/`.
+   - Clean up hardcoded API keys into Zod-validated environment configurations.
+   - Standardize all API route handlers with `checkRateLimit` and `apiSuccess`/`apiError`.
+
+2. **Milestone 3 Priority**:
+   - Create a typed `ApiClient` / Adapter layer for client-side HTTP calls.
+   - Refactor `useStaticData.ts` to consume a dedicated repository rather than raw Firestore queries.
+   - Standardize `AbortController` cancellation and cache invalidation policies across all custom hooks.
 
 ---
 
 ## 5. Verification Method
 
-1. **Inspect Analysis Report**:
-   - File: `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2/analysis.md`
-   - Check completeness of line-by-line evidence chain and proposed code specifications for `benchmark_runner.py` and `DegradationDetector`.
+To verify these observations and subsequent refactoring implementations:
 
-2. **Verify Project Test Suite Execution**:
-   - Command:
-     ```powershell
-     powershell -Command ".\\.venv\\Scripts\\python.exe -m unittest discover -s self_improvement_loop -p 'test_*.py'"
-     ```
-   - Invalidation Condition: Failure of any of the 21 existing unit tests.
-
-3. **Verify Proposed Metric Module Interface**:
-   - Inspect data structures `BenchmarkMetrics` and `DegradationDetector` rules outlined in `analysis.md` for full metric coverage (pass rate, execution time, memory, accuracy).
+1. **Static Type Check**:
+   ```bash
+   npx tsc --noEmit
+   ```
+2. **Lint & Layer Dependency Verification**:
+   ```bash
+   npm run lint
+   ```
+3. **Automated Unit & Integration Test Suite**:
+   ```bash
+   npm test
+   ```
+4. **Production Build Validation**:
+   ```bash
+   npm run build
+   ```
+5. **Key Files to Inspect for Verification**:
+   - `frontend/src/lib/DashboardFacade.ts` (Verify no hooks re-exported)
+   - `frontend/src/lib/contexts/SettingsContext.tsx` (Verify no UI components imported)
+   - `frontend/src/lib/repositories/post.repository.ts` (Verify no Lucide icons imported)
+   - `frontend/src/hooks/useStaticData.ts` (Verify no raw `firebase/firestore` queries)
+   - `frontend/src/lib/repositories/report.repository.ts` (Verify all `any` types replaced with strict DTOs)
+   - `frontend/src/app/api/favorite/route.ts` & `apartments-by-dong/route.ts` (Verify standard response envelopes)

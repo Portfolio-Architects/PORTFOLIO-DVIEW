@@ -4,6 +4,7 @@ import { z } from 'zod';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '@/lib/services/logger';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 let fontBoldBuffer: ArrayBuffer | null = null;
 let fontRegularBuffer: ArrayBuffer | null = null;
@@ -78,6 +79,14 @@ const ogParamsSchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
+  const rateLimit = await checkRateLimit(req, {
+    prefix: 'ratelimit_og_image',
+    requestsPerLimit: 60,
+  });
+  if (!rateLimit.success) {
+    return rateLimit.response || new Response('Too Many Requests', { status: 429 });
+  }
+
   // Safe load of local Pretendard Fonts via fs.readFileSync for Node.js Serverless runtime
   try {
     if (!fontBoldBuffer) {
@@ -92,7 +101,6 @@ export async function GET(req: NextRequest) {
     }
   } catch (fontErr) {
     logger.error('OGImageAPI.GET', 'Failed to pre-load local Web Fonts for OG image generator', {}, fontErr as Error);
-    // Fail-safe: Fallback gracefully to default Satori system sans-serif fonts
   }
 
   try {

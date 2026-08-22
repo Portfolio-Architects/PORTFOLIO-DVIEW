@@ -16,6 +16,7 @@ import {
 import PageHeroHeader from '@/components/PageHeroHeader';
 import dynamic from 'next/dynamic';
 import OfficeDetailModal from '@/components/OfficeDetailModal';
+import type { JisanStatusItem } from '@/types';
 
 const CoLeasingBoard = dynamic(() => import('@/components/macro/CoLeasingBoard'), {
   ssr: false,
@@ -337,7 +338,7 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
 
 OfficeBuildingCard.displayName = 'OfficeBuildingCard';
 
-function calculateJisanScore(item: any, existingScore?: number): number {
+function calculateJisanScore(item: Partial<JisanStatusItem>, existingScore?: number): number {
   let score = 10;
 
   // 1. 건축/입주 상태 (최대 20점)
@@ -431,7 +432,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
       });
     };
 
-    const handleMouseUp = () => {
+  const handleMouseUp = () => {
       isResizingRef.current = false;
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
@@ -451,7 +452,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
   });
 
   const allBuildings = useMemo<OfficeBuilding[]>(() => {
-    const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
+    const centers: JisanStatusItem[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];
     if (!centers.length) return BUILDINGS_DB;
 
     const normalizeKey = (s: string) => s.replace(/동탄|\s+/g, '');

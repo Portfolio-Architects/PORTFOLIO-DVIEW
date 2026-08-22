@@ -1,33 +1,43 @@
 /**
- * Preload ApartmentModal and its sub-components to achieve instant transitions
+ * @module preloadHelpers
+ * @description Pure asset and data preloading utilities.
+ * Architecture Layer: Infrastructure / Utility (zero UI component imports)
  */
-export function preloadApartmentModal() {
-  if (typeof window === 'undefined') return;
-  
-  // Preload main component
-  import('@/components/ApartmentModal').catch(() => {});
-  
-  // Preload ApartmentModal sub-components as well for 0ms transition stutter
-  import('@/components/CommentSection').catch(() => {});
-  import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
-  import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
-  import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
-  import('@/components/apartment-modal/PhotoUploadModal').catch(() => {});
-  import('@/components/apartment-modal/BuyOrWaitVote').catch(() => {});
-  import('@/components/apartment-modal/EducationAnalysisSection').catch(() => {});
-  import('@/components/apartment-modal/InfraAnalysisSection').catch(() => {});
-  import('@/components/apartment-modal/ScoutingReportDetailSection').catch(() => {});
-  import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
-  import('@/components/consumer/AnchorTenantCard').catch(() => {});
+
+const preloadedAssets = new Set<string>();
+
+/**
+ * Preloads a static image URL in the browser environment.
+ * @param src - Image URL to preload
+ */
+export function preloadImage(src: string): Promise<void> {
+  if (typeof window === 'undefined' || !src) return Promise.resolve();
+  if (preloadedAssets.has(src)) return Promise.resolve();
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      preloadedAssets.add(src);
+      resolve();
+    };
+    img.onerror = () => {
+      resolve(); // Graceful resolve to not block callers
+    };
+    img.src = src;
+  });
 }
 
 /**
- * Preload other heavy dashboard client features
+ * Preloads and caches a JSON dataset via fetch in the background.
+ * @param url - URL of the JSON resource
  */
-export function preloadDashboardFeatures() {
-  if (typeof window === 'undefined') return;
-  import('@/components/GapInvestmentExplorer').catch(() => {});
-  import('@/components/LoungeContainerClient').catch(() => {});
-  import('@/components/MacroDashboardClient').catch(() => {});
-  import('@/components/OfficeExplorerClient').catch(() => {});
+export async function preloadJson<T = unknown>(url: string): Promise<T | null> {
+  if (typeof window === 'undefined' || !url) return null;
+  try {
+    const res = await fetch(url, { priority: 'low' } as RequestInit);
+    if (!res.ok) return null;
+    return await res.json() as T;
+  } catch {
+    return null;
+  }
 }

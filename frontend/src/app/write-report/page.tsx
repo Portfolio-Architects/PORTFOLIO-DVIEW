@@ -3,8 +3,10 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronLeft, MapPin, Building, Info, Map as MapIcon, ShieldAlert, Zap, RotateCcw, Save } from 'lucide-react';
-import { useDashboardData, dashboardFacade, ReportSections } from '@/lib/DashboardFacade';
-import { User } from 'firebase/auth';
+import type { User } from 'firebase/auth';
+import { dashboardFacade } from '@/lib/DashboardFacade';
+import { useDashboardData } from '@/hooks/useDashboardData';
+import type { ReportSections } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { EmojiRating as BaseEmojiRating, MultiPhotoDropzone as BaseMultiPhotoDropzone, TextInput as BaseTextInput, SelectInput as BaseSelectInput } from '@/components/write-report/ReportUI';
 import { logger } from '@/lib/services/logger';

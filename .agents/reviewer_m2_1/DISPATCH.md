@@ -1,15 +1,27 @@
-## 2026-08-04T11:32:23Z
-You are reviewer_m2_1, a teamwork_preview_reviewer agent.
-Your Working Directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m2_1
+## 2026-08-21T15:23:45Z
+You are Reviewer 1 for Milestone 2 (Infrastructure & Repository Layer Refactoring) on the D-VIEW project.
 
-MANDATORY READS:
-1. C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/ORIGINAL_REQUEST.md
-2. C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/PROJECT.md
+Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1`
+Authoritative user request: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+Project scope: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
+Worker 2 handoff: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m2\handoff.md`
+Frontend codebase root: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
 
-Objective:
-Review Milestone 2 implementation (Evaluation & Verification Framework R2) in C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/:
-- `evaluator.py` (`BenchmarkRunner`): `pass_rate` (%), `execution_time_sec`, `peak_memory_mb`, `accuracy_score`.
-- `engine.py` & `config.py`: Performance degradation detection (latency 15%, RAM 20%, accuracy 1%), `REJECT_*` logging, VCS rollback, and baseline re-verification.
-- Test suites: Run `python -m unittest discover -s recursive_self_improvement -p "test_*.py"`.
-Deliver handoff report to `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m2_1/handoff.md` with explicit Verdict: APPROVE or REQUEST_CHANGES.
-Send completion message to parent conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4.
+Task:
+1. Review the elimination of upward layer imports in `frontend/src/lib/`:
+   - Verify `src/lib/DashboardFacade.ts` no longer imports or re-exports React hooks from `@/hooks`.
+   - Verify `src/lib/utils/preloadHelpers.ts` no longer imports UI components from `@/components`.
+   - Verify `src/lib/utils/transactionChartTransform.ts` imports types from `@/types` instead of `@/components/apartment-modal/TransactionTable`.
+2. Review the context relocation:
+   - Verify `src/contexts/` contains `AuthContext.tsx` and `SettingsContext.tsx`.
+   - Verify `SettingsContext.tsx` is cleanly decoupled from `SettingsModal` (modal mounted at layout boundary `src/app/layout.tsx`).
+   - Verify backward compatibility re-exports in `src/lib/contexts/*`.
+3. Run verification commands in `frontend/`:
+   - `npx tsc --noEmit`
+   - `npm run lint`
+   - `npm test`
+   - `npm run build`
+4. Write your review report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1\handoff.md`.
+5. Provide a clear verdict: **APPROVE** or **REQUEST_CHANGES**.
+
+Send a completion message back to the orchestrator when finished.

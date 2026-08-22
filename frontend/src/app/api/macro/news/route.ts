@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { getMacroNews } from '@/lib/services/newsData';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,8 +16,17 @@ const macroNewsQuerySchema = z.object({
   }),
 });
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_macro_news',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('MacroNewsAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+    }
+
     const { searchParams } = new URL(request.url);
     const parsedQuery = macroNewsQuerySchema.safeParse({
       limit: searchParams.get('limit') || undefined,
@@ -25,21 +36,15 @@ export async function GET(request: Request) {
       logger.warn('MacroNewsAPI.GET', 'Invalid query parameters', {
         errors: parsedQuery.error.format(),
       });
-      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+      return apiError('INVALID_QUERY', 'Bad Request', 400);
     }
 
     const { limit } = parsedQuery.data;
     const newsItems = await getMacroNews(limit);
 
-    return NextResponse.json({
-      status: 'success',
-      data: newsItems,
-    });
+    return apiSuccess(newsItems, { status: 'success' });
   } catch (error) {
     logger.error('MacroNewsAPI.GET', 'Error during GET request', {}, error as Error);
-    return NextResponse.json(
-      { status: 'error', message: 'Failed to fetch news data' },
-      { status: 500 }
-    );
+    return apiError('INTERNAL_ERROR', 'Failed to fetch news data', 500);
   }
 }

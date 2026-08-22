@@ -1,44 +1,42 @@
-# BRIEFING — 2026-07-21T13:40:00Z
+﻿# BRIEFING — 2026-08-21T18:55:00Z
 
 ## Mission
-M5 verification of data pipeline integrity, Zod schemas, Google Sheets SSOT parser, Ministry of Land XML parser, Redis L2 cache, SWR sync, audit-pipeline.js, and running test suite.
+Milestone 5 Reviewer 2: Final Verification & Zero-Regression Guardrail (Type safety, circular dependencies, static checks, unit/e2e tests, production build, integrity check).
 
 ## 🔒 My Identity
-- Archetype: Reviewer & Adversarial Critic
+- Archetype: reviewer_and_adversarial_critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m5_2
-- Original parent: a0677f44-7a04-4339-9bf4-a43b8c44fab2
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
 - Milestone: M5
 - Instance: 2 of 2
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Check for integrity violations (hardcoded test results, facade implementations, self-certifying shortcuts)
-- Verify commands in frontend/: npm run audit, npm test, npx tsc --noEmit, npx eslint . --max-warnings=10
+- Evidence-based review with independent verification of all claims and build/test targets
+- Zero tolerance for integrity violations, shortcuts, facade implementations, or hardcoded test passes
 
 ## Current Parent
-- Conversation ID: a0677f44-7a04-4339-9bf4-a43b8c44fab2
-- Updated: 2026-07-21T13:40:00Z
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: not yet
 
 ## Review Scope
-- **Files to review**: `frontend/src/lib/validation/facade.schemas.ts`, Google Sheets SSOT parser, Ministry of Land XML parser, Redis L2 cache (`redis.ts`), SWR sync, `frontend/scripts/audit-pipeline.js`
-- **Interface contracts**: PROJECT.md / SCOPE.md
-- **Review criteria**: correctness, style, conformance, pipeline integrity, adversarial attack surface
-
-## Key Decisions Made
-- Initiated M5 review step 1: context and file discovery.
-
-## Artifact Index
-- ORIGINAL_REQUEST.md — Original request instructions
-- BRIEFING.md — Persistent briefing context
-- progress.md — Heartbeat progress file
+- **Files to review**: rontend/src/**/*, rontend/tests/**/*, rontend/package.json, worker_m5 changes
+- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md
+- **Review criteria**: Circular dependencies (madge), Type safety (tsc / 0 ny regressions), Lint (eslint), Tests (jest / vitest / playwright), Production build (next build)
 
 ## Review Checklist
-- **Items reviewed**: pending
+- **Items reviewed**: Pending execution of verification gates
 - **Verdict**: pending
-- **Unverified claims**: all
+- **Unverified claims**: Circular deps, tsc, lint, test, build, any regressions
 
 ## Attack Surface
-- **Hypotheses tested**: pending
-- **Vulnerabilities found**: pending
-- **Untested angles**: Zod schema bypasses, parser fallback logic, dummy implementations, mock data hardcoding
+- **Hypotheses tested**: Pending
+- **Vulnerabilities found**: Pending
+- **Untested angles**: Circular dependencies, unsafe any usage, silent error handling, edge cases
+
+## Key Decisions Made
+- Initiated independent review and verification suite
+
+## Artifact Index
+- .agents/reviewer_m5_2/handoff.md — Final review report

@@ -8,22 +8,19 @@
  * 
  * Single serverless cold-start instead of 3.
  */
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
-import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 import { redis } from '@/lib/redis';
-import fs from 'fs';
-import path from 'path';
 import typeMapStatic from '../../../../public/data/type-map.json';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 
 export const runtime = 'nodejs';
-export const dynamic = 'force-dynamic'; // Vercel build-time network isolation 대비 (런타임에 동적으로 실행 후 CDN 캐시)
+export const dynamic = 'force-dynamic';
 
-// 보안 및 정합성: 유입 데이터 스키마 정의
 const favoriteCountsSchema = z.record(z.string(), z.coerce.number().nonnegative());
 const typeMapEntrySchema = z.object({
   aptName: z.string().min(1),
@@ -35,14 +32,12 @@ const typeMapSchema = z.array(typeMapEntrySchema);
 const apartmentMetaSchema = z.record(z.string(), z.unknown());
 
 export async function GET(request: NextRequest) {
-  if (rateLimiter) {
-    const forwarded = request.headers.get('x-forwarded-for');
-    const realIp = request.headers.get('x-real-ip');
-    const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-    const { success } = await rateLimiter.limit(`ratelimit_${rawIp}`);
-    if (!success) {
-      return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-    }
+  const rateLimit = await checkRateLimit(request, {
+    prefix: 'ratelimit_dashboard_init',
+    requestsPerLimit: 60,
+  });
+  if (!rateLimit.success) {
+    return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
   }
 
   const result: {
@@ -68,7 +63,7 @@ export async function GET(request: NextRequest) {
         clearTimeout(timeoutId);
         throw err;
       }),
-      timeoutPromise
+      timeoutPromise,
     ]);
   };
 
@@ -85,20 +80,20 @@ export async function GET(request: NextRequest) {
           if (parsed.success) return parsed.data;
           logger.warn('DashboardInitAPI.GET', 'Redis favoriteCounts schema mismatch', { errors: parsed.error.format() });
         }
-        
+
         if (adminDb) {
           const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
           const rawCounts: Record<string, number> = {};
-          snap.docs.forEach(doc => {
+          snap.docs.forEach((doc) => {
             const data = doc.data();
             if (data.count > 0) {
               rawCounts[data.aptName || doc.id] = data.count;
             }
           });
-          
+
           const parsed = favoriteCountsSchema.safeParse(rawCounts);
           if (parsed.success) {
-            redis.hset('DTDLS:cache:favoriteCounts', parsed.data).catch(err => {
+            redis.hset('DTDLS:cache:favoriteCounts', parsed.data).catch((err) => {
               logger.warn('DashboardInitAPI.GET', 'Redis HSET error', {}, err as Error);
             });
             return parsed.data;
@@ -108,7 +103,7 @@ export async function GET(request: NextRequest) {
       } else if (adminDb) {
         const snap = await withTimeout(adminDb.collection('favoriteCounts').get(), firestoreTimeout);
         const rawCounts: Record<string, number> = {};
-        snap.docs.forEach(doc => {
+        snap.docs.forEach((doc) => {
           const data = doc.data();
           if (data.count > 0) {
             rawCounts[data.aptName || doc.id] = data.count;
@@ -153,7 +148,7 @@ export async function GET(request: NextRequest) {
           const parsed = apartmentMetaSchema.safeParse(metaData);
           if (parsed.success) {
             if (redis && Object.keys(parsed.data).length > 0) {
-              redis.set('DTDLS:cache:apartmentMeta', parsed.data, { ex: 86400 }).catch(e => {
+              redis.set('DTDLS:cache:apartmentMeta', parsed.data, { ex: 86400 }).catch((e) => {
                 logger.warn('DashboardInitAPI.GET', 'Redis meta write error', {}, e as Error);
               });
             }
@@ -168,10 +163,9 @@ export async function GET(request: NextRequest) {
     return {};
   };
 
-  // Run database queries in parallel
   const [favoriteCountsRes, apartmentMetaRes] = await Promise.all([
     fetchFavoriteCounts(),
-    fetchApartmentMeta()
+    fetchApartmentMeta(),
   ]);
 
   result.favoriteCounts = favoriteCountsRes;
@@ -194,19 +188,18 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Type map (Static JSON Cache first -> Google Sheets Fallback)
+  // Type map
   try {
     const parsed = typeMapSchema.safeParse(typeMapStatic);
     if (parsed.success) {
       result.typeMap = parsed.data;
     } else {
       logger.warn('DashboardInitAPI.GET', 'Static typeMap schema mismatch', { errors: parsed.error.format() });
-      result.typeMap = typeMapStatic as unknown as { aptName: string; area: string; typeM2: string; typePyeong: string }[]; // Fallback
+      result.typeMap = typeMapStatic as unknown as { aptName: string; area: string; typeM2: string; typePyeong: string }[];
     }
   } catch (e) {
     logger.warn('DashboardInitAPI.GET', 'typeMap error', {}, e as Error);
   }
 
-  return NextResponse.json(result);
+  return apiSuccess(result, result);
 }
-

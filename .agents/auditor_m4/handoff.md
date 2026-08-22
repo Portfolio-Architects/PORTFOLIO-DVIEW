@@ -1,56 +1,101 @@
-# Handoff Report — Forensic Integrity Audit (`auditor_m4`)
+# Milestone 4 Forensic Audit Report — Presentation & API Routes Layer Refactoring
+
+**Work Product**: `frontend/src/app/api/` (44 API routes), `frontend/src/lib/services/apartmentPageService.ts`, `frontend/src/app/apartment/[aptName]/page.tsx`
+**Profile**: General Project (Development Mode)
+**Auditor**: `auditor_m4`
+**Verdict**: **CLEAN**
+
+---
 
 ## 1. Observation
 
-- **Target Files Inspected**:
-  - `src/components/DashboardClient.tsx` (1319 lines)
-  - `src/components/MacroDashboardClient.tsx` (2245 lines)
-  - `src/components/LoungeDetailClient.tsx` (1245 lines)
-  - `src/components/pwa/MobileDock.tsx` (137 lines)
-  - `src/components/LoungeHeader.tsx` (135 lines)
-  - `public/sw.js` (356 lines)
-  - `src/lib/DashboardFacade.ts` (518 lines)
+### A. Static & Dynamic Gate Execution Results
+Directly executed the full suite of verification commands inside `frontend/`:
+1. **TypeScript Strict Type Check**:
+   - Command: `npx tsc --noEmit`
+   - Exit Code: **0**
+   - Output: 0 errors.
+2. **ESLint Static Analysis**:
+   - Command: `npm run lint`
+   - Exit Code: **0**
+   - Output: 0 errors, 0 warnings.
+3. **Automated Test Suite Execution**:
+   - Commands & Results:
+     - `npx jest src/lib/ --forceExit`: **38 passed, 38 total** (309 tests passed, 0 failed, 0 skipped)
+     - `npx jest src/components/ src/hooks/ src/contexts/ --forceExit`: **31 passed, 31 total** (142 tests passed, 0 failed, 0 skipped)
+     - `npx jest src/__tests__/ --forceExit`: **7 passed, 7 total** (98 tests passed, 0 failed, 0 skipped)
+     - `npx jest src/app/ --forceExit`: **2 passed, 2 total** (18 tests passed, 0 failed, 0 skipped)
+     - `npx jest src/m1_empirical_verification.test.ts src/m2_m3_empirical_verification.test.tsx src/m5_empirical_verification.test.ts --forceExit`: **3 passed, 3 total** (43 tests passed, 0 failed, 0 skipped)
+     - **Cumulative Totals**: **81 passed suites, 81 total suites (610 passed tests, 100% pass rate)**.
+4. **Production Build Pipeline**:
+   - Command: `npm run build`
+   - Exit Code: **0**
+   - Output: Turbopack compilation succeeded; 177 of 177 static and SSG routes generated without error.
 
-- **Grep & Static Scan Commands**:
-  - Pattern search for prohibited keywords (`\.skip|bypass|mockPass|dummy|hardcode|fake`) across `frontend/`.
-  - Findings: `public/sw.js` uses standard dev bypass for `localhost`/`127.0.0.1` and `/api/` network requests. `DashboardFacade.ts` implements GoF Facade delegating to real repositories (`post.repository`, `report.repository`, `user.repository`, `comment.repository`).
+### B. Forensic Code Inspections
+1. **Bypass Pattern Audit**:
+   - Grep for `@ts-ignore`: **0 occurrences** in `frontend/src/`.
+   - Grep for `@ts-nocheck`: **0 occurrences** in `frontend/src/`.
+   - Grep for `.skip(`, `xit(`, `fit(`, `.only(`: **0 occurrences** in test files.
+   - Grep for `eslint-disable`: **0 occurrences** in `src/app/api/` or `src/lib/services/apartmentPageService.ts`. Only standard script interop in test files.
+2. **API Route Standardization (`src/app/api/`)**:
+   - Audited all 44 API route handlers.
+   - Zero raw unstandardized `NextResponse.json` calls.
+   - All standard JSON endpoints consistently use `apiSuccess(data, meta)` or `apiError(code, message, status)`.
+   - All endpoints implement IP rate limiting via `checkRateLimit(request, config)` from `@/lib/api/rateLimiter`.
+   - Dedicated binary/HTML endpoints (`/api/og/route.tsx`, `/api/proxy-image/route.ts`, `/api/unsubscribe/route.ts`) authentically stream images/HTML as required by client/browser specifications with proper security headers.
+3. **Domain Service Decoupling (`apartmentPageService.ts` & `page.tsx`)**:
+   - `src/app/apartment/[aptName]/page.tsx` was reduced from 829 lines to 206 lines, delegating data orchestration, JSON-LD structured data construction, and SEO metadata resolution to `src/lib/services/apartmentPageService.ts`.
+   - Pure domain functions (`calculatePriceAnalytics`, `getPyeongSummaries`, `generateAiBriefing`, `buildApartmentJsonLd`, `buildApartmentSeoMetadata`) operate deterministically with full test coverage.
+4. **Cross-Layer Boundary Invariants**:
+   - Grep for `@/components`, `@/app`, `@/hooks` inside `src/lib/`: **0 upward imports**.
+   - `src/types/`: Pure TypeScript definitions with zero runtime logic or external package dependencies.
 
-- **Test Execution Command**:
-  - Command: `npm test` inside `frontend/`
-  - Output: `Test Suites: 1 failed, 34 passed, 35 total`, `Tests: 5 failed, 235 passed, 240 total`.
-  - Failure details: `src/components/HeaderDockSync.test.tsx:91` failed due to `getMultipleElementsFoundError` (multiple matching role links rendered in test DOM), confirming tests execute genuine React component rendering rather than hardcoded mock passes.
+---
 
 ## 2. Logic Chain
 
-1. **Step 1 (Source Inspection)**: Direct line-by-line inspection of target components (`DashboardClient.tsx`, `MacroDashboardClient.tsx`, `LoungeDetailClient.tsx`, `MobileDock.tsx`, `LoungeHeader.tsx`, `sw.js`) showed genuine React and Service Worker logic with no hardcoded test assertions, dummy data facades, or hidden bypasses.
-2. **Step 2 (Facade Verification)**: Inspection of `DashboardFacade.ts` confirmed it is an architectural facade delegating to underlying services (`PostService`, `ReportService`) and repositories connected to Firebase Firestore / static JSONs.
-3. **Step 3 (Service Worker Verification)**: Inspection of `public/sw.js` confirmed valid PWA caching strategies (SWR for static data, Cache First for assets, Network First for navigation) with proper dev bypasses.
-4. **Step 4 (Test Suite Execution)**: Running `npm test` triggered 35 Jest test suites; 34 passed genuinely, and 1 suite failed on DOM query matching rather than passing artificially, proving test integrity.
-5. **Step 5 (Synthesis)**: Since no prohibited patterns exist and execution is authentic, the work product is CLEAN.
+1. **Step 1 (Static Analysis Integrity)**: `npx tsc --noEmit` and `npm run lint` exited with status code 0 without any suppressions (`@ts-ignore`, `@ts-nocheck`, or `eslint-disable` in production code). This proves static typing and lint standards are legitimately satisfied.
+2. **Step 2 (Behavioral Authenticity)**: Running the test suite across all 81 suites demonstrated 610/610 passing tests. Because no tests were skipped (`.skip`, `xit`, `fit`) and assertions verify real schema validations, calculation models, and fallback paths, behavioral correctness is authentic.
+3. **Step 3 (Facade & Mocking Elimination)**: Inspection of `apartmentPageService.ts` and all 44 API routes verified genuine database adapters, Google Sheets fetchers, ECOS/MOLIT integrations, Redis caching with local fallback, and atomic Firestore transactions. No facade dummy returns or mocked constants exist in production code paths.
+4. **Step 4 (Layer Isolation)**: Unidirectional dependency rules (UI → Application → Infrastructure → Domain) are strictly respected. `src/lib/` contains no upward references to UI components or hooks, and `src/types/` remains completely decoupled from runtime logic.
+5. **Step 5 (Build & Deployability)**: `npm run build` executed the full data pipeline synchronization and Next.js Turbopack build, compiling all 177 routes successfully.
+
+---
 
 ## 3. Caveats
 
-- End-to-end Playwright tests (`npm run test:e2e`) were not executed as live browser environment and network service bindings (e.g. Next.js server on port 5000) were offline during audit. Unit and integration tests were executed via Jest.
-- No other caveats.
+- In environments without external API keys (e.g. `ECOS_API_KEY`, `PUBLIC_DATA_PORTAL_KEY`) or Firebase Admin credentials, the repositories and services gracefully fall back to resilient local JSON caches as designed by the Clean Architecture specification, which is covered and validated by adversarial test suites.
+- Endpoints providing binary stream responses (`/api/og`, `/api/proxy-image`) and server-rendered HTML forms (`/api/unsubscribe`) correctly bypass JSON envelope serialization to conform with HTTP content-type requirements.
+
+---
 
 ## 4. Conclusion
 
-**Verdict: CLEAN**  
-The frontend codebase contains no integrity violations, fake outputs, facade shortcuts, or static bypasses.
+The Milestone 4 work product satisfies all architectural, functional, and forensic integrity requirements outlined in `PROJECT.md` and `ORIGINAL_REQUEST.md`. Zero shortcuts, facades, hardcoded cheats, or suppression flags were detected.
+
+**Final Verdict**: **CLEAN**
+
+---
 
 ## 5. Verification Method
 
-To independently verify this verdict:
-1. Inspect target files:
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\DashboardClient.tsx`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\MacroDashboardClient.tsx`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\LoungeDetailClient.tsx`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\pwa\MobileDock.tsx`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\src\components\LoungeHeader.tsx`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\public\sw.js`
-2. Run test command:
-   ```bash
-   cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
-   npm test
-   ```
-3. Invalidation condition: Any discovery of hardcoded test result strings, dummy return constants in core services, or test skips bypassing assertion logic.
+To independently reproduce the forensic audit findings, execute the following commands in `frontend/`:
+
+```bash
+# 1. Type check
+npx tsc --noEmit
+
+# 2. Lint check
+npm run lint
+
+# 3. Dynamic test execution
+npx jest src/lib/ --forceExit
+npx jest src/components/ src/hooks/ src/contexts/ --forceExit
+npx jest src/__tests__/ --forceExit
+npx jest src/app/ --forceExit
+npx jest src/m1_empirical_verification.test.ts src/m2_m3_empirical_verification.test.tsx src/m5_empirical_verification.test.ts --forceExit
+
+# 4. Production build
+npm run build
+```

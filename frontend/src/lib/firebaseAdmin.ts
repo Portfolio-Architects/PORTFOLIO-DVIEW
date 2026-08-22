@@ -121,6 +121,12 @@ if (!admin.apps.length) {
 
 export const adminAuth = admin.apps.length ? admin.auth() : null;
 export const adminDb = admin.apps.length ? admin.firestore() : null;
+export const FieldValue = admin.firestore.FieldValue;
+export const Timestamp = admin.firestore.Timestamp;
+export type Timestamp = admin.firestore.Timestamp;
+export type FieldValue = admin.firestore.FieldValue;
+export type Firestore = admin.firestore.Firestore;
+export { admin };
 
 // Fix for Serverless & Local Function 500 timeouts / gRPC latency (gRPC connection hangs)
 const globalContext = globalThis as unknown as { __FIREBASE_REST_CONFIGURED?: boolean };

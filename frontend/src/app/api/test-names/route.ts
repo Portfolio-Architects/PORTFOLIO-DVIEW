@@ -1,23 +1,33 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import fs from 'fs';
 import path from 'path';
 import { logger } from '@/lib/services/logger';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_test_names',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+    }
+
     if (!adminDb) {
       logger.error('TestNamesAPI.GET', 'Admin DB not initialized');
-      return NextResponse.json({ error: 'Admin DB not initialized' }, { status: 500 });
+      return apiError('DATABASE_UNAVAILABLE', 'Admin DB not initialized', 500);
     }
     const snap = await adminDb.collection('scoutingReports').get();
-    const names = snap.docs.map(d => ({
+    const names = snap.docs.map((d) => ({
       id: d.id,
       apartmentName: d.data().apartmentName,
-      dong: d.data().dong
+      dong: d.data().dong,
     }));
 
     try {
@@ -31,10 +41,9 @@ export async function GET() {
       logger.warn('TestNamesAPI.GET', 'Failed to write test-names-node.json file', {}, writeErr as Error);
     }
 
-    return NextResponse.json(names);
+    return apiSuccess(names);
   } catch (error: unknown) {
     logger.error('TestNamesAPI.GET', 'Failed to get test names', {}, error as Error);
-    return NextResponse.json({ error: 'Failed to get test names' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to get test names', 500);
   }
 }
-

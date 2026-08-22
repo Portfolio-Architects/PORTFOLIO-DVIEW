@@ -1,8 +1,16 @@
+/**
+ * @module useFavorites
+ * @description Hook for managing user and guest favorites with optimistic UI updates,
+ * multi-tab storage synchronization, and typed backend persistence via apiClient.
+ * Architecture Layer: Application / Hooks (`src/hooks/`)
+ */
+
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { User } from 'firebase/auth';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 import { normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
+import { apiClient } from '@/lib/api/apiClient';
 
 const FavoriteCountsResponseSchema = z.object({
   counts: z.record(z.string(), z.number()).optional().catch(undefined),
@@ -20,7 +28,9 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
   const isMountedRef = useRef(true);
   useEffect(() => {
     isMountedRef.current = true;
-    return () => { isMountedRef.current = false; };
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   // Helper to read local guest favorites
@@ -76,15 +86,15 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
 
   // Fetch latest global favorite counts on mount to ensure sync across devices
   useEffect(() => {
-    let unmounted = false;
-    fetch('/api/favorite-counts')
-      .then(res => res.json())
-      .then(data => {
-        if (unmounted) return;
+    const controller = new AbortController();
+
+    apiClient.get<unknown>('/api/favorite-counts', { signal: controller.signal })
+      .then((data) => {
+        if (!isMountedRef.current) return;
         const validation = FavoriteCountsResponseSchema.safeParse(data);
         if (!validation.success) {
           logger.warn('useFavorites.fetchFavoriteCounts', 'Validation failed for /api/favorite-counts', {
-            errors: validation.error.issues.map(e => e.message),
+            errors: validation.error.issues.map((e) => e.message),
           });
           return;
         }
@@ -93,35 +103,46 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
           setFavoriteCounts(validatedData.counts);
         }
       })
-      .catch(err => logger.warn('useFavorites.fetchFavoriteCounts', 'Failed to fetch global favorite counts', {}, err));
-    return () => { unmounted = true; };
+      .catch((err) => {
+        if (controller.signal.aborted) return;
+        logger.warn('useFavorites.fetchFavoriteCounts', 'Failed to fetch global favorite counts', {}, err);
+      });
+
+    return () => {
+      controller.abort();
+    };
   }, []);
 
   useEffect(() => {
-    let unmounted = false;
+    const controller = new AbortController();
+
     if (user) {
       setIsFavoritesLoading(true);
       // E2E Mock Auth Bypass
       if (typeof window !== 'undefined' && window.__E2E_MOCK_AUTH__) {
         const timer = setTimeout(() => {
-          if (!unmounted) {
+          if (isMountedRef.current) {
             setUserFavorites(new Set());
             setIsFavoritesLoading(false);
           }
         }, 50);
         return () => {
-          unmounted = true;
+          controller.abort();
           clearTimeout(timer);
         };
       }
 
       user.getIdToken().then(async (idToken) => {
-        if (unmounted) return;
+        if (!isMountedRef.current || controller.signal.aborted) return;
 
         try {
-          const r = await fetch(`/api/favorite?userId=${user.uid}`, { headers: { 'Authorization': `Bearer ${idToken}` } });
-          const data = await r.json();
-          if (unmounted) return;
+          const data = await apiClient.get<Record<string, unknown>>('/api/favorite', {
+            params: { userId: user.uid },
+            headers: { Authorization: `Bearer ${idToken}` },
+            signal: controller.signal,
+          });
+
+          if (!isMountedRef.current || controller.signal.aborted) return;
 
           if (data?.error || data?.warning) {
             logger.warn('useFavorites.fetchFavorites', 'API returned warning/error, preserving local state', {
@@ -138,28 +159,32 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
             // Sync any guest favorites saved while unauthenticated
             const guestFavs = getGuestFavorites();
             if (guestFavs.length > 0) {
-              const missingFromServer = guestFavs.filter(guestApt => {
+              const missingFromServer = guestFavs.filter((guestApt) => {
                 const guestNorm = normalizeAptName(guestApt);
-                return !serverFavorites.some(serverApt =>
-                  normalizeAptName(serverApt) === guestNorm || isSameApartment(serverApt, guestApt)
+                return !serverFavorites.some(
+                  (serverApt) => normalizeAptName(serverApt) === guestNorm || isSameApartment(serverApt, guestApt)
                 );
               });
 
               if (missingFromServer.length > 0) {
                 const syncPromises = missingFromServer.map(async (aptName) => {
                   try {
-                    const res = await fetch('/api/favorite', {
-                      method: 'POST',
-                      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-                      body: JSON.stringify({ aptName, action: 'add' }),
-                    });
-                    if (res.ok) {
-                      return aptName;
-                    }
-                    logger.warn('useFavorites.syncGuest', 'Guest favorite sync returned non-ok status', { aptName, status: res.status });
-                    return null;
+                    await apiClient.post(
+                      '/api/favorite',
+                      { aptName, action: 'add' },
+                      {
+                        headers: { Authorization: `Bearer ${idToken}` },
+                        signal: controller.signal,
+                      }
+                    );
+                    return aptName;
                   } catch (e) {
-                    logger.warn('useFavorites.syncGuest', 'Failed to sync guest favorite', { aptName }, e instanceof Error ? e : new Error(String(e)));
+                    logger.warn(
+                      'useFavorites.syncGuest',
+                      'Failed to sync guest favorite',
+                      { aptName },
+                      e instanceof Error ? e : new Error(String(e))
+                    );
                     return null;
                   }
                 });
@@ -182,20 +207,24 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
               }
             }
 
-            if (!unmounted) {
+            if (isMountedRef.current && !controller.signal.aborted) {
               setUserFavorites(new Set(serverFavorites));
             }
           }
         } catch (err) {
-          logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err instanceof Error ? err : new Error(String(err)));
+          if (!controller.signal.aborted) {
+            logger.warn('useFavorites.fetchFavorites', 'Failed to fetch favorites', {}, err instanceof Error ? err : new Error(String(err)));
+          }
         } finally {
-          if (!unmounted) {
+          if (isMountedRef.current && !controller.signal.aborted) {
             setIsFavoritesLoading(false);
           }
         }
-      }).catch(err => {
-        logger.warn('useFavorites.authToken', 'Auth token fetch failed', {}, err instanceof Error ? err : new Error(String(err)));
-        if (!unmounted) {
+      }).catch((err) => {
+        if (!controller.signal.aborted) {
+          logger.warn('useFavorites.authToken', 'Auth token fetch failed', {}, err instanceof Error ? err : new Error(String(err)));
+        }
+        if (isMountedRef.current && !controller.signal.aborted) {
           setIsFavoritesLoading(false);
         }
       });
@@ -205,103 +234,113 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
       setUserFavorites(new Set(guestFavs));
       setIsFavoritesLoading(false);
     }
-    return () => { unmounted = true; };
+
+    return () => {
+      controller.abort();
+    };
   }, [user, getGuestFavorites]);
 
-  const isFavorited = useCallback((aptName: string): boolean => {
-    if (!aptName) return false;
-    if (userFavorites.has(aptName)) return true;
-    const targetNorm = normalizeAptName(aptName);
-    return Array.from(userFavorites).some(
-      item => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
-    );
-  }, [userFavorites]);
+  const isFavorited = useCallback(
+    (aptName: string): boolean => {
+      if (!aptName) return false;
+      if (userFavorites.has(aptName)) return true;
+      const targetNorm = normalizeAptName(aptName);
+      return Array.from(userFavorites).some(
+        (item) => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
+      );
+    },
+    [userFavorites]
+  );
 
-  const handleToggleFavorite = useCallback(async (aptName: string, _requestLogin?: () => void) => {
-    const targetNorm = normalizeAptName(aptName);
-    const existingMatch = Array.from(userFavorites).find(
-      item => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
-    );
-    const wasFavorited = !!existingMatch;
-    const keyToModify = existingMatch || aptName;
+  const handleToggleFavorite = useCallback(
+    async (aptName: string, _requestLogin?: () => void) => {
+      const targetNorm = normalizeAptName(aptName);
+      const existingMatch = Array.from(userFavorites).find(
+        (item) => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
+      );
+      const wasFavorited = !!existingMatch;
+      const keyToModify = existingMatch || aptName;
 
-    setUserFavorites(prev => {
-      const next = new Set<string>();
-      for (const item of prev) {
-        if (normalizeAptName(item) !== targetNorm && !isSameApartment(item, aptName)) {
-          next.add(item);
+      setUserFavorites((prev) => {
+        const next = new Set<string>();
+        for (const item of prev) {
+          if (normalizeAptName(item) !== targetNorm && !isSameApartment(item, aptName)) {
+            next.add(item);
+          }
         }
-      }
-      if (!wasFavorited) {
-        next.add(aptName);
-      }
+        if (!wasFavorited) {
+          next.add(aptName);
+        }
+        if (!user) {
+          saveGuestFavorites(next);
+        }
+        return next;
+      });
+
+      setFavoriteCounts((prev) => ({
+        ...prev,
+        [keyToModify]: Math.max(0, (prev[keyToModify] || 0) + (wasFavorited ? -1 : 1)),
+      }));
+
       if (!user) {
-        saveGuestFavorites(next);
+        return;
       }
-      return next;
-    });
 
-    setFavoriteCounts(prev => ({
-      ...prev,
-      [keyToModify]: Math.max(0, (prev[keyToModify] || 0) + (wasFavorited ? -1 : 1))
-    }));
-
-    if (!user) {
-      return;
-    }
-
-    // E2E Mock Auth Bypass
-    if (typeof window !== 'undefined' && window.__E2E_MOCK_AUTH__) {
-      return;
-    }
-
-    try {
-      const idToken = await user.getIdToken();
-      const res = await fetch('/api/favorite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-        body: JSON.stringify({ aptName: keyToModify, action: wasFavorited ? 'remove' : 'add' }),
-      });
-      if (!res.ok) {
-        logger.warn('useFavorites.handleToggleFavorite', 'Backend favorite sync failed, preserving local state', { aptName: keyToModify, status: res.status });
+      // E2E Mock Auth Bypass
+      if (typeof window !== 'undefined' && window.__E2E_MOCK_AUTH__) {
+        return;
       }
-    } catch (err) {
+
+      try {
+        const idToken = await user.getIdToken();
+        await apiClient.post(
+          '/api/favorite',
+          { aptName: keyToModify, action: wasFavorited ? 'remove' : 'add' },
+          { headers: { Authorization: `Bearer ${idToken}` } }
+        );
+      } catch (err) {
+        if (!isMountedRef.current) return;
+        logger.warn(
+          'useFavorites.handleToggleFavorite',
+          'Network error during favorite sync',
+          { aptName: keyToModify },
+          err instanceof Error ? err : new Error(String(err))
+        );
+      }
+    },
+    [user, userFavorites, saveGuestFavorites]
+  );
+
+  const updateFavoriteOrder = useCallback(
+    async (newOrder: string[]) => {
       if (!isMountedRef.current) return;
-      logger.warn('useFavorites.handleToggleFavorite', 'Network error during favorite sync', { aptName: keyToModify }, err instanceof Error ? err : new Error(String(err)));
-    }
-  }, [user, userFavorites, saveGuestFavorites]);
 
-  const updateFavoriteOrder = useCallback(async (newOrder: string[]) => {
-    if (!isMountedRef.current) return;
+      setUserFavorites(new Set(newOrder));
+      if (!user) {
+        saveGuestFavorites(newOrder);
+      }
 
-    setUserFavorites(new Set(newOrder));
-    if (!user) {
-      saveGuestFavorites(newOrder);
-    }
+      if (!user) return;
 
-    if (!user) return;
+      // E2E Mock Auth Bypass
+      if (typeof window !== 'undefined' && window.__E2E_MOCK_AUTH__) {
+        return;
+      }
 
-    // E2E Mock Auth Bypass
-    if (typeof window !== 'undefined' && window.__E2E_MOCK_AUTH__) {
-      return;
-    }
-
-    try {
-      const idToken = await user.getIdToken();
-      const res = await fetch('/api/favorite', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
-        },
-        body: JSON.stringify({ favoriteOrder: newOrder }),
-      });
-      if (!res.ok) throw new Error('Failed to update favorite order');
-    } catch (err) {
-      if (!isMountedRef.current) return;
-      logger.warn('useFavorites.updateFavoriteOrder', 'Failed to save order to Firestore', {}, err instanceof Error ? err : new Error(String(err)));
-    }
-  }, [user, saveGuestFavorites]);
+      try {
+        const idToken = await user.getIdToken();
+        await apiClient.put(
+          '/api/favorite',
+          { favoriteOrder: newOrder },
+          { headers: { Authorization: `Bearer ${idToken}` } }
+        );
+      } catch (err) {
+        if (!isMountedRef.current) return;
+        logger.warn('useFavorites.updateFavoriteOrder', 'Failed to save order to Firestore', {}, err instanceof Error ? err : new Error(String(err)));
+      }
+    },
+    [user, saveGuestFavorites]
+  );
 
   return {
     userFavorites,
@@ -309,6 +348,6 @@ export function useFavorites(user: User | null, initialFavoriteCounts: Record<st
     handleToggleFavorite,
     isFavorited,
     updateFavoriteOrder,
-    isFavoritesLoading
+    isFavoritesLoading,
   };
 }

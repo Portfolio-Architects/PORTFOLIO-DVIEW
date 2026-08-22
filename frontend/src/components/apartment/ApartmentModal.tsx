@@ -23,7 +23,7 @@ import { logger } from '@/lib/services/logger';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useComments } from '@/hooks/useComments';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
-import { useSettingsValues } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
 import { trackEvent } from '@/lib/utils/analytics';
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';

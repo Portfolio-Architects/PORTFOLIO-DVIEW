@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import webpush from 'web-push';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,27 +16,41 @@ const NotifyCommentInputSchema = z.object({
   commentAuthorUid: z.string().optional(),
 });
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    const rateLimit = await checkRateLimit(req, {
+      prefix: 'ratelimit_push_notify_comment',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+    }
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return apiError('BAD_REQUEST', 'Invalid JSON body structure', 400);
+    }
+
     const parsed = NotifyCommentInputSchema.safeParse(body);
 
     if (!parsed.success) {
       logger.warn('NotifyCommentAPI.POST', 'Invalid notify-comment payload', { errors: parsed.error.format() });
-      return NextResponse.json({ error: 'Missing or invalid required parameters', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Missing or invalid required parameters', 400, parsed.error.issues);
     }
 
     const { reportId, commentText, authorName, commentAuthorUid } = parsed.data;
 
     if (!db) {
       logger.error('NotifyCommentAPI.POST', 'Firebase Admin not initialized');
-      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+      return apiError('DATABASE_UNAVAILABLE', 'Firebase Admin not initialized', 500);
     }
 
     // 1. Fetch the field report to find its author's UID
     let reportRef = db.collection('field_reports').doc(reportId);
     let reportSnap = await reportRef.get();
-    
+
     if (!reportSnap.exists) {
       const scoutingRef = db.collection('scoutingReports').doc(reportId);
       const scoutingSnap = await scoutingRef.get();
@@ -43,7 +59,7 @@ export async function POST(req: Request) {
         reportSnap = scoutingSnap;
       } else {
         logger.warn('NotifyCommentAPI.POST', 'Field report not found in both collections', { reportId });
-        return NextResponse.json({ error: 'Field report not found' }, { status: 404 });
+        return apiError('NOT_FOUND', 'Field report not found', 404);
       }
     }
 
@@ -54,7 +70,7 @@ export async function POST(req: Request) {
     // 2. Prevent sending notification to oneself
     if (!reportAuthorUid || reportAuthorUid === commentAuthorUid) {
       logger.info('NotifyCommentAPI.POST', 'Skipping notification: self-comment or no author UID', { reportId, reportAuthorUid, commentAuthorUid });
-      return NextResponse.json({ success: true, message: 'Self-comment or no author UID' });
+      return apiSuccess({ message: 'Self-comment or no author UID' }, { message: 'Self-comment or no author UID' });
     }
 
     // 3. Configure web-push
@@ -63,7 +79,7 @@ export async function POST(req: Request) {
 
     if (!publicVapidKey || !privateVapidKey) {
       logger.warn('NotifyCommentAPI.POST', 'VAPID keys not configured in env.');
-      return NextResponse.json({ error: 'VAPID keys not configured' }, { status: 500 });
+      return apiError('SERVICE_UNAVAILABLE', 'VAPID keys not configured', 500);
     }
 
     webpush.setVapidDetails(
@@ -79,13 +95,13 @@ export async function POST(req: Request) {
 
     if (subsSnap.empty) {
       logger.info('NotifyCommentAPI.POST', 'No subscriptions found for report author', { reportAuthorUid });
-      return NextResponse.json({ success: true, message: 'No subscriptions found for report author' });
+      return apiSuccess({ message: 'No subscriptions found for report author' }, { message: 'No subscriptions found for report author' });
     }
 
     const notificationPayload = JSON.stringify({
       title: `💬 D-VIEW: 내 임장기에 댓글이 달렸습니다!`,
       body: `${authorName}: ${commentText.substring(0, 60)}${commentText.length > 60 ? '...' : ''}`,
-      url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/overview#apt=${encodeURIComponent(apartmentName)}`
+      url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000'}/overview#apt=${encodeURIComponent(apartmentName)}`,
     });
 
     let sentCount = 0;
@@ -98,7 +114,6 @@ export async function POST(req: Request) {
       } catch (err: unknown) {
         const webPushError = err as { statusCode?: number };
         logger.error('NotifyCommentAPI.POST', 'Failed to send push notification to endpoint', { endpoint: sub.endpoint, statusCode: webPushError.statusCode }, err as Error);
-        // If subscription is expired or invalid, remove it
         if (webPushError.statusCode === 410 || webPushError.statusCode === 404) {
           await doc.ref.delete();
           logger.info('NotifyCommentAPI.POST', 'Deleted expired subscription', { docId: doc.id });
@@ -109,10 +124,9 @@ export async function POST(req: Request) {
     await Promise.all(promises);
 
     logger.info('NotifyCommentAPI.POST', 'Push notifications process completed', { sentCount, reportAuthorUid });
-    return NextResponse.json({ success: true, sentCount });
+    return apiSuccess({ sentCount }, { sentCount });
   } catch (error: unknown) {
     logger.error('NotifyCommentAPI.POST', 'Notify Comment Error', {}, error as Error);
-    return NextResponse.json({ error: 'Failed to process push notification' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to process push notification', 500);
   }
 }
-

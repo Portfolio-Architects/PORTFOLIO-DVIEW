@@ -212,7 +212,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     window.addEventListener('storage', handleStorageChange);
 
     // 🔧 Multi-tab Service Worker lifecycle update synchronization
-    const hasExistingController = !!navigator.serviceWorker.controller;
+    const hasExistingController = typeof navigator !== 'undefined' && !!navigator.serviceWorker?.controller;
 
     const handleControllerChange = () => {
       if (!hasExistingController) {

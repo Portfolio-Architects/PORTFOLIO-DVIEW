@@ -1,12 +1,13 @@
-# Progress — 2026-07-18T00:26:03+09:00
+# Challenger 1 Progress — Milestone 3
 
-- [x] Investigate implementation of optimizations in the codebase (navigation, tab toggling, modal layout)
-- [x] Run `npm run build` inside `frontend/`
-- [x] Run `npm run test:e2e` inside `frontend/`
-- [x] Verify navigation speed optimization details
-- [x] Verify tab unmounting behavior on toggle (DOM and state preservation)
-- [x] Verify modal layout shifting avoidance
-- [x] Generate challenge / verification report (challenger_report.md)
-- [x] Report status back to parent
+- [x] Initialized workspace and briefing
+- [ ] Read and analyze implementation files (`useApartmentDetails`, `usePostDetail`, `useFavorites`, `useComments`, `apiClient`, etc.)
+- [ ] Inspect existing test coverage in `frontend/__tests__`
+- [ ] Run baseline test suite (`npm test`) and typecheck (`npx tsc --noEmit`)
+- [ ] Design and execute adversarial stress tests for rapid switching & race conditions (`useApartmentDetails`, `usePostDetail`)
+- [ ] Design and execute unmount & abort cancellation stress tests (zero unmounted warnings / memory leaks)
+- [ ] Stress test edge cases in `apiClient` (timeouts, retries, 5xx handling, AbortSignal chaining)
+- [ ] Synthesize findings and write handoff report (`handoff.md`)
+- [ ] Send verdict to parent orchestrator
 
-Last visited: 2026-07-18T00:36:00Z
+Last visited: 2026-08-22T00:52:30+09:00

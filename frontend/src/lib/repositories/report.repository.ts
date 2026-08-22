@@ -5,7 +5,7 @@
  */
 import { db } from '@/lib/firebaseConfig';
 import { collection, onSnapshot, query, limit, doc, updateDoc, increment, getDoc, getDocs, where, QuerySnapshot, DocumentData, QueryDocumentSnapshot, orderBy, addDoc, serverTimestamp } from 'firebase/firestore';
-import type { FieldReportData } from '@/lib/types/report.types';
+import type { FieldReportData, ScoutingReport, ReportSections } from '@/types';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 import { formatTimestamp, parseTimestampToMillis } from '@/lib/utils/date';
@@ -307,10 +307,10 @@ export async function incrementReportView(reportId: string, title: string = '알
 /**
  * Fetches recent scouting reports isomorphically.
  */
-export async function fetchRecentScoutingReports(limitCount: number = 30): Promise<any[]> {
+export async function fetchRecentScoutingReports(limitCount: number = 30): Promise<FieldReportData[]> {
   const cacheKey = `DTDLS:cache:fieldReports:${limitCount}`;
   
-  const result = await executeIsomorphicQuery<any[]>({
+  const result = await executeIsomorphicQuery<FieldReportData[]>({
     cacheKey,
     cacheEx: 120,
     serverQuery: async () => {
@@ -410,7 +410,7 @@ export async function fetchRecentScoutingReports(limitCount: number = 30): Promi
 /**
  * Saves a new Scouting Report document.
  */
-export async function saveScoutingReport(reportData: any): Promise<string> {
+export async function saveScoutingReport(reportData: Partial<ScoutingReport> | Record<string, unknown>): Promise<string> {
   try {
     const docRef = await throttle(() => addDoc(collection(db, 'scoutingReports'), {
       ...reportData,
@@ -420,7 +420,7 @@ export async function saveScoutingReport(reportData: any): Promise<string> {
     logger.info('ReportRepository.saveScoutingReport', 'Scouting report created', { id: docRef.id });
     return docRef.id;
   } catch (error) {
-    logger.error('ReportRepository.saveScoutingReport', 'Failed to save scouting report', { apartmentName: reportData.apartmentName }, error as Error);
+    logger.error('ReportRepository.saveScoutingReport', 'Failed to save scouting report', { apartmentName: (reportData as { apartmentName?: string }).apartmentName }, error as Error);
     throw error;
   }
 }
@@ -428,7 +428,7 @@ export async function saveScoutingReport(reportData: any): Promise<string> {
 /**
  * Updates an existing Scouting Report document.
  */
-export async function updateScoutingReport(reportId: string, updateData: any): Promise<void> {
+export async function updateScoutingReport(reportId: string, updateData: Partial<ScoutingReport> | Record<string, unknown>): Promise<void> {
   try {
     const docRef = doc(db, 'scoutingReports', reportId);
     await throttle(() => updateDoc(docRef, {
@@ -445,7 +445,17 @@ export async function updateScoutingReport(reportId: string, updateData: any): P
 /**
  * Saves a new Field Report (임장기) document.
  */
-export async function saveFieldReport(fieldReportData: any): Promise<string> {
+export async function saveFieldReport(fieldReportData: {
+  apartmentName: string;
+  sections?: ReportSections;
+  images?: { url: string; caption: string; locationTag: string }[];
+  premiumScores?: Record<string, number> | null;
+  authorName?: string;
+  authorUid: string;
+  likes?: number;
+  commentCount?: number;
+  [key: string]: unknown;
+}): Promise<string> {
   try {
     const docRef = await throttle(() => addDoc(collection(db, 'field_reports'), {
       ...fieldReportData,

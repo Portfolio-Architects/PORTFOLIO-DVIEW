@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { apiClient } from '@/lib/api/apiClient';
 
 const RelocationTaxSimulator = dynamic(
   () => import('@/components/macro/RelocationTaxSimulator'),
@@ -743,17 +744,17 @@ export default function TechnoValleyDashboard() {
     }));
   }, []);
 
-  const { data: responseData } = useSWR('/api/technovalley/industry-distribution', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: responseData } = useSWR('/api/technovalley/industry-distribution', (url: string) => apiClient.get<any>(url), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });
 
-  const { data: trendResponse, isValidating: isTrendValidating, isLoading: isTrendLoading } = useSWR('/api/technovalley/trend', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: trendResponse, isValidating: isTrendValidating, isLoading: isTrendLoading } = useSWR('/api/technovalley/trend', (url: string) => apiClient.get<any>(url), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });
 
-  const { data: jisanStatusRes } = useSWR('/api/technovalley/jisan-status', (url: string) => fetch(url).then(res => res.json()), {
+  const { data: jisanStatusRes } = useSWR('/api/technovalley/jisan-status', (url: string) => apiClient.get<any>(url), {
     revalidateOnFocus: false,
     dedupingInterval: 300000
   });

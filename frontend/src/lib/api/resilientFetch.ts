@@ -95,7 +95,7 @@ export async function resilientFetch(
       lastResponse = response;
       lastError = null;
 
-      if (!response.ok && retryCondition(response, null) && attempt < retries) {
+      if (response && !response.ok && retryCondition(response, null) && attempt < retries) {
         continue;
       }
 

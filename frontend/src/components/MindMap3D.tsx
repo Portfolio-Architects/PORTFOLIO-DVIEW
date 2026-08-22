@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react'
 import { Sparkles, Orbit, RotateCcw, Flame, CheckCircle, Info } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import useSWR from 'swr';
+import type { DongApartment, AptTxSummary } from '@/types';
 
 interface Node3D {
   id: string;
@@ -31,8 +32,8 @@ interface Link3D {
 }
 
 interface MindMap3DProps {
-  sheetApartments: Record<string, any[]>;
-  txSummaryData: Record<string, any>;
+  sheetApartments: Record<string, DongApartment[]>;
+  txSummaryData: Record<string, AptTxSummary>;
   onSelectApt: (name: string) => void;
 }
 
@@ -44,7 +45,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
   const [temperatureMode, setTemperatureMode] = useState<'vote' | 'ratio'>('vote');
   const zoom = useRef(1.0);
   const [showZoomHint, setShowZoomHint] = useState(false);
-  const zoomHintTimeout = useRef<any>(null);
+  const zoomHintTimeout = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
   const isVisible = useRef(true);
   const isLoopRunning = useRef(true);

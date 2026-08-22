@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
-import { useSettingsValues } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/contexts/SettingsContext';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
 
 interface TransactionRecord {

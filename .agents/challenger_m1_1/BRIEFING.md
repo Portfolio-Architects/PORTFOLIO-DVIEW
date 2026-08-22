@@ -1,55 +1,70 @@
-# BRIEFING — 2026-08-04T20:10:30+09:00
+# BRIEFING — 2026-08-21T23:52:00+09:00
 
 ## Mission
-Empirically stress-test Milestone 1 code in `recursive_self_improvement/` for AST syntax pre-validation, sliding MD5 hash window stuck detection, and timeout handling under stress.
+Empirically challenge Milestone 1: Domain & Types Layer Refactoring (Worker 1 deliverables), stress-testing Zod schemas, utility functions, type compatibility (@/types vs @/lib/types), and test suites to find any bugs or regressions.
 
 ## 🔒 My Identity
-- Archetype: empirical challenger
+- Archetype: empirical-challenger
 - Roles: critic, specialist
-- Working directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/challenger_m1_1
-- Original parent: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Milestone: Milestone 1
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_1
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Milestone 1 - Domain & Types Layer Refactoring
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code
-- Run empirical verification code yourself; do NOT trust worker claims or logs
-- If a bug cannot be reproduced empirically, it does not count
+- Review-only — do NOT modify implementation code directly
+- Must write and execute empirical tests directly (generators, oracles, stress tests)
+- Output findings and final verdict (APPROVE / REQUEST_CHANGES) in handoff.md
 
 ## Current Parent
-- Conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Updated: 2026-08-04T20:10:30+09:00
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: 2026-08-21T23:52:00+09:00
 
 ## Review Scope
-- **Files to review**: `recursive_self_improvement/` (AST syntax pre-validation, sliding MD5 window, timeout handling)
+- **Files reviewed**:
+  - `frontend/src/types/index.ts`
+  - `frontend/src/types/apartment.ts`
+  - `frontend/src/types/transaction.ts`
+  - `frontend/src/types/report.ts`
+  - `frontend/src/types/lounge.ts`
+  - `frontend/src/types/review.ts`
+  - `frontend/src/types/user.ts`
+  - `frontend/src/types/macro.ts`
+  - `frontend/src/types/technovalley.ts`
+  - `frontend/src/types/valuation.ts`
+  - `frontend/src/types/calculator.ts`
+  - `frontend/src/types/notice.ts`
+  - `frontend/src/types/inquiry.ts`
+  - `frontend/src/types/api.ts`
+  - `frontend/src/lib/types/*.ts`
+  - `frontend/src/lib/utils/userUtils.ts`
+  - `frontend/src/lib/validation/facade.schemas.ts`
+  - `frontend/src/__tests__/m1_challenger_adversarial.test.ts`
 - **Interface contracts**: `PROJECT.md`, `ORIGINAL_REQUEST.md`
-- **Review criteria**: Empirical correctness, edge-case failure modes, stress behavior, stuck detection, AST validation, timeout safety.
-
-## Key Decisions Made
-- Executed default unit test suite (`python -m unittest discover -s recursive_self_improvement -p "test_*.py"`) — revealed 1 failure and 1 error (contradicting worker's 100% pass claim).
-- Built and ran dedicated empirical stress harness `.agents/challenger_m1_1/stress_test_m1.py`.
-- Discovered CRITICAL bug: `self.perturbation_feedback` set by MD5 stuck detection is erased on test success before simulator receives it on the next iteration.
-- Discovered HIGH severity bug: `MAX_ITERATIONS` safety limit fails to abort loop when iterations fail because `iteration` is derived from `version_idx + 1` instead of attempt count.
-- Determined Verdict: `REQUEST_CHANGES`.
-
-## Artifact Index
-- `.agents/challenger_m1_1/DISPATCH.md` — Initial dispatch message
-- `.agents/challenger_m1_1/BRIEFING.md` — Agent working memory
-- `.agents/challenger_m1_1/progress.md` — Progress tracking & liveness heartbeat
-- `.agents/challenger_m1_1/stress_test_m1.py` — Empirical stress test harness
-- `.agents/challenger_m1_1/handoff.md` — Final handoff report (Verdict: REQUEST_CHANGES)
+- **Review criteria**: Correctness, schema strictness/coercion, edge-case safety, backward compatibility, type equivalence, build/test pass.
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - AST Syntax Pre-validation isolation: PASSED (invalid syntax code is not written to target disk file).
-  - MD5 Stuck Window Feedback propagation: FAILED (perturbation_feedback erased at line 400 on test success).
-  - MAX_ITERATIONS termination under failure stream: FAILED (infinite loop when version_idx stays 0).
-  - Unittest suite baseline integrity: FAILED (1 failure, 1 error during unittest discovery).
+  - Boundary conditions and malformed payloads against Zod schemas in `facade.schemas.ts` -> PASSED (31 test cases)
+  - Edge cases, unicode, extreme string lengths, and random distribution in `userUtils.ts` -> PASSED (1000 trials confirmed uniform sampling)
+  - Bi-directional static type assignability & runtime identity between `@/types` and `@/lib/types/*` -> PASSED (35 domain types verified)
+  - Presentation leak elimination in `KPIData` and `NewsItemData` -> PASSED
 - **Vulnerabilities found**:
-  - `FileNotFoundError` during rollback in `test_engine_api_limit` and `test_add` failure in `test_target_module.py`.
-  - `self.perturbation_feedback` wiped prematurely at line 400 in `engine.py`.
-  - `iteration` bound to `version_idx + 1` causes infinite loop under persistent candidate failures.
+  - Pre-existing issue in `src/lib/utils/areaConverter.test.ts` and `src/lib/utils/areaConverter.adversarial.test.ts` where CommonJS `require('./areaConverter.js')` fails under Jest because `areaConverter.js` does not exist (TypeScript file is `areaConverter.ts`).
+  - `tsconfig.tsbuildinfo` stale cache caused by dynamic temp file creation in `TimelineItemCardEmpirical.test.tsx` (remedied by `--incremental false` or clean build).
 - **Untested angles**: None within M1 scope.
 
 ## Loaded Skills
-None
+- None
+
+## Key Decisions Made
+- Authored and executed dedicated adversarial test suite `src/__tests__/m1_challenger_adversarial.test.ts`.
+- Verified all 4 verification gates (`tsc`, `lint`, `test`, `build`).
+- Rendered explicit verdict: **APPROVE**.
+
+## Artifact Index
+- `.agents/challenger_m1_1/DISPATCH.md` — Initial dispatch message
+- `.agents/challenger_m1_1/progress.md` — Liveness & task execution status
+- `.agents/challenger_m1_1/BRIEFING.md` — Persistent working memory
+- `.agents/challenger_m1_1/handoff.md` — Final 5-component handoff report & verdict
+- `frontend/src/__tests__/m1_challenger_adversarial.test.ts` — Adversarial test suite artifact

@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { GoogleSpreadsheet } from 'google-spreadsheet';
 import { JWT } from 'google-auth-library';
 import { SHEET_ID, SHEET_TABS } from '@/lib/constants';
 import { verifyAdmin } from '@/lib/authUtils';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -46,40 +48,53 @@ async function runWithRetry<T>(
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : String(err);
       logger.warn('ApartmentsSyncAPI.runWithRetry', `Attempt ${i + 1}/${retries} failed for action: ${actionName}`, {
-        error: errMsg
+        error: errMsg,
       });
       if (i === retries - 1) throw err;
-      
+
       const jitter = Math.random() * 200;
       const currentDelay = delayMs * Math.pow(2, i) + jitter;
-      await new Promise(resolve => setTimeout(resolve, currentDelay));
+      await new Promise((resolve) => setTimeout(resolve, currentDelay));
     }
   }
   throw new Error(`Action ${actionName} failed after ${retries} attempts`);
 }
 
 export async function POST(req: NextRequest) {
-  const TIMEOUT_LIMIT = 25000; // 25 seconds execution guard
+  const TIMEOUT_LIMIT = 25000;
 
   const syncProcess = async () => {
-    const isAdmin = await verifyAdmin(req);
-    if (!isAdmin) {
-      return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+    const rateLimit = await checkRateLimit(req, {
+      prefix: 'ratelimit_apartments_sync',
+      requestsPerLimit: 30,
+    });
+    if (!rateLimit.success) {
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
-    const rawBody = await req.json();
+    const isAdmin = await verifyAdmin(req);
+    if (!isAdmin) {
+      return apiError('UNAUTHORIZED', 'Unauthorized: Admin access required', 403);
+    }
+
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return apiError('BAD_REQUEST', 'Bad Request: Invalid JSON', 400);
+    }
+
     const parsed = ApartmentsSyncInputSchema.safeParse(rawBody);
-    
     if (!parsed.success) {
       logger.warn('ApartmentsSyncAPI.POST', 'Invalid sync request payload', { errors: parsed.error.format() });
-      return NextResponse.json({ error: 'Invalid request payload', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Invalid request payload', 400, parsed.error.issues);
     }
 
     const { updates, adds, deletes } = parsed.data;
 
     const { GOOGLE_SERVICE_ACCOUNT_EMAIL, GOOGLE_PRIVATE_KEY } = process.env;
     if (!GOOGLE_SERVICE_ACCOUNT_EMAIL || !GOOGLE_PRIVATE_KEY) {
-      return NextResponse.json({ error: 'Server is missing Google Service Account credentials' }, { status: 500 });
+      return apiError('SERVICE_UNAVAILABLE', 'Server is missing Google Service Account credentials', 500);
     }
 
     const formattedKey = GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n').replace(/"/g, '');
@@ -92,22 +107,21 @@ export async function POST(req: NextRequest) {
     const doc = new GoogleSpreadsheet(SHEET_ID, serviceAccountAuth);
     await runWithRetry(() => doc.loadInfo(), 'doc.loadInfo');
     const sheet = doc.sheetsByTitle[SHEET_TABS.APARTMENTS];
-    if (!sheet) return NextResponse.json({ error: `Sheet tab '${SHEET_TABS.APARTMENTS}' not found` }, { status: 500 });
+    if (!sheet) return apiError('NOT_FOUND', `Sheet tab '${SHEET_TABS.APARTMENTS}' not found`, 500);
 
     const rows = await runWithRetry(() => sheet.getRows(), 'sheet.getRows');
-    const headers = sheet.headerValues.map(h => h.toLowerCase().trim());
-    
-    // Find column indices
-    const col = (names: string[]) => sheet.headerValues[headers.findIndex(h => names.includes(h))] || names[0];
+    const headers = sheet.headerValues.map((h) => h.toLowerCase().trim());
+
+    const col = (names: string[]) => sheet.headerValues[headers.findIndex((h) => names.includes(h))] || names[0];
     const tickerCol = col(['ticker', '티커']);
     const nameCol = col(['아파트명', 'name', '이름']);
     const dongCol = col(['dong', '동']);
-    
+
     let updatedCount = 0;
     let addedCount = 0;
     let deletedCount = 0;
 
-    // 1. Deletes (Delete rows matching exact names)
+    // 1. Deletes
     if (deletes.length > 0) {
       for (let i = rows.length - 1; i >= 0; i--) {
         const rName = rows[i].get(nameCol)?.trim();
@@ -118,39 +132,36 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Refresh rows after delete
     const currentRows = await runWithRetry(() => sheet.getRows(), 'sheet.getRows (refresh)');
 
-    // 2. Updates — Batch Cell updates to prevent timeouts and quota limits
+    // 2. Updates
     if (updates.length > 0) {
-      // Load all cells into memory at once
       await runWithRetry(
         () => sheet.loadCells({
           startRowIndex: 0,
           endRowIndex: rows.length + 1,
           startColumnIndex: 0,
-          endColumnIndex: sheet.headerValues.length
+          endColumnIndex: sheet.headerValues.length,
         }),
         'sheet.loadCells'
       );
 
       for (const updateObj of updates) {
-        // Try finding by ticker first, then by name
         let targetRow = null;
         if (updateObj.ticker) {
-          targetRow = currentRows.find(r => r.get(tickerCol)?.trim() === updateObj.ticker);
+          targetRow = currentRows.find((r) => r.get(tickerCol)?.trim() === updateObj.ticker);
         }
         if (!targetRow && updateObj.name) {
-          targetRow = currentRows.find(r => r.get(nameCol)?.trim() === updateObj.name);
+          targetRow = currentRows.find((r) => r.get(nameCol)?.trim() === updateObj.name);
         }
 
         if (targetRow) {
-          const rowIndex = currentRows.indexOf(targetRow) + 1; // 0-based sheet row index (offset by 1 for header)
+          const rowIndex = currentRows.indexOf(targetRow) + 1;
           let dirty = false;
 
           for (const key of Object.keys(updateObj.updates)) {
             const headerIdx = sheet.headerValues.findIndex(
-              h => h === key || h.toLowerCase().trim() === key.toLowerCase().trim()
+              (h) => h === key || h.toLowerCase().trim() === key.toLowerCase().trim()
             );
             if (headerIdx !== -1) {
               const cell = sheet.getCell(rowIndex, headerIdx);
@@ -172,7 +183,7 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // 3. Adds — Batch row insertions
+    // 3. Adds
     if (adds.length > 0) {
       const newRowsArray: Record<string, string>[] = [];
       for (const addObj of adds) {
@@ -191,7 +202,7 @@ export async function POST(req: NextRequest) {
         if (addObj.maxFloor != null) newRow[col(['최고층', 'maxfloor'])] = String(addObj.maxFloor);
         if (addObj.isPublicRental != null) newRow[col(['공공임대', 'ispublicrental'])] = addObj.isPublicRental ? 'Y' : 'N';
         if (addObj.ticker) newRow[col(['ticker', '티커'])] = addObj.ticker;
-        
+
         newRowsArray.push(newRow);
         addedCount++;
       }
@@ -203,11 +214,19 @@ export async function POST(req: NextRequest) {
 
     logger.info('ApartmentsSyncAPI.POST', 'Apartments data synced successfully', { updatedCount, addedCount, deletedCount });
 
-    return NextResponse.json({ success: true, updatedCount, addedCount, deletedCount });
+    return apiSuccess({
+      updatedCount,
+      addedCount,
+      deletedCount,
+    }, {
+      updatedCount,
+      addedCount,
+      deletedCount,
+    });
   };
 
   let timeoutId: NodeJS.Timeout | undefined;
-  const timeoutPromise = new Promise<NextResponse>((_, reject) => {
+  const timeoutPromise = new Promise<ReturnType<typeof apiError>>((_, reject) => {
     timeoutId = setTimeout(() => reject(new Error('Apartment sync execution timed out')), TIMEOUT_LIMIT);
   });
 
@@ -226,9 +245,8 @@ export async function POST(req: NextRequest) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.error('ApartmentsSyncAPI.POST', 'Google Sheets Sync Error', {}, err);
     if (err.message === 'Apartment sync execution timed out') {
-      return NextResponse.json({ error: 'Gateway Timeout: Google Sheets sync took too long' }, { status: 504 });
+      return apiError('GATEWAY_TIMEOUT', 'Gateway Timeout: Google Sheets sync took too long', 504);
     }
-    return NextResponse.json({ error: 'Failed to sync apartments data', message: err.message }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to sync apartments data', 500, err.message);
   }
 }
-// Force Turbopack recompile

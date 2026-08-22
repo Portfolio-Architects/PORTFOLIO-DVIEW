@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { calculatePremiumScores } from '@/lib/utils/scoring';
 import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
@@ -6,6 +6,8 @@ import { requestGoogleIndexing } from '@/lib/utils/server/googleIndexing';
 import { logger } from '@/lib/services/logger';
 import { verifyAdmin } from '@/lib/authUtils';
 import { z } from 'zod';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,14 +18,22 @@ const syncQuerySchema = z.object({
 });
 
 export async function GET(request: NextRequest) {
+  const rateLimit = await checkRateLimit(request, {
+    prefix: 'ratelimit_admin_sync_reports',
+    requestsPerLimit: 30,
+  });
+  if (!rateLimit.success) {
+    return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+  }
+
   const isAdmin = await verifyAdmin(request);
   if (!isAdmin) {
     logger.warn('SyncReportsAPI.GET', 'Unauthorized attempts to trigger reports sync');
-    return NextResponse.json({ error: 'Unauthorized: Admin access required' }, { status: 403 });
+    return apiError('UNAUTHORIZED', 'Unauthorized: Admin access required', 403);
   }
 
   if (!adminDb) {
-    return NextResponse.json({ error: 'No admin db configured' }, { status: 500 });
+    return apiError('DATABASE_UNAVAILABLE', 'No admin db configured', 503);
   }
 
   const { searchParams } = new URL(request.url);
@@ -36,7 +46,7 @@ export async function GET(request: NextRequest) {
     logger.warn('SyncReportsAPI.GET', 'Invalid query parameters', {
       errors: parsedQuery.error.format(),
     });
-    return NextResponse.json({ error: 'Invalid query parameters' }, { status: 400 });
+    return apiError('INVALID_QUERY', 'Invalid query parameters', 400);
   }
 
   const { offset, limit } = parsedQuery.data;
@@ -55,28 +65,28 @@ export async function GET(request: NextRequest) {
 
     let updatedCount = 0;
     const results: string[] = [];
-    
+
     // Refresh cache once at the beginning
     if (offset === 0) {
       await fetch(`${baseUrl}/api/location-scores?apartment=dummy&refresh=1`, { cache: 'no-store' }).catch(() => {});
     }
-    
+
     for (const doc of slicedDocs) {
       const data = doc.data();
       const aptName = data.apartmentName;
-      
+
       if (!aptName) continue;
-      
+
       try {
         const res = await fetch(`${baseUrl}/api/location-scores?apartment=${encodeURIComponent(aptName)}`, { cache: 'no-store' });
         if (!res.ok) {
           results.push(`Failed: ${aptName} (Status ${res.status})`);
           continue;
         }
-        
+
         const scoreData = await res.json();
         const existingMetrics = data.metrics || {};
-        
+
         // Merge existing metrics (e.g., minFloor, maxFloor) with fresh API data
         const mergedMetrics: ObjectiveMetrics = {
           ...existingMetrics,
@@ -148,11 +158,10 @@ export async function GET(request: NextRequest) {
 
         const premiumScores = calculatePremiumScores(mergedMetrics);
 
-        // Firestore does not accept undefined values. Deep clean the object to remove undefined fields.
         const cleanUndefined = (obj: unknown): unknown => {
-          if (obj === undefined) return null; // Convert to null or just delete
+          if (obj === undefined) return null;
           if (obj === null || typeof obj !== 'object') return obj;
-          if (Array.isArray(obj)) return obj.map(cleanUndefined).filter(v => v !== undefined);
+          if (Array.isArray(obj)) return obj.map(cleanUndefined).filter((v) => v !== undefined);
           return Object.entries(obj).reduce((acc, [key, val]) => {
             if (val !== undefined) acc[key] = cleanUndefined(val);
             return acc;
@@ -164,15 +173,15 @@ export async function GET(request: NextRequest) {
 
         await adminDb.collection('scoutingReports').doc(doc.id).update({
           metrics: cleanMetrics,
-          premiumScores: cleanPremiumScores
+          premiumScores: cleanPremiumScores,
         });
-        
-        // Trigger Google Search Console Indexing API asynchronously for this apartment details page
+
+        // Trigger Google Search Console Indexing API asynchronously
         const pageUrl = `${baseUrl}/apartment/${encodeURIComponent(aptName)}`;
-        requestGoogleIndexing(pageUrl, 'URL_UPDATED').catch(err => {
+        requestGoogleIndexing(pageUrl, 'URL_UPDATED').catch((err) => {
           logger.error('SyncReportsAPI.GET', 'Failed indexing for apartment page', { pageUrl }, err as Error);
         });
-        
+
         updatedCount++;
         results.push(`Success: ${aptName}`);
       } catch (err: unknown) {
@@ -180,18 +189,23 @@ export async function GET(request: NextRequest) {
         results.push(`Error on ${aptName}: ${errMsg}`);
       }
     }
-    
-    return NextResponse.json({
-      success: true,
+
+    return apiSuccess({
       updatedCount,
       totalCount,
       hasMore,
       nextOffset: offset + limit,
-      results
+      results,
+    }, {
+      updatedCount,
+      totalCount,
+      hasMore,
+      nextOffset: offset + limit,
+      results,
     });
   } catch (err: unknown) {
     const errorObj = err instanceof Error ? err : new Error(String(err));
     logger.error('SyncReportsAPI.GET', 'Failed to execute reports sync', {}, errorObj);
-    return NextResponse.json({ error: 'Failed to sync reports' }, { status: 500 });
+    return apiError('SYNC_FAILED', 'Failed to sync reports', 500);
   }
 }

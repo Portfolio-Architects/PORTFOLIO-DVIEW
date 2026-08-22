@@ -1,12 +1,11 @@
 import React from 'react';
-import type { FieldReportData } from '@/lib/types/report.types';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import type { FieldReportData, AptTxSummary, TransactionRecord } from '@/types';
 import { normalize84Price } from '@/lib/utils/valuation';
 
 export interface ApartmentModalPriceSummaryProps {
   report: FieldReportData;
   txSummary?: AptTxSummary;
-  transactions?: any[];
+  transactions?: TransactionRecord[];
   valuation?: {
     status?: 'undervalued' | 'overvalued' | 'fair';
     amount?: string;

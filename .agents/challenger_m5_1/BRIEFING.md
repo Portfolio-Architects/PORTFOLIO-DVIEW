@@ -1,58 +1,49 @@
-# BRIEFING — 2026-07-21T13:42:45Z
+# BRIEFING — 2026-08-22T03:56:00+09:00
 
 ## Mission
-Conduct empirical verification and stress testing for M5 in D-VIEW project.
+Empirically challenge and stress-test all Milestone 5 verification gates, test suites (unit, integration, E2E), TypeScript typechecking, and linting for the D-VIEW project to deliver an empirical challenge report and definitive verdict (APPROVE / REQUEST_CHANGES).
 
 ## 🔒 My Identity
 - Archetype: EMPIRICAL CHALLENGER
 - Roles: critic, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m5_1
-- Original parent: a0677f44-7a04-4339-9bf4-a43b8c44fab2
-- Milestone: M5 Verification
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: M5 - Final Verification & Zero-Regression Guardrail
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only for main production codebase — write tests and run verification code empirically.
-- Write challenge report to c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m5_1\challenge.md
-- Deliver handoff report in handoff.md.
+- Review-only — do NOT modify implementation code directly unless reproducing/testing or writing non-intrusive challenge tests/scripts in working directory.
+- Empirical verification mandatory: all claims must be proven by executing test suites, linters, typecheckers, or custom stress harnesses directly.
+- All communications to orchestrator must use `send_message`.
+- Write handoff report with 5 mandatory components: Observation, Logic Chain, Caveats, Conclusion, Verification Method.
 
 ## Current Parent
-- Conversation ID: a0677f44-7a04-4339-9bf4-a43b8c44fab2
-- Updated: 2026-07-21T13:42:45Z
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: not yet
 
 ## Review Scope
 - **Files to review**:
-  - `frontend/src/components/consumer/PropertyTaxCalculator.tsx`
-  - Currency formatters (`formatEokMan`, `formatKoreanPrice`)
-  - `frontend/src/components/consumer/AptFitFinder.tsx`
-  - `frontend/src/lib/services/officeTx.service.ts`
-  - `frontend/src/lib/validation/facade.schemas.ts`
-- **Interface contracts**: PROJECT.md
-- **Review criteria**: Correctness, edge cases, numerical precision, schema validation, XML parsing safety.
+  - `frontend/src/**/*`
+  - `frontend/__tests__/**/*`
+  - `frontend/e2e/**/*`
+  - `frontend/package.json`, `frontend/tsconfig.json`, `frontend/playwright.config.ts`, `frontend/jest.config.js`
+  - Worker 5 handoff: `.agents/worker_m5/handoff.md`
+- **Interface contracts**: `PROJECT.md`, `.agents/ORIGINAL_REQUEST.md`
+- **Review criteria**: Full pass on Vitest/Jest unit/integration tests, Playwright E2E tests, TypeScript compilation (`tsc --noEmit`), ESLint (`npm run lint`), build integrity, edge case robustness, zero-regression guardrail.
 
 ## Key Decisions Made
-- Created custom Jest empirical verification test suite `frontend/src/m5_empirical_verification.test.ts` with 19 assertions.
-- Verified all 40 test suites (278 tests) in `frontend/` pass.
-- Produced `challenge.md` and `handoff.md`.
+- Initial setup: dispatch logged, briefing initialized, empirical verification plan drafted.
 
 ## Artifact Index
-- ORIGINAL_REQUEST.md — Initial task instructions
-- challenge.md — Detailed challenge report
-- handoff.md — 5-component handoff report
-- `frontend/src/m5_empirical_verification.test.ts` — Empirical test suite
+- `DISPATCH.md` — logged orchestrator instructions
+- `BRIEFING.md` — situational awareness and persistent state
+- `progress.md` — heartbeat and step-by-step progress tracking
+- `handoff.md` — 5-component empirical challenge report
 
 ## Attack Surface
-- **Hypotheses tested**:
-  - Property Tax rate calculation correctness for 1, 2, 3, 4+ houses and <=85m2 / >85m2 area options.
-  - Brokerage fee tier caps and thresholds at 5k, 20k, 90k, 120k, 150k 만원.
-  - Currency formatter rounding at 9999.6, 19999.6, 10000, 20000.
-  - AptFitFinder match percentage distribution below 50% without floor clamp.
-  - Office XML parser fallback safety on missing/corrupted tags.
-  - Zod schema transformations and validation rules.
-- **Vulnerabilities found**:
-  - UI spacing discrepancy between `formatEokMan` ("1억원") and `formatKoreanPrice` ("1억 원").
-  - Brokerage fee statutory tier jump at 9억원 (8.9999억 360만 vs 9.0억 450만).
-- **Untested angles**: Live Firestore security rules (out of scope).
+- **Hypotheses tested**: [TBD]
+- **Vulnerabilities found**: [TBD]
+- **Untested angles**: [TBD]
 
 ## Loaded Skills
-- None
+None required for this frontend verification task.

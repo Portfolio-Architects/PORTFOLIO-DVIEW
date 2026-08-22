@@ -8,6 +8,7 @@ const config: Config = {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^cheerio$': '<rootDir>/node_modules/cheerio/dist/commonjs/index.js',
     '^uncrypto$': '<rootDir>/node_modules/uncrypto/dist/crypto.node.cjs',
+    '^jose$': '<rootDir>/node_modules/jose/dist/node/cjs/index.js',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/tests/'],

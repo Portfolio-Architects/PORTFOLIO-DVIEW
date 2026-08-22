@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getOfficeTransactions } from '@/lib/services/officeTx.service';
 import { logger } from '@/lib/services/logger';
-import { apiSuccess } from '@/lib/api/apiResponse';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 import fs from 'fs';
 import path from 'path';
@@ -179,7 +179,7 @@ export async function GET(request: NextRequest) {
   // Rate limiting check
   const rateLimitResult = await checkRateLimit(request, { prefix: 'technovalley_trend' });
   if (!rateLimitResult.success) {
-    return rateLimitResult.response || NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
+    return rateLimitResult.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
   }
 
   const { searchParams } = new URL(request.url);

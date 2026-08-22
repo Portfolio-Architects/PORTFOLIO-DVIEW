@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { adminDb as db } from '@/lib/firebaseAdmin';
-import { Timestamp, FieldValue } from 'firebase-admin/firestore';
+import { NextRequest } from 'next/server';
+import { adminDb as db, Timestamp, FieldValue } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -28,43 +28,41 @@ const CommentCreateSchema = z.object({
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       message: 'Either postId or reportId must be provided',
-      path: ['postId']
+      path: ['postId'],
     });
   }
 });
 
 export async function POST(req: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = req.headers.get('x-forwarded-for');
-      const realIp = req.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_comments_${rawIp}`);
-      if (!success) {
-        logger.warn('CommentsAPI.POST', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(req, {
+      prefix: 'ratelimit_comments',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('CommentsAPI.POST', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     if (!db) {
       logger.warn('CommentsAPI.POST', 'Firebase Admin DB not initialized');
-      return NextResponse.json({ error: 'Firebase Admin not initialized' }, { status: 500 });
+      return apiError('DATABASE_UNAVAILABLE', 'Firebase Admin not initialized', 500);
     }
     const adminDb = db;
 
-    let body;
+    let body: unknown;
     try {
       body = await req.json();
     } catch (jsonErr) {
       logger.warn('CommentsAPI.POST', 'Invalid JSON body structure', {}, jsonErr as Error);
-      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+      return apiError('BAD_REQUEST', 'Invalid JSON body structure', 400);
     }
 
     const parsed = CommentCreateSchema.safeParse(body);
-    
+
     if (!parsed.success) {
       logger.warn('CommentsAPI.POST', 'Invalid comment creation payload', { errors: parsed.error.format() });
-      return NextResponse.json({ error: 'Invalid request payload', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Invalid request payload', 400, parsed.error.issues);
     }
 
     const { text, authorUid, authorName, postId, reportId } = parsed.data;
@@ -73,7 +71,7 @@ export async function POST(req: NextRequest) {
 
     if (postId) {
       const postRef = adminDb.collection('posts').doc(postId);
-      
+
       const commentId = await adminDb.runTransaction(async (transaction) => {
         const postSnap = await transaction.get(postRef);
         if (!postSnap.exists) {
@@ -85,22 +83,21 @@ export async function POST(req: NextRequest) {
           text: sanitizedText,
           authorName: sanitizedAuthorName,
           authorUid,
-          createdAt: Timestamp.now()
+          createdAt: Timestamp.now(),
         });
 
         transaction.update(postRef, {
-          commentCount: FieldValue.increment(1)
+          commentCount: FieldValue.increment(1),
         });
 
         return newCommentRef.id;
       });
 
       logger.info('CommentsAPI.POST', 'Comment added to post atomically via transaction', { postId, commentId });
-      return NextResponse.json({ status: 'success', id: commentId });
-
+      return apiSuccess({ id: commentId }, { status: 'success', id: commentId });
     } else if (reportId) {
       let reportRef = adminDb.collection('field_reports').doc(reportId);
-      
+
       const commentId = await adminDb.runTransaction(async (transaction) => {
         let reportSnap = await transaction.get(reportRef);
         if (!reportSnap.exists) {
@@ -122,7 +119,7 @@ export async function POST(req: NextRequest) {
           text: sanitizedText,
           authorName: sanitizedAuthorName,
           authorUid,
-          createdAt: Timestamp.now()
+          createdAt: Timestamp.now(),
         });
 
         if (apartmentName) {
@@ -138,26 +135,26 @@ export async function POST(req: NextRequest) {
         }
 
         transaction.update(reportRef, {
-          commentCount: FieldValue.increment(1)
+          commentCount: FieldValue.increment(1),
         });
 
         return newCommentRef.id;
       });
 
       logger.info('CommentsAPI.POST', 'Comment added to report atomically via transaction', { reportId, commentId });
-      return NextResponse.json({ status: 'success', id: commentId });
+      return apiSuccess({ id: commentId }, { status: 'success', id: commentId });
     }
 
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    return apiError('INVALID_REQUEST', 'Invalid request', 400);
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     if (err.message === 'POST_NOT_FOUND') {
-      return NextResponse.json({ error: 'Target post not found' }, { status: 404 });
+      return apiError('POST_NOT_FOUND', 'Target post not found', 404);
     }
     if (err.message === 'REPORT_NOT_FOUND') {
-      return NextResponse.json({ error: 'Target report not found' }, { status: 404 });
+      return apiError('REPORT_NOT_FOUND', 'Target report not found', 404);
     }
     logger.error('CommentsAPI.POST', 'Create comment api error', {}, err);
-    return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Failed to create comment', 500);
   }
 }

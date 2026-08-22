@@ -1,14 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
-
-export const runtime = 'nodejs';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { resilientFetchText } from '@/lib/api/resilientFetch';
 import { SHEET_ID, SHEET_TABS, parseCsvLine } from '@/lib/constants';
 
-const TYPE_MAP_TAB = SHEET_TABS.TYPE_MAP;
-
+export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const TYPE_MAP_TAB = SHEET_TABS.TYPE_MAP;
 
 export interface TypeMapEntry {
   aptName: string;
@@ -28,34 +29,20 @@ const typeMapEntrySchema = z.object({
   typePyeong: z.string().optional().default(''),
 });
 
-async function fetchWithTimeout(url: string, timeoutMs: number = 3000): Promise<Response> {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    const response = await fetch(url, {
-      cache: 'no-store',
-      signal: controller.signal
-    });
-    clearTimeout(id);
-    return response;
-  } catch (e) {
-    clearTimeout(id);
-    throw e;
-  }
-}
+const FALLBACK_MAP: TypeMapEntry[] = [
+  { aptName: '힐스테이트동탄역', area: '54.5533', typeM2: '78A', typePyeong: '' },
+  { aptName: '힐스테이트동탄역', area: '54.4202', typeM2: '78B', typePyeong: '' },
+];
 
 export async function GET(request: NextRequest) {
   try {
-    // 1. IP 속도 제한 (Rate Limiting) 가드
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_typemap_${rawIp}`);
-      if (!success) {
-        logger.warn('TypeMapAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_typemap',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('TypeMapAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     const { searchParams } = request.nextUrl;
@@ -67,31 +54,29 @@ export async function GET(request: NextRequest) {
       logger.warn('TypeMapAPI.GET', 'Invalid query parameters', {
         errors: parsedQuery.error.format(),
       });
-      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+      return apiError('INVALID_QUERY', 'Bad Request', 400);
     }
 
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(TYPE_MAP_TAB)}&_t=${Date.now()}`;
-    const res = await fetchWithTimeout(csvUrl, 3000);
-
-    if (!res.ok) {
+    let csvText = '';
+    try {
+      csvText = await resilientFetchText(csvUrl, { timeoutMs: 3000, retries: 1 });
+    } catch {
       logger.warn('TypeMapAPI.GET', 'Sheet fetch failed, using fallback', {});
-      return NextResponse.json({ entries: FALLBACK_MAP });
+      return apiSuccess({ entries: FALLBACK_MAP, source: 'fallback' }, { entries: FALLBACK_MAP, source: 'fallback' });
     }
 
-    const csvText = await res.text();
-    const lines = csvText.split('\n').filter(l => l.trim());
-
-    // Header row (row 0): 아파트명, 전용면적, 타입명
+    const lines = csvText.split('\n').filter((l) => l.trim());
     const entries: TypeMapEntry[] = [];
 
     for (let i = 1; i < lines.length; i++) {
       const cols = parseCsvLine(lines[i]);
       if (cols.length < 3) continue;
-      const aptName = cols[1]?.trim(); // 인덱스 보정
+      const aptName = cols[1]?.trim();
       const area = cols[2]?.trim();
       const typeM2 = cols[3]?.trim() || '';
       const typePyeong = cols[5]?.trim() || '';
-      
+
       if (aptName && area && (typeM2 || typePyeong)) {
         const item = { aptName, area, typeM2, typePyeong };
         const parsedEntry = typeMapEntrySchema.safeParse(item);
@@ -106,23 +91,16 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // If sheet returned no data, use fallback
     if (entries.length === 0) {
       logger.warn('TypeMapAPI.GET', 'Sheet returned 0 entries, using fallback', {});
-      return NextResponse.json({ entries: FALLBACK_MAP, source: 'fallback' });
+      return apiSuccess({ entries: FALLBACK_MAP, source: 'fallback' }, { entries: FALLBACK_MAP, source: 'fallback' });
     }
 
-    return NextResponse.json({ entries, source: 'sheet' }, {
+    return apiSuccess({ entries, source: 'sheet' }, { entries, source: 'sheet' }, {
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch (error: unknown) {
     logger.error('TypeMapAPI.GET', 'Error in type-map API route', {}, error as Error);
-    return NextResponse.json({ entries: FALLBACK_MAP, source: 'fallback' });
+    return apiSuccess({ entries: FALLBACK_MAP, source: 'fallback' }, { entries: FALLBACK_MAP, source: 'fallback' });
   }
 }
-
-/** 하드코딩 폴백 (시트 접근 실패 시 사용) */
-const FALLBACK_MAP: TypeMapEntry[] = [
-  { aptName: '힐스테이트동탄역', area: '54.5533', typeM2: '78A', typePyeong: '' },
-  { aptName: '힐스테이트동탄역', area: '54.4202', typeM2: '78B', typePyeong: '' },
-];

@@ -5,21 +5,20 @@
  * Toggle favorite status for an apartment.
  * Creates/deletes a favorites doc and increments/decrements favoriteCount on the apartment.
  */
-import { NextRequest, NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebaseAdmin';
-import { FieldValue } from 'firebase-admin/firestore';
+import { NextRequest } from 'next/server';
+import { adminDb, FieldValue } from '@/lib/firebaseAdmin';
 import { verifyAuthHeader } from '@/lib/authUtils';
 import { redis } from '@/lib/redis';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-// 보안: NoSQL Injection 및 오버플로우 공격 방어용 인바운드 스키마 검증
 const favSchema = z.object({
-  aptName: z.string().min(1).max(100).trim(), // 아파트 이름 길이 제한 및 스크러빙
+  aptName: z.string().min(1).max(100).trim(),
   action: z.enum(['add', 'remove', 'toggle']).optional().default('toggle'),
 });
 
@@ -34,25 +33,23 @@ function toSafeDocId(userId: string, aptName: string): string {
 
 export async function POST(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_favorite_post_${rawIp}`);
-      if (!success) {
-        logger.warn('FavoriteAPI.POST', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_favorite_post',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('FavoriteAPI.POST', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
-    if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
+    if (!adminDb) return apiError('DATABASE_UNAVAILABLE', 'DB not initialized', 500);
 
     // Auth Validation
     let decodedToken;
     try {
       decodedToken = await verifyAuthHeader(request);
-    } catch (authErr) {
-      return NextResponse.json({ error: 'Unauthorized Request' }, { status: 401 });
+    } catch {
+      return apiError('UNAUTHORIZED', 'Unauthorized Request', 401);
     }
     const userId = decodedToken.uid;
 
@@ -61,12 +58,12 @@ export async function POST(request: NextRequest) {
       rawBody = await request.json();
     } catch (jsonErr) {
       logger.warn('FavoriteAPI.POST', 'Invalid JSON body structure', {}, jsonErr as Error);
-      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+      return apiError('BAD_REQUEST', 'Invalid JSON body structure', 400);
     }
 
     const parsed = favSchema.safeParse(rawBody);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Bad Request: Invalid Payload', 400, parsed.error.issues);
     }
     const { aptName, action } = parsed.data;
 
@@ -109,14 +106,14 @@ export async function POST(request: NextRequest) {
       const diff = favorited ? 1 : -1;
       Promise.all([
         redis.hincrby('DTDLS:cache:favoriteCounts', aptName, diff),
-        redis.del(`DTDLS:user:${userId}:favorites`)
-      ]).catch(err => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
+        redis.del(`DTDLS:user:${userId}:favorites`),
+      ]).catch((err) => logger.warn('FavoriteAPI.POST', 'Redis update error', { aptName, userId }, err as Error));
     }
 
-    return NextResponse.json({ favorited });
+    return apiSuccess({ favorited }, { favorited });
   } catch (error: unknown) {
     logger.error('FavoriteAPI.POST', 'Failed to toggle favorite', {}, error as Error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Internal server error', 500);
   }
 }
 
@@ -126,25 +123,23 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_favorite_get_${rawIp}`);
-      if (!success) {
-        logger.warn('FavoriteAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ favorites: [], error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_favorite_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('FavoriteAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
-    if (!adminDb) return NextResponse.json({ favorites: [], warning: 'DB not initialized' }, { status: 200 });
+    if (!adminDb) return apiSuccess({ favorites: [] }, { favorites: [], warning: 'DB not initialized' });
 
     // Auth Validation
     let decodedToken;
     try {
       decodedToken = await verifyAuthHeader(request);
-    } catch (authErr) {
-      return NextResponse.json({ favorites: [], warning: 'Unauthorized' }, { status: 401 });
+    } catch {
+      return apiError('UNAUTHORIZED', 'Unauthorized', 401);
     }
     const userId = decodedToken.uid;
 
@@ -152,11 +147,11 @@ export async function GET(request: NextRequest) {
     const queryParse = favoriteQuerySchema.safeParse({ userId: requestedUserId });
     if (!queryParse.success) {
       logger.warn('FavoriteAPI.GET', 'Invalid query parameters', { errors: queryParse.error.format() });
-      return NextResponse.json({ favorites: [], warning: 'Bad Request' }, { status: 400 });
+      return apiError('INVALID_QUERY', 'Bad Request', 400);
     }
 
     if (requestedUserId && requestedUserId !== userId) {
-      return NextResponse.json({ favorites: [], warning: 'Forbidden' }, { status: 403 });
+      return apiError('FORBIDDEN', 'Forbidden', 403);
     }
 
     const cacheKey = `DTDLS:user:${userId}:favorites`;
@@ -164,7 +159,7 @@ export async function GET(request: NextRequest) {
       try {
         const cached = await redis.get<string[]>(cacheKey);
         if (cached && Array.isArray(cached)) {
-          return NextResponse.json({ favorites: cached });
+          return apiSuccess({ favorites: cached }, { favorites: cached });
         }
       } catch (err) {
         logger.warn('FavoriteAPI.GET', 'Redis read failed, falling back to Firestore', { userId }, err as Error);
@@ -184,7 +179,7 @@ export async function GET(request: NextRequest) {
           clearTimeout(timeoutId);
           throw err;
         }),
-        timeoutPromise
+        timeoutPromise,
       ]);
     };
 
@@ -192,16 +187,15 @@ export async function GET(request: NextRequest) {
     const favoritesTimeout = isDev ? 1000 : 5000;
     const userDocTimeout = isDev ? 1000 : 2000;
 
-    // Execute queries in parallel using Promise.all
     const [snap, userDoc] = await Promise.all([
       withTimeout(adminDb.collection('favorites').where('userId', '==', userId).get(), favoritesTimeout),
-      withTimeout(adminDb.collection('users').doc(userId).get(), userDocTimeout).catch(dbErr => {
+      withTimeout(adminDb.collection('users').doc(userId).get(), userDocTimeout).catch((dbErr) => {
         logger.warn('FavoriteAPI.GET', 'Failed to read user doc', { userId }, dbErr as Error);
         return null;
-      })
+      }),
     ]);
 
-    const favorites = snap.docs.map(d => d.data().aptName as string);
+    const favorites = snap.docs.map((d) => d.data().aptName as string);
 
     if (userDoc && userDoc.exists) {
       const userData = userDoc.data();
@@ -219,17 +213,16 @@ export async function GET(request: NextRequest) {
 
     if (redis) {
       try {
-        await redis.set(cacheKey, favorites, { ex: 86400 }); // Cache for 24 hours
+        await redis.set(cacheKey, favorites, { ex: 86400 });
       } catch (err) {
         logger.warn('FavoriteAPI.GET', 'Redis write failed', { userId }, err as Error);
       }
     }
 
-    return NextResponse.json({ favorites });
+    return apiSuccess({ favorites }, { favorites });
   } catch (error: unknown) {
     logger.error('FavoriteAPI.GET', 'Failed to fetch favorites', {}, error as Error);
-    // Return [] instead of 500 to prevent app crashes if Firebase hangs
-    return NextResponse.json({ favorites: [], error: 'Failed to fetch favorites' }, { status: 200 });
+    return apiSuccess({ favorites: [] }, { favorites: [], error: 'Failed to fetch favorites' });
   }
 }
 
@@ -244,24 +237,22 @@ const orderSchema = z.object({
  */
 export async function PUT(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_favorite_put_${rawIp}`);
-      if (!success) {
-        logger.warn('FavoriteAPI.PUT', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_favorite_put',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('FavoriteAPI.PUT', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
-    if (!adminDb) return NextResponse.json({ error: 'DB not initialized' }, { status: 500 });
+    if (!adminDb) return apiError('DATABASE_UNAVAILABLE', 'DB not initialized', 500);
 
     let decodedToken;
     try {
       decodedToken = await verifyAuthHeader(request);
-    } catch (authErr) {
-      return NextResponse.json({ error: 'Unauthorized Request' }, { status: 401 });
+    } catch {
+      return apiError('UNAUTHORIZED', 'Unauthorized Request', 401);
     }
     const userId = decodedToken.uid;
 
@@ -270,12 +261,12 @@ export async function PUT(request: NextRequest) {
       rawBody = await request.json();
     } catch (jsonErr) {
       logger.warn('FavoriteAPI.PUT', 'Invalid JSON body structure', {}, jsonErr as Error);
-      return NextResponse.json({ error: 'Invalid JSON body structure' }, { status: 400 });
+      return apiError('BAD_REQUEST', 'Invalid JSON body structure', 400);
     }
 
     const parsed = orderSchema.safeParse(rawBody);
     if (!parsed.success) {
-      return NextResponse.json({ error: 'Bad Request: Invalid Payload', details: parsed.error.issues }, { status: 400 });
+      return apiError('INVALID_PAYLOAD', 'Bad Request: Invalid Payload', 400, parsed.error.issues);
     }
     const { favoriteOrder } = parsed.data;
 
@@ -283,13 +274,14 @@ export async function PUT(request: NextRequest) {
     await userRef.set({ favoriteOrder }, { merge: true });
 
     if (redis) {
-      await redis.del(`DTDLS:user:${userId}:favorites`).catch(err => logger.warn('FavoriteAPI.PUT', 'Redis cache invalidation error', { userId }, err as Error));
+      await redis.del(`DTDLS:user:${userId}:favorites`).catch((err) =>
+        logger.warn('FavoriteAPI.PUT', 'Redis cache invalidation error', { userId }, err as Error)
+      );
     }
 
-    return NextResponse.json({ success: true, favoriteOrder });
+    return apiSuccess({ favoriteOrder }, { success: true, favoriteOrder });
   } catch (error: unknown) {
     logger.error('FavoriteAPI.PUT', 'Failed to update favorite order', {}, error as Error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Internal server error', 500);
   }
 }
-

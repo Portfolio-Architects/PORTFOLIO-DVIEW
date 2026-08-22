@@ -1,16 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-async function getTxSummary(): Promise<Record<string, any>> {
+async function getTxSummary(): Promise<Record<string, unknown>> {
   try {
-    const parsed = await readJsonFileCached<{ summary: Record<string, any> }>('public/data/tx-summary.json', { summary: {} });
-    return parsed?.summary || parsed || {};
+    const parsed = await readJsonFileCached<{ summary: Record<string, unknown> }>('public/data/tx-summary.json', { summary: {} });
+    return parsed?.summary || (parsed as unknown as Record<string, unknown>) || {};
   } catch (err) {
     logger.error('TransactionSummaryAPI.getTxSummary', 'Failed to read or parse tx-summary.json', {}, err as Error);
     return {};
@@ -23,15 +24,13 @@ const transactionSummaryQuerySchema = z.object({
 
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_txsummary_get_${rawIp}`);
-      if (!success) {
-        logger.warn('TransactionSummaryAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_txsummary_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('TransactionSummaryAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     const TX_SUMMARY = await getTxSummary();
@@ -44,7 +43,7 @@ export async function GET(request: NextRequest) {
       logger.warn('TransactionSummaryAPI.GET', 'Invalid query parameters', {
         errors: parsedQuery.error.format(),
       });
-      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+      return apiError('INVALID_QUERY', 'Bad Request', 400);
     }
 
     const { apartment } = parsedQuery.data;
@@ -59,15 +58,18 @@ export async function GET(request: NextRequest) {
         logger.warn('TransactionSummaryAPI.GET', 'Apartment not found in transaction summary', {
           apartment,
         });
-        return NextResponse.json({ error: 'Apartment not found' }, { status: 404 });
+        return apiError('NOT_FOUND', 'Apartment not found', 404);
       }
-      return NextResponse.json(filtered, { headers: cacheHeaders });
+      return apiSuccess(
+        filtered,
+        typeof filtered === 'object' && filtered !== null ? (filtered as Record<string, unknown>) : undefined,
+        { headers: cacheHeaders }
+      );
     }
 
-    return NextResponse.json(TX_SUMMARY, { headers: cacheHeaders });
+    return apiSuccess(TX_SUMMARY, TX_SUMMARY, { headers: cacheHeaders });
   } catch (error) {
     logger.error('TransactionSummaryAPI.GET', 'Error fetching transaction summary', {}, error as Error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Internal Server Error', 500);
   }
 }
-

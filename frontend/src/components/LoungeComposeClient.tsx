@@ -7,15 +7,15 @@ import { storage } from '@/lib/firebaseConfig';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import * as UserRepo from '@/lib/repositories/user.repository';
-import type { UserProfile } from '@/lib/types/user.types';
-import { getDisplayName } from '@/lib/types/user.types';
+import type { UserProfile } from '@/types';
+import { getDisplayName } from '@/lib/utils/userUtils';
 import { useRouter } from 'next/navigation';
 import { isAdmin } from '@/lib/config/admin.config';
 import { compressImage } from '@/lib/utils/imageCompression';
 import { generateMamacafeNickname } from '@/lib/utils/nickname';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { enqueueOfflineRequest } from '@/lib/utils/offlineQueue';
-import { useAuth } from '@/lib/contexts/AuthContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { logger } from '@/lib/services/logger';
 
 

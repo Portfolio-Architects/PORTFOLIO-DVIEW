@@ -1,4 +1,4 @@
-import { TransactionRecord } from '@/components/apartment-modal/TransactionTable';
+import type { TransactionRecord } from '@/types';
 
 const MAX_CACHE_SIZE = 250;
 const TARGET_CACHE_SIZE = 200;

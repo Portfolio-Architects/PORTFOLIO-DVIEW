@@ -1,347 +1,188 @@
-# Comprehensive Technical Analysis: Requirement R2 (Evaluation & Verification Framework)
+# Infrastructure, Data Access, Repositories, and Hooks Survey Report
 
-**Agent**: `explorer_survey_2`  
-**Date**: 2026-08-04  
-**Target Directory**: `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/self_improvement_loop` (and workspace root)  
-**Objective**: Investigate codebase, benchmark routines, runtime environment, and requirement specifications for Requirement R2: Quantitative Benchmark Metric Measurement (pass rate, execution time, memory usage, accuracy) and Rollback Mechanism on Performance Degradation or Errors.
+**Explorer**: Explorer 2 (Infrastructure, Data Access, Repositories, and Application Hooks Specialist)  
+**Date**: 2026-08-21  
+**Scope**: `frontend/src/lib/`, `frontend/src/hooks/`, `frontend/src/app/api/`, data pipelines and environment configuration.
 
 ---
 
 ## Executive Summary
 
-1. **Existing Baseline**: A prototype self-improvement loop exists in `self_improvement_loop/` comprising 11 Python files including `config.py`, `vcs.py`, `runner.py`, `engine.py`, `simulator.py`, `target_module.py`, and corresponding unit tests (`test_engine.py`, `test_simulator.py`, `test_target_module.py`, `test_vcs.py`).
-2. **Core Verification Gap**: The existing system handles AST syntax validation (`ast.parse()`) and hard test failure detection (`returncode != 0`), but **lacks quantitative benchmark metrics measurement** (pass rate %, execution time latency, memory peak footprint, numerical accuracy) and **does not perform rollbacks when performance degrades** (e.g., code slowdown or memory leaks) while unit tests still pass.
-3. **Actionable Roadmap**: To achieve full R2 compliance, we propose introducing:
-   - A unified `BenchmarkEvaluator` & `MetricCollector` (`benchmark_runner.py`) using `time.perf_counter()` and `tracemalloc`.
-   - A granular `TestResultParser` capturing passed/failed/total test counts to compute exact `pass_rate` (%).
-   - A `PerformanceDegradationDetector` in `engine.py` with configurable degradation thresholds ($\tau_{time} = 15\%$, $\tau_{mem} = 20\%$, $\tau_{acc} = 1\%$).
-   - An expanded multi-tier `Rollback` trigger in `vcs.py` / `engine.py` that reverts code on performance regression and provides feedback for alternative exploration.
+A comprehensive architectural inspection was conducted across the Infrastructure (`src/lib/`), Data Access/Repositories (`src/lib/repositories/`, `src/lib/services/`), Custom Hooks (`src/hooks/`), and Route Handlers (`src/app/api/`).
+
+The codebase shows substantial architectural maturity in several areas (e.g., in-memory L1 cache fallbacks, Zod runtime validation, `useSyncExternalStore` integration, `resilientFetch` retry/backoff, and IndexedDB offline queuing). However, critical layer boundary leaks, upward dependencies, scattered raw data access calls, non-standardized API envelopes, and residual `any` types currently undermine strict separation of concerns and maintainability.
 
 ---
 
-## 1. Existing System Architecture & Code Inspection
+## 1. Complete Inventory of Modules
 
-### 1.1 Summary of Existing Files in `self_improvement_loop/`
+### 1.1 Infrastructure & Core Configuration (`src/lib/`)
 
-| File Path | Lines | Core Responsibility | Compliance with Requirement R2 |
+| File / Module | Responsibility | Key Dependencies / Protocols | Notes & Health Assessment |
 |---|---|---|---|
-| `config.py` | 25 | Path configuration & execution safety limits | ⚠️ **Partial**: Lacks threshold configuration for performance metrics (latency, RAM, accuracy). |
-| `runner.py` | 81 | Process execution of unit tests via `subprocess.run` | ⚠️ **Partial**: Returns process boolean `success`, but no timing, memory, or pass rate breakdown. |
-| `vcs.py` | 103 | `CustomVCS` file versioning, patch creation, and rollback | ✅ **Strong**: Snapshot saving (`save_version`), diff generation (`generate_diff`), restore (`restore_version`/`rollback`). |
-| `engine.py` | 481 | Self-improvement loop controller | ⚠️ **Partial**: Rollback triggers on syntax/test errors, but accepts candidate code if `returncode == 0` regardless of performance slowdown or memory leaks. |
-| `simulator.py` | 802 | `MockLLMSimulator` & code quality metrics | ⚠️ **Partial**: `calculate_metrics()` measures static AST structure (lines, docstrings), NOT runtime benchmark metrics. |
-| `target_module.py` | 159 | Target implementation (`Calculator` class) | Baseline target module under self-improvement. |
-| `test_target_module.py` | 316 | Unit tests for `Calculator` | Baseline test suite covering basic arithmetic, trig, stats, matrix ops, optimization. |
-| `run.py` | 100 | Entry point script running engine & test discovery | Entry script for E2E execution. |
+| `firebaseConfig.ts` | Firebase Web Client SDK initialization (Firestore, Auth, Storage, App Check) | `firebase/app`, `firebase/firestore`, `firebase/auth`, `firebase/storage`, `firebase/app-check`, `zod` | ⚠️ Uses type assertion `as unknown as ReturnType<...>` hiding `null` when env is absent during SSR/test. |
+| `firebaseAdmin.ts` | Firebase Admin SDK initialization for Node.js server environments | `firebase-admin`, `path`, `fs`, `zod` | ✅ Validates multi-format credentials (local JSON, Vercel split keys). Configures `preferRest: true`. |
+| `firebaseAdmin.client.ts` | Client-side stub for `firebaseAdmin` to prevent bundler leakage | None | ✅ Correctly exports null stubs. |
+| `redis.ts` | Upstash Redis connection with `MemoryCacheFallback` and L1 LRU caching | `@upstash/redis`, `serverLruCache`, `zod` | ✅ `ResilientRedisWrapper` with 1500ms timeout & mock fallback. |
+| `rate-limit.ts` | Upstash sliding window rate limiter instance | `@upstash/ratelimit`, `rawRedis`, `zod` | ⚠️ Redundant with `src/lib/api/rateLimiter.ts`. |
+| `src/lib/api/apiResponse.ts` | Standard Next.js response envelope helpers (`apiSuccess`, `apiError`) | `next/server` | ✅ Clean `{ success, data, meta }` / `{ success, error, code, details }` envelope. |
+| `src/lib/api/rateLimiter.ts` | Route handler rate limiter with in-memory fallback & IP extraction | `@upstash/ratelimit`, `apiError` | ✅ Well-structured rate limit checker returning standard 429 response. |
+| `src/lib/api/resilientFetch.ts` | HTTP client wrapper with retries, exponential backoff, jitter, and timeout | Native `fetch`, `AbortController`, `logger` | ✅ Robust implementation supporting signal merging and custom retry conditions. |
+| `src/lib/config/admin.config.ts` | Admin email authorization constants and checker | None | ⚠️ Hardcoded email list (`ocs5672@gmail.com`). |
+| `src/lib/config/api.config.ts` | MOLIT public real estate API configurations | None | ⚠️ Hardcoded public portal key and default query period. |
+| `src/lib/contexts/AuthContext.tsx` | React Auth Provider & Playwright E2E Mock Auth Bridge | `firebase/auth`, `DashboardFacade`, `user.repository` | ⚠️ **Layer Violation**: Located inside `src/lib/contexts/` instead of `src/contexts/` or `src/app/providers/`. |
+| `src/lib/contexts/SettingsContext.tsx` | React Settings Context (theme, area unit, modal state) | `localCache`, `next/dynamic` | ⚠️ **Severe Layer Violation**: Dynamically imports `@/components/SettingsModal` UI component into `src/lib/`. |
+| `src/lib/hooks/useNetworkStatus.ts` | Browser online/offline tracker via `useSyncExternalStore` | `useSyncExternalStore` | ⚠️ Duplicate: Hook placed in `src/lib/hooks/` and re-exported in `src/hooks/`. |
+| `DashboardFacade.ts` | Facade orchestrator for dashboard feeds, reports, comments, reviews | Repositories, Services, Subscribable | ⚠️ **Cyclic Dependency**: Re-exports `useDashboardData` from `src/hooks/useDashboardData.ts`. |
+| `analytics-service.ts` | Google Analytics 4 Beta Data Client with LKG (Last Known Good) Redis caching | `@google-analytics/data`, `redis` | ✅ Strong fallback resilience with mock fallback generator when credentials are absent. |
+| `authUtils.ts` | Server-side Firebase ID token & session cookie verification | `firebaseAdmin`, `zod` | ✅ In-memory claim caching to avoid network latency per request. |
+| `apartment-data.ts`, `dong-apartments.ts`, `dongs.ts`, `macro-summary.ts`, `transaction-summary.ts`, `zones.ts` | Static reference data, dong definitions, and regional metadata | None | ⚠️ Discrepancy between `zones.ts` (7 investment zones) and `dongs.ts` (11 legal dongs). |
 
 ---
 
-### 1.2 Deep-Dive Line Analysis of Key R2-Related Components
+### 1.2 Data Access & Repositories (`src/lib/repositories/`)
 
-#### A. `runner.py` (`C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/self_improvement_loop/runner.py`)
-- **Lines 19-35**: Dynamically resolves Python interpreter (`.venv/Scripts/python.exe` on Windows or `sys.executable`).
-- **Lines 38-51**: Executes test runner:
-  ```python
-  result = subprocess.run(
-      [python_executable, self.test_file],
-      capture_output=True,
-      text=True,
-      encoding="utf-8",
-      errors="replace",
-      timeout=60
-  )
-  return {
-      "success": result.returncode == 0,
-      "stdout": result.stdout,
-      "stderr": result.stderr,
-      "returncode": result.returncode
-  }
-  ```
-- **Evidentiary Limitation**:
-  - `success` is strictly a binary `result.returncode == 0`.
-  - Wall-clock runtime is not measured.
-  - Process memory (RSS) is not tracked.
-  - Test count breakdown (e.g. 15 passed, 2 failed out of 17) is missing.
-
-#### B. `engine.py` (`C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/self_improvement_loop/engine.py`)
-- **Lines 319-373**: AST Syntax Pre-validation. Catches syntax errors before running tests. If invalid, logs `AST_SYNTAX_ERROR` and executes `self.vcs.rollback(version_idx)`.
-- **Lines 386-472**: Test execution and baseline update logic:
-  - If `test_result["success"] == True`:
-    - Updates `version_idx = iteration`.
-    - Updates `current_code` and `last_stable_code`.
-    - Accepts code changes as successful.
-  - If `test_result["success"] == False`:
-    - Saves `target_module.v{iteration}.failed.py`.
-    - Executes `self.vcs.rollback(version_idx)`.
-    - Verifies rollback with `verify_result = self.runner.run_tests()`.
-- **Evidentiary Limitation**:
-  - `engine.py` **never measures performance regression**. If a candidate code change passes tests but takes 10 seconds instead of 10 milliseconds, `engine.py` marks it as `SUCCESS`.
-
-#### C. `vcs.py` (`C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/self_improvement_loop/vcs.py`)
-- **Lines 64-94**: `restore_version(version_idx)` / `rollback(version_idx)`:
-  - Cleanly overwrites `target_module.py` and `test_target_module.py` from stored snapshots `history/target_module.v{version_idx}.py`.
-  - System capability: VCS infrastructure is fully functional and ready for performance rollback integration.
+| Repository Module | Target Datastore / External System | Key Functions | Major Observations & Deficiencies |
+|---|---|---|---|
+| `apartment.repository.ts` | Google Sheets `/api/apartments-by-dong`, Firestore `settings/apartmentMeta`, Local fs | `fetchApartmentNames`, `fetchApartmentMeta` | ⚠️ Hybrid SSR/client branching using `readJsonFileCached` vs `fetch()`. |
+| `comment.repository.ts` | Firestore `field_reports/{id}/comments` and `lounge_apt_stories` | `addComment`, `listenToComments`, `getComments`, `deleteComment` | ✅ Uses `writeBatch` and `firestoreThrottle`. Double writes comments to `lounge_apt_stories`. |
+| `energy.repository.ts` | MOLIT Building Energy Hub OpenAPI (JSON) | `fetchEnergyJsonFromPublicPortal` | ⚠️ Hardcoded API service key fallback. Uses `axios` instead of `resilientFetch`. |
+| `favorite.repository.ts` | Firestore `favoriteCounts` collection & Redis | `fetchFavoriteCounts`, `incrementFavoriteCount` | ✅ Implements isomorphic query with Redis cache invalidation. |
+| `googleSheets.repository.ts` | Google Spreadsheets CSV endpoints | `fetchCsv` | ✅ Multi-tier caching: In-Memory -> Local FS (`scratch/sheets-cache`) -> Redis -> Live Fetch with Exponential Backoff. |
+| `isomorphicHelper.ts` | Redis cache bridge for SSR/Client execution | `executeIsomorphicQuery` | ✅ Safely executes serverQuery on server and clientQuery on client with Redis caching. |
+| `location.repository.ts` | Google Sheets POI Tabs (Apartments, Schools, Stations, Academies, Restaurants, Sboyds) | `loadApartments`, `loadSchools`, `loadStations`, `loadAcademies`, `loadRestaurants`, `loadSboyds` | ⚠️ Duplicates CSV fetch retry logic. Embeds business normalization (Baskin Robbins naming) inside repo. |
+| `news.repository.ts` | Firestore `local_notices` collection & Redis | `fetchRawLocalNotices`, `getCachedNotices`, `setCachedNotices` | ✅ Uses parallel timeout queries with Zod validation. |
+| `officeTx.repository.ts` | MOLIT Office Trade XML OpenAPI | `fetchOfficeXmlFromPublicPortal` | ⚠️ Hardcoded API key fallback. Uses `axios`. Contains 170 lines of static mock XML. |
+| `post.repository.ts` | Firestore `posts`, `lounge_apt_stories`, `field_reports` | `listenToPosts`, `createPost`, `incrementPostLike`, `incrementPostView`, `deletePost`, `getPost`, `getRecentPosts` | ⚠️ **Layer Violation**: Imports Lucide-react UI icons (`Train`, `Building`, etc.). Uses `any[]` and contains heavy markdown parsing inside repository. |
+| `report.repository.ts` | Firestore `scoutingReports` and `field_reports` | `listenToReports`, `getFullReport`, `getFullReportByApartmentName`, `incrementReportLike`, `incrementReportView`, `fetchRecentScoutingReports`, `saveScoutingReport`, `updateScoutingReport`, `saveFieldReport` | ⚠️ Mixes two collection schemas (`scoutingReports` vs `field_reports`). Uses untyped `any` in parameter types (`saveScoutingReport(reportData: any)`). |
+| `review.repository.ts` | Firestore `user_reviews` collection | `listenToReviews`, `getRecentReviews`, `addReview`, `incrementReviewLike`, `deleteReview` | ✅ Real-time listener and Zod schema mapping with fallback. |
+| `searchConsole.repository.ts` | Google Search Console API via RSA-SHA256 JWT | `getSearchConsoleStatus`, `fetchSearchConsoleStatusFromGoogle` | ✅ Self-diagnostic mock fallback if service account keys are missing. |
+| `storage.repository.ts` | Firebase Storage SDK | `uploadRawBytes`, `deleteRawObject` | ✅ Clean raw storage adapter. |
+| `traffic.repository.ts` | Firestore `daily_stats` collection | `incrementWebsiteVisit`, `incrementContentView`, `getDailyVisitStats`, `getDailyContentViews` | ⚠️ **Circular Architecture**: Calls internal HTTP endpoint `fetch('/api/traffic')` from repository. |
+| `user.repository.ts` | Firestore `users` collection | `getOrCreateProfile`, `setApartmentVerification`, `updateNickname`, `updatePhotoURL` | ✅ Supports isomorphic Admin SDK and Client SDK execution with throttle. |
 
 ---
 
-## 2. Requirement R2 Analysis: The 4 Core Verification Pillars
+### 1.3 Application Hooks Layer (`src/hooks/`)
 
-Requirement R2 explicitly mandates:
-> **R2. Evaluation & Verification Framework**
-> Program execution results, unit test pass rate, execution time, memory efficiency, and quantitative metric measurement engine. Rollback mechanism or alternative improvement exploration mechanism when improvement attempts fail to enhance quantitative indicators or encounter errors.
+| Custom Hook | Purpose & Data Source | Lifecycle & Synchronization Pattern | Concurrency & Race Condition Safeguards | Leaks & Deficiencies |
+|---|---|---|---|---|
+| `useApartmentDetails.ts` | Orchestrates apartment transaction history, full report, location scores | SWR for static JSON + Facade promise for report + SWR lazy load | `activeRequestIdRef` increments on param change; `unmounted` guard prevents state update after unmount | Direct `fetch('/api/report-view')` call inside hook. |
+| `useAuth.ts` | Re-exports AuthContext state | React Context consumer | Managed by `AuthContext` | None. |
+| `useComments.ts` | Real-time comment listener, submission, deletion | Firestore listener via Facade + local input state | `isMountedRef` check; `commentInputRef` prevents re-renders | Direct un-abstracted `fetch('/api/push/notify-comment')` and `fetch('/api/indexing/apartment')`. Native `alert`/`confirm` calls. |
+| `useDashboardData.ts` | Subscribes to dashboard reactive stores | `useSyncExternalStore` via `DashboardFacade` | Teardown-safe synchronous external store reading | None. |
+| `useDashboardMeta.ts` | Loads apartments by dong, type map, name mappings | SWR + manual lazy fetch trigger | `unmounted` guard | Direct `fetch('/api/explore/search-data')` and `fetch('/api/dashboard-init')`. |
+| `useDebounce.ts` | Value debounce | `useEffect` with `setTimeout` | Timer cleared on change/unmount | None. |
+| `useFavorites.ts` | Multi-tab guest & user favorites synchronization | `localStorage` + CustomEvents + SWR/REST | `isMountedRef` guard; optimistic UI update with rollback | Direct `fetch('/api/favorite')` and `fetch('/api/favorite-counts')` calls scattered across hook. |
+| `useMounted.ts` | SSR hydration mismatch prevention | `useState` + `useEffect` | Sets mounted boolean | None. |
+| `useNetworkStatus.ts` | Connectivity monitor | `useSyncExternalStore` | Window online/offline events | Redundant duplicate in `src/lib/hooks/`. |
+| `usePreloadApartmentTx.ts` | Preloads apartment JSON transactions | SWR `preload()` | Error-safe try/catch fallback | None. |
+| `usePreventElasticBounce.ts` | iOS rubber-banding scroll prevention | Native DOM event listeners | Non-passive touchmove cleanup | None. |
+| `useStaticData.ts` | Merges static transaction summaries with live Firestore transactions | SWR + raw Firestore queries | `requestIdleCallback` delayed fetch; memoized merge helpers | ⚠️ **Bypasses Repository**: Executes raw Firestore `getDocs(query(collection(db, 'transactions')))` directly in hook. |
+| `useSwipeNavigation.ts` | Mobile edge swipe back navigation | Touch event listeners | Window event teardown | None. |
+| `useAdBlockDetector.ts` | Detects adblocker presence | DOM probing | Timeout cleanup | None. |
 
-Below is the architectural blueprint to achieve 100% R2 compliance.
+---
+
+## 2. Key Architectural Issues & Deficiencies
 
 ```
-                    +-----------------------------------+
-                    |   Candidate Code Generation (Vk)  |
-                    +-----------------------------------+
-                                      |
-                                      v
-                    +-----------------------------------+
-                    |    Pillar 1: Metric Collector     |
-                    |   - Pass Rate (%)                 |
-                    |   - Execution Time (sec)          |
-                    |   - Peak Memory (MB)              |
-                    |   - Accuracy Score (0.0 - 1.0)    |
-                    +-----------------------------------+
-                                      |
-                                      v
-                    +-----------------------------------+
-                    |   Pillar 2: Degradation Engine    |
-                    |   Is Vk >= Vstable on all metrics?|
-                    +-----------------------------------+
-                               /         \
-                             NO           YES
-                            /               \
-                           v                 v
-            +-----------------------+   +-----------------------+
-            |  Pillar 3: Rollback   |   |   Accept New Baseline |
-            |  - VCS Restore        |   |   - Update Vstable        |
-            |  - Verify Restored    |   |   - Save Patch Diff       |
-            |  - Alternative Feedback|   +-----------------------+
-            +-----------------------+
+[UI Layer (Components / Pages)]
+        │
+        ▼ ⚠️ Leaks & Violations:
+        ├─ Direct raw fetch() to internal API routes without client adapters
+        ├─ SettingsContext dynamically imports UI Component (SettingsModal)
+        │
+[Application / Hook Layer (src/hooks/)]
+        │
+        ▼ ⚠️ Leaks & Violations:
+        ├─ Direct raw Firestore queries in useStaticData.ts
+        ├─ Direct un-abstracted fetch('/api/...') in useFavorites, useComments, useApartmentDetails
+        ├─ useDashboardData imported into DashboardFacade.ts (Cyclic Dependency)
+        │
+[Infrastructure & Repositories (src/lib/)]
+        │
+        ▼ ⚠️ Leaks & Violations:
+        ├─ post.repository.ts imports Lucide-react UI icons
+        ├─ traffic.repository.ts calls fetch('/api/traffic') instead of direct DB access
+        ├─ Untyped `any` in report.repository.ts & post.repository.ts
+        ├─ Hardcoded fallback API keys in officeTx, energy, api.config
+        │
+[Domain Contracts (src/types/ & src/lib/types/)]
+        ⚠️ Fragmented type definitions scattered across src/lib/types/ and src/lib/validation/
 ```
 
----
+### Critical Findings:
 
-### Pillar 1: Quantitative Metric Measurement Suite
+1. **Upward Layer Dependencies & Circularities**:
+   - `DashboardFacade.ts` (in `src/lib/`) imports `useDashboardData` from `src/hooks/useDashboardData.ts`.
+   - `SettingsContext.tsx` (in `src/lib/contexts/`) imports `SettingsModal` from `src/components/SettingsModal`.
+   - `post.repository.ts` (in `src/lib/repositories/`) imports React UI Icon components (`Train`, `Building`, `BookOpen`, `MessageSquare`) from `lucide-react`.
+   - `traffic.repository.ts` calls `/api/traffic`, while `/api/traffic` calls Firestore, and `report.repository.ts`/`post.repository.ts` call `traffic.repository.ts`.
 
-We define `BenchmarkMetrics` data model and metric calculation mechanisms:
+2. **Scattered Data Access & Missing Client Adapters**:
+   - Custom hooks (`useFavorites`, `useComments`, `useApartmentDetails`, `useDashboardMeta`) make ad-hoc `fetch('/api/...')` calls without an abstracted API Client or Adapter.
+   - `useStaticData.ts` bypasses all repository layers and calls Firestore SDK `getDocs(collection(db, 'transactions'))` directly inside a React hook.
 
-#### 1. Pass Rate Metric ($P_{pass}$)
-- Executed via `unittest.TextTestRunner` with custom `unittest.TestResult` collector or JSON runner.
-- **Formula**:
-  $$\text{Pass Rate (\%)} = \left( \frac{\text{Passed Tests}}{\text{Total Tests} - \text{Skipped Tests}} \right) \times 100.0$$
+3. **Untyped Leaks and Repository Method Signatures**:
+   - `report.repository.ts` contains methods typed with `any` (`saveScoutingReport(reportData: any)`, `updateScoutingReport(reportId: string, updateData: any)`, `saveFieldReport(fieldReportData: any)`, `fetchRecentScoutingReports(): Promise<any[]>`).
+   - `post.repository.ts` contains `processCombinedPosts(..., rawStories: any[])`.
 
-#### 2. Execution Time Metric ($T_{exec}$)
-- Measured using high-precision wall-clock timer `time.perf_counter()`.
-- Run micro-benchmarksuite over $N=5$ iterations to compute average latency ($\bar{T}_{exec}$) and standard deviation ($\sigma_T$).
+4. **API Route Response & Rate Limiting Inconsistency**:
+   - Route handlers in `src/app/api/` (such as `apartments-by-dong`, `favorite`, `posts`, `comments`) bypass the standard envelope functions `apiSuccess` and `apiError` from `src/lib/api/apiResponse.ts`.
+   - Route handlers manually extract IP addresses and call `rateLimiter.limit(...)` rather than utilizing the centralized `checkRateLimit` helper in `src/lib/api/rateLimiter.ts`.
+   - Route handlers duplicate database business logic rather than delegating to clean server repositories/services.
 
-#### 3. Memory Usage Metric ($M_{peak}$)
-- Measured using Python standard library `tracemalloc`:
-  ```python
-  tracemalloc.start()
-  # Execute target functions & test suite
-  current_bytes, peak_bytes = tracemalloc.get_traced_memory()
-  tracemalloc.stop()
-  peak_memory_mb = peak_bytes / (1024.0 * 1024.0)
-  ```
-- Cross-platform compatible (Windows 11 AMD64, Linux, macOS).
-
-#### 4. Accuracy & Numerical Precision Metric ($A_{acc}$)
-- Evaluated on mathematical, statistical, and optimization functions in `target_module.py`:
-  - Linear regression residual norm: $\|y - (mx + c)\|_2$
-  - Gradient descent error relative to analytical minimum $x^*=0.0$
-  - Matrix multiplication floating-point deviation
-- **Formula**:
-  $$A_{acc} = \max\left(0.0, 1.0 - \frac{\text{Mean Absolute Error}}{\text{Baseline Target Scale}}\right)$$
+5. **Hardcoded Secrets & Environment Fallbacks**:
+   - Public portal API keys and credentials are hardcoded as fallbacks in `src/lib/config/api.config.ts`, `src/lib/repositories/officeTx.repository.ts`, `src/lib/repositories/energy.repository.ts`, and `src/app/api/cron/send-tx-notifications/route.ts`.
 
 ---
 
-### Pillar 2: Baseline vs Candidate Comparison & Degradation Detection
+## 3. Recommended Architectural Target State
 
-Let $M_{stable} = (P_{base}, T_{base}, M_{base}, A_{base})$ be the metrics of the current stable version, and $M_{cand} = (P_{cand}, T_{cand}, M_{cand}, A_{cand})$ be the metrics of candidate iteration $k$.
+### 3.1 Strict Layer Isolation Model
 
-The `DegradationDetector` applies the following quantitative evaluation rules:
+1. **Domain Layer (`src/types/`, `src/domain/`)**:
+   - Centralize all pure entity definitions, DTOs, value objects, and Zod schemas.
+   - Zero dependencies on React, Next.js, Firebase, or UI libraries.
 
-1. **Compilation / Syntax Check**:
-   $$\text{If } \text{ast\_valid} = \text{False} \implies \text{STATUS: AST\_SYNTAX\_ERROR}$$
-2. **Unit Test Pass Rate Check**:
-   $$\text{If } P_{cand} < P_{base} \implies \text{STATUS: REJECT\_PASS\_RATE\_DEGRADED}$$
-3. **Execution Time Regression Check ($\tau_{time} = 0.15$)**:
-   $$\text{If } T_{cand} > T_{base} \times (1.0 + \tau_{time}) \implies \text{STATUS: REJECT\_LATENCY\_DEGRADED}$$
-4. **Memory Footprint Regression Check ($\tau_{mem} = 0.20$)**:
-   $$\text{If } M_{cand} > M_{base} \times (1.0 + \tau_{mem}) \implies \text{STATUS: REJECT\_MEMORY\_DEGRADED}$$
-5. **Accuracy Regression Check ($\tau_{acc} = 0.01$)**:
-   $$\text{If } A_{cand} < A_{base} - \tau_{acc} \implies \text{STATUS: REJECT\_ACCURACY\_DEGRADED}$$
+2. **Infrastructure Layer (`src/lib/`, `src/infrastructure/`)**:
+   - **Adapters & Repositories**: Pure I/O abstractions (`ApartmentRepository`, `ReportRepository`, `PostRepository`, `FavoriteRepository`, `EnergyAdapter`, `OfficeTxAdapter`, `AnalyticsAdapter`).
+   - **Clients**: `resilientFetch`, `redis`, `firebaseConfig` (client), `firebaseAdmin` (server).
+   - **No UI imports** (no Lucide icons, no React modals, no custom hooks).
 
-**ACCEPTANCE CONDITION**: Candidate is accepted **ONLY** when no degradation rules are triggered AND ($P_{cand} > P_{base} \lor T_{cand} < T_{base} \lor M_{cand} < M_{base} \lor A_{cand} > A_{base} \lor \text{Code quality enhanced}$).
+3. **Application & State Layer (`src/hooks/`, `src/contexts/`, `src/services/`)**:
+   - React Contexts moved to `src/contexts/` or `src/app/providers/`.
+   - Custom hooks consume repository interfaces or unified API client adapters via SWR/TanStack-style query mechanisms.
+   - All async network calls in hooks support `AbortController` cancellation and structured error boundaries.
 
----
-
-### Pillar 3: Multi-Tier Rollback & Alternative Exploration Mechanism
-
-When `DegradationDetector` returns a `REJECT_*` status:
-
-1. **VCS Snapshot Rollback**:
-   - Invoke `self.vcs.rollback(version_idx)`.
-   - Restore `target_module.py` and `test_target_module.py` to stable snapshot version `version_idx`.
-2. **Environment Verification Run**:
-   - Re-run `BenchmarkMetrics` on restored code to ensure system returned to 100% baseline state.
-3. **Degradation Rationale Feedback Injection**:
-   - Generate rich feedback message for generator/LLM simulator:
-     ```
-     "REJECT_LATENCY_DEGRADED: Execution time increased from 0.0051s to 0.0384s (+652%). 
-     Code change rolled back to v{version_idx}. 
-     Please attempt optimization without increasing computational complexity."
-     ```
-4. **Stuck State Recovery & Search Strategy Perturbation**:
-   - If 3 consecutive rollbacks occur due to performance degradation, trigger strategy mutation (e.g. switch from micro-optimization to algorithmic restructuring).
+4. **Presentation Layer (`src/components/`, `src/app/`)**:
+   - Pure UI and Page orchestration consuming hooks and context providers.
+   - Standardized API route handlers (`src/app/api/`) delegating exclusively to server services/repositories and returning `apiSuccess`/`apiError` responses.
 
 ---
 
-## 3. Concrete Code Specification & Proposed Implementation
+## 4. Actionable Migration Roadmap
 
-To provide an actionable implementation guide for Worker agents, below is the exact code specification for `benchmark_runner.py` and the updates to `engine.py`.
+### Milestone 2: Infrastructure & Domain Consolidation
+- [ ] Migrate all types from `src/lib/types/` to `src/types/` and replace all `any` occurrences in repositories with strict DTO types.
+- [ ] Cleanse `src/lib/`:
+  - Move `src/lib/contexts/` to `src/contexts/`.
+  - Remove `SettingsModal` dynamic import from `SettingsContext`.
+  - Remove `lucide-react` icons from `post.repository.ts`.
+  - Remove `useDashboardData` re-export from `DashboardFacade.ts`.
+  - Remove duplicate `src/lib/hooks/useNetworkStatus.ts`.
+- [ ] Refactor Repositories & Adapters:
+  - Separate client-facing and server-facing data access cleanly.
+  - Move hardcoded API keys to `.env` validation via Zod config.
+  - Standardize MOLIT API calls using `resilientFetch` instead of `axios`.
+- [ ] Standardize API Route Handlers (`src/app/api/`):
+  - Enforce `checkRateLimit()` across all endpoints.
+  - Enforce `apiSuccess()` and `apiError()` response envelopes.
+  - Delegate data queries to repositories/services instead of embedding raw Firestore queries in route handlers.
 
-### 3.1 Proposed New Module: `self_improvement_loop/benchmark_runner.py`
-
-```python
-import time
-import tracemalloc
-import unittest
-import importlib
-import sys
-import os
-from dataclasses import dataclass
-from typing import Optional, Dict, Any
-
-@dataclass
-class BenchmarkMetrics:
-    pass_rate: float            # 0.0 to 100.0
-    passed_tests: int
-    failed_tests: int
-    total_tests: int
-    execution_time_sec: float   # Seconds
-    peak_memory_mb: float       # Megabytes
-    accuracy_score: float       # 0.0 to 1.0
-    ast_valid: bool
-    error_message: Optional[str] = None
-
-class BenchmarkRunner:
-    def __init__(self, target_file: str, test_file: str):
-        self.target_file = target_file
-        self.test_file = test_file
-
-    def run_benchmark(self) -> BenchmarkMetrics:
-        # 1. AST Validation
-        try:
-            with open(self.target_file, "r", encoding="utf-8", errors="replace") as f:
-                code = f.read()
-            import ast
-            ast.parse(code)
-            ast_valid = True
-        except Exception as e:
-            return BenchmarkMetrics(
-                pass_rate=0.0, passed_tests=0, failed_tests=0, total_tests=0,
-                execution_time_sec=0.0, peak_memory_mb=0.0, accuracy_score=0.0,
-                ast_valid=False, error_message=str(e)
-            )
-
-        # 2. Memory & Timing measurement during test suite execution
-        tracemalloc.start()
-        start_time = time.perf_counter()
-
-        loader = unittest.TestLoader()
-        suite = loader.discover(
-            start_dir=os.path.dirname(self.test_file),
-            pattern=os.path.basename(self.test_file)
-        )
-        
-        result = unittest.TestResult()
-        suite.run(result)
-
-        end_time = time.perf_counter()
-        current_mem, peak_mem = tracemalloc.get_traced_memory()
-        tracemalloc.stop()
-
-        execution_time_sec = round(end_time - start_time, 6)
-        peak_memory_mb = round(peak_mem / (1024.0 * 1024.0), 4)
-
-        total_tests = result.testsRun
-        failed_count = len(result.failures) + len(result.errors)
-        passed_count = total_tests - failed_count - len(result.skipped)
-        pass_rate = round((passed_count / max(1, total_tests - len(result.skipped))) * 100.0, 2)
-
-        # 3. Accuracy Calculation (Evaluation on benchmark functions)
-        accuracy_score = self._evaluate_accuracy()
-
-        return BenchmarkMetrics(
-            pass_rate=pass_rate,
-            passed_tests=passed_count,
-            failed_tests=failed_count,
-            total_tests=total_tests,
-            execution_time_sec=execution_time_sec,
-            peak_memory_mb=peak_memory_mb,
-            accuracy_score=accuracy_score,
-            ast_valid=ast_valid,
-            error_message=None if result.wasSuccessful() else "Tests failed"
-        )
-
-    def _evaluate_accuracy(self) -> float:
-        try:
-            sys.modules.pop("target_module", None)
-            sys.modules.pop("self_improvement_loop.target_module", None)
-            importlib.invalidate_caches()
-            try:
-                import self_improvement_loop.target_module as tm
-            except ImportError:
-                import target_module as tm
-            importlib.reload(tm)
-            calc = tm.Calculator()
-
-            # Benchmark 1: Gradient Descent accuracy
-            if hasattr(calc, "gradient_descent"):
-                f_prime = lambda x: 2 * x
-                res = calc.gradient_descent(f_prime, x_start=10.0, learning_rate=0.1, iterations=100)
-                err1 = abs(res - 0.0)
-            else:
-                err1 = 0.0
-
-            # Benchmark 2: Linear Regression accuracy
-            if hasattr(calc, "linear_regression"):
-                slope, intercept = calc.linear_regression([1.0, 2.0, 3.0], [2.0, 4.0, 6.0])
-                err2 = abs(slope - 2.0) + abs(intercept - 0.0)
-            else:
-                err2 = 0.0
-
-            total_err = err1 + err2
-            return round(max(0.0, 1.0 - total_err), 4)
-        except Exception:
-            return 0.0
-```
-
----
-
-## 4. Verification & Testing Strategy for Requirement R2
-
-To verify that Requirement R2 is functioning correctly once implemented:
-
-1. **Unit Test Suite Verification**:
-   - Command: `.venv\Scripts\python.exe -m unittest discover -s self_improvement_loop -p "test_*.py"`
-   - Expected Output: All tests pass (21+ tests).
-
-2. **Performance Degradation Injection Verification**:
-   - Inject a slow candidate function (`time.sleep(0.5)` or $O(N^3)$ loop) into `get_improved_code()`.
-   - Verify `engine.py` detects `REJECT_LATENCY_DEGRADED`, triggers `vcs.rollback()`, logs `ROLLBACK`, and continues loop without corrupting baseline.
-
-3. **Memory Spike Injection Verification**:
-   - Inject large list allocation (`[0] * 10_000_000`) into candidate code.
-   - Verify `engine.py` detects `REJECT_MEMORY_DEGRADED`, triggers `vcs.rollback()`, logs memory delta, and restores baseline memory footprint.
-
----
-
-## 5. Conclusion
-
-The existing codebase in `self_improvement_loop/` has solid foundations for file versioning (`vcs.py`) and execution control (`engine.py`). However, full compliance with Requirement R2 requires implementing quantitative metric collection (`pass_rate`, `execution_time`, `peak_memory`, `accuracy`) and performance degradation rollback triggers. The detailed design and code specifications in this report provide a complete roadmap for implementation.
+### Milestone 3: Application Hooks & State Decoupling
+- [ ] Create a unified `apiClient` / HTTP adapter for client-side API calls.
+- [ ] Refactor `useFavorites`, `useComments`, `useApartmentDetails`, and `useDashboardMeta` to use the unified API client with cancellation (`AbortSignal`).
+- [ ] Refactor `useStaticData.ts` to call a dedicated `TransactionRepository` rather than raw Firestore queries.
+- [ ] Standardize optimistic UI mutations and local storage caching across all interactive hooks.

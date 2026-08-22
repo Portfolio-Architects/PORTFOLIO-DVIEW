@@ -1,25 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { apiError } from '@/lib/api/apiResponse';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const bypassNoticeQuerySchema = z.object({
   url: z.string()
-  .url('Invalid URL format.')
-  .refine((url) => {
-    try {
-      const parsed = new URL(url);
-      const hostname = parsed.hostname;
-      return hostname === 'hscity.go.kr' || hostname.endsWith('.hscity.go.kr');
-    } catch {
-      return false;
-    }
-  }, {
-    message: 'Invalid target URL domain. Only 화성시청 (hscity.go.kr) URLs are allowed.',
-  }),
+    .url('Invalid URL format.')
+    .refine((url) => {
+      try {
+        const parsed = new URL(url);
+        const hostname = parsed.hostname;
+        return hostname === 'hscity.go.kr' || hostname.endsWith('.hscity.go.kr');
+      } catch {
+        return false;
+      }
+    }, {
+      message: 'Invalid target URL domain. Only 화성시청 (hscity.go.kr) URLs are allowed.',
+    }),
 });
 
 function escapeHtml(unsafe: string): string {
@@ -33,15 +34,13 @@ function escapeHtml(unsafe: string): string {
 
 export async function GET(request: NextRequest) {
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_bypassnotice_get_${rawIp}`);
-      if (!success) {
-        logger.warn('BypassNoticeAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return new NextResponse('Too Many Requests', { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_bypassnotice_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('BypassNoticeAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     const nonce = request.headers.get('x-nonce') || '';
@@ -55,7 +54,7 @@ export async function GET(request: NextRequest) {
         url: targetUrlParam,
         errors: parsed.error.format(),
       });
-      
+
       const errorMsg = parsed.error.issues[0]?.message || 'Invalid parameters';
       return new NextResponse(errorMsg, { status: 400 });
     }
@@ -63,10 +62,6 @@ export async function GET(request: NextRequest) {
     const { url: targetUrl } = parsed.data;
     const escapedUrl = escapeHtml(targetUrl);
 
-    // HTML 브릿지 페이지
-    // 1. Meta Refresh를 사용하여 네이티브 브라우저 리디렉션 처리 (보안 프로그램 ASTX 등의 JS 탐지 차단 무력화)
-    // 2. <meta name="referrer" content="no-referrer" /> 를 메타 리프레시 앞에 배치하여 이전 유입 경로(localhost) 완전 제거
-    // 3. JS window.location.replace를 폴백으로 배치하여 이중 방어
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -112,7 +107,6 @@ export async function GET(request: NextRequest) {
   <div class="spinner"></div>
   <p class="message">화성시청 원문 페이지로 안전하게 이동하고 있습니다...</p>
   <script type="text/javascript" nonce="${nonce}">
-    // Meta Refresh가 작동하지 않는 일부 특수 환경 브라우저를 위한 JS Fallback
     setTimeout(function() {
       try {
         var target = decodeURIComponent("${encodeURIComponent(targetUrl)}");

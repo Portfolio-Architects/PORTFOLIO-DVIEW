@@ -1,14 +1,23 @@
-## 2026-08-05T14:10:06Z
-You are reviewer_m3_2, a teamwork_preview_reviewer agent.
-Your Working Directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m3_2
+## 2026-08-21T15:52:07Z
 
-MANDATORY READS:
-1. C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/ORIGINAL_REQUEST.md
-2. C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/PROJECT.md
+You are Reviewer 2 for Milestone 3 (Application & Hooks Layer Refactoring) on the D-VIEW project.
 
-Objective:
-Re-review Milestone 3 remediation in C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/:
-1. Confirm `engine.py` / `reporter.py` attaches `report_path` to terminal exit event details while preserving terminal event type at `execution_log[-1]`.
-2. Confirm `test_t4_04` in `test_e2e_suite.py` and all 168 unit & E2E tests pass cleanly via `python -m unittest discover -s recursive_self_improvement -p "test_*.py"`.
-3. Deliver handoff report to `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m3_2/handoff.md` with explicit Verdict: APPROVE or REQUEST_CHANGES.
-Send completion message to parent conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4.
+Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m3_2`
+Authoritative user request: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+Project scope: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
+Worker 3 handoff: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m3\handoff.md`
+Frontend codebase root: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
+
+Task:
+1. Review `src/lib/api/apiClient.ts` (Typed API client, response envelopes, error handling, `AbortController` cancellation).
+2. Review custom hooks refactoring: `useFavorites.ts`, `useComments.ts`, `useApartmentDetails.ts`, `usePostDetail.ts`, `useMacroData.ts`, `useTechnoValleyData.ts`.
+3. Verify that all hook signatures, return structures, and component props contracts remain intact.
+4. Run verification commands in `frontend/`:
+   - `npx tsc --noEmit`
+   - `npm run lint`
+   - `npm test`
+   - `npm run build`
+5. Write your review report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m3_2\handoff.md`.
+6. Provide a clear verdict: **APPROVE** or **REQUEST_CHANGES**.
+
+Send a completion message back to the orchestrator when finished.

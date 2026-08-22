@@ -1,37 +1,48 @@
-# BRIEFING — 2026-08-04T19:48:20Z
+# BRIEFING — 2026-08-21T14:33:30Z
 
 ## Mission
-Investigate recursive_self_improvement / self_improvement_loop directory and local environment to analyze requirements for R2 (Evaluation & Verification Framework): quantitative benchmark metrics measurement (pass rate, execution time, memory usage, accuracy) and rollback mechanism on degradation/errors.
+Comprehensive read-only survey of Infrastructure, Data Access, Repositories, and Application Hooks layer across `frontend/`.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_explorer
-- Roles: Read-only investigation, architectural & technical requirements analysis for Requirement R2
-- Working directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2
-- Original parent: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Milestone: Requirement R2 Analysis & Design
+- Archetype: Explorer (Explorer 2)
+- Roles: Investigator, Synthesizer
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Milestone 1 (Survey & Architectural Analysis)
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement project code in recursive_self_improvement directly
-- Target write location for deliverables: .agents/explorer_survey_2/ (analysis.md, handoff.md)
-- Complete evidence chain with file paths, line numbers, and exact environment facts
+- Read-only investigation — do NOT implement or modify source code
+- Files for content delivery (`analysis.md`, `handoff.md`), Messages for coordination (`send_message`)
+- Working folder: `.agents/explorer_survey_2/` only
+- Self-contained 5-component handoff report
 
 ## Current Parent
-- Conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Updated: 2026-08-04T19:48:20Z
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: 2026-08-21T14:33:30Z
 
 ## Investigation State
-- **Explored paths**: `self_improvement_loop/config.py`, `vcs.py`, `runner.py`, `engine.py`, `simulator.py`, `target_module.py`, `test_target_module.py`, `test_engine.py`, `test_simulator.py`, `test_vcs.py`, `run.py`
-- **Key findings**: System has AST pre-validation and basic error rollback via `CustomVCS`, but lacks quantitative benchmark metric measurement (pass rate, latency, RAM, accuracy) and degradation detection rules.
-- **Unexplored areas**: None. Complete technical specification for R2 produced.
+- **Explored paths**:
+  - `src/lib/` (`firebaseConfig.ts`, `firebaseAdmin.ts`, `redis.ts`, `rate-limit.ts`, `DashboardFacade.ts`, `authUtils.ts`, `analytics-service.ts`, `zones.ts`, `dongs.ts`, `dong-apartments.ts`, `apartment-data.ts`)
+  - `src/lib/repositories/` (all 16 repository files)
+  - `src/lib/services/` (all 16 service files)
+  - `src/lib/contexts/` (`AuthContext.tsx`, `SettingsContext.tsx`)
+  - `src/lib/api/` (`apiResponse.ts`, `rateLimiter.ts`, `resilientFetch.ts`)
+  - `src/hooks/` (all 18 hook and test files)
+  - `src/app/api/` (44 route handlers across routes)
+- **Key findings**:
+  - Upward layer leaks: `DashboardFacade` re-exporting `useDashboardData`, `SettingsContext` importing `SettingsModal`, `post.repository` importing Lucide icons.
+  - Scattered data access: `useStaticData` executing raw Firestore queries; `useFavorites`, `useComments`, `useApartmentDetails` calling un-abstracted `fetch('/api/...')`.
+  - Untyped `any` signatures in `report.repository.ts` and `post.repository.ts`.
+  - Inconsistent API envelopes and rate limiting across Next.js route handlers.
+  - Hardcoded API service keys in repositories and config files.
+- **Unexplored areas**: None (Full survey complete).
 
 ## Key Decisions Made
-- Performed detailed audit of existing codebase in `self_improvement_loop/`.
-- Executed unit test suite discovery (`.venv\Scripts\python.exe -m unittest discover -s self_improvement_loop -p "test_*.py"`) — 21 tests passed.
-- Authored detailed architectural analysis report in `analysis.md`.
-- Authored 5-component handoff report in `handoff.md`.
+- Completed detailed survey and structured 5-component handoff report.
+- Formulated concrete, actionable migration plans for Milestones 2 and 3.
 
 ## Artifact Index
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2/DISPATCH.md — Dispatch log
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2/BRIEFING.md — Persistent briefing state
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2/analysis.md — Technical R2 analysis report
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_2/handoff.md — Completion handoff report
+- `.agents/explorer_survey_2/analysis.md` — Comprehensive analysis report
+- `.agents/explorer_survey_2/handoff.md` — 5-component handoff report
+- `.agents/explorer_survey_2/progress.md` — Liveness & progress tracker
+- `.agents/explorer_survey_2/DISPATCH.md` — Initial dispatch record

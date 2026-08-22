@@ -1,9 +1,10 @@
 import { z } from 'zod';
 import { PremiumScoresSchema } from '@/lib/utils/scoring';
+import type { ObjectiveMetrics } from '@/types';
 
 
 // Isomorphic Zod custom guard for File type to prevent ReferenceError in Node SSR
-export const IsomorphicFileSchema = z.custom<any>((val) => {
+export const IsomorphicFileSchema = z.custom<File>((val) => {
   if (typeof File === 'undefined') return true;
   return val instanceof File;
 }, 'Must be a valid File object').optional();
@@ -147,10 +148,10 @@ export const KPIDataSchema = z.object({
   subtitle: z.string(),
   badgeText: z.string().optional(),
   badgeStyle: z.string().optional(),
-  mainValue: z.any(),
-  subValue: z.any(),
-  description: z.any(),
-  icon: z.any(),
+  mainValue: z.string(),
+  subValue: z.string(),
+  description: z.string(),
+  icon: z.string(),
   gradientBackground: z.string().default(''),
   borderColor: z.string().default(''),
   titleColor: z.string().default(''),
@@ -281,6 +282,64 @@ export const AdSlotSchema = z.object({
   isActive: z.boolean(),
 });
 
+// Report Repository Schemas
+export const ReportSpecsSchema = z.object({
+  builtYear: z.string().default(''),
+  scale: z.string().default(''),
+  farBuild: z.string().default(''),
+  parkingRatio: z.string().default(''),
+}).passthrough();
+
+export const ReportInfraSchema = z.object({
+  gateText: z.string().default(''),
+  gateImgs: z.array(z.string()).optional(),
+  gateRating: z.number().optional(),
+  landscapeText: z.string().default(''),
+  landscapeImgs: z.array(z.string()).optional(),
+  landscapeRating: z.number().optional(),
+  parkingText: z.string().default(''),
+  parkingImgs: z.array(z.string()).optional(),
+  parkingRating: z.number().optional(),
+  maintenanceText: z.string().default(''),
+  maintenanceImgs: z.array(z.string()).optional(),
+  maintenanceRating: z.number().optional(),
+}).passthrough();
+
+export const ReportEcosystemSchema = z.object({
+  communityText: z.string().default(''),
+  communityImgs: z.array(z.string()).optional(),
+  communityRating: z.number().optional(),
+  schoolText: z.string().default(''),
+  schoolImgs: z.array(z.string()).optional(),
+  schoolRating: z.number().optional(),
+  commerceText: z.string().default(''),
+  commerceImgs: z.array(z.string()).optional(),
+  commerceRating: z.number().optional(),
+}).passthrough();
+
+export const ReportLocationSchema = z.object({
+  trafficText: z.string().default(''),
+  trafficRating: z.number().optional(),
+  developmentText: z.string().default(''),
+  developmentRating: z.number().optional(),
+}).passthrough();
+
+export const ReportAssessmentSchema = z.object({
+  alphaDriver: z.string().default(''),
+  systemicRisk: z.string().default(''),
+  synthesis: z.string().default(''),
+  probability: z.string().default(''),
+  autoGrade: z.string().optional(),
+}).passthrough();
+
+export const ReportSectionsSchema = z.object({
+  specs: ReportSpecsSchema.optional(),
+  infra: ReportInfraSchema.optional(),
+  ecosystem: ReportEcosystemSchema.optional(),
+  location: ReportLocationSchema.optional(),
+  assessment: ReportAssessmentSchema.optional(),
+}).passthrough();
+
 export const ScoutingReportInputSchema = z.object({
   dong: z.string().min(1, '동 이름을 입력해주세요.'),
   apartmentName: z.string().min(1, '아파트 이름을 입력해주세요.'),
@@ -288,7 +347,7 @@ export const ScoutingReportInputSchema = z.object({
   images: z.array(ImageMetaSchema),
   metrics: ObjectiveMetricsSchema,
   premiumContent: z.string().optional(),
-  premiumScores: z.any().optional(),
+  premiumScores: PremiumScoresSchema.optional().nullable(),
   isPremium: z.boolean().default(false),
   adSlot: AdSlotSchema.optional(),
   authorUid: z.string().min(1),
@@ -296,11 +355,11 @@ export const ScoutingReportInputSchema = z.object({
 
 export const CreateFieldReportInputSchema = z.object({
   apartmentName: z.string().min(1, '아파트 이름을 입력해주세요.'),
-  sections: z.any(),
+  sections: ReportSectionsSchema.passthrough(),
   premiumScores: z.record(z.string(), z.number()).nullable().optional(),
   authorUid: z.string().min(1),
   imageEntries: z.array(z.object({
-    file: z.any(),
+    file: z.custom<File>((val) => (typeof File === 'undefined' ? true : val instanceof File), 'Must be a valid File object'),
     category: z.string(),
   })),
 });
@@ -317,7 +376,7 @@ export const AddPostInputSchema = z.object({
 
 export const AddFieldReportInputSchema = z.object({
   apartmentName: z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.'),
-  sections: z.record(z.string(), z.any()), // ReportSections
+  sections: ReportSectionsSchema.passthrough(),
   premiumScores: z.record(z.string(), z.number()).nullable(),
   authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
   imageEntries: z.array(
@@ -560,7 +619,7 @@ export const FieldReportSchema = z.object({
   id: z.string(),
   dong: z.string().optional(),
   apartmentName: z.string(),
-  premiumScores: PremiumScoresSchema.optional(),
+  premiumScores: PremiumScoresSchema.nullable().optional(),
   premiumContent: z.string().optional(),
   pros: z.string().optional(),
   cons: z.string().optional(),
@@ -572,9 +631,9 @@ export const FieldReportSchema = z.object({
   imageUrl: z.string().optional(),
   thumbnail: z.string().optional(),
   images: z.array(FieldReportImageSchema).optional(),
-  metrics: ObjectiveMetricsSchema.optional(),
+  metrics: z.custom<ObjectiveMetrics>().optional(),
   scoutingDate: z.string().optional(),
-  createdAt: z.string().optional(),
+  createdAt: z.union([z.string(), z.number(), z.unknown()]).optional(),
   _rawTimestamp: z.number().optional(),
 });
 
@@ -596,64 +655,6 @@ export const InitialPageDataSchema = z.object({
   recent7DaysVolume: Recent7DaysVolumeSchema.optional(),
   recentTransactions: z.array(RecentTransactionSchema).optional(),
 });
-
-// Report Repository Schemas
-export const ReportSpecsSchema = z.object({
-  builtYear: z.string().default(''),
-  scale: z.string().default(''),
-  farBuild: z.string().default(''),
-  parkingRatio: z.string().default(''),
-}).passthrough();
-
-export const ReportInfraSchema = z.object({
-  gateText: z.string().default(''),
-  gateImgs: z.array(z.string()).optional(),
-  gateRating: z.number().optional(),
-  landscapeText: z.string().default(''),
-  landscapeImgs: z.array(z.string()).optional(),
-  landscapeRating: z.number().optional(),
-  parkingText: z.string().default(''),
-  parkingImgs: z.array(z.string()).optional(),
-  parkingRating: z.number().optional(),
-  maintenanceText: z.string().default(''),
-  maintenanceImgs: z.array(z.string()).optional(),
-  maintenanceRating: z.number().optional(),
-}).passthrough();
-
-export const ReportEcosystemSchema = z.object({
-  communityText: z.string().default(''),
-  communityImgs: z.array(z.string()).optional(),
-  communityRating: z.number().optional(),
-  schoolText: z.string().default(''),
-  schoolImgs: z.array(z.string()).optional(),
-  schoolRating: z.number().optional(),
-  commerceText: z.string().default(''),
-  commerceImgs: z.array(z.string()).optional(),
-  commerceRating: z.number().optional(),
-}).passthrough();
-
-export const ReportLocationSchema = z.object({
-  trafficText: z.string().default(''),
-  trafficRating: z.number().optional(),
-  developmentText: z.string().default(''),
-  developmentRating: z.number().optional(),
-}).passthrough();
-
-export const ReportAssessmentSchema = z.object({
-  alphaDriver: z.string().default(''),
-  systemicRisk: z.string().default(''),
-  synthesis: z.string().default(''),
-  probability: z.string().default(''),
-  autoGrade: z.string().optional(),
-}).passthrough();
-
-export const ReportSectionsSchema = z.object({
-  specs: ReportSpecsSchema.optional(),
-  infra: ReportInfraSchema.optional(),
-  ecosystem: ReportEcosystemSchema.optional(),
-  location: ReportLocationSchema.optional(),
-  assessment: ReportAssessmentSchema.optional(),
-}).passthrough();
 
 export const FieldReportDataSchema = z.object({
   dong: z.string().default('오산동 (동탄역)'),

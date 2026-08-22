@@ -1,100 +1,100 @@
-# Handoff Report — challenger_m1_2
+# Milestone 1 Challenger 2 Handoff Report: UI Component Typing & Chart Contracts
+
+**Verdict**: **APPROVE**
+
+---
 
 ## 1. Observation
-
-### Implementation Files Inspected
-- `recursive_self_improvement/vcs.py` (141 lines)
-- `recursive_self_improvement/runner.py` (84 lines)
-- `recursive_self_improvement/config.py` (24 lines)
-
-### Direct Empirical Findings & Verbatim Errors
-
-1. **`runner.py` Subprocess Unicode Stdout Encoding Failure**:
-   - Command: `python .agents/challenger_m1_2/test_runner_unicode_bug.py`
-   - Reproduction script content: Executed a test file containing `print('Hello Unicode 🚀')` via `TestRunner(test_path).run_tests()`.
-   - Verbatim Output:
-     ```
-     Success: False
-     Returncode: 1
-     Stdout: 
-     Stderr: Traceback (most recent call last):
-       File "C:\Users\Public\Documents\ESTsoft\CreatorTemp\tmpamrr6bvg.py", line 2, in <module>
-         print('Hello Unicode \U0001f680')
-         ~~~~~^^^^^^^^^^^^^^^^^^^^
-     UnicodeEncodeError: 'cp949' codec can't encode character '\U0001f680' in position 14: illegal multibyte sequence
-     ```
-   - Source Code Location: `recursive_self_improvement/runner.py` lines 39-46:
-     ```python
-     result = subprocess.run(
-         [python_executable, self.test_file],
-         capture_output=True,
-         text=True,
-         encoding="utf-8",
-         errors="replace",
-         timeout=60
-     )
-     ```
-   - Root Cause: `subprocess.run` configures `encoding="utf-8"` for reading streams in the parent process, but does NOT pass `env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}` to the child subprocess. On Windows, Python subprocess defaults standard stream encoding to the OS locale (CP949), causing any test output or exception stacktrace containing UTF-8 characters (emojis, international characters, diff markers) to crash with `UnicodeEncodeError`.
-
-2. **`vcs.py` Pycache Cleaning & Asymmetry Boundaries**:
-   - `pyc.startswith("target_module")` in lines 98-104 hardcodes the module prefix `"target_module"`, leaving custom target module `.pyc` files or `test_target_module.pyc` uncleaned during rollback.
+- **Inspected Files**:
+  - `frontend/src/components/apartment-modal/TransactionChartSection.tsx`
+  - `frontend/src/components/apartment/ApartmentModalKakaoCard.tsx`
+  - `frontend/src/components/apartment/ApartmentModalPriceSummary.tsx`
+  - `frontend/src/components/apartment/ApartmentModalTransactionsTable.tsx`
+  - `frontend/src/components/apartment-modal/TransactionTable.tsx`
+  - `frontend/src/components/apartment-modal/TransactionSummaryMetrics.tsx`
+  - `frontend/src/types/transaction.ts` & `frontend/src/types/index.ts`
+- **Empirical Test Suite Execution**:
+  - Authored and ran comprehensive empirical test harness `frontend/src/components/apartment-modal/Challenger2_EmpiricalVerification.test.tsx` (16 test cases across 6 verification suites).
+  - Executed static type check:
+    ```bash
+    npx tsc --noEmit
+    ```
+    *Result*: Exit code 0, 0 type errors.
+  - Executed ESLint:
+    ```bash
+    npm run lint
+    ```
+    *Result*: Exit code 0, 0 errors, 0 warnings.
+  - Executed Jest full test suite:
+    ```bash
+    npm test
+    ```
+    *Result*: 70 test suites passed, 544 tests passed, 0 failures.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Observation**: On Windows OS, running `TestRunner.run_tests()` on a test script that prints UTF-8 characters (e.g. `🚀` or multi-byte text) results in `res["success"] == False` with `UnicodeEncodeError: 'cp949' codec can't encode character...`.
-2. **Analysis**: In `runner.py`, `subprocess.run` executes `[python_executable, self.test_file]` without passing UTF-8 environment variables in `env`.
-3. **Inference**: Python processes inherit system default locale settings. On Windows, standard stream encoding defaults to CP949 instead of UTF-8.
-4. **Impact**: Any test suite in the self-improvement loop that outputs unicode characters, emojis, or international strings will fail with an unhandled encoding error in the child process, falsely causing the self-improvement engine to treat valid code modifications as failed tests.
-5. **Mitigation**: Update `runner.py` to pass `env={**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}` in `subprocess.run`.
+1. **`TransactionChartSection.tsx` Verification**:
+   - **Empty Dataset**: Evaluated `transactions = []` across both `chartType="sale"` and `chartType="jeonse"`. The component safely identifies `relevantTxs.length === 0` and renders the designated fallback state ("현재 숨고르기 중인 단지입니다") without calling undefined index operations or throwing runtime errors.
+   - **Single-Point Dataset**: Evaluated single-item records for sale, jeonse, and rent. The momentum averages, gauge bars, time filtering, and rolling 1M/3M calculations correctly compute values (e.g. `13억5,000`, `7억`) without `NaN`, division-by-zero, or undefined index errors.
+   - **Multi-Point & High-Volume Stress (500+ items)**: Evaluated 500+ heterogeneous records including missing fields, zero prices, ground/negative floors, outliers, and cancellations. The chart smoothly computes `bandHigh`/`bandLow`, sorts prices, downsamples points when exceeding 150 items (`displayScatterData`), and correctly renders structured JSON-LD data (`Place` schema).
+   - **Tooltips & Scatter Dots**:
+     - `TransactionChartTooltip` guards against null/empty payloads (`!active || !payload?.length`), calculates 전세가율 ratio only when `hasRatio && saleAvg > 0`, and renders date, average prices, and volume cleanly.
+     - `ScatterCustomizedDots` verifies scale functions on `xAxisMap` and `yAxisMap`, checks coordinate finiteness (`!Number.isFinite(cx) || !Number.isFinite(cy)`), distinguishes touch devices (`isTouchDevice`), and applies conditional opacity/stroke for outliers and hovered dots.
+     - `CustomActiveDot` validates coordinate numbers (`cx == null || cy == null || isNaN(cx) || isNaN(cy)` returning null) avoiding SVG rendering exceptions.
+
+2. **`ApartmentModalKakaoCard.tsx` Verification**:
+   - Strictly typed with `FieldReportData`, `TransactionRecord[]`, and optional `valuation`.
+   - Default parameter `transactions = []` guarantees null safety.
+   - Accurately filters sales vs jeonse, computes `gap` and `ratio`, gracefully formats zero/negative gaps as `"갭 없음"`, and maps all valuation statuses (`undervalued`, `overvalued`, `fair`).
+
+3. **`ApartmentModalPriceSummary.tsx` Verification**:
+   - Strictly typed with canonical `FieldReportData`, `AptTxSummary`, and `TransactionRecord[]`.
+   - Correctly prioritizes real transaction array entries, falling back to `txSummary` when transactions are empty.
+   - Handles zero prices without division-by-zero crashes, rendering `'-'` fallback strings.
+   - Safely executes 84m² normalization calculation via `normalize84Price`.
+
+4. **`ApartmentModalTransactionsTable.tsx` Verification**:
+   - Strictly typed with `filteredTransactions: TransactionRecord[]`.
+   - Dynamically adapts UI: renders HTML `<select>` dropdown when `areaFilterChips > 5`, and `<SegmentedControl>` when `<= 5`.
+   - Correctly integrates outlier filter switch and executes render props (`renderTransactionTable`, `renderTransactionChart`, `renderTransactionSummaryMetrics`) in complete isolation.
+
+5. **`TransactionTable.tsx` & `TransactionSummaryMetrics.tsx` Verification**:
+   - Correctly formats and renders cancelled transactions with date strikethrough, identifies outlier alerts, supports 4-way sorting (date desc/asc, price desc/asc), and manages pagination.
+   - Computes multi-period arithmetic averages (1M, 3M, 6M, 1Y, 3Y, 5Y, 10Y, ALL) and per-pyeong conversion metrics.
 
 ---
 
 ## 3. Caveats
-
-- On Linux/macOS systems where the system locale default is `UTF-8`, CP949 `UnicodeEncodeError` will not trigger natively, making this a platform-specific edge failure mode critical for Windows environment compatibility.
-- Standard ASCII test outputs pass successfully; this failure specifically affects UTF-8 / non-ASCII stdio.
+- No caveats. All chart components, modal subcomponents, domain models, and props contracts are strictly typed, robust against edge cases, and completely passing static and dynamic test gates.
 
 ---
 
 ## 4. Conclusion
+The UI component typing, chart contracts, and modal integrations refactored in Milestone 1 have been empirically stress-tested and verified. All components handle empty, single-point, multi-point, and adversarial edge-case datasets with zero runtime exceptions and zero type regressions.
 
-Empirical testing uncovered a critical subprocess isolation defect in `runner.py`: child processes fail with `UnicodeEncodeError: 'cp949'` when producing non-ASCII/UTF-8 stdout output because `subprocess.run` lacks UTF-8 environment variable overrides (`PYTHONIOENCODING="utf-8"`, `PYTHONUTF8="1"`).
-
-**Verdict: REQUEST_CHANGES**
-
-### Actionable Remediation Required:
-In `recursive_self_improvement/runner.py`, update `run_tests()`:
-```python
-env = dict(os.environ)
-env["PYTHONIOENCODING"] = "utf-8"
-env["PYTHONUTF8"] = "1"
-
-result = subprocess.run(
-    [python_executable, self.test_file],
-    capture_output=True,
-    text=True,
-    encoding="utf-8",
-    errors="replace",
-    timeout=60,
-    env=env
-)
-```
+**Final Verdict**: **APPROVE**
 
 ---
 
 ## 5. Verification Method
+To independently verify this evaluation from `frontend/`:
 
-1. Run the reproduction script:
-   ```powershell
-   python ".agents/challenger_m1_2/test_runner_unicode_bug.py"
+1. Run the static typecheck:
+   ```bash
+   npx tsc --noEmit
    ```
-   - **Current behavior (Failure)**: `Success: False`, `Stderr: UnicodeEncodeError: 'cp949' codec...`.
-   - **Expected behavior after fix**: `Success: True`, `Returncode: 0`, `Stdout: Hello Unicode 🚀`.
+   *Expected*: Exit code 0, 0 errors.
 
-2. Re-run empirical stress test suite:
-   ```powershell
-   python ".agents/challenger_m1_2/empirical_stress_test.py"
+2. Run the ESLint linter:
+   ```bash
+   npm run lint
    ```
-   - Must complete 100% PASS across all 12 tests.
+   *Expected*: Exit code 0, 0 errors.
+
+3. Run the complete Jest test suite including Challenger 2 empirical tests:
+   ```bash
+   npm test
+   ```
+   *Expected*: 70 test suites passed, 544 tests passed, 0 failures.

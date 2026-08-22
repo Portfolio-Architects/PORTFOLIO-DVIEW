@@ -1,11 +1,11 @@
 import React from 'react';
-import type { FieldReportData } from '@/lib/types/report.types';
+import type { FieldReportData, TransactionRecord } from '@/types';
 
 export interface ApartmentModalKakaoCardProps {
   shareCardRef: React.RefObject<HTMLDivElement | null>;
   report: FieldReportData;
   displayAptName: string;
-  transactions?: any[];
+  transactions?: TransactionRecord[];
   valuation?: {
     status?: 'undervalued' | 'overvalued' | 'fair';
     amount?: string;

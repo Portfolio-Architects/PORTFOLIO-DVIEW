@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, memo } from 'react';
 import { Heart, Camera } from 'lucide-react';
 import { EnrichedApt } from './types';
-import { preloadApartmentModal } from '@/lib/utils/preloadHelpers';
+import { preloadApartmentModal } from '@/components/common/preload';
 
 const InteractiveHeart = memo(({ 
   isFavorited, 

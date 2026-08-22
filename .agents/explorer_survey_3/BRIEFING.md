@@ -1,38 +1,40 @@
-# BRIEFING — 2026-08-04T10:48:20Z
+# BRIEFING — 2026-08-21T14:34:20Z
 
 ## Mission
-Investigate recursive_self_improvement directory and local environment to analyze requirements for Requirement R3 (Improvement History & Auditability) and Safety Guardrails.
+Comprehensive read-only survey of Presentation Layer, API Routes, Scripts, Dependencies, and Verification Gates across frontend/ for D-VIEW refactoring.
 
 ## 🔒 My Identity
-- Archetype: teamwork_preview_explorer
-- Roles: explorer_survey_3
-- Working directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_3
-- Original parent: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Milestone: Survey and analysis for R3 & Safety Guardrails
+- Archetype: explorer
+- Roles: investigation, synthesis
+- Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_3
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Survey & Discovery (Milestones 4 & 5 prep)
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement
-- Scope limited to R3 (Improvement History & Auditability) and Safety Guardrails
+- Read-only investigation — do NOT implement / modify source code
+- Files for content delivery, Messages for coordination
+- Self-contained handoff with 5 components (Observation, Logic Chain, Caveats, Conclusion, Verification Method)
 
 ## Current Parent
-- Conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4
-- Updated: 2026-08-04T10:48:20Z
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: not yet
 
 ## Investigation State
-- **Explored paths**: `self_improvement_loop/` (`config.py`, `engine.py`, `vcs.py`, `runner.py`, `simulator.py`, `run.py`, `history/`, `test_engine.py`, `test_simulator.py`, `test_vcs.py`, `test_target_module.py`), `ORIGINAL_REQUEST.md`, `PROJECT.md`
-- **Key findings**: 
-  - Requirement R3 (Diff recording, metric trajectory, strategy rationale, execution logging) is well-implemented across `vcs.py`, `simulator.py`, and `engine.py`.
-  - Gap identified: Automated markdown report file (`IMPROVEMENT_REPORT.md`) generator needs to be implemented to satisfy R3 report requirement 100%.
-  - Safety Guardrails (3-layer infinite loop / stuck detection, 5 resource limit budgets, AST pre-validation, dual-file rollback, stop flag signals) are fully implemented and verified via 21 passing unit tests.
-- **Unexplored areas**: None within scope.
+- **Explored paths**: `src/components/`, `src/app/`, `src/app/api/`, `scripts/`, `scripts/pipeline/`, `package.json`, `tsconfig.json`, `eslint.config.mjs`, `next.config.ts`, `jest.config.ts`, `tests/`
+- **Key findings**:
+  - Verification gates baseline: `tsc --noEmit` passes (0 errors), `npm run lint` passes (0 errors/warnings), `npm test` passes (67 suites, 491 tests passed), `next build` passes (177 pages generated).
+  - API Routes: Only 3 of 46 routes use standard `apiSuccess`/`apiError`/`checkRateLimit`; 43 routes need migration.
+  - Upward imports: `SettingsContext` -> `SettingsModal`, `preloadHelpers` -> UI components, `transactionChartTransform` -> `TransactionRecord` (defined in `TransactionTable.tsx`), `DashboardFacade` -> `useDashboardData`.
+  - Leaked business/data logic in `src/app/apartment/[aptName]/page.tsx` (829 lines).
+- **Unexplored areas**: None (Survey completed across all requested areas).
 
 ## Key Decisions Made
-- Completed survey of `self_improvement_loop/` codebase and unit tests.
-- Formulated analysis in `analysis.md` and formal handoff in `handoff.md`.
+- Fully documented findings in `analysis.md` and structured 5-component report in `handoff.md`.
+- Formulated concrete action plans for Milestone 4 (Presentation) and Milestone 5 (API Routes & Pipelines).
 
 ## Artifact Index
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_3/DISPATCH.md — Dispatch log
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_3/BRIEFING.md — Briefing state
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_3/progress.md — Progress heartbeat
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_3/analysis.md — Comprehensive R3 & Guardrails Analysis
-- C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/explorer_survey_3/handoff.md — 5-Component Handoff Report
+- DISPATCH.md — Dispatch log
+- BRIEFING.md — Persistent working memory
+- progress.md — Liveness heartbeat
+- analysis.md — Detailed survey analysis
+- handoff.md — 5-component handoff report

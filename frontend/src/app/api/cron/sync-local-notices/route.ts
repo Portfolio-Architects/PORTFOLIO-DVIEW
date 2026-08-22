@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import * as cheerio from 'cheerio';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
@@ -6,7 +6,8 @@ import { sendMail } from '@/lib/utils/server/mailService';
 import { TX_SUMMARY, AptTxSummary } from '@/lib/transaction-summary';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { rateLimiter } from '@/lib/rate-limit';
+import { apiSuccess, apiError } from '@/lib/api/apiResponse';
+import { checkRateLimit } from '@/lib/api/rateLimiter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -330,15 +331,13 @@ const authHeaderSchema = z.string().refine(
 export async function GET(request: NextRequest) {
   const scrapeErrors: string[] = [];
   try {
-    if (rateLimiter) {
-      const forwarded = request.headers.get('x-forwarded-for');
-      const realIp = request.headers.get('x-real-ip');
-      const rawIp = realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
-      const { success } = await rateLimiter.limit(`ratelimit_cron_synclocalnotices_get_${rawIp}`);
-      if (!success) {
-        logger.warn('SyncLocalNoticesAPI.GET', 'Rate limit exceeded', { ip: rawIp });
-        return NextResponse.json({ error: 'Too Many Requests' }, { status: 429 });
-      }
+    const rateLimit = await checkRateLimit(request, {
+      prefix: 'ratelimit_cron_synclocalnotices_get',
+      requestsPerLimit: 60,
+    });
+    if (!rateLimit.success) {
+      logger.warn('SyncLocalNoticesAPI.GET', 'Rate limit exceeded');
+      return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
     // 개발 모드에서 WAF 차단 방지 (쿨타임)
@@ -346,9 +345,12 @@ export async function GET(request: NextRequest) {
       const now = Date.now();
       if (now - lastSyncExecutionTime < DEV_SYNC_COOLDOWN_MS) {
         logger.warn('SyncLocalNoticesAPI.GET', 'Dev mode execution throttled to prevent target WAF IP block', {});
-        return NextResponse.json({ 
-          status: 'skipped', 
-          message: 'Sync throttled in dev mode to protect target IP block. Cooldown: 30s.' 
+        return apiSuccess({
+          status: 'skipped',
+          message: 'Sync throttled in dev mode to protect target IP block. Cooldown: 30s.',
+        }, {
+          status: 'skipped',
+          message: 'Sync throttled in dev mode to protect target IP block. Cooldown: 30s.',
         });
       }
       lastSyncExecutionTime = now;
@@ -363,13 +365,13 @@ export async function GET(request: NextRequest) {
           authHeader: authHeader ? 'Present' : 'Missing',
           error: authResult.error.message,
         });
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        return apiError('UNAUTHORIZED', 'Unauthorized', 401);
       }
     }
 
     if (!db) {
       logger.error('SyncLocalNoticesAPI.GET', 'Firebase DB not initialized', {});
-      return NextResponse.json({ error: 'Firebase DB not initialized' }, { status: 500 });
+      return apiError('DATABASE_UNAVAILABLE', 'Firebase DB not initialized', 500);
     }
 
     // 2. Fetch pages
@@ -380,7 +382,7 @@ export async function GET(request: NextRequest) {
 
     if (!parsedQuery.success) {
       logger.warn('SyncLocalNoticesAPI.GET', 'Invalid query parameters', { errors: parsedQuery.error.format() });
-      return NextResponse.json({ error: 'Bad Request' }, { status: 400 });
+      return apiError('BAD_REQUEST', 'Bad Request', 400);
     }
 
     const { full: isFull } = parsedQuery.data;
@@ -782,7 +784,7 @@ export async function GET(request: NextRequest) {
     });
 
     if (notices.length === 0) {
-      return NextResponse.json({ success: true, count: 0, message: 'No notices scraped' });
+      return apiSuccess({ count: 0, message: 'No notices scraped' }, { count: 0, message: 'No notices scraped' });
     }
 
     // 3. Batch save to Firestore in chunks of 500
@@ -844,16 +846,20 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
-      success: true,
+    return apiSuccess({
       scrapedCount: notices.length,
       writtenCount: written,
       notices: notices.slice(0, 5),
-      errorCount: scrapeErrors.length
+      errorCount: scrapeErrors.length,
+    }, {
+      scrapedCount: notices.length,
+      writtenCount: written,
+      notices: notices.slice(0, 5),
+      errorCount: scrapeErrors.length,
     });
 
   } catch (error: unknown) {
     logger.error('SyncLocalNoticesAPI.GET', 'Error syncing local notices', {}, error as Error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return apiError('INTERNAL_ERROR', 'Internal server error', 500);
   }
 }

@@ -1,53 +1,49 @@
-# BRIEFING — 2026-07-21T21:40:15+09:00
+﻿# BRIEFING — 2026-08-21T19:15:00Z
 
 ## Mission
-Empirical Verification of Sub-100ms Navigation, Tab Switching & Cumulative Layout Shift (CLS < 0.05) on D-VIEW frontend.
+Empirically challenge Milestone 4 API routes response envelope structure, error handling, rate limiting, status codes, headers, and typecheck/test suite in frontend/.
 
 ## 🔒 My Identity
 - Archetype: challenger
 - Roles: critic, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_1
-- Original parent: 5cd4065c-ecc1-4958-a315-f38d94a1f75d
-- Milestone: m4
+- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Milestone: Milestone 4 (Presentation & API Routes Layer Refactoring)
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code.
-- Write only to your own agent folder.
-- Execute empirical verification directly and report findings.
+- Review-only — do NOT modify implementation code directly unless running tests/generators or temporary test scripts.
+- Never trust worker claims without empirical verification.
+- .agents/ holds only agent metadata.
 
 ## Current Parent
-- Conversation ID: 5cd4065c-ecc1-4958-a315-f38d94a1f75d
-- Updated: 2026-07-21T21:40:15+09:00
+- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
+- Updated: 2026-08-21T19:15:00Z
 
 ## Review Scope
-- **Files to review**: `frontend/tests/performance-ux.spec.ts`, `frontend/tests/ui-ux-audit.spec.ts`
-- **Interface contracts**: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
-- **Review criteria**: Navigation latency < 100ms, Tab switching smoothness across Data Lab, Apartment Lab, Technovalley, Lounge modal transitions, Layout shift CLS < 0.05.
+- **Files reviewed**: rontend/src/app/api/**, rontend/src/lib/api/**, rontend/src/app/apartment/[aptName]/page.tsx, rontend/src/lib/services/apartmentPageService.ts
+- **Interface contracts**: PROJECT.md, src/types/api.ts
+- **Review criteria**: API response envelope shape (success, data/error, meta), rate limiting headers and 429 status code handling, error status codes, backward compatibility, type safety, test execution.
 
 ## Attack Surface
-- **Hypotheses tested**:
-  - Sub-100ms tab switching latency: Confirmed (35ms - 39ms frame latency).
-  - CLS < 0.05: Confirmed (0.0365 - 0.0441).
-  - Accordion lazy rendering & DOM node cleanup: Confirmed.
-  - CSS-only Donut chart hover animation: Confirmed (`transform-origin: 50% 50%`).
-  - Offline Firestore resilience: Confirmed graceful UI fallback.
-- **Vulnerabilities found**:
-  - Minor color contrast warning on `.shadow-[0_2px_12px_rgba(0,0,0,0.06)] > span` ("아파트 탐색").
-- **Untested angles**:
-  - Production database high-concurrency network load.
+- **Hypotheses tested**: 
+  - API envelope consistency across success (200, 201) and error (400, 401, 403, 404, 429, 500) statuses.
+  - Rate limiting headers (X-RateLimit-Limit, X-RateLimit-Remaining, X-RateLimit-Reset) and 429 HTTP status.
+  - IP extraction robustness (getClientIp) with multi-proxy forwarded headers.
+  - Server page domain decoupling (partmentPageService.ts) for JSON-LD, SEO, and pricing aggregations.
+- **Vulnerabilities found**: 
+  - src/app/api/location-scores/route.ts: searchParams.get('refresh') returns 
+ull when omitted, causing z.string().optional() to fail schema validation and return 400. Documented for subsequent patch.
+- **Untested angles**: 
+  - None within Milestone 4 scope.
 
 ## Loaded Skills
-- None loaded.
+- None
 
 ## Key Decisions Made
-- Executed Playwright test suites `tests/performance-ux.spec.ts` (5/5 passed) and `tests/ui-ux-audit.spec.ts` (1/1 passed).
-- Ran in-browser timing benchmark via `requestAnimationFrame` confirming sub-100ms (35ms - 39ms) tab switching performance.
-- Documented findings in `challenge_report.md` and `handoff.md`.
+- Confirmed full verification pass (	sc, lint, jest, uild).
+- Confirmed API route envelope standardization and rate limiting conformance.
+- Formulated verdict: **APPROVE**.
 
 ## Artifact Index
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_1\ORIGINAL_REQUEST.md — Request history
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_1\BRIEFING.md — Current status briefing
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_1\progress.md — Heartbeat progress log
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_1\challenge_report.md — Detailed adversarial challenge report
-- c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m4_1\handoff.md — Self-contained 5-component handoff report
+- handoff.md — Final verdict and empirical challenge report

@@ -2,11 +2,9 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
 import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
-import { DongApartment } from '@/lib/dong-apartments';
-import { FieldReportData } from '@/lib/types/report.types';
-import { AptTxSummary } from '@/lib/types/transaction';
+import type { FieldReportData, AptTxSummary, DongApartment } from '@/types';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
-import { useSettingsValues } from '@/lib/contexts/SettingsContext';
+import { useSettingsValues } from '@/contexts/SettingsContext';
 
 
 interface HotComplexRankingProps {

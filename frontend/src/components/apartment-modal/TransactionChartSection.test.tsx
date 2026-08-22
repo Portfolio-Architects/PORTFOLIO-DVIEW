@@ -18,7 +18,7 @@ jest.mock('recharts', () => {
 });
 
 // Mock settings context
-jest.mock('@/lib/contexts/SettingsContext', () => ({
+jest.mock('@/contexts/SettingsContext', () => ({
   useSettingsValues: () => ({
     areaUnit: 'm2',
     setAreaUnit: jest.fn(),
