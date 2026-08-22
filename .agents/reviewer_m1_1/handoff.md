@@ -1,98 +1,105 @@
-# Review & Adversarial Critic Report: Milestone M1 (Main Routing & Tab Navigation Reordering)
+# Review & Adversarial Challenge Report: Reviewer M1 (Milestone 1)
 
-**Reviewer**: Reviewer 1 (`reviewer_m1_1`)  
-**Target Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
-**Worker**: Worker M1 (`worker_m1`)  
-**Date**: 2026-08-22  
-**Final Verdict**: **APPROVE**  
+**Verdict**: `APPROVE`
+**Milestone**: Milestone 1 — Rendering Runtime & Re-render Elimination
 
 ---
 
 ## 1. Observation
 
-Direct code and test observations conducted across all 7 targeted files:
+Direct code inspections of the target files revealed:
 
-1. **`frontend/src/app/page.tsx`**:
-   - Primary landing page `/` now mounts `DashboardDataLoader` and `DashboardClient` with `initialTab="overview"`.
-   - Title: `"D-VIEW 아파트 랩 | 동탄 아파트 실거래가·시세·상대가치 분석 허브"`.
-   - Canonical URL: `https://dongtanview.com`.
-   - Injects `getMainPageSchema(baseUrl)` structured data for apartment valuation and Top 10 leaderboards.
-   - Handles deep-link query parameters (`?tab=office`, `?tab=lounge`, `?tab=imjang`, `?tab=technovalley`).
+1. **`frontend/src/components/macro/TechnoValleyDashboard.tsx`**:
+   - `TechnoValleyDashboard` is wrapped in `React.memo` and exported as `export default TechnoValleyDashboard;` (lines 618, 1954, 1956).
+   - `CompanyCard` subcomponent is memoized with `React.memo` (line 582).
+   - Search input utilizes `useDeferredValue`:
+     ```ts
+     const [searchQuery, setSearchQuery] = useState('');
+     const deferredSearchQuery = useDeferredValue(searchQuery);
+     ```
+   - Sector filtering (`processedSectors`) and match counts (`totalMatchedCount`) are computed via `useMemo` dependent on `[donutData, deferredSearchQuery]`, decoupling keystroke event handling from CPU-intensive array traversal across company records.
+   - Interactive callbacks (`handleToggleSector`, `handleExpandAll`, `handleCollapseAll`, `handleShowMore`, `handleResetLimit`, `handleOpenHelpModal`, `handleCloseHelpModal`, `handleOpenDetailModal`, `handleCloseDetailModal`, `handleSetMetricModeVacancy`, `handleSetMetricModeRent`, `handleTimeframeChange`, `handleToggleVisibleBuilding`, `handleToggleSelectedBuilding`, `handleSelectCategory`, `handleResetActiveCategory`, `handleSort`, `handleSearchChange`, `handleClearSearch`) are wrapped with `useCallback`.
+   - Recharts animations on line charts and pie charts are disabled (`isAnimationActive={false}`) to eliminate layout recalcs on state updates.
 
-2. **`frontend/src/app/technovalley/page.tsx`**:
-   - Removed previous `redirect('/')` loop.
-   - Directly renders `TechnoValleyClient` inside Suspense with `TechnoValleySkeleton`.
-   - Title: `"D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터"`.
-   - Canonical URL: `https://dongtanview.com/technovalley`.
-   - Full semantic SEO markup & JSON-LD Breadcrumb for Techno Valley.
+2. **`frontend/src/components/MacroDashboardClient.tsx`**:
+   - Declared immutable module-level constants `const EMPTY_OBJECT = Object.freeze({});` and `const NOOP_FN = () => {};` (lines 67-68).
+   - `MacroDashboardClient`, `TimelineItemCard`, and `TimelineItemRow` are wrapped with `React.memo` (lines 258, 465, 583, 1876, 1878).
+   - Handlers passed to children (`handleCardHover`, `handleCardClick`, `handleDetailsClick`, `handleDetailsHover`, `handleCloseQuiz`, `handleOpenAptFitFinder`, `handleOpenJeonseSafety`, `handleOpenMortgage`, `handleOpenSellTiming`, `handleOpenTaxCalculator`, `handleSelectApt`, `renderTimelineItemCardNode`, `renderTimelineItemRowNode`, `renderChart`, `renderBottomSheetChart`, `handleHoverApt`) are wrapped in `useCallback` with exact dependency arrays.
+   - Subcomponent props (`AptDonutSection`, `AptMetricCards`, `MacroChartSection`, `MacroTimelineView`, `AptFitFinder`, `MacroUtilityCards`, `MacroMobileDrawer`) receive stable references without inline object literals or unmemoized arrow functions.
 
-3. **`frontend/src/components/LoungeHeader.tsx`**:
-   - Navigation links reordered to exact specification:
-     1. `href="/"`, label `'아파트 랩'`, activeTab `'overview'`, color `hs-orange`, icon `Building2`
-     2. `href="/explore"`, label `'아파트 탐색'`, activeTab `'imjang'`, color `hs-orange`, icon `Home`
-     3. `href="/technovalley"`, label `'테크노 랩'`, activeTab `'technovalley'`, color `hs-blue`, icon `LayoutDashboard`
-     4. `href="/overview?tab=office"`, label `'사무실 탐색'`, activeTab `'office'`, color `hs-blue`, icon `Building2`
-   - `handlePopState` parses `window.location.pathname` and search params with comprehensive mapping.
-   - Pre-fetches core routes (`/`, `/explore`, `/technovalley`, `/overview?tab=office`) on mount.
+3. **`frontend/src/components/DashboardClient.tsx`**:
+   - `DashboardClient` is wrapped in `React.memo` with `DashboardClient.displayName = 'DashboardClient'` (lines 251, 1238).
+   - Module constant `EMPTY_OBJECT` is frozen (`const EMPTY_OBJECT: Record<string, never> = Object.freeze({});`, line 247).
+   - Stable callback `handleTabChange` is wrapped in `useCallback` with `[router]` dependency (lines 750-760).
+   - `LoungeHeader` (`onTabChange={handleTabChange}`) and `MobileDock` (`onTabClick={handleTabChange}`) receive the stable callback, preventing re-renders on parent state changes.
 
-4. **`frontend/src/components/pwa/MobileDock.tsx`**:
-   - `TABS` array ordered: `[아파트 랩 (/), 아파트 탐색 (/explore), 테크노 랩 (/technovalley), 사무실 탐색 (/overview?tab=office)]`.
-   - Divider line cleanly rendered when `tab.id === 'imjang'`, partitioning residential tabs from commercial/techno tabs.
-   - Dynamic styling: residential tabs receive `text-hs-orange` / `bg-hs-orange-light`, techno/office tabs receive `text-hs-blue` / `bg-hs-blue-light`.
-
-5. **`frontend/src/components/DashboardClient.tsx`**:
-   - `LoungeHeader` `onTabChange` and `MobileDock` `onTabClick` map `'overview'` -> `'/'`, `'imjang'` -> `'/explore'`, `'technovalley'` -> `'/technovalley'`, `'office'` -> `'/overview?tab=office'`.
-   - `syncTabFromLocation` accurately synchronizes URL hash and search params (`#technovalley`, `#office`, `?tab=office`, `?tab=technovalley`, etc.).
-   - Browser back button popstate soft-closes modals without losing active tab contexts.
-
-6. **`frontend/src/app/manifest.ts`**:
-   - PWA shortcut for '동탄 아파트 랩' updated from `/overview` to `/`.
-
-7. **`frontend/src/components/HeaderDockSync.test.tsx`**:
-   - Suite testing 4 routes against both desktop header and mobile dock.
-   - Assertions test real DOM links and computed Tailwind classes without mock bypasses.
+4. **Integrity & Build/Test Observations**:
+   - `npx tsc --noEmit` executed in `frontend`: Exit code 0, 0 compiler errors.
+   - Targeted unit/component tests executed:
+     - `AptFitFinder.test.tsx`, `HeaderDockSync.test.tsx`, `TechnoValleyDashboard.adversarial.test.tsx`: 3 suites passed, 15 tests passed.
+   - Macro/Timeline test suites executed:
+     - `m1_timeline_filter_adversarial_stress.test.tsx`, `MacroControls.test.tsx`, `MacroTimelineView.test.tsx`, `m1_challenger2_macro_controls_stress.test.tsx`, `TimelineItemCardStress.test.tsx`, `MacroTimelineViewAdversarial.test.tsx`: 6 suites passed, 77 tests passed.
+   - No hardcoded test bypasses, facade implementations, or integrity shortcuts detected in the codebase.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Information Architecture Alignment**:
-   - The primary value proposition of the D-VIEW Super-App is residential apartment analytics and macro transactions. Mapping the root `/` to Apartment Lab places the core feature at the highest discovery layer.
-2. **Navigation Parity & Visual Hierarchy**:
-   - Desktop and mobile viewports now expose an identical 4-tab sequence: `[아파트 랩, 아파트 탐색, 테크노 랩, 사무실 탐색]`.
-   - Color coding (Orange for Residential, Blue for Techno/Office) and the physical divider in MobileDock after `imjang` provide instant visual clustering and zero cognitive load.
-3. **State Consistency & History Integrity**:
-   - Browser navigation (`pushState`, `popstate`, `hashchange`, deep links) remains strictly bidirectional and synchronized with `DashboardClient` and `LoungeHeader`.
+1. **Re-render Shielding (React.memo)**:
+   - Root components (`TechnoValleyDashboard`, `MacroDashboardClient`, `DashboardClient`) and repeated list items (`CompanyCard`, `TimelineItemCard`, `TimelineItemRow`) are protected by `React.memo`.
+   - When parent states (e.g. auth status, background SWR revalidation) update, shallow comparison on props succeeds because all prop callbacks and fallback objects are referentially stable.
+
+2. **Zero-Jank Input Handling (useDeferredValue)**:
+   - Synchronous typing into `TechnoValleyDashboard` search bar updates `searchQuery` immediately at 60fps.
+   - The expensive sector and company list filtering is driven by `deferredSearchQuery`, executing as a deferred React transition that yields to user interactions.
+
+3. **Callback & Reference Integrity (useCallback & Object.freeze)**:
+   - All event handlers use `useCallback` with accurate dependencies or functional state updates (`prev => ...`), avoiding stale closures and preventing unneeded function recreations.
+   - Default prop fallbacks use module-level frozen constants (`EMPTY_OBJECT`, `NOOP_FN`), eliminating fresh reference allocations on render passes.
 
 ---
 
 ## 3. Caveats
 
-- `src/app/overview/page.tsx` is preserved as an alias route to maintain backward compatibility for external bookmarks and legacy incoming links.
-- No caveats found. Implementation is clean, minimal, and fully compliant with project standards.
+- In development mode with React StrictMode enabled, React double-invokes render functions; benchmark validations for 60fps framerate should be performed in production builds (`npm run build && npm run start`).
+- Heavy modals remain dynamically imported and load on demand, which is coordinated in Milestone 2.
 
 ---
 
-## 4. Conclusion & Integrity Assessment
+## 4. Conclusion
 
-- **Integrity Check**:
-  - Hardcoded fake outputs in source code: **NONE** (0 violations)
-  - Facade/dummy implementations: **NONE** (Real components & state machines used)
-  - Shortcut bypasses: **NONE** (Full responsive support on desktop and mobile)
-  - Attestation/test forgery: **NONE** (All Jest assertions execute genuine DOM queries)
-- **Quality Assessment**: High code cleanliness, strict TypeScript types, zero console errors or warnings.
-- **Final Verdict**: **APPROVE**
+The implementation for Milestone 1 (Rendering Runtime & Re-render Elimination) satisfies all architectural and functional criteria:
+- `React.memo` is correctly applied across all target components.
+- `useDeferredValue` is effectively utilized for non-blocking search queries.
+- `useCallback` dependency arrays are accurate without stale closure risks.
+- Fallback references (`EMPTY_OBJECT`, `NOOP_FN`) are immutable and referentially preserved.
+- Zero TypeScript compiler errors (`npx tsc --noEmit`) and 100% test pass rate across all related test suites.
+
+**Final Verdict**: `APPROVE`.
 
 ---
 
-## 5. Verification Method & Test Results
+## 5. Verification Method
 
-1. **TypeScript Type Safety**:
-   - Command: `npx tsc --noEmit`
-   - Result: `0 errors` (Exit code 0)
-2. **Header & Dock Contract Unit Tests**:
-   - Command: `npm test -- HeaderDockSync.test.tsx --watchAll=false`
-   - Result: `1 passed, 1 total` (6/6 tests passed, 0 failures)
-3. **Full Regression Suite**:
-   - Command: `npm test -- --watchAll=false`
-   - Result: `86 passed, 86 total` (845/845 tests passed, 100% Green)
+To independently reproduce the verification:
+
+1. **TypeScript Typecheck**:
+   ```bash
+   cd "frontend"
+   npx tsc --noEmit
+   # Result: 0 errors (Exit code 0)
+   ```
+
+2. **Targeted Subsystem Test Execution**:
+   ```bash
+   cd "frontend"
+   npx jest src/components/macro/techno/TechnoValleyDashboard.adversarial.test.tsx src/components/HeaderDockSync.test.tsx src/components/consumer/AptFitFinder.test.tsx --forceExit
+   # Result: 3 suites passed, 15 tests passed
+   ```
+
+3. **Macro Timeline & Controls Stress Tests**:
+   ```bash
+   cd "frontend"
+   npx jest src/components/__tests__/MacroControls.test.tsx src/components/__tests__/MacroTimelineView.test.tsx src/components/__tests__/MacroTimelineViewAdversarial.test.tsx src/components/TimelineItemCardStress.test.tsx src/__tests__/m1_challenger2_macro_controls_stress.test.tsx src/__tests__/m1_timeline_filter_adversarial_stress.test.tsx --forceExit
+   # Result: 6 suites passed, 77 tests passed
+   ```

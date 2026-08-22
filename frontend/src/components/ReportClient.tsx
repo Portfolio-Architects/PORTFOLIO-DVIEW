@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Download, Copy, Check } from 'lucide-react';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
-import jsPDF from 'jspdf';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { getEngineeringReport } from '@/app/actions/getEngineeringReport';
 import { logger } from '@/lib/services/logger';
@@ -39,6 +38,7 @@ const ReportClient = React.memo(function ReportClient() {
         backgroundColor: '#ffffff'
       });
       const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;

@@ -1,54 +1,56 @@
-# BRIEFING — 2026-08-22T05:54:00Z
+# BRIEFING — 2026-08-22T21:55:00+09:00
 
 ## Mission
-Comprehensive architecture and engineering survey for expanding D-VIEW into the "Dongtan Hyperlocal All-in-One Super-App" across 5 core domains: Real Estate, Stocks & Industry, Running & Trails, Festivals & Events, and Dining & Hotplaces.
+Investigate R1 (Rendering Runtime & Memory Leak Optimization) across D-VIEW frontend components, hooks, observers, and event listeners to eliminate unnecessary re-renders and memory leaks.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: investigator, analyzer, synthesizer
+- Roles: investigation, synthesis
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1
-- Original parent: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
-- Milestone: Survey & Investigation (R1 Crawling/Scraping/Batch pipeline)
-- Milestone (New): Super-App Architecture & Engineering Report Survey (2026-08-22)
+- Original parent: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Milestone: survey
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement changes in source code
-- Self-contained handoff and detailed analysis report
-- High-fidelity survey, architecture designs, data pipeline schemas, and self-contained handoff report
+- Read-only investigation — do NOT implement
+- Analyze MacroDashboardClient, TechnoValleyDashboard, complex chart containers, filter bars, listing components, and hooks.
+- Audit React.memo, useCallback, useMemo, object/array prop stability, useEffect cleanup, event listeners, observers, timers, subscriptions.
 
 ## Current Parent
-- Conversation ID: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
-- Updated: 2026-08-22T05:54:00Z
+- Conversation ID: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Updated: 2026-08-22T21:55:00+09:00
 
 ## Investigation State
 - **Explored paths**:
-  - `PORTFOLIO DVIEW - Engineering Report.md` (Current SSOT)
-  - `AGENT.md` & `PROJECT.md` & `PORTFOLIO DVIEW - Patch History.md`
-  - `frontend/src/app/actions/getEngineeringReport.ts`
-  - `frontend/src/data/engineering-report.md`
-  - `frontend/src/lib/DashboardFacade.ts`, `frontend/src/lib/repositories/*`, `frontend/src/lib/services/*`
-  - `frontend/src/types/*` (`technovalley.ts`, `transaction.ts`, `notice.ts`, `apartment.ts`, etc.)
-  - `frontend/src/components/*` (`ChopoomaCuration.tsx`, `LocalEventCuration.tsx`, `TechnoValleyDashboard.tsx`, `MacroDashboardClient.tsx`, `ApartmentModal.tsx`, etc.)
-  - `extract_restaurants.py`, `extract_academies.py`, `fetch_molit_data.py`
-  - `frontend/scripts/*` (`fetch-local-notices.js`, `fetch-transactions.js`, `fetch-rent.js`, `sync-transactions.js`, `generate-tickers.js`)
-  - Test suites: 86 suites, 846 Jest tests passing (100%), `npx tsc --noEmit` 0 errors.
+  - `frontend/src/components/MacroDashboardClient.tsx`
+  - `frontend/src/components/DashboardClient.tsx`
+  - `frontend/src/components/macro/TechnoValleyDashboard.tsx`
+  - `frontend/src/components/macro/techno/TechnoDonutSection.tsx`
+  - `frontend/src/components/macro/components/MacroTimelineView.tsx`
+  - `frontend/src/components/macro/components/MacroControls.tsx`
+  - `frontend/src/components/macro/components/MacroChartSection.tsx`
+  - `frontend/src/components/macro/components/AptDonutSection.tsx`
+  - `frontend/src/components/macro/components/AptMetricCards.tsx`
+  - `frontend/src/components/MacroTrendChart.tsx`
+  - `frontend/src/components/TossApartmentExploreClient.tsx`
+  - `frontend/src/components/explore/AptRow.tsx`
+  - `frontend/src/components/apartment-modal/TransactionChartSection.tsx`
+  - `frontend/src/components/apartment-modal/TransactionTable.tsx`
+  - `frontend/src/components/HotComplexRanking.tsx`
+  - `frontend/src/components/GapInvestmentExplorer.tsx`
+  - `frontend/src/components/FloatingUserBar.tsx`
+  - `frontend/src/components/MindMap3D.tsx`
+  - `frontend/src/components/LoungeFeedClient.tsx`
+  - `frontend/src/hooks/*` (all 16 custom hooks)
+  - `frontend/src/lib/services/*` & `frontend/src/lib/DashboardFacade.ts`
 - **Key findings**:
-  1. Base architecture is exceptionally modular and robust: Facade pattern, Repository pattern, Service layer, Edge Redis L2 cache, Service Worker SWR cache, strict TypeScript typing with zero `any`.
-  2. 5-Domain Expansion Strategy:
-     - Domain 1: Real Estate (179 complexes, MOLIT APIs, PER/Utility score, 초품아 300m, Gap investment).
-     - Domain 2: Stocks & Semiconductor Industry (Samsung Electronics Giheung/Hwaseong/Pyeongtaek + Dongtan Techno Valley 56 Jisan buildings, ASML/AMAT/TEL + K-Semiconductor 소부장 leaders like KC Tech, Wonik IPS, S&S Tech, Dongjin Semichem, HPSP).
-     - Domain 3: Running & Trails (Lake Park loop 4.5km, Chidongcheon 6.2km, Sinricheon 5.8km, Banseoksan 3.7km, Yeoul Park 3.2km with GeoJSON elevation & AirKorea micro-climate index).
-     - Domain 4: Festivals & Events (Luna Fountain Show D-Day & prime spot mapping, Hwaseong Cultural Foundation, Dongtan 1~9 Dong community center class registration with anti-WAF bypass proxy).
-     - Domain 5: Dining & Hotplaces (Yeongcheon 11-ja, Lake Park Lake Como/Grand Passage, Karilm Avenue, Nam/Buk Gwangjang with verified kid-friendly/corkage/parking metadata).
-  3. Seamless UI/UX Integration: Pastel Cute & Urban Emerald design system, MobileDock 5-tab synchronization, Sub-100ms client route transitions, CLS < 0.01.
-  4. Monetization Engine: Contextual Google AdSense + B2B CPA local merchant and semiconductor career/relocation targeting.
-- **Unexplored areas**: None for this architectural survey.
+  1. `TechnoValleyDashboard.tsx` is missing `React.memo` and has monolithic inlined search state driving full chart and accordion re-renders.
+  2. Unstable prop references (inline arrow callbacks, fallback empty objects) in `MacroDashboardClient.tsx` (`onSelectApt`, `onClose`, `nameMapping`, modal opener callbacks) causing memo bypass in child components.
+  3. `DashboardClient.tsx` passes inline arrow functions to `LoungeHeader` and `MobileDock`.
+  4. Lifecycle hooks and observers (`ResizeObserver`, `IntersectionObserver`, `addEventListener`, `setTimeout`/`setInterval`, `AbortController`) are solidly cleaned up across existing custom hooks and components, with verified unmount teardown patterns.
+- **Unexplored areas**: None. Comprehensive survey across frontend complete.
 
 ## Key Decisions Made
-- Formulated full architectural blueprint, complete TypeScript data contracts, and data pipeline specifications for all 5 domains.
-- Prepared comprehensive survey handoff report at `.agents/explorer_survey_1/handoff.md`.
+- Structured 5-component handoff report detailing specific file paths, line numbers, code evidence, logic chain, and implementation blueprints for the implementation phase.
 
 ## Artifact Index
-- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\handoff.md` — 5-component comprehensive survey and architectural handoff report.
-- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\analysis.md` — Detailed domain analysis and data schema designs.
-
+- handoff.md — Comprehensive R1 survey report

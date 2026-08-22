@@ -1,122 +1,111 @@
-# Milestone M1 Empirical Challenge & Verification Report
+# Challenger Report: Challenger 2 -- Milestone 1 (Rendering Runtime & Re-render Elimination)
 
-**Date**: 2026-08-22  
-**Challenger**: Challenger 2 (Empirical Challenger, critic / specialist)  
-**Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
-**Verdict**: **APPROVE**
+## Challenge Summary
+
+- **Overall Risk Assessment**: LOW
+- **Milestone Target**: Milestone 1 (Rendering Runtime & Re-render Elimination)
+- **Verdict**: **APPROVE**
 
 ---
 
 ## 1. Observation
 
-Direct observations obtained through source code inspection, empirical verification script execution, TypeScript type checking, and Jest test suite runs:
+1. **frontend/src/components/macro/TechnoValleyDashboard.tsx**:
+   - The component is wrapped in React.memo ('const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() { ... })').
+   - 'searchQuery' is deferred via 'const deferredSearchQuery = useDeferredValue(searchQuery);'.
+   - Filtered company lists are computed once across all sectors with 'useMemo' ('processedSectors'), eliminating redundant quadratic filtering inside individual accordion iterations.
+   - All modal, accordion, filter, and metric change handlers are stabilized via 'useCallback' ('handleToggleSector', 'handleExpandAll', 'handleCollapseAll', 'handleShowMore', 'handleResetLimit', 'handleOpenHelpModal', 'handleCloseHelpModal', 'handleOpenDetailModal', 'handleCloseDetailModal', 'handleSetMetricModeVacancy', 'handleSetMetricModeRent', 'handleTimeframeChange', 'handleToggleVisibleBuilding', 'handleToggleSelectedBuilding', 'handleSelectCategory', 'handleResetActiveCategory', 'handleSearchChange', 'handleClearSearch').
 
-1. **Tab Navigation Symmetry (`LoungeHeader` ↔ `MobileDock`)**:
-   - **`frontend/src/components/LoungeHeader.tsx`**:
-     - Line 72–89: Tab 1: `href="/"`, activeTab `'overview'`, label `'아파트 랩'` (Building2 icon, hs-orange color)
-     - Line 92–105: Tab 2: `href="/explore"`, activeTab `'imjang'`, label `'아파트 탐색'` (Home icon, hs-orange color)
-     - Line 108–121: Tab 3: `href="/technovalley"`, activeTab `'technovalley'`, label `'테크노 랩'` (LayoutDashboard icon, hs-blue color)
-     - Line 124–137: Tab 4: `href="/overview?tab=office"`, activeTab `'office'`, label `'사무실 탐색'` (Building2 icon, hs-blue color)
-     - Line 26–33: `handlePopState` synchronously maps `/` -> `'overview'`, `/explore` -> `'imjang'`, `/technovalley` & `/techno` -> `'technovalley'`, `/overview?tab=office` -> `'office'`, `/overview` -> `'overview'`.
-   - **`frontend/src/components/pwa/MobileDock.tsx`**:
-     - Lines 20–23:
-       ```typescript
-       { id: 'overview', label: '아파트 랩', icon: Building2, href: '/' },
-       { id: 'imjang', label: '아파트 탐색', icon: Home, href: '/explore' },
-       { id: 'technovalley', label: '테크노 랩', icon: LayoutDashboard, href: '/technovalley' },
-       { id: 'office', label: '사무실 탐색', icon: Building2, href: '/overview?tab=office' },
-       ```
-     - Line 73: `const showDivider = tab.id === 'imjang';` — renders visual separator between residential tabs and commercial/techno tabs.
+2. **frontend/src/components/MacroDashboardClient.tsx**:
+   - 'EMPTY_OBJECT' is defined as a frozen object literal ('const EMPTY_OBJECT = Object.freeze({});').
+   - 'NOOP_FN' is defined as a stable function constant ('const NOOP_FN = () => {};').
+   - Callbacks passed to child components ('handleCloseQuiz', 'handleOpenAptFitFinder', 'handleOpenJeonseSafety', 'handleOpenMortgage', 'handleOpenSellTiming', 'handleOpenTaxCalculator', 'handleSelectApt') are wrapped in 'useCallback'.
+   - Prop fallbacks for 'nameMapping', 'locationScores', and 'onSelectApt' use 'EMPTY_OBJECT' and 'NOOP_FN' to guarantee referential equality across parent render passes.
 
-2. **Root & Route Component Integrity**:
-   - **`frontend/src/app/page.tsx`**:
-     - Line 4: Imports `DashboardClient` (Apartment Lab landing).
-     - Lines 27–33:
-       ```typescript
-       export const metadata: Metadata = {
-         title: 'D-VIEW 아파트 랩 | 동탄 아파트 실거래가·시세·상대가치 분석 허브',
-         description: '동탄 신도시 아파트 실거래 시세 분석, 상승/하락 트렌드, 전세 안전진단부터 실거래가 데이터 분석을 제공합니다.',
-         alternates: {
-           canonical: 'https://dongtanview.com',
-         },
-       };
-       ```
-     - Line 159: Injects `getMainPageSchema(baseUrl)` JSON-LD schema.
-     - Lines 107–139: Injects semantic HTML containing Top 10 leaderboards and recent 15 transactions.
-   - **`frontend/src/app/technovalley/page.tsx`**:
-     - Line 4: Imports `TechnoValleyClient`. No redirects to `/`.
-     - Lines 43–49:
-       ```typescript
-       export const metadata: Metadata = {
-         title: 'D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터',
-         description: '동탄 테크노밸리 지식산업센터의 공실 해소를 위한 원스톱 솔루션. 빌딩별 공실 정보, 소형 오피스 공동임차 매칭, 입주 혜택 시뮬레이터 및 맞춤형 오피스 핏파인더를 제공합니다.',
-         alternates: {
-           canonical: 'https://dongtanview.com/technovalley',
-         },
-       };
-       ```
-     - Lines 55–97: Injects dedicated Techno Valley JSON-LD WebPage + RealEstateAgent schema.
-     - Lines 108–189: Injects semantic HTML table of representative knowledge industry centers and co-working bulletin board.
-   - **`frontend/src/app/manifest.ts`**:
-     - Lines 44–49: Shortcut for `'동탄 아파트 랩'` points to `url: '/'`.
+3. **frontend/src/components/DashboardClient.tsx**:
+   - 'handleTabChange' is memoized via 'useCallback' with '[router]' dependency, updating active tab state, 'window.history.pushState', and 'router.replace(href, { scroll: false })'.
+   - 'handleTabChange' is provided to 'LoungeHeader' ('onTabChange={handleTabChange}') and 'MobileDock' ('onTabClick={handleTabChange}').
+   - 'EMPTY_OBJECT' is frozen with 'Object.freeze({})'.
 
-3. **Empirical Script & Test Results**:
-   - Executed empirical assertion suite (`verify-m1.js`): All 18 automated contract assertions passed.
-   - TypeScript Static Type Check (`npx tsc --noEmit`): Exited with code 0 (0 compilation errors).
-   - Navigation Contract Test (`npm test -- HeaderDockSync.test.tsx`): 1 test suite, 6 tests passed (0 failures).
-   - Full Jest Test Suite (`npm test`): 86 test suites, 845 tests passed (100% green, 0 failures).
+4. **Automated Verification**:
+   - 'npx tsc --noEmit': Executed cleanly with 0 TypeScript compiler errors.
+   - Jest Test Suite: 101 / 101 test suites passed, 1036 / 1036 tests passed (100% Green).
 
 ---
 
 ## 2. Logic Chain
 
-1. **User Requirement & Contract Fulfillment**:
-   - The user request specified making Apartment Lab the #1 landing at `/` and rearranging the 4 tabs across Desktop Header and Mobile Dock in the order: `[1. 아파트 랩 (/), 2. 아파트 탐색 (/explore), 3. 테크노 랩 (/technovalley), 4. 사무실 탐색 (/overview?tab=office)]`.
-   - Inspection confirms both `LoungeHeader` and `MobileDock` strictly follow this order with matching label text, icon assignments, domain-specific color highlights (orange for residential, blue for commercial), and href destinations.
-2. **Browser History & URL Synchrony**:
-   - Both `LoungeHeader.tsx` and `DashboardClient.tsx` listen to `popstate` and `hashchange` events.
-   - Forward/backward navigation between `/`, `/explore`, `/technovalley`, and `/overview?tab=office` accurately updates internal active tab state without flashing or inconsistent state.
-3. **SEO & SSR Integrity**:
-   - Canonical URLs on `/` (`https://dongtanview.com`) and `/technovalley` (`https://dongtanview.com/technovalley`) prevent duplicate content issues.
-   - Semantic HTML and structured data (JSON-LD) are cleanly separated per domain.
-4. **Empirical Hardening**:
-   - Verified that no regressions were introduced across the entire 86-suite codebase.
+1. **Memoization Prop Integrity**:
+   - 'React.memo' performs shallow equality ('Object.is') on props between consecutive renders.
+   - In prior implementations, inline fallback objects and inline closures allocated new memory references on every parent render, defeating 'React.memo'.
+   - By freezing 'EMPTY_OBJECT' and providing module-level / 'useCallback' constants, shallow comparisons evaluate to 'true' when parent state changes unrelated to child props.
+   - Verified empirically: A child component receiving 'EMPTY_OBJECT' and 'NOOP_FN' endured 50 rapid parent state mutations without triggering a single child re-render (render count remained 1).
+
+2. **'useDeferredValue' UI Consistency**:
+   - Keystrokes in 'TechnoValleyDashboard' update 'searchQuery' immediately, keeping the search input responsive at 60fps.
+   - The deferred value ('deferredSearchQuery') drives 'processedSectors' computation and 'totalMatchedCount'.
+   - When matches exist, each sector accurately reflects matching count badges.
+   - When no matches exist, the UI renders '검색 조건에 맞는 기업이 없습니다.'.
+   - Clearing search restores the full company list and resets empty state warnings without layout shift or state desynchronization.
+
+3. **Tab Switching Navigation Reliability**:
+   - 'handleTabChange' centralizes tab state transition ('setActiveTab'), browser history synchronization ('window.history.pushState'), and Next.js router integration ('router.replace').
+   - Passing 'handleTabChange' to 'LoungeHeader' and 'MobileDock' prevents unnecessary re-renders of the navigation headers on every parent render cycle while correctly handling routes ('/', '/explore', '/overview?tab=office', '/technovalley').
 
 ---
 
-## 3. Caveats
+## 3. Challenges & Stress Test Results
 
-- `/overview` is preserved as a functional backward-compatible route for external deep-links (e.g., `?tab=office`), which is intended and safe.
-- No caveats or blocking issues detected.
+### Challenge 1: Parent State Churn vs Child Memoization
+- **Assumption Challenged**: Parent state churn (e.g. timers, background telemetry, modal open states) will not trigger re-render cascades in memoized children.
+- **Attack Scenario**: Subjected parent components to 50 rapid state updates.
+- **Result**: Child render count remained strictly at 1. (PASS)
+
+### Challenge 2: Company Search & Sector Filtering Race Conditions
+- **Assumption Challenged**: Rapid search input and sector accordion toggles will not cause stale match counts or desynchronized UI states.
+- **Attack Scenario**: Dispatched rapid keystrokes, non-matching terms, search clearance, expand-all, and collapse-all in sequence.
+- **Result**: All matching badges, company cards, and empty state fallbacks displayed exact expected values. (PASS)
+
+### Challenge 3: Navigation Callback Integrity Across Tab Transitions
+- **Assumption Challenged**: 'handleTabChange' properly updates 'activeTab', URL path, and history across all 4 tab destinations.
+- **Attack Scenario**: Triggered tab changes to 'office', 'imjang', 'technovalley', and 'overview' via 'handleTabChange', 'LoungeHeader', and 'MobileDock'.
+- **Result**: 'activeTab' updated correctly, 'window.history.pushState' recorded all transitions, and 'router.replace' was invoked with '{ scroll: false }'. (PASS)
 
 ---
 
-## 4. Conclusion
+## 4. Caveats
 
-**Verdict: APPROVE**
-
-Milestone M1 has met all technical and user-specified acceptance criteria. Routing, tab order, visual indicators, SSR metadata, and browser history synchronization are verified and robust.
+- In development mode with React StrictMode enabled, React double-invokes render functions to assist in detecting side effects; rendering performance gains are most pronounced in production builds ('npm run build && npm run start').
+- No other caveats.
 
 ---
 
-## 5. Verification Method
+## 5. Conclusion & Verdict
 
-To independently verify this verdict:
+The Milestone 1 implementation satisfies all R1 requirements and acceptance criteria:
+- 'TechnoValleyDashboard.tsx', 'MacroDashboardClient.tsx', and 'DashboardClient.tsx' have been properly hardened against re-render cascades.
+- 'React.memo', 'useDeferredValue', and 'useCallback' patterns are robust, standard, and verified empirically.
+- 0 TypeScript compiler errors and 100% test pass rate (101 suites, 1036 tests).
 
-1. **TypeScript Type Check**:
-   ```bash
-   cd frontend && npx tsc --noEmit
-   ```
-   *Expected: Exit code 0, 0 errors.*
+**Final Verdict**: **APPROVE**
 
-2. **Navigation Unit Test**:
-   ```bash
-   cd frontend && npm test -- HeaderDockSync.test.tsx
-   ```
-   *Expected: 1 suite passed, 6 tests passed.*
+---
 
-3. **Full Regression Test Suite**:
-   ```bash
-   cd frontend && npm test
-   ```
-   *Expected: 86 suites passed, 845 tests passed (100% green).*
+## 6. Verification Method
+
+To independently reproduce the empirical findings:
+
+1. **TypeScript Typecheck**:
+   cd frontend
+   npx tsc --noEmit
+   # Expected: Exit code 0, 0 errors
+
+2. **Empirical Adversarial Stress Suite**:
+   cd frontend
+   npx jest src/__tests__/m1_challenger2_render_runtime_empirical.test.tsx --forceExit
+   # Expected: 1 passed, 7 tests passed
+
+3. **Full Jest Test Suite**:
+   cd frontend
+   npm test -- --runInBand --forceExit
+   # Expected: 101 passed, 1036 passed

@@ -1,113 +1,95 @@
-# Challenger 1 Handoff Report: Milestone M1 (Main Routing & Tab Navigation Reordering)
+﻿# Challenge Report: Milestone 1 (Rendering Runtime & Re-render Elimination)
 
-**Date**: 2026-08-22  
-**Challenger**: Challenger 1 (Empirical Challenger & Adversarial Reviewer)  
-**Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
-**Verdict**: **APPROVE**  
+**Challenger**: Challenger 1 (Empirical Challenger: Critic & Specialist)
+**Verdict**: **`APPROVE`**
+**Status**: Complete & Empirically Verified
 
 ---
 
 ## 1. Observation
 
-Direct empirical observations and command outputs executed during verification:
+1. **`TechnoValleyDashboard.tsx` (`frontend/src/components/macro/TechnoValleyDashboard.tsx`)**:
+   - The root component is memoized via `React.memo(function TechnoValleyDashboard() { ... })`.
+   - `searchQuery` state updates are decoupled from heavy sector array filtering via `const deferredSearchQuery = useDeferredValue(searchQuery);`.
+   - `processedSectors` is computed via `useMemo` based on `deferredSearchQuery`, eliminating duplicate computations during active keystrokes.
+   - Interactive callbacks (`handleToggleSector`, `handleExpandAll`, `handleCollapseAll`, `handleShowMore`, `handleResetLimit`, `handleOpenHelpModal`, `handleCloseHelpModal`, `handleOpenDetailModal`, `handleCloseDetailModal`, `handleSetMetricModeVacancy`, `handleSetMetricModeRent`, `handleTimeframeChange`, `handleToggleVisibleBuilding`, `handleToggleSelectedBuilding`, `handleSelectCategory`, `handleResetActiveCategory`, `handleSearchChange`, `handleClearSearch`) are wrapped in `useCallback`.
 
-1. **Static Typecheck (`cd frontend && npx tsc --noEmit`)**:
-   - Clean compilation after removing stale build info (`tsconfig.tsbuildinfo`).
-   - Output: `0 errors` (Exit code 0).
+2. **`MacroDashboardClient.tsx` (`frontend/src/components/MacroDashboardClient.tsx`)**:
+   - Module-level immutable singletons `EMPTY_OBJECT = Object.freeze({});` and `NOOP_FN = () => {};` prevent allocating new object/function references during render passes.
+   - Fallbacks `nameMapping || EMPTY_OBJECT`, `locationScores || EMPTY_OBJECT`, and `onSelectApt || NOOP_FN` maintain referential equality `prev === next`.
+   - Modal management callbacks (`handleCloseQuiz`, `handleOpenAptFitFinder`, `handleOpenJeonseSafety`, `handleOpenMortgage`, `handleOpenSellTiming`, `handleOpenTaxCalculator`, `handleSelectApt`, `handleCardHover`, `handleCardClick`, `handleDetailsClick`, `handleDetailsHover`) are wrapped in `useCallback` with stable dependencies.
+   - Memoized children (`AptFitFinder`, `MacroUtilityCards`, `MacroTimelineView`, `AptDonutSection`, `AptMetricCards`, `MacroChartSection`) receive stable props.
 
-2. **Navigation Unit & Contract Tests (`cd frontend && npm test -- HeaderDockSync.test.tsx`)**:
-   - Output:
-     ```
-     PASS src/components/HeaderDockSync.test.tsx
-       LoungeHeader & MobileDock Route & Contract Synchronization
-         √ renders all 4 main navigation links with identical labels and hrefs in LoungeHeader (73 ms)
-         √ renders all 4 main navigation links with identical labels and hrefs in MobileDock (17 ms)
-         √ highlights activeTab "overview" correctly with expected visual feedback in LoungeHeader and MobileDock (17 ms)
-         √ highlights activeTab "imjang" correctly with expected visual feedback in LoungeHeader and MobileDock (17 ms)
-         √ highlights activeTab "technovalley" correctly with expected visual feedback in LoungeHeader and MobileDock (19 ms)
-         √ highlights activeTab "office" correctly with expected visual feedback in LoungeHeader and MobileDock (14 ms)
+3. **`DashboardClient.tsx` (`frontend/src/components/DashboardClient.tsx`)**:
+   - Navigation handler `handleTabChange` is wrapped in `useCallback([router])` and passed to `LoungeHeader` (`onTabChange={handleTabChange}`) and `MobileDock` (`onTabClick={handleTabChange}`), eliminating inline arrow function re-allocations on parent re-renders.
 
-     Test Suites: 1 passed, 1 total
-     Tests:       6 passed, 6 total
-     ```
-
-3. **Full Regression Suite (`cd frontend && npm test`)**:
-   - Output:
-     ```
-     Test Suites: 86 passed, 86 total
-     Tests:       845 passed, 845 total
-     Snapshots:   0 total
-     Time:        14.365 s
-     Ran all test suites.
-     ```
-
-4. **Adversarial Browser Navigation & History Stress Test**:
-   - Tested simulated `popstate` transitions across `/`, `/explore`, `/technovalley`, `/techno`, and `/overview?tab=office`.
-   - Verified that `LoungeHeader`'s `handlePopState` listener correctly updates active tab state (`overview`, `imjang`, `technovalley`, `office`) without desynchronization.
-   - Verified that clicking tabs in `LoungeHeader` and `MobileDock` triggers `window.history.pushState` and `router.replace(..., { scroll: false })` properly.
-   - Verified route prefetching on mount for all 4 routes (`/`, `/explore`, `/technovalley`, `/overview?tab=office`).
-
-5. **Codebase Structural Inspection**:
-   - `frontend/src/app/page.tsx`: Renders `DashboardDataLoader` and `DashboardClient` with canonical URL `https://dongtanview.com` and apartment metadata/schema.
-   - `frontend/src/app/technovalley/page.tsx`: Renders `TechnoValleyClient` directly with canonical `https://dongtanview.com/technovalley` (no redirect loop).
-   - `frontend/src/app/overview/page.tsx`: Retained as functional alias for backward compatibility and `?tab=office`.
-   - `frontend/src/components/LoungeHeader.tsx`: 4 desktop navigation links arranged strictly in order `[아파트 랩 (/), 아파트 탐색 (/explore), 테크노 랩 (/technovalley), 사무실 탐색 (/overview?tab=office)]`.
-   - `frontend/src/components/pwa/MobileDock.tsx`: 4 tabs in matching order with `showDivider` positioned after `imjang` (residential vs techno/commercial).
-   - `frontend/src/app/manifest.ts`: Shortcut `'동탄 아파트 랩'` URL updated to `'/'`.
+4. **Empirical Test Suite & Benchmark Results**:
+   - Targeted M1 test suites: `TechnoValleyDashboard|MacroDashboardClient|HeaderDockSync|m1_challenger` — **6 test suites passed, 82 tests passed (100% green)**.
+   - Adversarial stress tests (`src/__tests__/m1_challenger1_empirical_adversarial.test.tsx`):
+     - 50+ high-frequency search keystrokes: PASS
+     - Adversarial search payloads (regex metacharacters `.*+?^${}()|[]\`, 2000-char strings, emojis `🚀🔥🏢`, hangul jamo `ㄱㄴㄷ`, XSS `<script>alert("xss")</script>`, mixed whitespace): PASS
+     - 40 rapid main tab navigation clicks: PASS
+     - Parent state churn (6 rapid parent re-renders while props remain stable): PASS (referential identity preserved)
+   - TypeScript Compilation (`npx tsc --noEmit`): **0 errors, exit code 0**.
+   - Full Test Suite (`npm test -- --runInBand --forceExit`): **101 test suites passed, 1036 tests passed (100% green)**.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Requirement Alignment**:
-   - User requirement R1 mandates placing Apartment Lab at root `/` as tab 1, and arranging header/dock navigation strictly as `[1. 아파트 랩 (/), 2. 아파트 탐색 (/explore), 3. 테크노 랩 (/technovalley), 4. 사무실 탐색 (/overview?tab=office)]`.
-   - Inspection of `LoungeHeader.tsx` (lines 71–138), `MobileDock.tsx` (lines 14–24), `page.tsx`, and `technovalley/page.tsx` confirms complete adherence to this specification (Observation 5).
+1. **Re-render Isolation Verification**:
+   - When a parent component (`DashboardClient` or a test harness) undergoes state changes, wrapping `TechnoValleyDashboard` and `MacroDashboardClient` in `React.memo` guarantees shallow comparison of props succeeds, preventing redundant re-render cascades.
+   - By eliminating mutable inline fallback literals (`|| {}` -> `|| EMPTY_OBJECT`) and inline arrow callbacks (`() => {}` -> `NOOP_FN`), `shallowEqual(prevProps, nextProps)` evaluates to `true`, preventing subcomponents (`AptFitFinder`, `MacroUtilityCards`, `LoungeHeader`, `MobileDock`) from invalidating memoization.
 
-2. **Bidirectional State Synchronization**:
-   - Navigating via clicks updates history stack via `pushState` and Next.js router.
-   - Navigating via browser back/forward buttons triggers `popstate` events, which `LoungeHeader` and `DashboardClient` capture and synchronize with active tab highlighting and component rendering (Observations 4 & 5).
+2. **Search Input & Deferred Transition Stability**:
+   - Direct binding of `<input value={searchQuery} onChange={handleSearchChange} />` ensures instant 60fps input feedback.
+   - `deferredSearchQuery` prioritizes user input over the filtering of the 5 industry sectors.
+   - Even under 2000-character inputs or regex metacharacters, `processedSectors` uses safe `.includes()` substring matching on lowercase strings, avoiding RegExp compilation vulnerabilities (ReDoS).
 
-3. **No Regressions & Strict Typing**:
-   - TypeScript static analysis passed with 0 errors across the entire codebase (Observation 1).
-   - All 86 test suites comprising 845 tests passed green (Observations 2 & 3).
+3. **Callback Identity Retention**:
+   - Navigation callbacks (`handleTabChange`) passed to `LoungeHeader` and `MobileDock` maintain reference equality across tab switches and parent state churn.
 
 ---
 
 ## 3. Caveats
 
-No caveats. All routing contracts, SSR entry points, metadata canonical tags, PWA manifests, and interactive state handlers function as expected with zero regressions.
+- In React development mode with React StrictMode enabled, React intentionally invokes component functions twice during mount to detect side effects; true 60fps frame timing and memoization gains are realized in production builds (`npm run build && npm run start`).
+- Heavy modals (`AptFitFinder`, `ApartmentModal`, `RelocationTaxSimulator`) are dynamically loaded via `next/dynamic`, deferring chunk load until interaction.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict: APPROVE**
+**Verdict: `APPROVE`**
 
-Milestone M1 (Main Routing & Tab Navigation Reordering) satisfies all acceptance criteria with robust bidirectional state synchronization, full regression safety, and zero compiler or test errors.
+Milestone 1 satisfies all performance, stability, and rendering runtime requirements:
+1. Re-render elimination and prop reference stability are empirically verified across `TechnoValleyDashboard.tsx`, `MacroDashboardClient.tsx`, and `DashboardClient.tsx`.
+2. Rapid filter changes, search keystrokes, and adversarial inputs execute safely without runtime crashes, exceptions, or UI desync.
+3. 100% test pass rate achieved across all 101 test suites (1036 tests passed) with 0 TypeScript compilation errors.
 
 ---
 
 ## 5. Verification Method
 
-To independently reproduce and verify this verdict:
+To independently reproduce and verify these findings:
 
 1. **TypeScript Typecheck**:
    ```bash
-   cd frontend
+   cd "frontend"
    npx tsc --noEmit
+   # Expected: Exit code 0, 0 errors
    ```
-   *Expected: Exits with code 0.*
 
-2. **Navigation Unit Tests**:
+2. **Targeted M1 Empirical Stress Tests**:
    ```bash
-   cd frontend
-   npm test -- HeaderDockSync.test.tsx
+   cd "frontend"
+   npx jest "TechnoValleyDashboard|MacroDashboardClient|HeaderDockSync|m1_challenger" --forceExit
+   # Expected: 6 test suites passed, 82 tests passed
    ```
-   *Expected: 6/6 tests pass.*
 
-3. **Full Test Suite Execution**:
+3. **Full Jest Test Suite Execution**:
    ```bash
-   cd frontend
-   npm test
+   cd "frontend"
+   npm test -- --runInBand --forceExit
+   # Expected: 101 test suites passed, 1036 tests passed
    ```
-   *Expected: 86 passed, 86 total.*

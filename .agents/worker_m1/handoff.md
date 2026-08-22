@@ -1,92 +1,80 @@
-# Milestone M1 Handoff Report: Main Routing & Tab Navigation Reordering
-
-**Date**: 2026-08-22  
-**Author**: Worker M1 (Milestone M1 Implementer & QA)  
-**Milestone**: M1 (Main Routing & Tab Navigation Reordering)  
-
----
+# Handoff Report: Worker M1 — Milestone 1 (Rendering Runtime & Re-render Elimination)
 
 ## 1. Observation
 
-Direct observations and changes across all 7 owned files:
+1. **`frontend/src/components/macro/TechnoValleyDashboard.tsx`**:
+   - The root component was exported as an unmemoized function (`export default function TechnoValleyDashboard()`).
+   - Typing into the company search bar (`searchQuery`) was bound directly to state and triggered synchronous filtering across 5 industry sectors (up to ~2,000 company records) plus synchronous re-renders of Recharts LineChart and Donut components.
+   - Interactive callbacks (modal open/close, timeframe selector, metric mode toggle, building selection, category toggle, clear search) were instantiated as inline closures or unmemoized functions.
 
-1. **`frontend/src/app/page.tsx`**:
-   - Replaced `TechnoValleyClient` with `DashboardDataLoader` and `DashboardSkeleton` as default export.
-   - Updated metadata title to: `"D-VIEW 아파트 랩 | 동탄 아파트 실거래가·시세·상대가치 분석 허브"`.
-   - Updated canonical URL to: `https://dongtanview.com`.
-   - Injected Apartment Real Estate JSON-LD schema (`getMainPageSchema(baseUrl)`).
-   - Injected SSR semantic SEO summary for Top 10 leaderboards and recent transactions.
+2. **`frontend/src/components/MacroDashboardClient.tsx`**:
+   - `EMPTY_OBJECT` was defined as a mutable object literal (`const EMPTY_OBJECT = {};`).
+   - Prop fallbacks for `nameMapping={nameMapping || EMPTY_OBJECT}` and `locationScores={locationScores || EMPTY_OBJECT}` and `onSelectApt={onSelectApt || (() => {})}` passed fresh inline fallback closures to `AptFitFinder`, breaking `React.memo` prop equality.
+   - Modal opener/closer handlers passed into `AptFitFinder`, `MacroUtilityCards`, and child components (`onClose={() => setIsQuizOpen(false)}`, `onOpenSellTimingCalculator`, `onOpenJeonseSafety`, `onOpenMortgage`) were inline arrow functions or raw prop pass-throughs without stable wrapper references.
 
-2. **`frontend/src/app/technovalley/page.tsx`**:
-   - Removed `redirect('/')`.
-   - Rendered `TechnoValleyClient` and `TechnoValleySkeleton` directly.
-   - Updated metadata title to: `"D-VIEW 테크노 랩 | 동탄 지식산업센터 공실 매칭 & 혜택 센터"`.
-   - Updated canonical URL to: `https://dongtanview.com/technovalley`.
-   - Injected Techno Valley specific JSON-LD schema and SSR content.
-
-3. **`frontend/src/components/LoungeHeader.tsx`**:
-   - Reordered desktop navigation links to:
-     1. `href="/"`, activeTab `'overview'`, label `'아파트 랩'` (Building2 icon, hs-orange color)
-     2. `href="/explore"`, activeTab `'imjang'`, label `'아파트 탐색'` (Home icon, hs-orange color)
-     3. `href="/technovalley"`, activeTab `'technovalley'`, label `'테크노 랩'` (LayoutDashboard icon, hs-blue color)
-     4. `href="/overview?tab=office"`, activeTab `'office'`, label `'사무실 탐색'` (Building2 icon, hs-blue color)
-   - Updated `handlePopState` to map `path === '/'` to `'overview'`, `path === '/technovalley'` to `'technovalley'`, and `path === '/overview'` to `'overview'` (or `'office'` if `tab=office`).
-   - Updated proactive prefetching routes on mount.
-
-4. **`frontend/src/components/pwa/MobileDock.tsx`**:
-   - Reordered `TABS` array to:
-     `[ { id: 'overview', label: '아파트 랩', href: '/' }, { id: 'imjang', label: '아파트 탐색', href: '/explore' }, { id: 'technovalley', label: '테크노 랩', href: '/technovalley' }, { id: 'office', label: '사무실 탐색', href: '/overview?tab=office' } ]`
-   - Moved `showDivider` to `tab.id === 'imjang'` separating residential tabs from commercial/techno tabs.
-   - Updated route prefetching on mount.
-
-5. **`frontend/src/components/DashboardClient.tsx`**:
-   - Updated `LoungeHeader` `onTabChange` and `MobileDock` `onTabClick` navigation handlers to push `'/'` for `'overview'` and `'/technovalley'` for `'technovalley'`.
-   - Updated `syncTabFromLocation` to synchronize `#technovalley`, `queryTab === 'technovalley'`, and map `/` to `'overview'`.
-
-6. **`frontend/src/app/manifest.ts`**:
-   - Updated shortcut item for `'동탄 아파트 랩'` from `url: '/overview'` to `url: '/'`.
-
-7. **`frontend/src/components/HeaderDockSync.test.tsx`**:
-   - Updated `expectedRoutes` to match sequence `[overview (/), imjang (/explore), technovalley (/technovalley), office (/overview?tab=office)]`.
-   - Verified active state highlighting for all 4 tabs across both components.
+3. **`frontend/src/components/DashboardClient.tsx`**:
+   - `LoungeHeader` (`onTabChange`) and `MobileDock` (`onTabClick`) received unmemoized inline arrow closures `(tab) => { ... }` allocating a new function on every render cycle of `DashboardClient`, invalidating `React.memo` on both navigation components.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Route Priority Alignment**:
-   - Root `/` serves as the primary gateway for residential apartment analytics, matching the service's primary core value proposition.
-   - `/technovalley` serves as the dedicated lab for commercial office and knowledge industrial center vacancies.
-2. **Navigation Symmetry**:
-   - Both Desktop Header (`LoungeHeader`) and Mobile Dock (`MobileDock`) share the identical 4-tab sequence: `[아파트 랩, 아파트 탐색, 테크노 랩, 사무실 탐색]`.
-   - Visual grouping aligns with functional domain: Orange theme for residential (`overview`, `imjang`), Blue theme for techno/commercial (`technovalley`, `office`).
-   - Visual divider in `MobileDock` sits cleanly between `imjang` and `technovalley`.
-3. **State & History Synchronization**:
-   - Client-side soft navigation (`pushState` / `replaceState`), browser back/forward buttons (`popstate`), and URL hash changes (`hashchange`) all maintain 1:1 bidirectional parity with active tab states.
+1. **Step 1 (TechnoValley React.memo & useDeferredValue)**:
+   - Wrapped `TechnoValleyDashboard` with `React.memo` to shield it from unrelated parent render cycles in `DashboardClient`.
+   - Applied `const deferredSearchQuery = useDeferredValue(searchQuery);` so keyboard inputs update `searchQuery` immediately at 60fps, while filtering of the company sectors (`processedSectors`) and matching count (`totalMatchedCount`) occurs in a prioritized background transition.
+   - Memoized `processedSectors` with `useMemo` to compute company name matches once per query change instead of duplicate calculations per accordion block.
+   - Wrapped all modal triggers, building toggles, metric selectors, and category filter callbacks with `useCallback`.
+
+2. **Step 2 (MacroDashboardClient Reference Stability)**:
+   - Declared immutable module-level constants `const EMPTY_OBJECT = Object.freeze({});` and `const NOOP_FN = () => {};`.
+   - Wrapped modal opener/closer callbacks (`handleCloseQuiz`, `handleOpenAptFitFinder`, `handleOpenJeonseSafety`, `handleOpenMortgage`, `handleOpenSellTiming`, `handleOpenTaxCalculator`, `handleSelectApt`) in `useCallback`.
+   - Replaced inline fallback allocations `|| EMPTY_OBJECT` and inline `() => {}` with `EMPTY_OBJECT` and `NOOP_FN` / stable callbacks, ensuring shallow prop comparisons in `AptFitFinder`, `MacroUtilityCards`, and `MacroTimelineView` succeed.
+
+3. **Step 3 (DashboardClient Tab Navigation Callback)**:
+   - Created a stable `handleTabChange` callback wrapped in `useCallback` with `[router]` dependency.
+   - Passed `handleTabChange` to `LoungeHeader` (`onTabChange={handleTabChange}`) and `MobileDock` (`onTabClick={handleTabChange}`), preserving reference equality across render passes.
+   - Froze `EMPTY_OBJECT` in `DashboardClient.tsx`.
 
 ---
 
 ## 3. Caveats
 
-- `src/app/overview/page.tsx` continues to exist as a functional alias/deep-link destination supporting query params such as `?tab=office`, guaranteeing backward compatibility for external bookmarks.
-- No caveats. All changes strictly adhere to the minimal change principle without affecting other modules.
+- In development mode with React StrictMode, components will double-invoke rendering by design; runtime framerate benchmark gains and render elimination should be evaluated in production builds (`npm run build && npm run start`).
+- `AptFitFinder` and other modals dynamically imported with `next/dynamic` remain unmounted until triggered, further optimizing initial rendering runtime.
 
 ---
 
 ## 4. Conclusion
 
-Milestone M1 implementation is completely finished with 100% test pass rate and 0 compiler errors. The routing and navigation hierarchy has been reorganized as requested.
+All tasks for Milestone 1 have been implemented:
+1. `TechnoValleyDashboard.tsx`: Memoized root export, `useDeferredValue` company search filtering, and memoized callbacks.
+2. `MacroDashboardClient.tsx`: Immutable `EMPTY_OBJECT` and `NOOP_FN` constants, memoized modal callbacks, and stable prop references.
+3. `DashboardClient.tsx`: Stable memoized `handleTabChange` for `LoungeHeader` and `MobileDock`.
+4. Verification: 0 TypeScript errors (`npx tsc --noEmit`) and 100% passing Jest test suite (99 test suites, 1018 tests passed).
 
 ---
 
-## 5. Verification Method & Results
+## 5. Verification Method
 
-1. **TypeScript Static Type Check**:
-   - Command: `npx tsc --noEmit`
-   - Result: `0 errors` (Exited with code 0)
-2. **Navigation Contract Unit & Integration Tests**:
-   - Command: `npm test -- HeaderDockSync.test.tsx`
-   - Result: `1 passed, 1 total` (6 tests passed, 0 failures)
-3. **Full Test Suite Regression Check**:
-   - Command: `npm test`
-   - Result: `86 passed, 86 total` (845 tests passed, 0 failures, 100% Green)
+To independently verify these results:
+
+1. **TypeScript Typecheck**:
+   ```bash
+   cd "frontend"
+   npx tsc --noEmit
+   # Output: Exit code 0, 0 errors
+   ```
+
+2. **Jest Test Suite**:
+   ```bash
+   cd "frontend"
+   npm test -- --runInBand --forceExit
+   # Output: Test Suites: 99 passed, 99 total; Tests: 1018 passed, 1018 total
+   ```
+
+3. **Targeted Subsystem Tests**:
+   ```bash
+   cd "frontend"
+   npx jest src/components/macro/techno/TechnoValleyDashboard.adversarial.test.tsx src/components/HeaderDockSync.test.tsx src/components/consumer/AptFitFinder.test.tsx --forceExit
+   # Output: 3 passed, 3 total; 15 passed, 15 total
+   ```

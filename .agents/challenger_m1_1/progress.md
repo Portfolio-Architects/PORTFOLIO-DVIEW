@@ -1,12 +1,12 @@
-# Progress — Challenger M1
+﻿# Progress — Challenger M1-1
 
-- [x] Initialized DISPATCH.md and BRIEFING.md
-- [x] Inspect all M1 implementation files for logical flaws, edge cases, and contract mismatches
-- [x] Run static typecheck: `cd frontend && npx tsc --noEmit` (PASS, 0 errors)
-- [x] Run unit test: `cd frontend && npm test -- HeaderDockSync.test.tsx` (PASS, 6/6 passed)
-- [x] Run full test suite: `cd frontend && npm test` (PASS, 86/86 suites, 845 tests passed)
-- [x] Construct adversarial edge case scenarios and verify behaviors (popstate, pushState, history navigation, SSR canonical URLs, PWA manifest shortcuts)
-- [x] Formulate verdict (APPROVE) and write `handoff.md`
-- [x] Send handoff message to parent
+Last visited: 2026-08-22T22:27:00+09:00
 
-Last visited: 2026-08-22T07:15:30Z
+- [x] Initialized BRIEFING.md and DISPATCH.md
+- [x] Read ORIGINAL_REQUEST.md, PROJECT.md, and worker_m1/handoff.md
+- [x] Inspect source code changes in TechnoValleyDashboard, MacroDashboardClient, DashboardClient
+- [x] Design and execute adversarial stress test harness (`src/__tests__/m1_challenger1_empirical_adversarial.test.tsx`)
+- [x] Execute targeted M1 suites (`TechnoValleyDashboard|MacroDashboardClient|HeaderDockSync|m1_challenger`) (6 suites, 82 tests passed)
+- [x] Execute full test suite (`npm test`) (101 suites, 1036 tests passed)
+- [x] Run TypeScript typecheck (`npx tsc --noEmit`) (0 errors)
+- [x] Synthesize findings into handoff report (`handoff.md`) and issue verdict: **APPROVE**

@@ -28,7 +28,6 @@ import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoSha
 import { trackEvent } from '@/lib/utils/analytics';
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
-import PushSubscriptionModal from '@/components/pwa/PushSubscriptionModal';
 import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, calculateInfraScore } from '@/lib/utils/scoring';
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -237,6 +236,14 @@ const AdvancedValuationMetrics = dynamic(() => import('@/components/consumer/Adv
 }), { 
   ssr: false, 
   loading: () => <AdvancedValuationSkeleton /> 
+});
+
+const PushSubscriptionModal = dynamic(() => import('@/components/pwa/PushSubscriptionModal').catch(err => {
+  logger.warn('ApartmentModal.dynamic', 'PushSubscriptionModal Chunk Load failure, initiating fallback reload', undefined, err);
+  safeReload('PushSubscriptionModal');
+  return { default: () => null };
+}), { 
+  ssr: false 
 });
 
 interface TransactionRecord {
@@ -942,29 +949,31 @@ const ApartmentModal = React.memo(function ApartmentModal({
         onOpenSellTimingCalculator={onOpenSellTimingCalculator}
       />
 
-      <ApartmentModalTransactionsTable
-        inline={inline}
-        isAnimationFinished={isAnimationFinished}
-        isTxLoading={isTxLoading}
-        filteredTransactions={filteredTransactions}
-        typeMap={typeMap}
-        chartType={chartType}
-        setChartType={setChartType}
-        normalizeAptName={normalizeAptName}
-        displayAptName={displayAptName}
-        dong={report.dong || '동탄'}
-        apartmentName={report.apartmentName}
-        txSummary={txSummary}
-        filterOutliers={filterOutliers}
-        handleToggleFilter={handleToggleFilter}
-        areaFilterChips={areaFilterChips}
-        selectedAreaFilter={selectedAreaFilter}
-        setSelectedAreaFilter={setSelectedAreaFilter}
-        loadAllTransactions={loadAllTransactions}
-        renderTransactionTable={renderTransactionTableNode}
-        renderTransactionChart={renderTransactionChartNode}
-        renderTransactionSummaryMetrics={renderTransactionSummaryMetricsNode}
-      />
+      <ErrorBoundary name="실거래가 내역 및 시세 차트">
+        <ApartmentModalTransactionsTable
+          inline={inline}
+          isAnimationFinished={isAnimationFinished}
+          isTxLoading={isTxLoading}
+          filteredTransactions={filteredTransactions}
+          typeMap={typeMap}
+          chartType={chartType}
+          setChartType={setChartType}
+          normalizeAptName={normalizeAptName}
+          displayAptName={displayAptName}
+          dong={report.dong || '동탄'}
+          apartmentName={report.apartmentName}
+          txSummary={txSummary}
+          filterOutliers={filterOutliers}
+          handleToggleFilter={handleToggleFilter}
+          areaFilterChips={areaFilterChips}
+          selectedAreaFilter={selectedAreaFilter}
+          setSelectedAreaFilter={setSelectedAreaFilter}
+          loadAllTransactions={loadAllTransactions}
+          renderTransactionTable={renderTransactionTableNode}
+          renderTransactionChart={renderTransactionChartNode}
+          renderTransactionSummaryMetrics={renderTransactionSummaryMetricsNode}
+        />
+      </ErrorBoundary>
 
       {/* Sticky Section Nav */}
       <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-[16px] md:pt-[20px] pb-0 shadow-sm shadow-[#191f28]/5">
@@ -1026,35 +1035,41 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
         {/* 1. Specs Section */}
         <div id="sec-summary" className="scroll-mt-14 snap-start">
-          <ApartmentSpecsSection
-            report={report}
-            inline={inline}
-            displayAptName={displayAptName}
-          />
+          <ErrorBoundary name="단지 기본정보">
+            <ApartmentSpecsSection
+              report={report}
+              inline={inline}
+              displayAptName={displayAptName}
+            />
+          </ErrorBoundary>
         </div>
 
         {isAnimationFinished ? (
           <>
             {/* Location & Infra Section */}
-            <LazyRender estimatedHeight={350}>
-              <InfraAnalysisSection
-                report={report}
-                inline={inline}
-                copiedStatus={copiedStatus}
-                handleShareSection={handleShareSection}
-              />
-            </LazyRender>
+            <ErrorBoundary name="입지·인프라 분석">
+              <LazyRender estimatedHeight={350}>
+                <InfraAnalysisSection
+                  report={report}
+                  inline={inline}
+                  copiedStatus={copiedStatus}
+                  handleShareSection={handleShareSection}
+                />
+              </LazyRender>
+            </ErrorBoundary>
 
             {/* Education & Childcare Section */}
-            <LazyRender estimatedHeight={350}>
-              <EducationAnalysisSection
-                report={report}
-                inline={inline}
-                copiedStatus={copiedStatus}
-                handleShareSection={handleShareSection}
-                displayAptName={displayAptName}
-              />
-            </LazyRender>
+            <ErrorBoundary name="학군·육아 분석">
+              <LazyRender estimatedHeight={350}>
+                <EducationAnalysisSection
+                  report={report}
+                  inline={inline}
+                  copiedStatus={copiedStatus}
+                  handleShareSection={handleShareSection}
+                  displayAptName={displayAptName}
+                />
+              </LazyRender>
+            </ErrorBoundary>
 
             {/* Valuation Analysis Section */}
             <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6 snap-start">
@@ -1107,17 +1122,19 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </h2>
                   <div className="relative w-full">
                     <div>
-                      <LazyRender estimatedHeight={300}>
-                        <JeonseSafetyReport
-                          aptName={report.apartmentName}
-                          dong={report.dong || '동탄'}
-                          ratio={jeonseSafetyData.ratio}
-                          latestPrice={jeonseSafetyData.latestPrice}
-                          latestDeposit={jeonseSafetyData.latestDeposit}
-                          volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
-                          householdCount={report.metrics?.householdCount || 0}
-                        />
-                      </LazyRender>
+                      <ErrorBoundary name="전세 안전성 진단">
+                        <LazyRender estimatedHeight={300}>
+                          <JeonseSafetyReport
+                            aptName={report.apartmentName}
+                            dong={report.dong || '동탄'}
+                            ratio={jeonseSafetyData.ratio}
+                            latestPrice={jeonseSafetyData.latestPrice}
+                            latestDeposit={jeonseSafetyData.latestDeposit}
+                            volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
+                            householdCount={report.metrics?.householdCount || 0}
+                          />
+                        </LazyRender>
+                      </ErrorBoundary>
                     </div>
                   </div>
                 </div>
@@ -1191,7 +1208,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
               </section>
             )}
 
-            <ScoutingReportDetailSection report={report} inline={inline} />
+            <ErrorBoundary name="스카우팅 리포트 상세">
+              <ScoutingReportDetailSection report={report} inline={inline} />
+            </ErrorBoundary>
 
             {/* Kakao Share CTA */}
             <div className="flex flex-col gap-6 mt-8 mb-4">

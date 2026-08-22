@@ -1,32 +1,22 @@
-## 2026-08-22T07:12:08Z
+## 2026-08-22T13:20:56Z
+You are Reviewer 1 for Milestone 1 (Rendering Runtime & Re-render Elimination) for D-VIEW.
+Read the authoritative request at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+Read the project architecture at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
+Read Worker M1's handoff report at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md`
 
-<USER_REQUEST>
-You are Reviewer 1 for Milestone M1 (Main Routing & Tab Navigation Reordering).
-Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_1
+Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_1`
+The frontend source code is at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
 
-Read the authoritative user request at:
-c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
-
-Read the project specification at:
-c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md
-
-Read Worker M1's handoff report at:
-c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md
-
-Your mission:
-1. Examine code changes in:
-   - `frontend/src/app/page.tsx`
-   - `frontend/src/app/technovalley/page.tsx`
-   - `frontend/src/components/LoungeHeader.tsx`
-   - `frontend/src/components/pwa/MobileDock.tsx`
+Review Scope:
+1. Examine code modifications made to:
+   - `frontend/src/components/macro/TechnoValleyDashboard.tsx`
+   - `frontend/src/components/MacroDashboardClient.tsx`
    - `frontend/src/components/DashboardClient.tsx`
-   - `frontend/src/app/manifest.ts`
-   - `frontend/src/components/HeaderDockSync.test.tsx`
-2. Check for correctness, completeness, edge cases (popstate back/forward, deep linking, 404/redirect loops, mobile dock divider position, active tab styling).
-3. Run verification commands:
-   - `cd frontend && npx tsc --noEmit`
-   - `cd frontend && npm test -- HeaderDockSync.test.tsx`
-4. Formulate your verdict: APPROVE or REQUEST_CHANGES.
-5. Write your handoff report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_1\handoff.md` and notify the orchestrator.
-Do NOT modify any source code files.
-</USER_REQUEST>
+2. Verify that:
+   - `React.memo` is correctly applied.
+   - `useDeferredValue` is correctly utilized for search queries to prevent jank.
+   - `useCallback` dependency arrays are accurate and do not cause stale closures or unnecessary recreation.
+   - Fallback references (`EMPTY_OBJECT`, `NOOP_FN`) are immutable and properly preserved.
+3. Run `npx tsc --noEmit` and run the relevant unit/component tests in `frontend` to verify zero compile or runtime test failures.
+4. Issue a clear verdict: `APPROVE` or `REQUEST_CHANGES`.
+5. Write your full review report to: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_1\handoff.md` and send a completion message with your verdict.

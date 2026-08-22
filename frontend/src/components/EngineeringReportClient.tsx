@@ -6,7 +6,6 @@ import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
 import { ArrowLeft, Download, Copy, Database, Check } from 'lucide-react';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
-import jsPDF from 'jspdf';
 import { logger } from '@/lib/services/logger';
 
 export interface ReportMetadata {
@@ -48,6 +47,7 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
         backgroundColor: '#ffffff'
       });
       const imgData = canvas.toDataURL('image/png');
+      const { jsPDF } = await import('jspdf');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;

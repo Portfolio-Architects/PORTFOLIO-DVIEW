@@ -15,8 +15,11 @@ import {
 } from 'lucide-react';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import dynamic from 'next/dynamic';
-import OfficeDetailModal from '@/components/OfficeDetailModal';
 import type { JisanStatusItem } from '@/types';
+
+const OfficeDetailModal = dynamic(() => import('@/components/OfficeDetailModal'), {
+  ssr: false,
+});
 
 const CoLeasingBoard = dynamic(() => import('@/components/macro/CoLeasingBoard'), {
   ssr: false,

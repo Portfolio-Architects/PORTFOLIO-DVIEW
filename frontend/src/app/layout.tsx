@@ -22,7 +22,6 @@ import OfflineBanner from '@/components/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
 import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
-import CustomA2HSModal from '@/components/pwa/CustomA2HSModal';
 import InAppBrowserBypass from '@/components/pwa/InAppBrowserBypass';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import Script from 'next/script';
@@ -32,12 +31,13 @@ import { SettingsProvider, AuthProvider } from '@/contexts';
 import Footer from '@/components/Footer';
 
 import dynamic from 'next/dynamic';
-import WelcomeModal from '@/components/ui/WelcomeModal';
 import { safeReload } from '@/lib/utils/safeReload';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import { logger } from '@/lib/services/logger';
 
-import SettingsModal from '@/components/SettingsModal';
+const CustomA2HSModal = dynamic(() => import('@/components/pwa/CustomA2HSModal'));
+const WelcomeModal = dynamic(() => import('@/components/ui/WelcomeModal'));
+const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
 
 
 export const metadata: Metadata = {

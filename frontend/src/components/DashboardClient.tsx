@@ -244,7 +244,7 @@ import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/co
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
-const EMPTY_OBJECT: Record<string, never> = {};
+const EMPTY_OBJECT: Record<string, never> = Object.freeze({});
 const EMPTY_SET = new Set<string>();
 const EMPTY_ARRAY: never[] = [];
 
@@ -747,6 +747,18 @@ const DashboardClient = React.memo(function DashboardClient({
     handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
   }, [handleToggleFavorite, handleRequestLogin]);
 
+  const handleTabChange = useCallback((tab: string) => {
+    const targetTab = tab as 'overview' | 'imjang' | 'office' | 'technovalley';
+    setActiveTab(targetTab);
+    let href = '/';
+    if (targetTab === 'office') href = '/overview?tab=office';
+    else if (targetTab === 'imjang') href = '/explore';
+    else if (targetTab === 'technovalley') href = '/technovalley';
+    else if (targetTab === 'overview') href = '/';
+    window.history.pushState(null, '', href);
+    try { router.replace(href, { scroll: false }); } catch (err) {}
+  }, [router]);
+
   // Note: Unused apartment calculations removed to offload CPU and keep bundle thin (TossApartmentExploreClient handles explore view now)
 
   const memoizedTabContents = useMemo(() => {
@@ -790,7 +802,9 @@ const DashboardClient = React.memo(function DashboardClient({
             !mounted ? (
               <OfficeSkeleton />
             ) : (
-              <OfficeExplorerClient />
+              <ErrorBoundary name="사무실 탐색">
+                <OfficeExplorerClient />
+              </ErrorBoundary>
             )
           )}
         </section>
@@ -801,7 +815,9 @@ const DashboardClient = React.memo(function DashboardClient({
             !mounted ? (
               <LoungeSkeleton />
             ) : (
-              <LoungeContainerClient initialPosts={EMPTY_ARRAY} onRequestLogin={handleRequestLogin} />
+              <ErrorBoundary name="커뮤니티 라운지">
+                <LoungeContainerClient initialPosts={EMPTY_ARRAY} onRequestLogin={handleRequestLogin} />
+              </ErrorBoundary>
             )
           )}
         </section>
@@ -860,17 +876,7 @@ const DashboardClient = React.memo(function DashboardClient({
       {/* Main Header — Reused LoungeHeader component */}
       <LoungeHeader 
         activeTab={activeTab} 
-        onTabChange={(tab) => {
-          const targetTab = tab as 'overview' | 'imjang' | 'office' | 'technovalley';
-          setActiveTab(targetTab);
-          let href = '/';
-          if (targetTab === 'office') href = '/overview?tab=office';
-          else if (targetTab === 'imjang') href = '/explore';
-          else if (targetTab === 'technovalley') href = '/technovalley';
-          else if (targetTab === 'overview') href = '/';
-          window.history.pushState(null, '', href);
-          try { router.replace(href, { scroll: false }); } catch (err) {}
-        }}
+        onTabChange={handleTabChange}
       />
 
       {/* Main Container */}
@@ -885,26 +891,28 @@ const DashboardClient = React.memo(function DashboardClient({
 
         {/* 아파트 모달 (모든 화면 해상도에서 팝업으로 표시) */}
         {selectedReport && mobileModalOpen && (
-          <FieldReportModal
-            report={selectedReport}
-            onClose={handleCloseMobileModal}
-            user={user}
-            userFavorites={userFavorites}
-            onToggleFavorite={handleAptToggleFavorite}
-            typeMap={typeMap}
-            inline={false}
-            isAdmin={dashboardFacade.isAdmin(user?.email)}
-            sheetApartments={sheetApartments}
-            nameMapping={nameMapping || {}}
-            txSummaryData={txSummary}
-            locationScores={locationScores}
-            onRequestLogin={handleRequestLogin}
-            onOpenCompare={handleOpenCompare}
-            onOpenJeonseSafety={handleOpenJeonseSafety}
-            onOpenMortgage={handleOpenMortgage}
-            onOpenTaxCalculator={handleOpenTaxCalculator}
-            onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
-          />
+          <ErrorBoundary name="아파트 상세 정보">
+            <FieldReportModal
+              report={selectedReport}
+              onClose={handleCloseMobileModal}
+              user={user}
+              userFavorites={userFavorites}
+              onToggleFavorite={handleAptToggleFavorite}
+              typeMap={typeMap}
+              inline={false}
+              isAdmin={dashboardFacade.isAdmin(user?.email)}
+              sheetApartments={sheetApartments}
+              nameMapping={nameMapping || {}}
+              txSummaryData={txSummary}
+              locationScores={locationScores}
+              onRequestLogin={handleRequestLogin}
+              onOpenCompare={handleOpenCompare}
+              onOpenJeonseSafety={handleOpenJeonseSafety}
+              onOpenMortgage={handleOpenMortgage}
+              onOpenTaxCalculator={handleOpenTaxCalculator}
+              onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+            />
+          </ErrorBoundary>
         )}
 
 
@@ -920,16 +928,7 @@ const DashboardClient = React.memo(function DashboardClient({
     {!mobileModalOpen && (
       <MobileDock 
         activeTab={activeTab} 
-        onTabClick={(tab) => {
-          setActiveTab(tab);
-          let href = '/';
-          if (tab === 'office') href = '/overview?tab=office';
-          else if (tab === 'imjang') href = '/explore';
-          else if (tab === 'technovalley') href = '/technovalley';
-          else if (tab === 'overview') href = '/';
-          window.history.pushState(null, '', href);
-          try { router.replace(href, { scroll: false }); } catch (err) {}
-        }}
+        onTabClick={handleTabChange}
       />
     )}
 

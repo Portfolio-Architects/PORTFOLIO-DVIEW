@@ -1,51 +1,47 @@
-# Project: D-VIEW Apartment Lab 'MacroTimelineView' UX & Architecture Upgrade
+# Project: D-VIEW Hyperlocal SuperApp Performance & Stability Refactoring
 
 ## Architecture
-D-VIEW Apartment Lab (`frontend/src/components/MacroDashboardClient.tsx`) provides high-frequency real estate transaction intelligence for Dongtan.
-The 'MacroTimelineView' component displays recent transaction history grouped by date.
-This project refactors and upgrades the timeline architecture into a modular, high-performance, responsive system with smart filter chips, inline search, 4-way multi-sort, dual view modes (Card vs Compact List), sticky date summary headers with highest price highlights, favorite bookmarking, and modal deep-linking.
-
-### Data Flow & Component Hierarchy
-```
-DashboardClient
-  └── MacroDashboardClient (Manages transactions, favorites, active modal)
-        ├── MacroControls (Smart Filter Chips, Search, Multi-Sort, View Mode Toggle)
-        │     └── uses useMacroFilters hook
-        └── MacroTimelineView
-              ├── Sticky Date Header (Count, Average Price, 👑 Highest Price Badge)
-              ├── [View Mode = 'card'] -> TimelineItemCard (3-column responsive grid)
-              │     └── Favorite Heart, Price, Pyeong Price, Delta, Modal Trigger
-              └── [View Mode = 'list'] -> TimelineItemRow (Dense compact table row)
-                    └── Favorite Heart, Truncated Name, Area/Floor, Price/Delta, Detail Button
-```
+D-VIEW is a Next.js (App Router) hyperlocal real estate and commercial analytics web application.
+- **Frontend Core**: `frontend/src/app` (pages & layouts), `frontend/src/components` (domain dashboards, explorers, modals, charts, widgets)
+- **Data & Caching Layer**: `frontend/src/lib` (SWR caching, IndexedDB offlineQueue, localCache Zod persistence, data-fetchers)
+- **Error Boundaries & Offline**: `ErrorBoundary.tsx`, `ChartErrorBoundary.tsx`, `OfflineBanner.tsx`, Service Worker (`sw.js`)
+- **Testing Architecture**: Jest + React Testing Library + MSW (`frontend/__tests__`, 102+ test suites, 1055+ unit/integration tests)
 
 ## Feature Inventory
-| # | Feature | Description | Milestone | Status |
-|---|---------|-------------|-----------|--------|
-| 1 | F1. Smart One-Touch Filter Chip Bar | [전체, 동탄1, 동탄2, 신고가🔥, 30평대 국평, 10억 클럽, 대장단지] chips synced with region/dong dropdowns | M1 | DONE (Verified) |
-| 2 | F2. Real-Time Inline Search | Instant debounce search by complex name with clear button | M1 | DONE (Verified) |
-| 3 | F3. Multi-Sort Engine | 4-way sort: 최신 계약순, 실거래가 높은순, 상승률 높은순, 전용면적순 | M1 | DONE (Verified) |
-| 4 | F4. View Mode Controller State | State and toggle for Card Grid vs Compact List view modes | M1 | DONE (Verified) |
-| 5 | F5. Sticky Date Summary Header | Date header with total count, average price, and 👑 최고가 [단지명] [가격] badge | M2 | DONE (Verified) |
-| 6 | F6. Card Grid View Layout | 3-column responsive card layout with zero CLS | M2 | DONE (Verified) |
-| 7 | F7. Compact List View Layout | Dense table/row layout for rapid scanning with full info | M2 | DONE (Verified) |
-| 8 | F8. Favorite Bookmark Heart Toggle | Optimistic heart toggle on cards/rows with event isolation (`stopPropagation`) | M3 | DONE (Verified) |
-| 9 | F9. Price per Pyeong & Delta Info | Formatted `평당 N만` and `+X.X%` / `-X.X%` delta comparison | M3 | DONE (Verified) |
-| 10 | F10. Modal Deep-Linking | One-touch navigation to `FieldReportModal` / `AptModal` on item click | M3 | DONE (Verified) |
-| 11 | F11. Legacy Regex Compatibility | Maintain exported signatures & anchors in `MacroDashboardClient.tsx` | M3 | DONE (Verified) |
-| 12 | F12. E2E Test Suite & Adversarial Verification | Comprehensive Jest/RTL tests across all 4 tiers + CLS/performance check | M4 | DONE (Verified) |
+| # | Feature | Description | Milestone | Source |
+|---|---|---|---|---|
+| 1 | `TechnoValleyDashboard` Memoization & Subcomponent Extraction | Prevent full LineChart/Donut re-render on search keystroke with `React.memo`, `useDeferredValue`, and extracted subcomponents | M1 (DONE) | Survey R1 |
+| 2 | `MacroDashboardClient` Prop Stability & `useCallback` | Eliminate inline arrow functions and fallback objects passed to memoized children (`AptFitFinder`, `MacroUtilityCards`, `MacroTimelineView`) | M1 (DONE) | Survey R1 |
+| 3 | `DashboardClient` Stable Navigation Callbacks | Memoize `onTabChange` and `onTabClick` handlers for `LoungeHeader` and `MobileDock` | M1 (DONE) | Survey R1 |
+| 4 | Root Layout Modal Code-Splitting | Convert statically imported modals in `layout.tsx` (`SettingsModal`, `WelcomeModal`, `CustomA2HSModal`) to `next/dynamic` | M2 (DONE) | Survey R2 |
+| 5 | Modal & Heavy Component Dynamic Imports | Lazy load `OfficeDetailModal`, `PushSubscriptionModal`, and optimize `AptDonutSection` recharts bundling | M2 (DONE) | Survey R2 |
+| 6 | Heavy PDF Library Lazy Loading | Convert static `jsPDF` top-level imports in `EngineeringReportClient.tsx` and `ReportClient.tsx` to dynamic `await import('jspdf')` inside export click handler | M2 (DONE) | Survey R2 |
+| 7 | Next.js Build & Package Optimization | Add `recharts` to `experimental.optimizePackageImports` in `next.config.ts` and streamline `preload.ts` | M2 (DONE) | Survey R2 |
+| 8 | Comprehensive ErrorBoundary Coverage | Wrap tabs (`OfficeExplorerClient`, `LoungeContainerClient`), widgets in `MacroDashboardClient` and `TechnoValleyDashboard`, `TossApartmentExploreClient`, and `ApartmentModal` in isolated `ErrorBoundary` & `ChartErrorBoundary` | M3 | Survey R4 |
+| 9 | SWR, Cache Synchronization & Open Handle Resolution | Ensure SWR stale-while-revalidate lifecycle integrity and fix test suite open handles (`local-notices-e2e.test.tsx`, `m5_tier5_adversarial_challenge.test.tsx`) | M3 | Survey R3 & Test |
+| 10 | 100% Green Test Suite & Adversarial Quality Assurance | Pass all 99+ Jest test suites (100% pass rate) with zero TypeScript compiler errors and adversarial stress-testing | M4 | Survey R5 & All |
 
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
-|---|------|-------|-------------|--------|
-| M1 | Filter & State Engine | `useMacroFilters.ts`, `MacroControls.tsx` (Chips, Search, Sort, ViewMode) | None | DONE |
-| M2 | Timeline Presentation & Views | `MacroTimelineView.tsx` (Card Grid, Compact List, Sticky Header + 👑 Badge) | M1 | DONE |
-| M3 | Interactive Items & Integration | `MacroDashboardClient.tsx` (Card/Row components, Favorite, Modal, Regex compatibility) | M1, M2 | DONE |
-| M4 | E2E Testing & Verification | Comprehensive test suites, `TEST_READY.md`, type check, 100% green tests | M1, M2, M3 | DONE |
+|---|---|---|---|---|
+| 1 | M1: Rendering Runtime & Re-render Elimination | `TechnoValleyDashboard.tsx`, `MacroDashboardClient.tsx`, `DashboardClient.tsx` | none | DONE |
+| 2 | M2: Bundle Size & Dynamic Code Splitting | `layout.tsx`, `OfficeExplorerClient.tsx`, `ApartmentModal.tsx`, `EngineeringReportClient.tsx`, `ReportClient.tsx`, `next.config.ts`, `preload.ts` | none | DONE |
+| 3 | M3: ErrorBoundary Coverage & Cache Stability | `DashboardClient.tsx`, `MacroDashboardClient.tsx`, `TechnoValleyDashboard.tsx`, `ExploreClient.tsx`, `ApartmentModal.tsx`, open handle cleanups in test files | M1, M2 | PLANNED |
+| 4 | M4: Final Full Test Suite Pass & Adversarial Hardening | Jest 102+ test suites (100% green), `npx tsc --noEmit` 0 errors, Next.js build clean, adversarial stress testing | M1, M2, M3 | PLANNED |
+
+## Interface Contracts
+### `TechnoValleyDashboard` Subcomponents ↔ Parent
+- `TechnoTrendChartSection`: props `{ monthlyTrend: Array<{ month: string; companies: number; employees: number }> }`
+- `TechnoCompanySection`: props `{ companies: TechnoCompany[]; searchQuery: string; onSearchChange: (q: string) => void; selectedCategory: string; onSelectCategory: (c: string) => void }`
+
+### ErrorBoundary ↔ Widget Components
+- `ErrorBoundary`: props `{ fallbackTitle?: string; fallbackMessage?: string; children: ReactNode; onReset?: () => void }`
+- `ChartErrorBoundary`: props `{ chartTitle?: string; children: ReactNode }`
 
 ## Code Layout
-- `frontend/src/components/macro/hooks/useMacroFilters.ts`: Filter state hook.
-- `frontend/src/components/macro/components/MacroControls.tsx`: Smart chip bar, search box, sort & view mode controls.
-- `frontend/src/components/macro/components/MacroTimelineView.tsx`: Timeline grouped view, sticky headers, card/list rendering.
-- `frontend/src/components/MacroDashboardClient.tsx`: Data grouping, highest price calculation, `TimelineItemCard`, `TimelineItemRow`, modal handlers.
-- `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx`: Comprehensive 4-tier E2E test suite.
+- `frontend/src/components/macro/`: Macro dashboard components and charts
+- `frontend/src/components/office/`: Office explorer and TechnoValley components
+- `frontend/src/components/apartment/`: Apartment exploration and detail modals
+- `frontend/src/components/ui/`: Error boundaries, modals, and shared widgets
+- `frontend/src/lib/`: Data caching, SWR provider, and utilities
+- `frontend/__tests__/`: Jest test suites

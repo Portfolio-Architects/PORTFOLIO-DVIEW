@@ -12,7 +12,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 const { TextDecoder, TextEncoder } = require('util');
 const { ReadableStream, WritableStream, TransformStream } = require('stream/web');
-const { MessagePort, MessageChannel } = require('worker_threads');
 const { Blob, File } = require('buffer');
 
 if (typeof global.TextDecoder === 'undefined') {
@@ -30,11 +29,27 @@ if (typeof global.WritableStream === 'undefined') {
 if (typeof global.TransformStream === 'undefined') {
   (global as any).TransformStream = TransformStream;
 }
+class MockMessagePort {
+  onmessage = null;
+  onmessageerror = null;
+  close() {}
+  postMessage() {}
+  start() {}
+  addEventListener() {}
+  removeEventListener() {}
+  dispatchEvent() { return true; }
+}
+
+class MockMessageChannel {
+  port1 = new MockMessagePort();
+  port2 = new MockMessagePort();
+}
+
 if (typeof global.MessagePort === 'undefined') {
-  (global as any).MessagePort = MessagePort;
+  (global as any).MessagePort = MockMessagePort;
 }
 if (typeof global.MessageChannel === 'undefined') {
-  (global as any).MessageChannel = MessageChannel;
+  (global as any).MessageChannel = MockMessageChannel;
 }
 if (typeof global.Blob === 'undefined') {
   (global as any).Blob = Blob;

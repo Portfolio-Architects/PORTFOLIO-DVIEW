@@ -1,61 +1,57 @@
-# BRIEFING — 2026-08-22T07:23:20Z
+# BRIEFING — 2026-08-22T13:43:00Z
 
 ## Mission
-Perform objective quality review and adversarial challenge for Milestone M2 (Daily Real Transactions UX/UI & Multi-Filtering Overhaul).
+Objective review and adversarial critic of Milestone 2 (Bundle Size & Dynamic Code Splitting) implemented by Worker M2 for D-VIEW.
 
 ## 🔒 My Identity
-- Archetype: reviewer / critic
+- Archetype: Reviewer & Critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1
-- Original parent: bb27f800-16a9-421d-8e63-c35873a4f762
-- Milestone: M2 (Daily Real Transactions UX/UI & Multi-Filtering Overhaul)
-- Instance: 1 of 1
+- Original parent: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Milestone: Milestone 2 (Bundle Size & Dynamic Code Splitting)
+- Instance: 1 of 2 (Reviewer 1)
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Review and challenge work product from worker_m2 against requirements and constraints
-- Run independent typecheck and tests
-- Issue definitive verdict: APPROVE or REQUEST_CHANGES
+- Check integrity violations (hardcoding, facade, bypasses, fabricated tests)
+- All evidence must be verified via actual file inspections and command execution
+- Verdict must be APPROVE or REQUEST_CHANGES
 
 ## Current Parent
-- Conversation ID: bb27f800-16a9-421d-8e63-c35873a4f762
-- Updated: 2026-08-22T07:23:20Z
+- Conversation ID: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Updated: 2026-08-22T13:43:00Z
 
 ## Review Scope
 - **Files to review**:
-  - `frontend/src/components/macro/hooks/useMacroFilters.ts`
-  - `frontend/src/components/macro/components/MacroControls.tsx`
-  - `frontend/src/components/MacroDashboardClient.tsx`
-  - `frontend/src/components/macro/components/MacroTimelineView.tsx`
-  - `frontend/src/__tests__/m2_macro_multifilter.test.tsx`
-- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md, .agents/worker_m2/handoff.md
-- **Review criteria**: correctness, integrity, UI/UX consistency, sticky header behavior, summary metrics calculation, m2/pyeong toggle, FieldReportModal card linkage, infinite scroll, typecheck, test coverage.
+  - `frontend/src/app/layout.tsx` (dynamic imports for SettingsModal, WelcomeModal, CustomA2HSModal)
+  - `frontend/src/components/OfficeExplorerClient.tsx` (dynamic import for OfficeDetailModal)
+  - `frontend/src/components/apartment/ApartmentModal.tsx` (dynamic import for PushSubscriptionModal)
+  - `frontend/src/components/EngineeringReportClient.tsx` (lazy dynamic import for jsPDF)
+  - `frontend/src/components/ReportClient.tsx` (lazy dynamic import for jsPDF)
+  - `frontend/next.config.ts` (optimizePackageImports with recharts)
+  - `frontend/src/lib/preload.ts` (requestIdleCallback component/asset preloader)
+- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md
+- **Review criteria**: correctness, dynamic imports with `ssr: false`, jsPDF error handling, package imports optimization, type-check & test pass, adversarial resilience.
 
 ## Review Checklist
-- **Items reviewed**:
-  - `useMacroFilters.ts`: Validated multi-filter states (region, pyeong, tradeType), dong group presets, dynamic `availableApts` computation and reset logic.
-  - `MacroControls.tsx`: Validated `TimelineFilterControls` rendering, region optgroups, pyeong chips, trade type chips, and responsive classes.
-  - `MacroDashboardClient.tsx`: Validated multi-dimensional filter pipeline (`filteredTimelineData`), daily summary calculation, preserved regex test exports, hover preloading, detail click modal dispatch.
-  - `MacroTimelineView.tsx`: Validated sticky date header with summary badges, responsive scroll container, and `useInView` infinite scroll sentinel.
-  - `m2_macro_multifilter.test.tsx`: Validated 9 comprehensive unit and integration tests.
+- **Items reviewed**: All 7 targeted files, build configuration, TypeScript compilation, Jest test suites, Next.js production build
 - **Verdict**: APPROVE
-- **Unverified claims**: None. All claims independently verified via static analysis, code audit, and full test suite execution.
+- **Unverified claims**: None
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. Integrity violation check: No facade or hardcoded logic found.
-  2. Filter dimension combinations (e.g. specific dong + 40평+ + 하락): Handled seamlessly without NaN or runtime crashes.
-  3. Empty result handling: Friendly fallback empty state rendered.
-  4. Unit toggle (㎡ vs 평): Correctly propagated and rendered in card.
-  5. Empirical regex tests (`TimelineItemCard*.test.tsx`): 100% passing.
-- **Vulnerabilities found**: 0 critical, 0 major vulnerabilities.
-- **Untested angles**: None.
+  - SSR / Hydration mismatch on dynamic modals in Server Component (`layout.tsx`) vs Client Components (`OfficeExplorerClient.tsx`, `ApartmentModal.tsx`) -> PASSED (all modals have client mount guards and appropriate SSR settings)
+  - Dynamic `import('jspdf')` chunk load failure handling in export handler -> PASSED (wrapped in try-catch-finally with logger, user alert, and clean state recovery)
+  - Turbopack / Webpack package imports optimization in `next.config.ts` -> PASSED (syntax valid, tree-shaking active)
+  - Idle callback fallback on legacy / non-supporting environments in `src/lib/preload.ts` -> PASSED (guarded with typeof window and setTimeout fallback)
+- **Vulnerabilities found**: None
+- **Untested angles**: None
 
 ## Key Decisions Made
-- All acceptance criteria for Milestone M2 are verified and approved. Handoff report prepared.
+- Confirmed full compliance with Milestone 2 requirements. Zero integrity violations detected. Approved.
 
 ## Artifact Index
-- `.agents/reviewer_m2_1/DISPATCH.md` — Inbound instructions
-- `.agents/reviewer_m2_1/BRIEFING.md` — Persistent working memory
-- `.agents/reviewer_m2_1/progress.md` — Liveness heartbeat
-- `.agents/reviewer_m2_1/handoff.md` — Final review report
+- `.agents/reviewer_m2_1/DISPATCH.md` — Incoming dispatch log
+- `.agents/reviewer_m2_1/BRIEFING.md` — Persistent agent working state
+- `.agents/reviewer_m2_1/progress.md` — Progress tracker and liveness heartbeat
+- `.agents/reviewer_m2_1/handoff.md` — Final review and challenge report

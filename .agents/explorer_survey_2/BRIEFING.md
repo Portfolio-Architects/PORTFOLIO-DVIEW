@@ -1,41 +1,46 @@
-# BRIEFING — 2026-08-22T05:53:15Z
+# BRIEFING — 2026-08-22T13:00:00Z
 
 ## Mission
-Analyze SSOT & Agent Guidelines (`AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, frontend test/build setup) for the Super-App Transformation and formulate upgrade recommendations.
+Investigate R2 (Bundle Size & Code Splitting / Dynamic Imports) across the D-VIEW Next.js frontend application to identify heavy components, static import bottlenecks, visualization libraries, and optimization opportunities.
 
 ## 🔒 My Identity
 - Archetype: explorer
-- Roles: investigation, synthesis
+- Roles: investigation, survey, code-splitting analysis
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2
-- Original parent: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
-- Milestone: Super-App Transformation Exploration
+- Original parent: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Milestone: Survey & Investigation (R2)
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement
-- Base findings strictly on verified codebase observations
-- Deliver findings in 5-component handoff report
+- Read-only investigation — do NOT implement changes in frontend source code
+- Produce structured 5-component handoff report (Observation, Logic Chain, Caveats, Conclusion, Verification Method)
 
 ## Current Parent
-- Conversation ID: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
-- Updated: 2026-08-22T05:53:15Z
+- Conversation ID: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Updated: not yet
 
 ## Investigation State
-- **Explored paths**: `ORIGINAL_REQUEST.md`, `AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, `PORTFOLIO DVIEW - Engineering Report.md`, `frontend/package.json`, `frontend/tsconfig.json`, `frontend/jest.config.ts`, `frontend/jest.setup.ts`.
+- **Explored paths**:
+  - `frontend/package.json`, `frontend/next.config.ts`
+  - `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/overview/page.tsx`, `src/app/explore/page.tsx`, `src/app/technovalley/page.tsx`, `src/app/lounge/page.tsx`, `src/app/apartment/[aptName]/page.tsx`, `src/app/admin/**`
+  - `src/components/DashboardClient.tsx`, `src/components/MacroDashboardClient.tsx`, `src/components/OfficeExplorerClient.tsx`, `src/components/LoungeContainerClient.tsx`, `src/components/TossApartmentExploreClient.tsx`, `src/components/apartment/ApartmentModal.tsx`
+  - `src/components/macro/components/AptDonutSection.tsx`, `src/components/macro/TechnoValleyDashboard.tsx`, `src/components/EngineeringReportClient.tsx`, `src/components/ReportClient.tsx`, `src/components/common/preload.ts`
 - **Key findings**:
-  - `npx tsc --noEmit` is clean (0 errors).
-  - Jest test suite has 86 suites and 846 tests, all passing 100%.
-  - `AGENT.md` currently focuses on contest/vacancy objective and needs expansion to 5 Super-App domains.
-  - `PROJECT.md` is currently scoped only to administrative crawlers and needs elevation to the full Super-App platform SSOT.
-  - `PORTFOLIO DVIEW - Patch History.md` needs Phase 999 entry for the Super-App milestone.
-- **Unexplored areas**: None for Explorer 2 scope. Investigation complete.
+  1. Root `layout.tsx` statically imports 3 global modals (`SettingsModal`, `WelcomeModal`, `CustomA2HSModal`), polluting every single page route's initial chunk.
+  2. `DashboardClient.tsx` forces `/* webpackPreload: true */` on `LoungeContainerClient` and `OfficeExplorerClient`, causing parallel downloading on initial page load of `/`.
+  3. `MacroDashboardClient.tsx` statically imports `AptDonutSection`, which statically imports `recharts`, bundling the heavy charting library into the main dashboard chunk despite `MacroTrendChart` being dynamic.
+  4. `OfficeExplorerClient.tsx` statically imports `OfficeDetailModal` (816 lines, 42KB).
+  5. `ApartmentModal.tsx` statically imports `PushSubscriptionModal` (243 lines).
+  6. `EngineeringReportClient.tsx` and `ReportClient.tsx` statically import `jsPDF` (~300KB+ gzipped).
+  7. `package.json` contains unused dependencies (`mermaid`, `react-window`, `@types/react-window`).
+  8. `preload.ts` fires 11 simultaneous preload requests on hover including unused components (`GapInvestmentExplorer`).
+- **Unexplored areas**: None for R2 scope. Full survey completed.
 
 ## Key Decisions Made
-- Formulated concrete upgrade templates for `AGENT.md`, `PROJECT.md`, and `PORTFOLIO DVIEW - Patch History.md`.
-- Verified TypeScript compilation and Jest unit tests.
-- Generated full 5-component `handoff.md`.
+- All evidence compiled with line numbers and file paths.
+- Preparing comprehensive 5-component handoff report.
 
 ## Artifact Index
-- DISPATCH.md — Stored dispatch message
-- BRIEFING.md — Situational awareness
-- progress.md — Liveness heartbeat (Completed)
-- handoff.md — Comprehensive 5-component investigation and recommendation report
+- DISPATCH.md — record of orchestrator assignment
+- BRIEFING.md — persistent situational awareness
+- progress.md — liveness heartbeat
+- handoff.md — final survey report

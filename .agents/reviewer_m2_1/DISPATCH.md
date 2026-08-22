@@ -1,28 +1,24 @@
-## 2026-08-22T07:21:16Z
-You are Reviewer 1 for Milestone M2 (Daily Real Transactions UX/UI & Multi-Filtering Overhaul).
-Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1
+## 2026-08-22T13:33:26Z
+You are Reviewer 1 for Milestone 2 (Bundle Size & Dynamic Code Splitting) for D-VIEW.
+Read the authoritative request at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+Read the project architecture at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
+Read Worker M2's handoff report at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m2\handoff.md`
 
-Read the authoritative user request at:
-c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
+Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1`
+The frontend source code is at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
 
-Read the project specification at:
-c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md
-
-Read Worker M2's handoff report at:
-c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m2\handoff.md
-
-Your mission:
-1. Examine code changes in:
-   - `frontend/src/components/macro/hooks/useMacroFilters.ts`
-   - `frontend/src/components/macro/components/MacroControls.tsx`
-   - `frontend/src/components/MacroDashboardClient.tsx`
-   - `frontend/src/components/macro/components/MacroTimelineView.tsx`
-   - `frontend/src/__tests__/m2_macro_multifilter.test.tsx`
-2. Review correctness, completeness, UI/UX consistency, sticky header behavior, summary metrics calculation, m2/pyeong toggle, FieldReportModal card linkage, and infinite scroll.
-3. Run verification commands:
-   - `cd frontend && npx tsc --noEmit`
-   - `cd frontend && npm test -- Timeline`
-   - `cd frontend && npm test -- m2_macro_multifilter`
-4. Formulate your verdict: APPROVE or REQUEST_CHANGES.
-5. Write your handoff report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1\handoff.md` and notify the orchestrator.
-Do NOT modify any source code files.
+Review Scope:
+1. Examine code modifications made to:
+   - `frontend/src/app/layout.tsx` (dynamic imports for SettingsModal, WelcomeModal, CustomA2HSModal)
+   - `frontend/src/components/OfficeExplorerClient.tsx` (dynamic import for OfficeDetailModal)
+   - `frontend/src/components/apartment/ApartmentModal.tsx` (dynamic import for PushSubscriptionModal)
+   - `frontend/src/components/EngineeringReportClient.tsx` & `frontend/src/components/ReportClient.tsx` (lazy dynamic import for jsPDF)
+   - `frontend/next.config.ts` (optimizePackageImports)
+   - `frontend/src/lib/preload.ts` (idle callback preloading)
+2. Verify that:
+   - `next/dynamic` with `ssr: false` is used cleanly where appropriate without hydration mismatch.
+   - Dynamic `import('jspdf')` handles async resolution safely with error handling.
+   - Package optimization configuration in `next.config.ts` is syntactically valid and effective.
+3. Run `npx tsc --noEmit` and run the relevant unit/integration tests to verify zero compile or runtime test failures.
+4. Issue a clear verdict: `APPROVE` or `REQUEST_CHANGES`.
+5. Write your full review report to: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m2_1\handoff.md` and send a completion message with your verdict.

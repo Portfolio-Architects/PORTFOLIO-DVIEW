@@ -1,65 +1,68 @@
-# BRIEFING — 2026-08-22T07:21:00Z
+# BRIEFING — 2026-08-22T22:33:30+09:00
 
 ## Mission
-Deliver Milestone M2: Daily Real Transactions UX/UI & Multi-Filtering Overhaul for 동탄 부동산 아카이브.
+Execute Milestone 2 (Bundle Size & Dynamic Code Splitting) for D-VIEW, converting static modal/heavy imports to `next/dynamic` and lazy imports, adding `recharts` to package optimization, and improving `preload.ts` to be non-blocking.
 
 ## 🔒 My Identity
-- Archetype: Worker Agent
+- Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m2
-- Original parent: bb27f800-16a9-421d-8e63-c35873a4f762
-- Milestone: M2 - Daily Real Transactions UX/UI & Multi-Filtering Overhaul
+- Original parent: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Milestone: M2 (Bundle Size & Dynamic Code Splitting)
 
 ## 🔒 Key Constraints
-- Preserve exact export signatures in `MacroDashboardClient.tsx`:
-  - `export const formatEokWithUnit = (val: number): string => ...`
-  - `export const formatDeltaPrice = (delta: number): string => ...`
-  - `export interface TimelineItemCardProps ...`
-  - `export const TimelineItemCard = React.memo<TimelineItemCardProps>(...)`
-  - `const isRising = item.delta > 0;`
-- Warm white design theme `#fcfbfa`, rounded-xl/rounded-2xl, subtle borders.
-- Genuine implementation with no hardcoding or dummy implementations.
-- All tests must pass (16 Timeline tests, 87 total test suites) and TypeScript compilation with 0 errors.
+- Exclusive write scope:
+  - `frontend/src/app/layout.tsx`
+  - `frontend/src/components/OfficeExplorerClient.tsx`
+  - `frontend/src/components/ApartmentModal.tsx`
+  - `frontend/src/components/EngineeringReportClient.tsx`
+  - `frontend/src/components/ReportClient.tsx`
+  - `frontend/next.config.ts`
+  - `frontend/src/lib/preload.ts`
+- No hardcoded test cheating or dummy facades.
+- All modifications must preserve existing prop interfaces and runtime functionality.
+- TypeScript compiler (`npx tsc --noEmit`) must succeed with 0 errors.
+- Jest tests (`npm test`) must pass.
 
 ## Current Parent
-- Conversation ID: bb27f800-16a9-421d-8e63-c35873a4f762
-- Updated: 2026-08-22T07:21:00Z
+- Conversation ID: 590214ee-1446-4a49-a677-2e1dd14cc3cc
+- Updated: 2026-08-22T22:33:30+09:00
 
 ## Task Summary
-- **What to build**:
-  1. Smart Multi-Filter System: `regionFilter` (all/dongtan1/dongtan2/dong), `pyeongFilter` (all/under20/20s/30s/40plus), `tradeTypeFilter` (all/high/rising/falling).
-  2. Sticky Date Timeline Grouping & Summary Header (date, total count, average price).
-  3. Real Transaction Card Typography & Unit Toggle (price formatting, delta %, m2/pyeong toggle, modal click callback).
-  4. Infinite scroll pagination using `react-intersection-observer` (`useInView`).
-- **Success criteria**:
-  - `npx tsc --noEmit` -> 0 errors (Verified).
-  - `npm test -- Timeline` -> 100% pass (3 suites, 16 tests) (Verified).
-  - `npm test` -> 100% pass (87 suites, 854 tests) (Verified).
+- **What to build**: Dynamic code splitting for root modals (`SettingsModal`, `WelcomeModal`, `CustomA2HSModal` in `layout.tsx`), `OfficeDetailModal` in `OfficeExplorerClient.tsx`, `PushSubscriptionModal` in `ApartmentModal.tsx`, lazy loading for `jsPDF` in `EngineeringReportClient.tsx` & `ReportClient.tsx`, `recharts` package optimization in `next.config.ts`, and non-blocking idle-prioritized preloading in `src/lib/preload.ts`.
+- **Success criteria**: Zero TypeScript compilation errors, all 101 Jest test suites passing (1036/1036 tests green), Next.js build succeeding with code 0.
+- **Interface contracts**: PROJECT.md
+- **Code layout**: PROJECT.md § Code Layout
 
 ## Change Tracker
 - **Files modified**:
-  - `frontend/src/components/macro/hooks/useMacroFilters.ts`: Added multi-filter states (regionFilter, pyeongFilter, tradeTypeFilter) and group definitions (Dongtan 1 & Dongtan 2).
-  - `frontend/src/components/macro/components/MacroControls.tsx`: Enhanced `TimelineFilterControls` with Region/Dong grouping selector, Pyeong filter chips, and Trade Type filter chips.
-  - `frontend/src/components/MacroDashboardClient.tsx`: Computed daily grouping statistics (`totalCount`, `avgPriceVal`, `avgPriceEok`), wired 3-dimensional multi-filter logic to `filteredTimelineData`, preserved critical regex signatures.
-  - `frontend/src/components/macro/components/MacroTimelineView.tsx`: Integrated sticky date group summary headers (`sticky top-0 z-20`), daily summary badges (총 N건 거래 · 평균 O억 O,OOO만), and infinite scrolling sentinel using `react-intersection-observer` (`useInView`).
-  - `frontend/src/__tests__/m2_macro_multifilter.test.tsx`: Created new unit/integration tests for multi-filtering, sticky headers, and controls.
-- **Build status**: Pass (`npx tsc --noEmit` 0 errors, `npm test` 87/87 suites pass)
+  - `frontend/src/app/layout.tsx`: Converted `CustomA2HSModal`, `WelcomeModal`, `SettingsModal` to `dynamic(() => import(...))`
+  - `frontend/src/components/OfficeExplorerClient.tsx`: Converted `OfficeDetailModal` to `dynamic(() => import(...), { ssr: false })`
+  - `frontend/src/components/apartment/ApartmentModal.tsx`: Converted `PushSubscriptionModal` to `dynamic(() => import(...), { ssr: false })`
+  - `frontend/src/components/EngineeringReportClient.tsx`: Removed static `jsPDF` import, lazy loaded via `const { jsPDF } = await import('jspdf')` inside `handleExportPDF`
+  - `frontend/src/components/ReportClient.tsx`: Removed static `jsPDF` import, lazy loaded via `const { jsPDF } = await import('jspdf')` inside `handleExportPDF`
+  - `frontend/next.config.ts`: Added `"recharts"` to `experimental.optimizePackageImports`
+  - `frontend/src/lib/preload.ts`: Created non-blocking idle priority preloader utility with `scheduleIdle`, `preloadComponent`, `preloadApartmentModal`, and `preloadDashboardFeatures`
+- **Build status**: PASS (Next.js build exit code 0, 177/177 static pages generated)
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: 87/87 suites passed, 854/854 tests passed (100% Green)
+- **Build/test result**: PASS (101/101 test suites passed, 1036/1036 tests green, `tsc --noEmit` 0 errors)
 - **Lint status**: 0 errors
-- **Tests added/modified**: `src/__tests__/m2_macro_multifilter.test.tsx` (9 tests added)
+- **Tests added/modified**: Verified against all 101 Jest suites including `m2_challenger_context_preload.test.tsx`
 
 ## Loaded Skills
-- None
+- None required for this milestone.
 
 ## Key Decisions Made
-- Maintained exact regex signatures in `MacroDashboardClient.tsx` to satisfy empirical test scrapers.
-- Used `react-intersection-observer` for zero-jank 120fps infinite scrolling.
+- Used `dynamic(() => import(...))` for root modals in `layout.tsx` (Server Component).
+- Used `dynamic(() => import(...), { ssr: false })` for client modals in `OfficeExplorerClient.tsx` and `ApartmentModal.tsx`.
+- Replaced top-level static `jsPDF` imports with lazy dynamic imports in PDF export handlers to eliminate ~300KB+ gzipped initial bundle overhead.
+- Configured package import optimization for `recharts` in `next.config.ts`.
+- Structured `src/lib/preload.ts` with `requestIdleCallback` (and fallback) for non-blocking execution.
 
 ## Artifact Index
 - `.agents/worker_m2/DISPATCH.md` — Assignment instructions
-- `.agents/worker_m2/BRIEFING.md` — Persistent state index
-- `.agents/worker_m2/progress.md` — Progress tracker
-- `.agents/worker_m2/handoff.md` — Final handoff report
+- `.agents/worker_m2/BRIEFING.md` — Agent state and memory
+- `.agents/worker_m2/progress.md` — Progress tracker and heartbeat
+- `.agents/worker_m2/handoff.md` — Completion handoff report

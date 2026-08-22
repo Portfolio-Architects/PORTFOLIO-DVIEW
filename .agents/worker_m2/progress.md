@@ -1,13 +1,13 @@
-# Progress Tracking - Worker M2
+# Progress — Worker M2 (Milestone 2)
 
-- [x] Read DISPATCH.md and initialize workspace
-- [x] Review Explorer 2 & Explorer 3 reports and relevant codebase files
-- [x] Implement useMacroFilters.ts multi-filter enhancements
-- [x] Implement MacroControls.tsx multi-filter UI controls
-- [x] Implement MacroDashboardClient.tsx filter integration, daily grouping stats, and card enhancements
-- [x] Implement MacroTimelineView.tsx sticky headers and infinite scrolling with react-intersection-observer
-- [x] Add comprehensive test suite in m2_macro_multifilter.test.tsx
-- [x] Run tsc check (0 errors) and Jest test suites (Timeline tests + full test suite: 87/87 suites, 854/854 tests Green)
-- [x] Finalize handoff.md and report to parent
+**Last visited**: 2026-08-22T22:33:30+09:00
 
-Last visited: 2026-08-22T07:21:00Z
+## Tasks
+- [x] Task 1: `frontend/src/app/layout.tsx` - Convert `SettingsModal`, `WelcomeModal`, `CustomA2HSModal` to `dynamic(() => import(...))`
+- [x] Task 2: `frontend/src/components/OfficeExplorerClient.tsx` - Convert `OfficeDetailModal` to `dynamic(() => import(...), { ssr: false })`
+- [x] Task 3: `frontend/src/components/ApartmentModal.tsx` - Convert `PushSubscriptionModal` to `dynamic(() => import(...), { ssr: false })`
+- [x] Task 4: `frontend/src/components/EngineeringReportClient.tsx` & `frontend/src/components/ReportClient.tsx` - Convert static jsPDF import to lazy dynamic import in export handlers
+- [x] Task 5: `frontend/next.config.ts` - Add `recharts` to `experimental.optimizePackageImports`
+- [x] Task 6: `frontend/src/lib/preload.ts` - Implement non-blocking idle priority preloading with `requestIdleCallback`
+- [x] Task 7: Verification (`npx tsc --noEmit` & `npm test` & `npm run build`)
+- [x] Task 8: Write handoff report & notify orchestrator

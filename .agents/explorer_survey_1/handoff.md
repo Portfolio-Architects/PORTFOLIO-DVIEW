@@ -1,75 +1,177 @@
-# Handoff Report — Explorer 1 (Super-App Architecture & Engineering Report Survey)
+# Survey Handoff Report: R1. Rendering Runtime & Memory Leak Optimization
 
 ## 1. Observation
 
-### Codebase and Architecture State
-- **Project Structure**:
-  - `PORTFOLIO DVIEW - Engineering Report.md` (root, 305 lines): Outlines system architecture, performance S-grade rating, Urban Emerald/Pastel Cute design systems, and historical milestones.
-  - `AGENT.md` (root, 133 lines) & `PROJECT.md` (root, 110 lines): Define ultimate objective functions, AI operating rules, and crawl/sync pipelines.
-  - `frontend/src/app/actions/getEngineeringReport.ts` (lines 13-20): Reads `PORTFOLIO DVIEW - Engineering Report.md` from root or falls back to `src/data/engineering-report.md`.
-- **Domain & Component Implementations**:
-  - **Real Estate (Domain 1)**: `frontend/src/components/ChopoomaCuration.tsx` (18KB), `GapInvestmentExplorer.tsx` (47KB), `MacroDashboardClient.tsx` (58KB), `ApartmentModal.tsx`, `TransactionChartSection.tsx` (40KB). Supported by MOLIT API pipelines (`fetch-transactions.js`, `fetch-rent.js`, `sync-transactions.js`) and 179 complex master dataset (`apartments-by-dong.json`, `location-scores.json`).
-  - **Stocks & Industry (Domain 2)**: `frontend/src/app/api/technovalley/industry-distribution/route.ts` (lines 8-45) maps anchor tenants across IT, Semiconductor, Bio, and Knowledge Services (e.g. Applied Materials, Tokyo Electron, ASML, KC Tech, S&S Tech, Hanmi Pharm, Woojung Bio). Supported by `jisan-status` (56 centers) and `RelocationTaxSimulator.tsx` (17KB).
-  - **Running & Trails (Domain 3)**: Lake Park and Yeoul Park trails referenced in `LocalEventCuration.tsx` and `location-scores.json`.
-  - **Festivals & Events (Domain 4)**: `frontend/src/components/LocalEventCuration.tsx` (575 lines) contains Luna Show D-Day calculation (`calculateDDay`), JSON-LD Schema.org `Event` rich snippets (lines 300-362), and Dong 1~9 community class curation (`activeLectures`). Ingestion supported by `fetch-local-notices.js` and `/api/cron/sync-local-notices`.
-  - **Dining & Hotplaces (Domain 5)**: `extract_restaurants.py` (89 lines) extracts Dongtan restaurant/cafe data from Small Enterprise and Market Service CSV.
-- **Verification & Test Commands**:
-  - `npx tsc --noEmit` in `frontend/`: Exited with code 0 (0 compilation errors).
-  - `npm test` in `frontend/`: 86 test suites passed, 846 unit/integration assertions passed (100% GREEN, execution time 25.5s).
+### 1.1 Top-Level Dashboards & Monolithic Component Rendering
+* **`frontend/src/components/macro/TechnoValleyDashboard.tsx` (Line 618)**:
+  ```tsx
+  export default function TechnoValleyDashboard() {
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
+    const [expandedSectors, setExpandedSectors] = useState<Set<string>>(new Set(['it_sw']));
+    const [searchQuery, setSearchQuery] = useState('');
+    // ...
+  ```
+  - *Observation*: Main export is a raw function component **without `React.memo`**.
+  - *State Churn*: The search query input (`searchQuery`), sector toggle (`expandedSectors`), building pagination (`visibleBuildings`), and category filter (`selectedCategory`) all reside at the root level of this 1,915-line component.
+  - *Impact*: Every keystroke in the company search bar (lines 1421-1430) triggers full evaluation and re-rendering of the entire component tree, including the Recharts LineChart (`ResponsiveContainer`, `LineChart`, lines 1308-1407), metric summary cards, and all accordion listings.
+
+* **`frontend/src/components/MacroDashboardClient.tsx` (Lines 1815-1845)**:
+  - *Observation*: Unstable inline callback and object reference creation passed down into memoized children:
+    ```tsx
+    // Line 1817 & 1823: Inline fallback evaluation
+    nameMapping={nameMapping || EMPTY_OBJECT}
+    locationScores={locationScores || EMPTY_OBJECT}
+
+    // Line 1820: Inline function creation on every render
+    onSelectApt={onSelectApt || (() => {})}
+
+    // Line 1822: Inline closure passed to AptFitFinder
+    onClose={() => setIsQuizOpen(false)}
+
+    // Lines 1836-1840: Inline arrow closures passed to MacroUtilityCards
+    onOpenJeonseSafety={() => setIsJeonseSafetyModalOpen(true)}
+    onOpenMortgage={() => setIsMortgageModalOpen(true)}
+    onOpenPropertyTax={() => setIsPropertyTaxModalOpen(true)}
+    onOpenSellTiming={() => setIsSellTimingModalOpen(true)}
+    onOpenAptFitFinder={() => setIsQuizOpen(true)}
+    ```
+  - *Impact*: Even though `AptFitFinder`, `MacroUtilityCards`, and `MacroTimelineView` are wrapped in `React.memo`, passing freshly allocated inline arrow functions (`() => ...`) and fallback closures breaks reference equality (`prevProps !== nextProps`), causing redundant re-renders whenever `MacroDashboardClient` re-renders.
+
+* **`frontend/src/components/DashboardClient.tsx` (Lines 873, 923)**:
+  - *Observation*: Inline callback handlers passed to header and dock navigation:
+    ```tsx
+    // Line 873: Passing unmemoized callback to LoungeHeader
+    onTabChange={(tab) => {
+      setSelectedTab(tab);
+      // ...
+    }}
+
+    // Line 923: Passing unmemoized callback to MobileDock
+    onTabClick={(tab) => {
+      setSelectedTab(tab);
+      // ...
+    }}
+    ```
+
+### 1.2 Selector & Filter Derivation Memoization
+* **`frontend/src/components/MacroDashboardClient.tsx` (Lines 1081-1260 & Lines 1359-1599)**:
+  - `selectedAptChartData` (Lines 1081-1260) and `filteredTimelineData` (Lines 1458-1599) are already wrapped in `useMemo`.
+  - However, in `dailyTimelineData` (Lines 1359-1456), multi-level map and sort loops run across the full transaction dataset. High-frequency filter toggles (such as rapidly switching price ranges or area tags in `MacroControls`) cause heavy array derivations.
+* **`frontend/src/components/TossApartmentExploreClient.tsx` (Lines 377-515)**:
+  - `enrichedApts` (Lines 377-434) and `sortedApts` (Lines 436-515) are memoized with `useMemo` and rely on a global cache (`APTS_CACHE`).
+  - Mobile category buttons in `TossApartmentExploreClient.tsx` (Line 863: `onClick={() => setCurrentCategory(cat.id)}`) allocate new closure references per item, but the parent container is memoized.
+
+### 1.3 Lifecycle Hooks & Memory Leak Audit
+A comprehensive codebase scan of all `addEventListener`, `ResizeObserver`, `IntersectionObserver`, `setInterval`, `setTimeout`, and custom hooks revealed:
+
+* **Event Listeners (`addEventListener` / `removeEventListener`)**:
+  - `MacroDashboardClient.tsx` (Line 777): Window resize listener with debounced timeout has full matching cleanup on line 782 (`removeEventListener` + `clearTimeout`).
+  - `DashboardClient.tsx` (Lines 500-501, 559, 623): `hashchange` and `popstate` listeners have matching `removeEventListener` in all `useEffect` returns (Lines 504-505, 563, 627).
+  - `TossApartmentExploreClient.tsx` (Lines 182-184): Mousemove, mouseup, and blur resize listeners are explicitly unregistered in `handleMouseUp` (Lines 193-197) and unmount cleanup.
+  - `MindMap3D.tsx` (Lines 442, 458, 481): `visibilitychange`, `resize`, and `wheel` listeners on canvas are properly removed (Lines 485-491) along with `cancelAnimationFrame(animationFrameId)`.
+  - `FloatingUserBar.tsx` (Lines 57, 136): Scroll listener uses `requestAnimationFrame` + cleanup (Lines 59-64); escape key listener is removed on unmount (Line 139).
+  - `useSwipeNavigation.ts` (Lines 92-95): Touch event listeners (`touchstart`, `touchmove`, `touchend`, `touchcancel`) are all removed (Lines 98-101).
+  - `useNetworkStatus.ts` (Lines 9-10): `online` and `offline` listeners properly removed in `useSyncExternalStore` subscribe cleanup.
+
+* **Observers (`ResizeObserver` / `IntersectionObserver`)**:
+  - `MacroTrendChart.tsx` (Lines 183-193): `ResizeObserver` observes container; calls `observer.disconnect()` and clears debounce timer in cleanup (Lines 191-193).
+  - `TransactionChartSection.tsx` (Lines 255-259 & Lines 311-314): Callback ref pattern with `resizeObserverRef.current.disconnect()` properly unbinds and clears timers.
+  - `LoungeFeedClient.tsx` (Lines 702-711): `IntersectionObserver` disconnects in cleanup (Line 711).
+  - `MindMap3D.tsx` (Lines 412-425, 493): `IntersectionObserver` disconnects in cleanup (Line 493).
+  - `ApartmentModal.tsx` (Lines 287-293): `IntersectionObserver` disconnects in cleanup.
+
+* **Timers & Asynchronous Subscriptions**:
+  - `HotComplexRanking.tsx` (Lines 142, 172): `setInterval` auto-roller has `clearInterval` on unmount and pauses on document `visibilitychange === 'hidden'`.
+  - `app/write-report/page.tsx` (Lines 234, 243): Auto-save `setInterval` cleans up with `clearInterval`.
+  - `AptFitFinder.tsx` (Lines 244, 253): Rolling text `setInterval` and transition `setTimeout` have matching cleanups.
+  - `useApartmentDetails.ts` (Lines 262, 338): Uses `AbortController` and `controller.abort()` on report change or unmount.
+  - `useFavorites.ts` (Lines 89, 117, 239): `AbortController` cancellation on unmount and network requests.
+  - `useComments.ts` (Lines 54, 67): Real-time Firestore comment listener returns `unsubscribe()` which executes on unmount or ID change.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Expansion of Objective Function (Obs: `ORIGINAL_REQUEST.md`, `AGENT.md`, `PORTFOLIO DVIEW - Engineering Report.md`)**:
-   - The platform is expanding from a real estate & office vacancy hub to a **Dongtan Hyperlocal All-in-One Super-App** serving Dongtan 3040 tech families and semiconductor cluster workers across 5 core domains: Real Estate, Stocks & Industry, Running & Trails, Festivals & Events, and Dining & Hotplaces.
-2. **High Modularity & Type Safety Foundation (Obs: `DashboardFacade.ts`, `src/lib/repositories/`, `src/types/`)**:
-   - The codebase utilizes a decoupled architecture (Facade -> Service -> Repository -> Data Source) with 100% strict TypeScript types and zero `any`. This allows adding new domain facades (`IndustryFacade`, `TrailFacade`, `DiningFacade`) without breaking existing real estate workflows.
-3. **Data Pipeline Feasibility & Resilient Ingestion (Obs: `fetch-transactions.js`, `fetch-local-notices.js`, `extract_restaurants.py`)**:
-   - Domain 1 is fully backed by MOLIT XML/JSON APIs with automated deduplication and incremental syncing.
-   - Domain 2 can ingest live stock quotes for Samsung Electronics (`005930.KS`) and K-Semiconductor 소부장 champions (KC Tech `029460.KS`, S&S Tech `101490.KQ`, Wonik IPS `240810.KQ`, Dongjin Semichem `005290.KQ`, HPSP `403870.KQ`) via KIS/KRX OpenAPI and DART financial filings with SWR 60s cache.
-   - Domain 3 can utilize GeoJSON elevation profiles and AirKorea PM2.5/PM10 APIs for 5 signature trails (Lake Park 4.5km, Chidongcheon 6.2km, Sinricheon 5.8km, Banseoksan 3.7km, Yeoul Park 3.2km).
-   - Domain 4 is already equipped with Luna show D-Day calculation and civic scrapers (BBS 1019, BD_notice, BBS 1049).
-   - Domain 5 can ingest restaurant/cafe coordinates from Small Enterprise CSVs and Google Sheets SSOT across 4 commercial hubs (Yeongcheon 11-ja, Lake Park, Karilm Avenue, Nam/Buk Gwangjang).
-4. **Performance & Monetization Readiness (Obs: `MacroTrendChart.tsx`, `MobileDock.tsx`, `useFavorites.ts`)**:
-   - Zero-Jank UX with 120fps smooth transitions and CLS < 0.01 is enforced.
-   - Dual monetization (Google AdSense contextual ad slots + B2B CPA local merchant and semiconductor career/relocation matching) can be seamlessly integrated across domain feeds.
+1. **Step 1 (Root & Component Memoization)**:
+   - *Observation*: `TechnoValleyDashboard.tsx` is exported directly without `React.memo` (Line 618).
+   - *Reasoning*: As a top-level tab component embedded within `DashboardClient`, any state change in `DashboardClient` (such as background metadata updates or tab state evaluation) will trigger a full re-render of `TechnoValleyDashboard`.
+   - *Observation*: Inside `TechnoValleyDashboard`, the search query input (`searchQuery`) triggers instant state updates on `onChange`.
+   - *Reasoning*: Because the Recharts LineChart and complex DOM nodes are co-located in the same component body without subcomponent boundaries, user typing incurs high layout recalculation overhead and frame drops (jank).
+
+2. **Step 2 (Prop Reference Stability & Breaking Memo)**:
+   - *Observation*: In `MacroDashboardClient.tsx`, child components (`AptFitFinder`, `MacroUtilityCards`, `MacroTimelineView`) are wrapped with `React.memo`, but receive inline arrow callbacks (Lines 1820, 1822, 1836-1840) and dynamic fallback objects (Lines 1817, 1823).
+   - *Reasoning*: React's `React.memo` uses shallow equality (`Object.is`) to compare previous and next props. An inline arrow function `() => setIsQuizOpen(false)` creates a new object reference on every render cycle of `MacroDashboardClient`, causing `prevProps.onClose !== nextProps.onClose`. This completely defeats `React.memo`, forcing child components to re-render needlessly.
+
+3. **Step 3 (Lifecycle Hook Robustness)**:
+   - *Observation*: All lifecycle hooks (`useEffect`, `useLayoutEffect`, custom hooks) implement matching cleanup functions for DOM listeners, observers, timers, and abort controllers.
+   - *Reasoning*: There are no critical dangling memory leaks in existing event listeners or observer subscriptions. The primary performance gains for R1 lie in **rendering runtime optimization, prop stability, and subcomponent extraction**.
 
 ---
 
 ## 3. Caveats
 
-1. **Financial APIs Rate Limits**: External live stock quote APIs (e.g. KRX / KIS OpenAPI) enforce rate limits. An L2 Redis cache (`DTDLS:cache:stocks:*`) with a 60-second TTL during KST trading hours (09:00~15:30) and static fallback outside hours is required.
-2. **Dual File Synchronization**: `PORTFOLIO DVIEW - Engineering Report.md` at root and `frontend/src/data/engineering-report.md` must be kept 100% in sync to guarantee `/admin/engineering` and `/about` SSR actions display identical content.
-3. **Strict Real Data Rule**: Under `.agent/rules/strict-real-data-only.md`, estimated or fake placeholder data is strictly prohibited across all 5 domains; all displayed metrics must resolve to real verified public or market data.
+1. **Synthetic & Benchmark Caveat**: Re-renders in development mode with React StrictMode run twice by design. Measurements should be verified in production builds (`npm run build && npm run start`) or with React DevTools Profiler recording "Why did this render?".
+2. **Tab Pre-mounting vs. Lazy Rendering**: `DashboardClient` pre-mounts tab contents in `memoizedTabContents` for instantaneous tab switching. This design trade-off is beneficial for UX provided that individual tab components (`MacroDashboardClient`, `TechnoValleyDashboard`, `LoungeContainerClient`) strictly honor `React.memo` and do not re-render when inactive.
+3. **Data Immutability Assumption**: Calculations in `useMemo` (e.g. `filteredTimelineData`, `sortedApts`) assume incoming props (`sheetApartments`, `txSummaryData`, `recentTransactions`) maintain immutable references between SWR revalidations.
 
 ---
 
-## 4. Conclusion
+## 4. Conclusion & Actionable Optimization Roadmap
 
-- The architecture of D-VIEW is fully primed and structurally capable of supporting the "Dongtan Hyperlocal All-in-One Super-App" across the 5 core domains.
-- A comprehensive architectural blueprint, data schema definitions, pipeline topologies, and milestone roadmaps have been synthesized and documented in `analysis.md` and this handoff.
-- The next step is for the team to synchronize the SSOT documentation (`PORTFOLIO DVIEW - Engineering Report.md`, `AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, and `frontend/src/data/engineering-report.md`) with the expanded 5-domain super-app specifications while preserving 100% test passing and strict type integrity.
+To achieve 60fps interaction and zero memory leaks for R1:
+
+1. **Wrap `TechnoValleyDashboard` with `React.memo` and Extract Heavy Subcomponents**:
+   - Wrap `export default React.memo(TechnoValleyDashboard);`.
+   - Extract the Recharts LineChart into a memoized subcomponent (`TechnoTrendChartSection.tsx`).
+   - Extract the company accordion list and search bar into `TechnoCompanySection.tsx`.
+   - Apply `useDeferredValue` or `startTransition` to `searchQuery` to keep the input responsive while filtering 200+ company records.
+
+2. **Stabilize Callback Handlers with `useCallback` and Global Constants in `MacroDashboardClient.tsx`**:
+   - Define a static `const NOOP_FN = () => {};` and `const EMPTY_OBJECT = Object.freeze({});` at module scope.
+   - Memoize modal toggle handlers with `useCallback`:
+     ```tsx
+     const handleCloseQuiz = useCallback(() => setIsQuizOpen(false), []);
+     const handleOpenJeonseSafety = useCallback(() => setIsJeonseSafetyModalOpen(true), []);
+     const handleOpenMortgage = useCallback(() => setIsMortgageModalOpen(true), []);
+     const handleOpenPropertyTax = useCallback(() => setIsPropertyTaxModalOpen(true), []);
+     const handleOpenSellTiming = useCallback(() => setIsSellTimingModalOpen(true), []);
+     const handleOpenAptFitFinder = useCallback(() => setIsQuizOpen(true), []);
+     ```
+   - Pass these stable callbacks to `MacroUtilityCards` and `AptFitFinder`.
+
+3. **Stabilize Navigation Callbacks in `DashboardClient.tsx`**:
+   - Wrap `onTabChange` and `onTabClick` handlers passed to `LoungeHeader` and `MobileDock` in `useCallback`.
+
+4. **Verify Zero Memory Leaks Standard**:
+   - Retain and enforce the existing pattern of `useEffect` cleanups (`controller.abort()`, `observer.disconnect()`, `clearTimeout`/`clearInterval`, `removeEventListener`).
 
 ---
 
 ## 5. Verification Method
 
-To independently verify the facts, architecture state, and findings in this survey:
+To independently verify these findings and confirm the resolution during the implementation phase:
 
-1. **TypeScript Type Safety**:
-   ```powershell
+1. **Type Safety & Build Verification**:
+   ```bash
    cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
    npx tsc --noEmit
+   npm run build
    ```
-   *Expected Result*: 0 errors.
-2. **Unit & Integration Test Suite**:
-   ```powershell
+
+2. **Test Suite Execution**:
+   ```bash
    cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
-   npm test
+   npm test -- --runInBand
    ```
-   *Expected Result*: 86 test suites, 846 unit tests passing (100% PASS).
-3. **Inspect Generated Survey & Analysis Files**:
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\analysis.md`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\handoff.md`
-   - `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\BRIEFING.md`
+
+3. **React DevTools Profiler Inspection**:
+   - Open Chrome DevTools > Profiler.
+   - Check "Record why each component rendered while profiling".
+   - Type rapidly into the TechnoValley company search bar -> verify Recharts LineChart and Donut section do NOT re-render.
+   - Click timeline filter chips in Macro Dashboard -> verify `MacroUtilityCards` and `AptFitFinder` do NOT re-render.
+
+4. **Memory Leak / Heap Snapshot Verification**:
+   - Open Chrome DevTools > Memory > Take Heap Snapshot.
+   - Navigate repeatedly between Overview (`MacroDashboard`), TechnoValley (`Office`), and Explore tabs 20 times.
+   - Take second Heap Snapshot and compare -> confirm detached DOM nodes, uncleaned `ResizeObserver` instances, and dangling closures remain at 0.

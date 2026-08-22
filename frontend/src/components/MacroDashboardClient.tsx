@@ -22,6 +22,8 @@ import { MacroUtilityCards } from "./macro/components/MacroUtilityCards";
 import { MacroBriefingModal } from "./macro/components/MacroBriefingModal";
 import { AptDonutSection } from "./macro/components/AptDonutSection";
 import { AptMetricCards } from "./macro/components/AptMetricCards";
+import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 
 
 const InlineLoader = ({ text }: { text: string }) => (
@@ -64,7 +66,8 @@ const LoungeTalkWidget = dynamic(() => import("./macro/LoungeTalkWidget").then(m
   loading: () => <div className="w-full h-[260px] min-h-[260px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
 });
 
-const EMPTY_OBJECT = {};
+const EMPTY_OBJECT = Object.freeze({});
+const NOOP_FN = () => {};
 
 const DEFAULT_TIMELINE_APTS = [
   "동탄역 롯데캐슬",
@@ -819,6 +822,34 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     preloadApartmentTx?.(aptName, dong);
     preloadApartmentModal();
   }, [preloadApartmentTx]);
+
+  const handleCloseQuiz = useCallback(() => {
+    setIsQuizOpen(false);
+  }, []);
+
+  const handleOpenAptFitFinder = useCallback(() => {
+    setIsQuizOpen(true);
+  }, []);
+
+  const handleOpenJeonseSafety = useCallback((aptName?: string) => {
+    onOpenJeonseSafety?.(aptName);
+  }, [onOpenJeonseSafety]);
+
+  const handleOpenMortgage = useCallback((aptName?: string) => {
+    onOpenMortgage?.(aptName);
+  }, [onOpenMortgage]);
+
+  const handleOpenSellTiming = useCallback((aptName?: string) => {
+    onOpenSellTimingCalculator?.(aptName);
+  }, [onOpenSellTimingCalculator]);
+
+  const handleOpenTaxCalculator = useCallback((aptName?: string) => {
+    _onOpenTaxCalculator?.(aptName);
+  }, [_onOpenTaxCalculator]);
+
+  const handleSelectApt = useCallback((name: string, dong?: string) => {
+    onSelectApt?.(name, dong);
+  }, [onSelectApt]);
 
   const isDefaultAptSettingUp = useMemo(() => {
     if (!mounted) return true;
@@ -1695,133 +1726,149 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
           <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
-            <AptDonutSection
-              mounted={mounted}
-              recentTransactions={recentTransactions}
-              txSummaryData={txSummaryData}
-              nameMapping={nameMapping}
-              publicRentalSet={publicRentalSet}
-              onSelectApt={onSelectApt}
-              preloadApartmentTx={preloadApartmentTx}
-            />
-            <AptMetricCards
-              recentTransactions={recentTransactions}
-              txSummaryData={txSummaryData}
-              macroTrendData={deferredMacroTrendData}
-              onOpenSellTimingCalculator={onOpenSellTimingCalculator}
-            />
+            <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
+              <AptDonutSection
+                mounted={mounted}
+                recentTransactions={recentTransactions}
+                txSummaryData={txSummaryData}
+                nameMapping={nameMapping || EMPTY_OBJECT}
+                publicRentalSet={publicRentalSet}
+                onSelectApt={handleSelectApt}
+                preloadApartmentTx={preloadApartmentTx}
+              />
+            </ChartErrorBoundary>
+            <ErrorBoundary name="핵심 지표 카드">
+              <AptMetricCards
+                recentTransactions={recentTransactions}
+                txSummaryData={txSummaryData}
+                macroTrendData={deferredMacroTrendData}
+                onOpenSellTimingCalculator={handleOpenSellTiming}
+              />
+            </ErrorBoundary>
           </div>
 
           {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
           <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
-            <MacroChartSection
-              userFavorites={userFavorites}
-              isDefaultAptSettingUp={isDefaultAptSettingUp}
-              mounted={mounted}
-              selectedTimelineApt={selectedTimelineApt}
-              setSelectedTimelineApt={setSelectedTimelineApt}
-              preloadApartmentModal={preloadApartmentModal}
-              favoritesArray={favoritesArray}
-              defaultTimelineApts={DEFAULT_TIMELINE_APTS}
-              onSelectApt={onSelectApt}
-              onHoverApt={handleHoverApt}
-              timeframe={timeframe}
-              setTimeframe={setTimeframe}
-              isAptTxLoading={isAptTxLoading}
-              aptRealTxData={aptRealTxData}
-              mainLineData={lineData}
-              mainXTicks={xTicks}
-              mainYTicks={yTicks}
-              renderChart={renderChart}
-              showOrderEditor={showOrderEditor}
-              setShowOrderEditor={setShowOrderEditor}
-              orderEditorRef={orderEditorRef}
-              draggedIndex={draggedIndex}
-              handleDragStart={handleDragStart}
-              handleDragOver={handleDragOver}
-              handleDragEnd={handleDragEnd}
-            />
+            <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
+              <MacroChartSection
+                userFavorites={userFavorites}
+                isDefaultAptSettingUp={isDefaultAptSettingUp}
+                mounted={mounted}
+                selectedTimelineApt={selectedTimelineApt}
+                setSelectedTimelineApt={setSelectedTimelineApt}
+                preloadApartmentModal={preloadApartmentModal}
+                favoritesArray={favoritesArray}
+                defaultTimelineApts={DEFAULT_TIMELINE_APTS}
+                onSelectApt={handleSelectApt}
+                onHoverApt={handleHoverApt}
+                timeframe={timeframe}
+                setTimeframe={setTimeframe}
+                isAptTxLoading={isAptTxLoading}
+                aptRealTxData={aptRealTxData}
+                mainLineData={lineData}
+                mainXTicks={xTicks}
+                mainYTicks={yTicks}
+                renderChart={renderChart}
+                showOrderEditor={showOrderEditor}
+                setShowOrderEditor={setShowOrderEditor}
+                orderEditorRef={orderEditorRef}
+                draggedIndex={draggedIndex}
+                handleDragStart={handleDragStart}
+                handleDragOver={handleDragOver}
+                handleDragEnd={handleDragEnd}
+              />
+            </ChartErrorBoundary>
           </div>
         </div>
 
         {/* Daily Real Transactions Section (Wide Layout) */}
         <div className="w-full flex flex-col gap-4 mb-6 box-border">
-          <MacroTimelineView
-            displayedTimelineData={displayedTimelineData}
-            selectedTimelineApt={selectedTimelineApt}
-            selectedApt={selectedTimelineApt}
-            nameMapping={nameMapping}
-            areaUnit={areaUnit}
-            isMobileViewport={isMobileViewport}
-            totalTimelineCardsCount={totalTimelineCardsCount}
-            visibleTimelineCount={visibleTimelineCount}
-            setVisibleTimelineCount={setVisibleTimelineCount}
-            onCardHover={handleCardHover}
-            onCardClick={handleCardClick}
-            onSelectApt={handleCardClick}
-            onDetailsClick={handleDetailsClick}
-            onDetailsHover={handleDetailsHover}
-            userFavorites={userFavorites}
-            onToggleFavorite={onToggleFavorite}
-            timelineDongFilter={timelineDongFilter}
-            setTimelineDongFilter={setTimelineDongFilter}
-            timelineAptFilter={timelineAptFilter}
-            setTimelineAptFilter={setTimelineAptFilter}
-            availableDongs={availableDongs}
-            availableApts={availableApts}
-            regionFilter={regionFilter}
-            setRegionFilter={setRegionFilter}
-            pyeongFilter={pyeongFilter}
-            setPyeongFilter={setPyeongFilter}
-            tradeTypeFilter={tradeTypeFilter}
-            setTradeTypeFilter={setTradeTypeFilter}
-            quickFilter={quickFilter}
-            setQuickFilter={setQuickFilter}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-            sortOrder={sortOrder}
-            setSortOrder={setSortOrder}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            onResetFilters={resetFilters}
-            renderTimelineItemCard={renderTimelineItemCardNode}
-            renderTimelineItemRow={renderTimelineItemRowNode}
-          />
+          <ErrorBoundary name="실거래 타임라인">
+            <MacroTimelineView
+              displayedTimelineData={displayedTimelineData}
+              selectedTimelineApt={selectedTimelineApt}
+              selectedApt={selectedTimelineApt}
+              nameMapping={nameMapping}
+              areaUnit={areaUnit}
+              isMobileViewport={isMobileViewport}
+              totalTimelineCardsCount={totalTimelineCardsCount}
+              visibleTimelineCount={visibleTimelineCount}
+              setVisibleTimelineCount={setVisibleTimelineCount}
+              onCardHover={handleCardHover}
+              onCardClick={handleCardClick}
+              onSelectApt={handleCardClick}
+              onDetailsClick={handleDetailsClick}
+              onDetailsHover={handleDetailsHover}
+              userFavorites={userFavorites}
+              onToggleFavorite={onToggleFavorite}
+              timelineDongFilter={timelineDongFilter}
+              setTimelineDongFilter={setTimelineDongFilter}
+              timelineAptFilter={timelineAptFilter}
+              setTimelineAptFilter={setTimelineAptFilter}
+              availableDongs={availableDongs}
+              availableApts={availableApts}
+              regionFilter={regionFilter}
+              setRegionFilter={setRegionFilter}
+              pyeongFilter={pyeongFilter}
+              setPyeongFilter={setPyeongFilter}
+              tradeTypeFilter={tradeTypeFilter}
+              setTradeTypeFilter={setTradeTypeFilter}
+              quickFilter={quickFilter}
+              setQuickFilter={setQuickFilter}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              sortOrder={sortOrder}
+              setSortOrder={setSortOrder}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              onResetFilters={resetFilters}
+              renderTimelineItemCard={renderTimelineItemCardNode}
+              renderTimelineItemRow={renderTimelineItemRowNode}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* Traffic Notice Board Widget */}
         <div className="w-full flex flex-col gap-4 mb-2">
-          <TrafficNoticeBoard
-            railStrategyNotices={railStrategyNotices}
-            tramNotices={tramNotices}
-          />
+          <ErrorBoundary name="교통/철도 공지 알림판">
+            <TrafficNoticeBoard
+              railStrategyNotices={railStrategyNotices}
+              tramNotices={tramNotices}
+            />
+          </ErrorBoundary>
         </div>
 
         {/* Community Talk Widget */}
         <div className="flex flex-col gap-6 mt-6 w-full">
-          <LoungeTalkWidget postsData={postsData} />
+          <ErrorBoundary name="커뮤니티 라운지 토크">
+            <LoungeTalkWidget postsData={postsData} />
+          </ErrorBoundary>
         </div>
 
         {/* Utility Toolkit Cards Grid */}
-        <MacroUtilityCards
-          setIsQuizOpen={setIsQuizOpen}
-          onOpenJeonseSafety={onOpenJeonseSafety}
-          onOpenMortgage={onOpenMortgage}
-          onOpenSellTimingCalculator={onOpenSellTimingCalculator}
-        />
+        <ErrorBoundary name="부동산 진단 툴킷">
+          <MacroUtilityCards
+            setIsQuizOpen={setIsQuizOpen}
+            onOpenJeonseSafety={handleOpenJeonseSafety}
+            onOpenMortgage={handleOpenMortgage}
+            onOpenSellTimingCalculator={handleOpenSellTiming}
+          />
+        </ErrorBoundary>
       </div>
 
-      <AptFitFinder
-        sheetApartments={sheetApartments}
-        txSummaryData={txSummaryData}
-        nameMapping={nameMapping || EMPTY_OBJECT}
-        publicRentalSet={publicRentalSet}
-        fieldReportsMap={fieldReportsMap}
-        onSelectApt={onSelectApt || (() => {})}
-        isOpen={isQuizOpen}
-        onClose={() => setIsQuizOpen(false)}
-        locationScores={locationScores || EMPTY_OBJECT}
-      />
+      <ErrorBoundary name="맞춤 단지 찾기">
+        <AptFitFinder
+          sheetApartments={sheetApartments}
+          txSummaryData={txSummaryData}
+          nameMapping={nameMapping || EMPTY_OBJECT}
+          publicRentalSet={publicRentalSet}
+          fieldReportsMap={fieldReportsMap}
+          onSelectApt={onSelectApt || NOOP_FN}
+          isOpen={isQuizOpen}
+          onClose={handleCloseQuiz}
+          locationScores={locationScores || EMPTY_OBJECT}
+        />
+      </ErrorBoundary>
 
       {/* Retention Care Briefing Popup Modal */}
       <MacroBriefingModal
