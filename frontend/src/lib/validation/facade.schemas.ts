@@ -192,9 +192,9 @@ export const googleNewsItemSchema = z.object({
 export const noticeSchema = z.object({
   id: z.string(),
   originalId: z.string().optional(),
-  title: z.string().optional(),
-  url: z.string().optional(),
-  dept: z.string().optional(),
+  title: z.string(),
+  url: z.string(),
+  dept: z.string(),
   date: z.string(),
   isDongtan: z.boolean(),
   source: z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture']).optional(),

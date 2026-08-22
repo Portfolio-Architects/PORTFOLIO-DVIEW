@@ -8,9 +8,9 @@
 export interface NoticeItem {
   id: string;
   originalId?: string;
-  title?: string;
-  url?: string;
-  dept?: string;
+  title: string;
+  url: string;
+  dept: string;
   date: string;
   isDongtan: boolean;
   source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';

@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { getLocalNotices } from '@/lib/services/newsData';
+import { getLocalNotices, loadFallbackNotices } from '@/lib/services/newsData';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 
@@ -47,14 +47,15 @@ export async function GET(request: NextRequest) {
     );
   } catch (error: unknown) {
     logger.error('LocalNoticesAPI.GET', 'Error fetching local notices', {}, error as Error);
-    return apiSuccess({
-      notices: [],
-      lastUpdated: null,
+    const fallback = loadFallbackNotices();
+    const fallbackPayload = {
+      notices: fallback,
+      lastUpdated: new Date().toISOString(),
       source: 'fallback_error',
-    }, {
-      notices: [],
-      lastUpdated: null,
-      source: 'fallback_error',
+      fromFallback: true,
+    };
+    return apiSuccess(fallbackPayload, {
+      ...fallbackPayload,
       error: 'Failed to fetch local notices',
     });
   }

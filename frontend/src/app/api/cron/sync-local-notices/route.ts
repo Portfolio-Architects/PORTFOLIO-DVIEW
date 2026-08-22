@@ -558,14 +558,16 @@ export async function GET(request: NextRequest) {
           if (idx === 0) return;
 
           const tds = $(tr).find('td');
-          if (tds.length < 5) return;
+          if (tds.length < 4) return;
 
           const originalId = $(tds[0]).text().trim();
           const titleEl = $(tds[2]);
           const title = titleEl.text().trim().replace(/\s+/g, ' ');
           const link = (titleEl.find('a').attr('href') || '').trim();
-          const dept = $(tds[3]).text().trim();
-          const date = $(tds[4]).text().trim();
+          const dept = (tds.length >= 6 ? $(tds[4]).text().trim() : $(tds[3]).text().trim()) || '트램건설추진단';
+          const rawDate = tds.length >= 6 ? $(tds[5]).text().trim() : $(tds[4]).text().trim();
+          const dateMatch = rawDate.match(/\d{4}-\d{2}-\d{2}/);
+          const date = dateMatch ? dateMatch[0] : rawDate;
 
           if (originalId && title && link) {
             const absoluteUrl = link.startsWith('http') 
@@ -642,40 +644,38 @@ export async function GET(request: NextRequest) {
             if (idx === 0) return;
 
             const tds = $(tr).find('td');
-            if (tds.length < 5) return;
+            if (tds.length < 4) return;
 
             const originalId = $(tds[0]).text().trim();
             const titleEl = $(tds[2]);
             const title = titleEl.text().trim().replace(/\s+/g, ' ');
             const link = (titleEl.find('a').attr('href') || '').trim();
-            const dept = $(tds[3]).text().trim();
-            const date = $(tds[4]).text().trim();
+            const rawDate = tds.length >= 5 ? $(tds[4]).text().trim() : $(tds[3]).text().trim();
+            const dateMatch = rawDate.match(/\d{4}-\d{2}-\d{2}/);
+            const date = dateMatch ? dateMatch[0] : rawDate;
 
             if (originalId && title && link) {
-              const isDongtan = checkIfDongtan(title, dept);
-              if (isDongtan) {
-                const absoluteUrl = link.startsWith('http') 
-                  ? link 
-                  : `https://www.hscity.go.kr${link}`;
+              const absoluteUrl = link.startsWith('http') 
+                ? link 
+                : `https://www.hscity.go.kr${link}`;
 
-                const item = {
-                  id: `dong_${deptItem.code}_${originalId}`,
-                  originalId,
-                  title,
-                  url: absoluteUrl,
-                  dept,
-                  date,
-                  isDongtan: true,
-                  source: 'dong' as const,
-                  createdAt: new Date().toISOString()
-                };
+              const item = {
+                id: `dong_${deptItem.code}_${originalId}`,
+                originalId,
+                title,
+                url: absoluteUrl,
+                dept: deptItem.name,
+                date,
+                isDongtan: true,
+                source: 'dong' as const,
+                createdAt: new Date().toISOString()
+              };
 
-                const parsedItem = noticeItemSchema.safeParse(item);
-                if (parsedItem.success) {
-                  notices.push(parsedItem.data);
-                } else {
-                  logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 4)', { errors: parsedItem.error.format() });
-                }
+              const parsedItem = noticeItemSchema.safeParse(item);
+              if (parsedItem.success) {
+                notices.push(parsedItem.data);
+              } else {
+                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 4)', { errors: parsedItem.error.format() });
               }
             }
           });
@@ -719,38 +719,37 @@ export async function GET(request: NextRequest) {
           const aTag = titleEl.find('a');
           if (aTag.length === 0) return;
 
-          const onclick = aTag.attr('onclick') || '';
-          const idMatch = onclick.match(/opGosiView\('([^']+)'\)/);
+          const linkAttr = aTag.attr('href') || aTag.attr('onclick') || '';
+          const idMatch = linkAttr.match(/opGosiView\('([^']+)'\)/);
           if (!idMatch) return;
 
           const originalId = idMatch[1];
           const title = titleEl.text().trim().replace(/\s+/g, ' ');
           const dept = $(tds[2]).text().trim();
-          const date = $(tds[3]).text().trim();
+          const rawDate = $(tds[3]).text().trim();
+          const dateMatch = rawDate.match(/\d{4}-\d{2}-\d{2}/);
+          const date = dateMatch ? dateMatch[0] : rawDate;
 
           if (originalId && title) {
-            const isDongtan = checkIfDongtan(title, dept);
-            if (isDongtan) {
-              const absoluteUrl = `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`;
+            const absoluteUrl = `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`;
 
-              const item = {
-                id: `gosi_${originalId}`,
-                originalId,
-                title,
-                url: absoluteUrl,
-                dept,
-                date,
-                isDongtan: true,
-                source: 'gosi' as const,
-                createdAt: new Date().toISOString()
-              };
+            const item = {
+              id: `gosi_${originalId}`,
+              originalId,
+              title,
+              url: absoluteUrl,
+              dept: dept || '화성시청',
+              date,
+              isDongtan: true,
+              source: 'gosi' as const,
+              createdAt: new Date().toISOString()
+            };
 
-              const parsedItem = noticeItemSchema.safeParse(item);
-              if (parsedItem.success) {
-                notices.push(parsedItem.data);
-              } else {
-                logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 2)', { errors: parsedItem.error.format() });
-              }
+            const parsedItem = noticeItemSchema.safeParse(item);
+            if (parsedItem.success) {
+              notices.push(parsedItem.data);
+            } else {
+              logger.warn('SyncLocalNoticesAPI.GET', 'Invalid scraped notice item (Source 2)', { errors: parsedItem.error.format() });
             }
           }
         });

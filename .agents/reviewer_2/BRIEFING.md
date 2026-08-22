@@ -1,51 +1,57 @@
-# BRIEFING — 2026-08-12T12:13:00Z
+# BRIEFING — 2026-08-22T04:11:00Z
 
 ## Mission
-Perform Code Review and Adversarial Review for Requirement R2 (Apt Lab right chart data integration, default selection effect, decoupling selectedAptSummary from chart data, TimelineItemCard selection highlight, fallback indicators) in `frontend/src/components/MacroDashboardClient.tsx`.
+Adversarial quality review and stress-testing of Milestones M1-M4 (Hwaseong & Dongtan administrative notice data normalization).
 
 ## 🔒 My Identity
-- Archetype: reviewer / critic
+- Archetype: reviewer_critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_2
-- Original parent: d609439f-5a37-40dd-a6ab-b033ee08bb24
-- Milestone: Requirement R2 code review
-- Instance: 1 of 1
+- Original parent: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
+- Milestone: M1-M4 Review
+- Instance: 2 of 2
 
 ## 🔒 Key Constraints
-- Review-only — do NOT modify implementation code directly
-- Must verify all implementation requirements for Requirement R2
-- Must check for integrity violations (hardcoding, shortcuts, facade implementations, dummy data)
-- Must run build and test checks in `frontend/`
+- Review-only — do NOT modify implementation code
+- Evidence-based review with integrity verification (no hardcoding, facade, unhandled exceptions)
+- Independent verification through automated testing and code inspection
 
 ## Current Parent
-- Conversation ID: d609439f-5a37-40dd-a6ab-b033ee08bb24
-- Updated: 2026-08-12T12:13:00Z
+- Conversation ID: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
+- Updated: 2026-08-22T04:11:00Z
 
 ## Review Scope
-- **Files to review**: `frontend/src/components/MacroDashboardClient.tsx`
-- **Interface contracts**: Requirement R2 specs:
-  - Default apartment selection effect when selectedApt is empty
-  - Decoupling selectedAptSummary from chart data rendering (rendering full timeline/favorite chart data even when no specific apartment is selected or fallback behavior)
-  - TimelineItemCard selection highlight (visual feedback when selected)
-  - Fallback indicators when data is empty/loading
-- **Review criteria**: Correctness, completeness, styling, responsiveness, integrity violations, test results
-
-## Review Checklist
-- **Items reviewed**: `MacroDashboardClient.tsx`, `TimelineItemCardRender.test.tsx`, Jest Test Suite (51 suites, 358 tests)
-- **Verdict**: APPROVE
-- **Unverified claims**: None (Jest passed 51/51 suites)
-
-## Attack Surface
-- **Hypotheses tested**: Checked default selection effect with empty/populated favorites, session user switch, tx data 404/fallback behavior, card selection string normalization, memoized re-renders
-- **Vulnerabilities found**: None
-- **Untested angles**: None
+- **Files reviewed**:
+  - `frontend/scripts/fetch-local-notices.js`
+  - `frontend/src/app/api/cron/sync-local-notices/route.ts`
+  - `frontend/src/lib/services/newsData.ts`
+  - `frontend/src/lib/repositories/news.repository.ts`
+  - `frontend/src/app/api/local-notices/route.ts`
+  - `frontend/src/app/api/bypass-notice/route.ts`
+  - `frontend/src/app/lounge/page.tsx`
+  - `frontend/src/components/LoungeContainerClient.tsx`
+  - `frontend/src/components/LoungeFeedClient.tsx`
+  - `frontend/public/data/local-notices-backup.json`
+  - `frontend/src/__tests__/local-notices-e2e.test.tsx`
+  - `frontend/src/components/LoungeFeedClient.test.tsx`
 
 ## Key Decisions Made
-- Issued verdict **APPROVE** after validating code implementation, running Jest test suite (358 tests passed), verifying fallback UI indicators, and documenting findings in `handoff.md`.
+- [Verdict] Issued **APPROVE** verdict for Milestones M1-M4.
+- [Integrity] Confirmed zero integrity violations, no hardcoded test result comparisons, genuine parsing and repository layers.
+- [Security] Verified domain whitelist, protocol validation, XSS prevention, and rate limiting in `/api/bypass-notice`.
+- [Testing] Verified 95/95 E2E tests and 3/3 component unit tests pass with 100% success rate.
 
 ## Artifact Index
-- `.agents/reviewer_2/ORIGINAL_REQUEST.md` — Original request log
-- `.agents/reviewer_2/DISPATCH.md` — Dispatch message log
-- `.agents/reviewer_2/BRIEFING.md` — Active working briefing
-- `.agents/reviewer_2/progress.md` — Liveness heartbeat log
-- `.agents/reviewer_2/handoff.md` — Final review handoff report
+- `.agents/reviewer_2/DISPATCH.md` — Incoming dispatch log
+- `.agents/reviewer_2/BRIEFING.md` — Working memory
+- `.agents/reviewer_2/progress.md` — Progress log
+- `.agents/reviewer_2/handoff.md` — Complete review & adversarial challenge report
+
+## Review Checklist
+- **Items reviewed**: M1 (Scraper pipeline), M2 (Repository/API/Bypass), M3 (SSR prop hydration/UI feed/tabs), M4 (Resilient fallback system)
+- **Verdict**: APPROVE
+- **Unverified claims**: None (all verified empirically)
+
+## Attack Surface
+- **Hypotheses tested**: Open redirect in bypass proxy (mitigated via whitelist), XSS in meta refresh (mitigated via HTML escape), Firestore outage (mitigated via fallback envelope), React memory leak (mitigated via listener cleanup and AbortControllers).
+- **Vulnerabilities found**: None remaining.

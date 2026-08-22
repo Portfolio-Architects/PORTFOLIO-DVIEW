@@ -1,322 +1,261 @@
-# Domain & Types Layer Comprehensive Survey Report (Milestone 1 Survey)
+# [D-VIEW] Hwaseong City Hall & Dongtan Administrative Notices Crawling/Parsing Pipeline Analysis
 
-**Agent**: Explorer 1 (`explorer_survey_1`)  
-**Target Codebase**: `frontend/src/`  
-**Date**: 2026-08-21  
-**Status**: Complete & Verified (tsc check passes with 0 errors)
+**Investigation Date**: 2026-08-22  
+**Target Scope**: Hwaseong City Hall administrative network notices crawler, scrapers (BBS 1019, BD_notice, BBS 1131, BBS 1154, BBS 1049 Dongtan 1~9), batch scripts (`fetch-local-notices.js`), sync routes (`sync-local-notices/route.ts`), repository & data layer (`news.repository.ts`, `newsData.ts`), API endpoints (`/api/local-notices`, `/api/bypass-notice`), and UI client rendering (`LoungeFeedClient.tsx`, `LoungeContainerClient.tsx`).
 
 ---
 
-## Executive Summary
+## 1. Executive Summary & Architecture Flow
 
-A comprehensive, read-only survey of the Domain & Types layer and overall Type Safety across the `frontend/` codebase was conducted. The survey revealed that while TypeScript strict mode is enabled in `tsconfig.json`, type definitions are heavily fragmented, duplicated, and mislocated across `src/lib/types/`, `src/lib/validation/`, `src/lib/utils/`, page routes, and UI components. Furthermore, several untyped `any` leaks, unsafe type assertions, and presentation leaks (e.g., React JSX nodes / Lucide icons in domain interfaces) violate the architectural layer boundaries defined in `ORIGINAL_REQUEST.md`.
+The D-VIEW local administrative notice pipeline automates the ingestion, normalization, indexing, and presentation of municipal notices, transportation updates, district-level administrative news, and cultural events across the Dongtan new town region.
 
-This report provides an exhaustive inventory of domain entities, value objects, DTOs, API contracts, duplicates, `any` occurrences, and tsconfig evaluation, concluding with a blueprint for a centralized domain model in `src/types/` and a zero-regression migration roadmap for Milestone 1.
-
----
-
-## 1. tsconfig.json & TypeScript Strictness Review
-
-### 1.1 Current Configuration (`frontend/tsconfig.json`)
-
-```json
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [{ "name": "next" }],
-    "types": ["jest", "node"],
-    "baseUrl": ".",
-    "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    "**/*.mts",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
-  ],
-  "exclude": [
-    "node_modules",
-    "tests",
-    "playwright.config.ts",
-    "**/*.test.ts",
-    "**/*.test.tsx",
-    "jest.setup.ts"
-  ]
-}
-```
-
-### 1.2 Evaluation & Strictness Gaps
-
-| Setting | Current Status | Assessment & Recommendation |
-|---|---|---|
-| `strict: true` | Enabled | Covers `noImplicitAny`, `strictNullChecks`, `strictFunctionTypes`, `strictBindCallApply`, `strictPropertyInitialization`, `noImplicitThis`, `alwaysStrict`. Baseline check `npx tsc --noEmit` passes with 0 errors. |
-| `noUncheckedIndexedAccess` | **Disabled** (default false) | **High Risk**: Object and array lookups (e.g. `Record<string, T>[key]` or `arr[0]`) return `T` instead of `T \| undefined`. Enabling this during Milestone 1 would prevent runtime `TypeError: undefined is not an object` errors in data transformation pipelines. |
-| `exactOptionalPropertyTypes` | **Disabled** | Optional properties allow `undefined` explicitly. Keep as-is for now to prevent widespread breaks with Zod schemas. |
-| `noImplicitOverride` | **Disabled** | Class-based strategies (e.g. `FirebaseDashboardDataStrategy`) do not enforce `override` keyword. Recommended to enable for clean OOP contracts. |
-| `noFallthroughCasesInSwitch` | **Disabled** | Recommended to enable for switch statements in parsers/reducers. |
-| `paths` | Single alias `@/*` | Only `@/*` is mapped. Recommending domain sub-aliases or clean module boundaries such as `@/types/*` for centralized domain imports. |
-| `exclude` | Excludes test files | Unit tests are checked separately by Jest/ts-jest. The production build compilation strictly checks `src/`. |
-
----
-
-## 2. Inventory of Domain Entities, Value Objects, DTOs & API Contracts
-
-### 2.1 Domain Entities
-
-| Entity | Primary Attributes | Current Locations |
-|---|---|---|
-| **ApartmentComplex** | `id`, `name`, `dong`, `brand`, `householdCount`, `yearBuilt`, `far`, `bcr`, `parkingPerHousehold`, `parkingCount`, `maxFloor`, `minFloor`, `lat`, `lng`, `txKey`, `isPublicRental` | `src/lib/dong-apartments.ts`<br>`src/lib/apartment-data.ts`<br>`src/lib/validation/facade.schemas.ts` |
-| **Transaction / TransactionRecord** | `aptName`, `dong`, `dealType`, `contractYm`, `contractDay`, `contractDate`, `price`, `priceEok`, `deposit`, `monthlyRent`, `area`, `areaPyeong`, `floor`, `buildYear`, `buyer`, `seller`, `roadName`, `cancelDate`, `isOutlier`, `reqGb`, `rnuYn` | `src/lib/types/transaction.ts`<br>`src/hooks/useApartmentDetails.ts`<br>`src/hooks/useStaticData.ts`<br>`src/app/apartment/[aptName]/page.tsx` |
-| **FieldReport / ScoutingReport** | `id`, `dong`, `apartmentName`, `thumbnailUrl`, `images`, `metrics`, `sections`, `premiumScores`, `premiumContent`, `isPremium`, `likes`, `commentCount`, `viewCount`, `authorUid`, `author`, `scoutingDate`, `createdAt`, `updatedAt` | `src/lib/types/report.types.ts`<br>`src/lib/types/scoutingReport.ts`<br>`src/lib/validation/facade.schemas.ts` |
-| **LoungePost / Post** | `id`, `title`, `content`, `category`, `author`, `authorUid`, `imageUrl`, `likes`, `views`, `commentCount`, `verifiedApartment`, `verificationLevel`, `createdAt` | `src/lib/types/dashboard.types.ts`<br>`src/lib/repositories/post.repository.ts`<br>`src/components/LoungeContainerClient.tsx` |
-| **Comment (Report & Lounge)** | `id`, `text`, `author`, `authorUid`, `apartmentName`, `createdAt` | `src/lib/types/report.types.ts`<br>`src/components/LoungeDetailClient.tsx`<br>`src/lib/repositories/comment.repository.ts` |
-| **UserReview** | `id`, `apartmentName`, `dong`, `rating`, `content`, `photoURL`, `author`, `authorUid`, `verifiedApartment`, `verificationLevel`, `likes`, `createdAt` | `src/lib/types/review.types.ts`<br>`src/lib/repositories/review.repository.ts` |
-| **UserProfile** | `nickname`, `hasSetNickname`, `photoURL`, `verifiedApartment`, `verificationLevel`, `createdAt`, `uploaderPoints`, `uploaderTier` | `src/lib/types/user.types.ts`<br>`src/lib/repositories/user.repository.ts` |
-| **JisanCenter / CenterSpec / JisanBuilding** | `name`, `companyName`, `regType`, `complexName`, `status`, `landArea`, `buildingArea`, `totalFloorArea`, `roadAddress`, `developer`, `builder`, `unitCount`, `tenants`, `baselineVacancy` | `src/app/api/technovalley/center-specs/route.ts`<br>`src/app/api/technovalley/trend/route.ts`<br>`src/lib/services/googleSheets.ts`<br>`src/lib/validation/facade.schemas.ts` |
-| **LocalNotice / Notice** | `id`, `title`, `url`, `dept`, `date`, `isDongtan`, `source`, `createdAt`, `content` | `src/app/api/cron/sync-local-notices/route.ts`<br>`src/components/LocalEventCuration.tsx`<br>`src/app/news/NewsClient.tsx`<br>`src/lib/validation/facade.schemas.ts` |
-| **AdInquiry & Subscription** | `id`, `companyName`, `contactInfo`, `message`, `email`, `realtime`, `weekly`, `status`, `createdAt`, `updatedAt` | `src/app/admin/inquiries/page.tsx` |
-
----
-
-### 2.2 Value Objects & Quantitative Domain Models
-
-| Value Object | Description & Key Fields | Current Locations |
-|---|---|---|
-| **ObjectiveMetrics** | 25+ quantitative spatial and facility distance metrics (`distanceToElementary`, `distanceToSubway`, `distanceToStarbucks`, `academyDensity`, `restaurantDensity`, etc.) | `src/lib/types/scoutingReport.ts`<br>`src/lib/validation/facade.schemas.ts`<br>`src/lib/utils/valuationEngine.ts` |
-| **PremiumScores & ScoreBreakdown** | Composite scoring structure with dimension weights (`education`, `transport`, `livingComfort`, `complex`, `lifestyle`, `totalScore`, `details`) | `src/lib/utils/scoring.ts`<br>`src/lib/validation/facade.schemas.ts` |
-| **ValuationResult & ValuationBreakdown** | PUR (Price-to-Utility Ratio), DCF implied value, cap rate, discount rate, estimated yield, fair value gap, investment grade | `src/lib/utils/valuation.ts`<br>`src/lib/utils/valuationEngine.ts` |
-| **VerdictResult & TaxResult** | AI Sell Timing score ('호구 지수'), rotation rate, capital gains tax breakdown (`transferProfit`, `taxableBase`, `computedTax`, `localTax`, `totalTax`, `isTaxFree`) | `src/lib/utils/sellTimingEngine.ts` |
-| **AcquisitionCostResult & MortgageLoanResult** | Acquisition tax, brokerage fee, equal principal & interest monthly payment, amortization schedule | `src/lib/utils/calculatorEngines.ts` |
-| **MacroEnvironment & SupplyPipeline** | Macro risk-free rate, funding cost, COFIX, jeonse conversion rate, inflation, expected move-in volume, historical avg volume | `src/lib/types/macro.types.ts`<br>`src/lib/utils/valuationEngine.ts` |
-| **AptTxSummary & PyeongSummary** | Aggregated price metrics (`latestPrice`, `latestPriceEok`, `avg1MPrice`, `avg3MPrice`, `maxPrice`, `minPrice`, `txCount`, `recent`) | `src/lib/types/transaction.ts`<br>`src/app/apartment/[aptName]/page.tsx`<br>`src/lib/validation/facade.schemas.ts` |
-| **ImageMeta & PhotoItem** | Image metadata with location tags, EXIF capturedAt timestamp, isPremium flag, caption, uploader info | `src/lib/types/scoutingReport.ts`<br>`src/lib/types/report.types.ts`<br>`src/lib/validation/facade.schemas.ts` |
-
----
-
-### 2.3 API Envelopes, DTOs & Contracts
-
-| Contract / DTO | Purpose & Signature | File Location |
-|---|---|---|
-| `ApiResponse<T>` | Standard response union: `ApiSuccessResponse<T> \| ApiErrorResponse` | `src/lib/api/apiResponse.ts` |
-| `ApiSuccessResponse<T>` | `{ success: true, data: T, source?: string, message?: string }` | `src/lib/api/apiResponse.ts` |
-| `ApiErrorResponse` | `{ success: false, error: string, code?: string, message?: string, details?: unknown }` | `src/lib/api/apiResponse.ts` |
-| `InitialPageData` | Composite SSR payload for `/overview` and `/` (`favoriteCounts`, `typeMap`, `apartmentMeta`, `sheetApartments`, `fieldReports`, `kpis`, `macroTrend`, `txSummary`, `recent7DaysVolume`, `recentTransactions`) | `src/lib/validation/facade.schemas.ts:673`<br>`src/lib/services/dashboardData.ts` |
-| `JisanStatusResponse` | `{ success: boolean, total: number, completedCount: number, underConstructionCount: number, notStartedCount: number, centers: JisanStatusItem[] }` | `src/lib/validation/facade.schemas.ts:114` |
-| `CenterSpecsResponse` | Specs, curated tenant lists, and floor areas for 지식산업센터 | `src/app/api/technovalley/center-specs/route.ts` |
-| `TrendResponse` | Jisan price/rent trends over time (`TrendRecord[]`) | `src/app/api/technovalley/trend/route.ts` |
-| `TypeMapResponse` | Type mapping entries (`TypeMapItem[]` / `TypeMapEntry[]`) | `src/lib/services/googleSheets.ts`<br>`src/app/api/type-map/route.ts` |
-
----
-
-## 3. Detailed Audit of Duplications, Inconsistencies & Type Safety Defects
-
-### 3.1 Type Definition Duplication Matrix
+### End-to-End Data Pipeline Architecture
 
 ```
-[Problem: Fragmented Single-Source-of-Truth]
-             ┌───────────────────────────────┐
-             │   Apartment Model (5 defs)    │
-             ├───────────────────────────────┤
-             │ • DongApartment (dong-apts.ts)│
-             │ • StaticApartment (apt-data)  │
-             │ • StaticApartment (Dashboard) │
-             │ • AptMeta (admin/page.tsx)    │
-             │ • DongApartmentSchema (facade)│
-             └───────────────────────────────┘
-                            │
-             ┌──────────────┴────────────────┐
-             │   Transaction Model (8 defs)  │
-             ├───────────────────────────────┤
-             │ • RecentTx (transaction.ts)   │
-             │ • RecentTransaction (trans.ts)│
-             │ • TransactionRecord (useApt)  │
-             │ • RawTransactionRecord (useApt│
-             │ • Transaction (apt/[name])    │
-             │ • Transaction (cron/notify)   │
-             │ • HomeTransactionRecord (over)│
-             │ • FirestoreTransaction (static│
-             └───────────────────────────────┘
+                                  [ External Targets ]
+  ┌─────────────────────────────────┬─────────────────────────────────┬───────────────────────────────┐
+  │ Hwaseong BBS 1019 (타기관공고)   │ Hwaseong BD_notice (시정고시공고) │ Hwaseong BBS 1131 (철도사업)   │
+  │ Hwaseong BBS 1154 (트램추진현황) │ Hwaseong BBS 1049 (동탄1~9동)     │ D-VIEW Hyperlocal Culture Gen │
+  └─────────────────────────────────┴─────────────────────────────────┴───────────────────────────────┘
+                                                  │
+                                                  ▼
+                        ┌──────────────────────────────────────────────────┐
+                        │   Ingestion & Scraping Pipeline (Cheerio/Fetch)  │
+                        │   - scripts/fetch-local-notices.js (Batch CLI)   │
+                        │   - api/cron/sync-local-notices/route.ts (Cron)  │
+                        └──────────────────────────────────────────────────┘
+                                                  │
+                                      [ Zod Schema Validation ]
+                                                  │
+                                                  ▼
+                         ┌────────────────────────────────────────────────┐
+                         │              Storage & Caching Layer           │
+                         │   1. Firestore (`local_notices` collection)    │
+                         │   2. Redis Cache (`DTDLS:cache:localNotices:*`)│
+                         │   3. Static Fallback (`local-events.json` etc) │
+                         └────────────────────────────────────────────────┘
+                                                  │
+                                                  ▼
+                         ┌────────────────────────────────────────────────┐
+                         │             Repository & Service Layer         │
+                         │   - news.repository.ts (Firestore / Redis I/O) │
+                         │   - newsData.ts (De-duplication & Ordering)    │
+                         └────────────────────────────────────────────────┘
+                                                  │
+                                                  ▼
+                         ┌────────────────────────────────────────────────┐
+                         │                  API Layer                     │
+                         │   - GET /api/local-notices                     │
+                         │   - GET /api/bypass-notice                     │
+                         └────────────────────────────────────────────────┘
+                                                  │
+                                                  ▼
+                         ┌────────────────────────────────────────────────┐
+                         │               Frontend Presentation            │
+                         │   - LoungeContainerClient.tsx (Tab Router)     │
+                         │   - LoungeFeedClient.tsx (Notice / Dong Filter)│
+                         │   - LocalEventCuration.tsx (Hyperlocal Cards)  │
+                         └────────────────────────────────────────────────┘
 ```
 
-#### Detailed Breakdown of Duplicates:
+---
 
-1. **Apartment Entities**:
-   - `src/lib/dong-apartments.ts:90`: `interface DongApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; lat?: number; lng?: number; txKey?: string; }`
-   - `src/lib/apartment-data.ts:9`: `interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }`
-   - `src/components/DashboardClient.tsx:228`: `interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }` (Exact duplicate defined inside component file!)
-   - `src/app/admin/apartments/[name]/page.tsx:41` & `src/app/admin/page.tsx:43`: `interface AptMeta { householdCount?: number; yearBuilt?: string; brand?: string; far?: number; bcr?: number; parkingPerHousehold?: number; }`
-   - `src/lib/validation/facade.schemas.ts:463`: `DongApartmentSchema`
+## 2. In-Depth Source & Scraper Markup Investigation
 
-2. **Transaction Entities & Records**:
-   - `src/lib/types/transaction.ts:1`: `interface RecentTx`
-   - `src/lib/types/transaction.ts:74`: `interface RecentTransaction`
-   - `src/hooks/useApartmentDetails.ts:13`: `interface TransactionRecord` (24 fields)
-   - `src/hooks/useApartmentDetails.ts:42`: `interface RawTransactionRecord`
-   - `src/app/apartment/[aptName]/page.tsx:53`: `interface Transaction`
-   - `src/app/api/cron/send-tx-notifications/route.ts:25`: `interface Transaction`
-   - `src/app/api/cron/sync-transactions/route.ts:124`: `type TransactionRecord = z.infer<typeof transactionRecordSchema>`
-   - `src/app/overview/page.tsx:8`: `interface HomeTransactionRecord`
-   - `src/hooks/useStaticData.ts:24`: `type FirestoreTransaction = z.infer<typeof FirestoreTransactionSchema>`
-   - `src/lib/validation/facade.schemas.ts:379`: `TransactionRecordSchema`
+We conducted live DOM and HTTP inspections against all official Hwaseong City Hall endpoints. The findings for each source are detailed below:
 
-3. **Notices and News**:
-   - `src/app/api/cron/sync-local-notices/route.ts:45`: `interface NoticeItem`
-   - `src/app/news/NewsClient.tsx:46`: `interface NoticeItem`
-   - `src/components/LoungeContainerClient.tsx:74`: `interface NoticeItem`
-   - `src/components/LocalEventCuration.tsx:8`: `interface LocalNoticeItem`
-   - `src/lib/types/dashboard.types.ts:37`: `interface NewsItemData`
-   - `src/app/news/NewsClient.tsx:37`: `interface NewsItem`
-   - `src/components/LoungeContainerClient.tsx:86`: `interface NewsItem`
+### 2.1. Source 1: 타기관 고시공고 (BBS 1019)
+- **URL**: `https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019`
+- **HTTP Status / Encoding**: `200 OK`, `Content-Type: text/html;charset=UTF-8`
+- **Table Structure**: 5 Columns:
+  1. `tds[0]`: 순번 (`originalId`, e.g. `12655`)
+  2. `tds[1]`: 첨부 파일 아이콘 / 공란
+  3. `tds[2]`: 제목 (`title`, containing `<a href="/www/user/bbs/BD_selectBbs.do?q_bbsCode=1019&q_bbscttSn=...">`)
+  4. `tds[3]`: 담당부서 (`dept`, e.g. `평생학습과`)
+  5. `tds[4]`: 등록일자 (`date`, `YYYY-MM-DD`, e.g. `2026-08-20`)
+- **ID & Source Convention**: `id: bbs_${originalId}`, `source: 'bbs'`
+- **Filtering Logic**: Evaluated via `checkIfDongtan(title, dept)` against `DONGTAN_KEYWORDS`.
 
-4. **Posts, Stories & Comments**:
-   - `src/components/LoungeContainerClient.tsx:59`: `interface Post`
-   - `src/lib/repositories/post.repository.ts:22`: `interface PostDetailData`
-   - `src/lib/repositories/post.repository.ts:36`: `interface RecentLoungeItem`
-   - `src/lib/repositories/post.repository.ts:56`: `interface DbPostDoc`
-   - `src/lib/repositories/post.repository.ts:73`: `interface ProcessablePost`
-   - `src/app/api/posts/route.ts:31`: `interface CombinedPostItem`
-   - `src/lib/types/report.types.ts:34`: `interface CommentData`
-   - `src/components/LoungeDetailClient.tsx:39`: `interface PostComment`
-   - `src/lib/repositories/post.repository.ts:90`: `interface ProcessableComment`
-   - `src/components/AptStoriesWidget.tsx:10`: `interface AptStory`
+### 2.2. Source 2: 화성시 공식 고시공고 (Gosi BD_notice) — **CRITICAL DEFECT IDENTIFIED**
+- **URL**: `https://www.hscity.go.kr/www/gosi/BD_notice.do?q_currPage=${page}&q_cp=${page}`
+- **Table Structure**: 5 Columns:
+  1. `tds[0]`: 고시공고번호 (e.g. `화성시 고시 제2026-725호`)
+  2. `tds[1]`: 제목 (`title`, containing `<a href="javascript:opGosiView('149229');">...</a>`)
+  3. `tds[2]`: 담당부서 (`dept`, e.g. `보건정책과`)
+  4. `tds[3]`: 게재(공고)일자 (`date`, `YYYY-MM-DD`, e.g. `2026-08-20`)
+  5. `tds[4]`: 게재기간
+- **Root Cause of Extraction Failure**:
+  - Both `fetch-local-notices.js` (line 418) and `sync-local-notices/route.ts` (line 723) execute:
+    ```javascript
+    const onclick = aTag.attr('onclick') || '';
+    const idMatch = onclick.match(/opGosiView\('([^']+)'\)/);
+    if (!idMatch) return;
+    ```
+  - **Direct Empirical Proof**: In the actual Hwaseong City Hall markup, `opGosiView('149229')` is in the `href` attribute (`<a href="javascript:opGosiView('149229');">`), while `aTag.attr('onclick')` is `undefined`.
+  - **Result**: `idMatch` is `null`, triggering immediate `return`. **100% of Gosi notices were dropped**, resulting in **0 records** in Firestore for `source: 'gosi'`.
+- **Required Fix**:
+  ```javascript
+  const onclick = aTag.attr('onclick') || '';
+  const href = aTag.attr('href') || '';
+  const rawTarget = `${onclick} ${href}`;
+  const idMatch = rawTarget.match(/opGosiView\('([^']+)'\)/);
+  if (!idMatch) return;
+  const originalId = idMatch[1];
+  const absoluteUrl = `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`;
+  ```
 
-5. **Type Map**:
-   - `src/lib/services/googleSheets.ts:39`: `interface TypeMapItem`
-   - `src/app/api/type-map/route.ts:13`: `interface TypeMapEntry`
-   - `src/lib/validation/facade.schemas.ts:448`: `TypeMapItemSchema`
-   - `src/app/api/type-map/route.ts:24`: `typeMapEntrySchema`
+### 2.3. Source 3: 철도사업 추진현황 (BBS 1131)
+- **URL**: `https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1131`
+- **Table Structure**: 5 Columns:
+  1. `tds[0]`: 순번 (`originalId`, e.g. `13`)
+  2. `tds[1]`: 첨부 파일 아이콘 / 공란
+  3. `tds[2]`: 제목 (`title`, e.g. `삼성~동탄 광역급행철도(GTX-A) 추진현황`)
+  4. `tds[3]`: 담당부서 (`dept`, e.g. `철도전략과`)
+  5. `tds[4]`: 등록일자 (`date`, `YYYY-MM-DD`, e.g. `2026-06-05`)
+- **ID & Source Convention**: `id: rail_${originalId}`, `source: 'rail'`, `dept: dept || '철도전략과'`, `isDongtan: true`.
 
-6. **Objective Metrics & Location Scores**:
-   - `src/lib/types/scoutingReport.ts:20`: `interface ObjectiveMetrics`
-   - `src/lib/validation/facade.schemas.ts:214`: `ObjectiveMetricsSchema`
-   - `src/lib/utils/valuationEngine.ts:27`: `ObjectiveMetricsSchema` (Re-defined separately with different transforms)
-   - `src/app/apartment/[aptName]/page.tsx:29`: `interface LocationScore`
-   - `src/lib/types/transaction.ts:62`: `interface LocationScoreItem`
+### 2.4. Source 5: 동탄트램 추진현황 (BBS 1154) — **CRITICAL DEFECT IDENTIFIED**
+- **URL**: `https://www.hscity.go.kr/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1154`
+- **Table Structure**: **6 Columns** (Distinct from 5-column boards):
+  1. `tds[0]`: 순번 (`84`)
+  2. `tds[1]`: 첨부 파일 아이콘 / 공란
+  3. `tds[2]`: 제목 (`동탄트램 추진현황(2026년 8월 3주)`)
+  4. `tds[3]`: **조회수** (`119`) ⚠️
+  5. `tds[4]`: **담당부서** (`트램건설추진단`) ⚠️
+  6. `tds[5]`: **등록일자** (`2026-08-21`) ⚠️
+- **Root Cause of Parser Defect**:
+  - `sync-local-notices/route.ts` lines 560-569 hardcoded 5-column indices:
+    ```javascript
+    const dept = $(tds[3]).text().trim(); // Extracted '119' (view count)
+    const date = $(tds[4]).text().trim(); // Extracted '트램건설추진단' (dept name)
+    ```
+  - **Impact**:
+    1. In `fetch-local-notices.js`: Zod schema `date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)` failed validation on `'트램건설추진단'`, dropping all tram notices.
+    2. In `sync-local-notices/route.ts`: It wrote `date: '트램건설추진단'` to Firestore, corrupting sorting and rendering.
+- **Required Fix**:
+  - Implement dynamic header index detection or handle 6-column tables explicitly:
+    ```javascript
+    // For 6-column table:
+    // If tds.length >= 6: tds[2] = title, tds[4] = dept, tds[5] = date
+    // Or dynamic header search: titleIdx = headers.findIndex(h => h.includes('제목')), deptIdx = headers.findIndex(h => h.includes('부서')), dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('일자'))
+    ```
+
+### 2.5. Source 4: 동탄 1~9동 동별 공지사항 (BBS 1049)
+- **URL**: `https://www.hscity.go.kr/dongtan/user/bbs/BD_selectBbsList.do?q_bbsCode=1049&q_deptCode=${code}`
+- **Dept Codes**:
+  - `57700100000`: 동탄1동
+  - `57700110000`: 동탄2동
+  - `57700120000`: 동탄3동
+  - `57700130000`: 동탄4동
+  - `57700140000`: 동탄5동
+  - `57700150000`: 동탄6동
+  - `57700160000`: 동탄7동
+  - `57700170000`: 동탄8동
+  - `57700180000`: 동탄9동
+- **Table Structure**: 5 Columns (`[순번, 첨부, 제목, 담당부서, 등록일자]`).
+- **Normalization Need**:
+  - In `LoungeFeedClient.tsx`, sub-filtering for dong notices filters by `activeDongFilter` (`동탄1동`, `동탄2동`, ..., `동탄9동`).
+  - Scraper must ensure `dept: deptItem.name` (or `parsedDept.includes('동탄') ? parsedDept : deptItem.name`), `isDongtan: true`, `source: 'dong'`, and ID format `dong_${deptItem.code}_${originalId}`.
 
 ---
 
-### 3.2 Architectural Boundary Violations
+## 3. Discrepancy & Gap Matrix: `fetch-local-notices.js` vs `sync-local-notices/route.ts`
 
-1. **Presentation Layer Leaking into Domain Types**:
-   - `src/lib/types/dashboard.types.ts:6`: `import { type ElementType } from 'react';`
-   - `src/lib/types/dashboard.types.ts:21-27`:
-     ```typescript
-     export interface KPIData {
-       mainValue: string | React.ReactNode;
-       subValue: string | React.ReactNode;
-       description: string | React.ReactNode;
-       icon: string | ElementType; // Embedding React Component in domain type!
-     }
-     export interface NewsItemData {
-       icon: ElementType; // Embedding React Component in domain type!
-     }
-     ```
-   - **Impact**: Makes domain data structures non-serializable across SSR/Client boundaries and tightly couples the domain data contract to React.
-
-2. **Runtime Logic Placed Inside Types Directory**:
-   - `src/lib/types/user.types.ts`: Contains runtime functions `getDisplayName()`, `createEmojiAvatar()`, `DEFAULT_AVATARS` array, and `getRandomDefaultAvatar()`.
-   - **Impact**: Violates "Types: zero dependencies, zero logic". Types files must contain only type definitions and interfaces.
-
-3. **Domain Contracts Mislocated in Infrastructure & Validation**:
-   - `src/types/` contains only 2 files (`global.d.ts`, `modules.d.ts`). All actual domain types are scattered in `src/lib/types/`, `src/lib/validation/`, and `src/lib/repositories/`.
-
----
-
-### 3.3 Untyped `any` Usages & Unsafe Assertions Inventory
-
-| File Path | Line Number | Exact Code Snippet | Category / Risk |
+| Feature / Property | `scripts/fetch-local-notices.js` | `api/cron/sync-local-notices/route.ts` | Discrepancy / Risk |
 |---|---|---|---|
-| `src/lib/validation/facade.schemas.ts` | 6 | `export const IsomorphicFileSchema = z.custom<any>((val) => ...` | Schema `any` bypass |
-| `src/lib/validation/facade.schemas.ts` | 150-153 | `mainValue: z.any()`, `subValue: z.any()`, `description: z.any()`, `icon: z.any()` | Weak Zod schema validation |
-| `src/lib/validation/facade.schemas.ts` | 291 | `premiumScores: z.any().optional()` | Unchecked scoring schema |
-| `src/lib/validation/facade.schemas.ts` | 299, 303 | `sections: z.any()`, `file: z.any()` | Untyped form input payload |
-| `src/lib/validation/facade.schemas.ts` | 320 | `sections: z.record(z.string(), z.any())` | Untyped dictionary payload |
-| `src/lib/repositories/post.repository.ts` | 431 | `rawStories: any[],` | Untyped DB query result |
-| `src/components/MindMap3D.tsx` | 34 | `sheetApartments: Record<string, any[]>;` | Untyped component prop |
-| `src/components/MindMap3D.tsx` | 35 | `txSummaryData: Record<string, any>;` | Untyped summary dictionary |
-| `src/components/MindMap3D.tsx` | 47 | `const zoomHintTimeout = useRef<any>(null);` | `NodeJS.Timeout \| number` typed as `any` |
-| `src/components/OfficeExplorerClient.tsx` | 340 | `function calculateJisanScore(item: any, existingScore?: number): number` | Untyped business parameter |
-| `src/components/OfficeExplorerClient.tsx` | 454 | `const centers: any[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];` | Untyped array fallback |
-| `src/components/apartment-modal/TransactionChartSection.tsx` | 32 | `const TransactionChartTooltip = React.memo(({ active, payload }: any) => {` | Recharts tooltip payload `any` |
-| `src/components/apartment-modal/TransactionChartSection.tsx` | 84, 86, 87 | `}: any) => { ... const xAx = Object.values(xAxisMap)[0] as any;` | Unsafe chart axis type assertion |
-| `src/components/apartment-modal/TransactionChartSection.tsx` | 91 | `{displayScatterData.map((d: any, i: number) => {` | Untyped scatter plot data point |
-| `src/components/apartment/ApartmentModalKakaoCard.tsx` | 8 | `transactions?: any[];` | Untyped modal prop |
-| `src/components/apartment/ApartmentModalPriceSummary.tsx` | 9 | `transactions?: any[];` | Untyped modal prop |
-| `src/components/apartment/ApartmentModalTransactionsTable.tsx` | 11 | `filteredTransactions: any[];` | Untyped table prop |
-| `src/components/TossApartmentExploreClient.tsx` | 92 | `data: null as any[] | null,` | Untyped initial state |
-| `src/components/admin/report-editor/ImageUploadSection.tsx` | 38 | `const fieldsRef = useRef<any[]>([]);` | Untyped ref array |
-| `src/app/admin/page.tsx` | 38 | `function autoSuggest(aptName: string, TX_SUMMARY: Record<string, any>): string | null` | Untyped admin helper |
-| `src/app/api/transaction-summary/route.ts` | 10, 12 | `async function getTxSummary(): Promise<Record<string, any>>` | Untyped API route response |
-| `src/app/explore/ExploreClient.tsx` | 200 | `const EMPTY_OBJECT: Record<string, any> = {};` | Untyped fallback object |
-| `src/app/lounge/[id]/page.tsx` | 93 | `let initialPost: Record<string, any> | undefined = undefined;` | Untyped SSR post state |
-| `src/app/news/NewsClient.tsx` | 111 | `icon: React.ComponentType<any>;` | Untyped React icon component |
-| `src/components/OfficeDetailModal.tsx` | 328, 535 | `onClick={() => setActiveTab(tab.id as any)}`, `setTxFilter(f.id as any)` | Unsafe enum/tab type casting |
+| **Zod Schema `source` Enum** | `['bbs', 'rail', 'dong', 'gosi']` (Missing `'culture'`) | `['bbs', 'gosi', 'rail', 'dong', 'culture']` | `fetch-local-notices.js` rejects any culture notices |
+| **Culture Event Generation** | ❌ Not implemented | ✅ `generateCultureEvents()` implemented | GitHub Actions batch script does not ingest culture data |
+| **AI Market Report Generation** | ❌ Not implemented | ✅ `generateAIReports(TX_SUMMARY)` | GitHub Actions batch script does not ingest AI reports |
+| **BBS 1154 (Tram) Column Handling** | Dynamic headers attempted, but fragile | Hardcoded 5 columns (`tds[3]` dept, `tds[4]` date) | Corrupted date / Zod validation failure |
+| **Gosi (`BD_notice`) ID Extraction** | Only `onclick.match(...)` | Only `onclick.match(...)` | 100% data loss (opGosiView is in `href`) |
+| **BBS 1049 Dong Filtering** | Uses `checkIfDongtan(title, dept)` | Uses `checkIfDongtan(title, dept)` | May omit notices lacking dong keywords |
+| **Timeout Configuration** | 5000ms | 3000ms | 3000ms may trigger timeout on slow portal responses |
+| **Redis Cache Invalidation** | Invalidates `DTDLS:cache:localNotices:filterDongtan:*` | Invalidates `DTDLS:cache:localNotices:filterDongtan:*` | Consistent |
+| **WAF Protection / Cooldown** | None (CLI) | 30s development cooldown + rate limiter | API protected from rapid dev reload locks |
 
 ---
 
-## 4. Proposed Centralized Domain Model Architecture (Milestone 1)
+## 4. Storage, Repository, & API Analysis
 
-### 4.1 Target Directory Layout (`src/types/`)
+### 4.1. Firestore Current Data Distribution
+Live inspection via Firestore REST API revealed:
+- `source: 'bbs'`: 15 documents
+- `source: 'gosi'`: **0 documents** (due to `onclick` vs `href` bug)
+- `source: 'rail'`: 81 documents
+- `source: 'dong'`: 184 documents
+- `source: 'culture'`: **0 documents** in Firestore (only exists in static/runtime)
 
-Consolidate all type definitions and domain contracts into `src/types/` organized by business domain with clear submodules and zero UI/presentation dependencies:
+### 4.2. Repository (`news.repository.ts`) & Service (`newsData.ts`) Layer
+- **Query Pattern**:
+  ```typescript
+  let cityQuery = localDb.collection('local_notices').where('source', 'in', ['gosi', 'bbs']);
+  let railQuery = localDb.collection('local_notices').where('source', '==', 'rail');
+  let cultureQuery = localDb.collection('local_notices').where('source', '==', 'culture');
+  let dongQuery = localDb.collection('local_notices').where('source', '==', 'dong');
+  ```
+- **Sorting & Limits**:
+  - `cityQuery.limit(150)`, `railQuery.limit(150)`, `cultureQuery.limit(150)`, `dongQuery.limit(400)`.
+  - In-memory sorting: `b.date.localeCompare(a.date)` in `getTopN`.
+  - **Observation**: If records exceed the limit, without `.orderBy('date', 'desc')` in Firestore, Firestore returns docs ordered by Document ID, potentially cutting off newer records.
+- **De-duplication**:
+  - De-duplicates by `${title}_${date}` and `urlKey`.
+  - Prefers prefixed document IDs (`bbs_`, `gosi_`, `dong_`, `rail_`).
 
-```
-src/types/
-├── index.ts                 # Central public re-export barrel
-├── api.ts                   # ApiResponse<T>, ApiSuccessResponse, ApiErrorResponse, standard envelopes
-├── apartment.ts             # ApartmentComplex, DongApartment, StaticApartment, AptMeta, TypeMapItem
-├── transaction.ts           # TransactionRecord, RecentTx, RecentTransaction, AptTxSummary, PyeongSummary
-├── report.ts                # FieldReportData, ScoutingReport, ReportSections, ImageMeta, PhotoItem
-├── lounge.ts                # LoungePost, PostDetail, RecentLoungeItem, PostComment, AptStory
-├── review.ts                # UserReview, ReviewInput
-├── user.ts                  # UserProfile, VerificationLevel, UserTier
-├── macro.ts                 # MacroEnvironment, SupplyPipeline, MacroDataConfig, DongtanMacroTrendPoint
-├── technovalley.ts          # JisanCenter, CenterSpecItem, JisanBuilding, TrendRecord, NpsStatsData
-├── valuation.ts             # ValuationResult, ValuationBreakdown, DCFResult, DongSpreadResult, ScoreDetail, PremiumScores
-├── calculator.ts            # AcquisitionCostResult, MortgageLoanResult, VerdictResult, TaxResult
-├── notice.ts                # LocalNoticeItem, NoticeItem, GoogleNewsItem
-├── inquiry.ts               # AdInquiry, SubscriptionItem, AdBannerData, AdSlot
-├── global.d.ts              # Ambient Window, KakaoSDK, external declarations (retained)
-└── modules.d.ts             # Third-party module declarations (retained)
-```
+### 4.3. API Endpoint (`/api/local-notices`)
+- Query Schema: `dongtan=true|false`.
+- Cache Header: `Cache-Control: public, s-maxage=600, stale-while-revalidate=300`.
+- Failure Mode: Returns `{ notices: [], lastUpdated: null }` if database fails or is empty.
 
-### 4.2 Migration Rules & Clean Separation of Concerns
-
-1. **Zero UI Leaks**:
-   - `KPIData` and `NewsItemData` must use string icon identifiers (`iconName: string`) or serialize primitives (`string | number`) in domain models. UI components map icon names to Lucide icons at render time.
-2. **Move Runtime Helpers Out of Types**:
-   - Move `getDisplayName`, `DEFAULT_AVATARS`, `getRandomDefaultAvatar`, and `createEmojiAvatar` from `src/lib/types/user.types.ts` to `src/lib/utils/userUtils.ts` or `src/lib/utils/avatar.ts`.
-3. **Single Source of Truth for Schemas**:
-   - Derive TypeScript types directly from canonical Zod schemas using `z.infer<typeof ...>` or maintain synchronized contract interfaces that Zod schemas enforce (`z.ZodType<DomainInterface>`).
-4. **Backward Compatibility via Barrel Exports**:
-   - Maintain `src/lib/types/*.ts` during transition by re-exporting from `@/types/*` so existing imports throughout `src/lib/` and `src/components/` do not break.
+### 4.4. Security Redirect (`/api/bypass-notice`)
+- Validates URL: `hscity.go.kr` domain restriction.
+- Features: `<meta name="referrer" content="no-referrer" />` and `<meta http-equiv="refresh" />` with JS fallback, preventing government portal WAF referrer blocks.
 
 ---
 
-## 5. Milestone 1 Actionable Migration Plan
+## 5. Frontend Client Architecture & Tab Rendering Analysis
 
-| Step | Scope | Target Files | Verification Method |
-|---|---|---|---|
-| **Step 1** | Create centralized `src/types/*.ts` modules | `src/types/api.ts`, `apartment.ts`, `transaction.ts`, `report.ts`, `lounge.ts`, `review.ts`, `user.ts`, `macro.ts`, `technovalley.ts`, `valuation.ts`, `calculator.ts`, `notice.ts`, `inquiry.ts`, `index.ts` | `npx tsc --noEmit` |
-| **Step 2** | Extract runtime logic from types | Create `src/lib/utils/userUtils.ts`, clean `src/lib/types/user.types.ts` | `npm test` |
-| **Step 3** | Eliminate duplicate interface definitions across components & API routes | Replace inline interfaces in `src/app/overview/page.tsx`, `src/app/apartment/[aptName]/page.tsx`, `src/app/admin/inquiries/page.tsx`, `src/app/admin/pending-photos/page.tsx`, `src/components/DashboardClient.tsx`, `src/components/LoungeContainerClient.tsx`, `src/components/LocalEventCuration.tsx` with imports from `@/types` | `npx tsc --noEmit` |
-| **Step 4** | Eliminate `any` and unsafe type assertions in production code | Update `facade.schemas.ts`, `MindMap3D.tsx`, `OfficeExplorerClient.tsx`, `TransactionChartSection.tsx`, `ApartmentModalKakaoCard.tsx`, `ApartmentModalPriceSummary.tsx`, `ApartmentModalTransactionsTable.tsx`, `TossApartmentExploreClient.tsx`, `transaction-summary/route.ts` | `npx tsc --noEmit` |
-| **Step 5** | Align Zod schemas with centralized domain types | Update `src/lib/validation/facade.schemas.ts` to implement/infer domain contracts strictly without `z.any()` | `npx tsc --noEmit` & `npm test` |
-| **Step 6** | Deprecate and proxy legacy `src/lib/types/` | Add barrel re-exports from `src/lib/types/*.ts` pointing to `@/types/*` | `npx tsc --noEmit` & `npm run build` |
-| **Step 7** | Execute Full Verification Gate | Run full verification suite | `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build` |
+### 5.1. Tab Navigation & State Machine
+1. **Lounge Top-Level Tabs** (`LoungeContainerClient.tsx`):
+   - `talk` (커뮤니티)
+   - `news` (실시간 뉴스)
+   - `notices` (행정 고시공고) -> Renders `<LoungeFeedClient currentTab="동탄구 소식" />`
+
+2. **Notice Sub-Category Filtering** (`LoungeFeedClient.tsx`):
+   - `all` (전체): Renders all sources (`gosi`, `bbs`, `rail`, `dong`, `culture`).
+   - `city` (시정공고): `source === 'gosi' || source === 'bbs'`.
+   - `rail` (교통·철도): `source === 'rail'`.
+   - `town` (동네행정): `source === 'dong'`. Activates 2nd-level dong pill filters (`동탄1동` ~ `동탄9동`).
+   - `culture` (문화·행사): `source === 'culture'`.
+
+### 5.2. Card Rendering & Interaction
+- **Culture Cards**: Renders D-Day badges (`D-Day`, `D-X`, `접수 D-X`, `종료됨`), price/department badges, and interactive buttons ("카카오톡 공유", "링크 복사"). Clicking opens the detail modal or external site.
+- **Regular Notice Cards**: Renders index badge, department, title, and date. Clicking redirects to `/api/bypass-notice?url=...`.
+- **AI Report Cards**: Renders Markdown report inside detail modal with direct links to value calculators and gap investment dashboard.
+
+---
+
+## 6. Comprehensive Recommendations for Implementation (R1, R2, R3)
+
+### R1. Crawling & Parsing Pipeline Normalization
+1. **Fix Source 2 (Gosi `BD_notice`)**:
+   - Inspect both `href` and `onclick` for `opGosiView('...')`. Construct `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`.
+2. **Fix Source 5 (BBS 1154 Tram)**:
+   - Handle 6-column structure: extract `tds[2]` as title, `tds[4]` as dept (`트램건설추진단`), `tds[5]` as date.
+3. **Normalize Source 4 (BBS 1049 Dong notices)**:
+   - Always set `isDongtan = true`, set `dept = deptItem.name` (e.g. `동탄1동`), and extract link cleanly.
+4. **Unify `fetch-local-notices.js` and `sync-local-notices/route.ts`**:
+   - Update `NoticeSchema` in `fetch-local-notices.js` to allow `z.enum(['bbs', 'gosi', 'rail', 'dong', 'culture'])`.
+   - Include `generateCultureEvents()` and `generateAIReports(TX_SUMMARY)` in `fetch-local-notices.js`.
+
+### R2. Repository & Lounge API Tab Integration
+1. **Pass All 5 Categories to Frontend**:
+   - Ensure `/api/local-notices` returns items across `gosi`, `bbs`, `rail`, `dong`, `culture`.
+2. **Tab & Sub-filter Robustness**:
+   - In `LoungeFeedClient.tsx`, verify that selecting `시정공고`, `교통·철도`, `동네행정` (with any of 동탄 1~9동), and `문화·행사` displays non-empty, properly styled cards.
+
+### R3. Resilient Fallback System
+1. **Static Fallback Dataset**:
+   - Create a static fallback file (e.g. `public/data/local-notices-fallback.json` or fallback loader in `newsData.ts`) containing curated notices across all categories (`gosi`, `rail`, `dong 1~9동`, `culture`).
+2. **Tiered Fallback Flow**:
+   - `Redis Cache` -> `Firestore DB` -> `Static Backup JSON` -> `Graceful Guidance UI`.
+   - If external network or Firestore fails, the API gracefully hydrates from the fallback JSON, preventing empty screens.

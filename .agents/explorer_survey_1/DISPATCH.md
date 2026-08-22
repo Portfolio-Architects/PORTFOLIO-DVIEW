@@ -20,3 +20,22 @@ Perform a comprehensive read-only survey of the Domain & Types layer and overall
    - Conclusion: Summary and actionable recommendations for Milestone 1.
 
 Send a completion message back to the orchestrator when finished.
+
+## 2026-08-22T03:47:29Z
+
+You are an Explorer agent investigating the crawling and batch parsing pipeline for Hwaseong City Hall and Dongtan area administrative notices.
+
+## Context & Inputs
+- Project Root: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+- Original Request: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
+- Your Working Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1
+
+## Instructions
+1. Read `ORIGINAL_REQUEST.md`.
+2. Thoroughly investigate all files related to crawling, scraping, batch scripts, and internal synchronization routes:
+   - Search for `fetch-local-notices.js`, `sync-local-notices`, scraper utilities, BBS handlers (BBS 1019, BD_notice, BBS 1131, BBS 1154, BBS 1049, Dongtan 1~9 dong scrapers).
+   - Investigate how HTML structures, query params, euc-kr vs utf-8 encodings, pagination, Cheerio/Axios/Fetch headers, user-agents, and selector extraction are currently implemented.
+   - Investigate any failures, malformed selectors, or missing BBS categories.
+   - Investigate how data is saved to Firestore / Redis / local fallback files.
+3. Write your detailed analysis and findings to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\analysis.md` and a self-contained `handoff.md`.
+4. Send a message to your caller (parent) when complete.

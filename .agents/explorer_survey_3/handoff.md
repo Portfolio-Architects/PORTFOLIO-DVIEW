@@ -1,117 +1,155 @@
-# Handoff Report: Explorer 3 Survey (Presentation Layer, API Routes, Scripts, Dependencies, Verification Gates)
+# Handoff Report — Frontend UI & Client State Investigation
 
-**Agent**: Explorer 3  
-**Working Directory**: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_3`  
-**Handoff Type**: Hard (Task Complete)  
-**Date**: 2026-08-21  
+**Agent**: explorer_survey_3  
+**Role**: Frontend UI & Client State Investigator  
+**Target Milestone**: D-VIEW Lounge Administrative Notices Investigation  
+**Date**: 2026-08-22  
 
 ---
 
 ## 1. Observation
 
-### 1.1 Verification Gates Baseline
-Direct empirical command executions on `frontend/`:
-1. **TypeScript Static Type Check**:
-   - Command: `npx tsc --noEmit`
-   - Exit Code: `0` (0 errors).
-2. **ESLint Static Analysis**:
-   - Command: `npm run lint`
-   - Exit Code: `0` (0 errors, 0 warnings).
-3. **Unit & Component Test Suite**:
-   - Command: `npm test` (Jest + jsdom)
-   - Exit Code: `0`
-   - Results: **67 test suites passed (67 total)**, **491 tests passed (491 total)**, 0 failures, execution time 40.34s.
-4. **Production Build**:
-   - Command: `npx next build` (Turbopack)
-   - Exit Code: `0`
-   - Output: Compiled successfully in 21.7s, generated 177 static/dynamic pages.
+1. **Prop Disconnection in `LoungeContainerClient.tsx` & `LoungeFeedClient.tsx`**:
+   - `frontend/src/app/lounge/page.tsx` (lines 64–71, 160–165):
+     ```typescript
+     const [fetchedPosts, fetchedNews, fetchedNoticesData] = await Promise.all([
+       getRecentPosts(50).catch(() => []),
+       getMacroNews(40).catch(() => []),
+       getLocalNotices(true).catch(() => ({ notices: [], lastUpdated: null }))
+     ]);
+     ...
+     <LoungeContainerClient 
+       initialPosts={posts} 
+       initialNews={initialNews}
+       initialNotices={initialNotices}
+       searchParams={resolvedParams} 
+     />
+     ```
+   - `frontend/src/components/LoungeContainerClient.tsx` (line 593):
+     ```tsx
+     {activeTab === 'notices' && (
+       <LoungeFeedClient initialPosts={initialPosts} currentTab="동탄구 소식" />
+     )}
+     ```
+   - `frontend/src/components/LoungeFeedClient.tsx` (lines 105–108, 343, 501):
+     ```typescript
+     interface LoungeFeedClientProps {
+       initialPosts: Post[];
+       currentTab: string;
+     }
+     ...
+     const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
+       ...
+       const [noticesData, setNoticesData] = useState<LocalNoticeItem[]>([]);
+     ```
+     Observed: `initialNotices` is received in `LoungeContainerClient` but never forwarded into `LoungeFeedClient`. `LoungeFeedClient` unconditionally initializes `noticesData` to `[]`.
 
-### 1.2 Upward Layer Imports & Boundary Violations
-1. **Infrastructure Context importing Presentation UI**:
-   - Location: `src/lib/contexts/SettingsContext.tsx:9`
-   - Code: `const SettingsModal = dynamic(() => import('@/components/SettingsModal').catch(err => ...`
-2. **Utility Module importing UI Components**:
-   - Location: `src/lib/utils/preloadHelpers.ts:8-32`
-   - Code: Directly imports 12+ UI components (`@/components/ApartmentModal`, `@/components/CommentSection`, `@/components/apartment-modal/ViralPaywallGate`, `@/components/apartment-modal/JeonseSafetyReport`, etc.).
-3. **Infrastructure Utility importing UI Type Contract**:
-   - Location: `src/lib/utils/transactionChartTransform.ts:1`
-   - Code: `import { TransactionRecord } from '@/components/apartment-modal/TransactionTable';`
-4. **Facade importing Hook**:
-   - Location: `src/lib/DashboardFacade.ts:516`
-   - Code: `export { useDashboardData } from '@/hooks/useDashboardData';`
-5. **Presentation Page containing Heavy Business/Data Crunching**:
-   - Location: `src/app/apartment/[aptName]/page.tsx:44-210`
-   - Code: Directly executes filesystem reading (`readJsonFileCached`), data aggregation (`getPyeongSummaries`), and formatting (`generateAiBriefing`) within page route.
+2. **Empty DB Fallback Absence in `newsData.ts` & `news.repository.ts`**:
+   - `frontend/src/lib/repositories/news.repository.ts` (lines 20–24):
+     ```typescript
+     if (!db) {
+       logger.warn('news.repository.fetchRawLocalNotices', 'Firebase Admin DB not initialized. Returning empty results.');
+       return { cityItems: [], railItems: [], cultureItems: [], dongItems: [] };
+     }
+     ```
+   - `frontend/src/lib/services/newsData.ts` (lines 191–194):
+     ```typescript
+     if (allItems.length === 0) {
+       return { notices: [], lastUpdated: null };
+     }
+     ```
+     Observed: When Firestore is unpopulated or fails, `getLocalNotices` returns `{ notices: [] }` without any fallback seed notices for `rail`, `gosi`, `bbs`, `dong`, `culture`.
 
-### 1.3 API Routes (`src/app/api/`) Standardization Status
-- Total API Route Handlers: 46
-- Handlers using Standard Envelope (`apiSuccess`, `apiError`) from `@/lib/api/apiResponse`: **3** (`cron/sync-transactions`, `technovalley/center-specs`, `technovalley/trend`).
-- Handlers using Rate Limiter (`checkRateLimit`) from `@/lib/api/rateLimiter`: **3** (`cron/sync-transactions`, `technovalley/center-specs`, `technovalley/trend`).
-- Handlers using Legacy / Ad-hoc Responses (`NextResponse.json` with inconsistent shapes): **43**.
+3. **Sub-Tab Filtering & Dong Specificity in `LoungeFeedClient.tsx`**:
+   - `frontend/src/components/LoungeFeedClient.tsx` (lines 708–727):
+     ```typescript
+     const filteredNotices = useMemo(() => {
+       return noticesData.filter(notice => {
+         if (activeSubCategory === 'city') {
+           if (notice.source !== 'gosi' && notice.source !== 'bbs') return false;
+         } else if (activeSubCategory === 'rail') {
+           if (notice.source !== 'rail') return false;
+         } else if (activeSubCategory === 'culture') {
+           if (notice.source !== 'culture') return false;
+         } else if (activeSubCategory === 'town') {
+           if (notice.source !== 'dong') return false;
+           if (activeDongFilter !== 'all') {
+             if (notice.dept !== activeDongFilter) return false;
+           }
+         }
+         return true;
+       });
+     }, [noticesData, activeSubCategory, activeDongFilter]);
+     ```
+     Observed: `town` sub-filtering relies on `notice.dept === activeDongFilter` where `activeDongFilter` is `'동탄1동'` ~ `'동탄9동'`.
 
-### 1.4 Data Pipeline & Scripts
-- Located in `scripts/` (55+ scripts) and `scripts/pipeline/` (4 modular ETL units).
-- Core pipeline modules: `outlierFilters.js`, `macroTrendCalculator.js`, `apartmentSummarizer.js`, `fileGenerators.js`.
-- Pipeline is fully tested via `src/__tests__/pipeline.test.ts` (10 passing test cases).
+4. **Hardcoded Mock Date in `LoungeFeedClient.tsx`**:
+   - `frontend/src/components/LoungeFeedClient.tsx` (lines 190–193):
+     ```typescript
+     const getDDayText = (dateStr: string) => {
+       const target = new Date(dateStr);
+       const today = new Date('2026-06-07');
+       today.setHours(0, 0, 0, 0);
+     ```
+     Observed: Hardcoded reference date `'2026-06-07'` causes inaccurate D-Day badge computations.
+
+5. **Dual Modal & Link Bypass**:
+   - `frontend/src/components/LoungeContainerClient.tsx` (lines 598–674): Modal uses raw `href={selectedNotice.url}` (lines 643, 657).
+   - `frontend/src/components/LoungeFeedClient.tsx` (lines 1436–1571): Modal uses `/api/bypass-notice?url=...` (line 1509).
+   - Observed: Duplicate modal declarations exist across container and feed, with container bypassing proxy protections.
+
+6. **Test Suite Status**:
+   - Ran `npx jest LoungeFeedClient`:
+     - Command: `npx jest LoungeFeedClient`
+     - Result: `PASS src/components/LoungeFeedClient.test.tsx` (3 tests passed).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Premise 1**: Clean architecture requires strict unidirectional dependencies: `Presentation (UI) → Application (Hooks) → Infrastructure (Lib/Repo) → Domain (Types)`. Upward imports (`lib → components`) or type definitions in UI modules imported by lib violate this invariant and risk bundle pollution and circular dependency cycles.
-2. **Premise 2**: Moving types like `TransactionRecord` to `src/types/` and decoupling `SettingsModal` rendering from `SettingsContext` eliminates all observed upward dependencies while preserving 100% of runtime behavior.
-3. **Premise 3**: API routes must adhere to R2.2: uniform response envelope (`success`, `data`, `error`, `meta`) with standardized HTTP status codes and rate limiting. The helper `@/lib/api/apiResponse.ts` already provides `apiSuccess` and `apiError`, fully validated by `src/lib/api/__tests__/empirical_standardization_challenge.test.ts`. Migrating the remaining 43 routes ensures architectural consistency across all backend endpoints.
-4. **Premise 4**: UI refactoring in Milestone 4 must preserve all existing `data-testid` contracts (`complex-card`, `radar-chart`, `line-chart`, `revalidateOnFocus`, etc.) to guarantee zero regressions across the 67 test suites (491 tests).
-5. **Conclusion**: The codebase is stable (all 4 verification gates currently pass), and the concrete refactoring path for Milestones 4 and 5 is clear and low-risk.
+1. **From Observation 1**: Because `LoungeContainerClient` ignores `initialNotices` when rendering `<LoungeFeedClient currentTab="동탄구 소식" />`, `LoungeFeedClient` mounts with `noticesData = []`. It must issue a client-side `fetch('/api/local-notices')`.
+2. **From Observation 2**: If Firestore is cold, empty, or during initial deployment/network failure, `/api/local-notices` returns `{ notices: [] }`.
+3. **Connecting Step 1 & 2**: When `noticesData` is empty or only contains local events (`culture`), selecting `city`, `rail`, or `town` results in `filteredNotices.length === 0`. The UI displays the empty box ("선택하신 조건에 해당하는 공지사항이 없습니다."), causing the empty screen bug.
+4. **From Observation 3**: Under `town`, filtering expects `notice.dept` to match `"동탄1동"` ~ `"동탄9동"`. If scraper data fails to normalize department names, dong sub-tabs will render 0 items.
+5. **From Observation 4 & 5**: Hardcoded dates produce stale D-Day tags, and direct `selectedNotice.url` links in `LoungeContainerClient` bypass the anti-WAF proxy `/api/bypass-notice`, creating broken external navigation when clicked.
 
 ---
 
 ## 3. Caveats
 
-1. **Recharts Mock Contracts in Test Suites**: Several component test suites (`AptCompareModal.test.tsx`, `TechnoValleyDashboard.adversarial.test.tsx`, `TransactionChartSection.test.tsx`) mock Recharts components (`ResponsiveContainer`, `RadarChart`, `LineChart`, `AreaChart`) and expect specific SVG/div outputs. UI refactoring must not remove or alter Recharts element structures or test IDs.
-2. **Dynamic Import Preload Handlers**: Heavy components (`ApartmentModal`, `MacroDashboardClient`, `LoungeContainerClient`, `OfficeExplorerClient`, and Calculators) use custom dynamic loaders with `safeReload()` retry shields. When modularizing, these lazy-loading boundaries must be retained to maintain bundle performance and LCP scores.
-3. **Static Page Generation Dependency on `public/tx-data/`**: `next build` relies on pre-generated JSON files in `public/tx-data/` for SSG (`generateStaticParams`). `scripts/sync-transactions.js` must always run prior to static builds in CI/CD.
+- Scraper behavior and Firestore population depend on server execution environments (cron jobs and GitHub Actions).
+- Local testing confirmed JSDOM unit tests pass, but end-to-end integration requires backend crawler synchronization with mock/live data.
+- No other unknown areas in frontend notice presentation were identified.
 
 ---
 
-## 4. Conclusion & Actionable Roadmap
+## 4. Conclusion
 
-### Milestone 4 (Presentation Layer Refactoring) Action Plan
-- [ ] Move `TransactionRecord` and other UI-defined data models to `src/types/`.
-- [ ] Refactor `SettingsContext.tsx` to remove direct import of `SettingsModal`.
-- [ ] Refactor `preloadHelpers.ts` to remove direct imports of UI components.
-- [ ] Clean up `src/lib/DashboardFacade.ts` re-exports of hooks.
-- [ ] Extract business logic and data manipulation from `src/app/apartment/[aptName]/page.tsx` into domain services.
-- [ ] Modularize large presentation components (`DashboardClient.tsx`, `LoungeFeedClient.tsx`, `MacroDashboardClient.tsx`, `TossApartmentExploreClient.tsx`).
+The empty screen issues in the D-VIEW Lounge administrative notice tab are caused by:
+1. Client hydration disconnect (dropping `initialNotices` props across container and feed).
+2. Absence of a static fallback dataset in `newsData.ts` / `/api/local-notices` when the database is empty or network times out.
+3. Dual modal handling and non-proxied external links in `LoungeContainerClient`.
+4. Stale mock reference dates in D-Day badge calculation.
 
-### Milestone 5 (API Routes & Pipeline Refactoring) Action Plan
-- [ ] Migrate 43 API routes in `src/app/api/` to use `apiSuccess` / `apiError` / `checkRateLimit`.
-- [ ] Ensure standardized error envelopes and appropriate HTTP status codes (200, 201, 400, 401, 403, 404, 429, 500).
-- [ ] Maintain data pipeline stability (`scripts/pipeline/`) with zero regressions.
+### Concrete Recommendations for Implementation:
+1. **Create `frontend/src/hooks/useLocalNotices.ts`**: Standardize SWR fetching (`/api/local-notices?dongtan=true`), deduping, and fallback state.
+2. **Prop Hydration in `LoungeFeedClient`**: Update `LoungeFeedClientProps` to accept `initialNotices` and initialize `noticesData` with `initialNotices || []`.
+3. **Add Seed Fallback in `newsData.ts`**: Return rich static fallback notices for `gosi`, `bbs`, `rail`, `dong` (1~9동), and `culture` when database returns empty.
+4. **Unify Modal & Bypass Links**: Ensure all external links route through `/api/bypass-notice` and replace `'2026-06-07'` with `new Date()`.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify all findings and confirm zero regressions after any change:
-
-```bash
-# 1. Strict TypeScript type check
-cd "c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend"
-npx tsc --noEmit
-
-# 2. ESLint check
-npm run lint
-
-# 3. Full unit and component test suite (67 suites, 491 tests)
-npm test
-
-# 4. Production Turbopack build
-npx next build
-```
-
-**Invalidation Conditions**:
-- Any compilation or type errors in `tsc`.
-- Any lint warnings or errors.
-- Any failing test suites in `npm test` (< 491 passed tests).
-- Build failure or route generation errors in `next build`.
+1. **Unit Test Verification**:
+   ```bash
+   npx jest LoungeFeedClient
+   ```
+2. **Inspection Targets**:
+   - `frontend/src/app/lounge/page.tsx`
+   - `frontend/src/components/LoungeContainerClient.tsx`
+   - `frontend/src/components/LoungeFeedClient.tsx`
+   - `frontend/src/lib/services/newsData.ts`
+   - `frontend/src/app/api/local-notices/route.ts`
+   - `frontend/src/lib/utils/kakaoShare.ts`
+3. **Invalidation Condition**: If `LoungeFeedClient` is rendered with `initialNotices` passed from `page.tsx`, and `/api/local-notices` returns seed fallback data even with Firestore offline, an empty screen will not occur under any tab (`all`, `city`, `rail`, `town`, `culture`).

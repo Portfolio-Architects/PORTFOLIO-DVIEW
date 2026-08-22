@@ -1,28 +1,35 @@
-# E2E Test Infra: D-VIEW Comprehensive Refactoring
+# E2E Test Infra: Hwaseong & Dongtan Administrative Network Normalization
 
 ## Test Philosophy
-- Opaque-box and white-box multi-tier verification covering unit logic, integration endpoints, state resilience, component rendering, data pipeline generation, and full production build.
-- Strict requirement-driven verification across all 4 requirements (R1, R2, R3, R4) with zero regression tolerance.
+- Opaque-box, requirement-driven. No internal mock coupling where external interfaces can be tested end-to-end.
+- Methodology: Category-Partition + Boundary Value Analysis (BVA) + Pairwise Combinatorial + Real-World Workload Testing.
 
-## Feature Inventory & Test Coverage Mapping
-| # | Feature Area | Requirement | Unit Tests | Integration / API Tests | Pipeline / Build Verification |
-|---|-------------|-------------|:----------:|:-----------------------:|:-----------------------------:|
-| 1 | Area Converter & Foundation | R4 | `src/lib/utils/__tests__/areaConverter.test.ts` | Lint clean (0 errors) | `npx tsc --noEmit` |
-| 2 | Pipeline Modularization | R2 | Pipeline unit tests (`outlierFilters`, `macroTrend`, `summarizer`) | Script dry-run | `npm run sync-transactions` (180 chunks) |
-| 3 | API Standardization | R2 | API Helper tests (`apiSuccess`, `apiError`) | Route Handler tests (`/api/apt/...`, `/api/technovalley/...`) | Rate limit verification |
-| 4 | State & Hooks Race Defense | R3 | Hook unit tests (`useFavorites`, `useApartmentDetails`, `useStaticData`) | SWR / Firestore sync tests | Mock race condition simulation |
-| 5 | Component Modularity & UI | R1 | Component tests (`MacroDashboard`, `ApartmentModal`, calculators) | Render & snapshot tests | Turbopack `npm run build` |
+## Feature Inventory
+| # | Feature | Source | Tier 1 | Tier 2 | Tier 3 | Tier 4 |
+|---|---------|--------|:------:|:------:|:------:|:------:|
+| 1 | Gosi `BD_notice` Extraction | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
+| 2 | BBS 1154 (동탄트램) 6-Column Alignment | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
+| 3 | BBS 1049 (동탄 1~9동) Normalization | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
+| 4 | Batch Script Schema & Culture Parity | ORIGINAL_REQUEST §R1 | 5 | 5 | ✓ | ✓ |
+| 5 | Deduplication Logic in `newsData.ts` | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 6 | `/api/local-notices` & Repository Integration | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 7 | Anti-WAF Bypass Proxy Whitelist | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 8 | SSR Prop Hydration in Lounge Clients | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 9 | Category & Dongtan 1~9 Filtering | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 10 | Dynamic D-Day & Modal / Kakao Share | ORIGINAL_REQUEST §R2 | 5 | 5 | ✓ | ✓ |
+| 11 | Static Fallback Data & Degradation | ORIGINAL_REQUEST §R3 | 5 | 5 | ✓ | ✓ |
 
 ## Test Architecture
-- **Test Runner**: Jest (`npx jest`) with 51 test suites, 358 existing tests (all preserved green) + new module unit tests.
-- **Type Checker**: `npx tsc --noEmit` (0 errors required).
-- **Linter**: `npm run lint` (0 errors required).
-- **Pipeline Runner**: `npm run sync-transactions` (must generate 180 apartment JSON chunks in `public/tx-data/` and summary JSONs).
-- **Build Runner**: `npm run build` (Next.js Turbopack SSG production build of 177 pages).
+- Test runner: Jest (`npm test`) / Node.js test scripts.
+- Test location: `frontend/tests/e2e/local-notices-e2e.test.ts` or `frontend/tests/e2e/local-notices-pipeline.test.ts`.
+- Pass/Fail Semantics:
+  - Exit code 0 on pass.
+  - All category assertions (`gosi`, `bbs`, `rail`, `dong`, `culture`) must pass.
+  - Dongtan 1~9 dong filtering must return matching items for each individual dong.
+  - Fallback mode must provide complete fallback dataset with no crashes or blank outputs when DB is offline.
 
-## Quality Gates & Verification Commands
-1. Type Safety: `cd frontend && npx tsc --noEmit`
-2. Lint Quality: `cd frontend && npm run lint`
-3. Unit & Integration: `cd frontend && npx jest --verbose`
-4. Pipeline Output: `cd frontend && npm run sync-transactions`
-5. Production Build: `cd frontend && npm run build`
+## Coverage Thresholds
+- Tier 1: Feature Coverage (>=5 per feature)
+- Tier 2: Boundary & Corner Cases (>=5 per feature)
+- Tier 3: Cross-Feature Combinations (pairwise interactions across tabs, filters, and fallback)
+- Tier 4: Real-World Application Scenarios (complete user flows from lounge entry to notice viewing, modal popup, and share)

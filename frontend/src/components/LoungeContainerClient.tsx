@@ -38,7 +38,7 @@ const LoungeFeedClient = dynamic(() => import('@/components/LoungeFeedClient').c
   safeReload('LoungeFeedClient');
   return { default: () => null };
 }), { 
-  ssr: false,
+  ssr: true,
   loading: () => <LoungeFeedSkeleton />
 });
 
@@ -73,9 +73,9 @@ interface Post {
 
 interface NoticeItem {
   id: string;
-  title?: string;
-  url?: string;
-  dept?: string;
+  title: string;
+  url: string;
+  dept: string;
   date: string;
   isDongtan: boolean;
   source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
@@ -176,17 +176,22 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   const pathname = usePathname();
   
   // Localize activeTab state to prevent Next.js server page transitions and Suspense skeletal flickering
-  const [activeTab, setActiveTabState] = useState<'talk' | 'news' | 'notices'>('talk');
+  const initialTab = searchParamsHook?.get('tab') || (searchParams?.tab ? String(searchParams.tab) : null);
+  const [activeTab, setActiveTabState] = useState<'talk' | 'news' | 'notices'>(
+    initialTab === 'talk' || initialTab === 'news' || initialTab === 'notices' ? initialTab : 'talk'
+  );
 
+  const prevTabParamRef = useRef<string | null>(initialTab);
   // Sync tab state when search parameters change (back navigation, initial mount etc.)
   useEffect(() => {
-    const tabParam = searchParamsHook?.get('tab');
-    if (tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
-      setActiveTabState(tabParam);
-    } else {
-      setActiveTabState('talk');
+    const tabParam = searchParamsHook?.get('tab') || (searchParams?.tab ? String(searchParams.tab) : null);
+    if (tabParam !== prevTabParamRef.current) {
+      prevTabParamRef.current = tabParam;
+      if (tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
+        setActiveTabState(tabParam);
+      }
     }
-  }, [searchParamsHook]);
+  }, [searchParamsHook, searchParams]);
 
   const handleTabClick = (tabId: 'talk' | 'news' | 'notices') => {
     setActiveTabState(tabId);
@@ -197,12 +202,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
     }
   };
 
-  const noticeId = searchParamsHook.get('notice');
-
-  const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(null);
-  const [visibleNewsCount, setVisibleNewsCount] = useState(12);
-  const [visibleNoticesCount, setVisibleNoticesCount] = useState(12);
-  const [activeNewsSubTab, setActiveNewsSubTab] = useState<'industry' | 'realestate'>('industry');
+  const noticeId = searchParamsHook?.get('notice') || (searchParams?.notice ? String(searchParams.notice) : null);
 
   // Client-side fetch fallback when initial data is not passed (e.g. when rendered on the main page)
   const { data: clientNoticesData } = useSWR<{ notices: NoticeItem[]; lastUpdated?: string }>('/api/local-notices', (url: string) => fetch(url).then(res => res.json()), {
@@ -218,6 +218,18 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
   });
 
   const notices = clientNoticesData?.notices || initialNotices || [];
+
+  const initialSelectedNotice = useMemo(() => {
+    if (noticeId && notices.length > 0) {
+      return notices.find((n) => n.id === noticeId) || null;
+    }
+    return null;
+  }, [noticeId, notices]);
+
+  const [selectedNotice, setSelectedNotice] = useState<NoticeItem | null>(initialSelectedNotice);
+  const [visibleNewsCount, setVisibleNewsCount] = useState(12);
+  const [visibleNoticesCount, setVisibleNoticesCount] = useState(12);
+  const [activeNewsSubTab, setActiveNewsSubTab] = useState<'industry' | 'realestate'>('industry');
   const news = useMemo(() => {
     if (Array.isArray(clientNewsData)) {
       return clientNewsData;
@@ -590,7 +602,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
         )}
 
         {activeTab === 'notices' && (
-          <LoungeFeedClient initialPosts={initialPosts} currentTab="동탄구 소식" />
+          <LoungeFeedClient initialPosts={initialPosts} initialNotices={initialNotices} currentTab="동탄구 소식" />
         )}
       </div>
 
@@ -628,6 +640,20 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
               {selectedNotice.content ? (
                 <div className="prose prose-sm dark:prose-invert max-w-none text-[13.5px] text-secondary leading-relaxed font-medium space-y-4">
                   <MarkdownViewer content={selectedNotice.content} />
+                  <div className="flex flex-col sm:flex-row gap-2.5 pt-4 border-t border-border/40">
+                    <a
+                      href="/overview?calc=sell_timing"
+                      className="flex-1 p-3 bg-[#c44d00]/10 hover:bg-[#c44d00]/15 dark:bg-[#ea6100]/10 dark:hover:bg-[#ea6100]/15 border border-[#c44d00]/20 rounded-xl text-center text-[12.5px] font-extrabold text-[#c44d00] dark:text-[#ea6100] transition-colors"
+                    >
+                      AI 매도 적합성(호구 지수) 계산기 실행
+                    </a>
+                    <a
+                      href="/overview?calc=jeonse"
+                      className="flex-1 p-3 bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 rounded-xl text-center text-[12.5px] font-extrabold text-emerald-600 dark:text-emerald-400 transition-colors"
+                    >
+                      동탄 주거 안정/전세율 대시보드 바로가기
+                    </a>
+                  </div>
                 </div>
               ) : (
                 <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
@@ -639,7 +665,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
                     본 공지사항의 상세 내용 및 AI 요약 정보가 아직 수집되거나 요약 분석되지 않았습니다. 아래의 원문 바로보기 버튼을 통해 원문을 확인하실 수 있습니다.
                   </p>
                   <a
-                    href={selectedNotice.url}
+                    href={selectedNotice.url?.startsWith('http') ? `/api/bypass-notice?url=${encodeURIComponent(selectedNotice.url)}` : (selectedNotice.url || '#')}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="px-5 py-2.5 bg-[#ea6100] hover:bg-[#ff8f00] text-white text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
@@ -654,7 +680,7 @@ const LoungeContainerClient = React.memo(function LoungeContainerClient({
             {/* Modal Footer */}
             <div className="p-5 border-t border-border/60 flex items-center justify-between gap-3 bg-neutral-50/40 dark:bg-zinc-900/10">
               <a
-                href={selectedNotice.url}
+                href={selectedNotice.url?.startsWith('http') ? `/api/bypass-notice?url=${encodeURIComponent(selectedNotice.url)}` : (selectedNotice.url || '#')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#c44d00] dark:text-[#ea6100] hover:underline"

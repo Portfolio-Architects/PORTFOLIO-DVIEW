@@ -5,6 +5,7 @@ import { MessageSquare, Eye, Heart, Loader2, ChevronDown, ChevronUp, Share2, Ext
 import { INITIAL_POSTS as coLeasingPosts, CoLeasePost } from '@/components/macro/CoLeasingBoard';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import useSWRInfinite from 'swr/infinite';
 
 const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
@@ -104,6 +105,7 @@ interface NewsItem {
 
 interface LoungeFeedClientProps {
   initialPosts: Post[];
+  initialNotices?: LocalNoticeItem[];
   currentTab: string;
 }
 
@@ -188,7 +190,7 @@ const NoticeCard = React.memo(function NoticeCard({
     
     const getDDayText = (dateStr: string) => {
       const target = new Date(dateStr);
-      const today = new Date('2026-06-07');
+      const today = new Date();
       today.setHours(0, 0, 0, 0);
       target.setHours(0, 0, 0, 0);
       const diff = target.getTime() - today.getTime();
@@ -340,8 +342,9 @@ const NoticeCard = React.memo(function NoticeCard({
 
 
 
-const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, currentTab }: LoungeFeedClientProps) {
+const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, initialNotices, currentTab }: LoungeFeedClientProps) {
   const { showToast } = usePWA();
+  const searchParams = useSearchParams();
   const isMountedRef = useRef(true);
 
   useEffect(() => {
@@ -498,7 +501,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
   const [visibleNewsCount, setVisibleNewsCount] = useState(10);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
 
-  const [noticesData, setNoticesData] = useState<LocalNoticeItem[]>([]);
+  const [noticesData, setNoticesData] = useState<LocalNoticeItem[]>(initialNotices || []);
   const [noticesLoading, setNoticesLoading] = useState(false);
   const [visibleNoticesCount, setVisibleNoticesCount] = useState(20);
   const [selectedNoticeId, setSelectedNoticeId] = useState<string | null>(null);
@@ -519,13 +522,15 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     let idleId: number | null = null;
     const checkParams = () => {
       if (!isMounted) return;
-      // Check query parameter
-      const params = new URLSearchParams(window.location.search);
-      const noticeParam = params.get('notice');
-      const postParam = params.get('post');
+      // Check query parameter from searchParams hook or window.location.search
+      const searchStr = typeof window !== 'undefined' ? window.location.search : '';
+      const fallbackParams = new URLSearchParams(searchStr);
+      const noticeParam = searchParams?.get('notice') || fallbackParams.get('notice');
+      const postParam = searchParams?.get('post') || fallbackParams.get('post');
       
-      const postMatch = window.location.hash.match(/#post=([^&]+)/);
-      const noticeMatch = window.location.hash.match(/#notice=([^&]+)/);
+      const hash = typeof window !== 'undefined' ? (window.location.hash || '') : '';
+      const postMatch = hash.match(/(?:#)?post=([^&]+)/);
+      const noticeMatch = hash.match(/(?:#)?notice=([^&]+)/);
       
       if (postMatch) {
         setSelectedPostId(decodeURIComponent(postMatch[1]));
@@ -545,15 +550,16 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       }
 
       // Check if routing directly to rail notices tab
-      if (window.location.hash === '#lounge-notices-rail') {
+      if (hash.includes('lounge-notices-rail')) {
         setActiveSubCategory('rail');
-      } else if (window.location.hash === '#lounge-notices-culture') {
+      } else if (hash.includes('lounge-notices-culture')) {
         setActiveSubCategory('culture');
       }
     };
     
     checkParams();
     window.addEventListener('hashchange', checkParams, { passive: true });
+    window.addEventListener('popstate', checkParams, { passive: true });
 
     const preloadDetail = () => {
       if (!isMounted) return;
@@ -573,9 +579,10 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
         window.cancelIdleCallback(idleId);
       }
       window.removeEventListener('hashchange', checkParams);
+      window.removeEventListener('popstate', checkParams);
       if (preloadTimeoutRef.current) clearTimeout(preloadTimeoutRef.current);
     };
-  }, []);
+  }, [searchParams]);
 
   useEffect(() => {
     let active = true;
@@ -760,6 +767,146 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
     window.location.hash = '';
     setSelectedPostId(null);
     mutate();
+  };
+
+  const renderNoticeDetailModal = () => {
+    if (!selectedNoticeId || !selectedNotice) return null;
+    return (
+      <LoungeModalBackdrop onClose={handleCloseNoticeModal}>
+        <div className="bg-surface rounded-2xl w-full max-w-2xl mx-auto overflow-hidden shadow-2xl border border-border animate-in fade-in zoom-in duration-200">
+          {/* Header */}
+          <div className="p-5 sm:p-6 border-b border-border flex justify-between items-start gap-4 bg-emerald-500/5">
+            <div className="flex flex-col gap-2 min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[12px] font-extrabold text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded">
+                  {selectedNotice.dept}
+                </span>
+                <span className="text-[12px] font-bold text-tertiary">
+                  {selectedNotice.date}
+                </span>
+              </div>
+              <h2 className="text-[18px] sm:text-[20px] font-black text-primary leading-snug tracking-tight">
+                {selectedNotice.title}
+              </h2>
+            </div>
+            <button 
+              onClick={handleCloseNoticeModal}
+              className="text-tertiary hover:text-primary p-1 bg-body rounded-full transition-colors flex items-center justify-center shrink-0"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Content Body */}
+          <div className="p-5 sm:p-6 flex flex-col gap-6 max-h-[70vh] overflow-y-auto">
+            {/* 만약 AI 리포트 본문(content)이 존재하면 마크다운 뷰어 노출 */}
+            {selectedNotice.content ? (
+              <div className="flex flex-col gap-5">
+                <div className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary">
+                  <MarkdownViewer content={selectedNotice.content} />
+                </div>
+                
+                {/* AI 리포트 액션 유도 버튼 */}
+                <div className="flex flex-col sm:flex-row items-stretch gap-3 border-t border-border pt-4">
+                  <Link 
+                    href="/?calc=sell_timing" 
+                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[13.5px]"
+                  >
+                    <Sparkles size={16} /> AI 매도 적합성(호구 지수) 계산기 실행
+                  </Link>
+                  <Link 
+                    href="/?tab=gap" 
+                    className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all cursor-pointer active:scale-[0.98] text-[13.5px]"
+                  >
+                    동탄 주거 안정/전세율 대시보드 바로가기
+                  </Link>
+                </div>
+
+                {/* 공유 행 */}
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => shareLocalNoticeToKakao(selectedNotice, showToast)}
+                    className="flex-1 px-4 py-3.5 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
+                  >
+                    <Share2 size={16} /> 리포트 카카오톡 공유
+                  </button>
+                  <button
+                    onClick={() => handleShareNotice(selectedNotice)}
+                    className="flex-1 px-4 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
+                  >
+                    <Share2 size={16} /> 링크 복사
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // 기존 일반 고시공고 카드 구조
+              <div className="flex flex-col gap-6 w-full">
+                {/* 원문 이동 및 공유 버튼 */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                  <a 
+                    href={`/api/bypass-notice?url=${encodeURIComponent((selectedNotice.url || '').trim())}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
+                  >
+                    <ExternalLink size={16} /> {selectedNotice.title.includes('[강좌]') ? '주민자치센터 수강 신청 바로가기' : '원문 고시공고 사이트 이동'}
+                  </a>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <button
+                      onClick={() => shareLocalNoticeToKakao(selectedNotice, showToast)}
+                      className="flex-1 sm:flex-none px-4 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                    >
+                      <Share2 size={16} /> 카카오톡 공유
+                    </button>
+                    <button
+                      onClick={() => handleShareNotice(selectedNotice)}
+                      className="flex-1 sm:flex-none px-4 py-3 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
+                    >
+                      <Share2 size={16} /> 링크 복사
+                    </button>
+                  </div>
+                </div>
+
+                {/* D-VIEW AI Insight Section */}
+                <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 flex flex-col gap-2 w-full">
+                  <h4 className="text-[13px] font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                    💡 D-VIEW {selectedNotice.title.includes('[강좌]') ? '정주 여건 분석 팁' : '부동산 분석 팁'}
+                  </h4>
+                  <p className="text-[13px] text-emerald-950/80 dark:text-emerald-200/90 leading-relaxed font-bold">
+                    {selectedNotice.title.includes('[강좌]') 
+                      ? '풍부한 주민자치센터 강좌와 문화 혜택은 실거주 만족도를 높이고 안정적인 정주 여건을 조성하는 주요 인프라 자산입니다. D-VIEW 입지 분석 탭에서 인근 어린이집, 유치원 등 보육 환경과 통학 안정성 점수를 연계하여 종합적인 거주 가치를 판단해보세요.'
+                      : '본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.'}
+                  </p>
+                  <div className="mt-2 flex items-center gap-3">
+                    <Link 
+                      href="/" 
+                      className="text-[12px] font-extrabold text-[#00a06c] hover:underline flex items-center gap-1"
+                    >
+                      데이터 랩 실거래 대시보드로 이동 ➔
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* D-VIEW Premium Content */}
+            <div className="flex flex-col gap-3 border-t border-border pt-5">
+              <h3 className="text-[14px] font-extrabold text-primary">D-VIEW 추천 콘텐츠</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Link href="/?apt=동탄역 롯데캐슬" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                  <div className="text-[12px] font-bold text-tertiary">실시간 인기 단지</div>
+                  <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">동탄역 롯데캐슬 상세분석 ➔</div>
+                </Link>
+                <Link href="/?calc=sell_timing" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
+                  <div className="text-[12px] font-bold text-tertiary">부동산 가치 계산기</div>
+                  <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">AI 매도 타이밍 분석 ➔</div>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </LoungeModalBackdrop>
+    );
   };
 
   const filteredPosts = useMemo(() => {
@@ -1039,6 +1186,9 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
             </button>
           </div>
         )}
+
+        {/* Notice Detail Modal */}
+        {renderNoticeDetailModal()}
       </div>
     );
   }
@@ -1433,142 +1583,7 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, cu
       )}
 
       {/* Notice Detail Modal */}
-      {selectedNoticeId && selectedNotice && (
-        <LoungeModalBackdrop onClose={handleCloseNoticeModal}>
-          <div className="bg-surface rounded-2xl w-full max-w-2xl mx-auto overflow-hidden shadow-2xl border border-border animate-in fade-in zoom-in duration-200">
-            {/* Header */}
-            <div className="p-5 sm:p-6 border-b border-border flex justify-between items-start gap-4 bg-emerald-500/5">
-              <div className="flex flex-col gap-2 min-w-0 flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-[12px] font-extrabold text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-400 px-2 py-0.5 rounded">
-                    {selectedNotice.dept}
-                  </span>
-                  <span className="text-[12px] font-bold text-tertiary">
-                    {selectedNotice.date}
-                  </span>
-                </div>
-                <h2 className="text-[18px] sm:text-[20px] font-black text-primary leading-snug tracking-tight">
-                  {selectedNotice.title}
-                </h2>
-              </div>
-              <button 
-                onClick={handleCloseNoticeModal}
-                className="text-tertiary hover:text-primary p-1 bg-body rounded-full transition-colors flex items-center justify-center shrink-0"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Content Body */}
-            <div className="p-5 sm:p-6 flex flex-col gap-6 max-h-[70vh] overflow-y-auto">
-              {/* 만약 AI 리포트 본문(content)이 존재하면 마크다운 뷰어 노출 */}
-              {selectedNotice.content ? (
-                <div className="flex flex-col gap-5">
-                  <div className="prose prose-sm dark:prose-invert max-w-none bg-body/30 border border-border/40 rounded-2xl p-5 sm:p-6 font-semibold leading-relaxed text-[13.5px] text-secondary">
-                    <MarkdownViewer content={selectedNotice.content} />
-                  </div>
-                  
-                  {/* AI 리포트 액션 유도 버튼 */}
-                  <div className="flex flex-col sm:flex-row items-stretch gap-3 border-t border-border pt-4">
-                    <Link 
-                      href="/?calc=sell_timing" 
-                      className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[13.5px]"
-                    >
-                      <Sparkles size={16} /> AI 매도 적합성(호구 지수) 계산기 실행
-                    </Link>
-                    <Link 
-                      href="/?tab=gap" 
-                      className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all cursor-pointer active:scale-[0.98] text-[13.5px]"
-                    >
-                      동탄 주거 안정/전세율 대시보드 바로가기
-                    </Link>
-                  </div>
-
-                  {/* 공유 행 */}
-                  <div className="flex items-center gap-3">
-                    <button
-                      onClick={() => shareLocalNoticeToKakao(selectedNotice, showToast)}
-                      className="flex-1 px-4 py-3.5 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
-                    >
-                      <Share2 size={16} /> 리포트 카카오톡 공유
-                    </button>
-                    <button
-                      onClick={() => handleShareNotice(selectedNotice)}
-                      className="flex-1 px-4 py-3.5 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[13.5px]"
-                    >
-                      <Share2 size={16} /> 링크 복사
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                // 기존 일반 고시공고 카드 구조
-                <div className="flex flex-col gap-6 w-full">
-                  {/* 원문 이동 및 공유 버튼 */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <a 
-                      href={`/api/bypass-notice?url=${encodeURIComponent((selectedNotice.url || '').trim())}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold rounded-xl transition-all shadow-md shadow-emerald-600/10 cursor-pointer active:scale-[0.98] text-[14px]"
-                    >
-                      <ExternalLink size={16} /> {selectedNotice.title.includes('[강좌]') ? '주민자치센터 수강 신청 바로가기' : '원문 고시공고 사이트 이동'}
-                    </a>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => shareLocalNoticeToKakao(selectedNotice, showToast)}
-                        className="flex-1 sm:flex-none px-4 py-3 bg-[#fee500] hover:bg-[#fddc00] text-[#191919] font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
-                      >
-                        <Share2 size={16} /> 카카오톡 공유
-                      </button>
-                      <button
-                        onClick={() => handleShareNotice(selectedNotice)}
-                        className="flex-1 sm:flex-none px-4 py-3 bg-body hover:bg-body/80 border border-border text-secondary font-extrabold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm active:scale-[0.98] text-[14px]"
-                      >
-                        <Share2 size={16} /> 링크 복사
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* D-VIEW AI Insight Section */}
-                  <div className="border border-emerald-500/20 bg-emerald-500/5 rounded-xl p-4 flex flex-col gap-2 w-full">
-                    <h4 className="text-[13px] font-black text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
-                      💡 D-VIEW {selectedNotice.title.includes('[강좌]') ? '정주 여건 분석 팁' : '부동산 분석 팁'}
-                    </h4>
-                    <p className="text-[13px] text-emerald-950/80 dark:text-emerald-200/90 leading-relaxed font-bold">
-                      {selectedNotice.title.includes('[강좌]') 
-                        ? '풍부한 주민자치센터 강좌와 문화 혜택은 실거주 만족도를 높이고 안정적인 정주 여건을 조성하는 주요 인프라 자산입니다. D-VIEW 입지 분석 탭에서 인근 어린이집, 유치원 등 보육 환경과 통학 안정성 점수를 연계하여 종합적인 거주 가치를 판단해보세요.'
-                        : '본 고시공고는 동탄 권역의 개발 및 행정 변동과 관련이 깊은 소식입니다. 동탄역세권 대시보드의 실거래 추이 및 평수 필터링을 사용하여 본 공고가 주는 개발 호재의 매매 가치 영향을 확인해보세요.'}
-                    </p>
-                    <div className="mt-2 flex items-center gap-3">
-                      <Link 
-                        href="/" 
-                        className="text-[12px] font-extrabold text-[#00a06c] hover:underline flex items-center gap-1"
-                      >
-                        데이터 랩 실거래 대시보드로 이동 ➔
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* D-VIEW Premium Content */}
-              <div className="flex flex-col gap-3 border-t border-border pt-5">
-                <h3 className="text-[14px] font-extrabold text-primary">D-VIEW 추천 콘텐츠</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Link href="/?apt=동탄역 롯데캐슬" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
-                    <div className="text-[12px] font-bold text-tertiary">실시간 인기 단지</div>
-                    <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">동탄역 롯데캐슬 상세분석 ➔</div>
-                  </Link>
-                  <Link href="/?calc=sell_timing" className="p-3.5 border border-border bg-body hover:bg-body/80 rounded-xl transition-all group">
-                    <div className="text-[12px] font-bold text-tertiary">부동산 가치 계산기</div>
-                    <div className="text-[14px] font-extrabold text-secondary group-hover:text-primary transition-colors mt-1">AI 매도 타이밍 분석 ➔</div>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </LoungeModalBackdrop>
-      )}
+      {renderNoticeDetailModal()}
     </div>
   );
 });

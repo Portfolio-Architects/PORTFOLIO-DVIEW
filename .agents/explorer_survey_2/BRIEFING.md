@@ -1,48 +1,51 @@
-# BRIEFING — 2026-08-21T14:33:30Z
+# BRIEFING — 2026-08-22T03:50:55Z
 
 ## Mission
-Comprehensive read-only survey of Infrastructure, Data Access, Repositories, and Application Hooks layer across `frontend/`.
+Investigate Backend API, Repository, Firestore Data Layer, Zod Schemas, and Caching for Hwaseong City Hall & Dongtan Administrative Notices.
 
 ## 🔒 My Identity
-- Archetype: Explorer (Explorer 2)
-- Roles: Investigator, Synthesizer
+- Archetype: explorer
+- Roles: investigation, synthesis
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2
-- Original parent: da9374d7-02d0-4544-a7c6-dc957200cd5c
-- Milestone: Milestone 1 (Survey & Architectural Analysis)
+- Original parent: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
+- Milestone: Survey and Architecture Analysis of Data/API Layer
 
 ## 🔒 Key Constraints
-- Read-only investigation — do NOT implement or modify source code
-- Files for content delivery (`analysis.md`, `handoff.md`), Messages for coordination (`send_message`)
-- Working folder: `.agents/explorer_survey_2/` only
-- Self-contained 5-component handoff report
+- Read-only investigation — do NOT modify production source code in this role.
+- Provide comprehensive analysis of API endpoints, repositories, schemas, Firestore, Redis caching, and category mapping.
 
 ## Current Parent
-- Conversation ID: da9374d7-02d0-4544-a7c6-dc957200cd5c
-- Updated: 2026-08-21T14:33:30Z
+- Conversation ID: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
+- Updated: not yet
 
 ## Investigation State
 - **Explored paths**:
-  - `src/lib/` (`firebaseConfig.ts`, `firebaseAdmin.ts`, `redis.ts`, `rate-limit.ts`, `DashboardFacade.ts`, `authUtils.ts`, `analytics-service.ts`, `zones.ts`, `dongs.ts`, `dong-apartments.ts`, `apartment-data.ts`)
-  - `src/lib/repositories/` (all 16 repository files)
-  - `src/lib/services/` (all 16 service files)
-  - `src/lib/contexts/` (`AuthContext.tsx`, `SettingsContext.tsx`)
-  - `src/lib/api/` (`apiResponse.ts`, `rateLimiter.ts`, `resilientFetch.ts`)
-  - `src/hooks/` (all 18 hook and test files)
-  - `src/app/api/` (44 route handlers across routes)
+  - `frontend/src/app/api/local-notices/route.ts`
+  - `frontend/src/lib/repositories/news.repository.ts`
+  - `frontend/src/lib/services/newsData.ts`
+  - `frontend/src/lib/validation/facade.schemas.ts`
+  - `frontend/src/types/notice.ts`
+  - `frontend/scripts/fetch-local-notices.js`
+  - `frontend/src/app/api/cron/sync-local-notices/route.ts`
+  - `frontend/src/app/api/bypass-notice/route.ts`
+  - `frontend/src/components/LoungeContainerClient.tsx`
+  - `frontend/src/components/LoungeFeedClient.tsx`
+  - `frontend/src/app/news/NewsClient.tsx`
+  - `frontend/src/components/MacroDashboardClient.tsx`
+  - `frontend/src/components/LocalEventCuration.tsx`
+  - `frontend/src/components/pwa/SWRProvider.tsx`
 - **Key findings**:
-  - Upward layer leaks: `DashboardFacade` re-exporting `useDashboardData`, `SettingsContext` importing `SettingsModal`, `post.repository` importing Lucide icons.
-  - Scattered data access: `useStaticData` executing raw Firestore queries; `useFavorites`, `useComments`, `useApartmentDetails` calling un-abstracted `fetch('/api/...')`.
-  - Untyped `any` signatures in `report.repository.ts` and `post.repository.ts`.
-  - Inconsistent API envelopes and rate limiting across Next.js route handlers.
-  - Hardcoded API service keys in repositories and config files.
-- **Unexplored areas**: None (Full survey complete).
+  1. Deduplication logic in `newsData.ts` falsely collapses items sharing generic URLs, dropping culture and lecture events.
+  2. Scrapers save unnormalized sub-team dept strings, breaking dong sub-filtering in `LoungeFeedClient.tsx`.
+  3. Batch crawler `fetch-local-notices.js` missing `'culture'` in `NoticeSchema.source` enum.
+  4. `LoungeContainerClient` does not pass `initialNotices` to `LoungeFeedClient`.
+  5. `bypass-notice` blocks valid domains like `hcf.or.kr`.
+  6. Backend lacks a bundled static fallback dataset when DB or upstream network fails.
+- **Unexplored areas**: None. Full investigation complete.
 
 ## Key Decisions Made
-- Completed detailed survey and structured 5-component handoff report.
-- Formulated concrete, actionable migration plans for Milestones 2 and 3.
+- Completed deep inspection and produced detailed `analysis.md` and standard 5-component `handoff.md`.
 
 ## Artifact Index
-- `.agents/explorer_survey_2/analysis.md` — Comprehensive analysis report
-- `.agents/explorer_survey_2/handoff.md` — 5-component handoff report
-- `.agents/explorer_survey_2/progress.md` — Liveness & progress tracker
-- `.agents/explorer_survey_2/DISPATCH.md` — Initial dispatch record
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\analysis.md` — Detailed analysis report
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2\handoff.md` — 5-component handoff report

@@ -1,58 +1,71 @@
-# BRIEFING — 2026-08-12T12:12:40Z
+# BRIEFING — 2026-08-22T04:12:00Z
 
 ## Mission
-Code Review for Requirements R1 and R3 in PORTFOLIO - DVIEW frontend.
+Evaluate implementation of Milestones M1, M2, M3, M4 for Hwaseong & Dongtan administrative notice data normalization with quality review and adversarial critique.
 
 ## 🔒 My Identity
 - Archetype: reviewer
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_1
-- Original parent: d609439f-5a37-40dd-a6ab-b033ee08bb24
-- Milestone: Review R1 and R3
+- Original parent: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
+- Milestone: M1, M2, M3, M4 Review
 - Instance: 1 of 1
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Perform evidence-based review with independent verification
-- Check for integrity violations (hardcoded test results, facade implementations, bypasses)
+- Evidence-based findings only
+- Actively check for integrity violations (hardcoded test data, fake passes, bypassing real logic)
 
 ## Current Parent
-- Conversation ID: d609439f-5a37-40dd-a6ab-b033ee08bb24
-- Updated: 2026-08-12T12:12:40Z
+- Conversation ID: 0a92a9d3-876b-4a1e-9ca3-3dbd776e18b4
+- Updated: 2026-08-22T04:12:00Z
 
 ## Review Scope
 - **Files to review**:
-  - `frontend/src/app/api/favorite/route.ts`
-  - `frontend/src/hooks/useFavorites.ts`
-  - `frontend/src/hooks/useStaticData.ts`
-  - `frontend/src/components/DashboardClient.tsx`
-- **Interface contracts**: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
-- **Review criteria**: Correctness, completeness, robustness, API interface contracts for R1 and R3, integrity
+  - `frontend/scripts/fetch-local-notices.js`
+  - `frontend/src/app/api/cron/sync-local-notices/route.ts`
+  - `frontend/src/lib/services/newsData.ts`
+  - `frontend/src/app/api/bypass-notice/route.ts`
+  - `frontend/src/app/api/local-notices/route.ts`
+  - `frontend/src/components/LoungeFeedClient.tsx`
+  - `frontend/src/components/LoungeContainerClient.tsx`
+  - `frontend/public/data/local-notices-backup.json`
+  - `frontend/src/__tests__/local-notices-e2e.test.tsx`
+- **Interface contracts**: PROJECT.md, ORIGINAL_REQUEST.md
+- **Review criteria**: Correctness, Completeness, Quality, Robustness, Conformance, Integrity
+
+## Key Decisions Made
+- Confirmed zero integrity violations (no dummy facades, real scraping/filtering logic).
+- Identified TS2769 type error in `LoungeContainerClient.tsx` during `tsc --noEmit`.
+- Verdict issued: REQUEST_CHANGES (Major finding on TS interface alignment).
+
+## Artifact Index
+- `.agents/reviewer_1/DISPATCH.md` — Initial dispatch
+- `.agents/reviewer_1/BRIEFING.md` — Working memory
+- `.agents/reviewer_1/progress.md` — Liveness & heartbeat
+- `.agents/reviewer_1/handoff.md` — Final review report & verdict
 
 ## Review Checklist
 - **Items reviewed**:
-  - `POST /api/favorite`, `GET /api/favorite`, `PUT /api/favorite`
-  - `useFavorites` hook (guest state, guest sync, action param, localStorage cleanup)
-  - `useStaticData` hook (30-day Firestore cutoff query, data merging & deduplication)
-  - `DashboardClient` component (fallback filtering for recent transactions)
-- **Verdict**: APPROVE
-- **Unverified claims**: None (all requirements verified against implementation and test suite)
+  - `fetch-local-notices.js` (M1) — verified
+  - `sync-local-notices/route.ts` (M1) — verified
+  - `newsData.ts` & `news.repository.ts` (M2) — verified
+  - `bypass-notice/route.ts` & `local-notices/route.ts` (M2) — verified
+  - `LoungeFeedClient.tsx` (M3) — verified
+  - `LoungeContainerClient.tsx` (M3) — TS error found on line 605
+  - `local-notices-backup.json` (M4) — verified
+  - `local-notices-e2e.test.tsx` — 95/95 passed
+  - `LoungeFeedClient.test.tsx` — 3/3 passed
+- **Verdict**: REQUEST_CHANGES
+- **Unverified claims**: none
 
 ## Attack Surface
 - **Hypotheses tested**:
-  1. Idempotency of backend `action` parameter ('add'/'remove'/'toggle') in `route.ts` -> PASSED
-  2. Guest favorites sync & `localStorage` cleanup upon login -> PASSED
-  3. 30-day cutoff date calculation and string formatting (`YYYYMMDD`) in `useStaticData.ts` -> PASSED
-  4. Deduplication of live Firestore transactions with static records -> PASSED
-  5. Fallback filtering in `DashboardClient.tsx` when `nameMapping` filtered list is empty -> PASSED
-- **Vulnerabilities found**: None critical. Minor caveat: single POST network failure during multi-item guest sync loop will skip failed item while clearing guest localStorage.
-- **Untested angles**: Extreme concurrent multi-tab auth state changes (handled gracefully via custom storage events).
-
-## Key Decisions Made
-- Confirmed full compliance with requirements R1 and R3.
-- Issued verdict: APPROVE.
-
-## Artifact Index
-- `.agents/reviewer_1/DISPATCH.md` — Incoming dispatch log
-- `.agents/reviewer_1/BRIEFING.md` — Working state briefing
-- `.agents/reviewer_1/handoff.md` — Final review report and verdict
+  - Generic URL deduplication collision: tested with `isGenericUrl` guard
+  - BBS 1154 table header variability: tested with dynamic header index parser
+  - Dongtan 1~9 dong coverage: all 9 codes and backup notices verified
+  - Anti-WAF bypass domain spoofing: tested with domain and protocol whitelist
+  - TypeScript static type conformance: identified TS2769 mismatch
+- **Vulnerabilities found**:
+  - TS2769 compilation error in `LoungeContainerClient.tsx`
+- **Untested angles**: none within M1~M4 scope

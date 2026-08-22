@@ -1,92 +1,116 @@
-# Empirical Verification & Edge-Case Report (Challenger 2)
-
-**Final Verdict**: **APPROVE**
-
----
+# Tier 5 White-Box Adversarial Coverage Audit & Edge Case Discovery Report
 
 ## 1. Observation
 
-### Test Execution Results
-- Executed full Jest test suite (`npx jest`):
-  - **Result**: 51 test suites passed, 51 total (358 tests passed, 0 failed).
-- Executed empirical test suite (`npx jest src/m2_m3_empirical_verification.test.tsx`):
-  - **Result**: 1 test suite passed, 1 total (20 tests passed, 0 failed).
-  - Verifications include: `ChartErrorBoundary` fallback rendering and state recovery on retry, `processMacroTrendData` / `calculateMacroGapAndRatio` handling of null/undefined/zero/negative inputs, `formatAvgPriceEok` formatting edge cases, `MacroTrendChart` component rendering with empty/null line data without console errors, and 320px viewport layout overflow defense.
+Direct white-box codebase inspection and empirical testing executed on:
+- `frontend/src/lib/services/newsData.ts`
+- `frontend/src/app/api/local-notices/route.ts`
+- `frontend/src/app/api/bypass-notice/route.ts`
+- `frontend/src/components/LoungeFeedClient.tsx`
+- `frontend/scripts/fetch-local-notices.js`
 
-### R1 Code Inspection: `hooks/useFavorites.ts`
-- **Lines 27–51**: `getGuestFavorites` reads `localStorage` key `'dview_guest_favorites'`. `saveGuestFavorites` serializes `Set<string> | string[]` into `localStorage` and dispatches `window.dispatchEvent(new CustomEvent('dview_favorites_updated', { detail: list }))`.
-- **Lines 54–73**: Subscribes to both `'dview_favorites_updated'` (cross-component) and `'storage'` (cross-tab) events to maintain real-time guest favorite synchronization.
-- **Lines 136–169**: When an unauthenticated user logs in, guest favorites in `'dview_guest_favorites'` are posted to `/api/favorite` for user account synchronization, and `localStorage.removeItem('dview_guest_favorites')` is executed cleanly.
-- **Lines 197–204**: `isFavorited` matches target apartment names using `normalizeAptName(aptName)` and `isSameApartment(item, aptName)`, preventing mismatches caused by NFC normalization, whitespace, or bracket variations.
+### Key Codebase Observations:
+1. **Notice Detail Modal Omission in `LoungeFeedClient.tsx` (Lines 928-1051 & 1443-1570)**:
+   - In `frontend/src/components/LoungeFeedClient.tsx` lines 928-930:
+     ```typescript
+     if (currentTab === '동탄구 소식') {
+       return (
+         <div className="flex flex-col gap-4 w-full">
+           ...
+         </div>
+       );
+     }
+     ```
+   - In `NoticeCard` (lines 218-226), clicking a Culture/AI notice sets `window.location.hash = 'notice=' + notice.id`.
+   - `useEffect` (lines 533-545) matches the hash and executes `setSelectedNoticeId(noticeId)`.
+   - However, the Notice Detail Modal JSX (`{selectedNoticeId && selectedNotice && (<LoungeModalBackdrop ...>}`) is located at **line 1443**, which is placed in the final talk-specific return block.
+   - Because `currentTab === '동탄구 소식'` returns early at line 929, the modal is **never rendered** on the `동탄구 소식` (`행정 고시공고`) tab.
 
-### R2 Code Inspection: `components/MacroDashboardClient.tsx`
-- **Lines 800–825, 908–924**: `selectedTimelineApt` state initializes to `"동탄역 롯데캐슬"`. On first load with valid `userFavorites`, `hasSetDefaultApt` effect sets `setSelectedTimelineApt(favArray[0])` exactly once. Subsequent user card clicks update `selectedTimelineApt` via `handleCardClick(aptName)`, maintaining selection stability across re-renders and background SWR revalidations.
-- **Lines 1154–1370**: When a complex not in `userFavorites` is selected, `selectedTimelineApt` fetches complex-specific transaction records `/tx-data/{txKey}.json` and calculates monthly averages in `selectedAptChartData`.
-- **Fallback Logic**: If actual transaction data for the complex is empty or loading, `selectedAptChartData` scales macro trend points using `selectedAptSummary` averages. If summary is missing or line data is empty, `lineData` backfills using macro trend points (`macroSale` / `macroRent`).
-- **Error Handling**: `ChartErrorBoundary` wraps chart components (`src/components/common/ChartErrorBoundary.tsx`), capturing rendering exceptions and rendering a fallback UI with a "다시 시도" retry button instead of crashing the dashboard.
+2. **Uninvoked Fallback Seed Dataset in `newsData.ts` & `local-notices/route.ts`**:
+   - `frontend/src/lib/services/newsData.ts` defines `loadFallbackNotices()` at lines 181-201, reading from `public/data/local-notices-backup.json`.
+   - In `newsData.ts` lines 222-224:
+     ```typescript
+     if (allItems.length === 0) {
+       return { notices: [], lastUpdated: null };
+     }
+     ```
+   - If Firestore returns 0 items or times out, `getLocalNotices` returns `{ notices: [], lastUpdated: null }` without calling `loadFallbackNotices()`.
+   - In `frontend/src/app/api/local-notices/route.ts` line 4, `loadFallbackNotices` is imported but never invoked in `GET` or in the `catch` block (lines 50-60).
 
-### R3 Code Inspection: `hooks/useStaticData.ts`
-- **Lines 255–280**: `fetchRecentTxsFromFirestore` queries Firestore collection `'transactions'` with `where('contractDate', '>=', cutoffDateStr)`.
-- **Query Window**: `thirtyDaysAgo` is computed as `new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)` and formatted to `YYYYMMDD` (`cutoffDateStr`), establishing a rolling 30-day window for recent transactions.
-- **Lines 192–253**: `mergeRecentTransactions` merges static JSON transactions (`recent-transactions.json`) with Firestore live transactions, deduplicating on `contractDate`, `txKey`, `area`, `floor`, and `priceVal`, and sorts by `contractDate` descending.
-- **Lines 374–419**: `mergedRecent7DaysVolume` computes live 7-day transaction metrics and updates `currentCount`, `trendText`, `trendColor`, and `badge` indicators dynamically.
+3. **Unhandled Rejection in Cache Write Path in `newsData.ts` (Line 301)**:
+   - In `newsData.ts` line 301:
+     ```typescript
+     await NewsRepo.setCachedNotices(cacheKey, responseData);
+     ```
+   - This call is awaited directly without a local `try/catch`. If `setCachedNotices` throws or rejects, `getLocalNotices` jumps to the outer catch block (line 304) and returns `{ notices: [], lastUpdated: null }`, discarding already fetched and parsed Firestore notices.
+
+4. **Security & Robustness Verification (`bypass-notice/route.ts` & `local-notices/route.ts`)**:
+   - In `frontend/src/app/api/bypass-notice/route.ts`:
+     - SSRF/Open-redirect whitelist (`ALLOWED_DOMAINS`) strictly enforces `.hscity.go.kr`, `.hcf.or.kr`, `.dongtanview.com`, `.gyeonggi.go.kr`, `.gg.go.kr`, `.lh.or.kr`, `.molit.go.kr`, `.korea.kr`.
+     - Tested 12 malicious injection payloads (IP spoofing, scheme injection `javascript:`, `data:`, `file:`, subdomain attacks) -> 100% intercepted and rejected with HTTP 400.
+     - HTML output sanitization uses `escapeHtml()` on meta refresh attributes and `encodeURIComponent()` inside inline `<script nonce="${nonce}">`, preventing attribute and script tag breakouts.
+   - In `frontend/src/app/api/local-notices/route.ts`:
+     - Query fuzzing across 9 adversarial variants (`?dongtan=false`, `?dongtan=`, `?dongtan=%00`, `?dongtan=invalid`, etc.) safely handled with Zod preprocessor.
+     - Dual envelope serialization verified (both `json.data.notices` and top-level `json.notices` available).
 
 ---
 
 ## 2. Logic Chain
 
-1. **R1 Logic Chain (Favorites Persistence & Auth State Sync)**:
-   - **Observation**: `useFavorites.ts` implements dual storage handling (`localStorage` + Firestore) and event listeners for `'dview_favorites_updated'` and `'storage'`.
-   - **Reasoning**: Unauthenticated users can add/remove favorites without loss across tabs, and upon login, guest favorites are automatically migrated to Firestore via `/api/favorite`. `normalizeAptName` and `isSameApartment` guarantee that name format discrepancies (e.g. `[오산동] 힐스테이트 동탄역` vs `힐스테이트동탄역`) do not disrupt favorite state evaluation.
-   - **Conclusion**: R1 state persistence, cross-tab sync, and auth migration are verified as robust.
+1. **Modal Inaccessibility Logic**:
+   - Given: `NoticeCard` sets `window.location.hash = 'notice=' + notice.id` when clicked in `동탄구 소식` feed.
+   - Given: `LoungeFeedClient` has an early return block for `currentTab === '동탄구 소식'` (lines 928-1051).
+   - Given: The Notice Detail Modal JSX is placed exclusively after line 1053 (line 1443).
+   - Therefore: Clicking a Culture or AI notice card on the `동탄구 소식` tab never displays the detail modal.
 
-2. **R2 Logic Chain (Selection Stability & Chart Integration)**:
-   - **Observation**: `MacroDashboardClient.tsx` uses `hasSetDefaultApt` to trigger initial selection without overriding active user selections during re-renders. Non-favorite complexes successfully load `/tx-data/{txKey}.json` and fallback to scaled macro trends when specific transaction history is scarce. `m2_m3_empirical_verification.test.tsx` tests null/undefined inputs and `ChartErrorBoundary` recovery.
-   - **Reasoning**: Stable state management prevents chart flicker and unexpected reset to default when data revalidates. Safe fallbacks ensure the right-hand chart renders continuous lines even with missing or partial data points. `ChartErrorBoundary` isolates SVG rendering errors.
-   - **Conclusion**: R2 selection stability, non-favorite complex selection, and chart fallback defenses are verified as robust.
+2. **Fallback Gap Logic**:
+   - Given: `PROJECT.md` specifies a resilient fallback mechanism guaranteeing 0% blank screens during DB outages or empty states.
+   - Given: `loadFallbackNotices()` exists and successfully loads `local-notices-backup.json`.
+   - Given: Neither `newsData.getLocalNotices()` nor `/api/local-notices/route.ts` calls `loadFallbackNotices()` when `allItems.length === 0` or in catch blocks.
+   - Therefore: Under a database outage or cold empty collection, the system serves an empty list instead of the static fallback dataset.
 
-3. **R3 Logic Chain (Recent Transactions & 30-Day Query Window)**:
-   - **Observation**: `useStaticData.ts` queries Firestore with `cutoffDateStr` (30 days ago) and merges results with static recent transactions, sorting descending by `contractDate`.
-   - **Reasoning**: Using a rolling 30-day cutoff ensures recent transactions stay up to date while avoiding over-fetching historic Firestore documents. De-duplication logic prevents duplicate entries when static files and Firestore overlap.
-   - **Conclusion**: R3 recent transactions updating, de-duplication, and query window filtering are verified as robust.
+3. **Cache Failure Logic**:
+   - Given: `await NewsRepo.setCachedNotices(...)` on line 301 is inside the main `try` block of `getLocalNotices`.
+   - Given: Outer `catch` block returns `{ notices: [], lastUpdated: null }`.
+   - Therefore: Any failure during cache write drops all valid Firestore notices and returns empty data to the caller.
 
 ---
 
 ## 3. Caveats
 
-- **Network Dependency for Live Firestore**: Unit tests mock Firestore queries and fetch calls. In live production environments without Firestore network connectivity, fallback to static JSON files (`recent-transactions.json` & `tx-summary.json`) is maintained without breaking UI layout.
-- **Mock Auth Bypass**: `useFavorites` contains E2E mock auth bypass branches (`__E2E_MOCK_AUTH__`) for automated E2E testing environments.
+- **External Network Dependency**: Live scraping of Hwaseong City Hall website is subject to target server availability and WAF IP throttling.
+- **Repository-Level Error Suppression**: `news.repository.ts` internally suppresses `redis.set` errors via `.catch()`, but adding a defensive `try/catch` at the service layer in `newsData.ts` guarantees absolute resilience regardless of mock/transport layer behavior.
 
 ---
 
-## 4. Conclusion
+## 4. Conclusion & Actionable Verdict
 
-All empirical unit tests (51 test suites, 358 tests total; including 20 empirical verification tests in `m2_m3_empirical_verification.test.tsx`) pass with 0 errors.
+### Explicit Verdict: `REQUEST_CHANGES` (Minor Remediation Required)
 
-Code review and empirical verification confirm:
-- **R1 (Favorite Persistence)**: Guest local storage sync, custom event broadcasting, account migration, and normalized name checking operate cleanly.
-- **R2 (Selection Stability & Chart Fallback)**: Timeline selection state is stable, non-favorite selection fetches complex data dynamically, missing data falls back to macro-trend ratios, and `ChartErrorBoundary` handles exceptions gracefully.
-- **R3 (Recent Transactions & 30-Day Query)**: Firestore 30-day query cutoff, live transaction merging, deduplication, and 7-day volume calculation operate correctly.
+While core parsers, rate limiting, and security controls are robust (136/136 tests passing across test suites), the following 3 remediation items must be addressed before final signoff:
 
-**Final Verdict**: **APPROVE**
+1. **Remediation 1 (`LoungeFeedClient.tsx`)**:
+   - Include `{selectedNoticeId && selectedNotice && (<LoungeModalBackdrop ...>)}` inside the `if (currentTab === '동탄구 소식')` return JSX (or move modal rendering to a shared return wrapper) so clicking notice cards opens the modal in the admin notice tab.
+2. **Remediation 2 (`newsData.ts` & `local-notices/route.ts`)**:
+   - In `newsData.getLocalNotices()`, when `allItems.length === 0` or when Firestore throws, invoke `loadFallbackNotices()` to return static backup data with `fromFallback: true`.
+3. **Remediation 3 (`newsData.ts`)**:
+   - Wrap `await NewsRepo.setCachedNotices(cacheKey, responseData)` in a local `try/catch` block so Redis write hiccups never fail the user request.
 
 ---
 
 ## 5. Verification Method
 
-To independently re-verify all empirical tests and code behaviors:
+To independently reproduce and verify these findings:
 
 ```bash
-# 1. Run all frontend Jest test suites
-cd frontend
-npm test
+# 1. Run Tier 5 Adversarial Coverage Test Suite (41 tests)
+cd frontend && npx jest src/__tests__/m5_tier5_adversarial_challenge.test.tsx
 
-# 2. Run the dedicated empirical verification suite
-npx jest src/m2_m3_empirical_verification.test.tsx --no-cache
+# 2. Run Comprehensive E2E Test Suite (95 tests)
+cd frontend && npx jest src/__tests__/local-notices-e2e.test.tsx
+
+# 3. Run Combined Suite (136 total tests)
+cd frontend && npx jest src/__tests__/local-notices-e2e.test.tsx src/__tests__/m5_tier5_adversarial_challenge.test.tsx
 ```
 
-**Files to Inspect**:
-1. `frontend/src/hooks/useFavorites.ts` (guest & auth favorite sync logic)
-2. `frontend/src/components/MacroDashboardClient.tsx` (selection stability & chart fallback logic)
-3. `frontend/src/hooks/useStaticData.ts` (30-day Firestore query & merge logic)
-4. `frontend/src/m2_m3_empirical_verification.test.tsx` (empirical unit test assertions)
+All 136 tests executed and passed. Test `4.5` in `m5_tier5_adversarial_challenge.test.tsx` empirically verifies the Notice Modal omission gap under `currentTab="동탄구 소식"`. Test `1.2b` empirically verifies the cache write drop behavior.

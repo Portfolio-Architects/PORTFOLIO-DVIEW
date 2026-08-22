@@ -1,168 +1,123 @@
-# Review & Verification Report — Requirements R1 & R3
+# Handoff Report: Reviewer 1 Evaluation of Milestones M1-M4
+
+## Review Summary
+
+**Verdict**: **REQUEST_CHANGES**
+
+---
 
 ## 1. Observation
 
-### Work Products Examined
-- `frontend/src/app/api/favorite/route.ts` (Lines 21-294)
-- `frontend/src/hooks/useFavorites.ts` (Lines 1-301)
-- `frontend/src/hooks/useStaticData.ts` (Lines 1-484)
-- `frontend/src/components/DashboardClient.tsx` (Lines 1-1245)
-
-### Verification Commands Executed
-- `cd frontend && npm test`
-  - Result: **51 passed, 51 total** test suites (358 passed, 0 failed).
-
-### Verbatim Code Evidence
-
-#### Requirement R1: Favorite Persistence, Guest Sync, Action Parameter
-1. **Backend Schema & Action Parameter (`frontend/src/app/api/favorite/route.ts:21-24, 77-106`)**:
-```ts
-const favSchema = z.object({
-  aptName: z.string().min(1).max(100).trim(),
-  action: z.enum(['add', 'remove', 'toggle']).optional().default('toggle'),
-});
-...
-if (action === 'add') {
-  if (exists) return { favorited: true, changed: false };
-  transaction.set(favRef, { userId, aptName, createdAt: FieldValue.serverTimestamp() });
-  transaction.set(countRef, { count: FieldValue.increment(1), aptName }, { merge: true });
-  return { favorited: true, changed: true };
-} else if (action === 'remove') {
-  if (!exists) return { favorited: false, changed: false };
-  transaction.delete(favRef);
-  transaction.set(countRef, { count: FieldValue.increment(-1), aptName }, { merge: true });
-  return { favorited: false, changed: true };
-}
-```
-2. **Guest Favorites Sync & `localStorage` Cleanup (`frontend/src/hooks/useFavorites.ts:136-169`)**:
-```ts
-const guestFavs = getGuestFavorites();
-if (guestFavs.length > 0) {
-  const missingFromServer = guestFavs.filter(guestApt => {
-    const guestNorm = normalizeAptName(guestApt);
-    return !serverFavorites.some(serverApt =>
-      normalizeAptName(serverApt) === guestNorm || isSameApartment(serverApt, guestApt)
-    );
-  });
-
-  if (missingFromServer.length > 0) {
-    for (const aptName of missingFromServer) {
-      try {
-        await fetch('/api/favorite', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` },
-          body: JSON.stringify({ aptName, action: 'add' }),
-        });
-        serverFavorites.push(aptName);
-      } catch (e) {
-        logger.warn('useFavorites.syncGuest', 'Failed to sync guest favorite', { aptName }, e as Error);
-      }
-    }
-  }
-
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.removeItem('dview_guest_favorites');
-    } catch (e) { ... }
-  }
-}
-```
-3. **Cross-Tab & Cross-Component Broadcast (`frontend/src/hooks/useFavorites.ts:42-73`)**:
-```ts
-window.dispatchEvent(new CustomEvent('dview_favorites_updated', { detail: list }));
-...
-window.addEventListener('dview_favorites_updated', syncFavorites);
-window.addEventListener('storage', syncFavorites);
-```
-
-#### Requirement R3: 30-Day Firestore Query Window & Fallback Filtering
-1. **30-Day Date Window Calculation & Query (`frontend/src/hooks/useStaticData.ts:255-275`)**:
-```ts
-const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-const y = thirtyDaysAgo.getFullYear();
-const m = String(thirtyDaysAgo.getMonth() + 1).padStart(2, '0');
-const d = String(thirtyDaysAgo.getDate()).padStart(2, '0');
-const cutoffDateStr = `${y}${m}${d}`;
-
-const q = query(
-  collection(db, 'transactions'),
-  where('contractDate', '>=', cutoffDateStr)
-);
-```
-2. **Deduplication & Sorting (`frontend/src/hooks/useStaticData.ts:222-251`)**:
-```ts
-const isDup = merged.some(r => 
-  r.contractDate === contractDate &&
-  r.txKey === aptKey &&
-  Math.abs(r.area - validatedTx.area) < 0.01 &&
-  r.floor === validatedTx.floor &&
-  r.priceVal === validatedTx.price / 10000
-);
-if (isDup) return;
-...
-merged.sort((a, b) => b.contractDate.localeCompare(a.contractDate));
-```
-3. **Fallback Filtering (`frontend/src/components/DashboardClient.tsx:344-363`)**:
-```ts
-const filtered = recentTransactions.filter((tx: { aptName?: string; txKey?: string }) => { ... });
-return filtered.length > 0 ? filtered : recentTransactions;
-```
+### Codebase & Implementation Inspections
+1. **Milestone M1 (Scraper & Normalization Pipeline)**:
+   - `frontend/scripts/fetch-local-notices.js` & `frontend/src/app/api/cron/sync-local-notices/route.ts`:
+     - Both files incorporate Zod validation schemas supporting `'culture'` in `source` enum and optional `content` markdown string.
+     - `generateCultureEvents()` programmatically creates recurring 2026 Dongtan events (Luna fountain show, Yeoul park busking, Sinri stream waterpark, citizen sports festivals, and 3040 lectures across Dongtan 1~9 dongs).
+     - `generateAIReports()` analyzes `tx-summary.json` (or `TX_SUMMARY`) to compute real gap/jeonse-rate rankings for top-3 safe residential complexes and high-jeonse risk warnings.
+     - Scrapers for BBS 1019, BD_notice, BBS 1131, BBS 1154, and BBS 1049 handle varied column arrangements via dynamic table header lookup (`titleIdx`, `deptIdx`, `dateIdx`), regex date extractors (`\d{4}-\d{2}-\d{2}`), and `opGosiView` parsing across `href` and `onclick`.
+2. **Milestone M2 (Repository & Backend API Layer)**:
+   - `frontend/src/lib/services/newsData.ts`:
+     - Implements `isGenericUrl` guard preventing notices with root/generic URLs from erroneously colliding and collapsing during title/date deduplication.
+     - Safely falls back on Redis read/write timeouts to Firestore and fallback dataset.
+   - `frontend/src/app/api/bypass-notice/route.ts`:
+     - Enforces `http:`/`https:` protocol check and domain whitelist (`hscity.go.kr`, `hcf.or.kr`, `dongtanview.com`, `gyeonggi.go.kr`, `gg.go.kr`, `lh.or.kr`, `molit.go.kr`, `korea.kr`, `localhost`, `127.0.0.1`).
+     - Includes HTML entity escaping (`escapeHtml`) and nonce support.
+   - `frontend/src/app/api/local-notices/route.ts`:
+     - Returns validated notices, handles `dongtan` boolean query parameter, includes public caching headers, and catches errors gracefully.
+3. **Milestone M3 (Frontend UI & Client State)**:
+   - `frontend/src/components/LoungeFeedClient.tsx`:
+     - Supports 5 primary tabs (`all`, `city`, `rail`, `town`, `culture`) and Dongtan 1~9 dong filtering under `town`.
+     - Notice cards render dynamic D-Day badges calculated via `new Date()` differences rather than static strings.
+     - Culture & AI report notices open detailed modal with markdown viewer and quick calculation CTA buttons.
+     - Shares via Kakao SDK and fallback clipboard link copying.
+   - `frontend/src/components/LoungeContainerClient.tsx`:
+     - Holds top-level segmented tabs (`talk`, `news`, `notices`), forwards `initialNotices` to `LoungeFeedClient`, and keeps `ssr: true` for pre-rendered markup.
+4. **Milestone M4 (Static Fallback System)**:
+   - `frontend/public/data/local-notices-backup.json`:
+     - Contains 23 static seed notices covering all 5 categories (`gosi`, `bbs`, `rail`, `dong` across all 9 dongs, `culture`), validated against Zod schema.
+5. **Automated Test & Typecheck Results**:
+   - `npx jest src/__tests__/local-notices-e2e.test.tsx`: **95 passed, 95 total (100%)**
+   - `npx jest src/components/LoungeFeedClient.test.tsx`: **3 passed, 3 total (100%)**
+   - `npx tsc --noEmit`: **FAILED with TS2769**
+     - Verbatim error:
+       ```
+       src/components/LoungeContainerClient.tsx(605,57): error TS2769: No overload matches this call.
+         Overload 1 of 2, '(props: LoungeFeedClientProps): ...', gave the following error.
+           Type 'NoticeItem[]' is not assignable to type 'LocalNoticeItem[]'.
+             Type 'NoticeItem' is not assignable to type 'LocalNoticeItem'.
+               Types of property 'title' are incompatible.
+                 Type 'string | undefined' is not assignable to type 'string'.
+       ```
 
 ---
 
-## 2. Logic Chain
+## 2. Findings
 
-1. **Observation 1.1** shows `favSchema` accepts `'add'`, `'remove'`, and `'toggle'`, and `POST /api/favorite` executes Firestore transactions idempotently.
-   - **Reasoning**: Explicit action handling prevents race conditions and prevents count corruption (e.g. adding an existing favorite will not double increment `favoriteCounts`).
-2. **Observation 1.2** shows `useFavorites` checks for unauthenticated guest favorites stored in `dview_guest_favorites`, compares them against server favorites using normalized name matching (`normalizeAptName` & `isSameApartment`), syncs missing favorites via `POST /api/favorite` with `action: 'add'`, and immediately clears `dview_guest_favorites` from `localStorage`.
-   - **Reasoning**: This fulfills R1 requirements for guest state migration, persistence, state cleanliness, and synchronization upon login.
-3. **Observation 1.3** shows custom events (`dview_favorites_updated`) and native `storage` events update unauthenticated state reactively across tabs and components.
-   - **Reasoning**: Guarantees UI consistency without requiring page reloads.
-4. **Observation 2.1** shows `fetchRecentTxsFromFirestore` calculates `now - 30 days`, formats it as `YYYYMMDD` (`cutoffDateStr`), and queries Firestore with `where('contractDate', '>=', cutoffDateStr)`.
-   - **Reasoning**: Exact 30-day window filtering is enforced at the database query level, optimizing read performance while maintaining fresh transaction data.
-5. **Observation 2.2** shows `mergeRecentTransactions` normalizes keys, filters out rental deals, checks for duplicates using contract date, key, area, floor, and price, and sorts descending by contract date.
-   - **Reasoning**: Eliminates duplicated items between static JSON assets and real-time Firestore updates, ensuring chronological ordering of recent transactions.
-6. **Observation 2.3** shows `filteredRecentTransactions` in `DashboardClient.tsx` returns `recentTransactions` if name-matched `filtered.length === 0`.
-   - **Reasoning**: Provides fail-safe fallback filtering so the recent transactions UI widget is never left empty if `nameMapping` is delayed or missing entries.
+### [Major] Finding 1: TypeScript Interface Mismatch in `LoungeContainerClient.tsx` (TS2769)
+- **What**: `npx tsc --noEmit` fails during project typecheck because `NoticeItem` in `LoungeContainerClient.tsx` defines `title?: string`, `url?: string`, `dept?: string` as optional, whereas `LocalNoticeItem` in `LoungeFeedClient.tsx` (and `NoticeData` from `facade.schemas.ts`) defines them as non-optional `string`.
+- **Where**: `frontend/src/components/LoungeContainerClient.tsx:74-84` and `frontend/src/components/LoungeContainerClient.tsx:605`
+- **Why**: Passing `initialNotices?: NoticeItem[]` into `<LoungeFeedClient initialNotices={initialNotices} ... />` causes a TypeScript compilation error (`TS2769`), which will fail production CI/CD builds (`npm run build`).
+- **Suggestion**: In `frontend/src/components/LoungeContainerClient.tsx`, update the `NoticeItem` interface to align with `LocalNoticeItem` (or import `NoticeData` / `LocalNoticeItem` from `@/lib/services/newsData`), setting `title: string; url: string; dept: string;` as required `string`.
 
 ---
 
-## 3. Caveats
+## 3. Verified Claims
 
-- **Partial Network Failures During Guest Sync**: If a network request fails for 1 out of multiple guest items in the `for` loop during guest sync, that single item is skipped, while `localStorage.removeItem('dview_guest_favorites')` still executes at the end of the batch. This is a low-probability edge case during unstable connections.
-- **E2E Mock Auth Flag**: `(window as any).__E2E_MOCK_AUTH__` bypasses live network calls when running automated Cypress/Playwright tests in non-production test environments.
-
----
-
-## 4. Conclusion & Verdict
-
-**Verdict**: **APPROVE**
-
-### Summary of Findings
-- **Correctness**: 100% compliant with requirements R1 and R3.
-- **Completeness**: Implements end-to-end functionality from frontend hooks to backend routes and database queries.
-- **Robustness**: Error handling, timeouts, Zod validation schemas, optimistic UI updates, and fallback mechanisms prevent application crashes.
-- **Integrity**: Independent audit confirmed zero hardcoded outputs, zero facade stubs, and zero test cheating. Full test suite (51/51 suites, 358/358 tests) passed.
+1. **Integrity Check**: Verified. No hardcoded mock returns, fake passes, or facade bypasses embedded in scraper or route logic.
+2. **BD_notice Gosi Extraction**: Verified. Handles both `href` and `onclick="opGosiView(...)"` formats correctly.
+3. **BBS 1154 Tram 6-Column Alignment**: Verified. Dynamic header lookup maps `title`, `dept`, `date` with YYYY-MM-DD regex fallback.
+4. **BBS 1049 Dongtan 1~9 Dong Normalization**: Verified. All 9 administrative dong codes (`57700100000` through `57700180000`) mapped to canonical names with `isDongtan: true`.
+5. **Deduplication in `newsData.ts`**: Verified. `isGenericUrl` guard prevents root and portal URLs from collapsing distinct notices.
+6. **Bypass Proxy Security**: Verified. Hostname whitelist and protocol validation block open redirect and malicious protocol attacks.
+7. **Frontend Tab Switching & Dongtan 1~9 Sub-filtering**: Verified. All 5 tabs and 9 dong filter chips render cards properly without blank screens.
+8. **Static Fallback Dataset**: Verified. `local-notices-backup.json` contains 23 valid records covering all sources and dongs.
+9. **Automated Test Suites**: Verified. 95/95 E2E tests and 3/3 component tests passed.
 
 ---
 
-## 5. Verification Method
+## 4. Logic Chain
 
-To independently verify this implementation:
+1. **Scraper & Pipeline (M1)**: Dynamic header detection and regex date normalization ensure that varied HTML table schemas from 화성시청 boards are parsed into clean, Zod-compliant records with correct source tags.
+2. **Backend & Proxy (M2)**: URL normalization with `isGenericUrl` prevents spurious deduplication. Domain whitelist in `/api/bypass-notice` provides secure anti-WAF navigation.
+3. **Frontend Rendering (M3)**: Synchronous state initialization from SSR props and tab/dong filtering prevent screen flashing and provide seamless navigation across all 5 notice categories.
+4. **Fallback Handling (M4)**: 23 static backup notices prevent empty UI states even during total upstream or database outages.
+5. **Build Conformance**: While runtime functionality and Jest test suites pass 100%, static type checking via `tsc --noEmit` fails on TS2769 due to the interface discrepancy between `LoungeContainerClient.tsx` and `LoungeFeedClient.tsx`. This requires a straightforward type definition fix to achieve production-ready quality.
 
-1. **Run full unit & integration tests**:
+---
+
+## 5. Caveats
+
+- As a review-only agent, no modifications were made to implementation code.
+- Kakao SDK sharing requires valid client-side credentials in production; the implementation gracefully falls back to clipboard copying in development/testing.
+
+---
+
+## 6. Conclusion
+
+The core functionality, data pipeline, and UI workflows for Milestones M1, M2, M3, and M4 are correctly implemented and well-tested (98/98 unit and E2E tests pass). However, due to the **TS2769 TypeScript compilation error in `LoungeContainerClient.tsx`**, the verdict is **REQUEST_CHANGES** so the worker agent can align the interface definition before milestone completion.
+
+---
+
+## 7. Verification Method
+
+1. Run TypeScript type check:
    ```bash
-   cd frontend
-   npm test
+   cd frontend && npx tsc --noEmit
    ```
-   *Expected result*: All 51 test suites pass without failure.
-
-2. **Inspect API Interface & Validation**:
-   - Inspect `frontend/src/app/api/favorite/route.ts` lines 21-24 and 77-106 to verify Zod schema validation and transaction-based idempotency for `'add'`, `'remove'`, and `'toggle'`.
-
-3. **Inspect Guest Sync & LocalStorage Cleanup**:
-   - Inspect `frontend/src/hooks/useFavorites.ts` lines 136-169 to verify `normalizeAptName` check, explicit `action: 'add'` dispatch, and immediate `localStorage.removeItem('dview_guest_favorites')`.
-
-4. **Inspect Firestore 30-Day Query & Fallback Filtering**:
-   - Inspect `frontend/src/hooks/useStaticData.ts` lines 255-275 for `thirtyDaysAgo` YYYYMMDD calculation and `where('contractDate', '>=', cutoffDateStr)`.
-   - Inspect `frontend/src/components/DashboardClient.tsx` lines 344-363 for fallback behavior when filtered transactions list is empty.
+2. Run local notices E2E test suite:
+   ```bash
+   cd frontend && npx jest src/__tests__/local-notices-e2e.test.tsx --watchAll=false --forceExit
+   ```
+3. Run LoungeFeedClient component test suite:
+   ```bash
+   cd frontend && npx jest src/components/LoungeFeedClient.test.tsx --watchAll=false --forceExit
+   ```
+4. Verify files inspected:
+   - `frontend/scripts/fetch-local-notices.js`
+   - `frontend/src/app/api/cron/sync-local-notices/route.ts`
+   - `frontend/src/lib/services/newsData.ts`
+   - `frontend/src/app/api/bypass-notice/route.ts`
+   - `frontend/src/app/api/local-notices/route.ts`
+   - `frontend/src/components/LoungeFeedClient.tsx`
+   - `frontend/src/components/LoungeContainerClient.tsx`
+   - `frontend/public/data/local-notices-backup.json`

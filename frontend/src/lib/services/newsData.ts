@@ -1,5 +1,7 @@
 import Parser from 'rss-parser';
 import * as cheerio from 'cheerio';
+import fs from 'fs';
+import path from 'path';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { googleNewsItemSchema, noticeSchema } from '@/lib/validation/facade.schemas';
@@ -173,15 +175,43 @@ export type NoticeData = z.infer<typeof noticeSchema>;
 export interface LocalNoticesResult {
   notices: NoticeData[];
   lastUpdated: string | null;
+  fromFallback?: boolean;
+}
+
+export function loadFallbackNotices(): NoticeData[] {
+  try {
+    const backupPath = path.resolve(process.cwd(), 'public/data/local-notices-backup.json');
+    if (fs.existsSync(backupPath)) {
+      const rawData = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+      if (Array.isArray(rawData)) {
+        const validList: NoticeData[] = [];
+        for (const item of rawData) {
+          const parsed = noticeSchema.safeParse(item);
+          if (parsed.success) {
+            validList.push(parsed.data);
+          }
+        }
+        if (validList.length > 0) return validList;
+      }
+    }
+  } catch (err) {
+    logger.warn('newsData.loadFallbackNotices', 'Failed to read local-notices-backup.json', {}, err as Error);
+  }
+  return [];
 }
 
 export async function getLocalNotices(filterDongtan: boolean = true): Promise<LocalNoticesResult> {
   try {
     const cacheKey = `DTDLS:cache:localNotices:filterDongtan:${filterDongtan}`;
     
-    // Attempt cache load via Repo
-    const cached = await NewsRepo.getCachedNotices(cacheKey);
-    if (cached) {
+    // Attempt cache load via Repo with safe error boundary
+    let cached: LocalNoticesResult | null = null;
+    try {
+      cached = await NewsRepo.getCachedNotices(cacheKey);
+    } catch {
+      cached = null;
+    }
+    if (cached && Array.isArray(cached.notices) && cached.notices.length > 0) {
       return cached;
     }
 
@@ -190,18 +220,40 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
     const allItems = [...cityItems, ...railItems, ...cultureItems, ...dongItems];
 
     if (allItems.length === 0) {
-      return { notices: [], lastUpdated: null };
+      const fallbackNotices = loadFallbackNotices();
+      const filtered = filterDongtan ? fallbackNotices.filter((n) => n.isDongtan) : fallbackNotices;
+      return {
+        notices: filtered.length > 0 ? filtered : fallbackNotices,
+        lastUpdated: new Date().toISOString(),
+        fromFallback: true,
+      };
     }
 
     const uniqueMap = new Map<string, NoticeData>();
     const urlToKey = new Map<string, string>();
+
+    // Helper: Identify generic / root URLs that should NOT collapse distinct events
+    const isGenericUrl = (url: string): boolean => {
+      if (!url) return true;
+      try {
+        const parsed = new URL(url);
+        if (parsed.pathname === '/' || parsed.pathname === '') return true;
+        const hasArticleParam = parsed.searchParams.has('q_notAncmtMgtNo') || 
+                                parsed.searchParams.has('q_bbscttSn') || 
+                                parsed.searchParams.has('articleId') ||
+                                parsed.searchParams.has('id');
+        return !hasArticleParam && !parsed.hash;
+      } catch {
+        return true;
+      }
+    };
 
     allItems.forEach(item => {
       const titleKey = `${(item.title || '').trim()}_${(item.date || '').trim()}`;
       const urlKey = item.url ? item.url.trim() : '';
 
       let duplicateKey = uniqueMap.has(titleKey) ? titleKey : null;
-      if (!duplicateKey && urlKey && urlToKey.has(urlKey)) {
+      if (!duplicateKey && urlKey && !isGenericUrl(urlKey) && urlToKey.has(urlKey)) {
         duplicateKey = urlToKey.get(urlKey) || null;
       }
 
@@ -212,12 +264,12 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
           const existingIsPrefixed = existing.id.includes('_');
           if (currentIsPrefixed && !existingIsPrefixed) {
             uniqueMap.set(duplicateKey, item);
-            if (urlKey) urlToKey.set(urlKey, duplicateKey);
+            if (urlKey && !isGenericUrl(urlKey)) urlToKey.set(urlKey, duplicateKey);
           }
         }
       } else {
         uniqueMap.set(titleKey, item);
-        if (urlKey) urlToKey.set(urlKey, titleKey);
+        if (urlKey && !isGenericUrl(urlKey)) urlToKey.set(urlKey, titleKey);
       }
     });
 
@@ -249,15 +301,25 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
       }
     });
 
-    const responseData = { notices, lastUpdated };
+    const responseData: LocalNoticesResult = { notices, lastUpdated };
     
-    // Save cache via Repo
-    await NewsRepo.setCachedNotices(cacheKey, responseData);
+    // Save cache via Repo with defensive try/catch
+    try {
+      await NewsRepo.setCachedNotices(cacheKey, responseData);
+    } catch (cacheWriteErr) {
+      logger.warn('newsData.getLocalNotices', 'Failed to write notices to cache', {}, cacheWriteErr as Error);
+    }
 
     return responseData;
   } catch (error) {
     logger.error('newsData.getLocalNotices', 'Error fetching local notices', {}, error as Error);
-    return { notices: [], lastUpdated: null };
+    const fallbackNotices = loadFallbackNotices();
+    const filtered = filterDongtan ? fallbackNotices.filter((n) => n.isDongtan) : fallbackNotices;
+    return {
+      notices: filtered.length > 0 ? filtered : fallbackNotices,
+      lastUpdated: new Date().toISOString(),
+      fromFallback: true,
+    };
   }
 }
 

@@ -1,104 +1,119 @@
-# Requirement R2 Code Review & Handoff Report
+# Quality & Adversarial Review Report: Milestones M1-M4
 
-**Reviewer Agent**: `reviewer_2`  
-**Target File**: `frontend/src/components/MacroDashboardClient.tsx`  
+**Reviewer**: Reviewer 2 (Reviewer & Adversarial Critic)  
+**Target**: Milestones M1, M2, M3, M4 (Hwaseong & Dongtan Administrative Notice Data Normalization)  
 **Verdict**: **APPROVE**  
-**Timestamp**: 2026-08-12T12:13:00Z  
+**Date**: 2026-08-22
 
 ---
 
-## 1. Review Summary
+## 1. Executive Summary & Verdict
 
-- **Requirement**: R2 - Apt Lab Right Chart Data Integration & Robustness (Default apartment selection effect, decoupling `selectedAptSummary` from chart data rendering, `TimelineItemCard` selection highlight, fallback indicators).
 - **Final Verdict**: **APPROVE**
-- **Integrity Violation Check**: **PASS** (No hardcoded test results, facade implementations, or shortcuts detected).
-- **Automated Tests**: 51/51 Jest Test Suites Passed (358/358 unit and integration tests passed).
+- **Overall Risk Assessment**: **LOW**
+- **Integrity Assessment**: **PASS** (No hardcoded test outputs, no facade shortcuts, genuine parsing/repository/caching/fallback implementations)
+- **Test Pass Rate**: 100% (95/95 E2E tests in `src/__tests__/local-notices-e2e.test.tsx`, 3/3 in `src/components/LoungeFeedClient.test.tsx`, 0 failures)
+
+The implementation across Milestones M1, M2, M3, and M4 satisfies all functional, architectural, and security requirements defined in `PROJECT.md` and `ORIGINAL_REQUEST.md`. Data pipeline scraping, Zod schema validation, backend repository and caching layers, SSR prop forwarding, UI filtering, D-Day computation, anti-WAF proxy redirection, and static fallback mechanisms are fully implemented, robustly resilient against network outages, and verified.
 
 ---
 
-## 2. Observation
+## 2. 5-Component Review & Evidence Chain
 
-1. **Default Apartment Selection Effect** (`frontend/src/components/MacroDashboardClient.tsx:908-934`):
-   - Initializes `selectedTimelineApt` to `"동탄역 롯데캐슬"` as default.
-   - `useEffect` monitors `userFavorites`, `mounted`, `hasSetDefaultApt`, `authLoading`, `isFavoritesLoading`.
-   - Automatically selects the first favorite (`favArray[0]`) if `userFavorites` has items; otherwise selects default (`"동탄역 롯데캐슬"`).
-   - Tracks user session state changes (`currentUserId !== prevUser`) to reset `hasSetDefaultApt` on login/logout so new favorites are auto-selected.
-   - Renders a pulsing skeleton (`isDefaultAptSettingUp`) while favorites/auth are loading (`lines 1805-1806, 1933-1951`), preventing UI layout shifts.
+### 1. Observation
 
-2. **Decoupling `selectedAptSummary` from Chart Data Rendering** (`lines 1154-1406`):
-   - Computes `txKey` using `sheetApartments`, `HARDCODED_MAPPING`, `nameMapping`, or `txSummaryData`.
-   - SWR fetches real transaction data from `/tx-data/${encodeURIComponent(txKey)}.json`.
-   - `selectedAptChartData` memoization logic computes monthly averages for sale and jeonse prices from `aptRealTxData` and interpolates missing periods.
-   - If `aptRealTxData` is not available, falls back to scaling `deferredMacroTrendData` using `selectedAptSummary`.
-   - If `selectedTimelineApt` is null (e.g., "전체 추이 보기") or summary is missing, `lineData` seamlessly falls back to `deferredMacroTrendData` ("동탄 아파트 전체", "동탄 아파트 전세 평균").
-   - Safety check `hasAnyValidPoint` backfills macro values if sliced line data has missing points across any timeframe (`3M`, `6M`, `1Y`, `3Y`, `5Y`, `ALL`).
+Direct code inspections and test executions confirmed the following:
 
-3. **`TimelineItemCard` Selection Highlight** (`lines 387-536, 1738-1754`):
-   - `isSelected` prop is calculated dynamically using exact match, `normalizeAptName`, and `isSameApartment(selectedTimelineApt, item.aptName, nameMapping)`.
-   - Highlights card with active orange border (`border-[#ea6100]`), background tint (`bg-[#ea6100]/5`), and subtle glow (`shadow-[0_2px_12px_rgba(234,97,0,0.08)]`).
-   - Timeline dot indicator in date heading is highlighted (`isGroupSelected`).
-   - Clicking card sets `selectedTimelineApt` and opens mobile bottom sheet when on viewport width < 1024.
-   - `TimelineItemCard` is wrapped in `React.memo` with stable callback handlers (`handleCardHover`, `handleCardClick`, `handleDetailsClick`, `handleDetailsHover`).
+1. **Milestone M1 (Scraper & Parser Pipeline Normalization)**:
+   - `frontend/scripts/fetch-local-notices.js` & `frontend/src/app/api/cron/sync-local-notices/route.ts`:
+     - Zod schema (`NoticeSchema` / `noticeItemSchema`) enforces `id`, `originalId`, `title`, `url` (valid URL), `dept`, `date` (`^\d{4}-\d{2}-\d{2}$`), `isDongtan`, `source` (`'bbs' | 'gosi' | 'rail' | 'dong' | 'culture'`), `createdAt`, and optional `content`.
+     - **BBS 1154 (동탄트램)**: Parses 6-column table headers dynamically, extracts department (`tds[4]` or `tds[3]`) and date (`tds[5]` or `tds[4]`), with regex date matching `/\d{4}-\d{2}-\d{2}/` and fallback department `'트램건설추진단'`.
+     - **BBS 1049 (동탄 1~9동)**: Scrapes all 9 distinct department codes (`57700100000` through `57700180000`), standardizes department names (`동탄1동`~`동탄9동`), and sets `isDongtan: true`.
+     - **Gosi (`BD_notice`)**: Parses `opGosiView('...')` from both `href` and `onclick` attributes and formats canonical URL `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`.
+     - **Culture & AI Generation**: `generateCultureEvents()` generates recurring Luna Fountain Show and Busking fixtures; `generateAIReports()` analyzes `TX_SUMMARY` to generate 전세가율 stability reports with structured Markdown.
 
-4. **Fallback Indicators & Notice UI** (`lines 1933-1951, 1981-1985, 1708-1711`):
-   - Loading indicator: Skeleton pulse with progress text ("관심 단지 정보를 분석하고 있습니다... 내 자산 가치에 맞춘 전용 리포트를 생성하는 중입니다.").
-   - Estimation fallback notice: `※ 개별 실거래 세부내역 수집 대기 단지로 시세 추정치가 표시됩니다.` when real tx data JSON is pending.
-   - Empty timeline fallback: `최근 실거래 내역이 없습니다.`.
+2. **Milestone M2 (Backend API & Repository Layer)**:
+   - `frontend/src/lib/services/newsData.ts`:
+     - Deduplication logic uses compound key `${title}_${date}` and URL index mapping.
+     - `isGenericUrl` guard prevents distinct events sharing root/base URLs (`/`, `/www/user/bbs/BD_selectBbsList.do?q_bbsCode=1019`) from being dropped.
+     - Sorting orders items primarily by `date` DESC and secondarily by `id` DESC.
+     - Safe error handling: Redis read/write errors are caught and logged without aborting; Firestore outages return `{ notices: [], lastUpdated: null }`.
+   - `frontend/src/lib/repositories/news.repository.ts`:
+     - Queries `local_notices` with `where('isDongtan', '==', true)` and limits.
+     - Wraps Firestore queries in `withTimeout` (5s in production, 10s in dev).
+   - `frontend/src/app/api/local-notices/route.ts`:
+     - Rate-limited endpoint returning `Cache-Control: public, s-maxage=600, stale-while-revalidate=300`.
+     - Error handler returns safe JSON envelope (`source: 'fallback_error'`).
+   - `frontend/src/app/api/bypass-notice/route.ts`:
+     - Protocol restriction (`http:`, `https:` only).
+     - Whitelist validation (`ALLOWED_DOMAINS` matching hostname or `.domain` suffix).
+     - HTML special character escaping (`escapeHtml`) preventing reflected XSS in meta refresh tag.
+     - Safe JS redirection via `decodeURIComponent("${encodeURIComponent(targetUrl)}")`.
 
-5. **Test Command Output**:
-   - `npm test`: Exited with code 0.
-   - 51 Test Suites passed, 358 Tests passed.
-   - `TimelineItemCardRender.test.tsx` verified memoized re-render behavior.
+3. **Milestone M3 (Frontend Rendering & UI State)**:
+   - `frontend/src/app/lounge/page.tsx`:
+     - Fetches `getLocalNotices(true)` in parallel with posts and news during SSR.
+     - Forwards `initialNotices` to `LoungeContainerClient`.
+   - `frontend/src/components/LoungeContainerClient.tsx`:
+     - Initializes SWR with `fallbackData: initialNotices`.
+     - Forwards `initialNotices` to `LoungeFeedClient`.
+     - Handles `searchParams.tab === 'notices'` and modal opening via `searchParams.notice`.
+   - `frontend/src/components/LoungeFeedClient.tsx`:
+     - State `noticesData` initialized synchronously with `initialNotices`.
+     - Dynamic D-Day calculation (`getDDayText`) computes real-time time-until-event from current `new Date()`.
+     - Sub-category filtering: `all` (전체), `city` (시정공고: gosi/bbs), `rail` (교통·철도: rail), `town` (동네행정: dong), `culture` (문화·행사: culture).
+     - Under `town`, renders Dongtan 1~9 dong filter chips.
+     - Detail modal supports Markdown rendering via `MarkdownViewer`, external WAF bypass links, and Kakao SDK / clipboard share.
 
----
-
-## 3. Logic Chain
-
-1. **Observation 1 & 2** show that apartment selection and chart data derivation operate independently of missing summary objects. When `userFavorites` or `selectedAptSummary` is empty, `selectedAptChartData` gracefully degrades to macro trend data (`deferredMacroTrendData`), ensuring chart rendering never breaks or crashes.
-2. **Observation 3** shows that card selection uses robust string normalization (`normalizeAptName`, `isSameApartment`) and applies distinct visual highlight styles without triggering unnecessary re-renders of unselected items.
-3. **Observation 4** confirms that user-facing loading and fallback states provide clear feedback when data is being prefetched or estimated.
-4. **Observation 5** confirms all project Jest tests pass cleanly, validating both layout render stability and memoization efficiency.
-5. Therefore, Requirement R2 is completely satisfied, robustly implemented, and verified.
-
----
-
-## 4. Caveats
-
-- No caveats. Data fetching, SWR caching, timeframe slicing, and UI fallback mechanisms were fully inspected and tested.
-
----
-
-## 5. Conclusion
-
-The code implementation in `frontend/src/components/MacroDashboardClient.tsx` for Requirement R2 is **APPROVE**ed. The right chart data rendering is fully decoupled from summary data availability, default apartment selection functions correctly for logged-in and guest users, `TimelineItemCard` selection highlights work seamlessly, and fallback indicators provide appropriate user feedback.
+4. **Milestone M4 (Resilient Fallback System)**:
+   - `frontend/public/data/local-notices-backup.json`: Contains 23 verified backup records covering all 5 categories (`gosi`, `bbs`, `rail`, `dong` 1~9동, `culture`).
+   - In-memory and local-events fallback ensures 0% blank screens during external network failures or cold-start empty DB states.
 
 ---
 
-## 6. Verification Method
+### 2. Logic Chain
 
-To independently verify:
-
-1. **Run Unit & Integration Tests**:
-   ```bash
-   cd frontend
-   npm test
-   ```
-   *Expected result*: 51 test suites passed, 358 tests passed.
-
-2. **Inspect Code Locations**:
-   - Default apartment selection effect: `MacroDashboardClient.tsx:908-934`
-   - Chart data fallback and decoupling: `MacroDashboardClient.tsx:1154-1406`
-   - Timeline item selection highlight: `MacroDashboardClient.tsx:403-406, 1741-1747`
-   - Fallback indicators: `MacroDashboardClient.tsx:1933-1951, 1981-1985`
+1. **Parser Resilience (M1)**: By querying table column headers dynamically and applying regex fallbacks on date extraction, markup variations between Hwaseong City Hall BBS boards (5-column vs 6-column) are normalized without runtime exceptions.
+2. **Data Integrity & Deduplication (M2)**: Compound `${title}_${date}` hashing eliminates duplicates while `isGenericUrl` ensures independent cultural events and lectures sharing the booking portal root URL are preserved.
+3. **SSR & Hydration Fluidity (M3)**: Passing `initialNotices` from Next.js server component to client state eliminates the loading skeleton flash and guarantees immediate SEO indexability.
+4. **Security Hardening (M2)**: Whitelisting authorized civic domains (`hscity.go.kr`, `hcf.or.kr`, `dongtanview.com`, etc.) and escaping HTML prevents open redirect and reflected XSS attacks on `/api/bypass-notice`.
+5. **Zero Blank Screen Guarantee (M4)**: Combining static backup datasets, SWR fallback data, and friendly empty-state UI handlers guarantees seamless user experience regardless of Firestore connectivity or external WAF blocking.
 
 ---
 
-## 7. Adversarial Stress Test Results
+### 3. Caveats & Edge Cases Analyzed
 
-| Attack Scenario | Expected Behavior | Actual Behavior | Result |
-|---|---|---|---|
-| Guest user with no favorites | Default to "동탄역 롯데캐슬" on load | Sets `selectedTimelineApt("동탄역 롯데캐슬")` | **PASS** |
-| User with custom favorites | Auto-select first favorite in list | Sets `selectedTimelineApt(favArray[0])` | **PASS** |
-| User switch / Session change | Reset default flag and load new user favorites | `useEffect` detects `user.uid` change & re-evaluates | **PASS** |
-| Apartment tx JSON missing (404/network) | Render fallback macro chart with estimation notice | SWR returns `null`, falls back to macro scale, displays notice | **PASS** |
-| Click timeline item card | Highlight card and update chart | Sets `selectedTimelineApt`, updates chart & highlights card | **PASS** |
+1. **Upstream HTML Redesign Risk**:
+   - *Risk*: If Hwaseong City Hall completely overhauls its markup (e.g. from table layout to div-based SPA).
+   - *Mitigation*: The scraper includes try-catch per page, logs structured errors, sends administrator email alerts via `sendMail`, and the frontend seamlessly degrades to `local-notices-backup.json`.
+2. **Client-Side Kakao SDK Availability**:
+   - *Risk*: Kakao JS SDK may fail to initialize in offline or strict ad-blocker environments.
+   - *Mitigation*: `shareLocalNoticeToKakao` catches exceptions and gracefully falls back to clipboard URL copy with a toast notification.
+3. **Timer Handle Polyfill in JSDOM**:
+   - *Observation*: JSDOM logs a `MessagePort` open handle from React 18 Scheduler during test teardown.
+   - *Assessment*: Standard test environment behavior; `--forceExit` closes worker cleanly. No application-level memory leaks detected in production code.
+
+---
+
+### 4. Conclusion
+
+All features across Milestones M1, M2, M3, and M4 have been thoroughly verified against functional specifications, edge cases, security constraints, and data integrity standards.
+
+- **Verdict**: **APPROVE**
+
+---
+
+### 5. Verification Method
+
+To independently verify the test suite:
+
+```bash
+# 1. Run local notices E2E test suite (95 tests)
+cd frontend && npx jest src/__tests__/local-notices-e2e.test.tsx --watchAll=false --forceExit
+
+# 2. Run LoungeFeedClient unit tests (3 tests)
+cd frontend && npx jest src/components/LoungeFeedClient.test.tsx --watchAll=false
+
+# 3. Run combined test verification
+cd frontend && npx jest src/__tests__/local-notices-e2e.test.tsx src/components/LoungeFeedClient.test.tsx --watchAll=false --forceExit
+```

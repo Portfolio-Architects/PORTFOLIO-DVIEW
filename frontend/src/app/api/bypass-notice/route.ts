@@ -7,14 +7,30 @@ import { apiError } from '@/lib/api/apiResponse';
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const ALLOWED_DOMAINS = [
+  'hscity.go.kr',
+  'hcf.or.kr',
+  'dongtanview.com',
+  'gyeonggi.go.kr',
+  'gg.go.kr',
+  'lh.or.kr',
+  'molit.go.kr',
+  'korea.kr',
+  'localhost',
+  '127.0.0.1'
+];
+
 const bypassNoticeQuerySchema = z.object({
   url: z.string()
     .url('Invalid URL format.')
     .refine((url) => {
       try {
         const parsed = new URL(url);
-        const hostname = parsed.hostname;
-        return hostname === 'hscity.go.kr' || hostname.endsWith('.hscity.go.kr');
+        if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+          return false;
+        }
+        const hostname = parsed.hostname.toLowerCase();
+        return ALLOWED_DOMAINS.some(domain => hostname === domain || hostname.endsWith(`.${domain}`));
       } catch {
         return false;
       }

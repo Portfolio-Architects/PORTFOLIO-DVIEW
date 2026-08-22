@@ -94,6 +94,7 @@ describe('LoungeFeedClient Notice & Event Curation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers().setSystemTime(new Date('2026-06-07T00:00:00.000Z'));
     
     // Mock fetch for notices
     const mockFetchImpl = (url: string) => {
@@ -116,6 +117,10 @@ describe('LoungeFeedClient Notice & Event Curation', () => {
     };
     window.fetch = jest.fn().mockImplementation(mockFetchImpl);
     global.fetch = window.fetch;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
   });
 
   it('renders "동탄구 소식" tab correctly and switches sub-categories', async () => {

@@ -1,44 +1,35 @@
 # Original User Request
 
-## 2026-08-21T14:27:33Z
+## Initial Request — 2026-08-22T03:47:05Z
 
-Execute an end-to-end architectural layer refactoring across the D-VIEW project (`frontend/`), establishing clean layer boundaries, eliminating circular dependencies, standardizing domain contracts, and ensuring zero regressions across all verification gates.
+You are the Project Orchestrator for this task.
 
-Working directory: frontend
-Integrity mode: development
+Working Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Your Metadata Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\orchestrator_1
+Original Request Path: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
+Integrity Mode: demo
+
+## Task Overview
+Resolve data integration errors for Hwaseong City Hall and Dongtan area administrative network in D-VIEW Lounge (/lounge?tab=notices) '행정 고시공고' tab (시정공고, 교통·철도, 동네행정, 문화·행사), and normalize the entire flow from crawler/pipeline to frontend rendering and fallback handling.
 
 ## Requirements
+R1. Crawling & Parsing Pipeline Normalization
+- Fix scrapers for Hwaseong City Hall BBS 1019 (타기관 고시공고), BD_notice (화성시 고시공고), BBS 1131 (철도사업 추진현황), BBS 1154 (동탄트램 추진현황), BBS 1049 (동탄 1~9동 동별 공지사항) based on HTML structure and encoding.
+- Ensure batch script `fetch-local-notices.js` and internal API `sync-local-notices/route.ts` parse data properly and populate Firestore `local_notices` and Redis cache.
 
-### R1. Architectural Layer Boundary & Separation of Concerns
-Establish clear architectural layer isolation across the codebase:
-1. **Domain & Types Layer (`src/types/`, Domain Entities/Value Objects)**: Centralize data contracts, DTOs, and type interfaces. Eliminate duplicate type definitions and unsafe `any`/type assertions across modules.
-2. **Infrastructure & Repository Layer (`src/lib/`, DB/Cache/External APIs)**: Encapsulate data fetching (Firestore, Upstash Redis, Google Sheets, MOLIT Open Data) into clean repository and adapter interfaces with uniform error handling and retry resilience.
-3. **Application & Hook Layer (`src/hooks/`)**: Separate business/application orchestration and data synchronization from UI rendering. Ensure custom hooks handle race conditions, cancellation, and deduplicated caching safely.
-4. **Presentation Layer (`src/components/`, `src/app/`)**: Enforce unidirectional data flow and modular SRP (Single Responsibility Principle) composition. Ensure high-frequency render paths and heavy components use appropriate memoization and lazy-loading boundaries without breaking test IDs or props contracts.
-5. **Data Pipeline Layer (`scripts/`)**: Maintain modular decomposition of ETL scripts (outlier filters, trend aggregators, file chunk generators) with clean interfaces and isolated execution paths.
+R2. Lounge Admin Notice Tab & API Integration
+- Validate `/api/local-notices` endpoint, repository layer (`news.repository.ts`, `newsData.ts`), and pass all categories (`gosi`, `bbs`, `rail`, `dong`, `culture`) to frontend.
+- Fix `LoungeFeedClient.tsx` and `LoungeContainerClient.tsx` tab switching (`전체`, `시정공고`, `교통·철도`, `동네행정`, `문화·행사`) and Dongtan 1~9 sub-filtering so valid cards render without empty screens.
 
-### R2. Strict Interface Contracts & Cross-Layer Dependency Rules
-Enforce clean dependency direction (UI → Application → Infrastructure → Domain):
-1. Prevent upward/circular dependencies (e.g. presentation logic leaking into domain/data layers or infrastructure leaking UI state).
-2. Standardize all API route handlers (`src/app/api/`) using the unified response envelope (`success`, `data`, `error`, `meta`) with standardized status codes and rate limiting.
-
-### R3. Verification & Zero-Regression Guardrail
-The refactoring must pass all static analysis, type checking, test suites, and production build pipelines without regression:
-1. TypeScript strict type check passes with 0 errors (`npx tsc --noEmit`).
-2. ESLint checks pass with 0 errors and 0 warnings (`npm run lint`).
-3. Full test suite passes without flaky or failing tests (`npm test`).
-4. Production build completes successfully with Turbopack (`npm run build`).
+R3. Fallback System for Outages / Network Block / Empty DB
+- Implement resilient fallback mechanism so if Hwaseong City Hall WAF blocks or times out or DB is empty, user sees up-to-date static backup data / guidance rather than blank screen.
 
 ## Acceptance Criteria
+- Valid items extracted & pass Zod schema.
+- Firestore & Redis loading runs without error.
+- `/api/local-notices` returns JSON containing `rail`, `gosi`, `bbs`, `dong`, `culture`.
+- All tabs and subcategories render cards properly.
+- Card click opens source / modal / Kakao share correctly.
+- Fallback data displays gracefully when external network fails.
 
-### Layer Separation & Clean Code Quality
-- [ ] No circular dependencies or upward imports across domain, infrastructure, application, and UI layers.
-- [ ] Domain models and API DTO contracts are strictly typed without untyped `any` leaks in repositories or custom hooks.
-- [ ] API routes consistently utilize the standard response envelope and resilient error handling.
-- [ ] UI components preserve all existing user-facing props interfaces, behavioral contracts, and data-testid attributes.
-
-### Objective Verification Gates
-- [ ] `npx tsc --noEmit` exits with status code 0 and 0 errors.
-- [ ] `npm run lint` exits with status code 0 and 0 errors.
-- [ ] `npm test` executes the complete test suite and passes 100% of tests with 0 failures.
-- [ ] `npm run build` completes the Next.js production build without errors.
+Please maintain your plan.md, progress.md, and briefing in your metadata directory and report back when finished.

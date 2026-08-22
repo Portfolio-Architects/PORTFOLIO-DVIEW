@@ -1,188 +1,253 @@
-# Infrastructure, Data Access, Repositories, and Hooks Survey Report
+# Deep Investigation & Survey Report: Backend API, Repository & Data Layer
 
-**Explorer**: Explorer 2 (Infrastructure, Data Access, Repositories, and Application Hooks Specialist)  
-**Date**: 2026-08-21  
-**Scope**: `frontend/src/lib/`, `frontend/src/hooks/`, `frontend/src/app/api/`, data pipelines and environment configuration.
-
----
-
-## Executive Summary
-
-A comprehensive architectural inspection was conducted across the Infrastructure (`src/lib/`), Data Access/Repositories (`src/lib/repositories/`, `src/lib/services/`), Custom Hooks (`src/hooks/`), and Route Handlers (`src/app/api/`).
-
-The codebase shows substantial architectural maturity in several areas (e.g., in-memory L1 cache fallbacks, Zod runtime validation, `useSyncExternalStore` integration, `resilientFetch` retry/backoff, and IndexedDB offline queuing). However, critical layer boundary leaks, upward dependencies, scattered raw data access calls, non-standardized API envelopes, and residual `any` types currently undermine strict separation of concerns and maintainability.
-
----
-
-## 1. Complete Inventory of Modules
-
-### 1.1 Infrastructure & Core Configuration (`src/lib/`)
-
-| File / Module | Responsibility | Key Dependencies / Protocols | Notes & Health Assessment |
-|---|---|---|---|
-| `firebaseConfig.ts` | Firebase Web Client SDK initialization (Firestore, Auth, Storage, App Check) | `firebase/app`, `firebase/firestore`, `firebase/auth`, `firebase/storage`, `firebase/app-check`, `zod` | ⚠️ Uses type assertion `as unknown as ReturnType<...>` hiding `null` when env is absent during SSR/test. |
-| `firebaseAdmin.ts` | Firebase Admin SDK initialization for Node.js server environments | `firebase-admin`, `path`, `fs`, `zod` | ✅ Validates multi-format credentials (local JSON, Vercel split keys). Configures `preferRest: true`. |
-| `firebaseAdmin.client.ts` | Client-side stub for `firebaseAdmin` to prevent bundler leakage | None | ✅ Correctly exports null stubs. |
-| `redis.ts` | Upstash Redis connection with `MemoryCacheFallback` and L1 LRU caching | `@upstash/redis`, `serverLruCache`, `zod` | ✅ `ResilientRedisWrapper` with 1500ms timeout & mock fallback. |
-| `rate-limit.ts` | Upstash sliding window rate limiter instance | `@upstash/ratelimit`, `rawRedis`, `zod` | ⚠️ Redundant with `src/lib/api/rateLimiter.ts`. |
-| `src/lib/api/apiResponse.ts` | Standard Next.js response envelope helpers (`apiSuccess`, `apiError`) | `next/server` | ✅ Clean `{ success, data, meta }` / `{ success, error, code, details }` envelope. |
-| `src/lib/api/rateLimiter.ts` | Route handler rate limiter with in-memory fallback & IP extraction | `@upstash/ratelimit`, `apiError` | ✅ Well-structured rate limit checker returning standard 429 response. |
-| `src/lib/api/resilientFetch.ts` | HTTP client wrapper with retries, exponential backoff, jitter, and timeout | Native `fetch`, `AbortController`, `logger` | ✅ Robust implementation supporting signal merging and custom retry conditions. |
-| `src/lib/config/admin.config.ts` | Admin email authorization constants and checker | None | ⚠️ Hardcoded email list (`ocs5672@gmail.com`). |
-| `src/lib/config/api.config.ts` | MOLIT public real estate API configurations | None | ⚠️ Hardcoded public portal key and default query period. |
-| `src/lib/contexts/AuthContext.tsx` | React Auth Provider & Playwright E2E Mock Auth Bridge | `firebase/auth`, `DashboardFacade`, `user.repository` | ⚠️ **Layer Violation**: Located inside `src/lib/contexts/` instead of `src/contexts/` or `src/app/providers/`. |
-| `src/lib/contexts/SettingsContext.tsx` | React Settings Context (theme, area unit, modal state) | `localCache`, `next/dynamic` | ⚠️ **Severe Layer Violation**: Dynamically imports `@/components/SettingsModal` UI component into `src/lib/`. |
-| `src/lib/hooks/useNetworkStatus.ts` | Browser online/offline tracker via `useSyncExternalStore` | `useSyncExternalStore` | ⚠️ Duplicate: Hook placed in `src/lib/hooks/` and re-exported in `src/hooks/`. |
-| `DashboardFacade.ts` | Facade orchestrator for dashboard feeds, reports, comments, reviews | Repositories, Services, Subscribable | ⚠️ **Cyclic Dependency**: Re-exports `useDashboardData` from `src/hooks/useDashboardData.ts`. |
-| `analytics-service.ts` | Google Analytics 4 Beta Data Client with LKG (Last Known Good) Redis caching | `@google-analytics/data`, `redis` | ✅ Strong fallback resilience with mock fallback generator when credentials are absent. |
-| `authUtils.ts` | Server-side Firebase ID token & session cookie verification | `firebaseAdmin`, `zod` | ✅ In-memory claim caching to avoid network latency per request. |
-| `apartment-data.ts`, `dong-apartments.ts`, `dongs.ts`, `macro-summary.ts`, `transaction-summary.ts`, `zones.ts` | Static reference data, dong definitions, and regional metadata | None | ⚠️ Discrepancy between `zones.ts` (7 investment zones) and `dongs.ts` (11 legal dongs). |
+**Document Version**: 1.0.0  
+**Target Subsystem**: Hwaseong City Hall & Dongtan Administrative Notices Data Pipeline  
+**Investigated Modules**:
+- Backend API: `frontend/src/app/api/local-notices/route.ts`
+- Repository Layer: `frontend/src/lib/repositories/news.repository.ts`
+- Domain Services: `frontend/src/lib/services/newsData.ts`
+- Validation & Types: `frontend/src/lib/validation/facade.schemas.ts`, `frontend/src/types/notice.ts`
+- Scrapers & Batch Pipeline: `frontend/scripts/fetch-local-notices.js`, `frontend/src/app/api/cron/sync-local-notices/route.ts`
+- Redirect & Security: `frontend/src/app/api/bypass-notice/route.ts`
+- Client Integration: `LoungeContainerClient.tsx`, `LoungeFeedClient.tsx`, `NewsClient.tsx`, `MacroDashboardClient.tsx`, `LocalEventCuration.tsx`
 
 ---
 
-### 1.2 Data Access & Repositories (`src/lib/repositories/`)
+## 1. Executive Summary
 
-| Repository Module | Target Datastore / External System | Key Functions | Major Observations & Deficiencies |
-|---|---|---|---|
-| `apartment.repository.ts` | Google Sheets `/api/apartments-by-dong`, Firestore `settings/apartmentMeta`, Local fs | `fetchApartmentNames`, `fetchApartmentMeta` | ⚠️ Hybrid SSR/client branching using `readJsonFileCached` vs `fetch()`. |
-| `comment.repository.ts` | Firestore `field_reports/{id}/comments` and `lounge_apt_stories` | `addComment`, `listenToComments`, `getComments`, `deleteComment` | ✅ Uses `writeBatch` and `firestoreThrottle`. Double writes comments to `lounge_apt_stories`. |
-| `energy.repository.ts` | MOLIT Building Energy Hub OpenAPI (JSON) | `fetchEnergyJsonFromPublicPortal` | ⚠️ Hardcoded API service key fallback. Uses `axios` instead of `resilientFetch`. |
-| `favorite.repository.ts` | Firestore `favoriteCounts` collection & Redis | `fetchFavoriteCounts`, `incrementFavoriteCount` | ✅ Implements isomorphic query with Redis cache invalidation. |
-| `googleSheets.repository.ts` | Google Spreadsheets CSV endpoints | `fetchCsv` | ✅ Multi-tier caching: In-Memory -> Local FS (`scratch/sheets-cache`) -> Redis -> Live Fetch with Exponential Backoff. |
-| `isomorphicHelper.ts` | Redis cache bridge for SSR/Client execution | `executeIsomorphicQuery` | ✅ Safely executes serverQuery on server and clientQuery on client with Redis caching. |
-| `location.repository.ts` | Google Sheets POI Tabs (Apartments, Schools, Stations, Academies, Restaurants, Sboyds) | `loadApartments`, `loadSchools`, `loadStations`, `loadAcademies`, `loadRestaurants`, `loadSboyds` | ⚠️ Duplicates CSV fetch retry logic. Embeds business normalization (Baskin Robbins naming) inside repo. |
-| `news.repository.ts` | Firestore `local_notices` collection & Redis | `fetchRawLocalNotices`, `getCachedNotices`, `setCachedNotices` | ✅ Uses parallel timeout queries with Zod validation. |
-| `officeTx.repository.ts` | MOLIT Office Trade XML OpenAPI | `fetchOfficeXmlFromPublicPortal` | ⚠️ Hardcoded API key fallback. Uses `axios`. Contains 170 lines of static mock XML. |
-| `post.repository.ts` | Firestore `posts`, `lounge_apt_stories`, `field_reports` | `listenToPosts`, `createPost`, `incrementPostLike`, `incrementPostView`, `deletePost`, `getPost`, `getRecentPosts` | ⚠️ **Layer Violation**: Imports Lucide-react UI icons (`Train`, `Building`, etc.). Uses `any[]` and contains heavy markdown parsing inside repository. |
-| `report.repository.ts` | Firestore `scoutingReports` and `field_reports` | `listenToReports`, `getFullReport`, `getFullReportByApartmentName`, `incrementReportLike`, `incrementReportView`, `fetchRecentScoutingReports`, `saveScoutingReport`, `updateScoutingReport`, `saveFieldReport` | ⚠️ Mixes two collection schemas (`scoutingReports` vs `field_reports`). Uses untyped `any` in parameter types (`saveScoutingReport(reportData: any)`). |
-| `review.repository.ts` | Firestore `user_reviews` collection | `listenToReviews`, `getRecentReviews`, `addReview`, `incrementReviewLike`, `deleteReview` | ✅ Real-time listener and Zod schema mapping with fallback. |
-| `searchConsole.repository.ts` | Google Search Console API via RSA-SHA256 JWT | `getSearchConsoleStatus`, `fetchSearchConsoleStatusFromGoogle` | ✅ Self-diagnostic mock fallback if service account keys are missing. |
-| `storage.repository.ts` | Firebase Storage SDK | `uploadRawBytes`, `deleteRawObject` | ✅ Clean raw storage adapter. |
-| `traffic.repository.ts` | Firestore `daily_stats` collection | `incrementWebsiteVisit`, `incrementContentView`, `getDailyVisitStats`, `getDailyContentViews` | ⚠️ **Circular Architecture**: Calls internal HTTP endpoint `fetch('/api/traffic')` from repository. |
-| `user.repository.ts` | Firestore `users` collection | `getOrCreateProfile`, `setApartmentVerification`, `updateNickname`, `updatePhotoURL` | ✅ Supports isomorphic Admin SDK and Client SDK execution with throttle. |
+This investigation analyzed the end-to-end data lifecycle for the Hwaseong City Hall & Dongtan area local administrative notices—from web scrapers and Firestore/Redis persistence to API routes and frontend rendering across all 5 categories (`gosi`, `bbs`, `rail`, `dong`, `culture`).
+
+Several critical structural bugs and integration disconnects were identified:
+1. **URL Collision in Deduplication Engine (`newsData.ts`)**: Generic URLs (such as `https://reserve.hscity.go.kr/` or board index URLs) cause all subsequent culture events, citizen lectures (Dongtan 2~9), and AI market reports to be discarded as duplicate entries.
+2. **Dong Sub-Filtering Mismatch (`dept` vs. `activeDongFilter`)**: Scrapers save raw department cell text (e.g. "총무팀", "맞춤형복지팀") rather than standardized dong names ("동탄1동" ~ "동탄9동"). Furthermore, an overly strict `checkIfDongtan` filter discards neighborhood notices lacking the word "동탄". As a result, selecting specific Dong chips in the UI yields 0 matching notices.
+3. **Zod Enum Schema Mismatch in Batch Scraper (`fetch-local-notices.js`)**: Missing `'culture'` in `NoticeSchema.source` enum definition.
+4. **Missing SSR Prop Forwarding in `LoungeContainerClient.tsx`**: `LoungeContainerClient` receives server-side `initialNotices` from `LoungePage`, but does not pass them down to `LoungeFeedClient`, forcing redundant client fetches and layout skeleton flashing.
+5. **Absence of Backend Resilient Fallback Dataset**: If Firestore is empty or external scraping fails, the backend returns empty arrays, leaving 4 out of 5 category tabs completely blank.
+6. **Domain Whitelist Restriction in `bypass-notice`**: Rejects valid civic domains such as `https://www.hcf.or.kr` (Hwaseong Cultural Foundation) with 400 Bad Request.
 
 ---
 
-### 1.3 Application Hooks Layer (`src/hooks/`)
-
-| Custom Hook | Purpose & Data Source | Lifecycle & Synchronization Pattern | Concurrency & Race Condition Safeguards | Leaks & Deficiencies |
-|---|---|---|---|---|
-| `useApartmentDetails.ts` | Orchestrates apartment transaction history, full report, location scores | SWR for static JSON + Facade promise for report + SWR lazy load | `activeRequestIdRef` increments on param change; `unmounted` guard prevents state update after unmount | Direct `fetch('/api/report-view')` call inside hook. |
-| `useAuth.ts` | Re-exports AuthContext state | React Context consumer | Managed by `AuthContext` | None. |
-| `useComments.ts` | Real-time comment listener, submission, deletion | Firestore listener via Facade + local input state | `isMountedRef` check; `commentInputRef` prevents re-renders | Direct un-abstracted `fetch('/api/push/notify-comment')` and `fetch('/api/indexing/apartment')`. Native `alert`/`confirm` calls. |
-| `useDashboardData.ts` | Subscribes to dashboard reactive stores | `useSyncExternalStore` via `DashboardFacade` | Teardown-safe synchronous external store reading | None. |
-| `useDashboardMeta.ts` | Loads apartments by dong, type map, name mappings | SWR + manual lazy fetch trigger | `unmounted` guard | Direct `fetch('/api/explore/search-data')` and `fetch('/api/dashboard-init')`. |
-| `useDebounce.ts` | Value debounce | `useEffect` with `setTimeout` | Timer cleared on change/unmount | None. |
-| `useFavorites.ts` | Multi-tab guest & user favorites synchronization | `localStorage` + CustomEvents + SWR/REST | `isMountedRef` guard; optimistic UI update with rollback | Direct `fetch('/api/favorite')` and `fetch('/api/favorite-counts')` calls scattered across hook. |
-| `useMounted.ts` | SSR hydration mismatch prevention | `useState` + `useEffect` | Sets mounted boolean | None. |
-| `useNetworkStatus.ts` | Connectivity monitor | `useSyncExternalStore` | Window online/offline events | Redundant duplicate in `src/lib/hooks/`. |
-| `usePreloadApartmentTx.ts` | Preloads apartment JSON transactions | SWR `preload()` | Error-safe try/catch fallback | None. |
-| `usePreventElasticBounce.ts` | iOS rubber-banding scroll prevention | Native DOM event listeners | Non-passive touchmove cleanup | None. |
-| `useStaticData.ts` | Merges static transaction summaries with live Firestore transactions | SWR + raw Firestore queries | `requestIdleCallback` delayed fetch; memoized merge helpers | ⚠️ **Bypasses Repository**: Executes raw Firestore `getDocs(query(collection(db, 'transactions')))` directly in hook. |
-| `useSwipeNavigation.ts` | Mobile edge swipe back navigation | Touch event listeners | Window event teardown | None. |
-| `useAdBlockDetector.ts` | Detects adblocker presence | DOM probing | Timeout cleanup | None. |
-
----
-
-## 2. Key Architectural Issues & Deficiencies
+## 2. Architecture & Data Flow Map
 
 ```
-[UI Layer (Components / Pages)]
-        │
-        ▼ ⚠️ Leaks & Violations:
-        ├─ Direct raw fetch() to internal API routes without client adapters
-        ├─ SettingsContext dynamically imports UI Component (SettingsModal)
-        │
-[Application / Hook Layer (src/hooks/)]
-        │
-        ▼ ⚠️ Leaks & Violations:
-        ├─ Direct raw Firestore queries in useStaticData.ts
-        ├─ Direct un-abstracted fetch('/api/...') in useFavorites, useComments, useApartmentDetails
-        ├─ useDashboardData imported into DashboardFacade.ts (Cyclic Dependency)
-        │
-[Infrastructure & Repositories (src/lib/)]
-        │
-        ▼ ⚠️ Leaks & Violations:
-        ├─ post.repository.ts imports Lucide-react UI icons
-        ├─ traffic.repository.ts calls fetch('/api/traffic') instead of direct DB access
-        ├─ Untyped `any` in report.repository.ts & post.repository.ts
-        ├─ Hardcoded fallback API keys in officeTx, energy, api.config
-        │
-[Domain Contracts (src/types/ & src/lib/types/)]
-        ⚠️ Fragmented type definitions scattered across src/lib/types/ and src/lib/validation/
+┌────────────────────────────────────────────────────────────────────────┐
+│                        External Sources & Generators                   │
+│  - Source 1: BBS 1019 (타기관 고시공고)                                │
+│  - Source 2: BD_notice (화성시 고시공고)                               │
+│  - Source 3: BBS 1131 (철도사업 추진현황)                              │
+│  - Source 4: BBS 1049 (동탄 1동~9동 동별 공지)                         │
+│  - Source 5: BBS 1154 (동탄트램 추진현황)                              │
+│  - Source 6: Hyperlocal Culture & Events Generator                     │
+│  - Source 7: AI Real Estate Gap/Risk Report Generator                  │
+└─────────────────────────────────┬──────────────────────────────────────┘
+                                  │
+                                  ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                          Ingestion Layer                               │
+│  1. GitHub Actions Script: `frontend/scripts/fetch-local-notices.js`   │
+│  2. Cron API Route: `frontend/src/app/api/cron/sync-local-notices`     │
+│  - Parses HTML using Cheerio                                           │
+│  - Validates with Zod noticeSchema                                     │
+│  - Batch writes to Firestore `local_notices` (merge: true)             │
+│  - Invalidates Redis cache keys:                                       │
+│      DTDLS:cache:localNotices:filterDongtan:true                       │
+│      DTDLS:cache:localNotices:filterDongtan:false                      │
+└─────────────────────────────────┬──────────────────────────────────────┘
+                                  │
+                                  ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Data & Repository Layer                         │
+│  1. Firestore Collection: `local_notices`                              │
+│  2. Repository: `frontend/src/lib/repositories/news.repository.ts`     │
+│     - `fetchRawLocalNotices(filterDongtan)`                            │
+│     - Executes 4 parallel queries (city, rail, culture, dong)          │
+│  3. Service: `frontend/src/lib/services/newsData.ts`                   │
+│     - `getLocalNotices(filterDongtan)`                                 │
+│     - Checks Upstash Redis cache (TTL 3600s)                           │
+│     - Deduplicates & sorts by date DESC                                │
+└─────────────────────────────────┬──────────────────────────────────────┘
+                                  │
+                                  ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                          Backend API Layer                             │
+│  - Endpoint: `GET /api/local-notices?dongtan=true|false`               │
+│  - `frontend/src/app/api/local-notices/route.ts`                       │
+│  - Rate Limiter (60 req/min), Cache-Control header                     │
+│  - Standard Response Envelope: `apiSuccess(responseData)`              │
+└─────────────────────────────────┬──────────────────────────────────────┘
+                                  │
+                                  ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        Presentation & UI Layer                         │
+│  - SSR: `src/app/lounge/page.tsx` -> `LoungeContainerClient.tsx`       │
+│  - Interactive Feeds: `LoungeFeedClient.tsx` (5 Subcategory Tabs)      │
+│  - News Feed: `NewsClient.tsx`                                         │
+│  - Macro Dashboard: `MacroDashboardClient.tsx` (Rail & Tram modules)  │
+│  - Modal / Detail View & Proxy: `src/app/api/bypass-notice/route.ts`   │
+└────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Critical Findings:
+---
 
-1. **Upward Layer Dependencies & Circularities**:
-   - `DashboardFacade.ts` (in `src/lib/`) imports `useDashboardData` from `src/hooks/useDashboardData.ts`.
-   - `SettingsContext.tsx` (in `src/lib/contexts/`) imports `SettingsModal` from `src/components/SettingsModal`.
-   - `post.repository.ts` (in `src/lib/repositories/`) imports React UI Icon components (`Train`, `Building`, `BookOpen`, `MessageSquare`) from `lucide-react`.
-   - `traffic.repository.ts` calls `/api/traffic`, while `/api/traffic` calls Firestore, and `report.repository.ts`/`post.repository.ts` call `traffic.repository.ts`.
+## 3. Comprehensive Analysis of Core Modules
 
-2. **Scattered Data Access & Missing Client Adapters**:
-   - Custom hooks (`useFavorites`, `useComments`, `useApartmentDetails`, `useDashboardMeta`) make ad-hoc `fetch('/api/...')` calls without an abstracted API Client or Adapter.
-   - `useStaticData.ts` bypasses all repository layers and calls Firestore SDK `getDocs(collection(db, 'transactions'))` directly inside a React hook.
+### 3.1. Firestore Collection & Schema Definitions
 
-3. **Untyped Leaks and Repository Method Signatures**:
-   - `report.repository.ts` contains methods typed with `any` (`saveScoutingReport(reportData: any)`, `updateScoutingReport(reportId: string, updateData: any)`, `saveFieldReport(fieldReportData: any)`, `fetchRecentScoutingReports(): Promise<any[]>`).
-   - `post.repository.ts` contains `processCombinedPosts(..., rawStories: any[])`.
+#### Target Collection: `local_notices`
+- Document ID convention:
+  - `gosi_${originalId}` (e.g. `gosi_12345`)
+  - `bbs_${originalId}` (e.g. `bbs_67890`)
+  - `rail_${originalId}` (e.g. `rail_1131_101`)
+  - `rail_1154_${originalId}` (e.g. `rail_1154_205`)
+  - `dong_${deptCode}_${originalId}` (e.g. `dong_57700100000_301`)
+  - `culture_luna_${YYYYMMDD}` / `culture_lecture_${dong}_${YYYYMMDD}`
+  - `ai_report_gap_analysis_${YYYYMMDD}` / `ai_report_ltv_risk_${YYYYMMDD}`
 
-4. **API Route Response & Rate Limiting Inconsistency**:
-   - Route handlers in `src/app/api/` (such as `apartments-by-dong`, `favorite`, `posts`, `comments`) bypass the standard envelope functions `apiSuccess` and `apiError` from `src/lib/api/apiResponse.ts`.
-   - Route handlers manually extract IP addresses and call `rateLimiter.limit(...)` rather than utilizing the centralized `checkRateLimit` helper in `src/lib/api/rateLimiter.ts`.
-   - Route handlers duplicate database business logic rather than delegating to clean server repositories/services.
-
-5. **Hardcoded Secrets & Environment Fallbacks**:
-   - Public portal API keys and credentials are hardcoded as fallbacks in `src/lib/config/api.config.ts`, `src/lib/repositories/officeTx.repository.ts`, `src/lib/repositories/energy.repository.ts`, and `src/app/api/cron/send-tx-notifications/route.ts`.
+#### Field Schema Matrix:
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `id` | `string` | Yes | Unique composite document ID |
+| `originalId` | `string` | Optional | Source bulletin board raw article number |
+| `title` | `string` | Yes | Article headline |
+| `url` | `string` | Yes | Full target URL or detail link |
+| `dept` | `string` | Yes | Department / Dong identifier (e.g. '동탄1동', '철도전략과') |
+| `date` | `string` | Yes | Publication date in `YYYY-MM-DD` |
+| `isDongtan` | `boolean` | Yes | Flag indicating Dongtan regional relevance |
+| `source` | `enum` | Yes | `'bbs'` \| `'gosi'` \| `'rail'` \| `'dong'` \| `'culture'` |
+| `createdAt` | `string` | Optional | ISO timestamp of record insertion |
+| `content` | `string` | Optional | Markdown-formatted analysis/summary body |
 
 ---
 
-## 3. Recommended Architectural Target State
+### 3.2. Detailed Analysis of Discrepancies & Deficiencies
 
-### 3.1 Strict Layer Isolation Model
+#### Issue 1: Malformed Deduplication Logic in `newsData.ts` (Data Loss Bug)
+- **Location**: `frontend/src/lib/services/newsData.ts:199-222`
+- **Mechanism**:
+  ```ts
+  const uniqueMap = new Map<string, NoticeData>();
+  const urlToKey = new Map<string, string>();
 
-1. **Domain Layer (`src/types/`, `src/domain/`)**:
-   - Centralize all pure entity definitions, DTOs, value objects, and Zod schemas.
-   - Zero dependencies on React, Next.js, Firebase, or UI libraries.
+  allItems.forEach(item => {
+    const titleKey = `${(item.title || '').trim()}_${(item.date || '').trim()}`;
+    const urlKey = item.url ? item.url.trim() : '';
 
-2. **Infrastructure Layer (`src/lib/`, `src/infrastructure/`)**:
-   - **Adapters & Repositories**: Pure I/O abstractions (`ApartmentRepository`, `ReportRepository`, `PostRepository`, `FavoriteRepository`, `EnergyAdapter`, `OfficeTxAdapter`, `AnalyticsAdapter`).
-   - **Clients**: `resilientFetch`, `redis`, `firebaseConfig` (client), `firebaseAdmin` (server).
-   - **No UI imports** (no Lucide icons, no React modals, no custom hooks).
+    let duplicateKey = uniqueMap.has(titleKey) ? titleKey : null;
+    if (!duplicateKey && urlKey && urlToKey.has(urlKey)) {
+      duplicateKey = urlToKey.get(urlKey) || null;
+    }
 
-3. **Application & State Layer (`src/hooks/`, `src/contexts/`, `src/services/`)**:
-   - React Contexts moved to `src/contexts/` or `src/app/providers/`.
-   - Custom hooks consume repository interfaces or unified API client adapters via SWR/TanStack-style query mechanisms.
-   - All async network calls in hooks support `AbortController` cancellation and structured error boundaries.
-
-4. **Presentation Layer (`src/components/`, `src/app/`)**:
-   - Pure UI and Page orchestration consuming hooks and context providers.
-   - Standardized API route handlers (`src/app/api/`) delegating exclusively to server services/repositories and returning `apiSuccess`/`apiError` responses.
+    if (duplicateKey) {
+      const existing = uniqueMap.get(duplicateKey);
+      if (existing) {
+        const currentIsPrefixed = item.id.includes('_');
+        const existingIsPrefixed = existing.id.includes('_');
+        if (currentIsPrefixed && !existingIsPrefixed) {
+          uniqueMap.set(duplicateKey, item);
+          if (urlKey) urlToKey.set(urlKey, duplicateKey);
+        }
+      }
+    } else {
+      uniqueMap.set(titleKey, item);
+      if (urlKey) urlToKey.set(urlKey, titleKey);
+    }
+  });
+  ```
+- **Consequence**: When multiple events share a general portal URL (e.g., `https://reserve.hscity.go.kr/` for resident lectures, or `https://www.hscity.go.kr/...bbsCode=1019` for festivals), `urlToKey.has(urlKey)` is `true`. Because all scraped items have prefixed IDs (`culture_...`), the second and subsequent items are dropped. As a result, 8 out of 9 resident center lectures and all but the first Luna show festival disappear from API output!
+- **Remedy**: Deduplication should only treat items as duplicate if BOTH `title` and `date` match, or if specific article query parameters in `url` match (not generic domain/index URLs).
 
 ---
 
-## 4. Actionable Migration Roadmap
+#### Issue 2: Scraper Department Capture & Dong Filter Collapse
+- **Location**: `frontend/scripts/fetch-local-notices.js:365` & `frontend/src/app/api/cron/sync-local-notices/route.ts:651`
+- **Mechanism**:
+  - For Source 4 (`BBS 1049` for Dongtan 1~9):
+    ```ts
+    const dept = $(tds[3]).text().trim();
+    ```
+    On the Hwaseong City Hall website, the 4th column (`dept`) is populated with organizational sub-teams such as "총무팀", "맞춤형복지담당", "관리자", rather than "동탄1동", "동탄2동", etc.
+  - Furthermore:
+    ```ts
+    const isDongtan = checkIfDongtan(title, dept);
+    if (isDongtan) { ... }
+    ```
+    Neighborhood notices (e.g. "2026년도 민방위 훈련 일정 안내") do not contain the word "동탄" in the title or dept, so they are dropped at crawl time.
+  - In `LoungeFeedClient.tsx:721-724`:
+    ```ts
+    if (activeDongFilter !== 'all') {
+      if (notice.dept !== activeDongFilter) return false;
+    }
+    ```
+    Because `notice.dept` contains "총무팀" instead of "동탄1동", filtering by dong always returns 0 results.
+- **Remedy**:
+  1. In the scraper, for Source 4, assign `dept: deptItem.name` (e.g. `'동탄1동'`) so it is normalized.
+  2. Set `isDongtan: true` unconditionally for all notices originating from the Dongtan dong boards (`57700100000` ~ `57700180000`).
 
-### Milestone 2: Infrastructure & Domain Consolidation
-- [ ] Migrate all types from `src/lib/types/` to `src/types/` and replace all `any` occurrences in repositories with strict DTO types.
-- [ ] Cleanse `src/lib/`:
-  - Move `src/lib/contexts/` to `src/contexts/`.
-  - Remove `SettingsModal` dynamic import from `SettingsContext`.
-  - Remove `lucide-react` icons from `post.repository.ts`.
-  - Remove `useDashboardData` re-export from `DashboardFacade.ts`.
-  - Remove duplicate `src/lib/hooks/useNetworkStatus.ts`.
-- [ ] Refactor Repositories & Adapters:
-  - Separate client-facing and server-facing data access cleanly.
-  - Move hardcoded API keys to `.env` validation via Zod config.
-  - Standardize MOLIT API calls using `resilientFetch` instead of `axios`.
-- [ ] Standardize API Route Handlers (`src/app/api/`):
-  - Enforce `checkRateLimit()` across all endpoints.
-  - Enforce `apiSuccess()` and `apiError()` response envelopes.
-  - Delegate data queries to repositories/services instead of embedding raw Firestore queries in route handlers.
+---
 
-### Milestone 3: Application Hooks & State Decoupling
-- [ ] Create a unified `apiClient` / HTTP adapter for client-side API calls.
-- [ ] Refactor `useFavorites`, `useComments`, `useApartmentDetails`, and `useDashboardMeta` to use the unified API client with cancellation (`AbortSignal`).
-- [ ] Refactor `useStaticData.ts` to call a dedicated `TransactionRepository` rather than raw Firestore queries.
-- [ ] Standardize optimistic UI mutations and local storage caching across all interactive hooks.
+#### Issue 3: Missing Enum Value in `fetch-local-notices.js`
+- **Location**: `frontend/scripts/fetch-local-notices.js:25`
+- **Code**:
+  ```ts
+  source: z.enum(['bbs', 'rail', 'dong', 'gosi'])
+  ```
+- **Discrepancy**: Canonical schema `noticeSchema` in `facade.schemas.ts` and `sync-local-notices/route.ts` includes `'culture'`. If `fetch-local-notices.js` ever processes or syncs culture notices, Zod validation will throw and drop the items.
+
+---
+
+#### Issue 4: Document ID Ordering & Firestore Query Starvation in `news.repository.ts`
+- **Location**: `frontend/src/lib/repositories/news.repository.ts:41-45`
+- **Mechanism**:
+  ```ts
+  let dongQuery = localDb.collection('local_notices').where('source', '==', 'dong');
+  if (filterDongtan) {
+    dongQuery = dongQuery.where('isDongtan', '==', true);
+  }
+  dongQuery = dongQuery.limit(400);
+  ```
+  In Firestore, querying without `.orderBy()` returns documents ordered by document ID ascending (`dong_57700100000_...`). Since Dongtan 1 is `57700100000` and Dongtan 9 is `57700180000`, the query retrieves all documents for Dongtan 1~5 before reaching Dongtan 6~9. If document volume exceeds 400, latter dongs are truncated.
+
+---
+
+#### Issue 5: Missing SSR Prop Forwarding to `LoungeFeedClient`
+- **Location**: `frontend/src/components/LoungeContainerClient.tsx:592-594`
+- **Code**:
+  ```tsx
+  {activeTab === 'notices' && (
+    <LoungeFeedClient initialPosts={initialPosts} currentTab="동탄구 소식" />
+  )}
+  ```
+- **Discrepancy**: `LoungeContainerClient` receives `initialNotices` via SSR from `LoungePage` (`src/app/lounge/page.tsx`), but fails to pass `initialNotices` into `LoungeFeedClient`. `LoungeFeedClientProps` does not declare `initialNotices`. Consequently, `LoungeFeedClient` initializes with `noticesData = []` and performs an unnecessary client-side fetch, causing layout shift and skeleton flash.
+
+---
+
+#### Issue 6: Domain Whitelist Blocking in `/api/bypass-notice`
+- **Location**: `frontend/src/app/api/bypass-notice/route.ts:13-24`
+- **Code**:
+  ```ts
+  const hostname = parsed.hostname;
+  return hostname === 'hscity.go.kr' || hostname.endsWith('.hscity.go.kr');
+  ```
+- **Discrepancy**: Events from the Hwaseong Cultural Foundation use `https://www.hcf.or.kr` and internal AI reports link to `https://dongtanview.com`. When clicked, `bypass-notice` responds with 400 Bad Request.
+
+---
+
+#### Issue 7: Resilient Fallback System (R3)
+- **Problem**: When Hwaseong City Hall website WAF blocks scraping or if Firestore is empty/unreachable, `newsData.ts` returns `{ notices: [], lastUpdated: null }`.
+- **UI State**: Tabs `시정공고` (`city`), `교통·철도` (`rail`), and `동네행정` (`town`) display an empty box ("선택하신 조건에 해당하는 공지사항이 없습니다").
+- **Solution Requirement**: Provide a high-fidelity static backup dataset (e.g. `public/data/local-notices-backup.json` or bundled in-memory backup in `newsData.ts`) covering all 5 categories with simulated recent dates and clear indicators, ensuring 100% UI uptime even during complete upstream network isolation.
+
+---
+
+## 4. Verification & Testing Strategy
+
+1. **Unit & Integration Tests**:
+   - Test `newsData.getLocalNotices` with mock duplicate URLs to ensure all culture and lecture events are preserved.
+   - Test category filtering in `LoungeFeedClient` for all 5 subcategories (`all`, `city`, `rail`, `town`, `culture`).
+   - Test dong sub-filtering under `town` category for each dong (`동탄1동` through `동탄9동`).
+   - Test `/api/local-notices` response envelope and caching.
+   - Test `/api/bypass-notice` with `hscity.go.kr`, `hcf.or.kr`, and `dongtanview.com`.
+2. **End-to-End & Browser Tests**:
+   - Verify `/lounge?tab=notices` renders without empty screens.
+   - Verify card click behavior (culture opens modal, civic notices open bypass/origin).
+   - Verify fallback rendering when API returns empty or fails.
