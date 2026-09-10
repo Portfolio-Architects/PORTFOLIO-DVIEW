@@ -5,6 +5,8 @@ import fs from 'fs';
 import path from 'path';
 import { logger } from '@/lib/services/logger';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { MBTI_PROFILES } from '@/lib/data/mbtiData';
+import { MbtiType } from '@/types/mbti';
 
 let fontBoldBuffer: ArrayBuffer | null = null;
 let fontRegularBuffer: ArrayBuffer | null = null;
@@ -76,6 +78,11 @@ const ogParamsSchema = z.object({
   score3: z.string().nullable().optional().catch(null),
   valStatus: z.string().nullable().optional().catch(null),
   valAmount: z.string().nullable().optional().catch(null),
+  mbti: z.string().nullable().optional().catch(null),
+  apt: z.string().nullable().optional().catch(null),
+  dong: z.string().nullable().optional().catch(null),
+  alias: z.string().nullable().optional().catch(null),
+  tags: z.string().nullable().optional().catch(null),
 });
 
 export async function GET(req: NextRequest) {
@@ -134,6 +141,11 @@ export async function GET(req: NextRequest) {
       score3: searchParams.get('score3'),
       valStatus: searchParams.get('valStatus'),
       valAmount: searchParams.get('valAmount'),
+      mbti: searchParams.get('mbti'),
+      apt: searchParams.get('apt'),
+      dong: searchParams.get('dong'),
+      alias: searchParams.get('alias'),
+      tags: searchParams.get('tags'),
     });
 
     const validatedData = parsed.success ? parsed.data : {
@@ -163,6 +175,11 @@ export async function GET(req: NextRequest) {
       score3: null,
       valStatus: null,
       valAmount: null,
+      mbti: null,
+      apt: null,
+      dong: null,
+      alias: null,
+      tags: null,
     };
 
     const {
@@ -192,7 +209,163 @@ export async function GET(req: NextRequest) {
       score3,
       valStatus,
       valAmount,
+      mbti,
+      apt,
+      dong,
+      alias,
+      tags,
     } = validatedData;
+
+    if (type === 'mbti') {
+      const mbtiUpper = (mbti || 'ENTJ').toUpperCase() as MbtiType;
+      const profile = MBTI_PROFILES[mbtiUpper] || MBTI_PROFILES.ENTJ;
+
+      const finalAptName = apt || profile.aptName;
+      const finalDong = dong || profile.dong;
+      const finalAlias = alias || profile.alias;
+      const finalTags = tags ? tags.split(',').map((t) => t.trim()) : profile.tags;
+      const tagString = finalTags.slice(0, 4).join(' ');
+
+      const groupColors: Record<string, { bg: string; badge: string; border: string; accent: string }> = {
+        NT: { bg: '#1e1b4b', badge: '#8b5cf6', border: '#4338ca', accent: '#a78bfa' },
+        NF: { bg: '#064e3b', badge: '#10b981', border: '#047857', accent: '#34d399' },
+        SJ: { bg: '#0f2942', badge: '#004696', border: '#1e40af', accent: '#60a5fa' },
+        SP: { bg: '#451a03', badge: '#c44d00', border: '#b45309', accent: '#fb923c' },
+      };
+      const theme = groupColors[profile.group] || groupColors.NT;
+
+      return new ImageResponse(
+        (
+          <div
+            style={{
+              height: '100%',
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: '#0a0f1d',
+              backgroundImage: `radial-gradient(circle at 10% 20%, ${theme.bg} 0%, #0a0f1d 70%)`,
+              padding: '60px 80px',
+              color: 'white',
+              justifyContent: 'space-between',
+              fontFamily: 'Pretendard',
+            }}
+          >
+            {/* Top header row */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center' }}>
+                <div
+                  style={{
+                    backgroundImage: 'linear-gradient(135deg, #ea6100, #c44d00)',
+                    padding: '8px 20px',
+                    borderRadius: '10px',
+                    color: 'white',
+                    fontWeight: 900,
+                    fontSize: '26px',
+                    letterSpacing: '-0.5px',
+                  }}
+                >
+                  D-VIEW
+                </div>
+                <span style={{ marginLeft: '16px', fontSize: '22px', color: '#94a3b8', fontWeight: 600 }}>
+                  동탄 신도시 라이프스타일 주거 성향 테스트
+                </span>
+              </div>
+              <div
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  padding: '6px 16px',
+                  borderRadius: '20px',
+                  fontSize: '18px',
+                  color: '#cbd5e1',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                }}
+              >
+                16 MBTI 단지 매칭 리포트
+              </div>
+            </div>
+
+            {/* Center Content Box */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                border: `2px solid ${theme.border}`,
+                borderRadius: '24px',
+                padding: '40px 48px',
+                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.5)',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', marginBottom: '16px' }}>
+                <div
+                  style={{
+                    backgroundColor: theme.badge,
+                    color: 'white',
+                    padding: '8px 20px',
+                    borderRadius: '12px',
+                    fontSize: '32px',
+                    fontWeight: 900,
+                    letterSpacing: '1px',
+                    marginRight: '20px',
+                  }}
+                >
+                  {profile.type}
+                </div>
+                <div style={{ fontSize: '32px', fontWeight: 800, color: '#f8fafc' }}>
+                  {finalAlias}
+                </div>
+              </div>
+
+              <div style={{ fontSize: '20px', color: '#94a3b8', marginBottom: '24px' }}>
+                {profile.tagline}
+              </div>
+
+              {/* Matched complex highlight box */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  borderRadius: '16px',
+                  padding: '20px 28px',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '16px', color: theme.accent, fontWeight: 700, marginBottom: '4px' }}>
+                    운명의 매칭 아파트 ({finalDong})
+                  </div>
+                  <div style={{ fontSize: '36px', fontWeight: 900, color: '#ffffff', letterSpacing: '-0.5px' }}>
+                    {finalAptName}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+                  <div style={{ fontSize: '18px', color: '#e2e8f0', fontWeight: 600 }}>
+                    {tagString}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Row */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <span style={{ fontSize: '18px', color: '#64748b' }}>
+                https://dongtanview.com/mbti/{profile.type}
+              </span>
+              <span style={{ fontSize: '18px', color: '#f97316', fontWeight: 700 }}>
+                👉 나와 영혼의 궁합인 동탄 아파트 찾기 (D-VIEW)
+              </span>
+            </div>
+          </div>
+        ),
+        {
+          width: 1200,
+          height: 630,
+        }
+      );
+    }
 
     if (type === 'compare') {
       const s1 = parseInt(score1 || '0') || 0;

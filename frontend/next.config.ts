@@ -53,6 +53,28 @@ const nextConfig: NextConfig = {
         destination: '/#report',
         permanent: true,
       },
+      {
+        source: '/technovalley',
+        destination: '/',
+        permanent: false,
+      },
+      {
+        source: '/techno',
+        destination: '/',
+        permanent: false,
+      },
+      {
+        source: '/overview',
+        has: [
+          {
+            type: 'query',
+            key: 'tab',
+            value: 'office',
+          },
+        ],
+        destination: '/',
+        permanent: false,
+      },
     ];
   },
 

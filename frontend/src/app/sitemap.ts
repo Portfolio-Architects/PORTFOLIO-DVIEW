@@ -98,7 +98,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
         priority: 0.9,
       },
       {
-        url: `${baseUrl}/technovalley`,
+        url: `${baseUrl}/mbti`,
         lastModified: staticFixedDate,
         changeFrequency: 'daily',
         priority: 0.9,

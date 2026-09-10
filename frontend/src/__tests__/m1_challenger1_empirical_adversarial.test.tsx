@@ -370,45 +370,44 @@ describe('Milestone 1 Challenger 1 Empirical & Adversarial Stress Suite', () => 
       // Re-render with same handler
       rerender(
         <>
-          <LoungeHeader activeTab="technovalley" onTabChange={handleTabChangeSpy} />
-          <MobileDock activeTab="technovalley" onTabClick={handleTabChangeSpy} />
+          <LoungeHeader activeTab="mbti" onTabChange={handleTabChangeSpy} />
+          <MobileDock activeTab="mbti" onTabClick={handleTabChangeSpy} />
         </>
       );
 
       // Click on both
-      const technoLinks = screen.getAllByRole('link', { name: /테크노 랩/i });
-      expect(technoLinks.length).toBe(2);
+      const mbtiLinks = screen.getAllByRole('link', { name: /단지 MBTI/i });
+      expect(mbtiLinks.length).toBe(2);
 
-      fireEvent.click(technoLinks[0]);
-      expect(handleTabChangeSpy).toHaveBeenCalledWith('technovalley');
+      fireEvent.click(mbtiLinks[0]);
+      expect(handleTabChangeSpy).toHaveBeenCalledWith('mbti');
 
-      fireEvent.click(technoLinks[1]);
-      expect(handleTabChangeSpy).toHaveBeenCalledWith('technovalley');
+      fireEvent.click(mbtiLinks[1]);
+      expect(handleTabChangeSpy).toHaveBeenCalledWith('mbti');
     });
 
-    it('stress tests rapid tab clicks across all 4 main navigation tabs (40 iterations)', () => {
+    it('stress tests rapid tab clicks across all 3 main navigation tabs (30 iterations)', () => {
       const tabSpy = jest.fn();
       render(
         <LoungeHeader activeTab="overview" onTabChange={tabSpy} />
       );
 
-      const tabs = ['overview', 'imjang', 'technovalley', 'office'];
+      const tabs = ['overview', 'imjang', 'mbti'];
       const links = [
         screen.getByRole('link', { name: /아파트 랩/i }),
         screen.getByRole('link', { name: /아파트 탐색/i }),
-        screen.getByRole('link', { name: /테크노 랩/i }),
-        screen.getByRole('link', { name: /사무실 탐색/i }),
+        screen.getByRole('link', { name: /단지 MBTI/i }),
       ];
 
       act(() => {
-        for (let i = 0; i < 40; i++) {
+        for (let i = 0; i < 30; i++) {
           const idx = i % links.length;
           fireEvent.click(links[idx]);
         }
       });
 
-      expect(tabSpy).toHaveBeenCalledTimes(40);
-      expect(tabSpy).toHaveBeenLastCalledWith(tabs[39 % tabs.length]);
+      expect(tabSpy).toHaveBeenCalledTimes(30);
+      expect(tabSpy).toHaveBeenLastCalledWith(tabs[29 % tabs.length]);
     });
   });
 });

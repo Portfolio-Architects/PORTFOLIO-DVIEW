@@ -32,6 +32,7 @@ import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, ca
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { ApartmentGallery } from '@/components/apartment-modal/ApartmentGallery';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 import { useApartmentModalState } from './hooks/useApartmentModalState';
 import { ApartmentModalHeader } from './ApartmentModalHeader';
@@ -1211,6 +1212,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
             <ErrorBoundary name="스카우팅 리포트 상세">
               <ScoutingReportDetailSection report={report} inline={inline} />
             </ErrorBoundary>
+
+            {/* AdSense Responsive Slot */}
+            <div className="w-full my-6" data-testid="apartment-modal-ad-slot">
+              <AdSlot format="banner" className="w-full" />
+            </div>
 
             {/* Kakao Share CTA */}
             <div className="flex flex-col gap-6 mt-8 mb-4">

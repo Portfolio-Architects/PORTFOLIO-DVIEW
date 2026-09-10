@@ -50,13 +50,12 @@ jest.mock('@/contexts/SettingsContext', () => ({
 
 describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   const expectedRoutes = [
-    { id: 'overview', label: '아파트 랩', href: '/', colorGroup: 'orange' },
-    { id: 'imjang', label: '아파트 탐색', href: '/explore', colorGroup: 'orange' },
-    { id: 'technovalley', label: '테크노 랩', href: '/technovalley', colorGroup: 'blue' },
-    { id: 'office', label: '사무실 탐색', href: '/overview?tab=office', colorGroup: 'blue' },
+    { id: 'overview', label: '아파트 랩', href: '/' },
+    { id: 'imjang', label: '아파트 탐색', href: '/explore' },
+    { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
   ];
 
-  it('renders all 4 main navigation links with identical labels and hrefs in LoungeHeader', () => {
+  it('renders all 3 main navigation links with identical labels and hrefs in LoungeHeader', () => {
     const { container } = render(<LoungeHeader activeTab="overview" />);
 
     expectedRoutes.forEach((route) => {
@@ -66,7 +65,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     });
   });
 
-  it('renders all 4 main navigation links with identical labels and hrefs in MobileDock', () => {
+  it('renders all 3 main navigation links with identical labels and hrefs in MobileDock', () => {
     const { container } = render(<MobileDock activeTab="overview" />);
 
     expectedRoutes.forEach((route) => {
@@ -79,8 +78,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   it.each([
     ['overview', '아파트 랩', 'bg-hs-orange-light', 'text-hs-orange'],
     ['imjang', '아파트 탐색', 'bg-hs-orange-light', 'text-hs-orange'],
-    ['technovalley', '테크노 랩', 'bg-hs-blue-light', 'text-hs-blue'],
-    ['office', '사무실 탐색', 'bg-hs-blue-light', 'text-hs-blue'],
+    ['mbti', '단지 MBTI', 'bg-hs-orange-light', 'text-hs-orange'],
   ])('highlights activeTab "%s" correctly with expected visual feedback in LoungeHeader and MobileDock', (activeTab, label, expectedBg, expectedText) => {
     const { container: headerContainer } = render(
       <LoungeHeader activeTab={activeTab as any} />

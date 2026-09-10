@@ -274,19 +274,19 @@ describe('Milestone 1 Challenger 2 Empirical Stress & Verification Suite', () =>
       const pushStateSpy = jest.spyOn(window.history, 'pushState').mockImplementation(() => {});
 
       const handleTabChange = (tab: string, setActiveTab: (t: any) => void) => {
-        const targetTab = tab as 'overview' | 'imjang' | 'office' | 'technovalley';
+        const targetTab = tab as 'overview' | 'imjang' | 'lounge' | 'mbti';
         setActiveTab(targetTab);
         let href = '/';
-        if (targetTab === 'office') href = '/overview?tab=office';
-        else if (targetTab === 'imjang') href = '/explore';
-        else if (targetTab === 'technovalley') href = '/technovalley';
+        if (targetTab === 'imjang') href = '/explore';
+        else if (targetTab === 'mbti') href = '/mbti';
+        else if (targetTab === 'lounge') href = '/lounge';
         else if (targetTab === 'overview') href = '/';
         window.history.pushState(null, '', href);
         try { mockReplace(href, { scroll: false }); } catch (err) {}
       };
 
       const { result } = renderHook(() => {
-        const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'office' | 'technovalley'>('overview');
+        const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge' | 'mbti'>('overview');
         const onTabChange = useCallback((tab: string) => {
           handleTabChange(tab, setActiveTab);
         }, []);
@@ -294,11 +294,11 @@ describe('Milestone 1 Challenger 2 Empirical Stress & Verification Suite', () =>
       });
 
       act(() => {
-        result.current.onTabChange('office');
+        result.current.onTabChange('mbti');
       });
-      expect(result.current.activeTab).toBe('office');
-      expect(pushStateSpy).toHaveBeenCalledWith(null, '', '/overview?tab=office');
-      expect(mockReplace).toHaveBeenCalledWith('/overview?tab=office', { scroll: false });
+      expect(result.current.activeTab).toBe('mbti');
+      expect(pushStateSpy).toHaveBeenCalledWith(null, '', '/mbti');
+      expect(mockReplace).toHaveBeenCalledWith('/mbti', { scroll: false });
 
       act(() => {
         result.current.onTabChange('imjang');
@@ -306,13 +306,6 @@ describe('Milestone 1 Challenger 2 Empirical Stress & Verification Suite', () =>
       expect(result.current.activeTab).toBe('imjang');
       expect(pushStateSpy).toHaveBeenCalledWith(null, '', '/explore');
       expect(mockReplace).toHaveBeenCalledWith('/explore', { scroll: false });
-
-      act(() => {
-        result.current.onTabChange('technovalley');
-      });
-      expect(result.current.activeTab).toBe('technovalley');
-      expect(pushStateSpy).toHaveBeenCalledWith(null, '', '/technovalley');
-      expect(mockReplace).toHaveBeenCalledWith('/technovalley', { scroll: false });
 
       act(() => {
         result.current.onTabChange('overview');
@@ -331,9 +324,9 @@ describe('Milestone 1 Challenger 2 Empirical Stress & Verification Suite', () =>
         <LoungeHeader activeTab='overview' onTabChange={mockOnTabChange} />
       );
 
-      const technovalleyLink = within(container).getByRole('link', { name: /테크노 랩/i });
-      fireEvent.click(technovalleyLink);
-      expect(mockOnTabChange).toHaveBeenCalledWith('technovalley');
+      const mbtiLink = within(container).getByRole('link', { name: /단지 MBTI/i });
+      fireEvent.click(mbtiLink);
+      expect(mockOnTabChange).toHaveBeenCalledWith('mbti');
     });
 
     it('MobileDock correctly invokes handleTabChange on tab clicks', () => {

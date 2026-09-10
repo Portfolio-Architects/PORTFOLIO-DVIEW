@@ -81,25 +81,6 @@ const LoungeSkeleton = () => (
   </div>
 );
 
-const OfficeSkeleton = () => (
-  <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]">
-    <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full border-b border-border/60">
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
-        <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
-      </div>
-      <div className="w-64 sm:w-80 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
-    </div>
-    <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 w-full min-h-[85vh] min-h-[750px] gap-4">
-      <div className="w-full h-12 bg-black/5 dark:bg-surface/5 rounded-xl" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <div className="h-64 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-        <div className="h-64 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-        <div className="h-64 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      </div>
-    </div>
-  </div>
-);
 
 const CalculatorLoader = ({ text }: { text: string }) => (
   <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl transition-all duration-300">
@@ -174,14 +155,6 @@ const LoungeContainerClient = dynamic(() => import(/* webpackPreload: true */ '@
   loading: () => <LoungeSkeleton />
 });
 
-const OfficeExplorerClient = dynamic(() => import(/* webpackPreload: true */ '@/components/OfficeExplorerClient').catch(err => {
-  logger.warn('DashboardClient.dynamic', 'OfficeExplorerClient Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('OfficeExplorerClient');
-  return { default: () => null };
-}), { 
-  ssr: false,
-  loading: () => <OfficeSkeleton />
-});
 const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptCompareModal');
@@ -255,7 +228,7 @@ const DashboardClient = React.memo(function DashboardClient({
 }: { 
   initialDashboardData?: DashboardInitialDataLocal, 
   preselectedAptName?: string,
-  initialTab?: 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'
+  initialTab?: 'overview' | 'imjang' | 'lounge' | 'mbti'
 }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
@@ -374,15 +347,13 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge' | 'mbti'>(initialTab);
   const [isPending, startTransition] = useTransition();
-  const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview' || initialTab === 'technovalley');
-  const [hasOpenedOffice, setHasOpenedOffice] = useState(initialTab === 'office');
+  const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview');
   const [hasOpenedLounge, setHasOpenedLounge] = useState(initialTab === 'lounge');
 
   useEffect(() => {
-    if (activeTab === 'overview' || activeTab === 'technovalley') setHasOpenedOverview(true);
-    if (activeTab === 'office') setHasOpenedOffice(true);
+    if (activeTab === 'overview') setHasOpenedOverview(true);
     if (activeTab === 'lounge') setHasOpenedLounge(true);
   }, [activeTab]);
 
@@ -390,11 +361,11 @@ const DashboardClient = React.memo(function DashboardClient({
 
   // Trigger lazy fetching of detailed sheets data on relevant tab switches or deep-links
   useEffect(() => {
-    if (activeTab === 'office' || activeTab === 'imjang') {
+    if (activeTab === 'imjang') {
       triggerFetch();
     } else if (typeof window !== 'undefined') {
       const hash = window.location.hash;
-      if (hash.includes('apt=') || hash.includes('office') || hash.includes('gap') || hash.includes('imjang')) {
+      if (hash.includes('apt=') || hash.includes('gap') || hash.includes('imjang')) {
         triggerFetch();
       }
     }
@@ -448,7 +419,9 @@ const DashboardClient = React.memo(function DashboardClient({
         router.replace('/explore');
         return;
       } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap') || tabParam === 'office' || tabParam === 'gap' || hasCurationParams) {
-        setActiveTab('office');
+        setActiveTab('overview');
+      } else if (window.location.hash.startsWith('#mbti') || tabParam === 'mbti') {
+        setActiveTab('mbti');
       } else if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || tabParam === 'lounge' || tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
         setActiveTab('lounge');
       }
@@ -458,7 +431,6 @@ const DashboardClient = React.memo(function DashboardClient({
         if (!isMounted) return;
         preloadApartmentModal();
         preloadDashboardFeatures();
-        import('@/components/OfficeExplorerClient').catch(() => {});
         import('@/components/LoungeContainerClient').catch(() => {});
         import('@/components/MacroDashboardClient').catch(() => {});
       };
@@ -470,7 +442,6 @@ const DashboardClient = React.memo(function DashboardClient({
       const syncTabFromLocation = () => {
         const queryParams = new URLSearchParams(window.location.search);
         const queryTab = queryParams.get('tab');
-        const hasCuration = queryParams.has('chopoomaStep') || queryParams.has('maxGap');
 
         if (!isMounted) return;
         startTransition(() => {
@@ -478,21 +449,19 @@ const DashboardClient = React.memo(function DashboardClient({
             setActiveTab('lounge');
           } else if (window.location.hash.startsWith('#imjang')) {
             setActiveTab('imjang');
-          } else if (window.location.hash.startsWith('#technovalley') || window.location.hash.startsWith('#techno')) {
-            setActiveTab('technovalley');
-          } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap')) {
-            setActiveTab('office');
-          } else if (window.location.hash.startsWith('#overview')) {
+          } else if (window.location.hash.startsWith('#mbti')) {
+            setActiveTab('mbti');
+          } else if (window.location.hash.startsWith('#overview') || window.location.hash.startsWith('#technovalley') || window.location.hash.startsWith('#techno') || window.location.hash.startsWith('#office')) {
             setActiveTab('overview');
           } else if (queryTab === 'lounge' || queryTab === 'talk' || queryTab === 'news' || queryTab === 'notices') {
             setActiveTab('lounge');
           } else if (queryTab === 'imjang') {
             setActiveTab('imjang');
-          } else if (queryTab === 'technovalley') {
-            setActiveTab('technovalley');
-          } else if (queryTab === 'office' || queryTab === 'gap' || hasCuration) {
-            setActiveTab('office');
+          } else if (queryTab === 'mbti') {
+            setActiveTab('mbti');
           } else if (queryTab === 'overview' || window.location.hash === '' || window.location.pathname === '/') {
+            setActiveTab('overview');
+          } else {
             setActiveTab('overview');
           }
         });
@@ -748,12 +717,12 @@ const DashboardClient = React.memo(function DashboardClient({
   }, [handleToggleFavorite, handleRequestLogin]);
 
   const handleTabChange = useCallback((tab: string) => {
-    const targetTab = tab as 'overview' | 'imjang' | 'office' | 'technovalley';
+    const targetTab = tab as 'overview' | 'imjang' | 'lounge' | 'mbti';
     setActiveTab(targetTab);
     let href = '/';
-    if (targetTab === 'office') href = '/overview?tab=office';
-    else if (targetTab === 'imjang') href = '/explore';
-    else if (targetTab === 'technovalley') href = '/technovalley';
+    if (targetTab === 'imjang') href = '/explore';
+    else if (targetTab === 'mbti') href = '/mbti';
+    else if (targetTab === 'lounge') href = '/lounge';
     else if (targetTab === 'overview') href = '/';
     window.history.pushState(null, '', href);
     try { router.replace(href, { scroll: false }); } catch (err) {}
@@ -765,8 +734,8 @@ const DashboardClient = React.memo(function DashboardClient({
     return (
       <div className="grid w-full min-h-[85vh] min-h-[800px] relative bg-transparent min-w-0 max-w-full" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
         {/* ═══ TAB 0: 마크로 대시보드 ═══ */}
-        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 min-w-0 max-w-full ${activeTab === 'overview' || activeTab === 'technovalley' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
-          {(activeTab === 'overview' || activeTab === 'technovalley' || hasOpenedOverview) && (
+        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent pb-8 md:pb-0 mb-4 md:mb-0 min-w-0 max-w-full ${activeTab === 'overview' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
+          {(activeTab === 'overview' || hasOpenedOverview) && (
             <ErrorBoundary name="마크로 대시보드">
               <MacroDashboardClient 
                 sheetApartments={sheetApartments} 
@@ -793,19 +762,6 @@ const DashboardClient = React.memo(function DashboardClient({
                 preloadApartmentTx={preloadApartmentTx}
               />
             </ErrorBoundary>
-          )}
-        </section>
-
-        {/* ═══ TAB 1-2: 사무실 탐색 ═══ */}
-        <section className={`w-full max-w-full min-w-0 overflow-x-hidden col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'office' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
-          {(activeTab === 'office' || hasOpenedOffice) && (
-            !mounted ? (
-              <OfficeSkeleton />
-            ) : (
-              <ErrorBoundary name="사무실 탐색">
-                <OfficeExplorerClient />
-              </ErrorBoundary>
-            )
           )}
         </section>
 
@@ -856,14 +812,13 @@ const DashboardClient = React.memo(function DashboardClient({
     handleAptClickByName,
     handleRequestLogin,
     hasOpenedOverview,
-    hasOpenedOffice,
     hasOpenedLounge
   ]);
 
   return (
     <>
     <PullToRefresh 
-      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : activeTab === 'office' ? 'office-scroll' : 'recommend-scroll'}
+      scrollContainerId={activeTab === 'imjang' ? 'apartment-list-scroll' : 'recommend-scroll'}
       disabled={mobileModalOpen || !!selectedReport}
     >
       <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">

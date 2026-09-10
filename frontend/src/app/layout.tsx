@@ -125,12 +125,24 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable}`}>
       <head>
         <meta name="referrer" content="no-referrer" />
+        <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
+        <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />
         <link rel="preconnect" href="https://t1.kakaocdn.net" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
       </head>
       <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 aurora-bg">
+        {/* Google AdSense (Conditionally loaded when NEXT_PUBLIC_ADSENSE_CLIENT_ID is set) */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
+          <Script
+            id="google-adsense"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
+            strategy="afterInteractive"
+            crossOrigin="anonymous"
+            nonce={nonce}
+          />
+        )}
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Home, LayoutDashboard, Building2 } from 'lucide-react';
+import { Home, Sparkles, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import FloatingUserBar from '@/components/FloatingUserBar';
@@ -16,20 +16,15 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
     // Proactively prefetch core routes on mount
     router.prefetch('/');
     router.prefetch('/explore');
-    router.prefetch('/technovalley');
-    router.prefetch('/overview?tab=office');
+    router.prefetch('/mbti');
 
     const handlePopState = () => {
       if (!onTabChange || typeof window === 'undefined') return;
       const path = window.location.pathname;
-      const search = window.location.search;
       if (path === '/') onTabChange('overview');
       else if (path === '/explore') onTabChange('imjang');
-      else if (path === '/technovalley' || path === '/techno') onTabChange('technovalley');
-      else if (path === '/overview') {
-        if (search.includes('tab=office')) onTabChange('office');
-        else onTabChange('overview');
-      }
+      else if (path === '/mbti') onTabChange('mbti');
+      else onTabChange('overview');
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -104,36 +99,20 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   <span>아파트 탐색</span>
                 </Link>
 
-                {/* 3. 테크노 랩 */}
+                {/* 3. 단지 MBTI */}
                 <Link
-                  href="/technovalley"
+                  href="/mbti"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/technovalley')}
-                  onClick={(e) => handleNavClick(e, '/technovalley', 'technovalley')}
+                  onMouseEnter={() => router.prefetch('/mbti')}
+                  onClick={(e) => handleNavClick(e, '/mbti', 'mbti')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
-                    activeTab === 'technovalley'
-                      ? 'bg-hs-blue-light text-hs-blue font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                    activeTab === 'mbti'
+                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <LayoutDashboard size={18} className={activeTab === 'technovalley' ? 'text-hs-blue' : 'text-tertiary'} />
-                  <span>테크노 랩</span>
-                </Link>
-
-                {/* 4. 사무실 탐색 */}
-                <Link
-                  href="/overview?tab=office"
-                  prefetch={true}
-                  onMouseEnter={() => router.prefetch('/overview?tab=office')}
-                  onClick={(e) => handleNavClick(e, '/overview?tab=office', 'office')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
-                    activeTab === 'office'
-                      ? 'bg-hs-blue-light text-hs-blue font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                  }`}
-                >
-                  <Building2 size={18} className={activeTab === 'office' ? 'text-hs-blue' : 'text-tertiary'} />
-                  <span>사무실 탐색</span>
+                  <Sparkles size={18} className={activeTab === 'mbti' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <span>단지 MBTI</span>
                 </Link>
               </nav>
             </div>

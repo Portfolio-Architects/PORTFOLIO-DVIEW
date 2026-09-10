@@ -1,47 +1,140 @@
-# Project: D-VIEW Hyperlocal SuperApp Performance & Stability Refactoring
+# Project: D-VIEW Major Revamp
 
 ## Architecture
-D-VIEW is a Next.js (App Router) hyperlocal real estate and commercial analytics web application.
-- **Frontend Core**: `frontend/src/app` (pages & layouts), `frontend/src/components` (domain dashboards, explorers, modals, charts, widgets)
-- **Data & Caching Layer**: `frontend/src/lib` (SWR caching, IndexedDB offlineQueue, localCache Zod persistence, data-fetchers)
-- **Error Boundaries & Offline**: `ErrorBoundary.tsx`, `ChartErrorBoundary.tsx`, `OfflineBanner.tsx`, Service Worker (`sw.js`)
-- **Testing Architecture**: Jest + React Testing Library + MSW (`frontend/__tests__`, 102+ test suites, 1055+ unit/integration tests)
+D-VIEW is a Next.js 16 (React 19, Turbopack, Tailwind CSS v4) hyper-local proptech platform for Dongtan New Town. This major revamp transitions the application from a competition-oriented Techno Valley vacancy dashboard to a consumer-centric real estate intelligence platform featuring:
+1. **Clean Navigation & Safe Route Retirement**: Decommissioning `/technovalley` and office search with zero-404 server redirects, slimming client bundles by removing heavy unneeded modules from the main bundle tree.
+2. **Interactive Housing MBTI & Viral Quiz**: A 7-question lifestyle diagnostic quiz, 16 curated Dongtan landmark apartment profiles, 4-temperament encyclopedia browsing, Recharts radar charts, Kakao/SNS viral sharing, and dynamic OpenGraph image generation.
+3. **Monetization Engine (Google AdSense)**: `next/script` injection keyed on `NEXT_PUBLIC_ADSENSE_CLIENT_ID`, zero-CLS responsive `AdSlot` components with shimmer skeletons, ad-blocker fallback promos, and dev placeholders.
+4. **Core Apartment Feature Preservation & Verification**: 100% preservation of 179 apartment complexes, historical transaction data, price trend graphs, valuation metrics, financial calculators, and full test suite pass rate.
+
+```
+                  ┌───────────────────────────────┐
+                  │          Root Layout          │
+                  │  (next/script AdSense + OG)   │
+                  └──────────────┬────────────────┘
+                                 │
+         ┌───────────────────────┼───────────────────────┐
+         ▼                       ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│   LoungeHeader   │    │    MobileDock    │    │  Redirect Guard  │
+│  (3-tab: 랩/탐색/ │    │  (3-tab: 랩/탐색/ │    │ (/technovalley   │
+│   단지 MBTI)     │    │   단지 MBTI)     │    │  -> / via 307)   │
+└──────────────────┘    └──────────────────┘    └──────────────────┘
+         │                       │
+         └───────────┬───────────┘
+                     │
+         ┌───────────┴───────────┐
+         ▼                       ▼
+┌──────────────────┐    ┌──────────────────┐
+│  Apartment Core  │    │  MBTI Platform   │
+│  (Feed, Charts,  │    │ (/mbti, Quiz,    │
+│   Modals, Calc)  │    │  16 Profiles,    │
+│  + AdSlot Banner │    │  Catalog, OG)    │
+└──────────────────┘    └──────────────────┘
+```
+
+---
 
 ## Feature Inventory
+Every feature identified in the survey is assigned to a milestone:
+
 | # | Feature | Description | Milestone | Source |
 |---|---|---|---|---|
-| 1 | `TechnoValleyDashboard` Memoization & Subcomponent Extraction | Prevent full LineChart/Donut re-render on search keystroke with `React.memo`, `useDeferredValue`, and extracted subcomponents | M1 (DONE) | Survey R1 |
-| 2 | `MacroDashboardClient` Prop Stability & `useCallback` | Eliminate inline arrow functions and fallback objects passed to memoized children (`AptFitFinder`, `MacroUtilityCards`, `MacroTimelineView`) | M1 (DONE) | Survey R1 |
-| 3 | `DashboardClient` Stable Navigation Callbacks | Memoize `onTabChange` and `onTabClick` handlers for `LoungeHeader` and `MobileDock` | M1 (DONE) | Survey R1 |
-| 4 | Root Layout Modal Code-Splitting | Convert statically imported modals in `layout.tsx` (`SettingsModal`, `WelcomeModal`, `CustomA2HSModal`) to `next/dynamic` | M2 (DONE) | Survey R2 |
-| 5 | Modal & Heavy Component Dynamic Imports | Lazy load `OfficeDetailModal`, `PushSubscriptionModal`, and optimize `AptDonutSection` recharts bundling | M2 (DONE) | Survey R2 |
-| 6 | Heavy PDF Library Lazy Loading | Convert static `jsPDF` top-level imports in `EngineeringReportClient.tsx` and `ReportClient.tsx` to dynamic `await import('jspdf')` inside export click handler | M2 (DONE) | Survey R2 |
-| 7 | Next.js Build & Package Optimization | Add `recharts` to `experimental.optimizePackageImports` in `next.config.ts` and streamline `preload.ts` | M2 (DONE) | Survey R2 |
-| 8 | Comprehensive ErrorBoundary Coverage | Wrap tabs (`OfficeExplorerClient`, `LoungeContainerClient`), widgets in `MacroDashboardClient` and `TechnoValleyDashboard`, `TossApartmentExploreClient`, and `ApartmentModal` in isolated `ErrorBoundary` & `ChartErrorBoundary` | M3 | Survey R4 |
-| 9 | SWR, Cache Synchronization & Open Handle Resolution | Ensure SWR stale-while-revalidate lifecycle integrity and fix test suite open handles (`local-notices-e2e.test.tsx`, `m5_tier5_adversarial_challenge.test.tsx`) | M3 | Survey R3 & Test |
-| 10 | 100% Green Test Suite & Adversarial Quality Assurance | Pass all 99+ Jest test suites (100% pass rate) with zero TypeScript compiler errors and adversarial stress-testing | M4 | Survey R5 & All |
+| F1 | Navigation Overhaul | Replace `technovalley` & `office` tabs with `단지 MBTI` (`/mbti`) in `LoungeHeader` & `MobileDock` | M1 | Survey 1 |
+| F2 | Route Redirection | Add 307 server redirects for `/technovalley`, `/techno`, and `tab=office` in `next.config.ts` | M1 | Survey 1 |
+| F3 | Page Level Redirection | Replace `src/app/technovalley/page.tsx` with server `redirect('/')` | M1 | Survey 1 |
+| F4 | Dashboard Decoupling | Remove `OfficeExplorerClient` dynamic import & office section from `DashboardClient.tsx` | M1 | Survey 1 |
+| F5 | Navigation Test Sync | Update `HeaderDockSync.test.tsx` and challenger tests to match the 3-tab navigation contract | M1 | Survey 1 |
+| F6 | Sitemap & Feed Cleanup | Update `sitemap.ts` to include `/mbti` and sanitize feed badges | M1 | Survey 1 |
+| F7 | MBTI Domain Types | Declare `MbtiType`, `MbtiApartmentProfile`, `QuizQuestion`, `RadarMetrics` in `src/types/mbti.ts` | M2 | Survey 2 |
+| F8 | 16 MBTI Dataset | Author rich 16 Dongtan apartment curation profiles in `src/lib/data/mbtiData.ts` | M2 | Survey 2 |
+| F9 | Quiz Diagnostic Engine | 7-question lifestyle/housing diagnostic quiz with scoring in `src/lib/utils/mbtiScoring.ts` | M2 | Survey 2 |
+| F10 | MBTI Quiz UI Stepper | Smooth 60fps 7-question stepper component (`MBTIQuizStepper.tsx`) | M2 | Survey 2 |
+| F11 | MBTI Result Screen | Matched apartment card, 5-axis radar chart, reasoning, CTA to `ApartmentModal` (`MBTIResultView.tsx`) | M2 | Survey 2 |
+| F12 | MBTI Encyclopedia View | 16-type catalog with 4-temperament filter tabs (`MBTIEncyclopedia.tsx`) | M2 | Survey 2 |
+| F13 | Viral Share System | KakaoTalk SDK share, 2-tier clipboard copy with toast in `src/lib/utils/kakaoShare.ts` | M2 | Survey 2 |
+| F14 | Dynamic OG Image Route | Add `type === 'mbti'` in `src/app/api/og/route.tsx` for 1200x630 card generation | M2 | Survey 2 |
+| F15 | MBTI Route Pages | Create `src/app/mbti/page.tsx` and `src/app/mbti/[type]/page.tsx` with SSR metadata | M2 | Survey 2 |
+| F16 | AdSense Script Injection | Root layout script injection via `next/script` `strategy="afterInteractive"` in `src/app/layout.tsx` | M3 | Survey 3 |
+| F17 | AdSense Env Documentation| Add `NEXT_PUBLIC_ADSENSE_CLIENT_ID` documentation in `frontend/.env.example` | M3 | Survey 3 |
+| F18 | Zero-CLS AdSlot Component | Reusable `AdSlot.tsx` with fixed min-heights, skeleton shimmer, dev placeholder, and SPA push guard | M3 | Survey 3 |
+| F19 | Ad-Blocker Fallback Promo | Integration with `useAdBlockDetector` to show tasteful cross-promotions when blocked | M3 | Survey 3 |
+| F20 | Ad Placement Integration | Insert responsive `AdSlot` into Feed stream, MBTI Result view, and `ApartmentModal` | M3 | Survey 3 |
+| F21 | TypeScript Verification | Full compilation with 0 errors via `npx tsc --noEmit` | M4 | Survey 3 |
+| F22 | Test Suite Verification | All unit, integration, and regression test suites passing (100% Green) | M4 | Survey 3 |
+| F23 | Production Build Verification | `npm run build` completes successfully with all static/dynamic routes generated | M4 | Survey 3 |
+| F24 | Core Feature Hardening | Verify 0% regression on apartment transactions, charts, modals, and dongs | M4 | Survey 3 |
+
+---
 
 ## Milestones
+
 | # | Name | Scope | Dependencies | Status |
 |---|---|---|---|---|
-| 1 | M1: Rendering Runtime & Re-render Elimination | `TechnoValleyDashboard.tsx`, `MacroDashboardClient.tsx`, `DashboardClient.tsx` | none | DONE |
-| 2 | M2: Bundle Size & Dynamic Code Splitting | `layout.tsx`, `OfficeExplorerClient.tsx`, `ApartmentModal.tsx`, `EngineeringReportClient.tsx`, `ReportClient.tsx`, `next.config.ts`, `preload.ts` | none | DONE |
-| 3 | M3: ErrorBoundary Coverage & Cache Stability | `DashboardClient.tsx`, `MacroDashboardClient.tsx`, `TechnoValleyDashboard.tsx`, `ExploreClient.tsx`, `ApartmentModal.tsx`, open handle cleanups in test files | M1, M2 | PLANNED |
-| 4 | M4: Final Full Test Suite Pass & Adversarial Hardening | Jest 102+ test suites (100% green), `npx tsc --noEmit` 0 errors, Next.js build clean, adversarial stress testing | M1, M2, M3 | PLANNED |
+| M1 | Navigation & Technovalley Cleanup | F1, F2, F3, F4, F5, F6 | none | DONE |
+| M2 | MBTI Recommendation & Viral Quiz Platform | F7, F8, F9, F10, F11, F12, F13, F14, F15 | M1 (interface contract defined) | DONE |
+| M3 | Google AdSense Integration & Responsive Ad Slots | F16, F17, F18, F19, F20 | M2 (for result placement) | DONE |
+| M4 | Build Integrity, Verification & Hardening | F21, F22, F23, F24 | M1, M2, M3 | DONE |
+
+---
 
 ## Interface Contracts
-### `TechnoValleyDashboard` Subcomponents ↔ Parent
-- `TechnoTrendChartSection`: props `{ monthlyTrend: Array<{ month: string; companies: number; employees: number }> }`
-- `TechnoCompanySection`: props `{ companies: TechnoCompany[]; searchQuery: string; onSearchChange: (q: string) => void; selectedCategory: string; onSelectCategory: (c: string) => void }`
 
-### ErrorBoundary ↔ Widget Components
-- `ErrorBoundary`: props `{ fallbackTitle?: string; fallbackMessage?: string; children: ReactNode; onReset?: () => void }`
-- `ChartErrorBoundary`: props `{ chartTitle?: string; children: ReactNode }`
+### M1 ↔ M2 (Navigation & Routing Contract)
+- **Route Path**: `/mbti` (hub), `/mbti/[type]` (direct viral result).
+- **Navigation Tab Identifier**: `id: 'mbti'`, `label: '단지 MBTI'`, `href: '/mbti'`, `icon: Sparkles`.
+- **Active Tab State in DashboardClient**: `'overview' | 'imjang' | 'lounge' | 'mbti'`.
+- **Header & Dock Sync**:
+  ```typescript
+  export const TABS = [
+    { id: 'overview', label: '아파트 랩', href: '/' },
+    { id: 'imjang', label: '아파트 탐색', href: '/explore' },
+    { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
+  ];
+  ```
+
+### M2 ↔ M3 (Ad Placement Contract in MBTI Result View)
+- `src/components/ads/AdSlot.tsx` props:
+  ```typescript
+  export interface AdSlotProps {
+    slotId?: string;
+    format?: 'in-feed' | 'banner' | 'rectangle' | 'horizontal-strip' | 'auto';
+    responsive?: boolean;
+    className?: string;
+    testMode?: boolean;
+    fallbackType?: 'mbti-promo' | 'dashboard-promo' | 'minimal';
+  }
+  ```
+- MBTI Result View will mount:
+  ```tsx
+  <AdSlot format="banner" className="my-6 max-w-xl mx-auto" fallbackType="minimal" />
+  ```
+
+### M2 ↔ Existing Core (Apartment Data Contract)
+- MBTI profiles map directly to existing normalized apartment keys:
+  ```typescript
+  import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+  import { APARTMENTS_BY_DONG } from '@/lib/apartment-data';
+  import { TX_SUMMARY } from '@/lib/transaction-summary';
+  ```
+- Clicking "실거래 상세 리포트" in MBTI card dispatches the existing custom event or modal hash: `#apt=${encodeURIComponent(aptName)}`.
+
+---
 
 ## Code Layout
-- `frontend/src/components/macro/`: Macro dashboard components and charts
-- `frontend/src/components/office/`: Office explorer and TechnoValley components
-- `frontend/src/components/apartment/`: Apartment exploration and detail modals
-- `frontend/src/components/ui/`: Error boundaries, modals, and shared widgets
-- `frontend/src/lib/`: Data caching, SWR provider, and utilities
-- `frontend/__tests__/`: Jest test suites
+- `src/app/layout.tsx`: Root layout with AdSense `<Script>` injection.
+- `src/app/technovalley/page.tsx`: 307 server redirect to `/`.
+- `src/app/mbti/page.tsx`: MBTI quiz and encyclopedia hub page.
+- `src/app/mbti/[type]/page.tsx`: MBTI viral result page with SSR OpenGraph tags.
+- `src/app/api/og/route.tsx`: Dynamic OpenGraph 1200x630 image generator.
+- `src/components/LoungeHeader.tsx`: Desktop top navigation bar.
+- `src/components/pwa/MobileDock.tsx`: Mobile bottom navigation dock.
+- `src/components/DashboardClient.tsx`: Client-side tab coordinator.
+- `src/components/mbti/*`: MBTI UI components (Container, Stepper, ResultView, Encyclopedia, RadarChart, ShareButtons).
+- `src/components/ads/AdSlot.tsx`: Zero-CLS responsive AdSense slot component.
+- `src/lib/data/mbtiData.ts`: 16 MBTI curated apartment datasets.
+- `src/lib/utils/mbtiScoring.ts`: 7-question lifestyle scoring algorithm.
+- `src/lib/utils/kakaoShare.ts`: Kakao SDK viral share and clipboard fallback.
+- `src/types/mbti.ts`: MBTI domain type definitions.
+- `next.config.ts`: Next.js routing, redirects, headers, and security policies.
+- `frontend/.env.example`: AdSense environment variable documentation.

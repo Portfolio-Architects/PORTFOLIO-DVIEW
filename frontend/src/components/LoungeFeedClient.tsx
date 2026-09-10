@@ -1,12 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo, Fragment } from 'react';
-import { MessageSquare, Eye, Heart, Loader2, ChevronDown, ChevronUp, Share2, ExternalLink, X, Sparkles, Home, Briefcase, ArrowRight } from 'lucide-react';
+import { MessageSquare, Eye, Heart, Loader2, ChevronDown, ChevronUp, Share2, ExternalLink, X, Sparkles, Home, ArrowRight } from 'lucide-react';
 import { INITIAL_POSTS as coLeasingPosts, CoLeasePost } from '@/components/macro/CoLeasingBoard';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import useSWRInfinite from 'swr/infinite';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 const MarkdownViewer = dynamic(() => import('@/components/ui/MarkdownViewer'), {
   ssr: true,
@@ -166,11 +167,6 @@ const getPostsKey = (pageIndex: number, previousPageData: Post[] | null) => {
   return `/api/posts?limit=20&lastCreatedAt=${lastPost.createdAt}`;
 };
 
-const isTechnoRelated = (title: string, content?: string) => {
-  const keywords = ['테크노밸리', '지식산업센터', '공동임차', '사무실', '세금', '감면', '오피스', '소재지', '법인세', '취득세', '재산세', '절세'];
-  const text = `${title} ${content || ''}`;
-  return keywords.some(k => text.includes(k));
-};
 
 const NoticeCard = React.memo(function NoticeCard({
   notice,
@@ -1422,28 +1418,6 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, in
                     </span>
                   )}
 
-                  {isTechnoRelated(news.title, news.summary) && (
-                    <span
-                      role="link"
-                      tabIndex={0}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.location.href = `/overview?tab=office`;
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          window.location.href = '/overview?tab=office';
-                        }
-                      }}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-indigo-500/10 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/50"
-                      title="클릭 시 테크노 랩 사무실 탐색으로 이동"
-                    >
-                      <Briefcase size={10} />
-                      <span>💼 테크노 랩 연동</span>
-                    </span>
-                  )}
                 </div>
 
                 {/* Title & Comment Count */}
@@ -1484,8 +1458,13 @@ const LoungeFeedClient = React.memo(function LoungeFeedClient({ initialPosts, in
                   />
                 </div>
               )}
-                        </div>
-            </Fragment>
+            </div>
+            {(index + 1) % 5 === 0 && (
+              <div className="my-3 w-full" data-testid="lounge-feed-ad-slot">
+                <AdSlot format="in-feed" />
+              </div>
+            )}
+          </Fragment>
         );
       })}
 

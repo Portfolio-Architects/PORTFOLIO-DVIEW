@@ -260,6 +260,17 @@ export const ShareSellTimingParamsSchema = z.object({
   totalTax: z.number().nonnegative(),
 });
 
+export const ShareMbtiResultParamsSchema = z.object({
+  mbtiType: z.string().length(4),
+  alias: z.string().min(1),
+  aptName: z.string().min(1),
+  dong: z.string().min(1),
+  tags: z.array(z.string()),
+  priceEok: z.string().optional(),
+  recommendationReason: z.string().optional(),
+});
+export type ShareMbtiResultParams = z.infer<typeof ShareMbtiResultParamsSchema>;
+
 export interface ShareAptParams {
   aptName: string;
   priceEok: number;
@@ -1158,5 +1169,113 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
   } catch (err) {
     logger.error('kakaoShare.copyAptSummaryToClipboard', 'Failed to copy text', { error: String(err) });
     return false;
+  }
+};
+
+export const copyMbtiResultToClipboard = async (
+  params: ShareMbtiResultParams,
+  toastFn?: (msg: string) => void
+): Promise<boolean> => {
+  const validation = ShareMbtiResultParamsSchema.safeParse(params);
+  if (!validation.success) {
+    logger.warn('kakaoShare.copyMbtiResultToClipboard', 'Invalid parameters provided for MBTI clipboard copy', {
+      error: String(validation.error),
+      params,
+    });
+    return false;
+  }
+
+  const { mbtiType, alias, aptName, dong, tags } = validation.data;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://dongtanview.com';
+  const shareUrl = `${baseUrl}/mbti/${mbtiType.toUpperCase()}?utm_source=clipboard&utm_medium=viral&utm_campaign=mbti_quiz`;
+
+  const tagString = tags.map((t) => (t.startsWith('#') ? t : `#${t}`)).join(' ');
+
+  let text = `🏡 [D-VIEW 주거 성향 테스트]\n`;
+  text += `나의 MBTI 결과: [${mbtiType}] ${alias}\n`;
+  text += `나의 맞춤 동탄 아파트: ${aptName} (${dong})\n`;
+  if (tagString) {
+    text += `${tagString}\n`;
+  }
+  text += `\n👉 나와 어울리는 동탄 아파트 찾기: ${shareUrl}\n`;
+  text += `#DVIEW #동탄아파트 #주거MBTI #동탄부동산`;
+
+  try {
+    const success = await copyTextToClipboardDirect(text);
+    if (success) {
+      const msg = '클립보드에 결과 링크와 요약이 복사되었습니다!';
+      if (toastFn) toastFn(msg);
+    }
+    return success;
+  } catch (err) {
+    logger.error('kakaoShare.copyMbtiResultToClipboard', 'Failed to copy MBTI result', { error: String(err) });
+    return false;
+  }
+};
+
+export const shareMbtiResultToKakao = async (
+  params: ShareMbtiResultParams,
+  toastFn?: (msg: string) => void
+): Promise<boolean> => {
+  const validation = ShareMbtiResultParamsSchema.safeParse(params);
+  if (!validation.success) {
+    logger.warn('kakaoShare.shareMbtiResultToKakao', 'Invalid parameters for MBTI Kakao sharing', {
+      error: String(validation.error),
+      params,
+    });
+    const msg = '공유 데이터가 올바르지 않습니다.';
+    if (toastFn) toastFn(msg);
+    else alert(msg);
+    return false;
+  }
+
+  const { mbtiType, alias, aptName, dong } = validation.data;
+  const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://dongtanview.com';
+  const shareUrl = `${baseUrl}/mbti/${mbtiType.toUpperCase()}?utm_source=kakaotalk&utm_medium=viral&utm_campaign=mbti_quiz`;
+  const titleText = `🏢 나의 주거 MBTI는 [${mbtiType}] ${alias}!`;
+  const description = `나와 영혼의 궁합인 동탄 아파트는 바로 '${aptName}' (${dong})! 당신에게 어울리는 동탄 아파트는 어디일까요? 지금 D-VIEW에서 테스트해보세요.`;
+  const imageUrl = `${baseUrl}/api/og?type=mbti&mbti=${mbtiType}&apt=${encodeURIComponent(aptName)}&dong=${encodeURIComponent(dong)}`;
+
+  try {
+    const sdkOk = await checkKakaoSdkAndFallback(
+      titleText,
+      description,
+      shareUrl,
+      '카카오톡 연결을 불러올 수 없어, 대신',
+      async () => {
+        const copied = await copyMbtiResultToClipboard(params, toastFn);
+        return copied;
+      },
+      toastFn
+    );
+    if (!sdkOk) return false;
+
+    window.Kakao!.Share.sendDefault({
+      objectType: 'feed',
+      content: {
+        title: titleText,
+        description: description,
+        imageUrl: imageUrl,
+        imageWidth: 1200,
+        imageHeight: 630,
+        link: {
+          mobileWebUrl: shareUrl,
+          webUrl: shareUrl,
+        },
+      },
+      buttons: [
+        {
+          title: '내 주거 MBTI 테스트하기',
+          link: {
+            mobileWebUrl: shareUrl,
+            webUrl: shareUrl,
+          },
+        },
+      ],
+    });
+    return true;
+  } catch (err) {
+    logger.error('kakaoShare.shareMbtiResultToKakao', 'Failed to share to Kakao', { error: String(err) });
+    return await copyMbtiResultToClipboard(params, toastFn);
   }
 };

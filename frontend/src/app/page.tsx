@@ -71,7 +71,7 @@ function DashboardSkeleton() {
   );
 }
 
-async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley' }) {
+async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' | 'lounge' | 'mbti' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
   const allApts = Object.entries(txSummary).map(([name, sum]) => {
@@ -148,11 +148,11 @@ export default async function HomePage(props: {
   const searchParams = await props.searchParams;
   const tab = searchParams?.tab;
 
-  let initialTab: 'overview' | 'imjang' | 'office' | 'lounge' | 'technovalley' = 'overview';
-  if (tab === 'office') initialTab = 'office';
-  else if (tab === 'lounge') initialTab = 'lounge';
+  let initialTab: 'overview' | 'imjang' | 'lounge' | 'mbti' = 'overview';
+  if (tab === 'lounge') initialTab = 'lounge';
   else if (tab === 'imjang') initialTab = 'imjang';
-  else if (tab === 'technovalley') initialTab = 'technovalley';
+  else if (tab === 'mbti') initialTab = 'mbti';
+  // legacy office & technovalley fall back cleanly to overview
 
   const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
