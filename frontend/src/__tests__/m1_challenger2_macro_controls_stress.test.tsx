@@ -474,7 +474,7 @@ describe('Milestone 1 (M1) Challenger 2 Empirical Stress Test Suite - MacroContr
           </div>
         );
 
-        expect(screen.getByRole('button', { name: /동탄2/i })).toHaveClass('bg-[#ea6100]');
+        expect(screen.getByRole('button', { name: /동탄2/i })).toHaveClass('bg-[#057e77]');
         expect(screen.getByLabelText('리스트 뷰 보기')).toBeInTheDocument();
         unmount();
       });

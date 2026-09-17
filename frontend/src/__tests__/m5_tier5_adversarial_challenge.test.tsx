@@ -563,10 +563,11 @@ describe('Tier 5 Adversarial Coverage & Edge Case Discovery Suite', () => {
     });
 
     it('4.2 renders culture notices with extreme D-Day boundaries (today, tomorrow, next month, past dates)', async () => {
-      const todayStr = new Date().toISOString().substring(0, 10);
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const tomorrowStr = tomorrow.toISOString().substring(0, 10);
+      const now = new Date();
+      const pad = (n: number) => String(n).padStart(2, '0');
+      const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+      const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
       const pastStr = '2020-01-01';
 
       const cultureItems: NoticeData[] = [

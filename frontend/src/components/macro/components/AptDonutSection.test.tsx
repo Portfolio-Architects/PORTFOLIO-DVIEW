@@ -93,261 +93,374 @@ describe('AptDonutSection Test Suite', () => {
     동탄역시범한화꿈에그린: { dong: '청계동' },
   };
 
-  it('renders all 4 energy categories with exact 100% total percentage sum', () => {
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={mockRecentTransactions}
-        txSummaryData={mockSummary as any}
-      />
-    );
+  describe('Policy Loan Tiers Mode (Default for AdSense CPC Optimization)', () => {
+    it('renders policy loan tiers by default with exact 100% total percentage sum', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
 
-    expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
-    expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
+      // Default mode header
+      expect(screen.getByText('실거래 정책대출 적격 분포')).toBeInTheDocument();
+      expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
 
-    // 4 items: each 1 count -> 25.0% each
-    expect(screen.getByText('신고가🔥')).toBeInTheDocument();
-    expect(screen.getByText('상승거래')).toBeInTheDocument();
-    expect(screen.getByText('보합')).toBeInTheDocument();
-    expect(screen.getByText('하락거래')).toBeInTheDocument();
+      // 4 policy tiers
+      expect(screen.getByText('6억 이하')).toBeInTheDocument();
+      expect(screen.getByText('디딤돌·신생아')).toBeInTheDocument();
 
-    const percentageElements = screen.getAllByText('25.0%');
-    expect(percentageElements.length).toBeGreaterThanOrEqual(4);
+      expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
+      expect(screen.getByText('특례보금자리')).toBeInTheDocument();
+
+      expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();
+      expect(screen.getByText('일반 주담대')).toBeInTheDocument();
+
+      expect(screen.getByText('15억 초과')).toBeInTheDocument();
+      expect(screen.getByText('고가·자산가')).toBeInTheDocument();
+
+      // In mock data: 16.5 (over15: 1 item -> 25%), 11.2/12.0/11.5 (under15: 3 items -> 75%)
+      expect(screen.getByText('25.0%')).toBeInTheDocument();
+      expect(screen.getByText('75.0%')).toBeInTheDocument();
+
+      // Center overlay badge
+      expect(screen.getByText('정책대출 적격')).toBeInTheDocument();
+    });
+
+    it('toggles policy tier selection, displays representative apartment list and financial policy callout banner', () => {
+      const mockOnSelectApt = jest.fn();
+      const mockPreload = jest.fn();
+
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          onSelectApt={mockOnSelectApt}
+          preloadApartmentTx={mockPreload}
+        />
+      );
+
+      // Click '15억 초과' tier
+      const over15Row = screen.getByLabelText(/15억 초과 1건/i);
+      fireEvent.click(over15Row);
+
+      // Financial policy callout banner for high-value housing
+      expect(screen.getByText(/고가 주택 주담대 LTV 및 취득세 중과/i)).toBeInTheDocument();
+
+      // Representative apartment
+      expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+
+      // Click reset button
+      const resetBtn = screen.getByText('선택 초기화');
+      fireEvent.click(resetBtn);
+      expect(screen.queryByText(/고가 주택 주담대 LTV 및 취득세 중과/i)).not.toBeInTheDocument();
+    });
+
+    it('switches between policy loan mode and energy mode seamlessly via header buttons', () => {
+      const onModeChange = jest.fn();
+
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          onModeChange={onModeChange}
+        />
+      );
+
+      // Starts in policy mode
+      expect(screen.getByText('실거래 정책대출 적격 분포')).toBeInTheDocument();
+      expect(screen.getByText('6억 이하')).toBeInTheDocument();
+
+      // Switch to energy mode
+      const energyBtn = screen.getByText('실거래 변동');
+      fireEvent.click(energyBtn);
+
+      expect(onModeChange).toHaveBeenCalledWith('energy');
+      expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
+      expect(screen.getByText('신고가')).toBeInTheDocument();
+      expect(screen.getByText('상승거래')).toBeInTheDocument();
+
+      // Switch back to policy mode
+      const policyBtn = screen.getByText('정책대출 기준');
+      fireEvent.click(policyBtn);
+
+      expect(onModeChange).toHaveBeenCalledWith('policy');
+      expect(screen.getByText('실거래 정책대출 적격 분포')).toBeInTheDocument();
+      expect(screen.getByText('6억 이하')).toBeInTheDocument();
+    });
   });
 
-  it('toggles category selection and displays representative apartment list', () => {
-    const mockOnSelectApt = jest.fn();
-    const mockPreload = jest.fn();
+  describe('Market Energy Mode', () => {
+    it('renders all 4 energy categories with exact 100% total percentage sum', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          initialMode="energy"
+        />
+      );
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={mockRecentTransactions}
-        txSummaryData={mockSummary as any}
-        onSelectApt={mockOnSelectApt}
-        preloadApartmentTx={mockPreload}
-      />
-    );
+      expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
+      expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
 
-    // Click '신고가🔥' category row
-    const highCategoryRow = screen.getByLabelText(/신고가🔥 1건/i);
-    fireEvent.click(highCategoryRow);
+      // 4 items: each 1 count -> 25.0% each
+      expect(screen.getByText('신고가')).toBeInTheDocument();
+      expect(screen.getByText('상승거래')).toBeInTheDocument();
+      expect(screen.getByText('보합')).toBeInTheDocument();
+      expect(screen.getByText('하락거래')).toBeInTheDocument();
 
-    // Should display representative list title
-    expect(screen.getByText(/신고가🔥 대표 실거래 단지 리스트/i)).toBeInTheDocument();
-    expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
-    expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+      const percentageElements = screen.getAllByText('25.0%');
+      expect(percentageElements.length).toBeGreaterThanOrEqual(4);
+    });
 
-    // Hover on apartment item
-    const aptCard = screen.getByText('동탄역 롯데캐슬').closest('div[role="button"]');
-    expect(aptCard).toBeInTheDocument();
-    if (aptCard) {
-      fireEvent.mouseEnter(aptCard);
-      expect(mockPreload).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
-      expect(preloadApartmentModal).toHaveBeenCalled();
+    it('toggles category selection and displays representative apartment list', () => {
+      const mockOnSelectApt = jest.fn();
+      const mockPreload = jest.fn();
 
-      // Click on apartment item
-      fireEvent.click(aptCard);
-      expect(mockOnSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
-    }
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          onSelectApt={mockOnSelectApt}
+          preloadApartmentTx={mockPreload}
+          initialMode="energy"
+        />
+      );
 
-    // Reset selection button should be available
-    const resetBtn = screen.getByText('선택 초기화');
-    fireEvent.click(resetBtn);
-    expect(screen.queryByText(/신고가🔥 대표 실거래 단지 리스트/i)).not.toBeInTheDocument();
-  });
+      // Click '신고가' category row
+      const highCategoryRow = screen.getByLabelText(/신고가 1건/i);
+      fireEvent.click(highCategoryRow);
 
-  it('handles empty transactions without crashing or NaN', () => {
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={[]}
-      />
-    );
+      // Should display representative list title
+      expect(screen.getByText('대표 실거래 단지 리스트')).toBeInTheDocument();
+      expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
 
-    expect(screen.getByText('최근 실거래 0건 전수 분석')).toBeInTheDocument();
-    expect(screen.getAllByText('0건').length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText('0.0%').length).toBeGreaterThanOrEqual(4);
-  });
+      // Hover on apartment item
+      const aptCard = screen.getByText('동탄역 롯데캐슬').closest('div[role="button"]');
+      expect(aptCard).toBeInTheDocument();
+      if (aptCard) {
+        fireEvent.mouseEnter(aptCard);
+        expect(mockPreload).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+        expect(preloadApartmentModal).toHaveBeenCalled();
 
-  it('handles malformed transaction items safely', () => {
-    const malformedData = [
-      null,
-      undefined,
-      {},
-      { aptName: '이상한 단지', priceVal: undefined, delta: null },
-    ];
+        // Click on apartment item
+        fireEvent.click(aptCard);
+        expect(mockOnSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+      }
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={malformedData as any}
-      />
-    );
+      // Reset selection button should be available
+      const resetBtn = screen.getByText('선택 초기화');
+      fireEvent.click(resetBtn);
+      expect(screen.queryByText(/동탄역 롯데캐슬/i)).not.toBeInTheDocument();
+    });
 
-    expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
-    expect(screen.getByText('최근 실거래 1건 전수 분석')).toBeInTheDocument();
-  });
+    it('handles empty transactions without crashing or NaN', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={[]}
+          initialMode="energy"
+        />
+      );
 
-  it('filters out public rental apartments when publicRentalSet is provided', () => {
-    const publicRentalSet = new Set(['동탄역 롯데캐슬']);
+      expect(screen.getByText('최근 실거래 0건 전수 분석')).toBeInTheDocument();
+      expect(screen.getAllByText('0건').length).toBeGreaterThanOrEqual(4);
+      expect(screen.getAllByText('0.0%').length).toBeGreaterThanOrEqual(4);
+    });
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={mockRecentTransactions}
-        publicRentalSet={publicRentalSet}
-      />
-    );
+    it('handles malformed transaction items safely', () => {
+      const malformedData = [
+        null,
+        undefined,
+        {},
+        { aptName: '이상한 단지', priceVal: undefined, delta: null },
+      ];
 
-    // Out of 4 transactions, '동탄역 롯데캐슬' (high) is filtered -> 3 remaining
-    expect(screen.getByText('최근 실거래 3건 전수 분석')).toBeInTheDocument();
-    expect(screen.getByText('0.0%')).toBeInTheDocument(); // high is 0%
-  });
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={malformedData as any}
+          initialMode="energy"
+        />
+      );
 
-  it('correctly updates internal state and fires onActiveCategoryChange callback in uncontrolled mode', () => {
-    const onActiveChange = jest.fn();
+      expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
+      expect(screen.getByText('최근 실거래 1건 전수 분석')).toBeInTheDocument();
+    });
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={mockRecentTransactions}
-        txSummaryData={mockSummary as any}
-        onActiveCategoryChange={onActiveChange}
-      />
-    );
+    it('filters out public rental apartments when publicRentalSet is provided', () => {
+      const publicRentalSet = new Set(['동탄역 롯데캐슬']);
 
-    // Click '상승거래'
-    const risingCategoryRow = screen.getByLabelText(/상승거래 1건/i);
-    fireEvent.click(risingCategoryRow);
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          publicRentalSet={publicRentalSet}
+          initialMode="energy"
+        />
+      );
 
-    expect(onActiveChange).toHaveBeenCalledWith('상승거래');
-    expect(screen.getByText(/상승거래 대표 실거래 단지 리스트/i)).toBeInTheDocument();
-    expect(screen.getByText('동탄역 시범 우남퍼스트빌')).toBeInTheDocument();
-  });
+      // Out of 4 transactions, '동탄역 롯데캐슬' (high) is filtered -> 3 remaining
+      expect(screen.getByText('최근 실거래 3건 전수 분석')).toBeInTheDocument();
+      expect(screen.getByText('0.0%')).toBeInTheDocument(); // high is 0%
+    });
 
-  it('correctly resolves dong and aliases via nameMapping', () => {
-    const nameMapping = {
-      '우남퍼스트빌': '동탄역시범우남퍼스트빌',
-    };
-    const txWithAlias = [
-      {
-        aptName: '우남퍼스트빌',
-        priceVal: 11.2,
-        area: 84.8,
-        delta: 0.4,
-      },
-    ];
+    it('correctly updates internal state and fires onActiveCategoryChange callback in uncontrolled mode', () => {
+      const onActiveChange = jest.fn();
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={txWithAlias}
-        txSummaryData={mockSummary as any}
-        nameMapping={nameMapping}
-      />
-    );
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          onActiveCategoryChange={onActiveChange}
+          initialMode="energy"
+        />
+      );
 
-    const risingRow = screen.getByLabelText(/상승거래 1건/i);
-    fireEvent.click(risingRow);
+      // Click '상승거래'
+      const risingCategoryRow = screen.getByLabelText(/상승거래 1건/i);
+      fireEvent.click(risingCategoryRow);
 
-    // Should resolve dong '청계동'
-    expect(screen.getByText('청계동')).toBeInTheDocument();
-  });
+      expect(onActiveChange).toHaveBeenCalledWith('상승거래');
+      expect(screen.getByText('동탄역 시범 우남퍼스트빌')).toBeInTheDocument();
+    });
 
-  it('guarantees percentage sum equals exactly 100.0% for odd number of transactions', () => {
-    const threeTransactions = [
-      { aptName: 'Apt1', priceVal: 10, isNewHigh: true },
-      { aptName: 'Apt2', priceVal: 10, delta: 0.5 },
-      { aptName: 'Apt3', priceVal: 10, delta: -0.5 },
-    ];
+    it('correctly resolves dong and aliases via nameMapping', () => {
+      const nameMapping = {
+        '우남퍼스트빌': '동탄역시범우남퍼스트빌',
+      };
+      const txWithAlias = [
+        {
+          aptName: '우남퍼스트빌',
+          priceVal: 11.2,
+          area: 84.8,
+          delta: 0.4,
+        },
+      ];
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={threeTransactions}
-      />
-    );
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={txWithAlias}
+          txSummaryData={mockSummary as any}
+          nameMapping={nameMapping}
+          initialMode="energy"
+        />
+      );
 
-    expect(screen.getByText('최근 실거래 3건 전수 분석')).toBeInTheDocument();
-    // 33.4% + 33.3% + 33.3% + 0.0% = 100.0%
-    expect(screen.getByText('33.4%')).toBeInTheDocument();
-    expect(screen.getAllByText('33.3%').length).toBe(2);
-  });
+      const risingRow = screen.getByLabelText(/상승거래 1건/i);
+      fireEvent.click(risingRow);
 
-  it('correctly categorizes microscopic delta (<10,000 KRW) into flat (보합) and renders 보합 badge', () => {
-    const microDeltaTransactions = [
-      { aptName: '동탄 미세변동 단지', priceVal: 10.00001, prevPriceVal: 10.0, delta: 0.00001 },
-    ];
+      // Should resolve dong '청계동'
+      expect(screen.getByText('청계동')).toBeInTheDocument();
+    });
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={microDeltaTransactions}
-      />
-    );
+    it('guarantees percentage sum equals exactly 100.0% for odd number of transactions', () => {
+      const threeTransactions = [
+        { aptName: 'Apt1', priceVal: 10, isNewHigh: true },
+        { aptName: 'Apt2', priceVal: 10, delta: 0.5 },
+        { aptName: 'Apt3', priceVal: 10, delta: -0.5 },
+      ];
 
-    // 1 item with delta 0.00001 -> classified as 보합 (flat) 100.0%
-    const flatRow = screen.getByLabelText(/보합 1건/i);
-    expect(flatRow).toBeInTheDocument();
-    fireEvent.click(flatRow);
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={threeTransactions}
+          initialMode="energy"
+        />
+      );
 
-    expect(screen.getByText('동탄 미세변동 단지')).toBeInTheDocument();
-    const bohapElements = screen.getAllByText('보합');
-    expect(bohapElements.length).toBeGreaterThanOrEqual(2);
-    expect(screen.queryByText(/▲/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/▼/)).not.toBeInTheDocument();
-  });
+      expect(screen.getByText('최근 실거래 3건 전수 분석')).toBeInTheDocument();
+      // 33.4% + 33.3% + 33.3% + 0.0% = 100.0%
+      expect(screen.getByText('33.4%')).toBeInTheDocument();
+      expect(screen.getAllByText('33.3%').length).toBe(2);
+    });
 
-  it('calls preloadApartmentTx with empty string fallback when dong is undefined', () => {
-    const mockPreload = jest.fn();
-    const txWithoutDong = [
-      { aptName: '단지무동', priceVal: 10, delta: 0.5 },
-    ];
+    it('correctly categorizes microscopic delta (<10,000 KRW) into flat (보합) and renders 보합 badge', () => {
+      const microDeltaTransactions = [
+        { aptName: '동탄 미세변동 단지', priceVal: 10.00001, prevPriceVal: 10.0, delta: 0.00001 },
+      ];
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={txWithoutDong}
-        preloadApartmentTx={mockPreload}
-      />
-    );
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={microDeltaTransactions}
+          initialMode="energy"
+        />
+      );
 
-    const risingRow = screen.getByLabelText(/상승거래 1건/i);
-    fireEvent.click(risingRow);
+      // 1 item with delta 0.00001 -> classified as 보합 (flat) 100.0%
+      const flatRow = screen.getByLabelText(/보합 1건/i);
+      expect(flatRow).toBeInTheDocument();
+      fireEvent.click(flatRow);
 
-    const aptCard = screen.getByText('단지무동').closest('div[role="button"]');
-    if (aptCard) {
-      fireEvent.mouseEnter(aptCard);
-      expect(mockPreload).toHaveBeenCalledWith('단지무동', '');
-    }
-  });
+      expect(screen.getByText('동탄 미세변동 단지')).toBeInTheDocument();
+      const bohapElements = screen.getAllByText('보합');
+      expect(bohapElements.length).toBeGreaterThanOrEqual(2);
+      expect(screen.queryByText(/▲/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/▼/)).not.toBeInTheDocument();
+    });
 
-  it('formats missing priceEok into eok/man representation and resolves txKey-only transactions', () => {
-    const txKeyOnlyData = [
-      {
-        txKey: '동탄역롯데캐슬',
-        priceVal: 16.5,
-        delta: 0.5,
-      },
-    ];
+    it('calls preloadApartmentTx with empty string fallback when dong is undefined', () => {
+      const mockPreload = jest.fn();
+      const txWithoutDong = [
+        { aptName: '단지무동', priceVal: 10, delta: 0.5 },
+      ];
 
-    render(
-      <AptDonutSection
-        mounted={true}
-        recentTransactions={txKeyOnlyData}
-        txSummaryData={mockSummary as any}
-      />
-    );
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={txWithoutDong}
+          preloadApartmentTx={mockPreload}
+          initialMode="energy"
+        />
+      );
 
-    const risingRow = screen.getByLabelText(/상승거래 1건/i);
-    fireEvent.click(risingRow);
+      const risingRow = screen.getByLabelText(/상승거래 1건/i);
+      fireEvent.click(risingRow);
 
-    expect(screen.getByText('동탄역롯데캐슬')).toBeInTheDocument();
-    expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+      const aptCard = screen.getByText('단지무동').closest('div[role="button"]');
+      if (aptCard) {
+        fireEvent.mouseEnter(aptCard);
+        expect(mockPreload).toHaveBeenCalledWith('단지무동', '');
+      }
+    });
 
-    const card = screen.getByLabelText(/동탄역롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
-    expect(card).toBeInTheDocument();
+    it('formats missing priceEok into eok/man representation and resolves txKey-only transactions', () => {
+      const txKeyOnlyData = [
+        {
+          txKey: '동탄역롯데캐슬',
+          priceVal: 16.5,
+          delta: 0.5,
+        },
+      ];
+
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={txKeyOnlyData}
+          txSummaryData={mockSummary as any}
+          initialMode="energy"
+        />
+      );
+
+      const risingRow = screen.getByLabelText(/상승거래 1건/i);
+      fireEvent.click(risingRow);
+
+      expect(screen.getByText('동탄역롯데캐슬')).toBeInTheDocument();
+      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+
+      const card = screen.getByLabelText(/동탄역롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
+      expect(card).toBeInTheDocument();
+    });
   });
 });
 

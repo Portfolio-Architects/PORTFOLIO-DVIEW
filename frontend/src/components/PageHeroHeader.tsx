@@ -74,8 +74,8 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
               <div className="flex items-center gap-3 sm:gap-4">
                 <div className="rounded-[12px] sm:rounded-[14px] bg-white border border-border flex items-center justify-center shrink-0 w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] shadow-sm overflow-hidden relative p-0.5 sm:p-1">
                   <Image
-                    src="/hwaseong-symbol.png"
-                    alt="화성시 심볼"
+                    src="/d-view-icon.png"
+                    alt="D-VIEW 로고"
                     fill
                     sizes="(max-width: 640px) 36px, 42px"
                     priority

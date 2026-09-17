@@ -159,7 +159,7 @@ export default function RootLayout({
                 
                 {/* 🔧 ResizeObserver loop error shield to prevent janks in charts */}
                 <Script src="/js/resize-observer-shield.js" strategy="afterInteractive" nonce={nonce} />
-                <NextTopLoader color="#ea6100" showSpinner={false} />
+                <NextTopLoader color="#057e77" showSpinner={false} />
                 <PWAProvider>
                   <InAppBrowserBypass />
                   <OfflineBanner />
@@ -168,8 +168,8 @@ export default function RootLayout({
                   <svg xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
                     <defs>
                       <linearGradient id="dview-logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#ea6100" />
-                        <stop offset="100%" stopColor="#c44d00" />
+                        <stop offset="0%" stopColor="#057e77" />
+                        <stop offset="100%" stopColor="#046862" />
                       </linearGradient>
                     </defs>
                   </svg>

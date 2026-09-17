@@ -29,10 +29,10 @@ const Footer = React.memo(function Footer() {
           {/* 좌측: 로고 및 링크 */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-8 lg:gap-10 shrink-0">
             <div className="flex items-center gap-2.5">
-              <div className="w-[26px] h-[26px] rounded-[6px] grayscale opacity-70 overflow-hidden">
+              <div className="w-[26px] h-[26px] rounded-[6px] overflow-hidden">
                 <img
-                  src="/hwaseong-symbol.png"
-                  alt="화성시 심볼"
+                  src="/d-view-icon.png"
+                  alt="D-VIEW 로고"
                   className="w-full h-full object-contain"
                 />
               </div>

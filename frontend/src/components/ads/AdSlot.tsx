@@ -66,6 +66,17 @@ export function AdSlot({
 
   const minHeightClass = getAdSlotMinHeightClass(format);
 
+  const defaultSlotId =
+    (format === 'in-feed'
+      ? process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL
+      : format === 'banner'
+      ? process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL
+      : process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM) ||
+    process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM ||
+    '6782594447';
+
+  const effectiveSlotId = slotId || defaultSlotId;
+
   // Next.js SPA router double-push safety
   useEffect(() => {
     if (isPushedRef.current) return;
@@ -208,7 +219,7 @@ export function AdSlot({
             className={`adsbygoogle ${responsive ? 'w-full block' : ''}`}
             style={{ display: 'block', width: '100%', minHeight: 'inherit' }}
             data-ad-client={clientId}
-            data-ad-slot={slotId || '0000000000'}
+            data-ad-slot={effectiveSlotId}
             data-ad-format={
               format === 'in-feed'
                 ? 'fluid'

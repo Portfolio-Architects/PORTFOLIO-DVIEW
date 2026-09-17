@@ -18,6 +18,10 @@ describe('TimelineItemCard Empirical Stress & Edge Case Test Suite', () => {
     const formatDeltaMatch = content.match(/export const formatDeltaPrice = [\s\S]+?\n};/);
     if (!formatDeltaMatch) throw new Error('Failed to find formatDeltaPrice');
 
+    // Extract formatDeltaPercent
+    const formatDeltaPercentMatch = content.match(/export const formatDeltaPercent = [\s\S]+?\n};/);
+    const formatDeltaPercentCode = formatDeltaPercentMatch ? formatDeltaPercentMatch[0] : 'export const formatDeltaPercent = () => "";';
+
     // Extract TimelineItemCardProps & TimelineItemCard
     const cardInterfaceMatch = content.match(/interface TimelineItemCardProps {[\s\S]+?\n}/);
     if (!cardInterfaceMatch) throw new Error('Failed to find TimelineItemCardProps');
@@ -31,6 +35,7 @@ import { TimelineItem } from './MacroDashboardClient';
 
 ${formatEokMatch[0]}
 ${formatDeltaMatch[0]}
+${formatDeltaPercentCode}
 ${cardInterfaceMatch[0]}
 ${cardComponentMatch[0]}
 

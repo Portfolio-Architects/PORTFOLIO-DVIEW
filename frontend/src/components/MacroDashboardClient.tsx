@@ -24,6 +24,9 @@ import { AptDonutSection } from "./macro/components/AptDonutSection";
 import { AptMetricCards } from "./macro/components/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
+import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
+import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
+import { AdSlot } from "@/components/ads/AdSlot";
 
 
 const InlineLoader = ({ text }: { text: string }) => (
@@ -204,6 +207,13 @@ export const formatDeltaPrice = (deltaEok: number): string => {
     return man === 0 ? `${eok}억` : `${eok}억 ${man.toLocaleString()}만`;
   }
   return `${deltaMan.toLocaleString()}만`;
+};
+
+export const formatDeltaPercent = (val: number | undefined): string => {
+  if (typeof val !== 'number' || isNaN(val) || !isFinite(val) || val === 0) return '';
+  const rounded = Math.round(val * 10) / 10;
+  if (rounded === 0) return '';
+  return ` (${rounded > 0 ? '+' : ''}${rounded}%)`;
 };
 
 const parseDateHelper = (dateStr: string | number, parentLatestDate?: string): Date | null => {
@@ -424,9 +434,9 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             </span>
             <span className="hidden sm:inline">
               {isRising
-                ? `▲ ${formatDeltaPrice(item.delta)}${item.deltaPercent ? ` (${item.deltaPercent > 0 ? '+' : ''}${item.deltaPercent}%)` : ''}`
+                ? `▲ ${formatDeltaPrice(item.delta)}${formatDeltaPercent(item.deltaPercent)}`
                 : isFalling
-                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}${item.deltaPercent ? ` (${item.deltaPercent}%)` : ''}`
+                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}${formatDeltaPercent(item.deltaPercent)}`
                   : "보합"}
             </span>
           </span>
@@ -558,7 +568,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
               }`}
             >
               {isRising ? '▲' : '▼'} {formatDeltaPrice(Math.abs(item.delta))}
-              {item.deltaPercent ? ` (${item.deltaPercent > 0 ? '+' : ''}${item.deltaPercent}%)` : ''}
+              {formatDeltaPercent(item.deltaPercent)}
             </div>
           ) : (
             <div className="text-[9.5px] font-bold text-slate-400">보합</div>
@@ -1446,7 +1456,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           type: tx.isNewHigh ? "high" : "normal",
           isNewHigh: tx.isNewHigh,
           delta: tx.delta || 0,
-          deltaPercent: tx.deltaPercent || 0,
+          deltaPercent: typeof tx.deltaPercent === 'number' ? Math.round(tx.deltaPercent * 10) / 10 : 0,
           prevPriceVal: tx.prevPriceVal || (tx.priceVal - (tx.delta || 0)),
           areaLabelM2: labelM2,
           areaLabelPyeong: labelPyeong,
@@ -1725,7 +1735,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:min-h-[586px] h-auto">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}
@@ -1735,6 +1745,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 publicRentalSet={publicRentalSet}
                 onSelectApt={handleSelectApt}
                 preloadApartmentTx={preloadApartmentTx}
+                initialMode="policy"
               />
             </ChartErrorBoundary>
             <ErrorBoundary name="핵심 지표 카드">
@@ -1781,6 +1792,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         </div>
 
+        {/* ═══ 2번째 영역: 일자별 최근 실거래 (KPI 카드 바로 밑) ═══ */}
         {/* Daily Real Transactions Section (Wide Layout) */}
         <div className="w-full flex flex-col gap-4 mb-6 box-border">
           <ErrorBoundary name="실거래 타임라인">
@@ -1826,6 +1838,45 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               renderTimelineItemRow={renderTimelineItemRowNode}
             />
           </ErrorBoundary>
+        </div>
+
+        {/* In-Feed Responsive AdSlot 1 (Zero-CLS) */}
+        <div className="w-full mb-6">
+          <AdSlot
+            slotId="1000000001"
+            format="in-feed"
+            className="w-full"
+          />
+        </div>
+
+        {/* AdSense High-CPC Finance Section */}
+        <ErrorBoundary name="정책자금 및 전세안전진단">
+          <HighCpcFinanceSection
+            onOpenMortgageModal={handleOpenMortgage}
+            onOpenMortgage={handleOpenMortgage}
+            onOpenJeonseSafetyModal={handleOpenJeonseSafety}
+            onOpenJeonseSafety={handleOpenJeonseSafety}
+          />
+        </ErrorBoundary>
+
+        {/* Real-time Dynamic Ranking Board (Dwell Time & PV Maximization) */}
+        <ErrorBoundary name="실시간 랭킹 보드">
+          <RealtimeRankingBoard
+            recentTransactions={recentTransactions}
+            txSummaryData={txSummaryData}
+            sheetApartments={sheetApartments}
+            onSelectComplex={handleSelectApt}
+            onSelectApt={handleSelectApt}
+          />
+        </ErrorBoundary>
+
+        {/* In-Feed Responsive AdSlot 2 (Zero-CLS) */}
+        <div className="w-full mb-6">
+          <AdSlot
+            slotId="1000000002"
+            format="in-feed"
+            className="w-full"
+          />
         </div>
 
         {/* Traffic Notice Board Widget */}

@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Calendar, ChevronDown, ChevronUp, RotateCcw, Heart, ExternalLink } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import { normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
@@ -58,6 +58,7 @@ export interface MacroTimelineViewProps {
   totalTimelineCardsCount?: number;
   visibleTimelineCount?: number;
   setVisibleTimelineCount?: React.Dispatch<React.SetStateAction<number>>;
+  enableInfiniteScroll?: boolean;
   onCardHover?: (aptName: string, dong: string) => void;
   onCardClick?: (aptName: string) => void;
   onSelectApt?: (aptName: string) => void;
@@ -105,6 +106,13 @@ export function formatDailyAvgPrice(items: TimelineItem[]): string {
   return `${eok}억 ${man.toLocaleString()}만`;
 }
 
+export function formatDeltaPercent(val: number | undefined): string {
+  if (typeof val !== 'number' || isNaN(val) || !isFinite(val) || val === 0) return '';
+  const rounded = Math.round(val * 10) / 10;
+  if (rounded === 0) return '';
+  return ` (${rounded > 0 ? '+' : ''}${rounded}%)`;
+}
+
 function DefaultTimelineCard({
   item,
   isSelected,
@@ -127,7 +135,7 @@ function DefaultTimelineCard({
       onClick={() => onCardClick?.(item.aptName)}
       className={`p-3 bg-surface hover:bg-zinc-50 dark:hover:bg-zinc-800/60 rounded-xl border transition-all cursor-pointer relative group flex flex-col justify-between gap-2 shadow-xs ${
         isSelected
-          ? 'border-[#ea6100] ring-2 ring-[#ea6100]/20 bg-orange-50/10'
+          ? 'border-[#057e77] ring-2 ring-[#057e77]/20 bg-[#057e77]/5'
           : 'border-border/60 hover:border-border'
       }`}
     >
@@ -186,7 +194,7 @@ function DefaultTimelineCard({
             }`}
           >
             {item.delta > 0 ? '▲' : '▼'} {Math.abs(item.delta)}억
-            {item.deltaPercent ? ` (${item.deltaPercent > 0 ? '+' : ''}${item.deltaPercent}%)` : ''}
+            {formatDeltaPercent(item.deltaPercent)}
           </span>
         )}
       </div>
@@ -215,7 +223,7 @@ function DefaultTimelineRow({
       data-testid={`timeline-row-${item.aptName}`}
       onClick={() => onCardClick?.(item.aptName)}
       className={`px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer ${
-        isSelected ? 'bg-orange-50/20' : ''
+        isSelected ? 'bg-[#057e77]/5' : ''
       }`}
     >
       <div className="flex items-center gap-2 min-w-0">
@@ -291,6 +299,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   totalTimelineCardsCount,
   visibleTimelineCount,
   setVisibleTimelineCount,
+  enableInfiniteScroll = false,
   onCardHover: _onCardHover,
   onCardClick,
   onSelectApt,
@@ -333,6 +342,55 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   const effectiveTotalCount = totalTimelineCardsCount ?? totalCalculatedItems;
   const effectiveVisibleCount = visibleTimelineCount ?? effectiveTotalCount;
 
+  // Date Accordion Collapse State (Set of dateStr that are collapsed)
+  const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
+
+  const allDates = useMemo(() => effectiveData.map((g) => g.dateStr), [effectiveData]);
+  const isAllCollapsed = allDates.length > 0 && allDates.every((date) => collapsedDates.has(date));
+
+  const toggleDateCollapse = useCallback((dateStr: string) => {
+    setCollapsedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(dateStr)) {
+        next.delete(dateStr);
+      } else {
+        next.add(dateStr);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleAllCollapse = useCallback(() => {
+    setCollapsedDates((prev) => {
+      if (allDates.every((d) => prev.has(d))) {
+        // Expand all
+        return new Set();
+      } else {
+        // Collapse all
+        return new Set(allDates);
+      }
+    });
+  }, [allDates]);
+
+  // If user selects an apartment, auto-uncollapse that date group so the card is visible
+  useEffect(() => {
+    if (!effectiveSelectedApt) return;
+    const targetGroup = effectiveData.find((g) =>
+      g.items.some((item) =>
+        effectiveSelectedApt === item.aptName ||
+        normalizeAptName(effectiveSelectedApt) === normalizeAptName(item.aptName) ||
+        isSameApartment(effectiveSelectedApt, item.aptName, nameMapping)
+      )
+    );
+    if (targetGroup && collapsedDates.has(targetGroup.dateStr)) {
+      setCollapsedDates((prev) => {
+        const next = new Set(prev);
+        next.delete(targetGroup.dateStr);
+        return next;
+      });
+    }
+  }, [effectiveSelectedApt, effectiveData, nameMapping, collapsedDates]);
+
   const isAptFavorite = (aptName: string): boolean => {
     if (!userFavorites) return false;
     if (userFavorites instanceof Set) return userFavorites.has(aptName);
@@ -345,11 +403,12 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
     rootMargin: '250px',
   });
 
+  // Only auto-trigger when explicitly enabled (preventing unwanted infinite scroll jumps)
   useEffect(() => {
-    if (inView && setVisibleTimelineCount && effectiveTotalCount > effectiveVisibleCount) {
+    if (enableInfiniteScroll && inView && setVisibleTimelineCount && effectiveTotalCount > effectiveVisibleCount) {
       setVisibleTimelineCount((prev) => Math.min(effectiveTotalCount, prev + 20));
     }
-  }, [inView, effectiveTotalCount, effectiveVisibleCount, setVisibleTimelineCount]);
+  }, [enableInfiniteScroll, inView, effectiveTotalCount, effectiveVisibleCount, setVisibleTimelineCount]);
 
   if (isLoading) {
     return (
@@ -377,6 +436,29 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 {effectiveTotalCount}건
               </span>
             </div>
+
+            {/* Quick Collapse / Expand All Control */}
+            {effectiveData.length > 0 && (
+              <button
+                type="button"
+                onClick={toggleAllCollapse}
+                aria-label={isAllCollapsed ? '일자별 모두 펼치기' : '일자별 모두 접기'}
+                data-testid="timeline-collapse-all-btn"
+                className="px-2.5 py-1 rounded-xl bg-body hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/60 text-[11px] font-bold text-secondary hover:text-primary flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs active:scale-95 shrink-0"
+              >
+                {isAllCollapsed ? (
+                  <>
+                    <ChevronDown size={13} className="text-secondary" />
+                    <span>모두 펼치기</span>
+                  </>
+                ) : (
+                  <>
+                    <ChevronUp size={13} className="text-secondary" />
+                    <span>모두 접기</span>
+                  </>
+                )}
+              </button>
+            )}
           </div>
 
           <TimelineFilterControls
@@ -453,20 +535,40 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   : null
               );
 
+              const isCollapsed = collapsedDates.has(group.dateStr);
+
               return (
-                <div key={group.dateStr} className="flex flex-col gap-2.5 relative pl-3.5 sm:pl-4 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border">
-                  {/* Sticky Date Group Header */}
-                  <div className="sticky top-0 z-20 bg-surface/95 backdrop-blur-md border-b border-border/40 py-2.5 px-3 -mx-2 rounded-xl flex items-center justify-between shadow-xs transition-colors mb-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 shrink-0 ${
-                        isGroupSelected
-                          ? "bg-[#ea6100] ring-4 ring-[#ea6100]/20 scale-110"
-                          : "bg-slate-300 dark:bg-slate-600"
-                      }`} />
+                <div
+                  key={group.dateStr}
+                  data-testid={`timeline-group-${group.dateStr}`}
+                  className="flex flex-col gap-2.5 relative pl-3.5 sm:pl-4 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border"
+                >
+                  {/* Sticky Date Group Header (Collapsible Accordion Button) */}
+                  <button
+                    type="button"
+                    onClick={() => toggleDateCollapse(group.dateStr)}
+                    aria-expanded={!isCollapsed}
+                    aria-label={`${group.dateStr} 실거래 내역 ${isCollapsed ? '펼치기' : '접기'}`}
+                    data-testid={`timeline-date-header-${group.dateStr}`}
+                    className="w-full text-left sticky top-0 z-20 bg-surface/95 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 backdrop-blur-md border border-border/40 py-2.5 px-3 -mx-2 rounded-xl flex items-center justify-between shadow-xs transition-all mb-1 cursor-pointer group/date select-none"
+                  >
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div
+                        className={`w-2.5 h-2.5 rounded-full transition-all duration-300 shrink-0 ${
+                          isGroupSelected
+                            ? "bg-[#057e77] ring-4 ring-[#057e77]/20 scale-110"
+                            : "bg-slate-300 dark:bg-slate-600"
+                        }`}
+                      />
                       <h3 className="text-[12.5px] xs:text-[13.5px] font-black text-primary flex items-center gap-1.5 truncate">
-                        <Calendar size={13.5} className="text-[#ea6100] shrink-0" />
+                        <Calendar size={13.5} className="text-[#057e77] shrink-0" />
                         {group.dateStr}
                       </h3>
+                      {isCollapsed && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-tertiary">
+                          접힘 ({group.items.length}건)
+                        </span>
+                      )}
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
@@ -484,30 +586,65 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         총 {group.items.length}건 거래
                       </span>
                       {avgPriceText && (
-                        <span className="px-2 py-0.5 rounded-lg bg-orange-50 dark:bg-orange-950/40 text-[#c44d00] dark:text-[#ea7f44] text-[10px] xs:text-[10.5px] font-black hidden xs:inline-block">
+                        <span className="px-2 py-0.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-[#057e77] dark:text-[#14b8a6] text-[10px] xs:text-[10.5px] font-black hidden xs:inline-block">
                           평균 {avgPriceText}
                         </span>
                       )}
+                      <div className="p-1 rounded-md text-tertiary group-hover/date:text-primary transition-transform duration-200">
+                        <ChevronDown
+                          size={15}
+                          className={`transition-transform duration-200 ${
+                            isCollapsed ? '-rotate-90 text-tertiary' : 'rotate-0 text-secondary'
+                          }`}
+                        />
+                      </div>
                     </div>
-                  </div>
+                  </button>
 
                   {/* Items List (Dual View Mode: Card Grid vs Compact List) */}
-                  {viewMode === 'list' ? (
-                    <div className="flex flex-col divide-y divide-border/40 bg-surface rounded-xl border border-border/60 overflow-hidden shadow-xs w-full">
-                      {group.items.map((item, idx) => {
-                        const isSelected = !!effectiveSelectedApt && (
-                          effectiveSelectedApt === item.aptName ||
-                          normalizeAptName(effectiveSelectedApt) === normalizeAptName(item.aptName) ||
-                          isSameApartment(effectiveSelectedApt, item.aptName, nameMapping)
-                        );
-                        return (
-                          <React.Fragment key={`${item.aptName}-${item.floor}-${item.priceVal}-${idx}`}>
-                            {renderTimelineItemRow
-                              ? renderTimelineItemRow(item, isSelected)
-                              : renderTimelineItemCard
-                              ? renderTimelineItemCard(item, isSelected)
-                              : (
-                                <DefaultTimelineRow
+                  {!isCollapsed && (
+                    viewMode === 'list' ? (
+                      <div className="flex flex-col divide-y divide-border/40 bg-surface rounded-xl border border-border/60 overflow-hidden shadow-xs w-full">
+                        {group.items.map((item, idx) => {
+                          const isSelected = !!effectiveSelectedApt && (
+                            effectiveSelectedApt === item.aptName ||
+                            normalizeAptName(effectiveSelectedApt) === normalizeAptName(item.aptName) ||
+                            isSameApartment(effectiveSelectedApt, item.aptName, nameMapping)
+                          );
+                          return (
+                            <React.Fragment key={`${item.aptName}-${item.floor}-${item.priceVal}-${idx}`}>
+                              {renderTimelineItemRow
+                                ? renderTimelineItemRow(item, isSelected)
+                                : renderTimelineItemCard
+                                ? renderTimelineItemCard(item, isSelected)
+                                : (
+                                  <DefaultTimelineRow
+                                    item={item}
+                                    isSelected={isSelected}
+                                    isFavorite={isAptFavorite(item.aptName)}
+                                    onToggleFavorite={onToggleFavorite}
+                                    onCardClick={effectiveOnCardClick}
+                                    onDetailsClick={onDetailsClick}
+                                  />
+                                )}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full box-border">
+                        {group.items.map((item, idx) => {
+                          const isSelected = !!effectiveSelectedApt && (
+                            effectiveSelectedApt === item.aptName ||
+                            normalizeAptName(effectiveSelectedApt) === normalizeAptName(item.aptName) ||
+                            isSameApartment(effectiveSelectedApt, item.aptName, nameMapping)
+                          );
+                          return (
+                            <React.Fragment key={`${item.aptName}-${item.floor}-${item.priceVal}-${idx}`}>
+                              {renderTimelineItemCard ? (
+                                renderTimelineItemCard(item, isSelected)
+                              ) : (
+                                <DefaultTimelineCard
                                   item={item}
                                   isSelected={isSelected}
                                   isFavorite={isAptFavorite(item.aptName)}
@@ -516,36 +653,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                                   onDetailsClick={onDetailsClick}
                                 />
                               )}
-                          </React.Fragment>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full box-border">
-                      {group.items.map((item, idx) => {
-                        const isSelected = !!effectiveSelectedApt && (
-                          effectiveSelectedApt === item.aptName ||
-                          normalizeAptName(effectiveSelectedApt) === normalizeAptName(item.aptName) ||
-                          isSameApartment(effectiveSelectedApt, item.aptName, nameMapping)
-                        );
-                        return (
-                          <React.Fragment key={`${item.aptName}-${item.floor}-${item.priceVal}-${idx}`}>
-                            {renderTimelineItemCard ? (
-                              renderTimelineItemCard(item, isSelected)
-                            ) : (
-                              <DefaultTimelineCard
-                                item={item}
-                                isSelected={isSelected}
-                                isFavorite={isAptFavorite(item.aptName)}
-                                onToggleFavorite={onToggleFavorite}
-                                onCardClick={effectiveOnCardClick}
-                                onDetailsClick={onDetailsClick}
-                              />
-                            )}
-                          </React.Fragment>
-                        );
-                      })}
-                    </div>
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+                    )
                   )}
                 </div>
               );

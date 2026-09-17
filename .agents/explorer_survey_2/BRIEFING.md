@@ -1,7 +1,7 @@
-# BRIEFING — 2026-08-22T13:00:00Z
+# BRIEFING — 2026-09-16T15:35:00Z
 
 ## Mission
-Investigate R2 (Bundle Size & Code Splitting / Dynamic Imports) across the D-VIEW Next.js frontend application to identify heavy components, static import bottlenecks, visualization libraries, and optimization opportunities.
+Investigate real estate data models, transactions, ranking logic (신고가, 전세가율, 갭최적, 주간거래량), loan calculations (신생아 특례대출, 디딤돌, 보금자리론), and jeonse guarantee (HUG/SGI/HF 126% rule) safe diagnosis logic to design data contracts and TypeScript interfaces for High-CPC main page widgets.
 
 ## 🔒 My Identity
 - Archetype: explorer
@@ -9,38 +9,33 @@ Investigate R2 (Bundle Size & Code Splitting / Dynamic Imports) across the D-VIE
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_2
 - Original parent: 590214ee-1446-4a49-a677-2e1dd14cc3cc
 - Milestone: Survey & Investigation (R2)
+- [2026-09-16T15:35:00Z] Subagent Task: Data Logic & Ranking Explorer (explorer_survey_2) for High-CPC Monetization & Ranking widgets
 
 ## 🔒 Key Constraints
 - Read-only investigation — do NOT implement changes in frontend source code
 - Produce structured 5-component handoff report (Observation, Logic Chain, Caveats, Conclusion, Verification Method)
+- [2026-09-16T15:35:00Z] Deliver comprehensive analysis.md and handoff.md for Realtime Rankings & Policy Finance
 
 ## Current Parent
-- Conversation ID: 590214ee-1446-4a49-a677-2e1dd14cc3cc
-- Updated: not yet
+- Conversation ID: fbc0a01a-20c6-49e2-a254-178187a63fbf
+- Updated: 2026-09-16T15:35:00Z
 
 ## Investigation State
-- **Explored paths**:
-  - `frontend/package.json`, `frontend/next.config.ts`
-  - `src/app/layout.tsx`, `src/app/page.tsx`, `src/app/overview/page.tsx`, `src/app/explore/page.tsx`, `src/app/technovalley/page.tsx`, `src/app/lounge/page.tsx`, `src/app/apartment/[aptName]/page.tsx`, `src/app/admin/**`
-  - `src/components/DashboardClient.tsx`, `src/components/MacroDashboardClient.tsx`, `src/components/OfficeExplorerClient.tsx`, `src/components/LoungeContainerClient.tsx`, `src/components/TossApartmentExploreClient.tsx`, `src/components/apartment/ApartmentModal.tsx`
-  - `src/components/macro/components/AptDonutSection.tsx`, `src/components/macro/TechnoValleyDashboard.tsx`, `src/components/EngineeringReportClient.tsx`, `src/components/ReportClient.tsx`, `src/components/common/preload.ts`
-- **Key findings**:
-  1. Root `layout.tsx` statically imports 3 global modals (`SettingsModal`, `WelcomeModal`, `CustomA2HSModal`), polluting every single page route's initial chunk.
-  2. `DashboardClient.tsx` forces `/* webpackPreload: true */` on `LoungeContainerClient` and `OfficeExplorerClient`, causing parallel downloading on initial page load of `/`.
-  3. `MacroDashboardClient.tsx` statically imports `AptDonutSection`, which statically imports `recharts`, bundling the heavy charting library into the main dashboard chunk despite `MacroTrendChart` being dynamic.
-  4. `OfficeExplorerClient.tsx` statically imports `OfficeDetailModal` (816 lines, 42KB).
-  5. `ApartmentModal.tsx` statically imports `PushSubscriptionModal` (243 lines).
-  6. `EngineeringReportClient.tsx` and `ReportClient.tsx` statically import `jsPDF` (~300KB+ gzipped).
-  7. `package.json` contains unused dependencies (`mermaid`, `react-window`, `@types/react-window`).
-  8. `preload.ts` fires 11 simultaneous preload requests on hover including unused components (`GapInvestmentExplorer`).
-- **Unexplored areas**: None for R2 scope. Full survey completed.
+- **Explored paths**: Starting exploration of frontend models, calculators, APIs, and data files.
+- **Key findings**: [TBD]
+- **Unexplored areas**:
+  - Existing complex & transaction models and filters in frontend/src
+  - Highest price (신고가), jeonse rate, gap price, weekly volume calculation logic
+  - Existing loan calculator logic (신생아 특례, 디딤돌, 보금자리론)
+  - 전세보증금 반환보증 (HUG/SGI/HF) 안심진단 기준 및 126% 룰
+  - Concrete data contracts and UI widget integration points
 
 ## Key Decisions Made
-- All evidence compiled with line numbers and file paths.
-- Preparing comprehensive 5-component handoff report.
+- Initialized investigation into codebase data models and financial calculation rules.
 
 ## Artifact Index
 - DISPATCH.md — record of orchestrator assignment
 - BRIEFING.md — persistent situational awareness
 - progress.md — liveness heartbeat
+- analysis.md — detailed findings and contracts
 - handoff.md — final survey report

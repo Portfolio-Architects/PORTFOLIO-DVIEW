@@ -1,14 +1,21 @@
-## 2026-08-22T12:51:58Z
+# DISPATCH — explorer_survey_1
 
-You are Explorer 1 investigating R1 (Rendering Runtime & Memory Leak Optimization) for the D-VIEW performance refactoring project.
-Read the authoritative request at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+## Identity
+- Role: Explorer
+- Type: teamwork_preview_explorer
+- Working Directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1
 
-Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1`
-The frontend source code is located at: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend`
+## Objective
+Map the frontend architecture and current main page implementation.
+Investigate:
+1. Main page structure (`frontend/src/pages`, `frontend/src/components`, `App.tsx`, routes).
+2. Existing layout, grid, responsive design breakpoints, and styling (Tailwind CSS / Emotion / styled-components / CSS Modules).
+3. How user interactions, modals (complex detail view, calculators), and state are handled.
+4. Optimal insertion points for:
+   - High-CPC financial/policy loan widget
+   - Jeonse guarantee safe diagnosis quick preview
+   - Real-time ranking board (신고가 TOP 10, 전세가율/갭 최적, 주간 거래량 급상승)
+   - In-feed ad slots
 
-Task Scope:
-1. Examine `MacroDashboardClient`, `TechnoValleyDashboard`, complex chart containers, filter bars, and listing components in `frontend/src`.
-2. Identify components that re-render excessively due to missing `React.memo`, unmemoized callbacks (`useCallback`), unmemoized selector/filter derivations (`useMemo`), or unstable object/array prop references.
-3. Audit all lifecycle hooks (`useEffect`, `useLayoutEffect`, custom hooks) for potential memory leaks: uncleaned `addEventListener`, un-disconnected `IntersectionObserver` or `ResizeObserver`, un-cleared `setInterval`/`setTimeout`, or uncancelled async subscriptions.
-4. Document the exact file paths, line numbers, current logic, and specific optimization recommendations.
-5. Write your comprehensive survey report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\handoff.md` and send a completion message with summary.
+## Outputs Required
+Write a comprehensive report to `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\explorer_survey_1\analysis.md` and complete `handoff.md`.

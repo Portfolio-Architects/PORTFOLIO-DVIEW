@@ -20,6 +20,9 @@
   --color-secondary: var(--text-secondary);
   --color-tertiary: var(--text-tertiary);
   --color-border: var(--border-color);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-light: var(--brand-primary-light);
+  --color-brand-primary-hover: var(--brand-primary-hover);
   --color-toss-blue: var(--toss-blue);
   --color-toss-blue-light: var(--toss-blue-light);
   --color-toss-red: var(--toss-red);
@@ -54,28 +57,32 @@
     --text-secondary: #4e5968;
     --text-tertiary: #5d6d7e;
 
-    /* Unified Brand Palette (Harmonized & WCAG AA Compliant) */
-    --brand-orange: #c44d00;
-    --brand-orange-light: #fff3e0;
-    --brand-blue: #004696;
-    --brand-blue-light: #e6eef8;
+    /* D-VIEW Signature Brand Palette (Deep Emerald Teal & WCAG AA Compliant) */
+    --brand-primary: #057e77;
+    --brand-primary-light: #e6f5f4;
+    --brand-primary-hover: #046862;
+
+    --brand-orange: var(--brand-primary);
+    --brand-orange-light: var(--brand-primary-light);
+    --brand-blue: #0f4c5c;
+    --brand-blue-light: #e6eff2;
     --brand-red: #f04452;
     --brand-green: #03c75a;
     --brand-green-light: #e8f5e9;
 
     /* Compatibility mapping to maintain component links */
-    --toss-blue: var(--brand-orange);
-    --toss-blue-light: var(--brand-orange-light);
+    --toss-blue: var(--brand-primary);
+    --toss-blue-light: var(--brand-primary-light);
     --toss-red: var(--brand-red);
     --toss-green: var(--brand-green);
     --toss-gray: #e2ded8;
     --border-color: #f0eee9;
     
-    /* Hwaseong City BI Colors */
+    /* D-VIEW Theme Tokens */
     --hs-blue: var(--brand-blue);
-    --hs-orange: var(--brand-orange);
+    --hs-orange: var(--brand-primary);
     --hs-blue-light: var(--brand-blue-light);
-    --hs-orange-light: var(--brand-orange-light);
+    --hs-orange-light: var(--brand-primary-light);
 
     /* Glassmorphism Custom Variables */
     --glass-bg: rgba(255, 255, 255, 0.95);
@@ -119,28 +126,32 @@
     --text-secondary: #d1d5db;
     --text-tertiary: #9ca3af;
     
-    /* Unified Brand Palette for Dark Mode */
-    --brand-orange: #ea7f44;
-    --brand-orange-light: #3e1f0e;
-    --brand-blue: #3d80df;
-    --brand-blue-light: #10244c;
+    /* D-VIEW Signature Brand Palette for Dark Mode */
+    --brand-primary: #14b8a6;
+    --brand-primary-light: #042f2e;
+    --brand-primary-hover: #2dd4bf;
+
+    --brand-orange: var(--brand-primary);
+    --brand-orange-light: var(--brand-primary-light);
+    --brand-blue: #38bdf8;
+    --brand-blue-light: #082f49;
     --brand-red: #ef4444;
     --brand-green: #2ecc71;
     --brand-green-light: #1b4d3e;
 
     /* Compatibility mapping */
-    --toss-blue: var(--brand-orange);
-    --toss-blue-light: var(--brand-orange-light);
+    --toss-blue: var(--brand-primary);
+    --toss-blue-light: var(--brand-primary-light);
     --toss-red: var(--brand-red);
     --toss-green: var(--brand-green);
     --toss-gray: #374151;
     --border-color: #374151;
     
-    /* Hwaseong City BI Colors */
+    /* D-VIEW Theme Tokens */
     --hs-blue: var(--brand-blue);
-    --hs-orange: var(--brand-orange);
+    --hs-orange: var(--brand-primary);
     --hs-blue-light: var(--brand-blue-light);
-    --hs-orange-light: var(--brand-orange-light);
+    --hs-orange-light: var(--brand-primary-light);
 
     /* Glassmorphism Custom Variables for Dark Mode */
     --glass-bg: rgba(30, 30, 30, 0.85);
@@ -173,7 +184,7 @@
 
   /* a11y: Focus Ring */
   :focus-visible {
-    outline: 2px solid #ea6100;
+    outline: 2px solid var(--brand-primary, #057e77);
     outline-offset: 2px;
     border-radius: inherit;
   }

@@ -99,7 +99,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
         const prev = group[index - 1];
         prevPriceVal = prev.price || 0;
         delta = (item.price || 0) - (prev.price || 0);
-        deltaPercent = prevPriceVal > 0 ? (delta / prevPriceVal) * 100 : 0;
+        deltaPercent = prevPriceVal > 0 ? Math.round(((delta / prevPriceVal) * 100) * 10) / 10 : 0;
       }
 
       item.isNewHigh = isNewHigh;

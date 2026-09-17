@@ -116,7 +116,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onClick={() => setQuickFilter?.(chip.id)}
               className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
                 isActive
-                  ? "bg-[#ea6100] text-white shadow-xs scale-[1.02] ring-2 ring-[#ea6100]/20"
+                  ? "bg-[#057e77] text-white shadow-xs scale-[1.02] ring-2 ring-[#057e77]/20"
                   : "bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-secondary border border-border/70 hover:border-border"
               }`}
               title={chip.description}
@@ -154,7 +154,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="단지명 검색..."
               aria-label="단지명 검색"
-              className="w-full pl-7 pr-7 h-[28px] bg-zinc-50 dark:bg-zinc-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] transition-colors shadow-2xs"
+              className="w-full pl-7 pr-7 h-[28px] bg-zinc-50 dark:bg-zinc-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] transition-colors shadow-2xs"
             />
             {searchQuery && (
               <button
@@ -177,7 +177,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as TimelineSortOrder)}
               aria-label="정렬 기준 선택"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[108px] truncate"
+              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[108px] truncate"
             >
               {TIMELINE_SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -192,7 +192,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={currentRegion}
             onChange={(e) => handleRegionChange(e.target.value)}
             aria-label="권역 및 법정동 선택"
-            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs shrink-0 min-w-0 w-[82px] xs:w-[94px] sm:w-[124px] truncate"
+            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[82px] xs:w-[94px] sm:w-[124px] truncate"
           >
             <option value="all">전체 권역/동</option>
             <optgroup label="권역 그룹">
@@ -213,7 +213,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={timelineAptFilter}
             onChange={(e) => setTimelineAptFilter(e.target.value)}
             aria-label="단지 선택"
-            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[130px] truncate"
+            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[130px] truncate"
           >
             <option value="전체">전체 단지</option>
             {availableApts.map((apt) => (
@@ -233,7 +233,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 title="카드 그리드 뷰"
                 className={`p-1 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'card'
-                    ? "bg-surface text-[#ea6100] shadow-xs font-black"
+                    ? "bg-surface text-[#057e77] shadow-xs font-black"
                     : "text-tertiary hover:text-secondary"
                 }`}
               >
@@ -246,7 +246,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 title="컴팩트 리스트 뷰"
                 className={`p-1 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'list'
-                    ? "bg-surface text-[#ea6100] shadow-xs font-black"
+                    ? "bg-surface text-[#057e77] shadow-xs font-black"
                     : "text-tertiary hover:text-secondary"
                 }`}
               >

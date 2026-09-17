@@ -8,7 +8,7 @@ import {
   Cell,
   Tooltip,
 } from 'recharts';
-import { Sparkles, ChevronRight, Flame, TrendingUp, Minus, TrendingDown, Building2 } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { getDisplayAptName, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { preloadApartmentModal } from '@/components/common/preload';
 import type { AptTxSummary } from '@/types';
@@ -55,12 +55,16 @@ export interface AptEnergyItem {
 
 export interface AptDonutDataItem {
   name: string;
-  category: 'high' | 'rising' | 'flat' | 'falling';
+  subName?: string;
+  category: string;
   value: number; // percentage (0 ~ 100)
   count: number;
   color: string;
   items: AptEnergyItem[];
+  policyDescription?: string;
 }
+
+export type AptDonutMode = 'policy' | 'energy';
 
 export interface AptDonutSectionProps {
   mounted?: boolean;
@@ -72,15 +76,25 @@ export interface AptDonutSectionProps {
   preloadApartmentTx?: (name: string, dong: string) => void;
   activeCategory?: string | null;
   onActiveCategoryChange?: (category: string | null) => void;
+  initialMode?: AptDonutMode;
+  mode?: AptDonutMode;
+  onModeChange?: (mode: AptDonutMode) => void;
   chartSize?: number;
   className?: string;
 }
 
 export const ENERGY_COLORS: Record<'high' | 'rising' | 'flat' | 'falling', string> = {
-  high: '#f43f5e',    // 신고가🔥: Rose Red
+  high: '#f43f5e',    // 신고가: Rose Red
   rising: '#ea6100',  // 상승거래: D-VIEW Orange
   flat: '#10b981',    // 보합: Emerald Green
   falling: '#3b82f6', // 하락거래: Blue
+};
+
+export const POLICY_COLORS: Record<'under6' | 'under9' | 'under15' | 'over15', string> = {
+  under6: '#10b981',   // 6억 이하: Emerald Green
+  under9: '#ea6100',   // 6억 ~ 9억: D-VIEW Orange
+  under15: '#3b82f6',  // 9억 ~ 15억: Royal Blue
+  over15: '#8b5cf6',   // 15억 초과: Violet
 };
 
 export const AptDonutSection = React.memo(function AptDonutSection({
@@ -93,34 +107,56 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   preloadApartmentTx,
   activeCategory: controlledActiveCategory,
   onActiveCategoryChange,
-  chartSize = 220,
+  initialMode = 'policy',
+  mode: controlledMode,
+  onModeChange,
+  chartSize = 200,
   className = '',
 }: AptDonutSectionProps) {
+  const [internalMode, setInternalMode] = useState<AptDonutMode>(initialMode);
+  const isControlledMode = controlledMode !== undefined;
+  const mode = isControlledMode ? controlledMode : internalMode;
+
   const [internalActiveCategory, setInternalActiveCategory] = useState<string | null>(null);
 
-  const isControlled = controlledActiveCategory !== undefined;
-  const activeCategory = isControlled
+  const isControlledCategory = controlledActiveCategory !== undefined;
+  const activeCategory = isControlledCategory
     ? controlledActiveCategory
     : internalActiveCategory;
 
   const setActiveCategory = useCallback((cat: string | null) => {
-    if (!isControlled) {
+    if (!isControlledCategory) {
       setInternalActiveCategory(cat);
     }
     onActiveCategoryChange?.(cat);
-  }, [isControlled, onActiveCategoryChange]);
+  }, [isControlledCategory, onActiveCategoryChange]);
+
+  const handleModeChange = useCallback((newMode: AptDonutMode) => {
+    if (!isControlledMode) {
+      setInternalMode(newMode);
+    }
+    setActiveCategory(null);
+    onModeChange?.(newMode);
+  }, [isControlledMode, setActiveCategory, onModeChange]);
 
   const summaryMap = useMemo(() => {
     if (!txSummaryData) return {};
     return (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || (txSummaryData as Record<string, AptTxSummary>);
   }, [txSummaryData]);
 
-  // Analyze recent transactions into 4 energy categories
+  // Analyze recent transactions into policy loan tiers or energy categories
   const { donutData, totalCount } = useMemo(() => {
+    // Energy categories
     const highItems: AptEnergyItem[] = [];
     const risingItems: AptEnergyItem[] = [];
     const flatItems: AptEnergyItem[] = [];
     const fallingItems: AptEnergyItem[] = [];
+
+    // Policy loan tiers
+    const under6Items: AptEnergyItem[] = [];
+    const under9Items: AptEnergyItem[] = [];
+    const under15Items: AptEnergyItem[] = [];
+    const over15Items: AptEnergyItem[] = [];
 
     if (Array.isArray(recentTransactions) && recentTransactions.length > 0) {
       recentTransactions.forEach((tx) => {
@@ -177,6 +213,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           isNewHigh: isHigh,
         };
 
+        // Energy categorization
         if (isHigh) {
           highItems.push(item);
         } else if (deltaMan > 0) {
@@ -186,12 +223,107 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         } else {
           flatItems.push(item);
         }
+
+        // Policy loan categorization (by transaction price in 억)
+        if (priceVal <= 6.0) {
+          under6Items.push(item);
+        } else if (priceVal <= 9.0) {
+          under9Items.push(item);
+        } else if (priceVal <= 15.0) {
+          under15Items.push(item);
+        } else {
+          over15Items.push(item);
+        }
       });
     }
 
     const total = highItems.length + risingItems.length + flatItems.length + fallingItems.length;
 
-    // Calculate percentages
+    if (mode === 'policy') {
+      let p6 = 0;
+      let p9 = 0;
+      let p15 = 0;
+      let pOver = 0;
+
+      if (total > 0) {
+        p6 = Math.round((under6Items.length / total) * 1000) / 10;
+        p9 = Math.round((under9Items.length / total) * 1000) / 10;
+        p15 = Math.round((under15Items.length / total) * 1000) / 10;
+        pOver = Math.round((over15Items.length / total) * 1000) / 10;
+
+        // Adjust rounding to ensure sum === 100.0% exactly
+        const sum = Math.round((p6 + p9 + p15 + pOver) * 10) / 10;
+        if (sum !== 100.0) {
+          const diff = Math.round((100.0 - sum) * 10) / 10;
+          const segments = [
+            { key: 'under6', count: under6Items.length },
+            { key: 'under9', count: under9Items.length },
+            { key: 'under15', count: under15Items.length },
+            { key: 'over15', count: over15Items.length },
+          ].sort((a, b) => b.count - a.count);
+
+          if (segments[0].key === 'under6') p6 = Math.round((p6 + diff) * 10) / 10;
+          else if (segments[0].key === 'under9') p9 = Math.round((p9 + diff) * 10) / 10;
+          else if (segments[0].key === 'under15') p15 = Math.round((p15 + diff) * 10) / 10;
+          else pOver = Math.round((pOver + diff) * 10) / 10;
+        }
+      }
+
+      under6Items.sort((a, b) => b.priceVal - a.priceVal);
+      under9Items.sort((a, b) => b.priceVal - a.priceVal);
+      under15Items.sort((a, b) => b.priceVal - a.priceVal);
+      over15Items.sort((a, b) => b.priceVal - a.priceVal);
+
+      const policyDonut: AptDonutDataItem[] = [
+        {
+          name: '6억 이하',
+          subName: '디딤돌·신생아',
+          category: 'under6',
+          value: p6,
+          count: under6Items.length,
+          color: POLICY_COLORS.under6,
+          items: under6Items,
+          policyDescription: '디딤돌대출(최저 1.5%~) 및 신생아 특례대출(최저 1.6%~) 최대 금리우대 적격 구간',
+        },
+        {
+          name: '6억 ~ 9억',
+          subName: '특례보금자리',
+          category: 'under9',
+          value: p9,
+          count: under9Items.length,
+          color: POLICY_COLORS.under9,
+          items: under9Items,
+          policyDescription: '특례보금자리론 및 신생아 특례대출(9억 이하) 실수요 집중 수혜 구간',
+        },
+        {
+          name: '9억 ~ 15억',
+          subName: '일반 주담대',
+          category: 'under15',
+          value: p15,
+          count: under15Items.length,
+          color: POLICY_COLORS.under15,
+          items: under15Items,
+          policyDescription: '1금융권 시중은행 주택담보대출 및 모바일 대환대출 주력 구간',
+        },
+        {
+          name: '15억 초과',
+          subName: '고가·자산가',
+          category: 'over15',
+          value: pOver,
+          count: over15Items.length,
+          color: POLICY_COLORS.over15,
+          items: over15Items,
+          policyDescription: '고가 주택 주담대 LTV 및 취득세 중과, 자금조달계획서 점검 구간',
+        },
+      ];
+
+      return {
+        donutData: policyDonut,
+        totalCount: total,
+      };
+    }
+
+    // Energy Mode
     let highPct = 0;
     let risingPct = 0;
     let flatPct = 0;
@@ -227,9 +359,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     flatItems.sort((a, b) => b.priceVal - a.priceVal);
     fallingItems.sort((a, b) => (a.delta || 0) - (b.delta || 0) || b.priceVal - a.priceVal);
 
-    const data: AptDonutDataItem[] = [
+    const energyDonut: AptDonutDataItem[] = [
       {
-        name: '신고가🔥',
+        name: '신고가',
         category: 'high',
         value: highPct,
         count: highItems.length,
@@ -263,10 +395,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     ];
 
     return {
-      donutData: data,
+      donutData: energyDonut,
       totalCount: total,
     };
-  }, [recentTransactions, summaryMap, publicRentalSet, nameMapping]);
+  }, [recentTransactions, summaryMap, publicRentalSet, nameMapping, mode]);
 
   const activeSector = useMemo(() => {
     if (!activeCategory) return null;
@@ -286,34 +418,51 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     preloadApartmentModal();
   }, [preloadApartmentTx]);
 
-  const getCategoryIcon = (category: string) => {
-    switch (category) {
-      case 'high':
-        return <Flame size={14} className="text-rose-500" />;
-      case 'rising':
-        return <TrendingUp size={14} className="text-[#ea6100]" />;
-      case 'flat':
-        return <Minus size={14} className="text-emerald-500" />;
-      case 'falling':
-        return <TrendingDown size={14} className="text-blue-500" />;
-      default:
-        return null;
-    }
-  };
-
   return (
     <div
       id="apt-market-energy-donut"
-      className={`bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0 ${className}`}
+      className={`bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between ${activeSector ? 'h-auto gap-4' : 'h-auto sm:h-[370px]'} shrink-0 ${className}`}
     >
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-          <span className="w-2 h-2 rounded-full bg-[#ea6100]" />
-          <span>실거래 시장 에너지 분포</span>
-        </h3>
+      {/* Header with Dual-Mode Segmented Control */}
+      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+        <div className="flex items-center gap-2.5">
+          <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
+            <span
+              className="w-2 h-2 rounded-full"
+              style={{ backgroundColor: mode === 'policy' ? '#10b981' : '#ea6100' }}
+            />
+            <span>{mode === 'policy' ? '실거래 정책대출 적격 분포' : '실거래 시장 에너지 분포'}</span>
+          </h3>
+
+          {/* Mode Switcher */}
+          <div className="flex items-center p-0.5 bg-neutral-100 dark:bg-zinc-800 rounded-lg text-[11px] font-bold border border-border/40">
+            <button
+              type="button"
+              onClick={() => handleModeChange('policy')}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                mode === 'policy'
+                  ? 'bg-surface text-primary shadow-xs font-black'
+                  : 'text-tertiary hover:text-primary'
+              }`}
+            >
+              정책대출 기준
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange('energy')}
+              className={`px-2.5 py-1 rounded-md transition-all cursor-pointer ${
+                mode === 'energy'
+                  ? 'bg-surface text-primary shadow-xs font-black'
+                  : 'text-tertiary hover:text-primary'
+              }`}
+            >
+              실거래 변동
+            </button>
+          </div>
+        </div>
+
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-black bg-neutral-100 dark:bg-zinc-800 text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wide">
+          <span className="text-[10px] font-black bg-neutral-100 dark:bg-zinc-800 text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wide hidden sm:inline-block">
             최근 실거래 {totalCount.toLocaleString()}건 전수 분석
           </span>
           {activeCategory && (
@@ -328,10 +477,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         </div>
       </div>
 
-      {/* Main Chart & Category Legend Grid (6:4 split with divider) */}
-      <div className="grid grid-cols-1 sm:grid-cols-10 gap-6 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
-        {/* Left: Donut Chart Container (60%) */}
-        <div className="col-span-1 sm:col-span-6 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-8 py-2">
+      {/* Main Chart & Category Legend Grid (5:7 split with divider) */}
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
+        {/* Left: Donut Chart Container (5/12) */}
+        <div className="col-span-1 sm:col-span-5 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-4 py-2">
           {mounted ? (
             <div style={{ width: chartSize, height: chartSize }} className="relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -426,8 +575,11 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     <span className="text-[18px] font-black text-primary leading-tight mt-0.5">
                       {totalCount.toLocaleString()}건
                     </span>
-                    <span className="text-[10.5px] font-extrabold text-[#ea6100] mt-0.5">
-                      시장 에너지 분석
+                    <span
+                      className="text-[10.5px] font-extrabold mt-0.5"
+                      style={{ color: mode === 'policy' ? '#10b981' : '#ea6100' }}
+                    >
+                      {mode === 'policy' ? '정책대출 적격' : '시장 에너지'}
                     </span>
                   </>
                 )}
@@ -438,8 +590,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           )}
         </div>
 
-        {/* Right: 4 Category Breakdown Cards (40%) */}
-        <div className="col-span-1 sm:col-span-4 flex flex-col justify-between gap-1.5 sm:gap-2 h-full pl-0 sm:pl-6 py-2">
+        {/* Right: 4 Category Breakdown Cards (7/12) */}
+        <div className="col-span-1 sm:col-span-7 flex flex-col justify-between gap-1.5 sm:gap-2 h-full pl-0 sm:pl-5 py-2">
           {donutData.map((sector) => {
             const isSelected = activeCategory === sector.name || activeCategory === sector.category;
             return (
@@ -466,12 +618,24 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     className="w-3 h-3 rounded-full shrink-0 flex items-center justify-center shadow-xs"
                     style={{ backgroundColor: sector.color }}
                   />
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="text-[12.5px] sm:text-[13px] font-black text-primary truncate flex items-center gap-1">
-                      <span>{sector.name}</span>
-                      {getCategoryIcon(sector.category)}
-                    </span>
-                    <span className="text-[10.5px] font-bold text-tertiary shrink-0">
+                  <div className="flex flex-col min-w-0">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="text-[12.5px] sm:text-[13px] font-black text-primary whitespace-nowrap shrink-0">
+                        {sector.name}
+                      </span>
+                      {sector.subName && (
+                        <span
+                          className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 py-0.2 rounded tracking-tight shrink-0 whitespace-nowrap"
+                          style={{
+                            color: sector.color,
+                            backgroundColor: `${sector.color}15`,
+                          }}
+                        >
+                          {sector.subName}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[10px] font-bold text-tertiary shrink-0">
                       {sector.count.toLocaleString()}건
                     </span>
                   </div>
@@ -492,17 +656,26 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         </div>
       </div>
 
-      {/* Selected Energy Representative Apartment List */}
+      {/* Selected Representative Apartment List */}
       {activeSector && (
         <div className="p-4 sm:p-5 rounded-xl bg-body/80 border border-border/60 animate-in fade-in slide-in-from-top-1 duration-200">
-          <div className="flex items-center justify-between mb-3.5 flex-wrap gap-2">
+          <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
             <div className="flex items-center gap-2">
               <span
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ backgroundColor: activeSector.color }}
               />
               <span className="text-[13px] sm:text-[14px] font-black text-primary flex items-center gap-1.5">
-                <span>{activeSector.name} 대표 실거래 단지 리스트</span>
+                <span>{activeSector.name}</span>
+                {activeSector.subName && (
+                  <span
+                    className="text-[10.5px] font-extrabold px-1.5 py-0.5 rounded"
+                    style={{ color: activeSector.color, backgroundColor: `${activeSector.color}15` }}
+                  >
+                    {activeSector.subName}
+                  </span>
+                )}
+                <span>대표 실거래 단지 리스트</span>
                 <span className="text-[11px] font-bold text-secondary">
                   ({activeSector.items.length}건)
                 </span>
@@ -512,6 +685,21 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               단지 클릭 시 상세 분석 리포트로 이동합니다.
             </span>
           </div>
+
+          {activeSector.policyDescription && (
+            <div
+              className="mb-3.5 px-3 py-2 rounded-lg text-[11.5px] font-bold border flex items-center gap-2"
+              style={{
+                borderColor: `${activeSector.color}30`,
+                backgroundColor: `${activeSector.color}0a`,
+              }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: activeSector.color }} />
+              <span className="text-secondary dark:text-zinc-300">
+                {activeSector.policyDescription}
+              </span>
+            </div>
+          )}
 
           {activeSector.items.length === 0 ? (
             <div className="py-6 text-center text-[12px] font-bold text-tertiary">

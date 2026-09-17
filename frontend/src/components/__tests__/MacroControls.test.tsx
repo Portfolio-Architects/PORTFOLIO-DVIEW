@@ -46,7 +46,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
       );
 
       const dongtan2Chip = screen.getByRole('button', { name: /동탄2/i });
-      expect(dongtan2Chip).toHaveClass('bg-[#ea6100]');
+      expect(dongtan2Chip).toHaveClass('bg-[#057e77]');
       expect(dongtan2Chip).toHaveClass('text-white');
 
       const highChip = screen.getByRole('button', { name: /신고가🔥/i });
@@ -65,7 +65,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
         />
       );
       const billionChip = screen.getByRole('button', { name: /10억 클럽/i });
-      expect(billionChip).toHaveClass('bg-[#ea6100]');
+      expect(billionChip).toHaveClass('bg-[#057e77]');
     });
   });
 
@@ -147,8 +147,8 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
       const cardBtn = screen.getByLabelText('카드 뷰 보기');
       const listBtn = screen.getByLabelText('리스트 뷰 보기');
 
-      expect(cardBtn).toHaveClass('text-[#ea6100]');
-      expect(listBtn).not.toHaveClass('text-[#ea6100]');
+      expect(cardBtn).toHaveClass('text-[#057e77]');
+      expect(listBtn).not.toHaveClass('text-[#057e77]');
 
       fireEvent.click(listBtn);
       expect(setViewModeMock).toHaveBeenCalledWith('list');
@@ -160,7 +160,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
           setViewMode={setViewModeMock}
         />
       );
-      expect(listBtn).toHaveClass('text-[#ea6100]');
+      expect(listBtn).toHaveClass('text-[#057e77]');
     });
   });
 

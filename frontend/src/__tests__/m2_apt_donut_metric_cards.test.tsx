@@ -110,6 +110,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
           recentTransactions={mockTransactions}
           txSummaryData={mockSummary as any}
           onSelectApt={mockOnSelectApt}
+          initialMode="energy"
         />
         <AptMetricCards
           recentTransactions={mockTransactions}
@@ -121,7 +122,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
 
     // Donut Section Verification
     expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
-    expect(screen.getByText('신고가🔥')).toBeInTheDocument();
+    expect(screen.getByText('신고가')).toBeInTheDocument();
     expect(screen.getByText('상승거래')).toBeInTheDocument();
     expect(screen.getByText('보합')).toBeInTheDocument();
     expect(screen.getByText('하락거래')).toBeInTheDocument();
@@ -154,6 +155,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
         <AptDonutSection
           mounted={true}
           recentTransactions={largeDataset}
+          initialMode="energy"
         />
         <AptMetricCards
           recentTransactions={largeDataset}

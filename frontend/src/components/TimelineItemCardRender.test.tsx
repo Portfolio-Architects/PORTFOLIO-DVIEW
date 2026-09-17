@@ -26,6 +26,10 @@ describe('TimelineItemCard Memoization Render Test', () => {
     if (!formatDeltaMatch) throw new Error('Failed to find formatDeltaPrice');
     const formatDeltaCode = formatDeltaMatch[0];
 
+    // Extract formatDeltaPercent
+    const formatDeltaPercentMatch = content.match(/export const formatDeltaPercent = [\s\S]+?\n};/);
+    const formatDeltaPercentCode = formatDeltaPercentMatch ? formatDeltaPercentMatch[0] : 'export const formatDeltaPercent = () => "";';
+
     // 4. Extract TimelineItemCardProps interface and TimelineItemCard component
     const cardInterfaceMatch = content.match(/interface TimelineItemCardProps {[\s\S]+?\n}/);
     if (!cardInterfaceMatch) throw new Error('Failed to find TimelineItemCardProps');
@@ -50,6 +54,7 @@ import { TimelineItem } from './MacroDashboardClient';
 
 ${formatEokCode}
 ${formatDeltaCode}
+${formatDeltaPercentCode}
 ${cardInterfaceCode}
 ${cardComponentCode}
 

@@ -1,90 +1,129 @@
-# Forensic Audit Report — Frontend Remediation
+# Forensic Audit Report
 
-**Work Product**: `frontend/src/components/apartment-modal/TransactionChartSection.tsx` and all modified files in `frontend/src/`  
-**Profile**: General Project  
-**Verdict**: CLEAN  
-
----
-
-## 1. Executive Summary
-
-A comprehensive forensic integrity audit was conducted on `frontend/` following the M2/M3 remediation effort. The audit evaluated source code authenticity, facade/mock prohibition compliance, layout and chart defense mechanisms, TypeScript compilation, production build generation, and unit test suite execution.
-
-All checks passed with **zero integrity violations**. The codebase contains authentic business and rendering logic with no hardcoded test result strings or dummy mocks.
+**Work Product**: AdSense High-CPC Finance Section & Realtime Ranking Board Implementation
+**Integrity Mode**: Development (per `ORIGINAL_REQUEST.md`)
+**Profile**: General Project
+**Verdict**: CLEAN
 
 ---
 
-## 2. Phase 1: Source Code & Integrity Analysis
+### Phase Results
 
-### Check 1.1: `CustomActiveDot` Symbol Integrity & Authenticity
-- **File**: `frontend/src/components/apartment-modal/TransactionChartSection.tsx` (lines 117–138)
-- **Implementation**:
-  ```tsx
-  const CustomActiveDot = React.memo((props: { cx?: number; cy?: number; fill?: string; stroke?: string; r?: number }) => {
-    const { cx, cy, fill } = props;
-    if (cx == null || cy == null || isNaN(cx) || isNaN(cy)) return null;
-    return (
-      <circle
-        cx={cx}
-        cy={cy}
-        r={6}
-        fill={fill || '#ea6100'}
-        stroke="#ffffff"
-        strokeWidth={2}
-        style={{
-          transitionProperty: 'cx, cy, r',
-          transitionDuration: '100ms',
-          transitionTimingFunction: 'cubic-bezier(0.2, 0.8, 0.2, 1)',
-          filter: 'drop-shadow(0px 2px 4px rgba(0,0,0,0.12))',
-          willChange: 'cx, cy'
-        }}
-      />
-    );
-  });
-  CustomActiveDot.displayName = 'CustomActiveDot';
-  ```
-- **Findings**:
-  - Symbol is explicitly declared, memoized, typed, and imported/referenced in Recharts `<Area activeDot={<CustomActiveDot fill="#ea6100" />} />` and `<Line activeDot={<CustomActiveDot fill="#f9a825" />} />`.
-  - Fully handles invalid/undefined coordinates with safe early return (`cx == null || cy == null || isNaN(cx) || isNaN(cy)`).
-  - Authentic SVG implementation; **PASS**.
+1. **Physical File Existence**: **PASS**
+   - Verified that all 9 required files exist on disk:
+     - `frontend/src/lib/utils/policyLoanCalculators.ts` (255 lines)
+     - `frontend/src/lib/utils/jeonseSafetyCalculators.ts` (113 lines)
+     - `frontend/src/lib/utils/rankingCalculations.ts` (336 lines)
+     - `frontend/src/components/finance/PolicyLoanQuickWidget.tsx` (192 lines)
+     - `frontend/src/components/finance/JeonseGuaranteeQuickPreview.tsx` (174 lines)
+     - `frontend/src/components/finance/HighCpcFinanceSection.tsx` (54 lines)
+     - `frontend/src/components/ranking/RealtimeRankingBoard.tsx` (177 lines)
+     - `frontend/src/components/MacroDashboardClient.tsx` (1,939 lines)
+     - `frontend/src/__tests__/adsense_finance_ranking.test.tsx` (361 lines)
 
-### Check 1.2: Hardcoded Output & Facade Detection
-- **Inspected Files**:
-  - `frontend/src/components/apartment-modal/TransactionChartSection.tsx`
-  - `frontend/src/components/common/ChartErrorBoundary.tsx` & `.test.tsx`
-  - `frontend/src/lib/utils/macroChartTransform.ts` & `.test.ts`
-  - `frontend/src/lib/utils/transactionChartTransform.ts` & `.test.ts`
-  - `frontend/src/m2_m3_empirical_verification.test.tsx`
-  - `frontend/src/components/MacroTrendChart.tsx`
-  - `frontend/src/components/MacroDashboardClient.tsx`
-  - `frontend/src/components/macro/TechnoValleyDashboard.tsx`
-  - `frontend/src/components/pwa/MobileDock.tsx`
-  - `frontend/src/components/MindMap3D.tsx`
-- **Findings**:
-  - Zero hardcoded test return values, string literals matching test outputs, or dummy facades found.
-  - Utilities perform real mathematical calculations (IQR outlier filtering, date timestamp caching, currency string formatting, monthly aggregation).
-  - Error boundaries safely capture exceptions without swallowing errors or faking UI state.
+2. **Source Code Authenticity & Cheating Detection**: **PASS**
+   - **Hardcoded Test Results**: None found. Formulas compute dynamically based on parameters.
+   - **Facade Detection**: None found. Components handle state, event listeners, user interactions, and error boundaries.
+   - **Policy Loan Calculations**: Authentic Korean 2025/2026 mortgage formulas (신생아 특례 디딤돌, 내집마련 디딤돌, HF 보금자리론) with genuine monthly amortization mathematics ($M = P \times \frac{r(1+r)^n}{(1+r)^n - 1}$).
+   - **Jeonse Guarantee Safe Diagnosis**: Authentic HUG 126% rule calculation (공시가격 $\times 1.4 \times 0.9 = 1.26$), senior mortgage 60% cap, and total debt ratio checks.
+   - **Realtime Ranking Aggregation**: Authentic aggregation algorithms calculating new highs, optimal jeonse gap ratios, and weekly surge counts with real fallback support.
 
-### Check 1.3: Responsive Layout & Mobile Defense Logic
-- **Mobile Dock (`MobileDock.tsx`)**: Re-used `TABS` array constant, optimized tab text font size (`text-[9.5px] xs:text-[10.5px]`), and responsive icon scaling (`sm:w-[19px] sm:h-[19px]`) to ensure 320px viewport compatibility without overflow.
-- **Chart Layouts**: Enclosed in `ChartErrorBoundary` fallback wrappers, with `ResizeObserver` 2px threshold noise filtering and debouncing.
+3. **Execution Verification**: **PASS**
+   - **TypeScript Compilation**: `npx tsc --noEmit` executed in `frontend/` with exit code 0 and 0 errors.
+   - **Target Test Suite**: `npx jest src/__tests__/adsense_finance_ranking.test.tsx` executed with exit code 0; 18/18 tests passed across 4 tiers.
+   - **Full Project Regression**: `npx jest --maxWorkers=50%` executed with exit code 0; 116/116 test suites passed, 1,206/1,206 tests passed with 0 failures.
+
+4. **Integration & Zero-CLS Layout Compliance**: **PASS**
+   - `MacroDashboardClient.tsx` imports and renders `HighCpcFinanceSection`, `RealtimeRankingBoard`, and `AdSlot` with `format="in-feed"`.
+   - All new sections are wrapped in React `ErrorBoundary` with specific fallback labels.
+   - `AdSlot` enforces strict min-height reservations (`min-h-[140px] sm:min-h-[160px]` for `in-feed`) with skeleton shimmer and Google AdSense sponsor labeling, preventing Cumulative Layout Shift (CLS < 0.01).
 
 ---
 
-## 3. Phase 2: Behavioral Verification & Test Execution
+### Evidence
 
-Empirical test commands were executed directly in `frontend/`:
+#### 1. TypeScript Static Analysis
+```
+Command: npx tsc --noEmit
+Exit Code: 0
+Output: (Empty - 0 errors)
+```
 
-| Verification Step | Command | Result | Evidence |
-|-------------------|---------|--------|----------|
-| **1. TS Compiler Check** | `npx tsc --noEmit` | **PASS** | Exit code 0, 0 compiler errors |
-| **2. Production Build** | `npm run build` | **PASS** | `Next.js 14.2.3` - Compiled successfully, 14/14 static pages generated |
-| **3. Unit Test Suite** | `npm test` | **PASS** | 44 test suites passed, 314 tests passed |
+#### 2. Target Test Execution
+```
+Command: npx jest src/__tests__/adsense_finance_ranking.test.tsx --verbose
+Exit Code: 0
 
----
+PASS src/__tests__/adsense_finance_ranking.test.tsx
+  AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test Suite
+    Tier 1: Feature Coverage
+      √ 1.1 calculates standard amortized monthly payments accurately (2 ms)
+      √ 1.2 calculates policy loans for all three policy types (1 ms)
+      √ 1.3 evaluates jeonse guarantee safety and 126% rule metrics (1 ms)
+      √ 1.4 verifies calculateJeonseSafety alias parity (1 ms)
+      √ 1.5 aggregates realtime rankings with 3 distinct categories (1 ms)
+      √ 1.6 renders baseline HighCpcFinanceSection with both child widgets (42 ms)
+    Tier 2: Boundary & Edge Cases
+      √ 2.1 rejects policy loan when home price is 0 or income is negative
+      √ 2.2 rejects newborn loan exceeding 9억 or income exceeding 2억 (1 ms)
+      √ 2.3 rejects Didimdol when income exceeds 8,500만원
+      √ 2.4 handles boundary and invalid inputs in jeonse safety diagnosis (1 ms)
+      √ 2.5 gracefully handles empty transactions or summaries in ranking engine
+    Tier 3: User Interactions & Callbacks
+      √ 3.1 interacts with PolicyLoanQuickWidget tabs and presets (85 ms)
+      √ 3.2 interacts with JeonseGuaranteeQuickPreview presets and CTA (34 ms)
+      √ 3.3 switches tabs and clicks ranking items in RealtimeRankingBoard (36 ms)
+      √ 3.4 verifies HighCpcFinanceSection passes deep-link callbacks down (21 ms)
+    Tier 4: Real-World Scenarios
+      √ 4.1 calculates actual Dongtan young married couple newborn loan (1 ms)
+      √ 4.2 executes safe jeonse diagnosis for Dongtan Lakefront 6억 apartment (1 ms)
+      √ 4.3 builds dynamic ranking lists from mock transaction feed
 
-## 4. Binary Audit Verdict
+Test Suites: 1 passed, 1 total
+Tests:       18 passed, 18 total
+Snapshots:   0 total
+Time:        1.407 s
+```
 
-**FINAL VERDICT: CLEAN**
+#### 3. Full Project Test Suite
+```
+Command: npx jest --maxWorkers=50%
+Exit Code: 0
+Test Suites: 116 passed, 116 total
+Tests:       1206 passed, 1206 total
+Snapshots:   0 total
+Time:        15.008 s
+```
 
-The remediation on `frontend/` successfully resolved all prior build errors and symbol omissions. All modified components and utility functions are authentic, clean, and fully operational.
+#### 4. Integration in `MacroDashboardClient.tsx` (Lines 1787-1815)
+```tsx
+{/* AdSense High-CPC Finance Section */}
+<ErrorBoundary name="정책자금 및 전세안전진단">
+  <HighCpcFinanceSection
+    onOpenMortgageModal={handleOpenMortgage}
+    onOpenMortgage={handleOpenMortgage}
+    onOpenJeonseSafetyModal={handleOpenJeonseSafety}
+    onOpenJeonseSafety={handleOpenJeonseSafety}
+  />
+</ErrorBoundary>
+
+{/* Real-time Dynamic Ranking Board (Dwell Time & PV Maximization) */}
+<ErrorBoundary name="실시간 랭킹 보드">
+  <RealtimeRankingBoard
+    recentTransactions={recentTransactions}
+    txSummaryData={txSummaryData}
+    sheetApartments={sheetApartments}
+    onSelectComplex={handleSelectApt}
+    onSelectApt={handleSelectApt}
+  />
+</ErrorBoundary>
+
+{/* In-Feed Responsive AdSlot 1 (Zero-CLS) */}
+<div className="w-full mb-6">
+  <AdSlot
+    slotId="1000000001"
+    format="in-feed"
+    className="w-full"
+  />
+</div>
+```

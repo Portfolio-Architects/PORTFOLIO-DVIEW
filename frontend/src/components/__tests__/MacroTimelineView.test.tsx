@@ -156,7 +156,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const activeDots = container.querySelectorAll('.bg-\\[\\#ea6100\\]');
+      const activeDots = container.querySelectorAll('.bg-\\[\\#057e77\\]');
       expect(activeDots.length).toBeGreaterThanOrEqual(1);
     });
   });
@@ -416,6 +416,87 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
 
       expect(screen.getByTestId('legacy-card-동탄역 롯데캐슬')).toBeInTheDocument();
       expect(screen.getByText('4건')).toBeInTheDocument();
+    });
+  });
+
+  describe('8. Date Accordion Collapse & Expand Features', () => {
+    it('collapses and expands individual date group when header is clicked', () => {
+      render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+        />
+      );
+
+      // Initially all cards are expanded
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+
+      // Click date header to collapse
+      const dateHeaderBtn = screen.getByTestId('timeline-date-header-2026.08.21 (목)');
+      fireEvent.click(dateHeaderBtn);
+
+      // Card should now be hidden/collapsed
+      expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+      expect(screen.getByText(/접힘/)).toBeInTheDocument();
+
+      // Click again to expand
+      fireEvent.click(dateHeaderBtn);
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+    });
+
+    it('toggles all date groups when "모두 접기" and "모두 펼치기" is clicked', () => {
+      render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+        />
+      );
+
+      const collapseAllBtn = screen.getByTestId('timeline-collapse-all-btn');
+      expect(collapseAllBtn).toHaveTextContent('모두 접기');
+
+      // Click "모두 접기" -> all groups collapse
+      fireEvent.click(collapseAllBtn);
+
+      expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-card-동탄린스트라우스 더레이크')).not.toBeInTheDocument();
+      expect(collapseAllBtn).toHaveTextContent('모두 펼치기');
+
+      // Click "모두 펼치기" -> all groups expand
+      fireEvent.click(collapseAllBtn);
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
+    });
+
+    it('auto-uncollapses date group when an apartment in it is selected', () => {
+      const { rerender } = render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+          selectedTimelineApt={null}
+        />
+      );
+
+      // Collapse the 2026.08.21 group
+      const dateHeaderBtn = screen.getByTestId('timeline-date-header-2026.08.21 (목)');
+      fireEvent.click(dateHeaderBtn);
+      expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+
+      // User selects apartment in that collapsed group
+      rerender(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+          selectedTimelineApt="동탄역 롯데캐슬"
+        />
+      );
+
+      // Should automatically un-collapse so the selected card is visible
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
     });
   });
 });
