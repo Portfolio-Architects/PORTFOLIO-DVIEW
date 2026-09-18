@@ -96,6 +96,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
           timelineGroups={sampleGroups}
           selectedApt={null}
           viewMode="card"
+          showHighestPriceBadge={true}
         />
       );
 
@@ -122,6 +123,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
           timelineGroups={sampleGroups}
           selectedApt={null}
           viewMode="card"
+          showHighestPriceBadge={true}
         />
       );
 

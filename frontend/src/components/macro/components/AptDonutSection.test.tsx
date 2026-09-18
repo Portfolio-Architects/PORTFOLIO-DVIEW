@@ -35,8 +35,8 @@ describe('AptDonutSection Test Suite', () => {
       contractDate: '20260818',
       priceVal: 16.5,
       priceEok: '16억 5,000만',
-      area: 84.9,
-      areaPyeong: 34.2,
+      area: 59.8,
+      areaPyeong: 25.1,
       floor: 25,
       isNewHigh: true,
       delta: 0.8,
@@ -63,8 +63,8 @@ describe('AptDonutSection Test Suite', () => {
       contractDate: '20260816',
       priceVal: 12.0,
       priceEok: '12억',
-      area: 84.5,
-      areaPyeong: 33.5,
+      area: 98.5,
+      areaPyeong: 38.5,
       floor: 12,
       isNewHigh: false,
       delta: 0,
@@ -77,8 +77,8 @@ describe('AptDonutSection Test Suite', () => {
       contractDate: '20260815',
       priceVal: 11.5,
       priceEok: '11억 5,000만',
-      area: 84.7,
-      areaPyeong: 33.6,
+      area: 120.5,
+      areaPyeong: 46.2,
       floor: 10,
       isNewHigh: false,
       delta: -0.3,
@@ -87,14 +87,30 @@ describe('AptDonutSection Test Suite', () => {
   ];
 
   const mockSummary = {
-    동탄역롯데캐슬: { dong: '오산동' },
-    동탄역시범우남퍼스트빌: { dong: '청계동' },
-    동탄역시범더샵센트럴시티: { dong: '청계동' },
-    동탄역시범한화꿈에그린: { dong: '청계동' },
+    '동탄역 롯데캐슬': {
+      dong: '오산동',
+      avg3MPrice: 16.2,
+      avg3MPriceEok: '16억 2,000만',
+    },
+    '동탄역 시범 우남퍼스트빌': {
+      dong: '청계동',
+      avg3MPrice: 11.0,
+      avg3MPriceEok: '11억',
+    },
+    '동탄역 시범 더샵 센트럴시티': {
+      dong: '청계동',
+      avg3MPrice: 12.0,
+      avg3MPriceEok: '12억',
+    },
+    '동탄역 시범 한화꿈에그린': {
+      dong: '청계동',
+      avg3MPrice: 11.8,
+      avg3MPriceEok: '11억 8,000만',
+    },
   };
 
-  describe('Policy Loan Tiers Mode (Default for AdSense CPC Optimization)', () => {
-    it('renders policy loan tiers by default with exact 100% total percentage sum', () => {
+  describe('Pyeong Demand Mode (Default)', () => {
+    it('renders pyeong demand tiers by default with exact 100% total percentage sum', () => {
       render(
         <AptDonutSection
           mounted={true}
@@ -104,31 +120,31 @@ describe('AptDonutSection Test Suite', () => {
       );
 
       // Default mode header
-      expect(screen.getByText('실거래 정책대출 적격 분포')).toBeInTheDocument();
+      expect(screen.getByText('실거래 평형대별 수요 분포')).toBeInTheDocument();
       expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
 
-      // 4 policy tiers
-      expect(screen.getByText('6억 이하')).toBeInTheDocument();
-      expect(screen.getByText('디딤돌·신생아')).toBeInTheDocument();
+      // 4 pyeong tiers
+      expect(screen.getByText('소형 (20평대)')).toBeInTheDocument();
+      expect(screen.getByText('59㎡ 이하')).toBeInTheDocument();
 
-      expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
-      expect(screen.getByText('특례보금자리')).toBeInTheDocument();
+      expect(screen.getByText('국민평형 (30평대)')).toBeInTheDocument();
+      expect(screen.getByText('84㎡ 주력')).toBeInTheDocument();
 
-      expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();
-      expect(screen.getByText('일반 주담대')).toBeInTheDocument();
+      expect(screen.getByText('중대형 (30후~40평)')).toBeInTheDocument();
+      expect(screen.getByText('85~115㎡')).toBeInTheDocument();
 
-      expect(screen.getByText('15억 초과')).toBeInTheDocument();
-      expect(screen.getByText('고가·자산가')).toBeInTheDocument();
+      expect(screen.getByText('대형 (40평+)')).toBeInTheDocument();
+      expect(screen.getByText('115㎡ 초과')).toBeInTheDocument();
 
-      // In mock data: 16.5 (over15: 1 item -> 25%), 11.2/12.0/11.5 (under15: 3 items -> 75%)
-      expect(screen.getByText('25.0%')).toBeInTheDocument();
-      expect(screen.getByText('75.0%')).toBeInTheDocument();
+      // 4 items: each 1 count -> 25.0% each
+      const percentageElements = screen.getAllByText('25.0%');
+      expect(percentageElements.length).toBeGreaterThanOrEqual(4);
 
-      // Center overlay badge
-      expect(screen.getByText('정책대출 적격')).toBeInTheDocument();
+      // Center overlay badge & toggle button both contain '평형대별 수요'
+      expect(screen.getAllByText('평형대별 수요').length).toBeGreaterThanOrEqual(2);
     });
 
-    it('toggles policy tier selection, displays representative apartment list and financial policy callout banner', () => {
+    it('toggles pyeong tier selection, displays representative apartment list and guide callout banner', () => {
       const mockOnSelectApt = jest.fn();
       const mockPreload = jest.fn();
 
@@ -142,12 +158,12 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      // Click '15억 초과' tier
-      const over15Row = screen.getByLabelText(/15억 초과 1건/i);
-      fireEvent.click(over15Row);
+      // Click '소형 (20평대)' tier
+      const smallRow = screen.getByLabelText(/소형 \(20평대\) 1건/i);
+      fireEvent.click(smallRow);
 
-      // Financial policy callout banner for high-value housing
-      expect(screen.getByText(/고가 주택 주담대 LTV 및 취득세 중과/i)).toBeInTheDocument();
+      // Guide callout banner
+      expect(screen.getByText(/신혼부부 및 가성비 첫 집 마련 실수요 선호 평형/i)).toBeInTheDocument();
 
       // Representative apartment
       expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
@@ -156,10 +172,10 @@ describe('AptDonutSection Test Suite', () => {
       // Click reset button
       const resetBtn = screen.getByText('선택 초기화');
       fireEvent.click(resetBtn);
-      expect(screen.queryByText(/고가 주택 주담대 LTV 및 취득세 중과/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/신혼부부 및 가성비 첫 집 마련 실수요 선호 평형/i)).not.toBeInTheDocument();
     });
 
-    it('switches between policy loan mode and energy mode seamlessly via header buttons', () => {
+    it('switches between pyeong demand mode and energy mode seamlessly via header buttons', () => {
       const onModeChange = jest.fn();
 
       render(
@@ -171,26 +187,26 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      // Starts in policy mode
-      expect(screen.getByText('실거래 정책대출 적격 분포')).toBeInTheDocument();
-      expect(screen.getByText('6억 이하')).toBeInTheDocument();
+      // Starts in pyeong mode
+      expect(screen.getByText('실거래 평형대별 수요 분포')).toBeInTheDocument();
+      expect(screen.getByText('소형 (20평대)')).toBeInTheDocument();
 
       // Switch to energy mode
-      const energyBtn = screen.getByText('실거래 변동');
+      const energyBtn = screen.getByText('시장 체감 온도');
       fireEvent.click(energyBtn);
 
       expect(onModeChange).toHaveBeenCalledWith('energy');
-      expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
+      expect(screen.getByText('실거래 시장 체감 온도')).toBeInTheDocument();
       expect(screen.getByText('신고가')).toBeInTheDocument();
       expect(screen.getByText('상승거래')).toBeInTheDocument();
 
-      // Switch back to policy mode
-      const policyBtn = screen.getByText('정책대출 기준');
-      fireEvent.click(policyBtn);
+      // Switch back to pyeong mode
+      const pyeongBtn = screen.getByText('평형대별 수요');
+      fireEvent.click(pyeongBtn);
 
-      expect(onModeChange).toHaveBeenCalledWith('policy');
-      expect(screen.getByText('실거래 정책대출 적격 분포')).toBeInTheDocument();
-      expect(screen.getByText('6억 이하')).toBeInTheDocument();
+      expect(onModeChange).toHaveBeenCalledWith('pyeong');
+      expect(screen.getByText('실거래 평형대별 수요 분포')).toBeInTheDocument();
+      expect(screen.getByText('소형 (20평대)')).toBeInTheDocument();
     });
   });
 
@@ -205,7 +221,7 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
+      expect(screen.getByText('실거래 시장 체감 온도')).toBeInTheDocument();
       expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
 
       // 4 items: each 1 count -> 25.0% each
@@ -291,7 +307,7 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      expect(screen.getByText('실거래 시장 에너지 분포')).toBeInTheDocument();
+      expect(screen.getByText('실거래 시장 체감 온도')).toBeInTheDocument();
       expect(screen.getByText('최근 실거래 1건 전수 분석')).toBeInTheDocument();
     });
 

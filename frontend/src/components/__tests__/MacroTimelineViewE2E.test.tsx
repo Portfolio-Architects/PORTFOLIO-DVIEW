@@ -499,6 +499,8 @@ function E2ETestHarness({
       onResetFilters={filters.resetFilters}
       renderTimelineItemCard={useDefaultRenderers ? undefined : renderCard}
       renderTimelineItemRow={useDefaultRenderers ? undefined : renderRow}
+      showHighestPriceBadge={true}
+      showQuickFilters={true}
     />
   );
 }

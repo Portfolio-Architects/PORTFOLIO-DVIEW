@@ -64,6 +64,10 @@ Every feature identified in the survey is assigned to a milestone:
 | F22 | Test Suite Verification | All unit, integration, and regression test suites passing (100% Green) | M4 | Survey 3 |
 | F23 | Production Build Verification | `npm run build` completes successfully with all static/dynamic routes generated | M4 | Survey 3 |
 | F24 | Core Feature Hardening | Verify 0% regression on apartment transactions, charts, modals, and dongs | M4 | Survey 3 |
+| F25 | Objective Function Re-anchoring | Re-anchor system & agent ultimate objective function to AdSense Yield Maximization ($\mathcal{Y}_{\text{AdSense}}$) | M5 | User Request |
+| F26 | High-CPC Intent Matrix | Semantic alignment of 5 domains to high-CPC advertisers ($1.50~$5.00+ CPC) | M5 | User Request |
+| F27 | Active Viewability Engine | Active View > 75% protocol, Zero-CLS container reservation, 30s smart refresh | M5 | User Request |
+| F28 | 10-Cycle Recursive Self-Improvement | Execute 10+ cycles of self-improvement documented in `IMPROVEMENT_REPORT.md` | M5 | User Request |
 
 ---
 
@@ -75,6 +79,7 @@ Every feature identified in the survey is assigned to a milestone:
 | M2 | MBTI Recommendation & Viral Quiz Platform | F7, F8, F9, F10, F11, F12, F13, F14, F15 | M1 (interface contract defined) | DONE |
 | M3 | Google AdSense Integration & Responsive Ad Slots | F16, F17, F18, F19, F20 | M2 (for result placement) | DONE |
 | M4 | Build Integrity, Verification & Hardening | F21, F22, F23, F24 | M1, M2, M3 | DONE |
+| M5 | AdSense Yield Maximization & 10-Cycle Self-Improvement | F25, F26, F27, F28 | M1, M2, M3, M4 | DONE |
 
 ---
 

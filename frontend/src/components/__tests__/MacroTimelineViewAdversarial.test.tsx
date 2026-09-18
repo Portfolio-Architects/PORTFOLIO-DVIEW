@@ -374,6 +374,7 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
             viewMode={viewMode}
             setViewMode={setViewMode}
             onResetFilters={resetFilters}
+            showQuickFilters={true}
           />
         </div>
       );
@@ -509,6 +510,7 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
           timelineGroups={massiveGroups}
           selectedApt={null}
           viewMode="card"
+          showHighestPriceBadge={true}
         />
       );
 
@@ -571,6 +573,7 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
         <MacroTimelineView
           timelineGroups={[tieGroup]}
           selectedApt={null}
+          showHighestPriceBadge={true}
         />
       );
 

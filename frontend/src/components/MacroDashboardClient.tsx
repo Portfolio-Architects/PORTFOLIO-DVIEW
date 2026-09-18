@@ -1745,7 +1745,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 publicRentalSet={publicRentalSet}
                 onSelectApt={handleSelectApt}
                 preloadApartmentTx={preloadApartmentTx}
-                initialMode="policy"
+                initialMode="pyeong"
               />
             </ChartErrorBoundary>
             <ErrorBoundary name="핵심 지표 카드">

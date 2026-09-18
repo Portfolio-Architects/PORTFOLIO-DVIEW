@@ -91,6 +91,8 @@ export interface MacroTimelineViewProps {
   renderTimelineItemRow?: (item: TimelineItem, isSelected: boolean) => React.ReactNode;
   isLoading?: boolean;
   emptyMessage?: string;
+  showHighestPriceBadge?: boolean;
+  showQuickFilters?: boolean;
   className?: string;
 }
 
@@ -332,6 +334,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   renderTimelineItemRow,
   isLoading = false,
   emptyMessage,
+  showHighestPriceBadge = false,
+  showQuickFilters = false,
   className,
 }: MacroTimelineViewProps) {
   const effectiveData = displayedTimelineData || timelineGroups || [];
@@ -476,6 +480,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             setTradeTypeFilter={setTradeTypeFilter}
             quickFilter={quickFilter}
             setQuickFilter={setQuickFilter}
+            showQuickFilters={showQuickFilters}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             sortOrder={sortOrder}
@@ -572,7 +577,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                      {highestApt && (
+                      {showHighestPriceBadge && highestApt && (
                         <span
                           data-testid={`highest-price-badge-${group.dateStr}`}
                           className="px-2 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-800/40 text-amber-700 dark:text-amber-300 text-[10px] xs:text-[10.5px] font-black flex items-center gap-1 shadow-xs"

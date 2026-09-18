@@ -53,6 +53,7 @@ export interface TimelineFilterControlsProps {
   // New M1 Props
   quickFilter?: QuickFilterChipType;
   setQuickFilter?: (chip: QuickFilterChipType) => void;
+  showQuickFilters?: boolean;
   searchQuery?: string;
   setSearchQuery?: (query: string) => void;
   sortOrder?: TimelineSortOrder;
@@ -77,6 +78,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
   setTradeTypeFilter: _setTradeTypeFilter,
   quickFilter = "all",
   setQuickFilter,
+  showQuickFilters = true,
   searchQuery = "",
   setSearchQuery,
   sortOrder = "latest",
@@ -98,76 +100,93 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
   };
 
   const isFiltersActive =
-    quickFilter !== 'all' ||
+    (showQuickFilters && quickFilter !== 'all') ||
     (searchQuery && searchQuery.trim().length > 0) ||
     currentRegion !== 'all' ||
     timelineAptFilter !== '전체';
 
   return (
     <div className="w-full flex flex-col gap-2.5">
-      {/* 1. Quick Filter Chips Bar with Smooth Horizontal Scroll */}
-      <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full">
-        {QUICK_FILTER_CHIPS.map((chip) => {
-          const isActive = quickFilter === chip.id;
-          return (
-            <button
-              key={chip.id}
-              type="button"
-              onClick={() => setQuickFilter?.(chip.id)}
-              className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
-                isActive
-                  ? "bg-[#057e77] text-white shadow-xs scale-[1.02] ring-2 ring-[#057e77]/20"
-                  : "bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-secondary border border-border/70 hover:border-border"
-              }`}
-              title={chip.description}
-            >
-              <span className="text-[11px]">{chip.icon}</span>
-              <span>{chip.label}</span>
-            </button>
-          );
-        })}
+      {/* 1. Quick Filter Chips Bar with Smooth Horizontal Scroll (optional) */}
+      {showQuickFilters && (
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scroll-smooth py-0.5 w-full">
+          {QUICK_FILTER_CHIPS.map((chip) => {
+            const isActive = quickFilter === chip.id;
+            return (
+              <button
+                key={chip.id}
+                type="button"
+                onClick={() => setQuickFilter?.(chip.id)}
+                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
+                  isActive
+                    ? "bg-[#057e77] text-white shadow-xs scale-[1.02] ring-2 ring-[#057e77]/20"
+                    : "bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-secondary border border-border/70 hover:border-border"
+                }`}
+                title={chip.description}
+              >
+                <span className="text-[11px]">{chip.icon}</span>
+                <span>{chip.label}</span>
+              </button>
+            );
+          })}
 
-        {/* Reset Button */}
-        {isFiltersActive && onResetFilters && (
-          <button
-            type="button"
-            onClick={onResetFilters}
-            className="flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-rose-500 bg-zinc-50 hover:bg-rose-50 dark:bg-zinc-800 dark:hover:bg-rose-950/30 border border-border/60 hover:border-rose-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
-            title="모든 필터 초기화"
-            aria-label="모든 필터 초기화"
-          >
-            <RotateCcw size={11} />
-            <span>초기화</span>
-          </button>
-        )}
-      </div>
+          {/* Reset Button */}
+          {isFiltersActive && onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-rose-500 bg-zinc-50 hover:bg-rose-50 dark:bg-zinc-800 dark:hover:bg-rose-950/30 border border-border/60 hover:border-rose-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+              title="모든 필터 초기화"
+              aria-label="모든 필터 초기화"
+            >
+              <RotateCcw size={11} />
+              <span>초기화</span>
+            </button>
+          )}
+        </div>
+      )}
 
       {/* 2. Action Toolbar: Search + Sort + Dropdowns + View Mode Toggle */}
       <div className="flex flex-wrap items-center justify-between gap-2 w-full">
-        {/* Left: Real-Time Inline Search Input */}
-        {setSearchQuery && (
-          <div className="relative flex items-center flex-1 min-w-[130px] max-w-[240px]">
-            <Search size={12} className="absolute left-2.5 text-tertiary pointer-events-none" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="단지명 검색..."
-              aria-label="단지명 검색"
-              className="w-full pl-7 pr-7 h-[28px] bg-zinc-50 dark:bg-zinc-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] transition-colors shadow-2xs"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 text-tertiary hover:text-primary transition-colors p-0.5 rounded-full"
-                aria-label="검색어 지우기"
-              >
-                <X size={12} />
-              </button>
-            )}
-          </div>
-        )}
+        {/* Left: Real-Time Inline Search Input & Reset Button */}
+        <div className="flex items-center gap-2 flex-1 min-w-[130px] max-w-[300px]">
+          {setSearchQuery && (
+            <div className="relative flex items-center w-full">
+              <Search size={12} className="absolute left-2.5 text-tertiary pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="단지명 검색..."
+                aria-label="단지명 검색"
+                className="w-full pl-7 pr-7 h-[28px] bg-zinc-50 dark:bg-zinc-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] transition-colors shadow-2xs"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 text-tertiary hover:text-primary transition-colors p-0.5 rounded-full"
+                  aria-label="검색어 지우기"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+          )}
+
+          {!showQuickFilters && isFiltersActive && onResetFilters && (
+            <button
+              type="button"
+              onClick={onResetFilters}
+              className="flex items-center gap-1 px-2 py-1 h-[28px] rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-rose-500 bg-zinc-50 hover:bg-rose-50 dark:bg-zinc-800 dark:hover:bg-rose-950/30 border border-border/60 hover:border-rose-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+              title="모든 필터 초기화"
+              aria-label="모든 필터 초기화"
+            >
+              <RotateCcw size={11} />
+              <span>초기화</span>
+            </button>
+          )}
+        </div>
 
         {/* Right: Dropdowns + Sort + View Mode Toggle */}
         <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0 min-w-0 ml-auto">
