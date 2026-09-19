@@ -9,8 +9,9 @@ import type { AptTxSummary, DongtanMacroTrendPoint, FieldReportData } from "@/ty
 import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
 import { useSettingsValues } from "@/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
-import { useLocationScores } from "@/hooks/useStaticData";
+import { useLocationScores, usePeriodTransactions } from "@/hooks/useStaticData";
 import { BUILD_VERSION } from "@/lib/build-version";
+import { buildApartmentMacroChartData, filterChartTimeframe, type FormattedMacroPoint } from "@/lib/utils/macroChartTransform";
 
 import { useMacroFilters, DONGTAN1_DONGS, DONGTAN2_DONGS, LANDMARK_APTS } from "./macro/hooks/useMacroFilters";
 import { useMacroDragDrop } from "./macro/hooks/useMacroDragDrop";
@@ -20,7 +21,7 @@ import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { MacroUtilityCards } from "./macro/components/MacroUtilityCards";
 import { MacroBriefingModal } from "./macro/components/MacroBriefingModal";
-import { AptDonutSection } from "./macro/components/AptDonutSection";
+import { AptDonutSection, type AptDonutDataItem } from "./macro/components/AptDonutSection";
 import { AptMetricCards } from "./macro/components/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
@@ -60,11 +61,6 @@ const AptFitFinder = dynamic(() => import(/* webpackPreload: false */ "@/compone
 });
 
 const TrafficNoticeBoard = dynamic(() => import("./macro/TrafficNoticeBoard").then(mod => mod.TrafficNoticeBoard), {
-  ssr: false,
-  loading: () => <div className="w-full h-[260px] min-h-[260px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
-});
-
-const LoungeTalkWidget = dynamic(() => import("./macro/LoungeTalkWidget").then(mod => mod.LoungeTalkWidget), {
   ssr: false,
   loading: () => <div className="w-full h-[260px] min-h-[260px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
 });
@@ -142,6 +138,7 @@ interface AptTransactionRecord {
   reqGb?: string;
   rnuYn?: string;
   cancelDate?: string;
+  [key: string]: unknown;
 }
 
 interface MacroDashboardProps {
@@ -700,15 +697,21 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     setPyeongFilter,
     tradeTypeFilter,
     setTradeTypeFilter,
+    periodFilter,
+    setPeriodFilter,
     timeframe,
     setTimeframe,
     availableDongs,
     availableApts,
   } = useMacroFilters({ sheetApartments });
 
+  const { transactions: timelinePeriodTransactions, isLoading: isTimelinePeriodLoading } = usePeriodTransactions(
+    periodFilter,
+    recentTransactions
+  );
+
   const { data: noticesData } = useSWR<{ notices: LocalNoticeItem[]; lastUpdated?: string }>('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
   const { locationScores } = useLocationScores();
-  const { data: postsData } = useSWR('/api/posts?limit=50', fetcher, { revalidateOnFocus: false, dedupingInterval: 180000 });
 
   const railNotices = useMemo(() => {
     if (!noticesData?.notices) return [];
@@ -749,6 +752,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [showBriefingPopup, setShowBriefingPopup] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [activeDonutCategory, setActiveDonutCategory] = useState<string | null>(null);
+  const [activeDonutSector, setActiveDonutSector] = useState<AptDonutDataItem | null>(null);
 
   useEffect(() => {
     if (!mounted || authLoading || isFavoritesLoading) return;
@@ -984,7 +989,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const maxDateTime = useMemo(() => {
     let maxVal = 0;
-    recentTransactions.forEach((tx) => {
+    const txSource = (timelinePeriodTransactions && timelinePeriodTransactions.length > 0)
+      ? timelinePeriodTransactions
+      : recentTransactions;
+    txSource.forEach((tx) => {
       const dt = parseDateHelper(tx.contractDate);
       if (dt) {
         const time = dt.getTime();
@@ -997,7 +1005,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       maxVal = new Date("2026-05-26").getTime();
     }
     return maxVal;
-  }, [recentTransactions]);
+  }, [recentTransactions, timelinePeriodTransactions]);
 
   const { data: directMacroTrendData } = useSWR<DongtanMacroTrendPoint[]>(
     (!macroTrendData || macroTrendData.length === 0) && mounted ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
@@ -1120,236 +1128,19 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   const selectedAptChartData = useMemo(() => {
-    if (!selectedTimelineApt || !deferredMacroTrendData || deferredMacroTrendData.length === 0) return null;
-
-    if (!Array.isArray(aptRealTxData) || aptRealTxData.length === 0) {
-      if (!selectedAptSummary) return null;
-      const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
-      const macroSaleVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전체'] || 8.1 : 8.1;
-      const macroJeonseVal = latestMacroPoint ? latestMacroPoint['동탄 아파트 전세 평균'] || 4.3 : 4.3;
-
-      const aptSaleVal = (selectedAptSummary.avg1MPrice || selectedAptSummary.avg3MPrice || selectedAptSummary.latestPrice || 0) / 10000;
-      const aptJeonseVal = (selectedAptSummary.avg1MRentDeposit || selectedAptSummary.avg3MRentDeposit || selectedAptSummary.latestRentDeposit || 0) / 10000;
-
-      const saleFactor = aptSaleVal > 0 ? aptSaleVal / macroSaleVal : 1;
-      const jeonseFactor = aptJeonseVal > 0 ? aptJeonseVal / macroJeonseVal : (aptSaleVal > 0 ? (aptSaleVal * 0.6) / macroJeonseVal : 1);
-
-      return deferredMacroTrendData.map(point => ({
-        name: point.name,
-        '동탄 아파트 전체': Math.round((point['동탄 아파트 전체'] * saleFactor) * 100) / 100,
-        '동탄 아파트 전세 평균': Math.round((point['동탄 아파트 전세 평균'] * jeonseFactor) * 100) / 100,
-      }));
+    if (!selectedTimelineApt) return null;
+    if (!aptRealTxData || !Array.isArray(aptRealTxData) || aptRealTxData.length === 0) {
+      return [];
     }
-
-    const salesByMonth: Record<string, number[]> = {};
-    const rentsByMonth: Record<string, number[]> = {};
-
-    aptRealTxData.forEach(tx => {
-      if (!tx.contractYm) return;
-      const yy = tx.contractYm.substring(2, 4);
-      const mm = tx.contractYm.substring(4, 6);
-      const key = `${yy}.${mm}`;
-
-      if (tx.dealType === '전세' || tx.dealType === '월세') {
-        const depositVal = tx.dealType === '월세'
-          ? ((tx.deposit || 0) + Math.round((tx.monthlyRent || 0) * 12 / 0.055)) / 10000
-          : (tx.deposit || tx.price || 0) / 10000;
-        if (depositVal > 0) {
-          if (!rentsByMonth[key]) rentsByMonth[key] = [];
-          rentsByMonth[key].push(depositVal);
-        }
-      } else {
-        const priceVal = (tx.price || 0) / 10000;
-        if (priceVal > 0) {
-          if (!salesByMonth[key]) salesByMonth[key] = [];
-          salesByMonth[key].push(priceVal);
-        }
-      }
-    });
-
-    const monthlyAverages: Record<string, { sale: number | null; rent: number | null }> = {};
-    deferredMacroTrendData.forEach(point => {
-      const monthKey = point.name;
-      const sales = salesByMonth[monthKey] || [];
-      const rents = rentsByMonth[monthKey] || [];
-
-      monthlyAverages[monthKey] = {
-        sale: sales.length > 0 ? sales.reduce((a, b) => a + b, 0) / sales.length : null,
-        rent: rents.length > 0 ? rents.reduce((a, b) => a + b, 0) / rents.length : null,
-      };
-    });
-
-    let firstSaleAnchorIndex = -1;
-    let firstRentAnchorIndex = -1;
-
-    for (let i = 0; i < deferredMacroTrendData.length; i++) {
-      const key = deferredMacroTrendData[i].name;
-      if (firstSaleAnchorIndex === -1 && monthlyAverages[key].sale !== null) {
-        firstSaleAnchorIndex = i;
-      }
-      if (firstRentAnchorIndex === -1 && monthlyAverages[key].rent !== null) {
-        firstRentAnchorIndex = i;
-      }
-    }
-
-    const realFirstSaleIndex = firstSaleAnchorIndex;
-    const realFirstRentIndex = firstRentAnchorIndex;
-
-    const fallbackSalePrice = ((selectedAptSummary?.avg1MPrice || selectedAptSummary?.avg3MPrice || selectedAptSummary?.latestPrice) || 80000) / 10000;
-    const fallbackRentPrice = ((selectedAptSummary?.avg1MRentDeposit || selectedAptSummary?.avg3MRentDeposit || selectedAptSummary?.latestRentDeposit) || 48000) / 10000;
-
-    if (firstSaleAnchorIndex === -1) {
-      firstSaleAnchorIndex = deferredMacroTrendData.length - 1;
-      const key = deferredMacroTrendData[firstSaleAnchorIndex].name;
-      monthlyAverages[key].sale = fallbackSalePrice;
-    }
-    if (firstRentAnchorIndex === -1) {
-      firstRentAnchorIndex = deferredMacroTrendData.length - 1;
-      const key = deferredMacroTrendData[firstRentAnchorIndex].name;
-      monthlyAverages[key].rent = fallbackRentPrice;
-    }
-
-    const saleAnchorKey = deferredMacroTrendData[firstSaleAnchorIndex].name;
-    const rentAnchorKey = deferredMacroTrendData[firstRentAnchorIndex].name;
-    const saleAnchorValue = monthlyAverages[saleAnchorKey].sale ?? 0;
-    const rentAnchorValue = monthlyAverages[rentAnchorKey].rent ?? 0;
-
-    let saleFactor = 1;
-    if (realFirstSaleIndex !== -1 && deferredMacroTrendData[realFirstSaleIndex]) {
-      const anchorPoint = deferredMacroTrendData[realFirstSaleIndex];
-      const anchorMacroSale = anchorPoint ? (anchorPoint['동탄 아파트 전체'] || 8.1) : 8.1;
-      const firstAptSale = (monthlyAverages[anchorPoint.name] && monthlyAverages[anchorPoint.name].sale) || fallbackSalePrice;
-      saleFactor = anchorMacroSale > 0 ? firstAptSale / anchorMacroSale : 1;
-    } else {
-      const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
-      const macroSaleVal = latestMacroPoint ? (latestMacroPoint['동탄 아파트 전체'] || 8.1) : 8.1;
-      saleFactor = macroSaleVal > 0 ? fallbackSalePrice / macroSaleVal : 1;
-    }
-    if (isNaN(saleFactor) || saleFactor <= 0) saleFactor = 1;
-
-    let rentFactor = 1;
-    if (realFirstRentIndex !== -1 && deferredMacroTrendData[realFirstRentIndex]) {
-      const anchorPoint = deferredMacroTrendData[realFirstRentIndex];
-      const anchorMacroRent = anchorPoint ? (anchorPoint['동탄 아파트 전세 평균'] || 4.3) : 4.3;
-      const firstAptRent = (monthlyAverages[anchorPoint.name] && monthlyAverages[anchorPoint.name].rent) || fallbackRentPrice;
-      rentFactor = anchorMacroRent > 0 ? firstAptRent / anchorMacroRent : 1;
-    } else {
-      const latestMacroPoint = deferredMacroTrendData[deferredMacroTrendData.length - 1];
-      const macroRentVal = latestMacroPoint ? (latestMacroPoint['동탄 아파트 전세 평균'] || 4.3) : 4.3;
-      rentFactor = macroRentVal > 0 ? fallbackRentPrice / macroRentVal : 1;
-    }
-    if (isNaN(rentFactor) || rentFactor <= 0) rentFactor = 1;
-
-    const macroTrendList = deferredMacroTrendData;
-    const runningLastSaleRef = { current: saleAnchorValue };
-    const runningLastRentRef = { current: rentAnchorValue };
-
-    const interpolatedSale = macroTrendList.map((point, i) => {
-      const val = monthlyAverages[point.name] ? monthlyAverages[point.name].sale : null;
-      if (val !== null && val !== undefined && !isNaN(val)) runningLastSaleRef.current = val;
-      return i < firstSaleAnchorIndex ? null : runningLastSaleRef.current;
-    });
-
-    const interpolatedRent = macroTrendList.map((point, i) => {
-      const val = monthlyAverages[point.name] ? monthlyAverages[point.name].rent : null;
-      if (val !== null && val !== undefined && !isNaN(val)) runningLastRentRef.current = val;
-      return i < firstRentAnchorIndex ? null : runningLastRentRef.current;
-    });
-
-    const finalChartData = macroTrendList.map((point, idx) => {
-      const key = point.name;
-      const monthAvg = monthlyAverages[key];
-      
-      let finalSale = monthAvg ? monthAvg.sale : null;
-      if (finalSale === null || finalSale === undefined || isNaN(finalSale)) {
-        if (realFirstSaleIndex !== -1 && idx >= realFirstSaleIndex) {
-          finalSale = interpolatedSale[idx];
-        }
-        if (finalSale === null || finalSale === undefined || isNaN(finalSale)) {
-          const macroSale = point['동탄 아파트 전체'] || 8.1;
-          finalSale = macroSale * saleFactor;
-        }
-      }
-
-      let finalRent = monthAvg ? monthAvg.rent : null;
-      if (finalRent === null || finalRent === undefined || isNaN(finalRent)) {
-        if (realFirstRentIndex !== -1 && idx >= realFirstRentIndex) {
-          finalRent = interpolatedRent[idx];
-        }
-        if (finalRent === null || finalRent === undefined || isNaN(finalRent)) {
-          const macroRent = point['동탄 아파트 전세 평균'] || 4.3;
-          finalRent = macroRent * rentFactor;
-        }
-      }
-
-      let safeSale = (typeof finalSale === 'number' && !isNaN(finalSale) && finalSale > 0) ? finalSale : 8.5;
-      if (safeSale > 100) safeSale = safeSale / 10000;
-      safeSale = Math.round(safeSale * 100) / 100;
-
-      let safeRent = (typeof finalRent === 'number' && !isNaN(finalRent) && finalRent > 0) ? finalRent : 4.5;
-      if (safeRent > 100) safeRent = safeRent / 10000;
-      safeRent = Math.round(safeRent * 100) / 100;
-
-      return {
-        name: key,
-        '동탄 아파트 전체': safeSale,
-        '동탄 아파트 전세 평균': safeRent,
-      };
-    });
-
-    return finalChartData;
-  }, [selectedAptSummary, deferredMacroTrendData, aptRealTxData]);
+    return buildApartmentMacroChartData(aptRealTxData, deferredMacroTrendData);
+  }, [selectedTimelineApt, aptRealTxData, deferredMacroTrendData]);
 
   const lineData = useMemo(() => {
-    const sourceData = selectedAptChartData || deferredMacroTrendData;
-    if (!sourceData) return [];
-
-    if (selectedAptChartData && timeframe === "ALL") {
-      let firstValidIdx = -1;
-      for (let i = 0; i < selectedAptChartData.length; i++) {
-        const item = selectedAptChartData[i];
-        if (item['동탄 아파트 전체'] !== null || item['동탄 아파트 전세 평균'] !== null) {
-          firstValidIdx = i;
-          break;
-        }
-      }
-      
-      if (firstValidIdx !== -1) {
-        const startIndex = Math.max(0, firstValidIdx - 3);
-        return selectedAptChartData.slice(startIndex);
-      }
-    }
-
-    let count = sourceData.length;
-    switch (timeframe) {
-      case "3M": count = 3; break;
-      case "6M": count = 6; break;
-      case "1Y": count = 12; break;
-      case "3Y": count = 36; break;
-      case "5Y": count = 60; break;
-      case "ALL": count = sourceData.length; break;
-    }
-    const sliced = sourceData.slice(-Math.min(count, sourceData.length));
-
-    const hasAnyValidPoint = sliced.some(
-      (item) => item['동탄 아파트 전체'] !== null || item['동탄 아파트 전세 평균'] !== null
-    );
-
-    if (!hasAnyValidPoint && deferredMacroTrendData && deferredMacroTrendData.length > 0) {
-      return sliced.map((item) => {
-        const matchingPoint = deferredMacroTrendData.find((p) => p.name === item.name);
-        const macroSale = matchingPoint ? matchingPoint['동탄 아파트 전체'] : 8.1;
-        const macroRent = matchingPoint ? matchingPoint['동탄 아파트 전세 평균'] : 4.3;
-        return {
-          ...item,
-          '동탄 아파트 전체': item['동탄 아파트 전체'] ?? Math.round(macroSale * 100) / 100,
-          '동탄 아파트 전세 평균': item['동탄 아파트 전세 평균'] ?? Math.round(macroRent * 100) / 100,
-        };
-      });
-    }
-
-    return sliced;
-  }, [selectedAptChartData, deferredMacroTrendData, timeframe]);
+    const sourceData: (DongtanMacroTrendPoint | FormattedMacroPoint)[] = selectedTimelineApt
+      ? (selectedAptChartData || [])
+      : (deferredMacroTrendData || []);
+    return filterChartTimeframe<DongtanMacroTrendPoint | FormattedMacroPoint>(sourceData, timeframe);
+  }, [selectedTimelineApt, selectedAptChartData, deferredMacroTrendData, timeframe]);
 
   const xTicks = useMemo(() => {
     if (!lineData || lineData.length === 0) return [];
@@ -1400,7 +1191,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const dailyTimelineData = useMemo(() => {
     const groups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
 
-    if (!recentTransactions || !txSummaryData) return [];
+    const activeTimelineTxs = (timelinePeriodTransactions && timelinePeriodTransactions.length > 0)
+      ? timelinePeriodTransactions
+      : recentTransactions;
+
+    if (!activeTimelineTxs || !txSummaryData) return [];
 
     const txKeyToCustomNameMap = new Map<string, string>();
     if (nameMapping) {
@@ -1414,7 +1209,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
     const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
 
-    recentTransactions.forEach((tx) => {
+    activeTimelineTxs.forEach((tx) => {
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(tx.aptName)) return;
 
       const dt = parseDateHelper(tx.contractDate);
@@ -1494,7 +1289,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           highestPriceApt,
         };
       });
-  }, [txSummaryData, recentTransactions, publicRentalSet, nameMapping, maxDateTime, typeMap]);
+  }, [txSummaryData, recentTransactions, timelinePeriodTransactions, publicRentalSet, nameMapping, maxDateTime, typeMap]);
 
   const filteredTimelineData = useMemo(() => {
     const isAllRegion = (regionFilter === "all" || regionFilter === "전체") && (timelineDongFilter === "전체" || timelineDongFilter === "all");
@@ -1641,7 +1436,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   useEffect(() => {
     setVisibleTimelineCount(isMobileViewport ? 3 : 8);
-  }, [timelineDongFilter, regionFilter, timelineAptFilter, pyeongFilter, tradeTypeFilter, quickFilter, searchQuery, sortOrder, isMobileViewport]);
+  }, [timelineDongFilter, regionFilter, timelineAptFilter, pyeongFilter, tradeTypeFilter, quickFilter, searchQuery, sortOrder, periodFilter, isMobileViewport]);
 
   const totalTimelineCardsCount = useMemo(() => {
     return filteredTimelineData.reduce((acc, group) => acc + group.items.length, 0);
@@ -1735,7 +1530,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:min-h-[586px] h-auto">
+          <div className="lg:col-span-6 flex flex-col gap-3 sm:gap-3.5 lg:h-[586px] justify-between box-border">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}
@@ -1746,6 +1541,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 onSelectApt={handleSelectApt}
                 preloadApartmentTx={preloadApartmentTx}
                 initialMode="pyeong"
+                activeCategory={activeDonutCategory}
+                onActiveCategoryChange={setActiveDonutCategory}
+                onActiveSectorChange={setActiveDonutSector}
               />
             </ChartErrorBoundary>
             <ErrorBoundary name="핵심 지표 카드">
@@ -1754,6 +1552,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 txSummaryData={txSummaryData}
                 macroTrendData={deferredMacroTrendData}
                 onOpenSellTimingCalculator={handleOpenSellTiming}
+                activeSector={activeDonutSector}
+                onResetSector={() => {
+                  setActiveDonutCategory(null);
+                  setActiveDonutSector(null);
+                }}
+                onSelectApt={handleSelectApt}
+                preloadApartmentTx={preloadApartmentTx}
               />
             </ErrorBoundary>
           </div>
@@ -1770,6 +1575,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 preloadApartmentModal={preloadApartmentModal}
                 favoritesArray={favoritesArray}
                 defaultTimelineApts={DEFAULT_TIMELINE_APTS}
+                sheetApartments={sheetApartments}
                 onSelectApt={handleSelectApt}
                 onHoverApt={handleHoverApt}
                 timeframe={timeframe}
@@ -1806,6 +1612,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               totalTimelineCardsCount={totalTimelineCardsCount}
               visibleTimelineCount={visibleTimelineCount}
               setVisibleTimelineCount={setVisibleTimelineCount}
+              enableInfiniteScroll={false}
+              periodFilter={periodFilter}
+              setPeriodFilter={setPeriodFilter}
+              isLoading={isTimelinePeriodLoading}
               onCardHover={handleCardHover}
               onCardClick={handleCardClick}
               onSelectApt={handleCardClick}
@@ -1886,13 +1696,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               railStrategyNotices={railStrategyNotices}
               tramNotices={tramNotices}
             />
-          </ErrorBoundary>
-        </div>
-
-        {/* Community Talk Widget */}
-        <div className="flex flex-col gap-6 mt-6 w-full">
-          <ErrorBoundary name="커뮤니티 라운지 토크">
-            <LoungeTalkWidget postsData={postsData} />
           </ErrorBoundary>
         </div>
 

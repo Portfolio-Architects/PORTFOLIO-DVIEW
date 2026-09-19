@@ -3,6 +3,7 @@ import { Calendar, ChevronDown, ChevronUp, RotateCcw, Heart, ExternalLink } from
 import { useInView } from 'react-intersection-observer';
 import { normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
 import { TimelineFilterControls } from './MacroControls';
+import type { TimelinePeriod } from '@/types/transaction';
 import type {
   RegionFilterType,
   PyeongFilterType,
@@ -86,6 +87,8 @@ export interface MacroTimelineViewProps {
   setSortOrder?: (order: TimelineSortOrder) => void;
   viewMode?: TimelineViewMode;
   setViewMode?: (mode: TimelineViewMode) => void;
+  periodFilter?: TimelinePeriod;
+  setPeriodFilter?: (period: TimelinePeriod) => void;
   onResetFilters?: () => void;
   renderTimelineItemCard?: (item: TimelineItem, isSelected: boolean) => React.ReactNode;
   renderTimelineItemRow?: (item: TimelineItem, isSelected: boolean) => React.ReactNode;
@@ -329,6 +332,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   setSortOrder,
   viewMode = 'card',
   setViewMode,
+  periodFilter = '90d',
+  setPeriodFilter,
   onResetFilters,
   renderTimelineItemCard,
   renderTimelineItemRow,
@@ -432,13 +437,45 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
         {/* Header & Filter Controls Bar */}
         <div className="flex flex-col gap-3 mb-3.5 sm:mb-4 w-full">
           <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-[14px] xs:text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">
                 일자별 최근 실거래
               </h2>
               <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[11px] font-extrabold text-secondary">
                 {effectiveTotalCount}건
               </span>
+
+              {/* Quick Period Selector (90d / 1y / 3y / all) */}
+              {setPeriodFilter && (
+                <div className="flex bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl shrink-0 border border-border/50 ml-1">
+                  {(['90d', '1y', '3y', 'all'] as const).map((p) => {
+                    const labelMap = { '90d': '90일', '1y': '1년', '3y': '3년', 'all': '전체' };
+                    const isSelected = periodFilter === p;
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => {
+                          if (setPeriodFilter) {
+                            React.startTransition(() => {
+                              setPeriodFilter(p);
+                            });
+                          }
+                        }}
+                        aria-label={`실거래 기간 ${labelMap[p]}`}
+                        data-testid={`timeline-period-tab-${p}`}
+                        className={`px-2 py-0.5 rounded-lg text-[10px] sm:text-[10.5px] font-extrabold transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-surface text-[#057e77] shadow-xs font-black"
+                            : "text-tertiary hover:text-secondary"
+                        }`}
+                      >
+                        {labelMap[p]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Quick Collapse / Expand All Control */}
@@ -487,6 +524,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             setSortOrder={setSortOrder}
             viewMode={viewMode}
             setViewMode={setViewMode}
+            periodFilter={periodFilter}
+            setPeriodFilter={setPeriodFilter}
             onResetFilters={onResetFilters}
           />
         </div>
@@ -546,6 +585,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 <div
                   key={group.dateStr}
                   data-testid={`timeline-group-${group.dateStr}`}
+                  style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' }}
                   className="flex flex-col gap-2.5 relative pl-3.5 sm:pl-4 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border"
                 >
                   {/* Sticky Date Group Header (Collapsible Accordion Button) */}
