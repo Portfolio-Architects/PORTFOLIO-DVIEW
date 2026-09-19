@@ -133,7 +133,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   initialMode = 'pyeong',
   mode: controlledMode,
   onModeChange,
-  chartSize = 200,
+  chartSize = 220,
   className = '',
 }: AptDonutSectionProps) {
   const [internalMode, setInternalMode] = useState<AptDonutMode>(initialMode);
@@ -499,10 +499,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   return (
     <div
       id="apt-market-energy-donut"
-      className={`bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between ${activeSector ? 'h-auto gap-4' : 'h-auto sm:h-[370px]'} shrink-0 ${className}`}
+      className={`bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between ${activeSector ? 'h-auto gap-4' : 'h-auto sm:min-h-[385px]'} shrink-0 ${className}`}
     >
       {/* Header with Dual-Mode Segmented Control */}
-      <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+      <div className="flex justify-between items-center mb-3 sm:mb-3.5 flex-wrap gap-2">
         <div className="flex items-center gap-2.5">
           <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
             <span
@@ -556,9 +556,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       </div>
 
       {/* Main Chart & Category Legend Grid (5:7 split with divider) */}
-      <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 sm:gap-0 flex-1 min-h-[240px] items-center w-full px-2 sm:px-4">
+      <div className="grid grid-cols-1 sm:grid-cols-12 gap-5 sm:gap-0 flex-1 min-h-[230px] items-center w-full px-1 sm:px-2">
         {/* Left: Donut Chart Container (5/12) */}
-        <div className="col-span-1 sm:col-span-5 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-4 py-2">
+        <div className="col-span-1 sm:col-span-5 flex items-center justify-center relative w-full h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-4 py-1">
           {mounted ? (
             <div style={{ width: chartSize, height: chartSize }} className="relative flex items-center justify-center">
               <ResponsiveContainer width="100%" height="100%">
@@ -568,8 +568,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={[{ value: 1 }]}
                       cx="50%"
                       cy="50%"
-                      innerRadius="62%"
-                      outerRadius="90%"
+                      innerRadius="60%"
+                      outerRadius="92%"
                       dataKey="value"
                       stroke="transparent"
                       isAnimationActive={false}
@@ -581,8 +581,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius="62%"
-                      outerRadius="90%"
+                      innerRadius="60%"
+                      outerRadius="92%"
                       cornerRadius={5}
                       paddingAngle={3}
                       dataKey="value"
@@ -635,21 +635,21 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
                 {displaySector ? (
                   <>
-                    <span className="text-[11px] font-extrabold text-tertiary tracking-tight px-2 truncate max-w-[130px]">
+                    <span className="text-[11.5px] sm:text-[12px] font-extrabold text-tertiary tracking-tight px-2 truncate max-w-[140px]">
                       {displaySector.name}
                     </span>
-                    <span className="text-[18px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[20px] sm:text-[22px] font-black text-primary leading-tight mt-0.5">
                       {displaySector.value.toFixed(1)}%
                     </span>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span
-                        className="text-[10px] font-extrabold px-1.5 py-0.2 rounded-full"
+                        className="text-[10.5px] font-extrabold px-1.5 py-0.2 rounded-full"
                         style={{ color: displaySector.color, backgroundColor: `${displaySector.color}15` }}
                       >
                         {displaySector.count.toLocaleString()}건
                       </span>
                       {displaySector.avgPriceLabel && (
-                        <span className="text-[10px] font-bold text-secondary">
+                        <span className="text-[10.5px] font-bold text-secondary">
                           {displaySector.avgPriceLabel}
                         </span>
                       )}
@@ -657,14 +657,14 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   </>
                 ) : (
                   <>
-                    <span className="text-[11px] font-extrabold text-tertiary tracking-tight">
+                    <span className="text-[11.5px] sm:text-[12px] font-extrabold text-tertiary tracking-tight">
                       총 실거래
                     </span>
-                    <span className="text-[18px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[20px] sm:text-[22px] font-black text-primary leading-tight mt-0.5">
                       {totalCount.toLocaleString()}건
                     </span>
                     <span
-                      className="text-[10.5px] font-extrabold mt-0.5"
+                      className="text-[11px] font-extrabold mt-0.5"
                       style={{ color: mode === 'energy' ? '#ea6100' : '#10b981' }}
                     >
                       {mode === 'energy' ? '시장 체감 온도' : '평형대별 수요'}
@@ -674,12 +674,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               </div>
             </div>
           ) : (
-            <div className="w-[200px] h-[200px] rounded-full border-4 border-dashed border-border animate-pulse" />
+            <div style={{ width: chartSize, height: chartSize }} className="rounded-full border-4 border-dashed border-border animate-pulse" />
           )}
         </div>
 
         {/* Right: 4 Category Breakdown Cards (7/12) */}
-        <div className="col-span-1 sm:col-span-7 flex flex-col justify-between gap-1.5 sm:gap-2 h-full pl-0 sm:pl-5 py-2">
+        <div className="col-span-1 sm:col-span-7 flex flex-col justify-between gap-1.5 sm:gap-2 h-full pl-0 sm:pl-5 py-0.5">
           {donutData.map((sector) => {
             const isSelected = activeCategory === sector.name || activeCategory === sector.category;
             const isHovered = hoveredCategory === sector.name || hoveredCategory === sector.category;
@@ -698,7 +698,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     setActiveCategory(isSelected ? null : sector.name);
                   }
                 }}
-                className={`p-2.5 sm:p-2.5 rounded-xl border transition-all duration-150 cursor-pointer flex flex-col justify-between gap-1.5 ${
+                className={`p-2 sm:py-2.5 sm:px-3 rounded-xl border transition-all duration-150 cursor-pointer flex items-center justify-between gap-2.5 ${
                   isSelected
                     ? 'bg-body border-primary/50 shadow-sm ring-1 ring-primary/20 scale-[1.01]'
                     : isHovered
@@ -706,13 +706,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       : 'bg-surface/80 hover:bg-body border-border/50 hover:border-border'
                 }`}
               >
-                {/* Header Row: Dot + Name + Badges (left) | AvgPrice + Value + Chevron (right) */}
-                <div className="flex items-center justify-between gap-2 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
-                      style={{ backgroundColor: sector.color }}
-                    />
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                    style={{ backgroundColor: sector.color }}
+                  />
+                  <div className="flex flex-col min-w-0">
                     <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                       <span className="text-[12.5px] sm:text-[13px] font-black text-primary whitespace-nowrap shrink-0">
                         {sector.name}
@@ -734,37 +733,24 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                         </span>
                       )}
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 shrink-0">
-                    {sector.avgPriceLabel && (
-                      <span className="text-[11px] sm:text-[11.5px] font-extrabold text-secondary bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
-                        {sector.avgPriceLabel}
-                      </span>
-                    )}
-                    <span className="text-[12.5px] sm:text-[13px] font-black text-primary">
-                      {sector.value.toFixed(1)}%
+                    <span className="text-[10.5px] font-bold text-tertiary shrink-0 mt-0.5">
+                      {sector.count.toLocaleString()}건
                     </span>
-                    <ChevronRight
-                      size={13}
-                      className={`text-tertiary transition-transform duration-200 ${isSelected ? 'rotate-90 text-[#ea6100]' : ''}`}
-                    />
                   </div>
                 </div>
 
-                {/* Sub Row: Count */}
-                <div className="flex items-center justify-between text-[10px] sm:text-[10.5px] font-bold text-tertiary px-0.5">
-                  <span>{sector.count.toLocaleString()}건</span>
-                </div>
-
-                {/* Progress Bar (Visual Ratio) */}
-                <div className="w-full bg-neutral-100 dark:bg-zinc-800/80 h-1 sm:h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(100, Math.max(0, sector.value))}%`,
-                      backgroundColor: sector.color,
-                    }}
+                <div className="flex items-center gap-2 shrink-0">
+                  {sector.avgPriceLabel && (
+                    <span className="text-[11px] sm:text-[11.5px] font-extrabold text-secondary bg-neutral-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md">
+                      {sector.avgPriceLabel}
+                    </span>
+                  )}
+                  <span className="text-[12.5px] sm:text-[13px] font-black text-primary">
+                    {sector.value.toFixed(1)}%
+                  </span>
+                  <ChevronRight
+                    size={14}
+                    className={`text-tertiary transition-transform duration-200 ${isSelected ? 'rotate-90 text-[#ea6100]' : ''}`}
                   />
                 </div>
               </div>
