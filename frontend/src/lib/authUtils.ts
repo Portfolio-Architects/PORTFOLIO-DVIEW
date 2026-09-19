@@ -79,28 +79,3 @@ export async function verifyAuthHeader(request: NextRequest): Promise<DecodedTok
 
   throw new Error('Missing or invalid authentication token (cookie or header)');
 }
-
-/**
- * Verifies that the requester is an authenticated Admin.
- * Bypasses checks if in Development mode.
- * 
- * @param request NextRequest
- * @returns Boolean representing authorization status.
- */
-export async function verifyAdmin(request: NextRequest): Promise<boolean> {
-  try {
-    const decodedToken = await verifyAuthHeader(request);
-
-    // Development mode bypass via MOCK_ADMIN_UID (Requires actual auth token to be valid)
-    if (process.env.NODE_ENV === 'development' && process.env.MOCK_ADMIN_UID) {
-      if (decodedToken.uid === process.env.MOCK_ADMIN_UID) {
-        return true;
-      }
-    }
-
-    return decodedToken.admin === true;
-  } catch (error: unknown) {
-    logger.error('authUtils.verifyAdmin', 'Admin Verification Error', {}, error);
-    return false;
-  }
-}

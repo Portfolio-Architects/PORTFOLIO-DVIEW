@@ -136,7 +136,6 @@ export const Tooltip = React.memo(function Tooltip({ content, children, delay = 
       if (typeof childRef === 'function') {
         childRef(node);
       } else if (childRef && 'current' in childRef) {
-        // eslint-disable-next-line react-hooks/immutability
         (childRef as React.MutableRefObject<HTMLElement | null>).current = node;
       }
     }

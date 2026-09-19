@@ -33,7 +33,6 @@ export function preloadApartmentModal(): void {
   if (typeof window === 'undefined') return;
   scheduleIdle(() => {
     import('@/components/ApartmentModal').catch(() => {});
-    import('@/components/CommentSection').catch(() => {});
     import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
     import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
   }, 1500);
@@ -45,7 +44,6 @@ export function preloadApartmentModal(): void {
 export function preloadDashboardFeatures(): void {
   if (typeof window === 'undefined') return;
   scheduleIdle(() => {
-    import('@/components/LoungeContainerClient').catch(() => {});
     import('@/components/MacroDashboardClient').catch(() => {});
     import('@/components/OfficeExplorerClient').catch(() => {});
   }, 2500);

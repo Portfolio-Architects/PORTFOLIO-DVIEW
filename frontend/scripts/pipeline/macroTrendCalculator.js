@@ -32,15 +32,41 @@ function initMacroTrendData(monthsToSync = 216, reportingLagMonths = 2, baseDate
 }
 
 /**
+ * 거래 취소/해제 여부 판별 유틸리티
+ * @param {Object} t - 실거래 레코드
+ * @returns {boolean} 취소/해제 거래 여부
+ */
+function isCancelledTransaction(t) {
+  if (!t) return false;
+  if (t.isCanceled === true) return true;
+  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
+  
+  const isInvalidDate = (v) => {
+    if (v === null || v === undefined) return true;
+    const s = String(v).trim().toLowerCase();
+    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
+  };
+
+  if (!isInvalidDate(t.cancelDate)) return true;
+  if (!isInvalidDate(t.cdealDay)) return true;
+
+  return false;
+}
+
+/**
  * 상수 바스켓 지수(Constant Basket Index): 국민평형(30~36평) 단지들의 각 월별 최신 실거래가를 누적
+ * 계약 해제/취소 거래는 지수 산출에서 원천 배제됩니다.
  * @param {Object} macroTrendData - 트렌드 데이터 객체
  * @param {string[]} trendMonths - 트렌드 연월 배열
  * @param {Array<Object>} saleTxs - 매매 거래 목록
  * @param {Array<Object>} rentTxs - 전월세 거래 목록
  */
-function accumulateMacroTrend(macroTrendData, trendMonths, saleTxs, rentTxs) {
+function accumulateMacroTrend(macroTrendData, trendMonths, saleTxs = [], rentTxs = []) {
+  const validSaleTxs = (saleTxs || []).filter(t => !isCancelledTransaction(t));
+  const validRentTxs = (rentTxs || []).filter(t => !isCancelledTransaction(t));
+
   // 동탄 전체 매매 가격 지수
-  const standardTxs = saleTxs.filter(t => 
+  const standardTxs = validSaleTxs.filter(t => 
     t.areaPyeong >= 30 && 
     t.areaPyeong <= 36 &&
     t.contractYm &&
@@ -60,7 +86,7 @@ function accumulateMacroTrend(macroTrendData, trendMonths, saleTxs, rentTxs) {
   }
 
   // 동탄 전체 전세 가격 지수
-  const standardJeonseTxs = rentTxs.filter(t => 
+  const standardJeonseTxs = validRentTxs.filter(t => 
     t.areaPyeong >= 30 && 
     t.areaPyeong <= 36 && 
     (t.deposit || 0) > 0 && 
@@ -84,14 +110,26 @@ function accumulateMacroTrend(macroTrendData, trendMonths, saleTxs, rentTxs) {
 
 /**
  * 최근 7일 거래량 및 WoW 추세 계산 (전체 매매 거래 기준)
+ * 계약 해제/취소 거래는 거래량 집계에서 원천 배제됩니다.
  * @param {Array<Object>} allSaleTxs - 전체 매매 거래 목록
- * @param {Function} parseDateFn - YYYYMMDD 파싱 함수
+ * @param {Function} [parseDateFn] - YYYYMMDD 파싱 함수
  * @returns {Object} { currentCount, prevCount, trendText, trendColor, badge }
  */
 function calculateRecent7DaysVolume(allSaleTxs, parseDateFn) {
+  const parseFn = typeof parseDateFn === 'function' ? parseDateFn : (d) => {
+    if (!d || d.length !== 8) return null;
+    const y = parseInt(d.slice(0, 4), 10);
+    const m = parseInt(d.slice(4, 6), 10) - 1;
+    const day = parseInt(d.slice(6, 8), 10);
+    const dt = new Date(y, m, day);
+    return isNaN(dt.getTime()) ? null : dt;
+  };
+
+  const validSaleTxs = (allSaleTxs || []).filter(t => !isCancelledTransaction(t));
+
   let maxDateTime = 0;
-  allSaleTxs.forEach(t => {
-    const dt = parseDateFn(t.contractDate);
+  validSaleTxs.forEach(t => {
+    const dt = parseFn(t.contractDate);
     if (dt) {
       const time = dt.getTime();
       if (time > maxDateTime) {
@@ -110,8 +148,8 @@ function calculateRecent7DaysVolume(allSaleTxs, parseDateFn) {
   let currentCount = 0;
   let prevCount = 0;
 
-  allSaleTxs.forEach(t => {
-    const dt = parseDateFn(t.contractDate);
+  validSaleTxs.forEach(t => {
+    const dt = parseFn(t.contractDate);
     if (dt) {
       const time = dt.getTime();
       if (time >= cutoff7) {
@@ -185,6 +223,7 @@ function generateMacroTrendSeries(macroTrendData, trendMonths) {
 }
 
 module.exports = {
+  isCancelledTransaction,
   initMacroTrendData,
   accumulateMacroTrend,
   calculateRecent7DaysVolume,

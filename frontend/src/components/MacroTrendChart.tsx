@@ -108,8 +108,12 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
-interface MacroTrendChartProps {
-  lineData: DongtanMacroTrendPoint[] | Array<{ name: string; "동탄 아파트 전체": number | null; "동탄 아파트 전세 평균": number | null; [key: string]: unknown }>;
+export interface MacroTrendChartProps {
+  lineData: Array<{
+    name: string;
+    "동탄 아파트 전체"?: number | null;
+    "동탄 아파트 전세 평균"?: number | null;
+  }>;
   xTicks: string[];
   yTicks: number[];
   timeframe: string;
@@ -226,10 +230,25 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     strokeDasharray: "3 3",
   }), []);
 
+  const nonNullSaleCount = useMemo(() => {
+    return processedData.filter(
+      (d) => typeof d["동탄 아파트 전체"] === "number" && d["동탄 아파트 전체"]! > 0
+    ).length;
+  }, [processedData]);
+
+  const nonNullRentCount = useMemo(() => {
+    return processedData.filter(
+      (d) => typeof d["동탄 아파트 전세 평균"] === "number" && d["동탄 아파트 전세 평균"]! > 0
+    ).length;
+  }, [processedData]);
+
   const saleDotProp = useMemo(() => {
+    if (nonNullSaleCount === 1) {
+      return { r: isBottomSheet ? 3.5 : 4.5, strokeWidth: 2, fill: "#ffffff", stroke: "#ea6100" };
+    }
     if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
     return { r: 3.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#ea6100" };
-  }, [isBottomSheet, timeframe]);
+  }, [isBottomSheet, timeframe, nonNullSaleCount]);
 
   const saleActiveDotProp = useMemo(() => ({
     r: isBottomSheet ? 4.5 : 5.5,
@@ -239,9 +258,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   }), [isBottomSheet]);
 
   const rentDotProp = useMemo(() => {
+    if (nonNullRentCount === 1) {
+      return { r: isBottomSheet ? 2.5 : 3.5, strokeWidth: 2, fill: "#ffffff", stroke: "#f9a825" };
+    }
     if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
     return { r: 2.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#f9a825" };
-  }, [isBottomSheet, timeframe]);
+  }, [isBottomSheet, timeframe, nonNullRentCount]);
 
   const rentActiveDotProp = useMemo(() => ({
     r: isBottomSheet ? 3.5 : 4.5,

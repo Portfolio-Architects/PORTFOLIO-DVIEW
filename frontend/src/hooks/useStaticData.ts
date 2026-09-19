@@ -13,6 +13,7 @@ import type {
   RecentTransaction,
   Recent7DaysVolume,
   LocationScoreItem,
+  TimelinePeriod,
 } from '@/types/transaction';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { logger } from '@/lib/services/logger';
@@ -23,6 +24,7 @@ import {
   mergeTransactions,
   mergeRecentTransactions,
   computeRecent7DaysVolume,
+  parsePeriodTransactions,
 } from '@/lib/services/staticDataService';
 
 export { FirestoreTransactionSchema };
@@ -104,9 +106,10 @@ export function useTxData(
     }
   );
 
-  // 2. Real-time recent transactions via encapsulated staticDataService
+  // 2. Real-time recent transactions via encapsulated staticDataService (Zero-cost client reads: bypassed in browser)
+  const shouldFetchFirestore = !isBrowser && shouldFetch;
   const { data: recentFirestoreTxs, error: firestoreError } = useSWR<FirestoreTransaction[]>(
-    shouldFetch ? 'recent-firestore-txs' : null,
+    shouldFetchFirestore ? 'recent-firestore-txs' : null,
     () => staticDataService.fetchRecentTransactionsFromFirestore(30),
     {
       revalidateOnFocus: false,
@@ -202,3 +205,50 @@ export function useLocationScores() {
     error,
   };
 }
+
+/**
+ * On-demand SWR static fetcher for period chunks (90d, 1y, 3y, all) with CDN caching and zero Firestore reads.
+ */
+export function usePeriodTransactions(
+  period: TimelinePeriod = '90d',
+  fallbackRecentTransactions?: RecentTransaction[]
+) {
+  const isBrowser = typeof window !== 'undefined';
+  const isDefault90d = period === '90d';
+
+  const periodPathMap: Record<TimelinePeriod, string> = {
+    '90d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
+    '1y': `/data/transactions-1y.json?v=${BUILD_VERSION}`,
+    '3y': `/data/transactions-3y.json?v=${BUILD_VERSION}`,
+    'all': `/data/transactions-all.json?v=${BUILD_VERSION}`,
+  };
+
+  const url = isBrowser ? periodPathMap[period] : null;
+
+  const { data: rawData, error, isLoading } = useSWR<unknown>(
+    url,
+    staticJsonFetcher,
+    {
+      fallbackData: isDefault90d ? fallbackRecentTransactions : undefined,
+      revalidateOnFocus: false,
+      revalidateIfStale: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 3600000, // 1 hour memory cache
+    }
+  );
+
+  const transactions = useMemo(() => {
+    if (!rawData) {
+      if (isDefault90d && fallbackRecentTransactions) return fallbackRecentTransactions;
+      return [];
+    }
+    return parsePeriodTransactions(rawData);
+  }, [rawData, isDefault90d, fallbackRecentTransactions]);
+
+  return {
+    transactions,
+    isLoading: isLoading && (!transactions || transactions.length === 0),
+    error,
+  };
+}
+

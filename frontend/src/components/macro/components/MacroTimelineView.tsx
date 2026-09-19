@@ -35,6 +35,9 @@ export interface TimelineItem {
   areaLabelM2?: string;
   areaLabelPyeong?: string;
   displayAptName?: string;
+  contractDate?: string;
+  date?: string;
+  isNewHigh?: boolean;
 }
 
 export interface TimelineGroup {
@@ -42,10 +45,28 @@ export interface TimelineGroup {
   timestamp: number;
   items: TimelineItem[];
   dateKey?: string;
+  year?: number;
   totalCount?: number;
   avgPriceVal?: number;
   avgPriceEok?: string;
   highestPriceApt?: HighestPriceAptInfo;
+}
+
+export function getGroupYear(g: TimelineGroup): number | null {
+  if (typeof g.year === 'number' && !isNaN(g.year)) return g.year;
+  if (g.dateStr) {
+    const m = g.dateStr.match(/^(\d{4})/);
+    if (m) return parseInt(m[1], 10);
+  }
+  if (g.dateKey) {
+    const m = g.dateKey.match(/^(\d{4})/);
+    if (m) return parseInt(m[1], 10);
+  }
+  if (typeof g.timestamp === 'number' && !isNaN(g.timestamp) && g.timestamp > 0) {
+    const d = new Date(g.timestamp);
+    if (!isNaN(d.getTime())) return d.getFullYear();
+  }
+  return null;
 }
 
 export interface MacroTimelineViewProps {
@@ -351,6 +372,15 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   const effectiveTotalCount = totalTimelineCardsCount ?? totalCalculatedItems;
   const effectiveVisibleCount = visibleTimelineCount ?? effectiveTotalCount;
 
+  const distinctYears = useMemo(() => {
+    const years = new Set<number>();
+    for (const g of effectiveData) {
+      const y = getGroupYear(g);
+      if (y !== null) years.add(y);
+    }
+    return Array.from(years);
+  }, [effectiveData]);
+
   // Date Accordion Collapse State (Set of dateStr that are collapsed)
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
 
@@ -554,7 +584,14 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               )}
             </div>
           ) : (
-            effectiveData.map((group) => {
+            effectiveData.map((group, index) => {
+              const currentYear = getGroupYear(group);
+              const prevYear = index > 0 ? getGroupYear(effectiveData[index - 1]) : null;
+              const showYearDivider = currentYear !== null && (
+                (distinctYears.length > 1 && index === 0) ||
+                (prevYear !== null && currentYear !== prevYear)
+              );
+
               const isGroupSelected = group.items.some(item => 
                 effectiveSelectedApt ? (
                   effectiveSelectedApt === item.aptName ||
@@ -582,12 +619,26 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               const isCollapsed = collapsedDates.has(group.dateStr);
 
               return (
-                <div
-                  key={group.dateStr}
-                  data-testid={`timeline-group-${group.dateStr}`}
-                  style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' }}
-                  className="flex flex-col gap-2.5 relative pl-3.5 sm:pl-4 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border"
-                >
+                <React.Fragment key={group.dateKey || group.dateStr}>
+                  {showYearDivider && (
+                    <div
+                      data-testid={`timeline-year-divider-${currentYear}`}
+                      className="w-full flex items-center gap-3 pt-3 pb-1 -ml-1 select-none"
+                    >
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#057e77]/10 dark:bg-[#057e77]/20 text-[#057e77] dark:text-[#2dd4bf] border border-[#057e77]/20 text-[12px] sm:text-[13px] font-black tracking-wide shadow-2xs">
+                        <Calendar size={13} className="shrink-0 text-[#057e77] dark:text-[#2dd4bf]" />
+                        <span>{currentYear}년 실거래</span>
+                      </div>
+                      <div className="flex-1 h-px bg-slate-200/80 dark:bg-slate-800/80" />
+                    </div>
+                  )}
+
+                  <div
+                    key={group.dateStr}
+                    data-testid={`timeline-group-${group.dateStr}`}
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' }}
+                    className="flex flex-col gap-2.5 relative pl-3.5 sm:pl-4 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border"
+                  >
                   {/* Sticky Date Group Header (Collapsible Accordion Button) */}
                   <button
                     type="button"
@@ -705,6 +756,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     )
                   )}
                 </div>
+              </React.Fragment>
               );
             })
           )}

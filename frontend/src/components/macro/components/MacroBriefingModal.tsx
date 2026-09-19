@@ -1,22 +1,19 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
-import type { User } from 'firebase/auth';
 
 export interface MacroBriefingModalProps {
   showBriefingPopup: boolean;
   setShowBriefingPopup: (show: boolean) => void;
   mounted: boolean;
-  user: User | null;
-  handleLogin: () => void;
+  user?: any;
+  handleLogin?: () => void;
 }
 
 export const MacroBriefingModal = React.memo(function MacroBriefingModal({
   showBriefingPopup,
   setShowBriefingPopup,
   mounted,
-  user,
-  handleLogin,
 }: MacroBriefingModalProps) {
   if (!showBriefingPopup || !mounted || typeof window === 'undefined') return null;
 
@@ -71,19 +68,15 @@ export const MacroBriefingModal = React.memo(function MacroBriefingModal({
             <button
               onClick={() => {
                 setShowBriefingPopup(false);
-                if (!user) {
-                  handleLogin();
-                } else {
-                  const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
-                  if (searchEl) {
-                    (searchEl as HTMLElement).focus();
-                    searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }
+                const searchEl = document.querySelector('input[placeholder="단지명 검색..."]');
+                if (searchEl) {
+                  (searchEl as HTMLElement).focus();
+                  searchEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
               }}
               className="w-full py-3 bg-[#ea6100] hover:bg-[#ea6100]/90 text-white border-none rounded-2xl text-[13.5px] font-extrabold cursor-pointer transition-colors shadow-sm text-center active:scale-[0.985] outline-none"
             >
-              {user ? "지금 관심 단지 등록하기 ➔" : "3초 간편 로그인하고 시작하기 ➔"}
+              지금 관심 단지 등록하기 ➔
             </button>
             
             <div className="flex items-center justify-between w-full mt-2 px-1">

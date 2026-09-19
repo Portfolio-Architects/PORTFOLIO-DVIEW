@@ -1,6 +1,5 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
-import { redirect } from 'next/navigation';
 import NewsClient from './NewsClient';
 import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
@@ -50,6 +49,10 @@ async function NewsDataLoader() {
 }
 
 export default async function NewsPage() {
-  redirect('/lounge?tab=news');
+  return (
+    <Suspense fallback={<NewsSkeleton />}>
+      <NewsDataLoader />
+    </Suspense>
+  );
 }
 

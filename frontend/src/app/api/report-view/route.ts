@@ -13,7 +13,6 @@
 import { NextRequest } from 'next/server';
 import { adminDb, FieldValue } from '@/lib/firebaseAdmin';
 import { createHash } from 'crypto';
-import { ADMIN_EMAILS } from '@/lib/config/admin.config';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { getKSTDateString } from '@/lib/utils/date';
@@ -56,12 +55,7 @@ export async function POST(request: NextRequest) {
     if (!parsed.success) {
       return apiError('INVALID_PAYLOAD', 'Bad Request: Invalid Payload', 400, parsed.error.issues);
     }
-    const { reportId, userEmail } = parsed.data;
-
-    // ── Admin exclusion ──
-    if (userEmail && ADMIN_EMAILS.includes(userEmail)) {
-      return apiSuccess({ counted: false, reason: 'admin' }, { counted: false, reason: 'admin' });
-    }
+    const { reportId } = parsed.data;
 
     // ── Extract & hash client IP ──
     const forwarded = request.headers.get('x-forwarded-for');

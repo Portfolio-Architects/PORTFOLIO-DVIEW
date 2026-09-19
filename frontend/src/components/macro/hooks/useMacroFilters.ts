@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { DongApartment } from '@/lib/dong-apartments';
+import type { TimelinePeriod } from '@/types/transaction';
 
 export type RegionFilterType = 'all' | 'dongtan1' | 'dongtan2' | string;
 export type PyeongFilterType = 'all' | 'under20' | '20s' | '30s' | '40plus';
@@ -85,6 +86,10 @@ export interface UseMacroFiltersReturn {
   timelineAptFilter: string;
   setTimelineAptFilter: (apt: string) => void;
 
+  // Period Filter State (90d / 1y / 3y / all)
+  periodFilter: TimelinePeriod;
+  setPeriodFilter: (period: TimelinePeriod) => void;
+
   // Additional Filter Dimensions
   pyeongFilter: PyeongFilterType;
   setPyeongFilter: (pyeong: PyeongFilterType) => void;
@@ -118,6 +123,12 @@ export function useMacroFilters({ sheetApartments }: UseMacroFiltersProps = {}):
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<TimelineSortOrder>("latest");
   const [viewMode, setViewMode] = useState<TimelineViewMode>("card");
+
+  // Period Filter Dimension (90d / 1y / 3y / all)
+  const [periodFilter, setPeriodFilterState] = useState<TimelinePeriod>("90d");
+  const setPeriodFilter = useCallback((period: TimelinePeriod) => {
+    setPeriodFilterState(period);
+  }, []);
 
   useEffect(() => {
     setTimelineAptFilter("전체");
@@ -197,6 +208,7 @@ export function useMacroFilters({ sheetApartments }: UseMacroFiltersProps = {}):
     setTimelineAptFilter('전체');
     setPyeongFilterState('all');
     setTradeTypeFilterState('all');
+    setPeriodFilterState('90d');
   }, []);
 
   const availableDongs = useMemo(() => {
@@ -238,6 +250,9 @@ export function useMacroFilters({ sheetApartments }: UseMacroFiltersProps = {}):
     viewMode,
     setViewMode,
     resetFilters,
+
+    periodFilter,
+    setPeriodFilter,
 
     region: regionFilter,
     setRegion: setRegionFilter,

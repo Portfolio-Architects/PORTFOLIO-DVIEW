@@ -49,6 +49,7 @@ jest.mock('@/hooks/useAuth', () => ({
 
 jest.mock('@/hooks/useStaticData', () => ({
   useLocationScores: () => ({ locationScores: {} }),
+  usePeriodTransactions: () => ({ transactions: [], isLoading: false }),
 }));
 
 describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', () => {

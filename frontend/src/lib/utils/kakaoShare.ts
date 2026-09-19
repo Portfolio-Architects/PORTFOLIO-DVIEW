@@ -169,14 +169,6 @@ export const ShareAptParamsSchema = z.object({
   maxPrice: z.number().nonnegative().optional(),
 });
 
-export const SharePostParamsSchema = z.object({
-  postId: z.string().min(1),
-  title: z.string().min(1),
-  category: z.string().min(1),
-  contentSummary: z.string().catch(''),
-  imageUrl: z.string().optional(),
-});
-
 export const ShareJeonseSafetyParamsSchema = z.object({
   aptName: z.string().min(1),
   dong: z.string().min(1),
@@ -388,73 +380,6 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
   } catch (error: unknown) {
     const errMessage = error instanceof Error ? error.message : String(error);
     logger.error('kakaoShare.shareAptToKakao', 'Kakao Share Error', { error: errMessage });
-    const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
-    if (toastFn) toastFn(msg);
-    else alert(msg);
-  }
-};
-
-export interface SharePostParams {
-  postId: string;
-  title: string;
-  category: string;
-  contentSummary: string;
-  imageUrl?: string;
-}
-
-export const sharePostToKakao = async (params: SharePostParams, toastFn?: (msg: string) => void) => {
-  const validation = SharePostParamsSchema.safeParse(params);
-  if (!validation.success) {
-    logger.warn('kakaoShare.sharePostToKakao', 'Invalid parameters provided for Post sharing', {
-      error: String(validation.error),
-      params
-    });
-    const msg = '공유 데이터가 올바르지 않습니다.';
-    if (toastFn) toastFn(msg);
-    else alert(msg);
-    return;
-  }
-  const { postId, title, category, contentSummary, imageUrl } = validation.data;
-
-  const finalImageUrl = imageUrl || "https://dongtanview.com/api/og?title=" + encodeURIComponent(title);
-  const shareUrl = `${window.location.origin}/lounge/${postId}?utm_source=kakaotalk&utm_medium=share&utm_campaign=lounge_detail`;
-
-  const cleanDesc = contentSummary.replace(/[#*`_~[\]]/g, '').trim();
-  const truncatedDesc = cleanDesc.length > 80 ? cleanDesc.substring(0, 80) + "..." : cleanDesc;
-  const finalDesc = `[${category}] ${truncatedDesc}\n지금 D-VIEW 라운지에서 확인하고 소통하세요!`;
-  
-  const titleText = `라운지 인기글: "${title}"`;
-
-  try {
-    const sdkOk = await checkKakaoSdkAndFallback(titleText, finalDesc, shareUrl, "카카오톡 연결을 불러올 수 없어, 대신", undefined, toastFn);
-    if (!sdkOk) return;
-
-    window.Kakao!.Share.sendDefault({
-      objectType: "feed",
-      content: {
-        title: title,
-        description: finalDesc,
-        imageUrl: finalImageUrl,
-        imageWidth: 1200,
-        imageHeight: 630,
-        link: {
-          mobileWebUrl: shareUrl,
-          webUrl: shareUrl,
-        },
-      },
-      buttons: [
-        {
-          title: "라운지 글 읽기",
-          link: {
-            mobileWebUrl: shareUrl,
-            webUrl: shareUrl,
-          },
-        },
-      ],
-    });
-  } catch (error: unknown) {
-    const errMessage = error instanceof Error ? error.message : String(error);
-    logger.error('kakaoShare.sharePostToKakao', 'Kakao Share Error', { error: errMessage });
     const msg = "공유 진행 중 오류가 발생했습니다: " + errMessage;
     if (toastFn) toastFn(msg);
     else alert(msg);
@@ -745,7 +670,7 @@ export const shareLocalEventToKakao = async (params: ShareLocalEventParams, toas
 
   const titleText = `[동탄 소식] ${title}`;
   const description = `일시: ${date} (${time})\n장소: ${location}\n꿀팁: ${tip.substring(0, 50)}`;
-  const shareUrl = `${window.location.origin}/#lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=event_share`;
+  const shareUrl = `${window.location.origin}/news?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=event_share`;
 
   const baseUrl = window.location.origin;
   const finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent(category)}&date=${encodeURIComponent(`${date} (${time})`)}&location=${encodeURIComponent(location)}&tip=${encodeURIComponent(tip.substring(0, 80))}`;
@@ -885,7 +810,7 @@ export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams, to
   if (isAI) {
     finalImageUrl = `${baseUrl}/api/og?type=event&title=${encodeURIComponent(title)}&category=${encodeURIComponent('AI 시황분석')}&date=${encodeURIComponent(date)}&location=${encodeURIComponent(dept)}&tip=${encodeURIComponent('D-VIEW AI 데이터 랩이 실거래 통계를 통해 automatic 도출한 분석 리포트입니다.')}`;
     description = `작성부서: ${dept}\n분석일자: ${date}\n실거래 통계 기반으로 추출한 단지 랭킹 및 세무 가이드 상세 분석 본문을 확인해 보세요!`;
-    shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_report_share`;
+    shareUrl = `${baseUrl}/news?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=ai_report_share`;
     titleText = title;
   } else if (isCulture) {
     const category = title.includes('[루나쇼]') ? '동탄호수공원 루나쇼' : 
@@ -901,12 +826,12 @@ export const shareLocalNoticeToKakao = async (params: ShareLocalNoticeParams, to
       ? `접수개시: ${date} (수강료: 무료~3만원 선)\n${dept} 주민자치센터의 유익한 라이프스타일 강좌 일정을 D-VIEW에서 확인해보세요!`
       : `장소: ${dept}\n행사일: ${date} (이용 요금: 무료)\nD-VIEW에서 루나쇼 명당 단지 정보 및 상세 가치 분석을 확인하세요!`;
       
-    shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=culture_share`;
+    shareUrl = `${baseUrl}/news?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=culture_share`;
     titleText = title;
   } else {
     finalImageUrl = `${baseUrl}/api/og?type=notice&title=${encodeURIComponent(title)}&dept=${encodeURIComponent(dept)}&date=${encodeURIComponent(date)}`;
     description = `작성부서: ${dept}\n등록일자: ${date}\nD-VIEW에서 동탄구 소식 상세 내용을 확인하세요.`;
-    shareUrl = `${baseUrl}/lounge?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=notice_share`;
+    shareUrl = `${baseUrl}/news?notice=${id}&utm_source=kakaotalk&utm_medium=share&utm_campaign=notice_share`;
     titleText = `[동탄 소식] ${title}`;
   }
 

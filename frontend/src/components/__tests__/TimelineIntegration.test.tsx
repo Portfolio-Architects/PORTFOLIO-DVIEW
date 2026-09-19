@@ -17,6 +17,7 @@ jest.mock('@/hooks/useAuth', () => ({
 
 jest.mock('@/hooks/useStaticData', () => ({
   useLocationScores: () => ({ locationScores: {} }),
+  usePeriodTransactions: () => ({ transactions: [], isLoading: false }),
 }));
 
 import {

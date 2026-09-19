@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file m4_challenger_api_routes_empirical.test.ts
  * @description Empirical Challenger test suite for Milestone 4:
  * 1. Unified API response envelope validation (success, error, status codes, payload variance)
@@ -260,26 +260,6 @@ describe('Milestone 4 — API Routes & Envelope Empirical Challenger Suite', () 
       const badEnumJson = await badEnumRes.json();
       expect(badEnumJson.success).toBe(false);
       expect(badEnumJson.code).toBe('INVALID_PARAMETERS');
-    });
-
-    it('POST /api/comments rejects invalid payload and returns 400 with details', async () => {
-      const { POST } = await import('@/app/api/comments/route');
-
-      // Missing both postId and reportId
-      const req = new NextRequest('http://localhost/api/comments', {
-        method: 'POST',
-        body: JSON.stringify({
-          text: 'Comment with no target',
-          authorUid: 'uid123',
-        }),
-      });
-
-      const res = await POST(req);
-      expect(res.status).toBe(400);
-      const json = await res.json();
-      expect(json.success).toBe(false);
-      expect(json.error).toBe('INVALID_PAYLOAD');
-      expect(json.details).toBeDefined();
     });
 
     it('GET /api/location-scores returns 400 when apartment param is missing', async () => {

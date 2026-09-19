@@ -1,10 +1,9 @@
 'use client';
 
-import { MessageSquare, LayoutDashboard, Home, Newspaper, Building2 } from 'lucide-react';
+import { LayoutDashboard, Home, Newspaper, Building2 } from 'lucide-react';
 import Link from 'next/link';
 
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
-import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
 import LoungeHeader from '@/components/LoungeHeader';
 import PageHeroHeader from '@/components/PageHeroHeader';
@@ -60,26 +59,6 @@ const GapExplorerSkeleton = () => (
   </div>
 );
 
-const LoungeSkeleton = () => (
-  <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px]">
-    <div className="min-h-[156px] sm:min-h-[144px] flex flex-col gap-[19px] sm:gap-[23px] px-4 sm:px-6 md:px-10 lg:px-16 pt-[20px] md:pt-6 lg:pt-8 pb-4 sm:pb-6 w-full border-b border-border/60">
-      <div className="flex items-center gap-3 sm:gap-4">
-        <div className="w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
-        <div className="w-40 sm:w-56 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
-      </div>
-      <div className="w-64 sm:w-80 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
-    </div>
-    <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 w-full gap-4 min-h-[85vh] min-h-[800px]">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-2">
-        <div className="h-28 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-        <div className="h-28 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      </div>
-      <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-      <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl" />
-    </div>
-  </div>
-);
 
 
 const CalculatorLoader = ({ text }: { text: string }) => (
@@ -112,28 +91,13 @@ const CalculatorLoader = ({ text }: { text: string }) => (
 );
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
-const FieldReportModal = dynamic(() => import(/* webpackPreload: false */ '@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
 }), { 
   ssr: false,
   loading: () => <ApartmentModalSkeleton />
-});
-const WriteReviewModal = dynamic(() => import(/* webpackPreload: false */ '@/components/WriteReviewModal').catch(err => {
-  logger.warn('DashboardClient.dynamic', 'WriteReviewModal Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('WriteReviewModal');
-  return { default: () => null };
-}), { 
-  ssr: false,
-  loading: () => (
-    <div className="fixed inset-0 z-[12000] flex items-center justify-center bg-black/40 backdrop-blur-xl animate-in fade-in duration-200">
-      <div className="bg-surface/75 dark:bg-surface/75 border border-border/50 p-8 rounded-3xl shadow-2xl flex flex-col items-center gap-4 text-center min-w-[280px]">
-        <div className="w-10 h-10 rounded-full border-2 border-toss-blue/20 border-t-toss-blue animate-spin" />
-        <span className="text-[14px] font-semibold text-primary">리뷰 작성기 로드 중</span>
-      </div>
-    </div>
-  )
 });
 
 
@@ -146,16 +110,7 @@ const MacroDashboardClient = dynamic(() => import(/* webpackPreload: true */ '@/
   loading: () => <MacroDashboardSkeleton />
 });
 
-const LoungeContainerClient = dynamic(() => import(/* webpackPreload: true */ '@/components/LoungeContainerClient').catch(err => {
-  logger.warn('DashboardClient.dynamic', 'LoungeContainerClient Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('LoungeContainerClient');
-  return { default: () => null };
-}), { 
-  ssr: false,
-  loading: () => <LoungeSkeleton />
-});
-
-const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AptCompareModal').catch(err => {
+const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptCompareModal');
   return { default: () => null };
@@ -163,7 +118,7 @@ const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/comp
   ssr: false,
   loading: () => <CalculatorLoader text="비교 대시보드 로드 중" />
 });
-const JeonseSafetyCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/JeonseSafetyCalculator').catch(err => {
+const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('JeonseSafetyCalculator');
   return { default: () => null };
@@ -171,7 +126,7 @@ const JeonseSafetyCalculator = dynamic(() => import(/* webpackPreload: false */ 
   ssr: false,
   loading: () => <CalculatorLoader text="전세 안전진단 계산기 로드 중" />
 });
-const MortgageCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/MortgageCalculator').catch(err => {
+const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'MortgageCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MortgageCalculator');
   return { default: () => null };
@@ -180,7 +135,7 @@ const MortgageCalculator = dynamic(() => import(/* webpackPreload: false */ '@/c
   loading: () => <CalculatorLoader text="대출 계산기 로드 중" />
 });
 
-const PropertyTaxCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/PropertyTaxCalculator').catch(err => {
+const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'PropertyTaxCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('PropertyTaxCalculator');
   return { default: () => null };
@@ -189,7 +144,7 @@ const PropertyTaxCalculator = dynamic(() => import(/* webpackPreload: false */ '
   loading: () => <CalculatorLoader text="취득세 계산기 로드 중" />
 });
 
-const SellTimingCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/SellTimingCalculator').catch(err => {
+const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
   logger.warn('DashboardClient.dynamic', 'SellTimingCalculator Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('SellTimingCalculator');
   return { default: () => null };
@@ -210,9 +165,6 @@ import { useFavorites } from '@/hooks/useFavorites';
 import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
-import LoginGateModal from '@/components/ui/LoginGateModal';
-import * as UserRepo from '@/lib/repositories/user.repository';
-import { isValidNickname } from '@/lib/services/nickname.service';
 import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/preload';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
@@ -228,7 +180,7 @@ const DashboardClient = React.memo(function DashboardClient({
 }: { 
   initialDashboardData?: DashboardInitialDataLocal, 
   preselectedAptName?: string,
-  initialTab?: 'overview' | 'imjang' | 'lounge' | 'mbti'
+  initialTab?: 'overview' | 'imjang' | 'mbti'
 }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
@@ -243,40 +195,6 @@ const DashboardClient = React.memo(function DashboardClient({
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
   
-  // Nickname restriction modal state
-  const [newNickname, setNewNickname] = useState('');
-  const [nicknameError, setNicknameError] = useState('');
-  const [isSubmittingNickname, setIsSubmittingNickname] = useState(false);
-
-  const showNicknameModal = mounted && !!user && !!userProfile && userProfile.hasSetNickname === false && !dashboardFacade.isAdmin(user.email);
-
-  const handleNicknameSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const trimmed = newNickname.trim();
-    if (!isValidNickname(trimmed)) {
-      setNicknameError('닉네임은 공백 제외 한글, 영문, 숫자, _로만 2자에서 10자여야 합니다.');
-      return;
-    }
-    setIsSubmittingNickname(true);
-    setNicknameError('');
-    try {
-      await UserRepo.updateNickname(user.uid, trimmed);
-      if (mountedRef.current) {
-        window.location.reload();
-      }
-    } catch (error) {
-      logger.error('DashboardClient.handleNicknameSubmit', 'Failed to set nickname', undefined, error);
-      if (mountedRef.current) {
-        setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
-      }
-    } finally {
-      if (mountedRef.current) {
-        setIsSubmittingNickname(false);
-      }
-    }
-  };
-
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   
   // 1:1 아파트 비교 대시보드 상태
@@ -298,14 +216,6 @@ const DashboardClient = React.memo(function DashboardClient({
   // AI 매도 계산기 상태
   const [isSellTimingOpen, setIsSellTimingOpen] = useState(false);
   const [sellTimingInitialApt, setSellTimingInitialApt] = useState<string | undefined>(undefined);
-  
-  const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
-  const [loginGateMessage, setLoginGateMessage] = useState('');
-
-  const handleRequestLogin = useCallback((message: string) => {
-    setLoginGateMessage(message);
-    setIsLoginGateOpen(true);
-  }, []);
   
   const { txSummary = EMPTY_OBJECT, recentTransactions = [], macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
     initialDashboardData?.macroTrend,
@@ -347,14 +257,12 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'lounge' | 'mbti'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'mbti'>(initialTab);
   const [isPending, startTransition] = useTransition();
   const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview');
-  const [hasOpenedLounge, setHasOpenedLounge] = useState(initialTab === 'lounge');
 
   useEffect(() => {
     if (activeTab === 'overview') setHasOpenedOverview(true);
-    if (activeTab === 'lounge') setHasOpenedLounge(true);
   }, [activeTab]);
 
   // Tab highlight logic removed since boxes are separated now
@@ -422,8 +330,11 @@ const DashboardClient = React.memo(function DashboardClient({
         setActiveTab('overview');
       } else if (window.location.hash.startsWith('#mbti') || tabParam === 'mbti') {
         setActiveTab('mbti');
-      } else if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=') || tabParam === 'lounge' || tabParam === 'talk' || tabParam === 'news' || tabParam === 'notices') {
-        setActiveTab('lounge');
+      } else if (window.location.hash.startsWith('#notice=') || tabParam === 'news' || tabParam === 'notices') {
+        router.replace('/news');
+        return;
+      } else if (window.location.hash.startsWith('#lounge') || tabParam === 'lounge' || tabParam === 'talk') {
+        setActiveTab('overview');
       }
 
       // Preload heavy chunks immediately to eliminate interaction latency & CLS
@@ -431,7 +342,6 @@ const DashboardClient = React.memo(function DashboardClient({
         if (!isMounted) return;
         preloadApartmentModal();
         preloadDashboardFeatures();
-        import('@/components/LoungeContainerClient').catch(() => {});
         import('@/components/MacroDashboardClient').catch(() => {});
       };
       preloadHeavyComponents();
@@ -445,16 +355,12 @@ const DashboardClient = React.memo(function DashboardClient({
 
         if (!isMounted) return;
         startTransition(() => {
-          if (window.location.hash.startsWith('#lounge') || window.location.hash.startsWith('#post=') || window.location.hash.startsWith('#notice=')) {
-            setActiveTab('lounge');
-          } else if (window.location.hash.startsWith('#imjang')) {
+          if (window.location.hash.startsWith('#imjang')) {
             setActiveTab('imjang');
           } else if (window.location.hash.startsWith('#mbti')) {
             setActiveTab('mbti');
           } else if (window.location.hash.startsWith('#overview') || window.location.hash.startsWith('#technovalley') || window.location.hash.startsWith('#techno') || window.location.hash.startsWith('#office')) {
             setActiveTab('overview');
-          } else if (queryTab === 'lounge' || queryTab === 'talk' || queryTab === 'news' || queryTab === 'notices') {
-            setActiveTab('lounge');
           } else if (queryTab === 'imjang') {
             setActiveTab('imjang');
           } else if (queryTab === 'mbti') {
@@ -528,8 +434,6 @@ const DashboardClient = React.memo(function DashboardClient({
     window.addEventListener('hashchange', checkHashForApt, { passive: true });
     return () => window.removeEventListener('hashchange', checkHashForApt);
   }, [mounted, !!sheetApartments]);
-
-  const [showReviewModal, setShowReviewModal] = useState(false);
 
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
@@ -713,16 +617,15 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
   const handleAptToggleFavorite = useCallback((aptName: string) => {
-    handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
-  }, [handleToggleFavorite, handleRequestLogin]);
+    handleToggleFavorite(aptName);
+  }, [handleToggleFavorite]);
 
   const handleTabChange = useCallback((tab: string) => {
-    const targetTab = tab as 'overview' | 'imjang' | 'lounge' | 'mbti';
+    const targetTab = tab as 'overview' | 'imjang' | 'mbti';
     setActiveTab(targetTab);
     let href = '/';
     if (targetTab === 'imjang') href = '/explore';
     else if (targetTab === 'mbti') href = '/mbti';
-    else if (targetTab === 'lounge') href = '/lounge';
     else if (targetTab === 'overview') href = '/';
     window.history.pushState(null, '', href);
     try { router.replace(href, { scroll: false }); } catch (err) {}
@@ -765,19 +668,6 @@ const DashboardClient = React.memo(function DashboardClient({
           )}
         </section>
 
-        {/* ═══ TAB 2: 커뮤니티 (라운지) ═══ */}
-        <section className={`w-full col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'lounge' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
-          {(activeTab === 'lounge' || hasOpenedLounge) && (
-            !mounted ? (
-              <LoungeSkeleton />
-            ) : (
-              <ErrorBoundary name="커뮤니티 라운지">
-                <LoungeContainerClient initialPosts={EMPTY_ARRAY} onRequestLogin={handleRequestLogin} />
-              </ErrorBoundary>
-            )
-          )}
-        </section>
-
         {/* ═══ TAB 3: 임장 (탐색) ═══ */}
         <section className={`w-full max-w-full min-w-0 overflow-x-hidden col-start-1 row-start-1 min-h-[85vh] min-h-[800px] bg-transparent ${activeTab === 'imjang' ? 'block' : 'hidden'}`} style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
           {activeTab === 'imjang' && (
@@ -810,9 +700,7 @@ const DashboardClient = React.memo(function DashboardClient({
     handleOpenTaxCalculator,
     handleOpenSellTimingCalculator,
     handleAptClickByName,
-    handleRequestLogin,
-    hasOpenedOverview,
-    hasOpenedLounge
+    hasOpenedOverview
   ]);
 
   return (
@@ -855,12 +743,10 @@ const DashboardClient = React.memo(function DashboardClient({
               onToggleFavorite={handleAptToggleFavorite}
               typeMap={typeMap}
               inline={false}
-              isAdmin={dashboardFacade.isAdmin(user?.email)}
               sheetApartments={sheetApartments}
               nameMapping={nameMapping || {}}
               txSummaryData={txSummary}
               locationScores={locationScores}
-              onRequestLogin={handleRequestLogin}
               onOpenCompare={handleOpenCompare}
               onOpenJeonseSafety={handleOpenJeonseSafety}
               onOpenMortgage={handleOpenMortgage}
@@ -873,10 +759,6 @@ const DashboardClient = React.memo(function DashboardClient({
 
       </main>
 
-      {showReviewModal && user && (
-        <WriteReviewModal onClose={() => setShowReviewModal(false)} userUid={user.uid} />
-      )}
-
       </div>
     </PullToRefresh>
 
@@ -886,66 +768,6 @@ const DashboardClient = React.memo(function DashboardClient({
         onTabClick={handleTabChange}
       />
     )}
-
-
-
-    {showNicknameModal && (
-      <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 backdrop-blur-md bg-white/70 dark:bg-black/70 animate-in fade-in duration-300">
-        <div className="w-full max-w-md bg-surface text-primary rounded-[24px] shadow-2xl p-6 sm:p-8 border border-border transition-all animate-in zoom-in-95 duration-200">
-          <div className="text-center mb-6">
-            <div className="w-12 h-12 bg-[#c44d00]/10 dark:bg-[#ea6100]/10 text-[#c44d00] dark:text-[#ea6100] rounded-full flex items-center justify-center mx-auto mb-4">
-              <MessageSquare size={24} />
-            </div>
-            <h2 className="text-xl font-bold tracking-tight mb-2">반갑습니다! 닉네임을 설정해주세요</h2>
-            <p className="text-sm text-tertiary">
-              D-VIEW 서비스를 이용하기 위해 사용할 닉네임을 입력해주세요.
-            </p>
-          </div>
-
-          <form onSubmit={handleNicknameSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="nickname-input" className="block text-xs font-semibold text-secondary mb-1.5 ml-1">
-                닉네임
-              </label>
-              <input
-                id="nickname-input"
-                type="text"
-                placeholder="2~10자 한글, 영문, 숫자, _"
-                value={newNickname}
-                onChange={(e) => {
-                  setNewNickname(e.target.value);
-                  if (nicknameError) setNicknameError('');
-                }}
-                className="w-full bg-body text-primary border border-border focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#c44d00]/20 dark:focus:ring-[#ea6100]/20 transition-all font-semibold"
-                autoComplete="off"
-                required
-                disabled={isSubmittingNickname}
-              />
-              {nicknameError && (
-                <p className="text-xs text-red-500 font-semibold mt-2 ml-1 animate-in slide-in-from-top-1 duration-200">
-                  {nicknameError}
-                </p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmittingNickname || !newNickname.trim()}
-              className="w-full bg-[#c44d00] hover:bg-[#9e3c00] dark:bg-[#ff8f00] dark:hover:bg-[#c44d00] text-white rounded-[14px] py-3.5 text-sm font-bold shadow-lg shadow-[#c44d00]/10 dark:shadow-[#ff8f00]/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {isSubmittingNickname ? '설정 중...' : '시작하기'}
-            </button>
-          </form>
-        </div>
-      </div>
-    )}
-
-    <LoginGateModal
-      isOpen={isLoginGateOpen}
-      onClose={() => setIsLoginGateOpen(false)}
-      message={loginGateMessage}
-      onLogin={handleLogin}
-    />
 
     {isCompareOpen && (
       <ErrorBoundary

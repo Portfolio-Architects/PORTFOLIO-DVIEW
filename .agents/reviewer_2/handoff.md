@@ -1,124 +1,134 @@
-# Handoff Report — Reviewer 2 (SSOT Alignment & Architecture Reviewer)
+# Handoff Report: Lounge & Auth Removal Review
+
+- **Agent**: Reviewer 2 (Lounge & Auth)
+- **Date**: 2026-09-19
+- **Verdict**: **APPROVE**
+
+---
 
 ## 1. Observation
 
-### 1.1 Document Review Observations
+1. **Deletion of Community/Lounge routes and APIs**:
+   - `src/app/lounge/*`: Confirmed deleted (0 items found).
+   - `src/app/api/posts`: Confirmed deleted.
+   - `src/app/api/comments`: Confirmed deleted.
+   - `src/app/api/push/notify-comment`: Confirmed deleted.
+   - `src/app/api/auth/session`: Confirmed deleted.
+   - `src/lib/repositories/post.repository.ts` and `comment.repository.ts`: Confirmed deleted.
+   - `src/lib/services/post.service.ts`: Confirmed deleted.
+   - `src/types/lounge.ts`: Confirmed deleted.
+   - `src/components/LoungeFeedClient.tsx`, `LoungeDetailClient.tsx`, `LoungeComposeClient.tsx`, `LoungeContainerClient.tsx`, `LoungeModalBackdrop.tsx`, `CommentSection.tsx`, `WriteReviewModal.tsx`, `AptStoriesWidget.tsx`, `LoungeTalkWidget.tsx`: All confirmed deleted.
+2. **Redirect Configuration in `next.config.ts`**:
+   - `frontend/next.config.ts` lines 56–65:
+     ```ts
+     {
+       source: '/lounge',
+       destination: '/',
+       permanent: true,
+     },
+     {
+       source: '/lounge/:path*',
+       destination: '/',
+       permanent: true,
+     },
+     ```
+   - Confirmed `permanent: true` (HTTP 301) for both `/lounge` and wildcard `/lounge/:path*` to `/`.
+3. **Neutralized AuthContext**:
+   - `frontend/src/contexts/AuthContext.tsx` lines 40–58:
+     ```ts
+     export const STATIC_AUTH_STATE: AuthContextType = Object.freeze({
+       user: null,
+       userProfile: null,
+       anonProfile: null,
+       isLoading: false,
+       handleLogin: async () => {},
+       handleLogout: async () => {},
+       updateLocalAnonProfile: () => {},
+     });
 
-1. **`ORIGINAL_REQUEST.md`** (Lines 139-178):
-   - User Follow-up `2026-08-22T14:50:24+09:00`: Service ultimate objective function expanded to "Dongtan Hyperlocal All-in-One Super-App" across 5 core domains:
-     1. Real Estate (부동산)
-     2. Stocks & Industry (주식 및 산업)
-     3. Running & Trails (러닝 및 산책)
-     4. Festivals & Events (축제 및 문화)
-     5. Dining & Hotplaces (맛집 및 로컬 상권)
-   - Requirements include R1 (Objective function revision), R2 (Engineering Report revamp), and R3 (SSOT and agent guideline synchronization across `AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`).
-   - Acceptance Criteria: `npx tsc --noEmit` 0 errors, Jest unit test suite 100% pass.
+     export const AuthContext = createContext<AuthContextType>(STATIC_AUTH_STATE);
 
-2. **`AGENT.md`** (Lines 6-67, 117-143):
-   - Line 6-26: `## 최대 목적함수 (Ultimate Objective Function)` explicitly declares the 5 domains:
-     - 1. 🏢 부동산 (Real Estate Intelligence & Valuation)
-     - 2. 🏭 주식 및 산업 (Semiconductor & Industry Hub)
-     - 3. 🏃 러닝 및 산책 (Running & Trails Curation)
-     - 4. 🎭 축제 및 문화 (Festivals & Civic Events)
-     - 5. 🍽️ 맛집 및 로컬 상권 (Dining & Hotplaces)
-   - Line 33-67: `## 재귀적 자기개선 루프 (Recursive Self-Improvement Loop)` contains 5 self-evaluation steps:
-     - Step 1. 가치 평가 (Value Assessment)
-     - Step 2. 트래픽 및 바이럴 엔진 (Growth Engine) with domain-specific dynamic Kakao share cards across all 5 domains and Schema.org SEO.
-     - Step 3. 멀티모달 데이터 무결성 및 정밀 연산 (Data Integrity & Multimodal Accuracy) with `Strict Real-Data-Only Rule` and zero fake data.
-     - Step 4. 자체 검증 및 다음 목표 제안 (Proactive Next-Step)
-     - Step 5. 문서 및 규칙의 재귀적 개선 (Meta Self-Improvement)
-   - Line 117-123: `## Stop-the-Line (안전 장치)` retains 4 hard guardrails: Zero-Jank UX, Type/Compile Error, Design System, Strict Real-Data.
-   - Line 124-143: `## Output & Reasoning Fidelity Harness` retains Virtual Dry Run, Edge Case & Defensive Design, Zero-Placeholder, Data Consistency & Integrity Harness, Performance & Speed Optimization.
-
-3. **`PROJECT.md`** (Lines 1-205):
-   - Section 1 (Lines 3-25): Platform Overview & 5 Core Domains explicitly detailed.
-   - Section 2 (Lines 28-48): Architecture covering Ingestion & Sync batch pipeline, Backend API & Services, Frontend UI & Navigation Layout, 3-tier resilient fallback (L1 SWR, L2 Redis, L3 Static Seed Backup).
-   - Section 3 (Lines 51-70): Feature Inventory with 15 granular feature specifications mapped to domains and status (DONE).
-   - Section 4 (Lines 73-82): Milestones M1 through M5 fully specified with scopes, dependencies, and DONE status.
-   - Section 5 (Lines 85-186): Standard TypeScript interface contracts:
-     - `RealEstateItem`
-     - `SemiconductorStockItem` & `JisanBuildingItem`
-     - `RunningTrailItem`
-     - `DongtanEventItem`
-     - `DiningPlaceItem`
-   - Section 6 (Lines 189-205): Comprehensive Code Layout directory mapping.
-
-4. **`PORTFOLIO DVIEW - Patch History.md`** (Line 7):
-   - Phase 999 logged at the very top of `## 1. Release & Refactoring History`:
-     - Date: `2026-08-22`
-     - Title: `동탄 하이퍼로컬 올인원 슈퍼앱 최대 목적함수 개정 및 엔지니어링 리포트 전면 고도화 (Dongtan Hyperlocal Super-App Objective Expansion & Full Engineering Report Revamp - Phase 999)`
-     - Full breakdown of R1, R2, R3, and R4 quality metrics.
-
-### 1.2 Build & Test Verification Observations
-
-- **Command**: `npx tsc --noEmit` in `frontend/`
-  - Output: Exited with code 0. Zero compiler errors or warnings.
-- **Command**: `npm test` in `frontend/`
-  - Output:
-    ```
-    Test Suites: 86 passed, 86 total
-    Tests:       846 passed, 846 total
-    Snapshots:   0 total
-    Time:        9.946 s
-    Ran all test suites.
-    ```
-  - Result: 100% green pass across all 86 test suites / 846 test assertions.
+     export const AuthProvider = React.memo(function AuthProvider({ children }: { children: ReactNode }) {
+       return (
+         <AuthContext.Provider value={STATIC_AUTH_STATE}>
+           {children}
+         </AuthContext.Provider>
+       );
+     });
+     ```
+   - Zero `useEffect`, zero `onAuthStateChanged`, zero Firebase network listeners.
+4. **Local Favorites Operation in `useFavorites.ts`**:
+   - `frontend/src/hooks/useFavorites.ts` lines 35–61:
+     Reads/writes `'dview_guest_favorites'` from/to `localStorage`.
+     Dispatches `CustomEvent('dview_favorites_updated')` and listens to `'storage'` event for cross-tab sync.
+     Zero calls to `/api/favorite`.
+   - `npm test -- src/hooks/useFavorites.test.ts` passed 4/4 tests:
+     `PASS src/hooks/useFavorites.test.ts`
+     `√ should operate 100% locally with zero network calls to /api/favorite even when user is provided`
+5. **Navigation and UI Cleaning**:
+   - `FloatingUserBar.tsx`: Reduced to 25 lines containing only Settings trigger.
+   - `LoungeHeader.tsx`: Exactly 3 tabs: 아파트 랩 (`/`), 아파트 탐색 (`/explore`), 단지 MBTI (`/mbti`).
+   - `MobileDock.tsx`: Exactly 3 tabs: `overview` (`/`), `imjang` (`/explore`), `mbti` (`/mbti`).
+   - `Footer.tsx`: No admin/lounge links.
+   - `ApartmentModal.tsx`: No login/review modal triggers.
+6. **Automated Verification**:
+   - `npx tsc --noEmit`: Exit 0 (0 errors).
+   - `npm test`: Exit 0 (`Test Suites: 120 passed, 120 total; Tests: 1311 passed, 1311 total`).
+   - `npm run build`: Exit 0 (225 static pages compiled, 0 lounge/admin routes).
+   - `npm run lint`: Exit 0 (0 errors, 1 warning in test file).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Step 1 (User Request Alignment)**: `ORIGINAL_REQUEST.md` mandated updating the ultimate objective function to an all-in-one hyperlocal super-app spanning 5 domains, synchronizing `AGENT.md`, `PROJECT.md`, and `PORTFOLIO DVIEW - Patch History.md`, and passing TypeScript and Jest test suites.
-2. **Step 2 (AGENT.md Verification)**: Observation 1.1.2 confirms that `AGENT.md` defines the 5 domains in Section 1, structures the 5-step recursive self-improvement loop with 5-domain viral hooks in Section 2, and retains all Stop-the-Line safety guardrails and fidelity harnesses in Sections 4 & 5.
-3. **Step 3 (PROJECT.md Verification)**: Observation 1.1.3 confirms that `PROJECT.md` details the platform architecture, 5 domains, 15-item feature inventory, M1~M5 milestones, and clean TypeScript interface contracts (`RealEstateItem`, `SemiconductorStockItem`, `JisanBuildingItem`, `RunningTrailItem`, `DongtanEventItem`, `DiningPlaceItem`).
-4. **Step 4 (Patch History Verification)**: Observation 1.1.4 confirms that Phase 999 is logged at the top of `PORTFOLIO DVIEW - Patch History.md` with complete details.
-5. **Step 5 (Codebase & Build Verification)**: Observation 1.2 confirms that TypeScript compilation passes with zero errors and all 86 test suites / 846 tests pass cleanly.
-6. **Step 6 (Adversarial Integrity Verification)**: Code inspection of test suites (e.g. `calculatorEngines.test.ts`, `scoring.test.ts`, `local-notices-e2e.test.tsx`) confirmed that calculations and assertions execute genuine algorithmic/mathematical logic without hardcoded cheats, dummy facades, or shortcuts.
+1. From Observation 1, the community and lounge pages, API routes, repositories, services, and UI components were completely purged, fulfilling R2 from `ORIGINAL_REQUEST.md`.
+2. From Observation 2, incoming traffic or external links targeting `/lounge` or deep links like `/lounge/:id` will receive a 301 Permanent Redirect to `/`, preventing broken links and preserving SEO.
+3. From Observation 3, `AuthContext` provides a static anonymous state without initializing any Firebase Auth listeners or network calls, fulfilling R3 and neutralizing authentication overhead.
+4. From Observation 4, `useFavorites` maintains user favorites purely in browser localStorage with multi-tab and multi-component reactivity, eliminating all dependency on `/api/favorite`.
+5. From Observation 5, all UI entry points (desktop header, mobile bottom dock, floating user bar, footer, modals) have been cleanly trimmed to only expose active public features (Apartment Lab, Explore, MBTI), fulfilling R4.
+6. From Observation 6, TypeScript compilation, full unit and integration test suites (120 suites, 1,311 tests), production build, and linter pass with 100% success and zero regressions.
+7. Therefore, all requirements for Lounge and Auth cleanup are satisfied with high quality and zero integrity violations.
 
 ---
 
-## 3. Quality & Adversarial Review Reports
+## 3. Caveats
 
-### Quality Review Report
-- **Verdict**: **APPROVE**
-- **Verified Claims**:
-  - `AGENT.md` reflects Super-App objective function, 5-step recursive loop with viral hooks, and safety guardrails → Verified via direct inspection → PASS
-  - `PROJECT.md` documents platform architecture, 5 domains, feature inventory, M1~M5 milestones, and interface contracts → Verified via direct inspection → PASS
-  - `PORTFOLIO DVIEW - Patch History.md` logs Phase 999 at the top → Verified via direct inspection → PASS
-  - TypeScript compilation (`npx tsc --noEmit`) → 0 errors → PASS
-  - Jest test execution (`npm test`) → 86 suites / 846 tests passed → PASS
-- **Coverage Gaps**: None. All 5 domains and SSOT docs fully synchronized.
-- **Unverified Items**: None.
-
-### Adversarial Challenge Report
-- **Overall Risk Assessment**: LOW
-- **Assumption Stress-Testing**:
-  - *Assumption*: Interface contracts in `PROJECT.md` might clash with existing types.
-    - *Stress-test*: Checked against TypeScript compilation (`npx tsc --noEmit`). No type collisions or errors detected.
-  - *Assumption*: Stop-the-Line safety mechanisms might have been relaxed during the objective function expansion.
-    - *Stress-test*: Checked `AGENT.md` lines 117-143. All 4 Stop-the-Line triggers and 5 Output & Reasoning Fidelity harnesses are preserved intact.
-  - *Assumption*: Test results might be fabricated or hardcoded.
-    - *Stress-test*: Live execution of `npm test` verified 86 test suites and 846 tests running real mathematical computations and DOM assertions in 9.946s.
+- An empty directory `src/components/lounge` exists on disk (0 files inside). This has zero effect on runtime, bundle size, or compilation, but could be deleted if desired during repository housekeeping.
+- No other caveats.
 
 ---
 
-## 4. Caveats
+## 4. Conclusion
 
-No caveats. All target documentation, interface definitions, build status, and test suites have been directly and independently examined and verified.
-
----
-
-## 5. Conclusion
-
-**Verdict**: **APPROVE**
-
-Phase 999 SSOT alignment, architecture documentation, and codebase verification are fully complete, strictly coherent across all documents (`AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, `ORIGINAL_REQUEST.md`), and backed by clean TypeScript compilation and 100% green Jest test results (86/86 suites, 846/846 tests). No integrity violations or discrepancies were found.
+**Verdict**: **APPROVE**  
+All changes regarding Community/Lounge removal, 301 redirects, Auth neutralization, and local favorites meet the specification in full. No integrity violations or regressions were found.
 
 ---
 
-## 6. Verification Method
+## 5. Verification Method
 
-To independently reproduce this verification:
-1. `cd frontend && npx tsc --noEmit` (Expected: exit code 0)
-2. `cd frontend && npm test` (Expected: 86 passed suites, 846 passed tests, exit code 0)
-3. Inspect `AGENT.md`, `PROJECT.md`, and `PORTFOLIO DVIEW - Patch History.md` lines cited in Section 1.
+To independently verify this verdict:
+1. Check TypeScript compilation:
+   ```bash
+   cd frontend
+   npx tsc --noEmit
+   ```
+2. Run the test suite:
+   ```bash
+   cd frontend
+   npm test
+   ```
+3. Run the production build:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+4. Verify nonexistence of lounge routes and APIs:
+   - Check `src/app/lounge`: directory does not exist.
+   - Check `src/app/api/posts`: directory does not exist.
+   - Check `src/app/api/comments`: directory does not exist.
+   - Check `src/app/api/auth/session`: directory does not exist.
+5. Invalidation conditions:
+   - Any test failure in `npm test`.
+   - Any TypeScript compile error in `npx tsc --noEmit`.
+   - Re-introduction of `/lounge` routes or Firebase Auth listeners in `AuthContext.tsx`.

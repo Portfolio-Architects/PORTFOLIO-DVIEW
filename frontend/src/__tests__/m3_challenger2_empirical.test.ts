@@ -1,4 +1,5 @@
-﻿/**
+/** @jest-environment node */
+/**
  * @file m3_challenger2_empirical.test.ts
  * @description Empirical Challenger 2 Verification Suite for Milestone 3
  * Deep stress testing for staticDataService and apiClient:

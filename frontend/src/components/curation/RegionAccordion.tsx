@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, ChevronDown, ChevronUp, MessageSquare } from 'lucide-react';
+import { ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 import { haversineDistance } from "@/lib/utils/haversine";
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit, formatGapPrice } from '../MacroDashboardClient';
@@ -454,25 +454,6 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                           </div>
                         </button>
                       ))}
-
-                      {/* 커뮤니티 라운지 연결 브릿지 */}
-                      <button 
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.location.href = `/lounge`;
-                        }}
-                        className="mt-2.5 flex items-center justify-between p-3.5 rounded-[12px] bg-body hover:bg-[#e6f7f3] hover:text-[#c44d00] border border-dashed border-border text-secondary text-[12px] font-extrabold cursor-pointer transition-colors group/bridge gap-2 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-[#c44d00]/50"
-                      >
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <MessageSquare className="w-3.5 h-3.5 text-[#c44d00] shrink-0" />
-                          <span className="truncate">"{group.title}" 권역 입주민 라운지 수다방 입장</span>
-                        </div>
-                        <span className="text-[11px] font-extrabold text-[#c44d00] inline-flex items-center shrink-0">
-                          대화 참여
-                          <ChevronRight className="w-3.5 h-3.5 ml-0.5 transform group-hover/bridge:translate-x-0.5 transition-transform" />
-                        </span>
-                      </button>
                     </div>
                   );
                 })()}

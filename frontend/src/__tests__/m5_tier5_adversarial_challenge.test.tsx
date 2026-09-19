@@ -5,8 +5,7 @@
  * 1. frontend/src/lib/services/newsData.ts (deduplication collision, concurrent race conditions, cache stampede, error fallbacks)
  * 2. frontend/src/app/api/local-notices/route.ts (parameter fuzzing, dual envelope serialization, rate limiting, error responses)
  * 3. frontend/src/app/api/bypass-notice/route.ts (SSRF attacks, open redirect bypasses, HTML/XSS injection escaping, nonce propagation)
- * 4. frontend/src/components/LoungeFeedClient.tsx (corrupted/null notice items, D-Day math edge cases, XSS resilience, rapid tab switching, modal synchronization)
- * 5. frontend/scripts/fetch-local-notices.js & scraping pipeline (malformed HTML, table column shifts, regex validation, synthetic generators)
+ * 4. frontend/scripts/fetch-local-notices.js & scraping pipeline (malformed HTML, table column shifts, regex validation, synthetic generators)
  */
 
 /* eslint-disable @typescript-eslint/no-require-imports */
@@ -74,9 +73,7 @@ import { noticeSchema } from '@/lib/validation/facade.schemas';
 import { GET as getLocalNoticesRoute } from '@/app/api/local-notices/route';
 import { GET as getBypassNoticeRoute } from '@/app/api/bypass-notice/route';
 
-// UI Components
-import LoungeFeedClient from '@/components/LoungeFeedClient';
-import { shareLocalNoticeToKakao } from '@/lib/utils/kakaoShare';
+
 
 // ============================================================================
 // MOCKS & SETUP
@@ -165,17 +162,7 @@ jest.mock('@/lib/repositories/apartment.repository', () => ({
   getApartments: jest.fn().mockResolvedValue([]),
 }));
 
-jest.mock('@/components/LoungeDetailClient', () => {
-  const MockDetail = ({ postId }: { postId: string }) => <div data-testid="lounge-detail-mock">Detail for {postId}</div>;
-  MockDetail.displayName = 'MockLoungeDetailClient';
-  return MockDetail;
-});
 
-jest.mock('@/components/AptStoriesWidget', () => {
-  const MockWidget = () => <div data-testid="apt-stories-widget">Apt Stories Mock</div>;
-  MockWidget.displayName = 'MockAptStoriesWidget';
-  return MockWidget;
-});
 
 jest.mock('@/components/ui/MarkdownViewer', () => {
   const MockMarkdown = ({ content }: { content: string }) => <div data-testid="markdown-viewer">{content}</div>;
@@ -223,7 +210,7 @@ jest.mock('next/navigation', () => ({
     prefetch: jest.fn(),
   }),
   useSearchParams: () => mockSearchParams,
-  usePathname: () => '/lounge',
+  usePathname: () => '/news',
 }));
 
 jest.mock('@/lib/redis', () => ({
@@ -523,202 +510,7 @@ describe('Tier 5 Adversarial Coverage & Edge Case Discovery Suite', () => {
     });
   });
 
-  // ==========================================================================
-  // SECTION 4: LoungeFeedClient.tsx Adversarial UI & Edge Case Rendering
-  // ==========================================================================
-  describe('4. LoungeFeedClient.tsx: Edge Cases, Null Safety, & Interaction', () => {
-    it('4.1 renders safely without crashing when notice item contains undefined, null, and empty properties', async () => {
-      const corruptedNotices: any[] = [
-        {
-          id: 'corrupted_1',
-          title: '',
-          url: '',
-          dept: '',
-          date: '2026-06-01',
-          isDongtan: true,
-        },
-        {
-          id: 'corrupted_2',
-          title: '정상 제목',
-          url: undefined,
-          dept: undefined,
-          date: 'invalid-date-format',
-          isDongtan: true,
-          source: undefined,
-        },
-      ];
 
-      await act(async () => {
-        render(
-          <LoungeFeedClient
-            initialPosts={[]}
-            initialNotices={corruptedNotices}
-            currentTab="동탄구 소식"
-          />
-        );
-      });
-
-      expect(screen.getByText('실시간 행정망 자동 수집 중')).toBeInTheDocument();
-      expect(screen.getByText('정상 제목')).toBeInTheDocument();
-    });
-
-    it('4.2 renders culture notices with extreme D-Day boundaries (today, tomorrow, next month, past dates)', async () => {
-      const now = new Date();
-      const pad = (n: number) => String(n).padStart(2, '0');
-      const todayStr = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-      const tomorrow = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-      const tomorrowStr = `${tomorrow.getFullYear()}-${pad(tomorrow.getMonth() + 1)}-${pad(tomorrow.getDate())}`;
-      const pastStr = '2020-01-01';
-
-      const cultureItems: NoticeData[] = [
-        { id: 'c_today', title: '[축제] 오늘 축제', date: todayStr, dept: '호수공원', isDongtan: true, source: 'culture' },
-        { id: 'c_tmr', title: '[강좌] 내일 강좌', date: tomorrowStr, dept: '동탄1동', isDongtan: true, source: 'culture' },
-        { id: 'c_past', title: '[축제] 지난 축제', date: pastStr, dept: '센트럴파크', isDongtan: true, source: 'culture' },
-      ];
-
-      await act(async () => {
-        render(
-          <LoungeFeedClient
-            initialPosts={[]}
-            initialNotices={cultureItems}
-            currentTab="동탄구 소식"
-          />
-        );
-      });
-
-      expect(screen.getByText('[축제] 오늘 축제')).toBeInTheDocument();
-      expect(screen.getByText('오늘 개최')).toBeInTheDocument();
-      expect(screen.getByText('접수 D-1')).toBeInTheDocument();
-      expect(screen.getByText('종료됨')).toBeInTheDocument();
-    });
-
-    it('4.3 handles rapid multi-tab and sub-filter switching without memory leaks or race conditions', async () => {
-      const sampleNotices: NoticeData[] = [
-        { id: 'gosi_1', title: '고시 공고 1', date: '2026-06-01', dept: '도시계획과', isDongtan: true, source: 'gosi' },
-        { id: 'rail_1', title: '철도 공고 1', date: '2026-06-02', dept: '철도전략과', isDongtan: true, source: 'rail' },
-        { id: 'dong_1', title: '동탄1동 공고', date: '2026-06-03', dept: '동탄1동', isDongtan: true, source: 'dong' },
-        { id: 'dong_2', title: '동탄2동 공고', date: '2026-06-04', dept: '동탄2동', isDongtan: true, source: 'dong' },
-        { id: 'culture_1', title: '루나 분수쇼', date: '2026-06-05', dept: '호수공원', isDongtan: true, source: 'culture' },
-      ];
-
-      render(
-        <LoungeFeedClient
-          initialPosts={[]}
-          initialNotices={sampleNotices}
-          currentTab="동탄구 소식"
-        />
-      );
-
-      // Switch to '시정공고'
-      await act(async () => {
-        fireEvent.click(screen.getByText('시정공고'));
-      });
-      expect(screen.getByText('고시 공고 1')).toBeInTheDocument();
-      expect(screen.queryByText('철도 공고 1')).not.toBeInTheDocument();
-
-      // Switch to '교통·철도'
-      await act(async () => {
-        fireEvent.click(screen.getByText('교통·철도'));
-      });
-      expect(screen.getByText('철도 공고 1')).toBeInTheDocument();
-
-      // Switch to '동네행정' -> sub-filter '동탄1동'
-      await act(async () => {
-        fireEvent.click(screen.getByText('동네행정'));
-      });
-      expect(screen.getByText('동탄1동 공고')).toBeInTheDocument();
-      expect(screen.getByText('동탄2동 공고')).toBeInTheDocument();
-
-      await act(async () => {
-        // Select '동탄1동' sub-chip
-        const chips = screen.getAllByRole('button', { name: '동탄1동' });
-        fireEvent.click(chips[0]);
-      });
-      expect(screen.getByText('동탄1동 공고')).toBeInTheDocument();
-      expect(screen.queryByText('동탄2동 공고')).not.toBeInTheDocument();
-
-      // Switch to '문화·행사'
-      await act(async () => {
-        fireEvent.click(screen.getByText('문화·행사'));
-      });
-      expect(screen.getByText('루나 분수쇼')).toBeInTheDocument();
-    });
-
-    it('4.4 renders AI Report Markdown detail modal correctly when triggered from talk view and supports Kakao share', async () => {
-      const aiReportNotice: NoticeData = {
-        id: 'ai_report_test',
-        title: '[AI 리포트] 동탄2 전세가율 안정 단지 분석',
-        url: 'https://dongtanview.com/',
-        dept: 'AI 데이터 랩',
-        date: '2026-06-07',
-        isDongtan: true,
-        source: 'culture',
-        content: '### 📊 동탄2 분석\nAI 리포트 본문 내용입니다.',
-      };
-
-      // Set hash to open notice modal
-      window.location.hash = '#notice=ai_report_test';
-
-      await act(async () => {
-        render(
-          <LoungeFeedClient
-            initialPosts={[]}
-            initialNotices={[aiReportNotice]}
-            currentTab="모든 이야기"
-          />
-        );
-      });
-
-      // Dispatch hashchange event
-      await act(async () => {
-        window.dispatchEvent(new Event('hashchange'));
-      });
-
-      // Verify Modal Title is displayed in the modal
-      expect(screen.getByText('[AI 리포트] 동탄2 전세가율 안정 단지 분석')).toBeInTheDocument();
-      expect(screen.getByText(/AI 매도 적합성/)).toBeInTheDocument();
-
-      // Test Kakao share button
-      const shareBtn = screen.getByText('리포트 카카오톡 공유');
-      await act(async () => {
-        fireEvent.click(shareBtn);
-      });
-      expect(shareLocalNoticeToKakao).toHaveBeenCalled();
-    });
-
-    it('4.5 renders notice detail modal when currentTab="동탄구 소식" upon hash change', async () => {
-      const cultureNotice: NoticeData = {
-        id: 'culture_modal_test',
-        title: '[강좌] 동탄1동 스마트폰 강좌',
-        url: 'https://reserve.hscity.go.kr/',
-        dept: '동탄1동',
-        date: '2026-06-12',
-        isDongtan: true,
-        source: 'culture',
-        content: '### 강좌 상세 내용',
-      };
-
-      window.location.hash = '#notice=culture_modal_test';
-
-      await act(async () => {
-        render(
-          <LoungeFeedClient
-            initialPosts={[]}
-            initialNotices={[cultureNotice]}
-            currentTab="동탄구 소식"
-          />
-        );
-      });
-
-      await act(async () => {
-        window.dispatchEvent(new Event('hashchange'));
-      });
-
-      // On '동탄구 소식' tab, the modal JSX is rendered and MarkdownViewer displays the content
-      expect(screen.getByTestId('markdown-viewer')).toBeInTheDocument();
-      expect(screen.getByText('### 강좌 상세 내용')).toBeInTheDocument();
-    });
-  });
 
 
   // ==========================================================================

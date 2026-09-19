@@ -29,7 +29,6 @@ import {
 import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
-import FloatingUserBar from '@/components/FloatingUserBar';
 import MobileDock from '@/components/pwa/MobileDock';
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
@@ -300,11 +299,6 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
         <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between h-[80px] gap-4 md:gap-0">
             
-            {/* Mobile: Top Bar */}
-            <div className="md:hidden flex items-center justify-end w-full">
-              <FloatingUserBar />
-            </div>
-
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
@@ -351,10 +345,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               
             </nav>
 
-            {/* Right: Desktop Extra Nav & User Bar */}
-            <div className="hidden md:flex items-center justify-end gap-4">
-              <FloatingUserBar />
-            </div>
+            {/* Right: Desktop Spacer */}
+            <div className="hidden md:flex items-center justify-end" />
             
           </div>
         </div>

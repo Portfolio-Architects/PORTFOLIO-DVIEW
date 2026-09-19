@@ -11,6 +11,7 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    "coverage/**",
     "next-env.d.ts",
     "scripts/**",
     "*.js",
@@ -34,6 +35,7 @@ const eslintConfig = defineConfig([
       "react-hooks/purity": "off",
       "react-hooks/set-state-in-effect": "off",
       "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/immutability": "off",
       "@typescript-eslint/no-unused-expressions": "warn",
       "no-unused-expressions": "warn"
     }

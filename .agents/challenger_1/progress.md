@@ -1,13 +1,22 @@
-# Progress — Challenger 1
+# Progress — Challenger 1 (Adversarial Route & Security Verifier)
 
-Last visited: 2026-08-22T15:00:20+09:00
+Last visited: 2026-09-19T21:07:15+09:00
 
-## Status: Completed
+## Status
+Challenge completed. Verdict: **APPROVE** (86/86 assertions passed, 0 build/lint/typecheck errors).
 
-- [x] Initialized workspace, DISPATCH.md, and BRIEFING.md
-- [x] 1. Read authoritative user request (ORIGINAL_REQUEST.md)
-- [x] 2. Byte/content diff verification between `PORTFOLIO DVIEW - Engineering Report.md` and `frontend/src/data/engineering-report.md` (100% byte identical, SHA256 matches)
-- [x] 3. 5-Domain depth, math rigor, and data mapping analysis (Utility Score 200 pts, DCF Fair PER, Chopooma, 56 Jisan, 5 Signature Trails, Luna Show, 3 Dining zones & 4 anchor tenants)
-- [x] 4. Link & placeholder integrity scan in `PROJECT.md`, `AGENT.md`, `PORTFOLIO DVIEW - Patch History.md` (0 unexpected placeholders, active docs 100% intact)
-- [x] 5. Run `npx tsc --noEmit` (0 errors) and `npm test` (86 suites / 846 tests passed) in `frontend/`
-- [x] 6. Prepare `handoff.md` and report verdict to parent
+## Steps
+- [x] Step 1: Record dispatch in `DISPATCH.md` and update `BRIEFING.md`
+- [x] Step 2: Formulate adversarial verification plan
+- [x] Step 3: Adversarially test filesystem for defunct routes (`/admin/*`, `/write-report/*`, `/api/admin/*`, `/api/apartments-sync`, `/api/posts/*`, `/api/comments/*`, `/api/auth/session`) — PASS
+- [x] Step 4: Verify `next.config.ts` redirects (`/lounge` -> `/`) and test redirect logic — PASS
+- [x] Step 5: Adversarially search `src/` for orphaned links, handlers, imports, endpoints, or UI triggers — PASS
+- [x] Step 6: Verify authentication neutralization and security posture (no Firebase Auth calls, anonymous state) — PASS
+- [x] Step 7: Run empirical tests, build, and typecheck:
+  - `node scripts/adversarial-route-security-challenge.js` (86/86 passed) — PASS
+  - `npx tsc --noEmit` (0 errors) — PASS
+  - `npm run lint` (0 errors) — PASS
+  - `npm run build` (225 pages generated, exit 0) — PASS
+  - `npm test` route & nav suites (32/32 passed) — PASS
+- [x] Step 8: Document analysis in `analysis.md` and handoff report in `handoff.md`
+- [x] Step 9: Deliver verdict (APPROVE) and notify caller via `send_message`

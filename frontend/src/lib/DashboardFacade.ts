@@ -16,22 +16,18 @@
 
 // Types (re-export for backward compatibility)
 export type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
-export type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
+export type { FieldReportData, ReportSections } from '@/lib/types/report.types';
 export type { UserReview } from '@/lib/types/review.types';
 
 // Internal imports
 import type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
-import type { FieldReportData, ReportSections, CommentData } from '@/lib/types/report.types';
+import type { FieldReportData, ReportSections } from '@/lib/types/report.types';
 import type { UserReview } from '@/lib/types/review.types';
 
-import { isAdmin as checkAdmin } from '@/lib/config/admin.config';
-import * as PostRepo from '@/lib/repositories/post.repository';
 import * as ReportRepo from '@/lib/repositories/report.repository';
-import * as CommentRepo from '@/lib/repositories/comment.repository';
 import * as ReviewRepo from '@/lib/repositories/review.repository';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
-import * as PostService from '@/lib/services/post.service';
 import * as ReportService from '@/lib/services/reportService';
 import { createInitialKPIs, startKPISimulation } from '@/lib/services/kpi.service';
 import { logger } from '@/lib/services/logger';
@@ -39,22 +35,16 @@ import { logger } from '@/lib/services/logger';
 
 // Import validation schemas from facade.schemas.ts
 import {
-  AddPostInputSchema,
   AddFieldReportInputSchema,
-  AddFieldReportCommentInputSchema,
   AddUserReviewInputSchema,
   UpdateNicknameInputSchema,
   UpdatePhotoURLInputSchema,
   GetFullReportInputSchema,
   GetFullReportByApartmentNameInputSchema,
   DeleteReviewInputSchema,
-  DeletePostInputSchema,
-  IncrementLikeInputSchema,
-  IncrementPostViewInputSchema,
   IncrementFieldReportViewInputSchema,
   IncrementFieldReportLikeInputSchema,
   IncrementReviewLikeInputSchema,
-  DeleteFieldReportCommentInputSchema,
 } from '@/lib/validation/facade.schemas';
 
 
@@ -68,23 +58,15 @@ export interface DashboardDataStrategy {
   getFullReportByApartmentName?(apartmentName: string): Promise<FieldReportData | null>;
   getAdBanner(): AdBannerData;
   subscribe?(callback: () => void): () => void;
-  addPost?(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string): Promise<void>;
-  incrementPostView?(postId: string, title?: string): Promise<void>;
   addFieldReport?(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void): Promise<void>;
   incrementFieldReportView?(reportId: string, title?: string): Promise<void>;
-  addFieldReportComment?(reportId: string, text: string, authorUid: string, apartmentName?: string): Promise<void>;
-  deleteFieldReportComment?(reportId: string, commentId: string, authorUid: string, text: string): Promise<void>;
-  incrementLike?(postId: string): Promise<void>;
   incrementFieldReportLike?(reportId: string): Promise<void>;
   incrementReviewLike?(reviewId: string): Promise<void>;
   deleteReview?(reviewId: string): Promise<void>;
-  deletePost?(postId: string): Promise<void>;
-  listenToComments?(reportId: string, callback: (comments: CommentData[]) => void): () => void;
   getUserProfile?(uid: string): Promise<import('@/lib/types/user.types').UserProfile>;
   getUserReviews?(): UserReview[];
   addUserReview?(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File): Promise<void>;
   getDongtanApartments?(): string[];
-  isAdmin(email: string | null | undefined): boolean;
   subscribeTo?(key: 'kpis' | 'newsFeed' | 'fieldReports' | 'userReviews' | 'dongtanApartments', callback: () => void): () => void;
   destroy?(): void;
 }
@@ -106,33 +88,24 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   private initialized = false;
 
   // Dependencies
-  private postRepo = PostRepo;
   private reportRepo = ReportRepo;
-  private commentRepo = CommentRepo;
   private reviewRepo = ReviewRepo;
   private userRepo = UserRepo;
   private apartmentRepo = ApartmentRepo;
-  private postService = PostService.postService;
   private reportService = ReportService.reportService;
 
   constructor(deps?: {
-    postRepo?: typeof PostRepo;
     reportRepo?: typeof ReportRepo;
-    commentRepo?: typeof CommentRepo;
     reviewRepo?: typeof ReviewRepo;
     userRepo?: typeof UserRepo;
     apartmentRepo?: typeof ApartmentRepo;
-    postService?: PostService.PostService;
     reportService?: ReportService.ReportService;
   }) {
     if (deps) {
-      if (deps.postRepo) this.postRepo = deps.postRepo;
       if (deps.reportRepo) this.reportRepo = deps.reportRepo;
-      if (deps.commentRepo) this.commentRepo = deps.commentRepo;
       if (deps.reviewRepo) this.reviewRepo = deps.reviewRepo;
       if (deps.userRepo) this.userRepo = deps.userRepo;
       if (deps.apartmentRepo) this.apartmentRepo = deps.apartmentRepo;
-      if (deps.postService) this.postService = deps.postService;
       if (deps.reportService) this.reportService = deps.reportService;
     }
     // Only init Firestore listeners on the client side
@@ -194,16 +167,6 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     };
   }
 
-  async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) {
-    try {
-      await this.postService.createPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
-    } catch (e: unknown) {
-      logger.error('DashboardFacade.addPost', 'Post creation failed', { title }, e);
-      throw e;
-    }
-  }
-
-
   async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     try {
       await this.reportService.createFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
@@ -213,41 +176,8 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  async addFieldReportComment(reportId: string, text: string, authorUid: string, apartmentName?: string) {
-    try {
-      const profile = await this.userRepo.getOrCreateProfile(authorUid);
-      await this.commentRepo.addComment(reportId, text, profile.nickname, authorUid, apartmentName);
-    } catch (e: unknown) {
-      logger.error('DashboardFacade.addFieldReportComment', 'Comment failed', { reportId }, e);
-      throw e;
-    }
-  }
-
-  async deleteFieldReportComment(reportId: string, commentId: string, authorUid: string, text: string) {
-    try {
-      await this.commentRepo.deleteComment(reportId, commentId, authorUid, text);
-    } catch (e: unknown) {
-      logger.error('DashboardFacade.deleteFieldReportComment', 'Comment deletion failed', { reportId, commentId }, e);
-      throw e;
-    }
-  }
-
-  listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
-    return this.commentRepo.listenToComments(reportId, callback);
-  }
-
   async getUserProfile(uid: string): Promise<import('@/lib/types/user.types').UserProfile> {
     return this.userRepo.getOrCreateProfile(uid);
-  }
-
-  async incrementLike(postId: string) {
-    try { await this.postRepo.incrementPostLike(postId); }
-    catch (e: unknown) { logger.error('DashboardFacade.incrementLike', 'Like failed', { postId }, e); }
-  }
-
-  async incrementPostView(postId: string, title?: string) {
-    try { await this.postRepo.incrementPostView(postId, title); }
-    catch (e: unknown) { logger.error('DashboardFacade.incrementPostView', 'View update failed', { postId }, e); }
   }
 
   async incrementFieldReportView(reportId: string, title?: string) {
@@ -282,15 +212,6 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
   async deleteReview(reviewId: string) {
     try { await this.reviewRepo.deleteReview(reviewId); }
     catch (e: unknown) { logger.error('DashboardFacade.deleteReview', 'Delete failed', { reviewId }, e); throw e; }
-  }
-
-  async deletePost(postId: string) {
-    try { await this.postRepo.deletePost(postId); }
-    catch (e: unknown) { logger.error('DashboardFacade.deletePost', 'Delete failed', { postId }, e); throw e; }
-  }
-
-  isAdmin(email: string | null | undefined): boolean {
-    return checkAdmin(email);
   }
 }
 
@@ -338,16 +259,6 @@ export class DashboardFacade {
   public getUserReviews(): UserReview[] { return this.strategy.getUserReviews ? this.strategy.getUserReviews() : []; }
   public getAdBanner(): AdBannerData { return this.strategy.getAdBanner(); }
   
-  public async addPost(title: string, content: string, category: string, authorUid: string, imageFile?: File, authorEmail?: string | null, customNickname?: string) {
-    const validation = AddPostInputSchema.safeParse({ title, content, category, authorUid, imageFile, authorEmail, customNickname });
-    if (!validation.success) {
-      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
-      logger.warn('DashboardFacade.addPost', 'Validation failed', { error: validation.error.format() });
-      throw new Error('글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-    }
-    if (this.strategy.addPost) await this.strategy.addPost(title, content, category, authorUid, imageFile, authorEmail, customNickname);
-  }
-  
   public async addFieldReport(apartmentName: string, sections: ReportSections, premiumScores: Record<string, number> | null, authorUid: string, imageEntries: {file: File, category: string}[], onProgress?: (done: number, total: number) => void) {
     const validation = AddFieldReportInputSchema.safeParse({ apartmentName, sections, premiumScores, authorUid, imageEntries });
     if (!validation.success) {
@@ -358,26 +269,6 @@ export class DashboardFacade {
     if (this.strategy.addFieldReport) await this.strategy.addFieldReport(apartmentName, sections, premiumScores, authorUid, imageEntries, onProgress);
   }
   
-  public async addFieldReportComment(reportId: string, text: string, authorUid: string, apartmentName?: string) {
-    const validation = AddFieldReportCommentInputSchema.safeParse({ reportId, text, authorUid, apartmentName });
-    if (!validation.success) {
-      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
-      logger.warn('DashboardFacade.addFieldReportComment', 'Validation failed', { error: validation.error.format() });
-      throw new Error('댓글 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-    }
-    if (this.strategy.addFieldReportComment) await this.strategy.addFieldReportComment(reportId, text, authorUid, apartmentName);
-  }
-
-  public async deleteFieldReportComment(reportId: string, commentId: string, authorUid: string, text: string) {
-    const validation = DeleteFieldReportCommentInputSchema.safeParse({ reportId, commentId, authorUid, text });
-    if (!validation.success) {
-      const errorMsg = validation.error.issues.map(err => err.message).join(', ');
-      logger.warn('DashboardFacade.deleteFieldReportComment', 'Validation failed', { error: validation.error.format() });
-      throw new Error('댓글 삭제 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
-    }
-    if (this.strategy.deleteFieldReportComment) await this.strategy.deleteFieldReportComment(reportId, commentId, authorUid, text);
-  }
-  
   public async addUserReview(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File) {
     const validation = AddUserReviewInputSchema.safeParse({ apartmentName, rating, content, authorUid, imageFile });
     if (!validation.success) {
@@ -386,15 +277,6 @@ export class DashboardFacade {
       throw new Error('리뷰 저장 실패: 입력값이 유효하지 않습니다. (' + errorMsg + ')');
     }
     if (this.strategy.addUserReview) await this.strategy.addUserReview(apartmentName, rating, content, authorUid, imageFile);
-  }
-  
-  public listenToComments(reportId: string, callback: (comments: CommentData[]) => void) {
-    const validation = GetFullReportInputSchema.safeParse(reportId);
-    if (!validation.success) {
-      logger.warn('DashboardFacade.listenToComments', 'Invalid reportId provided', { error: validation.error.format(), reportId });
-      return () => {};
-    }
-    return this.strategy.listenToComments ? this.strategy.listenToComments(reportId, callback) : () => {};
   }
   
   public async getUserProfile(uid: string) {
@@ -435,24 +317,6 @@ export class DashboardFacade {
     }
   }
   
-  public async incrementLike(postId: string) {
-    const validation = IncrementLikeInputSchema.safeParse(postId);
-    if (!validation.success) {
-      logger.warn('DashboardFacade.incrementLike', 'Invalid postId provided', { error: validation.error.format(), postId });
-      return;
-    }
-    if (this.strategy.incrementLike) await this.strategy.incrementLike(postId);
-  }
-  
-  public async incrementPostView(postId: string, title?: string) {
-    const validation = IncrementPostViewInputSchema.safeParse({ postId, title });
-    if (!validation.success) {
-      logger.warn('DashboardFacade.incrementPostView', 'Validation failed', { error: validation.error.format() });
-      return;
-    }
-    if (this.strategy.incrementPostView) await this.strategy.incrementPostView(postId, title);
-  }
-  
   public async incrementFieldReportView(reportId: string, title?: string) {
     const validation = IncrementFieldReportViewInputSchema.safeParse({ reportId, title });
     if (!validation.success) {
@@ -489,17 +353,7 @@ export class DashboardFacade {
     if (this.strategy.deleteReview) await this.strategy.deleteReview(reviewId);
   }
   
-  public async deletePost(postId: string) {
-    const validation = DeletePostInputSchema.safeParse(postId);
-    if (!validation.success) {
-      logger.warn('DashboardFacade.deletePost', 'Invalid postId provided', { error: validation.error.format(), postId });
-      return;
-    }
-    if (this.strategy.deletePost) await this.strategy.deletePost(postId);
-  }
-  
   public getDongtanApartments(): string[] { return this.strategy.getDongtanApartments ? this.strategy.getDongtanApartments() : []; }
-  public isAdmin(email: string | null | undefined): boolean { return this.strategy.isAdmin ? this.strategy.isAdmin(email) : false; }
 }
 
 // Prevent multiple instances during Next.js Fast Refresh

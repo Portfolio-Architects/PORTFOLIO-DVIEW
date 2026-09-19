@@ -36,12 +36,12 @@ describe('TimelineItemCard Empirical Stress & Edge Case Test Suite', () => {
 
     const injectionPoint = 'const isRising = item.delta > 0;';
     const trackingCode = `
-  global.stressCardRenderCounts = global.stressCardRenderCounts || {};
-  global.stressCardRenderCounts[item.aptName] = (global.stressCardRenderCounts[item.aptName] || 0) + 1;
+  (global as any).stressCardRenderCounts = (global as any).stressCardRenderCounts || {};
+  (global as any).stressCardRenderCounts[item.aptName] = ((global as any).stressCardRenderCounts[item.aptName] || 0) + 1;
 `;
     cardComponentCode = cardComponentCode.replace(injectionPoint, trackingCode + injectionPoint);
 
-    const tempFileContent = `
+    const tempFileContent = `// @ts-nocheck
 import React from 'react';
 import { TimelineItem } from './MacroDashboardClient';
 
@@ -53,6 +53,9 @@ ${cardComponentCode}
 
 export { TimelineItemCard };
 `;
+    if (fs.existsSync(tempPath)) {
+      fs.unlinkSync(tempPath);
+    }
     fs.writeFileSync(tempPath, tempFileContent, 'utf8');
   });
 

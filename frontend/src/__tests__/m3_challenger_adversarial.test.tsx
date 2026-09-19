@@ -9,12 +9,9 @@
 
 import { renderHook, act, waitFor } from '@testing-library/react';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
-import { usePostDetail } from '@/hooks/usePostDetail';
 import { useFavorites } from '@/hooks/useFavorites';
-import { useComments } from '@/hooks/useComments';
 import { useDashboardMeta } from '@/hooks/useDashboardMeta';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
-import * as PostRepo from '@/lib/repositories/post.repository';
 import { ApiClient, ApiClientError } from '@/lib/api/apiClient';
 import {
   staticDataService,
@@ -49,8 +46,6 @@ jest.mock('swr', () => {
     preload: jest.fn(),
   };
 });
-
-jest.mock('@/lib/repositories/post.repository');
 
 describe('Milestone 3 — Empirical Challenger Adversarial Suite', () => {
   const originalFetch = global.fetch;
@@ -156,85 +151,7 @@ describe('Milestone 3 — Empirical Challenger Adversarial Suite', () => {
       expect(result.current.fullReportData?.review).toBe('FINAL 5');
     });
 
-    it('usePostDetail: Rapid post switching with interleaved comments subscriptions and out-of-order responses', async () => {
-      const postResolvers: Record<string, (val: any) => void> = {};
-      const commentCallbacks: Record<string, (comments: any[]) => void> = {};
-      const unsubs: Record<string, jest.Mock> = {};
 
-      ['p-1', 'p-2', 'p-3', 'p-4'].forEach((id) => {
-        postResolvers[id] = () => {};
-        unsubs[id] = jest.fn();
-      });
-
-      (PostRepo.getPost as jest.Mock).mockImplementation((id: string) => {
-        return new Promise((resolve) => {
-          postResolvers[id] = resolve;
-        });
-      });
-
-      (PostRepo.listenToComments as jest.Mock).mockImplementation((id: string, cb: (comments: any[]) => void) => {
-        commentCallbacks[id] = cb;
-        return unsubs[id];
-      });
-
-      const { result, rerender } = renderHook(({ postId }) => usePostDetail(postId), {
-        initialProps: { postId: 'p-1' as string | null },
-      });
-
-      expect(result.current.isLoading).toBe(true);
-
-      // Rapidly switch p-1 -> p-2 -> p-3 -> p-4
-      rerender({ postId: 'p-2' });
-      expect(unsubs['p-1']).toHaveBeenCalled();
-
-      rerender({ postId: 'p-3' });
-      expect(unsubs['p-2']).toHaveBeenCalled();
-
-      rerender({ postId: 'p-4' });
-      expect(unsubs['p-3']).toHaveBeenCalled();
-
-      // Older comments callbacks trigger unexpectedly
-      act(() => {
-        if (commentCallbacks['p-1']) {
-          commentCallbacks['p-1']([{ id: 'c-1', text: 'Stale p1 comment', authorName: 'A' }]);
-        }
-        if (commentCallbacks['p-2']) {
-          commentCallbacks['p-2']([{ id: 'c-2', text: 'Stale p2 comment', authorName: 'B' }]);
-        }
-      });
-
-      expect(result.current.comments).toEqual([]);
-
-      // Older posts resolve out of order
-      await act(async () => {
-        postResolvers['p-1']({ id: 'p-1', title: 'Stale Post 1', likes: 1, views: 10 });
-        postResolvers['p-3']({ id: 'p-3', title: 'Stale Post 3', likes: 3, views: 30 });
-        postResolvers['p-2']({ id: 'p-2', title: 'Stale Post 2', likes: 2, views: 20 });
-      });
-
-      // Still no stale post attached
-      expect(result.current.post).toBeNull();
-      expect(result.current.isLoading).toBe(true);
-
-      // Resolve active post p-4 and fire its comments
-      await act(async () => {
-        postResolvers['p-4']({ id: 'p-4', title: 'Active Post 4', likes: 40, views: 400 });
-      });
-
-      act(() => {
-        if (commentCallbacks['p-4']) {
-          commentCallbacks['p-4']([{ id: 'c-4', text: 'Valid p4 comment', authorName: 'D' }]);
-        }
-      });
-
-      expect(result.current.isLoading).toBe(false);
-      expect(result.current.post?.id).toBe('p-4');
-      expect(result.current.post?.title).toBe('Active Post 4');
-      expect(result.current.likes).toBe(40);
-      expect(result.current.views).toBe(400);
-      expect(result.current.comments.length).toBe(1);
-      expect(result.current.comments[0].text).toBe('Valid p4 comment');
-    });
   });
 
   // =========================================================================
@@ -298,30 +215,7 @@ describe('Milestone 3 — Empirical Challenger Adversarial Suite', () => {
       expect(unmountedWarning).toBe(false);
     });
 
-    it('usePostDetail: Unmounting while fetching discards delayed response and unsubs comments', async () => {
-      const unsub = jest.fn();
-      let resolveFetch: (val: any) => void = () => {};
-      (PostRepo.getPost as jest.Mock).mockImplementation(
-        () => new Promise((r) => { resolveFetch = r; })
-      );
-      (PostRepo.listenToComments as jest.Mock).mockReturnValue(unsub);
 
-      const { unmount } = renderHook(() => usePostDetail('post-xyz'));
-
-      unmount();
-
-      expect(unsub).toHaveBeenCalled();
-
-      // Resolve delayed promise after unmount
-      await act(async () => {
-        resolveFetch({ id: 'post-xyz', title: 'Post' });
-      });
-
-      const unmountedWarning = consoleErrorSpy.mock.calls.some((args) =>
-        args.some((arg) => typeof arg === 'string' && arg.includes('unmounted component'))
-      );
-      expect(unmountedWarning).toBe(false);
-    });
 
     it('useFavorites: Unmounting during multi-item guest sync aborts all active requests', async () => {
       localStorage.setItem('dview_guest_favorites', JSON.stringify(['Apt 1', 'Apt 2', 'Apt 3']));
@@ -408,42 +302,7 @@ describe('Milestone 3 — Empirical Challenger Adversarial Suite', () => {
       expect(abortSignal?.aborted).toBe(true);
     });
 
-    it('useComments: Comments submission handles component unmount gracefully', async () => {
-      global.fetch = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
-        if (url.includes('/api/push/notify-comment') || url.includes('/api/indexing/apartment')) {
-          return new Promise((resolve) => setTimeout(() => resolve(new Response('{}', { status: 200 })), 10));
-        }
-        return Promise.resolve(new Response('{}', { status: 200 }));
-      });
 
-      const mockUser = {
-        uid: 'user-comm',
-        displayName: '댓글작성자',
-        email: 'user@test.com',
-      } as unknown as User;
-
-      const report: FieldReportData = {
-        id: 'rep-comm-1',
-        apartmentName: '동탄역 롯데캐슬',
-        dong: '오산동',
-      };
-
-      const addCommentSpy = jest.spyOn(dashboardFacade, 'addFieldReportComment').mockResolvedValue(undefined);
-      jest.spyOn(dashboardFacade, 'getUserProfile').mockResolvedValue(null);
-      jest.spyOn(dashboardFacade, 'listenToComments').mockReturnValue(() => {});
-
-      const { result, unmount } = renderHook(() => useComments(report, report, mockUser, jest.fn()));
-
-      act(() => {
-        result.current.setCommentInput({ 'rep-comm-1': '테스트 댓글' });
-      });
-
-      const submitPromise = result.current.handleSubmitComment('rep-comm-1');
-      unmount();
-
-      await expect(submitPromise).resolves.not.toThrow();
-      expect(addCommentSpy).toHaveBeenCalledWith('rep-comm-1', '테스트 댓글', 'user-comm', '동탄역 롯데캐슬');
-    });
   });
 
   // =========================================================================

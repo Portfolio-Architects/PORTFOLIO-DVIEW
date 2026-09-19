@@ -14,7 +14,6 @@ export function preloadApartmentModal(): void {
   import('@/components/ApartmentModal').catch(() => {});
   
   // Preload ApartmentModal sub-components as well for 0ms transition stutter
-  import('@/components/CommentSection').catch(() => {});
   import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
   import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
   import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
@@ -33,7 +32,6 @@ export function preloadApartmentModal(): void {
 export function preloadDashboardFeatures(): void {
   if (typeof window === 'undefined') return;
   import('@/components/GapInvestmentExplorer').catch(() => {});
-  import('@/components/LoungeContainerClient').catch(() => {});
   import('@/components/MacroDashboardClient').catch(() => {});
   import('@/components/OfficeExplorerClient').catch(() => {});
 }

@@ -1,6 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
 import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
-import { getComments } from '@/lib/repositories/comment.repository';
 
 // Mock dependencies
 jest.mock('@/lib/firebaseConfig', () => ({
@@ -141,32 +140,6 @@ describe('Milestone 1 Empirical Verification Harness', () => {
       if (origOffsetHeight) Object.defineProperty(HTMLElement.prototype, 'offsetHeight', origOffsetHeight);
       if (origClientHeight) Object.defineProperty(HTMLElement.prototype, 'clientHeight', origClientHeight);
       HTMLElement.prototype.getBoundingClientRect = origGetBoundingClientRect;
-    });
-  });
-
-  describe('2. CommentRepository Type Safety & Schema Fallback', () => {
-    it('safely parses valid comments and falls back gracefully for corrupted docs without `any` crashes', async () => {
-      const comments = await getComments('test-report-id');
-
-      expect(comments).toHaveLength(2);
-      
-      // Doc 1: Valid
-      expect(comments[0]).toEqual({
-        id: 'doc-1',
-        text: 'Great report!',
-        author: 'User1',
-        authorUid: 'uid-123',
-        createdAt: expect.any(String)
-      });
-
-      // Doc 2: Corrupted/missing data falls back to defaults without throwing
-      expect(comments[1]).toEqual({
-        id: 'doc-2',
-        text: '',
-        author: '익명',
-        authorUid: '',
-        createdAt: '방금 전'
-      });
     });
   });
 });

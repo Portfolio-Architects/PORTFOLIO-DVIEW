@@ -52,10 +52,11 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   const expectedRoutes = [
     { id: 'overview', label: '아파트 랩', href: '/' },
     { id: 'imjang', label: '아파트 탐색', href: '/explore' },
+    { id: 'stats', label: '통계 리포트', href: '/stats' },
     { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
   ];
 
-  it('renders all 3 main navigation links with identical labels and hrefs in LoungeHeader', () => {
+  it('renders all 4 main navigation links with identical labels and hrefs in LoungeHeader', () => {
     const { container } = render(<LoungeHeader activeTab="overview" />);
 
     expectedRoutes.forEach((route) => {
@@ -65,7 +66,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     });
   });
 
-  it('renders all 3 main navigation links with identical labels and hrefs in MobileDock', () => {
+  it('renders all 4 main navigation links with identical labels and hrefs in MobileDock', () => {
     const { container } = render(<MobileDock activeTab="overview" />);
 
     expectedRoutes.forEach((route) => {
@@ -78,6 +79,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   it.each([
     ['overview', '아파트 랩', 'bg-hs-orange-light', 'text-hs-orange'],
     ['imjang', '아파트 탐색', 'bg-hs-orange-light', 'text-hs-orange'],
+    ['stats', '통계 리포트', 'bg-hs-orange-light', 'text-hs-orange'],
     ['mbti', '단지 MBTI', 'bg-hs-orange-light', 'text-hs-orange'],
   ])('highlights activeTab "%s" correctly with expected visual feedback in LoungeHeader and MobileDock', (activeTab, label, expectedBg, expectedText) => {
     const { container: headerContainer } = render(

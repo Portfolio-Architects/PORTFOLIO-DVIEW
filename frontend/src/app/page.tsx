@@ -25,8 +25,8 @@ interface TxSummaryItem {
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: 'D-VIEW 아파트 랩 | 동탄 아파트 실거래가·시세·상대가치 분석 허브',
-  description: '동탄 신도시 아파트 실거래 시세 분석, 상승/하락 트렌드, 전세 안전진단부터 실거래가 데이터 분석을 제공합니다.',
+  title: 'D-VIEW 동탄 아파트 랩 | 동탄 아파트 실거래가·시세·AI 밸류에이션 분석 허브',
+  description: '동탄 179개 단지 아파트 실거래가, AI 밸류에이션, 주담대·갈아타기 적정가 진단부터 안심 전세 자산 리포트를 제공합니다.',
   alternates: {
     canonical: 'https://dongtanview.com',
   },
@@ -71,7 +71,7 @@ function DashboardSkeleton() {
   );
 }
 
-async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' | 'lounge' | 'mbti' }) {
+async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' | 'mbti' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
   const allApts = Object.entries(txSummary).map(([name, sum]) => {
@@ -105,8 +105,8 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
   return (
     <>
       <div className="sr-only" aria-hidden="true">
-        <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
-        <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 및 전세 사기 안심 진단 전문 분석 리포트 플랫폼</p>
+        <h1>동탄 부동산 실거래 대시보드 - D-VIEW 동탄 아파트 랩</h1>
+        <p>동탄 179개 단지 실거래가·AI 밸류에이션, 주담대·갈아타기 적정가 진단부터 안심 전세 자산 리포트 전문 분석 플랫폼</p>
         <section>
           <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>
           <ol>
@@ -148,11 +148,10 @@ export default async function HomePage(props: {
   const searchParams = await props.searchParams;
   const tab = searchParams?.tab;
 
-  let initialTab: 'overview' | 'imjang' | 'lounge' | 'mbti' = 'overview';
-  if (tab === 'lounge') initialTab = 'lounge';
-  else if (tab === 'imjang') initialTab = 'imjang';
+  let initialTab: 'overview' | 'imjang' | 'mbti' = 'overview';
+  if (tab === 'imjang') initialTab = 'imjang';
   else if (tab === 'mbti') initialTab = 'mbti';
-  // legacy office & technovalley fall back cleanly to overview
+  // legacy lounge, office & technovalley fall back cleanly to overview
 
   const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';

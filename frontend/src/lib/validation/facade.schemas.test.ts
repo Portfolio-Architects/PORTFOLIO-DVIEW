@@ -8,8 +8,6 @@ import {
 } from './facade.schemas';
 import {
   UserProfileSchema,
-  CommentDocumentSchema,
-  PostDocumentSchema,
 } from '@/lib/utils/firestoreConverters';
 
 describe('Zod Validation Schemas Integrity', () => {
@@ -140,23 +138,6 @@ describe('Zod Validation Schemas Integrity', () => {
         expect(parsed.data.nickname).toBe('임시_임장러');
         expect(parsed.data.uploaderPoints).toBe(0);
       }
-    });
-
-    it('validates CommentDocumentSchema and PostDocumentSchema', () => {
-      const comment = {
-        text: 'Clean comment text',
-        authorUid: 'user123',
-        createdAt: null,
-      };
-      expect(CommentDocumentSchema.safeParse(comment).success).toBe(true);
-
-      const post = {
-        title: 'Title',
-        category: '자유',
-        authorUid: 'user123',
-        createdAt: null,
-      };
-      expect(PostDocumentSchema.safeParse(post).success).toBe(true);
     });
   });
 });

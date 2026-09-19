@@ -4,9 +4,6 @@ import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 
-import { MessageSquare } from 'lucide-react';
-
-import LoginGateModal from '@/components/ui/LoginGateModal';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import PageHeroHeader from '@/components/PageHeroHeader';
 
@@ -20,8 +17,6 @@ import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartm
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { type DongApartment } from '@/lib/dong-apartments';
 import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
-import * as UserRepo from '@/lib/repositories/user.repository';
-import { isValidNickname } from '@/lib/services/nickname.service';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
@@ -113,7 +108,7 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
   return { default: () => null };
 }), { ssr: true, loading: () => <ExploreListSkeleton /> });
 
-const FieldReportModal = dynamic(() => import(/* webpackPreload: false */ '@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'FieldReportModal Chunk Load failure, page reload initiated', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
@@ -150,7 +145,7 @@ const CalculatorLoader = ({ text }: { text: string }) => (
   </div>
 );
 
-const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/AptCompareModal').catch(err => {
+const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'AptCompareModal Chunk Load failure', undefined, err);
   safeReload('AptCompareModal');
   return { default: () => null };
@@ -159,7 +154,7 @@ const AptCompareModal = dynamic(() => import(/* webpackPreload: false */ '@/comp
   loading: () => <CalculatorLoader text="비교 대시보드 로드 중" />
 });
 
-const JeonseSafetyCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/JeonseSafetyCalculator').catch(err => {
+const JeonseSafetyCalculator = dynamic(() => import('@/components/consumer/JeonseSafetyCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'JeonseSafetyCalculator Chunk Load failure', undefined, err);
   safeReload('JeonseSafetyCalculator');
   return { default: () => null };
@@ -168,7 +163,7 @@ const JeonseSafetyCalculator = dynamic(() => import(/* webpackPreload: false */ 
   loading: () => <CalculatorLoader text="전세 안전진단 계산기 로드 중" />
 });
 
-const MortgageCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/MortgageCalculator').catch(err => {
+const MortgageCalculator = dynamic(() => import('@/components/consumer/MortgageCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'MortgageCalculator Chunk Load failure', undefined, err);
   safeReload('MortgageCalculator');
   return { default: () => null };
@@ -177,7 +172,7 @@ const MortgageCalculator = dynamic(() => import(/* webpackPreload: false */ '@/c
   loading: () => <CalculatorLoader text="대출 계산기 로드 중" />
 });
 
-const PropertyTaxCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/PropertyTaxCalculator').catch(err => {
+const PropertyTaxCalculator = dynamic(() => import('@/components/consumer/PropertyTaxCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'PropertyTaxCalculator Chunk Load failure', undefined, err);
   safeReload('PropertyTaxCalculator');
   return { default: () => null };
@@ -186,7 +181,7 @@ const PropertyTaxCalculator = dynamic(() => import(/* webpackPreload: false */ '
   loading: () => <CalculatorLoader text="취득세 계산기 로드 중" />
 });
 
-const SellTimingCalculator = dynamic(() => import(/* webpackPreload: false */ '@/components/consumer/SellTimingCalculator').catch(err => {
+const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTimingCalculator').catch(err => {
   logger.warn('ExploreClient.dynamic', 'SellTimingCalculator Chunk Load failure', undefined, err);
   safeReload('SellTimingCalculator');
   return { default: () => null };
@@ -202,7 +197,7 @@ const EMPTY_OBJECT: Record<string, any> = {};
 const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }: { initialDashboardData?: DashboardInitialDataLocal }) {
   const fieldReports = initialDashboardData?.fieldReports || [];
 
-  const { user, userProfile, handleLogin } = useAuth();
+  const { user } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch } = useDashboardMeta(initialDashboardData);
   const { userFavorites, favoriteCounts, handleToggleFavorite, isFavorited, updateFavoriteOrder } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
@@ -239,33 +234,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     hashStateRef.current = { mounted, sheetApartments, fieldReportsMap, nameMapping };
   }, [mounted, sheetApartments, fieldReportsMap, nameMapping]);
 
-  const [newNickname, setNewNickname] = useState('');
-  const [nicknameError, setNicknameError] = useState('');
-  const [isSubmittingNickname, setIsSubmittingNickname] = useState(false);
-
-  const showNicknameModal = mounted && !!user && !!userProfile && userProfile.hasSetNickname === false && !dashboardFacade.isAdmin(user.email);
-
-  const handleNicknameSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    const trimmed = newNickname.trim();
-    if (!isValidNickname(trimmed)) {
-      setNicknameError('닉네임은 공백 제외 한글, 영문, 숫자, _로만 2자에서 10자여야 합니다.');
-      return;
-    }
-    setIsSubmittingNickname(true);
-    setNicknameError('');
-    try {
-      await UserRepo.updateNickname(user.uid, trimmed);
-      window.location.reload();
-    } catch (error) {
-      logger.error('ExploreClient.nickname', 'Failed to set nickname', { userId: user?.uid }, error);
-      setNicknameError('닉네임 설정 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsSubmittingNickname(false);
-    }
-  };
-
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
 
   // Modals status
@@ -283,14 +251,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const [isSellTimingOpen, setIsSellTimingOpen] = useState(false);
   const [sellTimingInitialApt, setSellTimingInitialApt] = useState<string | undefined>(undefined);
-
-  const [isLoginGateOpen, setIsLoginGateOpen] = useState(false);
-  const [loginGateMessage, setLoginGateMessage] = useState('');
-
-  const handleRequestLogin = useCallback((message: string) => {
-    setLoginGateMessage(message);
-    setIsLoginGateOpen(true);
-  }, []);
 
   const { txSummary = EMPTY_OBJECT } = useTxData(
     initialDashboardData?.macroTrend,
@@ -325,7 +285,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       import('@/components/consumer/SellTimingCalculator').catch(() => {});
 
       // Preload ApartmentModal sub-components as well for 0ms transition stutter
-      import('@/components/CommentSection').catch(() => {});
       import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
       import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
       import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
@@ -468,8 +427,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const handleAptToggleFavorite = useCallback((aptName: string) => {
     const isAdding = !isFavorited(aptName);
     trackEvent('toggle_favorite', { apt_name: aptName, status: isAdding ? 'added' : 'removed' });
-    handleToggleFavorite(aptName, () => handleRequestLogin('관심 단지를 등록하여 실거래가 변동 알림을 받아보세요.'));
-  }, [handleToggleFavorite, handleRequestLogin, isFavorited]);
+    handleToggleFavorite(aptName);
+  }, [handleToggleFavorite, isFavorited]);
 
   const handleOpenCompare = useCallback(() => {
     setCompareInitialApt(undefined);
@@ -541,13 +500,11 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   onToggleFavorite={handleAptToggleFavorite}
                   typeMap={typeMap}
                   inline={false}
-                  isAdmin={dashboardFacade.isAdmin(user?.email)}
                   sheetApartments={sheetApartments}
                   nameMapping={nameMapping || {}}
                   txSummaryData={txSummary}
                   locationScores={locationScores}
 
-                  onRequestLogin={handleRequestLogin}
                   onOpenCompare={(aptName) => {
                     setCompareInitialApt(aptName);
                     setIsCompareOpen(true);
@@ -579,66 +536,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           </main>
         </div>
       </PullToRefresh>
-
-
-
-      {showNicknameModal && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 backdrop-blur-md bg-white/70 dark:bg-black/70 animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-surface text-primary rounded-[24px] shadow-2xl p-6 sm:p-8 border border-border transition-all animate-in zoom-in-95 duration-200">
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 bg-[#c44d00]/10 dark:bg-[#ea6100]/10 text-[#c44d00] dark:text-[#ea6100] rounded-full flex items-center justify-center mx-auto mb-4">
-                <MessageSquare size={24} />
-              </div>
-              <h2 className="text-xl font-bold tracking-tight mb-2">반갑습니다! 닉네임을 설정해주세요</h2>
-              <p className="text-sm text-tertiary">
-                D-VIEW 서비스를 이용하기 위해 사용할 닉네임을 입력해주세요.
-              </p>
-            </div>
-
-            <form onSubmit={handleNicknameSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="nickname-input" className="block text-xs font-semibold text-secondary mb-1.5 ml-1">
-                  닉네임
-                </label>
-                <input
-                  id="nickname-input"
-                  type="text"
-                  placeholder="2~10자 한글, 영문, 숫자, _"
-                  value={newNickname}
-                  onChange={(e) => {
-                    setNewNickname(e.target.value);
-                    if (nicknameError) setNicknameError('');
-                  }}
-                  className="w-full bg-body text-primary border border-border focus:border-[#c44d00] dark:focus:border-[#ea6100] rounded-[14px] px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#c44d00]/20 dark:focus:ring-[#ea6100]/20 transition-all font-semibold"
-                  autoComplete="off"
-                  required
-                  disabled={isSubmittingNickname}
-                />
-                {nicknameError && (
-                  <p className="text-xs text-red-500 font-semibold mt-2 ml-1 animate-in slide-in-from-top-1 duration-200">
-                    {nicknameError}
-                  </p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isSubmittingNickname || !newNickname.trim()}
-                className="w-full bg-[#c44d00] hover:bg-[#9e3c00] dark:bg-[#ff8f00] dark:hover:bg-[#c44d00] text-white rounded-[14px] py-3.5 text-sm font-bold shadow-lg shadow-[#c44d00]/10 dark:shadow-[#ff8f00]/10 active:scale-[0.98] transition-all disabled:opacity-50 disabled:pointer-events-none"
-              >
-                {isSubmittingNickname ? '설정 중...' : '시작하기'}
-              </button>
-            </form>
-          </div>
-        </div>
-      )}
-
-      <LoginGateModal
-        isOpen={isLoginGateOpen}
-        onClose={() => setIsLoginGateOpen(false)}
-        message={loginGateMessage}
-        onLogin={handleLogin}
-      />
 
       {isCompareOpen && (
         <ErrorBoundary

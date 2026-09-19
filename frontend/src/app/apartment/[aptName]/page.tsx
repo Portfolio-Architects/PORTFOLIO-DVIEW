@@ -80,7 +80,6 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     pyeongSummaries,
     locationScore,
     matchedReportData,
-    comments,
     aiBriefing,
   } = pageData;
 
@@ -95,20 +94,6 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       <div className="sr-only" aria-hidden="true">
         <h1>{decodedName} 아파트 실거래가 및 학군 가치 분석 리포트</h1>
         <p>{aiBriefing}</p>
-
-        {comments && comments.length > 0 && (
-          <section style={{ marginTop: '20px' }}>
-            <h2>{decodedName} 입주민 및 방문객 아파트 이야기 (댓글)</h2>
-            <ul>
-              {comments.map((c) => (
-                <li key={c.id} style={{ marginBottom: '10px' }}>
-                  <strong>{c.author}</strong> ({c.createdAt ? String(c.createdAt) : ''}):
-                  <p>{c.text}</p>
-                </li>
-              ))}
-            </ul>
-          </section>
-        )}
 
         {locationScore && (
           <section style={{ marginTop: '20px' }}>

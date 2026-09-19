@@ -13,6 +13,7 @@ import type {
   RecentTransaction,
   Recent7DaysVolume,
   LocationScoreItem,
+  TimelinePeriod,
 } from '@/types/transaction';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
@@ -79,6 +80,28 @@ export function parsePriceEokToMan(priceStr: string): number {
     totalMan += manVal;
   }
   return Math.round(totalMan);
+}
+
+/**
+ * Parse raw period transactions payload (either RecentTransaction[] or compact tuple format)
+ */
+export function parsePeriodTransactions(data: unknown): RecentTransaction[] {
+  if (!data) return [];
+  if (Array.isArray(data)) {
+    return data as RecentTransaction[];
+  }
+  if (typeof data === 'object' && 'fields' in data && 'data' in data) {
+    const { fields, data: rows } = data as { fields: string[]; data: unknown[][] };
+    if (!rows) return [];
+    return rows.map((row) => {
+      const obj: Record<string, unknown> = {};
+      fields.forEach((field, i) => {
+        obj[field] = row[i];
+      });
+      return obj as unknown as RecentTransaction;
+    });
+  }
+  return [];
 }
 
 /**
@@ -343,6 +366,11 @@ export const staticDataService = {
     days: number = 30,
     forceRefresh: boolean = false
   ): Promise<FirestoreTransaction[]> {
+    // Zero-Cost Browser Defense (R3): Browser sessions must perform 0 direct Firestore reads
+    if (typeof window !== 'undefined') {
+      return [];
+    }
+
     const cacheKey = `firestore-txs-${days}`;
     const cached = memoryCache.get(cacheKey) as CacheEntry<FirestoreTransaction[]> | undefined;
     const now = Date.now();
@@ -414,6 +442,25 @@ export const staticDataService = {
    */
   async fetchRecentTransactions(buildVersion: string = BUILD_VERSION, signal?: AbortSignal): Promise<RecentTransaction[]> {
     return this.fetchJson<RecentTransaction[]>(`/data/recent-transactions.json?v=${buildVersion}`, signal);
+  },
+
+  /**
+   * Fetch period transactions (recent-transactions.json, transactions-1y.json, transactions-3y.json, transactions-all.json)
+   */
+  async fetchPeriodTransactions(
+    period: TimelinePeriod = '90d',
+    buildVersion: string = BUILD_VERSION,
+    signal?: AbortSignal
+  ): Promise<RecentTransaction[]> {
+    const periodFileMap: Record<TimelinePeriod, string> = {
+      '90d': `/data/recent-transactions.json?v=${buildVersion}`,
+      '1y': `/data/transactions-1y.json?v=${buildVersion}`,
+      '3y': `/data/transactions-3y.json?v=${buildVersion}`,
+      'all': `/data/transactions-all.json?v=${buildVersion}`,
+    };
+    const url = periodFileMap[period] || periodFileMap['90d'];
+    const raw = await this.fetchJson<unknown>(url, signal);
+    return parsePeriodTransactions(raw);
   },
 
   /**

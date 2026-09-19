@@ -1,13 +1,14 @@
-# Progress — Worker M2 (Milestone 2)
+# Progress — Milestone 2 Admin Purge
 
-**Last visited**: 2026-08-22T22:33:30+09:00
+Last visited: 2026-09-19T20:08:45+09:00
 
-## Tasks
-- [x] Task 1: `frontend/src/app/layout.tsx` - Convert `SettingsModal`, `WelcomeModal`, `CustomA2HSModal` to `dynamic(() => import(...))`
-- [x] Task 2: `frontend/src/components/OfficeExplorerClient.tsx` - Convert `OfficeDetailModal` to `dynamic(() => import(...), { ssr: false })`
-- [x] Task 3: `frontend/src/components/ApartmentModal.tsx` - Convert `PushSubscriptionModal` to `dynamic(() => import(...), { ssr: false })`
-- [x] Task 4: `frontend/src/components/EngineeringReportClient.tsx` & `frontend/src/components/ReportClient.tsx` - Convert static jsPDF import to lazy dynamic import in export handlers
-- [x] Task 5: `frontend/next.config.ts` - Add `recharts` to `experimental.optimizePackageImports`
-- [x] Task 6: `frontend/src/lib/preload.ts` - Implement non-blocking idle priority preloading with `requestIdleCallback`
-- [x] Task 7: Verification (`npx tsc --noEmit` & `npm test` & `npm run build`)
-- [x] Task 8: Write handoff report & notify orchestrator
+## Current Status: Completed (Ready for Handoff)
+
+### Checklist
+- [x] 1. Delete `src/app/admin/` and `src/app/write-report/` (Preserve `src/components/EngineeringReportClient.tsx`)
+- [x] 2. Delete `src/app/api/admin/`, `src/app/api/apartments-sync/`, and `src/app/api/debug-reports/`
+- [x] 3. Delete `src/components/admin/`, `src/components/auth/AdminGuard.tsx`, and `src/components/write-report/ReportUI.tsx`
+- [x] 4. Clean up references in `FloatingUserBar.tsx`, `Footer.tsx`, `robots.ts`, `admin.config.ts`, `authUtils.ts`, `DashboardFacade.ts`, `report-view/route.ts`, `ExploreClient.tsx`, `DashboardClient.tsx`, `post.service.ts`
+- [x] 5. Verify local CLI scripts (`sync-all.js`, `sync-transactions.js`, `sync-apartments.js`) and add `scripts/request-indexing.js`
+- [x] 6. Run verification: `npx tsc --noEmit` (0 errors), `npm test` (122/122 test suites, 1372/1372 tests passed), `npm run build` (exit code 0, 226/226 pages)
+- [x] 7. Write handoff report `handoff.md` and notify parent agent via `send_message`

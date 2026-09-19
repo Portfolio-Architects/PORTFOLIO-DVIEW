@@ -7,7 +7,7 @@ import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { dashboardFacade } from '@/lib/DashboardFacade';
 import { useDashboardData } from '@/hooks/useDashboardData';
-import type { FieldReportData, CommentData } from '@/types';
+import type { FieldReportData } from '@/types';
 import { getZoneById, dongToZoneId } from '@/lib/zones';
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
@@ -31,7 +31,6 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     const preloadHeavyChunks = () => {
       if (!isMounted) return;
       import('@/components/ApartmentModal').catch(() => {});
-      import('@/components/CommentSection').catch(() => {});
       import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
       import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
       import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
@@ -80,10 +79,6 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const { user } = useAuth();
 
-  // Comments state for modal
-  const [commentsData, setCommentsData] = useState<Record<string, CommentData[]>>({});
-  const [commentInput, setCommentInput] = useState<Record<string, string>>({});
-
   const handleSelectReport = (report: FieldReportData) => {
     setSelectedReport(report);
     setIsLoadingDetail(true);
@@ -112,63 +107,6 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
 
     return () => { unmounted = true; };
   }, [selectedReport]);
-
-  // Listen to comments when a report is selected
-  useEffect(() => {
-    if (selectedReport && !commentsData[selectedReport.id]) {
-      let unmounted = false;
-      const unsubscribe = dashboardFacade.listenToComments(selectedReport.id, (comments) => {
-        if (unmounted) return;
-        setCommentsData(prev => ({ ...prev, [selectedReport.id]: comments }));
-      });
-      return () => {
-        unmounted = true;
-        unsubscribe();
-      };
-    }
-  }, [selectedReport]);
-
-  const handleSubmitComment = async (reportId: string) => {
-    if (!user) return;
-    const text = commentInput[reportId];
-    if (!text?.trim()) return;
-    const apartmentName = fullReportData?.apartmentName || selectedReport?.apartmentName || '';
-    try {
-      await dashboardFacade.addFieldReportComment(reportId, text, user.uid, apartmentName);
-      setCommentInput(prev => ({ ...prev, [reportId]: '' }));
-      
-      // Trigger Google Indexing API for the apartment detail page
-      if (apartmentName) {
-        fetch('/api/indexing/apartment', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ apartmentName }),
-        }).catch(err => {
-          logger.warn('zone.[id].handleSubmitComment', 'Failed to trigger real-time Google Indexing API', { apartmentName }, err);
-        });
-      }
-    } catch (error) {
-      logger.error('zone.[id].handleSubmitComment', 'Comment submission failed', undefined, error);
-      alert("댓글 저장에 실패했습니다. (" + (error instanceof Error ? error.message : String(error)) + ")");
-    }
-  };
-
-  const handleDeleteComment = async (reportId: string, commentId: string, text: string) => {
-    if (!user) return;
-
-    if (!window.confirm("정말로 이 댓글을 삭제하시겠습니까?")) {
-      return;
-    }
-
-    try {
-      if (dashboardFacade.deleteFieldReportComment) {
-        await dashboardFacade.deleteFieldReportComment(reportId, commentId, user.uid, text);
-      }
-    } catch (error) {
-      logger.error('zone.[id].handleDeleteComment', 'Comment deletion failed', { reportId, commentId }, error as Error);
-      alert("댓글 삭제에 실패했습니다.");
-    }
-  };
 
   // Filter reports that belong to this zone
   const zoneReports = useMemo(() => {
@@ -289,11 +227,6 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
         <FieldReportModal 
           report={fullReportData || selectedReport} 
           onClose={handleCloseModal} 
-          comments={commentsData[selectedReport.id] || []}
-          commentInput={commentInput[selectedReport.id] || ''}
-          onCommentChange={(text: string) => setCommentInput(prev => ({ ...prev, [selectedReport.id]: text }))}
-          onSubmitComment={() => handleSubmitComment(selectedReport.id)}
-          onDeleteComment={(commentId: string, text: string) => handleDeleteComment(selectedReport.id, commentId, text)}
           user={user}
           transactions={[]}
           typeMap={{}}

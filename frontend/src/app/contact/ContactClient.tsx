@@ -94,11 +94,9 @@ export default function ContactClient() {
               <MessageSquare size={16} />
             </div>
             <div>
-              <h4 className="text-[12px] font-extrabold text-tertiary">일반 토크</h4>
+              <h4 className="text-[12px] font-extrabold text-tertiary">온라인 피드백</h4>
               <p className="text-[13px] font-bold text-primary mt-0.5">
-                <Link href="/lounge" className="text-emerald-600 dark:text-emerald-400 hover:underline">
-                  라운지 게시판 활용 가능
-                </Link>
+                피드백 폼을 통해 접수 가능
               </p>
             </div>
           </div>

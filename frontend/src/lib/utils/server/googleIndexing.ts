@@ -15,7 +15,7 @@ export const GoogleServiceAccountKeySchema = z.object({
 
 /**
  * Request Google Search Console Indexing for a specific URL
- * @param url The absolute URL of the page (e.g. https://dview.kr/lounge/123)
+ * @param url The absolute URL of the page (e.g. https://dview.kr/mbti/ENTJ)
  * @param type Action type: 'URL_UPDATED' (create/modify) or 'URL_DELETED' (delete)
  */
 export async function requestGoogleIndexing(url: string, type: 'URL_UPDATED' | 'URL_DELETED' = 'URL_UPDATED') {

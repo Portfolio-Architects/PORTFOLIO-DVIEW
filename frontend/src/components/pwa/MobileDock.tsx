@@ -1,29 +1,28 @@
 'use client';
 
 import React from 'react';
-import { Home, Sparkles, Building2 } from 'lucide-react';
+import { Home, Sparkles, Building2, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useSettingsUi } from '@/contexts/SettingsContext';
 
 interface MobileDockProps {
-  activeTab?: 'imjang' | 'lounge' | 'overview' | 'mbti' | string;
-  onTabClick?: (tab: 'imjang' | 'lounge' | 'overview' | 'mbti' | any) => void;
+  activeTab?: 'imjang' | 'overview' | 'stats' | 'mbti' | string;
+  onTabClick?: (tab: 'imjang' | 'overview' | 'stats' | 'mbti' | any) => void;
 }
 
 export const TABS: Array<{
-  id: 'imjang' | 'overview' | 'mbti';
+  id: 'overview' | 'imjang' | 'stats' | 'mbti';
   label: string;
   icon: React.ComponentType<any>;
   href: string;
 }> = [
   { id: 'overview', label: '아파트 랩', icon: Building2, href: '/' },
   { id: 'imjang', label: '아파트 탐색', icon: Home, href: '/explore' },
+  { id: 'stats', label: '통계 리포트', icon: BarChart3, href: '/stats' },
   { id: 'mbti', label: '단지 MBTI', icon: Sparkles, href: '/mbti' },
 ];
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
-  const { setIsSettingsModalOpen } = useSettingsUi();
   const router = useRouter();
   const [shouldHide, setShouldHide] = React.useState(false);
   const initialHeightRef = React.useRef<number>(0);
@@ -32,6 +31,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
     // Proactively prefetch core routes on mount
     router.prefetch('/');
     router.prefetch('/explore');
+    router.prefetch('/stats');
     router.prefetch('/mbti');
   }, [router]);
 

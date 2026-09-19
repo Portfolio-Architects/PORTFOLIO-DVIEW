@@ -27,7 +27,7 @@ const SettingsUiContext = React.createContext<SettingsUiContextType | undefined>
 
 export const SettingsProvider = React.memo(function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [areaUnit, setAreaUnitState] = useState<AreaUnit>('m2');
-  const [theme, setThemeState] = useState<Theme>('light');
+  const [theme, setThemeState] = useState<Theme>('system');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -50,6 +50,17 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
       return true;
     } catch (e) {
       logger.warn('SettingsProvider.safeSetItem', 'localStorage setItem failed due to security or sandbox restriction', { key, value }, e as Error);
+      return false;
+    }
+  };
+
+  const safeRemoveItem = (key: string): boolean => {
+    try {
+      if (typeof window === 'undefined') return false;
+      window.localStorage.removeItem(key);
+      return true;
+    } catch (e) {
+      logger.warn('SettingsProvider.safeRemoveItem', 'localStorage removeItem failed', { key }, e as Error);
       return false;
     }
   };
@@ -106,15 +117,14 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
       logger.warn('SettingsProvider.init', 'localStorage areaUnit read failed', {}, e as Error);
     }
 
-    // Restore theme preference
+    // Apply system theme according to consumer device (purge any legacy manual overrides)
     try {
-      const storedTheme = safeGetItem('dtdls-theme') || 'system';
-      const parsedTheme = ThemeSchema.safeParse(storedTheme);
-      const activeTheme = parsedTheme.success ? parsedTheme.data : 'system';
-      setThemeState(activeTheme);
-      applyTheme(activeTheme);
+      safeRemoveItem('dtdls-theme');
+      safeRemoveItem('theme');
+      setThemeState('system');
+      applyTheme('system');
     } catch (e) {
-      logger.warn('SettingsProvider.init', 'localStorage theme read failed', {}, e as Error);
+      logger.warn('SettingsProvider.init', 'theme initialization failed', {}, e as Error);
     }
   }, []);
 
@@ -176,7 +186,6 @@ export const SettingsProvider = React.memo(function SettingsProvider({ children 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
     applyTheme(newTheme);
-    safeSetItem('dtdls-theme', newTheme);
   };
 
   const setAreaUnit = (unit: AreaUnit) => {

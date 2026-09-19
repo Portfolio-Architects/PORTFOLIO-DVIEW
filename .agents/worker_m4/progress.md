@@ -1,20 +1,15 @@
-# Progress — Worker 4 (Milestone 4)
+# Progress Log
 
-Last visited: 2026-08-22T02:04:10+09:00
+Last visited: 2026-09-19T20:47:50+09:00
 
-## Status: IN_PROGRESS
-
-### Completed Steps
-- Initialized DISPATCH.md and BRIEFING.md
-
-### Current Step
-- Investigating codebase: API routes, apartment page, apiResponse/rateLimiter, tests, and baseline build.
-
-### Next Steps
-1. Run baseline verification (`tsc`, `lint`, `test`).
-2. Audit all API routes in `frontend/src/app/api/` and existing helpers `@/lib/api/apiResponse`, `@/lib/api/rateLimiter`.
-3. Standardize API routes with envelope & rate limiter without breaking client callers / tests.
-4. Refactor `frontend/src/app/apartment/[aptName]/page.tsx` to extract domain service functions to `frontend/src/lib/services/apartmentPageService.ts`.
-5. Verify test preservation and write/update tests as needed.
-6. Run full verification (`tsc`, `lint`, `test`, `build`).
-7. Write handoff report and notify orchestrator.
+## Milestone 4: Navigation, Layout & UI Polish
+- [x] Read ORIGINAL_REQUEST.md, instructions.md, survey_auth_nav.md
+- [x] Initialized DISPATCH.md and BRIEFING.md
+- [x] Task 1: Polish FloatingUserBar.tsx (remove login button, avatar button, profile edit modal; retain only Settings button/modal trigger)
+- [x] Task 2: Delete LoginGateModal.tsx and clean up callers in DashboardClient.tsx, ExploreClient.tsx, MacroBriefingModal.tsx, PhotoUploadModal.tsx
+- [x] Task 3: Verify LoungeHeader.tsx, MobileDock.tsx, Footer.tsx (0 login triggers, 0 lounge links, 0 admin links)
+- [x] Task 4: Verification
+  - [x] `npx tsc --noEmit` -> PASS (Exit code 0, 0 errors)
+  - [x] `npm test` -> PASS (120 test suites, 1311 tests passed, 100% green)
+  - [x] `npm run build` -> PASS (Exit code 0, all 225 pages generated cleanly)
+- [x] Task 5: Write handoff.md and send completion message to parent

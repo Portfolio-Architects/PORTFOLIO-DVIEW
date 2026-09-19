@@ -37,7 +37,6 @@ import { logger } from '@/lib/services/logger';
 
 const CustomA2HSModal = dynamic(() => import('@/components/pwa/CustomA2HSModal'));
 const WelcomeModal = dynamic(() => import('@/components/ui/WelcomeModal'));
-const SettingsModal = dynamic(() => import('@/components/SettingsModal'));
 
 
 export const metadata: Metadata = {
@@ -107,7 +106,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#ffffff',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#ffffff' },
+    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
@@ -179,7 +181,6 @@ export default function RootLayout({
                   <Footer />
                   <CustomA2HSModal />
                   <WelcomeModal />
-                  <SettingsModal />
                   <ScrollToTop />
                 </PWAProvider>
                 <div id="modal-root" />

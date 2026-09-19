@@ -4,8 +4,7 @@
  * 1. Root Layout & Environment Contract Verification (preconnect, dns-prefetch, conditional Script, .env.example)
  * 2. MBTI Result View AdSense Banner Placement (#mbti-result-ad-container, Zero-CLS min-h-[250px], minimal fallback)
  * 3. Apartment Detail Modal AdSense Placement (Zero-CLS min-h-[250px] banner above Kakao Share CTA)
- * 4. LoungeFeedClient In-Feed Stream Placement (embedded between feed items, Zero-CLS min-h-[140px] sm:min-h-[160px])
- * 5. Error & Double-Push Resilience (graceful catch on adsbygoogle.push exceptions, SPA lifecycle protection)
+ * 4. Error & Double-Push Resilience (graceful catch on adsbygoogle.push exceptions, SPA lifecycle protection)
  */
 
 import React from 'react';
@@ -14,7 +13,6 @@ import fs from 'fs';
 import path from 'path';
 import { MBTIResultView } from '@/components/mbti/MBTIResultView';
 import { MBTI_PROFILES } from '@/lib/data/mbtiData';
-import LoungeFeedClient from '@/components/LoungeFeedClient';
 import ApartmentModal from '@/components/apartment/ApartmentModal';
 import { AdSlot } from '@/components/ads/AdSlot';
 import * as AdBlockDetectorHook from '@/hooks/useAdBlockDetector';
@@ -79,16 +77,6 @@ jest.mock('@/hooks/useApartmentDetails', () => ({
   }),
 }));
 
-jest.mock('@/hooks/useComments', () => ({
-  useComments: () => ({
-    commentsData: { 'rep-test-1': [] },
-    commentInput: { 'rep-test-1': '' },
-    setCommentInput: jest.fn(),
-    handleSubmitComment: jest.fn(),
-    handleDeleteComment: jest.fn(),
-  }),
-}));
-
 jest.mock('@/hooks/useSwipeNavigation', () => ({
   useSwipeNavigation: () => ({}),
 }));
@@ -96,35 +84,6 @@ jest.mock('@/hooks/useSwipeNavigation', () => ({
 jest.mock('@/hooks/usePreventElasticBounce', () => ({
   usePreventElasticBounce: jest.fn(),
 }));
-
-const mockFeedPosts = Array.from({ length: 7 }, (_, i) => ({
-  id: `post-integration-${i + 1}`,
-  title: `동탄 소통 및 임장 분석 글 ${i + 1}`,
-  author: `동탄주민${i + 1}`,
-  category: '임장기',
-  views: 20 + i,
-  likes: 10 + i,
-  commentCount: 3,
-  createdAt: '2026-05-10T12:00:00Z',
-}));
-
-// Mock swr/infinite for LoungeFeedClient
-jest.mock('swr/infinite', () => {
-  return jest.fn().mockImplementation(() => ({
-    data: [mockFeedPosts],
-    error: null,
-    size: 1,
-    setSize: jest.fn(),
-    isValidating: false,
-  }));
-});
-
-// Mock LoungeDetailClient
-jest.mock('@/components/LoungeDetailClient', () => {
-  const LoungeDetailClientMock = () => <div>Lounge Detail Mock</div>;
-  LoungeDetailClientMock.displayName = 'LoungeDetailClientMock';
-  return LoungeDetailClientMock;
-});
 
 // Mock react-markdown
 jest.mock('react-markdown', () => ({
@@ -266,22 +225,7 @@ describe('Google AdSense Integration Suite', () => {
     });
   });
 
-  // =========================================================================
-  // 4. LoungeFeedClient In-Feed Stream Placement
-  // =========================================================================
-  describe('4. LoungeFeedClient In-Feed Stream Placement', () => {
-    it('inserts in-feed AdSlot every 5 items in LoungeFeedClient', () => {
-      render(<LoungeFeedClient initialPosts={mockFeedPosts} currentTab="우리동네 이야기" />);
 
-      const inFeedAdSlots = screen.getAllByTestId('lounge-feed-ad-slot');
-      expect(inFeedAdSlots.length).toBeGreaterThanOrEqual(1);
-
-      const firstAdSlot = within(inFeedAdSlots[0]).getByTestId('ad-slot-container');
-      expect(firstAdSlot).toHaveAttribute('data-slot-format', 'in-feed');
-      expect(firstAdSlot.className).toContain('min-h-[140px]');
-      expect(firstAdSlot.className).toContain('sm:min-h-[160px]');
-    });
-  });
 
   // =========================================================================
   // 5. Error Resilience & Logging Protection

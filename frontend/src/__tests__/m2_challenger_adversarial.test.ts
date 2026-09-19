@@ -10,7 +10,6 @@ import { fetchOfficeXmlFromPublicPortal } from '@/lib/repositories/officeTx.repo
 import { fetchEnergyJsonFromPublicPortal } from '@/lib/repositories/energy.repository';
 import { MOLIT_API_CONFIG } from '@/lib/config/api.config';
 import * as ReportRepo from '@/lib/repositories/report.repository';
-import * as PostRepo from '@/lib/repositories/post.repository';
 import * as TrafficRepo from '@/lib/repositories/traffic.repository';
 import * as firestore from 'firebase/firestore';
 
@@ -179,65 +178,6 @@ describe('M2 Empirical Challenger Test Suite', () => {
 
       const report = await ReportRepo.getFullReportByApartmentName('NonExistentApartment');
       expect(report).toBeNull();
-    });
-
-    test('post.repository.getPost handles null / missing fields safely with fallbacks', async () => {
-      mockedFirestore.getDoc.mockResolvedValueOnce(createMockDocSnap({}, true, 'post-empty-1'));
-
-      const post = await PostRepo.getPost('post-empty-1');
-      expect(post).not.toBeNull();
-      expect(post?.id).toBe('post-empty-1');
-      expect(post?.title).toBe('');
-      expect(post?.author).toBe('익명');
-      expect(post?.likes).toBe(0);
-      expect(post?.views).toBe(0);
-      expect(post?.createdAt).toBeNull();
-    });
-
-    test('post.repository.getRecentPosts handles mixture of malformed and valid docs', async () => {
-      const corruptPostDoc = createMockDocSnap({
-        title: null,
-        category: undefined,
-        content: null,
-        likes: 'invalid',
-        createdAt: null,
-      }, true, 'corrupt-post');
-
-      const validPostDoc = createMockDocSnap({
-        title: '정상 게시글',
-        category: '교통',
-        content: '동탄역 인근 소식 ![이미지](https://example.com/img.png)',
-        authorName: '작성자1',
-        likes: 5,
-        views: 10,
-        createdAt: { seconds: 1700000000, nanoseconds: 0 },
-      }, true, 'valid-post');
-
-      const corruptCommentDoc = createMockDocSnap({
-        text: null,
-        createdAt: 'invalid-date',
-      }, true, 'corrupt-comment');
-
-      const corruptStoryDoc = createMockDocSnap({
-        apartmentName: null,
-        text: undefined,
-      }, true, 'corrupt-story');
-
-      mockedFirestore.getDocs
-        .mockResolvedValueOnce(createMockQuerySnap([corruptPostDoc, validPostDoc])) // posts
-        .mockResolvedValueOnce(createMockQuerySnap([corruptCommentDoc])) // comments
-        .mockResolvedValueOnce(createMockQuerySnap([corruptStoryDoc])) // stories
-        .mockResolvedValue(createMockDocSnap({ apartmentName: '동탄역 롯데캐슬' })); // parent doc lookup
-
-      const recentItems = await PostRepo.getRecentPosts(10);
-      expect(recentItems).toBeDefined();
-      expect(Array.isArray(recentItems)).toBe(true);
-      expect(recentItems.length).toBeGreaterThan(0);
-      
-      const validItem = recentItems.find(item => item.id === 'valid-post');
-      expect(validItem).toBeDefined();
-      expect(validItem?.title).toBe('정상 게시글');
-      expect(validItem?.imageUrl).toBe('https://example.com/img.png');
     });
   });
 

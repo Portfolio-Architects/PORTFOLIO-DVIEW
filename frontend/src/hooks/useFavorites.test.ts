@@ -1,10 +1,10 @@
-import { renderHook, act, waitFor } from '@testing-library/react';
+import { renderHook, act } from '@testing-library/react';
 import { useFavorites } from './useFavorites';
-import { User } from 'firebase/auth';
+import type { User } from 'firebase/auth';
 
 const originalFetch = global.fetch;
 
-describe('useFavorites Hook & Concurrent Guest Migration', () => {
+describe('useFavorites Hook & Decoupled Local Storage Operation', () => {
   beforeEach(() => {
     localStorage.clear();
     jest.clearAllMocks();
@@ -25,7 +25,7 @@ describe('useFavorites Hook & Concurrent Guest Migration', () => {
     getIdToken: jest.fn().mockResolvedValue('mock-token-abc'),
   } as unknown as User;
 
-  it('should operate correctly in guest mode using localStorage and custom events', async () => {
+  it('should operate correctly using localStorage and custom events', async () => {
     localStorage.setItem('dview_guest_favorites', JSON.stringify(['목동신시가지14단지']));
 
     const dispatchSpy = jest.spyOn(window, 'dispatchEvent');
@@ -46,79 +46,16 @@ describe('useFavorites Hook & Concurrent Guest Migration', () => {
     expect(dispatchSpy).toHaveBeenCalledWith(expect.any(CustomEvent));
   });
 
-  it('should concurrently migrate guest favorites using Promise.allSettled upon login and clear local guest storage', async () => {
+  it('should operate 100% locally with zero network calls to /api/favorite even when user is provided', async () => {
     localStorage.setItem(
       'dview_guest_favorites',
-      JSON.stringify(['목동신시가지13단지', '목동신시가지12단지'])
+      JSON.stringify(['목동신시가지14단지'])
     );
-
-    const postUrls: Array<{ url: string; body: string }> = [];
-
-    global.fetch = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
-      if (url.includes('/api/favorite-counts')) {
-        return Promise.resolve(new Response(JSON.stringify({ counts: {} }), { status: 200 }));
-      }
-
-      if (url.includes('/api/favorite?userId=')) {
-        return Promise.resolve(
-          new Response(
-            JSON.stringify({ favorites: ['목동신시가지14단지'] }),
-            { status: 200 }
-          )
-        );
-      }
-
-      if (url === '/api/favorite' && init?.method === 'POST') {
-        postUrls.push({ url, body: init.body as string });
-        return Promise.resolve(
-          new Response(JSON.stringify({ success: true }), { status: 200 })
-        );
-      }
-
-      return Promise.resolve(new Response(JSON.stringify({}), { status: 200 }));
-    });
-
-    const { result } = renderHook(() => useFavorites(mockUser));
-
-    await waitFor(() => {
-      expect(result.current.isFavoritesLoading).toBe(false);
-      expect(result.current.isFavorited('목동신시가지14단지')).toBe(true);
-      expect(result.current.isFavorited('목동신시가지13단지')).toBe(true);
-      expect(result.current.isFavorited('목동신시가지12단지')).toBe(true);
-    });
-
-    // Both missing apartments should have been posted concurrently
-    expect(postUrls.length).toBe(2);
-    expect(postUrls.some(p => p.body.includes('목동신시가지13단지'))).toBe(true);
-    expect(postUrls.some(p => p.body.includes('목동신시가지12단지'))).toBe(true);
-
-    // Guest storage must be cleared
-    expect(localStorage.getItem('dview_guest_favorites')).toBeNull();
-  });
-
-  it('should toggle favorites and sync with backend for authenticated user', async () => {
-    let postBody = '';
-    global.fetch = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
-      if (url.includes('/api/favorite-counts')) {
-        return Promise.resolve(new Response(JSON.stringify({ counts: { '목동신시가지14단지': 10 } }), { status: 200 }));
-      }
-      if (url.includes('/api/favorite?userId=')) {
-        return Promise.resolve(
-          new Response(JSON.stringify({ favorites: ['목동신시가지14단지'] }), { status: 200 })
-        );
-      }
-      if (url === '/api/favorite' && init?.method === 'POST') {
-        postBody = init.body as string;
-        return Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }));
-      }
-      return Promise.resolve(new Response('{}', { status: 200 }));
-    });
 
     const { result } = renderHook(() => useFavorites(mockUser, { '목동신시가지14단지': 10 }));
 
-    await waitFor(() => {
-      expect(result.current.isFavorited('목동신시가지14단지')).toBe(true);
-    });
+    expect(result.current.isFavoritesLoading).toBe(false);
+    expect(result.current.isFavorited('목동신시가지14단지')).toBe(true);
 
     // Toggle remove
     await act(async () => {
@@ -127,22 +64,15 @@ describe('useFavorites Hook & Concurrent Guest Migration', () => {
 
     expect(result.current.isFavorited('목동신시가지14단지')).toBe(false);
     expect(result.current.favoriteCounts['목동신시가지14단지']).toBe(9);
-    expect(JSON.parse(postBody)).toEqual({
-      aptName: '목동신시가지14단지',
-      action: 'remove',
-    });
+    expect(JSON.parse(localStorage.getItem('dview_guest_favorites') || '[]')).not.toContain('목동신시가지14단지');
+
+    // Assert that /api/favorite was NEVER called
+    const fetchCalls = (global.fetch as jest.Mock).mock.calls;
+    const favoriteApiCall = fetchCalls.find(([url]: [string]) => url === '/api/favorite' || url.startsWith('/api/favorite?'));
+    expect(favoriteApiCall).toBeUndefined();
   });
 
-  it('should update favorite order via PUT /api/favorite', async () => {
-    let putBody = '';
-    global.fetch = jest.fn().mockImplementation((url: string, init?: RequestInit) => {
-      if (url === '/api/favorite' && init?.method === 'PUT') {
-        putBody = init.body as string;
-        return Promise.resolve(new Response(JSON.stringify({ success: true }), { status: 200 }));
-      }
-      return Promise.resolve(new Response('{}', { status: 200 }));
-    });
-
+  it('should update favorite order locally in localStorage without remote syncing', async () => {
     const { result } = renderHook(() => useFavorites(mockUser));
 
     const newOrder = ['목동신시가지13단지', '목동신시가지14단지'];
@@ -150,6 +80,31 @@ describe('useFavorites Hook & Concurrent Guest Migration', () => {
       await result.current.updateFavoriteOrder(newOrder);
     });
 
-    expect(JSON.parse(putBody)).toEqual({ favoriteOrder: newOrder });
+    expect(JSON.parse(localStorage.getItem('dview_guest_favorites') || '[]')).toEqual(newOrder);
+    expect(Array.from(result.current.userFavorites)).toEqual(newOrder);
+
+    // Assert that /api/favorite PUT was NEVER called
+    const fetchCalls = (global.fetch as jest.Mock).mock.calls;
+    const favoriteApiCall = fetchCalls.find(([url]: [string]) => url === '/api/favorite');
+    expect(favoriteApiCall).toBeUndefined();
+  });
+
+  it('should expose canonical alias signatures matching interface contracts', async () => {
+    localStorage.setItem('dview_guest_favorites', JSON.stringify(['동탄역 롯데캐슬']));
+
+    const { result } = renderHook(() => useFavorites());
+
+    expect(result.current.favorites).toEqual(['동탄역 롯데캐슬']);
+    expect(result.current.favoritesCount).toBe(1);
+    expect(result.current.isFavorite('동탄역 롯데캐슬')).toBe(true);
+    expect(result.current.isFavorite('동탄역 린스트라우스')).toBe(false);
+
+    await act(async () => {
+      await result.current.toggleFavorite('동탄역 린스트라우스');
+    });
+
+    expect(result.current.favoritesCount).toBe(2);
+    expect(result.current.isFavorite('동탄역 린스트라우스')).toBe(true);
+    expect(result.current.favorites).toContain('동탄역 린스트라우스');
   });
 });

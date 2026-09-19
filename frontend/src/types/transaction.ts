@@ -103,6 +103,17 @@ export interface AptTxSummary {
   avg3MTxCount?: number;
   recent: RecentTx[];
 
+  // 18개년 장기 통계
+  allTimeHigh?: number;
+  allTimeHighEok?: string;
+  allTimeLow?: number;
+  allTimeLowEok?: string;
+  annualVolumes?: Record<string, number>;
+  appreciationRate?: number;
+  allTimeAppreciationRate?: number;
+  earliestDate?: string;
+  earliestPrice?: number;
+
   // 전월세 (Rent / Jeonse)
   rentTxCount?: number;
   latestRentDeposit?: number;
@@ -134,6 +145,9 @@ export interface DongtanMacroTrendPoint {
   '동탄 아파트 전세 평균': number;
 }
 
+/** Timeline feed period selection filter */
+export type TimelinePeriod = '90d' | '1y' | '3y' | 'all';
+
 /** MOLIT Open Data XML raw parsed record */
 export interface MolTransactionXml {
   buildingName: string;
@@ -147,3 +161,4 @@ export interface MolTransactionXml {
   day: string;
   jibun?: string;
 }
+

@@ -1,68 +1,81 @@
-# BRIEFING — 2026-08-22T22:33:30+09:00
+# BRIEFING — 2026-09-19T20:08:45+09:00
 
 ## Mission
-Execute Milestone 2 (Bundle Size & Dynamic Code Splitting) for D-VIEW, converting static modal/heavy imports to `next/dynamic` and lazy imports, adding `recharts` to package optimization, and improving `preload.ts` to be non-blocking.
+Execute Milestone 2: Admin Features & Routes Purge. Purge admin web UI (`/admin/*`, `/write-report/*`), admin API routes (`/api/admin/*`, `/api/apartments-sync`, `/api/debug-reports`), admin components, and clean up admin references across the codebase while preserving `EngineeringReportClient.tsx` and providing CLI tools for admin operations.
 
 ## 🔒 My Identity
 - Archetype: worker
 - Roles: implementer, qa, specialist
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m2
-- Original parent: 590214ee-1446-4a49-a677-2e1dd14cc3cc
-- Milestone: M2 (Bundle Size & Dynamic Code Splitting)
+- Original parent: 4221d0a5-4abc-4d55-842d-af41a849b34b
+- Milestone: Milestone 2 — Admin Features & Routes Purge
 
 ## 🔒 Key Constraints
-- Exclusive write scope:
-  - `frontend/src/app/layout.tsx`
-  - `frontend/src/components/OfficeExplorerClient.tsx`
-  - `frontend/src/components/ApartmentModal.tsx`
-  - `frontend/src/components/EngineeringReportClient.tsx`
-  - `frontend/src/components/ReportClient.tsx`
-  - `frontend/next.config.ts`
-  - `frontend/src/lib/preload.ts`
+- Scope: Admin features removal as defined in instructions.md and survey_admin.md.
+- CRITICAL: Preserve `src/components/EngineeringReportClient.tsx`.
 - No hardcoded test cheating or dummy facades.
-- All modifications must preserve existing prop interfaces and runtime functionality.
-- TypeScript compiler (`npx tsc --noEmit`) must succeed with 0 errors.
-- Jest tests (`npm test`) must pass.
+- All admin references in public pages, navigation, and utilities must be cleanly removed or neutralized.
+- Zero TypeScript errors (`npx tsc --noEmit`).
+- All tests passing (`npm test`).
+- Next.js build succeeding (`npm run build`).
 
 ## Current Parent
-- Conversation ID: 590214ee-1446-4a49-a677-2e1dd14cc3cc
-- Updated: 2026-08-22T22:33:30+09:00
+- Conversation ID: 4221d0a5-4abc-4d55-842d-af41a849b34b
+- Updated: 2026-09-19T20:08:45+09:00
 
 ## Task Summary
-- **What to build**: Dynamic code splitting for root modals (`SettingsModal`, `WelcomeModal`, `CustomA2HSModal` in `layout.tsx`), `OfficeDetailModal` in `OfficeExplorerClient.tsx`, `PushSubscriptionModal` in `ApartmentModal.tsx`, lazy loading for `jsPDF` in `EngineeringReportClient.tsx` & `ReportClient.tsx`, `recharts` package optimization in `next.config.ts`, and non-blocking idle-prioritized preloading in `src/lib/preload.ts`.
-- **Success criteria**: Zero TypeScript compilation errors, all 101 Jest test suites passing (1036/1036 tests green), Next.js build succeeding with code 0.
-- **Interface contracts**: PROJECT.md
-- **Code layout**: PROJECT.md § Code Layout
+- **What to build**:
+  1. Delete `src/app/admin/` and `src/app/write-report/` (keep `src/components/EngineeringReportClient.tsx`).
+  2. Delete `src/app/api/admin/`, `src/app/api/apartments-sync/`, and `src/app/api/debug-reports/`.
+  3. Delete `src/components/admin/`, `src/components/auth/AdminGuard.tsx`, and `src/components/write-report/ReportUI.tsx`.
+  4. Clean up references in `FloatingUserBar.tsx`, `Footer.tsx`, `robots.ts`, `admin.config.ts`, `authUtils.ts`, `DashboardFacade.ts`, `report-view/route.ts`, `ExploreClient.tsx`, `DashboardClient.tsx`, `post.service.ts`.
+  5. Provide `scripts/request-indexing.js` CLI and `scripts/sync-all.js`.
+  6. Verify `npx tsc --noEmit`, `npm test`, `npm run build`.
+- **Success criteria**: All admin routes and components removed, clean build and tests pass.
+- **Interface contracts**: instructions.md, survey_admin.md
+- **Code layout**: frontend/src
 
 ## Change Tracker
+- **Deleted directories & files**:
+  - `src/app/admin/` (entire tree: 18 items including `apartments/`, `edit-report/`, `engineering/`, `inquiries/`, `pending-photos/`, `reports/`, `report/`)
+  - `src/app/write-report/` (entire tree: `layout.tsx`, `page.tsx`)
+  - `src/app/api/admin/` (entire tree: `analytics/`, `search-console/`, `sync-reports/`)
+  - `src/app/api/apartments-sync/` (entire tree)
+  - `src/app/api/debug-reports/` (entire tree)
+  - `src/components/admin/` (entire tree: 10 files including `AnalyticsDashboard.tsx`, `ReportEditorForm.tsx`, `ValuationTuner.tsx`, etc.)
+  - `src/components/auth/AdminGuard.tsx`
+  - `src/components/write-report/` (`ReportUI.tsx`)
 - **Files modified**:
-  - `frontend/src/app/layout.tsx`: Converted `CustomA2HSModal`, `WelcomeModal`, `SettingsModal` to `dynamic(() => import(...))`
-  - `frontend/src/components/OfficeExplorerClient.tsx`: Converted `OfficeDetailModal` to `dynamic(() => import(...), { ssr: false })`
-  - `frontend/src/components/apartment/ApartmentModal.tsx`: Converted `PushSubscriptionModal` to `dynamic(() => import(...), { ssr: false })`
-  - `frontend/src/components/EngineeringReportClient.tsx`: Removed static `jsPDF` import, lazy loaded via `const { jsPDF } = await import('jspdf')` inside `handleExportPDF`
-  - `frontend/src/components/ReportClient.tsx`: Removed static `jsPDF` import, lazy loaded via `const { jsPDF } = await import('jspdf')` inside `handleExportPDF`
-  - `frontend/next.config.ts`: Added `"recharts"` to `experimental.optimizePackageImports`
-  - `frontend/src/lib/preload.ts`: Created non-blocking idle priority preloader utility with `scheduleIdle`, `preloadComponent`, `preloadApartmentModal`, and `preloadDashboardFeatures`
-- **Build status**: PASS (Next.js build exit code 0, 177/177 static pages generated)
-- **Pending issues**: None
+  - `src/components/FloatingUserBar.tsx`: Removed "관리자 설정" button, `isAdmin` import, and nickname lock checks.
+  - `src/components/Footer.tsx`: Removed `isAdmin` pathname check, renders unconditionally across all public pages.
+  - `src/app/robots.ts`: Removed `/admin/` and `/write-report` from disallow arrays.
+  - `src/lib/config/admin.config.ts`: Neutralized to empty `ADMIN_EMAILS` and `isAdmin` returning `false`.
+  - `src/lib/authUtils.ts`: Removed `verifyAdmin`.
+  - `src/lib/DashboardFacade.ts`: Removed `isAdmin` method and strategy declarations.
+  - `src/app/api/report-view/route.ts`: Removed admin exclusion logic and import.
+  - `src/app/explore/ExploreClient.tsx`: Removed `isAdmin` prop passing to `ApartmentModal` and removed admin nickname bypass.
+  - `src/components/DashboardClient.tsx`: Removed `isAdmin` prop passing to `FieldReportModal` and removed admin nickname bypass.
+  - `src/lib/services/post.service.ts`: Removed `/api/admin/search-console/indexing` background fetch.
+- **New CLI tools**:
+  - `scripts/request-indexing.js`: Standalone Google Search Console indexing CLI using service account JWT.
+  - `scripts/sync-all.js`: Master runner for full local data pipeline synchronization.
+- **Build status**: PASS (`npx tsc --noEmit` 0 errors, `npm run build` exit code 0, 226/226 static pages generated).
+- **Pending issues**: None.
 
 ## Quality Status
-- **Build/test result**: PASS (101/101 test suites passed, 1036/1036 tests green, `tsc --noEmit` 0 errors)
-- **Lint status**: 0 errors
-- **Tests added/modified**: Verified against all 101 Jest suites including `m2_challenger_context_preload.test.tsx`
-
-## Loaded Skills
-- None required for this milestone.
+- **Build/test result**: PASS (122/122 test suites passed, 1372/1372 tests green).
+- **Lint status**: PASS (0 lint errors in any modified or touched files).
+- **Tests added/modified**: Verified against all 122 existing test suites with 0 regressions.
 
 ## Key Decisions Made
-- Used `dynamic(() => import(...))` for root modals in `layout.tsx` (Server Component).
-- Used `dynamic(() => import(...), { ssr: false })` for client modals in `OfficeExplorerClient.tsx` and `ApartmentModal.tsx`.
-- Replaced top-level static `jsPDF` imports with lazy dynamic imports in PDF export handlers to eliminate ~300KB+ gzipped initial bundle overhead.
-- Configured package import optimization for `recharts` in `next.config.ts`.
-- Structured `src/lib/preload.ts` with `requestIdleCallback` (and fallback) for non-blocking execution.
+- Neutralized `admin.config.ts` to export empty list and `false` function rather than immediate deletion to prevent breaking Lounge components prior to Milestone 3 purge.
+- Preserved `src/components/EngineeringReportClient.tsx` because it is shared with the public `/report` page and tested by `m2_challenger1_empirical_verification.test.tsx`.
+- Removed `isAdmin` prop from `ExploreClient` and `DashboardClient` to cleanly decouple them from admin logic.
 
 ## Artifact Index
 - `.agents/worker_m2/DISPATCH.md` — Assignment instructions
 - `.agents/worker_m2/BRIEFING.md` — Agent state and memory
 - `.agents/worker_m2/progress.md` — Progress tracker and heartbeat
 - `.agents/worker_m2/handoff.md` — Completion handoff report
+- `frontend/scripts/request-indexing.js` — Google Search Console indexing CLI
+- `frontend/scripts/sync-all.js` — Composite data sync CLI

@@ -6,7 +6,40 @@
  */
 
 /**
+ * 거래 취소/해제 여부 판별 유틸리티
+ * @param {Object} t - 실거래 레코드
+ * @returns {boolean} 취소/해제 거래 여부
+ */
+function isCancelledTransaction(t) {
+  if (!t) return false;
+  if (t.isCanceled === true) return true;
+  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
+  
+  const isInvalidDate = (v) => {
+    if (v === null || v === undefined) return true;
+    const s = String(v).trim().toLowerCase();
+    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
+  };
+
+  if (!isInvalidDate(t.cancelDate)) return true;
+  if (!isInvalidDate(t.cdealDay)) return true;
+
+  return false;
+}
+
+/**
+ * 직거래 여부 판별 유틸리티
+ * @param {Object} t - 실거래 레코드
+ * @returns {boolean} 직거래 여부
+ */
+function isDirectDeal(t) {
+  if (!t || typeof t !== 'object') return false;
+  return t.dealType === '직거래' || t.dealingGbn === '직거래';
+}
+
+/**
  * 롤링 윈도우 기반 시계열 이상치 필터링 (최근 11건 기준 국소적 평균/표준편차 적용, 현재 거래 배제)
+ * 직거래 및 취소 거래는 일반 시장 시세 왜곡 및 최저가 왜곡을 방지하기 위해 필터링됩니다.
  * @param {Array<Object>} txs - 거래 레코드 배열
  * @returns {Array<Object>} 이상치가 제거된 거래 레코드 배열
  */
@@ -15,7 +48,20 @@ function filterOutliersRolling(txs) {
     return [];
   }
 
-  const sortedTxs = [...txs].sort((a, b) => {
+  // 직거래 플래그 표기
+  txs.forEach(t => {
+    if (isDirectDeal(t)) {
+      t.isDirectDeal = true;
+    }
+  });
+
+  // 취소 거래 및 직거래는 요약 통계 및 매크로 트렌드 롤링 윈도우 왜곡 방지를 위해 제외
+  const cleanTxs = txs.filter(t => !isCancelledTransaction(t) && !isDirectDeal(t));
+  if (cleanTxs.length === 0) {
+    return [];
+  }
+
+  const sortedTxs = [...cleanTxs].sort((a, b) => {
     const d1 = parseInt(`${a.contractYm || ''}${String(a.contractDay || '').padStart(2, '0')}`, 10) || 0;
     const d2 = parseInt(`${b.contractYm || ''}${String(b.contractDay || '').padStart(2, '0')}`, 10) || 0;
     return d1 - d2;
@@ -85,6 +131,7 @@ function filterOutliersRolling(txs) {
 
 /**
  * IQR 아웃라이어 빌드 타임 선 연산 (클라이언트 CPU 부하 0ms 최적화)
+ * 상한/하한 양방향 이상치 탐지 (Two-Sided IQR Outlier Detection)
  * @param {Array<Object>} records - 거래 레코드 배열
  * @returns {Array<Object>} isOutlier 플래그가 주입된 레코드 배열
  */
@@ -131,13 +178,24 @@ function applyIqrOutlierDetection(records) {
     const iqr = q3 - q1;
     iqrBounds[groupKey] = {
       lower: q1 - 1.5 * iqr,
+      upper: q3 + 1.5 * iqr,
+      iqr,
       count: prices.length
     };
   });
 
   records.forEach(r => {
     const bounds = iqrBounds[r.groupKey];
-    r.isOutlier = !!(bounds && bounds.count >= 4 && (r.evaluatedPrice < bounds.lower));
+    const isOutlier = !!(
+      bounds &&
+      bounds.count >= 4 &&
+      bounds.iqr > 0 &&
+      (r.evaluatedPrice < bounds.lower || r.evaluatedPrice > bounds.upper)
+    );
+    r.isOutlier = isOutlier;
+    if (isDirectDeal(r)) {
+      r.isDirectDeal = true;
+    }
     
     delete r.evaluatedPrice;
     delete r.groupKey;
@@ -147,6 +205,8 @@ function applyIqrOutlierDetection(records) {
 }
 
 module.exports = {
+  isCancelledTransaction,
+  isDirectDeal,
   filterOutliersRolling,
   applyIqrOutlierDetection
 };

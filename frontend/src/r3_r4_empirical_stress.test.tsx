@@ -6,7 +6,6 @@ import '@testing-library/jest-dom';
 import OfflineBannerGlobal from '@/components/OfflineBanner';
 import { OfflineBanner as OfflineBannerUI } from '@/components/ui/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
-import LoungeSkeleton from '@/components/ui/LoungeSkeleton';
 import MacroDashboardSkeleton from '@/components/ui/MacroDashboardSkeleton';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
@@ -76,14 +75,6 @@ describe('R3: Offline/Slow Network Resilience & Auto-Sync Stress Suite', () => {
   });
 
   describe('1. Skeleton Components Render & Layout Shift Stability', () => {
-    it('renders LoungeSkeleton cleanly with animate-pulse container', () => {
-      const { container } = render(<LoungeSkeleton />);
-      const skeleton = screen.getByTestId('lounge-skeleton');
-      expect(skeleton).toBeInTheDocument();
-      expect(skeleton.className).toContain('animate-pulse');
-      expect(container.querySelectorAll('.bg-neutral-200, .bg-zinc-800').length).toBeGreaterThan(0);
-    });
-
     it('renders MacroDashboardSkeleton cleanly with all indicator placeholders', () => {
       render(<MacroDashboardSkeleton />);
       const skeleton = screen.getByTestId('macrodashboard-skeleton');

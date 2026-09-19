@@ -163,9 +163,68 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
       </div>
     );
 
-    expect(screen.getByText('최근 실거래 1,200건 전수 분석')).toBeInTheDocument();
     // 120 new highs present in both Donut breakdown and Metric card
     expect(screen.getAllByText('120건').length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('connects donut category selection to 4 representative transaction cards in AptMetricCards', () => {
+    const mockOnSelectApt = jest.fn();
+
+    const IntegratedContainer = () => {
+      const [activeCategory, setActiveCategory] = React.useState<string | null>(null);
+      const [activeSector, setActiveSector] = React.useState<any>(null);
+
+      return (
+        <div className="flex flex-col gap-4">
+          <AptDonutSection
+            mounted={true}
+            recentTransactions={mockTransactions}
+            txSummaryData={mockSummary as any}
+            initialMode="pyeong"
+            activeCategory={activeCategory}
+            onActiveCategoryChange={setActiveCategory}
+            onActiveSectorChange={setActiveSector}
+          />
+          <AptMetricCards
+            recentTransactions={mockTransactions}
+            txSummaryData={mockSummary as any}
+            activeSector={activeSector}
+            onResetSector={() => {
+              setActiveCategory(null);
+              setActiveSector(null);
+            }}
+            onSelectApt={mockOnSelectApt}
+          />
+        </div>
+      );
+    };
+
+    render(<IntegratedContainer />);
+
+    // Initially displays default 4 macro KPIs
+    expect(screen.getByText('평당 평균 실거래가')).toBeInTheDocument();
+    expect(screen.getByText('우리집 적정 가치 & 매도 타이밍')).toBeInTheDocument();
+
+    // Click '국민평형 (30평대)' donut card
+    const mediumCard = screen.getByLabelText(/국민평형 \(30평대\) 4건.*하단 대표 실거래 4건 확인/i);
+    fireEvent.click(mediumCard);
+
+    // AptMetricCards dynamically transforms into representative transaction cards without extra header
+    expect(screen.queryByText(/대표 실거래/)).not.toBeInTheDocument();
+    expect(screen.getByText('#1')).toBeInTheDocument();
+    expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
+    expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+
+    // Clicking the representative transaction card opens the apartment modal
+    const repCard = screen.getByLabelText(/동탄역 롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
+    fireEvent.click(repCard);
+    expect(mockOnSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+
+    // Clicking '선택 초기화' resets back to macro KPIs
+    const resetBtn = screen.getByText('선택 초기화');
+    fireEvent.click(resetBtn);
+    expect(screen.getByText('평당 평균 실거래가')).toBeInTheDocument();
+    expect(screen.getByText('우리집 적정 가치 & 매도 타이밍')).toBeInTheDocument();
   });
 });
 

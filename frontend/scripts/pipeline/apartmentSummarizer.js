@@ -49,21 +49,63 @@ function normalizeAptName(name) {
 }
 
 /**
+ * 거래 취소/해제 여부 판별 유틸리티
+ * @param {Object} t - 실거래 레코드
+ * @returns {boolean} 취소/해제 거래 여부
+ */
+function isCancelledTransaction(t) {
+  if (!t) return false;
+  if (t.isCanceled === true) return true;
+  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
+  
+  const isInvalidDate = (v) => {
+    if (v === null || v === undefined) return true;
+    const s = String(v).trim().toLowerCase();
+    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
+  };
+
+  if (!isInvalidDate(t.cancelDate)) return true;
+  if (!isInvalidDate(t.cdealDay)) return true;
+
+  return false;
+}
+
+/**
  * 단일 아파트 단지의 매매/전월세 통합 요약 통계 계산
- * @param {string} aptName - 아파트명
- * @param {Array<Object>} saleTxs - 아파트 매매 거래 목록
- * @param {Array<Object>} rentTxs - 아파트 전월세 거래 목록
- * @param {Object} dongMap - 법정동 매핑 테이블
+ * 계약 해제/취소 거래는 통계 산출에서 전면 배제됩니다.
+ * @param {string|Array<Object>} aptName - 아파트명 또는 거래 목록
+ * @param {Array<Object>|string} saleTxs - 아파트 매매 거래 목록 또는 아파트명
+ * @param {Array<Object>} [rentTxs] - 아파트 전월세 거래 목록
+ * @param {Object} [dongMap={}] - 법정동 매핑 테이블
  * @param {Date} [now=new Date()] - 기준 일자
  * @returns {Object} 아파트 통계 요약 객체
  */
-function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now = new Date()) {
-  const prices = saleTxs.map(t => t.price).filter(p => typeof p === 'number' && p > 0);
+function calculateApartmentSummary(aptName, saleTxs, rentTxs = [], dongMap = {}, now = new Date()) {
+  let targetAptName = aptName;
+  let rawSaleTxs = saleTxs;
+  let rawRentTxs = rentTxs;
+  let targetDongMap = dongMap;
+  let targetNow = now;
+
+  if (Array.isArray(aptName)) {
+    // calculateApartmentSummary(txs, targetAptName)
+    targetAptName = saleTxs || '';
+    rawSaleTxs = aptName.filter(t => t.dealType !== '전세' && t.dealType !== '월세');
+    rawRentTxs = aptName.filter(t => t.dealType === '전세' || t.dealType === '월세');
+    targetDongMap = rentTxs || {};
+    targetNow = dongMap instanceof Date ? dongMap : new Date();
+  }
+
+  // 취소/해제 거래 원천 배제
+  const validSaleTxs = (rawSaleTxs || []).filter(t => !isCancelledTransaction(t));
+  const validRentTxs = (rawRentTxs || []).filter(t => !isCancelledTransaction(t));
+
+  const prices = validSaleTxs.map(t => t.price).filter(p => typeof p === 'number' && p > 0);
   const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
   const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
 
   // 면적별 정렬 및 변동성(delta), 신고가(isNewHigh) 선계산
-  const saleTxsForDeltas = [...saleTxs];
+  const saleTxsForDeltas = [...validSaleTxs];
   const areaGroups = {};
   saleTxsForDeltas.forEach(t => {
     const areaKey = t.area ? (Math.round(t.area * 100) / 100).toFixed(2) : 'default';
@@ -111,10 +153,10 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
   });
 
   // contractDate 기준으로 내림차순 정렬
-  saleTxs.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
-  const latestTx = saleTxs.length > 0 ? saleTxs[0] : null;
+  validSaleTxs.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+  const latestTx = validSaleTxs.length > 0 ? validSaleTxs[0] : null;
 
-  let saleBaseDate = now;
+  let saleBaseDate = targetNow;
   if (latestTx && latestTx.contractDate) {
     const dt = parseYYYYMMDD(latestTx.contractDate);
     if (dt) saleBaseDate = dt;
@@ -123,7 +165,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
   const oneMonthAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 1, saleBaseDate.getDate());
   const threeMonthsAgoSale = new Date(saleBaseDate.getFullYear(), saleBaseDate.getMonth() - 3, saleBaseDate.getDate());
 
-  const recentMonthSale = saleTxs.filter(t => {
+  const recentMonthSale = validSaleTxs.filter(t => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4), 10);
     const m = parseInt(t.contractYm.slice(4, 6), 10);
@@ -132,7 +174,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
     return txDate >= oneMonthAgoSale && (t.price || 0) > 0 && (t.areaPyeong || 0) > 0;
   });
 
-  const recent3MonthSale = saleTxs.filter(t => {
+  const recent3MonthSale = validSaleTxs.filter(t => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4), 10);
     const m = parseInt(t.contractYm.slice(4, 6), 10);
@@ -174,11 +216,11 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
   const avg3MPerPyeong = Math.round(avg3MPerPyeongRaw);
 
   // --- 전월세 요약 ---
-  rentTxs.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
-  const latestRentTx = rentTxs.filter(t => (t.deposit || 0) > 0)[0];
+  validRentTxs.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+  const latestRentTx = validRentTxs.filter(t => (t.deposit || 0) > 0)[0];
   
-  let rentBaseDate = now;
-  const latestRentForBase = rentTxs.length > 0 ? rentTxs[0] : null;
+  let rentBaseDate = targetNow;
+  const latestRentForBase = validRentTxs.length > 0 ? validRentTxs[0] : null;
   if (latestRentForBase && latestRentForBase.contractDate) {
     const dt = parseYYYYMMDD(latestRentForBase.contractDate);
     if (dt) rentBaseDate = dt;
@@ -187,7 +229,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
   const oneMonthAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 1, rentBaseDate.getDate());
   const threeMonthsAgoRent = new Date(rentBaseDate.getFullYear(), rentBaseDate.getMonth() - 3, rentBaseDate.getDate());
 
-  const recentMonthRent = rentTxs.filter(t => {
+  const recentMonthRent = validRentTxs.filter(t => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4), 10);
     const m = parseInt(t.contractYm.slice(4, 6), 10);
@@ -196,7 +238,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
     return txDate >= oneMonthAgoRent && (t.deposit || 0) > 0; // 전세 위주
   });
   
-  const recent3MonthRent = rentTxs.filter(t => {
+  const recent3MonthRent = validRentTxs.filter(t => {
     if (!t.contractYm || t.contractYm.length < 6) return false;
     const y = parseInt(t.contractYm.slice(0, 4), 10);
     const m = parseInt(t.contractYm.slice(4, 6), 10);
@@ -224,7 +266,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
   const avg3MDeposit = Math.round(avg3MDepositRaw / 100) * 100;
 
   const maxPriceByArea = {};
-  saleTxs.forEach(t => {
+  validSaleTxs.forEach(t => {
     if ((t.price || 0) > 0 && (t.area || 0) > 0) {
       const areaKey = (Math.round(t.area * 100) / 100).toFixed(2);
       if (!maxPriceByArea[areaKey] || t.price > maxPriceByArea[areaKey]) {
@@ -233,8 +275,42 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
     }
   });
 
-  const normKey = normalizeAptName(aptName);
-  const dong = dongMap[normKey] || (saleTxs.length > 0 ? saleTxs[0].dong : (rentTxs.length > 0 ? rentTxs[0].dong : '')) || '';
+  // 18개년(2006~2026) 연도별 거래량 집계
+  const annualVolumes = {};
+  for (let yr = 2006; yr <= 2026; yr++) {
+    annualVolumes[String(yr)] = 0;
+  }
+  validSaleTxs.forEach(t => {
+    const yr = t.contractYm ? t.contractYm.slice(0, 4) : '';
+    if (annualVolumes[yr] !== undefined) {
+      annualVolumes[yr]++;
+    }
+  });
+
+  // 면적별 최저가 및 장기 상승률 통계
+  const minPriceByArea = {};
+  validSaleTxs.forEach(t => {
+    if ((t.price || 0) > 0 && (t.area || 0) > 0) {
+      const areaKey = (Math.round(t.area * 100) / 100).toFixed(2);
+      if (!minPriceByArea[areaKey] || t.price < minPriceByArea[areaKey]) {
+        minPriceByArea[areaKey] = t.price;
+      }
+    }
+  });
+
+  const earliestTx = validSaleTxs.length > 0 ? validSaleTxs[validSaleTxs.length - 1] : null;
+  const earliestPrice = earliestTx ? (earliestTx.price || 0) : 0;
+  const earliestDate = earliestTx ? `${earliestTx.contractYm || ''}${earliestTx.contractDay || ''}` : '';
+  const currentLatestPrice = latestTx ? (latestTx.price || 0) : 0;
+  const appreciationRate = (earliestPrice > 0 && currentLatestPrice > 0)
+    ? Math.round(((currentLatestPrice - earliestPrice) / earliestPrice) * 1000) / 10
+    : 0;
+  const allTimeAppreciationRate = (minPrice > 0 && maxPrice > 0)
+    ? Math.round(((maxPrice - minPrice) / minPrice) * 1000) / 10
+    : 0;
+
+  const normKey = normalizeAptName(targetAptName);
+  const dong = targetDongMap[normKey] || (validSaleTxs.length > 0 ? validSaleTxs[0].dong : (validRentTxs.length > 0 ? validRentTxs[0].dong : '')) || '';
 
   return {
     // 법정동
@@ -250,7 +326,17 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
     maxPriceByArea,
     minPrice,
     minPriceEok: minPrice > 0 ? formatPriceEok(minPrice) : "0",
-    txCount: saleTxs.length,
+    minPriceByArea,
+    allTimeHigh: maxPrice,
+    allTimeHighEok: maxPrice > 0 ? formatPriceEok(maxPrice) : "0",
+    allTimeLow: minPrice,
+    allTimeLowEok: minPrice > 0 ? formatPriceEok(minPrice) : "0",
+    annualVolumes,
+    appreciationRate,
+    allTimeAppreciationRate,
+    earliestDate,
+    earliestPrice,
+    txCount: validSaleTxs.length,
     avg1MPrice,
     avg1MPriceEok: formatPriceEok(avg1MPrice),
     avg1MPerPyeong,
@@ -261,7 +347,7 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
     avg3MTxCount: recent3MonthSale.length,
     
     // 전월세 데이터
-    rentTxCount: rentTxs.length,
+    rentTxCount: validRentTxs.length,
     latestRentDeposit: latestRentTx ? getConvertedDeposit(latestRentTx) : 0,
     latestRentDepositEok: latestRentTx ? formatPriceEok(getConvertedDeposit(latestRentTx)) : "0",
     latestRentMonthly: latestRentTx ? latestRentTx.monthlyRent : 0,
@@ -275,21 +361,36 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs, dongMap = {}, now 
 
 /**
  * 최근 90일간의 전체 매매 실거래 플랫 리스트 생성
+ * 계약 해제/취소 거래는 결과 피드에서 전면 배제됩니다.
  * @param {Array<Object>} allSaleTxs - 전체 매매 거래 목록
- * @param {Date} [now=new Date()] - 기준 일자
+ * @param {Date|Array<string>|Set<string>} [now=new Date()] - 기준 일자 또는 허용 아파트 목록
  * @param {number} [maxCount=1000] - 최대 산출 건수
  * @returns {Array<Object>} 최근 90일 거래 리스트
  */
 function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000) {
-  const ninetyDaysAgo = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 90);
+  let activeNow = now instanceof Date ? now : new Date();
+  let limit = typeof maxCount === 'number' ? maxCount : 1000;
+  let allowedApts = null;
 
-  return allSaleTxs
+  if (Array.isArray(now) || (now && typeof now.has === 'function')) {
+    allowedApts = new Set(Array.from(now));
+    activeNow = typeof maxCount === 'object' && maxCount instanceof Date ? maxCount : new Date();
+    limit = 1000;
+  }
+
+  const ninetyDaysAgo = new Date(activeNow.getFullYear(), activeNow.getMonth(), activeNow.getDate() - 90);
+
+  return (allSaleTxs || [])
+    .filter(t => !isCancelledTransaction(t))
     .filter(t => {
+      if (allowedApts && t.aptName && !allowedApts.has(t.aptName) && !allowedApts.has(normalizeAptName(t.aptName))) {
+        return false;
+      }
       const dt = parseYYYYMMDD(t.contractDate);
       return dt && dt >= ninetyDaysAgo;
     })
     .sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''))
-    .slice(0, maxCount)
+    .slice(0, limit)
     .map(t => {
       const dt = parseYYYYMMDD(t.contractDate);
       let dateLabel = '';
@@ -319,10 +420,104 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
     });
 }
 
+/**
+ * 기간별(90일 / 1년 / 3년 / 전체) 매매 실거래 목록 생성
+ * @param {Array<Object>} allSaleTxs - 전체 매매 거래 목록
+ * @param {'90d' | '1y' | '3y' | 'all'} [period='90d'] - 대상 기간
+ * @param {Date} [now=new Date()] - 기준 일자
+ * @param {boolean} [asTuple=false] - 컴팩트 튜플 포맷 여부
+ * @returns {Array<Object>|{fields: string[], data: Array<Array>}}
+ */
+function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), asTuple = false) {
+  const activeNow = now instanceof Date ? now : new Date();
+  
+  let cutoffDate = null;
+  if (period === '90d') {
+    cutoffDate = new Date(activeNow.getFullYear(), activeNow.getMonth(), activeNow.getDate() - 90);
+  } else if (period === '1y') {
+    cutoffDate = new Date(activeNow.getFullYear() - 1, activeNow.getMonth(), activeNow.getDate());
+  } else if (period === '3y') {
+    cutoffDate = new Date(activeNow.getFullYear() - 3, activeNow.getMonth(), activeNow.getDate());
+  }
+
+  const filtered = (allSaleTxs || [])
+    .filter(t => !isCancelledTransaction(t))
+    .filter(t => {
+      if (!cutoffDate) return true;
+      const dt = parseYYYYMMDD(t.contractDate);
+      return dt && dt >= cutoffDate;
+    })
+    .sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+
+  if (asTuple) {
+    const fields = [
+      'aptName',
+      'txKey',
+      'date',
+      'contractDate',
+      'priceVal',
+      'priceEok',
+      'area',
+      'areaPyeong',
+      'floor',
+      'dealType',
+      'isNewHigh',
+      'delta',
+      'deltaPercent'
+    ];
+    const data = filtered.map(t => [
+      t.aptName || '',
+      normalizeAptName(t.aptName || ''),
+      `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
+      t.contractDate || '',
+      (t.price || 0) / 10000,
+      t.priceEok || formatPriceEok(t.price || 0),
+      t.area || 0,
+      t.areaPyeong || 0,
+      t.floor || 0,
+      t.dealType || '매매',
+      t.isNewHigh ? 1 : 0,
+      t.delta ? t.delta / 10000 : 0,
+      t.deltaPercent || 0
+    ]);
+    return { fields, data };
+  }
+
+  return filtered.map(t => {
+    const dt = parseYYYYMMDD(t.contractDate);
+    let dateLabel = '';
+    if (dt) {
+      const month = dt.getMonth() + 1;
+      const dateVal = dt.getDate();
+      dateLabel = `${month}월 ${dateVal}일`;
+    }
+    return {
+      aptName: t.aptName,
+      txKey: normalizeAptName(t.aptName),
+      date: `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
+      contractDate: t.contractDate,
+      priceVal: (t.price || 0) / 10000,
+      priceEok: t.priceEok || formatPriceEok(t.price || 0),
+      area: t.area,
+      areaPyeong: t.areaPyeong,
+      floor: t.floor,
+      dealType: t.dealType || '매매',
+      isNewHigh: !!t.isNewHigh,
+      newHighDelta: t.newHighDelta ? t.newHighDelta / 10000 : undefined,
+      prevPriceVal: t.prevPriceVal ? t.prevPriceVal / 10000 : undefined,
+      delta: t.delta ? t.delta / 10000 : 0,
+      deltaPercent: t.deltaPercent || 0,
+      dateLabel
+    };
+  });
+}
+
 module.exports = {
+  isCancelledTransaction,
   formatPriceEok,
   parseYYYYMMDD,
   normalizeAptName,
   calculateApartmentSummary,
-  formatRecentTransactions
+  formatRecentTransactions,
+  formatPeriodTransactions
 };

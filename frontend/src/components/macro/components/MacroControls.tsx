@@ -1,6 +1,7 @@
 import React from 'react';
 import { Settings, Search, X, LayoutGrid, List, RotateCcw } from 'lucide-react';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import type { TimelinePeriod } from '@/types/transaction';
 import type {
   RegionFilterType,
   PyeongFilterType,
@@ -60,6 +61,8 @@ export interface TimelineFilterControlsProps {
   setSortOrder?: (order: TimelineSortOrder) => void;
   viewMode?: TimelineViewMode;
   setViewMode?: (mode: TimelineViewMode) => void;
+  periodFilter?: TimelinePeriod;
+  setPeriodFilter?: (period: TimelinePeriod) => void;
   onResetFilters?: () => void;
 }
 
@@ -85,6 +88,8 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
   setSortOrder,
   viewMode = "card",
   setViewMode,
+  periodFilter = "90d",
+  setPeriodFilter,
   onResetFilters,
 }: TimelineFilterControlsProps) {
   const currentRegion = regionFilter !== "all" ? regionFilter : (timelineDongFilter !== "전체" ? timelineDongFilter : "all");
@@ -241,6 +246,38 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               </option>
             ))}
           </select>
+
+          {/* Period Selector (90d / 1y / 3y / all) */}
+          {setPeriodFilter && (
+            <div className="flex bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl shrink-0 border border-border/50">
+              {(['90d', '1y', '3y', 'all'] as const).map((p) => {
+                const labelMap = { '90d': '90일', '1y': '1년', '3y': '3년', 'all': '전체' };
+                const isSelected = periodFilter === p;
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => {
+                      if (setPeriodFilter) {
+                        React.startTransition(() => {
+                          setPeriodFilter(p);
+                        });
+                      }
+                    }}
+                    aria-label={`조회 기간 ${labelMap[p]}`}
+                    data-testid={`period-filter-${p}`}
+                    className={`px-1.5 xs:px-2 py-0.5 rounded-lg text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold transition-all cursor-pointer ${
+                      isSelected
+                        ? "bg-surface text-[#057e77] shadow-xs font-black"
+                        : "text-tertiary hover:text-secondary"
+                    }`}
+                  >
+                    {labelMap[p]}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* View Mode Toggle (Card Grid vs Compact List) */}
           {setViewMode && (

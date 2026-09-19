@@ -9,19 +9,14 @@ import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
 import { normalizeAptName, getDisplayAptName, findTypeMapEntry, isSameApartment } from '@/lib/utils/apartmentMapping';
-import type { CommentData, FieldReportData } from '@/lib/DashboardFacade';
+import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
-import { doc, updateDoc, collection, query, where, getDocs, limit } from 'firebase/firestore';
-import { db } from '@/lib/firebaseConfig';
-import { throttle } from '@/lib/utils/firestoreThrottle';
 import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
 import { createPortal } from 'react-dom';
-import { postConverter } from '@/lib/utils/firestoreConverters';
 import { safeReload } from '@/lib/utils/safeReload';
 import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 import { useApartmentDetails } from '@/hooks/useApartmentDetails';
-import { useComments } from '@/hooks/useComments';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useSettingsValues } from '@/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
@@ -38,17 +33,6 @@ import { useApartmentModalState } from './hooks/useApartmentModalState';
 import { ApartmentModalHeader } from './ApartmentModalHeader';
 import { ApartmentModalTransactionsTable } from './ApartmentModalTransactionsTable';
 import { ApartmentModalKakaoCard } from './ApartmentModalKakaoCard';
-
-const CommentSkeleton = () => (
-  <div className="w-full flex flex-col gap-4 mt-4 h-[250px]">
-    <div className="h-6 rounded-xl w-32 mb-2 animate-shimmer" />
-    <div className="flex gap-3">
-      <div className="flex-1 h-12 rounded-xl animate-shimmer" />
-      <div className="w-16 h-12 rounded-xl animate-shimmer" />
-    </div>
-    <div className="w-full flex-1 rounded-[20px] border border-border/40 animate-shimmer" />
-  </div>
-);
 
 const JeonseSafetySkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
@@ -123,15 +107,6 @@ const TransactionChartSkeleton = () => (
     </div>
   </div>
 );
-
-const CommentSection = dynamic(() => import('@/components/CommentSection').catch(err => {
-  logger.warn('ApartmentModal.dynamic', 'CommentSection Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('CommentSection');
-  return { default: () => null };
-}), { 
-  ssr: false, 
-  loading: () => <CommentSkeleton /> 
-});
 
 const TransactionTable = dynamic(() => import('@/components/apartment-modal/TransactionTable').then(mod => mod.TransactionTable).catch(err => {
   logger.warn('ApartmentModal.dynamic', 'TransactionTable Chunk Load failure, initiating fallback reload', undefined, err);
@@ -344,11 +319,6 @@ interface EnrichedTransaction extends TransactionRecord {
 const ApartmentModal = React.memo(function ApartmentModal({ 
   report: rawReport, 
   onClose,
-  comments: rawCommentsProp,
-  commentInput: rawCommentInputProp,
-  onCommentChange: rawOnCommentChangeProp,
-  onSubmitComment: rawOnSubmitCommentProp,
-  onDeleteComment: rawOnDeleteCommentProp,
   user,
   transactions: rawTransactionsProp,
   typeMap,
@@ -373,11 +343,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
 }: { 
   report: FieldReportData;
   onClose: () => void;
-  comments?: CommentData[];
-  commentInput?: string;
-  onCommentChange?: (text: string) => void;
-  onSubmitComment?: () => void;
-  onDeleteComment?: (commentId: string, text: string) => void;
   user: User | null;
   transactions?: TransactionRecord[];
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
@@ -427,29 +392,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
   const _isLoadingDetail = isLoadingDetailProp !== undefined ? isLoadingDetailProp : hookIsLoadingDetail;
   const loadAllTransactions = loadAllTransactionsProp !== undefined ? loadAllTransactionsProp : hookLoadAllTransactions;
 
-  const { 
-    commentsData, 
-    commentInput: commentsInputMap, 
-    setCommentInput: setCommentsInputMap, 
-    handleSubmitComment, 
-    handleDeleteComment 
-  } = useComments(
-    rawReport, 
-    fullReportData, 
-    user, 
-    () => { if (onRequestLogin) onRequestLogin('댓글을 작성하려면 로그인이 필요합니다.'); }
-  );
-
-  const activeReportId = report.id;
-  const modalComments = commentsData[activeReportId] || [];
-  const modalCommentInput = commentsInputMap[activeReportId] || '';
-
-  const comments = rawCommentsProp || modalComments;
-  const commentInput = rawCommentInputProp !== undefined ? rawCommentInputProp : modalCommentInput;
-  const onCommentChange = rawOnCommentChangeProp || ((text: string) => setCommentsInputMap(prev => ({ ...prev, [activeReportId]: text })));
-  const onSubmitComment = rawOnSubmitCommentProp || (() => { handleSubmitComment(activeReportId); });
-  const onDeleteComment = rawOnDeleteCommentProp || ((commentId: string, text: string) => { handleDeleteComment(activeReportId, commentId, text); });
-
   const { areaUnit } = useSettingsValues();
   const { showToast } = usePWA();
   const modalRef = useRef<HTMLDivElement>(null);
@@ -477,7 +419,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
   } = useApartmentModalState();
 
   const [mounted, setMounted] = useState(false);
-  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [chartType, setChartType] = useState<'sale' | 'jeonse'>('sale');
@@ -981,7 +922,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <div role="tablist" className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
           {(() => {
             const tabs = [
-              { id: 'sec-comments', label: '아파트 이야기', show: true },
               { id: 'sec-summary', label: '단지 기본정보', show: true },
               { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
               { id: 'sec-education', label: '학군/육아 분석', show: !!report.metrics },
@@ -1015,25 +955,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
       {/* Magazine Content Wrapper */}
       <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
-        {/* Comments Section */}
-        <section id="sec-comments" className="scroll-mt-14 snap-start">
-          <ErrorBoundary name="임장기 댓글">
-            <LazyRender estimatedHeight={250}>
-              <CommentSection
-                comments={comments}
-                commentInput={commentInput}
-                onCommentChange={onCommentChange}
-                onSubmitComment={onSubmitComment}
-                user={user}
-                isUnlocked={true}
-                selectedCommentId={selectedCommentId || undefined}
-                onRequestLogin={onRequestLogin}
-                onDeleteComment={onDeleteComment}
-              />
-            </LazyRender>
-          </ErrorBoundary>
-        </section>
-
         {/* 1. Specs Section */}
         <div id="sec-summary" className="scroll-mt-14 snap-start">
           <ErrorBoundary name="단지 기본정보">

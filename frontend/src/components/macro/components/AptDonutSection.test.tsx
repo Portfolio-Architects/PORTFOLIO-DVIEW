@@ -121,7 +121,7 @@ describe('AptDonutSection Test Suite', () => {
 
       // Default mode header
       expect(screen.getByText('실거래 평형대별 수요 분포')).toBeInTheDocument();
-      expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
+      expect(screen.queryByText(/전수 분석/)).not.toBeInTheDocument();
 
       // 4 pyeong tiers
       expect(screen.getByText('소형 (20평대)')).toBeInTheDocument();
@@ -144,8 +144,9 @@ describe('AptDonutSection Test Suite', () => {
       expect(screen.getAllByText('평형대별 수요').length).toBeGreaterThanOrEqual(2);
     });
 
-    it('toggles pyeong tier selection, displays representative apartment list and guide callout banner', () => {
+    it('displays representative apartment inline and selects category on card click to connect with KPI cards', () => {
       const mockOnSelectApt = jest.fn();
+      const mockOnActiveSectorChange = jest.fn();
       const mockPreload = jest.fn();
 
       render(
@@ -154,25 +155,29 @@ describe('AptDonutSection Test Suite', () => {
           recentTransactions={mockRecentTransactions}
           txSummaryData={mockSummary as any}
           onSelectApt={mockOnSelectApt}
+          onActiveSectorChange={mockOnActiveSectorChange}
           preloadApartmentTx={mockPreload}
         />
       );
 
-      // Click '소형 (20평대)' tier
+      // Simplified card shows category name, badge, and transaction count (without 최다 거래 badge for uniform alignment)
+      expect(screen.getByText('소형 (20평대)')).toBeInTheDocument();
+      expect(screen.getByText('59㎡ 이하')).toBeInTheDocument();
+      expect(screen.queryByText('최다 거래')).not.toBeInTheDocument();
+      expect(screen.getAllByText('1건').length).toBeGreaterThanOrEqual(1);
+
+      // Clicking card toggles category selection and notifies onActiveSectorChange without opening modal
       const smallRow = screen.getByLabelText(/소형 \(20평대\) 1건/i);
       fireEvent.click(smallRow);
+      expect(mockOnSelectApt).not.toHaveBeenCalled();
+      expect(mockOnActiveSectorChange).toHaveBeenCalledWith(
+        expect.objectContaining({ name: '소형 (20평대)' })
+      );
 
-      // Guide callout banner
-      expect(screen.getByText(/신혼부부 및 가성비 첫 집 마련 실수요 선호 평형/i)).toBeInTheDocument();
-
-      // Representative apartment
-      expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
-      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
-
-      // Click reset button
+      // Selection reset button works
       const resetBtn = screen.getByText('선택 초기화');
       fireEvent.click(resetBtn);
-      expect(screen.queryByText(/신혼부부 및 가성비 첫 집 마련 실수요 선호 평형/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('선택 초기화')).not.toBeInTheDocument();
     });
 
     it('switches between pyeong demand mode and energy mode seamlessly via header buttons', () => {
@@ -222,7 +227,7 @@ describe('AptDonutSection Test Suite', () => {
       );
 
       expect(screen.getByText('실거래 시장 체감 온도')).toBeInTheDocument();
-      expect(screen.getByText('최근 실거래 4건 전수 분석')).toBeInTheDocument();
+      expect(screen.queryByText(/전수 분석/)).not.toBeInTheDocument();
 
       // 4 items: each 1 count -> 25.0% each
       expect(screen.getByText('신고가')).toBeInTheDocument();
@@ -234,8 +239,9 @@ describe('AptDonutSection Test Suite', () => {
       expect(percentageElements.length).toBeGreaterThanOrEqual(4);
     });
 
-    it('toggles category selection and displays representative apartment list', () => {
+    it('displays representative apartment inline in energy mode and selects category on click', () => {
       const mockOnSelectApt = jest.fn();
+      const mockOnActiveSectorChange = jest.fn();
       const mockPreload = jest.fn();
 
       render(
@@ -244,37 +250,29 @@ describe('AptDonutSection Test Suite', () => {
           recentTransactions={mockRecentTransactions}
           txSummaryData={mockSummary as any}
           onSelectApt={mockOnSelectApt}
+          onActiveSectorChange={mockOnActiveSectorChange}
           preloadApartmentTx={mockPreload}
           initialMode="energy"
         />
       );
 
-      // Click '신고가' category row
+      // Simplified card shows category name and count
+      expect(screen.getByText('신고가')).toBeInTheDocument();
+      expect(screen.getByText('최고가 갱신')).toBeInTheDocument();
+      expect(screen.getAllByText('1건').length).toBeGreaterThanOrEqual(1);
+
+      // Clicking '신고가' card activates category and notifies onActiveSectorChange without opening modal
       const highCategoryRow = screen.getByLabelText(/신고가 1건/i);
       fireEvent.click(highCategoryRow);
+      expect(mockOnSelectApt).not.toHaveBeenCalled();
+      expect(mockOnActiveSectorChange).toHaveBeenCalledWith(
+        expect.objectContaining({ name: '신고가' })
+      );
 
-      // Should display representative list title
-      expect(screen.getByText('대표 실거래 단지 리스트')).toBeInTheDocument();
-      expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
-      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
-
-      // Hover on apartment item
-      const aptCard = screen.getByText('동탄역 롯데캐슬').closest('div[role="button"]');
-      expect(aptCard).toBeInTheDocument();
-      if (aptCard) {
-        fireEvent.mouseEnter(aptCard);
-        expect(mockPreload).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
-        expect(preloadApartmentModal).toHaveBeenCalled();
-
-        // Click on apartment item
-        fireEvent.click(aptCard);
-        expect(mockOnSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
-      }
-
-      // Reset selection button should be available
+      // Reset selection button should be available and clear active category
       const resetBtn = screen.getByText('선택 초기화');
       fireEvent.click(resetBtn);
-      expect(screen.queryByText(/동탄역 롯데캐슬/i)).not.toBeInTheDocument();
+      expect(screen.queryByText('선택 초기화')).not.toBeInTheDocument();
     });
 
     it('handles empty transactions without crashing or NaN', () => {
@@ -286,7 +284,6 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      expect(screen.getByText('최근 실거래 0건 전수 분석')).toBeInTheDocument();
       expect(screen.getAllByText('0건').length).toBeGreaterThanOrEqual(4);
       expect(screen.getAllByText('0.0%').length).toBeGreaterThanOrEqual(4);
     });
@@ -308,7 +305,6 @@ describe('AptDonutSection Test Suite', () => {
       );
 
       expect(screen.getByText('실거래 시장 체감 온도')).toBeInTheDocument();
-      expect(screen.getByText('최근 실거래 1건 전수 분석')).toBeInTheDocument();
     });
 
     it('filters out public rental apartments when publicRentalSet is provided', () => {
@@ -324,7 +320,6 @@ describe('AptDonutSection Test Suite', () => {
       );
 
       // Out of 4 transactions, '동탄역 롯데캐슬' (high) is filtered -> 3 remaining
-      expect(screen.getByText('최근 실거래 3건 전수 분석')).toBeInTheDocument();
       expect(screen.getByText('0.0%')).toBeInTheDocument(); // high is 0%
     });
 
@@ -346,7 +341,8 @@ describe('AptDonutSection Test Suite', () => {
       fireEvent.click(risingCategoryRow);
 
       expect(onActiveChange).toHaveBeenCalledWith('상승거래');
-      expect(screen.getByText('동탄역 시범 우남퍼스트빌')).toBeInTheDocument();
+      expect(screen.getAllByText('상승거래').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('1건').length).toBeGreaterThanOrEqual(1);
     });
 
     it('correctly resolves dong and aliases via nameMapping', () => {
@@ -361,6 +357,7 @@ describe('AptDonutSection Test Suite', () => {
           delta: 0.4,
         },
       ];
+      const onActiveSectorChange = jest.fn();
 
       render(
         <AptDonutSection
@@ -368,6 +365,7 @@ describe('AptDonutSection Test Suite', () => {
           recentTransactions={txWithAlias}
           txSummaryData={mockSummary as any}
           nameMapping={nameMapping}
+          onActiveSectorChange={onActiveSectorChange}
           initialMode="energy"
         />
       );
@@ -375,8 +373,14 @@ describe('AptDonutSection Test Suite', () => {
       const risingRow = screen.getByLabelText(/상승거래 1건/i);
       fireEvent.click(risingRow);
 
-      // Should resolve dong '청계동'
-      expect(screen.getByText('청계동')).toBeInTheDocument();
+      // Should resolve dong '청계동' in activeSector repApt
+      expect(onActiveSectorChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          repApt: expect.objectContaining({
+            dong: '청계동',
+          }),
+        })
+      );
     });
 
     it('guarantees percentage sum equals exactly 100.0% for odd number of transactions', () => {
@@ -394,7 +398,6 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      expect(screen.getByText('최근 실거래 3건 전수 분석')).toBeInTheDocument();
       // 33.4% + 33.3% + 33.3% + 0.0% = 100.0%
       expect(screen.getByText('33.4%')).toBeInTheDocument();
       expect(screen.getAllByText('33.3%').length).toBe(2);
@@ -418,15 +421,14 @@ describe('AptDonutSection Test Suite', () => {
       expect(flatRow).toBeInTheDocument();
       fireEvent.click(flatRow);
 
-      expect(screen.getByText('동탄 미세변동 단지')).toBeInTheDocument();
       const bohapElements = screen.getAllByText('보합');
       expect(bohapElements.length).toBeGreaterThanOrEqual(2);
-      expect(screen.queryByText(/▲/)).not.toBeInTheDocument();
-      expect(screen.queryByText(/▼/)).not.toBeInTheDocument();
+      expect(screen.getAllByText('1건').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('calls preloadApartmentTx with empty string fallback when dong is undefined', () => {
+    it('does not trigger modal or preload when interacting with simplified donut breakdown cards', () => {
       const mockPreload = jest.fn();
+      const mockSelectApt = jest.fn();
       const txWithoutDong = [
         { aptName: '단지무동', priceVal: 10, delta: 0.5 },
       ];
@@ -436,18 +438,17 @@ describe('AptDonutSection Test Suite', () => {
           mounted={true}
           recentTransactions={txWithoutDong}
           preloadApartmentTx={mockPreload}
+          onSelectApt={mockSelectApt}
           initialMode="energy"
         />
       );
 
       const risingRow = screen.getByLabelText(/상승거래 1건/i);
-      fireEvent.click(risingRow);
+      fireEvent.mouseEnter(risingRow);
+      expect(mockPreload).not.toHaveBeenCalled();
 
-      const aptCard = screen.getByText('단지무동').closest('div[role="button"]');
-      if (aptCard) {
-        fireEvent.mouseEnter(aptCard);
-        expect(mockPreload).toHaveBeenCalledWith('단지무동', '');
-      }
+      fireEvent.click(risingRow);
+      expect(mockSelectApt).not.toHaveBeenCalled();
     });
 
     it('formats missing priceEok into eok/man representation and resolves txKey-only transactions', () => {
@@ -471,11 +472,59 @@ describe('AptDonutSection Test Suite', () => {
       const risingRow = screen.getByLabelText(/상승거래 1건/i);
       fireEvent.click(risingRow);
 
-      expect(screen.getByText('동탄역롯데캐슬')).toBeInTheDocument();
-      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+      expect(screen.getAllByText('상승거래').length).toBeGreaterThanOrEqual(2);
+      expect(screen.getAllByText('평균 16.5억').length).toBeGreaterThanOrEqual(1);
 
-      const card = screen.getByLabelText(/동탄역롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
+      const card = screen.getByLabelText(/상승거래 1건.*하단 대표 실거래 4건 확인/i);
       expect(card).toBeInTheDocument();
+    });
+  });
+
+  describe('Period Selection (90d / 1y / 3y / all)', () => {
+    it('renders all period buttons and default 90d badge and label', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
+
+      expect(screen.getByRole('button', { name: /최근 90일 실거래 보기/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /최근 1년 실거래 보기/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /최근 3년 실거래 보기/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /역대 전수 실거래 보기/i })).toBeInTheDocument();
+
+      // Check header period badge
+      expect(screen.getByText('최근 90일')).toBeInTheDocument();
+      // Check center overlay period label
+      expect(screen.getByText('최근 90일 기준')).toBeInTheDocument();
+    });
+
+    it('switches period and invokes onPeriodChange callback when period button is clicked', () => {
+      const handlePeriodChange = jest.fn();
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          onPeriodChange={handlePeriodChange}
+        />
+      );
+
+      const oneYearBtn = screen.getByRole('button', { name: /최근 1년 실거래 보기/i });
+      fireEvent.click(oneYearBtn);
+
+      expect(handlePeriodChange).toHaveBeenCalledWith('1y');
+      expect(screen.getByText('최근 1년')).toBeInTheDocument();
+      expect(screen.getByText('최근 1년 기준')).toBeInTheDocument();
+
+      const allBtn = screen.getByRole('button', { name: /역대 전수 실거래 보기/i });
+      fireEvent.click(allBtn);
+
+      expect(handlePeriodChange).toHaveBeenCalledWith('all');
+      expect(screen.getByText('역대 전수')).toBeInTheDocument();
+      expect(screen.getByText('역대 전수 기준')).toBeInTheDocument();
     });
   });
 });

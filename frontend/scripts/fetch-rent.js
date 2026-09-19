@@ -12,7 +12,20 @@ require('dotenv').config({ path: '.env.local' });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
-const { HttpsProxyAgent } = require('https-proxy-agent');
+let HttpsProxyAgent = null;
+function getProxyAgent() {
+  if (process.env.PROXY_URL) {
+    if (!HttpsProxyAgent) {
+      try {
+        HttpsProxyAgent = require('https-proxy-agent').HttpsProxyAgent;
+      } catch {
+        return undefined;
+      }
+    }
+    return HttpsProxyAgent ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
+  }
+  return undefined;
+}
 const axios = require('axios');
 const { z } = require('zod');
 const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
@@ -50,13 +63,15 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
     try {
       const response = await axios.get(url, {
         ...options,
-        timeout: 25000
+        timeout: 25000 // 25초 타임아웃
       });
       return response;
     } catch (err) {
       const isLastActive = i === retries - 1;
-      const status = err.response ? err.response.status : null;
-      console.warn(`   ⚠️ [Rent API] 호출 시도 ${i + 1}/${retries} 실패: ${err.message} (HTTP status: ${status})`);
+      const status = err.response ? err.response.status : (err.code || 'TIMEOUT_OR_NET_ERR');
+      const isTimeout = err.code === 'ECONNABORTED' || (err.message && err.message.toLowerCase().includes('timeout'));
+      const errorLabel = isTimeout ? '네트워크 타임아웃(25s 초과)' : (err.message || '네트워크 연결 오류');
+      console.warn(`   ⚠️ [Rent API] 호출 시도 ${i + 1}/${retries} 실패: ${errorLabel} (HTTP status/Code: ${status})`);
       if (isLastActive) throw err;
       
       const backoffDelay = delay * Math.pow(2, i);
@@ -127,6 +142,8 @@ async function main() {
   for (const ym of sortedMonths) {
     console.log(`\n📅 ${ym} 전월세 처리 중...`);
     const monthRecords = [];
+    const keyOccurrences = new Map();
+    const seenRawTxKeys = new Set();
 
     // 기존 Firestore에 저장된 해당 월 키 조회
     const existingMap = new Set();
@@ -147,17 +164,21 @@ async function main() {
     for (const currentLawd of LAWD_CDS) {
       let page = 1;
       let totalCount = 0;
+      const currentDistrictOccurrences = new Map();
 
       do {
         const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
-        const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
+        const agent = getProxyAgent();
 
         let rawData;
         try {
           const res = await fetchWithRetry(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
           rawData = res.data;
         } catch (err) {
-          console.error(`   ❌ API 응답 실패로 (${ym}, ${currentLawd}) page ${page} 건너뜀: ${err.message}`);
+          const status = err.response ? err.response.status : (err.code || 'TIMEOUT_OR_NET_ERR');
+          const isTimeout = err.code === 'ECONNABORTED' || (err.message && err.message.toLowerCase().includes('timeout'));
+          const desc = isTimeout ? '네트워크 타임아웃(25초 초과)' : err.message;
+          console.warn(`   ⚠️ [Rent API] (${ym}, ${currentLawd}) page ${page} 오류로 건너뜀 (안전 복구): ${desc} (Status/Code: ${status})`);
           break;
         }
 
@@ -165,14 +186,23 @@ async function main() {
         const isXml = typeof rawData === 'string' && rawData.trim().startsWith('<');
 
         if (isXml) {
-          // XML response handling
-          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
-          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
+          // XML response handling (e.g. '00', '99', '30', '01' 등 에러 코드 전수 매칭)
+          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/i) ||
+                                  text.match(/<returnReasonCode>([^<]*)<\/returnReasonCode>/i);
+          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/i) ||
+                                 text.match(/<returnAuthMsg>([^<]*)<\/returnAuthMsg>/i) ||
+                                 text.match(/<errMsg>([^<]*)<\/errMsg>/i);
           const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
           const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
 
           if (resultCode && resultCode !== '00' && resultCode !== '000') {
-            console.error(`   ❌ Gov API Rent Error [${resultCode}]: ${resultMsg}`);
+            console.warn(`   ⚠️ Gov API Rent Error Envelope [${resultCode}]: ${resultMsg || '공공 API 오류 응답'}`);
+            break;
+          }
+
+          if (text.includes('<OpenAPI_ServiceResponse>') || text.includes('<cmmMsgHeader>')) {
+            const errMsg = resultMsg || 'OpenAPI Gateway Error';
+            console.warn(`   ⚠️ Gov API Rent Gateway Error: ${errMsg}`);
             break;
           }
 
@@ -211,7 +241,20 @@ async function main() {
             const contractDay = getTag('dealDay', '일').padStart(2, '0');
             const floor = parseInt(getTag('floor', '층'), 10) || 0;
 
-            const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const baseKey = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const currentDistrictCount = (currentDistrictOccurrences.get(baseKey) || 0) + 1;
+            currentDistrictOccurrences.set(baseKey, currentDistrictCount);
+            const txIdentifier = `${baseKey}_${currentDistrictCount}`;
+
+            if (seenRawTxKeys.has(txIdentifier)) {
+              continue; // 다른 LAWD_CD에서 이미 수집된 중복 전월세 건너뜀
+            }
+            seenRawTxKeys.add(txIdentifier);
+
+            const occurrence = (keyOccurrences.get(baseKey) || 0) + 1;
+            keyOccurrences.set(baseKey, occurrence);
+            const _key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
+
             if (existingMap.has(_key)) {
               continue; // 이미 저장된 동일 건 건너뜀
             }
@@ -249,10 +292,15 @@ async function main() {
           // JSON response handling
           const jsonObj = rawData;
 
-          const resultCode = jsonObj.response?.header?.resultCode;
-          if (resultCode !== '000' && resultCode !== '00') {
-            const errMsg = jsonObj.response?.header?.resultMsg || JSON.stringify(jsonObj);
-            console.error(`   ❌ API 에러: ${errMsg}`);
+          const jsonResultCode = jsonObj.response?.header?.resultCode ||
+                                 jsonObj.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnReasonCode;
+          const jsonResultMsg = jsonObj.response?.header?.resultMsg ||
+                                jsonObj.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnAuthMsg ||
+                                jsonObj.OpenAPI_ServiceResponse?.cmmMsgHeader?.errMsg;
+
+          if (jsonResultCode && jsonResultCode !== '000' && jsonResultCode !== '00') {
+            const errMsg = jsonResultMsg || JSON.stringify(jsonObj);
+            console.warn(`   ⚠️ Gov API Rent JSON 에러 [${jsonResultCode}]: ${errMsg}`);
             break;
           }
 
@@ -287,7 +335,20 @@ async function main() {
             const contractDay = getJsonVal(item, 'dealDay', '일').padStart(2, '0');
             const floor = parseInt(getJsonVal(item, 'floor', '층'), 10) || 0;
 
-            const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const baseKey = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const currentDistrictCount = (currentDistrictOccurrences.get(baseKey) || 0) + 1;
+            currentDistrictOccurrences.set(baseKey, currentDistrictCount);
+            const txIdentifier = `${baseKey}_${currentDistrictCount}`;
+
+            if (seenRawTxKeys.has(txIdentifier)) {
+              continue; // 다른 LAWD_CD에서 이미 수집된 중복 전월세 건너뜀
+            }
+            seenRawTxKeys.add(txIdentifier);
+
+            const occurrence = (keyOccurrences.get(baseKey) || 0) + 1;
+            keyOccurrences.set(baseKey, occurrence);
+            const _key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
+
             if (existingMap.has(_key)) {
               continue;
             }
@@ -351,7 +412,15 @@ async function main() {
   process.exit(0);
 }
 
-main().catch(err => {
-  console.error('❌ 동기화 실패:', err.message);
-  process.exit(1);
-});
+module.exports = {
+  RentTransactionSchema,
+  fetchWithRetry,
+  main,
+};
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error('❌ 동기화 실패:', err.message);
+    process.exit(1);
+  });
+}

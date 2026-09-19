@@ -2,8 +2,6 @@ import {
   safeJsonLd,
   getMainPageSchema,
   getApartmentSchema,
-  getLoungeMainSchema,
-  getLoungePostSchema,
   getNewsMainSchema,
   getExploreSchema,
 } from './structuredData';
@@ -103,52 +101,6 @@ describe('structuredData Utility', () => {
 
       expect(complex?.geo).toBeUndefined();
       expect(complex?.offers).toBeUndefined();
-    });
-  });
-
-  describe('getLoungeMainSchema', () => {
-    it('should generate Lounge main CollectionPage and BreadcrumbList', () => {
-      const schema = getLoungeMainSchema(baseUrl);
-      expect(schema['@type']).toBe('CollectionPage');
-      expect(schema.url).toBe(`${baseUrl}/lounge`);
-      expect(schema.breadcrumb.itemListElement).toHaveLength(2);
-      expect(schema.breadcrumb.itemListElement[0].name).toBe('홈');
-      expect(schema.breadcrumb.itemListElement[1].item).toBe(`${baseUrl}/lounge`);
-    });
-  });
-
-  describe('getLoungePostSchema', () => {
-    it('should generate DiscussionForumPosting schema with parsed dates and interaction statistics', () => {
-      const post = {
-        id: 'post-1234',
-        title: '동탄 트램 타당성 평가 완료 소식',
-        content: '드디어 동탄 트램 타당성 통과했네요! 모두 축하드립니다.',
-        author: '동탄지킴이',
-        createdAt: '2026-06-24T12:00:00Z',
-        commentsCount: 15,
-      };
-
-      const schema = getLoungePostSchema(post, baseUrl);
-      expect(schema['@type']).toBe('DiscussionForumPosting');
-      expect(schema.headline).toBe(post.title);
-      expect(schema.articleBody).toBe(post.content);
-      expect(schema.author.name).toBe(post.author);
-      expect(schema.datePublished).toBe(new Date(post.createdAt).toISOString());
-      expect(schema.interactionStatistic.userInteractionCount).toBe(15);
-      expect(schema.publisher['@id']).toBe(`${baseUrl}/#organization`);
-    });
-
-    it('should default commentsCount to 0 if not provided', () => {
-      const post = {
-        id: 'post-5678',
-        title: '새로운 단지 임장기',
-        content: '인프라가 너무 좋네요.',
-        author: '임장러',
-        createdAt: '2026-06-24T15:30:00Z',
-      };
-
-      const schema = getLoungePostSchema(post, baseUrl);
-      expect(schema.interactionStatistic.userInteractionCount).toBe(0);
     });
   });
 

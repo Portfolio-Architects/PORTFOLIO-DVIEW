@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Home, Sparkles, Building2 } from 'lucide-react';
+import { Home, Sparkles, Building2, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import FloatingUserBar from '@/components/FloatingUserBar';
-import { useAuth } from '@/hooks/useAuth';
 
-const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
-  const { user } = useAuth();
+
+const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
   const router = useRouter();
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -16,6 +14,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
     // Proactively prefetch core routes on mount
     router.prefetch('/');
     router.prefetch('/explore');
+    router.prefetch('/stats');
     router.prefetch('/mbti');
 
     const handlePopState = () => {
@@ -23,6 +22,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
       const path = window.location.pathname;
       if (path === '/') onTabChange('overview');
       else if (path === '/explore') onTabChange('imjang');
+      else if (path === '/stats') onTabChange('stats');
       else if (path === '/mbti') onTabChange('mbti');
       else onTabChange('overview');
     };
@@ -56,9 +56,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
           <div className="flex flex-col md:flex-row md:items-center justify-between h-[80px] gap-4 md:gap-0">
             
             {/* Mobile: Top Bar */}
-            <div className="md:hidden flex items-center justify-end w-full">
-              <FloatingUserBar />
-            </div>
+            <div className="md:hidden flex items-center justify-end w-full" />
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <div className="hidden md:flex shrink-0 items-center gap-3" aria-label="메인 메뉴">
@@ -99,7 +97,23 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
                   <span>아파트 탐색</span>
                 </Link>
 
-                {/* 3. 단지 MBTI */}
+                {/* 3. 통계 리포트 */}
+                <Link
+                  href="/stats"
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch('/stats')}
+                  onClick={(e) => handleNavClick(e, '/stats', 'stats')}
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                    activeTab === 'stats'
+                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                  }`}
+                >
+                  <BarChart3 size={18} className={activeTab === 'stats' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <span>통계 리포트</span>
+                </Link>
+
+                {/* 4. 단지 MBTI */}
                 <Link
                   href="/mbti"
                   prefetch={true}
@@ -117,10 +131,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'lounge', on
               </nav>
             </div>
 
-            {/* Right: Desktop User Bar */}
-            <div className="hidden md:flex items-center justify-end">
-              <FloatingUserBar />
-            </div>
+            {/* Right: Desktop Spacer */}
+            <div className="hidden md:flex items-center justify-end" />
             
           </div>
         </div>

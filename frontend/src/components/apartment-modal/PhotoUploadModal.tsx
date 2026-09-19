@@ -8,16 +8,13 @@ import { uploadImage } from '@/lib/services/storage.service';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 
 import Image from 'next/image';
-import type { User } from 'firebase/auth';
-import { auth } from '@/lib/firebaseConfig';
-import { useAuth } from '@/contexts/AuthContext';
 
 interface PhotoUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   apartmentId: string;
   apartmentName: string;
-  user: User | null;
+  user?: any;
 }
 
 const CATEGORIES = [
@@ -32,7 +29,6 @@ const CATEGORIES = [
 ];
 
 export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, onClose, apartmentId, apartmentName, user }: PhotoUploadModalProps) {
-  const { handleLogin } = useAuth();
   const [file, setFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -281,23 +277,6 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
               <h3 className="text-[20px] font-bold text-primary mb-2">등록이 완료되었습니다!</h3>
               <p className="text-[15px] text-secondary">관리자 검토 후 단지 갤러리에 반영됩니다.<br/>참여해 주셔서 감사합니다.</p>
             </div>
-          ) : !user ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-body rounded-full flex items-center justify-center mb-5">
-                <Camera size={32} className="text-tertiary" />
-              </div>
-              <h3 className="text-[18px] font-bold text-primary mb-2">로그인이 필요합니다</h3>
-              <p className="text-[14px] text-secondary mb-6">
-                단지 사진을 등록하려면<br />구글 로그인을 먼저 진행해 주세요.
-              </p>
-              <button
-                onClick={handleLogin}
-                className="flex items-center gap-2 bg-surface border border-border shadow-sm text-primary font-bold px-6 py-3 rounded-xl hover:bg-body transition-colors"
-              >
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="구글 로그인 로고" className="w-5 h-5" />
-                구글로 계속하기
-              </button>
-            </div>
           ) : (
             <>
               {/* Image Upload Area */}
@@ -383,7 +362,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
         </div>
 
         {/* Footer */}
-        {(!isSuccess && user) && (
+        {!isSuccess && (
           <div className="p-5 border-t border-border bg-surface">
             <button
               onClick={handleSubmit}

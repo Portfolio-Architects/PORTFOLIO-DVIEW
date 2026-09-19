@@ -1,60 +1,81 @@
-# BRIEFING — 2026-08-22T06:00:00Z
+# BRIEFING — 2026-09-19T12:01:00Z
 
 ## Mission
-Comprehensive Documentation, Information Architecture (IA) & 5-Domain Requirements Review for PORTFOLIO DVIEW.
+Conduct independent quality and adversarial review of the Admin and Navigation removal for DVIEW cleanup:
+1. Verify complete deletion of all admin pages (`src/app/admin/*`, `src/app/write-report/*`) and admin API routes (`src/app/api/admin/*`, `/api/apartments-sync`, `/api/debug-reports`).
+2. Verify local CLI operations scripts are in place (`scripts/request-indexing.js`, `scripts/sync-all.js`, `scripts/sync-transactions.js`, `scripts/sync-apartments.js`).
+3. Verify navigation components (`LoungeHeader.tsx`, `MobileDock.tsx`, `Footer.tsx`, `FloatingUserBar.tsx`) contain NO admin links, buttons, or triggers.
+4. Run `npm test` and `npx tsc --noEmit` to verify correctness.
+5. Check for any integrity violations (hardcoded test results, dummy facades, shortcuts, fabricated outputs).
+6. Issue formal verdict (APPROVE or REQUEST_CHANGES).
 
 ## 🔒 My Identity
 - Archetype: reviewer_and_critic
 - Roles: reviewer, critic
 - Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_1
-- Original parent: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
-- Milestone: Review & Adversarial Stress Testing
+- Original parent: 61027df8-c116-414f-8304-a1f284259890
+- Milestone: Pipeline & Build-Time Data Compilation (R1, R3, R5)
 - Instance: 1 of 1
+- Current milestone: Admin & Navigation Review (DVIEW cleanup)
+- Parent ID: 4221d0a5-4abc-4d55-842d-af41a849b34b
 
 ## 🔒 Key Constraints
 - Review-only — do NOT modify implementation code
-- Review against ORIGINAL_REQUEST.md requirements
-- Check for integrity violations (hardcoded tests, dummy facades, shortcuts, fabricated verifications)
-- Verify synchronization between PORTFOLIO DVIEW - Engineering Report.md and frontend/src/data/engineering-report.md
+- Check actively for integrity violations (hardcoded results, dummy facades, shortcuts, fabricated outputs)
+- Evidence-based review with independent verification commands
+- Issue explicit APPROVE or REQUEST_CHANGES verdict
 
 ## Current Parent
-- Conversation ID: 7ca603c0-36a1-4fe9-99c9-0f6dfb471133
-- Updated: 2026-08-22T06:00:00Z
+- Conversation ID: 4221d0a5-4abc-4d55-842d-af41a849b34b
+- Updated: 2026-09-19T12:01:00Z
 
 ## Review Scope
-- **Files to review**:
-  - `ORIGINAL_REQUEST.md` (or `.agents/ORIGINAL_REQUEST.md`)
-  - `PORTFOLIO DVIEW - Engineering Report.md`
-  - `frontend/src/data/engineering-report.md`
-  - Frontend implementation & test suite
-- **Interface contracts**: 5 core domains, mathematical formulas (Utility Score 200pt, DCF Fair PER/Cap Rate, Relocation Tax Simulator), architecture pipelines, design tokens, monetization model, roadmap
-- **Review criteria**: correctness, completeness, consistency, mathematical precision, adversarial stress-testing, typecheck and test passes
-
-## Key Decisions Made
-- Confirmed 100% byte-for-byte exact synchronization between `PORTFOLIO DVIEW - Engineering Report.md` and `frontend/src/data/engineering-report.md` (0 byte difference, 428 lines, 33,656 bytes).
-- Confirmed full specification and mathematical precision for all 5 core domains (Real Estate, Stocks/Industry, Running/Trails, Festivals/Events, Dining/Hotplaces).
-- Confirmed mathematical consistency of Utility Score 200pt, DCF Fair PER/Cap Rate (`max(0.01, r - g)`), and Relocation Tax Simulator.
-- Executed `npx tsc --noEmit` -> 0 errors.
-- Executed `npm test` -> 86 Test Suites passed, 846 Tests passed (100% Green).
-- Verified zero integrity violations across documentation, facades, and tests.
-- Verdict: **APPROVE**.
+- **Admin routes & pages**: `src/app/admin/*`, `src/app/write-report/*`
+- **Admin APIs**: `src/app/api/admin/*`, `/api/apartments-sync`, `/api/debug-reports`
+- **CLI scripts**: `scripts/request-indexing.js`, `scripts/sync-all.js`, `scripts/sync-transactions.js`, `scripts/sync-apartments.js`
+- **Navigation components**: `LoungeHeader.tsx`, `MobileDock.tsx`, `Footer.tsx`, `FloatingUserBar.tsx`
+- **Admin components/configs**: `src/components/admin/*`, `AdminGuard.tsx`, `ReportUI.tsx`, `admin.config.ts`, etc.
+- **Verification commands**: `npm test`, `npx tsc --noEmit`
 
 ## Review Checklist
-- **Items reviewed**: `ORIGINAL_REQUEST.md`, `PORTFOLIO DVIEW - Engineering Report.md`, `frontend/src/data/engineering-report.md`, `scoring.ts`, `valuationEngine.ts`, `RelocationTaxSimulator.tsx`, `AGENT.md`, `PROJECT.md`, `PORTFOLIO DVIEW - Patch History.md`, TypeScript Compiler, Jest Test Suite
+- **Items reviewed**:
+  - `src/app/admin/*`: 100% deleted (0 files)
+  - `src/app/write-report/*`: 100% deleted (0 files)
+  - `src/app/api/admin/*`: 100% deleted (0 files)
+  - `/api/apartments-sync`: 100% deleted (0 files)
+  - `/api/debug-reports`: 100% deleted (0 files)
+  - `src/components/admin/*`, `AdminGuard.tsx`, `ReportUI.tsx`: 100% deleted
+  - `scripts/request-indexing.js`: Verified in place and fully functional
+  - `scripts/sync-all.js`: Verified in place and fully functional
+  - `scripts/sync-apartments.js`: Verified in place and fully functional
+  - `scripts/sync-transactions.js`: Verified in place and fully functional
+  - `LoungeHeader.tsx`: Inspected, exactly 3 tabs, 0 admin links/triggers
+  - `MobileDock.tsx`: Inspected, exactly 3 tabs, 0 admin links/triggers
+  - `Footer.tsx`: Inspected, public informational links only, 0 admin links
+  - `FloatingUserBar.tsx`: Inspected, settings modal trigger only, 0 admin/login triggers
+  - `npx tsc --noEmit`: Code 0, zero errors
+  - `npm test`: 120 suites passed, 1,311 tests passed, 100% green
 - **Verdict**: APPROVE
-- **Unverified claims**: None (all claims verified via independent code execution, diff inspection, and test harness runs)
+- **Unverified claims**: None
 
 ## Attack Surface
 - **Hypotheses tested**:
-  - Distance attenuation formula edge cases (d > 2000m, missing coordinates) -> Handled via boundary clamping and schema fallbacks.
-  - DCF Cap Rate singularity / division by zero -> Prevented via `Math.max(0.01, discountRate - growthRate)`.
-  - Engineering report file sync divergence -> 0 bytes diff confirmed.
-  - Fake/mock data leakage -> Zero fake data rule enforced, all data backed by MOLIT, DART, and validated SSOT.
-- **Vulnerabilities found**: None.
-- **Untested angles**: None within the scope of documentation and 5-domain requirements.
+  - Direct route traversal / leftover URL exposure: 404 naturally verified
+  - Hidden client UI admin triggers / hotkeys: 0 found in navigation components
+  - CLI script independence from web server: verified standalone Node.js operations
+  - Privilege escalation via token/cookie: neutralized by `admin.config.ts` (`isAdmin() => false`) and deleted `verifyAdmin`
+- **Vulnerabilities found**: None
+- **Untested angles**: None
+
+## Key Decisions Made
+- Verified complete deletion of admin routes, APIs, and components
+- Verified CLI script replacements and navigation component cleanliness
+- Confirmed zero integrity violations across the codebase
+- Issued final APPROVE verdict
 
 ## Artifact Index
-- `.agents/reviewer_1/DISPATCH.md` — Incoming dispatch log
-- `.agents/reviewer_1/progress.md` — Liveness & task progress
-- `.agents/reviewer_1/BRIEFING.md` — Agent briefing & working memory
-- `.agents/reviewer_1/handoff.md` — Final review handoff report
+- DISPATCH.md — incoming dispatch instructions
+- BRIEFING.md — situational awareness
+- progress.md — liveness heartbeat
+- analysis.md — detailed review analysis & adversarial findings
+- handoff.md — formal handoff report

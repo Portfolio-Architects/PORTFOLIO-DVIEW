@@ -3,6 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AptMetricCards } from './AptMetricCards';
 
+jest.mock('@/components/common/preload', () => ({
+  preloadApartmentModal: jest.fn(),
+}));
+
+import { preloadApartmentModal } from '@/components/common/preload';
+
 describe('AptMetricCards Test Suite', () => {
   const mockRecentTransactions = [
     {
@@ -179,6 +185,172 @@ describe('AptMetricCards Test Suite', () => {
     );
 
     expect(screen.getByText('전기 대비 -4건 하락세')).toBeInTheDocument();
+  });
+
+  describe('Active Sector Representative Transactions Mode', () => {
+    const mockActiveSector = {
+      name: '국민평형 (30평대)',
+      category: 'medium',
+      value: 48.5,
+      count: 142,
+      color: '#ea6100',
+      items: [
+        {
+          aptName: '동탄역 롯데캐슬',
+          displayAptName: '동탄역 롯데캐슬',
+          dong: '오산동',
+          priceVal: 16.5,
+          priceEok: '16억 5,000만',
+          areaPyeong: 34.2,
+          floor: 25,
+          delta: 0.8,
+          isNewHigh: true,
+          dateLabel: '08.18',
+        },
+        {
+          aptName: '동탄역 시범 우남퍼스트빌',
+          displayAptName: '동탄역 시범 우남퍼스트빌',
+          dong: '청계동',
+          priceVal: 11.2,
+          priceEok: '11억 2,000만',
+          areaPyeong: 33.8,
+          floor: 18,
+          delta: 0.4,
+          isNewHigh: false,
+          dateLabel: '08.17',
+        },
+        {
+          aptName: '동탄역 시범 더샵 센트럴시티',
+          displayAptName: '동탄역 시범 더샵 센트럴시티',
+          dong: '청계동',
+          priceVal: 12.0,
+          priceEok: '12억',
+          areaPyeong: 33.5,
+          floor: 12,
+          delta: -0.2,
+          isNewHigh: false,
+          dateLabel: '08.16',
+        },
+        {
+          aptName: '동탄역 반도유보라 아이비파크',
+          displayAptName: '동탄역 반도유보라 아이비파크',
+          dong: '오산동',
+          priceVal: 9.5,
+          priceEok: '9억 5,000만',
+          areaPyeong: 34.0,
+          floor: 10,
+          delta: 0,
+          isNewHigh: false,
+          dateLabel: '08.15',
+        },
+      ],
+    };
+
+    it('renders 4 representative transactions when activeSector is provided', () => {
+      const mockResetSector = jest.fn();
+
+      render(
+        <AptMetricCards
+          activeSector={mockActiveSector as any}
+          onResetSector={mockResetSector}
+        />
+      );
+
+      // Dynamic header bar is not rendered to prevent layout shifts
+      expect(screen.queryByText(/대표 실거래/)).not.toBeInTheDocument();
+      expect(screen.queryByText('전체 지표 보기')).not.toBeInTheDocument();
+
+      // All 4 transactions rendered with ranks
+      expect(screen.getByText('#1')).toBeInTheDocument();
+      expect(screen.getByText('#2')).toBeInTheDocument();
+      expect(screen.getByText('#3')).toBeInTheDocument();
+      expect(screen.getByText('#4')).toBeInTheDocument();
+
+      expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+      expect(screen.getByText('신고가')).toBeInTheDocument();
+
+      expect(screen.getByText('동탄역 시범 우남퍼스트빌')).toBeInTheDocument();
+      expect(screen.getByText('11억 2,000만')).toBeInTheDocument();
+      expect(screen.getByText('▲4,000만')).toBeInTheDocument();
+
+      expect(screen.getByText('동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();
+      expect(screen.getByText('12억')).toBeInTheDocument();
+      expect(screen.getByText('▼2,000만')).toBeInTheDocument();
+
+      // Middle analysis line displays pyeong price
+      expect(screen.getAllByText(/평당/).length).toBeGreaterThanOrEqual(1);
+
+      // Default macro KPIs should NOT be displayed in this mode
+      expect(screen.queryByText('평당 평균 실거래가')).not.toBeInTheDocument();
+      expect(screen.queryByText('우리집 적정 가치 & 매도 타이밍')).not.toBeInTheDocument();
+    });
+
+    it('triggers onSelectApt when clicking a representative transaction card', () => {
+      const mockOnSelectApt = jest.fn();
+
+      render(
+        <AptMetricCards
+          activeSector={mockActiveSector as any}
+          onSelectApt={mockOnSelectApt}
+        />
+      );
+
+      const card = screen.getByLabelText(/동탄역 롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
+      fireEvent.click(card);
+
+      expect(mockOnSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+    });
+
+    it('triggers preload on mouseEnter of representative card', () => {
+      const mockPreload = jest.fn();
+
+      render(
+        <AptMetricCards
+          activeSector={mockActiveSector as any}
+          preloadApartmentTx={mockPreload}
+        />
+      );
+
+      const card = screen.getByLabelText(/동탄역 롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
+      fireEvent.mouseEnter(card);
+
+      expect(mockPreload).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+      expect(preloadApartmentModal).toHaveBeenCalled();
+    });
+
+    it('does not render an extra header bar when activeSector is provided to keep height stable', () => {
+      render(
+        <AptMetricCards
+          activeSector={mockActiveSector as any}
+        />
+      );
+
+      expect(screen.queryByText(/대표 실거래/)).not.toBeInTheDocument();
+      expect(screen.queryByText('전체 지표 보기')).not.toBeInTheDocument();
+      expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
+    });
+
+    it('renders empty placeholder slots when activeSector has fewer than 4 transactions', () => {
+      const sectorWithTwoItems = {
+        ...mockActiveSector,
+        items: mockActiveSector.items.slice(0, 2),
+      };
+
+      render(
+        <AptMetricCards
+          activeSector={sectorWithTwoItems as any}
+        />
+      );
+
+      expect(screen.getByText('#1')).toBeInTheDocument();
+      expect(screen.getByText('#2')).toBeInTheDocument();
+      expect(screen.queryByText('#3')).not.toBeInTheDocument();
+
+      // 2 empty slots rendered
+      const emptySlots = screen.getAllByText('추가 거래 내역 없음');
+      expect(emptySlots.length).toBe(2);
+    });
   });
 });
 

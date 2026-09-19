@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import FloatingUserBar from "./FloatingUserBar";
 
 export interface PageHeroHeaderProps {
   readonly title: string;
@@ -61,9 +60,6 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
         <div className="text-[16px] font-extrabold text-primary tracking-tight">
           {compactTitle || title}
         </div>
-        <div className="flex items-center gap-3">
-          <FloatingUserBar />
-        </div>
       </div>
 
       {/* Standardized Hero Header */}
@@ -87,10 +83,6 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
                 </h1>
               </div>
               {rightContent}
-            </div>
-            
-            <div className="md:hidden flex items-center justify-end absolute right-4 top-[28px]">
-              <FloatingUserBar />
             </div>
 
             {/* Subtitle */}

@@ -127,6 +127,7 @@ jest.mock('@/contexts/SettingsContext', () => ({
 
 jest.mock('@/hooks/useStaticData', () => ({
   useLocationScores: () => ({}),
+  usePeriodTransactions: () => ({ transactions: [], isLoading: false }),
 }));
 
 // -------------------------------------------------------------
@@ -352,7 +353,7 @@ describe('Milestone 1 Challenger 1 Empirical & Adversarial Stress Suite', () => 
       }
 
       expect(parentRenderCount).toBe(6);
-      expect(screen.getAllByText('D-VIEW 아파트 랩').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('D-VIEW 동탄 아파트 랩').length).toBeGreaterThanOrEqual(1);
     });
   });
 

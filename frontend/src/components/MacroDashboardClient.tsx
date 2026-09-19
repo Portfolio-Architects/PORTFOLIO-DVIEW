@@ -42,7 +42,7 @@ const InlineLoader = ({ text }: { text: string }) => (
   </div>
 );
 
-const MacroTrendChart = dynamic(() => import(/* webpackPreload: false */ "@/components/MacroTrendChart").catch(err => {
+const MacroTrendChart = dynamic(() => import("@/components/MacroTrendChart").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'MacroTrendChart Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroTrendChart');
   return { default: () => null };
@@ -51,7 +51,7 @@ const MacroTrendChart = dynamic(() => import(/* webpackPreload: false */ "@/comp
   loading: () => <InlineLoader text="매크로 동향 차트 분석 중" />
 });
 
-const AptFitFinder = dynamic(() => import(/* webpackPreload: false */ "@/components/consumer/AptFitFinder").catch(err => {
+const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'AptFitFinder Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('AptFitFinder');
   return { default: () => null };
@@ -90,6 +90,8 @@ export interface TimelineItem {
   areaLabelM2?: string;
   areaLabelPyeong?: string;
   displayAptName?: string;
+  contractDate?: string;
+  date?: string;
   isNewHigh?: boolean;
 }
 
@@ -993,7 +995,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       ? timelinePeriodTransactions
       : recentTransactions;
     txSource.forEach((tx) => {
-      const dt = parseDateHelper(tx.contractDate);
+      const dt = parseDateHelper(tx.contractDate || tx.date);
       if (dt) {
         const time = dt.getTime();
         if (time > maxVal) {
@@ -1189,7 +1191,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [lineData]);
 
   const dailyTimelineData = useMemo(() => {
-    const groups: Record<string, { dateStr: string; timestamp: number; items: TimelineItem[] }> = {};
+    const groups: Record<string, { dateStr: string; dateKey?: string; year?: number; timestamp: number; items: TimelineItem[] }> = {};
 
     const activeTimelineTxs = (timelinePeriodTransactions && timelinePeriodTransactions.length > 0)
       ? timelinePeriodTransactions
@@ -1212,22 +1214,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     activeTimelineTxs.forEach((tx) => {
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(tx.aptName)) return;
 
-      const dt = parseDateHelper(tx.contractDate);
+      const dt = parseDateHelper(tx.contractDate || tx.date);
       if (!dt) return;
 
       const diffMs = maxDateTime - dt.getTime();
       const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
       if (diffDays >= 0) {
-        const dateKey = tx.date;
-        const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
-        const dayName = daysOfWeek[dt.getDay()];
+        const year = dt.getFullYear();
         const month = dt.getMonth() + 1;
         const dateVal = dt.getDate();
-        const dateStr = `${month}월 ${dateVal}일 (${dayName})`;
+        const daysOfWeek = ["일", "월", "화", "수", "목", "금", "토"];
+        const dayName = daysOfWeek[dt.getDay()];
+        const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(dateVal).padStart(2, '0')}`;
+        const dateStr = `${year}.${String(month).padStart(2, '0')}.${String(dateVal).padStart(2, '0')} (${dayName})`;
 
         if (!groups[dateKey]) {
           groups[dateKey] = {
             dateStr,
+            dateKey,
+            year,
             timestamp: dt.getTime(),
             items: [],
           };
@@ -1255,6 +1260,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           prevPriceVal: tx.prevPriceVal || (tx.priceVal - (tx.delta || 0)),
           areaLabelM2: labelM2,
           areaLabelPyeong: labelPyeong,
+          contractDate: tx.contractDate,
+          date: tx.date,
         });
       }
     });

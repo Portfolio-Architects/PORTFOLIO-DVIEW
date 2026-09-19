@@ -7,12 +7,9 @@ import { ZONES } from '@/lib/zones';
 export const revalidate = 3600; // Revalidate sitemap every hour
 
 export async function generateSitemaps() {
-  // Split sitemaps:
-  // id: 0 -> Main static pages and 127 apartment detail pages
-  // id: 1 -> Lounge posts
+  // id: 0 -> Main static pages and apartment detail pages
   return [
-    { id: 0 },
-    { id: 1 }
+    { id: 0 }
   ];
 }
 
@@ -22,31 +19,9 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
 
   // 1. MAIN static pages and apartment pages
   if (targetId === 0) {
-    let latestLoungeDate = new Date();
     let latestNewsDate = new Date();
 
     if (adminDb) {
-      try {
-        const latestPostSnap = await adminDb.collection('posts')
-          .select('createdAt')
-          .orderBy('createdAt', 'desc')
-          .limit(1)
-          .get();
-          
-        if (!latestPostSnap.empty) {
-          const doc = latestPostSnap.docs[0].data();
-          if (doc.createdAt) {
-            if (typeof doc.createdAt.toDate === 'function') {
-              latestLoungeDate = doc.createdAt.toDate();
-            } else if (doc.createdAt._seconds) {
-              latestLoungeDate = new Date(doc.createdAt._seconds * 1000);
-            }
-          }
-        }
-      } catch (err) {
-        logger.error('Sitemap.lounge', 'Failed to fetch latest post for sitemap', {}, err as Error);
-      }
-
       try {
         const latestNoticeSnap = await adminDb.collection('localNotices')
           .select('createdAt')
@@ -70,7 +45,7 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
     }
 
     const staticFixedDate = new Date('2026-06-26T00:00:00Z');
-    const homeLastModified = latestLoungeDate > latestNewsDate ? latestLoungeDate : latestNewsDate;
+    const homeLastModified = latestNewsDate;
 
     const routes: MetadataRoute.Sitemap = [
       {
@@ -83,12 +58,6 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
         url: `${baseUrl}/explore`,
         lastModified: new Date(),
         changeFrequency: 'daily',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/lounge`,
-        lastModified: latestLoungeDate,
-        changeFrequency: 'hourly',
         priority: 0.9,
       },
       {
@@ -199,50 +168,6 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
       });
     } catch (error) {
       logger.error('Sitemap.apartmentSitemap', 'Failed to generate apartment sitemap', {}, error as Error);
-    }
-
-    return routes;
-  }
-
-  // 2. LOUNGE dynamic posts
-  if (targetId === 1) {
-    const routes: MetadataRoute.Sitemap = [];
-
-    if (adminDb) {
-      try {
-        // Use projection select() to only fetch createdAt field, optimizing query payload size
-        const postsSnapshot = await adminDb
-          .collection('posts')
-          .select('createdAt')
-          .orderBy('createdAt', 'desc')
-          .limit(1000) // limit for safety in sitemap
-          .get();
-
-        postsSnapshot.forEach((doc) => {
-          const post = doc.data();
-          let lastModified = new Date();
-          
-          if (post.createdAt) {
-            try {
-              // Check if it's a Firestore Timestamp explicitly to call .toDate() safely
-              if (typeof post.createdAt.toDate === 'function') {
-                lastModified = post.createdAt.toDate();
-              } else if (post.createdAt._seconds) {
-                lastModified = new Date(post.createdAt._seconds * 1000);
-              }
-            } catch(e) { /* ignore */ }
-          }
-
-          routes.push({
-            url: `${baseUrl}/lounge/${doc.id}`,
-            lastModified,
-            changeFrequency: 'daily',
-            priority: 0.8,
-          });
-        });
-      } catch (error) {
-        logger.error('Sitemap.postsSitemap', 'Failed to fetch posts for sitemap', {}, error as Error);
-      }
     }
 
     return routes;

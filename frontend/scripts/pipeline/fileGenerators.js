@@ -10,6 +10,21 @@ const path = require('path');
 const { applyIqrOutlierDetection } = require('./outlierFilters');
 const { formatPriceEok, normalizeAptName } = require('./apartmentSummarizer');
 
+function safeWriteFileSync(filepath, content) {
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      fs.writeFileSync(filepath, content, 'utf-8');
+      return;
+    } catch (e) {
+      attempts++;
+      if (attempts >= 5) throw e;
+      const start = Date.now();
+      while (Date.now() - start < 100) {}
+    }
+  }
+}
+
 /**
  * 전역 요약 및 트렌드 JSON 파일들을 저장
  * @param {Object} paths - 파일 경로 맵
@@ -49,6 +64,71 @@ function writeSummaryFiles(paths, data) {
     fs.writeFileSync(macroTrendPath, JSON.stringify(dongtanMacroTrend, null, 2), 'utf-8');
     console.log(`📁 파일 생성: ${macroTrendPath}`);
   }
+
+  const { period1yPath, period3yPath, periodAllPath } = paths;
+  const { transactions1y, transactions3y, transactionsAll } = data;
+
+  if (period1yPath && transactions1y) {
+    const dir = path.dirname(period1yPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(period1yPath, JSON.stringify(transactions1y), 'utf-8');
+    console.log(`📁 파일 생성: ${period1yPath}`);
+  }
+
+  if (period3yPath && transactions3y) {
+    const dir = path.dirname(period3yPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(period3yPath, JSON.stringify(transactions3y), 'utf-8');
+    console.log(`📁 파일 생성: ${period3yPath}`);
+  }
+
+  if (periodAllPath && transactionsAll) {
+    const dir = path.dirname(periodAllPath);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(periodAllPath, JSON.stringify(transactionsAll), 'utf-8');
+    console.log(`📁 파일 생성: ${periodAllPath}`);
+  }
+}
+
+/**
+ * public/tx-data 내 공백이 포함된 레거시 파일명 정리 및 정규화 마이그레이션
+ * @param {string} txDataDir 
+ */
+function migrateLegacySpaceFiles(txDataDir) {
+  if (!fs.existsSync(txDataDir)) return;
+  try {
+    const files = fs.readdirSync(txDataDir);
+    for (const file of files) {
+      if (!file.includes(' ') || !file.endsWith('.json')) continue;
+      const oldPath = path.join(txDataDir, file);
+      const isRecent = file.endsWith('-recent.json');
+      const rawName = isRecent ? file.slice(0, -12) : file.slice(0, -5);
+      let normName = normalizeAptName(rawName);
+      if (!normName) continue;
+      if (normName === '금호어울림레이크1차') {
+        normName = '금호어울림레이크';
+      }
+      const newFileName = isRecent ? `${normName}-recent.json` : `${normName}.json`;
+      const newPath = path.join(txDataDir, newFileName);
+
+      if (fs.existsSync(newPath)) {
+        try {
+          const oldContent = JSON.parse(fs.readFileSync(oldPath, 'utf8'));
+          const newContent = JSON.parse(fs.readFileSync(newPath, 'utf8'));
+          if (Array.isArray(oldContent) && Array.isArray(newContent) && oldContent.length > newContent.length) {
+            fs.writeFileSync(newPath, JSON.stringify(oldContent), 'utf8');
+          }
+        } catch (e) {
+          // ignore parse error
+        }
+        try { fs.unlinkSync(oldPath); } catch (e) {}
+      } else {
+        try { fs.renameSync(oldPath, newPath); } catch (e) {}
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ 레거시 공백 파일 마이그레이션 중 경고:', err.message);
+  }
 }
 
 /**
@@ -66,14 +146,42 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
   }
   if (!fs.existsSync(txDataDir)) {
     fs.mkdirSync(txDataDir, { recursive: true });
+  } else if (!isFullSync) {
+    // 증분 동기화 시 공백 포함 레거시 파일 정리 및 마이그레이션
+    migrateLegacySpaceFiles(txDataDir);
   }
 
   let totalRecords = 0;
   let totalSizeKB = 0;
   let chunkCount = 0;
 
-  for (const aptName of targetApts) {
-    const txs = byApt[aptName] || byApt[normalizeAptName(aptName)] || [];
+  // 대상 아파트 키를 공백 없는 정규화 키로 단일화 및 중복 제거
+  const seenNormKeys = new Set();
+  const normalizedTargetApts = [];
+  for (const rawApt of targetApts) {
+    let norm = normalizeAptName(rawApt);
+    if (norm === '금호어울림레이크1차') norm = '금호어울림레이크';
+    if (norm && !seenNormKeys.has(norm)) {
+      seenNormKeys.add(norm);
+      normalizedTargetApts.push(norm);
+    }
+  }
+
+  for (const aptKey of normalizedTargetApts) {
+    let txs = [];
+    if (byApt[aptKey]) {
+      txs.push(...byApt[aptKey]);
+    }
+    for (const [k, records] of Object.entries(byApt)) {
+      if (k !== aptKey && Array.isArray(records)) {
+        let normK = normalizeAptName(k);
+        if (normK === '금호어울림레이크1차' || normK === '장지동금호어울림레이크1차') normK = '금호어울림레이크';
+        if (normK === aptKey) {
+          txs.push(...records);
+        }
+      }
+    }
+
     const records = txs.map(t => ({
       contractYm: t.contractYm,
       contractDay: t.contractDay,
@@ -157,29 +265,28 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
       return getVal(b) - getVal(a);
     });
 
-    // 파일명: 아파트명
-    const filename = `${aptName}.json`;
+    // 파일명: 정규화된 아파트 키 사용 (${aptKey}.json)
+    const filename = `${aptKey}.json`;
     const filepath = path.join(txDataDir, filename);
     const json = JSON.stringify(uniqueRecords);
     
-    fs.writeFileSync(filepath, json, 'utf-8');
+    safeWriteFileSync(filepath, json);
 
     // 최근 거래 내역만 포함하는 경량 JSON 파일 생성 (최근 15건)
-    const filenameRecent = `${aptName}-recent.json`;
+    const filenameRecent = `${aptKey}-recent.json`;
     const filepathRecent = path.join(txDataDir, filenameRecent);
     const jsonRecent = JSON.stringify(uniqueRecords.slice(0, 15));
-    fs.writeFileSync(filepathRecent, jsonRecent, 'utf-8');
+    safeWriteFileSync(filepathRecent, jsonRecent);
     
     totalRecords += uniqueRecords.length;
     totalSizeKB += (json.length + jsonRecent.length) / 1024;
     chunkCount++;
   }
 
-  // 인덱스 파일 생성
-  fs.writeFileSync(
+  // 인덱스 파일 생성: 공백 없는 정규화 키 목록을 저장
+  safeWriteFileSync(
     path.join(txDataDir, '_index.json'),
-    JSON.stringify(targetApts),
-    'utf-8'
+    JSON.stringify(normalizedTargetApts)
   );
 
   return { chunkCount, totalRecords, totalSizeKB };

@@ -69,10 +69,7 @@ import * as NewsRepo from '@/lib/repositories/news.repository';
 import { GET as getLocalNoticesRoute } from '@/app/api/local-notices/route';
 import { GET as getBypassNoticeRoute } from '@/app/api/bypass-notice/route';
 
-// UI Component imports
-import LoungeFeedClient from '@/components/LoungeFeedClient';
-import LoungeContainerClient from '@/components/LoungeContainerClient';
-import { shareLocalNoticeToKakao } from '@/lib/utils/kakaoShare';
+
 
 // ============================================================================
 // Global Mocks & Polyfills
@@ -165,18 +162,7 @@ jest.mock('@/lib/repositories/apartment.repository', () => ({
   getApartments: jest.fn().mockResolvedValue([]),
 }));
 
-// Mock LoungeDetailClient & AptStoriesWidget
-jest.mock('@/components/LoungeDetailClient', () => {
-  const MockDetail = ({ postId }: { postId: string }) => <div data-testid="lounge-detail-mock">Detail for {postId}</div>;
-  MockDetail.displayName = 'MockLoungeDetailClient';
-  return MockDetail;
-});
 
-jest.mock('@/components/AptStoriesWidget', () => {
-  const MockWidget = () => <div data-testid="apt-stories-widget">Apt Stories Mock</div>;
-  MockWidget.displayName = 'MockAptStoriesWidget';
-  return MockWidget;
-});
 
 // Mock Markdown & GFM to avoid ESM issues
 jest.mock('@/components/ui/MarkdownViewer', () => {
@@ -244,7 +230,7 @@ jest.mock('next/navigation', () => ({
     prefetch: jest.fn(),
   }),
   useSearchParams: () => mockSearchParams,
-  usePathname: () => '/lounge',
+  usePathname: () => '/news',
 }));
 
 // Mock Redis
@@ -302,7 +288,7 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSearchParams = new URLSearchParams();
-    window.history.pushState({}, '', '/lounge');
+    window.history.pushState({}, '', '/news');
 
     // Mock default global fetch
     window.fetch = jest.fn().mockImplementation((url: string) => {
@@ -922,340 +908,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
       });
     });
 
-    // Feature 8: SSR Prop Hydration in Lounge Clients
-    describe('Feature 8: SSR Prop Hydration in Lounge Clients', () => {
-      const mockInitialNotices: NoticeData[] = [
-        {
-          id: 'gosi_149229',
-          title: '동탄2 택지개발지구 변경 고시',
-          dept: '도시개발과',
-          date: '2026-06-05',
-          isDongtan: true,
-          source: 'gosi',
-          url: 'https://www.hscity.go.kr/gosi/149229'
-        },
-        {
-          id: 'rail_1154_10',
-          title: '동탄 도시철도 트램 차량 기지 건설계획',
-          dept: '트램건설추진단',
-          date: '2026-06-04',
-          isDongtan: true,
-          source: 'rail',
-          url: 'https://www.hscity.go.kr/rail/10'
-        }
-      ];
-
-      it('8.1 renders SSR initialNotices immediately in LoungeFeedClient without skeleton flash', async () => {
-        await act(async () => {
-          render(
-            <LoungeFeedClient
-              initialPosts={[]}
-              initialNotices={mockInitialNotices}
-              currentTab="동탄구 소식"
-            />
-          );
-        });
-
-        expect(screen.getByText('동탄2 택지개발지구 변경 고시')).toBeInTheDocument();
-        expect(screen.getByText('동탄 도시철도 트램 차량 기지 건설계획')).toBeInTheDocument();
-        expect(screen.getByText('실시간 행정망 자동 수집 중')).toBeInTheDocument();
-      });
-
-      it('8.2 switches active tab based on URL searchParam tab=notices in LoungeContainerClient', async () => {
-        mockSearchParams = new URLSearchParams('tab=notices');
-
-        await act(async () => {
-          render(
-            <LoungeContainerClient
-              initialPosts={[]}
-              initialNews={[]}
-              initialNotices={mockInitialNotices}
-              searchParams={{ tab: 'notices' }}
-            />
-          );
-        });
-
-        const noticesTabButton = screen.getByRole('button', { name: /행정 고시공고/i });
-        expect(noticesTabButton).toBeInTheDocument();
-        expect(screen.getByText('실시간 행정망 자동 수집 중')).toBeInTheDocument();
-      });
-
-      it('8.3 automatically opens notice modal when URL contains notice query parameter', async () => {
-        mockSearchParams = new URLSearchParams('tab=notices&notice=gosi_149229');
-
-        await act(async () => {
-          render(
-            <LoungeContainerClient
-              initialPosts={[]}
-              initialNews={[]}
-              initialNotices={mockInitialNotices}
-              searchParams={{ tab: 'notices', notice: 'gosi_149229' }}
-            />
-          );
-        });
-
-        expect(screen.getAllByText('동탄2 택지개발지구 변경 고시').length).toBeGreaterThan(0);
-        expect(screen.getByText('원문 고시 바로보기')).toBeInTheDocument();
-      });
-
-      it('8.4 falls back gracefully to SWR client fetch when initialNotices is empty', async () => {
-        window.fetch = jest.fn().mockImplementation((url: string) => {
-          if (url.includes('/api/local-notices')) {
-            return Promise.resolve({
-              ok: true,
-              json: () => Promise.resolve({
-                notices: [
-                  { id: 'client_notice_1', title: '클라이언트 동적 로드 공고', dept: '행정지원과', date: '2026-06-07', isDongtan: true, source: 'gosi' }
-                ],
-                lastUpdated: '2026-06-07T12:00:00.000Z'
-              })
-            });
-          }
-          return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
-        });
-
-        await act(async () => {
-          render(
-            <LoungeFeedClient
-              initialPosts={[]}
-              currentTab="동탄구 소식"
-            />
-          );
-        });
-
-        expect(screen.getByText('실시간 행정망 자동 수집 중')).toBeInTheDocument();
-      });
-
-      it('8.5 renders SEO meta links and semantic headings for crawlers', async () => {
-        await act(async () => {
-          render(
-            <LoungeContainerClient
-              initialPosts={[]}
-              initialNews={[]}
-              initialNotices={mockInitialNotices}
-            />
-          );
-        });
-
-        expect(screen.getAllByText('D-VIEW 라운지').length).toBeGreaterThan(0);
-        expect(screen.getByText('동탄 주민 실시간 커뮤니티')).toBeInTheDocument();
-      });
-    });
-
-    // Feature 9: Frontend Category Tab Switching & Dongtan 1~9 Filtering
-    describe('Feature 9: Frontend Category Tab Switching & Dongtan 1~9 Filtering in LoungeFeedClient', () => {
-      const mockFeedNotices: NoticeData[] = [
-        { id: 'gosi_1', title: '화성시 고시 1호', dept: '도시과', date: '2026-06-05', isDongtan: true, source: 'gosi' },
-        { id: 'bbs_1', title: '타기관 소식 1호', dept: '경기도', date: '2026-06-04', isDongtan: true, source: 'bbs' },
-        { id: 'rail_1', title: '동탄 트램 공정률 35% 달성', dept: '트램건설추진단', date: '2026-06-03', isDongtan: true, source: 'rail' },
-        { id: 'dong_1', title: '동탄1동 주민총회', dept: '동탄1동', date: '2026-06-02', isDongtan: true, source: 'dong' },
-        { id: 'dong_7', title: '동탄7동 플리마켓 접수', dept: '동탄7동', date: '2026-06-01', isDongtan: true, source: 'dong' },
-        { id: 'culture_1', title: '[루나쇼] 동탄호수공원 분수쇼', dept: '동탄호수공원', date: formatDateOffset(5), isDongtan: true, source: 'culture' }
-      ];
-
-      it('9.1 renders "전체" tab showing all 5 category notice items', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockFeedNotices} currentTab="동탄구 소식" />);
-        });
-
-        expect(screen.getByText('화성시 고시 1호')).toBeInTheDocument();
-        expect(screen.getByText('동탄 트램 공정률 35% 달성')).toBeInTheDocument();
-        expect(screen.getByText('동탄1동 주민총회')).toBeInTheDocument();
-        expect(screen.getByText('[루나쇼] 동탄호수공원 분수쇼')).toBeInTheDocument();
-      });
-
-      it('9.2 switches to "시정공고" tab filtering gosi and bbs notices', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockFeedNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cityTab = screen.getByText('시정공고');
-        await act(async () => {
-          fireEvent.click(cityTab);
-        });
-
-        expect(screen.getByText('화성시 고시 1호')).toBeInTheDocument();
-        expect(screen.getByText('타기관 소식 1호')).toBeInTheDocument();
-        expect(screen.queryByText('동탄 트램 공정률 35% 달성')).not.toBeInTheDocument();
-      });
-
-      it('9.3 switches to "교통·철도" tab filtering rail notices', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockFeedNotices} currentTab="동탄구 소식" />);
-        });
-
-        const railTab = screen.getByText('교통·철도');
-        await act(async () => {
-          fireEvent.click(railTab);
-        });
-
-        expect(screen.getByText('동탄 트램 공정률 35% 달성')).toBeInTheDocument();
-        expect(screen.queryByText('화성시 고시 1호')).not.toBeInTheDocument();
-      });
-
-      it('9.4 switches to "동네행정" tab, displays Dong 1~9 sub-filter chips, and filters by Dongtan 7동', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockFeedNotices} currentTab="동탄구 소식" />);
-        });
-
-        const townTab = screen.getByText('동네행정');
-        await act(async () => {
-          fireEvent.click(townTab);
-        });
-
-        expect(screen.getByText('전체 동네')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: '동탄1동' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: '동탄7동' })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: '동탄9동' })).toBeInTheDocument();
-
-        const dong7Chip = screen.getByRole('button', { name: '동탄7동' });
-        await act(async () => {
-          fireEvent.click(dong7Chip);
-        });
-
-        expect(screen.getByText('동탄7동 플리마켓 접수')).toBeInTheDocument();
-        expect(screen.queryByText('동탄1동 주민총회')).not.toBeInTheDocument();
-      });
-
-      it('9.5 switches to "문화·행사" tab showing culture event cards', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockFeedNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cultureTab = screen.getByText('문화·행사');
-        await act(async () => {
-          fireEvent.click(cultureTab);
-        });
-
-        expect(screen.getByText('[루나쇼] 동탄호수공원 분수쇼')).toBeInTheDocument();
-        expect(screen.queryByText('동탄 트램 공정률 35% 달성')).not.toBeInTheDocument();
-      });
-    });
-
-    // Feature 10: Dynamic D-Day Badge Computation & Modal / Kakao Share
-    describe('Feature 10: Dynamic D-Day Badge Computation & Modal / Kakao Share', () => {
-      const mockCultureNotices: NoticeData[] = [
-        {
-          id: 'culture_future',
-          title: '[루나쇼] 2026 동탄호수공원 루나쇼 6월 2회차',
-          dept: '동탄호수공원',
-          date: formatDateOffset(5), // D-5 from today
-          isDongtan: true,
-          source: 'culture'
-        },
-        {
-          id: 'culture_today',
-          title: '[축제] 2026 동탄 어린이 물놀이장 개장',
-          dept: '신리천공원',
-          date: formatDateOffset(0), // Today
-          isDongtan: true,
-          source: 'culture'
-        },
-        {
-          id: 'culture_past',
-          title: '[축제] 2026 봄맞이 센트럴파크 튤립 축제',
-          dept: '센트럴파크',
-          date: formatDateOffset(-10), // Past
-          isDongtan: true,
-          source: 'culture'
-        },
-        {
-          id: 'culture_lecture_dongtan4',
-          title: '[강좌] 동탄4동 주민자치센터 - 엄마랑 아기랑 요가 교실',
-          dept: '동탄4동',
-          date: formatDateOffset(13), // D-13
-          isDongtan: true,
-          source: 'culture'
-        }
-      ];
-
-      it('10.1 computes D-5 badge for upcoming future culture event', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockCultureNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cultureTab = screen.getByText('문화·행사');
-        await act(async () => {
-          fireEvent.click(cultureTab);
-        });
-
-        expect(screen.getByText('D-5')).toBeInTheDocument();
-      });
-
-      it('10.2 computes "오늘 개최" badge for same-day event', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockCultureNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cultureTab = screen.getByText('문화·행사');
-        await act(async () => {
-          fireEvent.click(cultureTab);
-        });
-
-        expect(screen.getByText('오늘 개최')).toBeInTheDocument();
-      });
-
-      it('10.3 computes "종료됨" badge for past expired event', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockCultureNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cultureTab = screen.getByText('문화·행사');
-        await act(async () => {
-          fireEvent.click(cultureTab);
-        });
-
-        expect(screen.getByText('종료됨')).toBeInTheDocument();
-      });
-
-      it('10.4 strips [강좌] prefix in lecture cards and renders "접수 D-13" badge', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockCultureNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cultureTab = screen.getByText('문화·행사');
-        await act(async () => {
-          fireEvent.click(cultureTab);
-        });
-
-        expect(screen.getByText('접수 D-13')).toBeInTheDocument();
-        expect(screen.getByText('동탄4동 주민자치센터 - 엄마랑 아기랑 요가 교실')).toBeInTheDocument();
-        expect(screen.getByText('주민센터 강좌')).toBeInTheDocument();
-      });
-
-      it('10.5 triggers Kakao share and clipboard link copy on button clicks', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={mockCultureNotices} currentTab="동탄구 소식" />);
-        });
-
-        const cultureTab = screen.getByText('문화·행사');
-        await act(async () => {
-          fireEvent.click(cultureTab);
-        });
-
-        const kakaoShareBtns = screen.getAllByText('카카오톡 공유');
-        expect(kakaoShareBtns.length).toBeGreaterThan(0);
-
-        await act(async () => {
-          fireEvent.click(kakaoShareBtns[0]);
-        });
-        expect(shareLocalNoticeToKakao).toHaveBeenCalled();
-
-        // Test clipboard copy
-        const copyBtns = screen.getAllByText('링크 복사');
-        Object.assign(navigator, {
-          clipboard: {
-            writeText: jest.fn().mockResolvedValue(undefined),
-          },
-        });
-
-        await act(async () => {
-          fireEvent.click(copyBtns[0]);
-        });
-        expect(navigator.clipboard.writeText).toHaveBeenCalled();
-      });
-    });
-
     // Feature 11: Static Fallback Data & Graceful Degradation
     describe('Feature 11: Static Fallback Data & Graceful Degradation', () => {
       it('11.1 resolves fallback notices gracefully when external fetch returns empty', async () => {
@@ -1273,72 +925,7 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
         expect(result.lastUpdated).toBeTruthy();
       });
 
-      it('11.2 guarantees 0% blank screens by rendering friendly empty state message when no notices match', async () => {
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={[]} currentTab="동탄구 소식" />);
-        });
 
-        expect(screen.getByText('선택하신 조건에 해당하는 공지사항이 없습니다.')).toBeInTheDocument();
-      });
-
-      it('11.3 renders static local-events.json fallback seamlessly', async () => {
-        const mockEvents = [
-          {
-            id: 'luna-show-june',
-            title: '동탄호수공원 루나분수쇼',
-            date: formatDateOffset(6),
-            time: '20:00 ~ 20:50',
-            location: '동탄호수공원 수변무대',
-            category: '공연/축제',
-            tip: '레이크꼬모 3층 테라스가 명당입니다.',
-            link: 'https://www.hcf.or.kr'
-          }
-        ];
-
-        window.fetch = jest.fn().mockImplementation((url: string) => {
-          if (url.includes('/data/local-events.json')) {
-            return Promise.resolve({ ok: true, json: () => Promise.resolve(mockEvents) });
-          }
-          if (url.includes('/api/local-notices')) {
-            return Promise.resolve({ ok: true, json: () => Promise.resolve({ notices: [] }) });
-          }
-          return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
-        });
-
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} currentTab="동탄구 소식" />);
-        });
-
-        expect(screen.getByText(/동탄호수공원 루나분수쇼/)).toBeInTheDocument();
-      });
-
-      it('11.4 renders AI market analysis markdown report notices with rich viewer', async () => {
-        const aiNotice: NoticeData = {
-          id: 'ai_report_gap_analysis_20260607',
-          title: '[AI 주거시황] 동탄2신도시 전세가율 안정 단지 및 안심 주거 TOP 3 분석',
-          dept: 'AI 데이터 랩',
-          date: '2026-06-07',
-          isDongtan: true,
-          source: 'culture',
-          content: '### 📊 동탄2신도시 실거래 기반 전세가율 안정 단지 분석\n본 단지는 실수요자 선호도가 높습니다.'
-        };
-
-        mockSearchParams = new URLSearchParams(`tab=notices&notice=${aiNotice.id}`);
-
-        await act(async () => {
-          render(
-            <LoungeContainerClient
-              initialPosts={[]}
-              initialNews={[]}
-              initialNotices={[aiNotice]}
-              searchParams={{ tab: 'notices', notice: aiNotice.id }}
-            />
-          );
-        });
-
-        expect(screen.getAllByTestId('markdown-viewer').length).toBeGreaterThan(0);
-        expect(screen.getAllByText('AI 매도 적합성(호구 지수) 계산기 실행').length).toBeGreaterThan(0);
-      });
 
       it('11.5 verifies schema envelope invariants on empty/fallback API responses', async () => {
         jest.spyOn(NewsRepo, 'fetchRawLocalNotices').mockRejectedValueOnce(new Error('Network Timeout'));
@@ -1504,30 +1091,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
     });
 
     describe('Category 4: Feed State & Filter Boundaries', () => {
-      it('2.4.1 displays empty state when filtering a dong with 0 notices', async () => {
-        const notices: NoticeData[] = [
-          { id: 'd_1', title: '동탄1동 공고', dept: '동탄1동', date: '2026-06-01', isDongtan: true, source: 'dong' }
-        ];
-
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={notices} currentTab="동탄구 소식" />);
-        });
-
-        // Switch to 동네행정
-        const townTab = screen.getByText('동네행정');
-        await act(async () => {
-          fireEvent.click(townTab);
-        });
-
-        // Click 동탄9동 (which has 0 notices)
-        const d9Chip = screen.getByRole('button', { name: '동탄9동' });
-        await act(async () => {
-          fireEvent.click(d9Chip);
-        });
-
-        expect(screen.getByText('선택하신 조건에 해당하는 공지사항이 없습니다.')).toBeInTheDocument();
-      });
-
       it('2.4.2 handles D-Day calculation on leap day (Feb 29)', () => {
         const target = new Date('2028-02-29');
         const current = new Date('2028-02-28');
@@ -1545,50 +1108,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
         const diffDays = Math.ceil((target.getTime() - current.getTime()) / (1000 * 60 * 60 * 24));
         expect(diffDays).toBe(1);
       });
-
-      it('2.4.4 renders notice without content markdown using standard card structure', async () => {
-        const standardNotice: NoticeData = {
-          id: 'std_notice_1',
-          title: '일반 시정 고시공고',
-          dept: '행정지원과',
-          date: '2026-06-01',
-          isDongtan: true,
-          source: 'gosi',
-          url: 'https://www.hscity.go.kr/detail?sn=1'
-        };
-
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={[standardNotice]} currentTab="동탄구 소식" />);
-        });
-
-        const card = screen.getByText('일반 시정 고시공고').closest('a');
-        expect(card).toBeInTheDocument();
-        expect(card).toHaveAttribute('href', expect.stringContaining('/api/bypass-notice'));
-      });
-
-      it('2.4.5 increments visible notices count when "더보기" button is clicked', async () => {
-        const manyNotices = Array.from({ length: 45 }, (_, i) => ({
-          id: `n_${i}`,
-          title: `공고 ${i}`,
-          dept: '부서',
-          date: '2026-06-01',
-          isDongtan: true,
-          source: 'gosi' as const,
-        }));
-
-        await act(async () => {
-          render(<LoungeFeedClient initialPosts={[]} initialNotices={manyNotices} currentTab="동탄구 소식" />);
-        });
-
-        const moreButton = screen.getByText(/더보기 \(20 \/ 45\)/);
-        expect(moreButton).toBeInTheDocument();
-
-        await act(async () => {
-          fireEvent.click(moreButton);
-        });
-
-        expect(screen.queryByText(/더보기/)).not.toBeInTheDocument();
-      });
     });
   });
 
@@ -1596,42 +1115,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
   // TIER 3: CROSS-FEATURE COMBINATIONS (>= 10 test cases)
   // ==========================================================================
   describe('Tier 3: Cross-Feature Interactions', () => {
-
-    it('3.1 executes sequential tab switches (전체 -> 시정공고 -> 교통·철도 -> 동네행정 -> 문화·행사) with zero state pollution', async () => {
-      const notices: NoticeData[] = [
-        { id: '1', title: '고시공고 항목', dept: '도시과', date: '2026-06-01', isDongtan: true, source: 'gosi' },
-        { id: '2', title: '트램철도 항목', dept: '트램과', date: '2026-06-02', isDongtan: true, source: 'rail' },
-        { id: '3', title: '동탄1동 항목', dept: '동탄1동', date: '2026-06-03', isDongtan: true, source: 'dong' },
-        { id: '4', title: '[루나쇼] 문화항목', dept: '호수공원', date: formatDateOffset(5), isDongtan: true, source: 'culture' },
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={notices} currentTab="동탄구 소식" />);
-      });
-
-      // 1. 전체
-      expect(screen.getByText('고시공고 항목')).toBeInTheDocument();
-      expect(screen.getByText('트램철도 항목')).toBeInTheDocument();
-
-      // 2. 시정공고
-      await act(async () => { fireEvent.click(screen.getByText('시정공고')); });
-      expect(screen.getByText('고시공고 항목')).toBeInTheDocument();
-      expect(screen.queryByText('트램철도 항목')).not.toBeInTheDocument();
-
-      // 3. 교통·철도
-      await act(async () => { fireEvent.click(screen.getByText('교통·철도')); });
-      expect(screen.getByText('트램철도 항목')).toBeInTheDocument();
-      expect(screen.queryByText('고시공고 항목')).not.toBeInTheDocument();
-
-      // 4. 동네행정
-      await act(async () => { fireEvent.click(screen.getByText('동네행정')); });
-      expect(screen.getByText('동탄1동 항목')).toBeInTheDocument();
-
-      // 5. 문화·행사
-      await act(async () => { fireEvent.click(screen.getByText('문화·행사')); });
-      expect(screen.getByText('[루나쇼] 문화항목')).toBeInTheDocument();
-    });
-
     it('3.2 integrates scraper output normalization through deduplication to API response format', async () => {
       const rawScraped = [
         { id: 'gosi_100', originalId: '100', title: '동탄 복합환승센터 건립', url: 'https://hscity.go.kr/gosi/100', dept: '교통과', date: '2026-06-05', isDongtan: true, source: 'gosi' as const, createdAt: '2026-06-05T10:00:00Z' },
@@ -1650,138 +1133,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
       expect(res.lastUpdated).toBe('2026-06-05T11:00:00Z');
     });
 
-    it('3.3 renders fallback dataset across all 5 category tabs without blank views', async () => {
-      const fallbackNotices: NoticeData[] = [
-        { id: 'f_gosi', title: '백업 시정공고', dept: '화성시', date: '2026-06-01', isDongtan: true, source: 'gosi' },
-        { id: 'f_rail', title: '백업 트램공고', dept: '트램추진단', date: '2026-06-01', isDongtan: true, source: 'rail' },
-        { id: 'f_dong', title: '백업 동탄4동 공고', dept: '동탄4동', date: '2026-06-01', isDongtan: true, source: 'dong' },
-        { id: 'f_culture', title: '[백업] 호수공원 루나쇼', dept: '동탄호수공원', date: formatDateOffset(5), isDongtan: true, source: 'culture' },
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={fallbackNotices} currentTab="동탄구 소식" />);
-      });
-
-      const tabs = ['전체', '시정공고', '교통·철도', '동네행정', '문화·행사'];
-      for (const tabName of tabs) {
-        await act(async () => {
-          fireEvent.click(screen.getByText(tabName));
-        });
-        expect(screen.queryByText('선택하신 조건에 해당하는 공지사항이 없습니다.')).toBeNull();
-      }
-    });
-
-    it('3.4 routes card click to bypass-notice endpoint with proper URL encoding', async () => {
-      const targetNotice: NoticeData = {
-        id: 'notice_bypass_test',
-        title: '동탄2 트램 관련 상세 공고',
-        url: 'https://www.hscity.go.kr/www/gosi/detail.do?id=123',
-        dept: '트램과',
-        date: '2026-06-01',
-        isDongtan: true,
-        source: 'rail'
-      };
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={[targetNotice]} currentTab="동탄구 소식" />);
-      });
-
-      const anchor = screen.getByText('동탄2 트램 관련 상세 공고').closest('a');
-      expect(anchor).toHaveAttribute('href', `/api/bypass-notice?url=${encodeURIComponent('https://www.hscity.go.kr/www/gosi/detail.do?id=123')}`);
-      expect(anchor).toHaveAttribute('target', '_blank');
-      expect(anchor).toHaveAttribute('rel', 'noopener noreferrer');
-    });
-
-    it('3.5 synchronizes SSR hydration with client hash navigation (#lounge-notices-rail)', async () => {
-      window.location.hash = '#lounge-notices-rail';
-
-      const notices: NoticeData[] = [
-        { id: 'rail_99', title: '동탄 철도망 노선도 확정', dept: '철도과', date: '2026-06-01', isDongtan: true, source: 'rail' },
-        { id: 'gosi_99', title: '일반 시정 고시', dept: '총무과', date: '2026-06-01', isDongtan: true, source: 'gosi' },
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={notices} currentTab="동탄구 소식" />);
-      });
-
-      expect(screen.getByText('동탄 철도망 노선도 확정')).toBeInTheDocument();
-      expect(screen.queryByText('일반 시정 고시')).not.toBeInTheDocument();
-    });
-
-    it('3.6 synchronizes SSR hydration with client hash navigation (#lounge-notices-culture)', async () => {
-      window.location.hash = '#lounge-notices-culture';
-
-      const notices: NoticeData[] = [
-        { id: 'c_99', title: '[루나쇼] 동탄호수공원 분수쇼', dept: '호수공원', date: formatDateOffset(5), isDongtan: true, source: 'culture' },
-        { id: 'g_99', title: '일반 시정 고시', dept: '총무과', date: '2026-06-01', isDongtan: true, source: 'gosi' },
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={notices} currentTab="동탄구 소식" />);
-      });
-
-      expect(screen.getByText('[루나쇼] 동탄호수공원 분수쇼')).toBeInTheDocument();
-      expect(screen.queryByText('일반 시정 고시')).not.toBeInTheDocument();
-    });
-
-    it('3.7 handles closing post and notice modals without breaking tab state', async () => {
-      const notice: NoticeData = {
-        id: 'notice_modal_test',
-        title: '모달 테스트 공고',
-        dept: '도시과',
-        date: '2026-06-01',
-        isDongtan: true,
-        source: 'culture'
-      };
-
-      window.history.pushState({}, '', `/lounge#notice=${notice.id}`);
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={[notice]} currentTab="동탄구 소식" />);
-      });
-
-      expect(screen.getAllByText('모달 테스트 공고').length).toBeGreaterThan(0);
-
-      // Close modal by clicking close button
-      const closeButtons = screen.getAllByRole('button');
-      const xButton = closeButtons.find(b => b.querySelector('svg'));
-      if (xButton) {
-        await act(async () => {
-          fireEvent.click(xButton);
-        });
-      }
-    });
-
-    it('3.8 combines news and notice feeds simultaneously in LoungeContainerClient', async () => {
-      const initialNews = [
-        { id: 1, category: 'POLICY', sub: '부동산', title: '동탄 분양가 상한제 개편', link: 'https://news.google.com/1', pubDate: '2026-06-01' }
-      ];
-      const initialNotices = [
-        { id: 'gosi_1', title: '동탄 고시공고', date: '2026-06-01', isDongtan: true, source: 'gosi' as const }
-      ];
-
-      mockSearchParams = new URLSearchParams('tab=news');
-
-      await act(async () => {
-        render(
-          <LoungeContainerClient
-            initialPosts={[]}
-            initialNews={initialNews}
-            initialNotices={initialNotices}
-            searchParams={{ tab: 'news' }}
-          />
-        );
-      });
-
-      // Switch sub-tab to 부동산 & 정책
-      const realestateSubTab = screen.getByRole('button', { name: /부동산 & 정책/i });
-      await act(async () => {
-        fireEvent.click(realestateSubTab);
-      });
-
-      expect(screen.getByText('동탄 분양가 상한제 개편')).toBeInTheDocument();
-    });
-
     it('3.9 verifies rate limiter headers propagate on repeated local notices requests', async () => {
       jest.spyOn(NewsRepo, 'fetchRawLocalNotices').mockResolvedValue({
         cityItems: [],
@@ -1794,170 +1145,12 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
       const res = await getLocalNoticesRoute(req);
       expect(res.status).toBe(200);
     });
-
-    it('3.10 formats relative time correctly across diverse timestamps', () => {
-      expect(LoungeFeedClient).toBeDefined();
-    });
   });
 
   // ==========================================================================
   // TIER 4: REAL-WORLD SCENARIOS (>= 10 test cases)
   // ==========================================================================
   describe('Tier 4: Real-World Scenarios', () => {
-
-    it('4.1 simulates End-to-End pipeline from HTML parsing -> Zod -> Deduplication -> API -> UI rendering', async () => {
-      // 1. Raw HTML mock
-      const gosiHtml = `<table><tr><td>149250</td><td><a href="#" onclick="opGosiView('149250')">동탄2지구 택지개발사업 3단계 준공 고시</a></td><td>택지개발과</td><td>2026-06-05</td></tr></table>`;
-      const $ = cheerio.load(gosiHtml);
-      const row = $('table tr').first();
-      const tds = row.find('td');
-      const onclick = $(tds[1]).find('a').attr('onclick') || '';
-      const originalId = onclick.match(/opGosiView\('([^']+)'\)/)![1];
-
-      // 2. Parsed object
-      const parsedItem = {
-        id: `gosi_${originalId}`,
-        originalId,
-        title: $(tds[1]).text().trim(),
-        url: `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`,
-        dept: $(tds[2]).text().trim(),
-        date: $(tds[3]).text().trim(),
-        isDongtan: true,
-        source: 'gosi' as const,
-        createdAt: new Date().toISOString()
-      };
-
-      // 3. Zod validation
-      expect(NoticeZodSchema.safeParse(parsedItem).success).toBe(true);
-
-      // 4. API mock resolution
-      jest.spyOn(NewsRepo, 'fetchRawLocalNotices').mockResolvedValueOnce({
-        cityItems: [parsedItem],
-        railItems: [],
-        cultureItems: [],
-        dongItems: [],
-      });
-
-      const apiReq = new NextRequest('http://localhost/api/local-notices');
-      const apiRes = await getLocalNoticesRoute(apiReq);
-      const apiJson = await apiRes.json();
-      expect(apiJson.data.notices[0].title).toBe('동탄2지구 택지개발사업 3단계 준공 고시');
-
-      // 5. UI Rendering
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={apiJson.data.notices} currentTab="동탄구 소식" />);
-      });
-
-      expect(screen.getByText('동탄2지구 택지개발사업 3단계 준공 고시')).toBeInTheDocument();
-      expect(screen.getAllByText('택지개발과')[0]).toBeInTheDocument();
-    });
-
-    it('4.2 simulates Citizen lifestyle flow: finding Luna Show event, checking D-Day, and executing Kakao share', async () => {
-      const lunaNotice: NoticeData = {
-        id: 'culture_luna_20260613',
-        title: '[루나쇼] 2026 동탄호수공원 루나 분수쇼 (6월 1회차)',
-        url: 'https://www.hcf.or.kr',
-        dept: '동탄호수공원',
-        date: formatDateOffset(6),
-        isDongtan: true,
-        source: 'culture'
-      };
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={[lunaNotice]} currentTab="동탄구 소식" />);
-      });
-
-      // Switch to 문화·행사
-      await act(async () => {
-        fireEvent.click(screen.getByText('문화·행사'));
-      });
-
-      // Verify card and D-Day
-      expect(screen.getByText('[루나쇼] 2026 동탄호수공원 루나 분수쇼 (6월 1회차)')).toBeInTheDocument();
-      expect(screen.getByText('D-6')).toBeInTheDocument();
-
-      // Click Kakao share
-      const shareBtn = screen.getByText('카카오톡 공유');
-      await act(async () => {
-        fireEvent.click(shareBtn);
-      });
-
-      expect(shareLocalNoticeToKakao).toHaveBeenCalledWith(lunaNotice, expect.any(Function));
-    });
-
-    it('4.3 simulates Dongtan 7 resident inquiring about Dongtan 7 community center notice', async () => {
-      const notices: NoticeData[] = [
-        { id: 'd7_1', title: '동탄7동 3분기 문화교실 수강생 모집', dept: '동탄7동', date: '2026-06-02', isDongtan: true, source: 'dong' },
-        { id: 'd1_1', title: '동탄1동 플리마켓 행사', dept: '동탄1동', date: '2026-06-02', isDongtan: true, source: 'dong' },
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={notices} currentTab="동탄구 소식" />);
-      });
-
-      // Click 동네행정 -> 동탄7동
-      await act(async () => {
-        fireEvent.click(screen.getByText('동네행정'));
-      });
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: '동탄7동' }));
-      });
-
-      expect(screen.getByText('동탄7동 3분기 문화교실 수강생 모집')).toBeInTheDocument();
-      expect(screen.queryByText('동탄1동 플리마켓 행사')).not.toBeInTheDocument();
-    });
-
-    it('4.4 simulates WAF 403 error during external crawl and graceful fallback data presentation', async () => {
-      // Simulate WAF 403 block from external website
-      const fetchWithWaf = async () => {
-        throw new Error('HTTP 403 WAF Block: Request blocked by security policy');
-      };
-
-      try {
-        await fetchWithWaf();
-      } catch (err: any) {
-        expect(err.message).toContain('HTTP 403 WAF Block');
-      }
-
-      // Backend returns fallback data
-      const fallbackList: NoticeData[] = [
-        { id: 'fallback_1', title: '동탄2 트램 추진현황 백업 공고', dept: '트램추진단', date: '2026-06-01', isDongtan: true, source: 'rail' }
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={fallbackList} currentTab="동탄구 소식" />);
-      });
-
-      expect(screen.getByText('동탄2 트램 추진현황 백업 공고')).toBeInTheDocument();
-    });
-
-    it('4.5 simulates AI Real Estate Report generation, rendering and link routing', async () => {
-      const aiReport: NoticeData = {
-        id: 'ai_report_ltv_risk_20260607',
-        title: '[AI 리스크] 동탄 아파트 전세가율 80% 돌파 단지 역전세 경보 진단',
-        dept: 'AI 데이터 랩',
-        date: '2026-06-07',
-        isDongtan: true,
-        source: 'culture',
-        content: '### 🚨 동탄 아파트 전세가율 80% 돌파 단지 역전세 위험 진단\n본 리포트는 전세보증금 안전성을 점검합니다.'
-      };
-
-      mockSearchParams = new URLSearchParams(`tab=notices&notice=${aiReport.id}`);
-
-      await act(async () => {
-        render(
-          <LoungeContainerClient
-            initialPosts={[]}
-            initialNews={[]}
-            initialNotices={[aiReport]}
-            searchParams={{ tab: 'notices', notice: aiReport.id }}
-          />
-        );
-      });
-
-      expect(screen.getAllByText('동탄 주거 안정/전세율 대시보드 바로가기').length).toBeGreaterThan(0);
-    });
-
     it('4.6 handles concurrent burst requests on /api/local-notices returning stable identical responses', async () => {
       const testData: NoticeData[] = [
         { id: '1', title: '공고 1', date: '2026-06-01', isDongtan: true, source: 'gosi' }
@@ -1981,28 +1174,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
         const json = await res.json();
         expect(json.data.notices).toHaveLength(1);
       }
-    });
-
-    it('4.7 verifies timeline progression across 4 event lifecycle stages (Upcoming, Tomorrow, Today, Past)', async () => {
-      const events: NoticeData[] = [
-        { id: 'e1', title: '30일 후 행사', dept: '행사장', date: formatDateOffset(30), isDongtan: true, source: 'culture' },
-        { id: 'e2', title: '내일 행사', dept: '행사장', date: formatDateOffset(1), isDongtan: true, source: 'culture' },
-        { id: 'e3', title: '오늘 행사', dept: '행사장', date: formatDateOffset(0), isDongtan: true, source: 'culture' },
-        { id: 'e4', title: '지난 행사', dept: '행사장', date: formatDateOffset(-5), isDongtan: true, source: 'culture' },
-      ];
-
-      await act(async () => {
-        render(<LoungeFeedClient initialPosts={[]} initialNotices={events} currentTab="동탄구 소식" />);
-      });
-
-      await act(async () => {
-        fireEvent.click(screen.getByText('문화·행사'));
-      });
-
-      expect(screen.getByText('D-30')).toBeInTheDocument();
-      expect(screen.getByText('D-1')).toBeInTheDocument();
-      expect(screen.getByText('오늘 개최')).toBeInTheDocument();
-      expect(screen.getByText('종료됨')).toBeInTheDocument();
     });
 
     it('4.8 intercepts malicious URLs submitted to bypass proxy and returns HTTP 400', async () => {
@@ -2036,51 +1207,6 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
       expect(json.data.notices.length).toBeGreaterThan(0);
       expect(json.data.fromFallback).toBe(true);
       expect(json.data.lastUpdated).toBeTruthy();
-    });
-
-    it('4.10 executes complete user journey: Landing -> Tab Switch -> Sub-filter -> Modal Open -> Modal Close -> Tab Switch to Talk', async () => {
-      const notice: NoticeData = {
-        id: 'flow_notice_1',
-        title: '동탄2신도시 정주여건 개선 설명회',
-        dept: '동탄7동',
-        date: '2026-06-02',
-        isDongtan: true,
-        source: 'dong',
-        url: 'https://www.hscity.go.kr/detail?sn=555'
-      };
-
-      // 1. Initial Landing on notices tab
-      mockSearchParams = new URLSearchParams('tab=notices');
-      await act(async () => {
-        render(
-          <LoungeContainerClient
-            initialPosts={[]}
-            initialNews={[]}
-            initialNotices={[notice]}
-            searchParams={{ tab: 'notices' }}
-          />
-        );
-      });
-
-      // 2. Switch sub-filter to 동네행정
-      await act(async () => {
-        fireEvent.click(screen.getByText('동네행정'));
-      });
-      expect(screen.getByRole('button', { name: '동탄7동' })).toBeInTheDocument();
-
-      // 3. Filter by 동탄7동
-      await act(async () => {
-        fireEvent.click(screen.getByRole('button', { name: '동탄7동' }));
-      });
-      expect(screen.getByText('동탄2신도시 정주여건 개선 설명회')).toBeInTheDocument();
-
-      // 4. Switch main tab back to 커뮤니티 (talk)
-      const talkTabBtn = screen.getByRole('button', { name: /커뮤니티/i });
-      await act(async () => {
-        fireEvent.click(talkTabBtn);
-      });
-
-      expect(screen.getByRole('button', { name: /커뮤니티/i })).toBeInTheDocument();
     });
   });
 });

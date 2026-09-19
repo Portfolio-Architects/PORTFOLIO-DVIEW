@@ -39,7 +39,7 @@ test.describe('Routing Bug Diagnosis', () => {
     console.log('URL after clicking Apartment Lab:', page.url());
 
     // Let's check which section is visible on the overview page.
-    const overviewHeader = page.locator('h1', { hasText: 'D-VIEW 데이터 랩' }).or(page.locator('h1', { hasText: 'D-VIEW 아파트 랩' })).first();
+    const overviewHeader = page.locator('h1', { hasText: 'D-VIEW 데이터 랩' }).or(page.locator('h1', { hasText: '아파트 랩' })).first();
     const loungeHeader = page.locator('h1', { hasText: 'D-VIEW 라운지' }).first();
 
     const isOverviewVisible = await overviewHeader.isVisible();
@@ -83,7 +83,7 @@ test.describe('Routing Bug Diagnosis', () => {
     console.log('URL after clicking Apartment Lab:', page.url());
 
     // Let's check which section is visible on the overview page.
-    const overviewHeader = page.locator('h1', { hasText: 'D-VIEW 데이터 랩' }).or(page.locator('h1', { hasText: 'D-VIEW 아파트 랩' })).first();
+    const overviewHeader = page.locator('h1', { hasText: 'D-VIEW 데이터 랩' }).or(page.locator('h1', { hasText: '아파트 랩' })).first();
     const loungeHeader = page.locator('h1', { hasText: 'D-VIEW 라운지' }).first();
 
     const isOverviewVisible = await overviewHeader.isVisible();

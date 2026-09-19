@@ -4,6 +4,7 @@ import '@testing-library/jest-dom';
 import {
   MacroTimelineView,
   formatDailyAvgPrice,
+  getGroupYear,
   TimelineGroup,
   TimelineItem,
   HighestPriceAptInfo,
@@ -499,6 +500,176 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
 
       // Should automatically un-collapse so the selected card is visible
       expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+    });
+  });
+
+  describe('9. Period Selection Tabs & Actions', () => {
+    it('renders period tabs (90일, 1년, 3년, 전체) and triggers setPeriodFilter on tab click', () => {
+      const setPeriodFilter = jest.fn();
+      render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+          periodFilter="90d"
+          setPeriodFilter={setPeriodFilter}
+        />
+      );
+
+      const tab90d = screen.getByTestId('timeline-period-tab-90d');
+      const tab1y = screen.getByTestId('timeline-period-tab-1y');
+      const tab3y = screen.getByTestId('timeline-period-tab-3y');
+      const tabAll = screen.getByTestId('timeline-period-tab-all');
+
+      expect(tab90d).toBeInTheDocument();
+      expect(tab1y).toBeInTheDocument();
+      expect(tab3y).toBeInTheDocument();
+      expect(tabAll).toBeInTheDocument();
+
+      fireEvent.click(tab1y);
+      expect(setPeriodFilter).toHaveBeenCalledWith('1y');
+
+      fireEvent.click(tab3y);
+      expect(setPeriodFilter).toHaveBeenCalledWith('3y');
+
+      fireEvent.click(tabAll);
+      expect(setPeriodFilter).toHaveBeenCalledWith('all');
+    });
+  });
+
+  describe('10. Multi-Year Daily Transactions & Year Display Feature', () => {
+    it('accurately resolves year via getGroupYear helper', () => {
+      expect(getGroupYear({ dateStr: '2026.09.17 (목)', timestamp: 0, items: [] })).toBe(2026);
+      expect(getGroupYear({ dateStr: '2025년 8월 15일', timestamp: 0, items: [] })).toBe(2025);
+      expect(getGroupYear({ dateStr: '09.17', dateKey: '2024-09-17', timestamp: 0, items: [] })).toBe(2024);
+      expect(getGroupYear({ dateStr: 'custom', year: 2023, timestamp: 0, items: [] })).toBe(2023);
+      expect(getGroupYear({ dateStr: 'no-year', timestamp: new Date('2022-05-10').getTime(), items: [] })).toBe(2022);
+      expect(getGroupYear({ dateStr: 'invalid', timestamp: 0, items: [] })).toBeNull();
+    });
+
+    it('renders prominent year divider headers when dataset contains multiple years', () => {
+      const multiYearGroups: TimelineGroup[] = [
+        {
+          dateStr: '2026.09.17 (목)',
+          dateKey: '2026-09-17',
+          year: 2026,
+          timestamp: new Date('2026-09-17').getTime(),
+          items: [
+            {
+              aptName: '동탄역 롯데캐슬',
+              dong: '오산동',
+              priceEok: '16억',
+              priceVal: 16.0,
+              areaPyeong: 34,
+              area: 84.9,
+              floor: 20,
+              type: 'high',
+              delta: 1.0,
+            },
+          ],
+        },
+        {
+          dateStr: '2026.09.16 (수)',
+          dateKey: '2026-09-16',
+          year: 2026,
+          timestamp: new Date('2026-09-16').getTime(),
+          items: [
+            {
+              aptName: '동탄역 시범 우남퍼스트빌',
+              dong: '청계동',
+              priceEok: '14억',
+              priceVal: 14.0,
+              areaPyeong: 34,
+              area: 84.9,
+              floor: 10,
+              type: 'normal',
+              delta: 0.2,
+            },
+          ],
+        },
+        {
+          dateStr: '2025.09.17 (수)',
+          dateKey: '2025-09-17',
+          year: 2025,
+          timestamp: new Date('2025-09-17').getTime(),
+          items: [
+            {
+              aptName: '동탄역 시범 더샵 센트럴시티',
+              dong: '청계동',
+              priceEok: '13억',
+              priceVal: 13.0,
+              areaPyeong: 34,
+              area: 84.9,
+              floor: 15,
+              type: 'normal',
+              delta: -0.3,
+            },
+          ],
+        },
+      ];
+
+      render(
+        <MacroTimelineView
+          timelineGroups={multiYearGroups}
+          totalTimelineCardsCount={3}
+          visibleTimelineCount={10}
+        />
+      );
+
+      // Verify year dividers rendered for 2026 and 2025
+      const divider2026 = screen.getByTestId('timeline-year-divider-2026');
+      const divider2025 = screen.getByTestId('timeline-year-divider-2025');
+
+      expect(divider2026).toBeInTheDocument();
+      expect(divider2026).toHaveTextContent('2026년 실거래');
+      expect(divider2025).toBeInTheDocument();
+      expect(divider2025).toHaveTextContent('2025년 실거래');
+
+      // Verify date headers show full year and don't collide despite sharing month/day
+      expect(screen.getByTestId('timeline-date-header-2026.09.17 (목)')).toBeInTheDocument();
+      expect(screen.getByTestId('timeline-date-header-2025.09.17 (수)')).toBeInTheDocument();
+
+      // Verify accordion collapse works independently per year
+      const btn2026 = screen.getByTestId('timeline-date-header-2026.09.17 (목)');
+      fireEvent.click(btn2026);
+
+      // 2026 card should be collapsed (not in document), but 2025 card remains visible
+      expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+      expect(screen.getByTestId('timeline-card-동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();
+    });
+
+    it('does not display top year divider when dataset contains only a single year', () => {
+      const singleYearGroups: TimelineGroup[] = [
+        {
+          dateStr: '2026.09.17 (목)',
+          year: 2026,
+          timestamp: new Date('2026-09-17').getTime(),
+          items: [
+            {
+              aptName: '동탄역 롯데캐슬',
+              dong: '오산동',
+              priceEok: '16억',
+              priceVal: 16.0,
+              areaPyeong: 34,
+              area: 84.9,
+              floor: 20,
+              type: 'high',
+              delta: 1.0,
+            },
+          ],
+        },
+      ];
+
+      render(
+        <MacroTimelineView
+          timelineGroups={singleYearGroups}
+          totalTimelineCardsCount={1}
+          visibleTimelineCount={10}
+        />
+      );
+
+      expect(screen.queryByTestId('timeline-year-divider-2026')).not.toBeInTheDocument();
+      expect(screen.getByText('2026.09.17 (목)')).toBeInTheDocument();
     });
   });
 });

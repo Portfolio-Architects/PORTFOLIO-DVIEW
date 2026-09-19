@@ -10,9 +10,8 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { redis } from '@/lib/redis';
 import type { AptTxSummary } from '@/lib/types/transaction';
-import type { FieldReportData, CommentData } from '@/lib/types/report.types';
+import type { FieldReportData } from '@/lib/types/report.types';
 import { logger } from '@/lib/services/logger';
-import { getComments } from '@/lib/repositories/comment.repository';
 import {
   decodeAptName,
   formatPriceEok,
@@ -57,7 +56,6 @@ export interface ApartmentPageData {
   pyeongSummaries: PyeongSummary[];
   locationScore: LocationScore | null;
   matchedReportData: FieldReportData | null;
-  comments: CommentData[];
   structuredImages: string[];
   analytics: PriceAnalytics;
   aiBriefing: string;
@@ -136,19 +134,6 @@ export async function fetchScoutingReportCached(aptName: string): Promise<FieldR
 }
 
 /**
- * 리포트 ID에 연결된 댓글 목록 조회
- */
-export async function getApartmentComments(reportId?: string): Promise<CommentData[]> {
-  if (!reportId) return [];
-  try {
-    return await getComments(reportId);
-  } catch (e) {
-    logger.warn('ApartmentPageService', 'Failed to fetch comments for SEO', { reportId }, e as Error);
-    return [];
-  }
-}
-
-/**
  * 아파트 상세 페이지에 필요한 전체 도메인 데이터를 합성하여 반환
  */
 export async function getApartmentPageData(rawAptName: string): Promise<ApartmentPageData> {
@@ -173,8 +158,6 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
       .filter((url): url is string => Boolean(url));
   }
 
-  const comments = await getApartmentComments(matchedReportData?.id);
-
   return {
     aptName,
     aptSummary,
@@ -182,7 +165,6 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
     pyeongSummaries,
     locationScore,
     matchedReportData,
-    comments,
     structuredImages,
     analytics,
     aiBriefing,

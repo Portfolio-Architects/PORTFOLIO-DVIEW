@@ -54,6 +54,16 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/lounge',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/lounge/:path*',
+        destination: '/',
+        permanent: true,
+      },
+      {
         source: '/technovalley',
         destination: '/',
         permanent: false,

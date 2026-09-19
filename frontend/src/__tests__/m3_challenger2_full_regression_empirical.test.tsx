@@ -32,8 +32,16 @@ jest.mock('next/navigation', () => ({
 }));
 
 // Mock LoungeHeader and MobileDock to isolate container rendering
-jest.mock('@/components/LoungeHeader', () => () => <header data-testid="lounge-header" />);
-jest.mock('@/components/pwa/MobileDock', () => () => <nav data-testid="mobile-dock" />);
+jest.mock('@/components/LoungeHeader', () => {
+  const MockLoungeHeader = () => <header data-testid="lounge-header" />;
+  MockLoungeHeader.displayName = 'MockLoungeHeader';
+  return MockLoungeHeader;
+});
+jest.mock('@/components/pwa/MobileDock', () => {
+  const MockMobileDock = () => <nav data-testid="mobile-dock" />;
+  MockMobileDock.displayName = 'MockMobileDock';
+  return MockMobileDock;
+});
 jest.mock('@/components/mbti/MBTIContainer', () => ({
   MBTIContainer: ({ initialView, initialType }: any) => (
     <div data-testid="mbti-container" data-view={initialView} data-type={initialType} />

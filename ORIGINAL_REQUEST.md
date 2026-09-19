@@ -342,5 +342,205 @@ Integrity mode: development
 - 타입스크립트 정적 분석: `npx tsc --noEmit`
 - 기존 애드센스 광고 슬롯 컴포넌트: `src/components/ads/AdSlot.tsx`
 - 기존 금융/진단 모달 자산: `src/components/apartment-modal/` 및 `src/app/calculator/`
+## 2026-09-19T02:46:51Z
+
+This is a single self-contained fix; keep it small and focused.
+
+Resolve an apartment market price trend data integrity defect where 2020-built complexes (such as 동탄역 힐스테이트) erroneously display synthetic historical prices dating back to 2008 due to unconditional macro trend backfilling. Ensure that individual complex charts only display data starting from the complex's actual first transaction, eliminating any fabricated pre-construction history while preserving valid post-launch monthly interpolations.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 준공 및 최초 실거래 이전 기간의 과거 데이터 가상 외삽(Backfill) 전면 차단
+- 특정 아파트 단지가 선택되었을 때, 해당 단지의 최초 실거래 발생 월 이전 기간에 대해 동탄 전체 매크로 시세를 역산·곱하여 가상의 과거 시세를 생성하는 로직을 제거합니다.
+- 단지의 최초 유효 실거래 이전 월에 대해서는 차트 데이터 포인트가 null 또는 미생성 처리되어야 합니다.
+
+### R2. 'ALL' 및 기간 필터 선택 시 x축 렌더링 범위 동적 보정
+- 'ALL' 필터 선택 시 차트의 시작점이 매크로 전체 데이터의 시작점(2008년)으로 고정되지 않고, 해당 단지의 최초 유효 실거래 월(동탄역 힐스테이트의 경우 2020년 말)부터 시작되도록 범위를 계산합니다.
+- 단축 기간(3M, 6M, 1Y, 3Y, 5Y) 선택 시에도 선택된 기간 내의 유효 거래 데이터를 정확히 반영합니다.
+
+### R3. 최초 거래 이후의 미거래 월(공백기) 보간 유지
+- 최초 실거래 발생 이후부터 현재 시점 사이에 실제 거래가 발생하지 않은 월에 대해서는 직전 실거래가 기반의 연속선(보간)을 유지하여 차트의 단절을 방지합니다.
+
+## Acceptance Criteria
+
+### 데이터 정합성 검증
+- [ ] '동탄역 힐스테이트' 선택 시 2020년 12월(최초 실거래 발생월) 이전의 데이터 포인트(2008년~2020년 11월)가 차트 데이터에 포함되지 않음
+- [ ] 'ALL' 타임프레임 활성화 시 x축 시작 레이블이 2008년이 아닌 2020년 이후 시점으로 렌더링됨
+- [ ] 다른 아파트 단지 선택 시에도 각 단지의 최초 실거래 발생 시점 이전의 가상 데이터가 생성되지 않음
+- [ ] 최초 실거래 이후 거래가 없는 월은 직전 거래가 기반으로 부드럽게 보간됨
+
+### 회귀 테스트 및 빌드 검증
+- [ ] 단위 테스트(`npm test` 또는 Jest 테스트)에서 차트 데이터 생성 및 필터링 로직 검증 통과
+- [ ] `npm run build`를 실행하여 TypeScript 타입 오류 및 빌드 오류 없이 정상 완료
+
+## 2026-09-19T03:53:08Z
+
+국토교통부 아파트 실거래가(매매 및 전월세) 수집부터 Firestore 적재, 정적 캐시 생성, 대시보드 반영에 이르는 파이프라인의 업데이트 신속성(수집 주기 최적화 및 지연 최소화)과 데이터 정합성(취소 거래 역반영, 중복 방어, 단지명 매핑 정규화, 이상치 필터링)을 고도화합니다.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 실거래 데이터 수집 및 동기화 신속성(Timeliness) 고도화
+국토교통부 매매 및 전월세 실거래가 데이터를 최신 상태로 지연 없이 동기화할 수 있도록 수집 파이프라인을 최적화하고, 신규 거래 발생 시 서비스 대시보드와 개별 단지별 데이터셋에 신속히 반영되도록 처리 효율을 극대화합니다.
+
+### R2. 계약 해제/취소 및 중복 거래에 대한 정합성(Integrity) 보장
+신고 취소 및 계약 해제 거래(해제사유발생일 표기 데이터)가 단지별 통계, 최고가/최저가, 최근 거래 피드, 거시 트렌드 지표에 잔존하거나 왜곡을 일으키지 않도록 정제 및 역반영 메커니즘을 확립하고, 동일 거래의 중복 적재를 원천 차단합니다.
+
+### R3. 단지명 정규화 및 이상치/직거래 필터링 정밀화
+공공 API의 아파트 단지명 표기와 서비스 내 179개 단지 카탈로그(`dong-apartments.ts`) 간 매핑 누락을 방지하기 위한 정규화 규칙을 보강하고, 통계 왜곡을 유발하는 비정상 가격 급등락(IQR 및 롤링 윈도우 기반) 데이터를 객관적으로 필터링합니다.
+
+### R4. 파이프라인 검증 및 복원력(Resilience) 보장
+공공 API 일시 지연, 타임아웃, 응답 형식(XML/JSON) 불일치 등 외부 장애 요인에도 파이프라인이 크래시 없이 안전하게 복구되어야 하며, 데이터 수집 결과가 Zod 스키마 검증 및 기존 Jest 단위/통합 테스트를 100% 통과하도록 합니다.
+
+## Acceptance Criteria
+
+### 신속성 및 파이프라인 효율
+- [ ] 수집 스크립트(`fetch-transactions.js`, `fetch-rent.js`)의 증분 수집 및 쓰기 비용 절감 로직이 유지되면서 실행 지연 없이 안정적으로 완료된다.
+- [ ] 동기화 파이프라인(`sync-transactions.js`)을 거쳐 생성되는 대시보드 통계 및 정적 파일(`tx-summary.json`, `recent-transactions.json`, `macro-trend.json`, `public/tx-data/*.json`)이 최신 일자 기준으로 정합하게 빌드된다.
+
+### 데이터 정합성 및 무결성
+- [ ] 취소/해제 거래(cdealDay/cdealType 존재 건)가 Firestore 및 최종 정적 요약/최근 거래 목록에서 완전히 제외되거나 취소 상태로 정확히 처리된다.
+- [ ] 복합 키(`_key`) 생성 및 Firestore 적재 시 동일 거래 중복 등록 건수가 0건으로 유지된다.
+- [ ] 서비스 179개 단지 카탈로그와 국토부 실거래 데이터 간 매핑 누락(Unmapped orphan records)이 발생하지 않는다.
+- [ ] 비정상 극단치(이상 급락/급등가)가 통계 산출(평균가, 신고가, 주간 증감률)에서 누락 없이 배제된다.
+
+### 자동화 테스트 및 복원력
+- [ ] Jest 파이프라인 테스트(`npm test -- src/__tests__/pipeline.test.ts`) 및 데이터 검증 스크립트(`node scripts/validate-transactions.js`)가 에러 없이 100% 통과(PASS)한다.
+- [ ] 외부 API 통신 실패 또는 데이터 포맷 이상 발생 시에도 안전한 로깅과 함께 파이프라인 프로세스가 비정상 종료되지 않는다.
+
+## 2026-09-19T05:29:18Z
+
+동탄 신도시 182개 단지, 18개년(2006~2026) 누적 실거래가 169,777건 전수를 대상으로 분석 범위를 대폭 확장하되, **Firestore 클라우드 비용(Read/Write)을 $0(무료 티어 범위)으로 방어**하는 정적 캐시 아키텍처를 기반으로 전수 장기 통계 리포트, 기간별(90일/1년/3년/전체) 실거래 탐색 및 대용량 브라우저 렌더링 최적화를 구현합니다.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 18개년 17만 건 전수 실거래가 장기 통계 및 매크로 지표 사전 집계
+기존 90일 중심 통계를 넘어, 169,777건 전수 데이터를 기반으로 단지별·평형별 역대 최고가/최저가 전수 기록, 연도별 거래량 추이, 장기 시세 상승률 통계를 빌드 타임에 사전 컴파일하여 클라이언트 성능 저하 없이 즉시 서빙되도록 집계 파이프라인을 고도화합니다.
+
+### R2. 실거래 피드 기간 선택 필터(90일 / 1년 / 3년 / 전체) 및 정적 청크 서빙
+기존 90일 고정(`recent-transactions.json`) 서빙 구조에서 탈피하여, 사용자가 원하는 기간(최근 90일, 1년, 3년, 전체)을 선택하여 실거래를 조회할 수 있도록 기간별 분할 정적 청크 또는 온디맨드 로딩 파이프라인을 구축합니다.
+
+### R3. Firestore 비용 제로화 아키텍처 (Zero Direct Client Reads & Incremental Sync)
+* **클라이언트 직통 읽기 차단**: 웹 방문자가 17만 건 전수 데이터나 장기 기간 필터를 조회하더라도 브라우저에서 Firestore를 직접 쿼리하지 않고, Vercel CDN 정적 청크 파일(`public/tx-data/*.json` 등)을 통해 서빙하여 클라이언트발 Firestore Read 비용을 0원으로 방어합니다.
+* **파이프라인 비용 최적화**: 일일 수집/동기화 시 매번 17만 건 전체를 Firestore에서 Full Scan하지 않고, 로컬 정적 데이터셋과 최근 3개월 증분 델타(`existingMap`) 비교 방식을 유지하여 Firestore 무료 티어(일 50,000 Reads / 20,000 Writes) 내에서 상시 구동되도록 보장합니다.
+
+### R4. 대용량 실거래 조회 시 클라이언트 성능 최적화 (가상화 및 메모리 누수 방지)
+기간 확장 시 수천~수만 건의 실거래 데이터가 로드되더라도 초기 페이지 번들 크기(LCP)와 브라우저 반응성(FPS)이 저하되지 않도록 가상화 리스트(Virtual Scrolling) 또는 점진적 렌더링을 적용하여 부드러운 스크롤과 메모리 효율을 보장합니다.
+
+### R5. 전수 데이터 정합성 감사 및 자동화 테스트 100% 통과
+17만 건 전수 집계 결과가 취소 거래 제외, 중복 방어, 단지명 매핑 규칙을 완벽히 준수하도록 데이터 검증기(`validate-transactions.js`) 및 Jest 파이프라인 테스트를 확장하고 모든 기존 기능과의 회귀 테스트를 100% 통과하도록 보장합니다.
+
+## Acceptance Criteria
+
+### Firebase 비용 및 서빙 아키텍처
+- [ ] 일반 사용자가 기간 필터(전체/3년/1년/90일)를 전환하거나 대량 실거래를 조회할 때 클라이언트에서 발생하는 Firestore Read 요청이 0건이다 (CDN 정적 파일로 서빙).
+- [ ] 동기화 스크립트 실행 시 Firestore 읽기/쓰기 연산이 최근 3개월 델타 및 캐시 비교로 제한되어 Firebase 무료 쿼터 내에서 실행 완료된다.
+
+### 전수 데이터 집계 및 파이프라인
+- [ ] 182개 단지 169,777건 전수 데이터가 집계 파이프라인(`sync-transactions.js` 등)을 거쳐 역대 누적 통계 지표로 빌드 타임에 컴파일된다.
+- [ ] 단지별 역대 최고가 및 장기 상승률 통계가 취소 거래 없이 정합하게 산출된다.
+
+### 기간 필터 및 UI 성능
+- [ ] UI 상에서 실거래 피드를 기간별(최근 90일, 1년, 3년, 전체)로 전환하여 조회할 수 있는 필터 컨트롤이 동작한다.
+- [ ] 90일 기본 뷰는 기존처럼 100KB 이하의 초경량 로딩을 유지하여 초기 LCP 성능 저하가 발생하지 않는다.
+- [ ] 1년/3년/전체 기간 선택 시 온디맨드로 데이터를 불러와 수천 건 이상의 거래 목록이 60fps로 매끄럽게 렌더링된다.
+
+### 정합성 및 테스트
+- [ ] Jest 파이프라인 테스트 및 검증 스크립트가 100% 통과(PASS)한다.
+- [ ] TypeScript 컴파일(`npx tsc --noEmit`) 에러 0건을 유지한다.
+
+## 2026-09-19T10:34:44Z
+
+DVIEW 서비스에서 관리자 페이지(/admin), 커뮤니티(라운지 및 게시글/댓글), 사용자 로그인/인증(Firebase Auth) 기능을 완전히 제거하고, 기존 관리자 업무는 안티그라비티 및 로컬 CLI 스크립트로 수행할 수 있도록 프론트엔드/백엔드 코드베이스를 경량화 및 정리합니다.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. Remove Admin Features and Routes
+Completely remove the web administrator interface (`/admin/*`) and its backend API endpoints (`/api/admin/*`). All administrative operations previously handled through the web UI (such as data inspection, manual updates, and reports) must be manageable purely via local scripts and development tools without requiring web-based admin pages.
+
+### R2. Remove Community (Lounge) Features and Routes
+Completely remove community and lounge features across the application. This includes deleting the lounge pages (`/lounge/*`), post creation and feed components, comment systems, and related community API endpoints (`/api/posts`, `/api/comments`), as well as removing lounge tabs, links, and navigation items from headers, navigation docks, and dashboards.
+
+### R3. Remove User Authentication and Login System
+Completely remove user authentication and login functionality from the client and server. The application must operate purely as an open, public informational service without login modals, Google Auth popups/redirects, session cookies, auth contexts/guards, user profiles, or user-specific state.
+
+### R4. Navigation, UI, and Test Suite Maintenance
+Update application layout, navigation components, and header/dock bars so no broken links or orphaned UI triggers for admin, community, or login remain. Clean up or adapt existing unit and integration tests to match the removed features and ensure that the build and test suites pass without regression in the remaining core features.
+
+## Acceptance Criteria
+
+### Build & Typecheck
+- [ ] `npm run build` succeeds with exit code 0 and zero TypeScript or Next.js build errors.
+- [ ] `npm run lint` succeeds with no linting errors related to removed features or unused imports.
+
+### Admin Removal Verification
+- [ ] Accessing `/admin` routes no longer serves an admin portal (routes are deleted or return 404).
+- [ ] Backend routes under `/api/admin` are removed.
+- [ ] Navigation bars, footers, and dashboards contain no links or buttons leading to the admin portal.
+
+### Community & Lounge Removal Verification
+- [ ] Accessing `/lounge` routes or related community views returns 404 or redirects cleanly to the main dashboard.
+- [ ] Backend routes for community posts (`/api/posts`) and comments (`/api/comments`) are removed.
+- [ ] Dashboard tabs and mobile dock navigation no longer show "라운지" (Lounge) or community entry points.
+
+### Authentication & Login Removal Verification
+- [ ] Header, floating bars, and modals contain no "로그인" (Login) or "로그아웃" (Logout) buttons or user avatar triggers.
+- [ ] Session cookie endpoints (`/api/auth/session`) and client-side auth providers (`AuthProvider`, `AdminGuard`, `useAuth`) are removed or neutralized to public anonymous state with no Firebase Auth network dependency.
+- [ ] The app renders all primary non-community features (Apartment details, Transactions, Macro trends, Techno Valley, MBTI) seamlessly without prompting for authentication.
+
+### Test Integrity
+- [ ] `npm run test` executes successfully without failing due to missing admin/lounge/auth components or outdated mock assertions.
+
+## 2026-09-19T13:40:53Z
+
+동탄 신도시 아파트 실거래가 데이터를 기반으로 종합 통계 분석 리포트 대시보드를 구축하여 사용자의 체류 시간(Dwell Time)을 극대화하고, 인피드/인라인 애드센스 광고 배치를 통해 수익률을 극대화합니다.
+
+Working directory: c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 동탄 부동산 실거래가 통계 분석 엔진
+동탄1·2 신도시 및 법정동별 실거래 데이터(매매/전세)를 바탕으로 기간별(1개월/3개월/6개월/1년/전체), 평형대별 거래량, 평균 매매가, 평당가 랭킹, 전세가율, 신고가/신저가/급매 변동률을 산출하는 통계 분석 로직을 제공합니다.
+
+### R2. 체류 시간 증대를 위한 인터랙티브 통계 리포트 대시보드 UI
+사용자가 권역, 평형, 기간, 정렬 조건을 실시간으로 탐색할 수 있는 시각화 차트(시계열 추이, 거래량 분포, 평당가 랭킹) 및 핵심 하이퍼로컬 인사이트 요약 카드를 직관적인 반응형 웹 인터페이스로 제공합니다.
+
+### R3. 애드센스 수익 최적화 및 UX 조화형 광고 배치
+통계 리포트 섹션 및 차트 카드 사이에 자연스럽게 노출되는 인피드/인라인 애드센스 슬롯을 구현하고, 누적 레이아웃 이동(CLS) 방지 및 애드센스 정책을 준수하는 반응형 광고 플레이스홀더를 제공합니다.
+
+### R4. 데이터 무결성 및 인프라 제약
+기존 정적 데이터셋(`public/data/*.json`) 및 동기화 파이프라인과 완벽히 호환되어야 하며, 외부 클라우드 무단 쓰기나 불필요한 네트워크 비용 없이 클라이언트/정적 빌드 고성능을 유지해야 합니다.
+
+## Acceptance Criteria
+
+### 통계 분석 정확성 및 데이터 처리
+- [ ] 권역별(동탄1/동탄2/법정동), 평형대별, 기간별 실거래가 통계 지표(평균 매매가, 평당가, 전세가율, 거래량 변동률)가 오차 없이 산출되어 화면에 표시된다.
+- [ ] 결측치 또는 거래 데이터가 부족한 단지/기간 선택 시 앱이 충돌하지 않고 안정적인 예외 처리 및 안내 메시지를 표시한다.
+
+### 체류 시간 및 사용자 인터랙션
+- [ ] 권역/기간/평형 필터 변경 시 통계 차트와 테이블이 즉각(300ms 이내) 갱신되며, 데이터 로딩 상태에 대한 스켈레톤 UI가 제공된다.
+- [ ] 모바일과 데스크톱 환경 모두에서 차트 툴팁, 데이터 정렬, 단지별 상세 통계 탐색이 끊김 없이 매끄럽게 동작한다.
+
+### 애드센스 배치 및 레이아웃 안정성
+- [ ] 통계 대시보드 본문 및 리포트 섹션 사이에 규격에 맞는 인피드/인라인 광고 슬롯이 배치된다.
+- [ ] 광고 로딩 전후 레이아웃이 급격하게 흔들리지 않도록 고정 높이 또는 반응형 종횡비(Aspect Ratio) 컨테이너가 유지된다 (CLS < 0.1).
+
+### 코드 품질 및 회귀 방지
+- [ ] 기존 테스트 스위트를 포함하여 신규 통계/광고 컴포넌트 단위 테스트(`npm run test`)가 100% 통과한다.
+- [ ] `npx tsc --noEmit` 실행 시 TypeScript 컴파일 에러가 0건이어야 한다.
+- [ ] `npm run lint` 실행 시 ESLint 검사를 0건의 에러로 통과해야 한다.
+- [ ] `npm run build` 실행 시 프로덕션 빌드가 성공적으로 완료되어야 한다.
 
 

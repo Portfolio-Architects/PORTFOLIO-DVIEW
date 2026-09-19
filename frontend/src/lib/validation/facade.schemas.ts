@@ -364,16 +364,6 @@ export const CreateFieldReportInputSchema = z.object({
   })),
 });
 
-export const AddPostInputSchema = z.object({
-  title: z.string().min(1, '제목은 필수 입력 사항입니다.'),
-  content: z.string().min(1, '본문은 필수 입력 사항입니다.'),
-  category: z.string().min(1, '카테고리는 필수 입력 사항입니다.'),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  imageFile: IsomorphicFileSchema,
-  authorEmail: z.string().nullable().optional(),
-  customNickname: z.string().optional(),
-});
-
 export const AddFieldReportInputSchema = z.object({
   apartmentName: z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.'),
   sections: ReportSectionsSchema.passthrough(),
@@ -385,20 +375,6 @@ export const AddFieldReportInputSchema = z.object({
       category: z.string(),
     })
   ),
-});
-
-export const AddFieldReportCommentInputSchema = z.object({
-  reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
-  text: z.string().min(1, '댓글 내용은 필수 입력 사항입니다.'),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  apartmentName: z.string().optional(),
-});
-
-export const DeleteFieldReportCommentInputSchema = z.object({
-  reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
-  commentId: z.string().min(1, '댓글 ID는 필수 입력 사항입니다.'),
-  authorUid: z.string().min(1, '사용자 UID는 필수 입력 사항입니다.'),
-  text: z.string().min(1, '댓글 내용은 필수 입력 사항입니다.'),
 });
 
 export const AddUserReviewInputSchema = z.object({
@@ -422,12 +398,6 @@ export const UpdatePhotoURLInputSchema = z.object({
 export const GetFullReportInputSchema = z.string().min(1, '보고서 ID는 필수 입력 사항입니다.');
 export const GetFullReportByApartmentNameInputSchema = z.string().min(1, '아파트 명칭은 필수 입력 사항입니다.');
 export const DeleteReviewInputSchema = z.string().min(1, '리뷰 ID는 필수 입력 사항입니다.');
-export const DeletePostInputSchema = z.string().min(1, '게시글 ID는 필수 입력 사항입니다.');
-export const IncrementLikeInputSchema = z.string().min(1, '게시글 ID는 필수 입력 사항입니다.');
-export const IncrementPostViewInputSchema = z.object({
-  postId: z.string().min(1, '게시글 ID는 필수 입력 사항입니다.'),
-  title: z.string().optional(),
-});
 export const IncrementFieldReportViewInputSchema = z.object({
   reportId: z.string().min(1, '보고서 ID는 필수 입력 사항입니다.'),
   title: z.string().optional(),
@@ -470,38 +440,6 @@ export const QuizAnswerSchema = z.object({
 });
 
 export const ViewedAptsSchema = z.array(z.string());
-
-// Unified Lounge Post Validation Schemas
-export const PostDataSchema = z.object({
-  title: z.string().default(''),
-  category: z.string().default('자유'),
-  content: z.string().default(''),
-  authorName: z.string().default('익명'),
-  authorUid: z.string().nullable().optional(),
-  imageUrl: z.string().nullable().optional(),
-  verifiedApartment: z.string().nullable().optional(),
-  verificationLevel: z.string().nullable().optional(),
-  likes: z.number().default(0),
-  views: z.number().default(0),
-  commentCount: z.number().default(0),
-}).passthrough();
-
-export const CreatePostSchema = z.object({
-  title: z.string().min(1, '제목을 입력해주세요.').max(100, '제목은 100자 이내여야 합니다.'),
-  content: z.string().min(1, '내용을 입력해주세요.'),
-  category: z.string(),
-  authorUid: z.string(),
-  authorEmail: z.string().email().nullable().optional(),
-  customNickname: z.string().max(10, '닉네임은 10자 이내여야 합니다.').optional(),
-});
-
-export const SyncManagerPostSchema = z.object({
-  title: z.string(),
-  content: z.string(),
-  category: z.string(),
-  authorEmail: z.string().email().nullable().optional(),
-  providedApartments: z.array(z.string()).optional(),
-});
 
 // Dashboard & Report schemas consolidated for architecture refactoring
 export const TypeMapItemSchema = z.object({

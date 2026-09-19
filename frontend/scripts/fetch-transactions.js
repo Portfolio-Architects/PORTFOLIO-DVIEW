@@ -15,7 +15,20 @@ require('dotenv').config({ path: '.env.local' });
 const admin = require('firebase-admin');
 const fs = require('fs');
 const path = require('path');
-const { HttpsProxyAgent } = require('https-proxy-agent');
+let HttpsProxyAgent = null;
+function getProxyAgent() {
+  if (process.env.PROXY_URL) {
+    if (!HttpsProxyAgent) {
+      try {
+        HttpsProxyAgent = require('https-proxy-agent').HttpsProxyAgent;
+      } catch {
+        return undefined;
+      }
+    }
+    return HttpsProxyAgent ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
+  }
+  return undefined;
+}
 const axios = require('axios');
 const { z } = require('zod');
 const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
@@ -63,18 +76,48 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
     try {
       const response = await axios.get(url, {
         ...options,
-        timeout: 25000 // 25초 타임아웃으로 증가
+        timeout: 25000 // 25초 타임아웃
       });
       return response;
     } catch (err) {
       const isLastActive = i === retries - 1;
-      const status = err.response ? err.response.status : null;
-      console.warn(`   ⚠️ API 호출 시도 ${i + 1}/${retries} 실패: ${err.message} (HTTP status: ${status})`);
+      const status = err.response ? err.response.status : (err.code || 'TIMEOUT_OR_NET_ERR');
+      const isTimeout = err.code === 'ECONNABORTED' || (err.message && err.message.toLowerCase().includes('timeout'));
+      const errorLabel = isTimeout ? '네트워크 타임아웃(25s 초과)' : (err.message || '네트워크 연결 오류');
+      console.warn(`   ⚠️ [Trade API] 호출 시도 ${i + 1}/${retries} 실패: ${errorLabel} (Status/Code: ${status})`);
       if (isLastActive) throw err;
       
       const backoffDelay = delay * Math.pow(2, i);
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }
+  }
+}
+
+function parseGovApiEnvelope(rawData) {
+  const text = typeof rawData === 'string' ? rawData : JSON.stringify(rawData);
+  const isXml = typeof rawData === 'string' && rawData.trim().startsWith('<');
+
+  if (isXml) {
+    const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/i) ||
+                            text.match(/<returnReasonCode>([^<]*)<\/returnReasonCode>/i);
+    const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/i) ||
+                           text.match(/<returnAuthMsg>([^<]*)<\/returnAuthMsg>/i) ||
+                           text.match(/<errMsg>([^<]*)<\/errMsg>/i);
+    const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+    const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+
+    const isGatewayError = text.includes('<OpenAPI_ServiceResponse>') || text.includes('<cmmMsgHeader>');
+    const isError = isGatewayError || (resultCode !== '' && resultCode !== '00' && resultCode !== '000');
+
+    return { isError, resultCode, resultMsg, isGatewayError, isXml: true };
+  } else {
+    const jsonResultCode = rawData?.response?.header?.resultCode ||
+                           rawData?.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnReasonCode;
+    const jsonResultMsg = rawData?.response?.header?.resultMsg ||
+                          rawData?.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnAuthMsg ||
+                          rawData?.OpenAPI_ServiceResponse?.cmmMsgHeader?.errMsg;
+    const isError = Boolean(jsonResultCode && jsonResultCode !== '000' && jsonResultCode !== '00');
+    return { isError, resultCode: jsonResultCode || '', resultMsg: jsonResultMsg || '', isGatewayError: Boolean(rawData?.OpenAPI_ServiceResponse), isXml: false };
   }
 }
 
@@ -148,6 +191,7 @@ async function main() {
 
   for (const ym of Array.from(monthsToSync).sort()) {
     const keyOccurrences = new Map();
+    const seenRawTxKeys = new Set();
     // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
     // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로(99%) 감면
     const existingMap = new Map(); // _key -> cancelDate
@@ -168,13 +212,14 @@ async function main() {
       let page = 1;
       let totalCount = 0;
       const monthRecords = [];
+      const currentDistrictOccurrences = new Map();
 
       console.log(`📅 ${ym} (LAWD_CD: ${currentLawd}) 처리 중...`);
 
       do {
         const url = `${API_BASE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
 
-        const agent = process.env.PROXY_URL ? new HttpsProxyAgent(process.env.PROXY_URL) : undefined;
+        const agent = getProxyAgent();
         try {
           // axios.get 대신 지수 백오프 재시도가 연동된 fetchWithRetry 호출
           const res = await fetchWithRetry(url, { httpAgent: agent, httpsAgent: agent, proxy: false });
@@ -185,13 +230,25 @@ async function main() {
           let items = [];
 
           if (isXml) {
-            const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
-            const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
+            // 국토부 및 공공데이터포털 다양한 에러 태그 매칭 (resultCode, returnReasonCode, returnAuthMsg, errMsg)
+            const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/i) ||
+                                    text.match(/<returnReasonCode>([^<]*)<\/returnReasonCode>/i);
+            const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/i) ||
+                                   text.match(/<returnAuthMsg>([^<]*)<\/returnAuthMsg>/i) ||
+                                   text.match(/<errMsg>([^<]*)<\/errMsg>/i);
             const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
             const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
 
             if (resultCode && resultCode !== '00' && resultCode !== '000') {
-              console.error(`   ❌ Gov API Trade Error [${resultCode}]: ${resultMsg}`);
+              console.warn(`   ⚠️ Gov API Trade Error Envelope [${resultCode}]: ${resultMsg || '공공 API 오류 응답'}`);
+              syncLog.push(`${ym} (${currentLawd}): API Error [${resultCode}] - ${resultMsg || 'Unknown error'}`);
+              break;
+            }
+
+            if (text.includes('<OpenAPI_ServiceResponse>') || text.includes('<cmmMsgHeader>')) {
+              const errMsg = resultMsg || 'OpenAPI Gateway Error';
+              console.warn(`   ⚠️ Gov API Trade Gateway Error: ${errMsg}`);
+              syncLog.push(`${ym} (${currentLawd}): API Gateway Error - ${errMsg}`);
               break;
             }
 
@@ -234,10 +291,16 @@ async function main() {
             }
           } else {
             // JSON response handling
-            if (rawData.response?.header?.resultCode !== '000' && rawData.response?.header?.resultCode !== '00') {
-               const errMsg = rawData.response?.header?.resultMsg || JSON.stringify(rawData);
-               console.error(`   ❌ API 에러: ${errMsg}`);
-               syncLog.push(`${ym} (${currentLawd}): API 에러 - ${errMsg}`);
+            const jsonResultCode = rawData.response?.header?.resultCode ||
+                                   rawData.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnReasonCode;
+            const jsonResultMsg = rawData.response?.header?.resultMsg ||
+                                  rawData.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnAuthMsg ||
+                                  rawData.OpenAPI_ServiceResponse?.cmmMsgHeader?.errMsg;
+
+            if (jsonResultCode && jsonResultCode !== '000' && jsonResultCode !== '00') {
+               const errMsg = jsonResultMsg || JSON.stringify(rawData);
+               console.warn(`   ⚠️ Gov API Trade JSON 에러 [${jsonResultCode}]: ${errMsg}`);
+               syncLog.push(`${ym} (${currentLawd}): API 에러 [${jsonResultCode}] - ${errMsg}`);
                break;
             }
 
@@ -266,6 +329,16 @@ async function main() {
             const contractDay = String(item.dealDay || '').padStart(2, '0');
             const floor = parseInt(item.floor || '0', 10) || 0;
             const baseKey = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const currentDistrictCount = (currentDistrictOccurrences.get(baseKey) || 0) + 1;
+            currentDistrictOccurrences.set(baseKey, currentDistrictCount);
+            const txIdentifier = `${baseKey}_${currentDistrictCount}`;
+
+            // 동일 월 내 다른 행정구역(LAWD_CD)에서 이미 수집된 중복 응답은 건너뜀 (occurrence 증가 방지)
+            if (seenRawTxKeys.has(txIdentifier)) {
+              continue;
+            }
+            seenRawTxKeys.add(txIdentifier);
+
             const occurrence = (keyOccurrences.get(baseKey) || 0) + 1;
             keyOccurrences.set(baseKey, occurrence);
             const key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
@@ -315,9 +388,11 @@ async function main() {
           if (items.length === 0) break; // 무한 루프 방지
           page++;
         } catch (err) {
-          const status = err.response ? err.response.status : (err.code || 'Unknown');
-          syncLog.push(`${ym} (${currentLawd}) page ${page}: HTTP ${status}`);
-          console.error(`   ❌ HTTP ${status} - ${err.message}`);
+          const status = err.response ? err.response.status : (err.code || 'TIMEOUT_OR_NET_ERR');
+          const isTimeout = err.code === 'ECONNABORTED' || (err.message && err.message.toLowerCase().includes('timeout'));
+          const desc = isTimeout ? '네트워크 타임아웃(25초 초과)' : err.message;
+          syncLog.push(`${ym} (${currentLawd}) page ${page}: ${desc} (Status/Code: ${status})`);
+          console.warn(`   ⚠️ [Trade API] (${ym}, ${currentLawd}) page ${page} 오류로 건너뜀 (안전 복구): ${desc}`);
           // 하나의 구역/페이지가 완전히 응답하지 않는 경우 break하여 루프를 안전하게 빠져나가며 다음 지역으로 진행 (전체 프로세스 크래시 방지)
           break;
         }
@@ -352,7 +427,17 @@ async function main() {
   process.exit(0);
 }
 
-main().catch(err => {
-  console.error('❌ 동기화 실패:', err.message);
-  process.exit(1);
-});
+module.exports = {
+  AptTransactionRecordSchema,
+  formatPriceEok,
+  fetchWithRetry,
+  parseGovApiEnvelope,
+  main,
+};
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error('❌ 동기화 실패:', err.message);
+    process.exit(1);
+  });
+}

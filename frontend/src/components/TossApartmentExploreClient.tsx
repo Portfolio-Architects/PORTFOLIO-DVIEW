@@ -426,9 +426,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         formattedTurnover
       };
     });
-    // eslint-disable-next-line react-hooks/immutability
     globalAptsCache.data = computed;
-    // eslint-disable-next-line react-hooks/immutability
     globalAptsCache.key = cacheKey;
     return computed;
   }, [allApts, txSummaryData, nameMapping]);

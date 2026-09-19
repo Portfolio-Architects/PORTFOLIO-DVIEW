@@ -245,7 +245,6 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(data.pyeongSummaries).toEqual([]);
       expect(data.locationScore).toBeNull();
       expect(data.matchedReportData).toBeNull();
-      expect(data.comments).toEqual([]);
       expect(data.structuredImages).toEqual([]);
       expect(data.analytics.minSalePrice).toBe(0);
       expect(data.aiBriefing).toContain(ghostApt);
