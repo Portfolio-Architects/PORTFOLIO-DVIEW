@@ -101,12 +101,12 @@ const ExploreListSkeleton = () => (
   </div>
 );
 
-// Heavy components dynamic load - TossApartmentExploreClient is loaded with SSR enabled to optimize Largest Contentful Paint (LCP) and SEO.
+// Heavy components dynamic load - TossApartmentExploreClient is loaded with ssr: false to prevent hydration divergence (SEO handled in page.tsx semantic block).
 const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartmentExploreClient').catch(err => {
   logger.warn('ExploreClient.dynamic', 'TossApartmentExploreClient Chunk Load failure, page reload initiated', undefined, err);
   safeReload('TossApartmentExploreClient');
   return { default: () => null };
-}), { ssr: true, loading: () => <ExploreListSkeleton /> });
+}), { ssr: false, loading: () => <ExploreListSkeleton /> });
 
 const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'FieldReportModal Chunk Load failure, page reload initiated', undefined, err);

@@ -186,7 +186,9 @@ export const AptRow = memo(({
 
           <div className="flex flex-col min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-base font-black text-primary truncate leading-snug">{item.apt.name}</h3>
+              <h3 className="text-base font-black text-primary truncate leading-snug" suppressHydrationWarning>
+                {item.apt.name}
+              </h3>
               <InteractiveHeart 
                 isFavorited={isFavorited} 
                 name={item.apt.name} 

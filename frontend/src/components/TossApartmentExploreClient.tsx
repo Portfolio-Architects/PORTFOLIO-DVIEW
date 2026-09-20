@@ -201,15 +201,21 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, []);
 
   const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
-  const [searchQuery, setSearchQuery] = useState(() => {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [inputValue, setInputValue] = useState('');
+  const [isPending, startTransition] = React.useTransition();
+
+  // Read URL search param on mount without SSR mismatch
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      return params.get('search') || params.get('q') || '';
+      const initialQ = params.get('search') || params.get('q') || '';
+      if (initialQ) {
+        setSearchQuery(initialQ);
+        setInputValue(initialQ);
+      }
     }
-    return '';
-  });
-  const [inputValue, setInputValue] = useState(searchQuery);
-  const [isPending, startTransition] = React.useTransition();
+  }, []);
 
   // Sync inputValue with searchQuery when searchQuery changes from URL
   useEffect(() => {

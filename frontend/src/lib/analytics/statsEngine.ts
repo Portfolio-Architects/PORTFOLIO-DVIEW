@@ -776,8 +776,9 @@ export function computeComplexRankings(
     const tx = transactions[i] as Record<string, any>;
     const aptName = tx.aptName || '미확인 단지';
     const aptKey = tx.aptKey || tx.txKey || aptName;
+    const groupKey = aptKey || aptName;
 
-    let entry = complexMap.get(aptName);
+    let entry = complexMap.get(groupKey);
     if (!entry) {
       const dong = normalizeDongName(
         tx.dong || options?.dongLookup?.[aptKey] || options?.summaryMap?.[aptKey]?.dong || ''
@@ -796,7 +797,7 @@ export function computeComplexRankings(
         latestContractDate: '',
         latestPrice: 0,
       };
-      complexMap.set(aptName, entry);
+      complexMap.set(groupKey, entry);
     } else if (!entry.dong && tx.dong) {
       entry.dong = normalizeDongName(tx.dong);
     }

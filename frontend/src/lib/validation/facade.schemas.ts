@@ -531,7 +531,7 @@ export const AptTxSummarySchema = z.object({
   avg3MPriceEok: z.string().optional(),
   avg3MPerPyeong: z.number().optional(),
   avg3MTxCount: z.number().optional(),
-  recent: z.array(RecentTxSchema),
+  recent: z.array(RecentTxSchema).optional().default([]),
   rentTxCount: z.number().optional(),
   latestRentDeposit: z.number().optional(),
   latestRentDepositEok: z.string().optional(),
@@ -542,7 +542,7 @@ export const AptTxSummarySchema = z.object({
   avg3MRentDeposit: z.number().optional(),
   avg3MRentDepositEok: z.string().optional(),
   dong: z.string().optional(),
-});
+}).passthrough();
 
 export const FieldReportImageSchema = z.object({
   url: z.string(),

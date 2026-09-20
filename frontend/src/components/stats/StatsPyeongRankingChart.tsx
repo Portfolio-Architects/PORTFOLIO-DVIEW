@@ -176,7 +176,7 @@ export function StatsPyeongRankingChart({
               {topRankings.map((item, idx) => {
                 const rank = idx + 1;
                 return (
-                  <React.Fragment key={item.aptKey}>
+                  <React.Fragment key={`${item.aptKey || item.aptName}-${rank}`}>
                     <div
                       data-testid={`ranking-item-${rank}`}
                       onClick={() => onSelectComplex?.(item.aptKey, item.aptName)}

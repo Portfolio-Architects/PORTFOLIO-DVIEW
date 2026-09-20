@@ -150,12 +150,36 @@ async function fetchFreshData(): Promise<InitialPageData> {
     result.recentTransactions = await readJsonFileCached<z.infer<typeof RecentTransactionSchema>[]>('public/data/recent-transactions.json', []);
   };
 
+  const fetchTxSummary = async () => {
+    try {
+      const sumRaw = await readJsonFileCached<{ summary?: Record<string, any> } | Record<string, any>>('public/data/tx-summary.json', {});
+      if (sumRaw) {
+        result.txSummary = ('summary' in sumRaw && sumRaw.summary) ? sumRaw.summary : (sumRaw as any);
+      }
+    } catch (e) {
+      logger.warn('DashboardData', 'txSummary load error', {}, e as Error);
+    }
+  };
+
+  const fetchApartmentsByDong = async () => {
+    try {
+      const parsed = await readJsonFileCached<{ byDong?: Record<string, any[]> } | null>('public/data/apartments-by-dong.json', null);
+      if (parsed && parsed.byDong) {
+        result.sheetApartments = parsed.byDong as any;
+      }
+    } catch (e) {
+      logger.warn('DashboardData', 'apartmentsByDong load error', {}, e as Error);
+    }
+  };
+
   await Promise.allSettled([
     fetchFavCounts(),
     fetchMeta(),
     fetchReports(),
     fetchMacroTrend(),
     fetchRecentTransactions(),
+    fetchTxSummary(),
+    fetchApartmentsByDong(),
   ]);
 
   if (Object.keys(result.apartmentMeta).length === 0) {
