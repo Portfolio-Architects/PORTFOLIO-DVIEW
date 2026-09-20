@@ -208,13 +208,16 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 }: MacroTrendChartProps) {
   const [refCallback, size] = useResizeObserver(150);
   const [isTooltipActive, setIsTooltipActive] = useState(false);
-  const [isTouchDevice, setIsTouchDevice] = useState(false);
- 
-  React.useLayoutEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsTouchDevice(window.matchMedia("(pointer: coarse)").matches);
-    }
-  }, []);
+  const isTouchDevice = React.useSyncExternalStore(
+    (onStoreChange) => {
+      if (typeof window === "undefined" || !window.matchMedia) return () => {};
+      const mql = window.matchMedia("(pointer: coarse)");
+      mql.addEventListener?.("change", onStoreChange);
+      return () => mql.removeEventListener?.("change", onStoreChange);
+    },
+    () => (typeof window !== "undefined" && !!window.matchMedia ? window.matchMedia("(pointer: coarse)").matches : false),
+    () => false
+  );
 
   const fontSize = isBottomSheet ? 11 : 12;
   const yWidth = isBottomSheet ? 35 : 40;

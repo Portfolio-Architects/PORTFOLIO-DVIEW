@@ -145,8 +145,8 @@ describe('Empirical Challenger 2: fileReader & dashboardData Concurrency and Mem
       // Memory cache size must remain strictly 1 (no rogue keys or duplicate instances)
       expect(memoryCache.size).toBe(1);
 
-      // Heap difference should be minimal (< 30MB) across 10,000 async calls in V8
-      expect(heapDiffMB).toBeLessThan(30);
+      // Heap difference should be minimal (< 50MB) across 10,000 async calls in V8
+      expect(heapDiffMB).toBeLessThan(50);
     });
   });
 

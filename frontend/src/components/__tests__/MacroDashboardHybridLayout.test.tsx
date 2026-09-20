@@ -18,16 +18,6 @@ jest.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
-// Mock Recharts ResponsiveContainer to avoid size warnings in jsdom
-jest.mock('recharts', () => {
-  const OriginalModule = jest.requireActual('recharts');
-  return {
-    ...OriginalModule,
-    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
-      <div style={{ width: '800px', height: '400px' }}>{children}</div>
-    ),
-  };
-});
 
 const mockSheetApartments: Record<string, DongApartment[]> = {
   반송동: [

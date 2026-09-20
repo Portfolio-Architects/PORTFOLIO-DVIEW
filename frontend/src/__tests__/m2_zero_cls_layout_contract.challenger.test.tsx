@@ -70,18 +70,6 @@ jest.mock('@/lib/repositories/apartment.repository', () => ({
   fetchAllApartments: jest.fn().mockResolvedValue([]),
 }));
 
-// Mock Recharts
-jest.mock('recharts', () => {
-  const OriginalModule = jest.requireActual('recharts');
-  return {
-    ...OriginalModule,
-    ResponsiveContainer: ({ children }: { children: React.ReactNode }) => (
-      <div data-testid="mock-responsive-container" style={{ width: '800px', height: '360px' }}>
-        {children}
-      </div>
-    ),
-  };
-});
 
 const mockSheetApartments: Record<string, DongApartment[]> = {
   여울동: [

@@ -3,6 +3,9 @@ import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import MacroTrendChart from './MacroTrendChart';
 
+// Unmock recharts specifically for this test suite because it verifies real SVG circles and paths
+jest.unmock('recharts');
+
 describe('MacroTrendChart Component', () => {
   it('renders without crashing with empty data', () => {
     const { container } = render(

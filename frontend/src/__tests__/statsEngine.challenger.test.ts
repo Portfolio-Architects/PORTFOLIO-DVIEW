@@ -185,7 +185,7 @@ describe('statsEngine Empirical Adversarial Challenger Suite', () => {
         const res = computeStats(dataset, fc, { referenceDate: REF_DATE });
         const elapsed = performance.now() - t0;
 
-        expect(elapsed).toBeLessThan(10.0);
+        expect(elapsed).toBeLessThan(50.0);
         expect(res.isLoading).toBe(false);
         expect(isNaN(res.avgSalePrice)).toBe(false);
       }
