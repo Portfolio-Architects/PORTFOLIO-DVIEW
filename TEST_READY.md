@@ -1,8 +1,8 @@
-# Test Ready Report: Milestone 4 (M4: E2E Testing & Coverage Hardening)
+# Test Ready Report: Milestone 4 (M4: Final E2E Verification & Adversarial Hardening)
 
-**Date**: 2026-08-22
-**Project**: D-VIEW (동탄 하이퍼로컬 슈퍼앱) - Apartment Lab MacroTimelineView Upgrade
-**Scope**: Milestone 4 E2E Test Suite Creation & Verification
+**Date**: 2026-09-20
+**Project**: D-VIEW (동탄 하이퍼로컬 슈퍼앱) — Hybrid Dashboard Integration (아파트 랩 원페이지 통합)
+**Scope**: Milestone 4 E2E Test Suite Creation, Cross-Feature Verification & Adversarial Coverage Hardening
 **Status**: 🟢 **100% PASS (TEST READY)**
 
 ---
@@ -10,69 +10,67 @@
 ## 1. Test Suite Architecture & File Deliverables
 
 | Target Module | Test Suite File | Test Count | Status |
-|---------------|-----------------|:----------:|:------:|
-| **MacroTimelineView E2E Master Suite** | `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx` | 33 | 🟢 PASS |
-| **MacroTimelineView Unit Suite** | `frontend/src/components/__tests__/MacroTimelineView.test.tsx` | 13 | 🟢 PASS |
-| **MacroControls Component Suite** | `frontend/src/components/__tests__/MacroControls.test.tsx` | 15 | 🟢 PASS |
-| **useMacroFilters Hook Suite** | `frontend/src/components/__tests__/useMacroFilters.test.tsx` | 12 | 🟢 PASS |
-| **Timeline Integration Suite** | `frontend/src/components/__tests__/TimelineIntegration.test.tsx` | 7 | 🟢 PASS |
-| **TimelineItemCard Render Suite** | `frontend/src/components/TimelineItemCardRender.test.tsx` | 5 | 🟢 PASS |
-| **Total Test Suite (Frontend Project)** | **98 Test Suites** | **1,008 Tests** | 🟢 **100% PASS** |
+|---|---|:---:|:---:|
+| **Navigation & 301 Redirects** | `frontend/src/__tests__/m1_challenger2_redirects_sync_empirical.test.tsx` | 21 | 🟢 PASS |
+| **Header & Dock Sync** | `frontend/src/components/HeaderDockSync.test.tsx` | 8 | 🟢 PASS |
+| **Stats Engine Analytics** | `frontend/src/__tests__/statsEngine.challenger.test.ts` | 15 | 🟢 PASS |
+| **Hybrid Dashboard UI Integration** | `frontend/src/__tests__/m2_challenger_hybrid_dashboard_stress.test.tsx` | 24 | 🟢 PASS |
+| **Hero Donut & Metric Cards** | `frontend/src/__tests__/m2_apt_donut_metric_cards.test.tsx` | 16 | 🟢 PASS |
+| **AdSense Slots & Zero-CLS** | `frontend/src/__tests__/m3_adslot_zero_cls_stress.challenger.test.tsx` | 51 | 🟢 PASS |
+| **AdSense & Finance Integration** | `frontend/src/__tests__/adsense_finance_ranking.test.tsx` | 18 | 🟢 PASS |
+| **Macro Dashboard Hybrid Layout** | `frontend/src/components/__tests__/MacroDashboardHybridLayout.test.tsx` | 8 | 🟢 PASS |
+| **Stats Overview Section** | `frontend/src/components/stats/__tests__/StatsOverviewSection.test.tsx` | 12 | 🟢 PASS |
+| **Macro Timeline View E2E** | `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx` | 33 | 🟢 PASS |
+| **Adversarial Pipeline & Zero-Cost**| `frontend/src/__tests__/challenger2_frontend_zerocost_virtualization.test.tsx`| 18 | 🟢 PASS |
+| **Total Hybrid Dashboard Suites** | **13 Test Suites** | **316 Tests** | 🟢 **100% PASS** |
 
 ---
 
-## 2. 4-Tier Test Matrix Coverage Verification
+## 2. 5-Tier Test Matrix Coverage Verification
 
-### Tier 1: Feature Coverage (F1 ~ F8)
-- [x] **F1. All 7 Smart Quick Filter Chips**:
-  - `전체`, `동탄1`, `동탄2`, `신고가🔥`, `30평대 국평`, `10억 클럽`, `대장단지` rendering & active state styling.
-  - Accurate item filtering by region, price threshold, area/pyeong category, new high flag, and landmark list.
-- [x] **F2. Real-Time Inline Search Input**:
-  - Real-time filtering by apartment name or dong name.
-  - Active search clear button (`X`) and state restoration.
-- [x] **F3. 4-Way Multi-Sort Selection Engine**:
-  - `latest` (최신 계약순 / default), `price_desc` (실거래가 높은순), `delta_desc` (상승률 높은순), `area_desc` (전용면적순).
-- [x] **F4. Dual View Mode Controller**:
-  - Dynamic switching between Wide Card Grid View (`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3`) and Compact List View (`flex flex-col divide-y`).
-- [x] **F5. Sticky Date Summary Header & Peak Price 👑 Highlight Badge**:
-  - Real-time calculation of daily total transaction count (`총 N건 거래`).
-  - Formatted daily average price (`평균 X억 Y만`).
-  - Auto-computed or explicit highest price badge (`👑 최고가: [단지명] [가격]`).
-- [x] **F6. Favorite Bookmark Heart Toggle & Event Isolation**:
-  - Toggling bookmark state (`Set<string>` user favorites).
-  - Event isolation via `e.stopPropagation()` ensuring card selection is not triggered when heart is clicked.
-- [x] **F7. Price Per Pyeong Conversion & Delta Badges**:
-  - Formula: `Math.round((priceVal * 10000) / areaPyeong)` rendered as `평당 N만`.
-  - Rising (`▲`) and falling (`▼`) delta prices with percentage and colored styling.
-- [x] **F8. Detail Modal Deep-Linking Callback**:
-  - `onDetailsClick(aptName)` triggered on "상세" button click with event propagation isolation.
+### Tier 1: Feature Coverage (F1 ~ F11)
+- [x] **F1. Canonical 3-Tab Global Navigation**: `[아파트 랩 (/) | 아파트 탐색 (/explore) | 단지 MBTI (/mbti)]` rendered consistently in `LoungeHeader.tsx` and `MobileDock.tsx`.
+- [x] **F2. /stats 301 Permanent Redirect**: HTTP 308/301 permanent redirect configured in `next.config.ts` and `src/app/stats/page.tsx`.
+- [x] **F3. Navigation Test Synchronization**: All legacy 4-tab assertions updated to canonical 3-tab contract.
+- [x] **F4. Modular StatsOverviewSection**: 5D filter state, KPI cards, charts, and ranking lists encapsulated cleanly.
+- [x] **F5. 4 Core KPIs & 5D Filter Reactivity**: Volume (+MoM), avg price, pyeong price, and jeonse ratio updating in <20ms.
+- [x] **F6. Visual Charts & Hyperlocal Insight Cards**: Time-series price trend, pyeong rankings, donut distribution, and 4 insight cards rendered.
+- [x] **F7. In-Page Modal Wiring**: Clicking complexes in rankings or insight cards triggers `FieldReportModal` in-page without navigation.
+- [x] **F8. Single-Page Vertical Transition**: 2-column signature hero at top smoothly transitions to macro stats, ad slot, timeline, finance tools, and AI simulators.
+- [x] **F9. Inline AdSense Optimization**: 5 strategic ad placements deployed with Google AdSense policy-compliant spacing (`my-6`).
+- [x] **F10. Zero-CLS Bounding Box Guarantee**: Bounding boxes enforced across skeleton, placeholder, fallback, and live ad states (CLS = 0.000 < 0.01).
+- [x] **F11. End-to-End Build & Static Generation**: TypeScript compilation (`tsc --noEmit`), ESLint, and Next.js production build (`next build`) pass with 0 errors.
 
-### Tier 2: Boundary & Corner Cases (B1 ~ B4)
-- [x] **B1. Empty Search/Filter Results**:
-  - User-friendly empty prompt with emoji indicator.
-  - "필터 조건 초기화" button appears and restores default dataset upon click.
-- [x] **B2. Extreme Price Values**:
-  - Ultra-high luxury transactions (e.g. 20.5억 -> `20억 5,000만`).
-  - Sub-2억 transactions (e.g. 1.2억 -> `1억 2,000만`).
-- [x] **B3. Long Apartment Name Layout Protection**:
-  - Complex names exceeding 35+ characters render without crashing or overflowing layout (`truncate`).
-- [x] **B4. Special Characters, Whitespace & Unicode Search Queries**:
-  - Leading/trailing whitespace normalization (`trim()`).
-  - Regex special meta-characters (`[()+*?]`) handled safely without evaluation syntax errors.
+### Tier 2: Boundary & Corner Cases (B1 ~ B5)
+- [x] **B1. Empty/Filtered Datasets**: Zero-division safe math (`safeDivide`, `safeRound`) returns `EMPTY_STATS_RESULT` without NaN or Infinity leaks.
+- [x] **B2. Extreme Price Values**: Micro-transactions, sub-1억, and ultra-luxury transactions correctly parsed into 만원 and Eok formatting.
+- [x] **B3. Corrupted Dates**: Null, undefined, future dates, and malformed date strings safely handled without throwing exceptions.
+- [x] **B4. Virtual Keyboard Viewport Collapse**: Mobile dock hides cleanly upon visual viewport shrink ($>120\text{px}$) without content shifting.
+- [x] **B5. AdBlocker Active State**: Graceful fallback to D-VIEW curated promo cards (`mbti-promo`, `dashboard-promo`) preserving container height.
 
 ### Tier 3: Cross-Feature Combinations (C1 ~ C3)
-- [x] **C1. Simultaneous Multi-Dimensional Filtering**:
-  - Quick Chip (`동탄2`) + Search Query (`시범`) + Multi-Sort (`price_desc`) + View Mode (`list`) executing concurrently without state conflict.
-- [x] **C2. Favorite State Persistence across View Modes**:
-  - Adding bookmark in Compact List View retains active status when toggling to Wide Card Grid View.
-- [x] **C3. Filter Cascade & Reset Recovery**:
-  - Conflicting filters cascading to empty state recover smoothly when clicking "필터 조건 초기화".
+- [x] **C1. Multi-Dimensional Filter Reactivity**: Simultaneous Region (`동탄2`) + Dong (`청계동`) + Pyeong (`MEDIUM_SMALL`) + Timeframe (`3M`) + Sort (`PRICE_DESC`) executing under 15ms.
+- [x] **C2. Hero & Stats Selection Interoperability**: Selecting a complex in stats rankings synchronizes with hero price trend charts and opens detail modal.
+- [x] **C3. AdSense SPA Re-Entry Safety**: Repeated SPA route navigation preserves single-push invariant (`isPushedRef`) without throwing duplicate push errors.
 
-### Tier 4: Real-World Workload Scenarios (S1 ~ S2)
-- [x] **Scenario A: Dongtan 2 Homebuyer Flow**:
-  - Filter `동탄2` -> Filter `30평대 국평` -> Sort `실거래가 높은순` -> Select top card for deep trend chart analysis.
-- [x] **Scenario B: Landmark Complex Investor Flow**:
-  - Filter `대장단지` -> Switch to `list` view mode -> Bookmark landmark complex -> Click `상세` button to open deep field report modal.
+### Tier 4: Real-World Workload Scenarios (S1 ~ S5)
+- [x] **S1. First-time Visitor Flow**: Lands on `/`, explores top hero donut and line chart, filters stats to 동탄2 / 30평대, views instant update (<20ms).
+- [x] **S2. Leaderboard Investor Flow**: Browses TOP 20 pyeong price rankings, clicks #1 ranked complex, seamlessly opens `FieldReportModal` in-page.
+- [x] **S3. Legacy Bookmark User Flow**: Visits `/stats?region=DONGTAN1`, receives permanent 301/308 redirect to `/` with query preserved.
+- [x] **S4. Mobile 320px User Flow**: Scrolls past macro stats, encounters 0 layout shift around inline ad slot, and taps navigation tabs with instant response.
+- [x] **S5. 1-Year Deep Historical Analysis Flow**: Toggles timeframe to '1Y', dynamically fetches `transactions-1y.json`, caches chunk, and updates charts.
+
+### Tier 5: Adversarial Hardening (T5-01 ~ T5-10)
+- [x] **T5-01**: AST & Network Spy Audit confirms 0 direct client-side Firestore reads on `/`.
+- [x] **T5-02**: 100 concurrent calls in browser runtime return `[]` immediately with zero network leakage.
+- [x] **T5-03**: CDN 404/500/corruption degrades gracefully to static fallbacks without Firestore queries.
+- [x] **T5-04**: 100 rapid filter click transitions complete without state desynchronization or thread blocking.
+- [x] **T5-05**: 25,000 record stress test completes in $<50\text{ms}$ ($<300\text{ms}$ SLA).
+- [x] **T5-06**: Poisoned records (`-Infinity`, `NaN`, null bytes) safely rejected without contaminating KPIs.
+- [x] **T5-07**: 4-state ad slot lifecycle transitions verify $\text{CLS} = 0.000 < 0.01$ across all breakpoints.
+- [x] **T5-08**: Keyboard opening simulation verifies off-screen dock translation without layout reflow.
+- [x] **T5-09**: 5 concurrent ad slots survive 20 unmount/mount cycles with exact single push guarantee.
+- [x] **T5-10**: Path-to-regexp oracles verify `/stats` permanent redirect while rejecting non-stats prefixes.
 
 ---
 
@@ -81,14 +79,21 @@
 From the `frontend/` directory:
 
 ```bash
-# 1. Run TypeScript Compilation Check (0 errors expected)
+# 1. Type check
 npx tsc --noEmit
 
-# 2. Run the newly created Milestone 4 E2E test suite
-npm test -- MacroTimelineViewE2E.test.tsx
+# 2. Run Milestone 1-3 Challenger & Integration suites
+npx jest src/__tests__/statsEngine.challenger.test.ts \
+         src/__tests__/m1_challenger2_redirects_sync_empirical.test.tsx \
+         src/__tests__/m2_challenger_hybrid_dashboard_stress.test.tsx \
+         src/__tests__/m3_adslot_zero_cls_stress.challenger.test.tsx \
+         src/__tests__/adsense_finance_ranking.test.tsx
 
-# 3. Run all tests across the frontend workspace (100% green pass)
+# 3. Run full test suite across the workspace
 npm test
+
+# 4. Production build check
+npm run build
 ```
 
 ---
@@ -96,8 +101,10 @@ npm test
 ## 4. Verification Evidence & Summary
 
 - **TypeScript Compilation**: `npx tsc --noEmit` exited with code `0` (0 errors).
-- **MacroTimelineViewE2E Suite Result**: `33 passed, 33 total` in `2.986 s`.
-- **Entire Frontend Test Run**: `98 test suites passed, 1008 tests passed, 0 failures` in `11.381 s`.
-- **Implementation Bugs Discovered**: 0 (all implementation contracts and features passed cleanly).
+- **ESLint**: `npm run lint` exited with code `0` (0 errors).
+- **Production Build**: `npm run build` generated static/dynamic hybrid pages with exit code `0` (226 routes compiled).
+- **Latency Benchmark**: 10,000 records processed in `10.76ms` ($<300\text{ms}$ SLA).
+- **Layout Shift Benchmark**: $\text{CLS} = 0.000$ ($<0.01$ SLA).
+- **Firebase Billing Impact**: **$0** (Zero client-side Firestore reads during dashboard operation).
 
-**Sign-off**: Test Writer (Milestone 4: E2E Testing & Coverage Hardening)
+**Sign-off**: Test Orchestration Track (Milestone 4: Final Verification & Adversarial Hardening)

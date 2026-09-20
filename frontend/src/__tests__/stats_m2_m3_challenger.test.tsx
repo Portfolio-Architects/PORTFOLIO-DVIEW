@@ -437,14 +437,13 @@ describe('Milestone 2 & 3 Adversarial Challenge Suite', () => {
   // CHALLENGE DIMENSION 4: MOBILE VIEWPORTS (320px ~ 375px) & MOBILEDOCK CONTRACT
   // ===========================================================================
   describe('Dimension 4: Mobile Viewports & MobileDock Navigation Sync', () => {
-    it('4.1: MobileDock renders all 4 tabs with exact labels and paths matching LoungeHeader', () => {
-      const { container: dockContainer } = render(<MobileDock activeTab="stats" />);
-      const { container: headerContainer } = render(<LoungeHeader activeTab="stats" />);
+    it('4.1: MobileDock renders all 3 tabs with exact labels and paths matching LoungeHeader', () => {
+      const { container: dockContainer } = render(<MobileDock activeTab="overview" />);
+      const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
 
       const expectedTabs = [
         { id: 'overview', label: '아파트 랩', href: '/' },
         { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-        { id: 'stats', label: '통계 리포트', href: '/stats' },
         { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
       ];
 
@@ -460,9 +459,9 @@ describe('Milestone 2 & 3 Adversarial Challenge Suite', () => {
     });
 
     it('4.2: MobileDock tab text has font size text-[9.5px] preventing line wrap on 320px screens', () => {
-      const { container } = render(<MobileDock activeTab="stats" />);
+      const { container } = render(<MobileDock activeTab="overview" />);
       const spans = container.querySelectorAll('span.whitespace-nowrap');
-      expect(spans.length).toBe(4);
+      expect(spans.length).toBe(3);
 
       spans.forEach((s) => {
         expect(s.className).toMatch(/text-\[9\.5px\]/);

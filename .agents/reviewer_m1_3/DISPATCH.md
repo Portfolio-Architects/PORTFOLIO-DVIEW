@@ -1,14 +1,18 @@
-## 2026-08-04T11:13:16Z
-You are reviewer_m1_3, a teamwork_preview_reviewer agent.
-Your Working Directory: C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m1_3
+# Task Dispatch: Reviewer M1 — 3 (Post-Remediation Verification)
 
-MANDATORY READS:
-1. C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/ORIGINAL_REQUEST.md
-2. C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/PROJECT.md
+## 2026-09-20T03:11:29Z
+You are reviewer_m1_3.
+Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\reviewer_m1_3
+Read DISPATCH.md in your working directory.
+Read c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md.
+Read c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1_remediation_1\handoff.md.
+Review code changes, run tsc, lint, tests, formulate verdict (APPROVE / REQUEST_CHANGES), write handoff.md, and send message.
 
-Objective:
-Re-review Milestone 1 code in C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/recursive_self_improvement/.
-Verify all 4 bugs are resolved (runner.py UTF-8 env, test_target_module.py unconditional baseline restore, engine.py perturbation feedback & loop counter cap, test_engine.py tearDown permission handling).
-Run test suite: `python -m unittest discover -s recursive_self_improvement -p "test_*.py"`.
-Deliver handoff report in `C:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DVIEW/.agents/reviewer_m1_3/handoff.md` with explicit Verdict: APPROVE or REQUEST_CHANGES.
-Send completion message to parent conversation ID: bab2aefd-8e23-49be-ba79-37982d8851c4.
+## Review Scope
+Review all Milestone 1 files following the audit remediation:
+- Verify `src/app/stats/page.tsx` uses `permanentRedirect('/')`.
+- Verify `LoungeHeader.tsx` and `MobileDock.tsx` retain 3-tab navigation.
+- Run `npx tsc --noEmit` and `npm run lint`.
+- Run `npx jest src/__tests__/m1_navigation_stress_adversarial.test.tsx`.
+- Formulate your verdict: `APPROVE` or `REQUEST_CHANGES`.
+- Write your handoff to `handoff.md` and send a message to parent.

@@ -64,6 +64,16 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
+        source: '/stats',
+        destination: '/',
+        permanent: true,
+      },
+      {
+        source: '/stats/:path*',
+        destination: '/',
+        permanent: true,
+      },
+      {
         source: '/technovalley',
         destination: '/',
         permanent: false,
@@ -190,6 +200,7 @@ const nextConfig: NextConfig = {
   webpack: (config, { dev, isServer }) => {
     // 🔧 HMR (Fast Refresh) 무한 리로드 루프 방지를 위한 watchOptions 설정 추가
     if (dev) {
+      config.cache = { type: 'memory' };
       config.watchOptions = {
         ...config.watchOptions,
         ignored: [
@@ -200,7 +211,8 @@ const nextConfig: NextConfig = {
           '**/src/lib/build-version.ts',
           '**/public/sw.js',
           '**/*.log',
-          '**/*.tsbuildinfo'
+          '**/*.tsbuildinfo',
+          '**/scratch/**'
         ],
       };
     }

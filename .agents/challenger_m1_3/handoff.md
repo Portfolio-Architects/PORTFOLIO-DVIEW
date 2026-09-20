@@ -1,87 +1,202 @@
-# Handoff Report — challenger_m1_3
+# Handoff Report: Milestone 1 Post-Remediation Stress Test
 
-## Verdict
-**Verdict: APPROVE**
+**Author:** `challenger_m1_3`  
+**Working Directory:** `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_3`  
+**Parent Agent:** `parent` (`23b51a74-2eec-4cd7-b20b-8d9ce5320ccb`)  
+**Timestamp:** `2026-09-20T12:16:30+09:00`  
+**Verdict:** **`CONFIRM`**  
 
 ---
 
 ## 1. Observation
 
-### Target Modules & Line Numbers Inspected
-- `recursive_self_improvement/runner.py`:
-  - Lines 38-50: Sets environment variables `PYTHONIOENCODING="utf-8"`, `PYTHONUTF8="1"`, and passes `encoding="utf-8"`, `errors="replace"` to `subprocess.run()`.
-- `recursive_self_improvement/vcs.py`:
-  - Lines 64-128: `restore_version()` checks `os.path.exists(version_path)`. If missing, falls back to `v0_path` (`target_module.v0.py` / `test_target_module.v0.py`), raising `FileNotFoundError` only when neither version nor `v0` baseline exists.
-- `recursive_self_improvement/engine.py`:
-  - Lines 192-232: `run()` loop maintains `loop_iteration` incrementing on every loop turn (including failed candidates that trigger rollbacks). Exits with `FINISHED` event when `loop_iteration > self.max_iterations`.
-  - Lines 326-380 & 422-478: AST syntax pre-validation and test failures trigger `vcs.rollback(version_idx)`, increment `self.consecutive_rollbacks`, log `STUCK_DETECTED` when consecutive rollbacks >= 3, and issue `perturbation_feedback`.
+### Observation 1: Node.js Runtime Direct Execution of `permanentRedirect('/')`
+Command executed in `frontend`:
+```bash
+node -e "const { permanentRedirect } = require('next/navigation'); try { permanentRedirect('/'); } catch (e) { console.log('Digest:', e.digest); console.log('Error message:', e.message); console.log('Keys:', Object.keys(e)); }"
+```
+Output:
+```
+Digest: NEXT_REDIRECT;replace;/;308;
+Error message: NEXT_REDIRECT
+Keys: [ 'digest' ]
+```
+Direct finding:
+- Calling `permanentRedirect('/')` directly throws an error with `digest === 'NEXT_REDIRECT;replace;/;308;'`.
+- Status code is strictly `308` (HTTP 308 Permanent Redirect).
+- Action is `'replace'` and destination is `'/'`.
 
-### Empirical Test Execution Commands & Results
-- **Stress Test Suite**: Created and executed `recursive_self_improvement/tests/test_challenger_m1_3_stress.py`.
-- **Command executed**: `python -m unittest recursive_self_improvement/tests/test_challenger_m1_3_stress.py`
-- **Output**:
-  ```
-  ........
-  ----------------------------------------------------------------------
-  Ran 8 tests in 8.879s
+### Observation 2: Runtime Proof of Next.js `RedirectType` & Previous 307 Root Cause
+Command executed in `frontend`:
+```bash
+node -e "const { redirect, RedirectType } = require('next/navigation'); console.log('RedirectType:', RedirectType); try { redirect('/', undefined); } catch(e) { console.log('redirect default digest:', e.digest); }"
+```
+Output:
+```
+RedirectType: { push: 'push', replace: 'replace' }
+redirect default digest: NEXT_REDIRECT;replace;/;307;
+```
+Direct finding:
+- Next.js `RedirectType` natively contains only `{ push: 'push', replace: 'replace' }`.
+- Prior code calling `redirect('/', (RedirectType as any).permanent)` evaluated to `redirect('/', undefined)`, which generated digest `NEXT_REDIRECT;replace;/;307;` (HTTP 307 Temporary Redirect).
+- The auditor's rejection was fully accurate, and worker's replacement with `permanentRedirect('/')` in `frontend/src/app/stats/page.tsx` fixed the actual root cause without type casts.
 
-  OK
-  ```
-- **Passed Test Cases**:
-  1. `test_utf8_korean_and_emoji_output`: Multi-byte Korean text (`"테스트 실행 성공! 🚀 [신고가 뱃지 + 동/평형]"`) and emojis printed to stdout/stderr captured without `UnicodeEncodeError`.
-  2. `test_utf8_large_volume_output`: 1000 lines of complex Korean + emoji stdout handled without deadlock or encoding failure.
-  3. `test_utf8_invalid_bytes_replacement`: Invalid byte sequences handled gracefully via `errors="replace"`.
-  4. `test_rollback_missing_version_falls_back_to_v0`: `vcs.rollback(10)` gracefully restored `target_module.v0.py` and `test_target_module.v0.py` when `v10` snapshot was missing.
-  5. `test_rollback_missing_version_raises_when_no_v0`: `vcs.rollback(5)` raised `FileNotFoundError` when neither `v5` nor `v0` snapshot existed.
-  6. `test_utf8_diff_generation`: `vcs.generate_diff()` correctly produced UTF-8 unified diff patch with Korean text.
-  7. `test_all_failing_iterations_respect_max_iterations_cap`: `engine.run()` with `max_iterations = 5` where 100% of candidate runs failed test execution completed after 5 loop runs, logged `FINISHED`, and returned `True`.
-  8. `test_ast_syntax_errors_respect_max_iterations_cap`: `engine.run()` with `max_iterations = 3` where 100% of candidate runs contained AST syntax errors completed after 3 loop runs, logged `AST_SYNTAX_ERROR` and `FINISHED`, and returned `True`.
+### Observation 3: Execution of Required M1 Test Suites
+All four test suites specified in the task dispatch were executed via `npx jest`:
+1. `npx jest src/__tests__/m1_navigation_stress_adversarial.test.tsx`
+   - **Result**: `PASS` (41 passed, 41 total, 1.681s)
+   - Confirms exact 3-tab invariants under 15 adversarial props, 100 rapid click cycles, popstate navigation, viewport resize, and `permanentRedirect('/')` invocation.
+2. `npx jest src/__tests__/m1_challenger2_redirects_sync_empirical.test.tsx`
+   - **Result**: `PASS` (12 passed, 12 total, 1.327s)
+   - Confirms strict status code assertion `expect(statusCode).toBe(308)` and Next.js path-to-regexp oracle.
+3. `npx jest src/__tests__/m1_navigation_redirects_empirical_challenger.test.tsx`
+   - **Result**: `PASS` (16 passed, 16 total, 1.522s)
+   - Confirms complete removal of legacy "테크노 랩" / "사무실 탐색" tabs and 3-tab navigation fidelity.
+4. `npx jest src/components/HeaderDockSync.test.tsx`
+   - **Result**: `PASS` (5 passed, 5 total, 1.294s)
+   - Confirms exact label, href, and visual feedback synchronization between `LoungeHeader` and `MobileDock`.
+
+### Observation 4: Standalone Challenger 3 Empirical Stress Suite Execution
+Authored and executed `frontend/src/__tests__/m1_challenger3_post_remediation_stress.test.tsx` testing 5 adversarial dimensions:
+```bash
+npx jest src/__tests__/m1_challenger3_post_remediation_stress.test.tsx
+```
+Output:
+```
+PASS src/__tests__/m1_challenger3_post_remediation_stress.test.tsx
+  Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversarial Test Suite
+    Dimension 1: Next.js Runtime Redirect Digest & Status Code Oracle
+      √ empirically proves Next.js permanentRedirect("/") generates error digest with status 308 (2 ms)
+      √ empirically proves StatsPage() invokes permanentRedirect("/") throwing HTTP 308 digest (1 ms)
+      √ empirically proves native RedirectType exports ONLY { push, replace } and lacks permanent (1 ms)
+    Dimension 2: Server-Side next.config.ts Redirects Robustness & Path-to-Regexp Oracle
+      √ contains exact /stats and wildcard /stats/:path* rules with permanent: true (1 ms)
+      √ accurately matches diverse adversarial and nested paths via Next.js match engine (1 ms)
+    Dimension 3: LoungeHeader and MobileDock Synchronized 3-Tab Architecture
+      √ confirms MobileDock exported TABS matches canonical spec in exact order
+      √ confirms LoungeHeader and MobileDock render identical 3 tabs with zero obsolete routes (80 ms)
+      √ confirms active tab styling transitions cleanly across all 3 tabs without layout breaks (42 ms)
+    Dimension 4: Next.js Redirect Helper Oracle Verification
+      √ verifies Next.js isRedirectError identifies StatsPage() thrown redirect
+      √ verifies non-redirect errors are strictly rejected by isRedirectError (1 ms)
+    Dimension 5: Adversarial activeTab Values & Resilience in Header and Dock
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "undefined" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "null" (8 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "undefined" (8 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "non-existent-tab" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "stats" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "admin" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "lounge" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "technovalley" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is ""><script>alert(1)</script>" (7 ms)
+      √ renders exactly 3 canonical tabs without crashing when activeTab is "__proto__" (6 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       21 passed, 21 total
+Snapshots:   0 total
+Time:        1.308 s
+```
+
+### Observation 5: Full Regression, Static Analysis & Production Build
+1. **Full Milestone 1 Test Suite Matrix**:
+   - Command: `npx jest "m1|HeaderDockSync"`
+   - Result: 12 test suites passed, 191/191 tests passed, 0 failures.
+2. **TypeScript Compilation**:
+   - Command: `npx tsc --noEmit`
+   - Result: Exit code 0, 0 errors.
+3. **ESLint**:
+   - Command: `npm run lint`
+   - Result: Exit code 0, 0 errors, 1 harmless unused eslint-disable warning in test.
+4. **Next.js Production Build**:
+   - Command: `npm run build`
+   - Result: Exit code 0, 226/226 pages successfully compiled and generated. `/stats` route confirmed static prerender redirect:
+     ```
+     ├ ○ /stats
+     ```
 
 ---
 
 ## 2. Logic Chain
 
-1. **`runner.py` UTF-8 Encoding Safeguard**:
-   - *Observation*: `runner.py` enforces `PYTHONIOENCODING=utf-8` and `PYTHONUTF8=1` in subprocess `env`, with `encoding="utf-8"` and `errors="replace"`.
-   - *Deduction*: This guarantees that Windows command shell codepages (e.g. `cp949` / `cp1252`) will not throw `UnicodeEncodeError` when subprocess test runs output non-ASCII text, emojis, or Korean characters.
-   - *Verification*: Executed `test_utf8_korean_and_emoji_output`, `test_utf8_large_volume_output`, and `test_utf8_invalid_bytes_replacement`, all passing cleanly with `OK`.
-
-2. **`vcs.py` Missing Snapshot Graceful Fallback**:
-   - *Observation*: In `vcs.py:restore_version()`, the existence of `target_module.v{version_idx}.py` is checked first. If missing, it falls back to reading `target_module.v0.py`. `FileNotFoundError` is raised only if `v0` does not exist either.
-   - *Deduction*: When an early limit abort or rollback occurs before a version snapshot is written, `vcs.rollback(version_idx)` gracefully recovers the initial `v0` baseline code rather than crashing with unhandled file errors.
-   - *Verification*: Executed `test_rollback_missing_version_falls_back_to_v0` (restored baseline v0) and `test_rollback_missing_version_raises_when_no_v0` (raised `FileNotFoundError`), both passing.
-
-3. **`engine.py` Max Iteration Cap on Rollbacks**:
-   - *Observation*: `engine.py` increments `loop_iteration` unconditionally on every loop turn. The condition `if loop_iteration > self.max_iterations:` checks `loop_iteration` rather than `version_idx`.
-   - *Deduction*: Even if 100% of generated candidate modifications fail test execution or trigger AST syntax pre-validation errors (causing continuous rollbacks back to `version_idx`), `loop_iteration` continues to count upward and cleanly terminates the loop when `self.max_iterations` is reached.
-   - *Verification*: Executed `test_all_failing_iterations_respect_max_iterations_cap` and `test_ast_syntax_errors_respect_max_iterations_cap`. In both tests, 100% failing runs terminated precisely at `MAX_ITERATIONS` with event `FINISHED`.
+1. **Root Cause Confirmation via Observation 2**:
+   - Direct Node.js runtime inspection confirmed that `RedirectType` has only `push` and `replace`.
+   - The prior implementation `redirect('/', (RedirectType as any).permanent)` evaluated to `redirect('/', undefined)`, which generated HTTP 307.
+   - The prior Jest mock faked `permanent: 'permanent'`, which disguised this runtime flaw.
+2. **Verification of Remediation via Observations 1, 2, and 4**:
+   - `frontend/src/app/stats/page.tsx` now calls native `permanentRedirect('/')`.
+   - Node.js runtime directly confirms that `permanentRedirect('/')` emits digest `NEXT_REDIRECT;replace;/;308;`.
+   - Next.js `isRedirectError()` identifies the thrown object as a redirect error, `getURLFromRedirectError()` returns `'/'`, and `getRedirectStatusCodeFromError()` returns strictly `308`.
+3. **Mock Alignment & Assertion Strictness via Observations 3 and 4**:
+   - `frontend/src/__tests__/m1_navigation_stress_adversarial.test.tsx` now reflects the native Next.js API without fabricated properties on `RedirectType`.
+   - `frontend/src/__tests__/m1_challenger2_redirects_sync_empirical.test.tsx` strictly enforces `expect(statusCode).toBe(308)`, preventing regression to 307.
+4. **Navigation Contract Integrity via Observations 3, 4, and 5**:
+   - Both `LoungeHeader.tsx` and `MobileDock.tsx` expose and render exactly 3 canonical tabs:
+     1. `overview`: `아파트 랩` (`/`)
+     2. `imjang`: `아파트 탐색` (`/explore`)
+     3. `mbti`: `단지 MBTI` (`/mbti`)
+   - Obsolete routes (`/stats`, `/technovalley`, `/lounge`, `/admin`) are 100% purged.
+   - Adversarial tab props (undefined, null, XSS, prototype pollution) do not cause crashes or layout shift.
+5. **Build & Type Safety via Observation 5**:
+   - Zero TypeScript compiler errors.
+   - Zero ESLint errors.
+   - Next.js production build succeeded with exit code 0 across 226 routes.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: All requested target modules (`runner.py`, `vcs.py`, `engine.py`) were empirically tested under extreme stress conditions (UTF-8 non-ASCII output, missing snapshot fallbacks, 100% failing rollback loops). No regressions or unhandled edge cases were observed.
+- No caveats. The remediation was verified directly in Node.js runtime, across 12 Jest suites (191 tests), TypeScript typechecking, ESLint, and a full production `npm run build`.
 
 ---
 
 ## 4. Conclusion
 
-The fixes in `runner.py` (Unicode UTF-8 subprocess output), `vcs.py` (missing version snapshot fallback to v0), and `engine.py` (max iteration cap enforcement on rollback loops) are fully verified and robust against adversarial inputs and failure modes.
+**Verdict: `CONFIRM`** (All adversarial stress challenges passed; zero defects detected).
 
-**Verdict: APPROVE**
+1. `permanentRedirect('/')` in `frontend/src/app/stats/page.tsx` genuinely issues an HTTP 308 Permanent Redirect at runtime.
+2. Next.js server configuration in `next.config.ts` enforces permanent redirects (HTTP 308) for both `/stats` and `/stats/:path*` to `/`.
+3. The desktop header (`LoungeHeader.tsx`) and mobile navigation dock (`MobileDock.tsx`) strictly adhere to the canonical 3-tab contract without any residual routes.
+4. All test assertions are authentic, strict, and pass 100% across the test suite and production build.
 
 ---
 
 ## 5. Verification Method
 
-To independently verify this verdict:
+To independently reproduce this verification:
 
-1. Run the stress test harness:
-   ```powershell
-   python -m unittest recursive_self_improvement/tests/test_challenger_m1_3_stress.py
+1. **Verify Node.js Runtime Permanent Redirect Digest**:
+   ```bash
+   cd frontend
+   node -e "const { permanentRedirect } = require('next/navigation'); try { permanentRedirect('/'); } catch(e) { console.log('Digest:', e.digest); }"
    ```
-2. Run the existing test suite:
-   ```powershell
-   python -m unittest recursive_self_improvement/tests/test_runner.py recursive_self_improvement/tests/test_vcs.py recursive_self_improvement/tests/test_engine.py
+   *Expected Output:* `Digest: NEXT_REDIRECT;replace;/;308;`
+
+2. **Run All Milestone 1 Test Suites**:
+   ```bash
+   cd frontend
+   npx jest "m1|HeaderDockSync"
    ```
-3. Inspect `recursive_self_improvement/runner.py`, `vcs.py`, and `engine.py`.
+   *Expected Output:* 12 test suites passed, 191/191 tests passed.
+
+3. **Run Challenger 3 Stress Test Suite**:
+   ```bash
+   cd frontend
+   npx jest src/__tests__/m1_challenger3_post_remediation_stress.test.tsx
+   ```
+   *Expected Output:* 1 passed, 21/21 tests passed.
+
+4. **Verify TypeScript & ESLint**:
+   ```bash
+   cd frontend
+   npx tsc --noEmit
+   npm run lint
+   ```
+   *Expected Output:* Exit code 0, 0 errors.
+
+5. **Verify Production Build**:
+   ```bash
+   cd frontend
+   npm run build
+   ```
+   *Expected Output:* Exit code 0, 226 routes generated.

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Home, Sparkles, Building2, BarChart3 } from 'lucide-react';
+import { Home, Sparkles, Building2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -14,7 +14,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
     // Proactively prefetch core routes on mount
     router.prefetch('/');
     router.prefetch('/explore');
-    router.prefetch('/stats');
     router.prefetch('/mbti');
 
     const handlePopState = () => {
@@ -22,7 +21,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
       const path = window.location.pathname;
       if (path === '/') onTabChange('overview');
       else if (path === '/explore') onTabChange('imjang');
-      else if (path === '/stats') onTabChange('stats');
       else if (path === '/mbti') onTabChange('mbti');
       else onTabChange('overview');
     };
@@ -97,23 +95,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   <span>아파트 탐색</span>
                 </Link>
 
-                {/* 3. 통계 리포트 */}
-                <Link
-                  href="/stats"
-                  prefetch={true}
-                  onMouseEnter={() => router.prefetch('/stats')}
-                  onClick={(e) => handleNavClick(e, '/stats', 'stats')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
-                    activeTab === 'stats'
-                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
-                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
-                  }`}
-                >
-                  <BarChart3 size={18} className={activeTab === 'stats' ? 'text-hs-orange' : 'text-tertiary'} />
-                  <span>통계 리포트</span>
-                </Link>
-
-                {/* 4. 단지 MBTI */}
+                {/* 3. 단지 MBTI */}
                 <Link
                   href="/mbti"
                   prefetch={true}

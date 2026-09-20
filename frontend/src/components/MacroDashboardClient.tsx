@@ -28,6 +28,7 @@ import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
 import { AdSlot } from "@/components/ads/AdSlot";
+import { StatsOverviewSection } from "@/components/stats/StatsOverviewSection";
 
 
 const InlineLoader = ({ text }: { text: string }) => (
@@ -1605,8 +1606,28 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         </div>
 
-        {/* ═══ 2번째 영역: 일자별 최근 실거래 (KPI 카드 바로 밑) ═══ */}
-        {/* Daily Real Transactions Section (Wide Layout) */}
+        {/* ═══ Connected Section Immediately Below: StatsOverviewSection ═══ */}
+        <ErrorBoundary name="동탄 실거래 통계 및 인사이트">
+          <StatsOverviewSection
+            onSelectApt={handleSelectApt}
+            onOpenJeonseSafety={handleOpenJeonseSafety}
+            onOpenCompare={_onOpenCompare}
+            recentTransactions={recentTransactions as unknown as import('@/types/stats').RawTransactionRecord[]}
+            macroTrendData={deferredMacroTrendData}
+            txSummaryData={txSummaryData}
+          />
+        </ErrorBoundary>
+
+        {/* In-Feed Responsive AdSlot 1 (Zero-CLS Transition Separator) */}
+        <div className="w-full my-6">
+          <AdSlot
+            slotId="1000000001"
+            format="in-feed"
+            className="w-full"
+          />
+        </div>
+
+        {/* ═══ Daily Real Transactions Section (Wide Layout) ═══ */}
         <div className="w-full flex flex-col gap-4 mb-6 box-border">
           <ErrorBoundary name="실거래 타임라인">
             <MacroTimelineView
@@ -1657,15 +1678,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </ErrorBoundary>
         </div>
 
-        {/* In-Feed Responsive AdSlot 1 (Zero-CLS) */}
-        <div className="w-full mb-6">
-          <AdSlot
-            slotId="1000000001"
-            format="in-feed"
-            className="w-full"
-          />
-        </div>
-
         {/* AdSense High-CPC Finance Section */}
         <ErrorBoundary name="정책자금 및 전세안전진단">
           <HighCpcFinanceSection
@@ -1688,7 +1700,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         </ErrorBoundary>
 
         {/* In-Feed Responsive AdSlot 2 (Zero-CLS) */}
-        <div className="w-full mb-6">
+        <div className="w-full my-6">
           <AdSlot
             slotId="1000000002"
             format="in-feed"

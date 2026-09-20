@@ -112,7 +112,7 @@ export function AdSlot({
       const status = insRef.current?.getAttribute('data-adsbygoogle-status');
       const adStatus = insRef.current?.getAttribute('data-ad-status');
       if (status === 'done' || adStatus === 'filled' || adStatus === 'unfilled') {
-        setIsAdLoaded(true);
+        setIsAdLoaded((prev) => (prev ? prev : true));
       }
     };
 

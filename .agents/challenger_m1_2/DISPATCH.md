@@ -1,18 +1,28 @@
-﻿## 2026-08-22T13:20:56Z
-You are Challenger 2 for Milestone 1 (Rendering Runtime & Re-render Elimination) for D-VIEW.
-Read the authoritative request at: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md
-Read the project architecture at: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md
-Read Worker M1's handoff report at: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1\handoff.md
+# Task Dispatch: Challenger M1 — 2
 
+You are `challenger_m1_2`, a `teamwork_preview_challenger`.
+Your working directory is: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2`.
+You MUST read:
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md`
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
+- `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1_navigation_1\handoff.md`
+
+## Mission
+Perform empirical adversarial testing on Milestone 1 redirection and test synchronization:
+1. Verify 301/308 redirects from `next.config.ts`: test both `/stats` and deep nested paths `/stats/nested?query=123`.
+2. Test `src/app/stats/page.tsx` server-side redirect execution.
+3. Run test suites:
+   `npx jest src/components/HeaderDockSync.test.tsx`
+   `npx jest src/__tests__/stats_m2_m3_challenger.test.tsx`
+4. Confirm whether all pass or if any edge case breaks.
+5. Record your verdict (CONFIRM / CHALLENGE_FAILED) and evidence in `handoff.md`.
+6. Send a message to your parent.
+
+## 2026-09-20T03:00:08Z
+You are challenger_m1_2.
 Your working directory is: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2
-The frontend source code is at: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
-
-Challenge Task:
-1. Conduct adversarial stress-testing on the memoized components:
-   - Check whether React.memo comparisons withstand mock state updates in parent components.
-   - Verify that useDeferredValue does not cause inconsistent UI states when searching companies or toggling sectors.
-   - Test tab switching navigation callbacks (handleTabChange) in DashboardClient.tsx for responsiveness and correctness.
-2. Run test verification (
-px tsc --noEmit and Jest tests).
-3. Issue a clear verdict: APPROVE or REQUEST_CHANGES.
-4. Write your challenge report to: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\challenger_m1_2\handoff.md and send a completion message with your verdict.
+Read DISPATCH.md in your working directory.
+Read c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\ORIGINAL_REQUEST.md.
+Read c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md.
+Read c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\.agents\worker_m1_navigation_1\handoff.md.
+Perform empirical testing on redirects and test sync, run tests, record verdict (CONFIRM / CHALLENGE_FAILED) in handoff.md, and send message.
