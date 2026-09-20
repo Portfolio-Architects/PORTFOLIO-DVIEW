@@ -463,9 +463,9 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   return (
     <div className={`w-full flex flex-col gap-4 min-w-0 max-w-full box-border ${className || ''}`}>
       {/* Daily Timeline Card Container */}
-      <div className="flex flex-col bg-surface rounded-2xl shadow-xs border border-border px-3.5 sm:px-5 py-4 sm:py-5 min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border">
+      <div className="flex flex-col bg-surface rounded-[22px] sm:rounded-[26px] shadow-sm border border-border/80 p-5 sm:p-6 lg:p-7 min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border">
         {/* Header & Filter Controls Bar */}
-        <div className="flex flex-col gap-3 mb-3.5 sm:mb-4 w-full">
+        <div className="flex flex-col gap-3.5 mb-4 sm:mb-5 w-full">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-[14px] xs:text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">

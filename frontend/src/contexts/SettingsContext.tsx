@@ -27,7 +27,7 @@ const SettingsUiContext = React.createContext<SettingsUiContextType | undefined>
 
 export const SettingsProvider = React.memo(function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [areaUnit, setAreaUnitState] = useState<AreaUnit>('m2');
-  const [theme, setThemeState] = useState<Theme>('system');
+  const [theme, setThemeState] = useState<Theme>('light');
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 

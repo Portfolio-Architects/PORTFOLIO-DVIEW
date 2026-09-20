@@ -10,6 +10,7 @@ import {
   FieldReportSchema,
   DongtanMacroTrendPointSchema,
   RecentTransactionSchema,
+  TypeMapItemSchema,
 } from '@/lib/validation/facade.schemas';
 import type { InitialPageData } from '@/lib/validation/facade.schemas';
 import * as FavoriteRepo from '@/lib/repositories/favorite.repository';
@@ -21,13 +22,17 @@ const PAGE_DATA_CACHE_TTL = 3600; // 1 hour in-memory cache for Firestore + Shee
 
 let isRefreshingPageData = false;
 
+export interface InitialPageDataWithScores extends InitialPageData {
+  locationScores?: Record<string, any>;
+}
+
 declare global {
-  var _initialPageDataCache: { data: InitialPageData; timestamp: number } | undefined;
-  var _activeFreshDataPromise: Promise<InitialPageData> | null | undefined;
+  var _initialPageDataCache: { data: InitialPageDataWithScores; timestamp: number } | undefined;
+  var _activeFreshDataPromise: Promise<InitialPageDataWithScores> | null | undefined;
 }
 
 
-export async function getInitialData(): Promise<InitialPageData> {
+export async function getInitialData(): Promise<InitialPageDataWithScores> {
   const now = Date.now();
   const cache = globalThis._initialPageDataCache;
 
@@ -84,8 +89,8 @@ export async function getInitialData(): Promise<InitialPageData> {
   return fetchPromise;
 }
 
-async function fetchFreshData(): Promise<InitialPageData> {
-  const result: InitialPageData = {
+async function fetchFreshData(): Promise<InitialPageDataWithScores> {
+  const result: InitialPageDataWithScores = {
     favoriteCounts: {},
     typeMap: [],
     apartmentMeta: {},
@@ -95,6 +100,7 @@ async function fetchFreshData(): Promise<InitialPageData> {
     txSummary: {},
     recent7DaysVolume: undefined,
     recentTransactions: [],
+    locationScores: {},
   };
 
   const fetchFavCounts = async () => {
@@ -161,14 +167,39 @@ async function fetchFreshData(): Promise<InitialPageData> {
     }
   };
 
+  let apartmentsByDongData: Record<string, any[]> | null = null;
+
   const fetchApartmentsByDong = async () => {
     try {
       const parsed = await readJsonFileCached<{ byDong?: Record<string, any[]> } | null>('public/data/apartments-by-dong.json', null);
       if (parsed && parsed.byDong) {
+        apartmentsByDongData = parsed.byDong;
         result.sheetApartments = parsed.byDong as any;
       }
     } catch (e) {
       logger.warn('DashboardData', 'apartmentsByDong load error', {}, e as Error);
+    }
+  };
+
+  const fetchTypeMap = async () => {
+    try {
+      const parsed = await readJsonFileCached<z.infer<typeof TypeMapItemSchema>[]>('public/data/type-map.json', []);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        result.typeMap = parsed;
+      }
+    } catch (e) {
+      logger.warn('DashboardData', 'typeMap load error', {}, e as Error);
+    }
+  };
+
+  const fetchLocationScores = async () => {
+    try {
+      const parsed = await readJsonFileCached<Record<string, any>>('public/data/location-scores.json', {});
+      if (parsed && Object.keys(parsed).length > 0) {
+        result.locationScores = parsed;
+      }
+    } catch (e) {
+      logger.warn('DashboardData', 'locationScores load error', {}, e as Error);
     }
   };
 
@@ -180,16 +211,23 @@ async function fetchFreshData(): Promise<InitialPageData> {
     fetchRecentTransactions(),
     fetchTxSummary(),
     fetchApartmentsByDong(),
+    fetchTypeMap(),
+    fetchLocationScores(),
   ]);
 
+  // Derive fallback apartmentMeta from the single apartments-by-dong read if apartmentMeta was not populated from DB/cache
   if (Object.keys(result.apartmentMeta).length === 0) {
-    const parsed = await readJsonFileCached<{ byDong?: Record<string, Array<{ name: string; txKey?: string }>> } | null>('public/data/apartments-by-dong.json', null);
-    if (parsed && parsed.byDong) {
+    const byDong = apartmentsByDongData || (result.sheetApartments as Record<string, Array<{ name: string; txKey?: string }>> | undefined);
+    if (byDong) {
       const fallbackMeta: Record<string, { dong: string; txKey: string }> = {};
-      Object.entries(parsed.byDong).forEach(([dongName, apts]) => {
-        apts.forEach((a) => {
-          fallbackMeta[a.name] = { dong: dongName, txKey: a.txKey || a.name };
-        });
+      Object.entries(byDong).forEach(([dongName, apts]) => {
+        if (Array.isArray(apts)) {
+          apts.forEach((a) => {
+            if (a && a.name) {
+              fallbackMeta[a.name] = { dong: dongName, txKey: a.txKey || a.name };
+            }
+          });
+        }
       });
       result.apartmentMeta = fallbackMeta;
       logger.info('DashboardData', 'Injected fallback apartmentMeta from static json file');
@@ -202,7 +240,10 @@ async function fetchFreshData(): Promise<InitialPageData> {
       logger.warn('DashboardData', 'Validation failed for initial page data, returning raw result.', {}, parsed.error);
       return result;
     }
-    return parsed.data;
+    return {
+      ...parsed.data,
+      ...(result.locationScores ? { locationScores: result.locationScores } : {}),
+    } as InitialPageDataWithScores;
   }
 
   return result;

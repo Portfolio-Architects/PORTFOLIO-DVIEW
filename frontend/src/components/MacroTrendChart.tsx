@@ -295,7 +295,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         width={chartW}
         height={chartH}
         data={processedData}
-        margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+        margin={{ top: 14, right: 18, left: 4, bottom: 6 }}
         {...desktopEventHandlers}
       >
         <defs>

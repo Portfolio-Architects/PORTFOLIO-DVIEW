@@ -138,11 +138,11 @@ export const MacroChartSection = React.memo(function MacroChartSection({
       <div className="w-full flex flex-col bg-surface rounded-[20px] sm:rounded-[24px] shadow-sm border border-border/80 p-4 sm:p-6 flex-1 lg:h-[586px] min-h-[460px] min-w-0 box-border justify-between">
         <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
           {/* Header Row: Title & Action + Timeframe */}
-          <div className="flex flex-col gap-2.5 mb-3.5 pb-3 border-b border-border/40 w-full min-w-0">
+          <div className="flex flex-col gap-3 mb-4 pb-3.5 border-b border-border/40 w-full min-w-0">
             <div className="flex justify-between items-center w-full gap-2 flex-wrap">
               {/* Title & Detail CTA */}
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
-                <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
+                <h3 className="text-[14.5px] sm:text-[15.5px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#ea6100] shrink-0" />
                   <span>
                     {selectedTimelineApt
@@ -172,7 +172,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 
             {/* Filter Bar: Dong Filter + Search Filter + Apartment Select Dropdown */}
             {isDefaultAptSettingUp ? (
-              <div className="w-full h-[28px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
+              <div className="w-full h-[32px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
             ) : (
               mounted && (
                 <div className="flex items-center gap-2 flex-wrap w-full min-w-0 pt-0.5">
@@ -185,7 +185,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         setSelectedDong(e.target.value);
                         setSearchQuery('');
                       }}
-                      className="px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs shrink-0"
+                      className="px-3 h-[32px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs shrink-0"
                     >
                       <option value="all">동탄 전체 ({dongsData.allApts.length}개 단지)</option>
                       <option value="default">대표 4개 단지</option>
@@ -213,7 +213,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         const val = e.target.value;
                         setSelectedTimelineApt(val === "" ? null : val);
                       }}
-                      className="w-full px-2.5 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs truncate"
+                      className="w-full px-3 h-[32px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs truncate"
                     >
                       <option value="">전체 추이 보기 (동탄 매크로)</option>
 
@@ -312,7 +312,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       aria-label="단지명 실시간 검색"
-                      className="w-full pl-7 pr-6 h-[28px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11px] font-bold transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs"
+                      className="w-full pl-7 pr-6 h-[32px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11.5px] font-bold transition-colors outline-none focus:ring-1 focus:ring-[#ea6100] focus:border-[#ea6100] shadow-xs"
                     />
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

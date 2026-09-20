@@ -280,20 +280,29 @@ describe('Empirical Challenger 2: staticDataService & apiClient Deep Stress Suit
   // =========================================================================
   describe('staticDataService: Static Fetchers & Domain Calculations', () => {
     it('2.1 should execute fetchJson with version query string and signal', async () => {
-      global.fetch = jest.fn().mockResolvedValue(
-        new Response(JSON.stringify({ summary: { '목동14단지': { latestPrice: 150000 } } }), {
-          status: 200,
-          headers: { 'Content-Type': 'application/json' },
-        })
+      global.fetch = jest.fn().mockImplementation(() =>
+        Promise.resolve(
+          new Response(JSON.stringify({ summary: { '목동14단지': { latestPrice: 150000 } } }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        )
       );
 
       const controller = new AbortController();
       const res = await staticDataService.fetchTxSummary('v2.5.0', controller.signal);
       expect(global.fetch).toHaveBeenCalledWith('/data/tx-summary.json?v=v2.5.0', {
-        cache: 'no-store',
+        cache: 'default',
         signal: controller.signal,
       });
       expect(res.summary['목동14단지'].latestPrice).toBe(150000);
+
+      // Verify unversioned URL uses cache: 'no-store'
+      await staticDataService.fetchJson('/data/tx-summary.json', controller.signal);
+      expect(global.fetch).toHaveBeenCalledWith('/data/tx-summary.json', {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
     });
 
     it('2.2 should throw HTTP error on non-200 static JSON response', async () => {

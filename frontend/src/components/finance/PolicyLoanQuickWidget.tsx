@@ -34,7 +34,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
   return (
     <div
       data-testid="policy-loan-quick-widget"
-      className="bg-surface border border-border/70 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200"
+      className="bg-surface border border-border/80 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200"
     >
       <div>
         {/* Header */}

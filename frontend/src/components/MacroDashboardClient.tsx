@@ -286,7 +286,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-2.5 xs:p-3 sm:p-3.5 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-full max-w-full box-border ${
+      className={`flex items-center justify-between p-3 xs:p-3.5 sm:p-4 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-full max-w-full box-border ${
         isSelected
           ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
@@ -495,7 +495,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
     <div
       data-testid={`timeline-row-${item.aptName}`}
       onMouseEnter={() => onCardHover?.(item.aptName, item.dong)}
-      className={`px-3 py-2.5 flex items-center justify-between gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer border-b border-border/40 last:border-b-0 ${
+      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer border-b border-border/40 last:border-b-0 ${
         isSelected ? 'bg-orange-50/20 dark:bg-orange-950/20' : ''
       }`}
     >
@@ -623,6 +623,29 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Hero section idle staggering: Donut chart and KPI cards mount on Frame 1, AreaChart on Frame 2
+  const [trendChartReady, setTrendChartReady] = useState(() => {
+    return process.env.NODE_ENV === 'test';
+  });
+
+  useEffect(() => {
+    if (!mounted) return;
+    if (trendChartReady) return;
+
+    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+      const idleId = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number })
+        .requestIdleCallback(() => setTrendChartReady(true), { timeout: 120 });
+      return () => {
+        if ('cancelIdleCallback' in window) {
+          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+        }
+      };
+    } else {
+      const timer = setTimeout(() => setTrendChartReady(true), 60);
+      return () => clearTimeout(timer);
+    }
+  }, [mounted, trendChartReady]);
 
   // Background prefetching for 4 major apartments
   useEffect(() => {
@@ -894,6 +917,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   // Preload ApartmentModal and transactions when selectedTimelineApt changes
   useEffect(() => {
     if (!selectedTimelineApt || !sheetApartments) return;
+    if (process.env.NODE_ENV === 'test') return;
     
     const allApts = Object.values(sheetApartments).flat();
     const aptObj = allApts.find(a => a.name === selectedTimelineApt || normalizeAptName(a.name) === normalizeAptName(selectedTimelineApt));
@@ -1501,14 +1525,19 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     );
   }, [areaUnit, userFavorites, onToggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
-  const renderChart = useCallback(() => (
-    <MacroTrendChart
-      lineData={lineData}
-      xTicks={xTicks}
-      yTicks={yTicks}
-      timeframe={timeframe}
-    />
-  ), [lineData, xTicks, yTicks, timeframe]);
+  const renderChart = useCallback(() => {
+    if (!trendChartReady) {
+      return <InlineLoader text="매크로 동향 차트 분석 중" />;
+    }
+    return (
+      <MacroTrendChart
+        lineData={lineData}
+        xTicks={xTicks}
+        yTicks={yTicks}
+        timeframe={timeframe}
+      />
+    );
+  }, [trendChartReady, lineData, xTicks, yTicks, timeframe]);
 
   const renderBottomSheetChart = useCallback(() => (
     <MacroTrendChart

@@ -149,7 +149,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
   if (activeSector) {
     const displayItems = (activeSector.items || []).slice(0, 4);
     return (
-      <div className={`grid grid-cols-2 gap-2 sm:gap-2.5 flex-1 ${className}`}>
+      <div className={`grid grid-cols-2 gap-3 sm:gap-3.5 flex-1 ${className}`}>
         {displayItems.map((item, idx) => {
             const hasDelta = typeof item.delta === 'number' && isFinite(item.delta);
             const deltaFormatted = hasDelta ? formatDeltaPrice(item.delta) : '';
@@ -181,7 +181,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                     onSelectApt?.(item.aptName, item.dong);
                   }
                 }}
-                className="bg-surface border border-border/80 p-2 sm:py-2 sm:px-3 rounded-[16px] sm:rounded-[18px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-primary/50 transition-all duration-200 cursor-pointer text-left group"
+                className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-primary/50 transition-all duration-200 cursor-pointer text-left group"
               >
                 {/* Top: Rank badge + Dong + Area/Floor (left) | Date (right) */}
                 <div className="flex items-center justify-between gap-1 min-w-0">
@@ -254,7 +254,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           {Array.from({ length: Math.max(0, 4 - displayItems.length) }).map((_, placeholderIdx) => (
             <div
               key={`empty-${placeholderIdx}`}
-              className="bg-surface/50 border border-dashed border-border/60 p-2.5 sm:py-2 rounded-[18px] flex items-center justify-center text-center min-h-[68px]"
+              className="bg-surface/50 border border-dashed border-border/60 p-3 sm:p-4 rounded-[18px] sm:rounded-[20px] flex items-center justify-center text-center min-h-[76px]"
             >
               <span className="text-[10.5px] text-tertiary font-bold">추가 거래 내역 없음</span>
             </div>
@@ -264,19 +264,19 @@ export const AptMetricCards = React.memo(function AptMetricCards({
     }
 
   return (
-    <div className={`grid grid-cols-2 gap-2 sm:gap-2.5 flex-1 ${className}`}>
+    <div className={`grid grid-cols-2 gap-3 sm:gap-3.5 flex-1 ${className}`}>
       {/* Metric 1: 신고가 달성 */}
-      <div className="bg-surface border border-border/80 p-2 sm:py-2 sm:px-3 rounded-[16px] sm:rounded-[18px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
+      <div className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
-          <span className="text-[10px] sm:text-[10.5px] text-tertiary font-bold leading-tight">신고가 달성</span>
-          <span className="text-[9px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.2 rounded shrink-0">최근 7일</span>
+          <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">신고가 달성</span>
+          <span className="text-[9.5px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md shrink-0">최근 7일</span>
         </div>
-        <div className="my-auto py-0.5">
-          <span className="text-[17px] sm:text-[19px] font-black text-primary leading-snug tracking-tight">
+        <div className="my-auto py-1">
+          <span className="text-[18px] sm:text-[20px] md:text-[22px] font-black text-primary leading-snug tracking-tight">
             {computedNewHighCount.toLocaleString()}건
           </span>
         </div>
-        <span className={`text-[8.5px] sm:text-[9.5px] font-extrabold flex items-center gap-0.5 shrink-0 leading-tight ${
+        <span className={`text-[9.5px] sm:text-[10.5px] font-extrabold flex items-center gap-0.5 shrink-0 leading-tight ${
           newHighChange > 0
             ? 'text-rose-600 dark:text-rose-500'
             : newHighChange < 0
@@ -292,33 +292,33 @@ export const AptMetricCards = React.memo(function AptMetricCards({
       </div>
 
       {/* Metric 2: 평당 평균 실거래가 */}
-      <div className="bg-surface border border-border/80 p-2 sm:py-2 sm:px-3 rounded-[16px] sm:rounded-[18px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
+      <div className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
-          <span className="text-[10px] sm:text-[10.5px] text-tertiary font-bold leading-tight">평당 평균 실거래가</span>
-          <span className="text-[9px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.2 rounded shrink-0">동탄 전체</span>
+          <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">평당 평균 실거래가</span>
+          <span className="text-[9.5px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md shrink-0">동탄 전체</span>
         </div>
-        <div className="my-auto py-0.5">
-          <span className="text-[17px] sm:text-[19px] font-black text-primary leading-snug tracking-tight">
+        <div className="my-auto py-1">
+          <span className="text-[18px] sm:text-[20px] md:text-[22px] font-black text-primary leading-snug tracking-tight">
             {computedAvgPyeongPrice.toLocaleString()}만원
           </span>
         </div>
-        <span className="text-[8.5px] sm:text-[9.5px] font-bold text-tertiary leading-tight">
+        <span className="text-[9.5px] sm:text-[10.5px] font-bold text-tertiary leading-tight">
           전용 3.3㎡(1평) 환산 기준
         </span>
       </div>
 
       {/* Metric 3: 평균 전세가율 */}
-      <div className="bg-surface border border-border/80 p-2 sm:py-2 sm:px-3 rounded-[16px] sm:rounded-[18px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
+      <div className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
-          <span className="text-[10px] sm:text-[10.5px] text-tertiary font-bold leading-tight">평균 전세가율</span>
-          <span className="text-[9px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.2 rounded border border-emerald-200/50 dark:border-emerald-900/50 shrink-0">안정권</span>
+          <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">평균 전세가율</span>
+          <span className="text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/50 dark:border-emerald-900/50 shrink-0">안정권</span>
         </div>
-        <div className="my-auto py-0.5">
-          <span className="text-[17px] sm:text-[19px] font-black text-primary leading-snug tracking-tight">
+        <div className="my-auto py-1">
+          <span className="text-[18px] sm:text-[20px] md:text-[22px] font-black text-primary leading-snug tracking-tight">
             {computedAvgJeonseRate.toFixed(1)}%
           </span>
         </div>
-        <div className="flex items-center gap-1.5 text-[8.5px] sm:text-[9.5px] font-bold text-tertiary leading-tight">
+        <div className="flex items-center gap-1.5 text-[9.5px] sm:text-[10.5px] font-bold text-tertiary leading-tight">
           <span>동탄1 <strong className="text-secondary font-black">62.1%</strong></span>
           <span className="opacity-30">·</span>
           <span>동탄2 <strong className="text-secondary font-black">45.8%</strong></span>
@@ -330,21 +330,21 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         type="button"
         onClick={() => onOpenSellTimingCalculator && onOpenSellTimingCalculator()}
         aria-label="우리집 적정 가치 및 매도 타이밍 진단 계산기 열기"
-        className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 p-2 sm:py-2 sm:px-3 rounded-[16px] sm:rounded-[18px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] active:scale-[0.99] hover:border-[#ea6100] transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#ea6100]/20 group"
+        className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] active:scale-[0.99] hover:border-[#ea6100] transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#ea6100]/20 group"
       >
         <div className="flex items-center justify-between gap-1 w-full">
-          <span className="text-[10px] sm:text-[10.5px] text-tertiary font-bold leading-tight">자산 진단 시뮬레이터</span>
-          <span className="text-[9px] font-bold text-[#ea6100] bg-[#ea6100]/10 px-1.5 py-0.2 rounded shrink-0">AI 정밀진단</span>
+          <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">자산 진단 시뮬레이터</span>
+          <span className="text-[9.5px] font-bold text-[#ea6100] bg-[#ea6100]/10 px-2 py-0.5 rounded-md shrink-0">AI 정밀진단</span>
         </div>
-        <div className="my-auto py-0.5 flex items-center justify-between w-full">
-          <span className="text-[12px] sm:text-[13.5px] font-black text-[#ea6100] leading-snug group-hover:underline">
+        <div className="my-auto py-1 flex items-center justify-between w-full">
+          <span className="text-[12.5px] sm:text-[14px] font-black text-[#ea6100] leading-snug group-hover:underline">
             우리집 적정 가치 & 매도 타이밍
           </span>
           <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#ea6100]/10 text-[#ea6100] shrink-0 ml-1.5 group-hover:translate-x-0.5 transition-transform">
             <ChevronRight className="w-3.5 h-3.5" />
           </div>
         </div>
-        <span className="text-[8.5px] sm:text-[9.5px] font-bold text-tertiary leading-tight">
+        <span className="text-[9.5px] sm:text-[10.5px] font-bold text-tertiary leading-tight">
           단지별 AI 시세 분석 및 매도 전략
         </span>
       </button>

@@ -14,11 +14,41 @@ import type {
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/types/transaction';
 import { aggregateStats } from '@/lib/analytics/statsEngine';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { parsePeriodTransactions } from '@/lib/services/staticDataService';
 import { StatsFilterBar } from '@/components/stats/StatsFilterBar';
 import { HyperlocalInsightCards } from '@/components/stats/HyperlocalInsightCards';
-import { StatsTimeTrendChart } from '@/components/stats/StatsTimeTrendChart';
-import { StatsPyeongRankingChart } from '@/components/stats/StatsPyeongRankingChart';
-import { StatsVolumeDistributionChart } from '@/components/stats/StatsVolumeDistributionChart';
+import dynamic from 'next/dynamic';
+import { useInView } from '@/hooks/useInView';
+import {
+  TimeTrendChartSkeleton,
+  PyeongRankingChartSkeleton,
+  VolumeDistributionChartSkeleton,
+} from '@/components/stats/ChartSkeletons';
+
+const StatsTimeTrendChart = dynamic(
+  () => import('@/components/stats/StatsTimeTrendChart'),
+  {
+    ssr: false,
+    loading: () => <TimeTrendChartSkeleton />,
+  }
+);
+
+const StatsPyeongRankingChart = dynamic(
+  () => import('@/components/stats/StatsPyeongRankingChart'),
+  {
+    ssr: false,
+    loading: () => <PyeongRankingChartSkeleton />,
+  }
+);
+
+const StatsVolumeDistributionChart = dynamic(
+  () => import('@/components/stats/StatsVolumeDistributionChart'),
+  {
+    ssr: false,
+    loading: () => <VolumeDistributionChartSkeleton />,
+  }
+);
+
 import {
   FilterBottomAdBanner,
   MidFeedAdBanner,
@@ -60,7 +90,7 @@ export function StatsOverviewSection({
   onOpenCompare,
   initialRegion = 'ALL',
   initialPyeong = 'ALL',
-  initialTimeframe = 'ALL',
+  initialTimeframe = '3M',
   initialSort = 'PYEONG_DESC',
   testMode = false,
   className = '',
@@ -85,6 +115,20 @@ export function StatsOverviewSection({
   const [macroTrend, setMacroTrend] = useState<DongtanMacroTrendPoint[]>(resolvedInitialTrend);
   const [summaryMap, setSummaryMap] = useState<Record<string, AptTxSummary>>(resolvedInitialSummary);
   const [isLoadingChunk, setIsLoadingChunk] = useState(false);
+
+  // Viewport-based lazy mounting hooks with 250px lookahead buffer
+  const [timeTrendRef, timeTrendInView] = useInView<HTMLDivElement>({
+    rootMargin: '250px 0px',
+    testMode,
+  });
+  const [rankingRef, rankingInView] = useInView<HTMLDivElement>({
+    rootMargin: '250px 0px',
+    testMode,
+  });
+  const [volumeRef, volumeInView] = useInView<HTMLDivElement>({
+    rootMargin: '250px 0px',
+    testMode,
+  });
 
   // Sync state if props update
   useEffect(() => {
@@ -150,9 +194,10 @@ export function StatsOverviewSection({
       fetch('/data/transactions-1y.json')
         .then((r) => (r.ok ? r.json() : null))
         .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            clientDataCache.transactions1y = data;
-            setBaseTxs(data);
+          const parsed = parsePeriodTransactions(data);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            clientDataCache.transactions1y = parsed as unknown as RawTransactionRecord[];
+            setBaseTxs(parsed as unknown as RawTransactionRecord[]);
           }
         })
         .catch(() => {})
@@ -162,17 +207,18 @@ export function StatsOverviewSection({
         setBaseTxs(clientDataCache.transactionsAll);
         return;
       }
-      if (!clientDataCache.transactions1y) {
-        fetch('/data/transactions-1y.json')
-          .then((r) => (r.ok ? r.json() : null))
-          .then((data) => {
-            if (Array.isArray(data) && data.length > 0) {
-              clientDataCache.transactions1y = data;
-              setBaseTxs(data);
-            }
-          })
-          .catch(() => {});
-      }
+      setIsLoadingChunk(true);
+      fetch('/data/transactions-all.json')
+        .then((r) => (r.ok ? r.json() : null))
+        .then((data) => {
+          const parsed = parsePeriodTransactions(data);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            clientDataCache.transactionsAll = parsed as unknown as RawTransactionRecord[];
+            setBaseTxs(parsed as unknown as RawTransactionRecord[]);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoadingChunk(false));
     }
   }, [timeframe, testMode, baseTxs.length]);
 
@@ -378,10 +424,16 @@ export function StatsOverviewSection({
         />
 
         {/* 6. Section 1: Time-Series Price & Volume Trend Chart */}
-        <StatsTimeTrendChart
-          data={statsData.timeSeriesTrend}
-          isLoading={isPending}
-        />
+        <div ref={timeTrendRef} className="w-full min-h-[240px] md:min-h-[280px]">
+          {timeTrendInView ? (
+            <StatsTimeTrendChart
+              data={statsData.timeSeriesTrend}
+              isLoading={isPending}
+            />
+          ) : (
+            <TimeTrendChartSkeleton />
+          )}
+        </div>
 
         {/* 7. Strategic Ad Placement 2: Mid-Feed In-Feed Slot */}
         <MidFeedAdBanner testMode={testMode} />
@@ -389,21 +441,29 @@ export function StatsOverviewSection({
         {/* 8. 2-Column Grid: Pyeong Ranking Table/Bar Chart & Volume Distribution Donut */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
           {/* Left Column (7 cols): TOP 20 Pyeong Price Rankings */}
-          <div className="lg:col-span-7">
-            <StatsPyeongRankingChart
-              rankings={statsData.pyeongRankings}
-              onSelectComplex={handleSelectComplex}
-              isLoading={isPending}
-              testMode={testMode}
-            />
+          <div ref={rankingRef} className="lg:col-span-7 min-h-[240px] md:min-h-[280px]">
+            {rankingInView ? (
+              <StatsPyeongRankingChart
+                rankings={statsData.pyeongRankings}
+                onSelectComplex={handleSelectComplex}
+                isLoading={isPending}
+                testMode={testMode}
+              />
+            ) : (
+              <PyeongRankingChartSkeleton />
+            )}
           </div>
 
           {/* Right Column (5 cols): Donut Volume Distribution */}
-          <div className="lg:col-span-5">
-            <StatsVolumeDistributionChart
-              distribution={statsData.volumeDistribution}
-              isLoading={isPending}
-            />
+          <div ref={volumeRef} className="lg:col-span-5 min-h-[200px]">
+            {volumeInView ? (
+              <StatsVolumeDistributionChart
+                distribution={statsData.volumeDistribution}
+                isLoading={isPending}
+              />
+            ) : (
+              <VolumeDistributionChartSkeleton />
+            )}
           </div>
         </div>
       </div>

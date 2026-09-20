@@ -72,6 +72,7 @@ export function useTxData(
   const isBrowser = typeof window !== 'undefined';
 
   // 1. Static summary data fetching (tx-summary.json)
+  const hasTxSummaryFallback = !!(initialTxSummary && Object.keys(initialTxSummary).length > 0);
   const { data: summaryData, error: summaryError, isLoading: isSummaryLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
     recent7DaysVolume?: {
@@ -83,24 +84,26 @@ export function useTxData(
     };
   }>(isBrowser ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, staticJsonFetcher, {
     fallbackData:
-      initialTxSummary && Object.keys(initialTxSummary).length > 0
+      hasTxSummaryFallback
         ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume }
         : undefined,
     revalidateOnFocus: false,
-    revalidateIfStale: true,
+    revalidateIfStale: !hasTxSummaryFallback,
+    revalidateOnMount: !hasTxSummaryFallback,
     revalidateOnReconnect: false,
-    dedupingInterval: 3600000,
+    dedupingInterval: 300000,
   });
 
   // 1-2. Recent transactions list fetching (recent-transactions.json)
+  const hasRecentTxFallback = !!(initialRecentTransactions && initialRecentTransactions.length > 0);
   const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<RecentTransaction[]>(
     isBrowser ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
     staticJsonFetcher,
     {
-      fallbackData: initialRecentTransactions,
+      fallbackData: hasRecentTxFallback ? initialRecentTransactions : undefined,
       revalidateOnFocus: false,
-      revalidateIfStale: true,
-      revalidateOnMount: true,
+      revalidateIfStale: !hasRecentTxFallback,
+      revalidateOnMount: !hasRecentTxFallback,
       revalidateOnReconnect: false,
       dedupingInterval: 300000,
     }
@@ -186,14 +189,16 @@ export function useTxData(
   };
 }
 
-export function useLocationScores() {
+export function useLocationScores(fallbackData?: Record<string, LocationScoreItem>) {
+  const hasFallback = !!(fallbackData && Object.keys(fallbackData).length > 0);
   const { data, error, isLoading } = useSWR<Record<string, LocationScoreItem>>(
     `/data/location-scores.json?v=${BUILD_VERSION}`,
     staticJsonFetcher,
     {
+      fallbackData: hasFallback ? fallbackData : undefined,
       revalidateOnFocus: false,
-      revalidateIfStale: false,
-      revalidateOnMount: false,
+      revalidateIfStale: !hasFallback,
+      revalidateOnMount: !hasFallback,
       revalidateOnReconnect: false,
       dedupingInterval: 3600000, // 1 hour cache
     }

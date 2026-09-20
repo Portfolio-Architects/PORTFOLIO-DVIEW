@@ -245,7 +245,7 @@ const DashboardClient = React.memo(function DashboardClient({
     return filtered.length > 0 ? filtered : recentTransactions;
   }, [recentTransactions, nameMapping]);
 
-  const { locationScores = EMPTY_OBJECT } = useLocationScores();
+  const { locationScores = EMPTY_OBJECT } = useLocationScores((initialDashboardData as any)?.locationScores);
   
   const getLocScore = useCallback((aptName: string) => {
     if (!aptName || !locationScores) return {};
@@ -337,17 +337,28 @@ const DashboardClient = React.memo(function DashboardClient({
         setActiveTab('overview');
       }
 
-      // Preload heavy chunks immediately to eliminate interaction latency & CLS
+      // Preload non-essential heavy chunks (modal, extra dashboard features) deferred during idle time
+      // to avoid competing with main dashboard hydration and first contentful paint
       const preloadHeavyComponents = () => {
         if (!isMounted) return;
-        preloadApartmentModal();
-        preloadDashboardFeatures();
+        // Keep essential dashboard chunk loading
         import('@/components/MacroDashboardClient').catch(() => {});
+
+        const deferNonEssential = () => {
+          if (!isMounted) return;
+          preloadApartmentModal();
+          preloadDashboardFeatures();
+        };
+
+        if (typeof window !== 'undefined') {
+          if ('requestIdleCallback' in window && window.requestIdleCallback) {
+            idleId = window.requestIdleCallback(deferNonEssential, { timeout: 3000 });
+          } else {
+            preloadTimeoutRef.current = setTimeout(deferNonEssential, 3000);
+          }
+        }
       };
       preloadHeavyComponents();
-      if (window.requestIdleCallback) {
-        idleId = window.requestIdleCallback(preloadHeavyComponents, { timeout: 500 });
-      }
 
       const syncTabFromLocation = () => {
         const queryParams = new URLSearchParams(window.location.search);

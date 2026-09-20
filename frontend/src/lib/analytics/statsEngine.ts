@@ -175,6 +175,9 @@ export function normalizeDongName(dong: string | null | undefined): string {
 /** Alias for normalizeDongName */
 export const normalizeDong = normalizeDongName;
 
+export const D1_SET = new Set<string>(DONGTAN1_DONGS);
+export const D2_SET = new Set<string>(DONGTAN2_DONGS);
+
 /**
  * Determines whether a given dong matches the specified RegionFilter.
  */
@@ -186,10 +189,10 @@ export function matchesRegion(dong: string | null | undefined, filter: RegionFil
   if (!canonical) return false;
 
   if (filter === 'DONGTAN1' || filter === 'dongtan1' || filter === '동탄1') {
-    return (DONGTAN1_DONGS as readonly string[]).includes(canonical);
+    return D1_SET.has(canonical);
   }
   if (filter === 'DONGTAN2' || filter === 'dongtan2' || filter === '동탄2') {
-    return (DONGTAN2_DONGS as readonly string[]).includes(canonical);
+    return D2_SET.has(canonical);
   }
 
   return canonical === normalizeDongName(filter);
@@ -203,7 +206,7 @@ export const matchRegion = matchesRegion;
  */
 export function getRegionFromDong(dong: string | null | undefined): '동탄1' | '동탄2' {
   const canonical = normalizeDongName(dong);
-  return (DONGTAN1_DONGS as readonly string[]).includes(canonical) ? '동탄1' : '동탄2';
+  return D1_SET.has(canonical) ? '동탄1' : '동탄2';
 }
 
 /** Alias for getRegionFromDong */
@@ -1080,19 +1083,540 @@ export function computeHyperlocalInsights(
   };
 }
 
+// ============================================================================
+// 6. In-Memory LRU Result Cache & Date Slicing Cache
+// ============================================================================
+
+const monthSliceCache = new Map<string, string>();
+
+export function getMonthFromContractDate(cdStr: string): string {
+  if (cdStr.length < 6) return '';
+  let m = monthSliceCache.get(cdStr);
+  if (!m) {
+    m = `${cdStr.substring(0, 4)}-${cdStr.substring(4, 6)}`;
+    if (monthSliceCache.size < 500) {
+      monthSliceCache.set(cdStr, m);
+    }
+  }
+  return m;
+}
+
+const MAX_STATS_CACHE_SIZE = 50;
+
+interface StatsCacheEntry {
+  result: StatsAggregateResult;
+  datasetRef: unknown;
+  datasetLen: number;
+}
+
+const statsResultCache = new Map<string, StatsCacheEntry>();
+
+/**
+ * Invalidate and clear the stats calculation LRU cache.
+ * Exported for test isolation.
+ */
+export function clearStatsCache(): void {
+  statsResultCache.clear();
+  monthSliceCache.clear();
+}
+
+/**
+ * Single-pass combined analytics aggregator.
+ * Processes records in a single combined loop:
+ * - Filter checks evaluated once per record
+ * - KPIs, complex rankings, monthly time series, and volume distribution accumulated in-place
+ */
+export function singlePassAggregate(
+  transactions: AnyTransaction[],
+  filters: StatsFilterState,
+  options?: {
+    sortBy?: SortOption;
+    rankLimit?: number;
+    referenceDate?: string | Date;
+    summaryMap?: Record<string, AptTxSummary>;
+    dongLookup?: Record<string, string>;
+    rents?: RawRentRecord[];
+    macroTrend?: DongtanMacroTrendPoint[];
+  }
+): StatsAggregateResult {
+  const len = transactions.length;
+  if (len === 0) {
+    return { ...EMPTY_STATS_RESULT };
+  }
+
+  // Pre-compiled region lookups
+  const region = filters.region ?? 'ALL';
+  const isRegionAll = region === 'ALL' || (region as string) === 'all' || (region as string) === '전체';
+  const isD1 = region === 'DONGTAN1' || (region as string) === 'dongtan1' || (region as string) === '동탄1';
+  const isD2 = region === 'DONGTAN2' || (region as string) === 'dongtan2' || (region as string) === '동탄2';
+  const normalizedRegion = !isRegionAll && !isD1 && !isD2 ? normalizeDongName(region) : null;
+  const targetDong = filters.dong ? normalizeDongName(filters.dong) : null;
+
+  // Pyeong filter
+  const pyeongFilter = filters.pyeong ?? 'ALL';
+  const isPyeongAll = pyeongFilter === 'ALL' || (pyeongFilter as string) === 'all' || (pyeongFilter as string) === '전체';
+
+  // Sanitization flags
+  const excludeCanceled = filters.excludeCanceled !== false;
+  const excludeOutliers = filters.excludeOutliers !== false;
+  const excludeDirectDeals = filters.excludeDirectDeals === true;
+
+  // Timeframe bounds
+  const timeframeFilter = filters.timeframe ?? 'ALL';
+  const isTimeframeBounded = timeframeFilter !== 'ALL' && (timeframeFilter as string) !== 'all';
+
+  let effectiveRefDate: string | Date = options?.referenceDate || filters.referenceDate || '2026-09-19';
+  if (!options?.referenceDate && !filters.referenceDate && isTimeframeBounded) {
+    let maxDate = '';
+    for (let i = 0; i < len; i++) {
+      const cd = String((transactions[i] as any)?.contractDate || '');
+      if (cd.length >= 8 && cd > maxDate) {
+        maxDate = cd;
+      }
+    }
+    if (maxDate.length >= 8) {
+      effectiveRefDate = `${maxDate.substring(0, 4)}-${maxDate.substring(4, 6)}-${maxDate.substring(6, 8)}`;
+    }
+  }
+
+  let cutoffNum = 0;
+  let maxNum = 99999999;
+  if (isTimeframeBounded) {
+    const refDateObj =
+      effectiveRefDate instanceof Date
+        ? effectiveRefDate
+        : parseContractDate(effectiveRefDate) ??
+          (typeof effectiveRefDate === 'string' && effectiveRefDate.includes('-')
+            ? new Date(effectiveRefDate)
+            : new Date('2026-09-19'));
+
+    const daysMap: Record<string, number> = {
+      '1M': 31,
+      '3M': 92,
+      '6M': 183,
+      '1Y': 365,
+    };
+    const days = daysMap[timeframeFilter] || 365;
+    const refYear = refDateObj.getFullYear();
+    const refMonth = refDateObj.getMonth();
+    const refDay = refDateObj.getDate();
+
+    const cutoffDate = new Date(refYear, refMonth, refDay - days);
+    cutoffNum =
+      cutoffDate.getFullYear() * 10000 +
+      (cutoffDate.getMonth() + 1) * 100 +
+      cutoffDate.getDate();
+
+    const maxDate = new Date(refYear, refMonth, refDay + 1);
+    maxNum =
+      maxDate.getFullYear() * 10000 +
+      (maxDate.getMonth() + 1) * 100 +
+      maxDate.getDate();
+  }
+
+  // Accumulation state
+  let totalVolume = 0;
+  let sumPrice = 0;
+  let sumPyeongPrice = 0;
+
+  let smallCount = 0;
+  let mediumSmallCount = 0;
+  let mediumLargeCount = 0;
+  let largeCount = 0;
+
+  const complexMap = new Map<string, {
+    aptKey: string;
+    aptName: string;
+    dong: string;
+    count: number;
+    sumPrice: number;
+    sumPyeongPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    hasNewHigh: boolean;
+    maxDiscountRate: number;
+    latestContractDate: string;
+    latestPrice: number;
+  }>();
+
+  const monthlyGroups = new Map<
+    string,
+    { saleSum: number; saleCount: number; rentSum: number; rentCount: number }
+  >();
+
+  for (let i = 0; i < len; i++) {
+    const tx = transactions[i];
+    if (!tx || typeof tx !== 'object') continue;
+    const txRecord = tx as Record<string, any>;
+
+    // 1. Direct deal check
+    if (excludeDirectDeals && isDirectDeal(txRecord)) continue;
+
+    // 2. Sale deal check
+    if (!isSaleDeal(txRecord)) continue;
+
+    // 3. Cancellation check
+    if (excludeCanceled && isCancelledTransaction(txRecord)) continue;
+
+    // 4. Valid price check
+    const price = parsePriceToManWon(txRecord);
+    if (price <= 0 || !isFinite(price)) continue;
+
+    // 5. Outlier check
+    if (excludeOutliers && (txRecord.isOutlier === true || price < 1000 || price > 1000000)) {
+      continue;
+    }
+
+    // 6. Region / Dong match
+    if (!isRegionAll || targetDong) {
+      const dong = txRecord.dong;
+      const canonical = normalizeDongName(dong);
+      if (!canonical) continue;
+
+      if (targetDong && canonical !== targetDong) continue;
+      if (isD1 && !D1_SET.has(canonical)) continue;
+      if (isD2 && !D2_SET.has(canonical)) continue;
+      if (normalizedRegion && canonical !== normalizedRegion) continue;
+    }
+
+    // 7. Pyeong match & tier determination
+    const area = txRecord.area ?? 0;
+    const areaP = txRecord.areaPyeong;
+    const tier = getPyeongTier(area, areaP);
+    if (!isPyeongAll && tier !== pyeongFilter) continue;
+
+    // 8. Timeframe match
+    let cdStr = '';
+    const cd = txRecord.contractDate;
+    if (typeof cd === 'number') {
+      const num = cd >= 10000000 && cd <= 99999999 ? cd : parseInt(String(cd).substring(0, 8), 10);
+      if (isTimeframeBounded && (isNaN(num) || num < cutoffNum || num > maxNum)) continue;
+      cdStr = String(num);
+    } else if (typeof cd === 'string') {
+      if (cd.length === 8 && cd >= '10000000' && cd <= '99999999') {
+        const num = parseInt(cd, 10);
+        if (isTimeframeBounded && (isNaN(num) || num < cutoffNum || num > maxNum)) continue;
+        cdStr = cd;
+      } else {
+        const s = cd.replace(/[^0-9]/g, '');
+        if (s.length >= 8) {
+          const num = parseInt(s.substring(0, 8), 10);
+          if (isTimeframeBounded && (isNaN(num) || num < cutoffNum || num > maxNum)) continue;
+          cdStr = s.substring(0, 8);
+        } else if (isTimeframeBounded) {
+          continue;
+        } else {
+          cdStr = s;
+        }
+      }
+    } else if (isTimeframeBounded) {
+      continue;
+    }
+
+    // RECORD IS VALID — ACCUMULATE IN-PLACE
+    totalVolume++;
+    sumPrice += price;
+    const pp = computePyeongPrice(price, area, areaP);
+    sumPyeongPrice += pp;
+
+    // Volume distribution tier count
+    if (tier === 'SMALL') smallCount++;
+    else if (tier === 'MEDIUM_SMALL') mediumSmallCount++;
+    else if (tier === 'MEDIUM_LARGE') mediumLargeCount++;
+    else if (tier === 'LARGE') largeCount++;
+
+    // Monthly time-series accumulation
+    if (cdStr.length >= 6) {
+      const monthKey = getMonthFromContractDate(cdStr);
+      if (monthKey) {
+        const mg = monthlyGroups.get(monthKey);
+        if (mg) {
+          mg.saleSum += price;
+          mg.saleCount += 1;
+        } else {
+          monthlyGroups.set(monthKey, { saleSum: price, saleCount: 1, rentSum: 0, rentCount: 0 });
+        }
+      }
+    }
+
+    // Complex rankings accumulation
+    const aptName = txRecord.aptName || '미확인 단지';
+    const aptKey = txRecord.aptKey || txRecord.txKey || aptName;
+    const groupKey = aptKey || aptName;
+
+    let entry = complexMap.get(groupKey);
+    if (!entry) {
+      const dong = normalizeDongName(
+        txRecord.dong || options?.dongLookup?.[aptKey] || options?.summaryMap?.[aptKey]?.dong || ''
+      );
+      entry = {
+        aptKey,
+        aptName,
+        dong,
+        count: 1,
+        sumPrice: price,
+        sumPyeongPrice: pp,
+        maxPrice: price,
+        minPrice: price,
+        hasNewHigh: txRecord.isNewHigh === true || txRecord.isNewHigh === 1,
+        maxDiscountRate: typeof txRecord.deltaPercent === 'number' && txRecord.deltaPercent <= -5.0 ? Math.abs(txRecord.deltaPercent) : 0,
+        latestContractDate: cdStr,
+        latestPrice: price,
+      };
+      complexMap.set(groupKey, entry);
+    } else {
+      if (!entry.dong && txRecord.dong) {
+        entry.dong = normalizeDongName(txRecord.dong);
+      }
+      entry.count++;
+      entry.sumPrice += price;
+      entry.sumPyeongPrice += pp;
+      if (price > entry.maxPrice) entry.maxPrice = price;
+      if (price < entry.minPrice) entry.minPrice = price;
+      if (entry.count === 1 || cdStr > entry.latestContractDate) {
+        entry.latestContractDate = cdStr;
+        entry.latestPrice = price;
+      }
+      if (txRecord.isNewHigh === true || txRecord.isNewHigh === 1) {
+        entry.hasNewHigh = true;
+      }
+      if (typeof txRecord.deltaPercent === 'number' && txRecord.deltaPercent <= -5.0) {
+        const discount = Math.abs(txRecord.deltaPercent);
+        if (discount > entry.maxDiscountRate) entry.maxDiscountRate = discount;
+      }
+    }
+  }
+
+  if (totalVolume === 0) {
+    return { ...EMPTY_STATS_RESULT };
+  }
+
+  const avgSalePrice = Math.round(sumPrice / totalVolume);
+  const avgPyeongPrice = Math.round(sumPyeongPrice / totalVolume);
+
+  // Rents processing
+  const rents = options?.rents || [];
+  const validRents = rents.length > 0 ? rents.filter((r) => {
+    if (!matchesRegion(r.dong, filters.region)) return false;
+    if (!matchesPyeong(r.area ?? 0, undefined, filters.pyeong)) return false;
+    if (!matchTimeframe(r.contractDate, filters.timeframe, filters.referenceDate)) return false;
+    return (r.deposit || 0) > 0;
+  }) : [];
+
+  const rentAptMap = new Map<string, { sumDeposit: number; count: number }>();
+  if (validRents.length > 0) {
+    for (let i = 0; i < validRents.length; i++) {
+      const r = validRents[i];
+      const name = r.aptName;
+      const cur = rentAptMap.get(name);
+      if (!cur) {
+        rentAptMap.set(name, { sumDeposit: r.deposit || 0, count: 1 });
+      } else {
+        cur.sumDeposit += r.deposit || 0;
+        cur.count++;
+      }
+    }
+  }
+
+  // Finalize Complex Rankings
+  const minTx = 1;
+  const summaryMap = options?.summaryMap;
+
+  const complexStats: ComplexStatItem[] = Array.from(complexMap.values())
+    .filter((entry) => entry.count >= minTx)
+    .map((entry) => {
+      const count = entry.count;
+      const avgPrice = Math.round(entry.sumPrice / count);
+      const avgPyeong = Math.round(entry.sumPyeongPrice / count);
+      const highestPrice = entry.maxPrice > -Infinity ? entry.maxPrice : avgPrice;
+      const lowestPrice = entry.minPrice < Infinity ? entry.minPrice : avgPrice;
+      const latestPrice = entry.latestPrice;
+
+      let maxDiscountRate = entry.maxDiscountRate;
+      if (maxDiscountRate === 0 && highestPrice > latestPrice && highestPrice > 0) {
+        maxDiscountRate = parseFloat((((highestPrice - latestPrice) / highestPrice) * 100).toFixed(1));
+      }
+
+      let hasNewHigh = entry.hasNewHigh;
+      const summary = summaryMap?.[entry.aptKey];
+      if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
+        hasNewHigh = true;
+      }
+
+      let jeonseRatio = 0;
+      const rentAgg = rentAptMap.get(entry.aptName);
+      if (rentAgg && rentAgg.count > 0 && avgPrice > 0) {
+        const avgRentDeposit = rentAgg.sumDeposit / rentAgg.count;
+        jeonseRatio = parseFloat(((avgRentDeposit / avgPrice) * 100).toFixed(1));
+      }
+
+      if (jeonseRatio === 0 && summary && avgPrice > 0) {
+        if (summary.avg3MRentDeposit && summary.avg3MRentDeposit > 0) {
+          const basePrice = summary.avg3MPrice || avgPrice;
+          jeonseRatio = parseFloat(((summary.avg3MRentDeposit / basePrice) * 100).toFixed(1));
+        } else if (summary.latestRentDeposit && summary.latestRentDeposit > 0) {
+          jeonseRatio = parseFloat(((summary.latestRentDeposit / avgPrice) * 100).toFixed(1));
+        }
+      }
+
+      if (jeonseRatio < 0) jeonseRatio = 0;
+      if (jeonseRatio > 120) jeonseRatio = 120;
+
+      const dong = entry.dong || '여울동';
+      const itemRegion = getRegionFromDong(dong);
+
+      return {
+        aptKey: entry.aptKey,
+        aptName: entry.aptName,
+        dong,
+        region: itemRegion,
+        txCount: count,
+        avgPrice,
+        avgPyeongPrice: avgPyeong,
+        jeonseRatio,
+        latestPrice,
+        highestPrice,
+        lowestPrice,
+        urgentSaleDiscountRate: maxDiscountRate > 0 ? maxDiscountRate : undefined,
+        isNewHigh: hasNewHigh,
+      };
+    });
+
+  const sortBy = options?.sortBy || filters.sort || 'PYEONG_DESC';
+  complexStats.sort((a, b) => {
+    switch (sortBy) {
+      case 'VOLUME_DESC':
+        return b.txCount - a.txCount || b.avgPyeongPrice - a.avgPyeongPrice;
+      case 'PRICE_DESC':
+        return b.avgPrice - a.avgPrice || b.txCount - a.txCount;
+      case 'PRICE_ASC':
+        return a.avgPrice - b.avgPrice || b.txCount - a.txCount;
+      case 'JEONSE_DESC':
+        return b.jeonseRatio - a.jeonseRatio || b.txCount - a.txCount;
+      case 'PYEONG_DESC':
+      default:
+        return b.avgPyeongPrice - a.avgPyeongPrice || b.txCount - a.txCount;
+    }
+  });
+
+  const rankLimit = options?.rankLimit ?? 20;
+  const pyeongRankings = typeof rankLimit === 'number' && rankLimit > 0 ? complexStats.slice(0, rankLimit) : complexStats;
+
+  // MacroTrend integration for overall jeonseRatio & monthly chart
+  const macroTrend = options?.macroTrend;
+  let avgJeonseRatio = 0;
+  if (validRents.length > 0 && avgSalePrice > 0) {
+    const avgRentDeposit = validRents.reduce((acc, r) => acc + (r.deposit || 0), 0) / validRents.length;
+    avgJeonseRatio = parseFloat(((avgRentDeposit / avgSalePrice) * 100).toFixed(1));
+  } else if (macroTrend && macroTrend.length > 0 && avgSalePrice > 0) {
+    const latestMacro = macroTrend[macroTrend.length - 1];
+    const rentAvg = (latestMacro['동탄 아파트 전세 평균'] || 0) * 10000;
+    if (rentAvg > 0) {
+      avgJeonseRatio = parseFloat(((rentAvg / avgSalePrice) * 100).toFixed(1));
+    }
+  }
+
+  // Monthly time series
+  if (macroTrend && Array.isArray(macroTrend)) {
+    macroTrend.forEach((pt) => {
+      let ym = pt.name;
+      if (ym.includes('.') && ym.length === 5) {
+        const [yy, mm] = ym.split('.');
+        const fullYear = parseInt(yy, 10) > 50 ? `19${yy}` : `20${yy}`;
+        ym = `${fullYear}-${mm.padStart(2, '0')}`;
+      }
+      const rentDepositMan = Math.round((pt['동탄 아파트 전세 평균'] || 0) * 10000);
+      if (rentDepositMan > 0) {
+        const g = monthlyGroups.get(ym) || { saleSum: 0, saleCount: 0, rentSum: 0, rentCount: 0 };
+        g.rentSum = rentDepositMan;
+        g.rentCount = 1;
+        monthlyGroups.set(ym, g);
+      }
+    });
+  }
+
+  const sortedMonths = Array.from(monthlyGroups.keys()).sort();
+  const timeSeriesTrend: MacroTimeSeriesPoint[] = sortedMonths.map((m) => {
+    const g = monthlyGroups.get(m)!;
+    return {
+      date: m,
+      avgSalePrice: g.saleCount > 0 ? Math.round(g.saleSum / g.saleCount) : 0,
+      avgRentDeposit: g.rentCount > 0 ? Math.round(g.rentSum / g.rentCount) : 0,
+      volume: g.saleCount,
+    };
+  });
+
+  let volumeChangeMoM = 0;
+  if (timeSeriesTrend.length >= 2) {
+    const curr = timeSeriesTrend[timeSeriesTrend.length - 1].volume;
+    const prev = timeSeriesTrend[timeSeriesTrend.length - 2].volume;
+    if (prev > 0) {
+      volumeChangeMoM = parseFloat((((curr - prev) / prev) * 100).toFixed(1));
+    } else if (curr > 0) {
+      volumeChangeMoM = 100.0;
+    }
+  }
+
+  const volumeDistribution: VolumeDistributionItem[] = [
+    {
+      name: '소형 (60㎡ 이하)',
+      value: smallCount,
+      percentage: totalVolume > 0 ? safeRound((smallCount / totalVolume) * 100, 1) : 0,
+    },
+    {
+      name: '중소형 (60~85㎡)',
+      value: mediumSmallCount,
+      percentage: totalVolume > 0 ? safeRound((mediumSmallCount / totalVolume) * 100, 1) : 0,
+    },
+    {
+      name: '중대형 (85~102㎡)',
+      value: mediumLargeCount,
+      percentage: totalVolume > 0 ? safeRound((mediumLargeCount / totalVolume) * 100, 1) : 0,
+    },
+    {
+      name: '대형 (102㎡ 초과)',
+      value: largeCount,
+      percentage: totalVolume > 0 ? safeRound((largeCount / totalVolume) * 100, 1) : 0,
+    },
+  ];
+
+  const insights = computeHyperlocalInsights(pyeongRankings, transactions, summaryMap);
+
+  return {
+    totalVolume,
+    avgSalePrice,
+    avgPyeongPrice,
+    avgJeonseRatio,
+    volumeChangeMoM,
+    timeSeriesTrend,
+    pyeongRankings,
+    volumeDistribution,
+    insights,
+    isLoading: false,
+    isEmpty: false,
+  };
+}
+
 /**
  * 6. aggregateStatistics (Master Aggregator)
- * Orchestrates full multi-dimensional analytics.
+ * Orchestrates full multi-dimensional analytics using single-pass aggregation
+ * and in-memory deterministic LRU result caching.
  */
 export function aggregateStatistics(
   rawData: RawDataBundle | AnyTransaction[],
   filters?: StatsFilterState,
-  options?: { sortBy?: SortOption; rankLimit?: number; referenceDate?: string | Date }
+  options?: {
+    sortBy?: SortOption;
+    rankLimit?: number;
+    referenceDate?: string | Date;
+    summaryMap?: Record<string, AptTxSummary>;
+    dongLookup?: Record<string, string>;
+  }
 ): StatsAggregateResult {
   const txs = Array.isArray(rawData) ? rawData : rawData?.transactions || [];
   const rents = Array.isArray(rawData) ? [] : rawData?.rents || [];
   const macroTrend = Array.isArray(rawData) ? undefined : rawData?.macroTrend;
-  const summaryMap = Array.isArray(rawData) ? undefined : rawData?.summaryMap;
+  const summaryMap = Array.isArray(rawData) ? options?.summaryMap : (rawData?.summaryMap || options?.summaryMap);
 
   if (!txs || txs.length === 0) {
     return { ...EMPTY_STATS_RESULT };
@@ -1108,88 +1632,51 @@ export function aggregateStatistics(
     activeFilters.referenceDate = options.referenceDate;
   }
 
-  const validTxs = filterTransactions(txs, activeFilters);
-  if (validTxs.length === 0) {
-    return { ...EMPTY_STATS_RESULT };
+  // Deterministic LRU cache key: `${region}_${dong}_${pyeong}_${timeframe}_${sort}`
+  const regionKey = activeFilters.region ?? 'ALL';
+  const dongKey = activeFilters.dong ?? '';
+  const pyeongKey = activeFilters.pyeong ?? 'ALL';
+  const timeframeKey = activeFilters.timeframe ?? 'ALL';
+  const sortKey = options?.sortBy || activeFilters.sort || 'PYEONG_DESC';
+
+  const cacheKey = `${regionKey}_${dongKey}_${pyeongKey}_${timeframeKey}_${sortKey}`;
+
+  const cached = statsResultCache.get(cacheKey);
+  if (
+    cached &&
+    cached.datasetRef === txs &&
+    cached.datasetLen === txs.length
+  ) {
+    // Touch LRU: move to MRU (end of map)
+    statsResultCache.delete(cacheKey);
+    statsResultCache.set(cacheKey, cached);
+    return cached.result;
   }
 
-  const totalVolume = validTxs.length;
-
-  // Filter rents if present
-  const validRents = rents.length > 0 ? rents.filter((r) => {
-    if (!matchesRegion(r.dong, activeFilters.region)) return false;
-    if (!matchesPyeong(r.area ?? 0, undefined, activeFilters.pyeong)) return false;
-    if (!matchTimeframe(r.contractDate, activeFilters.timeframe, activeFilters.referenceDate))
-      return false;
-    return (r.deposit || 0) > 0;
-  }) : [];
-
-  const totals = { sumPrice: 0, sumPyeongPrice: 0 };
-
-  // Complex Rankings
-  const pyeongRankings = computeComplexRankings(validTxs, {
-    sortBy: options?.sortBy || activeFilters.sort || 'PYEONG_DESC',
-    limit: options?.rankLimit || 20,
+  const result = singlePassAggregate(txs, activeFilters, {
+    sortBy: sortKey,
+    rankLimit: options?.rankLimit || 20,
+    referenceDate: activeFilters.referenceDate,
     summaryMap,
-    rents: validRents,
-    outTotals: totals,
+    dongLookup: options?.dongLookup,
+    rents,
+    macroTrend,
   });
 
-  const avgSalePrice = Math.round(totals.sumPrice / totalVolume);
-  const avgPyeongPrice = Math.round(totals.sumPyeongPrice / totalVolume);
-
-  let avgJeonseRatio = 0;
-  if (validRents.length > 0 && avgSalePrice > 0) {
-    const avgRentDeposit =
-      validRents.reduce((acc, r) => acc + (r.deposit || 0), 0) / validRents.length;
-    avgJeonseRatio = parseFloat(((avgRentDeposit / avgSalePrice) * 100).toFixed(1));
-  } else if (macroTrend && macroTrend.length > 0 && avgSalePrice > 0) {
-    const latestMacro = macroTrend[macroTrend.length - 1];
-    const rentAvg = (latestMacro['동탄 아파트 전세 평균'] || 0) * 10000;
-    if (rentAvg > 0) {
-      avgJeonseRatio = parseFloat(((rentAvg / avgSalePrice) * 100).toFixed(1));
+  // LRU eviction if size >= MAX_STATS_CACHE_SIZE
+  if (statsResultCache.size >= MAX_STATS_CACHE_SIZE) {
+    const oldestKey = statsResultCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      statsResultCache.delete(oldestKey);
     }
   }
+  statsResultCache.set(cacheKey, {
+    result,
+    datasetRef: txs,
+    datasetLen: txs.length,
+  });
 
-  // Time-series trend
-  const timeSeriesTrend = computeMacroTimeSeries(
-    validTxs,
-    macroTrend,
-    activeFilters.timeframe,
-    activeFilters.referenceDate
-  );
-
-  // Month-over-Month volume change
-  let volumeChangeMoM = 0;
-  if (timeSeriesTrend.length >= 2) {
-    const curr = timeSeriesTrend[timeSeriesTrend.length - 1].volume;
-    const prev = timeSeriesTrend[timeSeriesTrend.length - 2].volume;
-    if (prev > 0) {
-      volumeChangeMoM = parseFloat((((curr - prev) / prev) * 100).toFixed(1));
-    } else if (curr > 0) {
-      volumeChangeMoM = 100.0;
-    }
-  }
-
-  // Volume distribution
-  const volumeDistribution = computeVolumeDistribution(validTxs, 'PYEONG_TIER');
-
-  // Hyperlocal insights
-  const insights = computeHyperlocalInsights(pyeongRankings, validTxs, summaryMap);
-
-  return {
-    totalVolume,
-    avgSalePrice,
-    avgPyeongPrice,
-    avgJeonseRatio,
-    volumeChangeMoM,
-    timeSeriesTrend,
-    pyeongRankings,
-    volumeDistribution,
-    insights,
-    isLoading: false,
-    isEmpty: false,
-  };
+  return result;
 }
 
 /**

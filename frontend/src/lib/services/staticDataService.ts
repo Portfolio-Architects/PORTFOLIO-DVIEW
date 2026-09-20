@@ -93,13 +93,58 @@ export function parsePeriodTransactions(data: unknown): RecentTransaction[] {
   if (typeof data === 'object' && 'fields' in data && 'data' in data) {
     const { fields, data: rows } = data as { fields: string[]; data: unknown[][] };
     if (!rows) return [];
-    return rows.map((row) => {
-      const obj: Record<string, unknown> = {};
-      fields.forEach((field, i) => {
-        obj[field] = row[i];
-      });
-      return obj as unknown as RecentTransaction;
-    });
+    if (!Array.isArray(rows)) {
+      throw new TypeError('data.map is not a function');
+    }
+    const count = rows.length;
+    if (count === 0) return [];
+
+    // Pre-resolve field indices once outside the loop to eliminate all closure allocations
+    const isStandard13 =
+      Array.isArray(fields) &&
+      fields.length === 13 &&
+      fields[0] === 'aptName' &&
+      fields[9] === 'dealType';
+
+    const nameIdx = isStandard13 ? 0 : Array.isArray(fields) ? fields.indexOf('aptName') : 0;
+    const keyIdx = isStandard13 ? 1 : Array.isArray(fields) ? fields.indexOf('txKey') : 1;
+    const dateIdx = isStandard13 ? 2 : Array.isArray(fields) ? fields.indexOf('date') : 2;
+    const contractDateIdx = isStandard13 ? 3 : Array.isArray(fields) ? fields.indexOf('contractDate') : 3;
+    const priceValIdx = isStandard13 ? 4 : Array.isArray(fields) ? fields.indexOf('priceVal') : 4;
+    const priceEokIdx = isStandard13 ? 5 : Array.isArray(fields) ? fields.indexOf('priceEok') : 5;
+    const areaIdx = isStandard13 ? 6 : Array.isArray(fields) ? fields.indexOf('area') : 6;
+    const areaPyeongIdx = isStandard13 ? 7 : Array.isArray(fields) ? fields.indexOf('areaPyeong') : 7;
+    const floorIdx = isStandard13 ? 8 : Array.isArray(fields) ? fields.indexOf('floor') : 8;
+    const dealTypeIdx = isStandard13 ? 9 : Array.isArray(fields) ? fields.indexOf('dealType') : 9;
+    const isNewHighIdx = isStandard13 ? 10 : Array.isArray(fields) ? fields.indexOf('isNewHigh') : -1;
+    const deltaIdx = isStandard13 ? 11 : Array.isArray(fields) ? fields.indexOf('delta') : -1;
+    const deltaPercentIdx = isStandard13 ? 12 : Array.isArray(fields) ? fields.indexOf('deltaPercent') : -1;
+
+    const result = new Array<RecentTransaction>(count);
+    for (let i = 0; i < count; i++) {
+      const r = rows[i];
+      if (!Array.isArray(r)) continue;
+
+      const rawNewHigh = isNewHighIdx >= 0 ? r[isNewHighIdx] : r[10];
+      const isNewHigh = rawNewHigh === 1 || rawNewHigh === true;
+
+      result[i] = {
+        aptName: (nameIdx >= 0 ? r[nameIdx] : r[0]) as string,
+        txKey: (keyIdx >= 0 ? r[keyIdx] : r[1]) as string,
+        date: (dateIdx >= 0 ? r[dateIdx] : r[2]) as string,
+        contractDate: String(contractDateIdx >= 0 ? r[contractDateIdx] : r[3]),
+        priceVal: (priceValIdx >= 0 ? r[priceValIdx] : r[4]) as number,
+        priceEok: (priceEokIdx >= 0 ? r[priceEokIdx] : r[5]) as string,
+        area: (areaIdx >= 0 ? r[areaIdx] : r[6]) as number,
+        areaPyeong: (areaPyeongIdx >= 0 ? r[areaPyeongIdx] : r[7]) as number,
+        floor: (floorIdx >= 0 ? r[floorIdx] : r[8]) as number,
+        dealType: ((dealTypeIdx >= 0 ? r[dealTypeIdx] : r[9]) as string) || '매매',
+        isNewHigh,
+        ...(deltaIdx >= 0 ? { delta: r[deltaIdx] as number } : {}),
+        ...(deltaPercentIdx >= 0 ? { deltaPercent: r[deltaPercentIdx] as number } : {}),
+      };
+    }
+    return result;
   }
   return [];
 }
@@ -423,7 +468,12 @@ export const staticDataService = {
    * Fetch static JSON data with build versioning and error checking
    */
   async fetchJson<T>(url: string, signal?: AbortSignal): Promise<T> {
-    const res = await fetch(url, { cache: 'no-store', signal });
+    const isVersioned = url.includes('?v=') || url.includes('&v=');
+    const fetchOptions: RequestInit = {
+      cache: isVersioned ? 'default' : 'no-store',
+      signal,
+    };
+    const res = await fetch(url, fetchOptions);
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }

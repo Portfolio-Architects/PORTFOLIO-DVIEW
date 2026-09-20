@@ -49,7 +49,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
   return (
     <div
       data-testid="realtime-ranking-board"
-      className="w-full bg-surface border border-border/70 rounded-2xl p-4 sm:p-5 flex flex-col gap-4 shadow-sm mb-6"
+      className="w-full bg-surface border border-border/80 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 lg:p-7 flex flex-col gap-4.5 shadow-sm mb-6"
     >
       {/* Header with 3 Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
