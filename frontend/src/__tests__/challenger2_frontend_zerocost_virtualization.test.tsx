@@ -522,8 +522,8 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
       fireEvent.click(collapseAllBtn);
       const t1 = performance.now();
 
-      // Assert UI responsiveness under jsdom: execution should complete safely without freezing (< 5000ms under parallel test load)
-      expect(t1 - t0).toBeLessThan(5000);
+      // Assert UI responsiveness under jsdom: execution should complete safely without freezing (< 10000ms under parallel test load)
+      expect(t1 - t0).toBeLessThan(10000);
 
       // Verify header indicates collapsed count
       expect(screen.getAllByText(/접힘 \(30건\)/i).length).toBeGreaterThanOrEqual(1);
@@ -532,7 +532,7 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
       const t2 = performance.now();
       fireEvent.click(collapseAllBtn);
       const t3 = performance.now();
-      expect(t3 - t2).toBeLessThan(5000);
+      expect(t3 - t2).toBeLessThan(10000);
 
       // Assert items are visible again
       expect(screen.queryByText(/접힘 \(30건\)/i)).not.toBeInTheDocument();

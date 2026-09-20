@@ -20,7 +20,6 @@ import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { MacroUtilityCards } from "./macro/components/MacroUtilityCards";
-import { MacroBriefingModal } from "./macro/components/MacroBriefingModal";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/components/AptDonutSection";
 import { AptMetricCards } from "./macro/components/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
@@ -776,31 +775,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const railStrategyNotices = rawRailStrategyNotices;
 
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
-  const [showBriefingPopup, setShowBriefingPopup] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [activeDonutCategory, setActiveDonutCategory] = useState<string | null>(null);
   const [activeDonutSector, setActiveDonutSector] = useState<AptDonutDataItem | null>(null);
-
-  useEffect(() => {
-    if (!mounted || authLoading || isFavoritesLoading) return;
-    
-    const hasFavorites = userFavorites && userFavorites.size > 0;
-    if (hasFavorites) {
-      setShowBriefingPopup(false);
-      return;
-    }
-    
-    const lastDismissed = localStorage.getItem("dview_briefing_popup_dismissed");
-    const oneDay = 24 * 60 * 60 * 1000;
-    const isDismissedRecently = lastDismissed && (Date.now() - parseInt(lastDismissed, 10) < oneDay);
-    
-    if (!isDismissedRecently) {
-      const timer = setTimeout(() => {
-        setShowBriefingPopup(true);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [mounted, authLoading, isFavoritesLoading, userFavorites]);
 
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [visibleTimelineCount, setVisibleTimelineCount] = useState(8);
@@ -1567,7 +1544,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-3 sm:gap-3.5 lg:h-[586px] justify-between box-border">
+          <div className="lg:col-span-6 flex flex-col gap-3 sm:gap-3.5 lg:h-[624px] justify-between box-border">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}
@@ -1601,7 +1578,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[586px]">
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[624px]">
             <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
               <MacroChartSection
                 userFavorites={userFavorites}
@@ -1635,28 +1612,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         </div>
 
-        {/* ═══ Connected Section Immediately Below: StatsOverviewSection ═══ */}
-        <ErrorBoundary name="동탄 실거래 통계 및 인사이트">
-          <StatsOverviewSection
-            onSelectApt={handleSelectApt}
-            onOpenJeonseSafety={handleOpenJeonseSafety}
-            onOpenCompare={_onOpenCompare}
-            recentTransactions={recentTransactions as unknown as import('@/types/stats').RawTransactionRecord[]}
-            macroTrendData={deferredMacroTrendData}
-            txSummaryData={txSummaryData}
-          />
-        </ErrorBoundary>
-
-        {/* In-Feed Responsive AdSlot 1 (Zero-CLS Transition Separator) */}
-        <div className="w-full my-6">
-          <AdSlot
-            slotId="1000000001"
-            format="in-feed"
-            className="w-full"
-          />
-        </div>
-
-        {/* ═══ Daily Real Transactions Section (Wide Layout) ═══ */}
+        {/* ═══ Daily Real Transactions Section (Wide Layout) Immediately Below Top Hero ═══ */}
         <div className="w-full flex flex-col gap-4 mb-6 box-border">
           <ErrorBoundary name="실거래 타임라인">
             <MacroTimelineView
@@ -1706,6 +1662,27 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             />
           </ErrorBoundary>
         </div>
+
+        {/* In-Feed Responsive AdSlot 1 (Zero-CLS Transition Separator) */}
+        <div className="w-full my-6">
+          <AdSlot
+            slotId="1000000001"
+            format="in-feed"
+            className="w-full"
+          />
+        </div>
+
+        {/* ═══ Connected Section: StatsOverviewSection ═══ */}
+        <ErrorBoundary name="동탄 실거래 통계 및 인사이트">
+          <StatsOverviewSection
+            onSelectApt={handleSelectApt}
+            onOpenJeonseSafety={handleOpenJeonseSafety}
+            onOpenCompare={_onOpenCompare}
+            recentTransactions={recentTransactions as unknown as import('@/types/stats').RawTransactionRecord[]}
+            macroTrendData={deferredMacroTrendData}
+            txSummaryData={txSummaryData}
+          />
+        </ErrorBoundary>
 
         {/* AdSense High-CPC Finance Section */}
         <ErrorBoundary name="정책자금 및 전세안전진단">
@@ -1771,15 +1748,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           locationScores={locationScores || EMPTY_OBJECT}
         />
       </ErrorBoundary>
-
-      {/* Retention Care Briefing Popup Modal */}
-      <MacroBriefingModal
-        showBriefingPopup={showBriefingPopup}
-        setShowBriefingPopup={setShowBriefingPopup}
-        mounted={mounted}
-        user={user}
-        handleLogin={handleLogin}
-      />
 
       {/* Mobile Bottom Sheet Modal */}
       <MacroMobileDrawer

@@ -145,19 +145,19 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(rankingBoard).toBeInTheDocument();
 
     // DOM Document Position Verification (Authoritative Vertical Flow)
-    // Donut Hero is preceding StatsOverviewSection
+    // Donut Hero is preceding Timeline Heading (Immediately below hero)
     expect(
-      donutContainer!.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
+      donutContainer!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
-    // StatsOverviewSection is preceding Timeline Heading
+    // Timeline Heading is preceding StatsOverviewSection
     expect(
-      statsSection.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+      timelineHeading.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
-    // Timeline Heading is preceding Finance Section
+    // StatsOverviewSection is preceding Finance Section
     expect(
-      timelineHeading.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
+      statsSection.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
     // Finance Section is preceding Ranking Board

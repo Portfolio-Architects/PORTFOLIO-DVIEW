@@ -266,7 +266,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
   return (
     <div className={`grid grid-cols-2 gap-3 sm:gap-3.5 flex-1 ${className}`}>
       {/* Metric 1: 신고가 달성 */}
-      <div className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
+      <div className="bg-surface border border-border/80 p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">신고가 달성</span>
           <span className="text-[9.5px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md shrink-0">최근 7일</span>
@@ -292,7 +292,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
       </div>
 
       {/* Metric 2: 평당 평균 실거래가 */}
-      <div className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
+      <div className="bg-surface border border-border/80 p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">평당 평균 실거래가</span>
           <span className="text-[9.5px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-2 py-0.5 rounded-md shrink-0">동탄 전체</span>
@@ -308,7 +308,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
       </div>
 
       {/* Metric 3: 평균 전세가율 */}
-      <div className="bg-surface border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
+      <div className="bg-surface border border-border/80 p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">평균 전세가율</span>
           <span className="text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/50 dark:border-emerald-900/50 shrink-0">안정권</span>
@@ -330,7 +330,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         type="button"
         onClick={() => onOpenSellTimingCalculator && onOpenSellTimingCalculator()}
         aria-label="우리집 적정 가치 및 매도 타이밍 진단 계산기 열기"
-        className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 p-3 sm:p-3.5 md:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] active:scale-[0.99] hover:border-[#ea6100] transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#ea6100]/20 group"
+        className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 p-3.5 sm:p-4 rounded-[18px] sm:rounded-[20px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] active:scale-[0.99] hover:border-[#ea6100] transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#ea6100]/20 group"
       >
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[11px] sm:text-[11.5px] text-tertiary font-bold leading-tight">자산 진단 시뮬레이터</span>

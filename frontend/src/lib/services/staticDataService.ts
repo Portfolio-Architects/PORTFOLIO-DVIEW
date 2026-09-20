@@ -503,6 +503,8 @@ export const staticDataService = {
     signal?: AbortSignal
   ): Promise<RecentTransaction[]> {
     const periodFileMap: Record<TimelinePeriod, string> = {
+      '7d': `/data/recent-transactions.json?v=${buildVersion}`,
+      '30d': `/data/recent-transactions.json?v=${buildVersion}`,
       '90d': `/data/recent-transactions.json?v=${buildVersion}`,
       '1y': `/data/transactions-1y.json?v=${buildVersion}`,
       '3y': `/data/transactions-3y.json?v=${buildVersion}`,

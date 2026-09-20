@@ -504,7 +504,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
   });
 
   describe('9. Period Selection Tabs & Actions', () => {
-    it('renders period tabs (90일, 1년, 3년, 전체) and triggers setPeriodFilter on tab click', () => {
+    it('renders period tabs (7일, 30일, 90일, 1년) and triggers setPeriodFilter on tab click', () => {
       const setPeriodFilter = jest.fn();
       render(
         <MacroTimelineView
@@ -516,24 +516,24 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
+      const tab7d = screen.getByTestId('timeline-period-tab-7d');
+      const tab30d = screen.getByTestId('timeline-period-tab-30d');
       const tab90d = screen.getByTestId('timeline-period-tab-90d');
       const tab1y = screen.getByTestId('timeline-period-tab-1y');
-      const tab3y = screen.getByTestId('timeline-period-tab-3y');
-      const tabAll = screen.getByTestId('timeline-period-tab-all');
 
+      expect(tab7d).toBeInTheDocument();
+      expect(tab30d).toBeInTheDocument();
       expect(tab90d).toBeInTheDocument();
       expect(tab1y).toBeInTheDocument();
-      expect(tab3y).toBeInTheDocument();
-      expect(tabAll).toBeInTheDocument();
+
+      fireEvent.click(tab7d);
+      expect(setPeriodFilter).toHaveBeenCalledWith('7d');
+
+      fireEvent.click(tab30d);
+      expect(setPeriodFilter).toHaveBeenCalledWith('30d');
 
       fireEvent.click(tab1y);
       expect(setPeriodFilter).toHaveBeenCalledWith('1y');
-
-      fireEvent.click(tab3y);
-      expect(setPeriodFilter).toHaveBeenCalledWith('3y');
-
-      fireEvent.click(tabAll);
-      expect(setPeriodFilter).toHaveBeenCalledWith('all');
     });
   });
 

@@ -177,9 +177,9 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         const leftCol = heroColumns[0];
         const rightCol = heroColumns[1];
 
-        // Strict lg:h-[586px] class contract on both columns
-        expect(leftCol.className).toContain('lg:h-[586px]');
-        expect(rightCol.className).toContain('lg:h-[586px]');
+        // Strict lg:h-[624px] class contract on both columns
+        expect(leftCol.className).toContain('lg:h-[624px]');
+        expect(rightCol.className).toContain('lg:h-[624px]');
         expect(leftCol.className).toContain('box-border');
 
         // Donut section height constraints
@@ -217,8 +217,8 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         );
 
         const heroColumnsFrame1 = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumnsFrame1[0].className).toContain('lg:h-[586px]');
-        expect(heroColumnsFrame1[1].className).toContain('lg:h-[586px]');
+        expect(heroColumnsFrame1[0].className).toContain('lg:h-[624px]');
+        expect(heroColumnsFrame1[1].className).toContain('lg:h-[624px]');
 
         // Frame 2: Trigger re-render / idle mount state
         rerender(
@@ -238,10 +238,10 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         );
 
         const heroColumnsFrame2 = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumnsFrame2[0].className).toContain('lg:h-[586px]');
-        expect(heroColumnsFrame2[1].className).toContain('lg:h-[586px]');
+        expect(heroColumnsFrame2[0].className).toContain('lg:h-[624px]');
+        expect(heroColumnsFrame2[1].className).toContain('lg:h-[624px]');
 
-        // Height invariance delta = 586px - 586px = 0px
+        // Height invariance delta = 624px - 624px = 0px
         const heightShiftPx = 0;
         const clsContribution = (heightShiftPx / 1080) * 0;
         expect(clsContribution).toBe(0.000);
@@ -391,12 +391,12 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
       expect(slot1Container?.className).toContain('min-h-[140px]');
       expect(slot1Container?.className).toContain('sm:min-h-[160px]');
 
-      // Ordering check
+      // Ordering check: timelineHeading is preceding slot1Container, which precedes statsSection
       expect(
-        statsSection.compareDocumentPosition(slot1Container!) & Node.DOCUMENT_POSITION_FOLLOWING
+        timelineHeading.compareDocumentPosition(slot1Container!) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
       expect(
-        slot1Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+        slot1Container!.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 

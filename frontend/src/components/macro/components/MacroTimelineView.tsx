@@ -475,11 +475,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 {effectiveTotalCount}건
               </span>
 
-              {/* Quick Period Selector (90d / 1y / 3y / all) */}
+              {/* Quick Period Selector (7d / 30d / 90d / 1y) */}
               {setPeriodFilter && (
                 <div className="flex bg-zinc-100 dark:bg-zinc-800 p-0.5 rounded-xl shrink-0 border border-border/50 ml-1">
-                  {(['90d', '1y', '3y', 'all'] as const).map((p) => {
-                    const labelMap = { '90d': '90일', '1y': '1년', '3y': '3년', 'all': '전체' };
+                  {(['7d', '30d', '90d', '1y'] as const).map((p) => {
+                    const labelMap = { '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
                     const isSelected = periodFilter === p;
                     return (
                       <button

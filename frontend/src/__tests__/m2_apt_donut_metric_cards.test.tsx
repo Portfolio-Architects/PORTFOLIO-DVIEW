@@ -42,8 +42,8 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
       aptName: '동탄역 롯데캐슬',
       txKey: '동탄역롯데캐슬',
       contractDate: '20260818',
-      priceVal: 16.5,
-      priceEok: '16억 5,000만',
+      priceVal: 14.8,
+      priceEok: '14억 8,000만',
       area: 84.9,
       areaPyeong: 34.2,
       floor: 25,
@@ -110,7 +110,6 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
           recentTransactions={mockTransactions}
           txSummaryData={mockSummary as any}
           onSelectApt={mockOnSelectApt}
-          initialMode="energy"
         />
         <AptMetricCards
           recentTransactions={mockTransactions}
@@ -121,11 +120,11 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
     );
 
     // Donut Section Verification
-    expect(screen.getByText('실거래 시장 체감 온도')).toBeInTheDocument();
-    expect(screen.getByText('신고가')).toBeInTheDocument();
-    expect(screen.getByText('상승거래')).toBeInTheDocument();
-    expect(screen.getByText('보합')).toBeInTheDocument();
-    expect(screen.getByText('하락거래')).toBeInTheDocument();
+    expect(screen.getByText('실거래 가격대별 수요 분포')).toBeInTheDocument();
+    expect(screen.getByText('6억 이하')).toBeInTheDocument();
+    expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
+    expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();
+    expect(screen.getByText('15억 초과')).toBeInTheDocument();
 
     // Metric Cards Verification
     expect(screen.getByText('신고가 달성')).toBeInTheDocument();
@@ -144,7 +143,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
       aptName: `단지_${i % 20}`,
       txKey: `단지_${i % 20}`,
       contractDate: '20260818',
-      priceVal: 10 + (i % 10),
+      priceVal: 7 + (i % 2),
       areaPyeong: 34,
       isNewHigh: i % 10 === 0, // 120 new highs
       delta: (i % 3 === 0 ? 0.5 : (i % 3 === 1 ? -0.5 : 0)),
@@ -155,7 +154,6 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
         <AptDonutSection
           mounted={true}
           recentTransactions={largeDataset}
-          initialMode="energy"
         />
         <AptMetricCards
           recentTransactions={largeDataset}
@@ -163,8 +161,9 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
       </div>
     );
 
-    // 120 new highs present in both Donut breakdown and Metric card
-    expect(screen.getAllByText('120건').length).toBeGreaterThanOrEqual(2);
+    // 1200 transactions in Donut breakdown and 120 new highs in Metric card
+    expect(screen.getAllByText(/\(?1,200건\)?/).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/\(?120건\)?/)).toBeInTheDocument();
   });
 
   it('connects donut category selection to 4 representative transaction cards in AptMetricCards', () => {
@@ -205,18 +204,18 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
     expect(screen.getByText('평당 평균 실거래가')).toBeInTheDocument();
     expect(screen.getByText('우리집 적정 가치 & 매도 타이밍')).toBeInTheDocument();
 
-    // Click '국민평형 (30평대)' donut card
-    const mediumCard = screen.getByLabelText(/국민평형 \(30평대\) 4건.*하단 대표 실거래 4건 확인/i);
-    fireEvent.click(mediumCard);
+    // Click '9억 ~ 15억' donut card
+    const tierCard = screen.getByLabelText(/9억 ~ 15억 4건.*하단 대표 실거래 4건 확인/i);
+    fireEvent.click(tierCard);
 
     // AptMetricCards dynamically transforms into representative transaction cards without extra header
     expect(screen.queryByText(/대표 실거래/)).not.toBeInTheDocument();
     expect(screen.getByText('#1')).toBeInTheDocument();
     expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
-    expect(screen.getByText('16억 5,000만')).toBeInTheDocument();
+    expect(screen.getByText('14억 8,000만')).toBeInTheDocument();
 
     // Clicking the representative transaction card opens the apartment modal
-    const repCard = screen.getByLabelText(/동탄역 롯데캐슬 16억 5,000만 실거래 상세 리포트 열기/i);
+    const repCard = screen.getByLabelText(/동탄역 롯데캐슬 14억 8,000만 실거래 상세 리포트 열기/i);
     fireEvent.click(repCard);
     expect(mockOnSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
 
@@ -227,4 +226,3 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
     expect(screen.getByText('우리집 적정 가치 & 매도 타이밍')).toBeInTheDocument();
   });
 });
-

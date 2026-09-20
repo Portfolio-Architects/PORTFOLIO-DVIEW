@@ -211,17 +211,43 @@ export function useLocationScores(fallbackData?: Record<string, LocationScoreIte
   };
 }
 
+function filterTransactionsByDays(txs: RecentTransaction[], days: number): RecentTransaction[] {
+  if (!Array.isArray(txs) || txs.length === 0) return [];
+  let maxDateStr = '';
+  for (let i = 0; i < txs.length; i++) {
+    const cd = String(txs[i]?.contractDate || txs[i]?.date || '');
+    const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+    if (clean > maxDateStr) maxDateStr = clean;
+  }
+  if (maxDateStr.length < 8) return txs;
+
+  const y = parseInt(maxDateStr.slice(0, 4), 10);
+  const m = parseInt(maxDateStr.slice(4, 6), 10) - 1;
+  const d = parseInt(maxDateStr.slice(6, 8), 10);
+  const cutoffD = new Date(y, m, d - days);
+  const cutoffNum = cutoffD.getFullYear() * 10000 + (cutoffD.getMonth() + 1) * 100 + cutoffD.getDate();
+
+  return txs.filter((tx) => {
+    const cd = String(tx?.contractDate || tx?.date || '');
+    const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+    if (clean.length < 8) return true;
+    return parseInt(clean, 10) >= cutoffNum;
+  });
+}
+
 /**
- * On-demand SWR static fetcher for period chunks (90d, 1y, 3y, all) with CDN caching and zero Firestore reads.
+ * On-demand SWR static fetcher for period chunks (7d, 30d, 90d, 1y, 3y, all) with CDN caching and zero Firestore reads.
  */
 export function usePeriodTransactions(
   period: TimelinePeriod = '90d',
   fallbackRecentTransactions?: RecentTransaction[]
 ) {
   const isBrowser = typeof window !== 'undefined';
-  const isDefault90d = period === '90d';
+  const isRecentBased = period === '90d' || period === '7d' || period === '30d';
 
   const periodPathMap: Record<TimelinePeriod, string> = {
+    '7d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
+    '30d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
     '90d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
     '1y': `/data/transactions-1y.json?v=${BUILD_VERSION}`,
     '3y': `/data/transactions-3y.json?v=${BUILD_VERSION}`,
@@ -234,7 +260,7 @@ export function usePeriodTransactions(
     url,
     staticJsonFetcher,
     {
-      fallbackData: isDefault90d ? fallbackRecentTransactions : undefined,
+      fallbackData: isRecentBased ? fallbackRecentTransactions : undefined,
       revalidateOnFocus: false,
       revalidateIfStale: false,
       revalidateOnReconnect: false,
@@ -243,12 +269,25 @@ export function usePeriodTransactions(
   );
 
   const transactions = useMemo(() => {
+    let list: RecentTransaction[] = [];
     if (!rawData) {
-      if (isDefault90d && fallbackRecentTransactions) return fallbackRecentTransactions;
-      return [];
+      if (isRecentBased && fallbackRecentTransactions) {
+        list = fallbackRecentTransactions;
+      } else {
+        return [];
+      }
+    } else {
+      list = parsePeriodTransactions(rawData);
     }
-    return parsePeriodTransactions(rawData);
-  }, [rawData, isDefault90d, fallbackRecentTransactions]);
+
+    if (period === '7d') {
+      return filterTransactionsByDays(list, 7);
+    }
+    if (period === '30d') {
+      return filterTransactionsByDays(list, 30);
+    }
+    return list;
+  }, [rawData, isRecentBased, fallbackRecentTransactions, period]);
 
   return {
     transactions,

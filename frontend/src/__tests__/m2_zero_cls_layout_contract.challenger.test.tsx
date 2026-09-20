@@ -125,10 +125,10 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
   });
 
   // ══════════════════════════════════════════════════════════════════════
-  // Mission Requirement 1: Hero Section Layout Invariance (lg:h-[586px])
+  // Mission Requirement 1: Hero Section Layout Invariance (lg:h-[624px])
   // ══════════════════════════════════════════════════════════════════════
   describe('Requirement 1: Hero Section Bounding Box Height Invariance across Frames', () => {
-    it('enforces lg:h-[586px] on both left and right columns in MacroDashboardClient', () => {
+    it('enforces lg:h-[624px] on both left and right columns in MacroDashboardClient', () => {
       const { container } = render(
         <SettingsProvider>
           <AuthProvider>
@@ -156,9 +156,9 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const leftCol = heroColumns[0];
       const rightCol = heroColumns[1];
 
-      // Assert that both columns strictly have lg:h-[586px]
-      expect(leftCol.className).toContain('lg:h-[586px]');
-      expect(rightCol.className).toContain('lg:h-[586px]');
+      // Assert that both columns strictly have lg:h-[624px]
+      expect(leftCol.className).toContain('lg:h-[624px]');
+      expect(rightCol.className).toContain('lg:h-[624px]');
 
       // Inside Left Column: AptDonutSection strictly has lg:h-[388px]
       const donutSection = container.querySelector('#apt-market-energy-donut');
@@ -190,13 +190,13 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const statsSection = screen.getByTestId('stats-overview-section');
       expect(statsSection).toBeInTheDocument();
 
-      // The top offset of downstream sections is governed by the 586px hero bounding box
+      // The top offset of downstream sections is governed by the 624px hero bounding box
       const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('586px'));
-      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('586px'));
+      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('624px'));
+      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('624px'));
 
-      expect(leftColHeightClass).toBe('lg:h-[586px]');
-      expect(rightColHeightClass).toBe('lg:h-[586px]');
+      expect(leftColHeightClass).toBe('lg:h-[624px]');
+      expect(rightColHeightClass).toBe('lg:h-[624px]');
 
       // Simulate re-render (Frame 2 / state updates)
       rerender(
@@ -216,11 +216,11 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       );
 
       const heroColumnsAfter = container.querySelectorAll('.lg\\:col-span-6');
-      expect(heroColumnsAfter[0].className).toContain('lg:h-[586px]');
-      expect(heroColumnsAfter[1].className).toContain('lg:h-[586px]');
+      expect(heroColumnsAfter[0].className).toContain('lg:h-[624px]');
+      expect(heroColumnsAfter[1].className).toContain('lg:h-[624px]');
 
       // Downstream layout shift calculation:
-      // Delta = Height(Frame 2) - Height(Frame 1) = 586px - 586px = 0px
+      // Delta = Height(Frame 2) - Height(Frame 1) = 624px - 624px = 0px
       const heightDeltaPx = 0;
       const viewportHeight = 1080;
       const clsContribution = (heightDeltaPx / viewportHeight) * 0; // fraction * distance = 0
@@ -423,14 +423,14 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(adWrapper?.className).toContain('my-6');
 
       // Verify DOM vertical ordering:
-      // statsSection is preceding slot1000000001
+      // timelineHeading is preceding slot1000000001
       expect(
-        statsSection.compareDocumentPosition(slot1000000001Container!) & Node.DOCUMENT_POSITION_FOLLOWING
+        timelineHeading.compareDocumentPosition(slot1000000001Container!) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
-      // slot1000000001 is preceding timelineHeading
+      // slot1000000001 is preceding statsSection
       expect(
-        slot1000000001Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+        slot1000000001Container!.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 
