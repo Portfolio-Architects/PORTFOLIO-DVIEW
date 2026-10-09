@@ -12,6 +12,8 @@ export interface AdSlotProps {
   className?: string;
   testMode?: boolean; // Force mock rendering for snapshot tests & Storybook
   fallbackType?: 'mbti-promo' | 'dashboard-promo' | 'minimal';
+  minHeightClass?: string;
+  refreshKey?: number | string;
 }
 
 /**
@@ -54,6 +56,8 @@ export function AdSlot({
   className = '',
   testMode = false,
   fallbackType = 'mbti-promo',
+  minHeightClass: propMinHeightClass,
+  refreshKey,
 }: AdSlotProps) {
   const { isAdBlockActive } = useAdBlockDetector();
   const [isAdLoaded, setIsAdLoaded] = useState(false);
@@ -64,7 +68,7 @@ export function AdSlot({
   const isDev = process.env.NODE_ENV === 'development';
   const isPlaceholder = Boolean(testMode || !clientId || (isDev && !testMode));
 
-  const minHeightClass = getAdSlotMinHeightClass(format);
+  const minHeightClass = propMinHeightClass || getAdSlotMinHeightClass(format);
 
   const defaultSlotId =
     (format === 'in-feed'
@@ -77,7 +81,16 @@ export function AdSlot({
 
   const effectiveSlotId = slotId || defaultSlotId;
 
-  // Next.js SPA router double-push safety
+  // Next.js SPA router double-push safety and refreshKey tracking
+  const prevRefreshKeyRef = useRef(refreshKey);
+  useEffect(() => {
+    if (prevRefreshKeyRef.current !== refreshKey) {
+      prevRefreshKeyRef.current = refreshKey;
+      isPushedRef.current = false;
+      setIsAdLoaded(false);
+    }
+  }, [refreshKey]);
+
   useEffect(() => {
     if (isPushedRef.current) return;
     if (typeof window === 'undefined' || !clientId) return;
@@ -102,7 +115,7 @@ export function AdSlot({
     } catch (err) {
       logger.warn('AdSlot', 'AdSense push warning', undefined, err as Error);
     }
-  }, [clientId, isAdBlockActive, isPlaceholder]);
+  }, [clientId, isAdBlockActive, isPlaceholder, refreshKey]);
 
   // Observe ad load status to gracefully dismiss skeleton
   useEffect(() => {
@@ -126,12 +139,14 @@ export function AdSlot({
       });
       return () => observer.disconnect();
     }
-  }, [isPlaceholder, isAdBlockActive]);
+  }, [isPlaceholder, isAdBlockActive, refreshKey]);
 
   return (
     <div
+      key={refreshKey !== undefined ? String(refreshKey) : undefined}
       data-testid="ad-slot-container"
       data-slot-format={format}
+      data-refresh-key={refreshKey}
       className={`w-full relative overflow-hidden flex flex-col justify-center items-center transition-all ${minHeightClass} ${className}`}
     >
       {/* 1. AdBlock Fallback Card */}

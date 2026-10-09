@@ -51,6 +51,14 @@ interface Window {
   cancelIdleCallback?: (id: number) => void;
   gc?: () => void;
   adsbygoogle?: Array<Record<string, unknown>> | { push?: (...args: unknown[]) => void } | unknown[];
+  googletag?: {
+    cmd?: Array<() => void>;
+    pubads?: () => {
+      refresh?: (slots?: unknown[]) => void;
+      [key: string]: unknown;
+    };
+    [key: string]: unknown;
+  };
   __E2E_MOCK_AUTH__?: boolean;
   SyncManager?: unknown;
 }

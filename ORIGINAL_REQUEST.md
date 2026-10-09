@@ -634,3 +634,42 @@ Integrity mode: development
 - [ ] `npm test`의 핵심 컴포넌트 및 통계 엔진 단위 테스트가 100% 통과한다.
 - [ ] `npx tsc --noEmit` 실행 시 TypeScript 컴파일 에러가 0건이어야 한다.
 - [ ] `npm run build` 프로덕션 빌드가 성공(Exit code 0)해야 한다.
+
+
+## 2026-10-09T02:22:52Z
+
+전체 다중 에이전트 팀 구성 (R1~R4 분할 병렬 구현 및 상호 검증).
+
+메인 대시보드 히어로 2열 레이아웃(좌: 도넛 lg:h-[388px] + 4개 KPI 카드, 우: 시계열 차트 lg:h-[624px])의 1:1 대칭 지오메트리를 영구 보존하면서, 표본평균(μ), Bessel 보정 ±2SD 통계 신뢰구간 밴드, 다중 타임프레임 토글(3M/1Y/3Y/ALL), Recharts 다이아몬드 버텍스를 MacroTrendChart에 통합하고 AdSense Slot 1000000001의 CLS < 0.001 바운딩 박스를 확립.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend
+Integrity mode: development
+
+## Requirements
+
+### R1. 수리 통계 모듈 구현 (frontend/src/lib/analytics/twoSigmaEngine.ts)
+표본 크기 N >= 2 시 표본평균 μ = sum(x)/N 및 Bessel 보정 분산 s^2 = sum(x - μ)^2 / (N - 1) 산출.
+상한선 upper2SD = μ + 2*s, 하한선 lower2SD = max(0, μ - 2*s) 도출.
+N < 2 시 { isValid: false, mean: null, sd: null, upper2SD: null, lower2SD: null } 반환.
+
+### R2. Recharts 시각화 통합 (frontend/src/components/macro/MacroTrendChart.tsx)
+차트 최외곽 컨테이너의 lg:h-[624px] 및 내부 flex-1 min-h-[460px] 레이아웃 불변식 유지.
+Recharts ReferenceArea: y1=lower2SD, y2=upper2SD, fill="var(--brand-primary)", fillOpacity=0.06 적용.
+Recharts ReferenceLine: +2SD(strokeDasharray="3 3"), Mean(strokeDasharray="5 5"), -2SD(strokeDasharray="3 3") 3개 기준선 투영.
+라인 타입: type="linear" 선형 보간 적용.
+버텍스 렌더링: <polygon points="..." /> 기반 다이아몬드 버텍스 (기본 r=3.6, 호버 r=6.0) 렌더링.
+
+### R3. 타임프레임 토글 컨트롤러 연동 (frontend/src/components/macro/MacroTimeframeToggle.tsx)
+3M(최근 90일), 1Y(최근 365일), 3Y(최근 3년), ALL(전체) 필터링 버튼 구현.
+토글 전환 시 상위 컨테이너 높이 변위 ΔH = 0px 보장.
+
+### R4. AdSense Slot 1000000001 바운딩 박스 검증 (frontend/src/components/ads/AdSlot.tsx)
+format="in-feed" 대상 min-h-[140px] sm:min-h-[160px] 및 my-6 여백 유지.
+로딩 중 absolute inset-0 펄스 스켈레톤 유지 및 애드블록 활성화 시 1:1 대체 카드 렌더링 검증.
+
+## Acceptance Criteria
+
+### Test & Layout Verification
+- [ ] npm test -- src/__tests__/m2_zero_cls_layout_contract.challenger.test.tsx 실행 시 Pass (Exit Code 0)
+- [ ] 데스크톱 1024px, 1280px, 1920px 뷰포트에서 좌우 컬럼 높이 편차 ΔH = 0px
+- [ ] npx tsc --noEmit 실행 시 타입 에러 0건

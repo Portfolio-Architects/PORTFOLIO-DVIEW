@@ -6,10 +6,17 @@ import {
   YAxis,
   Tooltip as RechartsTooltip,
   CartesianGrid,
+  ReferenceArea,
+  ReferenceLine,
 } from "recharts";
 import type { DongtanMacroTrendPoint } from "@/lib/types/transaction";
 import { processMacroTrendData, formatXAxisTick } from "@/lib/utils/macroChartTransform";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
+import { calculateTwoSigma, type TwoSigmaStats } from "@/lib/analytics/twoSigmaEngine";
+
+const SafeReferenceArea = ReferenceArea as React.ComponentType<
+  React.ComponentProps<typeof ReferenceArea> & { isFront?: boolean }
+>;
 
 interface TooltipPayloadEntry {
   dataKey?: string | number;
@@ -108,6 +115,61 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   return null;
 };
 
+export interface DiamondVertexProps {
+  cx?: number;
+  cy?: number;
+  radius?: number | string;
+  r?: number | string;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number | string;
+  className?: string;
+  payload?: unknown;
+  value?: unknown;
+  index?: number;
+}
+
+/**
+ * Diamond vertex component rendering SVG polygon.
+ * Points formula: `${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}`
+ * - Standard radius: r = 3.6
+ * - Active/Hover radius: r = 6.0
+ */
+export const DiamondVertex = React.memo(function DiamondVertex({
+  cx,
+  cy,
+  radius = 3.6,
+  r,
+  fill = "#ea6100",
+  stroke = "#ffffff",
+  strokeWidth = 1.5,
+  className,
+}: DiamondVertexProps) {
+  if (
+    typeof cx !== "number" ||
+    typeof cy !== "number" ||
+    !Number.isFinite(cx) ||
+    !Number.isFinite(cy)
+  ) {
+    return null;
+  }
+
+  const effectiveRadius = Number(radius !== undefined ? radius : (r !== undefined ? r : 3.6));
+  const points = `${cx},${cy - effectiveRadius} ${cx + effectiveRadius},${cy} ${cx},${cy + effectiveRadius} ${cx - effectiveRadius},${cy}`;
+
+  return (
+    <polygon
+      points={points}
+      fill={fill}
+      stroke={stroke}
+      strokeWidth={strokeWidth}
+      className={className}
+    />
+  );
+});
+
+DiamondVertex.displayName = "DiamondVertex";
+
 export interface MacroTrendChartProps {
   lineData: Array<{
     name: string;
@@ -118,6 +180,7 @@ export interface MacroTrendChartProps {
   yTicks: number[];
   timeframe: string;
   isBottomSheet?: boolean;
+  className?: string;
 }
 
 // Custom ResizeObserver hook with 150ms debouncing to prevent layout thrashing
@@ -205,6 +268,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
   yTicks,
   timeframe,
   isBottomSheet = false,
+  className,
 }: MacroTrendChartProps) {
   const [refCallback, size] = useResizeObserver(150);
   const [isTooltipActive, setIsTooltipActive] = useState(false);
@@ -227,6 +291,21 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
     return processMacroTrendData(lineData);
   }, [lineData]);
 
+  // Two-sigma statistical confidence interval bounds
+  const twoSigmaStats = useMemo<TwoSigmaStats>(() => {
+    const saleValues = processedData.map((d) => d["동탄 아파트 전체"]);
+    const saleStats = calculateTwoSigma(saleValues);
+    if (saleStats.isValid) {
+      return saleStats;
+    }
+    const rentValues = processedData.map((d) => d["동탄 아파트 전세 평균"]);
+    const rentStats = calculateTwoSigma(rentValues);
+    if (rentStats.isValid) {
+      return rentStats;
+    }
+    return saleStats;
+  }, [processedData]);
+
   const tooltipCursorStyle = useMemo(() => ({
     stroke: "rgba(148, 163, 184, 0.4)",
     strokeWidth: 1.5,
@@ -247,33 +326,81 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 
   const saleDotProp = useMemo(() => {
     if (nonNullSaleCount === 1) {
-      return { r: isBottomSheet ? 3.5 : 4.5, strokeWidth: 2, fill: "#ffffff", stroke: "#ea6100" };
+      return (dotProps: { cx?: number; cy?: number }) => (
+        <DiamondVertex
+          cx={dotProps.cx}
+          cy={dotProps.cy}
+          radius={3.6}
+          fill="#ea6100"
+          stroke="#ffffff"
+          strokeWidth={1.5}
+        />
+      );
     }
     if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
-    return { r: 3.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#ea6100" };
+    return (dotProps: { cx?: number; cy?: number }) => (
+      <DiamondVertex
+        cx={dotProps.cx}
+        cy={dotProps.cy}
+        radius={3.6}
+        fill="#ea6100"
+        stroke="#ffffff"
+        strokeWidth={1.5}
+      />
+    );
   }, [isBottomSheet, timeframe, nonNullSaleCount]);
 
-  const saleActiveDotProp = useMemo(() => ({
-    r: isBottomSheet ? 4.5 : 5.5,
-    strokeWidth: isBottomSheet ? 1.5 : 2,
-    stroke: "#ffffff",
-    fill: "#ea6100"
-  }), [isBottomSheet]);
+  const saleActiveDotProp = useMemo(() => {
+    return (dotProps: { cx?: number; cy?: number }) => (
+      <DiamondVertex
+        cx={dotProps.cx}
+        cy={dotProps.cy}
+        radius={6.0}
+        fill="#ea6100"
+        stroke="#ffffff"
+        strokeWidth={2}
+      />
+    );
+  }, []);
 
   const rentDotProp = useMemo(() => {
     if (nonNullRentCount === 1) {
-      return { r: isBottomSheet ? 2.5 : 3.5, strokeWidth: 2, fill: "#ffffff", stroke: "#f9a825" };
+      return (dotProps: { cx?: number; cy?: number }) => (
+        <DiamondVertex
+          cx={dotProps.cx}
+          cy={dotProps.cy}
+          radius={3.6}
+          fill="#f9a825"
+          stroke="#ffffff"
+          strokeWidth={1.5}
+        />
+      );
     }
     if (isBottomSheet || timeframe === "ALL" || timeframe === "5Y") return false;
-    return { r: 2.5, strokeWidth: 1.5, fill: "#ffffff", stroke: "#f9a825" };
+    return (dotProps: { cx?: number; cy?: number }) => (
+      <DiamondVertex
+        cx={dotProps.cx}
+        cy={dotProps.cy}
+        radius={3.6}
+        fill="#f9a825"
+        stroke="#ffffff"
+        strokeWidth={1.5}
+      />
+    );
   }, [isBottomSheet, timeframe, nonNullRentCount]);
 
-  const rentActiveDotProp = useMemo(() => ({
-    r: isBottomSheet ? 3.5 : 4.5,
-    strokeWidth: isBottomSheet ? 1.5 : 2,
-    stroke: "#ffffff",
-    fill: "#f9a825"
-  }), [isBottomSheet]);
+  const rentActiveDotProp = useMemo(() => {
+    return (dotProps: { cx?: number; cy?: number }) => (
+      <DiamondVertex
+        cx={dotProps.cx}
+        cy={dotProps.cy}
+        radius={6.0}
+        fill="#f9a825"
+        stroke="#ffffff"
+        strokeWidth={2}
+      />
+    );
+  }, []);
 
   const desktopEventHandlers = (isTouchDevice && !isBottomSheet)
     ? {
@@ -293,7 +420,11 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
 
   return (
     <ChartErrorBoundary fallbackText="동탄 매크로 트렌드 차트를 로드할 수 없습니다.">
-      <div ref={refCallback} className="w-full h-full min-h-[330px] touch-pan-y relative overflow-hidden flex items-center justify-center">
+      <div
+        ref={refCallback}
+        data-testid="macro-trend-chart-container"
+        className={`w-full h-full flex-1 ${isBottomSheet ? 'min-h-[220px]' : 'min-h-[330px]'} touch-pan-y relative overflow-hidden flex items-center justify-center ${className || ''}`}
+      >
       <AreaChart
         width={chartW}
         height={chartH}
@@ -344,9 +475,39 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           cursor={tooltipCursorStyle}
           isAnimationActive={false}
         />
+        {twoSigmaStats.isValid && twoSigmaStats.lower2SD !== null && twoSigmaStats.upper2SD !== null && (
+          <SafeReferenceArea
+            y1={twoSigmaStats.lower2SD}
+            y2={twoSigmaStats.upper2SD}
+            fill="var(--brand-primary)"
+            fillOpacity={0.06}
+            isFront={false}
+          />
+        )}
+        {twoSigmaStats.isValid && twoSigmaStats.upper2SD !== null && (
+          <ReferenceLine
+            y={twoSigmaStats.upper2SD}
+            stroke="var(--brand-primary)"
+            strokeDasharray="3 3"
+          />
+        )}
+        {twoSigmaStats.isValid && twoSigmaStats.mean !== null && (
+          <ReferenceLine
+            y={twoSigmaStats.mean}
+            stroke="var(--brand-primary)"
+            strokeDasharray="5 5"
+          />
+        )}
+        {twoSigmaStats.isValid && twoSigmaStats.lower2SD !== null && (
+          <ReferenceLine
+            y={twoSigmaStats.lower2SD}
+            stroke="var(--brand-primary)"
+            strokeDasharray="3 3"
+          />
+        )}
         <Area
           key="동탄 아파트 전체"
-          type="monotone"
+          type="linear"
           name="평균 매매가"
           dataKey="동탄 아파트 전체"
           stroke="#ea6100"
@@ -359,7 +520,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
         />
         <Area
           key="동탄 아파트 전세 평균"
-          type="monotone"
+          type="linear"
           name="평균 전세가"
           dataKey="동탄 아파트 전세 평균"
           stroke="#f9a825"

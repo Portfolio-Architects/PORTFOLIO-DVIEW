@@ -3,7 +3,8 @@
 import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
   X, Camera, Building, Info, Shield, ShieldAlert, ChevronDown, ArrowLeft, Download, Check,
-  Crown, ChevronRight, Calculator, Bell
+  Crown, ChevronRight, Calculator, Bell,
+  Activity, Layers, GraduationCap, TrendingUp, Building2, Globe2, FileText
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
@@ -28,6 +29,8 @@ import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { ApartmentGallery } from '@/components/apartment-modal/ApartmentGallery';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { ApartmentChapterNavBar } from './ApartmentChapterNavBar';
+import { adRefreshManager } from '@/lib/ads/adRefreshManager';
 
 import { useApartmentModalState } from './hooks/useApartmentModalState';
 import { ApartmentModalHeader } from './ApartmentModalHeader';
@@ -425,6 +428,21 @@ const ApartmentModal = React.memo(function ApartmentModal({
   const [filterOutliers, setFilterOutliers] = useState(false);
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
 
+  const [activeChapter, setActiveChapter] = useState('chapter-01-overview');
+  const [ch02AdRefreshKey, setCh02AdRefreshKey] = useState(0);
+  const [ch05AdRefreshKey, setCh05AdRefreshKey] = useState(0);
+  const ch02AdContainerRef = useRef<HTMLDivElement | null>(null);
+  const ch05AdContainerRef = useRef<HTMLDivElement | null>(null);
+
+  const handleSelectChapter = useCallback((chapterId: string) => {
+    setActiveChapter(chapterId);
+    const targetElement = document.getElementById(chapterId);
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    adRefreshManager.onTabSwitch();
+  }, []);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -552,15 +570,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
     setFilterOutliers(prev => !prev);
   }, []);
 
-  const scrollToSection = useCallback((sectionId: string) => {
-    if (!modalRef.current) return;
-    const el = modalRef.current.querySelector(`#${sectionId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveTab(sectionId);
-    }
-  }, [setActiveTab]);
-
   const handleScroll = useCallback(() => {
     if (!modalRef.current) return;
     if (modalRef.current.scrollTop > 400) {
@@ -568,21 +577,57 @@ const ApartmentModal = React.memo(function ApartmentModal({
     } else {
       setShowScrollTop(false);
     }
-    const sections = ['sec-comments', 'sec-summary', 'sec-infra-metrics', 'sec-education', 'sec-valuation', 'sec-jeonse-safety', 'sec-photos'];
-    let current = 'sec-comments';
-    for (const id of sections) {
-      if (id === 'sec-comments') continue;
-      const el = modalRef.current.querySelector(`#${id}`);
-      if (el) {
-        const rect = el.getBoundingClientRect();
-        const containerRect = modalRef.current.getBoundingClientRect();
-        if (rect.top - containerRect.top < 300) {
-          current = id;
+  }, []);
+
+  useEffect(() => {
+    const slotCh02Id = '1000000002_ch02';
+    const slotCh05Id = '1000000002_ch05';
+
+    adRefreshManager.registerSlot(slotCh02Id, {
+      domElement: ch02AdContainerRef.current,
+      onRefreshKeyChange: (nextKey) => setCh02AdRefreshKey(nextKey),
+      onRefresh: (nextKey) => setCh02AdRefreshKey(nextKey),
+    });
+
+    adRefreshManager.registerSlot(slotCh05Id, {
+      domElement: ch05AdContainerRef.current,
+      onRefreshKeyChange: (nextKey) => setCh05AdRefreshKey(nextKey),
+      onRefresh: (nextKey) => setCh05AdRefreshKey(nextKey),
+    });
+
+    let observer: IntersectionObserver | null = null;
+    if (typeof IntersectionObserver !== 'undefined') {
+      const rootEl = inline ? null : (modalRef.current || null);
+      observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.target === ch02AdContainerRef.current) {
+              adRefreshManager.updateIntersection(slotCh02Id, entry.intersectionRatio);
+            } else if (entry.target === ch05AdContainerRef.current) {
+              adRefreshManager.updateIntersection(slotCh05Id, entry.intersectionRatio);
+            }
+          });
+        },
+        {
+          root: rootEl,
+          threshold: [0, 0.25, 0.5, 0.75, 1.0],
         }
+      );
+
+      if (ch02AdContainerRef.current) {
+        observer.observe(ch02AdContainerRef.current);
+      }
+      if (ch05AdContainerRef.current) {
+        observer.observe(ch05AdContainerRef.current);
       }
     }
-    setActiveTab(prev => (prev !== current ? current : prev));
-  }, [setActiveTab]);
+
+    return () => {
+      observer?.disconnect();
+      adRefreshManager.unregisterSlot(slotCh02Id);
+      adRefreshManager.unregisterSlot(slotCh05Id);
+    };
+  }, [inline, isAnimationFinished]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -891,290 +936,442 @@ const ApartmentModal = React.memo(function ApartmentModal({
         onOpenSellTimingCalculator={onOpenSellTimingCalculator}
       />
 
-      <ErrorBoundary name="실거래가 내역 및 시세 차트">
-        <ApartmentModalTransactionsTable
-          inline={inline}
-          isAnimationFinished={isAnimationFinished}
-          isTxLoading={isTxLoading}
-          filteredTransactions={filteredTransactions}
-          typeMap={typeMap}
-          chartType={chartType}
-          setChartType={setChartType}
-          normalizeAptName={normalizeAptName}
-          displayAptName={displayAptName}
-          dong={report.dong || '동탄'}
-          apartmentName={report.apartmentName}
-          txSummary={txSummary}
-          filterOutliers={filterOutliers}
-          handleToggleFilter={handleToggleFilter}
-          areaFilterChips={areaFilterChips}
-          selectedAreaFilter={selectedAreaFilter}
-          setSelectedAreaFilter={setSelectedAreaFilter}
-          loadAllTransactions={loadAllTransactions}
-          renderTransactionTable={renderTransactionTableNode}
-          renderTransactionChart={renderTransactionChartNode}
-          renderTransactionSummaryMetrics={renderTransactionSummaryMetricsNode}
-        />
-      </ErrorBoundary>
+      <ApartmentChapterNavBar
+        activeChapter={activeChapter}
+        onSelectChapter={handleSelectChapter}
+        scrollContainerRef={modalRef}
+      />
 
-      {/* Sticky Section Nav */}
-      <nav className="sticky top-0 z-[60] bg-surface/95 backdrop-blur-md border-b border-border px-4 md:px-8 pt-[16px] md:pt-[20px] pb-0 shadow-sm shadow-[#191f28]/5">
-        <div role="tablist" className="flex gap-6 overflow-x-auto scrollbar-hide [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden w-full relative">
-          {(() => {
-            const tabs = [
-              { id: 'sec-summary', label: '단지 기본정보', show: true },
-              { id: 'sec-infra-metrics', label: '단지 입지정보', show: !!report.metrics },
-              { id: 'sec-education', label: '학군/육아 분석', show: !!report.metrics },
-              { id: 'sec-valuation', label: '밸류에이션 분석', show: transactions.length > 0 },
-              { id: 'sec-jeonse-safety', label: '전세 안전 진단', show: transactions.length > 0 },
-              { id: 'sec-photos', label: '우리 단지 갤러리', show: true },
-            ].filter(t => t.show);
-
-            return tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => scrollToSection(tab.id)}
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`relative shrink-0 pb-[16px] md:pb-[20px] text-[14.5px] font-extrabold tracking-wider transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] outline-none ${
-                     isActive ? 'text-primary' : 'text-tertiary hover:text-primary'
-                  }`}
-                >
-                  {tab.label}
-                  {isActive && (
-                    <span className="absolute bottom-0 left-0 w-full h-[3px] bg-primary rounded-t-sm" />
-                  )}
-                </button>
-              );
-            });
-          })()}
-        </div>
-      </nav>
-
-      {/* Magazine Content Wrapper */}
+      {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
       <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
-        {/* 1. Specs Section */}
-        <div id="sec-summary" className="scroll-mt-14 snap-start">
-          <ErrorBoundary name="단지 기본정보">
-            <ApartmentSpecsSection
-              report={report}
+        {/* Chapter 01: 개요 및 실거래 궤적 (Overview & Price) */}
+        <section
+          id="chapter-01-overview"
+          data-testid="chapter-01-overview"
+          className="scroll-mt-14 snap-start w-full"
+        >
+          <ErrorBoundary name="실거래가 내역 및 시세 차트">
+            <ApartmentModalTransactionsTable
               inline={inline}
+              isAnimationFinished={isAnimationFinished}
+              isTxLoading={isTxLoading}
+              filteredTransactions={filteredTransactions}
+              typeMap={typeMap}
+              chartType={chartType}
+              setChartType={setChartType}
+              normalizeAptName={normalizeAptName}
               displayAptName={displayAptName}
+              dong={report.dong || '동탄'}
+              apartmentName={report.apartmentName}
+              txSummary={txSummary}
+              filterOutliers={filterOutliers}
+              handleToggleFilter={handleToggleFilter}
+              areaFilterChips={areaFilterChips}
+              selectedAreaFilter={selectedAreaFilter}
+              setSelectedAreaFilter={setSelectedAreaFilter}
+              loadAllTransactions={loadAllTransactions}
+              renderTransactionTable={renderTransactionTableNode}
+              renderTransactionChart={renderTransactionChartNode}
+              renderTransactionSummaryMetrics={() => null}
             />
           </ErrorBoundary>
+        </section>
+
+        {/* Chapter 02: 거래량 회전율 분석 (Turnover & Volume) */}
+        <section
+          id="chapter-02-volume"
+          data-testid="chapter-02-volume"
+          className="scroll-mt-14 snap-start w-full"
+        >
+          <div className="flex flex-col gap-3 w-full">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
+                <Activity size={20} className="text-[#ea6100]" />
+                거래량 및 회전율 분석
+              </h2>
+              {txSummary && (
+                <span className="text-[12px] sm:text-[13px] font-medium text-tertiary">
+                  최근 3개월 {txSummary.avg3MTxCount || 0}건 거래
+                </span>
+              )}
+            </div>
+            <ErrorBoundary name="거래량 회전율 분석">
+              <TransactionSummaryMetrics 
+                transactions={filteredTransactions} 
+                apartmentName={report.apartmentName}
+                typeMap={typeMap}
+                filterOutliers={filterOutliers}
+                chartType={chartType}
+              />
+            </ErrorBoundary>
+          </div>
+        </section>
+
+        {/* Chapter 02 Native In-Feed AdSense Slot */}
+        <div 
+          data-testid="apartment-ad-slot-ch02"
+          ref={ch02AdContainerRef}
+          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-[20px] border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 flex flex-col justify-center items-center shadow-sm overflow-hidden"
+        >
+          <AdSlot 
+            slotId="1000000002"
+            format="in-feed"
+            minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
+            fallbackType="dashboard-promo"
+            refreshKey={ch02AdRefreshKey}
+          />
         </div>
 
-        {isAnimationFinished ? (
-          <>
-            {/* Location & Infra Section */}
-            <ErrorBoundary name="입지·인프라 분석">
-              <LazyRender estimatedHeight={350}>
-                <InfraAnalysisSection
-                  report={report}
-                  inline={inline}
-                  copiedStatus={copiedStatus}
-                  handleShareSection={handleShareSection}
-                />
-              </LazyRender>
-            </ErrorBoundary>
+        {/* Chapter 03: 전세가율 갭투자 매트릭스 (Jeonse Gap) */}
+        <section
+          id="chapter-03-gap"
+          data-testid="chapter-03-gap"
+          className="scroll-mt-14 snap-start w-full"
+        >
+          <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-5`}>
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
+                <Layers size={20} className="text-[#ea6100]" />
+                전세가율 및 갭투자 매트릭스
+              </h2>
+              {jeonseSafetyData && (
+                <span className="text-[12px] sm:text-[13px] font-semibold text-secondary">
+                  실거래 전세가율 {jeonseSafetyData.ratio.toFixed(1)}%
+                </span>
+              )}
+            </div>
 
-            {/* Education & Childcare Section */}
-            <ErrorBoundary name="학군·육아 분석">
-              <LazyRender estimatedHeight={350}>
-                <EducationAnalysisSection
-                  report={report}
-                  inline={inline}
-                  copiedStatus={copiedStatus}
-                  handleShareSection={handleShareSection}
-                  displayAptName={displayAptName}
-                />
-              </LazyRender>
-            </ErrorBoundary>
-
-            {/* Valuation Analysis Section */}
-            <section id="sec-valuation" className="mb-2 scroll-mt-14 scroll-mb-6 snap-start">
-              <div className="relative w-full">
-                <div>
-                  <ErrorBoundary name="밸류에이션 분석">
-                    <LazyRender estimatedHeight={400}>
-                      <AdvancedValuationMetrics key={report.id || report.apartmentName} report={report} transactions={transactions} />
-                    </LazyRender>
-                  </ErrorBoundary>
-                  <BuyOrWaitVote aptName={report.apartmentName} valuationStatus={valuation.status} valuationAmount={valuation.amount} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+              <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
+                <div className="mt-2 text-right">
+                  <span className="text-[20px] font-black text-toss-blue tabular-nums">
+                    {jeonseSafetyData && jeonseSafetyData.latestPrice > 0 && jeonseSafetyData.latestDeposit > 0
+                      ? `${Math.max(0, Math.round((jeonseSafetyData.latestPrice - jeonseSafetyData.latestDeposit) / 10000))}억`
+                      : '산정 중'}
+                  </span>
+                  <span className="text-[12px] font-bold text-secondary ml-1">필요</span>
                 </div>
               </div>
 
-              {onOpenTaxCalculator && (
-                <div className="mt-4 flex justify-center">
+              <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
+                <div className="mt-2 text-right">
+                  <span className="text-[20px] font-black text-[#ea6100] tabular-nums">
+                    {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '데이터 수집 중'}
+                  </span>
+                  <span className="text-[12px] font-bold text-secondary ml-1">기록</span>
+                </div>
+              </div>
+
+              <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm sm:col-span-2 md:col-span-1">
+                <span className="text-[12px] font-bold text-tertiary">DCF 밸류에이션 판정</span>
+                <div className="mt-2 text-right">
+                  <span className={`text-[18px] font-black tabular-nums ${
+                    valuation.status === 'undervalued' ? 'text-emerald-500' :
+                    valuation.status === 'overvalued' ? 'text-rose-500' : 'text-primary'
+                  }`}>
+                    {valuation.amount}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Chapter 04: 학군 및 하이퍼로컬 인프라 (Schools & Infra) */}
+        <section
+          id="chapter-04-infra"
+          data-testid="chapter-04-infra"
+          className="scroll-mt-14 snap-start w-full flex flex-col gap-8"
+        >
+          {isAnimationFinished ? (
+            <>
+              {/* Location & Infra Section */}
+              <ErrorBoundary name="입지·인프라 분석">
+                <LazyRender estimatedHeight={350}>
+                  <InfraAnalysisSection
+                    report={report}
+                    inline={inline}
+                    copiedStatus={copiedStatus}
+                    handleShareSection={handleShareSection}
+                  />
+                </LazyRender>
+              </ErrorBoundary>
+
+              {/* Education & Childcare Section */}
+              <ErrorBoundary name="학군·육아 분석">
+                <LazyRender estimatedHeight={350}>
+                  <EducationAnalysisSection
+                    report={report}
+                    inline={inline}
+                    copiedStatus={copiedStatus}
+                    handleShareSection={handleShareSection}
+                    displayAptName={displayAptName}
+                  />
+                </LazyRender>
+              </ErrorBoundary>
+            </>
+          ) : (
+            <div className="w-full flex flex-col gap-6">
+              <InfraAnalysisSkeleton />
+              {report.metrics && <EducationAnalysisSkeleton />}
+            </div>
+          )}
+        </section>
+
+        {/* Chapter 05: 주담대 LDI 및 역전세 센티넬 (Mortgage LDI) */}
+        <section
+          id="chapter-05-mortgage"
+          data-testid="chapter-05-mortgage"
+          className="scroll-mt-14 snap-start w-full flex flex-col gap-6"
+        >
+          {isAnimationFinished ? (
+            <>
+              {/* Jeonse Safety Section */}
+              {jeonseSafetyData && (
+                <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}>
+                  <div className="flex flex-col w-full">
+                    <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                      <ShieldAlert size={18} className="text-[#ea6100]"/> 전세 안전성 진단 리포트 & 주담대 LDI
+                    </h2>
+                    <div className="relative w-full">
+                      <div>
+                        <ErrorBoundary name="전세 안전성 진단">
+                          <LazyRender estimatedHeight={300}>
+                            <JeonseSafetyReport
+                              aptName={report.apartmentName}
+                              dong={report.dong || '동탄'}
+                              ratio={jeonseSafetyData.ratio}
+                              latestPrice={jeonseSafetyData.latestPrice}
+                              latestDeposit={jeonseSafetyData.latestDeposit}
+                              volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
+                              householdCount={report.metrics?.householdCount || 0}
+                            />
+                          </LazyRender>
+                        </ErrorBoundary>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Calculators CTA */}
+              <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-full">
+                {onOpenMortgage && (
+                  <button
+                    onClick={() => onOpenMortgage(report.apartmentName)}
+                    onMouseEnter={preloadCalculators}
+                    onFocus={preloadCalculators}
+                    className="w-full sm:w-auto px-5 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                  >
+                    <Calculator size={16} />
+                    <span>주담대 및 DSR 대출 한도 계산하기</span>
+                  </button>
+                )}
+
+                {onOpenTaxCalculator && (
                   <button
                     onClick={() => onOpenTaxCalculator(report.apartmentName)}
                     onMouseEnter={preloadCalculators}
                     onFocus={preloadCalculators}
-                    className="w-full max-w-md py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                    className="w-full sm:w-auto px-5 py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
                   >
                     <Calculator size={16} />
                     <span>나의 예상 취득세 및 복비 계산하기</span>
                   </button>
-                </div>
-              )}
+                )}
 
-              {onOpenSellTimingCalculator && (
-                <div className="mt-3 flex justify-center">
+                {onOpenSellTimingCalculator && (
                   <button
                     onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
                     onMouseEnter={preloadCalculators}
                     onFocus={preloadCalculators}
-                    className="w-full max-w-md py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                    className="w-full sm:w-auto px-5 py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
                   >
                     <Calculator size={16} />
                     <span>지금 팔면 호구일까? AI 매도 진단하기</span>
                   </button>
-                </div>
-              )}
-            </section>
+                )}
+              </div>
+            </>
+          ) : (
+            transactions.length > 0 && <JeonseSafetySkeleton />
+          )}
+        </section>
 
-            {/* Jeonse Safety Section */}
-            {jeonseSafetyData && (
-              <section id="sec-jeonse-safety" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14 snap-start`}>
-                <div className="flex flex-col w-full">
-                  <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                    <Shield size={18} className="text-[#ea6100]"/> 전세 안전성 진단 리포트
-                  </h2>
-                  <div className="relative w-full">
-                    <div>
-                      <ErrorBoundary name="전세 안전성 진단">
-                        <LazyRender estimatedHeight={300}>
-                          <JeonseSafetyReport
-                            aptName={report.apartmentName}
-                            dong={report.dong || '동탄'}
-                            ratio={jeonseSafetyData.ratio}
-                            latestPrice={jeonseSafetyData.latestPrice}
-                            latestDeposit={jeonseSafetyData.latestDeposit}
-                            volume3M={txSummary ? (txSummary.avg1MTxCount || txSummary.avg3MTxCount || 0) : 0}
-                            householdCount={report.metrics?.householdCount || 0}
-                          />
-                        </LazyRender>
-                      </ErrorBoundary>
+        {/* Chapter 05 Native In-Feed AdSense Slot */}
+        <div 
+          data-testid="apartment-ad-slot-ch05"
+          ref={ch05AdContainerRef}
+          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-[20px] border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 flex flex-col justify-center items-center shadow-sm overflow-hidden"
+        >
+          <AdSlot 
+            slotId="1000000002"
+            format="in-feed"
+            minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
+            fallbackType="mbti-promo"
+            refreshKey={ch05AdRefreshKey}
+          />
+        </div>
+
+        {/* Chapter 06: 세대수 및 평형별 거래 대장 (Pyeong Ledger) */}
+        <section
+          id="chapter-06-ledger"
+          data-testid="chapter-06-ledger"
+          className="scroll-mt-14 snap-start w-full"
+        >
+          {isAnimationFinished ? (
+            <ErrorBoundary name="단지 기본정보 및 평형 대장">
+              <ApartmentSpecsSection
+                report={report}
+                inline={inline}
+                displayAptName={displayAptName}
+              />
+            </ErrorBoundary>
+          ) : (
+            <div className="w-full h-32 rounded-[20px] border border-border/40 animate-shimmer mt-4" />
+          )}
+        </section>
+
+        {/* Chapter 07: 거시 체제 및 지역 상관도 (Macro Correlation) */}
+        <section
+          id="chapter-07-macro"
+          data-testid="chapter-07-macro"
+          className="scroll-mt-14 snap-start w-full flex flex-col gap-4"
+        >
+          {isAnimationFinished ? (
+            <div className="relative w-full">
+              <div>
+                <ErrorBoundary name="거시 체제 및 밸류에이션 분석">
+                  <LazyRender estimatedHeight={400}>
+                    <AdvancedValuationMetrics key={report.id || report.apartmentName} report={report} transactions={transactions} />
+                  </LazyRender>
+                </ErrorBoundary>
+                <BuyOrWaitVote aptName={report.apartmentName} valuationStatus={valuation.status} valuationAmount={valuation.amount} />
+              </div>
+            </div>
+          ) : (
+            transactions.length > 0 && <AdvancedValuationSkeleton />
+          )}
+        </section>
+
+        {/* Chapter 08: 단지 종합 평가 리포트 (Executive Monograph) */}
+        <section
+          id="chapter-08-report"
+          data-testid="chapter-08-report"
+          className="scroll-mt-14 snap-start w-full flex flex-col gap-8"
+        >
+          {isAnimationFinished ? (
+            <>
+              {/* Photo Gallery */}
+              {report.images && report.images.length > 0 ? (() => {
+                const IMAGE_TAG_LABELS: Record<string, string> = {
+                  'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
+                  'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
+                };
+                const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
+                return (
+                  <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm overflow-hidden relative`}>
+                    <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
+                      <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setIsUploadModalOpen(true);
+                        }}
+                        className="text-[13px] font-bold text-[#c44d00] dark:text-[#ea6100] bg-[#e6f3f0] dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-[#ccebe3] dark:hover:bg-[#063b2f] transition-colors"
+                      >
+                        + 사진 추가
+                      </button>
                     </div>
+                    <details className="w-full overflow-hidden" open>
+                      <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
+                        <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/>
+                        우리 단지 갤러리
+                      </summary>
+                      <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
+                    </details>
                   </div>
-                </div>
-              </section>
-            )}
-
-            {/* Photo Gallery */}
-            {report.images && report.images.length > 0 ? (() => {
-              const IMAGE_TAG_LABELS: Record<string, string> = {
-                'gateImg': '정문', 'landscapeImg': '조경', 'parkingImg': '주차장',
-                'maintenanceImg': '공용부', 'communityImg': '커뮤니티', 'schoolImg': '통학로', 'commerceImg': '상권',
-              };
-              const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
-              return (
-                <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative snap-start`}>
-                  <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
-                    <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+                );
+              })() : (
+                <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm overflow-hidden relative group`}>
+                  <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
+                    <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/> 우리 단지 갤러리
+                  </h2>
+                  <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border/40 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#c44d00] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
+                    <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">
+                      <Camera className="text-[#c44d00] dark:text-[#ea6100]" size={32} strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
+                      데이터가 담지 못하는 우리 단지의 진정한 가치
+                    </h3>
+                    <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
+                      매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
+                      입주민의 시선으로 <strong className="text-[#c44d00] dark:text-[#ea6100]">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                    </p>
                     <button 
                       onClick={(e) => {
                         e.preventDefault();
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="text-[13px] font-bold text-[#c44d00] dark:text-[#ea6100] bg-[#e6f3f0] dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-[#ccebe3] dark:hover:bg-[#063b2f] transition-colors"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#c44d00] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
                     >
-                      + 사진 추가
+                      <span>우리 단지 첫 번째 앰배서더 되기</span>
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#c44d00] dark:bg-[#ea6100] group-hover:bg-surface animate-pulse" />
                     </button>
+                    <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
+                      * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
+                    </p>
                   </div>
-                  <details className="w-full overflow-hidden" open>
-                    <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                      <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/>
-                      우리 단지 갤러리
-                    </summary>
-                    <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
-                  </details>
-                </section>
-              );
-            })() : (
-              <section id="sec-photos" className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm scroll-mt-14 overflow-hidden relative group snap-start`}>
-                <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                  <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/> 우리 단지 갤러리
-                </h2>
-                <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border/40 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-[#c44d00] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
-                  <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
-                  <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">
-                    <Camera className="text-[#c44d00] dark:text-[#ea6100]" size={32} strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
-                    데이터가 담지 못하는 우리 단지의 진정한 가치
-                  </h3>
-                  <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
-                    매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                    입주민의 시선으로 <strong className="text-[#c44d00] dark:text-[#ea6100]">우리 단지의 품격</strong>을 직접 완성해 주세요.
-                  </p>
-                  <button 
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setIsUploadModalOpen(true);
-                    }}
-                    className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#c44d00] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
-                  >
-                    <span>우리 단지 첫 번째 앰배서더 되기</span>
-                    <span className="w-1.5 h-1.5 rounded-full bg-[#c44d00] dark:bg-[#ea6100] group-hover:bg-surface animate-pulse" />
-                  </button>
-                  <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
-                    * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
-                  </p>
                 </div>
-              </section>
-            )}
+              )}
 
-            <ErrorBoundary name="스카우팅 리포트 상세">
-              <ScoutingReportDetailSection report={report} inline={inline} />
-            </ErrorBoundary>
-
-            {/* AdSense Responsive Slot */}
-            <div className="w-full my-6" data-testid="apartment-modal-ad-slot">
-              <AdSlot format="banner" className="w-full" />
-            </div>
-
-            {/* Kakao Share CTA */}
-            <div className="flex flex-col gap-6 mt-8 mb-4">
-              <button 
-                onClick={handleKakaoShare}
-                disabled={isSharing}
-                className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-[20px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shadow-[0_12px_40px_rgba(0,0,0,0.06)] group border-none text-left disabled:opacity-85"
-              >
-                <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
-                  <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
-                    {isSharing ? '공유 이미지 카드 준비 중...' : '가장 빠른 동탄 소식'}
-                  </span>
-                  <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
-                    {isSharing ? '잠시만 기다려주시면 카카오톡 전송 창이 열립니다' : '이 아파트 분석 리포트 카톡으로 지인에게 공유하기'}
-                  </span>
-                </div>
-                <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
-                  {isSharing ? (
-                    <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
-                      <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
-                    </svg>
-                  )}
-                </div>
-              </button>
-            </div>
-          </>
-        ) : (
-          <div className="w-full flex flex-col gap-10">
-            <InfraAnalysisSkeleton />
-            {report.metrics && <EducationAnalysisSkeleton />}
-            {transactions.length > 0 && <AdvancedValuationSkeleton />}
-            {transactions.length > 0 && <JeonseSafetySkeleton />}
+              {/* Scouting Report Detail */}
+              <ErrorBoundary name="스카우팅 리포트 상세">
+                <ScoutingReportDetailSection report={report} inline={inline} />
+              </ErrorBoundary>
+            </>
+          ) : (
             <ScoutingReportDetailSkeleton />
-          </div>
-        )}
+          )}
+        </section>
+
+        {/* AdSense Responsive Slot */}
+        <div className="w-full my-6" data-testid="apartment-modal-ad-slot">
+          <AdSlot format="banner" className="w-full" />
+        </div>
+
+        {/* Kakao Share CTA */}
+        <div className="flex flex-col gap-6 mt-8 mb-4">
+          <button 
+            onClick={handleKakaoShare}
+            disabled={isSharing}
+            className="w-full bg-[#FEE500] hover:bg-[#FEE500]/90 text-[#3A1D1D] rounded-[20px] p-5 flex flex-col sm:flex-row items-center justify-between gap-4 cursor-pointer transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] shadow-[0_12px_40px_rgba(0,0,0,0.06)] group border-none text-left disabled:opacity-85"
+          >
+            <div className="flex flex-col items-center sm:items-start text-center sm:text-left gap-1">
+              <span className="text-[13px] font-bold opacity-80 uppercase tracking-widest">
+                {isSharing ? '공유 이미지 카드 준비 중...' : '가장 빠른 동탄 소식'}
+              </span>
+              <span className="text-[16px] sm:text-[18px] font-extrabold tracking-tight">
+                {isSharing ? '잠시만 기다려주시면 카카오톡 전송 창이 열립니다' : '이 아파트 분석 리포트 카톡으로 지인에게 공유하기'}
+              </span>
+            </div>
+            <div className="w-12 h-12 bg-white/40 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shrink-0">
+              {isSharing ? (
+                <div className="w-5 h-5 border-2 border-[#3A1D1D] border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6">
+                  <path d="M12 3c-5.523 0-10 3.492-10 7.8 0 2.766 1.83 5.184 4.542 6.446l-1.155 4.225c-.092.336.262.593.553.424l4.908-3.23c1.127.184 2.308.283 3.528.283 5.523 0 10-3.492 10-7.8s-4.477-7.8-10-7.8z" />
+                </svg>
+              )}
+            </div>
+          </button>
+        </div>
       </div>
     </>
   );
