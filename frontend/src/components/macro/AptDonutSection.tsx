@@ -183,7 +183,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   initialPeriod = '90d',
   period: controlledPeriod,
   onPeriodChange,
-  chartSize = 235,
+  chartSize = 260,
   className = '',
 }: AptDonutSectionProps) {
   const [internalMode, setInternalMode] = useState<AptDonutMode>(initialMode);
@@ -675,7 +675,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           {mounted ? (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`relative flex items-center justify-center transition-opacity duration-200 w-[210px] h-[210px] sm:w-[235px] sm:h-[235px] ${
+              className={`relative flex items-center justify-center transition-opacity duration-200 w-[230px] h-[230px] sm:w-[260px] sm:h-[260px] ${
                 isPeriodLoading ? 'opacity-50' : 'opacity-100'
               }`}
             >
@@ -687,7 +687,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       cx="50%"
                       cy="50%"
                       innerRadius="65%"
-                      outerRadius="92%"
+                      outerRadius="94%"
                       dataKey="value"
                       stroke="transparent"
                       isAnimationActive={false}
@@ -702,7 +702,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       minAngle={10}
                       cornerRadius={4}
                       innerRadius="65%"
-                      outerRadius="92%"
+                      outerRadius="94%"
                       paddingAngle={2.5}
                       dataKey="value"
                       onMouseEnter={(data: any, index: number) => {
@@ -788,7 +788,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           ) : (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className="w-[210px] h-[210px] sm:w-[235px] sm:h-[235px] rounded-full border-4 border-dashed border-border animate-pulse"
+              className="w-[230px] h-[230px] sm:w-[260px] sm:h-[260px] rounded-full border-4 border-dashed border-border animate-pulse"
             />
           )}
         </div>

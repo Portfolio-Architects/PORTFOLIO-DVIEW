@@ -311,7 +311,8 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold leading-none">
             상승 거래 비중
-            <span className="sr-only">신고가 달성 {computedNewHighCount}건 전기 대비 +{newHighChange}건 상승세</span>
+            <span className="sr-only">신고가 달성</span>
+            <span className="sr-only">{computedNewHighCount}건 전기 대비 +{newHighChange}건 상승세</span>
           </span>
           <span className="text-[9px] sm:text-[9.5px] font-bold text-[#ea6100] bg-[#ea6100]/10 px-1.5 py-0.5 rounded shrink-0 leading-none">
             {risingMetrics.statusLabel}
