@@ -321,7 +321,11 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                 : `전기 대비 ${newHighChange}건 하락세`}
             </span>
           </span>
-          <span className="text-[9px] sm:text-[9.5px] font-bold text-[#ea6100] bg-[#ea6100]/10 px-1.5 py-0.5 rounded shrink-0 leading-none">
+          <span className={`text-[9px] sm:text-[9.5px] font-bold px-1.5 py-0.5 rounded border shrink-0 leading-none ${
+            risingMetrics.risingRatio >= 50
+              ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-950/40 border-emerald-500/20 dark:border-emerald-800/30'
+              : 'text-blue-700 dark:text-blue-400 bg-blue-500/10 dark:bg-blue-950/40 border-blue-500/20 dark:border-blue-800/30'
+          }`}>
             {risingMetrics.statusLabel}
           </span>
         </div>
@@ -329,18 +333,18 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           <span className="text-[17px] sm:text-[19px] font-black text-primary leading-none tracking-tight">
             {risingMetrics.risingRatio.toFixed(1)}%
           </span>
-          <span className="text-[9px] sm:text-[9.5px] font-bold text-tertiary tabular-nums leading-none">
+          <span className="text-[9px] sm:text-[9.5px] font-medium text-tertiary tabular-nums leading-none">
             상승 {risingMetrics.risingCount.toLocaleString()} · 하락 {risingMetrics.fallingCount.toLocaleString()}
           </span>
         </div>
-        {/* 2색 수평 게이지 바 */}
-        <div className="w-full bg-blue-500/20 dark:bg-blue-950/40 h-1.5 rounded-full overflow-hidden flex mt-1">
+        {/* 슬림 정제형 2색 수평 게이지 바 (h-1) */}
+        <div className="w-full bg-slate-100 dark:bg-zinc-800/80 h-1 rounded-full overflow-hidden flex mt-1.5">
           <div
-            className="h-full bg-[#ea6100] dark:bg-rose-500 rounded-l-full transition-all duration-500"
+            className="h-full bg-[#057e77] dark:bg-emerald-500 rounded-l-full transition-all duration-500"
             style={{ width: `${Math.min(100, Math.max(0, risingMetrics.risingRatio))}%` }}
           />
           <div
-            className="h-full bg-[#3b82f6] dark:bg-blue-400 rounded-r-full transition-all duration-500"
+            className="h-full bg-slate-300 dark:bg-zinc-600 rounded-r-full transition-all duration-500"
             style={{ width: `${Math.min(100, Math.max(0, 100 - risingMetrics.risingRatio))}%` }}
           />
         </div>
@@ -350,27 +354,29 @@ export const AptMetricCards = React.memo(function AptMetricCards({
       <div className="bg-surface border border-border/80 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-[14px] sm:rounded-[16px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold leading-none">평당 평균 실거래가</span>
-          <span className="text-[9px] sm:text-[9.5px] font-bold text-tertiary bg-neutral-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded shrink-0 leading-none">동탄 전체</span>
+          <span className="text-[9px] sm:text-[9.5px] font-bold text-tertiary bg-neutral-100/80 dark:bg-zinc-800/80 border border-neutral-200/80 dark:border-zinc-700/80 px-1.5 py-0.5 rounded shrink-0 leading-none">
+            동탄 전체
+          </span>
         </div>
         <div className="flex items-center justify-between gap-1 mt-auto pt-0.5">
           <div className="flex flex-col gap-0.5">
             <span className="text-[17px] sm:text-[19px] font-black text-primary leading-none tracking-tight">
               {computedAvgPyeongPrice.toLocaleString()}만원
             </span>
-            <span className="text-[8.5px] sm:text-[9px] font-bold text-rose-600 dark:text-rose-400 tabular-nums leading-none">
+            <span className="text-[8.5px] sm:text-[9px] font-semibold text-rose-600 dark:text-rose-400 tabular-nums leading-none">
               전월 대비 ▲2.2% (+59만)
             </span>
           </div>
-          {/* 에메랄드 미니 스파크라인 */}
-          <svg className="w-12 h-5 sm:w-14 sm:h-5 text-emerald-500 shrink-0" viewBox="0 0 56 20" fill="none" aria-hidden="true">
+          {/* 슬림 정제형 미니 스파크라인 (strokeWidth 1.5) */}
+          <svg className="w-11 h-4 sm:w-12 sm:h-4.5 text-rose-500/70 dark:text-rose-400/70 shrink-0" viewBox="0 0 56 20" fill="none" aria-hidden="true">
             <path
               d="M2 15 L12 14 L22 10 L32 12 L42 6 L54 3"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx="54" cy="3" r="2.5" fill="currentColor" />
+            <circle cx="54" cy="3" r="2" fill="currentColor" />
           </svg>
         </div>
       </div>
@@ -379,7 +385,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
       <div className="bg-surface border border-border/80 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-[14px] sm:rounded-[16px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] hover:border-border transition-all duration-200">
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold leading-none">평균 전세가율</span>
-          <span className="text-[9px] sm:text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-emerald-200/50 dark:border-emerald-900/50 shrink-0 leading-none">
+          <span className="text-[9px] sm:text-[9.5px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/50 dark:border-emerald-900/50 px-1.5 py-0.5 rounded shrink-0 leading-none">
             안정권
           </span>
         </div>
@@ -388,20 +394,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
             <span className="text-[17px] sm:text-[19px] font-black text-primary leading-none tracking-tight">
               {computedAvgJeonseRate.toFixed(1)}%
             </span>
-            <span className="text-[8.5px] sm:text-[9px] font-bold text-blue-600 dark:text-blue-400 tabular-nums leading-none">
+            <span className="text-[8.5px] sm:text-[9px] font-semibold text-blue-600 dark:text-blue-400 tabular-nums leading-none">
               3M 대비 ▼4.4%p
             </span>
           </div>
-          {/* 블루 미니 스파크라인 */}
-          <svg className="w-12 h-5 sm:w-14 sm:h-5 text-blue-500 shrink-0" viewBox="0 0 56 20" fill="none" aria-hidden="true">
+          {/* 슬림 정제형 블루 미니 스파크라인 (strokeWidth 1.5) */}
+          <svg className="w-11 h-4 sm:w-12 sm:h-4.5 text-blue-500/70 dark:text-blue-400/70 shrink-0" viewBox="0 0 56 20" fill="none" aria-hidden="true">
             <path
               d="M2 4 L12 6 L22 8 L32 7 L42 12 L54 16"
               stroke="currentColor"
-              strokeWidth="2.2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
             />
-            <circle cx="54" cy="16" r="2.5" fill="currentColor" />
+            <circle cx="54" cy="16" r="2" fill="currentColor" />
           </svg>
         </div>
       </div>
