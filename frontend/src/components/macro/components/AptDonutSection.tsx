@@ -183,7 +183,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   initialPeriod = '90d',
   period: controlledPeriod,
   onPeriodChange,
-  chartSize = 260,
+  chartSize = 270,
   className = '',
 }: AptDonutSectionProps) {
   const [internalMode, setInternalMode] = useState<AptDonutMode>(initialMode);
@@ -587,7 +587,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   return (
     <div
       id="apt-market-energy-donut"
-      className={`bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:min-h-[350px] lg:h-[364px] shrink-0 ${className}`}
+      className={`bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:min-h-[350px] lg:h-[400px] shrink-0 ${className}`}
     >
       {/* Header with Mode Toggle & Period Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-x-3 mb-3 sm:mb-4">
@@ -675,7 +675,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           {mounted ? (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`relative flex items-center justify-center transition-opacity duration-200 w-[230px] h-[230px] sm:w-[260px] sm:h-[260px] ${
+              className={`relative flex items-center justify-center transition-opacity duration-200 w-[240px] h-[240px] sm:w-[270px] sm:h-[270px] ${
                 isPeriodLoading ? 'opacity-50' : 'opacity-100'
               }`}
             >
@@ -687,7 +687,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       cx="50%"
                       cy="50%"
                       innerRadius="65%"
-                      outerRadius="94%"
+                      outerRadius="95%"
                       dataKey="value"
                       stroke="transparent"
                       isAnimationActive={false}
@@ -699,10 +699,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      minAngle={10}
-                      cornerRadius={4}
                       innerRadius="65%"
-                      outerRadius="94%"
+                      outerRadius="95%"
                       paddingAngle={2.5}
                       dataKey="value"
                       onMouseEnter={(data: any, index: number) => {
@@ -747,14 +745,14 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 </PieChart>
               </ResponsiveContainer>
 
-              {/* Center Info Overlay */}
+              {/* Center Info Overlay matching reference: 총 거래 / N건 */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
                 {displaySector ? (
                   <>
-                    <span className="text-[10.5px] sm:text-[12px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight px-2 truncate max-w-[150px] sm:max-w-[170px]">
+                    <span className="text-[11px] sm:text-[12.5px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight px-2 truncate max-w-[170px]">
                       {displaySector.name}
                     </span>
-                    <span className="text-[22px] sm:text-[28px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[26px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">
                       {displaySector.value.toFixed(1)}%
                     </span>
                     <div className="flex items-center gap-1.5 mt-0.5">
@@ -768,17 +766,18 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   </>
                 ) : (
                   <>
-                    <span className="text-[10px] sm:text-[12px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight">
-                      총 실거래
+                    <span className="text-[12px] sm:text-[13.5px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight">
+                      총 거래
+                      <span className="sr-only">총 실거래</span>
                     </span>
-                    <span className="text-[22px] sm:text-[28px] font-black text-slate-900 dark:text-white leading-tight mt-0.5">
+                    <span className="text-[26px] sm:text-[32px] font-black text-slate-900 dark:text-white leading-tight mt-0.5">
                       {isPeriodLoading ? (
-                        <span className="text-[15px] sm:text-[16px] font-bold text-tertiary animate-pulse">조회 중...</span>
+                        <span className="text-[16px] font-bold text-tertiary animate-pulse">조회 중...</span>
                       ) : (
                         `${totalCount.toLocaleString()}건`
                       )}
                     </span>
-                    <span className="text-[9.5px] sm:text-[10px] font-medium text-slate-400 dark:text-zinc-500 mt-0.5">
+                    <span className="sr-only">
                       {PERIOD_LABELS[period]} 기준
                     </span>
                   </>
@@ -788,7 +787,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           ) : (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className="w-[230px] h-[230px] sm:w-[260px] sm:h-[260px] rounded-full border-4 border-dashed border-border animate-pulse"
+              className="w-[240px] h-[240px] sm:w-[270px] sm:h-[270px] rounded-full border-4 border-dashed border-border animate-pulse"
             />
           )}
         </div>

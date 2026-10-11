@@ -112,9 +112,9 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   }, [selectedTimelineApt, trimmedSearch, filteredApts, selectedDong, defaultTimelineApts, dongsData.allApts]);
 
   return (
-    <div className={`w-full flex flex-col gap-4 min-w-0 lg:h-[530px] box-border ${className || ''}`}>
+    <div className={`w-full flex flex-col gap-4 min-w-0 lg:h-[566px] box-border ${className || ''}`}>
       {/* Right Panel: Interactive Market Feed & Trend */}
-      <div className="w-full flex flex-col bg-surface rounded-[20px] sm:rounded-[24px] shadow-sm border border-border/80 p-4 sm:p-5 flex-1 lg:h-[530px] min-h-[420px] min-w-0 box-border justify-between">
+      <div className="w-full flex flex-col bg-surface rounded-[20px] sm:rounded-[24px] shadow-sm border border-border/80 p-4 sm:p-5 flex-1 lg:h-[566px] min-h-[420px] min-w-0 box-border justify-between">
         <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
           {/* Header Row: Title & Action + Timeframe */}
           <div className="flex flex-col gap-3 mb-4 pb-3.5 border-b border-border/40 w-full min-w-0">

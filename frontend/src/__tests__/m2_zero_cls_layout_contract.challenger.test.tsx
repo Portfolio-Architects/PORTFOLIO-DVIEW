@@ -156,14 +156,14 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const leftCol = heroColumns[0];
       const rightCol = heroColumns[1];
 
-      // Assert that both columns strictly have lg:h-[530px]
-      expect(leftCol.className).toContain('lg:h-[530px]');
-      expect(rightCol.className).toContain('lg:h-[530px]');
+      // Assert that both columns strictly have lg:h-[566px]
+      expect(leftCol.className).toContain('lg:h-[566px]');
+      expect(rightCol.className).toContain('lg:h-[566px]');
 
-      // Inside Left Column: AptDonutSection strictly has lg:h-[364px]
+      // Inside Left Column: AptDonutSection strictly has lg:h-[400px]
       const donutSection = container.querySelector('#apt-market-energy-donut');
       expect(donutSection).toBeInTheDocument();
-      expect(donutSection!.className).toContain('lg:h-[364px]');
+      expect(donutSection!.className).toContain('lg:h-[400px]');
 
       // Inside Left Column: AptMetricCards is flex-1 with justify-between
       expect(leftCol.className).toContain('justify-between');
@@ -190,13 +190,13 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const statsSection = screen.getByTestId('stats-overview-section');
       expect(statsSection).toBeInTheDocument();
 
-      // The top offset of downstream sections is governed by the 530px hero bounding box
+      // The top offset of downstream sections is governed by the 566px hero bounding box
       const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('530px'));
-      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('530px'));
+      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('566px'));
+      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('566px'));
 
-      expect(leftColHeightClass).toBe('lg:h-[530px]');
-      expect(rightColHeightClass).toBe('lg:h-[530px]');
+      expect(leftColHeightClass).toBe('lg:h-[566px]');
+      expect(rightColHeightClass).toBe('lg:h-[566px]');
 
       // Simulate re-render (Frame 2 / state updates)
       rerender(
@@ -216,11 +216,11 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       );
 
       const heroColumnsAfter = container.querySelectorAll('.lg\\:col-span-6');
-      expect(heroColumnsAfter[0].className).toContain('lg:h-[530px]');
-      expect(heroColumnsAfter[1].className).toContain('lg:h-[530px]');
+      expect(heroColumnsAfter[0].className).toContain('lg:h-[566px]');
+      expect(heroColumnsAfter[1].className).toContain('lg:h-[566px]');
 
       // Downstream layout shift calculation:
-      // Delta = Height(Frame 2) - Height(Frame 1) = 530px - 530px = 0px
+      // Delta = Height(Frame 2) - Height(Frame 1) = 566px - 566px = 0px
       const heightDeltaPx = 0;
       const viewportHeight = 1080;
       const clsContribution = (heightDeltaPx / viewportHeight) * 0; // fraction * distance = 0
@@ -533,11 +533,11 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
           </div>
         );
 
-        // Hero 2-Column Height Invariant (lg:h-[530px])
+        // Hero 2-Column Height Invariant (lg:h-[566px])
         const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
         expect(heroColumns.length).toBeGreaterThanOrEqual(2);
-        expect(heroColumns[0].className).toContain('lg:h-[530px]');
-        expect(heroColumns[1].className).toContain('lg:h-[530px]');
+        expect(heroColumns[0].className).toContain('lg:h-[566px]');
+        expect(heroColumns[1].className).toContain('lg:h-[566px]');
 
         // AdSense slots 1000000001 & 1000000002 bounding box preservation
         const slot1Text = screen.getByText(/1000000001/);

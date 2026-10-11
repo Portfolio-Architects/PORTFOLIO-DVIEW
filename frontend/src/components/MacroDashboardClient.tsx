@@ -1423,7 +1423,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[530px] justify-between box-border">
+          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] justify-between box-border">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}
@@ -1458,7 +1458,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[530px]">
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[566px]">
             <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
               <MacroChartSection
                 isDefaultAptSettingUp={isDefaultAptSettingUp}
