@@ -177,15 +177,15 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         const leftCol = heroColumns[0];
         const rightCol = heroColumns[1];
 
-        // Strict lg:h-[624px] class contract on both columns
-        expect(leftCol.className).toContain('lg:h-[624px]');
-        expect(rightCol.className).toContain('lg:h-[624px]');
+        // Strict lg:h-[530px] class contract on both columns
+        expect(leftCol.className).toContain('lg:h-[530px]');
+        expect(rightCol.className).toContain('lg:h-[530px]');
         expect(leftCol.className).toContain('box-border');
 
         // Donut section height constraints
         const donut = container.querySelector('#apt-market-energy-donut');
         expect(donut).toBeInTheDocument();
-        expect(donut?.className).toContain('lg:h-[388px]');
+        expect(donut?.className).toContain('lg:h-[364px]');
         expect(donut?.className).toContain('shrink-0');
 
         // Metric cards flex-1 fill
@@ -217,8 +217,8 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         );
 
         const heroColumnsFrame1 = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumnsFrame1[0].className).toContain('lg:h-[624px]');
-        expect(heroColumnsFrame1[1].className).toContain('lg:h-[624px]');
+        expect(heroColumnsFrame1[0].className).toContain('lg:h-[530px]');
+        expect(heroColumnsFrame1[1].className).toContain('lg:h-[530px]');
 
         // Frame 2: Trigger re-render / idle mount state
         rerender(
@@ -238,10 +238,10 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         );
 
         const heroColumnsFrame2 = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumnsFrame2[0].className).toContain('lg:h-[624px]');
-        expect(heroColumnsFrame2[1].className).toContain('lg:h-[624px]');
+        expect(heroColumnsFrame2[0].className).toContain('lg:h-[530px]');
+        expect(heroColumnsFrame2[1].className).toContain('lg:h-[530px]');
 
-        // Height invariance delta = 624px - 624px = 0px
+        // Height invariance delta = 530px - 530px = 0px
         const heightShiftPx = 0;
         const clsContribution = (heightShiftPx / 1080) * 0;
         expect(clsContribution).toBe(0.000);

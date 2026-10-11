@@ -3,7 +3,7 @@ import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
 import { logger } from "@/lib/services/logger";
-import { preloadApartmentModal } from "@/components/common/preload";
+import { preloadApartmentModal } from "@/lib/preload";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint, FieldReportData } from "@/types";
 import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
@@ -14,14 +14,13 @@ import { BUILD_VERSION } from "@/lib/build-version";
 import { buildApartmentMacroChartData, filterChartTimeframe, type FormattedMacroPoint } from "@/lib/utils/macroChartTransform";
 
 import { useMacroFilters, DONGTAN1_DONGS, DONGTAN2_DONGS, LANDMARK_APTS } from "./macro/hooks/useMacroFilters";
-import { useMacroDragDrop } from "./macro/hooks/useMacroDragDrop";
 import { MacroHeader } from "./macro/components/MacroHeader";
 import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { MacroUtilityCards } from "./macro/components/MacroUtilityCards";
-import { AptDonutSection, type AptDonutDataItem } from "./macro/components/AptDonutSection";
-import { AptMetricCards } from "./macro/components/AptMetricCards";
+import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
+import { AptMetricCards } from "./macro/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
@@ -42,7 +41,7 @@ const InlineLoader = ({ text }: { text: string }) => (
   </div>
 );
 
-const MacroTrendChart = dynamic(() => import("@/components/MacroTrendChart").catch(err => {
+const MacroTrendChart = dynamic(() => import("@/components/macro/MacroTrendChart").catch(err => {
   logger.warn('MacroDashboardClient.dynamic', 'MacroTrendChart Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('MacroTrendChart');
   return { default: () => null };
@@ -149,10 +148,7 @@ interface MacroDashboardProps {
   macroTrendData: DongtanMacroTrendPoint[];
   nameMapping?: Record<string, string>;
   publicRentalSet: Set<string>;
-  userFavorites?: Set<string>;
-  isFavoritesLoading?: boolean;
   fieldReportsMap: Map<string, FieldReportData>;
-  favoriteCounts: Record<string, number>;
   onSelectApt?: (name: string, dong?: string) => void;
   onOpenAdModal?: () => void;
   onOpenCompare?: () => void;
@@ -169,8 +165,6 @@ interface MacroDashboardProps {
   };
   recentTransactions?: RecentTransaction[];
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
-  updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
-  onToggleFavorite?: (aptName: string) => void;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
 
@@ -258,8 +252,6 @@ export interface TimelineItemCardProps {
   item: TimelineItem;
   isSelected: boolean;
   areaUnit: string;
-  isFavorite?: boolean;
-  onToggleFavorite?: (aptName: string) => void;
   onCardHover: (aptName: string, dong: string) => void;
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
@@ -270,8 +262,6 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   item,
   isSelected,
   areaUnit,
-  isFavorite = false,
-  onToggleFavorite,
   onCardHover,
   onCardClick,
   onDetailsClick,
@@ -287,48 +277,17 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
       className={`flex items-center justify-between p-3 xs:p-3.5 sm:p-4 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-full max-w-full box-border ${
         isSelected
-          ? "border-[#ea6100] bg-[#ea6100]/5 dark:bg-[#ea6100]/10 shadow-[0_2px_12px_rgba(234,97,0,0.08)]"
+          ? "border-[#057e77] bg-[#057e77]/5 dark:bg-[#057e77]/10 shadow-[0_2px_12px_rgba(5,126,119,0.08)]"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
       } group gap-2 sm:gap-3`}
     >
-      {/* Optional Favorite Heart Button */}
-      {onToggleFavorite && (
-        <button
-          type="button"
-          aria-label={`${item.aptName} 관심 단지 등록`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleFavorite(item.aptName);
-          }}
-          className="p-1 -ml-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors shrink-0 outline-none cursor-pointer"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill={isFavorite ? "currentColor" : "none"}
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className={`transition-colors ${
-              isFavorite
-                ? "fill-rose-500 text-rose-500"
-                : "text-slate-300 dark:text-zinc-600 hover:text-rose-400"
-            }`}
-          >
-            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-          </svg>
-        </button>
-      )}
 
       {/* Clickable Card Body Button */}
       <button
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#ea6100]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-2"
+        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#057e77]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-2"
       >
         {/* Left Column: 2-Row Layout */}
         <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
@@ -363,7 +322,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           {/* Row 2: [아파트 Full Name] */}
           <div className="flex items-center min-w-0 w-full overflow-hidden">
             <span
-              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-[#ea6100] dark:group-hover:text-[#ea6100] transition-colors leading-tight truncate break-keep min-w-0 flex-1"
+              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors leading-tight truncate break-keep min-w-0 flex-1"
               title={item.displayAptName || item.aptName}
             >
               {item.displayAptName || item.aptName}
@@ -465,8 +424,6 @@ export interface TimelineItemRowProps {
   item: TimelineItem;
   isSelected: boolean;
   areaUnit?: string;
-  isFavorite?: boolean;
-  onToggleFavorite?: (aptName: string) => void;
   onCardHover?: (aptName: string, dong: string) => void;
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
@@ -477,8 +434,6 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   item,
   isSelected,
   areaUnit = 'p',
-  isFavorite = false,
-  onToggleFavorite,
   onCardHover,
   onCardClick,
   onDetailsClick,
@@ -498,38 +453,8 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
         isSelected ? 'bg-orange-50/20 dark:bg-orange-950/20' : ''
       }`}
     >
-      {/* Left: Favorite Button + Apt info */}
+      {/* Left: Apt info */}
       <div className="flex items-center gap-2 min-w-0 flex-1">
-        {onToggleFavorite && (
-          <button
-            type="button"
-            aria-label={`${item.aptName} 관심 단지 등록`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleFavorite(item.aptName);
-            }}
-            className="p-1 rounded-lg hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors shrink-0 outline-none cursor-pointer"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill={isFavorite ? "currentColor" : "none"}
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className={`transition-colors ${
-                isFavorite
-                  ? "fill-rose-500 text-rose-500"
-                  : "text-slate-300 dark:text-zinc-600 hover:text-rose-400"
-              }`}
-            >
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
-          </button>
-        )}
 
         <button
           type="button"
@@ -597,10 +522,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   macroTrendData,
   nameMapping,
   publicRentalSet,
-  userFavorites,
-  isFavoritesLoading,
   fieldReportsMap,
-  favoriteCounts: _favoriteCounts,
   onSelectApt,
   onOpenAdModal: _onOpenAdModal,
   onOpenCompare: _onOpenCompare,
@@ -611,8 +533,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   recent7DaysVolume: _recent7DaysVolume,
   recentTransactions = [],
   typeMap = {},
-  updateFavoriteOrder,
-  onToggleFavorite,
   preloadApartmentTx,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
@@ -819,7 +739,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const handleCardHover = useCallback((aptName: string, dong: string) => {
     preloadApartmentTx?.(aptName, dong);
-    import('@/components/ApartmentModal').catch(() => {});
+    import('@/components/apartment/ApartmentModal').catch(() => {});
     import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
   }, [preloadApartmentTx]);
 
@@ -871,25 +791,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const isDefaultAptSettingUp = useMemo(() => {
     if (!mounted) return true;
-    if (isFavoritesLoading) return true;
     return false;
-  }, [mounted, isFavoritesLoading]);
-
-  const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
-
-  // Use custom drag and drop hook for favorites reordering
-  const {
-    showOrderEditor,
-    setShowOrderEditor,
-    draggedIndex,
-    orderEditorRef,
-    handleDragStart,
-    handleDragOver,
-    handleDragEnd,
-  } = useMacroDragDrop({
-    favoritesArray,
-    updateFavoriteOrder,
-  });
+  }, [mounted]);
 
   // Preload ApartmentModal and transactions when selectedTimelineApt changes
   useEffect(() => {
@@ -906,34 +809,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     preloadApartmentModal();
   }, [selectedTimelineApt, sheetApartments, preloadApartmentTx]);
 
-  // Set default apartment on login/favorites ready
+  // Set default apartment
   useEffect(() => {
     if (!mounted) return;
     if (hasSetDefaultApt) return;
-    if (authLoading || isFavoritesLoading) return;
 
-    if (userFavorites && userFavorites.size > 0) {
-      const favArray = Array.from(userFavorites);
-      setSelectedTimelineApt(favArray[0]);
-      setHasSetDefaultApt(true);
-    } else {
-      if (!selectedTimelineApt) {
-        setSelectedTimelineApt("동탄역 롯데캐슬");
-      }
-      setHasSetDefaultApt(true);
+    if (!selectedTimelineApt) {
+      setSelectedTimelineApt("동탄역 롯데캐슬");
     }
-  }, [userFavorites, mounted, hasSetDefaultApt, authLoading, isFavoritesLoading, selectedTimelineApt]);
-
-  // Session reset handler
-  const [prevUser, setPrevUser] = useState<string | null>(null);
-  useEffect(() => {
-    if (!mounted) return;
-    const currentUserId = user ? user.uid : null;
-    if (currentUserId !== prevUser) {
-      setHasSetDefaultApt(false);
-      setPrevUser(currentUserId);
-    }
-  }, [user, prevUser, mounted]);
+    setHasSetDefaultApt(true);
+  }, [mounted, hasSetDefaultApt, selectedTimelineApt]);
 
   useEffect(() => {
     if (typeof window !== "undefined" && window.location.hash === "#fit-quiz") {
@@ -1467,40 +1352,34 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [filteredTimelineData, visibleTimelineCount]);
 
   const renderTimelineItemCardNode = useCallback((item: TimelineItem, isSelected: boolean) => {
-    const isFav = userFavorites ? (userFavorites instanceof Set ? userFavorites.has(item.aptName) : Array.isArray(userFavorites) ? (userFavorites as string[]).includes(item.aptName) : false) : false;
     return (
       <TimelineItemCard
         key={`${item.aptName}-${item.floor}-${item.priceVal}`}
         item={item}
         isSelected={isSelected}
         areaUnit={areaUnit}
-        isFavorite={isFav}
-        onToggleFavorite={onToggleFavorite}
         onCardHover={handleCardHover}
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
       />
     );
-  }, [areaUnit, userFavorites, onToggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderTimelineItemRowNode = useCallback((item: TimelineItem, isSelected: boolean) => {
-    const isFav = userFavorites ? (userFavorites instanceof Set ? userFavorites.has(item.aptName) : Array.isArray(userFavorites) ? (userFavorites as string[]).includes(item.aptName) : false) : false;
     return (
       <TimelineItemRow
         key={`${item.aptName}-${item.floor}-${item.priceVal}`}
         item={item}
         isSelected={isSelected}
         areaUnit={areaUnit}
-        isFavorite={isFav}
-        onToggleFavorite={onToggleFavorite}
         onCardHover={handleCardHover}
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
       />
     );
-  }, [areaUnit, userFavorites, onToggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderChart = useCallback(() => {
     if (!trendChartReady) {
@@ -1544,7 +1423,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-3 sm:gap-3.5 lg:h-[624px] justify-between box-border">
+          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[530px] justify-between box-border">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}
@@ -1558,6 +1437,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 activeCategory={activeDonutCategory}
                 onActiveCategoryChange={setActiveDonutCategory}
                 onActiveSectorChange={setActiveDonutSector}
+                onOpenMortgageModal={handleOpenMortgage}
               />
             </ChartErrorBoundary>
             <ErrorBoundary name="핵심 지표 카드">
@@ -1578,16 +1458,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[624px]">
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[530px]">
             <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
               <MacroChartSection
-                userFavorites={userFavorites}
                 isDefaultAptSettingUp={isDefaultAptSettingUp}
                 mounted={mounted}
                 selectedTimelineApt={selectedTimelineApt}
                 setSelectedTimelineApt={setSelectedTimelineApt}
                 preloadApartmentModal={preloadApartmentModal}
-                favoritesArray={favoritesArray}
                 defaultTimelineApts={DEFAULT_TIMELINE_APTS}
                 sheetApartments={sheetApartments}
                 onSelectApt={handleSelectApt}
@@ -1600,13 +1478,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 mainXTicks={xTicks}
                 mainYTicks={yTicks}
                 renderChart={renderChart}
-                showOrderEditor={showOrderEditor}
-                setShowOrderEditor={setShowOrderEditor}
-                orderEditorRef={orderEditorRef}
-                draggedIndex={draggedIndex}
-                handleDragStart={handleDragStart}
-                handleDragOver={handleDragOver}
-                handleDragEnd={handleDragEnd}
               />
             </ChartErrorBoundary>
           </div>
@@ -1634,8 +1505,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               onSelectApt={handleCardClick}
               onDetailsClick={handleDetailsClick}
               onDetailsHover={handleDetailsHover}
-              userFavorites={userFavorites}
-              onToggleFavorite={onToggleFavorite}
               timelineDongFilter={timelineDongFilter}
               setTimelineDongFilter={setTimelineDongFilter}
               timelineAptFilter={timelineAptFilter}

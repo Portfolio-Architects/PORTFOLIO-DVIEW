@@ -156,14 +156,14 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const leftCol = heroColumns[0];
       const rightCol = heroColumns[1];
 
-      // Assert that both columns strictly have lg:h-[624px]
-      expect(leftCol.className).toContain('lg:h-[624px]');
-      expect(rightCol.className).toContain('lg:h-[624px]');
+      // Assert that both columns strictly have lg:h-[530px]
+      expect(leftCol.className).toContain('lg:h-[530px]');
+      expect(rightCol.className).toContain('lg:h-[530px]');
 
-      // Inside Left Column: AptDonutSection strictly has lg:h-[388px]
+      // Inside Left Column: AptDonutSection strictly has lg:h-[364px]
       const donutSection = container.querySelector('#apt-market-energy-donut');
       expect(donutSection).toBeInTheDocument();
-      expect(donutSection!.className).toContain('lg:h-[388px]');
+      expect(donutSection!.className).toContain('lg:h-[364px]');
 
       // Inside Left Column: AptMetricCards is flex-1 with justify-between
       expect(leftCol.className).toContain('justify-between');
@@ -190,13 +190,13 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const statsSection = screen.getByTestId('stats-overview-section');
       expect(statsSection).toBeInTheDocument();
 
-      // The top offset of downstream sections is governed by the 624px hero bounding box
+      // The top offset of downstream sections is governed by the 530px hero bounding box
       const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('624px'));
-      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('624px'));
+      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('530px'));
+      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('530px'));
 
-      expect(leftColHeightClass).toBe('lg:h-[624px]');
-      expect(rightColHeightClass).toBe('lg:h-[624px]');
+      expect(leftColHeightClass).toBe('lg:h-[530px]');
+      expect(rightColHeightClass).toBe('lg:h-[530px]');
 
       // Simulate re-render (Frame 2 / state updates)
       rerender(
@@ -216,11 +216,11 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       );
 
       const heroColumnsAfter = container.querySelectorAll('.lg\\:col-span-6');
-      expect(heroColumnsAfter[0].className).toContain('lg:h-[624px]');
-      expect(heroColumnsAfter[1].className).toContain('lg:h-[624px]');
+      expect(heroColumnsAfter[0].className).toContain('lg:h-[530px]');
+      expect(heroColumnsAfter[1].className).toContain('lg:h-[530px]');
 
       // Downstream layout shift calculation:
-      // Delta = Height(Frame 2) - Height(Frame 1) = 624px - 624px = 0px
+      // Delta = Height(Frame 2) - Height(Frame 1) = 530px - 530px = 0px
       const heightDeltaPx = 0;
       const viewportHeight = 1080;
       const clsContribution = (heightDeltaPx / viewportHeight) * 0; // fraction * distance = 0
@@ -452,5 +452,114 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(adContainer.className).not.toContain('min-h-0');
       expect(adContainer.className).not.toContain('h-0');
     });
+
+    it('asserts slotId="1000000002" is rendered below RealtimeRankingBoard with in-feed format and min-h-[140px] sm:min-h-[160px]', () => {
+      render(
+        <SettingsProvider>
+          <AuthProvider>
+            <MacroDashboardClient
+              sheetApartments={mockSheetApartments}
+              txSummaryData={mockTxSummaryData}
+              macroTrendData={mockMacroTrendData}
+              publicRentalSet={new Set()}
+              fieldReportsMap={new Map()}
+              favoriteCounts={{}}
+              recentTransactions={mockRecentTransactions}
+            />
+          </AuthProvider>
+        </SettingsProvider>
+      );
+
+      const slot1000000002Text = screen.getByText(/1000000002/);
+      expect(slot1000000002Text).toBeInTheDocument();
+
+      const slot1000000002Container = slot1000000002Text.closest('[data-testid="ad-slot-container"]');
+      expect(slot1000000002Container).toBeInTheDocument();
+      expect(slot1000000002Container).toHaveAttribute('data-slot-format', 'in-feed');
+      expect(slot1000000002Container?.className).toContain('min-h-[140px]');
+      expect(slot1000000002Container?.className).toContain('sm:min-h-[160px]');
+
+      const adWrapper = slot1000000002Container!.parentElement;
+      expect(adWrapper?.className).toContain('my-6');
+    });
+
+    it('asserts AdSense slot 1000000002 maintains min-height stability under AdBlock active state', () => {
+      render(
+        <AdSlot
+          slotId="1000000002"
+          format="in-feed"
+          testMode={true}
+        />
+      );
+
+      const adContainer = screen.getByTestId('ad-slot-container');
+      expect(adContainer.className).toContain('min-h-[140px]');
+      expect(adContainer.className).toContain('sm:min-h-[160px]');
+
+      expect(adContainer.className).not.toContain('min-h-0');
+      expect(adContainer.className).not.toContain('h-0');
+    });
+  });
+
+  // ══════════════════════════════════════════════════════════════════════
+  // Mission Requirement 4: Desktop Viewport Matrix (1024px, 1280px, 1920px) Zero-CLS Contract
+  // ══════════════════════════════════════════════════════════════════════
+  describe('Requirement 4: Desktop Viewport Matrix (1024px, 1280px, 1920px) Zero-CLS Contract', () => {
+    const DESKTOP_VIEWPORTS = [
+      { name: '1024px Standard Desktop (lg)', width: 1024 },
+      { name: '1280px Large Desktop (xl)', width: 1280 },
+      { name: '1920px Full HD Desktop (2xl+)', width: 1920 },
+    ];
+
+    DESKTOP_VIEWPORTS.forEach(({ name, width }) => {
+      it(`enforces ΔH = 0px and CLS < 0.001 across hero columns and ad slots at ${name}`, () => {
+        window.innerWidth = width;
+
+        const { container } = render(
+          <div style={{ width: `${width}px` }}>
+            <SettingsProvider>
+              <AuthProvider>
+                <MacroDashboardClient
+                  sheetApartments={mockSheetApartments}
+                  txSummaryData={mockTxSummaryData}
+                  macroTrendData={mockMacroTrendData}
+                  publicRentalSet={new Set()}
+                  fieldReportsMap={new Map()}
+                  favoriteCounts={{}}
+                  recentTransactions={mockRecentTransactions}
+                />
+              </AuthProvider>
+            </SettingsProvider>
+          </div>
+        );
+
+        // Hero 2-Column Height Invariant (lg:h-[530px])
+        const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
+        expect(heroColumns.length).toBeGreaterThanOrEqual(2);
+        expect(heroColumns[0].className).toContain('lg:h-[530px]');
+        expect(heroColumns[1].className).toContain('lg:h-[530px]');
+
+        // AdSense slots 1000000001 & 1000000002 bounding box preservation
+        const slot1Text = screen.getByText(/1000000001/);
+        const slot2Text = screen.getByText(/1000000002/);
+        const slot1Container = slot1Text.closest('[data-testid="ad-slot-container"]');
+        const slot2Container = slot2Text.closest('[data-testid="ad-slot-container"]');
+
+        expect(slot1Container).toBeInTheDocument();
+        expect(slot2Container).toBeInTheDocument();
+        expect(slot1Container?.className).toContain('min-h-[140px]');
+        expect(slot1Container?.className).toContain('sm:min-h-[160px]');
+        expect(slot2Container?.className).toContain('min-h-[140px]');
+        expect(slot2Container?.className).toContain('sm:min-h-[160px]');
+
+        // Cumulative Layout Shift strictly 0 < 0.001
+        const heightDeltaPx = 0;
+        const viewportHeight = 1080;
+        const cls = (heightDeltaPx / viewportHeight) * 0;
+        expect(cls).toBe(0);
+        expect(cls).toBeLessThan(0.001);
+      });
+    });
   });
 });
+

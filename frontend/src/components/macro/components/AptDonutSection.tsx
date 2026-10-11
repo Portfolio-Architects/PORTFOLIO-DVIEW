@@ -104,6 +104,8 @@ export interface AptDonutDataItem {
   color: string;
   items: AptEnergyItem[];
   policyDescription?: string;
+  policyBadge?: string;
+  policyLoanLimit?: string;
   avgPriceLabel?: string;
   isTop?: boolean;
   repApt?: {
@@ -114,7 +116,7 @@ export interface AptDonutDataItem {
   } | null;
 }
 
-export type AptDonutMode = 'pyeong' | 'energy' | 'policy';
+export type AptDonutMode = 'pyeong' | 'price' | 'policy' | 'energy';
 
 export interface AptDonutSectionProps {
   mounted?: boolean;
@@ -124,6 +126,7 @@ export interface AptDonutSectionProps {
   publicRentalSet?: Set<string>;
   onSelectApt?: (name: string, dong?: string) => void;
   preloadApartmentTx?: (name: string, dong: string) => void;
+  onOpenMortgageModal?: () => void;
   activeCategory?: string | null;
   onActiveCategoryChange?: (category: string | null) => void;
   onActiveSectorChange?: (sector: AptDonutDataItem | null) => void;
@@ -145,20 +148,22 @@ export const ENERGY_COLORS: Record<'high' | 'rising' | 'flat' | 'falling', strin
 };
 
 export const PRICE_TIER_COLORS: Record<'under6' | 'under9' | 'under15' | 'over15', string> = {
-  under6: '#0d9488',   // 6억 이하: D-VIEW Emerald Teal
-  under9: '#ea6100',   // 6억 ~ 9억: D-VIEW Signature Orange (최다 거래 주력)
-  under15: '#0284c7',  // 9억 ~ 15억: Ocean Sky Blue (상급지 갈아타기)
-  over15: '#6366f1',   // 15억 초과: Royal Indigo (하이엔드 프리미엄 자산)
+  under6: '#10b981',   // 6억 이하: Emerald (엔트리·안정)
+  under9: '#057e77',   // 6억 ~ 9억: Brand Deep Teal (주력 볼륨)
+  under15: '#3b82f6',  // 9억 ~ 15억: Ocean Blue (상급지 확장)
+  over15: '#e11d48',   // 15억 초과: Ruby Rose (하이엔드 희소)
 };
 
 export const POLICY_COLORS = PRICE_TIER_COLORS;
 
-export const PYEONG_COLORS: Record<'small' | 'medium' | 'large' | 'xlarge', string> = {
-  small: '#0d9488',   // 소형 (20평대): Emerald Teal
-  medium: '#ea6100',  // 국민평형 (30평대): D-VIEW Orange
-  large: '#0284c7',   // 중대형 (30후~40평): Ocean Sky Blue
-  xlarge: '#6366f1',  // 대형 (40평+): Royal Indigo
+export const PYEONG_TIER_COLORS: Record<'small' | 'medium' | 'large' | 'xlarge', string> = {
+  small: '#10b981',   // 소형 (60㎡ 이하): Emerald
+  medium: '#057e77',  // 중소형 (60~85㎡): Brand Deep Teal
+  large: '#3b82f6',   // 중대형 (85~102㎡): Ocean Blue
+  xlarge: '#e11d48',  // 대형 (102㎡ 초과): Ruby Rose
 };
+
+export const PYEONG_COLORS = PYEONG_TIER_COLORS;
 
 export const AptDonutSection = React.memo(function AptDonutSection({
   mounted = true,
@@ -168,6 +173,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   publicRentalSet,
   onSelectApt,
   preloadApartmentTx,
+  onOpenMortgageModal,
   activeCategory: controlledActiveCategory,
   onActiveCategoryChange,
   onActiveSectorChange,
@@ -177,7 +183,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   initialPeriod = '90d',
   period: controlledPeriod,
   onPeriodChange,
-  chartSize = 215,
+  chartSize = 235,
   className = '',
 }: AptDonutSectionProps) {
   const [internalMode, setInternalMode] = useState<AptDonutMode>(initialMode);
@@ -264,8 +270,15 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     return (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || (txSummaryData as Record<string, AptTxSummary>);
   }, [txSummaryData]);
 
-  // Analyze recent transactions into price tiers (실거래 가격대별 수요)
-  const { donutData, totalCount } = useMemo(() => {
+  // Analyze recent transactions into pyeong tiers and price tiers
+  const { pyeongDonut, priceDonut, totalCount } = useMemo(() => {
+    // Pyeong items:
+    const smallItems: AptEnergyItem[] = [];
+    const mediumItems: AptEnergyItem[] = [];
+    const largeItems: AptEnergyItem[] = [];
+    const xlargeItems: AptEnergyItem[] = [];
+
+    // Price items:
     const under6Items: AptEnergyItem[] = [];
     const under9Items: AptEnergyItem[] = [];
     const under15Items: AptEnergyItem[] = [];
@@ -307,6 +320,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           ? tx.areaPyeong
           : (typeof tx.area === 'number' && tx.area > 0 ? tx.area / 3.3058 : 0);
 
+        const areaM2 = typeof tx.area === 'number' && tx.area > 0
+          ? tx.area
+          : (areaPyeong > 0 ? areaPyeong * 3.3058 : 84.0);
+
         const item: AptEnergyItem = {
           aptName: rawAptName,
           displayAptName,
@@ -324,7 +341,18 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           isNewHigh: isHigh,
         };
 
-        // Price tier categorization (6억 이하, 6억~9억, 9억~15억, 15억 초과)
+        // 1. Pyeong Tier Classification (소형 <= 60㎡, 중소형 <= 85㎡, 중대형 <= 102㎡, 대형 > 102㎡)
+        if (areaM2 <= 60.0) {
+          smallItems.push(item);
+        } else if (areaM2 <= 85.0) {
+          mediumItems.push(item);
+        } else if (areaM2 <= 102.0) {
+          largeItems.push(item);
+        } else {
+          xlargeItems.push(item);
+        }
+
+        // 2. Price Tier Classification (6억 이하, 6억~9억, 9억~15억, 15억 초과)
         if (priceVal <= 6) {
           under6Items.push(item);
         } else if (priceVal <= 9) {
@@ -337,57 +365,132 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       });
     }
 
-    const total = under6Items.length + under9Items.length + under15Items.length + over15Items.length;
+    const total = smallItems.length + mediumItems.length + largeItems.length + xlargeItems.length;
 
-    let pUnder6 = 0;
-    let pUnder9 = 0;
-    let pUnder15 = 0;
-    let pOver15 = 0;
-
-    if (total > 0) {
-      pUnder6 = Math.round((under6Items.length / total) * 1000) / 10;
-      pUnder9 = Math.round((under9Items.length / total) * 1000) / 10;
-      pUnder15 = Math.round((under15Items.length / total) * 1000) / 10;
-      pOver15 = Math.round((over15Items.length / total) * 1000) / 10;
-
-      // Adjust rounding to ensure sum === 100.0% exactly
-      const sum = Math.round((pUnder6 + pUnder9 + pUnder15 + pOver15) * 10) / 10;
+    // Helper: Compute exact 100.0% sum percentages
+    const calcPercentages = (counts: number[], totalCount: number): number[] => {
+      if (totalCount === 0) return counts.map(() => 0);
+      const pcts = counts.map((c) => Math.round((c / totalCount) * 1000) / 10);
+      const sum = Math.round(pcts.reduce((a, b) => a + b, 0) * 10) / 10;
       if (sum !== 100.0) {
         const diff = Math.round((100.0 - sum) * 10) / 10;
-        const segments = [
-          { key: 'under6', count: under6Items.length },
-          { key: 'under9', count: under9Items.length },
-          { key: 'under15', count: under15Items.length },
-          { key: 'over15', count: over15Items.length },
-        ].sort((a, b) => b.count - a.count);
-
-        if (segments[0].key === 'under6') pUnder6 = Math.round((pUnder6 + diff) * 10) / 10;
-        else if (segments[0].key === 'under9') pUnder9 = Math.round((pUnder9 + diff) * 10) / 10;
-        else if (segments[0].key === 'under15') pUnder15 = Math.round((pUnder15 + diff) * 10) / 10;
-        else pOver15 = Math.round((pOver15 + diff) * 10) / 10;
+        let maxIdx = 0;
+        for (let i = 1; i < counts.length; i++) {
+          if (counts[i] > counts[maxIdx]) maxIdx = i;
+        }
+        pcts[maxIdx] = Math.round((pcts[maxIdx] + diff) * 10) / 10;
       }
-    }
+      return pcts;
+    };
 
-    under6Items.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || '') || b.priceVal - a.priceVal);
-    under9Items.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || '') || b.priceVal - a.priceVal);
-    under15Items.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || '') || b.priceVal - a.priceVal);
-    over15Items.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || '') || b.priceVal - a.priceVal);
+    // Pyeong percentages
+    const [pSmall, pMedium, pLarge, pXlarge] = calcPercentages(
+      [smallItems.length, mediumItems.length, largeItems.length, xlargeItems.length],
+      total
+    );
+
+    // Price percentages
+    const [pUnder6, pUnder9, pUnder15, pOver15] = calcPercentages(
+      [under6Items.length, under9Items.length, under15Items.length, over15Items.length],
+      total
+    );
+
+    // Sort items by contractDate desc, then priceVal desc
+    const sortItems = (items: AptEnergyItem[]) =>
+      items.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || '') || b.priceVal - a.priceVal);
+
+    sortItems(smallItems);
+    sortItems(mediumItems);
+    sortItems(largeItems);
+    sortItems(xlargeItems);
+    sortItems(under6Items);
+    sortItems(under9Items);
+    sortItems(under15Items);
+    sortItems(over15Items);
+
+    const smallAvg = formatSectorAvgPrice(smallItems);
+    const mediumAvg = formatSectorAvgPrice(mediumItems);
+    const largeAvg = formatSectorAvgPrice(largeItems);
+    const xlargeAvg = formatSectorAvgPrice(xlargeItems);
 
     const under6Avg = formatSectorAvgPrice(under6Items);
     const under9Avg = formatSectorAvgPrice(under9Items);
     const under15Avg = formatSectorAvgPrice(under15Items);
     const over15Avg = formatSectorAvgPrice(over15Items);
 
-    const tierCounts = [under6Items.length, under9Items.length, under15Items.length, over15Items.length];
-    const maxTierCount = Math.max(...tierCounts);
-    const hasSingleTierMax = total > 0 && maxTierCount > 0 && tierCounts.filter(c => c === maxTierCount).length === 1;
+    // Top tier flags
+    const pCounts = [smallItems.length, mediumItems.length, largeItems.length, xlargeItems.length];
+    const maxPCount = Math.max(...pCounts);
+    const hasSinglePMax = total > 0 && maxPCount > 0 && pCounts.filter((c) => c === maxPCount).length === 1;
 
-    const under6Rep = getRepresentativeApt(under6Items);
-    const under9Rep = getRepresentativeApt(under9Items);
-    const under15Rep = getRepresentativeApt(under15Items);
-    const over15Rep = getRepresentativeApt(over15Items);
+    const priceCounts = [under6Items.length, under9Items.length, under15Items.length, over15Items.length];
+    const maxPriceCount = Math.max(...priceCounts);
+    const hasSinglePriceMax = total > 0 && maxPriceCount > 0 && priceCounts.filter((c) => c === maxPriceCount).length === 1;
 
-    const priceDonut: AptDonutDataItem[] = [
+    const pyeongData: AptDonutDataItem[] = [
+      {
+        name: '소형 (60㎡ 이하)',
+        subName: '20평대 이하',
+        category: 'small',
+        value: pSmall,
+        count: smallItems.length,
+        color: PYEONG_TIER_COLORS.small,
+        items: smallItems,
+        policyBadge: '1~2인·신혼',
+        policyLoanLimit: '디딤돌·신생아특례 적격',
+        policyDescription: '전용 60㎡ 이하 소형 평형 실속 수요 구간',
+        avgPriceLabel: smallAvg,
+        isTop: hasSinglePMax && smallItems.length === maxPCount,
+        repApt: getRepresentativeApt(smallItems),
+      },
+      {
+        name: '중소형 (60~85㎡)',
+        subName: '국민평형 30평대',
+        category: 'medium',
+        value: pMedium,
+        count: mediumItems.length,
+        color: PYEONG_TIER_COLORS.medium,
+        items: mediumItems,
+        policyBadge: '국민평형 84타입',
+        policyLoanLimit: '동탄 주력 선호',
+        policyDescription: '전용 84㎡ 중심의 동탄 패밀리 실수요 최다 거래 구간',
+        avgPriceLabel: mediumAvg,
+        isTop: hasSinglePMax && mediumItems.length === maxPCount,
+        repApt: getRepresentativeApt(mediumItems),
+      },
+      {
+        name: '중대형 (85~102㎡)',
+        subName: '30평형대 후반',
+        category: 'large',
+        value: pLarge,
+        count: largeItems.length,
+        color: PYEONG_TIER_COLORS.large,
+        items: largeItems,
+        policyBadge: '여유공간 선호',
+        policyLoanLimit: '30평형대 후반',
+        policyDescription: '전용 85~102㎡ 여유로운 중대형 평형 선호 구간',
+        avgPriceLabel: largeAvg,
+        isTop: hasSinglePMax && largeItems.length === maxPCount,
+        repApt: getRepresentativeApt(largeItems),
+      },
+      {
+        name: '대형 (102㎡ 초과)',
+        subName: '40평형 이상',
+        category: 'xlarge',
+        value: pXlarge,
+        count: xlargeItems.length,
+        color: PYEONG_TIER_COLORS.xlarge,
+        items: xlargeItems,
+        policyBadge: '희소 펜트·대형',
+        policyLoanLimit: '40평형 이상 희소성',
+        policyDescription: '전용 102㎡ 초과 대형 및 펜트하우스 희소 가치 구간',
+        avgPriceLabel: xlargeAvg,
+        isTop: hasSinglePMax && xlargeItems.length === maxPCount,
+        repApt: getRepresentativeApt(xlargeItems),
+      },
+    ];
+
+    const priceData: AptDonutDataItem[] = [
       {
         name: '6억 이하',
         category: 'under6',
@@ -395,10 +498,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         count: under6Items.length,
         color: PRICE_TIER_COLORS.under6,
         items: under6Items,
-        policyDescription: '보금자리론·디딤돌·신생아특례 등 정책대출 적격 가성비 구간',
+        policyBadge: '디딤돌·신생아 1.6%~',
+        policyLoanLimit: '한도 최대 4억 · LTV 80%',
+        policyDescription: '보금자리론·디딤돌·신생아특례 정책대출 적격 가성비 구간',
         avgPriceLabel: under6Avg,
-        isTop: hasSingleTierMax && under6Items.length === maxTierCount,
-        repApt: under6Rep,
+        isTop: hasSinglePriceMax && under6Items.length === maxPriceCount,
+        repApt: getRepresentativeApt(under6Items),
       },
       {
         name: '6억 ~ 9억',
@@ -407,10 +512,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         count: under9Items.length,
         color: PRICE_TIER_COLORS.under9,
         items: under9Items,
-        policyDescription: '신생아특례 대출 상한 및 동탄 국민평형 실거주 최다 거래 주력 구간',
+        policyBadge: '신생아특례 5억',
+        policyLoanLimit: '한도 최대 5억 · LTV 70%',
+        policyDescription: '신생아특례 대출 상한 및 국평 실거주 주력 수요 구간',
         avgPriceLabel: under9Avg,
-        isTop: hasSingleTierMax && under9Items.length === maxTierCount,
-        repApt: under9Rep,
+        isTop: hasSinglePriceMax && under9Items.length === maxPriceCount,
+        repApt: getRepresentativeApt(under9Items),
       },
       {
         name: '9억 ~ 15억',
@@ -419,10 +526,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         count: under15Items.length,
         color: PRICE_TIER_COLORS.under15,
         items: under15Items,
+        policyBadge: '상급지 갈아타기',
+        policyLoanLimit: '스트레스 DSR 2단계',
         policyDescription: '동탄역세권 대장 단지 및 상급지 갈아타기 선호 구간',
         avgPriceLabel: under15Avg,
-        isTop: hasSingleTierMax && under15Items.length === maxTierCount,
-        repApt: under15Rep,
+        isTop: hasSinglePriceMax && under15Items.length === maxPriceCount,
+        repApt: getRepresentativeApt(under15Items),
       },
       {
         name: '15억 초과',
@@ -431,18 +540,32 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         count: over15Items.length,
         color: PRICE_TIER_COLORS.over15,
         items: over15Items,
+        policyBadge: '하이엔드 프리미엄',
+        policyLoanLimit: '자기자본 10억+ 집중',
         policyDescription: '동탄 최고가 랜드마크 및 하이엔드 자산가 구간',
         avgPriceLabel: over15Avg,
-        isTop: hasSingleTierMax && over15Items.length === maxTierCount,
-        repApt: over15Rep,
+        isTop: hasSinglePriceMax && over15Items.length === maxPriceCount,
+        repApt: getRepresentativeApt(over15Items),
       },
     ];
 
     return {
-      donutData: priceDonut,
+      pyeongDonut: pyeongData,
+      priceDonut: priceData,
       totalCount: total,
     };
   }, [activeTransactions, summaryMap, publicRentalSet, nameMapping]);
+
+  const isPyeongMode = mode === 'pyeong';
+  const donutData = isPyeongMode ? pyeongDonut : priceDonut;
+
+  const policyEligibleRate = useMemo(() => {
+    if (totalCount === 0) return '0.0';
+    const under9Sum = donutData
+      .filter((d) => d.category === 'under6' || d.category === 'under9')
+      .reduce((acc, d) => acc + d.value, 0);
+    return (Math.round(under9Sum * 10) / 10).toFixed(1);
+  }, [donutData, totalCount]);
 
   const activeSector = useMemo(() => {
     if (!activeCategory) return null;
@@ -464,32 +587,68 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   return (
     <div
       id="apt-market-energy-donut"
-      className={`bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:min-h-[385px] lg:h-[388px] shrink-0 ${className}`}
+      className={`bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:min-h-[350px] lg:h-[364px] shrink-0 ${className}`}
     >
-      {/* Header with Period Switcher */}
-      <div className="flex justify-between items-center mb-3 sm:mb-4 flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-            <span
-              className="w-2 h-2 rounded-full bg-[#0d9488]"
-            />
-            <span>실거래 가격대별 수요 분포</span>
+      {/* Header with Mode Toggle & Period Switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-x-3 mb-3 sm:mb-4">
+        {/* Element 1: Title Group (Indicator dot + Section Title + Count Badge) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 order-1 shrink-0">
+          <span className="w-2.5 h-2.5 rounded-full bg-[#057e77] shrink-0" />
+          <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight whitespace-nowrap">
+            수요 분포
           </h3>
+          {totalCount > 0 && (
+            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] sm:text-[10.5px] font-extrabold text-secondary shrink-0">
+              총 {totalCount}건
+            </span>
+          )}
         </div>
 
-        <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto flex-wrap">
+        {/* Element 2: Divider & Mode Switch Toggle (Desktop inline order-2, Mobile full-width order-3) */}
+        <div className="w-full sm:w-auto order-3 sm:order-2 flex items-center gap-2 sm:gap-2.5">
+          <div className="hidden sm:block h-3.5 w-px bg-border/60" />
+          <div className="grid grid-cols-2 sm:flex sm:items-center w-full sm:w-auto p-0.5 bg-neutral-100 dark:bg-zinc-800 rounded-lg text-[11px] font-bold border border-border/40">
+            <button
+              type="button"
+              onClick={() => handleModeChange('pyeong')}
+              aria-pressed={mode === 'pyeong'}
+              className={`px-2.5 py-1 text-center rounded-md transition-all cursor-pointer ${
+                mode === 'pyeong'
+                  ? 'bg-surface text-primary shadow-xs font-black'
+                  : 'text-tertiary hover:text-primary'
+              }`}
+            >
+              평형대별
+            </button>
+            <button
+              type="button"
+              onClick={() => handleModeChange('price')}
+              aria-pressed={mode === 'price' || mode === 'policy'}
+              className={`px-2.5 py-1 text-center rounded-md transition-all cursor-pointer ${
+                mode === 'price' || mode === 'policy'
+                  ? 'bg-surface text-primary shadow-xs font-black'
+                  : 'text-tertiary hover:text-primary'
+              }`}
+            >
+              가격대별
+            </button>
+          </div>
+        </div>
+
+        {/* Element 3: Period Selector & Reset Button (Mobile order-2, Desktop order-3 ml-auto) */}
+        <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto order-2 sm:order-3 shrink-0">
           {activeCategory && (
             <button
               type="button"
               onClick={() => setActiveCategory(null)}
-              className="text-[11px] font-bold text-tertiary hover:text-primary cursor-pointer transition-colors mr-1"
+              className="text-[10.5px] sm:text-[11px] font-bold text-tertiary hover:text-primary cursor-pointer transition-colors mr-0.5 sm:mr-1"
             >
               선택 초기화
             </button>
           )}
 
           {/* Period Selector (7d / 30d / 90d / 1y) */}
-          <div className="flex items-center p-0.5 bg-neutral-100 dark:bg-zinc-800 rounded-lg text-[10.5px] font-bold border border-border/40">
+          <div className="flex items-center p-0.5 bg-neutral-100 dark:bg-zinc-800 rounded-lg text-[10px] sm:text-[10.5px] font-bold border border-border/40">
             {PERIOD_BUTTONS.map((btn) => (
               <button
                 key={btn.key}
@@ -512,9 +671,14 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       {/* Main Chart & Category Legend (Flex layout for optimal spacing) */}
       <div className="flex flex-col sm:flex-row items-center flex-1 w-full gap-2 sm:gap-4 min-h-0">
         {/* Left: Donut Chart Container */}
-        <div className="w-full sm:w-[48%] lg:w-[48%] shrink-0 flex items-center justify-center relative h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-3 py-1">
+        <div className="w-full sm:w-[48%] lg:w-[48%] shrink-0 flex items-center justify-center relative sm:h-full sm:border-r border-border/60 dark:border-border/30 pr-0 sm:pr-3 py-1">
           {mounted ? (
-            <div style={{ width: chartSize, height: chartSize }} className={`relative flex items-center justify-center transition-opacity duration-200 ${isPeriodLoading ? 'opacity-50' : 'opacity-100'}`}>
+            <div
+              style={{ maxWidth: chartSize, maxHeight: chartSize }}
+              className={`relative flex items-center justify-center transition-opacity duration-200 w-[210px] h-[210px] sm:w-[235px] sm:h-[235px] ${
+                isPeriodLoading ? 'opacity-50' : 'opacity-100'
+              }`}
+            >
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   {totalCount === 0 ? (
@@ -522,8 +686,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={[{ value: 1 }]}
                       cx="50%"
                       cy="50%"
-                      innerRadius="73%"
-                      outerRadius="94%"
+                      innerRadius="65%"
+                      outerRadius="92%"
                       dataKey="value"
                       stroke="transparent"
                       isAnimationActive={false}
@@ -535,11 +699,19 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius="73%"
-                      outerRadius="94%"
+                      minAngle={10}
                       cornerRadius={4}
-                      paddingAngle={3}
+                      innerRadius="65%"
+                      outerRadius="92%"
+                      paddingAngle={2.5}
                       dataKey="value"
+                      onMouseEnter={(data: any, index: number) => {
+                        const entry = donutData[index] || (data && (donutData.find((d) => d.name === data.name || d.category === data.category)));
+                        if (entry) {
+                          setHoveredCategory(entry.name);
+                        }
+                      }}
+                      onMouseLeave={() => setHoveredCategory(null)}
                       onClick={(entry: any) => {
                         const entryName = entry?.name || null;
                         if (activeCategory === entryName || (entry?.category && activeCategory === entry.category)) {
@@ -559,29 +731,19 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                           <Cell
                             key={entry.name}
                             fill={entry.color}
-                            opacity={isHighlighted ? 1 : 0.35}
+                            opacity={isHighlighted ? 1 : 0.4}
                             stroke={isSelected || isHovered ? '#ffffff' : 'transparent'}
                             strokeWidth={isSelected || isHovered ? 2.5 : 0}
+                            onMouseEnter={() => setHoveredCategory(entry.name)}
+                            onMouseLeave={() => setHoveredCategory(null)}
                             className="transition-all duration-200 outline-none cursor-pointer"
                           />
                         );
                       })}
                     </Pie>
                   )}
-                  {totalCount > 0 && (
-                    <Tooltip
-                      formatter={(val: any, name: any) => [`${Number(val).toFixed(1)}%`, `${name} 비중`]}
-                      contentStyle={{
-                        backgroundColor: 'rgba(15, 23, 42, 0.92)',
-                        borderRadius: '12px',
-                        border: 'none',
-                        color: '#ffffff',
-                        fontSize: '12px',
-                        fontWeight: 700,
-                        boxShadow: '0 4px 16px rgba(0,0,0,0.2)',
-                      }}
-                    />
-                  )}
+                  {/* Floating tooltip disabled in favor of Center HUD to prevent z-index text collision */}
+                  <Tooltip content={() => null} />
                 </PieChart>
               </ResponsiveContainer>
 
@@ -589,44 +751,34 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
                 {displaySector ? (
                   <>
-                    <span className="text-[11.5px] sm:text-[12px] font-extrabold text-tertiary tracking-tight px-2 truncate max-w-[155px]">
+                    <span className="text-[10.5px] sm:text-[12px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight px-2 truncate max-w-[150px] sm:max-w-[170px]">
                       {displaySector.name}
                     </span>
-                    <span className="text-[21px] sm:text-[23px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[22px] sm:text-[28px] font-black text-primary leading-tight mt-0.5">
                       {displaySector.value.toFixed(1)}%
                     </span>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span
-                        className="text-[10.5px] font-extrabold px-1.5 py-0.2 rounded-full"
-                        style={{ color: displaySector.color, backgroundColor: `${displaySector.color}15` }}
+                        className="text-[10px] sm:text-[11px] font-extrabold px-2 sm:px-2.5 py-0.5 rounded-full"
+                        style={{ color: displaySector.color, backgroundColor: `${displaySector.color}18` }}
                       >
                         {displaySector.count.toLocaleString()}건
                       </span>
-                      {displaySector.avgPriceLabel && (
-                        <span className="text-[10.5px] font-bold text-secondary">
-                          {displaySector.avgPriceLabel}
-                        </span>
-                      )}
                     </div>
                   </>
                 ) : (
                   <>
-                    <span className="text-[11.5px] sm:text-[12px] font-extrabold text-tertiary tracking-tight">
+                    <span className="text-[10px] sm:text-[12px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight">
                       총 실거래
                     </span>
-                    <span className="text-[21px] sm:text-[23px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[22px] sm:text-[28px] font-black text-slate-900 dark:text-white leading-tight mt-0.5">
                       {isPeriodLoading ? (
-                        <span className="text-[15px] font-bold text-tertiary animate-pulse">조회 중...</span>
+                        <span className="text-[15px] sm:text-[16px] font-bold text-tertiary animate-pulse">조회 중...</span>
                       ) : (
                         `${totalCount.toLocaleString()}건`
                       )}
                     </span>
-                    <span
-                      className="text-[11px] font-extrabold mt-0.5 text-[#0d9488]"
-                    >
-                      가격대별 수요
-                    </span>
-                    <span className="text-[9.5px] font-semibold text-tertiary mt-0.5">
+                    <span className="text-[9.5px] sm:text-[10px] font-medium text-slate-400 dark:text-zinc-500 mt-0.5">
                       {PERIOD_LABELS[period]} 기준
                     </span>
                   </>
@@ -634,15 +786,19 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               </div>
             </div>
           ) : (
-            <div style={{ width: chartSize, height: chartSize }} className="rounded-full border-4 border-dashed border-border animate-pulse" />
+            <div
+              style={{ maxWidth: chartSize, maxHeight: chartSize }}
+              className="w-[210px] h-[210px] sm:w-[235px] sm:h-[235px] rounded-full border-4 border-dashed border-border animate-pulse"
+            />
           )}
         </div>
 
         {/* Right: 4 Category Breakdown Cards (Flexible Width) */}
-        <div className="flex-1 min-w-0 flex flex-col justify-between gap-1.5 sm:gap-2 h-full py-0.5 pl-0 sm:pl-1">
+        <div className="w-full sm:flex-1 min-w-0 flex flex-col justify-center gap-1.5 sm:gap-2 my-auto py-0.5 pl-0 sm:pl-1">
           {donutData.map((sector) => {
             const isSelected = activeCategory === sector.name || activeCategory === sector.category;
             const isHovered = hoveredCategory === sector.name || hoveredCategory === sector.category;
+            const isMainstream = sector.isTop;
             return (
               <div
                 key={sector.name}
@@ -666,49 +822,82 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     setActiveCategory(isSelected ? null : sector.name);
                   }
                 }}
-                className={`group p-2.5 sm:py-2.5 sm:px-3 rounded-xl border transition-all duration-150 cursor-pointer flex items-center justify-between gap-1.5 sm:gap-2 ${
+                className={`group p-2 sm:py-2 sm:px-2.5 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1 ${
                   isSelected
-                    ? 'bg-body border-primary/50 shadow-sm ring-1 ring-primary/20 scale-[1.01]'
+                    ? 'bg-body border-primary/60 shadow-md ring-2 ring-primary/20 scale-[1.01]'
                     : isHovered
-                      ? 'bg-body/70 border-border shadow-xs'
-                      : 'bg-surface/80 hover:bg-body border-border/50 hover:border-border'
+                      ? 'bg-body/80 border-border/90 shadow-xs scale-[1.005]'
+                      : isMainstream
+                        ? 'bg-surface/90 border-border/70 hover:border-border'
+                        : 'bg-surface/80 hover:bg-body border-border/40 hover:border-border/70'
                 }`}
               >
-                {/* Left: Indicator Dot & Category Name */}
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                  <span
-                    className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
-                    style={{ backgroundColor: sector.color }}
-                  />
-                  <span className="text-[12px] sm:text-[12.5px] font-bold text-primary whitespace-nowrap">
-                    {sector.name}
-                  </span>
-                </div>
-
-                {/* Right: Average Price + Ratio & Count + Chevron */}
-                <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto pl-1">
-                  {sector.avgPriceLabel && (
-                    <span className="text-[10.5px] sm:text-[11.5px] font-semibold text-secondary whitespace-nowrap">
-                      {sector.avgPriceLabel}
-                    </span>
-                  )}
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[12px] sm:text-[12.5px] font-black text-primary whitespace-nowrap tabular-nums">
-                      {sector.value.toFixed(1)}%
-                    </span>
-                    <span className="text-[9.5px] sm:text-[10px] font-medium text-tertiary whitespace-nowrap tabular-nums">
-                      ({sector.count.toLocaleString()}건)
+                {/* Top Row: Indicator Dot + Category Name (Left) | Ratio & Count + Chevron (Right) */}
+                <div className="flex items-center justify-between w-full gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                      style={{ backgroundColor: sector.color }}
+                    />
+                    <span className="text-[12.5px] sm:text-[13px] font-black text-primary whitespace-nowrap">
+                      {sector.name}
                     </span>
                   </div>
-                  <ChevronRight
-                    size={14}
-                    className={`shrink-0 transition-all duration-200 ${
-                      isSelected
-                        ? 'rotate-90 text-[#ea6100]'
-                        : 'text-tertiary group-hover:text-[#ea6100] group-hover:translate-x-0.5'
-                    }`}
+
+                  <div className="flex items-center gap-1.5 shrink-0 ml-auto pl-1">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-[12.5px] sm:text-[13px] font-black text-primary whitespace-nowrap tabular-nums">
+                        {sector.value.toFixed(1)}%
+                      </span>
+                      <span className="text-[9.5px] sm:text-[10px] font-medium text-tertiary whitespace-nowrap tabular-nums">
+                        ({sector.count.toLocaleString()}건)
+                      </span>
+                    </div>
+                    <ChevronRight
+                      size={14}
+                      className={`shrink-0 transition-transform duration-200 ${
+                        isSelected
+                          ? 'rotate-90 text-[#057e77] dark:text-emerald-400'
+                          : 'text-tertiary group-hover:text-primary group-hover:translate-x-0.5'
+                      }`}
+                    />
+                  </div>
+                </div>
+
+                {/* Bottom Row: Visual Progress Gauge Bar */}
+                <div className="w-full bg-neutral-100 dark:bg-zinc-800/80 h-1.5 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{
+                      width: `${Math.min(100, Math.max(3, sector.value))}%`,
+                      backgroundColor: sector.color,
+                    }}
                   />
                 </div>
+
+                {/* Selected Loan CTA */}
+                {isSelected && onOpenMortgageModal && (
+                  <div className="flex items-center justify-end pt-1 border-t border-border/30 mt-0.5">
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenMortgageModal();
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          onOpenMortgageModal();
+                        }
+                      }}
+                      className="text-[10.5px] font-bold text-[#057e77] dark:text-emerald-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                    >
+                      대출 한도·금리 &gt;
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })}
