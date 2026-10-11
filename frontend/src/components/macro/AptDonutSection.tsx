@@ -183,7 +183,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   initialPeriod = '90d',
   period: controlledPeriod,
   onPeriodChange,
-  chartSize = 270,
+  chartSize = 240,
   className = '',
 }: AptDonutSectionProps) {
   const [internalMode, setInternalMode] = useState<AptDonutMode>(initialMode);
@@ -675,7 +675,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           {mounted ? (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`relative flex items-center justify-center transition-opacity duration-200 w-[240px] h-[240px] sm:w-[270px] sm:h-[270px] ${
+              className={`relative flex items-center justify-center transition-opacity duration-200 w-[215px] h-[215px] sm:w-[240px] sm:h-[240px] ${
                 isPeriodLoading ? 'opacity-50' : 'opacity-100'
               }`}
             >
@@ -686,8 +686,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={[{ value: 1 }]}
                       cx="50%"
                       cy="50%"
-                      innerRadius="65%"
-                      outerRadius="95%"
+                      innerRadius="72%"
+                      outerRadius="93%"
                       dataKey="value"
                       stroke="transparent"
                       isAnimationActive={false}
@@ -699,8 +699,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       data={donutData}
                       cx="50%"
                       cy="50%"
-                      innerRadius="65%"
-                      outerRadius="95%"
+                      innerRadius="72%"
+                      outerRadius="93%"
                       paddingAngle={2.5}
                       dataKey="value"
                       onMouseEnter={(data: any, index: number) => {
@@ -749,15 +749,15 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
                 {displaySector ? (
                   <>
-                    <span className="text-[11px] sm:text-[12.5px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight px-2 truncate max-w-[170px]">
+                    <span className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight px-2 truncate max-w-[150px]">
                       {displaySector.name}
                     </span>
-                    <span className="text-[26px] sm:text-[32px] font-black text-primary leading-tight mt-0.5">
+                    <span className="text-[22px] sm:text-[26px] font-black text-primary leading-tight mt-0.5">
                       {displaySector.value.toFixed(1)}%
                     </span>
                     <div className="flex items-center gap-1.5 mt-0.5">
                       <span
-                        className="text-[10px] sm:text-[11px] font-extrabold px-2 sm:px-2.5 py-0.5 rounded-full"
+                        className="text-[9.5px] sm:text-[10.5px] font-extrabold px-2 sm:px-2.5 py-0.5 rounded-full"
                         style={{ color: displaySector.color, backgroundColor: `${displaySector.color}18` }}
                       >
                         {displaySector.count.toLocaleString()}건
@@ -766,13 +766,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   </>
                 ) : (
                   <>
-                    <span className="text-[12px] sm:text-[13.5px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight">
+                    <span className="text-[11px] sm:text-[12px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight">
                       총 거래
                       <span className="sr-only">총 실거래</span>
                     </span>
-                    <span className="text-[26px] sm:text-[32px] font-black text-slate-900 dark:text-white leading-tight mt-0.5">
+                    <span className="text-[22px] sm:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5">
                       {isPeriodLoading ? (
-                        <span className="text-[16px] font-bold text-tertiary animate-pulse">조회 중...</span>
+                        <span className="text-[15px] font-bold text-tertiary animate-pulse">조회 중...</span>
                       ) : (
                         `${totalCount.toLocaleString()}건`
                       )}
@@ -787,7 +787,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           ) : (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className="w-[240px] h-[240px] sm:w-[270px] sm:h-[270px] rounded-full border-4 border-dashed border-border animate-pulse"
+              className="w-[215px] h-[215px] sm:w-[240px] sm:h-[240px] rounded-full border-4 border-dashed border-border animate-pulse"
             />
           )}
         </div>
