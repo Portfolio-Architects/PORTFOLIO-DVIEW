@@ -312,7 +312,14 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold leading-none">
             상승 거래 비중
             <span className="sr-only">신고가 달성</span>
-            <span className="sr-only">{computedNewHighCount}건 전기 대비 +{newHighChange}건 상승세</span>
+            <span className="sr-only">{computedNewHighCount}건</span>
+            <span className="sr-only">
+              {newHighChange === 0
+                ? '전기 대비 변동 없음'
+                : newHighChange > 0
+                ? `전기 대비 +${newHighChange}건 상승세`
+                : `전기 대비 ${newHighChange}건 하락세`}
+            </span>
           </span>
           <span className="text-[9px] sm:text-[9.5px] font-bold text-[#ea6100] bg-[#ea6100]/10 px-1.5 py-0.5 rounded shrink-0 leading-none">
             {risingMetrics.statusLabel}
@@ -404,23 +411,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         type="button"
         onClick={() => onOpenSellTimingCalculator && onOpenSellTimingCalculator()}
         aria-label="우리집 적정 가치 및 매도 타이밍 진단 계산기 열기"
-        className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-[14px] sm:rounded-[16px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] active:scale-[0.99] hover:border-[#ea6100] transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#ea6100]/20 group"
+        className="bg-surface border border-border/80 px-3 py-2 sm:px-3.5 sm:py-2.5 rounded-[14px] sm:rounded-[16px] shadow-sm flex flex-col justify-between hover:shadow-md hover:scale-[1.01] active:scale-[0.99] hover:border-[#057e77]/50 transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-[#057e77]/20 group"
       >
         <div className="flex items-center justify-between gap-1 w-full">
           <span className="text-[10.5px] sm:text-[11px] text-tertiary font-bold leading-none">자산 진단 시뮬레이터</span>
-          <span className="text-[9px] sm:text-[9.5px] font-bold text-[#ea6100] bg-[#ea6100]/10 px-1.5 py-0.5 rounded shrink-0 leading-none">AI 정밀진단</span>
+          <span className="text-[9px] sm:text-[9.5px] font-bold text-[#057e77] dark:text-emerald-400 bg-[#057e77]/10 dark:bg-emerald-950/40 px-1.5 py-0.5 rounded border border-[#057e77]/20 dark:border-emerald-800/30 shrink-0 leading-none">
+            AI 정밀진단
+          </span>
         </div>
         <div className="flex items-center justify-between w-full mt-auto pt-0.5">
-          <div className="flex flex-col gap-0.5 min-w-0 pr-1">
-            <span className="text-[12px] sm:text-[13px] font-black text-[#ea6100] leading-tight group-hover:underline truncate block">
-              우리집 적정 가치 & 매도 타이밍
-            </span>
-            <span className="text-[8.5px] sm:text-[9px] font-medium text-tertiary truncate block">
-              단지별 AI 시세 분석 및 매도 전략
-            </span>
-          </div>
+          <span className="text-[12.5px] sm:text-[13.5px] font-black text-primary leading-none group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors truncate block">
+            우리집 적정 가치 & 매도 타이밍
+          </span>
           {/* 원형 쉐브론 CTA 버튼 */}
-          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#ea6100]/10 text-[#ea6100] shrink-0 ml-1 group-hover:translate-x-0.5 transition-transform">
+          <div className="flex items-center justify-center w-6 h-6 rounded-full bg-[#057e77]/10 dark:bg-emerald-950/40 text-[#057e77] dark:text-emerald-400 shrink-0 ml-1 group-hover:translate-x-0.5 group-hover:bg-[#057e77] group-hover:text-white dark:group-hover:bg-emerald-600 transition-all duration-200">
             <ChevronRight className="w-3.5 h-3.5" />
           </div>
         </div>
