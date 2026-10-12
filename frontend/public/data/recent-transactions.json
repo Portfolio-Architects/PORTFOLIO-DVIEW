@@ -7025,22 +7025,5 @@
     "delta": 0.3,
     "deltaPercent": 6.1,
     "dateLabel": "7월 18일"
-  },
-  {
-    "aptName": "더레이크시티부영6단지",
-    "txKey": "더레이크시티부영6단지",
-    "date": "07.13",
-    "contractDate": "20260713",
-    "priceVal": 5.8,
-    "priceEok": "5억8,000",
-    "area": 59.9912,
-    "areaPyeong": 25.107499999999998,
-    "floor": 23,
-    "dealType": " ",
-    "isNewHigh": false,
-    "prevPriceVal": 6.15,
-    "delta": -0.35,
-    "deltaPercent": -5.7,
-    "dateLabel": "7월 13일"
   }
 ]
