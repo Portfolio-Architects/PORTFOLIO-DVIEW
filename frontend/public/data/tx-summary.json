@@ -3661,6 +3661,7 @@
       "maxPrice": 80000,
       "maxPriceEok": "8억",
       "maxPriceByArea": {
+        "69.97": 63000,
         "84.99": 80000,
         "69.97": 60000,
         "69.59": 68500,
@@ -3669,6 +3670,7 @@
       "minPrice": 30000,
       "minPriceEok": "3억",
       "minPriceByArea": {
+        "69.97": 30000,
         "84.99": 34500,
         "69.97": 30000,
         "69.59": 30700,
@@ -5140,6 +5142,7 @@
       "minPrice": 36300,
       "minPriceEok": "3억6,300",
       "minPriceByArea": {
+        "84.97": 37000,
         "74.87": 36300,
         "84.97": 37000,
         "84.90": 40300,
@@ -6414,8 +6417,8 @@
         "85.00": 48000,
         "84.98": 48500
       },
-      "allTimeHigh": 69000,
-      "allTimeHighEok": "6억9,000",
+      "allTimeHigh": 71000,
+      "allTimeHighEok": "7억1,000",
       "allTimeLow": 40000,
       "allTimeLowEok": "4억",
       "annualVolumes": {

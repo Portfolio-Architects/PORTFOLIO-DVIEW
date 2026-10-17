@@ -2782,6 +2782,24 @@
     "dateLabel": "9월 12일"
   },
   {
+    "aptName": "호반베르디움센트럴포레",
+    "txKey": "호반베르디움센트럴포레",
+    "date": "09.12",
+    "contractDate": "20260912",
+    "priceVal": 8.7,
+    "priceEok": "8억7,000",
+    "area": 98.1497,
+    "areaPyeong": 37.207499999999996,
+    "floor": 24,
+    "dealType": "중개거래",
+    "isNewHigh": true,
+    "newHighDelta": 0.2,
+    "prevPriceVal": 7.5,
+    "delta": 1.2,
+    "deltaPercent": 16,
+    "dateLabel": "9월 12일"
+  },
+  {
     "aptName": "더레이크시티부영5단지",
     "txKey": "더레이크시티부영5단지",
     "date": "09.12",
