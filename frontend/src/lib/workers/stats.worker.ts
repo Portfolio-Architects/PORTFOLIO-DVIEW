@@ -128,13 +128,17 @@ export function calculateAmortizationTrajectory(
     return schedule;
   }
 
+  const onePlusR = 1 + monthlyRate;
+  const pmtOverR = monthlyPayment / monthlyRate;
+  let factorT = 1;
+
   for (let t = 1; t <= n; t++) {
     if (t === n) {
       schedule[t - 1] = 0;
     } else {
-      const factorT = Math.pow(1 + monthlyRate, t);
-      const remainingBalance = principal * factorT - monthlyPayment * ((factorT - 1) / monthlyRate);
-      schedule[t - 1] = Math.max(0, remainingBalance);
+      factorT *= onePlusR;
+      const remainingBalance = principal * factorT - pmtOverR * (factorT - 1);
+      schedule[t - 1] = remainingBalance > 0 ? remainingBalance : 0;
     }
   }
 
@@ -149,6 +153,7 @@ export function calculateAmortizationTrajectory(
  * Side-effects: none.
  *
  * @param payload StatsWorkerRequestPayload containing Float32Array price buffer and loan parameters
+ * @param outMonthlyPayments Optional pre-allocated Float32Array buffer
  * @returns StatsWorkerResponsePayload containing two-sigma metrics, monthly payments vector, and amortization trajectory
  */
 export function executeStatsWorkerCalculation(
@@ -190,20 +195,6 @@ export function executeStatsWorkerCalculation(
     };
   }
 
-  // Pass 1: Sum, Min, Max
-  let sum = 0;
-  let min = prices[0];
-  let max = prices[0];
-
-  for (let i = 0; i < n; i++) {
-    const val = prices[i];
-    sum += val;
-    if (val < min) min = val;
-    if (val > max) max = val;
-  }
-
-  const mean = sum / n;
-
   // Singularity Defense 2: N = 1 (Bessel degrees of freedom N - 1 = 0 cannot support variance)
   if (n === 1) {
     const singlePrice = prices[0];
@@ -219,18 +210,35 @@ export function executeStatsWorkerCalculation(
       stats: {
         isValid: false,
         count: 1,
-        mean,
+        mean: singlePrice,
         sd: 0,
-        upper2SD: mean,
-        lower2SD: Math.max(0, mean),
-        min,
-        max,
+        upper2SD: singlePrice,
+        lower2SD: Math.max(0, singlePrice),
+        min: singlePrice,
+        max: singlePrice,
       },
       baseMortgagePmt: basePmt,
       monthlyPayments,
       amortizationSchedule,
     };
   }
+
+  // Pass 1 (Fused): Sum, Min, Max, and SIMD-pipelineable Mortgage Vector Calculation
+  const monthlyPayments = new Float32Array(n);
+  const priceToPaymentMultiplier = ltv * k;
+  let sum = 0;
+  let min = prices[0];
+  let max = prices[0];
+
+  for (let i = 0; i < n; i++) {
+    const val = prices[i];
+    sum += val;
+    if (val < min) min = val;
+    if (val > max) max = val;
+    monthlyPayments[i] = val * priceToPaymentMultiplier;
+  }
+
+  const mean = sum / n;
 
   // Pass 2: Bessel-corrected sample variance
   let sumSquaredDiff = 0;
@@ -243,13 +251,6 @@ export function executeStatsWorkerCalculation(
   const sd = Math.sqrt(variance);
   const upper2SD = mean + 2 * sd;
   const lower2SD = Math.max(0, mean - 2 * sd);
-
-  // Mortgage Vector Calculation: SIMD-pipelineable single loop
-  const monthlyPayments = new Float32Array(n);
-  const priceToPaymentMultiplier = ltv * k;
-  for (let i = 0; i < n; i++) {
-    monthlyPayments[i] = prices[i] * priceToPaymentMultiplier;
-  }
 
   const basePrincipal = mean * ltv;
   const baseMortgagePmt = basePrincipal * k;
