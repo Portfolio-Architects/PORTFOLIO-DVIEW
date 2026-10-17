@@ -15,7 +15,6 @@ import { trackEvent } from '@/lib/utils/analytics';
 
 // subcomponents
 import { EnrichedApt } from './explore/types';
-import { FavoriteOrderEditor } from './explore/FavoriteOrderEditor';
 import { SearchSuggestionDropdown } from './explore/SearchSuggestionDropdown';
 import { AptRow } from './explore/AptRow';
 
@@ -74,18 +73,13 @@ interface TossApartmentExploreClientProps {
   nameMapping: Record<string, string>;
   fieldReportsMap: Map<string, FieldReportData>;
   publicRentalSet: Set<string>;
-  userFavorites: Set<string>;
-  isFavorited?: (aptName: string) => boolean;
-  favoriteCounts: Record<string, number>;
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   handleSelectApt: (name: string) => void;
-  onToggleFavorite: (name: string) => void;
   onOpenCompare?: () => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
   onSearchFocus?: () => void;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
-  updateFavoriteOrder?: (newOrder: string[]) => Promise<void>;
 }
 
 const globalAptsCache = {
@@ -97,7 +91,6 @@ const TossApartmentExploreClientPropsSchema = z.object({
   sheetApartments: z.record(z.string(), z.array(z.unknown())),
   txSummaryData: z.record(z.string(), z.unknown()),
   nameMapping: z.record(z.string(), z.string()),
-  favoriteCounts: z.record(z.string(), z.number()),
   typeMap: z.record(z.string(), z.unknown()),
 });
 
@@ -107,35 +100,19 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   nameMapping,
   fieldReportsMap,
   publicRentalSet,
-  userFavorites,
-  isFavorited,
-  favoriteCounts,
   typeMap,
   handleSelectApt,
-  onToggleFavorite,
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
   onSearchFocus,
   preloadApartmentTx,
-  updateFavoriteOrder,
 }: TossApartmentExploreClientProps) {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const favoritesArray = useMemo(() => Array.from(userFavorites || []), [userFavorites]);
-  const checkFavorited = useCallback((aptName: string) => {
-    if (!aptName) return false;
-    if (isFavorited) return isFavorited(aptName);
-    if (userFavorites.has(aptName)) return true;
-    const targetNorm = normalizeAptName(aptName);
-    return Array.from(userFavorites).some(
-      item => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName, nameMapping)
-    );
-  }, [isFavorited, userFavorites, nameMapping]);
   const isResizingRef = useRef(false);
   const animationFrameIdRef = useRef<number | null>(null);
   const resizeListenersRef = useRef<{
@@ -270,7 +247,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         sheetApartments,
         txSummaryData,
         nameMapping,
-        favoriteCounts,
         typeMap,
       });
       if (!parsedProps.success) {
@@ -281,11 +257,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         );
       }
     }
-  }, [sheetApartments, txSummaryData, nameMapping, favoriteCounts, typeMap]);
+  }, [sheetApartments, txSummaryData, nameMapping, typeMap]);
 
 
   const categories = useMemo(() => [
-    { id: 'favorites', label: '내 관심' },
     { id: 'rank-abs-price', label: '매매가순' },
     { id: 'rank-price', label: '평당가순' },
     { id: 'rank-jeonse', label: '전세율순' },
@@ -314,12 +289,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const handleHeaderSort = (key: string) => {
-    const targetKey = (key === 'views' && currentCategory === 'favorites') ? 'custom' : key;
-    if (sortKey === targetKey) {
+    if (sortKey === key) {
       setSortDirection(prev => prev === 'desc' ? 'asc' : 'desc');
     } else {
-      setSortKey(targetKey);
-      setSortDirection(targetKey === 'custom' ? 'asc' : 'desc');
+      setSortKey(key);
+      setSortDirection('desc');
     }
     
     // 카테고리 하이라이트 동기화
@@ -329,9 +303,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     else if (key === 'volume3M') setCurrentCategory('custom-sort');
     else if (key === 'turnoverRate') setCurrentCategory('rank-turnover');
     else if (key === 'views') setCurrentCategory('rank-views');
-    else if (key !== 'views' && currentCategory === 'favorites') {
-      // Keep category as favorites
-    } else setCurrentCategory('custom-sort');
+    else setCurrentCategory('custom-sort');
   };
 
   useEffect(() => {
@@ -350,9 +322,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     } else if (currentCategory === 'rank-views') {
       setSortKey('views');
       setSortDirection('desc');
-    } else if (currentCategory === 'favorites') {
-      setSortKey('custom');
-      setSortDirection('asc');
     }
   }, [currentCategory]);
 
@@ -440,9 +409,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const sortedApts = useMemo(() => {
     let filtered = [...enrichedApts];
 
-    if (currentCategory === 'favorites') {
-      filtered = filtered.filter(a => checkFavorited(a.apt.name));
-    } else if (currentCategory.startsWith('dong-')) {
+    if (currentCategory.startsWith('dong-')) {
       const dongName = currentCategory.replace('dong-', '');
       filtered = filtered.filter(a => a.apt.dong === dongName);
     } else if (currentCategory === 'theme-over-12') {
@@ -488,22 +455,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       } else if (sortKey === 'yearBuilt') {
         valA = a.apt.yearBuilt ? parseInt(String(a.apt.yearBuilt).replace(/[^0-9]/g, '')) || 0 : 0;
         valB = b.apt.yearBuilt ? parseInt(String(b.apt.yearBuilt).replace(/[^0-9]/g, '')) || 0 : 0;
-      } else if (sortKey === 'likes') {
-        valA = favoriteCounts[a.apt.name] || 0;
-        valB = favoriteCounts[b.apt.name] || 0;
       } else if (sortKey === 'name') {
         return sortDirection === 'asc' 
           ? a.apt.name.localeCompare(b.apt.name, 'ko') 
           : b.apt.name.localeCompare(a.apt.name, 'ko');
-      }
-
-      if (currentCategory === 'favorites' && sortKey === 'custom') {
-        const idxA = favoritesArray.indexOf(a.apt.name);
-        const idxB = favoritesArray.indexOf(b.apt.name);
-        if (idxA === -1 && idxB === -1) return 0;
-        if (idxA === -1) return 1;
-        if (idxB === -1) return -1;
-        return sortDirection === 'desc' ? idxB - idxA : idxA - idxB;
       }
 
       if (valA === valB) return 0;
@@ -516,7 +471,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     }
 
     return filtered;
-  }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, userFavorites, favoritesArray, favoriteCounts, fieldReportsMap]);
+  }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, fieldReportsMap]);
 
   const exploreJsonLd = useMemo(() => {
     if (!sortedApts || sortedApts.length === 0) return null;
@@ -633,11 +588,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1" role="tablist" aria-label="단지 랭킹 필터">
             <SidebarItem 
-              label="내 관심 단지" 
-              active={currentCategory === 'favorites'} 
-              onClick={() => setCurrentCategory('favorites')} 
-            />
-            <SidebarItem 
               label="가격 높은 순" 
               active={currentCategory === 'rank-abs-price'} 
               onClick={() => setCurrentCategory('rank-abs-price')} 
@@ -714,8 +664,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             onClick={() => setIsMobileMenuOpen(true)}
           >
             <h2 className="text-[15px] font-black text-primary tracking-tight">
-              {currentCategory === 'favorites' ? '내 관심 단지' : 
-               currentCategory === 'rank-price' ? '평당가 높은 순' :
+              {currentCategory === 'rank-price' ? '평당가 높은 순' :
                currentCategory === 'rank-abs-price' ? '가격 높은 순' :
                currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
                currentCategory === 'rank-turnover' ? '회전율 높은 순' :
@@ -779,8 +728,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <h2 className="text-[20px] md:text-[28px] font-extrabold text-primary tracking-tight">
-                {currentCategory === 'favorites' ? '내 관심 단지' : 
-                 currentCategory === 'rank-price' ? '평당가 높은 순' :
+                {currentCategory === 'rank-price' ? '평당가 높은 순' :
                  currentCategory === 'rank-abs-price' ? '가격 높은 순' :
                  currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
                  currentCategory === 'rank-turnover' ? '회전율 높은 순' :
@@ -791,12 +739,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </button>
             <div className="flex items-center gap-2 mt-0 md:mt-2">
               <p className="text-[13px] md:text-[15px] font-medium text-tertiary">총 {sortedApts.length}개 단지</p>
-              {currentCategory === 'favorites' && favoritesArray.length > 0 && (
-                <FavoriteOrderEditor
-                  favoritesArray={favoritesArray}
-                  updateFavoriteOrder={updateFavoriteOrder}
-                />
-              )}
             </div>
           </div>
 
@@ -985,9 +927,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </button>
             <button 
               onClick={() => handleHeaderSort('volume3M')}
-              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#008060] dark:text-[#ea6100] bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#057e77] dark:text-emerald-400 bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
             >
-              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#008060] dark:text-[#ea6100]" /> : <ArrowUp className="w-3 h-3 text-[#008060] dark:text-[#ea6100]" />)}
+              {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#057e77] dark:text-emerald-400" /> : <ArrowUp className="w-3 h-3 text-[#057e77] dark:text-emerald-400" />)}
               <span>거래량</span>
             </button>
           </div>
@@ -1010,10 +952,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       item={item} 
                       index={index} 
                       handleSelectApt={handleSelectApt} 
-                      onToggleFavorite={onToggleFavorite} 
                       currentCategory={currentCategory}
-                      isFavorited={checkFavorited(item.apt.name)}
-                      likes={favoriteCounts[item.apt.name] || 0}
                       photoCount={fieldReportsMap.get(item.apt.name)?.images?.length || 0}
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
                       preloadApartmentTx={preloadApartmentTx}
@@ -1071,11 +1010,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               <div className="py-3 mt-1">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
                 <div className="flex flex-col gap-1" role="tablist" aria-label="모바일 단지 랭킹 필터">
-                  <MobileSidebarItem 
-                    label="내 관심 단지" 
-                    active={currentCategory === 'favorites'} 
-                    onClick={() => { setCurrentCategory('favorites'); setIsMobileMenuOpen(false); }} 
-                  />
                   <MobileSidebarItem 
                     label="가격 높은 순" 
                     active={currentCategory === 'rank-abs-price'} 

@@ -4,7 +4,7 @@ const path = require('path');
 const iconv = require('iconv-lite');
 
 const { z } = require('zod');
-const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
+const { getSupplyPyeong } = require('../pipeline/core/normalizer');
 
 // Zod schema to validate uploaded rent CSV records
 const RentCsvRecordSchema = z.object({

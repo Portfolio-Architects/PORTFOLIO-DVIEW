@@ -39,11 +39,6 @@ jest.mock('@/hooks/useAuth', () => ({
   }),
 }));
 
-jest.mock('@/components/FloatingUserBar', () => {
-  return function MockFloatingUserBar() {
-    return <div data-testid="mock-floating-user-bar" />;
-  };
-});
 
 jest.mock('@/contexts/SettingsContext', () => ({
   useSettingsUi: () => ({
@@ -217,17 +212,23 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
   // =========================================================================
   // Dimension 3: Canonical 3-Tab Desktop & Mobile Navigation Integrity
   // =========================================================================
-  describe('Dimension 3: Canonical 3-Tab Desktop & Mobile Navigation Sync', () => {
-    const canonicalTabs = [
+  describe('Dimension 3: Canonical Desktop & Mobile Navigation Sync', () => {
+    const canonicalHeaderTabs = [
+      { id: 'overview', label: '아파트 랩', href: '/' },
+      { id: 'imjang', label: '아파트 탐색', href: '/explore' },
+      { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
+      { id: 'guide', label: '부동산 가이드', href: '/guide' },
+    ];
+    const canonicalDockTabs = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
     ];
 
-    it('confirms LoungeHeader and MobileDock declare and render exactly the same 3 tabs in identical order', () => {
+    it('confirms LoungeHeader renders 4 canonical tabs and MobileDock renders 3 canonical tabs', () => {
       // 1. MobileDock TABS export
       expect(TABS).toHaveLength(3);
-      canonicalTabs.forEach((expected, i) => {
+      canonicalDockTabs.forEach((expected, i) => {
         expect(TABS[i].id).toBe(expected.id);
         expect(TABS[i].label).toBe(expected.label);
         expect(TABS[i].href).toBe(expected.href);
@@ -237,8 +238,8 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
       const headerNav = within(headerContainer).getByRole('navigation', { name: '메인 메뉴' });
       const headerLinks = within(headerNav).getAllByRole('link');
-      expect(headerLinks).toHaveLength(3);
-      canonicalTabs.forEach((expected, i) => {
+      expect(headerLinks).toHaveLength(4);
+      canonicalHeaderTabs.forEach((expected, i) => {
         expect(headerLinks[i]).toHaveTextContent(expected.label);
         expect(headerLinks[i]).toHaveAttribute('href', expected.href);
       });
@@ -249,7 +250,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       expect(dockNav).toBeInTheDocument();
       const dockLinks = within(dockNav!).getAllByRole('link');
       expect(dockLinks).toHaveLength(3);
-      canonicalTabs.forEach((expected, i) => {
+      canonicalDockTabs.forEach((expected, i) => {
         expect(dockLinks[i]).toHaveTextContent(expected.label);
         expect(dockLinks[i]).toHaveAttribute('href', expected.href);
       });
@@ -275,22 +276,24 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       });
     });
 
-    it('simulates rapid tab clicks across all 3 tabs on both LoungeHeader and MobileDock', () => {
+    it('simulates rapid tab clicks across all tabs on both LoungeHeader and MobileDock', () => {
       const onHeaderTabChange = jest.fn();
       const onDockTabClick = jest.fn();
 
-      render(<LoungeHeader activeTab="overview" onTabChange={onHeaderTabChange} />);
-      render(<MobileDock activeTab="overview" onTabClick={onDockTabClick} />);
+      const { container: headerContainer } = render(<LoungeHeader activeTab="overview" onTabChange={onHeaderTabChange} />);
+      const { container: dockContainer } = render(<MobileDock activeTab="overview" onTabClick={onDockTabClick} />);
 
-      const headerNav = screen.getByRole('navigation', { name: '메인 메뉴' });
+      const headerNav = within(headerContainer).getByRole('navigation', { name: '메인 메뉴' });
       const headerLinks = within(headerNav).getAllByRole('link');
-      const dockLinks = screen.getAllByRole('link').slice(3); // First 3 are header, next 3 are dock
+      const dockNav = dockContainer.querySelector('nav')!;
+      const dockLinks = within(dockNav).getAllByRole('link');
 
       act(() => {
         for (let i = 0; i < 30; i++) {
-          const tabIdx = i % 3;
-          fireEvent.click(headerLinks[tabIdx]);
-          fireEvent.click(dockLinks[tabIdx]);
+          const headerTabIdx = i % headerLinks.length;
+          const dockTabIdx = i % dockLinks.length;
+          fireEvent.click(headerLinks[headerTabIdx]);
+          fireEvent.click(dockLinks[dockTabIdx]);
         }
       });
 
@@ -298,12 +301,12 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       expect(onDockTabClick).toHaveBeenCalledTimes(30);
     });
 
-    it('verifies dynamic active tab visual indication across all 3 states', () => {
-      const tabs: Array<'overview' | 'imjang' | 'mbti'> = ['overview', 'imjang', 'mbti'];
+    it('verifies dynamic active tab visual indication across all states', () => {
+      const tabs: Array<'overview' | 'imjang' | 'mbti' | 'guide'> = ['overview', 'imjang', 'mbti', 'guide'];
 
       tabs.forEach((tab) => {
-        const { unmount } = render(<LoungeHeader activeTab={tab} />);
-        const headerNav = screen.getByRole('navigation', { name: '메인 메뉴' });
+        const { unmount, container } = render(<LoungeHeader activeTab={tab} />);
+        const headerNav = within(container).getByRole('navigation', { name: '메인 메뉴' });
         const links = within(headerNav).getAllByRole('link');
 
         const activeLinkIndex = tabs.indexOf(tab);

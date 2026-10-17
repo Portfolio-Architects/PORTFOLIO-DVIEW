@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
-import { Calendar, ChevronDown, ChevronUp, RotateCcw, Heart, ExternalLink } from 'lucide-react';
+import { Calendar, ChevronDown, ChevronUp, RotateCcw, ExternalLink } from 'lucide-react';
 import { useInView } from 'react-intersection-observer';
 import { normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
 import { TimelineFilterControls } from './MacroControls';
@@ -86,8 +86,6 @@ export interface MacroTimelineViewProps {
   onSelectApt?: (aptName: string) => void;
   onDetailsClick?: (aptName: string) => void;
   onDetailsHover?: (aptName: string, dong: string) => void;
-  userFavorites?: Set<string> | string[];
-  onToggleFavorite?: (aptName: string) => void;
   timelineDongFilter?: string;
   setTimelineDongFilter?: (dong: string) => void;
   timelineAptFilter?: string;
@@ -142,15 +140,11 @@ export function formatDeltaPercent(val: number | undefined): string {
 function DefaultTimelineCard({
   item,
   isSelected,
-  isFavorite,
-  onToggleFavorite,
   onCardClick,
   onDetailsClick,
 }: {
   item: TimelineItem;
   isSelected: boolean;
-  isFavorite: boolean;
-  onToggleFavorite?: (aptName: string) => void;
   onCardClick?: (aptName: string) => void;
   onDetailsClick?: (aptName: string) => void;
 }) {
@@ -180,19 +174,6 @@ function DefaultTimelineCard({
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {onToggleFavorite && (
-            <button
-              type="button"
-              aria-label={`${item.aptName} 관심 단지 등록`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(item.aptName);
-              }}
-              className="p-1 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-700 text-tertiary transition-colors"
-            >
-              <Heart size={14} className={isFavorite ? 'fill-rose-500 text-rose-500' : ''} />
-            </button>
-          )}
           {onDetailsClick && (
             <button
               type="button"
@@ -231,15 +212,11 @@ function DefaultTimelineCard({
 function DefaultTimelineRow({
   item,
   isSelected,
-  isFavorite,
-  onToggleFavorite,
   onCardClick,
   onDetailsClick,
 }: {
   item: TimelineItem;
   isSelected: boolean;
-  isFavorite: boolean;
-  onToggleFavorite?: (aptName: string) => void;
   onCardClick?: (aptName: string) => void;
   onDetailsClick?: (aptName: string) => void;
 }) {
@@ -283,19 +260,6 @@ function DefaultTimelineRow({
         </div>
 
         <div className="flex items-center gap-0.5">
-          {onToggleFavorite && (
-            <button
-              type="button"
-              aria-label={`${item.aptName} 관심 단지 등록`}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(item.aptName);
-              }}
-              className="p-1 rounded hover:bg-zinc-200 dark:hover:bg-zinc-700 text-tertiary transition-colors"
-            >
-              <Heart size={13} className={isFavorite ? 'fill-rose-500 text-rose-500' : ''} />
-            </button>
-          )}
           {onDetailsClick && (
             <button
               type="button"
@@ -331,8 +295,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   onSelectApt,
   onDetailsClick,
   onDetailsHover: _onDetailsHover,
-  userFavorites,
-  onToggleFavorite,
   timelineDongFilter = '전체',
   setTimelineDongFilter,
   timelineAptFilter = '전체',
@@ -430,13 +392,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
     }
   }, [effectiveSelectedApt, effectiveData, nameMapping, collapsedDates]);
 
-  const isAptFavorite = (aptName: string): boolean => {
-    if (!userFavorites) return false;
-    if (userFavorites instanceof Set) return userFavorites.has(aptName);
-    if (Array.isArray(userFavorites)) return userFavorites.includes(aptName);
-    return false;
-  };
-
   const { ref: sentinelRef, inView } = useInView({
     threshold: 0.1,
     rootMargin: '250px',
@@ -453,7 +408,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
     return (
       <div className={`w-full flex flex-col gap-4 min-w-0 max-w-full box-border ${className || ''}`}>
         <div className="flex flex-col items-center justify-center bg-surface rounded-2xl shadow-xs border border-border px-4 py-16 min-h-[300px]">
-          <div className="w-6 h-6 border-2 border-[#ea6100] border-t-transparent rounded-full animate-spin mb-3" />
+          <div className="w-6 h-6 border-2 border-[#057e77] border-t-transparent rounded-full animate-spin mb-3" />
           <span className="text-[13px] font-bold text-secondary">최근 실거래 타임라인 로딩 중...</span>
         </div>
       </div>
@@ -576,7 +531,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   type="button"
                   onClick={onResetFilters}
                   aria-label="필터 조건 초기화 필터 초기화"
-                  className="mt-2 px-3.5 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 hover:bg-orange-100 dark:hover:bg-orange-900/40 border border-orange-200/80 dark:border-orange-800/60 text-[#ea6100] text-[12px] font-bold transition-colors cursor-pointer shadow-xs active:scale-95 flex items-center gap-1.5"
+                  className="mt-2 px-3.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-emerald-200/80 dark:border-emerald-800/60 text-[#057e77] dark:text-emerald-400 text-[12px] font-bold transition-colors cursor-pointer shadow-xs active:scale-95 flex items-center gap-1.5"
                 >
                   <RotateCcw size={13} />
                   <span>필터 조건 초기화</span>
@@ -717,8 +672,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                                   <DefaultTimelineRow
                                     item={item}
                                     isSelected={isSelected}
-                                    isFavorite={isAptFavorite(item.aptName)}
-                                    onToggleFavorite={onToggleFavorite}
                                     onCardClick={effectiveOnCardClick}
                                     onDetailsClick={onDetailsClick}
                                   />
@@ -743,8 +696,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                                 <DefaultTimelineCard
                                   item={item}
                                   isSelected={isSelected}
-                                  isFavorite={isAptFavorite(item.aptName)}
-                                  onToggleFavorite={onToggleFavorite}
                                   onCardClick={effectiveOnCardClick}
                                   onDetailsClick={onDetailsClick}
                                 />

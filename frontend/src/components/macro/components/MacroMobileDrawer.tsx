@@ -86,8 +86,8 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
 
           {/* 커스텀 범례 */}
           <div className="flex items-center justify-center gap-3 mb-5 shrink-0">
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-[#ea6100]/8 text-[#ea6100] rounded-full text-[10px] font-bold border border-[#ea6100]/15">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ea6100]" />
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#057e77]" />
               <span>평균 매매가</span>
             </div>
             <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 text-[#f9a825] rounded-full text-[10px] font-bold border border-[#f9a825]/15">
@@ -131,7 +131,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-tertiary font-medium">평균 전세가</span>
-                    <span className="text-[12.5px] font-black text-[#ea6100]">
+                    <span className="text-[12.5px] font-black text-[#d97706] dark:text-[#f9a825]">
                       {avgRent > 0 ? `${(avgRent / 10000).toFixed(1)}억` : "-"}
                     </span>
                   </div>
@@ -144,7 +144,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
                 </div>
                 {hasValues && (
                   <div className="text-[10.5px] text-center text-secondary font-bold pt-1 border-t border-border/20">
-                    전세가율: <span className="text-[#ea6100]">{jeonseRateText}</span>
+                    전세가율: <span className="text-[#057e77] dark:text-emerald-400">{jeonseRateText}</span>
                   </div>
                 )}
               </div>

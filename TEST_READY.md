@@ -1,110 +1,116 @@
-# Test Ready Report: Milestone 4 (M4: Final E2E Verification & Adversarial Hardening)
+# TEST_READY: D-VIEW Architectural Refactoring E2E Verification Report
 
-**Date**: 2026-09-20
-**Project**: D-VIEW (동탄 하이퍼로컬 슈퍼앱) — Hybrid Dashboard Integration (아파트 랩 원페이지 통합)
-**Scope**: Milestone 4 E2E Test Suite Creation, Cross-Feature Verification & Adversarial Coverage Hardening
-**Status**: 🟢 **100% PASS (TEST READY)**
-
----
-
-## 1. Test Suite Architecture & File Deliverables
-
-| Target Module | Test Suite File | Test Count | Status |
-|---|---|:---:|:---:|
-| **Navigation & 301 Redirects** | `frontend/src/__tests__/m1_challenger2_redirects_sync_empirical.test.tsx` | 21 | 🟢 PASS |
-| **Header & Dock Sync** | `frontend/src/components/HeaderDockSync.test.tsx` | 8 | 🟢 PASS |
-| **Stats Engine Analytics** | `frontend/src/__tests__/statsEngine.challenger.test.ts` | 15 | 🟢 PASS |
-| **Hybrid Dashboard UI Integration** | `frontend/src/__tests__/m2_challenger_hybrid_dashboard_stress.test.tsx` | 24 | 🟢 PASS |
-| **Hero Donut & Metric Cards** | `frontend/src/__tests__/m2_apt_donut_metric_cards.test.tsx` | 16 | 🟢 PASS |
-| **AdSense Slots & Zero-CLS** | `frontend/src/__tests__/m3_adslot_zero_cls_stress.challenger.test.tsx` | 51 | 🟢 PASS |
-| **AdSense & Finance Integration** | `frontend/src/__tests__/adsense_finance_ranking.test.tsx` | 18 | 🟢 PASS |
-| **Macro Dashboard Hybrid Layout** | `frontend/src/components/__tests__/MacroDashboardHybridLayout.test.tsx` | 8 | 🟢 PASS |
-| **Stats Overview Section** | `frontend/src/components/stats/__tests__/StatsOverviewSection.test.tsx` | 12 | 🟢 PASS |
-| **Macro Timeline View E2E** | `frontend/src/components/__tests__/MacroTimelineViewE2E.test.tsx` | 33 | 🟢 PASS |
-| **Adversarial Pipeline & Zero-Cost**| `frontend/src/__tests__/challenger2_frontend_zerocost_virtualization.test.tsx`| 18 | 🟢 PASS |
-| **Total Hybrid Dashboard Suites** | **13 Test Suites** | **316 Tests** | 🟢 **100% PASS** |
+**Date**: 2026-10-10  
+**Target Scope**: Features F1 ~ F7 (Full Architectural Refactoring Inventory)  
+**Status**: 🟢 **100% PASS (TEST READY)**  
+**Verification Method**: Opaque-box requirement-driven 4-tier testing via Jest / `@testing-library/react` / `fast-check`
 
 ---
 
-## 2. 5-Tier Test Matrix Coverage Verification
+## 1. Test Suite Deliverables & Execution Summary
 
-### Tier 1: Feature Coverage (F1 ~ F11)
-- [x] **F1. Canonical 3-Tab Global Navigation**: `[아파트 랩 (/) | 아파트 탐색 (/explore) | 단지 MBTI (/mbti)]` rendered consistently in `LoungeHeader.tsx` and `MobileDock.tsx`.
-- [x] **F2. /stats 301 Permanent Redirect**: HTTP 308/301 permanent redirect configured in `next.config.ts` and `src/app/stats/page.tsx`.
-- [x] **F3. Navigation Test Synchronization**: All legacy 4-tab assertions updated to canonical 3-tab contract.
-- [x] **F4. Modular StatsOverviewSection**: 5D filter state, KPI cards, charts, and ranking lists encapsulated cleanly.
-- [x] **F5. 4 Core KPIs & 5D Filter Reactivity**: Volume (+MoM), avg price, pyeong price, and jeonse ratio updating in <20ms.
-- [x] **F6. Visual Charts & Hyperlocal Insight Cards**: Time-series price trend, pyeong rankings, donut distribution, and 4 insight cards rendered.
-- [x] **F7. In-Page Modal Wiring**: Clicking complexes in rankings or insight cards triggers `FieldReportModal` in-page without navigation.
-- [x] **F8. Single-Page Vertical Transition**: 2-column signature hero at top smoothly transitions to macro stats, ad slot, timeline, finance tools, and AI simulators.
-- [x] **F9. Inline AdSense Optimization**: 5 strategic ad placements deployed with Google AdSense policy-compliant spacing (`my-6`).
-- [x] **F10. Zero-CLS Bounding Box Guarantee**: Bounding boxes enforced across skeleton, placeholder, fallback, and live ad states (CLS = 0.000 < 0.01).
-- [x] **F11. End-to-End Build & Static Generation**: TypeScript compilation (`tsc --noEmit`), ESLint, and Next.js production build (`next build`) pass with 0 errors.
-
-### Tier 2: Boundary & Corner Cases (B1 ~ B5)
-- [x] **B1. Empty/Filtered Datasets**: Zero-division safe math (`safeDivide`, `safeRound`) returns `EMPTY_STATS_RESULT` without NaN or Infinity leaks.
-- [x] **B2. Extreme Price Values**: Micro-transactions, sub-1억, and ultra-luxury transactions correctly parsed into 만원 and Eok formatting.
-- [x] **B3. Corrupted Dates**: Null, undefined, future dates, and malformed date strings safely handled without throwing exceptions.
-- [x] **B4. Virtual Keyboard Viewport Collapse**: Mobile dock hides cleanly upon visual viewport shrink ($>120\text{px}$) without content shifting.
-- [x] **B5. AdBlocker Active State**: Graceful fallback to D-VIEW curated promo cards (`mbti-promo`, `dashboard-promo`) preserving container height.
-
-### Tier 3: Cross-Feature Combinations (C1 ~ C3)
-- [x] **C1. Multi-Dimensional Filter Reactivity**: Simultaneous Region (`동탄2`) + Dong (`청계동`) + Pyeong (`MEDIUM_SMALL`) + Timeframe (`3M`) + Sort (`PRICE_DESC`) executing under 15ms.
-- [x] **C2. Hero & Stats Selection Interoperability**: Selecting a complex in stats rankings synchronizes with hero price trend charts and opens detail modal.
-- [x] **C3. AdSense SPA Re-Entry Safety**: Repeated SPA route navigation preserves single-push invariant (`isPushedRef`) without throwing duplicate push errors.
-
-### Tier 4: Real-World Workload Scenarios (S1 ~ S5)
-- [x] **S1. First-time Visitor Flow**: Lands on `/`, explores top hero donut and line chart, filters stats to 동탄2 / 30평대, views instant update (<20ms).
-- [x] **S2. Leaderboard Investor Flow**: Browses TOP 20 pyeong price rankings, clicks #1 ranked complex, seamlessly opens `FieldReportModal` in-page.
-- [x] **S3. Legacy Bookmark User Flow**: Visits `/stats?region=DONGTAN1`, receives permanent 301/308 redirect to `/` with query preserved.
-- [x] **S4. Mobile 320px User Flow**: Scrolls past macro stats, encounters 0 layout shift around inline ad slot, and taps navigation tabs with instant response.
-- [x] **S5. 1-Year Deep Historical Analysis Flow**: Toggles timeframe to '1Y', dynamically fetches `transactions-1y.json`, caches chunk, and updates charts.
-
-### Tier 5: Adversarial Hardening (T5-01 ~ T5-10)
-- [x] **T5-01**: AST & Network Spy Audit confirms 0 direct client-side Firestore reads on `/`.
-- [x] **T5-02**: 100 concurrent calls in browser runtime return `[]` immediately with zero network leakage.
-- [x] **T5-03**: CDN 404/500/corruption degrades gracefully to static fallbacks without Firestore queries.
-- [x] **T5-04**: 100 rapid filter click transitions complete without state desynchronization or thread blocking.
-- [x] **T5-05**: 25,000 record stress test completes in $<50\text{ms}$ ($<300\text{ms}$ SLA).
-- [x] **T5-06**: Poisoned records (`-Infinity`, `NaN`, null bytes) safely rejected without contaminating KPIs.
-- [x] **T5-07**: 4-state ad slot lifecycle transitions verify $\text{CLS} = 0.000 < 0.01$ across all breakpoints.
-- [x] **T5-08**: Keyboard opening simulation verifies off-screen dock translation without layout reflow.
-- [x] **T5-09**: 5 concurrent ad slots survive 20 unmount/mount cycles with exact single push guarantee.
-- [x] **T5-10**: Path-to-regexp oracles verify `/stats` permanent redirect while rejecting non-stats prefixes.
+| Suite Tier | Test File Path | Test Count | Passing | Status | Execution Time |
+|---|---|:---:|:---:|:---:|:---:|
+| **Tier 1: Feature Coverage** | `frontend/src/__tests__/e2e_features/tier1_feature_coverage.test.tsx` | 36 | 36 | 🟢 PASS | 2.5s |
+| **Tier 2: Boundary & Corner Cases** | `frontend/src/__tests__/e2e_features/tier2_boundary_corner.test.tsx` | 35 | 35 | 🟢 PASS | 2.7s |
+| **Tier 3: Cross-Feature Interactions** | `frontend/src/__tests__/e2e_features/tier3_cross_feature.test.tsx` | 5 | 5 | 🟢 PASS | 2.1s |
+| **Tier 4: Real-World Scenarios** | `frontend/src/__tests__/e2e_features/tier4_real_world_scenarios.test.tsx` | 5 | 5 | 🟢 PASS | 2.1s |
+| **Total E2E Verification Suite** | **4 Test Suites** | **81** | **81** | 🟢 **100% PASS** | **3.3s** |
 
 ---
 
-## 3. How to Execute Test Suites
+## 2. Feature Inventory Verification Checklist (F1 ~ F7)
 
-From the `frontend/` directory:
+### F1: ESLint Zero-Error & React Hook/Ref Compliance
+- [x] **F1.1**: `ApartmentChapterNavBar` 8대 챕터(`01` ~ `08`) 메타데이터 렌더링 무결성 확인
+- [x] **F1.2**: 챕터 클릭 시 `onSelectChapter` 콜백 핸들러 식별자 전달 검증
+- [x] **F1.3**: `scrollContainerRef` 바인딩/언마운트 시 React 훅 및 DOM 리스너 누수 차단 확인
+- [x] **F1.4**: `twoSigmaEngine` 기반 2SD 신뢰구간 밴드 및 표본평균 산출 무결성 확인
+- [x] **F1.5**: Recharts 다이아몬드 버텍스 기하 좌표 수식($r=3.6, r=6.0$) 불변식 일치 검증
 
+### F2: Legacy Bridge & Dead Code Elimination
+- [x] **F2.1**: `@/components/macro/MacroTrendChart` 정식 모듈 정상 로딩 및 렌더링 확인
+- [x] **F2.2**: `@/components/macro/AptDonutSection` 정식 모듈 평형별 분포 렌더링 확인
+- [x] **F2.3**: `@/components/macro/AptMetricCards` 정식 모듈 4대 핵심 KPI 카드 표출 확인
+- [x] **F2.4**: `@/components/apartment/ApartmentModal` 정식 모듈 단지 상세 모달 인터페이스 로딩 확인
+- [x] **F2.5**: `OfflineBanner` 오프라인 네트워크 감지 및 복구 알림 렌더링 정상 동작 확인
+
+### F3: Domain Decoupling & Modularization
+- [x] **F3.1**: `CompareHeaderSearch` 단지명 검색 입력 및 자동완성 목록 필터링 동작 확인
+- [x] **F3.2**: `CompareInsightCard` 1:1 비교 우세 항목 집계 및 최종 판정 배지 렌더링 확인
+- [x] **F3.3**: `ComparePriceHistoryChart` 복수 단지 월별 실거래 시계열 트렌드 차트 렌더링 확인
+- [x] **F3.4**: `CompareRadarChart` 다차원 점수 레이더 차트 렌더링 및 도메인 바운딩 확인
+- [x] **F3.5**: `CompareSpecTable` 단지 스펙 매트릭스 및 AI 적합도 스코어 표출 확인
+- [x] **F3.6**: `calculateDynamicDCF` 동적 DCF 수리 엔진 내재가치 및 저평가율 산출 확인
+
+### F4: Data Pipeline Consolidation & Core Normalizer
+- [x] **F4.1**: `normalizeAptName` 대괄호 동명 제거, 무형 공백 정제, Unicode NFC 표준화 확인
+- [x] **F4.2**: `isCancelledTransaction` 해제여부(`cdealType`: 'O', '해제') 및 취소일자 검출 확인
+- [x] **F4.3**: 결정론적 `TX_` 복합 해시 키 생성 및 튜플 동일성 보장 확인
+- [x] **F4.4**: `getSupplyPyeong` 전용면적($\text{m}^2$) $\to$ 공급평형 자동 변환 매핑 확인
+- [x] **F4.5**: 중복 거래 데이터 필터링 및 단일 고유 거래 레코드 유지 파이프라인 확인
+
+### F5: Firestore Collection & JSON Output Unification
+- [x] **F5.1**: `TransactionListSchema` Zod 런타임 스키마 거래 배열 유효성 검증 확인
+- [x] **F5.2**: OS 예약어 및 파일시스템 금지 특수문자(`/\:*?"<>|`) 안전 치환 확인
+- [x] **F5.3**: 단지별 분할 청크(`tx_*.json`) `TransactionRecord` 필수 필드 무결성 확인
+- [x] **F5.4**: 거시 시계열(`macro-trend.json`) 데이터 포인트 날짜 및 수치 규격 검증 확인
+- [x] **F5.5**: Firestore `transactions` 컬렉션 문서 ID 결정론적 네이밍 규칙 준수 확인
+
+### F6: Test Suite Regression Remediation
+- [x] **F6.1**: `LoungeHeader` 4대 정규 탭(`/`, `/explore`, `/mbti`, `/guide`) 프리페치 확인
+- [x] **F6.2**: 내비게이션 탭 클릭 인터랙션 및 `onTabChange` 상태 전이 동기화 확인
+- [x] **F6.3**: `AdSlot` 슬롯 포맷별 사전 할당 높이 클래스(`min-h-[140px]`, `min-h-[250px]`) 매핑 확인
+- [x] **F6.4**: 전용 웹 워커 `executeStatsWorkerCalculation` 통계 벡터 및 모기지 연산 동등성 확인
+- [x] **F6.5**: 1,000건 표본 대상 연산 SLA 임계치(<50ms) 준수 확인 (실측 <1ms)
+
+### F7: Static Type Hardening & Build Verification
+- [x] **F7.1**: 히어로 대칭 레이아웃 높이 불변식(`min-h-[460px]`, `min-h-[580px]`) CSS 클래스 보존 확인
+- [x] **F7.2**: AdSense 인피드 슬롯 렌더링 시 레이아웃 쉬프트 방지 바운딩 박스 유지 확인
+- [x] **F7.3**: NaN, Infinity, 음수 가격 등 이상치 데이터 유입 시 Zod 타입 가드 방어 확인
+- [x] **F7.4**: `MortgageLoanInputSchema` 유효 대출 파라미터(기간 1~50년, 금리 0~100%) 강제 확인
+- [x] **F7.5**: `twoSigmaEngine` 비수치 및 비양수 원소 정제 필터링 동작 확인
+
+---
+
+## 3. 4-Tier Verification Coverage Metrics
+
+### Tier 1: Feature Coverage (Category-Partition)
+- 총 36개 세부 기능 단위 테스트 전건 통과
+- F1~F7 전 영역 기능별 최소 5개 이상 테스트 케이스 배치 완료
+
+### Tier 2: Boundary & Corner Cases (BVA & Singularities)
+- 총 35개 경계값 및 특이점 테스트 전건 통과
+- Bessel 보정 분모 0 특이점($N=0, 1$), 극단값 입력, Fast-Check 무작위 퍼징 1,000회 무결성 실증 완료
+
+### Tier 3: Cross-Feature Interactions
+- 총 5개 다중 도메인 복합 인터랙션 테스트 전건 통과
+- 내비게이션 전이 $\leftrightarrow$ 레이아웃 보존, 데이터 파이프라인 정규화 $\leftrightarrow$ 2SD 차트 투영, 비교 컴포넌트 $\leftrightarrow$ 동적 DCF 평가 연동 실증 완료
+
+### Tier 4: Real-World Workload Scenarios
+- 총 5개 실제 프로덕션 워크로드 시나리오 전건 통과
+- 실수요자 대시보드 탐색, 단지 상세 8챕터 스크롤 및 LDI 진단, 1:1 단지 비교 평가, 국토부 데이터 수집 정제 파이프라인, 지하철 오프라인 단절 회복 시나리오 실증 완료
+
+---
+
+## 4. Test Execution & Quality Gate Instructions
+
+### Full E2E Test Suite Execution Command
 ```bash
-# 1. Type check
-npx tsc --noEmit
-
-# 2. Run Milestone 1-3 Challenger & Integration suites
-npx jest src/__tests__/statsEngine.challenger.test.ts \
-         src/__tests__/m1_challenger2_redirects_sync_empirical.test.tsx \
-         src/__tests__/m2_challenger_hybrid_dashboard_stress.test.tsx \
-         src/__tests__/m3_adslot_zero_cls_stress.challenger.test.tsx \
-         src/__tests__/adsense_finance_ranking.test.tsx
-
-# 3. Run full test suite across the workspace
-npm test
-
-# 4. Production build check
-npm run build
+cd frontend
+npm test -- src/__tests__/e2e_features/
 ```
 
+### Static Type Check Command
+```bash
+cd frontend
+npx tsc --noEmit
+```
+- Exit Code: 0 (타입 에러 0건)
+
 ---
 
-## 4. Verification Evidence & Summary
-
-- **TypeScript Compilation**: `npx tsc --noEmit` exited with code `0` (0 errors).
-- **ESLint**: `npm run lint` exited with code `0` (0 errors).
-- **Production Build**: `npm run build` generated static/dynamic hybrid pages with exit code `0` (226 routes compiled).
-- **Latency Benchmark**: 10,000 records processed in `10.76ms` ($<300\text{ms}$ SLA).
-- **Layout Shift Benchmark**: $\text{CLS} = 0.000$ ($<0.01$ SLA).
-- **Firebase Billing Impact**: **$0** (Zero client-side Firestore reads during dashboard operation).
-
-**Sign-off**: Test Orchestration Track (Milestone 4: Final Verification & Adversarial Hardening)
+## 5. Implementation Escalations & Observations
+- **Escalation**: 없음 (테스트 스위트 전건 100% 통과 및 요구사항 인터페이스 계약 준수 완료)
+- **Defects Detected**: 0건
+- **Conclusion**: F1~F7 E2E 테스트 인프라 확립 및 검증 완료. 시스템 Phase 2~Phase 3 배포 검증 게이트 진입 승인.

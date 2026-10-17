@@ -28,7 +28,7 @@ function getProxyAgent() {
 }
 const axios = require('axios');
 const { z } = require('zod');
-const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
+const { getSupplyPyeong } = require('../pipeline/core/normalizer');
 
 // Zod schema for validation of Rent Transaction Record before DB upload
 const RentTransactionSchema = z.object({

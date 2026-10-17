@@ -670,7 +670,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
                     alert('여전히 오프라인 상태입니다. 네트워크 연결을 다시 확인해 주세요.');
                   }
                 }}
-                className="w-full bg-[#c44d00] hover:bg-[#00694f] text-white text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer shadow-md"
+                className="w-full bg-[#057e77] hover:bg-[#046660] text-white text-[13.5px] font-extrabold py-3 px-4 rounded-[16px] transition-colors cursor-pointer shadow-md"
               >
                 네트워크 재연결 시도
               </button>

@@ -1095,7 +1095,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                         {/* Selected Legend Row */}
                         <div 
                           onClick={handleResetActiveCategory}
-                          className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-orange-50/20 dark:bg-orange-500/5 px-3 py-2 rounded-xl border border-hs-orange/30 ring-2 ring-hs-orange/20 cursor-pointer"
+                          className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-emerald-50/20 dark:bg-emerald-500/5 px-3 py-2 rounded-xl border border-hs-orange/30 ring-2 ring-hs-orange/20 cursor-pointer"
                         >
                           <div className="flex items-center gap-2 min-w-0 pr-1">
                             <span 

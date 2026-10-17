@@ -8,8 +8,25 @@ const CacheNameSchema = z.string().startsWith('dview-cache-v-', '캐시명 접�
 const DynamicCacheNameSchema = z.string().startsWith('dview-dynamic-v-', '동적 캐시명 접두사가 올바르지 않습니다.');
 
 const swPath = path.join(__dirname, '../public/sw.js');
+const versionPath = path.join(__dirname, '../src/lib/build-version.ts');
+const isDevMode = process.argv.includes('--dev');
+
+function clearStaleNextLocks() {
+  const nextLockPath = path.join(__dirname, '../.next/lock');
+  const nextLockfilePath = path.join(__dirname, '../.next/lockfile');
+  try {
+    if (fs.existsSync(nextLockPath)) fs.unlinkSync(nextLockPath);
+    if (fs.existsSync(nextLockfilePath)) fs.unlinkSync(nextLockfilePath);
+  } catch (err) {}
+}
 
 try {
+  if (isDevMode && fs.existsSync(versionPath) && fs.existsSync(swPath)) {
+    clearStaleNextLocks();
+    console.log('[SW Update] Dev mode detected: preserved existing build-version.ts & sw.js to maintain compiler cache.');
+    process.exit(0);
+  }
+
   let swContent = fs.readFileSync(swPath, 'utf8');
   const buildId = Date.now().toString();
 
@@ -51,18 +68,11 @@ try {
   console.log(`[SW Update] Bumped service worker cache name to version v-${buildId}`);
 
   // Sync src/lib/build-version.ts
-  const versionPath = path.join(__dirname, '../src/lib/build-version.ts');
   const newVersionContent = `export const BUILD_VERSION = '${buildId}';\n`;
   fs.writeFileSync(versionPath, newVersionContent, 'utf8');
   console.log(`[Version Update] Updated src/lib/build-version.ts to ${buildId}`);
 
-  // Clear any stale lock file in .next to prevent build lock conflicts
-  const nextLockPath = path.join(__dirname, '../.next/lock');
-  const nextLockfilePath = path.join(__dirname, '../.next/lockfile');
-  try {
-    if (fs.existsSync(nextLockPath)) fs.unlinkSync(nextLockPath);
-    if (fs.existsSync(nextLockfilePath)) fs.unlinkSync(nextLockfilePath);
-  } catch (err) {}
+  clearStaleNextLocks();
 } catch (error) {
   console.error('[SW Update] Failed to update service worker cache name:', error.message || error);
   process.exit(1);

@@ -248,10 +248,8 @@ interface E2ETestHarnessProps {
   initialSearchQuery?: string;
   initialSortOrder?: TimelineSortOrder;
   initialViewMode?: TimelineViewMode;
-  initialFavorites?: Set<string>;
   onSelectAptSpy?: (apt: string) => void;
   onDetailsClickSpy?: (apt: string) => void;
-  onToggleFavoriteSpy?: (apt: string) => void;
   useDefaultRenderers?: boolean;
 }
 
@@ -265,14 +263,11 @@ function E2ETestHarness({
   initialSearchQuery = '',
   initialSortOrder = 'latest',
   initialViewMode = 'card',
-  initialFavorites = new Set<string>(),
   onSelectAptSpy,
   onDetailsClickSpy,
-  onToggleFavoriteSpy,
   useDefaultRenderers = false,
 }: E2ETestHarnessProps) {
   const [selectedApt, setSelectedApt] = useState<string | null>('동탄역 롯데캐슬');
-  const [userFavorites, setUserFavorites] = useState<Set<string>>(initialFavorites);
 
   const filters = useMacroFilters({ sheetApartments: mockSheetApartments });
 
@@ -283,16 +278,6 @@ function E2ETestHarness({
     if (initialSortOrder !== 'latest') filters.setSortOrder(initialSortOrder);
     if (initialViewMode !== 'card') filters.setViewMode(initialViewMode);
   }, []);
-
-  const handleToggleFavorite = useCallback((aptName: string) => {
-    setUserFavorites((prev) => {
-      const next = new Set(prev);
-      if (next.has(aptName)) next.delete(aptName);
-      else next.add(aptName);
-      return next;
-    });
-    onToggleFavoriteSpy?.(aptName);
-  }, [onToggleFavoriteSpy]);
 
   const handleCardClick = useCallback((aptName: string) => {
     setSelectedApt(aptName);
@@ -431,15 +416,12 @@ function E2ETestHarness({
   const totalCardsCount = filteredGroups.reduce((acc, g) => acc + g.items.length, 0);
 
   const renderCard = (item: TimelineItem, isSelected: boolean) => {
-    const isFav = userFavorites.has(item.aptName);
     return (
       <div key={`${item.aptName}-${item.floor}-${item.priceVal}`} data-testid={`timeline-card-${item.aptName}`}>
         <TimelineItemCard
           item={item}
           isSelected={isSelected}
           areaUnit="p"
-          isFavorite={isFav}
-          onToggleFavorite={handleToggleFavorite}
           onCardHover={jest.fn()}
           onCardClick={handleCardClick}
           onDetailsClick={handleDetailsClick}
@@ -450,15 +432,12 @@ function E2ETestHarness({
   };
 
   const renderRow = (item: TimelineItem, isSelected: boolean) => {
-    const isFav = userFavorites.has(item.aptName);
     return (
       <TimelineItemRow
         key={`${item.aptName}-${item.floor}-${item.priceVal}`}
         item={item}
         isSelected={isSelected}
         areaUnit="p"
-        isFavorite={isFav}
-        onToggleFavorite={handleToggleFavorite}
         onCardHover={jest.fn()}
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
@@ -471,8 +450,6 @@ function E2ETestHarness({
     <MacroTimelineView
       displayedTimelineData={filteredGroups}
       selectedTimelineApt={selectedApt}
-      userFavorites={userFavorites}
-      onToggleFavorite={handleToggleFavorite}
       onCardClick={handleCardClick}
       onSelectApt={handleCardClick}
       onDetailsClick={handleDetailsClick}
@@ -742,26 +719,18 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
       });
     });
 
-    describe('F6. Favorite Bookmark Heart Toggle & Event Isolation', () => {
-      it('toggles favorite bookmark heart and isolates click event with stopPropagation', () => {
+    describe('F6. Favorite Feature Removal & Selection Isolation', () => {
+      it('does not render favorite button after feature removal', () => {
         const onSelectAptSpy = jest.fn();
-        const onToggleFavoriteSpy = jest.fn();
 
         render(
           <E2ETestHarness
             onSelectAptSpy={onSelectAptSpy}
-            onToggleFavoriteSpy={onToggleFavoriteSpy}
           />
         );
 
-        const favoriteBtn = screen.getByLabelText('동탄역 롯데캐슬 관심 단지 등록');
-        expect(favoriteBtn).toBeInTheDocument();
-
-        // Click favorite button
-        fireEvent.click(favoriteBtn);
-
-        expect(onToggleFavoriteSpy).toHaveBeenCalledWith('동탄역 롯데캐슬');
-        expect(onSelectAptSpy).not.toHaveBeenCalled(); // Event isolation confirmed
+        const favoriteBtn = screen.queryByLabelText(/관심 단지/);
+        expect(favoriteBtn).not.toBeInTheDocument();
       });
 
       it('clicking card body triggers apartment selection callback', () => {
@@ -936,25 +905,22 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
       expect(screen.queryByTestId('timeline-row-동탄역 롯데캐슬')).not.toBeInTheDocument();
     });
 
-    it('C2: Bookmarks favorite in compact list view and persists state when switching to card grid view', () => {
+    it('C2: Toggles view mode between compact list view and card grid view seamlessly', () => {
       render(<E2ETestHarness />);
 
       // 1. Switch to list view
       fireEvent.click(screen.getByLabelText('리스트 뷰 보기'));
 
-      // 2. Bookmark '동탄역 롯데캐슬'
-      const favBtnList = screen.getByLabelText('동탄역 롯데캐슬 관심 단지 등록');
-      fireEvent.click(favBtnList);
+      // Verify list view row exists and favorite button is absent
+      expect(screen.getByTestId('timeline-row-동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.queryByLabelText(/관심 단지/)).not.toBeInTheDocument();
 
-      // Verify heart icon is active (fill-rose-500)
-      expect(favBtnList.querySelector('svg')).toHaveClass('fill-rose-500');
-
-      // 3. Switch back to card grid view
+      // 2. Switch back to card grid view
       fireEvent.click(screen.getByLabelText('카드 뷰 보기'));
 
-      // Verify favorite status persists in card grid view
-      const favBtnCard = screen.getByLabelText('동탄역 롯데캐슬 관심 단지 등록');
-      expect(favBtnCard.querySelector('svg')).toHaveClass('fill-rose-500');
+      // Verify card view exists and favorite button is absent
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.queryByLabelText(/관심 단지/)).not.toBeInTheDocument();
     });
 
     it('C3: Cascades conflicting filter into empty state and recovers seamlessly via Reset Filters button', () => {
@@ -1014,12 +980,10 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
 
     it('Scenario B: Landmark complex investor scanning daily transactions in list view and opening detailed field report', () => {
       const onDetailsClickSpy = jest.fn();
-      const onToggleFavoriteSpy = jest.fn();
 
       render(
         <E2ETestHarness
           onDetailsClickSpy={onDetailsClickSpy}
-          onToggleFavoriteSpy={onToggleFavoriteSpy}
         />
       );
 
@@ -1029,10 +993,9 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
       // 2. Investor switches to compact 'list' view mode for rapid scanning
       fireEvent.click(screen.getByLabelText('리스트 뷰 보기'));
 
-      // 3. Investor bookmarks '동탄린스트라우스 더레이크'
-      const favBtn = screen.getByLabelText('동탄린스트라우스 더레이크 관심 단지 등록');
-      fireEvent.click(favBtn);
-      expect(onToggleFavoriteSpy).toHaveBeenCalledWith('동탄린스트라우스 더레이크');
+      // 3. Investor verifies favorite button is not rendered
+      const favBtn = screen.queryByLabelText(/관심 단지/);
+      expect(favBtn).not.toBeInTheDocument();
 
       // 4. Investor clicks '상세' button on '동탄린스트라우스 더레이크' to open deep field report modal
       const detailBtn = screen.getByLabelText('동탄린스트라우스 더레이크 상세 정보 보기');

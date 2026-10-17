@@ -1,0 +1,52 @@
+{
+  "auditTimestamp": "2026-10-17T07:46:38.951Z",
+  "frontendPath": "C:\\Users\\ocs56\\OneDrive\\바탕 화면\\PORTFOLIO\\PORTFOLIO - DVIEW\\frontend",
+  "totalFilesScanned": 605,
+  "totalLinesScanned": 169435,
+  "slices": {
+    "productionSource": {
+      "fileCount": 420,
+      "lineCount": 99754,
+      "percentageOfTotalLines": "58.87"
+    },
+    "automatedTests": {
+      "fileCount": 177,
+      "lineCount": 58402,
+      "percentageOfTotalLines": "34.47"
+    },
+    "dataAssets": {
+      "fileCount": 8,
+      "lineCount": 11279,
+      "percentageOfTotalLines": "6.66"
+    }
+  },
+  "threeTierSummary": {
+    "tier1_directReusable": {
+      "files": 114,
+      "lines": 15913,
+      "filePercentage": "27.14",
+      "linePercentage": "15.95",
+      "description": "Zero-code modification direct reuse (Infra, PWA, AdSlot, Stats Worker, Core Layout)"
+    },
+    "tier2_adaptableReusable": {
+      "files": 46,
+      "lines": 12292,
+      "filePercentage": "10.95",
+      "linePercentage": "12.32",
+      "description": "Schema-adaptable containers (Recharts TimeTrend, Radar, KPI Cards, Filters, Facades)"
+    },
+    "combinedReusablePotential": {
+      "files": 160,
+      "lines": 28205,
+      "filePercentage": "38.10",
+      "linePercentage": "28.27"
+    },
+    "tier3_domainPure": {
+      "files": 260,
+      "lines": 71549,
+      "filePercentage": "61.90",
+      "linePercentage": "71.73",
+      "description": "Domain-pure Dongtan real estate logic subject to discard or rewrite"
+    }
+  }
+}

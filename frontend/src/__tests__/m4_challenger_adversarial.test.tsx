@@ -23,17 +23,15 @@ import {
   calculatePropertyHoldingTax,
 } from '../lib/utils/calculatorEngines';
 
-// 2. Facade imports
-import ApartmentModalFacade from '../components/ApartmentModal';
-import ApartmentModalActual from '../components/apartment/ApartmentModal';
+// 2. Canonical Modal import
+import ApartmentModal from '../components/apartment/ApartmentModal';
 
 describe('Milestone 4 Challenger Adversarial Empirical Test Suite', () => {
 
-  describe('1. Re-export Facade Integrity (ApartmentModal)', () => {
-    it('verifies that root ApartmentModal re-exports the modular ApartmentModal identically', () => {
-      expect(ApartmentModalFacade).toBeDefined();
-      expect(ApartmentModalActual).toBeDefined();
-      expect(ApartmentModalFacade).toBe(ApartmentModalActual);
+  describe('1. Canonical ApartmentModal Export Integrity', () => {
+    it('verifies that modular ApartmentModal is properly defined and exportable', () => {
+      expect(ApartmentModal).toBeDefined();
+      expect(['function', 'object']).toContain(typeof ApartmentModal);
     });
   });
 

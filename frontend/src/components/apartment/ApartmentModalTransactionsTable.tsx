@@ -101,7 +101,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
               <button
                 onClick={handleToggleFilter}
                 className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out outline-none ${
-                  filterOutliers ? 'bg-[#c44d00] dark:bg-[#ea6100]' : 'bg-secondary/20'
+                  filterOutliers ? 'bg-[#057e77] dark:bg-emerald-500' : 'bg-secondary/20'
                 }`}
                 role="switch"
                 aria-checked={filterOutliers}

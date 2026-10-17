@@ -27,24 +27,53 @@ export function preloadComponent(importer: () => Promise<unknown>, timeoutMs: nu
 }
 
 /**
- * Preload ApartmentModal and its sub-components with non-blocking idle priority.
+ * Preload ApartmentModal and its sub-components to achieve instant transitions.
+ * Supports immediate loading for user interaction (hover/touch) or non-blocking idle scheduling.
  */
-export function preloadApartmentModal(): void {
+export function preloadApartmentModal(immediate: boolean = false): void {
   if (typeof window === 'undefined') return;
-  scheduleIdle(() => {
-    import('@/components/ApartmentModal').catch(() => {});
-    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+  if (process.env.NODE_ENV === 'development' && !immediate) return;
+
+  const load = () => {
+    // Preload canonical main component
+    import('@/components/apartment/ApartmentModal').catch(() => {});
+
+    // Preload ApartmentModal sub-components for 0ms transition stutter
+    import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
     import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
-  }, 1500);
+    import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
+    import('@/components/apartment-modal/PhotoUploadModal').catch(() => {});
+    import('@/components/apartment-modal/BuyOrWaitVote').catch(() => {});
+    import('@/components/apartment-modal/EducationAnalysisSection').catch(() => {});
+    import('@/components/apartment-modal/InfraAnalysisSection').catch(() => {});
+    import('@/components/apartment-modal/ScoutingReportDetailSection').catch(() => {});
+    import('@/components/consumer/AdvancedValuationMetrics').catch(() => {});
+    import('@/components/consumer/AnchorTenantCard').catch(() => {});
+  };
+
+  if (immediate) {
+    load();
+  } else {
+    scheduleIdle(load, 1500);
+  }
 }
 
 /**
- * Preload heavy dashboard client features with non-blocking idle priority.
+ * Preload heavy dashboard client features.
  */
-export function preloadDashboardFeatures(): void {
+export function preloadDashboardFeatures(immediate: boolean = false): void {
   if (typeof window === 'undefined') return;
-  scheduleIdle(() => {
+  if (process.env.NODE_ENV === 'development' && !immediate) return;
+
+  const load = () => {
+    import('@/components/GapInvestmentExplorer').catch(() => {});
     import('@/components/MacroDashboardClient').catch(() => {});
     import('@/components/OfficeExplorerClient').catch(() => {});
-  }, 2500);
+  };
+
+  if (immediate) {
+    load();
+  } else {
+    scheduleIdle(load, 2500);
+  }
 }

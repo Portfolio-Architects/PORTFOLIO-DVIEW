@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import Script from 'next/script';
 import { Metadata } from 'next';
 import DashboardClient from '@/components/DashboardClient';
@@ -104,40 +105,112 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
 
   return (
     <>
-      <div className="sr-only" aria-hidden="true">
-        <h1>동탄 부동산 실거래 대시보드 - D-VIEW 동탄 아파트 랩</h1>
-        <p>동탄 179개 단지 실거래가·AI 밸류에이션, 주담대·갈아타기 적정가 진단부터 안심 전세 자산 리포트 전문 분석 플랫폼</p>
-        <section>
-          <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>
-          <ol>
-            {top10Leaderboard.map((apt, index) => (
-              <li key={apt.name}>
-                <strong>{index + 1}위: {apt.name}</strong> ({apt.dong}) - 
-                최근 실거래가: {formatPrice(apt.latestPrice)}
-                {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
-              </li>
-            ))}
-          </ol>
-        </section>
-        {recentTxs.length > 0 && (
-          <section style={{ marginTop: '20px' }}>
-            <h2>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h2>
-            <ul>
-              {(recentTxs as HomeTransactionRecord[]).slice(0, 15).map((tx, idx: number) => {
-                const txPrice = tx.price || 0;
-                return (
-                  <li key={idx}>
-                    <strong>{tx.apartmentName || '아파트'}</strong> ({tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) - 
-                    {tx.dealType || '매매'} {formatPrice(txPrice)} 
-                    {tx.contractYm && tx.contractDay ? ` (거래일: ${tx.contractYm}.${tx.contractDay})` : ''}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
-      </div>
       <DashboardClient initialDashboardData={initialData} initialTab={initialTab} />
+
+      {/* 📊 High-Visibility Market Overview & Internal Navigation (Visible SSR Content for Users & AdSense Reviewers) */}
+      <section className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-8 my-6">
+        <div className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-10 shadow-sm space-y-8">
+          
+          <div className="border-b border-border/60 pb-5">
+            <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold px-3 py-1 rounded-full mb-3 border border-emerald-500/20">
+              📈 동탄 부동산 시장 지형도
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
+              동탄 부동산 실거래 대시보드 및 시세 리더보드
+            </h1>
+            <p className="mt-2 text-secondary text-[13px] sm:text-[14.5px] leading-relaxed font-medium">
+              동탄 179개 단지 아파트 실거래가, AI 밸류에이션, 주담대·갈아타기 적정가 진단부터 안심 전세 자산 리포트를 실시간 공공데이터 기반으로 통합 분석합니다.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Top 10 Leaderboard */}
+            <div className="space-y-3">
+              <h2 className="text-base sm:text-lg font-extrabold text-primary tracking-tight flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
+                동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)
+              </h2>
+              <div className="overflow-x-auto rounded-2xl border border-border/60">
+                <table className="w-full text-left text-[12.5px] text-secondary">
+                  <thead className="bg-body text-primary font-bold border-b border-border/60">
+                    <tr>
+                      <th className="p-3">순위</th>
+                      <th className="p-3">단지명</th>
+                      <th className="p-3">법정동</th>
+                      <th className="p-3">최근 실거래가</th>
+                      <th className="p-3">전세가율</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/40 font-medium">
+                    {top10Leaderboard.map((apt, index) => (
+                      <tr key={apt.name} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                        <td className="p-3 font-bold text-primary">{index + 1}위</td>
+                        <td className="p-3 font-bold text-emerald-600 dark:text-emerald-400">
+                          <Link href={`/apartment/${encodeURIComponent(apt.name)}`} className="hover:underline">
+                            {apt.name}
+                          </Link>
+                        </td>
+                        <td className="p-3 text-tertiary">{apt.dong}</td>
+                        <td className="p-3 font-bold text-primary">{formatPrice(apt.latestPrice)}</td>
+                        <td className="p-3">{apt.jeonseRatio > 0 ? `${apt.jeonseRatio}%` : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Recent 15 Transactions */}
+            <div className="space-y-3">
+              <h2 className="text-base sm:text-lg font-extrabold text-primary tracking-tight flex items-center gap-2">
+                <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
+                최근 동탄 아파트 실거래 등록 내역 (최신 등록)
+              </h2>
+              {recentTxs.length > 0 ? (
+                <div className="overflow-x-auto rounded-2xl border border-border/60">
+                  <table className="w-full text-left text-[12.5px] text-secondary">
+                    <thead className="bg-body text-primary font-bold border-b border-border/60">
+                      <tr>
+                        <th className="p-3">단지명</th>
+                        <th className="p-3">면적/층</th>
+                        <th className="p-3">유형</th>
+                        <th className="p-3">거래금액</th>
+                        <th className="p-3">계약일</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border/40 font-medium">
+                      {(recentTxs as HomeTransactionRecord[]).slice(0, 10).map((tx, idx: number) => {
+                        const txPrice = tx.price || 0;
+                        const aptName = tx.apartmentName || '아파트';
+                        return (
+                          <tr key={idx} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                            <td className="p-3 font-bold text-emerald-600 dark:text-emerald-400">
+                              <Link href={`/apartment/${encodeURIComponent(aptName)}`} className="hover:underline">
+                                {aptName}
+                              </Link>
+                            </td>
+                            <td className="p-3 text-tertiary">
+                              {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평` : '-'} {tx.floor ? `(${tx.floor}층)` : ''}
+                            </td>
+                            <td className="p-3 font-semibold">{tx.dealType || '매매'}</td>
+                            <td className="p-3 font-bold text-primary">{formatPrice(txPrice)}</td>
+                            <td className="p-3 text-tertiary">{tx.contractYm && tx.contractDay ? `${tx.contractYm}.${tx.contractDay}` : '-'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="bg-body p-4 rounded-2xl border border-border/50 text-[13px] text-secondary">
+                  최근 거래 내역을 실시간 수집 중입니다.
+                </div>
+              )}
+            </div>
+          </div>
+
+        </div>
+      </section>
     </>
   );
 }

@@ -9,7 +9,6 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
-import { useFavorites } from '@/hooks/useFavorites';
 import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
@@ -108,7 +107,7 @@ const TossApartmentExploreClient = dynamic(() => import('@/components/TossApartm
   return { default: () => null };
 }), { ssr: false, loading: () => <ExploreListSkeleton /> });
 
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
   logger.warn('ExploreClient.dynamic', 'FieldReportModal Chunk Load failure, page reload initiated', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
@@ -199,7 +198,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const { user } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch } = useDashboardMeta(initialDashboardData);
-  const { userFavorites, favoriteCounts, handleToggleFavorite, isFavorited, updateFavoriteOrder } = useFavorites(user, initialDashboardData?.favoriteCounts);
 
   // Trigger lazy fetching of detailed sheets data on mount for the Explore page
   useEffect(() => {
@@ -277,7 +275,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     const preloadHeavyChunks = () => {
       if (!isMounted) return;
       import('@/components/TossApartmentExploreClient').catch(() => {});
-      import('@/components/ApartmentModal').catch(() => {});
+      import('@/components/apartment/ApartmentModal').catch(() => {});
       import('@/components/consumer/AptCompareModal').catch(() => {});
       import('@/components/consumer/JeonseSafetyCalculator').catch(() => {});
       import('@/components/consumer/MortgageCalculator').catch(() => {});
@@ -424,12 +422,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
-  const handleAptToggleFavorite = useCallback((aptName: string) => {
-    const isAdding = !isFavorited(aptName);
-    trackEvent('toggle_favorite', { apt_name: aptName, status: isAdding ? 'added' : 'removed' });
-    handleToggleFavorite(aptName);
-  }, [handleToggleFavorite, isFavorited]);
-
   const handleOpenCompare = useCallback(() => {
     setCompareInitialApt(undefined);
     setIsCompareOpen(true);
@@ -467,18 +459,13 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                     nameMapping={nameMapping || {}}
                     fieldReportsMap={fieldReportsMap}
                     publicRentalSet={publicRentalSet}
-                    userFavorites={userFavorites}
-                    isFavorited={isFavorited}
-                    favoriteCounts={favoriteCounts}
                     typeMap={typeMap}
                     handleSelectApt={handleAptClickByName}
-                    onToggleFavorite={handleAptToggleFavorite}
                     onOpenCompare={handleOpenCompare}
                     onOpenJeonseSafety={handleOpenJeonseSafety}
                     onOpenMortgage={handleOpenMortgage}
                     onSearchFocus={triggerFetch}
                     preloadApartmentTx={preloadApartmentTx}
-                    updateFavoriteOrder={updateFavoriteOrder}
                   />
                 </ErrorBoundary>
               </section>
@@ -496,8 +483,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                     window.history.replaceState(null, '', window.location.pathname + window.location.search);
                   }}
                   user={user}
-                  userFavorites={userFavorites}
-                  onToggleFavorite={handleAptToggleFavorite}
                   typeMap={typeMap}
                   inline={false}
                   sheetApartments={sheetApartments}

@@ -14,7 +14,7 @@ import { logger } from '@/lib/services/logger';
 import { useAuth } from '@/hooks/useAuth';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
   logger.warn('zone.[id].FieldReportModal', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
@@ -30,7 +30,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
 
     const preloadHeavyChunks = () => {
       if (!isMounted) return;
-      import('@/components/ApartmentModal').catch(() => {});
+      import('@/components/apartment/ApartmentModal').catch(() => {});
       import('@/components/apartment-modal/ViralPaywallGate').catch(() => {});
       import('@/components/apartment-modal/JeonseSafetyReport').catch(() => {});
       import('@/components/apartment-modal/TransactionChartSection').catch(() => {});

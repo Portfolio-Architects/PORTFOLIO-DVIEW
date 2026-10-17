@@ -230,7 +230,7 @@ export async function GET(req: NextRequest) {
         NT: { bg: '#1e1b4b', badge: '#8b5cf6', border: '#4338ca', accent: '#a78bfa' },
         NF: { bg: '#064e3b', badge: '#10b981', border: '#047857', accent: '#34d399' },
         SJ: { bg: '#0f2942', badge: '#004696', border: '#1e40af', accent: '#60a5fa' },
-        SP: { bg: '#451a03', badge: '#c44d00', border: '#b45309', accent: '#fb923c' },
+        SP: { bg: '#451a03', badge: '#d97706', border: '#b45309', accent: '#fb923c' },
       };
       const theme = groupColors[profile.group] || groupColors.NT;
 
@@ -255,7 +255,7 @@ export async function GET(req: NextRequest) {
               <div style={{ display: 'flex', alignItems: 'center' }}>
                 <div
                   style={{
-                    backgroundImage: 'linear-gradient(135deg, #ea6100, #c44d00)',
+                    backgroundImage: 'linear-gradient(135deg, #057e77, #046660)',
                     padding: '8px 20px',
                     borderRadius: '10px',
                     color: 'white',
@@ -416,7 +416,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    backgroundImage: 'linear-gradient(135deg, #ea6100, #c44d00)',
+                    backgroundImage: 'linear-gradient(135deg, #057e77, #046660)',
                     padding: '6px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -503,7 +503,7 @@ export async function GET(req: NextRequest) {
                     style={{
                       fontSize: '46px',
                       fontWeight: 900,
-                      color: s1 >= s2 ? '#ea6100' : '#64748b',
+                      color: s1 >= s2 ? '#057e77' : '#64748b',
                       textShadow: s1 >= s2 ? '0 0 15px rgba(0, 210, 157, 0.3)' : 'none',
                     }}
                   >
@@ -520,7 +520,7 @@ export async function GET(req: NextRequest) {
                     width: '64px',
                     height: '64px',
                     borderRadius: '32px',
-                    backgroundImage: 'linear-gradient(135deg, #ea6100, #4196f7)',
+                    backgroundImage: 'linear-gradient(135deg, #057e77, #4196f7)',
                     border: '3px solid #0b111e',
                     fontSize: '22px',
                     fontWeight: 900,
@@ -603,7 +603,7 @@ export async function GET(req: NextRequest) {
 
     if (type === 'event') {
       let categoryBg = 'rgba(13, 148, 136, 0.1)';
-      let categoryText = '#ea6100';
+      let categoryText = '#057e77';
       let categoryBorder = 'rgba(13, 148, 136, 0.3)';
       
       if (category === '공연/축제') {
@@ -658,7 +658,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -822,7 +822,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -997,7 +997,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#c44d00',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1158,7 +1158,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1213,7 +1213,7 @@ export async function GET(req: NextRequest) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: '14px' }}>
                       <span style={{ fontSize: '18px', color: '#a7f3d0', fontWeight: 'bold', width: '110px' }}>예상 세액 합계</span>
-                      <span style={{ fontSize: '22px', color: ratio?.includes('0') || ratio?.includes('비과세') ? '#ea6100' : '#ff8a9a', fontWeight: 800 }}>
+                      <span style={{ fontSize: '22px', color: ratio?.includes('0') || ratio?.includes('비과세') ? '#34d399' : '#ff8a9a', fontWeight: 800 }}>
                         {ratio || '계산 오류'}
                       </span>
                     </div>
@@ -1341,7 +1341,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1443,7 +1443,7 @@ export async function GET(req: NextRequest) {
 
     if (shareType === 'infra') {
       const scoreColors: Record<string, { bg: string; border: string; glow: string; desc: string }> = {
-        S: { bg: '#c44d00', border: '#a7f3d0', glow: 'rgba(0, 130, 98, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
+        S: { bg: '#057e77', border: '#a7f3d0', glow: 'rgba(0, 130, 98, 0.4)', desc: '초역세권 및 대형 상권 밀집 (최고 수준의 생활 편의성)' },
         A: { bg: '#0284c7', border: '#bae6fd', glow: 'rgba(2, 132, 199, 0.4)', desc: '역세권 입지와 스타벅스 등 핵심 상권 완비' },
         B: { bg: '#4f46e5', border: '#c7d2fe', glow: 'rgba(79, 70, 229, 0.4)', desc: '안정적인 대중교통망과 풍부한 근린 상권 보유' },
         C: { bg: '#475569', border: '#e2e8f0', glow: 'rgba(71, 85, 105, 0.4)', desc: '보통 수준의 생활 인프라' }
@@ -1486,7 +1486,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#c44d00',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1624,7 +1624,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1756,7 +1756,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1805,7 +1805,7 @@ export async function GET(req: NextRequest) {
                     marginLeft: '40px',
                   }}
                 >
-                  <span style={{ fontSize: '20px', fontWeight: 900, color: '#ea6100' }}>
+                  <span style={{ fontSize: '20px', fontWeight: 900, color: '#34d399' }}>
                     {status || '1주택'} | {bestProduct || '85㎡ 이하'}
                   </span>
                 </div>
@@ -1941,7 +1941,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '6px 14px',
                     borderRadius: '8px',
                     color: 'white',
@@ -1964,7 +1964,7 @@ export async function GET(req: NextRequest) {
                     height="24"
                     viewBox="0 0 24 24"
                     fill="none"
-                    stroke="#ea6100"
+                    stroke="#057e77"
                     strokeWidth="2.5"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -2033,7 +2033,7 @@ export async function GET(req: NextRequest) {
                           width: '32px',
                           height: '32px',
                           borderRadius: '16px',
-                          backgroundColor: item.rank === 1 ? '#ea6100' : 'rgba(255, 255, 255, 0.2)',
+                          backgroundColor: item.rank === 1 ? '#057e77' : 'rgba(255, 255, 255, 0.2)',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -2066,7 +2066,7 @@ export async function GET(req: NextRequest) {
                       }}
                     >
                       <span style={{ fontSize: '13px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: 'bold' }}>매칭률</span>
-                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#ea6100' }}>{item.score}%</span>
+                      <span style={{ fontSize: '24px', fontWeight: 900, color: '#34d399' }}>{item.score}%</span>
                     </div>
                   </div>
                 ))}
@@ -2166,7 +2166,7 @@ export async function GET(req: NextRequest) {
               >
                 <div
                   style={{
-                    background: '#ea6100',
+                    background: '#057e77',
                     padding: '8px 16px',
                     borderRadius: '8px',
                     color: 'white',
@@ -2281,7 +2281,7 @@ export async function GET(req: NextRequest) {
                     <span style={{ fontSize: '18px', color: '#94a3b8', fontWeight: 'bold', marginBottom: '8px' }}>
                       전세가율
                     </span>
-                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#ea6100' }}>
+                    <span style={{ fontSize: '38px', fontWeight: 'black', color: '#34d399' }}>
                       {ratio}%
                     </span>
                   </div>
@@ -2377,7 +2377,7 @@ export async function GET(req: NextRequest) {
             >
               <div
                 style={{
-                  background: '#ea6100',
+                  background: '#057e77',
                   padding: '8px 16px',
                   borderRadius: '8px',
                   color: 'white',
@@ -2441,7 +2441,7 @@ export async function GET(req: NextRequest) {
                 {ratio && (
                   <div
                     style={{
-                      background: '#c44d00',
+                      background: '#057e77',
                       color: 'white',
                       padding: '8px 20px',
                       borderRadius: '30px',
@@ -2521,7 +2521,7 @@ export async function GET(req: NextRequest) {
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-              <div style={{ background: '#ea6100', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '24px' }}>
+              <div style={{ background: '#057e77', padding: '8px 16px', borderRadius: '8px', fontWeight: 'bold', fontSize: '24px' }}>
                 D-VIEW
               </div>
             </div>

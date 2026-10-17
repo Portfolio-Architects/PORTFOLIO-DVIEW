@@ -145,17 +145,8 @@ describe('MacroChartSection Test Suite', () => {
     expect(defaultProps.setTimeframe).toHaveBeenCalledWith('1Y');
   });
 
-  it('supports user favorites when userFavorites set is provided', () => {
-    const userFavorites = new Set(['동탄역 린스트라우스']);
-    render(
-      <MacroChartSection
-        {...defaultProps}
-        userFavorites={userFavorites}
-        favoritesArray={['동탄역 린스트라우스']}
-      />
-    );
-
-    const dongSelect = screen.getByLabelText('아파트 지역 필터 선택');
-    expect(screen.getByRole('option', { name: /내 관심 단지/i })).toBeInTheDocument();
+  it('does not render user favorites option after favorites feature removal', () => {
+    render(<MacroChartSection {...defaultProps} />);
+    expect(screen.queryByRole('option', { name: /내 관심 단지/i })).not.toBeInTheDocument();
   });
 });

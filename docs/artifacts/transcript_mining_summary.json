@@ -1,0 +1,204 @@
+{
+  "metadata": {
+    "execution_timestamp": "2026-10-17T07:45:00.115467+00:00",
+    "brain_directory": "C:\\Users\\ocs56\\.gemini\\antigravity\\brain",
+    "total_directories": 585,
+    "empty_sessions_count": 2,
+    "empty_sessions": [
+      "0ab5eb3b-5cd8-455c-b4ed-ae47b025af83",
+      "0c703f58-fac3-48f8-a36f-0162b67e5549"
+    ],
+    "valid_sessions_count": 583,
+    "total_user_inputs": 264,
+    "total_planner_responses": 48354,
+    "total_input_tokens": 271882241,
+    "total_output_tokens": 22995509,
+    "total_planning_artifacts": 102,
+    "max_active_dates": 11,
+    "passion_score_weights": {
+      "w_user_inputs": 0.3,
+      "w_sessions": 0.2,
+      "w_planner_responses": 0.2,
+      "w_active_dates": 0.15,
+      "w_planning_artifacts": 0.15
+    }
+  },
+  "domain_statistics": {
+    "ASSET": {
+      "sessions": 396,
+      "session_percentage": 67.92,
+      "user_inputs": 171,
+      "user_inputs_percentage": 64.77,
+      "planner_responses": 33048,
+      "planner_responses_percentage": 68.35,
+      "input_tokens": 177289593,
+      "output_tokens": 14550093,
+      "active_dates_count": 11,
+      "active_dates": [
+        "2026-10-04",
+        "2026-10-05",
+        "2026-10-06",
+        "2026-10-07",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-10",
+        "2026-10-11",
+        "2026-10-14",
+        "2026-10-15",
+        "2026-10-17"
+      ],
+      "planning_artifacts_count": 73,
+      "passion_score": 72.42,
+      "sample_prompts": [
+        {
+          "session_id": "011d812f-e997-4794-a6a4-f169d2e5ec3e",
+          "prompt": "/plan 파이낸셜 오버뷰 페이지의 이쿼티 인텔리전스 탭.. 디자인이 너무 마음에 안드는데, 고도화 방안 기획해서 디자인과 내용 고도화 해보자, 현재 문제는 박스 컴포넌트들 사이의 여백 어색함, 드리프트 매트릭스의.. 지나치게 여백이 없는 타원막대형 디자인..\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current loca"
+        },
+        {
+          "session_id": "03e21bd6-35f6-4d9d-b527-df8c6b02c2cf",
+          "prompt": "/teamwork-preview 프로젝트 목적함수 달성을 위한 고도화 방안을 마일스톤별로 분리해서 기획해줘, 기획만하고 실제 패치는 진행하지 않을거야\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-04T12:06:31+09:00.\n\nThe user has mentioned "
+        },
+        {
+          "session_id": "05781d52-217e-41f7-8137-a27bebd0d146",
+          "prompt": "/teamwork-preview 목적함수 달성을 위한 리팩토링 방안 수립, 앱 효용성 증대(사용자 자산 증식 서포트) 및 디자인 심미성 고도화\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-08T23:04:21+09:00.\n\nThe user has mentioned some"
+        },
+        {
+          "session_id": "0e518251-4f46-4516-81ad-fc3cee815bb6",
+          "prompt": "모바일뷰에서 웰스프로젝션 그래프 디자인 고도화 요청, 좌측 여백이 너무 남는 느낌 y축도 너 왼쪽으로 옮기는게 좋을것 같아 /plan \n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-09T13:24:54+09:00.\n\nThe user has mentioned some ite"
+        },
+        {
+          "session_id": "0eb234bf-d2a6-46ed-b7aa-37b5ff123a8d",
+          "prompt": "에셋 프로젝트가 프로덕션으로서 객관적으로 어떠한 수준인지\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-10T11:04:41+09:00.\n</ADDITIONAL_METADATA>\n<USER_SETTINGS_CHANGE>\nThe user changed setting `Mode"
+        },
+        {
+          "session_id": "1054b101-ceb4-4e6f-a609-9a27fb8f5fac",
+          "prompt": "/boost 온톨로지 페이지 스플래시 애니메이션 위치와 실제 온톨로지 캔버스 위치의 괴리로 인한 디자인 어색함 수정 요청\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-17T13:01:43+09:00.\n\nThe user has mentioned some items in th"
+        },
+        {
+          "session_id": "1537936c-5026-4a86-8dd4-8f22d3a97c76",
+          "prompt": "/teamwork-preview 최대 목적함수 2가지를 달성하려고 하는 상황에서, 에셋 프로젝트 전수 조사해서 달성을 방해하는 요소들 찾아줘\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-15T21:27:20+09:00.\n\nThe user has mentioned some "
+        },
+        {
+          "session_id": "18108a1a-4823-4664-95e8-70370ec9fc32",
+          "prompt": "/teamwork-preview 에셋 프로젝트 향후 확장성 제고를 위한 최적화 리팩토링\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-07T23:12:17+09:00.\n\nThe user has mentioned some items in the form @[ITEM]. Her"
+        },
+        {
+          "session_id": "2554aba3-b4fd-4ee0-9e54-3923d644e72e",
+          "prompt": "온톨로지 노드 출력 알고리즘에 근거하여 최신화 구현 /teamwork-preview \n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-06T22:30:06+09:00.\n\nThe user has mentioned some items in the form @[ITEM]. Here"
+        },
+        {
+          "session_id": "3796a6e3-9eca-471b-b280-ca1dc21317f5",
+          "prompt": "로컬호스트 오픈\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-17T14:35:12+09:00.\n</ADDITIONAL_METADATA>\n<USER_SETTINGS_CHANGE>\nThe user changed setting `Model Selection` from None "
+        }
+      ]
+    },
+    "OTHER": {
+      "sessions": 2,
+      "session_percentage": 0.34,
+      "user_inputs": 0,
+      "user_inputs_percentage": 0.0,
+      "planner_responses": 12,
+      "planner_responses_percentage": 0.02,
+      "input_tokens": 321811,
+      "output_tokens": 17270,
+      "active_dates_count": 1,
+      "active_dates": [
+        "2026-10-17"
+      ],
+      "planning_artifacts_count": 0,
+      "passion_score": 1.44,
+      "sample_prompts": []
+    },
+    "DVIEW": {
+      "sessions": 184,
+      "session_percentage": 31.56,
+      "user_inputs": 92,
+      "user_inputs_percentage": 34.85,
+      "planner_responses": 15217,
+      "planner_responses_percentage": 31.47,
+      "input_tokens": 94270837,
+      "output_tokens": 8428146,
+      "active_dates_count": 6,
+      "active_dates": [
+        "2026-06-07",
+        "2026-10-08",
+        "2026-10-09",
+        "2026-10-10",
+        "2026-10-11",
+        "2026-10-17"
+      ],
+      "planning_artifacts_count": 29,
+      "passion_score": 35.51,
+      "sample_prompts": [
+        {
+          "session_id": "04677bd9-b05f-4127-9ccb-49139df34243",
+          "prompt": "로컬호스트 오픈\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-10T10:57:26+09:00.\n</ADDITIONAL_METADATA>\n<USER_SETTINGS_CHANGE>\nThe user changed setting `Model Selection` from None "
+        },
+        {
+          "session_id": "0715e099-8e6c-483a-b1ae-2f032fd3d97f",
+          "prompt": "**초국지적(Hyper-Local) 부동산 웹앱에 구글 애드센스를 접목한 현행 모델은 순자산 6억 원 조기 달성을 견인할 유의미한 제2의 현금창출원으로 기능하기 어렵다.**\r\n\r\n동탄 생활권에 국한된 트래픽 풀의 물리적 한계와 국내 디스플레이 광고 단가(RPM)의 구조적 한계로 인해, 애드센스 단독 모델의 예상 순현금흐름은 월 10만~30만 원 구간에 수렴"
+        },
+        {
+          "session_id": "075c9739-29f2-4cb0-a114-cf1eceaa9e93",
+          "prompt": "/teamwork-preview 내가 서브 프로젝트로 디뷰를 운영중인데, 기존 목표는 동탄구 부동산 정보제공을 통한 애드 센스 유치로 현금 창출하는것이었는데.. 쉽지 않네 / 계속 시도해야 할지, 아니면 다른 방향으로 틀어야 할지 고민중이야\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: "
+        },
+        {
+          "session_id": "085943fd-fd3c-4487-bf13-c212232e3df2",
+          "prompt": "로컬호스트 오픈\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-11T12:17:58+09:00.\n</ADDITIONAL_METADATA>\n<USER_SETTINGS_CHANGE>\nThe user changed setting `Model Selection` from None "
+        },
+        {
+          "session_id": "2c363478-ecc5-4224-ab9a-2d0fe7e16779",
+          "prompt": "/teamwork-preview # [DVIEW TURNKEY EXECUTION PROMPT — MILESTONE 1]\r\n역할: DVIEW 프론트엔드 시스템 아키텍트 & 데이터 시각화 스페셜리스트\r\n작업 경로: c:\\Users\\ocs56\\OneDrive\\바탕 화면\\PORTFOLIO\\PORTFOLIO - DVIEW\\frontend\r\n참조 원칙: HODEP v"
+        },
+        {
+          "session_id": "54a5acd7-a65b-4bd6-9ce0-bae8e416acbb",
+          "prompt": "/teamwork-preview 향후 확장성 및 업데이트 효율성 제고를 위한 전체 아키텍처 및 코드 리팩토링 요청\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-10T16:32:02+09:00.\n\nThe user has mentioned some items in the fo"
+        },
+        {
+          "session_id": "642388b4-ae89-4178-8a3a-868009583810",
+          "prompt": "로컬호스트 오픈\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-06-07T14:37:40+09:00.\n</ADDITIONAL_METADATA>\n<USER_SETTINGS_CHANGE>\nThe user changed setting `Model Selection` from None "
+        },
+        {
+          "session_id": "938f5a6d-f8ec-4652-816e-6abf4dfa6862",
+          "prompt": "로컬호스트 오픈\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-10T00:09:27+09:00.\n</ADDITIONAL_METADATA>\n<USER_SETTINGS_CHANGE>\nThe user changed setting `Model Selection` from None "
+        },
+        {
+          "session_id": "a9f71212-4d1a-4488-8f24-fa62651ecc36",
+          "prompt": "/teamwork-preview 실거래가 업데이트 오류 해결 요청, 현재 9월 17일 이후 업데이트 안되는 중..\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-10T11:22:24+09:00.\n\nThe user has mentioned some items in the fo"
+        },
+        {
+          "session_id": "c46c70f4-230b-4921-9b0d-eec6a7b9fed1",
+          "prompt": "/plan 메인페이지의 도넛차트가 사람들이 디뷰에 접속했을 떄 가장 먼저 보는 컨텐츠잖아? 목적함수 달성(애드센스 수익률 극대화)을 위해 내용과 디자인을 고도화 한다면?\n</USER_REQUEST>\n<ADDITIONAL_METADATA>\nThe current local time is: 2026-10-10T11:41:55+09:00.\n\nThe user has"
+        }
+      ]
+    },
+    "DAILY": {
+      "sessions": 1,
+      "session_percentage": 0.17,
+      "user_inputs": 1,
+      "user_inputs_percentage": 0.38,
+      "planner_responses": 77,
+      "planner_responses_percentage": 0.16,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "active_dates_count": 1,
+      "active_dates": [
+        "2026-07-14"
+      ],
+      "planning_artifacts_count": 0,
+      "passion_score": 1.54,
+      "sample_prompts": [
+        {
+          "session_id": "bab1c146-2586-427d-be44-94d6cda4b69a",
+          "prompt": "You are the Project Orchestrator.\nYour working directory is: c:/Users/ocs56/OneDrive/바탕 화면/PORTFOLIO/PORTFOLIO - DAILY/.agents/teamwork_preview_orchestrator_opt/\nThe verbatim user request is recorded "
+        }
+      ]
+    }
+  },
+  "passion_scores": {
+    "ASSET": 72.42,
+    "OTHER": 1.44,
+    "DVIEW": 35.51,
+    "DAILY": 1.54
+  }
+}

@@ -58,7 +58,7 @@ export const TechnoTrendSection = React.memo(function TechnoTrendSection({
         <div>
           <div className="flex items-center gap-2">
             <h3 className="text-[16px] font-black text-primary flex items-center gap-1.5">
-              <TrendingUp size={18} className="text-[#ea6100]" />
+              <TrendingUp size={18} className="text-[#057e77] dark:text-emerald-400" />
               <span>지식산업센터 공실률 & 임대료 시계열 추이</span>
             </h3>
             <button

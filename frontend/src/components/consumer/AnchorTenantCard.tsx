@@ -141,7 +141,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
               
               {/* Bottom Actions: Walking Time & Map button */}
               <div className="flex items-center justify-between mt-2 pt-3 border-t border-border/40">
-                <span className="text-[12px] font-extrabold text-[#c44d00] dark:text-[#ea6100] bg-[#c44d00]/10 dark:bg-[#ea6100]/10 px-2.5 py-1.5 rounded-md shrink-0 whitespace-nowrap">
+                <span className="text-[12px] font-extrabold text-[#057e77] dark:text-emerald-400 bg-[#057e77]/10 dark:bg-emerald-500/20 px-2.5 py-1.5 rounded-md shrink-0 whitespace-nowrap">
                   도보 {walkingTime}분
                 </span>
                 

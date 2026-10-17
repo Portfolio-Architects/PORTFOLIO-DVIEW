@@ -3,13 +3,19 @@
  * 
  * - writeSummaryFiles: writes tx-summary.json, recent-transactions.json, macro-trend.json
  * - writeApartmentChunks: writes public/tx-data/${aptName}.json, ${aptName}-recent.json, _index.json
+ * - safeWriteFileSync / safeWriteFile: non-blocking retry write utilities
+ * - migrateLegacyPathologicalFiles: sanitizes and merges legacy/pathological files
  */
 
 const fs = require('fs');
 const path = require('path');
 const { applyIqrOutlierDetection } = require('./outlierFilters');
 const { formatPriceEok, normalizeAptName } = require('./apartmentSummarizer');
+const { sanitizeAptChunkFileName, sanitizeAptKey } = require('../../pipeline/core/normalizer');
 
+/**
+ * Synchronous file writer with zero-spin OS thread backoff
+ */
 function safeWriteFileSync(filepath, content) {
   let attempts = 0;
   while (attempts < 5) {
@@ -19,8 +25,28 @@ function safeWriteFileSync(filepath, content) {
     } catch (e) {
       attempts++;
       if (attempts >= 5) throw e;
-      const start = Date.now();
-      while (Date.now() - start < 100) {}
+      try {
+        Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 50);
+      } catch {
+        // Fallback if Atomics.wait is unavailable
+      }
+    }
+  }
+}
+
+/**
+ * Asynchronous non-blocking file writer
+ */
+async function safeWriteFile(filepath, content) {
+  let attempts = 0;
+  while (attempts < 5) {
+    try {
+      await fs.promises.writeFile(filepath, content, 'utf-8');
+      return;
+    } catch (e) {
+      attempts++;
+      if (attempts >= 5) throw e;
+      await new Promise(r => setTimeout(r, 50));
     }
   }
 }
@@ -43,7 +69,7 @@ function writeSummaryFiles(paths, data) {
       summary,
       recent7DaysVolume
     };
-    fs.writeFileSync(summaryPath, JSON.stringify(outputData, null, 2), 'utf-8');
+    safeWriteFileSync(summaryPath, JSON.stringify(outputData, null, 2));
     console.log(`📁 파일 생성: ${summaryPath}`);
   }
 
@@ -52,7 +78,7 @@ function writeSummaryFiles(paths, data) {
     if (!fs.existsSync(recentTxDir)) {
       fs.mkdirSync(recentTxDir, { recursive: true });
     }
-    fs.writeFileSync(recentTxPath, JSON.stringify(recentTransactions, null, 2), 'utf-8');
+    safeWriteFileSync(recentTxPath, JSON.stringify(recentTransactions, null, 2));
     console.log(`📁 파일 생성: ${recentTxPath}`);
   }
 
@@ -61,7 +87,7 @@ function writeSummaryFiles(paths, data) {
     if (!fs.existsSync(macroTrendDir)) {
       fs.mkdirSync(macroTrendDir, { recursive: true });
     }
-    fs.writeFileSync(macroTrendPath, JSON.stringify(dongtanMacroTrend, null, 2), 'utf-8');
+    safeWriteFileSync(macroTrendPath, JSON.stringify(dongtanMacroTrend, null, 2));
     console.log(`📁 파일 생성: ${macroTrendPath}`);
   }
 
@@ -71,52 +97,74 @@ function writeSummaryFiles(paths, data) {
   if (period1yPath && transactions1y) {
     const dir = path.dirname(period1yPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(period1yPath, JSON.stringify(transactions1y), 'utf-8');
+    safeWriteFileSync(period1yPath, JSON.stringify(transactions1y));
     console.log(`📁 파일 생성: ${period1yPath}`);
   }
 
   if (period3yPath && transactions3y) {
     const dir = path.dirname(period3yPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(period3yPath, JSON.stringify(transactions3y), 'utf-8');
+    safeWriteFileSync(period3yPath, JSON.stringify(transactions3y));
     console.log(`📁 파일 생성: ${period3yPath}`);
   }
 
   if (periodAllPath && transactionsAll) {
     const dir = path.dirname(periodAllPath);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(periodAllPath, JSON.stringify(transactionsAll), 'utf-8');
+    safeWriteFileSync(periodAllPath, JSON.stringify(transactionsAll));
     console.log(`📁 파일 생성: ${periodAllPath}`);
   }
 }
 
 /**
- * public/tx-data 내 공백이 포함된 레거시 파일명 정리 및 정규화 마이그레이션
+ * public/tx-data 내 공백, 괄호, 연속 마침표, 로마 숫자 등 병리적 파일명 정리 및 안전 병합
  * @param {string} txDataDir 
  */
-function migrateLegacySpaceFiles(txDataDir) {
+function migrateLegacyPathologicalFiles(txDataDir) {
   if (!fs.existsSync(txDataDir)) return;
   try {
     const files = fs.readdirSync(txDataDir);
     for (const file of files) {
-      if (!file.includes(' ') || !file.endsWith('.json')) continue;
+      if (file === '_index.json' || !file.endsWith('.json')) continue;
+      const targetFileName = sanitizeAptChunkFileName(file);
+      if (targetFileName === file) continue;
+
       const oldPath = path.join(txDataDir, file);
-      const isRecent = file.endsWith('-recent.json');
-      const rawName = isRecent ? file.slice(0, -12) : file.slice(0, -5);
-      let normName = normalizeAptName(rawName);
-      if (!normName) continue;
-      if (normName === '금호어울림레이크1차') {
-        normName = '금호어울림레이크';
-      }
-      const newFileName = isRecent ? `${normName}-recent.json` : `${normName}.json`;
-      const newPath = path.join(txDataDir, newFileName);
+      const newPath = path.join(txDataDir, targetFileName);
 
       if (fs.existsSync(newPath)) {
         try {
           const oldContent = JSON.parse(fs.readFileSync(oldPath, 'utf8'));
           const newContent = JSON.parse(fs.readFileSync(newPath, 'utf8'));
-          if (Array.isArray(oldContent) && Array.isArray(newContent) && oldContent.length > newContent.length) {
-            fs.writeFileSync(newPath, JSON.stringify(oldContent), 'utf8');
+          if (Array.isArray(oldContent) && Array.isArray(newContent)) {
+            // Deduplicate and merge both sets
+            const combined = [...newContent, ...oldContent];
+            const seen = new Map();
+            for (const r of combined) {
+              const dt = (r.dealType === '전세' || r.dealType === '월세') ? r.dealType : '매매';
+              const cleanDay = String(r.contractDay || '').trim().padStart(2, '0');
+              const cleanArea = Math.round((Number(r.area) || 0) * 100) / 100;
+              const cleanFloor = Number(r.floor) || 0;
+              const cleanPrice = Number(r.price) || 0;
+              const cleanDep = Number(r.deposit) || 0;
+              const cleanRent = Number(r.monthlyRent) || 0;
+              const k = `${r.contractYm}_${cleanDay}_${cleanPrice}_${cleanDep}_${cleanRent}_${cleanArea}_${cleanFloor}_${dt}`;
+              if (!seen.has(k)) {
+                seen.set(k, r);
+              }
+            }
+            const merged = Array.from(seen.values());
+            merged.sort((a, b) => {
+              const dateA = `${a.contractYm || ''}${String(a.contractDay || '').padStart(2, '0')}`;
+              const dateB = `${b.contractYm || ''}${String(b.contractDay || '').padStart(2, '0')}`;
+              if (dateA !== dateB) {
+                return dateB.localeCompare(dateA);
+              }
+              const getVal = (x) => (x.dealType === '전세' || x.dealType === '월세') ? (x.deposit || 0) : (x.price || 0);
+              return getVal(b) - getVal(a);
+            });
+            const finalRecords = targetFileName.endsWith('-recent.json') ? merged.slice(0, 15) : merged;
+            safeWriteFileSync(newPath, JSON.stringify(finalRecords));
           }
         } catch (e) {
           // ignore parse error
@@ -127,9 +175,11 @@ function migrateLegacySpaceFiles(txDataDir) {
       }
     }
   } catch (err) {
-    console.warn('⚠️ 레거시 공백 파일 마이그레이션 중 경고:', err.message);
+    console.warn('⚠️ 병리적 파일 마이그레이션 중 경고:', err.message);
   }
 }
+
+const migrateLegacySpaceFiles = migrateLegacyPathologicalFiles;
 
 /**
  * 아파트별 개별 JSON 청크 파일들 및 인덱스 파일 저장
@@ -147,8 +197,8 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
   if (!fs.existsSync(txDataDir)) {
     fs.mkdirSync(txDataDir, { recursive: true });
   } else if (!isFullSync) {
-    // 증분 동기화 시 공백 포함 레거시 파일 정리 및 마이그레이션
-    migrateLegacySpaceFiles(txDataDir);
+    // 증분 동기화 시 병리적 파일 정리 및 마이그레이션
+    migrateLegacyPathologicalFiles(txDataDir);
   }
 
   let totalRecords = 0;
@@ -159,7 +209,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
   const seenNormKeys = new Set();
   const normalizedTargetApts = [];
   for (const rawApt of targetApts) {
-    let norm = normalizeAptName(rawApt);
+    let norm = sanitizeAptKey(rawApt);
     if (norm === '금호어울림레이크1차') norm = '금호어울림레이크';
     if (norm && !seenNormKeys.has(norm)) {
       seenNormKeys.add(norm);
@@ -174,7 +224,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
     }
     for (const [k, records] of Object.entries(byApt)) {
       if (k !== aptKey && Array.isArray(records)) {
-        let normK = normalizeAptName(k);
+        let normK = sanitizeAptKey(k);
         if (normK === '금호어울림레이크1차' || normK === '장지동금호어울림레이크1차') normK = '금호어울림레이크';
         if (normK === aptKey) {
           txs.push(...records);
@@ -196,8 +246,8 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
       area: t.area,
       areaPyeong: t.areaPyeong,
       floor: t.floor,
-      dealType: t.dealType || '',
-      cancelDate: t.cancelDate || '',
+      dealType: (t.dealType && t.dealType.trim()) || '매매',
+      cancelDate: (t.cancelDate && t.cancelDate.trim()) || '',
     }));
 
     // Deduplicate records to prevent duplicate rows in the UI
@@ -265,15 +315,15 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
       return getVal(b) - getVal(a);
     });
 
-    // 파일명: 정규화된 아파트 키 사용 (${aptKey}.json)
-    const filename = `${aptKey}.json`;
+    // 파일명: 정규화 및 살균된 파일명 사용
+    const filename = sanitizeAptChunkFileName(`${aptKey}.json`);
     const filepath = path.join(txDataDir, filename);
     const json = JSON.stringify(uniqueRecords);
     
     safeWriteFileSync(filepath, json);
 
     // 최근 거래 내역만 포함하는 경량 JSON 파일 생성 (최근 15건)
-    const filenameRecent = `${aptKey}-recent.json`;
+    const filenameRecent = sanitizeAptChunkFileName(`${aptKey}-recent.json`);
     const filepathRecent = path.join(txDataDir, filenameRecent);
     const jsonRecent = JSON.stringify(uniqueRecords.slice(0, 15));
     safeWriteFileSync(filepathRecent, jsonRecent);
@@ -293,6 +343,10 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
 }
 
 module.exports = {
+  safeWriteFileSync,
+  safeWriteFile,
   writeSummaryFiles,
-  writeApartmentChunks
+  writeApartmentChunks,
+  migrateLegacyPathologicalFiles,
+  migrateLegacySpaceFiles
 };

@@ -342,7 +342,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 </span>
               </div>
               <div className="text-right">
-                <span className="text-[18px] font-black text-[#ea6100] tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
+                <span className="text-[18px] font-black text-[#057e77] dark:text-emerald-400 tabular-nums">{metrics.jeonseRatio.toFixed(1)}%</span>
                 <span className="text-[12px] font-bold text-secondary ml-0.5">기록</span>
               </div>
             </div>

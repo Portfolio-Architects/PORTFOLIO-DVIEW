@@ -32,7 +32,7 @@ export const CompareInsightCard = React.memo(function CompareInsightCard({
             종합 분석 결과 판정
           </span>
           <div className="flex items-center gap-1.5 text-[10px] font-black">
-            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-[#ea6100] border border-emerald-500/20">
+            <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
               {apt1Label} {score.apt1}개 우세
             </span>
             <span className="text-tertiary font-bold">vs</span>

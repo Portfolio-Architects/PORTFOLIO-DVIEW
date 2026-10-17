@@ -11,6 +11,11 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/api/'],
       },
       {
+        // Prioritize Google AdSense crawler for immediate site verification and indexing
+        userAgent: 'Mediapartners-Google',
+        allow: '/',
+      },
+      {
         // Prioritize and welcome major search engine bots for domestic and global traffic
         userAgent: ['Googlebot', 'Yeti', 'Daumoa', 'Bingbot'],
         allow: '/',

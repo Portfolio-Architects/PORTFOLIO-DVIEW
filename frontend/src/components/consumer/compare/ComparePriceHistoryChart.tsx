@@ -26,6 +26,7 @@ export interface ComparePriceHistoryChartProps {
   setPriceMetric: (val: 'absolute' | 'perPyeong') => void;
   chartType: 'sale' | 'jeonse';
   setChartType: (val: 'sale' | 'jeonse') => void;
+  yAxisDomain?: [number | string, number | string];
 }
 
 export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryChart({
@@ -38,6 +39,7 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
   setPriceMetric,
   chartType,
   setChartType,
+  yAxisDomain,
 }: ComparePriceHistoryChartProps) {
   return (
     <div className="space-y-4">
@@ -115,7 +117,7 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
                     fontWeight="bold"
                     tickLine={false}
                     axisLine={false}
-                    domain={['auto', 'auto']}
+                    domain={yAxisDomain ?? ['auto', 'auto']}
                     tickFormatter={(val: number) => {
                       if (priceMetric === 'perPyeong') {
                         return `${val.toLocaleString()}만`;
@@ -154,10 +156,10 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
                     type="monotone"
                     dataKey={apt1Label}
                     name={apt1Label}
-                    stroke="#ea6100"
+                    stroke="#057e77"
                     strokeWidth={3}
-                    dot={{ r: 3, fill: '#ea6100', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#ea6100' }}
+                    dot={{ r: 3, fill: '#057e77', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#057e77' }}
                     connectNulls
                   />
                   <Line
@@ -177,8 +179,8 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
             )}
           </div>
         ) : (
-          <div className="w-full h-[320px] flex items-center justify-center text-tertiary font-bold text-[13px]">
-            비교 가능한 최근 실거래 이력이 부족합니다.
+          <div className="w-full h-[320px] flex items-center justify-center text-center">
+            <p className="text-[12.5px] font-bold text-tertiary">시계열 거래 정보가 없습니다.</p>
           </div>
         )}
       </div>

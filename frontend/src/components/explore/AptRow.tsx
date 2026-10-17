@@ -1,84 +1,13 @@
-import React, { useState, useEffect, useRef, memo } from 'react';
-import { Heart, Camera } from 'lucide-react';
+import React, { memo } from 'react';
+import { Camera } from 'lucide-react';
 import { EnrichedApt } from './types';
-import { preloadApartmentModal } from '@/components/common/preload';
-
-const InteractiveHeart = memo(({ 
-  isFavorited, 
-  name, 
-  onToggle, 
-  size = 18 
-}: { 
-  isFavorited: boolean; 
-  name: string; 
-  onToggle: (name: string) => void; 
-  size?: number; 
-}) => {
-  const [localFavorited, setLocalFavorited] = useState(isFavorited);
-  const [animate, setAnimate] = useState(false);
-  const animateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const mountedRef = useRef(true);
-
-  useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      if (animateTimeoutRef.current) {
-        clearTimeout(animateTimeoutRef.current);
-        animateTimeoutRef.current = null;
-      }
-    };
-  }, []);
-
-  // 상위 상태와 동기화
-  useEffect(() => {
-    setLocalFavorited(isFavorited);
-  }, [isFavorited]);
-
-  const handleClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setLocalFavorited(prev => !prev);
-    setAnimate(true);
-    onToggle(name);
-    if (animateTimeoutRef.current) {
-      clearTimeout(animateTimeoutRef.current);
-      animateTimeoutRef.current = null;
-    }
-    animateTimeoutRef.current = setTimeout(() => {
-      if (mountedRef.current) {
-        setAnimate(false);
-        animateTimeoutRef.current = null;
-      }
-    }, 300);
-  };
-
-  return (
-    <button 
-      onClick={handleClick}
-      aria-label={`${name} 즐겨찾기 ${localFavorited ? '해제' : '추가'}`}
-      className="focus:outline-none p-1 rounded-full hover:bg-body/80 active:scale-95 transition-all duration-150 shrink-0 flex items-center justify-center"
-    >
-      <Heart 
-        size={size} 
-        className={`transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
-          localFavorited 
-            ? "text-toss-red fill-current" 
-            : "text-border dark:text-zinc-600 hover:text-rose-400"
-        } ${animate ? "scale-[1.4] rotate-[12deg]" : "scale-100"}`}
-      />
-    </button>
-  );
-});
-InteractiveHeart.displayName = 'InteractiveHeart';
+import { preloadApartmentModal } from '@/lib/preload';
 
 interface AptRowProps {
   item: EnrichedApt;
   index: number;
   handleSelectApt: (name: string) => void;
-  onToggleFavorite: (name: string) => void;
   currentCategory: string;
-  isFavorited: boolean;
-  likes: number;
   photoCount: number;
   views: number;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
@@ -88,15 +17,11 @@ export const AptRow = memo(({
   item, 
   index, 
   handleSelectApt, 
-  onToggleFavorite, 
   currentCategory,
-  isFavorited,
-  likes,
   photoCount,
   views,
   preloadApartmentTx
 }: AptRowProps) => {
-  const displayLikes = isFavorited ? Math.max(likes, 1) : likes;
 
   const getRankBadgeStyle = (idx: number) => {
     switch (idx) {
@@ -120,7 +45,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">최근 평균 매매가</span>
-          <span className="text-sm md:text-base font-black text-[#ea6100] mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
+          <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
         </div>
       );
     }
@@ -144,7 +69,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">최근 3개월 회전율</span>
-          <span className="text-sm md:text-base font-black text-[#ea6100] mt-0.5">{item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}</span>
+          <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}</span>
         </div>
       );
     }
@@ -152,14 +77,14 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">조회수</span>
-          <span className="text-sm md:text-base font-black text-orange-500 mt-0.5">{views > 0 ? `${views.toLocaleString()}회` : '0회'}</span>
+          <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{views > 0 ? `${views.toLocaleString()}회` : '0회'}</span>
         </div>
       );
     }
     return (
       <div className="flex flex-col items-start md:items-end">
         <span className="text-[11px] font-bold text-tertiary">최근 평균 매매가</span>
-        <span className="text-sm md:text-base font-black text-[#ea6100] mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
+        <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
       </div>
     );
   };
@@ -189,12 +114,6 @@ export const AptRow = memo(({
               <h3 className="text-base font-black text-primary truncate leading-snug" suppressHydrationWarning>
                 {item.apt.name}
               </h3>
-              <InteractiveHeart 
-                isFavorited={isFavorited} 
-                name={item.apt.name} 
-                onToggle={onToggleFavorite} 
-                size={17} 
-              />
               <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary shrink-0">
                 {item.apt.dong}
               </span>
@@ -208,12 +127,6 @@ export const AptRow = memo(({
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 shrink-0 flex items-center gap-0.5">
                   <Camera className="w-2.5 h-2.5" />
                   사진 {photoCount}장
-                </span>
-              )}
-              {displayLikes > 0 && (
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 shrink-0 flex items-center gap-0.5">
-                  <Heart className="w-2.5 h-2.5 fill-current" />
-                  관심 {displayLikes}
                 </span>
               )}
             </div>

@@ -3,20 +3,51 @@ import {
   MapPin, School, TreePine, Building2, TrendingUp, Sparkles, Award
 } from 'lucide-react';
 
+export interface ComparisonMetrics {
+  brand?: string;
+  householdCount?: number;
+  totalHouseholds?: number;
+  parkingPerHousehold?: number;
+  yearBuilt?: number | string;
+  rawYearBuilt?: string | number;
+  distanceToSubway?: number;
+  distanceToElementary?: number;
+  distanceToMiddle?: number;
+  distanceToHigh?: number;
+  distanceToPark?: number;
+  distanceToStarbucks?: number;
+  distanceToOliveYoung?: number;
+  distanceToIndeokwon?: number;
+  distanceToTram?: number;
+  avg3MPrice?: number;
+  avg3MRent?: number;
+  jeonseRatio?: number;
+  avg3MPerPyeong?: number;
+  far?: number;
+}
+
+export interface QuizAnswers {
+  transit?: string;
+  family?: string;
+  lifestyle?: string;
+  budget?: string;
+}
+
 export interface CompareSpecTableProps {
   apt1Label: string;
   apt2Label: string;
-  metrics1: any;
-  metrics2: any;
+  metrics1: ComparisonMetrics | null;
+  metrics2: ComparisonMetrics | null;
   wins: Record<string, boolean | null>;
   aiFitScores: {
     winner: 'apt1' | 'apt2' | 'tie' | null;
     score1: number;
     score2: number;
   };
-  quizAnswers: any;
+  quizAnswers: QuizAnswers | null;
   getCompareClass: (isApt1: boolean, isWin: boolean | null) => string;
   displayPrice: (price: number) => string;
+  formatYearBuilt?: (rawYearBuilt: string | number | undefined, yearBuilt: number) => string;
 }
 
 export const CompareSpecTable = React.memo(function CompareSpecTable({
@@ -29,11 +60,18 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
   quizAnswers,
   getCompareClass,
   displayPrice,
+  formatYearBuilt,
 }: CompareSpecTableProps) {
+  const getYearNum = (m: ComparisonMetrics | null) => {
+    if (!m) return 0;
+    if (typeof m.yearBuilt === 'number') return m.yearBuilt;
+    return parseInt(String(m.yearBuilt || 0), 10) || 0;
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 px-1">
-        <Award size={16} className="text-[#ea6100]" />
+        <Award size={16} className="text-[#057e77] dark:text-emerald-400" />
         <span>1:1 지표 매트릭스 비교</span>
       </h3>
 
@@ -43,28 +81,28 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           <div className="flex flex-col justify-center">비교 평가 지표</div>
           <div className="text-center truncate flex flex-col items-center justify-center gap-1">
             {aiFitScores.winner === 'apt1' && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#ea6100] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#057e77] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
                 <Sparkles size={8} className="fill-white" />
                 <span>AI 맞춤 위너</span>
               </span>
             )}
             <span className="block">{apt1Label}</span>
-            {quizAnswers && (
-              <span className="text-[9.5px] text-emerald-600 dark:text-[#ea6100] font-bold">
+            {quizAnswers && Object.keys(quizAnswers).length > 0 && (
+              <span className="text-[9.5px] text-emerald-600 dark:text-emerald-400 font-bold">
                 AI 적합도 {aiFitScores.score1}점
               </span>
             )}
           </div>
           <div className="text-center truncate flex flex-col items-center justify-center gap-1">
             {aiFitScores.winner === 'apt2' && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#ea6100] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#057e77] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
                 <Sparkles size={8} className="fill-white" />
                 <span>AI 맞춤 위너</span>
               </span>
             )}
             <span className="block">{apt2Label}</span>
-            {quizAnswers && (
-              <span className="text-[9.5px] text-emerald-600 dark:text-[#ea6100] font-bold">
+            {quizAnswers && Object.keys(quizAnswers).length > 0 && (
+              <span className="text-[9.5px] text-emerald-600 dark:text-emerald-400 font-bold">
                 AI 적합도 {aiFitScores.score2}점
               </span>
             )}
@@ -80,33 +118,33 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           {/* GTX Distance */}
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'gtx' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">GTX-A / SRT역 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.subway)}`}>
-              {metrics1.distanceToSubway ? `${metrics1.distanceToSubway}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.subway ?? null)}`}>
+              {metrics1?.distanceToSubway ? `${metrics1.distanceToSubway}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.subway)}`}>
-              {metrics2.distanceToSubway ? `${metrics2.distanceToSubway}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.subway ?? null)}`}>
+              {metrics2?.distanceToSubway ? `${metrics2.distanceToSubway}m` : '-'}
             </div>
           </div>
 
           {/* Indeokwon Line Distance */}
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'indeokwon' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">동인선 예정역 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.indeokwon)}`}>
-              {metrics1.distanceToIndeokwon ? `${metrics1.distanceToIndeokwon}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.indeokwon ?? null)}`}>
+              {metrics1?.distanceToIndeokwon ? `${metrics1.distanceToIndeokwon}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.indeokwon)}`}>
-              {metrics2.distanceToIndeokwon ? `${metrics2.distanceToIndeokwon}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.indeokwon ?? null)}`}>
+              {metrics2?.distanceToIndeokwon ? `${metrics2.distanceToIndeokwon}m` : '-'}
             </div>
           </div>
 
           {/* Tram Distance */}
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.transit === 'tram' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">동탄트램 예정역 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.tram)}`}>
-              {metrics1.distanceToTram ? `${metrics1.distanceToTram}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.tram ?? null)}`}>
+              {metrics1?.distanceToTram ? `${metrics1.distanceToTram}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.tram)}`}>
-              {metrics2.distanceToTram ? `${metrics2.distanceToTram}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.tram ?? null)}`}>
+              {metrics2?.distanceToTram ? `${metrics2.distanceToTram}m` : '-'}
             </div>
           </div>
         </div>
@@ -121,31 +159,31 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
             <div className="text-secondary font-bold flex items-center gap-1">
               <span>초등학교 도보 통학 거리</span>
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.elementary)}`}>
-              {metrics1.distanceToElementary ? `${metrics1.distanceToElementary}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.elementary ?? null)}`}>
+              {metrics1?.distanceToElementary ? `${metrics1.distanceToElementary}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.elementary)}`}>
-              {metrics2.distanceToElementary ? `${metrics2.distanceToElementary}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.elementary ?? null)}`}>
+              {metrics2?.distanceToElementary ? `${metrics2.distanceToElementary}m` : '-'}
             </div>
           </div>
 
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">중학교 도보 통학 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.middle)}`}>
-              {metrics1.distanceToMiddle ? `${metrics1.distanceToMiddle}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.middle ?? null)}`}>
+              {metrics1?.distanceToMiddle ? `${metrics1.distanceToMiddle}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.middle)}`}>
-              {metrics2.distanceToMiddle ? `${metrics2.distanceToMiddle}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.middle ?? null)}`}>
+              {metrics2?.distanceToMiddle ? `${metrics2.distanceToMiddle}m` : '-'}
             </div>
           </div>
 
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.family === 'middleHigh' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">고등학교 도보 통학 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.high)}`}>
-              {metrics1.distanceToHigh ? `${metrics1.distanceToHigh}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.high ?? null)}`}>
+              {metrics1?.distanceToHigh ? `${metrics1.distanceToHigh}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.high)}`}>
-              {metrics2.distanceToHigh ? `${metrics2.distanceToHigh}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.high ?? null)}`}>
+              {metrics2?.distanceToHigh ? `${metrics2.distanceToHigh}m` : '-'}
             </div>
           </div>
 
@@ -154,31 +192,31 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
               <TreePine size={13} className="text-emerald-500" />
               <span>공원 도보 거리</span>
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.park)}`}>
-              {metrics1.distanceToPark ? `${metrics1.distanceToPark}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.park ?? null)}`}>
+              {metrics1?.distanceToPark ? `${metrics1.distanceToPark}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.park)}`}>
-              {metrics2.distanceToPark ? `${metrics2.distanceToPark}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.park ?? null)}`}>
+              {metrics2?.distanceToPark ? `${metrics2.distanceToPark}m` : '-'}
             </div>
           </div>
 
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">스타벅스 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.starbucks)}`}>
-              {metrics1.distanceToStarbucks ? `${metrics1.distanceToStarbucks}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.starbucks ?? null)}`}>
+              {metrics1?.distanceToStarbucks ? `${metrics1.distanceToStarbucks}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.starbucks)}`}>
-              {metrics2.distanceToStarbucks ? `${metrics2.distanceToStarbucks}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.starbucks ?? null)}`}>
+              {metrics2?.distanceToStarbucks ? `${metrics2.distanceToStarbucks}m` : '-'}
             </div>
           </div>
 
           <div className={`grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium transition-colors ${quizAnswers?.lifestyle === 'shop' ? 'bg-emerald-500/10' : ''}`}>
             <div className="text-secondary font-bold">올리브영 거리</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.oliveYoung)}`}>
-              {metrics1.distanceToOliveYoung ? `${metrics1.distanceToOliveYoung}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.oliveYoung ?? null)}`}>
+              {metrics1?.distanceToOliveYoung ? `${metrics1.distanceToOliveYoung}m` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.oliveYoung)}`}>
-              {metrics2.distanceToOliveYoung ? `${metrics2.distanceToOliveYoung}m` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.oliveYoung ?? null)}`}>
+              {metrics2?.distanceToOliveYoung ? `${metrics2.distanceToOliveYoung}m` : '-'}
             </div>
           </div>
         </div>
@@ -189,80 +227,95 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         <div className="divide-y divide-border/20">
+          {/* Brand Row */}
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
-            <div className="text-secondary font-bold">단지 세대수</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.households)}`}>
-              {metrics1.householdCount ? `${metrics1.householdCount.toLocaleString()}세대` : '-'}
+            <div className="text-secondary font-bold">건설사 브랜드</div>
+            <div className="mx-auto px-3 py-1 rounded-xl border border-border/50 text-center font-bold text-secondary bg-surface/30">
+              {metrics1?.brand || '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.households)}`}>
-              {metrics2.householdCount ? `${metrics2.householdCount.toLocaleString()}세대` : '-'}
+            <div className="mx-auto px-3 py-1 rounded-xl border border-border/50 text-center font-bold text-secondary bg-surface/30">
+              {metrics2?.brand || '-'}
             </div>
           </div>
 
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
-            <div className="text-secondary font-bold">준공 연도</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.year)}`}>
-              {metrics1.rawYearBuilt ? `${metrics1.rawYearBuilt}년` : '-'}
+            <div className="text-secondary font-bold">단지 세대수</div>
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.households ?? null)}`}>
+              {metrics1?.householdCount ? `${metrics1.householdCount.toLocaleString()}세대` : (metrics1?.totalHouseholds ? `${metrics1.totalHouseholds.toLocaleString()}세대` : '-')}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.year)}`}>
-              {metrics2.rawYearBuilt ? `${metrics2.rawYearBuilt}년` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.households ?? null)}`}>
+              {metrics2?.householdCount ? `${metrics2.householdCount.toLocaleString()}세대` : (metrics2?.totalHouseholds ? `${metrics2.totalHouseholds.toLocaleString()}세대` : '-')}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
+            <div className="text-secondary font-bold">준공년도 (연식)</div>
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.year ?? null)}`}>
+              {formatYearBuilt
+                ? formatYearBuilt(metrics1?.rawYearBuilt ?? metrics1?.yearBuilt, getYearNum(metrics1))
+                : (metrics1?.rawYearBuilt ? `${metrics1.rawYearBuilt}년` : (metrics1?.yearBuilt ? `${metrics1.yearBuilt}년` : '-'))}
+            </div>
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.year ?? null)}`}>
+              {formatYearBuilt
+                ? formatYearBuilt(metrics2?.rawYearBuilt ?? metrics2?.yearBuilt, getYearNum(metrics2))
+                : (metrics2?.rawYearBuilt ? `${metrics2.rawYearBuilt}년` : (metrics2?.yearBuilt ? `${metrics2.yearBuilt}년` : '-'))}
             </div>
           </div>
 
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
             <div className="text-secondary font-bold">세대당 주차대수</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.parking)}`}>
-              {metrics1.parkingPerHousehold ? `${metrics1.parkingPerHousehold.toFixed(2)}대` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.parking ?? null)}`}>
+              {metrics1?.parkingPerHousehold ? `${metrics1.parkingPerHousehold.toFixed(2)}대` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.parking)}`}>
-              {metrics2.parkingPerHousehold ? `${metrics2.parkingPerHousehold.toFixed(2)}대` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.parking ?? null)}`}>
+              {metrics2?.parkingPerHousehold ? `${metrics2.parkingPerHousehold.toFixed(2)}대` : '-'}
             </div>
           </div>
         </div>
 
         {/* Section: Price and Valuation */}
         <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-          <TrendingUp size={12} className="text-[#ea6100]" /> 가치 & 거래 정보 (최근 3M 기준)
+          <TrendingUp size={12} className="text-[#057e77] dark:text-emerald-400" /> 가치 & 거래 정보 (최근 3M 기준)
         </div>
 
         <div className="divide-y divide-border/20">
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
             <div className="text-secondary font-bold">평균 매매시세 (3M)</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.price)}`}>
-              {displayPrice(metrics1.avg3MPrice)}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.price ?? null)}`}>
+              {displayPrice(metrics1?.avg3MPrice || 0)}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.price)}`}>
-              {displayPrice(metrics2.avg3MPrice)}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.price ?? null)}`}>
+              {displayPrice(metrics2?.avg3MPrice || 0)}
             </div>
           </div>
 
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
             <div className="text-secondary font-bold">평균 평당가 (3M)</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.perPyeong)}`}>
-              {metrics1.avg3MPerPyeong ? `${metrics1.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.perPyeong ?? null)}`}>
+              {metrics1?.avg3MPerPyeong ? `${metrics1.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.perPyeong)}`}>
-              {metrics2.avg3MPerPyeong ? `${metrics2.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.perPyeong ?? null)}`}>
+              {metrics2?.avg3MPerPyeong ? `${metrics2.avg3MPerPyeong.toLocaleString()}만 원` : '-'}
             </div>
           </div>
 
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
             <div className="text-secondary font-bold">평균 전세보증금 (3M)</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.rent)}`}>
-              {displayPrice(metrics1.avg3MRent)}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.rent ?? null)}`}>
+              {displayPrice(metrics1?.avg3MRent || 0)}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.rent)}`}>
-              {displayPrice(metrics2.avg3MRent)}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.rent ?? null)}`}>
+              {displayPrice(metrics2?.avg3MRent || 0)}
             </div>
           </div>
 
           <div className="grid grid-cols-3 px-4 py-2.5 items-center text-[12.5px] font-medium">
             <div className="text-secondary font-bold">평균 전세가율</div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.ratio)}`}>
-              {metrics1.jeonseRatio ? `${metrics1.jeonseRatio.toFixed(1)}%` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(true, wins.ratio ?? null)}`}>
+              {metrics1?.jeonseRatio ? `${metrics1.jeonseRatio.toFixed(1)}%` : '-'}
             </div>
-            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.ratio)}`}>
-              {metrics2.jeonseRatio ? `${metrics2.jeonseRatio.toFixed(1)}%` : '-'}
+            <div className={`mx-auto px-3 py-1 rounded-xl border text-center font-bold transition-all ${getCompareClass(false, wins.ratio ?? null)}`}>
+              {metrics2?.jeonseRatio ? `${metrics2.jeonseRatio.toFixed(1)}%` : '-'}
             </div>
           </div>
         </div>

@@ -370,7 +370,7 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
       <button
         onClick={() => setShowOrderEditor(!showOrderEditor)}
         title="관심 단지 정렬 순서 편집"
-        className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#ea6100] shadow-sm shrink-0"
+        className="w-7 h-7 flex items-center justify-center bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#057e77] shadow-sm shrink-0"
       >
         <Settings size={13} />
       </button>
@@ -390,7 +390,7 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
                 className={`flex justify-between items-center px-2.5 py-1.5 bg-zinc-50 dark:bg-zinc-850 hover:bg-zinc-100 dark:hover:bg-zinc-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
-                  draggedIndex === index ? "opacity-40 border-dashed border-[#ea6100]" : ""
+                  draggedIndex === index ? "opacity-40 border-dashed border-[#057e77]" : ""
                 }`}
               >
                 <span className="truncate pr-2">{getDisplayAptName(fav)}</span>

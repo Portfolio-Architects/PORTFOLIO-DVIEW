@@ -21,11 +21,6 @@ jest.mock('@/hooks/useAuth', () => ({
   }),
 }));
 
-jest.mock('@/components/FloatingUserBar', () => {
-  return function MockFloatingUserBar() {
-    return <div data-testid="mock-floating-user-bar" />;
-  };
-});
 
 jest.mock('@/contexts/SettingsContext', () => ({
   useSettingsUi: () => ({

@@ -49,7 +49,7 @@ const app = getApps().length === 0 && configValidation.success
   : (getApps().length > 0 ? getApps()[0] : null);
 
 export const db = (app ? initializeFirestore(app, { 
-  localCache: persistentLocalCache({tabManager: persistentMultipleTabManager()}),
+  ...(typeof window !== 'undefined' ? { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) } : {}),
   ignoreUndefinedProperties: true,
   experimentalForceLongPolling: true
 }) : null) as unknown as ReturnType<typeof initializeFirestore>;

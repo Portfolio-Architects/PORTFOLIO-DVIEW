@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * @file challenger2_public_features_integrity.test.tsx
  * @description Empirical Challenger 2 Verification Suite:
@@ -320,9 +319,7 @@ describe('Challenger 2: Core Public Feature Integrity & Zero-Auth Verification',
       expect(screen.queryByText(/로그인이 필요합니다/i)).not.toBeInTheDocument();
     });
 
-    it('allows toggling favorite in ApartmentModal directly without prompting for login', () => {
-      const toggleFavoriteSpy = jest.fn();
-
+    it('does not render favorite button in ApartmentModal after favorites feature removal', () => {
       render(
         <SettingsProvider>
           <AuthProvider>
@@ -333,18 +330,13 @@ describe('Challenger 2: Core Public Feature Integrity & Zero-Auth Verification',
               transactions={sampleTransactions as any}
               typeMap={{}}
               inline={true}
-              userFavorites={new Set()}
-              onToggleFavorite={toggleFavoriteSpy}
             />
           </AuthProvider>
         </SettingsProvider>
       );
 
-      const favButton = screen.getByLabelText(/동탄역 롯데캐슬 관심 단지/i);
-      expect(favButton).toBeInTheDocument();
-
-      fireEvent.click(favButton);
-      expect(toggleFavoriteSpy).toHaveBeenCalledWith('동탄역 롯데캐슬');
+      const favButton = screen.queryByLabelText(/관심 단지/i);
+      expect(favButton).not.toBeInTheDocument();
     });
   });
 

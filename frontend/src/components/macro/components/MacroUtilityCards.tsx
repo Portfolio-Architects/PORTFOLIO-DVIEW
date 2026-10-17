@@ -21,12 +21,12 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
         type="button"
         onClick={() => setIsQuizOpen(true)}
         aria-label="나만의 동탄 안심 정착 단지 찾기 Quiz 상세 보기"
-        className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-[#ea6100]/8 to-surface dark:from-[#ea6100]/4 border border-[#ea6100]/15 hover:border-[#ea6100]/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
+        className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
       >
-        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-[#ea6100]/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+        <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
         <div className="relative z-10 flex flex-col gap-4">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 bg-[#ea6100]/10 dark:bg-[#ea6100]/15 text-[#ff8f00] dark:text-[#ea6100] rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+            <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
               <Compass size={18} />
             </div>
             <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">New 콘텐츠</span>
@@ -43,7 +43,7 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
         </div>
 
         <div className="mt-6 relative z-10 w-full">
-          <div className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#ea6100] dark:hover:bg-[#ea6100] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+          <div className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#057e77] dark:hover:bg-[#057e77] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
             <span>지금 추천 받기</span>
             <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
@@ -114,7 +114,7 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           </div>
 
           <div className="mt-6 relative z-10 w-full">
-            <div className="w-full py-3 bg-[#c44d00] hover:bg-[#00a37b] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+            <div className="w-full py-3 bg-[#057e77] hover:bg-[#046862] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
               <span>대출 한도 조회</span>
               <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </div>

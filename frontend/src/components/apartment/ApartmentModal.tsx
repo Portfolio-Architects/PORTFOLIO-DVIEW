@@ -36,6 +36,7 @@ import { useApartmentModalState } from './hooks/useApartmentModalState';
 import { ApartmentModalHeader } from './ApartmentModalHeader';
 import { ApartmentModalTransactionsTable } from './ApartmentModalTransactionsTable';
 import { ApartmentModalKakaoCard } from './ApartmentModalKakaoCard';
+import { MortgageLdiSentinelCard } from './chapters/MortgageLdiSentinelCard';
 
 const JeonseSafetySkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
@@ -341,8 +342,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
   nameMapping,
   txSummaryData,
   locationScores,
-  userFavorites,
-  onToggleFavorite,
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -365,8 +364,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
   nameMapping?: Record<string, string>;
   txSummaryData?: Record<string, import('@/lib/types/transaction').AptTxSummary>;
   locationScores?: Record<string, import('@/lib/types/transaction').LocationScoreItem>;
-  userFavorites?: Set<string>;
-  onToggleFavorite?: (aptName: string) => void;
 }) {
   useSwipeNavigation({ onBack: onClose });
 
@@ -872,14 +869,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
     }
   }, [report.metrics, report.apartmentName, eduScoreInfo, infraScoreInfo, showToast]);
 
-  const isFavoritedModal = useMemo(() => {
-    if (!userFavorites || !report.apartmentName) return false;
-    const targetNorm = normalizeAptName(report.apartmentName);
-    return Array.from(userFavorites).some(
-      item => normalizeAptName(item) === targetNorm || isSameApartment(item, report.apartmentName, nameMapping)
-    );
-  }, [userFavorites, report.apartmentName, nameMapping]);
-
   const renderTransactionTableNode = useCallback(() => (
     <TransactionTable 
       transactions={filteredTransactions} 
@@ -918,8 +907,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
         report={report}
         displayAptName={displayAptName}
         inline={inline}
-        isFavoritedModal={isFavoritedModal}
-        onToggleFavorite={onToggleFavorite}
         handleNativeShare={handleNativeShare}
         handleCopySummary={handleCopySummary}
         handleDownloadShareCard={handleDownloadShareCard}
@@ -986,7 +973,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           <div className="flex flex-col gap-3 w-full">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
-                <Activity size={20} className="text-[#ea6100]" />
+                <Activity size={20} className="text-[#057e77] dark:text-emerald-400" />
                 거래량 및 회전율 분석
               </h2>
               {txSummary && (
@@ -1031,7 +1018,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-5`}>
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
-                <Layers size={20} className="text-[#ea6100]" />
+                <Layers size={20} className="text-[#057e77] dark:text-emerald-400" />
                 전세가율 및 갭투자 매트릭스
               </h2>
               {jeonseSafetyData && (
@@ -1057,7 +1044,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
               <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
                 <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
                 <div className="mt-2 text-right">
-                  <span className="text-[20px] font-black text-[#ea6100] tabular-nums">
+                  <span className="text-[20px] font-black text-[#057e77] dark:text-emerald-400 tabular-nums">
                     {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '데이터 수집 중'}
                   </span>
                   <span className="text-[12px] font-bold text-secondary ml-1">기록</span>
@@ -1128,12 +1115,26 @@ const ApartmentModal = React.memo(function ApartmentModal({
         >
           {isAnimationFinished ? (
             <>
+              {/* Mortgage LDI Sentinel Card */}
+              <ErrorBoundary name="주담대 LDI 센티넬">
+                <MortgageLdiSentinelCard
+                  aptName={report.apartmentName}
+                  dong={report.dong || '동탄'}
+                  latestSalePrice={jeonseSafetyData?.latestPrice}
+                  latestDepositPrice={jeonseSafetyData?.latestDeposit}
+                  jeonseRatio={jeonseSafetyData?.ratio}
+                  householdCount={report.metrics?.householdCount}
+                  inline={inline}
+                  onOpenMortgageCalculator={onOpenMortgage ? () => onOpenMortgage(report.apartmentName) : undefined}
+                />
+              </ErrorBoundary>
+
               {/* Jeonse Safety Section */}
               {jeonseSafetyData && (
                 <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}>
                   <div className="flex flex-col w-full">
                     <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                      <ShieldAlert size={18} className="text-[#ea6100]"/> 전세 안전성 진단 리포트 & 주담대 LDI
+                      <ShieldAlert size={18} className="text-[#057e77] dark:text-emerald-400"/> 전세 안전성 진단 리포트 & 주담대 LDI
                     </h2>
                     <div className="relative w-full">
                       <div>
@@ -1281,14 +1282,14 @@ const ApartmentModal = React.memo(function ApartmentModal({
                           e.stopPropagation();
                           setIsUploadModalOpen(true);
                         }}
-                        className="text-[13px] font-bold text-[#c44d00] dark:text-[#ea6100] bg-[#e6f3f0] dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-[#ccebe3] dark:hover:bg-[#063b2f] transition-colors"
+                        className="text-[13px] font-bold text-[#057e77] dark:text-emerald-400 bg-emerald-50 dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-emerald-100 dark:hover:bg-[#063b2f] transition-colors"
                       >
                         + 사진 추가
                       </button>
                     </div>
                     <details className="w-full overflow-hidden" open>
                       <summary className="text-[20px] font-bold text-primary flex items-center gap-2 mb-5 border-b border-border pb-3 cursor-pointer list-none pr-32">
-                        <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/>
+                        <Camera size={20} className="text-[#057e77] dark:text-emerald-400"/>
                         우리 단지 갤러리
                       </summary>
                       <ApartmentGallery aptName={report.apartmentName} images={report.images} tags={allTags} tagLabels={IMAGE_TAG_LABELS} onImageClick={setFullscreenImage} />
@@ -1298,20 +1299,20 @@ const ApartmentModal = React.memo(function ApartmentModal({
               })() : (
                 <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm overflow-hidden relative group`}>
                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                    <Camera size={20} className="text-[#c44d00] dark:text-[#ea6100]"/> 우리 단지 갤러리
+                    <Camera size={20} className="text-[#057e77] dark:text-emerald-400"/> 우리 단지 갤러리
                   </h2>
                   <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border/40 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#c44d00] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-[#057e77] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
                     <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">
-                      <Camera className="text-[#c44d00] dark:text-[#ea6100]" size={32} strokeWidth={1.5} />
+                      <Camera className="text-[#057e77] dark:text-emerald-400" size={32} strokeWidth={1.5} />
                     </div>
                     <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary tracking-tight mb-2 relative z-10 text-center break-keep">
                       데이터가 담지 못하는 우리 단지의 진정한 가치
                     </h3>
                     <p className="text-[14px] md:text-[15px] text-secondary font-medium leading-relaxed mb-8 max-w-md relative z-10 text-center break-keep">
                       매수자의 첫인상을 결정하는 대표 이미지 1장.<br className="hidden md:block" />
-                      입주민의 시선으로 <strong className="text-[#c44d00] dark:text-[#ea6100]">우리 단지의 품격</strong>을 직접 완성해 주세요.
+                      입주민의 시선으로 <strong className="text-[#057e77] dark:text-emerald-400">우리 단지의 품격</strong>을 직접 완성해 주세요.
                     </p>
                     <button 
                       onClick={(e) => {
@@ -1319,10 +1320,10 @@ const ApartmentModal = React.memo(function ApartmentModal({
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#c44d00] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-[#057e77] hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
                     >
                       <span>우리 단지 첫 번째 앰배서더 되기</span>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#c44d00] dark:bg-[#ea6100] group-hover:bg-surface animate-pulse" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#057e77] dark:bg-emerald-400 group-hover:bg-surface animate-pulse" />
                     </button>
                     <p className="text-[12px] text-tertiary font-medium mt-5 relative z-10 text-center">
                       * 고화질 사진이 풍부한 단지는 <span className="text-primary font-bold">인기 단지 탐색 상단에 우선 노출</span>됩니다.
@@ -1428,7 +1429,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         {showScrollTop && (
           <button
             onClick={() => modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' })}
-            className="fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-[#ea6100] text-white shadow-xl hover:bg-[#ea6100]/90 transition-all active:scale-95 cursor-pointer border-none"
+            className="fixed bottom-6 right-6 z-50 p-3.5 rounded-full bg-[#057e77] text-white shadow-xl hover:bg-[#046660] transition-all active:scale-95 cursor-pointer border-none"
             aria-label="맨 위로 이동"
           >
             <ArrowLeft size={20} className="rotate-90" />

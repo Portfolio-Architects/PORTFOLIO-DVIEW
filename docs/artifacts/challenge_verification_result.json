@@ -1,0 +1,88 @@
+{
+  "suite": "AC1_AC2_EMPIRICAL_CHALLENGE",
+  "timestamp": "2026-10-17T07:44:57.309492+00:00",
+  "ac1_verification": {
+    "frontend_files_modified_since_m10": 0,
+    "latest_git_commit": "c40bd222a66e6a6ea7202203adc0d58f7c095438 2026-10-11 15:19:22 +0900",
+    "remote_writes_status": "PASS_NO_REMOTE_WRITES",
+    "passed": true
+  },
+  "ac2_verification": {
+    "execution_exit_code": 0,
+    "execution_elapsed_seconds": 1.516,
+    "summary_json_exists": true,
+    "session_stats_csv_exists": true,
+    "user_input_invariant": true,
+    "sessions_ge_550": true,
+    "current_metrics": {
+      "valid_sessions": 583,
+      "user_inputs": 264,
+      "planner_responses": 48354
+    },
+    "cited_session_audit": [
+      {
+        "prefix": "0715e099",
+        "cited_uuid_in_report": "0715e099-8e6c-483a-b1ae-2f032fd3d97f",
+        "verbatim_cited_exists_on_disk": true,
+        "real_uuid_on_disk": "0715e099-8e6c-483a-b1ae-2f032fd3d97f",
+        "real_session_exists_on_disk": true,
+        "probe_target": "순자산 6억",
+        "probe_matched_in_real_session": true,
+        "suffix_hallucination_detected": false
+      },
+      {
+        "prefix": "04677bd9",
+        "cited_uuid_in_report": "04677bd9-b05f-4127-9ccb-49139df34243",
+        "verbatim_cited_exists_on_disk": true,
+        "real_uuid_on_disk": "04677bd9-b05f-4127-9ccb-49139df34243",
+        "real_session_exists_on_disk": true,
+        "probe_target": "adsense_approval_strategy.md",
+        "probe_matched_in_real_session": true,
+        "suffix_hallucination_detected": false
+      },
+      {
+        "prefix": "05781d52",
+        "cited_uuid_in_report": "05781d52-217e-41f7-8137-a27bebd0d146",
+        "verbatim_cited_exists_on_disk": true,
+        "real_uuid_on_disk": "05781d52-217e-41f7-8137-a27bebd0d146",
+        "real_session_exists_on_disk": true,
+        "probe_target": "rebalancing_and_progression_bar_gradient_plan.md",
+        "probe_matched_in_real_session": true,
+        "suffix_hallucination_detected": false
+      },
+      {
+        "prefix": "0e518251",
+        "cited_uuid_in_report": "0e518251-4f46-4516-81ad-fc3cee815bb6",
+        "verbatim_cited_exists_on_disk": true,
+        "real_uuid_on_disk": "0e518251-4f46-4516-81ad-fc3cee815bb6",
+        "real_session_exists_on_disk": true,
+        "probe_target": "mobile_wealth_projection_refinement_plan.md",
+        "probe_matched_in_real_session": true,
+        "suffix_hallucination_detected": false
+      },
+      {
+        "prefix": "011d812f",
+        "cited_uuid_in_report": "011d812f-e997-4794-a6a4-f169d2e5ec3e",
+        "verbatim_cited_exists_on_disk": true,
+        "real_uuid_on_disk": "011d812f-e997-4794-a6a4-f169d2e5ec3e",
+        "real_session_exists_on_disk": true,
+        "probe_target": "equity_intelligence_redesign_plan.md",
+        "probe_matched_in_real_session": true,
+        "suffix_hallucination_detected": false
+      },
+      {
+        "prefix": "60b2ac32",
+        "cited_uuid_in_report": "60b2ac32-aa5f-4039-913c-a6e1eb75759b",
+        "verbatim_cited_exists_on_disk": true,
+        "real_uuid_on_disk": "60b2ac32-aa5f-4039-913c-a6e1eb75759b",
+        "real_session_exists_on_disk": true,
+        "probe_target": "donut_chart_typography_modernization_plan.md",
+        "probe_matched_in_real_session": true,
+        "suffix_hallucination_detected": false
+      }
+    ],
+    "uuid_discrepancy_present": false
+  },
+  "discrepancies": [],
+  "verdict": "APPROVE"
+}

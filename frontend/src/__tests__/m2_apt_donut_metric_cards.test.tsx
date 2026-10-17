@@ -33,8 +33,8 @@ jest.mock('recharts', () => {
   };
 });
 
-import { AptDonutSection } from '@/components/macro/components/AptDonutSection';
-import { AptMetricCards } from '@/components/macro/components/AptMetricCards';
+import { AptDonutSection } from '@/components/macro/AptDonutSection';
+import { AptMetricCards } from '@/components/macro/AptMetricCards';
 
 describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Suite', () => {
   const mockTransactions = [
@@ -110,6 +110,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
           recentTransactions={mockTransactions}
           txSummaryData={mockSummary as any}
           onSelectApt={mockOnSelectApt}
+          initialMode="price"
         />
         <AptMetricCards
           recentTransactions={mockTransactions}
@@ -120,7 +121,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
     );
 
     // Donut Section Verification
-    expect(screen.getByText('실거래 가격대별 수요 분포')).toBeInTheDocument();
+    expect(screen.getByText('수요 분포')).toBeInTheDocument();
     expect(screen.getByText('6억 이하')).toBeInTheDocument();
     expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
     expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();
@@ -179,7 +180,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
             mounted={true}
             recentTransactions={mockTransactions}
             txSummaryData={mockSummary as any}
-            initialMode="pyeong"
+            initialMode="price"
             activeCategory={activeCategory}
             onActiveCategoryChange={setActiveCategory}
             onActiveSectorChange={setActiveSector}

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Home, Sparkles, Building2 } from 'lucide-react';
+import { Home, Sparkles, Building2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -15,6 +15,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
     router.prefetch('/');
     router.prefetch('/explore');
     router.prefetch('/mbti');
+    router.prefetch('/guide');
 
     const handlePopState = () => {
       if (!onTabChange || typeof window === 'undefined') return;
@@ -22,6 +23,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
       if (path === '/') onTabChange('overview');
       else if (path === '/explore') onTabChange('imjang');
       else if (path === '/mbti') onTabChange('mbti');
+      else if (path === '/guide') onTabChange('guide');
       else onTabChange('overview');
     };
 
@@ -109,6 +111,22 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 >
                   <Sparkles size={18} className={activeTab === 'mbti' ? 'text-hs-orange' : 'text-tertiary'} />
                   <span>단지 MBTI</span>
+                </Link>
+
+                {/* 4. 부동산 가이드 */}
+                <Link
+                  href="/guide"
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch('/guide')}
+                  onClick={(e) => handleNavClick(e, '/guide', 'guide')}
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                    activeTab === 'guide'
+                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                  }`}
+                >
+                  <BookOpen size={18} className={activeTab === 'guide' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <span>부동산 가이드</span>
                 </Link>
               </nav>
             </div>

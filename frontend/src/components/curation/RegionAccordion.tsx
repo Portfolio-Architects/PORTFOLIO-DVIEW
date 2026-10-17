@@ -268,7 +268,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
       {/* Detailed Real Estate Portfolio Section */}
       <div className="flex items-center justify-between px-0">
         <div className="flex items-center gap-2">
-          <div className="w-[3px] h-[16px] bg-[#ea6100] rounded-full" />
+          <div className="w-[3px] h-[16px] bg-[#057e77] rounded-full" />
           <h2 className="text-[22px] font-bold text-primary">
             권역별 단지 분류
           </h2>
@@ -302,14 +302,14 @@ export const RegionAccordion = React.memo(function RegionAccordion({
           const isExpanded = expandedGroups[group.title];
 
           const themeColors: Record<string, string> = {
-            "동탄역세권": "#c44d00",
+            "동탄역세권": "#057e77",
             "광역비지니스컴플렉스": "#ff9f0a",
             "커뮤니티시범단지": "#af52de",
-            "워터프론트컴플렉스": "#ea6100",
+            "워터프론트컴플렉스": "#06b6d4",
             "문화디자인밸리": "#f04452",
             "1동탄": "#4e5968",
           };
-          const themeColor = themeColors[group.title] || "#ea6100";
+          const themeColor = themeColors[group.title] || "#057e77";
 
           return (
             <div
@@ -322,7 +322,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                 aria-expanded={isExpanded ? "true" : "false"}
                 aria-controls={`accordion-panel-${group.title.replace(/\s+/g, '-')}`}
                 id={`accordion-header-${group.title.replace(/\s+/g, '-')}`}
-                className={`px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''} w-full text-left bg-transparent border-none outline-none focus-visible:ring-2 focus-visible:ring-[#ea6100]/50`}
+                className={`px-5 flex items-center justify-between cursor-pointer hover:bg-body/50 rounded-t-[20px] h-[78px] md:h-[86px] ${!isExpanded ? 'rounded-b-[20px]' : ''} w-full text-left bg-transparent border-none outline-none focus-visible:ring-2 focus-visible:ring-[#057e77]/50`}
                 onClick={() => toggleGroup(group.title)}
               >
                 <div className="flex items-center gap-3.5 flex-1 min-w-0 pr-2">
@@ -387,12 +387,12 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                               onSelectApt(apt.name);
                             }
                           }}
-                          className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#ea6100]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5 w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-[#ea6100]/50"
+                          className="flex flex-col p-3.5 sm:p-4 rounded-[14px] border border-border bg-surface hover:border-[#057e77]/30 hover:bg-body cursor-pointer transition-all shadow-sm group/apt gap-2 sm:gap-2.5 w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-[#057e77]/50"
                         >
                           {/* Top Row: Name and Chevron */}
                           <div className="flex items-center justify-between w-full">
                             <div className="flex items-center gap-2.5 flex-1 min-w-0 pr-2">
-                              <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#ea6100] transition-colors" />
+                              <div className="w-1.5 h-1.5 bg-[#d1d6db] rounded-full shrink-0 group-hover/apt:bg-[#057e77] transition-colors" />
                               <span className="text-[14.5px] sm:text-[15.5px] font-extrabold text-primary truncate">
                                 {apt.name}
                               </span>
@@ -409,12 +409,12 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                           <div className="flex items-center justify-between pl-4 mt-0.5">
                             <div className="flex flex-wrap gap-1.5 items-center min-w-0 pr-2">
                               {apt.distToDongtan !== null && (
-                                <span className="text-[10px] sm:text-[11px] font-bold text-[#c44d00] bg-[#e6f7f3] px-2 py-[3px] rounded-[6px] group-hover/apt:bg-[#ccf0e6] transition-colors border border-[#c44d00]/10 inline-flex whitespace-nowrap">
+                                <span className="text-[10px] sm:text-[11px] font-bold text-[#057e77] dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-2 py-[3px] rounded-[6px] group-hover/apt:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors border border-emerald-500/20 inline-flex whitespace-nowrap">
                                   동탄역 {(apt.distToDongtan / 1000).toFixed(2)}km
                                 </span>
                               )}
                               {apt.latestRentDeposit !== undefined && apt.latestPrice > apt.latestRentDeposit && apt.gap > 0 && (
-                                <span className="text-[10px] sm:text-[11px] font-bold text-[#ff8f00] bg-[#fff3e0] dark:bg-[#ea6100]/10 px-2 py-[3px] rounded-[6px] border border-[#ff8f00]/10 inline-flex whitespace-nowrap">
+                                <span className="text-[10px] sm:text-[11px] font-bold text-[#ff8f00] bg-[#fff3e0] dark:bg-amber-950/20 px-2 py-[3px] rounded-[6px] border border-[#ff8f00]/10 inline-flex whitespace-nowrap">
                                   갭 {formatGapPrice(apt.latestPrice - apt.latestRentDeposit)} ({Math.round(apt.gap)}%)
                                 </span>
                               )}

@@ -29,35 +29,11 @@ function resolveFirstExisting(relPaths) {
   return relPaths[0];
 }
 
-// ─── 헬퍼: 아파트명 정규화 ───
-function normalizeAptName(name) {
-  if (!name || typeof name !== 'string') return '';
-  return name
-    .normalize('NFC')
-    .replace(/[\u200B-\u200D\uFEFF]/g, '')
-    .replace(/\[.*?\]\s*/g, '')
-    .replace(/\s+/g, '')
-    .replace(/[()（）]/g, '')
-    .trim();
-}
-
-// ─── 헬퍼: 취소 거래 판별 ───
-function isCancelledTransaction(t) {
-  if (!t) return false;
-  if (t.isCanceled === true) return true;
-  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
-  
-  const isInvalidDate = (v) => {
-    if (v === null || v === undefined) return true;
-    const s = String(v).trim().toLowerCase();
-    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
-  };
-
-  if (!isInvalidDate(t.cancelDate)) return true;
-  if (!isInvalidDate(t.cdealDay)) return true;
-
-  return false;
-}
+// ─── 헬퍼: 아파트명 정규화 & 취소 거래 판별 (SSOT 위임) ───
+const {
+  normalizeAptName,
+  isCancelledTransaction
+} = require('../pipeline/core/normalizer');
 
 // Zod schema for single transaction entry validation
 const RawTransactionInputSchema = z.object({

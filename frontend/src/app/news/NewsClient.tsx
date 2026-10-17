@@ -88,11 +88,11 @@ const NewsCard = React.memo(function NewsCard({
             {formatDate(item.pubDate)}
           </span>
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
-      <div className="flex items-center text-tertiary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] shrink-0 self-end md:self-center">
+      <div className="flex items-center text-tertiary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 shrink-0 self-end md:self-center">
         <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
       </div>
     </a>
@@ -133,16 +133,16 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
             {item.date}
           </span>
           {hasDetails && (
-            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-600 dark:text-[#ea6100] border border-teal-500/10 animate-pulse">
+            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-[#057e77]/10 text-[#057e77] dark:text-emerald-400 border border-[#057e77]/10 animate-pulse">
               AI 분석 완료
             </span>
           )}
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
-      <div className="flex items-center text-tertiary group-hover:text-[#c44d00] dark:group-hover:text-[#ea6100] shrink-0 self-end md:self-center">
+      <div className="flex items-center text-tertiary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 shrink-0 self-end md:self-center">
         <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
       </div>
     </button>
@@ -407,7 +407,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         }}
                         className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                           activeNewsSubTab === 'industry'
-                            ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
                             : 'text-tertiary hover:text-secondary'
                         }`}
                       >
@@ -420,7 +420,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         }}
                         className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                           activeNewsSubTab === 'realestate'
-                            ? 'bg-surface text-[#c44d00] dark:text-[#ea6100] shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
                             : 'text-tertiary hover:text-secondary'
                         }`}
                       >
@@ -529,7 +529,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           <div className="flex items-start justify-between p-6 border-b border-border/60">
             <div className="flex flex-col gap-1.5 min-w-0 pr-4">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-teal-500/10 text-teal-600 dark:text-[#ea6100]">
+                <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-[#057e77]/10 text-[#057e77] dark:text-emerald-400">
                   D-VIEW AI 데이터 랩
                 </span>
                 <span className="text-[11.5px] text-tertiary font-bold">
@@ -567,7 +567,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                   href={selectedNotice.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-[#ea6100] hover:bg-[#ff8f00] text-white text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 bg-[#057e77] hover:bg-[#04635e] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <ExternalLink size={14} />
                   원문 고시 바로보기
@@ -582,7 +582,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               href={selectedNotice.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#c44d00] dark:text-[#ea6100] hover:underline"
+              className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#057e77] dark:text-emerald-400 hover:underline"
             >
               <ExternalLink size={15} />
               화성시 원문 고시 보기

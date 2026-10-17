@@ -32,6 +32,9 @@ const Footer = React.memo(function Footer() {
             </div>
             
             <nav role="navigation" aria-label="하단 서비스 메뉴" className="flex flex-wrap items-center gap-4 sm:gap-5">
+              <Link href="/guide" prefetch={false} className="text-[13px] font-bold text-emerald-600 dark:text-emerald-400 hover:underline transition-colors">
+                부동산 가이드
+              </Link>
               <Link href="/about" prefetch={false} className="text-[13px] font-bold text-secondary hover:text-primary transition-colors">
                 D-VIEW 소개
               </Link>

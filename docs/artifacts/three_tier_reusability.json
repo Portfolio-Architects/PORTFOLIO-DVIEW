@@ -1,0 +1,2976 @@
+{
+  "tierStats": {
+    "Tier1_DirectReusable": {
+      "count": 114,
+      "lines": 15913,
+      "files": [
+        {
+          "rel": "src\\app\\api\\ads\\click\\route.ts",
+          "lines": 74,
+          "size": 2871,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\proxy-image\\route.ts",
+          "lines": 57,
+          "size": 2045,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\public\\analytics\\route.ts",
+          "lines": 30,
+          "size": 1067,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\push\\subscribe\\route.ts",
+          "lines": 118,
+          "size": 4074,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\push\\unsubscribe\\route.ts",
+          "lines": 73,
+          "size": 2743,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\subscribe\\route.ts",
+          "lines": 134,
+          "size": 6007,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\traffic\\route.ts",
+          "lines": 75,
+          "size": 2682,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\api\\unsubscribe\\route.ts",
+          "lines": 190,
+          "size": 9730,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\contact\\ContactClient.tsx",
+          "lines": 213,
+          "size": 10371,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\contact\\page.tsx",
+          "lines": 101,
+          "size": 3816,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\error.tsx",
+          "lines": 64,
+          "size": 2384,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\feed.xml\\route.ts",
+          "lines": 26,
+          "size": 918,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\global-error.tsx",
+          "lines": 82,
+          "size": 2764,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\globals.css",
+          "lines": 713,
+          "size": 19515,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\layout.tsx",
+          "lines": 230,
+          "size": 8730,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\manifest.ts",
+          "lines": 53,
+          "size": 1773,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\not-found.tsx",
+          "lines": 32,
+          "size": 1343,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\privacy\\page.tsx",
+          "lines": 119,
+          "size": 8999,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\robots.ts",
+          "lines": 39,
+          "size": 1173,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\sitemap.ts",
+          "lines": 202,
+          "size": 6566,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\app\\terms\\page.tsx",
+          "lines": 115,
+          "size": 7338,
+          "category": "Universal",
+          "sub": "App Core Boilerplate & Generic Endpoints"
+        },
+        {
+          "rel": "src\\components\\ads\\AdSlot.tsx",
+          "lines": 257,
+          "size": 11058,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\common\\ChartErrorBoundary.tsx",
+          "lines": 57,
+          "size": 1818,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\Footer.tsx",
+          "lines": 79,
+          "size": 4150,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\NotificationBanner.tsx",
+          "lines": 159,
+          "size": 7018,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\PageHeroHeader.tsx",
+          "lines": 130,
+          "size": 5379,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\CustomA2HSModal.tsx",
+          "lines": 212,
+          "size": 9968,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\InAppBrowserBypass.tsx",
+          "lines": 371,
+          "size": 15508,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\MobileDock.tsx",
+          "lines": 106,
+          "size": 4429,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\PullToRefresh.tsx",
+          "lines": 234,
+          "size": 8284,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\PushSubscriptionModal.tsx",
+          "lines": 244,
+          "size": 11699,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\PWAProvider.tsx",
+          "lines": 696,
+          "size": 28470,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\pwa\\SWRProvider.tsx",
+          "lines": 263,
+          "size": 10204,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\SettingsModal.tsx",
+          "lines": 309,
+          "size": 13000,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\SiteTracker.tsx",
+          "lines": 46,
+          "size": 1458,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\SWRProvider.tsx",
+          "lines": 4,
+          "size": 111,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ThemeProvider.tsx",
+          "lines": 46,
+          "size": 1340,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\ErrorBoundary.tsx",
+          "lines": 138,
+          "size": 5063,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\MacroDashboardSkeleton.tsx",
+          "lines": 86,
+          "size": 4083,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\MarkdownViewer.tsx",
+          "lines": 75,
+          "size": 2049,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\OfflineBanner.tsx",
+          "lines": 173,
+          "size": 5873,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\ScrollOptimizer.tsx",
+          "lines": 56,
+          "size": 1799,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\ScrollToTop.tsx",
+          "lines": 68,
+          "size": 2300,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\SegmentedControl.tsx",
+          "lines": 119,
+          "size": 3808,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\Tooltip.tsx",
+          "lines": 224,
+          "size": 7855,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\components\\ui\\WelcomeModal.tsx",
+          "lines": 238,
+          "size": 10763,
+          "category": "Universal",
+          "sub": "UI Components & Common Layout"
+        },
+        {
+          "rel": "src\\contexts\\AuthContext.tsx",
+          "lines": 66,
+          "size": 1943,
+          "category": "Universal",
+          "sub": "Contexts & State"
+        },
+        {
+          "rel": "src\\contexts\\index.ts",
+          "lines": 9,
+          "size": 236,
+          "category": "Universal",
+          "sub": "Contexts & State"
+        },
+        {
+          "rel": "src\\contexts\\SettingsContext.tsx",
+          "lines": 234,
+          "size": 8171,
+          "category": "Universal",
+          "sub": "Contexts & State"
+        },
+        {
+          "rel": "src\\hooks\\useAdBlockDetector.ts",
+          "lines": 65,
+          "size": 2132,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\useAuth.ts",
+          "lines": 7,
+          "size": 165,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\useDebounce.ts",
+          "lines": 22,
+          "size": 516,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\useInView.ts",
+          "lines": 86,
+          "size": 2143,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\useMounted.ts",
+          "lines": 17,
+          "size": 440,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\useNetworkStatus.ts",
+          "lines": 7,
+          "size": 181,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\usePreventElasticBounce.ts",
+          "lines": 53,
+          "size": 1768,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\hooks\\useSwipeNavigation.ts",
+          "lines": 105,
+          "size": 3439,
+          "category": "Universal",
+          "sub": "Generic React Hooks"
+        },
+        {
+          "rel": "src\\lib\\ads\\adRefreshManager.ts",
+          "lines": 248,
+          "size": 7330,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\analytics\\statsEngine.ts",
+          "lines": 1722,
+          "size": 57422,
+          "category": "Universal",
+          "sub": "Web Worker & Pure Statistical Math Engine"
+        },
+        {
+          "rel": "src\\lib\\analytics\\twoSigmaEngine.ts",
+          "lines": 103,
+          "size": 2812,
+          "category": "Universal",
+          "sub": "Web Worker & Pure Statistical Math Engine"
+        },
+        {
+          "rel": "src\\lib\\api\\apiClient.ts",
+          "lines": 324,
+          "size": 9577,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\api\\apiResponse.ts",
+          "lines": 76,
+          "size": 1861,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\api\\rateLimiter.ts",
+          "lines": 158,
+          "size": 4635,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\api\\resilientFetch.ts",
+          "lines": 154,
+          "size": 4123,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\authUtils.ts",
+          "lines": 82,
+          "size": 3628,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\build-version.ts",
+          "lines": 2,
+          "size": 46,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\config\\admin.config.ts",
+          "lines": 17,
+          "size": 471,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\config\\api.config.ts",
+          "lines": 38,
+          "size": 1722,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\firebaseAdmin.client.ts",
+          "lines": 8,
+          "size": 254,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\firebaseAdmin.ts",
+          "lines": 156,
+          "size": 5557,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\firebaseConfig.ts",
+          "lines": 109,
+          "size": 4941,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\offlineQueue.ts",
+          "lines": 2,
+          "size": 43,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\preload.ts",
+          "lines": 78,
+          "size": 2783,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\rate-limit.ts",
+          "lines": 43,
+          "size": 1461,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\redis.ts",
+          "lines": 361,
+          "size": 12755,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\repositories\\googleSheets.repository.ts",
+          "lines": 231,
+          "size": 10032,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\repositories\\isomorphicHelper.ts",
+          "lines": 106,
+          "size": 3202,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\repositories\\storage.repository.ts",
+          "lines": 30,
+          "size": 1115,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\services\\googleSheets.ts",
+          "lines": 396,
+          "size": 16927,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\services\\logger.ts",
+          "lines": 80,
+          "size": 2800,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\services\\storage.service.ts",
+          "lines": 51,
+          "size": 2160,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\utils\\autoSuggest.ts",
+          "lines": 111,
+          "size": 4862,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\date.ts",
+          "lines": 105,
+          "size": 3534,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\exif.ts",
+          "lines": 167,
+          "size": 5872,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\firestoreConverters.ts",
+          "lines": 59,
+          "size": 2761,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\firestoreThrottle.ts",
+          "lines": 86,
+          "size": 2495,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\haversine.ts",
+          "lines": 190,
+          "size": 6511,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\html2canvasPatch.ts",
+          "lines": 314,
+          "size": 12313,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\imageCompression.ts",
+          "lines": 76,
+          "size": 3063,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\localCache.ts",
+          "lines": 116,
+          "size": 4119,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\offlineQueue.ts",
+          "lines": 179,
+          "size": 6810,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\pdfExport.ts",
+          "lines": 97,
+          "size": 3390,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\safeReload.ts",
+          "lines": 96,
+          "size": 3130,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\server\\fileReader.ts",
+          "lines": 99,
+          "size": 3417,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\utils\\server\\googleIndexing.ts",
+          "lines": 95,
+          "size": 3733,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\utils\\server\\lruCache.ts",
+          "lines": 72,
+          "size": 1822,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\utils\\server\\mailService.ts",
+          "lines": 149,
+          "size": 6025,
+          "category": "Universal",
+          "sub": "Backend & Infrastructure (Firebase, Redis, Sheets, API)"
+        },
+        {
+          "rel": "src\\lib\\utils\\subscribable.ts",
+          "lines": 27,
+          "size": 558,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\utils\\userUtils.ts",
+          "lines": 60,
+          "size": 2791,
+          "category": "Universal",
+          "sub": "Generic Utilities & Caching"
+        },
+        {
+          "rel": "src\\lib\\workers\\stats.worker.ts",
+          "lines": 459,
+          "size": 14181,
+          "category": "Universal",
+          "sub": "Web Worker & Pure Statistical Math Engine"
+        },
+        {
+          "rel": "src\\types\\api.ts",
+          "lines": 61,
+          "size": 1287,
+          "category": "Universal",
+          "sub": "Core Data & API Types"
+        },
+        {
+          "rel": "src\\types\\global.d.ts",
+          "lines": 76,
+          "size": 1763,
+          "category": "Universal",
+          "sub": "Core Data & API Types"
+        },
+        {
+          "rel": "src\\types\\index.ts",
+          "lines": 20,
+          "size": 573,
+          "category": "Universal",
+          "sub": "Core Data & API Types"
+        },
+        {
+          "rel": "src\\types\\inquiry.ts",
+          "lines": 29,
+          "size": 791,
+          "category": "Universal",
+          "sub": "Core Data & API Types"
+        },
+        {
+          "rel": "src\\types\\modules.d.ts",
+          "lines": 3,
+          "size": 77,
+          "category": "Universal",
+          "sub": "Core Data & API Types"
+        },
+        {
+          "rel": "src\\types\\user.ts",
+          "lines": 33,
+          "size": 855,
+          "category": "Universal",
+          "sub": "Core Data & API Types"
+        },
+        {
+          "rel": "pipeline\\cli.ts",
+          "lines": 168,
+          "size": 5443,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\benchmark.ts",
+          "lines": 51,
+          "size": 2328,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\request-indexing.js",
+          "lines": 87,
+          "size": 2594,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\round-icon.js",
+          "lines": 44,
+          "size": 1344,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\test_notification.js",
+          "lines": 180,
+          "size": 5762,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\theme_rollback.js",
+          "lines": 64,
+          "size": 2330,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\theme_switch.js",
+          "lines": 94,
+          "size": 3499,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        },
+        {
+          "rel": "scripts\\update-sw-version.js",
+          "lines": 70,
+          "size": 3126,
+          "category": "Universal",
+          "sub": "Developer & Build Automation Tools"
+        }
+      ]
+    },
+    "Tier2_AdaptableReusable": {
+      "count": 46,
+      "lines": 12292,
+      "files": [
+        {
+          "rel": "src\\components\\apartment-modal\\TransactionChartSection.tsx",
+          "lines": 905,
+          "size": 40518,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\AptDonutSection.tsx",
+          "lines": 910,
+          "size": 37887,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\AptMetricCards.tsx",
+          "lines": 442,
+          "size": 22722,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\MacroTimeframeToggle.tsx",
+          "lines": 66,
+          "size": 2625,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\MacroTrendChart.tsx",
+          "lines": 539,
+          "size": 17280,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\mbti\\MBTIRadarChart.tsx",
+          "lines": 93,
+          "size": 3203,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\MindMap3D.tsx",
+          "lines": 736,
+          "size": 29005,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\ranking\\RealtimeRankingBoard.tsx",
+          "lines": 177,
+          "size": 8020,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\ChartSkeletons.tsx",
+          "lines": 147,
+          "size": 5967,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\HyperlocalInsightCards.tsx",
+          "lines": 174,
+          "size": 9391,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\StatsAdBanners.tsx",
+          "lines": 125,
+          "size": 3626,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\StatsFilterBar.tsx",
+          "lines": 306,
+          "size": 13101,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\StatsOverviewSection.tsx",
+          "lines": 475,
+          "size": 17858,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\StatsPyeongRankingChart.tsx",
+          "lines": 242,
+          "size": 10140,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\StatsTimeTrendChart.tsx",
+          "lines": 263,
+          "size": 9826,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\stats\\StatsVolumeDistributionChart.tsx",
+          "lines": 175,
+          "size": 6891,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useDashboardData.ts",
+          "lines": 84,
+          "size": 3039,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useDashboardMeta.ts",
+          "lines": 243,
+          "size": 9540,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useMacroData.ts",
+          "lines": 38,
+          "size": 1178,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useStaticData.ts",
+          "lines": 299,
+          "size": 10926,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\analytics-service.ts",
+          "lines": 355,
+          "size": 14751,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\DashboardFacade.ts",
+          "lines": 369,
+          "size": 16687,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\apartment.repository.ts",
+          "lines": 199,
+          "size": 7739,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\favorite.repository.ts",
+          "lines": 122,
+          "size": 4242,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\news.repository.ts",
+          "lines": 128,
+          "size": 4573,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\report.repository.ts",
+          "lines": 497,
+          "size": 20001,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\review.repository.ts",
+          "lines": 257,
+          "size": 8700,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\traffic.repository.ts",
+          "lines": 221,
+          "size": 7713,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\user.repository.ts",
+          "lines": 194,
+          "size": 7586,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\dashboardData.ts",
+          "lines": 252,
+          "size": 9105,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\kpi.service.ts",
+          "lines": 124,
+          "size": 4268,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\newsData.ts",
+          "lines": 326,
+          "size": 11985,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\nickname.service.ts",
+          "lines": 20,
+          "size": 606,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\reportService.ts",
+          "lines": 163,
+          "size": 6346,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\searchConsole.ts",
+          "lines": 20,
+          "size": 753,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\staticDataService.ts",
+          "lines": 539,
+          "size": 20147,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\analyticsUtils.ts",
+          "lines": 251,
+          "size": 9231,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\macroChartTransform.ts",
+          "lines": 369,
+          "size": 12616,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\transactionChartTransform.ts",
+          "lines": 224,
+          "size": 7112,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\validation\\facade.schemas.ts",
+          "lines": 656,
+          "size": 26252,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\dashboard.ts",
+          "lines": 47,
+          "size": 1133,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\macro.ts",
+          "lines": 30,
+          "size": 1179,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\notice.ts",
+          "lines": 29,
+          "size": 663,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\report.ts",
+          "lines": 236,
+          "size": 5853,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\review.ts",
+          "lines": 31,
+          "size": 686,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\stats.ts",
+          "lines": 194,
+          "size": 7099,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        }
+      ]
+    },
+    "Tier3_DomainPure": {
+      "count": 260,
+      "lines": 71549,
+      "files": [
+        {
+          "rel": "src\\app\\about\\page.tsx",
+          "lines": 259,
+          "size": 19473,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\actions\\getEngineeringReport.ts",
+          "lines": 51,
+          "size": 1952,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\actions\\scoring.ts",
+          "lines": 31,
+          "size": 912,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\apartment\\[aptName]\\page.tsx",
+          "lines": 407,
+          "size": 22597,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\apartments\\vote\\route.ts",
+          "lines": 176,
+          "size": 6127,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\apartments-by-dong\\route.ts",
+          "lines": 54,
+          "size": 1880,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\bypass-notice\\route.ts",
+          "lines": 152,
+          "size": 4365,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\cron\\send-tx-notifications\\route.ts",
+          "lines": 180,
+          "size": 6610,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\cron\\sync-local-notices\\route.ts",
+          "lines": 865,
+          "size": 36885,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\cron\\sync-transactions\\route.ts",
+          "lines": 652,
+          "size": 33419,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\dashboard-init\\route.ts",
+          "lines": 206,
+          "size": 7845,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\explore\\search-data\\route.ts",
+          "lines": 95,
+          "size": 3473,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\favorite\\route.ts",
+          "lines": 288,
+          "size": 10236,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\favorite-counts\\route.ts",
+          "lines": 80,
+          "size": 2846,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\indexing\\apartment\\route.ts",
+          "lines": 95,
+          "size": 3795,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\local-notices\\route.ts",
+          "lines": 63,
+          "size": 2148,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\location-scores\\route.ts",
+          "lines": 200,
+          "size": 9275,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\macro\\news\\route.ts",
+          "lines": 51,
+          "size": 1697,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\macro\\rates\\route.ts",
+          "lines": 176,
+          "size": 6446,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\og\\route.tsx",
+          "lines": 2547,
+          "size": 93766,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\push\\notify-new-high\\route.ts",
+          "lines": 193,
+          "size": 7023,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\report-view\\route.ts",
+          "lines": 131,
+          "size": 4633,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\technovalley\\center-specs\\route.ts",
+          "lines": 251,
+          "size": 10700,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\technovalley\\industry-distribution\\route.ts",
+          "lines": 473,
+          "size": 22005,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\technovalley\\jisan-status\\route.ts",
+          "lines": 77,
+          "size": 2843,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\technovalley\\transactions\\route.ts",
+          "lines": 37,
+          "size": 1447,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\technovalley\\trend\\route.ts",
+          "lines": 586,
+          "size": 31013,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\test-names\\route.ts",
+          "lines": 50,
+          "size": 1852,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\transaction-summary\\route.ts",
+          "lines": 76,
+          "size": 2697,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\api\\type-map\\route.ts",
+          "lines": 107,
+          "size": 3850,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\explore\\ExploreClient.tsx",
+          "lines": 792,
+          "size": 39245,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\explore\\layout.tsx",
+          "lines": 19,
+          "size": 557,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\explore\\page.tsx",
+          "lines": 233,
+          "size": 12253,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\guide\\page.tsx",
+          "lines": 164,
+          "size": 7589,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\guide\\[slug]\\page.tsx",
+          "lines": 316,
+          "size": 13030,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\mbti\\page.tsx",
+          "lines": 52,
+          "size": 2040,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\mbti\\[type]\\page.tsx",
+          "lines": 84,
+          "size": 2854,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\news\\NewsClient.tsx",
+          "lines": 609,
+          "size": 29260,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\news\\page.tsx",
+          "lines": 59,
+          "size": 2029,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\overview\\page.tsx",
+          "lines": 174,
+          "size": 7300,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\page.tsx",
+          "lines": 247,
+          "size": 12014,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\stats\\page.tsx",
+          "lines": 6,
+          "size": 125,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\stats\\StatsDashboardClient.tsx",
+          "lines": 398,
+          "size": 15307,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\stats\\StatsDashboardSkeleton.tsx",
+          "lines": 133,
+          "size": 6784,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\technovalley\\page.tsx",
+          "lines": 6,
+          "size": 114,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\technovalley\\TechnoValleyClient.tsx",
+          "lines": 56,
+          "size": 2244,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\zone\\[id]\\layout.tsx",
+          "lines": 35,
+          "size": 1200,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\zone\\[id]\\page.tsx",
+          "lines": 200,
+          "size": 6631,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\app\\zone\\[id]\\ZoneDetailClient.tsx",
+          "lines": 243,
+          "size": 11520,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\AdvancedValuationMetrics.tsx",
+          "lines": 3,
+          "size": 118,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\ApartmentChapterNavBar.tsx",
+          "lines": 315,
+          "size": 9974,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\ApartmentModal.tsx",
+          "lines": 1469,
+          "size": 64836,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\ApartmentModalHeader.tsx",
+          "lines": 225,
+          "size": 12401,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\ApartmentModalKakaoCard.tsx",
+          "lines": 189,
+          "size": 9633,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\ApartmentModalPriceSummary.tsx",
+          "lines": 85,
+          "size": 4081,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\ApartmentModalTransactionsTable.tsx",
+          "lines": 145,
+          "size": 6742,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\chapters\\MortgageLdiSentinelCard.tsx",
+          "lines": 771,
+          "size": 35156,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment\\hooks\\useApartmentModalState.ts",
+          "lines": 73,
+          "size": 2503,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\ApartmentGallery.tsx",
+          "lines": 206,
+          "size": 8157,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\ApartmentSpecsSection.tsx",
+          "lines": 177,
+          "size": 7125,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\BuyOrWaitVote.tsx",
+          "lines": 416,
+          "size": 17506,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\ChildcareDetailSection.tsx",
+          "lines": 571,
+          "size": 34040,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\EducationAnalysisSection.tsx",
+          "lines": 564,
+          "size": 39587,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\InfraAnalysisSection.tsx",
+          "lines": 409,
+          "size": 25813,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\JeonseSafetyReport.tsx",
+          "lines": 393,
+          "size": 19104,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\PhotoUploadModal.tsx",
+          "lines": 391,
+          "size": 15190,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\ScoutingReportDetailSection.tsx",
+          "lines": 252,
+          "size": 11928,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\TransactionSummaryMetrics.tsx",
+          "lines": 414,
+          "size": 20976,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\TransactionTable.tsx",
+          "lines": 442,
+          "size": 20163,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\apartment-modal\\ViralPaywallGate.tsx",
+          "lines": 101,
+          "size": 5122,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\ChopoomaCuration.tsx",
+          "lines": 388,
+          "size": 18471,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\AdvancedValuationMetrics.tsx",
+          "lines": 1063,
+          "size": 69354,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\AIRecommendations.tsx",
+          "lines": 857,
+          "size": 38935,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\AnchorTenantCard.tsx",
+          "lines": 172,
+          "size": 7152,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\AptCompareModal.tsx",
+          "lines": 536,
+          "size": 23847,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\AptFitFinder.tsx",
+          "lines": 1287,
+          "size": 70356,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\compare\\CompareHeaderSearch.tsx",
+          "lines": 219,
+          "size": 9475,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\compare\\CompareInsightCard.tsx",
+          "lines": 107,
+          "size": 5167,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\compare\\ComparePriceHistoryChart.tsx",
+          "lines": 190,
+          "size": 7919,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\compare\\CompareRadarChart.tsx",
+          "lines": 81,
+          "size": 2264,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\compare\\CompareSpecTable.tsx",
+          "lines": 326,
+          "size": 19412,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\compare\\index.ts",
+          "lines": 13,
+          "size": 976,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\hooks\\useAptComparison.ts",
+          "lines": 1121,
+          "size": 40153,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\JeonseSafetyCalculator.tsx",
+          "lines": 861,
+          "size": 41721,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\MortgageCalculator.tsx",
+          "lines": 1144,
+          "size": 53590,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\PropertyTaxCalculator.tsx",
+          "lines": 882,
+          "size": 41196,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\consumer\\SellTimingCalculator.tsx",
+          "lines": 943,
+          "size": 44634,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\curation\\RegionAccordion.tsx",
+          "lines": 471,
+          "size": 20881,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\DashboardClient.tsx",
+          "lines": 1017,
+          "size": 46425,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\EngineeringReportClient.tsx",
+          "lines": 119,
+          "size": 4374,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\explore\\AptRow.tsx",
+          "lines": 168,
+          "size": 8407,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\explore\\SearchSuggestionDropdown.tsx",
+          "lines": 213,
+          "size": 10569,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\explore\\types.ts",
+          "lines": 26,
+          "size": 591,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\finance\\HighCpcFinanceSection.tsx",
+          "lines": 54,
+          "size": 1949,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\finance\\JeonseGuaranteeQuickPreview.tsx",
+          "lines": 174,
+          "size": 8056,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\finance\\PolicyLoanQuickWidget.tsx",
+          "lines": 192,
+          "size": 8554,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\GapInvestmentExplorer.tsx",
+          "lines": 1047,
+          "size": 47587,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\HotComplexRanking.tsx",
+          "lines": 350,
+          "size": 14264,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\LocalEventCuration.tsx",
+          "lines": 575,
+          "size": 27929,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\LoungeHeader.tsx",
+          "lines": 146,
+          "size": 7044,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\CoLeasingBoard.tsx",
+          "lines": 702,
+          "size": 35189,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\AptDonutSection.tsx",
+          "lines": 910,
+          "size": 37887,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\AptMetricCards.tsx",
+          "lines": 442,
+          "size": 22722,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\MacroChartSection.tsx",
+          "lines": 342,
+          "size": 17049,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\MacroControls.tsx",
+          "lines": 406,
+          "size": 18318,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\MacroHeader.tsx",
+          "lines": 37,
+          "size": 1074,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\MacroMobileDrawer.tsx",
+          "lines": 159,
+          "size": 8210,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\MacroTimelineView.tsx",
+          "lines": 746,
+          "size": 33236,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\components\\MacroUtilityCards.tsx",
+          "lines": 163,
+          "size": 11651,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\hooks\\useMacroDragDrop.ts",
+          "lines": 62,
+          "size": 1888,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\hooks\\useMacroFilters.ts",
+          "lines": 284,
+          "size": 10114,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\RelocationTaxSimulator.tsx",
+          "lines": 319,
+          "size": 17333,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\techno\\TechnoCompanyList.tsx",
+          "lines": 129,
+          "size": 5192,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\techno\\TechnoDonutSection.tsx",
+          "lines": 180,
+          "size": 7431,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\techno\\TechnoMetricCards.tsx",
+          "lines": 85,
+          "size": 3985,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\techno\\TechnoTrendSection.tsx",
+          "lines": 227,
+          "size": 8475,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\TechnoValleyDashboard.tsx",
+          "lines": 1966,
+          "size": 93240,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\macro\\TrafficNoticeBoard.tsx",
+          "lines": 132,
+          "size": 7126,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\MacroDashboardClient.tsx",
+          "lines": 1636,
+          "size": 67449,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\mbti\\MBTIContainer.tsx",
+          "lines": 200,
+          "size": 8593,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\mbti\\MBTIEncyclopedia.tsx",
+          "lines": 224,
+          "size": 10227,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\mbti\\MBTIQuizStepper.tsx",
+          "lines": 176,
+          "size": 7942,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\mbti\\MBTIResultView.tsx",
+          "lines": 247,
+          "size": 10651,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\mbti\\MBTIShareButtons.tsx",
+          "lines": 152,
+          "size": 6057,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\OfficeDetailModal.tsx",
+          "lines": 816,
+          "size": 43277,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\OfficeExplorerClient.tsx",
+          "lines": 776,
+          "size": 39013,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\ReportClient.tsx",
+          "lines": 171,
+          "size": 6903,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\TossApartmentExploreClient.tsx",
+          "lines": 1097,
+          "size": 50828,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\ui\\ApartmentModalSkeleton.tsx",
+          "lines": 117,
+          "size": 6514,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\components\\ui\\TechnoValleySkeleton.tsx",
+          "lines": 83,
+          "size": 3940,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useApartmentDetails.ts",
+          "lines": 406,
+          "size": 12901,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useFavorites.ts",
+          "lines": 184,
+          "size": 6697,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\usePreloadApartmentTx.ts",
+          "lines": 90,
+          "size": 3081,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\hooks\\useTechnoValleyData.ts",
+          "lines": 95,
+          "size": 2629,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\analytics\\valuationModels.ts",
+          "lines": 595,
+          "size": 20590,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\apartment-data.ts",
+          "lines": 172,
+          "size": 18303,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\calculators\\jeonseSafetyCalculators.ts",
+          "lines": 6,
+          "size": 190,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\calculators\\policyLoanCalculators.ts",
+          "lines": 6,
+          "size": 184,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\calculators\\rankingCalculations.ts",
+          "lines": 6,
+          "size": 178,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\constants.ts",
+          "lines": 43,
+          "size": 1231,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\contexts\\AuthContext.tsx",
+          "lines": 8,
+          "size": 215,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\contexts\\SettingsContext.tsx",
+          "lines": 8,
+          "size": 231,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\data\\guides.ts",
+          "lines": 251,
+          "size": 19598,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\data\\macro-config.ts",
+          "lines": 28,
+          "size": 903,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\data\\mbtiData.ts",
+          "lines": 376,
+          "size": 21058,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\dong-apartments.ts",
+          "lines": 109,
+          "size": 7652,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\dongs.ts",
+          "lines": 47,
+          "size": 2687,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\hooks\\useNetworkStatus.ts",
+          "lines": 35,
+          "size": 901,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\hooks\\useStatsWorker.ts",
+          "lines": 507,
+          "size": 17033,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\hooks\\useValuationMetrics.ts",
+          "lines": 459,
+          "size": 15215,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\macro-summary.ts",
+          "lines": 35,
+          "size": 926,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\energy.repository.ts",
+          "lines": 52,
+          "size": 2293,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\location.repository.ts",
+          "lines": 269,
+          "size": 10676,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\officeTx.repository.ts",
+          "lines": 214,
+          "size": 7533,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\repositories\\searchConsole.repository.ts",
+          "lines": 216,
+          "size": 7024,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\apartmentPageService.ts",
+          "lines": 739,
+          "size": 27039,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\energy.service.ts",
+          "lines": 104,
+          "size": 4097,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\locationService.ts",
+          "lines": 99,
+          "size": 3498,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\mortgage\\mortgageEngine.ts",
+          "lines": 543,
+          "size": 17275,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\services\\officeTx.service.ts",
+          "lines": 138,
+          "size": 4903,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\transaction-summary.ts",
+          "lines": 75,
+          "size": 1802,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\dashboard.types.ts",
+          "lines": 8,
+          "size": 296,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\macro.types.ts",
+          "lines": 12,
+          "size": 285,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\report.types.ts",
+          "lines": 18,
+          "size": 407,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\review.types.ts",
+          "lines": 8,
+          "size": 247,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\scoutingReport.ts",
+          "lines": 14,
+          "size": 338,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\transaction.ts",
+          "lines": 19,
+          "size": 486,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\types\\user.types.ts",
+          "lines": 20,
+          "size": 460,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\analytics.ts",
+          "lines": 43,
+          "size": 1361,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\apartmentMapping.ts",
+          "lines": 770,
+          "size": 33483,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\areaConverter.ts",
+          "lines": 11,
+          "size": 299,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\brandMapping.ts",
+          "lines": 111,
+          "size": 3851,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\calculatorEngines.ts",
+          "lines": 242,
+          "size": 7756,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\jeonseSafetyCalculators.ts",
+          "lines": 113,
+          "size": 5302,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\kakaoShare.ts",
+          "lines": 1207,
+          "size": 48917,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\mbtiScoring.ts",
+          "lines": 198,
+          "size": 7490,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\nickname.ts",
+          "lines": 31,
+          "size": 1232,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\outlierFilter.ts",
+          "lines": 40,
+          "size": 1406,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\policyLoanCalculators.ts",
+          "lines": 255,
+          "size": 10460,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\preloadHelpers.ts",
+          "lines": 44,
+          "size": 1203,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\rankingCalculations.ts",
+          "lines": 336,
+          "size": 21542,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\scoring.ts",
+          "lines": 576,
+          "size": 26571,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\sellTimingEngine.ts",
+          "lines": 310,
+          "size": 11246,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\structuredData.ts",
+          "lines": 207,
+          "size": 6742,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\valuation.ts",
+          "lines": 269,
+          "size": 10617,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\utils\\valuationEngine.ts",
+          "lines": 360,
+          "size": 16090,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\lib\\zones.ts",
+          "lines": 134,
+          "size": 4352,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\proxy.ts",
+          "lines": 195,
+          "size": 9339,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\apartment.ts",
+          "lines": 156,
+          "size": 3833,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\calculator.ts",
+          "lines": 67,
+          "size": 1616,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\mbti.ts",
+          "lines": 78,
+          "size": 1713,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\technovalley.ts",
+          "lines": 119,
+          "size": 2772,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\transaction.ts",
+          "lines": 165,
+          "size": 4025,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "src\\types\\valuation.ts",
+          "lines": 98,
+          "size": 2358,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "pipeline\\core\\normalizer.js",
+          "lines": 147,
+          "size": 4244,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "pipeline\\core\\normalizer.ts",
+          "lines": 210,
+          "size": 6905,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\adversarial-final-challenge.js",
+          "lines": 365,
+          "size": 22018,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\adversarial-pipeline-test.js",
+          "lines": 277,
+          "size": 16589,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\adversarial-route-security-challenge.js",
+          "lines": 295,
+          "size": 14074,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\audit-pipeline.js",
+          "lines": 470,
+          "size": 17279,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\auto-improvement-runner.js",
+          "lines": 365,
+          "size": 13049,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-526.js",
+          "lines": 57,
+          "size": 1682,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-central-sangnok.ts",
+          "lines": 24,
+          "size": 743,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-dates.js",
+          "lines": 29,
+          "size": 1125,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-firestore.js",
+          "lines": 72,
+          "size": 2297,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-hillstate.js",
+          "lines": 27,
+          "size": 792,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-report-metrics.js",
+          "lines": 21,
+          "size": 711,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\check-shinmiju.js",
+          "lines": 37,
+          "size": 1266,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\clean-votes.js",
+          "lines": 115,
+          "size": 3535,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\debug_trend.js",
+          "lines": 28,
+          "size": 1172,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\empirical_m3_stress_harness.ts",
+          "lines": 314,
+          "size": 11787,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\fetch-local-notices.js",
+          "lines": 740,
+          "size": 29344,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\fetch-rent.js",
+          "lines": 427,
+          "size": 18864,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\fetch-transactions.js",
+          "lines": 451,
+          "size": 21503,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\fix-central-sangnok.js",
+          "lines": 104,
+          "size": 3688,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\generate-tickers.js",
+          "lines": 173,
+          "size": 9695,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\generate-ui-ux-report.js",
+          "lines": 197,
+          "size": 9264,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\import-csv-transactions.js",
+          "lines": 280,
+          "size": 10308,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\import-csv.js",
+          "lines": 205,
+          "size": 6791,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\inject_dummy_jeonse.js",
+          "lines": 51,
+          "size": 2185,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\check-json.js",
+          "lines": 11,
+          "size": 475,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\check-json2.js",
+          "lines": 9,
+          "size": 446,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\check-json3.js",
+          "lines": 8,
+          "size": 304,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\check-keys.js",
+          "lines": 6,
+          "size": 215,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\check-keys2.js",
+          "lines": 6,
+          "size": 207,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\fix_icons.py",
+          "lines": 41,
+          "size": 1511,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\legacy\\fix_icons2.py",
+          "lines": 33,
+          "size": 1106,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\patch-meta.js",
+          "lines": 33,
+          "size": 1048,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\peek-csv.js",
+          "lines": 9,
+          "size": 311,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\pipeline\\apartmentSummarizer.js",
+          "lines": 493,
+          "size": 19597,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\pipeline\\fileGenerators.js",
+          "lines": 353,
+          "size": 13064,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\pipeline\\macroTrendCalculator.js",
+          "lines": 212,
+          "size": 7719,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\pipeline\\outlierFilters.js",
+          "lines": 194,
+          "size": 5876,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\preview_csv.js",
+          "lines": 51,
+          "size": 1910,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\remove_dummy_jeonse.js",
+          "lines": 39,
+          "size": 1420,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\reset-likes-raw.js",
+          "lines": 41,
+          "size": 930,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\reset-likes.ts",
+          "lines": 34,
+          "size": 738,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\stress-test-pipeline-empirical.js",
+          "lines": 421,
+          "size": 23442,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-all.js",
+          "lines": 52,
+          "size": 1370,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-apartments.js",
+          "lines": 197,
+          "size": 6762,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-historical-rent.js",
+          "lines": 217,
+          "size": 8036,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-location-scores.js",
+          "lines": 400,
+          "size": 15561,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-macro.js",
+          "lines": 181,
+          "size": 6472,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-missing-anchors.js",
+          "lines": 122,
+          "size": 6119,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-nps.js",
+          "lines": 136,
+          "size": 4360,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-single-report.ts",
+          "lines": 76,
+          "size": 2446,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-static-data.ts",
+          "lines": 113,
+          "size": 4485,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\sync-transactions.js",
+          "lines": 699,
+          "size": 28025,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\task-autogenerator.js",
+          "lines": 221,
+          "size": 11307,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\test-api-526.js",
+          "lines": 38,
+          "size": 1543,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\test-csv.js",
+          "lines": 28,
+          "size": 939,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\test-firestore.js",
+          "lines": 62,
+          "size": 1901,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\test-xml-tags.js",
+          "lines": 6,
+          "size": 380,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\test_molit_rent.js",
+          "lines": 13,
+          "size": 577,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\upload-rent-csv-fast.js",
+          "lines": 273,
+          "size": 9630,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\upload-rent-csv.js",
+          "lines": 267,
+          "size": 9512,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\upload-transactions.js",
+          "lines": 272,
+          "size": 8922,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\upload_2020_rent.js",
+          "lines": 58,
+          "size": 1492,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\validate-transactions.js",
+          "lines": 544,
+          "size": 22349,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        },
+        {
+          "rel": "scripts\\verify-aptname-txkey-empirical.js",
+          "lines": 176,
+          "size": 6925,
+          "category": "Domain-Specific",
+          "sub": "Real Estate & Dongtan Domain Logic"
+        }
+      ]
+    },
+    "Test": {
+      "count": 177,
+      "lines": 58402
+    },
+    "Data": {
+      "count": 8,
+      "lines": 11279
+    }
+  },
+  "prodTotalFiles": 420,
+  "prodTotalLines": 99754,
+  "combinedReusableFiles": 160,
+  "combinedReusableLines": 28205,
+  "combinedFilePct": "38.10",
+  "combinedLinePct": "28.27"
+}

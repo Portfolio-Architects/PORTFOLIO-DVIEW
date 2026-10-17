@@ -305,7 +305,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           </p>
           <button
             onClick={(e) => { e.preventDefault(); mutateVote(); }}
-            className="px-3.5 py-1.5 bg-[#ea6100]/10 hover:bg-[#ea6100]/20 text-[#ea6100] border border-[#ea6100]/25 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
+            className="px-3.5 py-1.5 bg-[#057e77]/10 hover:bg-[#057e77]/20 text-[#057e77] dark:text-emerald-400 border border-[#057e77]/25 text-[11.5px] font-black rounded-lg transition-all active:scale-95"
           >
             다시 시도
           </button>
@@ -380,9 +380,9 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           </div>
 
           {/* AI 가치-심리 매칭 진단 패널 */}
-          <div className="mt-2.5 p-4 rounded-xl border border-border bg-[#ea6100]/5 dark:bg-[#ea6100]/10 text-left">
+          <div className="mt-2.5 p-4 rounded-xl border border-border bg-[#057e77]/5 dark:bg-emerald-500/10 text-left">
             <div className="flex items-center gap-1.5 mb-2">
-              <span className="text-[11px] font-black text-[#ea6100] bg-[#ea6100]/10 px-2 py-0.5 rounded">
+              <span className="text-[11px] font-black text-[#057e77] dark:text-emerald-400 bg-[#057e77]/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded">
                 AI 진단
               </span>
               <span className="text-[12.5px] font-black text-primary tracking-tight">

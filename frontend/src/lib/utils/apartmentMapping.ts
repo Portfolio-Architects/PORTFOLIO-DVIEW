@@ -52,22 +52,8 @@ export const LocationPrefixesSchema = z.array(z.string());
 export const LocationSuffixesSchema = z.array(z.string());
 export const RomanMapSchema = z.record(z.string(), z.string());
 
-/**
- * 아파트명 정규화: 공백, 대괄호 동명, 특수문자 제거
- * "[오산동] 힐스테이트 동탄역" → "힐스테이트동탄역"
- * "힐스테이트동탄역" → "힐스테이트동탄역"
- */
-export function normalizeAptName(name: string | undefined | null): string {
-  const parsed = typeof name === 'string' ? name : (z.string().catch('').parse(name) || '');
-  if (!parsed) return '';
-  return parsed
-    .normalize('NFC')                      // 한글 자음/모음 분리 현상 변환 (NFD -> NFC)
-    .replace(/[\u200B-\u200D\uFEFF]/g, '') // 눈에 보이지 않는 공백 (Zero-width) 제거
-    .replace(/\[.*?\]\s*/g, '')            // [오산동] 제거
-    .replace(/\s+/g, '')                   // 공백 제거
-    .replace(/[()（）]/g, '')               // 괄호 제거
-    .trim();
-}
+import { normalizeAptName } from '../../../pipeline/core/normalizer';
+export { normalizeAptName };
 
 export const HARDCODED_MAPPING: Record<string, string> = {
   '능동숲속마을광명메이루즈': '동탄숲속마을광명메이루즈',

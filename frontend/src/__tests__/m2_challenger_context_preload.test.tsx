@@ -30,7 +30,7 @@ import * as LegacyAuthContext from '@/lib/contexts/AuthContext';
 // Components & Utils
 import SettingsModal from '@/components/SettingsModal';
 import { preloadImage, preloadJson } from '@/lib/utils/preloadHelpers';
-import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/preload';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/preload';
 
 // Mock usePWA
 jest.mock('@/components/pwa/PWAProvider', () => ({

@@ -70,8 +70,8 @@ jest.mock('@/lib/firebaseConfig', () => ({
   db: { __mockDb: true },
 }));
 
-// Mock common preload
-jest.mock('@/components/common/preload', () => ({
+// Mock preload
+jest.mock('@/lib/preload', () => ({
   preloadApartmentModal: jest.fn(),
 }));
 
@@ -88,8 +88,8 @@ import {
   TimelineGroup,
   TimelineItem,
 } from '@/components/macro/components/MacroTimelineView';
-import { AptDonutSection } from '@/components/macro/components/AptDonutSection';
-import { AptMetricCards } from '@/components/macro/components/AptMetricCards';
+import { AptDonutSection } from '@/components/macro/AptDonutSection';
+import { AptMetricCards } from '@/components/macro/AptMetricCards';
 import { RealtimeRankingBoard } from '@/components/ranking/RealtimeRankingBoard';
 import type { RecentTransaction, TimelinePeriod, AptTxSummary } from '@/types/transaction';
 

@@ -39,6 +39,9 @@
   --color-brand-green: var(--brand-green);
   --color-brand-red: var(--brand-red);
   --font-sans: var(--font-inter), var(--font-pretendard), system-ui, sans-serif;
+  --font-headline: var(--font-headline);
+  --font-meta: var(--font-meta);
+  --font-number: var(--font-number);
   
   --font-size-title-xl: var(--fs-title-xl);
   --font-size-title-lg: var(--fs-title-lg);
@@ -51,11 +54,11 @@
 
 @layer base {
   :root {
-    --bg-body: #fcfbfa;
+    --bg-body: #f8fafc;
     --bg-surface: #ffffff;
-    --text-primary: #191f28;
-    --text-secondary: #4e5968;
-    --text-tertiary: #5d6d7e;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
 
     /* D-VIEW Signature Brand Palette (Deep Emerald Teal & WCAG AA Compliant) */
     --brand-primary: #057e77;
@@ -75,8 +78,8 @@
     --toss-blue-light: var(--brand-primary-light);
     --toss-red: var(--brand-red);
     --toss-green: var(--brand-green);
-    --toss-gray: #e2ded8;
-    --border-color: #f0eee9;
+    --toss-gray: #e2e8f0;
+    --border-color: #f1f5f9;
     
     /* D-VIEW Theme Tokens */
     --hs-blue: var(--brand-blue);
@@ -86,7 +89,16 @@
 
     /* Glassmorphism Custom Variables */
     --glass-bg: rgba(255, 255, 255, 0.95);
-    --glass-border: rgba(240, 237, 232, 0.7);
+    --glass-border: rgba(226, 232, 240, 0.7);
+
+    /* Arctic Lumina v2.0 - High-Density Glassmorphism Tokens */
+    --surface-glass-dense-bg: rgba(255, 255, 255, 0.85);
+    --surface-glass-dense-border: rgba(226, 232, 240, 0.8);
+
+    /* Swiss Editorial Typography Hierarchy */
+    --font-headline: var(--font-cormorant), Georgia, serif;
+    --font-meta: var(--font-outfit), var(--font-inter), sans-serif;
+    --font-number: var(--font-jetbrains-mono), monospace;
 
     --border-radius-xl: 24px;
     --border-radius-lg: 16px;
@@ -156,6 +168,10 @@
     /* Glassmorphism Custom Variables for Dark Mode */
     --glass-bg: rgba(30, 30, 30, 0.85);
     --glass-border: rgba(55, 65, 81, 0.6);
+
+    /* Arctic Lumina v2.0 - High-Density Glassmorphism Tokens (Dark) */
+    --surface-glass-dense-bg: rgba(15, 23, 42, 0.85);
+    --surface-glass-dense-border: rgba(30, 41, 59, 0.8);
 
     --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.4);
     --shadow-hover: 0 8px 24px rgba(0, 0, 0, 0.6);
@@ -326,6 +342,116 @@
       -ms-overflow-style: auto !important; /* IE/Edge */
     }
   }
+
+  /* Arctic Lumina v2.0 - High-Density Glassmorphism Surface Token */
+  .surface-glass-dense {
+    background-color: var(--surface-glass-dense-bg);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid var(--surface-glass-dense-border);
+  }
+
+  /* D-VIEW Emerald/Cyan Brand & Arctic Lumina v2.0 Micro Diamond Accents */
+  .diamond-accent-emerald {
+    color: var(--brand-primary);
+    background: linear-gradient(135deg, rgba(5, 126, 119, 0.12) 0%, rgba(15, 76, 92, 0.06) 100%);
+    border: 1px solid rgba(5, 126, 119, 0.25);
+  }
+
+  .diamond-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+
+  .diamond-vertex {
+    transform-origin: center;
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), fill 0.2s ease;
+  }
+
+  /* Swiss Editorial Typography Hierarchy Classes */
+  .font-headline {
+    font-family: var(--font-headline);
+  }
+
+  .font-meta {
+    font-family: var(--font-meta);
+  }
+
+  .font-number {
+    font-family: var(--font-number);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.dark .diamond-accent-emerald {
+  color: var(--brand-primary);
+  background: linear-gradient(135deg, rgba(20, 184, 166, 0.16) 0%, rgba(56, 189, 248, 0.08) 100%);
+  border: 1px solid rgba(20, 184, 166, 0.3);
+}
+
+/* 120fps Scroll Optimization Invariant Rules (Backdrop Filter & Pointer Event Suppression) */
+body.is-scrolling * {
+  pointer-events: none !important;
+}
+
+body.is-scrolling,
+body.is-scrolling *,
+body.is-scrolling .surface-glass-dense,
+body.is-scrolling [class*="backdrop-blur"] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: auto !important;
+}
+
+/* Tailwind v4 Utility Definitions */
+@utility surface-glass-dense {
+  background-color: var(--surface-glass-dense-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--surface-glass-dense-border);
+}
+
+@utility diamond-accent-emerald {
+  color: var(--brand-primary);
+  background: linear-gradient(135deg, rgba(5, 126, 119, 0.12) 0%, rgba(15, 76, 92, 0.06) 100%);
+  border: 1px solid rgba(5, 126, 119, 0.25);
+}
+
+@utility diamond-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+@utility diamond-vertex {
+  transform-origin: center;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), fill 0.2s ease;
+}
+
+@utility font-headline {
+  font-family: var(--font-headline);
+}
+
+@utility font-meta {
+  font-family: var(--font-meta);
+}
+
+@utility font-number {
+  font-family: var(--font-number);
+  font-variant-numeric: tabular-nums;
 }
 
 /* 20% increased font sizes for apartment modal specs section */
@@ -474,15 +600,15 @@
 
 .aurora-bg {
   background: var(--bg-body) !important;
-  background-image: radial-gradient(at 0% 0%, rgba(220, 110, 45, 0.015) 0%, transparent 50%), 
-                    radial-gradient(at 100% 0%, rgba(0, 70, 150, 0.01) 0%, transparent 50%) !important;
+  background-image: radial-gradient(at 0% 0%, rgba(5, 126, 119, 0.015) 0%, transparent 50%), 
+                    radial-gradient(at 100% 0%, rgba(15, 76, 92, 0.01) 0%, transparent 50%) !important;
   will-change: auto;
 }
 
 .dark .aurora-bg {
   background: #121212 !important;
-  background-image: radial-gradient(at 0% 0%, rgba(220, 110, 45, 0.08) 0%, transparent 60%), 
-                    radial-gradient(at 50% 0%, rgba(220, 110, 45, 0.04) 0%, transparent 50%) !important;
+  background-image: radial-gradient(at 0% 0%, rgba(5, 126, 119, 0.08) 0%, transparent 60%), 
+                    radial-gradient(at 50% 0%, rgba(15, 76, 92, 0.04) 0%, transparent 50%) !important;
   will-change: auto;
 }
 

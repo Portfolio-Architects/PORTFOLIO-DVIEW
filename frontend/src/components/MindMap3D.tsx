@@ -357,7 +357,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         } else {
           const jeonseRatioVal = Math.min(100, Math.max(0, node.ratio));
           if (jeonseRatioVal >= 70) {
-            nodeColor = '#ea6100'; // Emerald
+            nodeColor = '#057e77'; // Emerald
           } else if (jeonseRatioVal >= 55) {
             nodeColor = '#eab308'; // Yellow
           } else {
@@ -590,7 +590,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               onClick={() => setTemperatureMode('vote')}
               className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all ${
                 temperatureMode === 'vote'
-                  ? (isDark ? 'bg-slate-800 text-[#ea6100]' : 'bg-surface text-teal-600 shadow-sm')
+                  ? (isDark ? 'bg-slate-800 text-emerald-400' : 'bg-surface text-[#057e77] shadow-sm')
                   : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
@@ -600,7 +600,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               onClick={() => setTemperatureMode('ratio')}
               className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all ${
                 temperatureMode === 'ratio'
-                  ? (isDark ? 'bg-slate-800 text-[#ea6100]' : 'bg-surface text-teal-600 shadow-sm')
+                  ? (isDark ? 'bg-slate-800 text-emerald-400' : 'bg-surface text-[#057e77] shadow-sm')
                   : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
@@ -670,8 +670,8 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               <span className="text-yellow-600 dark:text-yellow-400">
                 전세율: {hoveredNode.ratio.toFixed(1)}%
               </span>
-              <span className="text-[#ea6100] flex items-center gap-1 mt-0.5">
-                <Flame className="w-3 h-3 text-[#ea6100] fill-current" />
+              <span className="text-orange-500 flex items-center gap-1 mt-0.5">
+                <Flame className="w-3 h-3 text-orange-500 fill-current" />
                 매수 찬성: {hoveredNode.buyPercent}%
               </span>
             </div>
@@ -701,7 +701,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
           ) : (
             <>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#ea6100] shadow-sm" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#057e77] shadow-sm" />
                 <span>전세율 우수 (70% 이상)</span>
               </div>
               <div className="flex items-center gap-1.5">

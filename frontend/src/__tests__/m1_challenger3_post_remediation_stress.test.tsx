@@ -157,8 +157,14 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
   // =========================================================================
   // Dimension 3: LoungeHeader and MobileDock Synchronized 3-Tab Architecture
   // =========================================================================
-  describe('Dimension 3: LoungeHeader and MobileDock Synchronized 3-Tab Architecture', () => {
-    const canonicalOrder = [
+  describe('Dimension 3: LoungeHeader (4-Tab) and MobileDock (3-Tab) Architecture', () => {
+    const canonicalHeaderOrder = [
+      { id: 'overview', label: '아파트 랩', href: '/' },
+      { id: 'imjang', label: '아파트 탐색', href: '/explore' },
+      { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
+      { id: 'guide', label: '부동산 가이드', href: '/guide' },
+    ];
+    const canonicalDockOrder = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
@@ -166,28 +172,30 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
 
     it('confirms MobileDock exported TABS matches canonical spec in exact order', () => {
       expect(TABS).toHaveLength(3);
-      canonicalOrder.forEach((expected, i) => {
+      canonicalDockOrder.forEach((expected, i) => {
         expect(TABS[i].id).toBe(expected.id);
         expect(TABS[i].label).toBe(expected.label);
         expect(TABS[i].href).toBe(expected.href);
       });
     });
 
-    it('confirms LoungeHeader and MobileDock render identical 3 tabs with zero obsolete routes', () => {
+    it('confirms LoungeHeader and MobileDock render canonical tabs with zero obsolete routes', () => {
       const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
       const { container: dockContainer } = render(<MobileDock activeTab="overview" />);
 
       const headerLinks = within(headerContainer).getAllByRole('link');
       const dockLinks = within(dockContainer).getAllByRole('link');
 
-      expect(headerLinks).toHaveLength(3);
+      expect(headerLinks).toHaveLength(4);
       expect(dockLinks).toHaveLength(3);
 
+      for (let i = 0; i < 4; i++) {
+        expect(headerLinks[i]).toHaveAttribute('href', canonicalHeaderOrder[i].href);
+        expect(headerLinks[i]).toHaveTextContent(canonicalHeaderOrder[i].label);
+      }
       for (let i = 0; i < 3; i++) {
-        expect(headerLinks[i]).toHaveAttribute('href', canonicalOrder[i].href);
-        expect(dockLinks[i]).toHaveAttribute('href', canonicalOrder[i].href);
-        expect(headerLinks[i]).toHaveTextContent(canonicalOrder[i].label);
-        expect(dockLinks[i]).toHaveTextContent(canonicalOrder[i].label);
+        expect(dockLinks[i]).toHaveAttribute('href', canonicalDockOrder[i].href);
+        expect(dockLinks[i]).toHaveTextContent(canonicalDockOrder[i].label);
       }
 
       // Ensure obsolete routes are absent
@@ -208,7 +216,7 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
           <MobileDock activeTab={tabId} />
         );
 
-        const currentExpected = canonicalOrder.find((t) => t.id === tabId)!;
+        const currentExpected = canonicalDockOrder.find((t) => t.id === tabId)!;
         const activeHeaderLink = within(headerContainer).getByRole('link', {
           name: new RegExp(currentExpected.label),
         });
@@ -271,7 +279,7 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
     ];
 
     it.each(maliciousTabProps)(
-      'renders exactly 3 canonical tabs without crashing when activeTab is "%s"',
+      'renders canonical tabs without crashing when activeTab is "%s"',
       (tabProp) => {
         const { unmount: unmountH, container: headerContainer } = render(
           <LoungeHeader activeTab={tabProp as any} />
@@ -283,7 +291,7 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
         const headerLinks = within(headerContainer).getAllByRole('link');
         const dockLinks = within(dockContainer).getAllByRole('link');
 
-        expect(headerLinks).toHaveLength(3);
+        expect(headerLinks).toHaveLength(4);
         expect(dockLinks).toHaveLength(3);
 
         unmountH();

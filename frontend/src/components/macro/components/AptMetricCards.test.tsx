@@ -1,13 +1,13 @@
-import React from 'react';
+﻿import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AptMetricCards } from './AptMetricCards';
 
-jest.mock('@/components/common/preload', () => ({
+jest.mock('@/lib/preload', () => ({
   preloadApartmentModal: jest.fn(),
 }));
 
-import { preloadApartmentModal } from '@/components/common/preload';
+import { preloadApartmentModal } from '@/lib/preload';
 
 describe('AptMetricCards Test Suite', () => {
   const mockRecentTransactions = [
@@ -353,4 +353,3 @@ describe('AptMetricCards Test Suite', () => {
     });
   });
 });
-

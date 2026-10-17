@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   },
   serverExternalPackages: [
     'firebase-admin',
+    'firebase',
+    '@firebase/app',
+    '@firebase/firestore',
+    '@grpc/grpc-js',
+    '@grpc/proto-loader',
+    'protobufjs',
     '@google-cloud/storage',
     'google-auth-library',
     'gaxios',
@@ -16,7 +22,9 @@ const nextConfig: NextConfig = {
   ],
   turbopack: {
     resolveAlias: {
-      '@/lib/firebaseAdmin': './src/lib/firebaseAdmin.client.ts',
+      '@/lib/firebaseAdmin': {
+        browser: './src/lib/firebaseAdmin.client.ts',
+      },
     },
   },
   productionBrowserSourceMaps: false,

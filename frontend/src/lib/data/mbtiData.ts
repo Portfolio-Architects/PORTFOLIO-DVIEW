@@ -33,7 +33,7 @@ export const TEMPERAMENTS: Record<MbtiGroup, TemperamentInfo> = {
     label: '탐험가형',
     name: '탐험가형 (SP)',
     description: '빠른 기동력, 액티브한 슬세권 여가, 자유롭고 실속 있는 라이프를 즐기는 행동파들',
-    color: '#c44d00',
+    color: '#ea580c',
     borderColor: 'border-orange-500/30',
     bgColor: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
   },

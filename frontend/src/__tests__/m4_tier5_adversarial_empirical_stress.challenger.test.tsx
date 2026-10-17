@@ -32,7 +32,7 @@ import {
   FilterBottomAdBanner,
   MidFeedAdBanner,
   RankingBreakAdBanner,
-} from '@/components/ads/StatsAdBanners';
+} from '@/components/stats/StatsAdBanners';
 import * as AdBlockDetectorHook from '@/hooks/useAdBlockDetector';
 import type {
   PyeongFilter,

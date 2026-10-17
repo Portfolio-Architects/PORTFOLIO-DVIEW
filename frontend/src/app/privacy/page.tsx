@@ -97,9 +97,19 @@ export default function PrivacyPage() {
             </ul>
           </div>
 
+          <h2 className="text-xl font-bold text-primary mt-8 mb-4">제8조 (Google AdSense 광고 및 쿠키 운영 고지)</h2>
+          <p>
+            회사는 웹사이트의 안정적인 운영 및 양질의 부동산 분석 데이터 무료 제공을 위해 Google Ireland Limited(또는 Google LLC, 이하 &quot;Google&quot;)에서 제공하는 웹 광고 서비스인 <strong>Google AdSense</strong>를 사용합니다.
+          </p>
+          <ul className="list-disc pl-5 space-y-2 mt-2">
+            <li><strong>쿠키(Cookie) 및 서드파티 데이터 수집:</strong> Google 및 제3자 광고 공급업체는 쿠키(Cookie)를 사용하여 이용자의 본 사이트 및 다른 웹사이트 방문 기록을 바탕으로 광고를 게재합니다.</li>
+            <li><strong>맞춤설정 광고 게재 원리:</strong> Google의 광고 쿠키 사용으로 인해 Google 및 파트너사는 이용자의 본 사이트 및 인터넷 상의 다른 사이트 방문 정보를 바탕으로 관련성 높은 광고를 이용자에게 제공할 수 있습니다.</li>
+            <li><strong>맞춤설정 광고 수신 거부(Opt-out):</strong> 이용자는 언제든지 맞춤형 광고 게재를 거부할 수 있습니다. 맞춤 광고를 원치 않으실 경우 <a href="https://adssettings.google.com" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 underline font-bold">Google 광고 설정(https://adssettings.google.com)</a>을 방문하여 맞춤설정 광고를 비활성화하거나, <a href="https://www.aboutads.info" target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 underline font-bold">www.aboutads.info</a>를 방문하여 제3자 광고 공급업체의 맞춤 광고 쿠키 사용을 전면 차단할 수 있습니다.</li>
+          </ul>
+
           <div className="mt-12 text-sm text-tertiary">
             <p>공고일자: 2026년 7월 12일</p>
-            <p>시행일자: 2026년 7월 12일</p>
+            <p>시행일자: 2026년 7월 12일 (개정일자: 2026년 10월 10일)</p>
           </div>
         </article>
       </main>

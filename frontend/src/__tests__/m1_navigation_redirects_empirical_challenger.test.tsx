@@ -34,11 +34,6 @@ jest.mock('@/hooks/useAuth', () => ({
   }),
 }));
 
-jest.mock('@/components/FloatingUserBar', () => {
-  return function MockFloatingUserBar() {
-    return <div data-testid="mock-floating-user-bar" />;
-  };
-});
 
 jest.mock('@/contexts/SettingsContext', () => ({
   useSettingsUi: () => ({
@@ -73,19 +68,20 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
   // =========================================================================
   // Dimension 1: Desktop Navigation (LoungeHeader) Rendering & Click Simulation
   // =========================================================================
-  describe('Dimension 1: LoungeHeader 3-Tab Architecture & Interaction', () => {
+  describe('Dimension 1: LoungeHeader 4-Tab Architecture & Interaction', () => {
     const expectedTabs = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
+      { id: 'guide', label: '부동산 가이드', href: '/guide' },
     ];
 
-    it('renders exactly the 3 canonical tabs with matching labels and href attributes', () => {
+    it('renders exactly the 4 canonical tabs with matching labels and href attributes', () => {
       const { container } = render(<LoungeHeader activeTab="overview" />);
       const navElement = within(container).getByRole('navigation', { name: '메인 메뉴' });
       const links = within(navElement).getAllByRole('link');
 
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(4);
       expectedTabs.forEach((tab, index) => {
         expect(links[index]).toHaveTextContent(tab.label);
         expect(links[index]).toHaveAttribute('href', tab.href);
@@ -112,7 +108,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(allHrefs.some((h) => h?.includes('techno') || h?.includes('office'))).toBe(false);
     });
 
-    it('simulates click events on all 3 tabs and triggers onTabChange & router.replace correctly', () => {
+    it('simulates click events on all 4 tabs and triggers onTabChange & router.replace correctly', () => {
       const onTabChangeSpy = jest.fn();
       const pushStateSpy = jest.spyOn(window.history, 'pushState').mockImplementation(() => {});
 
@@ -121,6 +117,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       const tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       const tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
       // Click Tab 1 ('아파트 랩')
       fireEvent.click(tab1);
@@ -140,42 +137,67 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(mockReplace).toHaveBeenLastCalledWith('/mbti', { scroll: false });
       expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', '/mbti');
 
+      // Click Tab 4 ('부동산 가이드')
+      fireEvent.click(tab4);
+      expect(onTabChangeSpy).toHaveBeenLastCalledWith('guide');
+      expect(mockReplace).toHaveBeenLastCalledWith('/guide', { scroll: false });
+      expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', '/guide');
+
       pushStateSpy.mockRestore();
     });
 
-    it('updates activeTab visual highlighting dynamically across all 3 tabs', () => {
+    it('updates activeTab visual highlighting dynamically across all 4 tabs', () => {
       const { rerender } = render(<LoungeHeader activeTab="overview" />);
       
       let tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       let tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       let tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      let tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
       expect(tab1).toHaveClass('text-hs-orange');
       expect(tab1).toHaveClass('bg-hs-orange-light');
       expect(tab2).not.toHaveClass('bg-hs-orange-light');
       expect(tab3).not.toHaveClass('bg-hs-orange-light');
+      expect(tab4).not.toHaveClass('bg-hs-orange-light');
 
       // Switch to 'imjang'
       rerender(<LoungeHeader activeTab="imjang" />);
       tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
       expect(tab2).toHaveClass('text-hs-orange');
       expect(tab2).toHaveClass('bg-hs-orange-light');
       expect(tab1).not.toHaveClass('bg-hs-orange-light');
       expect(tab3).not.toHaveClass('bg-hs-orange-light');
+      expect(tab4).not.toHaveClass('bg-hs-orange-light');
 
       // Switch to 'mbti'
       rerender(<LoungeHeader activeTab="mbti" />);
       tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
       expect(tab3).toHaveClass('text-hs-orange');
       expect(tab3).toHaveClass('bg-hs-orange-light');
       expect(tab1).not.toHaveClass('bg-hs-orange-light');
       expect(tab2).not.toHaveClass('bg-hs-orange-light');
+      expect(tab4).not.toHaveClass('bg-hs-orange-light');
+
+      // Switch to 'guide'
+      rerender(<LoungeHeader activeTab="guide" />);
+      tab1 = screen.getByRole('link', { name: /아파트 랩/i });
+      tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
+      tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+
+      expect(tab4).toHaveClass('text-hs-orange');
+      expect(tab4).toHaveClass('bg-hs-orange-light');
+      expect(tab1).not.toHaveClass('bg-hs-orange-light');
+      expect(tab2).not.toHaveClass('bg-hs-orange-light');
+      expect(tab3).not.toHaveClass('bg-hs-orange-light');
     });
 
     it('handles popstate browser navigation events for /mbti and legacy paths', () => {
@@ -195,6 +217,13 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
         window.dispatchEvent(new PopStateEvent('popstate'));
       });
       expect(onTabChangeSpy).toHaveBeenLastCalledWith('imjang');
+
+      // Simulate popstate to /guide
+      act(() => {
+        window.history.pushState({}, '', '/guide');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      });
+      expect(onTabChangeSpy).toHaveBeenLastCalledWith('guide');
 
       // Simulate popstate to legacy route /technovalley -> falls back to 'overview'
       act(() => {

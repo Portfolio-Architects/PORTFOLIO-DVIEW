@@ -31,7 +31,7 @@ function getProxyAgent() {
 }
 const axios = require('axios');
 const { z } = require('zod');
-const { getSupplyPyeong } = require('../src/lib/utils/areaConverter');
+const { getSupplyPyeong } = require('../pipeline/core/normalizer');
 
 // Zod schema for validation of Apartment Trade Transaction Record before DB upload
 const AptTransactionRecordSchema = z.object({
@@ -194,14 +194,17 @@ async function main() {
     const seenRawTxKeys = new Set();
     // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
     // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로(99%) 감면
-    const existingMap = new Map(); // _key -> cancelDate
+    const existingMap = new Map(); // _key -> { cancelDate, dealType }
     try {
       const existingSnap = await collRef
         .where('contractYm', '==', ym)
-        .select('cancelDate')
+        .select('cancelDate', 'dealType')
         .get();
       existingSnap.docs.forEach(doc => {
-        existingMap.set(doc.id, doc.data().cancelDate || '');
+        existingMap.set(doc.id, {
+          cancelDate: (doc.data().cancelDate || '').trim(),
+          dealType: (doc.data().dealType || '').trim(),
+        });
       });
       console.log(`   📂 [${ym}] Firestore 기존 거래 로드 완료: ${existingMap.size}건`);
     } catch (err) {
@@ -342,12 +345,16 @@ async function main() {
             const occurrence = (keyOccurrences.get(baseKey) || 0) + 1;
             keyOccurrences.set(baseKey, occurrence);
             const key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
-            const cancelDate = item.cdealDay || '';
+            const cleanStr = (val) => (typeof val === 'string' ? val.trim() : (val ? String(val).trim() : ''));
+            const cancelDate = cleanStr(item.cdealDay);
+            const cleanDealingGbn = cleanStr(item.dealingGbn);
+            const cleanCdealType = cleanStr(item.cdealType);
+            const dealType = cleanDealingGbn || (cleanCdealType && cleanCdealType !== 'O' && cleanCdealType !== '해제' ? cleanCdealType : '') || '매매';
 
-            // 🔥 Firestore 쓰기(Write) 요금 초절감 검사: 중복 거래 및 취소 날짜 무변화 시 스킵
+            // 🔥 Firestore 쓰기(Write) 요금 초절감 검사: 중복 거래 및 취소 날짜/거래 유형 무변화 시 스킵
             if (existingMap.has(key)) {
-              const existingCancelDate = existingMap.get(key);
-              if (cancelDate === existingCancelDate) {
+              const existing = existingMap.get(key);
+              if (cancelDate === existing.cancelDate && dealType === existing.dealType) {
                 continue; // 이미 데이터가 같으므로 쓰기 버퍼에서 제외
               }
             }
@@ -363,14 +370,14 @@ async function main() {
               contractDate: `${ym}${contractDay}`,
               price,
               floor,
-              buyer: item.buyerGbn || '',
-              seller: item.slerGbn || '',
+              buyer: cleanStr(item.buyerGbn),
+              seller: cleanStr(item.slerGbn),
               buildYear: parseInt(item.buildYear, 10) || 0,
-              roadName: item.roadNm || '',
+              roadName: cleanStr(item.roadNm),
               cancelDate,
-              dealType: item.cdealType || item.dealingGbn || '',
-              agentLocation: item.estateAgentSggNm || '',
-              registrationDate: item.rgstDate || '',
+              dealType,
+              agentLocation: cleanStr(item.estateAgentSggNm),
+              registrationDate: cleanStr(item.rgstDate),
               housingType: '',
               source: 'govt_api',
               _key: key,

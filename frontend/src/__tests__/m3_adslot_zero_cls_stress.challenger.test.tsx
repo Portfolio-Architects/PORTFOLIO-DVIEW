@@ -26,7 +26,7 @@ import {
   RankingBreakAdBanner,
   BottomAnchorAdBanner,
   StatsAdBanner,
-} from '@/components/ads/StatsAdBanners';
+} from '@/components/stats/StatsAdBanners';
 import * as AdBlockDetectorHook from '@/hooks/useAdBlockDetector';
 import { logger } from '@/lib/services/logger';
 

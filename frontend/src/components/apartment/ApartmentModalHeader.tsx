@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  MapPin, Heart, Share, Check, MessageSquare, Camera, Bell,
+  MapPin, Share, Check, MessageSquare, Camera, Bell,
   Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert
 } from 'lucide-react';
 import type { FieldReportData } from '@/lib/types/report.types';
@@ -9,8 +9,6 @@ export interface ApartmentModalHeaderProps {
   report: FieldReportData;
   displayAptName: string;
   inline?: boolean;
-  isFavoritedModal: boolean;
-  onToggleFavorite?: (aptName: string) => void;
   handleNativeShare: () => void;
   handleCopySummary: () => void;
   handleDownloadShareCard: () => void;
@@ -31,8 +29,6 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   report,
   displayAptName,
   inline,
-  isFavoritedModal,
-  onToggleFavorite,
   handleNativeShare,
   handleCopySummary,
   handleDownloadShareCard,
@@ -68,31 +64,6 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             <h1 className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1">
               <span className="break-keep break-words block w-full">{displayAptName}</span>
             </h1>
-            {onToggleFavorite && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleFavorite(report.apartmentName);
-                }}
-                className={`px-3 py-1.5 rounded-xl border transition-all duration-200 active:scale-95 shrink-0 flex items-center gap-1.5 cursor-pointer ${
-                  isFavoritedModal
-                    ? 'bg-rose-500/10 border-rose-500/30 text-rose-600 dark:text-rose-400'
-                    : 'bg-neutral-100 dark:bg-zinc-800/80 border-border/40 text-neutral-400 hover:text-rose-400'
-                }`}
-                title={isFavoritedModal ? '관심 단지 해제' : '관심 단지 등록'}
-                aria-label={`${displayAptName} 관심 단지 ${isFavoritedModal ? '해제' : '등록'}`}
-              >
-                <Heart
-                  size={18}
-                  className={`transition-all duration-300 ${
-                    isFavoritedModal ? 'text-rose-500 fill-current scale-110' : 'text-neutral-400'
-                  }`}
-                />
-                <span className="text-xs font-black">
-                  {isFavoritedModal ? '관심 단지' : '관심 등록'}
-                </span>
-              </button>
-            )}
           </div>
         </div>
 
@@ -181,7 +152,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <Radar size={15} className="text-[#c44d00]" />
+                    <Radar size={15} className="text-[#057e77] dark:text-emerald-400" />
                     <div className="flex flex-col">
                       <span>단지 1:1 비교</span>
                     </div>
@@ -209,7 +180,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <Calculator size={15} className="text-[#c44d00]" />
+                    <Calculator size={15} className="text-[#057e77] dark:text-emerald-400" />
                     <div className="flex flex-col">
                       <span>대출 계산기</span>
                     </div>

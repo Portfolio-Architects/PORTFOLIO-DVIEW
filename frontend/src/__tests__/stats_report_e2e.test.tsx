@@ -933,7 +933,7 @@ describe('동탄 아파트 통계 리포트 & 애드센스 대시보드 종합 E
       it('F7.2: Verifies Desktop LoungeHeader baseline links', () => {
         const { container } = render(<LoungeHeader activeTab="overview" />);
         const links = container.querySelectorAll('nav a');
-        expect(links.length).toBe(3);
+        expect(links.length).toBe(4);
       });
 
       it('F7.3: Verifies MobileDock baseline links', () => {

@@ -2,9 +2,7 @@ import React from 'react';
 import { render, screen, act, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-// Import components under test
-import OfflineBannerGlobal from '@/components/OfflineBanner';
-import { OfflineBanner as OfflineBannerUI } from '@/components/ui/OfflineBanner';
+import { OfflineBannerGlobal, OfflineBannerUI } from '@/components/ui/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
 import MacroDashboardSkeleton from '@/components/ui/MacroDashboardSkeleton';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';

@@ -62,20 +62,17 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
   };
 
   describe('1. TimelineItemCard Interactive Features', () => {
-    it('renders favorite heart button and calls onToggleFavorite with stopPropagation', () => {
-      const onToggleFavoriteMock = jest.fn();
+    it('does not render favorite heart button and isolates details click', () => {
       const onCardClickMock = jest.fn();
       const onCardHoverMock = jest.fn();
       const onDetailsClickMock = jest.fn();
       const onDetailsHoverMock = jest.fn();
 
-      const { rerender } = render(
+      render(
         <TimelineItemCard
           item={sampleCardItem}
           isSelected={false}
           areaUnit="m2"
-          isFavorite={false}
-          onToggleFavorite={onToggleFavoriteMock}
           onCardHover={onCardHoverMock}
           onCardClick={onCardClickMock}
           onDetailsClick={onDetailsClickMock}
@@ -83,32 +80,8 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
         />
       );
 
-      const favButton = screen.getByLabelText(/동탄역 롯데캐슬 관심 단지 등록/);
-      expect(favButton).toBeInTheDocument();
-
-      // Click favorite button
-      fireEvent.click(favButton);
-      expect(onToggleFavoriteMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
-      // Card click should not be triggered due to stopPropagation
-      expect(onCardClickMock).not.toHaveBeenCalled();
-
-      // Re-render as active favorite
-      rerender(
-        <TimelineItemCard
-          item={sampleCardItem}
-          isSelected={false}
-          areaUnit="m2"
-          isFavorite={true}
-          onToggleFavorite={onToggleFavoriteMock}
-          onCardHover={onCardHoverMock}
-          onCardClick={onCardClickMock}
-          onDetailsClick={onDetailsClickMock}
-          onDetailsHover={onDetailsHoverMock}
-        />
-      );
-
-      const heartSvg = favButton.querySelector('svg');
-      expect(heartSvg).toHaveClass('fill-rose-500');
+      const favButton = screen.queryByLabelText(/관심 단지/);
+      expect(favButton).not.toBeInTheDocument();
     });
 
     it('renders Price per Pyeong and previous price strikethrough correctly', () => {
@@ -159,8 +132,7 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
   });
 
   describe('2. TimelineItemRow Compact List View Features', () => {
-    it('renders compact row with favorite, apt name, area/floor, price, delta and detail button', () => {
-      const onToggleFavoriteMock = jest.fn();
+    it('renders compact row with apt name, area/floor, price, delta and detail button', () => {
       const onCardClickMock = jest.fn();
       const onDetailsClickMock = jest.fn();
 
@@ -169,8 +141,6 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
           item={sampleFallingItem}
           isSelected={true}
           areaUnit="p"
-          isFavorite={true}
-          onToggleFavorite={onToggleFavoriteMock}
           onCardClick={onCardClickMock}
           onDetailsClick={onDetailsClickMock}
         />
@@ -188,11 +158,9 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
       expect(screen.getByText('12억')).toBeInTheDocument();
       expect(screen.getByText(/▼ 8,000만/)).toBeInTheDocument();
 
-      // Favorite toggle
-      const favBtn = screen.getByLabelText(/동탄역 시범 더샵 센트럴시티 관심 단지 등록/);
-      fireEvent.click(favBtn);
-      expect(onToggleFavoriteMock).toHaveBeenCalledWith('동탄역 시범 더샵 센트럴시티');
-      expect(onCardClickMock).not.toHaveBeenCalled();
+      // Favorite toggle is absent
+      const favBtn = screen.queryByLabelText(/관심 단지/);
+      expect(favBtn).not.toBeInTheDocument();
 
       // Details button
       const detailsBtn = screen.getByText('상세');

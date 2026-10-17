@@ -31,27 +31,7 @@ function initMacroTrendData(monthsToSync = 216, reportingLagMonths = 2, baseDate
   return { macroTrendData, trendMonths };
 }
 
-/**
- * 거래 취소/해제 여부 판별 유틸리티
- * @param {Object} t - 실거래 레코드
- * @returns {boolean} 취소/해제 거래 여부
- */
-function isCancelledTransaction(t) {
-  if (!t) return false;
-  if (t.isCanceled === true) return true;
-  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
-  
-  const isInvalidDate = (v) => {
-    if (v === null || v === undefined) return true;
-    const s = String(v).trim().toLowerCase();
-    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
-  };
-
-  if (!isInvalidDate(t.cancelDate)) return true;
-  if (!isInvalidDate(t.cdealDay)) return true;
-
-  return false;
-}
+const { isCancelledTransaction } = require('../../pipeline/core/normalizer');
 
 /**
  * 상수 바스켓 지수(Constant Basket Index): 국민평형(30~36평) 단지들의 각 월별 최신 실거래가를 누적

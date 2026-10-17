@@ -91,7 +91,7 @@ const CalculatorLoader = ({ text }: { text: string }) => (
 );
 
 // Heavy components — loaded on demand (saves ~200KB initial JS)
-const FieldReportModal = dynamic(() => import('@/components/ApartmentModal').catch(err => {
+const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'FieldReportModal Chunk Load failure, initiating fallback reload', undefined, err);
   safeReload('FieldReportModal');
   return { default: () => null };
@@ -106,7 +106,6 @@ const MacroDashboardClient = dynamic(() => import(/* webpackPreload: true */ '@/
   safeReload('MacroDashboardClient');
   return { default: () => null };
 }), { 
-  ssr: false,
   loading: () => <MacroDashboardSkeleton />
 });
 
@@ -161,11 +160,10 @@ import { getDisplayName } from '@/lib/types/user.types';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 
-import { useFavorites } from '@/hooks/useFavorites';
 import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
-import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/preload';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/preload';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -189,7 +187,6 @@ const DashboardClient = React.memo(function DashboardClient({
   // Moduled Hooks Architecture
   const { user, userProfile, anonProfile, handleLogin, handleLogout } = useAuth();
   const { sheetApartments, typeMap, nameMapping, publicRentalSet, triggerFetch, isLoading } = useDashboardMeta(initialDashboardData);
-  const { userFavorites, favoriteCounts, handleToggleFavorite, updateFavoriteOrder, isFavoritesLoading } = useFavorites(user, initialDashboardData?.favoriteCounts);
   
   const [mounted, setMounted] = useState(false);
   const preloadTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -627,10 +624,6 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
 
-  const handleAptToggleFavorite = useCallback((aptName: string) => {
-    handleToggleFavorite(aptName);
-  }, [handleToggleFavorite]);
-
   const handleTabChange = useCallback((tab: string) => {
     const targetTab = tab as 'overview' | 'imjang' | 'mbti';
     setActiveTab(targetTab);
@@ -657,13 +650,8 @@ const DashboardClient = React.memo(function DashboardClient({
                 recentTransactions={filteredRecentTransactions}
                 macroTrendData={macroTrend}
                 nameMapping={nameMapping || EMPTY_OBJECT}
-                updateFavoriteOrder={updateFavoriteOrder}
-                onToggleFavorite={handleAptToggleFavorite}
                 publicRentalSet={publicRentalSet}
-                userFavorites={userFavorites}
-                isFavoritesLoading={isFavoritesLoading}
                 fieldReportsMap={fieldReportsMap}
-                favoriteCounts={favoriteCounts}
                 recent7DaysVolume={recent7DaysVolume}
                 typeMap={typeMap}
                 onOpenAdModal={handleOpenAdModal}
@@ -694,12 +682,8 @@ const DashboardClient = React.memo(function DashboardClient({
 
     macroTrend,
     nameMapping,
-    updateFavoriteOrder,
     publicRentalSet,
-    userFavorites,
-    isFavoritesLoading,
     fieldReportsMap,
-    favoriteCounts,
     recent7DaysVolume,
     typeMap,
     txSummary,
@@ -750,8 +734,6 @@ const DashboardClient = React.memo(function DashboardClient({
               report={selectedReport}
               onClose={handleCloseMobileModal}
               user={user}
-              userFavorites={userFavorites}
-              onToggleFavorite={handleAptToggleFavorite}
               typeMap={typeMap}
               inline={false}
               sheetApartments={sheetApartments}

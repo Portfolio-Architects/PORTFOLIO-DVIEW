@@ -22,6 +22,18 @@ import {
   type TransactionRecord,
   type PriceAnalytics,
 } from '@/lib/utils/analyticsUtils';
+import {
+  calculateEqualPrincipalAndInterest,
+  calculateEqualPrincipal,
+  calculateDsrMaxLoan,
+  calculateInterestRateShock,
+  calculateJeonseShortfall,
+  type AmortizationResult,
+  type EqualPrincipalAmortizationResult,
+  type DsrMaxLoanResult,
+  type RateShockResult,
+  type JeonseShortfallResult,
+} from '@/lib/services/mortgage/mortgageEngine';
 
 export {
   decodeAptName,
@@ -49,6 +61,19 @@ export interface LocationScore {
   distanceToSubway?: number;
 }
 
+export interface MortgageSsrData {
+  principalWon: number;
+  jeonseDepositWon: number;
+  amortization: {
+    equalPi: AmortizationResult;
+    equalP: EqualPrincipalAmortizationResult;
+  };
+  dsrScenarios: DsrMaxLoanResult[];
+  rateShock: RateShockResult;
+  jeonseShortfalls: JeonseShortfallResult[];
+  faqList: Array<{ question: string; answer: string }>;
+}
+
 export interface ApartmentPageData {
   aptName: string;
   aptSummary?: AptTxSummary;
@@ -59,6 +84,7 @@ export interface ApartmentPageData {
   structuredImages: string[];
   analytics: PriceAnalytics;
   aiBriefing: string;
+  mortgageSsr?: MortgageSsrData;
 }
 
 /**
@@ -134,6 +160,116 @@ export async function fetchScoutingReportCached(aptName: string): Promise<FieldR
 }
 
 /**
+ * 4대 SSR 수리 테이블 및 FAQ 시맨틱 데이터를 생성하는 도메인 헬퍼
+ * 닫힌 형식(Closed-form) mortgageEngine 모듈을 기반으로 O(1) 계산 수행
+ */
+export function buildMortgageSsrData(
+  aptName: string,
+  latestPriceManwon?: number,
+  latestDepositManwon?: number
+): MortgageSsrData {
+  const rawPriceManwon =
+    typeof latestPriceManwon === 'number' && Number.isFinite(latestPriceManwon) && latestPriceManwon > 0
+      ? latestPriceManwon
+      : 50000; // 5억원 기본 기준값
+  const rawPriceWon = rawPriceManwon * 10000;
+
+  // LTV 70% 기본 적용, 최소 1천만원 가드
+  const principalWon = Math.max(10000000, Math.round(rawPriceWon * 0.70));
+
+  const rawDepositManwon =
+    typeof latestDepositManwon === 'number' && Number.isFinite(latestDepositManwon) && latestDepositManwon > 0
+      ? latestDepositManwon
+      : Math.round(rawPriceManwon * 0.60);
+  const jeonseDepositWon = Math.max(10000000, rawDepositManwon * 10000);
+
+  // 1. Amortization (30년 만기, 기본금리 4.0%)
+  const equalPi = calculateEqualPrincipalAndInterest({
+    principalWon,
+    annualRatePercent: 4.0,
+    loanPeriodYears: 30,
+    repaymentType: 'EQUAL_PRINCIPAL_AND_INTEREST',
+  });
+
+  const equalP = calculateEqualPrincipal({
+    principalWon,
+    annualRatePercent: 4.0,
+    loanPeriodYears: 30,
+    repaymentType: 'EQUAL_PRINCIPAL',
+  });
+
+  // 2. DSR 40% 한도 (스트레스 금리 5.2% = 4.0% + 1.2%p)
+  const incomeLevels = [50000000, 80000000, 100000000];
+  const dsrScenarios = incomeLevels.map((income) =>
+    calculateDsrMaxLoan({
+      annualIncomeWon: income,
+      baseRatePercent: 4.0,
+      loanPeriodYears: 30,
+      repaymentType: 'EQUAL_PRINCIPAL_AND_INTEREST',
+      stressSpreadPercent: 1.2,
+      dsrLimitRatio: 0.40,
+    })
+  );
+
+  // 3. 금리 충격 민감도 (+1.0%p, +1.5%p, +2.0%p, +3.0%p)
+  const rateShock = calculateInterestRateShock({
+    principalWon,
+    baseRatePercent: 4.0,
+    loanPeriodYears: 30,
+    repaymentType: 'EQUAL_PRINCIPAL_AND_INTEREST',
+    shockSpreads: [1.0, 1.5, 2.0, 3.0],
+  });
+
+  // 4. 역전세 결손액 (5%, 10%, 15% 하락)
+  const shortfallRates = [0.05, 0.10, 0.15];
+  const jeonseShortfalls = shortfallRates.map((rate) =>
+    calculateJeonseShortfall({
+      depositWon: jeonseDepositWon,
+      declineRate: rate,
+      reservesWon: 0,
+    })
+  );
+
+  // FAQ 리스트
+  const ltvAmountEokStr = (Math.round((principalWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+  const dsr50EokStr = (Math.round((dsrScenarios[0].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+  const dsr80EokStr = (Math.round((dsrScenarios[1].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+  const dsr100EokStr = (Math.round((dsrScenarios[2].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+
+  const faqList = [
+    {
+      question: `동탄 ${aptName} 주택담보대출 갈아타기 시 최대 한도는 얼마인가요?`,
+      answer: `동탄 ${aptName} 최근 실거래가 기준 LTV 최대 70% 적용 시 약 ${ltvAmountEokStr}억원 수준이며, 스트레스 DSR 40% 규제(가산금리 1.2%p) 및 차주 소득에 따라 최종 한도가 결정됩니다.`,
+    },
+    {
+      question: 'DSR 40% 한도 규제 적용 시 연소득별 최대 대출 가능 금액은 어떻게 되나요?',
+      answer: `30년 만기 및 스트레스 금리 5.2% 기준, 연소득 5,000만원 차주는 약 ${dsr50EokStr}억원, 연소득 8,000만원 차주는 약 ${dsr80EokStr}억원, 연소득 1억원 차주는 약 ${dsr100EokStr}억원이 최대 한도로 도출됩니다.`,
+    },
+    {
+      question: `동탄 ${aptName} 전세보증금 반환대출(역전세 대출) 신청 요건은 무엇인가요?`,
+      answer: '신규 전세가가 기존 보증금 대비 하락한 경우 임대인은 전세보증금 반환목적 주담대를 이용할 수 있으며, 정부의 역전세 대환 완화 기준(DTI 60% 등)에 따라 결손 차액 전액 대출이 가능합니다.',
+    },
+    {
+      question: '원리금균등 상환과 원금균등 상환 중 어떤 방식이 이자 절감에 유리한가요?',
+      answer: '원리금균등은 매월 균등액 납부로 가계 지출 관리가 유리하나, 원금균등은 초기 상환액이 높은 대신 원금이 신속히 상환되어 총 이자비용을 상당 부분 절감할 수 있습니다.',
+    },
+  ];
+
+  return {
+    principalWon,
+    jeonseDepositWon,
+    amortization: {
+      equalPi,
+      equalP,
+    },
+    dsrScenarios,
+    rateShock,
+    jeonseShortfalls,
+    faqList,
+  };
+}
+
+/**
  * 아파트 상세 페이지에 필요한 전체 도메인 데이터를 합성하여 반환
  */
 export async function getApartmentPageData(rawAptName: string): Promise<ApartmentPageData> {
@@ -150,6 +286,10 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
   const pyeongSummaries = getPyeongSummaries(txs);
   const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
   const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore);
+
+  const latestPriceManwon = aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0);
+  const latestDepositManwon = aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0);
+  const mortgageSsr = buildMortgageSsrData(aptName, latestPriceManwon, latestDepositManwon);
 
   let structuredImages: string[] = [];
   if (matchedReportData?.images && Array.isArray(matchedReportData.images)) {
@@ -168,6 +308,7 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
     structuredImages,
     analytics,
     aiBriefing,
+    mortgageSsr,
   };
 }
 
@@ -188,6 +329,14 @@ export function buildApartmentJsonLd(
     analytics,
     aiBriefing,
   } = data;
+
+  const mortgageSsr =
+    data.mortgageSsr ||
+    buildMortgageSsrData(
+      aptName,
+      aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0),
+      aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0)
+    );
 
   const rawReport = matchedReportData as Record<string, unknown> | null;
   const rawMetrics = rawReport?.metrics as Record<string, unknown> | undefined;
@@ -379,6 +528,54 @@ export function buildApartmentJsonLd(
           addressLocality: '화성시 동탄역로',
         },
       },
+      {
+        '@type': ['FinancialProduct', 'LoanOrCredit'],
+        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#mortgage-ldi`,
+        name: `동탄 ${aptName} 주택담보대출 갈아타기 및 LDI 한도 시뮬레이션`,
+        description: `동탄 ${aptName} 최근 실거래가 기반 원리금균등·원금균등 상환액, 스트레스 DSR 40% 한도 및 금리 민감도 분석 금융 데이터`,
+        provider: {
+          '@type': 'FinancialService',
+          name: 'D-VIEW 부동산 데이터 랩스',
+          url: baseUrl,
+        },
+        category: '주택담보대출 / 대환대출 / 전세보증금 반환대출',
+        currency: 'KRW',
+        amount: {
+          '@type': 'MonetaryAmount',
+          currency: 'KRW',
+          minValue: 50000000,
+          maxValue: Math.max(1500000000, mortgageSsr.principalWon * 2),
+        },
+        loanTerm: {
+          '@type': 'QuantitativeValue',
+          value: 30,
+          unitCode: 'ANN',
+        },
+        annualPercentageRate: {
+          '@type': 'QuantitativeValue',
+          minValue: 3.5,
+          maxValue: 6.5,
+          unitText: '%',
+        },
+        interestRate: {
+          '@type': 'QuantitativeValue',
+          value: 4.0,
+          unitText: '%',
+        },
+        feesAndCommissionsSpecification: '중도상환수수료 및 근저당권 설정비용 등 대출 조건별 차등 적용',
+      },
+      {
+        '@type': 'FAQPage',
+        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#faq`,
+        mainEntity: mortgageSsr.faqList.map((faq) => ({
+          '@type': 'Question',
+          name: faq.question,
+          acceptedAnswer: {
+            '@type': 'Answer',
+            text: faq.answer,
+          },
+        })),
+      },
     ],
   };
 }
@@ -498,7 +695,8 @@ export async function buildApartmentSeoMetadata(
 
     const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
     const pyeongKeywordsList = pyeongSummaries.map((p) => `${decodedName} ${p.pyeong}평, ${decodedName} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`).join(', ');
-    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
+    const highValueMortgageKeywords = '주택담보대출 갈아타기, DSR 40% 한도, 스트레스 DSR, 전세보증금 반환대출, 역전세 대출, 금리 충격 계산기';
+    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
 
     return {
       title: seoTitle,

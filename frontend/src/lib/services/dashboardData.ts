@@ -203,10 +203,26 @@ async function fetchFreshData(): Promise<InitialPageDataWithScores> {
     }
   };
 
+  const withSsrRemoteBudget = <T>(promise: Promise<T>, budgetMs: number): Promise<T | void> => {
+    if (process.env.NODE_ENV === 'test') return promise;
+    let timerId: ReturnType<typeof setTimeout> | undefined;
+    const timeoutPromise = new Promise<void>((resolve) => {
+      timerId = setTimeout(() => resolve(), budgetMs);
+    });
+    return Promise.race([
+      promise.finally(() => {
+        if (timerId) clearTimeout(timerId);
+      }),
+      timeoutPromise,
+    ]);
+  };
+
+  const ssrRemoteBudgetMs = process.env.NODE_ENV === 'development' ? 1200 : 3000;
+
   await Promise.allSettled([
-    fetchFavCounts(),
-    fetchMeta(),
-    fetchReports(),
+    withSsrRemoteBudget(fetchFavCounts(), ssrRemoteBudgetMs),
+    withSsrRemoteBudget(fetchMeta(), ssrRemoteBudgetMs),
+    withSsrRemoteBudget(fetchReports(), ssrRemoteBudgetMs),
     fetchMacroTrend(),
     fetchRecentTransactions(),
     fetchTxSummary(),

@@ -251,16 +251,9 @@ assert(mobileDockContent.includes("href: '/mbti'"), 'MobileDock has mbti tab to 
 assert(!mobileDockContent.includes("href: '/lounge'"), 'MobileDock has NO tab to /lounge');
 assert(!mobileDockContent.includes("href: '/admin'"), 'MobileDock has NO tab to /admin');
 
-// 3. FloatingUserBar.tsx
+// 3. FloatingUserBar.tsx (Eliminated as dead code in Milestone 2)
 const floatingUserBarPath = path.join(SRC_DIR, 'components', 'FloatingUserBar.tsx');
-assert(fs.existsSync(floatingUserBarPath), 'FloatingUserBar.tsx exists');
-const floatingUserBarContent = fs.readFileSync(floatingUserBarPath, 'utf8');
-
-assert(!floatingUserBarContent.includes('로그인'), 'FloatingUserBar has NO "로그인" text');
-assert(!floatingUserBarContent.includes('로그아웃'), 'FloatingUserBar has NO "로그아웃" text');
-assert(!floatingUserBarContent.includes('handleLogin'), 'FloatingUserBar has NO handleLogin call');
-assert(!floatingUserBarContent.includes('handleLogout'), 'FloatingUserBar has NO handleLogout call');
-assert(floatingUserBarContent.includes('setIsSettingsModalOpen'), 'FloatingUserBar retains settings trigger');
+assert(!fs.existsSync(floatingUserBarPath), 'FloatingUserBar.tsx eliminated as dead code');
 
 // 4. Footer.tsx
 const footerPath = path.join(SRC_DIR, 'components', 'Footer.tsx');

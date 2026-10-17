@@ -232,29 +232,20 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
     });
   });
 
-  describe('3. Item Interactions, Favorites, and Event Isolation', () => {
-    it('handles favorite heart toggle with event isolation (stopPropagation)', () => {
-      const onToggleFavoriteMock = jest.fn();
+  describe('3. Item Interactions and Event Isolation', () => {
+    it('does not render favorite heart button after favorites feature removal', () => {
       const onSelectAptMock = jest.fn();
-
-      const userFavorites = new Set(['동탄역 롯데캐슬']);
 
       render(
         <MacroTimelineView
           timelineGroups={sampleGroups}
-          userFavorites={userFavorites}
-          onToggleFavorite={onToggleFavoriteMock}
           onSelectApt={onSelectAptMock}
           viewMode="card"
         />
       );
 
-      const favoriteHeartBtn = screen.getByLabelText('동탄역 시범 우남퍼스트빌 관심 단지 등록');
-      expect(favoriteHeartBtn).toBeInTheDocument();
-
-      fireEvent.click(favoriteHeartBtn);
-      expect(onToggleFavoriteMock).toHaveBeenCalledWith('동탄역 시범 우남퍼스트빌');
-      expect(onSelectAptMock).not.toHaveBeenCalled(); // Event propagation was isolated
+      const favoriteHeartBtn = screen.queryByLabelText(/관심 단지/i);
+      expect(favoriteHeartBtn).not.toBeInTheDocument();
     });
 
     it('handles direct modal details click with event isolation', () => {

@@ -115,12 +115,12 @@ export function SearchSuggestionDropdown({
                     }}
                     onMouseEnter={() => {
                       preloadApartmentTx?.(item.apt.name, item.apt.dong);
-                      import('@/components/ApartmentModal').catch(() => {});
+                      import('@/components/apartment/ApartmentModal').catch(() => {});
                       import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
                     }}
                     onTouchStart={() => {
                       preloadApartmentTx?.(item.apt.name, item.apt.dong);
-                      import('@/components/ApartmentModal').catch(() => {});
+                      import('@/components/apartment/ApartmentModal').catch(() => {});
                       import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
                     }}
                     className="flex items-center justify-between p-2.5 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/5 rounded-xl transition-all text-left group active:scale-99 border border-transparent hover:border-emerald-500/10 outline-none focus:ring-1 focus:ring-emerald-500/50"

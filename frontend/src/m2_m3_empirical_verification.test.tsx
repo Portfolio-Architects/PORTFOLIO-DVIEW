@@ -12,7 +12,7 @@ import {
   getCachedTimestamp,
   calculateMonthlyAverages,
 } from '@/lib/utils/transactionChartTransform';
-import MacroTrendChart from '@/components/MacroTrendChart';
+import MacroTrendChart from '@/components/macro/MacroTrendChart';
 
 // Recharts component mocks for Jest JSDOM environment
 jest.mock('recharts', () => {

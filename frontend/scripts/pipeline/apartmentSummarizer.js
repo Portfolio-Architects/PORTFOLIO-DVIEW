@@ -34,41 +34,10 @@ function parseYYYYMMDD(str) {
   return isNaN(dt.getTime()) ? null : dt;
 }
 
-/**
- * 아파트명 정규화 (공백·괄호·[동이름] 제거)
- * @param {string} name - 아파트 원본명
- * @returns {string}
- */
-function normalizeAptName(name) {
-  if (!name) return '';
-  return name
-    .replace(/\[.*?\]\s*/g, '')
-    .replace(/\s+/g, '')
-    .replace(/[()（）]/g, '')
-    .trim();
-}
-
-/**
- * 거래 취소/해제 여부 판별 유틸리티
- * @param {Object} t - 실거래 레코드
- * @returns {boolean} 취소/해제 거래 여부
- */
-function isCancelledTransaction(t) {
-  if (!t) return false;
-  if (t.isCanceled === true) return true;
-  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
-  
-  const isInvalidDate = (v) => {
-    if (v === null || v === undefined) return true;
-    const s = String(v).trim().toLowerCase();
-    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
-  };
-
-  if (!isInvalidDate(t.cancelDate)) return true;
-  if (!isInvalidDate(t.cdealDay)) return true;
-
-  return false;
-}
+const {
+  normalizeAptName,
+  isCancelledTransaction
+} = require('../../pipeline/core/normalizer');
 
 /**
  * 단일 아파트 단지의 매매/전월세 통합 요약 통계 계산
@@ -409,7 +378,7 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
         area: t.area,
         areaPyeong: t.areaPyeong,
         floor: t.floor,
-        dealType: t.dealType || '매매',
+        dealType: (t.dealType && t.dealType.trim()) || '매매',
         isNewHigh: !!t.isNewHigh,
         newHighDelta: t.newHighDelta ? t.newHighDelta / 10000 : undefined,
         prevPriceVal: t.prevPriceVal ? t.prevPriceVal / 10000 : undefined,
@@ -475,7 +444,7 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
       t.area || 0,
       t.areaPyeong || 0,
       t.floor || 0,
-      t.dealType || '매매',
+      (t.dealType && t.dealType.trim()) || '매매',
       t.isNewHigh ? 1 : 0,
       t.delta ? t.delta / 10000 : 0,
       t.deltaPercent || 0
@@ -501,7 +470,7 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
       area: t.area,
       areaPyeong: t.areaPyeong,
       floor: t.floor,
-      dealType: t.dealType || '매매',
+      dealType: (t.dealType && t.dealType.trim()) || '매매',
       isNewHigh: !!t.isNewHigh,
       newHighDelta: t.newHighDelta ? t.newHighDelta / 10000 : undefined,
       prevPriceVal: t.prevPriceVal ? t.prevPriceVal / 10000 : undefined,

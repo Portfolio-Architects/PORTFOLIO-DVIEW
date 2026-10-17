@@ -12,25 +12,31 @@ import {
 
 export interface RadarDataPoint {
   subject: string;
-  A: number;
-  B: number;
-  fullMark: number;
+  A?: number;
+  B?: number;
+  fullMark?: number;
+  [key: string]: string | number | undefined;
 }
 
 export interface CompareRadarChartProps {
   data: RadarDataPoint[];
   apt1Name: string;
   apt2Name: string;
+  className?: string;
 }
 
 export const CompareRadarChart = React.memo(function CompareRadarChart({
   data,
   apt1Name,
   apt2Name,
+  className,
 }: CompareRadarChartProps) {
+  const key1 = data.length > 0 && apt1Name in data[0] ? apt1Name : 'A';
+  const key2 = data.length > 0 && apt2Name in data[0] ? apt2Name : 'B';
+
   return (
-    <div className="w-full h-[280px] sm:h-[340px] flex items-center justify-center relative">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className={className || "w-full h-[280px] sm:h-[340px] flex items-center justify-center relative"}>
+      <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid stroke="#e2e8f0" strokeOpacity={0.6} />
           <PolarAngleAxis
@@ -40,15 +46,15 @@ export const CompareRadarChart = React.memo(function CompareRadarChart({
           <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
           <Radar
             name={apt1Name}
-            dataKey="A"
-            stroke="#ea6100"
-            fill="#ea6100"
+            dataKey={key1}
+            stroke="#057e77"
+            fill="#057e77"
             fillOpacity={0.4}
             strokeWidth={2}
           />
           <Radar
             name={apt2Name}
-            dataKey="B"
+            dataKey={key2}
             stroke="#3b82f6"
             fill="#3b82f6"
             fillOpacity={0.35}

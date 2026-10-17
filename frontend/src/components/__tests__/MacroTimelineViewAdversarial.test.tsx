@@ -152,12 +152,11 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
   // 2. Event Propagation & StopPropagation Isolation
   // =========================================================================
   describe('Event Propagation & Strict Event Isolation', () => {
-    test('TimelineItemCard strictly isolates Favorite Heart and Detail clicks from Card Selection', () => {
+    test('TimelineItemCard strictly isolates Detail click from Card Selection and does not render favorite button', () => {
       const onCardClickMock = jest.fn();
       const onCardHoverMock = jest.fn();
       const onDetailsClickMock = jest.fn();
       const onDetailsHoverMock = jest.fn();
-      const onToggleFavoriteMock = jest.fn();
 
       const testItem: TimelineItem = {
         aptName: '동탄역 롯데캐슬',
@@ -172,13 +171,11 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
         deltaPercent: 10.0,
       };
 
-      const { rerender } = render(
+      render(
         <TimelineItemCard
           item={testItem}
           isSelected={false}
           areaUnit="p"
-          isFavorite={false}
-          onToggleFavorite={onToggleFavoriteMock}
           onCardHover={onCardHoverMock}
           onCardClick={onCardClickMock}
           onDetailsClick={onDetailsClickMock}
@@ -186,13 +183,9 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
         />
       );
 
-      // 1. Click Favorite Heart
-      const favHeartBtn = screen.getByRole('button', { name: /관심 단지 등록/ });
-      fireEvent.click(favHeartBtn);
-      expect(onToggleFavoriteMock).toHaveBeenCalledTimes(1);
-      expect(onToggleFavoriteMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
-      expect(onCardClickMock).not.toHaveBeenCalled();
-      expect(onDetailsClickMock).not.toHaveBeenCalled();
+      // 1. Verify Favorite Heart is NOT present
+      const favHeartBtn = screen.queryByRole('button', { name: /관심 단지/ });
+      expect(favHeartBtn).not.toBeInTheDocument();
 
       // 2. Click Details Button
       const detailBtn = screen.getByRole('button', { name: /상세 정보 보기/ });
@@ -206,30 +199,11 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
       fireEvent.click(cardBodyBtn);
       expect(onCardClickMock).toHaveBeenCalledTimes(1);
       expect(onCardClickMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
-
-      // 4. Test with isFavorite=true
-      rerender(
-        <TimelineItemCard
-          item={testItem}
-          isSelected={true}
-          areaUnit="p"
-          isFavorite={true}
-          onToggleFavorite={onToggleFavoriteMock}
-          onCardHover={onCardHoverMock}
-          onCardClick={onCardClickMock}
-          onDetailsClick={onDetailsClickMock}
-          onDetailsHover={onDetailsHoverMock}
-        />
-      );
-      fireEvent.click(favHeartBtn);
-      expect(onToggleFavoriteMock).toHaveBeenCalledTimes(2);
-      expect(onCardClickMock).toHaveBeenCalledTimes(1);
     });
 
-    test('TimelineItemRow strictly isolates Favorite Heart and Detail clicks from Row Selection', () => {
+    test('TimelineItemRow strictly isolates Detail click from Row Selection and does not render favorite button', () => {
       const onCardClickMock = jest.fn();
       const onDetailsClickMock = jest.fn();
-      const onToggleFavoriteMock = jest.fn();
 
       const testItem: TimelineItem = {
         aptName: '동탄역 시범 우남퍼스트빌',
@@ -249,18 +223,14 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
           item={testItem}
           isSelected={false}
           areaUnit="m2"
-          isFavorite={false}
-          onToggleFavorite={onToggleFavoriteMock}
           onCardClick={onCardClickMock}
           onDetailsClick={onDetailsClickMock}
         />
       );
 
-      // 1. Click Heart
-      const favHeartBtn = screen.getByRole('button', { name: /관심 단지 등록/ });
-      fireEvent.click(favHeartBtn);
-      expect(onToggleFavoriteMock).toHaveBeenCalledTimes(1);
-      expect(onCardClickMock).not.toHaveBeenCalled();
+      // 1. Verify Heart is NOT present
+      const favHeartBtn = screen.queryByRole('button', { name: /관심 단지/ });
+      expect(favHeartBtn).not.toBeInTheDocument();
 
       // 2. Click Details
       const detailBtn = screen.getByRole('button', { name: /상세 정보 보기/ });
@@ -358,8 +328,6 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
             selectedApt={selectedApt}
             onSelectApt={setSelectedApt}
             onDetailsClick={setSelectedApt}
-            userFavorites={favorites}
-            onToggleFavorite={handleToggleFavorite}
             timelineDongFilter={timelineDongFilter}
             setTimelineDongFilter={setTimelineDongFilter}
             timelineAptFilter={timelineAptFilter}

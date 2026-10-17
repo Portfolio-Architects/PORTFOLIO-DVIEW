@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { AptDonutSection, PRICE_TIER_COLORS, formatPriceEok, formatSectorAvgPrice } from './AptDonutSection';
+import { AptDonutSection, PRICE_TIER_COLORS, PYEONG_TIER_COLORS, formatPriceEok, formatSectorAvgPrice } from './AptDonutSection';
 
 // Mock Recharts
 jest.mock('recharts', () => {
@@ -10,17 +10,30 @@ jest.mock('recharts', () => {
     ...OriginalModule,
     ResponsiveContainer: ({ children }: any) => <div data-testid="responsive-container" style={{ width: '100%', height: '100%' }}>{children}</div>,
     PieChart: ({ children }: any) => <svg data-testid="pie-chart">{children}</svg>,
-    Pie: ({ children, onClick, data }: any) => (
-      <g data-testid="pie" onClick={() => onClick && data && data[0] && onClick(data[0])}>
+    Pie: ({ children, onClick, onMouseEnter, onMouseLeave, data }: any) => (
+      <g
+        data-testid="pie"
+        onClick={() => onClick && data && data[0] && onClick(data[0])}
+        onMouseEnter={(e) => onMouseEnter && data && data[0] && onMouseEnter(data[0], 0, e)}
+        onMouseLeave={onMouseLeave}
+      >
         {children}
       </g>
     ),
-    Cell: ({ fill, onClick }: any) => <path data-testid="pie-cell" fill={fill} onClick={onClick} />,
+    Cell: ({ fill, onClick, onMouseEnter, onMouseLeave }: any) => (
+      <path
+        data-testid="pie-cell"
+        fill={fill}
+        onClick={onClick}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      />
+    ),
     Tooltip: () => <div data-testid="tooltip" />,
   };
 });
 
-jest.mock('@/components/common/preload', () => ({
+jest.mock('@/lib/preload', () => ({
   preloadApartmentModal: jest.fn(),
 }));
 
@@ -61,8 +74,8 @@ describe('AptDonutSection Test Suite', () => {
       contractDate: '20260816',
       priceVal: 8.5,
       priceEok: '8억 5,000만',
-      area: 84.5,
-      areaPyeong: 33.5,
+      area: 95.5,
+      areaPyeong: 38.5,
       floor: 12,
       isNewHigh: false,
       delta: 0,
@@ -75,8 +88,8 @@ describe('AptDonutSection Test Suite', () => {
       contractDate: '20260815',
       priceVal: 5.2,
       priceEok: '5억 2,000만',
-      area: 84.7,
-      areaPyeong: 33.6,
+      area: 115.0,
+      areaPyeong: 45.0,
       floor: 10,
       isNewHigh: false,
       delta: -0.3,
@@ -107,8 +120,8 @@ describe('AptDonutSection Test Suite', () => {
     },
   };
 
-  describe('Price Tier Demand Distribution', () => {
-    it('renders price tier demand tiers by default with exact 100% total percentage sum', () => {
+  describe('Pyeong & Price Mode Toggle & Distribution', () => {
+    it('renders pyeong tier demand tiers by default with exact 100% total percentage sum', () => {
       render(
         <AptDonutSection
           mounted={true}
@@ -117,24 +130,60 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      // Header title
-      expect(screen.getByText('실거래 가격대별 수요 분포')).toBeInTheDocument();
-      expect(screen.queryByText('실거래 시장 체감 온도')).not.toBeInTheDocument();
-      expect(screen.queryByText('시장 체감 온도')).not.toBeInTheDocument();
+      // Mode switch buttons
+      const pyeongBtn = screen.getByRole('button', { name: '평형대별' });
+      const priceBtn = screen.getByRole('button', { name: '가격대별' });
+      expect(pyeongBtn).toBeInTheDocument();
+      expect(priceBtn).toBeInTheDocument();
+      expect(pyeongBtn).toHaveAttribute('aria-pressed', 'true');
+      expect(priceBtn).toHaveAttribute('aria-pressed', 'false');
 
-      // 4 price tiers
-      expect(screen.getByText('6억 이하')).toBeInTheDocument();
-      expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
-      expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();
-      expect(screen.getByText('15억 초과')).toBeInTheDocument();
+      // 4 pyeong tiers by default
+      expect(screen.getByText('소형 (60㎡ 이하)')).toBeInTheDocument();
+      expect(screen.getByText('중소형 (60~85㎡)')).toBeInTheDocument();
+      expect(screen.getByText('중대형 (85~102㎡)')).toBeInTheDocument();
+      expect(screen.getByText('대형 (102㎡ 초과)')).toBeInTheDocument();
 
       // 4 items: each 1 count -> 25.0% each
       const percentageElements = screen.getAllByText('25.0%');
       expect(percentageElements.length).toBeGreaterThanOrEqual(4);
 
       // Center overlay badge
-      expect(screen.getByText('가격대별 수요')).toBeInTheDocument();
-      expect(screen.getByText('최근 90일 기준')).toBeInTheDocument();
+      expect(screen.getByText('총 실거래')).toBeInTheDocument();
+      expect(screen.getByText('4건')).toBeInTheDocument();
+      expect(screen.getByText(/최근 90일.*기준/)).toBeInTheDocument();
+    });
+
+    it('switches between pyeong mode and price mode via switch toggle cleanly', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
+
+      // Default: Pyeong mode
+      expect(screen.getByText('소형 (60㎡ 이하)')).toBeInTheDocument();
+      expect(screen.queryByText('6억 이하')).not.toBeInTheDocument();
+
+      // Click '가격대별' button
+      const priceBtn = screen.getByRole('button', { name: '가격대별' });
+      fireEvent.click(priceBtn);
+
+      // Now Price mode is active
+      expect(screen.getByText('6억 이하')).toBeInTheDocument();
+      expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
+      expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();
+      expect(screen.getByText('15억 초과')).toBeInTheDocument();
+      expect(screen.queryByText('소형 (60㎡ 이하)')).not.toBeInTheDocument();
+
+      // Click '평형대별' button to switch back
+      const pyeongBtn = screen.getByRole('button', { name: '평형대별' });
+      fireEvent.click(pyeongBtn);
+
+      expect(screen.getByText('소형 (60㎡ 이하)')).toBeInTheDocument();
+      expect(screen.queryByText('6억 이하')).not.toBeInTheDocument();
     });
 
     it('displays representative apartment inline and selects category on card click to connect with KPI cards', () => {
@@ -154,16 +203,15 @@ describe('AptDonutSection Test Suite', () => {
       );
 
       // Simplified 1-line card shows category name and transaction count
-      expect(screen.getByText('6억 이하')).toBeInTheDocument();
-      expect(screen.queryByText('최다 거래')).not.toBeInTheDocument();
+      expect(screen.getByText('소형 (60㎡ 이하)')).toBeInTheDocument();
       expect(screen.getAllByText('(1건)').length).toBeGreaterThanOrEqual(1);
 
       // Clicking card toggles category selection and notifies onActiveSectorChange without opening modal
-      const under6Row = screen.getByLabelText(/6억 이하 1건/i);
-      fireEvent.click(under6Row);
+      const smallRow = screen.getByLabelText(/소형 \(60㎡ 이하\) 1건/i);
+      fireEvent.click(smallRow);
       expect(mockOnSelectApt).not.toHaveBeenCalled();
       expect(mockOnActiveSectorChange).toHaveBeenCalledWith(
-        expect.objectContaining({ name: '6억 이하' })
+        expect.objectContaining({ name: '소형 (60㎡ 이하)' })
       );
 
       // Selection reset button works
@@ -199,7 +247,32 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      expect(screen.getByText('실거래 가격대별 수요 분포')).toBeInTheDocument();
+      expect(screen.getByText('수요 분포')).toBeInTheDocument();
+    });
+
+    it('applies responsive layout classes preventing mobile vertical overflow and width shrinkage', () => {
+      const { container } = render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
+
+      // Verify header uses CSS order classes for responsive 2-row layout
+      const modeSwitchContainer = container.querySelector('.order-3');
+      expect(modeSwitchContainer).toBeInTheDocument();
+      expect(modeSwitchContainer).toHaveClass('w-full');
+
+      // Verify chart wrapper uses sm:h-full instead of unbounded mobile h-full
+      const chartWrapper = container.querySelector('.sm\\:border-r');
+      expect(chartWrapper).toBeInTheDocument();
+      expect(chartWrapper).toHaveClass('sm:h-full');
+      expect(chartWrapper?.className).not.toMatch(/\s+h-full\s+/);
+
+      // Verify legend wrapper expands to 100% width on mobile
+      const legendWrapper = container.querySelector('.w-full.sm\\:flex-1');
+      expect(legendWrapper).toBeInTheDocument();
     });
 
     it('filters out public rental apartments when publicRentalSet is provided', () => {
@@ -213,8 +286,8 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      // Out of 4 transactions, '서동탄역 우남퍼스트빌' (6억 이하) is filtered -> 3 remaining
-      // 6억 이하 is 0건 / 0.0%
+      // Out of 4 transactions, '서동탄역 우남퍼스트빌' (대형) is filtered -> 3 remaining
+      // 대형 is 0건 / 0.0%
       expect(screen.getByText('0.0%')).toBeInTheDocument();
     });
 
@@ -230,12 +303,12 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      // Click '6억 ~ 9억'
-      const under9Row = screen.getByLabelText(/6억 ~ 9억 1건/i);
-      fireEvent.click(under9Row);
+      // Click '중소형 (60~85㎡)'
+      const mediumRow = screen.getByLabelText(/중소형 \(60~85㎡\) 1건/i);
+      fireEvent.click(mediumRow);
 
-      expect(onActiveChange).toHaveBeenCalledWith('6억 ~ 9억');
-      expect(screen.getAllByText('6억 ~ 9억').length).toBeGreaterThanOrEqual(1);
+      expect(onActiveChange).toHaveBeenCalledWith('중소형 (60~85㎡)');
+      expect(screen.getAllByText('중소형 (60~85㎡)').length).toBeGreaterThanOrEqual(1);
     });
 
     it('correctly resolves dong and aliases via nameMapping', () => {
@@ -263,8 +336,8 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      const under15Row = screen.getByLabelText(/9억 ~ 15억 1건/i);
-      fireEvent.click(under15Row);
+      const mediumRow = screen.getByLabelText(/중소형 \(60~85㎡\) 1건/i);
+      fireEvent.click(mediumRow);
 
       // Should resolve dong '청계동' in activeSector repApt
       expect(onActiveSectorChange).toHaveBeenCalledWith(
@@ -278,9 +351,9 @@ describe('AptDonutSection Test Suite', () => {
 
     it('guarantees percentage sum equals exactly 100.0% for odd number of transactions', () => {
       const threeTransactions = [
-        { aptName: 'Apt1', priceVal: 5, areaPyeong: 25 },
-        { aptName: 'Apt2', priceVal: 8, areaPyeong: 34 },
-        { aptName: 'Apt3', priceVal: 12, areaPyeong: 45 },
+        { aptName: 'Apt1', priceVal: 5, area: 55, areaPyeong: 25 },
+        { aptName: 'Apt2', priceVal: 8, area: 84, areaPyeong: 34 },
+        { aptName: 'Apt3', priceVal: 12, area: 98, areaPyeong: 45 },
       ];
 
       render(
@@ -311,11 +384,11 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      const under9Row = screen.getByLabelText(/6억 ~ 9억 1건/i);
-      fireEvent.mouseEnter(under9Row);
+      const mediumRow = screen.getByLabelText(/중소형 \(60~85㎡\) 1건/i);
+      fireEvent.mouseEnter(mediumRow);
       expect(mockPreload).not.toHaveBeenCalled();
 
-      fireEvent.click(under9Row);
+      fireEvent.click(mediumRow);
       expect(mockSelectApt).not.toHaveBeenCalled();
     });
 
@@ -336,11 +409,10 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      const over15Row = screen.getByLabelText(/15억 초과 1건/i);
-      fireEvent.click(over15Row);
+      const smallRow = screen.getByLabelText(/소형 \(60㎡ 이하\) 1건/i);
+      fireEvent.click(smallRow);
 
-      expect(screen.getAllByText('15억 초과').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText('평균 16.5억').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText('소형 (60㎡ 이하)').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -364,7 +436,7 @@ describe('AptDonutSection Test Suite', () => {
       expect(screen.queryByRole('button', { name: /전체/i })).not.toBeInTheDocument();
 
       // Check center overlay period label
-      expect(screen.getByText('최근 90일 기준')).toBeInTheDocument();
+      expect(screen.getByText(/최근 90일.*기준/)).toBeInTheDocument();
     });
 
     it('switches period and invokes onPeriodChange callback when period button is clicked', () => {
@@ -382,19 +454,19 @@ describe('AptDonutSection Test Suite', () => {
       fireEvent.click(sevenDaysBtn);
 
       expect(handlePeriodChange).toHaveBeenCalledWith('7d');
-      expect(screen.getByText('최근 7일 기준')).toBeInTheDocument();
+      expect(screen.getByText(/최근 7일.*기준/)).toBeInTheDocument();
 
       const thirtyDaysBtn = screen.getByRole('button', { name: /최근 30일 실거래 보기/i });
       fireEvent.click(thirtyDaysBtn);
 
       expect(handlePeriodChange).toHaveBeenCalledWith('30d');
-      expect(screen.getByText('최근 30일 기준')).toBeInTheDocument();
+      expect(screen.getByText(/최근 30일.*기준/)).toBeInTheDocument();
 
       const oneYearBtn = screen.getByRole('button', { name: /최근 1년 실거래 보기/i });
       fireEvent.click(oneYearBtn);
 
       expect(handlePeriodChange).toHaveBeenCalledWith('1y');
-      expect(screen.getByText('최근 1년 기준')).toBeInTheDocument();
+      expect(screen.getByText(/최근 1년.*기준/)).toBeInTheDocument();
     });
 
     it('filters transactions dynamically by date for 7d period', () => {
@@ -438,6 +510,118 @@ describe('AptDonutSection Test Suite', () => {
     });
   });
 
+  describe('AdSense Yield Optimization & Policy Finance Integration', () => {
+    it('maintains clean card layouts without cluttered policy descriptions in price mode', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          initialMode="price"
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
+
+      // Verify verbose policy descriptions are removed from cards for intuitive customer appeal
+      expect(screen.queryByText('보금자리론·디딤돌·신생아특례 정책대출 적격 가성비 구간')).not.toBeInTheDocument();
+      expect(screen.queryByText('신생아특례 대출 상한 및 국평 실거주 주력 수요 구간')).not.toBeInTheDocument();
+      expect(screen.queryByText('동탄역세권 대장 단지 및 상급지 갈아타기 선호 구간')).not.toBeInTheDocument();
+      expect(screen.queryByText('동탄 최고가 랜드마크 및 하이엔드 자산가 구간')).not.toBeInTheDocument();
+
+      // Verify micro-chip capsules and badges are completely removed from legend cards in price mode
+      expect(screen.queryByText('디딤돌·신생아 1.6%~')).not.toBeInTheDocument();
+      expect(screen.queryByText('신생아특례 5억')).not.toBeInTheDocument();
+      expect(screen.queryByText('상급지 갈아타기')).not.toBeInTheDocument();
+      expect(screen.queryByText('하이엔드 프리미엄')).not.toBeInTheDocument();
+      expect(screen.queryByText('인기 1위')).not.toBeInTheDocument();
+
+      // Verify center HUD maintains clean aesthetic
+      expect(screen.queryByText(/정책적격/)).not.toBeInTheDocument();
+    });
+
+    it('removes all micro-chip capsules and badges from legend cards in pyeong mode', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          initialMode="pyeong"
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
+
+      // Verify all pyeong micro-chip capsules and popularity badges are completely removed
+      expect(screen.queryByText('1~2인·신혼')).not.toBeInTheDocument();
+      expect(screen.queryByText('국민평형 84타입')).not.toBeInTheDocument();
+      expect(screen.queryByText('여유공간 선호')).not.toBeInTheDocument();
+      expect(screen.queryByText('희소 펜트·대형')).not.toBeInTheDocument();
+      expect(screen.queryByText('인기 1위')).not.toBeInTheDocument();
+    });
+
+    it('enforces exact 4-color palette invariance between pyeong and price tiers', () => {
+      expect(PRICE_TIER_COLORS.under6).toBe(PYEONG_TIER_COLORS.small);
+      expect(PRICE_TIER_COLORS.under9).toBe(PYEONG_TIER_COLORS.medium);
+      expect(PRICE_TIER_COLORS.under15).toBe(PYEONG_TIER_COLORS.large);
+      expect(PRICE_TIER_COLORS.over15).toBe(PYEONG_TIER_COLORS.xlarge);
+
+      expect(PRICE_TIER_COLORS.under6).toBe('#10b981');
+      expect(PRICE_TIER_COLORS.under9).toBe('#057e77');
+      expect(PRICE_TIER_COLORS.under15).toBe('#3b82f6');
+      expect(PRICE_TIER_COLORS.over15).toBe('#e11d48');
+    });
+
+    it('triggers onOpenMortgageModal callback when loan CTA is clicked in selected card in price mode', () => {
+      const mockOpenMortgage = jest.fn();
+      render(
+        <AptDonutSection
+          mounted={true}
+          initialMode="price"
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          onOpenMortgageModal={mockOpenMortgage}
+        />
+      );
+
+      // Select '6억 ~ 9억'
+      const under9Row = screen.getByLabelText(/6억 ~ 9억 1건/i);
+      fireEvent.click(under9Row);
+
+      // Verify CTA button appears
+      const loanCta = screen.getByText(/대출 한도·금리 >/i);
+      expect(loanCta).toBeInTheDocument();
+
+      // Click loan CTA
+      fireEvent.click(loanCta);
+      expect(mockOpenMortgage).toHaveBeenCalledTimes(1);
+    });
+
+    it('transitions center HUD cleanly when hovering over pie slice without floating tooltip overlap', () => {
+      render(
+        <AptDonutSection
+          mounted={true}
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+        />
+      );
+
+      // Initially Center HUD shows total transactions
+      expect(screen.getByText('총 실거래')).toBeInTheDocument();
+      expect(screen.getByText('4건')).toBeInTheDocument();
+
+      // Hover over Pie slice
+      const pie = screen.getByTestId('pie');
+      fireEvent.mouseEnter(pie);
+
+      // Center HUD transitions to show the hovered slice cleanly
+      expect(screen.getAllByText('소형 (60㎡ 이하)').length).toBe(2);
+      expect(screen.getAllByText('25.0%').length).toBeGreaterThanOrEqual(4);
+      expect(screen.queryByText('총 실거래')).not.toBeInTheDocument();
+
+      // Mouse leaves Pie
+      fireEvent.mouseLeave(pie);
+      expect(screen.getByText('총 실거래')).toBeInTheDocument();
+      expect(screen.getByText('4건')).toBeInTheDocument();
+    });
+  });
+
   describe('Helper Functions', () => {
     it('formatPriceEok formats valid and invalid values correctly', () => {
       expect(formatPriceEok(16.5)).toBe('16억 5,000만');
@@ -455,6 +639,23 @@ describe('AptDonutSection Test Suite', () => {
           { aptName: 'Apt2', priceVal: 12, dong: '청계동', priceEok: '12억', areaPyeong: 25, delta: 0 },
         ])
       ).toBe('평균 11.0억');
+    });
+  });
+
+  describe('Header Layout & Title Readability Invariant', () => {
+    it('renders prominent title with indicator dot and total count badge', () => {
+      render(
+        <AptDonutSection
+          recentTransactions={mockRecentTransactions}
+          mounted={true}
+        />
+      );
+
+      const titleHeading = screen.getByRole('heading', { level: 3, name: '수요 분포' });
+      expect(titleHeading).toBeInTheDocument();
+      expect(screen.getByText('총 4건')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '평형대별' })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: '가격대별' })).toBeInTheDocument();
     });
   });
 });

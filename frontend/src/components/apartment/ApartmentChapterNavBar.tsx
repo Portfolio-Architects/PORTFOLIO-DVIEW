@@ -132,10 +132,12 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
 }) => {
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const onSelectChapterRef = useRef(onSelectChapter);
-  onSelectChapterRef.current = onSelectChapter;
-
   const activeChapterRef = useRef(activeChapter);
-  activeChapterRef.current = activeChapter;
+
+  useEffect(() => {
+    onSelectChapterRef.current = onSelectChapter;
+    activeChapterRef.current = activeChapter;
+  }, [onSelectChapter, activeChapter]);
 
   const isManualScrollRef = useRef(false);
   const manualScrollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -213,7 +215,7 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
       }
       observer.disconnect();
     };
-  }, [scrollContainerRef?.current]);
+  }, [scrollContainerRef]);
 
   const handleTabClick = (chapterId: string) => {
     if (manualScrollTimeoutRef.current) {

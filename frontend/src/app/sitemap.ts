@@ -73,6 +73,30 @@ export default async function sitemap({ id }: { id: string | number }): Promise<
         priority: 0.9,
       },
       {
+        url: `${baseUrl}/guide`,
+        lastModified: new Date(),
+        changeFrequency: 'weekly',
+        priority: 0.95,
+      },
+      {
+        url: `${baseUrl}/guide/dongtan-1-vs-2-comparison`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.9,
+      },
+      {
+        url: `${baseUrl}/guide/gtx-a-tram-rail-network`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.9,
+      },
+      {
+        url: `${baseUrl}/guide/stress-dsr-valuation-guide`,
+        lastModified: new Date(),
+        changeFrequency: 'monthly',
+        priority: 0.9,
+      },
+      {
         url: `${baseUrl}/about`,
         lastModified: staticFixedDate,
         changeFrequency: 'weekly',

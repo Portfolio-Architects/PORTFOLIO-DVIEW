@@ -219,17 +219,17 @@ describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test 
       // Click 디딤돌 대출 tab
       const didimdolTab = screen.getByRole('button', { name: '디딤돌 대출' });
       fireEvent.click(didimdolTab);
-      expect(didimdolTab).toHaveClass('text-brand-orange');
+      expect(didimdolTab).toHaveClass('text-[#057e77]');
 
       // Click 보금자리론 tab
       const bogeumTab = screen.getByRole('button', { name: '보금자리론' });
       fireEvent.click(bogeumTab);
-      expect(bogeumTab).toHaveClass('text-brand-orange');
+      expect(bogeumTab).toHaveClass('text-[#057e77]');
 
       // Click price preset button (5억)
       const price5 = screen.getByRole('button', { name: '5억' });
       fireEvent.click(price5);
-      expect(price5).toHaveClass('bg-brand-orange');
+      expect(price5).toHaveClass('bg-[#057e77]');
 
       // Click CTA button
       const ctaBtn = screen.getByRole('button', { name: /정밀 정책자금 한도 계산기 열기/ });
@@ -246,12 +246,12 @@ describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test 
       // Click deposit preset (3억)
       const dep3 = screen.getByRole('button', { name: '3억' });
       fireEvent.click(dep3);
-      expect(dep3).toHaveClass('bg-brand-orange');
+      expect(dep3).toHaveClass('bg-[#057e77]');
 
       // Click mortgage preset (5천만)
       const mort5 = screen.getByRole('button', { name: '5천만' });
       fireEvent.click(mort5);
-      expect(mort5).toHaveClass('bg-brand-orange');
+      expect(mort5).toHaveClass('bg-[#057e77]');
 
       // Click CTA
       const cta = screen.getByRole('button', { name: /내 전세 계약서 안심 4단계 정밀진단/ });
@@ -268,13 +268,13 @@ describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test 
       // Tab 2: 갭 최적
       const gapTab = screen.getByTestId('ranking-tab-gap');
       fireEvent.click(gapTab);
-      expect(gapTab).toHaveClass('text-brand-orange');
+      expect(gapTab).toHaveClass('text-[#057e77]');
       expect(screen.getAllByText(/갭 1\./).length).toBeGreaterThanOrEqual(1);
 
       // Tab 3: 거래량 급증
       const surgeTab = screen.getByTestId('ranking-tab-surge');
       fireEvent.click(surgeTab);
-      expect(surgeTab).toHaveClass('text-brand-orange');
+      expect(surgeTab).toHaveClass('text-[#057e77]');
       expect(screen.getAllByText(/주간 \d+건/).length).toBeGreaterThanOrEqual(1);
 
       // Click row

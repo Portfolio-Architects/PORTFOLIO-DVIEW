@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search, Bell } from 'lucide-react';
 import localFont from 'next/font/local';
-import { Inter } from 'next/font/google';
+import { Inter, Cormorant_Garamond, Outfit, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
 const pretendard = localFont({
@@ -18,7 +18,34 @@ const inter = Inter({
   variable: '--font-inter',
   preload: false,
 });
-import OfflineBanner from '@/components/OfflineBanner';
+
+const cormorant = Cormorant_Garamond({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-cormorant',
+  preload: false,
+  fallback: ['Georgia', 'serif'],
+  weight: ['400', '600', '700'],
+});
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-outfit',
+  preload: false,
+  fallback: ['sans-serif'],
+  weight: ['400', '500', '600', '700'],
+});
+
+const jetbrainsMono = JetBrains_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-jetbrains-mono',
+  preload: false,
+  fallback: ['monospace'],
+  weight: ['400', '500', '700'],
+});
+import OfflineBanner from '@/components/ui/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
 import SiteTracker from '@/components/SiteTracker';
 import { PWAProvider } from '@/components/pwa/PWAProvider';
@@ -33,6 +60,7 @@ import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
 import { safeReload } from '@/lib/utils/safeReload';
 import ScrollToTop from '@/components/ui/ScrollToTop';
+import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
 import { logger } from '@/lib/services/logger';
 
 const CustomA2HSModal = dynamic(() => import('@/components/pwa/CustomA2HSModal'));
@@ -40,7 +68,7 @@ const WelcomeModal = dynamic(() => import('@/components/ui/WelcomeModal'));
 
 
 export const metadata: Metadata = {
-  referrer: 'no-referrer',
+  referrer: 'strict-origin-when-cross-origin',
   metadataBase: new URL('https://dongtanview.com'),
   title: 'D-VIEW | 동탄 아파트 가치분석',
   description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
@@ -124,27 +152,25 @@ export default function RootLayout({
   const nonce = undefined;
 
   return (
-    <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable}`}>
+    <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable} ${cormorant.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
       <head>
-        <meta name="referrer" content="no-referrer" />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />
         <link rel="preconnect" href="https://t1.kakaocdn.net" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
-      </head>
-      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 aurora-bg">
-        {/* Google AdSense (Conditionally loaded when NEXT_PUBLIC_ADSENSE_CLIENT_ID is set) */}
+        {/* Google AdSense (Conditionally loaded with strategy="afterInteractive") */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
           <Script
             id="google-adsense"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
             strategy="afterInteractive"
             crossOrigin="anonymous"
-            nonce={nonce}
           />
         )}
+      </head>
+      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 aurora-bg">
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 
@@ -181,6 +207,7 @@ export default function RootLayout({
                   <Footer />
                   <CustomA2HSModal />
                   <WelcomeModal />
+                  <ScrollOptimizer />
                   <ScrollToTop />
                 </PWAProvider>
                 <div id="modal-root" />

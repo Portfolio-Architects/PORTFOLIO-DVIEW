@@ -5,27 +5,7 @@
  * - applyIqrOutlierDetection: IQR-based lower bounding outlier detection
  */
 
-/**
- * 거래 취소/해제 여부 판별 유틸리티
- * @param {Object} t - 실거래 레코드
- * @returns {boolean} 취소/해제 거래 여부
- */
-function isCancelledTransaction(t) {
-  if (!t) return false;
-  if (t.isCanceled === true) return true;
-  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
-  
-  const isInvalidDate = (v) => {
-    if (v === null || v === undefined) return true;
-    const s = String(v).trim().toLowerCase();
-    return !s || s === '-' || s === 'null' || s === 'undefined' || s === 'nan';
-  };
-
-  if (!isInvalidDate(t.cancelDate)) return true;
-  if (!isInvalidDate(t.cdealDay)) return true;
-
-  return false;
-}
+const { isCancelledTransaction } = require('../../pipeline/core/normalizer');
 
 /**
  * 직거래 여부 판별 유틸리티
@@ -69,7 +49,7 @@ function filterOutliersRolling(txs) {
 
   const byArea = {};
   sortedTxs.forEach(t => {
-    const a = Math.round(t.area || 0);
+    const a = Math.floor(t.area || 0);
     if (!byArea[a]) byArea[a] = [];
     byArea[a].push(t);
   });
@@ -146,7 +126,7 @@ function applyIqrOutlierDetection(records) {
     const evaluatedPrice = isRent
       ? (r.deposit || 0) + (r.monthlyRent ? Math.round(r.monthlyRent * 12 / 0.055) : 0)
       : (r.price || 0);
-    const areaKey = Math.round(r.area || 0);
+    const areaKey = Math.floor(r.area || 0);
     const typeKey = isRent ? 'rent' : 'sale';
     const groupKey = `${areaKey}_${typeKey}`;
     
@@ -175,10 +155,11 @@ function applyIqrOutlierDetection(records) {
     };
     const q1 = getPercentile(sortedPrices, 0.25);
     const q3 = getPercentile(sortedPrices, 0.75);
+    const median = getPercentile(sortedPrices, 0.5);
     const iqr = q3 - q1;
     iqrBounds[groupKey] = {
       lower: q1 - 1.5 * iqr,
-      upper: q3 + 1.5 * iqr,
+      upper: Math.max(q3 + 1.5 * iqr, Math.round(median * 1.35)),
       iqr,
       count: prices.length
     };

@@ -90,7 +90,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: false,
     stationDistance: 'close',
     desc: '세련된 오피스 인테리어와 업무 편의 시설, 다채로운 먹거리 상권이 융합된 문화형 복합 지산입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20',
+    imgPlaceholder: 'bg-gradient-to-br from-[#057e77]/20 to-teal-500/10 text-[#057e77] dark:from-[#057e77]/10 dark:to-emerald-500/20 dark:text-emerald-400',
     score: 92,
     totalUnits: 2470,
     vacancyRate: 28.5,
@@ -156,7 +156,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'close',
     desc: '제조형 공장과 스마트 오피스가 조화롭게 융합된 현대엔지니어링 시공의 프리미엄 지식산업센터입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20',
+    imgPlaceholder: 'bg-gradient-to-br from-[#057e77]/20 to-teal-500/10 text-[#057e77] dark:from-[#057e77]/10 dark:to-emerald-500/20 dark:text-emerald-400',
     score: 91,
     totalUnits: 824,
     vacancyRate: 18.2,
@@ -222,7 +222,7 @@ const BUILDINGS_DB: OfficeBuilding[] = [
     driveIn: true,
     stationDistance: 'moderate',
     desc: '스타트업 및 소형 창고 임차가 필요한 소자본 임차인에게 최고의 평단 가성비를 제공하는 실속형 센터입니다.',
-    imgPlaceholder: 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20',
+    imgPlaceholder: 'bg-gradient-to-br from-[#057e77]/20 to-teal-500/10 text-[#057e77] dark:from-[#057e77]/10 dark:to-emerald-500/20 dark:text-emerald-400',
     score: 86,
     totalUnits: 276,
     vacancyRate: 25.4,
@@ -306,7 +306,7 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
             <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-zinc-800 text-secondary/80 dark:text-zinc-400 shrink-0">
               {building.type}
             </span>
-            <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-500/10 dark:bg-orange-500/20 text-[#ea6100] shrink-0">
+            <span className="text-[9.5px] sm:text-[10px] font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-[#057e77]/10 dark:bg-emerald-400/20 text-[#057e77] dark:text-emerald-400 shrink-0">
               종합 {building.score}점
             </span>
             {building.driveIn && (
@@ -329,9 +329,9 @@ const OfficeBuildingCard = React.memo(function OfficeBuildingCard({
       <div className="flex md:flex-col items-center md:items-end justify-between md:justify-center gap-2 mt-3 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 dark:border-white/10 border-dashed shrink-0 w-full md:w-auto min-w-0 box-border">
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[10.5px] sm:text-[11px] font-bold text-secondary/60 dark:text-zinc-400">평당 임대료</span>
-          <span className="text-xs sm:text-sm font-black text-[#ea6100] mt-0.5">{building.rentPerPy}</span>
+          <span className="text-xs sm:text-sm font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{building.rentPerPy}</span>
         </div>
-        <span className="text-[11.5px] sm:text-[12px] font-extrabold text-secondary/90 dark:text-zinc-300 bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 dark:border-white/10 group-hover:bg-[#ea6100]/10 group-hover:text-[#ea6100] group-hover:border-[#ea6100]/20 dark:group-hover:bg-[#ea6100]/20 dark:group-hover:border-[#ea6100]/30 transition-all duration-300 shrink-0">
+        <span className="text-[11.5px] sm:text-[12px] font-extrabold text-secondary/90 dark:text-zinc-300 bg-neutral-50 dark:bg-zinc-800/40 px-3 py-1.5 rounded-xl border border-border/40 dark:border-white/10 group-hover:bg-[#057e77]/10 group-hover:text-[#057e77] group-hover:border-[#057e77]/20 dark:group-hover:bg-emerald-400/20 dark:group-hover:text-emerald-400 dark:group-hover:border-emerald-400/30 transition-all duration-300 shrink-0">
           상세 정보
         </span>
       </div>
@@ -511,7 +511,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
         imgPlaceholder: idx % 3 === 0 
           ? 'bg-gradient-to-br from-brand-blue-light to-brand-blue/15 text-brand-blue dark:from-brand-blue-light/10 dark:to-brand-blue/20'
           : (idx % 3 === 1 
-            ? 'bg-gradient-to-br from-brand-orange-light to-brand-orange/15 text-brand-orange dark:from-brand-orange-light/10 dark:to-brand-orange/20'
+            ? 'bg-gradient-to-br from-[#057e77]/20 to-teal-500/10 text-[#057e77] dark:from-[#057e77]/10 dark:to-emerald-500/20 dark:text-emerald-400'
             : 'bg-gradient-to-br from-slate-100 to-slate-200/70 text-slate-600 dark:from-zinc-800 dark:to-zinc-900/70 dark:text-zinc-400'),
         score: calculateJisanScore(item),
         totalUnits: item.unitCount || 100,
@@ -601,7 +601,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
             {/* Filter Group 1: Drive-In */}
             <div>
               <h3 className="text-xs font-bold text-secondary/95 dark:text-zinc-100 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
-                <Filter size={14} className="text-[#ea6100]" />
+                <Filter size={14} className="text-[#057e77] dark:text-emerald-400" />
                 물류 / 하역 시설
               </h3>
               <div className="flex flex-col gap-1">
@@ -615,7 +615,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                     onClick={() => setSelectedDriveIn(opt.id as 'all' | 'yes' | 'no')}
                     className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                       selectedDriveIn === opt.id 
-                        ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
+                        ? 'bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/20 dark:text-emerald-400'
                         : 'text-secondary/70 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                   >
@@ -628,7 +628,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
             {/* Filter Group 2: Station Proximity */}
             <div>
               <h3 className="text-xs font-bold text-secondary/95 dark:text-zinc-100 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
-                <Filter size={14} className="text-[#ea6100]" />
+                <Filter size={14} className="text-[#057e77] dark:text-emerald-400" />
                 대중교통 입지
               </h3>
               <div className="flex flex-col gap-1">
@@ -641,7 +641,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                     onClick={() => setSelectedStation(opt.id as 'all' | 'near')}
                     className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                       selectedStation === opt.id 
-                        ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
+                        ? 'bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/20 dark:text-emerald-400'
                         : 'text-secondary/70 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                   >
@@ -654,7 +654,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
             {/* Filter Group 3: Building Scale */}
             <div>
               <h3 className="text-xs font-bold text-secondary/95 dark:text-zinc-100 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
-                <Filter size={14} className="text-[#ea6100]" />
+                <Filter size={14} className="text-[#057e77] dark:text-emerald-400" />
                 단지 규모
               </h3>
               <div className="flex flex-col gap-1">
@@ -667,7 +667,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                     onClick={() => setSelectedScale(opt.id as 'all' | 'huge')}
                     className={`w-full text-left py-2 px-3 text-[13px] font-extrabold rounded-xl transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                       selectedScale === opt.id 
-                        ? 'bg-[#c44d00]/5 text-[#c44d00] dark:bg-[#ea6100]/5 dark:text-[#ea6100]'
+                        ? 'bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/20 dark:text-emerald-400'
                         : 'text-secondary/70 dark:text-zinc-400 hover:bg-black/5 dark:hover:bg-white/5'
                     }`}
                   >
@@ -681,7 +681,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
           {/* Drag Resizer */}
           <div 
             onMouseDown={handleMouseDown}
-            className="hidden md:block w-[2px] hover:w-[4px] bg-border/30 dark:bg-white/10 hover:bg-[#ea6100]/60 dark:hover:bg-[#ea6100]/60 transition-all cursor-col-resize shrink-0 relative z-30"
+            className="hidden md:block w-[2px] hover:w-[4px] bg-border/30 dark:bg-white/10 hover:bg-[#057e77]/60 dark:hover:bg-emerald-400/60 transition-all cursor-col-resize shrink-0 relative z-30"
           />
 
           {/* 메인 리스트 영역 */}
@@ -692,7 +692,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
               <div>
                 <h2 className="text-base sm:text-lg font-black text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">지식산업센터 탐색</h2>
                 <p className="text-[11.5px] sm:text-[12px] text-secondary/80 dark:text-zinc-400 mt-1 leading-relaxed">
-                  총 <span className="text-[#ea6100] font-extrabold">{filteredBuildings.length}</span>개의 빌딩이 탐색되었습니다.
+                  총 <span className="text-[#057e77] dark:text-emerald-400 font-extrabold">{filteredBuildings.length}</span>개의 빌딩이 탐색되었습니다.
                 </p>
               </div>
 
@@ -704,7 +704,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                     placeholder="빌딩명 검색..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-body/60 dark:bg-zinc-850/40 border border-border/40 dark:border-white/10 focus:ring-2 focus:ring-[#ea6100]/30 dark:focus:ring-[#ea6100]/30 focus:border-[#ea6100] dark:focus:border-[#ea6100] rounded-xl pl-9 pr-4 py-2 text-[12.5px] font-semibold outline-none transition-all duration-300"
+                    className="w-full bg-body/60 dark:bg-zinc-850/40 border border-border/40 dark:border-white/10 focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 focus:border-[#057e77] dark:focus:border-emerald-400 rounded-xl pl-9 pr-4 py-2 text-[12.5px] font-semibold outline-none transition-all duration-300"
                   />
                   <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-secondary/70 dark:text-zinc-400" />
                 </div>
@@ -723,7 +723,7 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
                       onClick={() => setSortBy(opt.id as 'score' | 'rentPerPy' | 'station' | 'units' | 'vacancy')}
                       className={`px-3 py-1.5 rounded-full text-[11px] sm:text-[11.5px] font-extrabold border transition-all shrink-0 hover:scale-[1.02] active:scale-[0.98] duration-200 ${
                         sortBy === opt.id
-                          ? 'bg-[#c44d00] border-[#c44d00] text-white shadow-sm'
+                          ? 'bg-[#057e77] dark:bg-emerald-600 border-[#057e77] dark:border-emerald-600 text-white shadow-sm'
                           : 'bg-body border-border/40 dark:border-white/10 text-secondary/80 dark:text-zinc-300 hover:bg-black/5 dark:hover:bg-white/5'
                       }`}
                     >

@@ -70,20 +70,20 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
     ];
 
     it.each(adversarialTabs)(
-      'LoungeHeader renders EXACTLY 3 tabs when activeTab is "%s"',
+      'LoungeHeader renders EXACTLY 4 tabs when activeTab is "%s"',
       (activeTab) => {
         const { container } = render(<LoungeHeader activeTab={activeTab} />);
         const nav = container.querySelector('nav');
         expect(nav).toBeInTheDocument();
 
         const links = within(nav!).getAllByRole('link');
-        expect(links).toHaveLength(3);
+        expect(links).toHaveLength(4);
 
         const hrefs = links.map((l) => l.getAttribute('href'));
-        expect(hrefs).toEqual(['/', '/explore', '/mbti']);
+        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide']);
 
         const labels = links.map((l) => l.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
 
         // Zero trace of obsolete /stats, /techno, /office, /admin, /lounge
         expect(within(container).queryByText(/통계/)).toBeNull();
@@ -138,13 +138,14 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       const tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       const tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
-      const tabs = [tab1, tab2, tab3];
-      const expectedIds = ['overview', 'imjang', 'mbti'];
-      const expectedHrefs = ['/', '/explore', '/mbti'];
+      const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      const tabs = [tab1, tab2, tab3, tab4];
+      const expectedIds = ['overview', 'imjang', 'mbti', 'guide'];
+      const expectedHrefs = ['/', '/explore', '/mbti', '/guide'];
 
       act(() => {
         for (let i = 0; i < 100; i++) {
-          const tabIndex = i % 3;
+          const tabIndex = i % 4;
           fireEvent.click(tabs[tabIndex]);
           expect(onTabChangeSpy).toHaveBeenLastCalledWith(expectedIds[tabIndex]);
           expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', expectedHrefs[tabIndex]);
@@ -212,6 +213,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         { path: '/', hash: '#apt=동탄역시범우남퍼스트빌', expected: 'overview' },
         { path: '/explore', hash: '#apt=동탄역린스트라우스', expected: 'imjang' },
         { path: '/mbti', hash: '#result=ENFJ', expected: 'mbti' },
+        { path: '/guide', hash: '', expected: 'guide' },
         { path: '/', hash: '#report', expected: 'overview' },
         { path: '/explore', hash: '', expected: 'imjang' },
         { path: '/stats', hash: '', expected: 'overview' }, // Legacy /stats falls back to overview

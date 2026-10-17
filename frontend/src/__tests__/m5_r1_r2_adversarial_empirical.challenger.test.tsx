@@ -11,7 +11,7 @@ import React from 'react';
 import { render } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { calculateTwoSigma, TwoSigmaStats } from '../lib/analytics/twoSigmaEngine';
-import MacroTrendChart, { DiamondVertex } from '../components/MacroTrendChart';
+import MacroTrendChart, { DiamondVertex } from '../components/macro/MacroTrendChart';
 
 // Unmock recharts to test actual SVG polygon, line, and reference area DOM generation
 jest.unmock('recharts');
@@ -276,7 +276,7 @@ describe('Milestone M5 Challenger 1: Adversarial Empirical Stress Test Suite', (
       const cy = 75;
       const { container } = render(
         <svg>
-          <DiamondVertex cx={cx} cy={cy} radius={3.6} fill="#ea6100" stroke="#ffffff" />
+          <DiamondVertex cx={cx} cy={cy} radius={3.6} fill="#057e77" stroke="#ffffff" />
         </svg>
       );
       const polygon = container.querySelector('polygon');
@@ -284,7 +284,7 @@ describe('Milestone M5 Challenger 1: Adversarial Empirical Stress Test Suite', (
       // Points: cx,cy-r  cx+r,cy  cx,cy+r  cx-r,cy
       // 150, 71.4   153.6, 75   150, 78.6   146.4, 75
       expect(polygon).toHaveAttribute('points', '150,71.4 153.6,75 150,78.6 146.4,75');
-      expect(polygon).toHaveAttribute('fill', '#ea6100');
+      expect(polygon).toHaveAttribute('fill', '#057e77');
       expect(polygon).toHaveAttribute('stroke', '#ffffff');
       expect(polygon).toHaveAttribute('stroke-width', '1.5');
     });

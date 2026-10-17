@@ -39,7 +39,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
         {/* Header */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-brand-orange flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-[#057e77] dark:text-emerald-400 flex items-center justify-center shrink-0">
               <ShieldCheck size={17} />
             </div>
             <div>
@@ -51,7 +51,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
               </p>
             </div>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-brand-orange text-[10px] font-extrabold shrink-0 border border-teal-200/50 dark:border-teal-800/40">
+          <span className="px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-[#057e77] dark:text-emerald-400 text-[10px] font-extrabold shrink-0 border border-teal-200/50 dark:border-teal-800/40">
             D-VIEW 안심
           </span>
         </div>
@@ -69,7 +69,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                   onClick={() => setEstimatedPriceWon(price)}
                   className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
                     estimatedPriceWon === price
-                      ? 'bg-brand-orange text-white border-brand-orange'
+                      ? 'bg-[#057e77] dark:bg-emerald-600 text-white border-[#057e77] dark:border-emerald-600'
                       : 'bg-body text-secondary border-border/70 hover:border-border'
                   }`}
                 >
@@ -90,7 +90,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                   onClick={() => setJeonseDepositWon(dep)}
                   className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
                     jeonseDepositWon === dep
-                      ? 'bg-brand-orange text-white border-brand-orange'
+                      ? 'bg-[#057e77] dark:bg-emerald-600 text-white border-[#057e77] dark:border-emerald-600'
                       : 'bg-body text-secondary border-border/70 hover:border-border'
                   }`}
                 >
@@ -111,7 +111,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                   onClick={() => setSeniorMortgageWon(mort)}
                   className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
                     seniorMortgageWon === mort
-                      ? 'bg-brand-orange text-white border-brand-orange'
+                      ? 'bg-[#057e77] dark:bg-emerald-600 text-white border-[#057e77] dark:border-emerald-600'
                       : 'bg-body text-secondary border-border/70 hover:border-border'
                   }`}
                 >
@@ -162,7 +162,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
         <button
           type="button"
           onClick={handleOpen}
-          className="w-full py-2.5 px-3 bg-brand-orange hover:bg-brand-orange/95 text-white rounded-xl text-[12px] font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]"
+          className="w-full py-2.5 px-3 bg-[#057e77] hover:bg-[#046660] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-[12px] font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]"
         >
           <span>내 전세 계약서 안심 4단계 정밀진단</span>
           <ArrowRight size={13} />

@@ -59,7 +59,7 @@ export const ApartmentModalPriceSummary = React.memo(function ApartmentModalPric
 
       <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
         <span className="text-[11px] font-bold text-tertiary">최근 전세가</span>
-        <span className="text-[16px] font-extrabold text-[#ea6100]">{jeonseStr}</span>
+        <span className="text-[16px] font-extrabold text-[#f9a825] dark:text-amber-400">{jeonseStr}</span>
       </div>
 
       <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">

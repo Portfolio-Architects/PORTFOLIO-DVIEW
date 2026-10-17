@@ -1,6 +1,6 @@
 {
-  "cls": 0.05776837921142578,
-  "roundedCls": 0.06,
+  "cls": 0,
+  "roundedCls": 0,
   "target": 0.05,
-  "pass": false
+  "pass": true
 }

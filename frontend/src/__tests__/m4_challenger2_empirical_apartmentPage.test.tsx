@@ -27,6 +27,7 @@ import {
   buildApartmentJsonLd,
   getDefaultApartmentMetadata,
   getTxSummaryData,
+  buildMortgageSsrData,
   type ApartmentPageData,
   type TransactionRecord,
   type LocationScore,
@@ -404,6 +405,127 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       const srOnlyDiv = container.querySelector('.sr-only');
       expect(srOnlyDiv).not.toBeNull();
       expect(srOnlyDiv?.textContent).toContain('존재하지않는가상단지');
+    });
+  });
+
+  describe('10. Milestone 3: SSR Semantic HTML & Schema.org Structured Data Challenge', () => {
+    it('generates mathematically rigorous and finite Mortgage SSR data', () => {
+      const ssrData = buildMortgageSsrData('동탄역롯데캐슬', 150000, 80000);
+      expect(ssrData).toBeDefined();
+      expect(ssrData.principalWon).toBe(Math.round(150000 * 10000 * 0.7));
+      expect(ssrData.jeonseDepositWon).toBe(80000 * 10000);
+
+      // Amortization sanity
+      expect(ssrData.amortization.equalPi.monthlyPaymentWon).toBeGreaterThan(0);
+      expect(ssrData.amortization.equalPi.totalPaymentWon).toBeGreaterThan(ssrData.principalWon);
+      expect(ssrData.amortization.equalP.firstMonthPaymentWon).toBeGreaterThan(ssrData.amortization.equalP.lastMonthPaymentWon);
+
+      // DSR scenarios sanity
+      expect(ssrData.dsrScenarios.length).toBe(3);
+      expect(ssrData.dsrScenarios[0].maxLoanWon).toBeLessThan(ssrData.dsrScenarios[1].maxLoanWon);
+      expect(ssrData.dsrScenarios[1].maxLoanWon).toBeLessThan(ssrData.dsrScenarios[2].maxLoanWon);
+
+      // Rate shock scenarios sanity
+      expect(ssrData.rateShock.scenarios.length).toBe(4);
+      expect(ssrData.rateShock.scenarios[0].monthlyPaymentWon).toBeLessThan(ssrData.rateShock.scenarios[3].monthlyPaymentWon);
+
+      // Jeonse shortfall sanity
+      expect(ssrData.jeonseShortfalls.length).toBe(3);
+      expect(ssrData.jeonseShortfalls[0].shortfallWon).toBe(Math.round(ssrData.jeonseDepositWon * 0.05));
+
+      // FAQ sanity
+      expect(ssrData.faqList.length).toBe(4);
+      ssrData.faqList.forEach((faq) => {
+        expect(typeof faq.question).toBe('string');
+        expect(typeof faq.answer).toBe('string');
+        expect(faq.question.length).toBeGreaterThan(5);
+        expect(faq.answer.length).toBeGreaterThan(10);
+      });
+    });
+
+    it('handles zero or missing price inputs without NaN or Infinity', () => {
+      const zeroSsr = buildMortgageSsrData('결측단지', 0, 0);
+      expect(Number.isFinite(zeroSsr.principalWon)).toBe(true);
+      expect(Number.isFinite(zeroSsr.jeonseDepositWon)).toBe(true);
+      expect(Number.isFinite(zeroSsr.amortization.equalPi.monthlyPaymentWon)).toBe(true);
+      expect(Number.isFinite(zeroSsr.amortization.equalP.firstMonthPaymentWon)).toBe(true);
+
+      const nanSsr = buildMortgageSsrData('NaN단지', NaN, NaN);
+      expect(Number.isFinite(nanSsr.principalWon)).toBe(true);
+      expect(Number.isFinite(nanSsr.amortization.equalPi.monthlyPaymentWon)).toBe(true);
+    });
+
+    it('injects FinancialProduct and FAQPage nodes into Schema.org JSON-LD @graph', async () => {
+      const pageData = await getApartmentPageData('동탄역롯데캐슬');
+      const jsonLd = buildApartmentJsonLd(pageData, 'https://dongtanview.com');
+
+      const graph = jsonLd['@graph'] as Array<Record<string, unknown>>;
+      const financialProductNode = graph.find((item) => {
+        const type = item['@type'];
+        return Array.isArray(type) ? type.includes('FinancialProduct') : type === 'FinancialProduct';
+      });
+      expect(financialProductNode).toBeDefined();
+      expect(financialProductNode?.name).toContain('동탄역롯데캐슬');
+      expect(financialProductNode?.category).toContain('주택담보대출');
+      expect(financialProductNode?.currency).toBe('KRW');
+
+      const faqNode = graph.find((item) => item['@type'] === 'FAQPage');
+      expect(faqNode).toBeDefined();
+      const mainEntity = faqNode?.mainEntity as Array<Record<string, unknown>>;
+      expect(Array.isArray(mainEntity)).toBe(true);
+      expect(mainEntity.length).toBe(4);
+      expect(mainEntity[0]['@type']).toBe('Question');
+      expect(typeof (mainEntity[0].name as string)).toBe('string');
+      expect(mainEntity[0].acceptedAnswer).toBeDefined();
+    });
+
+    it('injects high-value mortgage keywords into dynamicKeywords', async () => {
+      const meta = await buildApartmentSeoMetadata('동탄역롯데캐슬');
+      expect(meta.keywords).toBeDefined();
+      const keywords = meta.keywords as string;
+      expect(keywords).toContain('주택담보대출 갈아타기');
+      expect(keywords).toContain('DSR 40% 한도');
+      expect(keywords).toContain('스트레스 DSR');
+      expect(keywords).toContain('전세보증금 반환대출');
+    });
+
+    it('renders chapter-05-mortgage-ssr section with 4 semantic tables and FAQ in SSR DOM', async () => {
+      const PageJsx = await ApartmentPage({
+        params: Promise.resolve({ aptName: '동탄역롯데캐슬' }),
+      });
+
+      const { container } = render(PageJsx);
+      const chapter05Section = container.querySelector('#chapter-05-mortgage-ssr');
+      expect(chapter05Section).not.toBeNull();
+
+      // Check all 4 tables exist with captions and headers
+      const tables = chapter05Section?.querySelectorAll('table');
+      expect(tables?.length).toBe(4);
+
+      tables?.forEach((table) => {
+        expect(table.querySelector('caption')).not.toBeNull();
+        expect(table.querySelector('thead')).not.toBeNull();
+        expect(table.querySelector('tbody')).not.toBeNull();
+      });
+
+      // Check specific table contents
+      expect(chapter05Section?.textContent).toContain('원리금균등 분할상환');
+      expect(chapter05Section?.textContent).toContain('원금균등 분할상환');
+      expect(chapter05Section?.textContent).toContain('스트레스 DSR 40%');
+      expect(chapter05Section?.textContent).toContain('금리 변동 시나리오');
+      expect(chapter05Section?.textContent).toContain('전세보증금 반환대출(역전세) 결손액 진단표');
+
+      // Check FAQ semantic DL structure
+      const dl = chapter05Section?.querySelector('dl');
+      expect(dl).not.toBeNull();
+      const dts = dl?.querySelectorAll('dt');
+      const dds = dl?.querySelectorAll('dd');
+      expect(dts?.length).toBe(4);
+      expect(dds?.length).toBe(4);
+
+      // Verify no NaN or Infinity is leaked into text
+      expect(chapter05Section?.textContent).not.toContain('NaN');
+      expect(chapter05Section?.textContent).not.toContain('Infinity');
     });
   });
 });
