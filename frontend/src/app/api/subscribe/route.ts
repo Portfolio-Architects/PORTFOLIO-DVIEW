@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
               </tr>
               <tr>
                 <td style="color: #64748b; padding: 6px 0; font-weight: bold;">실시간 거래가</td>
-                <td style="color: #334155; padding: 6px 0; font-weight: 600;">${realtime ? '🟢 알림 받음' : '⚪ 미선택'}</td>
+                <td style="color: #334155; padding: 6px 0; font-weight: 600;">${realtime ? '알림 받음' : '미선택'}</td>
               </tr>
             </table>
           </div>

@@ -151,7 +151,7 @@ const SettingsModal = React.memo(function SettingsModal() {
         aria-labelledby="settings-title"
         aria-describedby="settings-desc"
         onKeyDown={handleKeyDown}
-        className="relative w-full sm:max-w-md bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md sm:rounded-[24px] rounded-t-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-border/40 dark:border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
+        className="relative w-full sm:max-w-md bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md sm:rounded-[24px] rounded-t-[24px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-border/40 dark:border-white/10 overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom-8 sm:slide-in-from-bottom-4 duration-300"
       >
         <div className="px-6 py-4 flex items-center justify-between border-b border-border bg-body/50">
           <h2 id="settings-title" className="text-lg font-bold text-primary flex items-center gap-2">
@@ -266,7 +266,7 @@ const SettingsModal = React.memo(function SettingsModal() {
                           </span>
                           <button
                             onClick={() => handleUnsubscribeApt(apt)}
-                            className="text-xs font-black text-rose-500 hover:text-rose-600 bg-rose-50 dark:bg-rose-950/20 px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
+                            className="text-xs font-black text-red-500 hover:text-red-600 bg-red-50 dark:bg-red-950/20 px-2.5 py-1.5 rounded-md transition-colors cursor-pointer"
                           >
                             해제
                           </button>

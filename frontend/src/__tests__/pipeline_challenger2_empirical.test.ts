@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /**
- * 🧪 Pipeline Challenger 2 Empirical Adversarial Test Suite
+ * Pipeline Challenger 2 Empirical Adversarial Test Suite
  * 
  * Target: Two-Sided IQR Outliers, Rent Key Duplication, and API Resilience
  * Roles: critic, specialist (EMPIRICAL CHALLENGER)

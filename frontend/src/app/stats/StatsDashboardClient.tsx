@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useTransition, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { BarChart3, TrendingUp, Sparkles, Building2 } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import type {
   RegionFilter,
   PyeongFilter,
@@ -12,13 +12,13 @@ import type {
   RawTransactionRecord,
   RawRentRecord,
 } from '@/types/stats';
+import { parsePeriodTransactions } from '@/lib/services/staticDataService';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/types/transaction';
-import { aggregateStats, formatPriceEok } from '@/lib/analytics/statsEngine';
+import { aggregateStats } from '@/lib/analytics/statsEngine';
 import { StatsFilterBar } from '@/components/stats/StatsFilterBar';
 import { HyperlocalInsightCards } from '@/components/stats/HyperlocalInsightCards';
 import { StatsTimeTrendChart } from '@/components/stats/StatsTimeTrendChart';
 import { StatsPyeongRankingChart } from '@/components/stats/StatsPyeongRankingChart';
-import { StatsVolumeDistributionChart } from '@/components/stats/StatsVolumeDistributionChart';
 import {
   FilterBottomAdBanner,
   MidFeedAdBanner,
@@ -29,7 +29,7 @@ export interface StatsDashboardClientProps {
   initialTxs?: RawTransactionRecord[];
   initialRents?: RawRentRecord[];
   initialMacroTrend?: DongtanMacroTrendPoint[];
-  initialSummaryMap?: Record<string, AptTxSummary>;
+  initialSummaryMap?: Record<string, AptTxSummary> | { summary?: Record<string, AptTxSummary> };
   initialRegion?: RegionFilter;
   initialPyeong?: PyeongFilter;
   initialTimeframe?: TimeframeFilter;
@@ -71,11 +71,15 @@ export function StatsDashboardClient({
 
   const [isPending, startTransition] = useTransition();
 
+  const resolvedInitialSummary =
+    (initialSummaryMap as { summary?: Record<string, AptTxSummary> })?.summary ||
+    (initialSummaryMap as Record<string, AptTxSummary>);
+
   // Active dataset state
   const [baseTxs, setBaseTxs] = useState<RawTransactionRecord[]>(initialTxs);
-  const [rents, setRents] = useState<RawRentRecord[]>(initialRents);
+  const [rents, _setRents] = useState<RawRentRecord[]>(initialRents);
   const [macroTrend, setMacroTrend] = useState<DongtanMacroTrendPoint[]>(initialMacroTrend);
-  const [summaryMap, setSummaryMap] = useState<Record<string, AptTxSummary>>(initialSummaryMap);
+  const [summaryMap, setSummaryMap] = useState<Record<string, AptTxSummary>>(resolvedInitialSummary);
   const [isLoadingChunk, setIsLoadingChunk] = useState(false);
 
   // If initialTxs was not provided (client-side navigation), fetch recent transactions
@@ -92,11 +96,18 @@ export function StatsDashboardClient({
         ]);
 
         if (isMounted) {
-          if (Array.isArray(txsRes) && txsRes.length > 0) setBaseTxs(txsRes);
+          if (Array.isArray(txsRes) && txsRes.length > 0) {
+            setBaseTxs((prev) => (prev.length >= txsRes.length ? prev : txsRes));
+          }
           if (Array.isArray(macroRes) && macroRes.length > 0) setMacroTrend(macroRes);
-          if (sumRes && typeof sumRes === 'object') setSummaryMap(sumRes as Record<string, AptTxSummary>);
+          if (sumRes && typeof sumRes === 'object') {
+            const parsedSummary =
+              (sumRes as { summary?: Record<string, AptTxSummary> })?.summary ||
+              (sumRes as Record<string, AptTxSummary>);
+            setSummaryMap(parsedSummary);
+          }
         }
-      } catch (err) {
+      } catch {
         // Fallback gracefully on static error
       }
     }
@@ -107,44 +118,77 @@ export function StatsDashboardClient({
     };
   }, [baseTxs.length]);
 
-  // On-demand chunk loading for 1Y and ALL timeframes (Zero-Firestore Cost CDN fetching)
+  // On-demand chunk loading for 6M, 1Y, and ALL timeframes (Zero-Firestore Cost CDN fetching)
   useEffect(() => {
-    if (testMode || baseTxs.length >= 10000) return;
+    if (testMode) return;
 
-    if (timeframe === '1Y') {
+    let isCancelled = false;
+
+    if (timeframe === '6M' || timeframe === '1Y') {
+      if (baseTxs.length >= 5000) {
+        setIsLoadingChunk(false);
+        return;
+      }
       if (clientDataCache.transactions1y) {
-        setBaseTxs(clientDataCache.transactions1y);
+        const cached = clientDataCache.transactions1y;
+        setBaseTxs((prev) => (prev.length >= cached.length ? prev : cached));
+        setIsLoadingChunk(false);
         return;
       }
       setIsLoadingChunk(true);
       fetch('/data/transactions-1y.json')
-        .then((r) => (r.ok ? r.json() : null))
+        .then((r) => (r && r.ok ? r.json() : null))
         .then((data) => {
-          if (Array.isArray(data) && data.length > 0) {
-            clientDataCache.transactions1y = data;
-            setBaseTxs(data);
+          const parsed = parsePeriodTransactions(data) as unknown as RawTransactionRecord[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            clientDataCache.transactions1y = parsed;
+            if (!isCancelled) {
+              setBaseTxs((prev) => (prev.length >= parsed.length ? prev : parsed));
+            }
           }
         })
         .catch(() => {})
-        .finally(() => setIsLoadingChunk(false));
+        .finally(() => {
+          if (!isCancelled) {
+            setIsLoadingChunk(false);
+          }
+        });
     } else if (timeframe === 'ALL') {
-      if (clientDataCache.transactionsAll) {
-        setBaseTxs(clientDataCache.transactionsAll);
+      if (baseTxs.length >= 20000) {
+        setIsLoadingChunk(false);
         return;
       }
-      // Try to load 1y first or all
-      if (!clientDataCache.transactions1y) {
-        fetch('/data/transactions-1y.json')
-          .then((r) => (r.ok ? r.json() : null))
-          .then((data) => {
-            if (Array.isArray(data) && data.length > 0) {
-              clientDataCache.transactions1y = data;
-              setBaseTxs(data);
-            }
-          })
-          .catch(() => {});
+      if (clientDataCache.transactionsAll) {
+        const cached = clientDataCache.transactionsAll;
+        setBaseTxs((prev) => (prev.length >= cached.length ? prev : cached));
+        setIsLoadingChunk(false);
+        return;
       }
+      setIsLoadingChunk(true);
+      fetch('/data/transactions-all.json')
+        .then((r) => (r && r.ok ? r.json() : null))
+        .then((data) => {
+          const parsed = parsePeriodTransactions(data) as unknown as RawTransactionRecord[];
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            clientDataCache.transactionsAll = parsed;
+            if (!isCancelled) {
+              setBaseTxs((prev) => (prev.length >= parsed.length ? prev : parsed));
+            }
+          }
+        })
+        .catch(() => {})
+        .finally(() => {
+          if (!isCancelled) {
+            setIsLoadingChunk(false);
+          }
+        });
+    } else {
+      setIsLoadingChunk(false);
     }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [timeframe, testMode, baseTxs.length]);
 
   // URL synchronization handler (without full page reloads)
@@ -247,7 +291,7 @@ export function StatsDashboardClient({
         <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-6 sm:py-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-black mb-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-xs font-black mb-2">
                 <BarChart3 size={13} />
                 <span>동탄 신도시 부동산 통계 리포트</span>
               </div>
@@ -261,7 +305,7 @@ export function StatsDashboardClient({
 
             <div className="flex items-center gap-3">
               <div className="px-3 py-1.5 rounded-xl bg-body border border-border/60 text-xs font-bold text-slate-600 dark:text-slate-300">
-                실거래 표본: <span className="text-teal-600 font-extrabold">{statsData.totalVolume.toLocaleString()}건</span>
+                실거래 표본: <span className="text-emerald-600 font-extrabold">{statsData.totalVolume.toLocaleString()}건</span>
               </div>
             </div>
           </div>
@@ -299,7 +343,7 @@ export function StatsDashboardClient({
                 <span
                   className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-md ${
                     statsData.volumeChangeMoM > 0
-                      ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40'
+                      ? 'bg-red-50 text-red-600 dark:bg-red-950/40'
                       : 'bg-blue-50 text-blue-600 dark:bg-blue-950/40'
                   }`}
                 >
@@ -318,7 +362,7 @@ export function StatsDashboardClient({
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
             <span className="text-xs font-bold text-slate-400">평균 매매가</span>
-            <p className="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 mt-2">
+            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
               {statsData.avgSalePrice > 0 ? `${statsData.avgSalePrice.toLocaleString()}만원` : '-'}
             </p>
           </div>
@@ -366,25 +410,14 @@ export function StatsDashboardClient({
         {/* 7. Strategic Ad Placement 2: Mid-Feed In-Feed Slot */}
         <MidFeedAdBanner testMode={testMode} />
 
-        {/* 8. 2-Column Grid: Pyeong Ranking Table/Bar Chart & Volume Distribution Donut */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-          {/* Left Column (7 cols): TOP 20 Pyeong Price Rankings */}
-          <div className="lg:col-span-7">
-            <StatsPyeongRankingChart
-              rankings={statsData.pyeongRankings}
-              onSelectComplex={handleSelectComplex}
-              isLoading={isPending}
-              testMode={testMode}
-            />
-          </div>
-
-          {/* Right Column (5 cols): Donut Volume Distribution */}
-          <div className="lg:col-span-5">
-            <StatsVolumeDistributionChart
-              distribution={statsData.volumeDistribution}
-              isLoading={isPending}
-            />
-          </div>
+        {/* 8. Full-Width Pyeong Ranking Analytical Section (TOP 20) */}
+        <div className="w-full min-h-[240px] md:min-h-[280px]">
+          <StatsPyeongRankingChart
+            rankings={statsData.pyeongRankings}
+            onSelectComplex={handleSelectComplex}
+            isLoading={isPending}
+            testMode={testMode}
+          />
         </div>
 
         {/* 9. Strategic Ad Placement 4: Bottom Anchor High-Conversion Banner */}

@@ -1,0 +1,128 @@
+{
+  "timestamp": "2026-10-18T08:38:41.665Z",
+  "defects": {
+    "DEF-01": {
+      "status": "PASS",
+      "details": {
+        "parseValid": true,
+        "rejectionOfNonFunction": true,
+        "rejectionOfNull": true,
+        "blueprintHasOldArgsSyntax": false
+      }
+    },
+    "DEF-02": {
+      "status": "PASS",
+      "details": {
+        "totalItems": 56,
+        "failedCount": 0,
+        "passRate": 100,
+        "errorFieldCounts": {},
+        "failureDetails": []
+      }
+    },
+    "DEF-03": {
+      "status": "PASS",
+      "details": {
+        "p5ParsedFromP2": true,
+        "allEnumsValidP2": true,
+        "allEnumsValidP5": true,
+        "rejectOldFallbackMount": true,
+        "p5DefaultsApplied": {
+          "dwellTimeMs": 0,
+          "intersectionRatio": 0,
+          "userAgentCategory": "DESKTOP"
+        }
+      }
+    },
+    "DEF-04": {
+      "status": "PASS",
+      "details": {
+        "allAttacksBlocked": true,
+        "allSafeUrlsPermitted": true,
+        "attackVectorCount": 8,
+        "safeUrlCount": 4
+      }
+    },
+    "DEF-05": {
+      "status": "PASS",
+      "details": {
+        "test1085Accepted": true,
+        "testMax25Accepted": true,
+        "testOverRatioRejected": true,
+        "testOverPercentRejected": true,
+        "testNegativeRejected": true
+      }
+    },
+    "DEF-06": {
+      "status": "PASS",
+      "details": {
+        "calcIncomingLine": true,
+        "compareIncomingLine": true,
+        "compareReturnLine": true,
+        "calcReturnLine": true,
+        "chapterCloseLine": true
+      }
+    },
+    "DEF-07": {
+      "status": "PASS",
+      "details": {
+        "hasMaxRefreshCapInTick": true,
+        "hasMaxRefreshPerSlotDef": true,
+        "hasTelemetryDispatchedState": true,
+        "hasTelemetryTransition1": true,
+        "hasTelemetryTransition2": true,
+        "loopCappedAt10": true
+      }
+    },
+    "DEF-08": {
+      "status": "PASS",
+      "details": {
+        "hasLateStatusFilledDiscard": true,
+        "hasInvariant5RaceGuard": true,
+        "racePrevented": true
+      }
+    },
+    "DEF-09": {
+      "status": "PASS",
+      "details": {
+        "hasTabHiddenToPaused": true,
+        "hasTabVisibleBranching": true,
+        "hasPausedRatioLt50": true,
+        "hasWeakRefElement": true,
+        "simViewable": true,
+        "simObserving": true
+      }
+    },
+    "DEF-10": {
+      "status": "PASS",
+      "details": {
+        "hasCorrectPathInBlueprint": true,
+        "fileExistsOnDisk": true,
+        "fileTotalLines": 1703,
+        "lineRangeValid": true
+      }
+    },
+    "DEF-11": {
+      "status": "PASS",
+      "details": {
+        "validListingAccepted": true,
+        "equalPriceListingAccepted": true,
+        "invertedListingRejected": true,
+        "blueprintHasRefinement": true
+      }
+    }
+  },
+  "hodepLint": {
+    "totalLines": 872,
+    "minRequiredLines": 500,
+    "lineCountSatisfied": true,
+    "endingViolationsCount": 0,
+    "honorificViolationsCount": 0,
+    "fuzzyViolationsCount": 0,
+    "emojiViolationsCount": 0,
+    "sampleEndingViolations": [],
+    "sampleHonorificViolations": [],
+    "sampleFuzzyViolations": []
+  },
+  "overallVerdict": "APPROVE"
+}

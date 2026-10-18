@@ -199,11 +199,9 @@ export function sanitizeAptChunkFileName(rawFileName: string): string {
     ? rawFileName.slice(0, -12)
     : (rawFileName.endsWith('.json') ? rawFileName.slice(0, -5) : rawFileName);
 
-  const cleanBase = normalizeAptName(baseName)
-    .replace(/[\\/:*?"<>|]/g, '-')
-    .replace(/\.{2,}/g, '')
-    .replace(/\.+$/, '')
-    .trim();
+  const cleanBase = sanitizeAptKey(baseName);
+  if (!cleanBase) return '';
 
   return isRecent ? `${cleanBase}-recent.json` : `${cleanBase}.json`;
 }
+

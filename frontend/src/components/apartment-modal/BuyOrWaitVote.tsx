@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { ThumbsUp, HelpCircle, Users, Check } from 'lucide-react';
+import { ThumbsUp, HelpCircle, Users, Check, Lightbulb } from 'lucide-react';
 import useSWR, { mutate } from 'swr';
 import { logger } from '@/lib/services/logger';
 
@@ -32,7 +32,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     return null;
   });
   const [hasVoted, setHasVoted] = useState<boolean>(() => userVote !== null);
-  const [reactions, setReactions] = useState<{ id: number; emoji: string; style: React.CSSProperties }[]>([]);
+  const [reactions, setReactions] = useState<{ id: number; text: string; style: React.CSSProperties }[]>([]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
@@ -41,10 +41,10 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   const reactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const triggerConfetti = (type: 'buy' | 'wait') => {
-    const emojisList = type === 'buy' 
-      ? ['👍', '🚀', '🔥', '👏'] 
-      : ['⏳', '🤔', '👀', '💭'];
-    const newReactions = emojisList.map((emoji, index) => {
+    const textList = type === 'buy' 
+      ? ['+1', '매수', '+1', '매수'] 
+      : ['+1', '관망', '+1', '관망'];
+    const newReactions = textList.map((text, index) => {
       // Float upwards and outwards
       const angle = -60 - index * 20 + Math.random() * 15;
       const rad = (angle * Math.PI) / 180;
@@ -55,7 +55,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
       
       return {
         id: Date.now() + index + Math.random(),
-        emoji,
+        text,
         style: {
           '--pop-x': `${x}px`,
           '--pop-y': `${y}px`,
@@ -327,20 +327,20 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             <button
               onClick={(e) => handleVote(e, 'wait')}
               disabled={isSubmitting}
-              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-amber-50 hover:bg-amber-100 text-amber-600 active:scale-[0.98] border border-amber-100 relative"
+              className="flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl font-extrabold text-[13px] transition-all bg-slate-100 hover:bg-slate-200 text-slate-700 active:scale-[0.98] border border-slate-200 relative"
             >
-              <HelpCircle size={14} className="fill-amber-600/10" />
+              <HelpCircle size={14} className="fill-slate-700/10" />
               <span>더 기다려야 한다</span>
             </button>
           </div>
-          {/* Confetti Emojis Container */}
+          {/* Confetti Text Container */}
           {reactions.map((r) => (
             <span
               key={r.id}
               style={r.style}
-              className="absolute pointer-events-none select-none text-[20px] animate-emoji-pop z-50"
+              className="absolute pointer-events-none select-none text-[12px] font-black px-2 py-0.5 rounded-full bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 shadow-sm animate-emoji-pop z-50"
             >
-              {r.emoji}
+              {r.text}
             </span>
           ))}
         </div>
@@ -357,7 +357,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             </div>
             <div
               style={{ width: `${animatedWaitPercent}%` }}
-              className="h-full bg-gradient-to-r from-amber-400 to-amber-500 flex items-center justify-end pr-3"
+              className="h-full bg-gradient-to-r from-slate-400 to-slate-600 flex items-center justify-end pr-3"
             >
               <span className="text-[11.5px] font-black text-white whitespace-nowrap">
                 관망 {animatedWaitPercent}%
@@ -371,10 +371,10 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
               매수 찬성 {buyCount}명
             </span>
             <span className="text-center text-[10.5px] font-medium text-emerald-600">
-              {userVote === 'buy' ? '🎉 "지금 사야 한다"에 투표하셨습니다.' : '⏳ "더 기다려야 한다"에 투표하셨습니다.'}
+              {userVote === 'buy' ? '"지금 사야 한다"에 투표하셨습니다.' : '"더 기다려야 한다"에 투표하셨습니다.'}
             </span>
             <span className="flex items-center gap-1">
-              {userVote === 'wait' && <Check size={12} className="text-amber-500" />}
+              {userVote === 'wait' && <Check size={12} className="text-slate-600" />}
               관망 유지 {waitCount}명
             </span>
           </div>
@@ -393,14 +393,14 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
               {(() => {
                 if (valuationStatus === 'undervalued') {
                   return buyPercent >= 50
-                    ? `💡 AI 가치 분석 결과(저평가 상태, 약 ${valuationAmount} 메리트)와 대중의 매수 우위 심리(${buyPercent}%)가 완전히 일치합니다. 안전마진을 확보한 진입 기회일 수 있습니다.`
-                    : `⚠️ 시장은 저평가 국면(약 ${valuationAmount} 메리트)이지만 대중은 관망세(${waitPercent}%)를 유지하고 있습니다. 군중과 반대로 가는 역발상적 분할 매수를 검토해볼 시점입니다.`;
+                    ? `AI 가치 분석 결과(저평가 상태, 약 ${valuationAmount} 메리트)와 대중의 매수 우위 심리(${buyPercent}%)가 완전히 일치합니다. 안전마진을 확보한 진입 기회일 수 있습니다.`
+                    : `시장은 저평가 국면(약 ${valuationAmount} 메리트)이지만 대중은 관망세(${waitPercent}%)를 유지하고 있습니다. 군중과 반대로 가는 역발상적 분할 매수를 검토해볼 시점입니다.`;
                 } else if (valuationStatus === 'overvalued') {
                   return waitPercent >= 50
-                    ? `💡 AI 가치 분석 결과(고평가 상태, 약 ${valuationAmount} 격차)와 대중의 관망 우위 심리(${waitPercent}%)가 일치합니다. 무리한 추격 매수보다는 시장 가격 조정을 차분히 대기하는 것이 유리합니다.`
-                    : `🚨 시장은 고평가 상태(약 ${valuationAmount} 고평가)이나 대중의 매수 찬성 심리(${buyPercent}%)가 강하게 작동하고 있습니다. 군중 심리에 휩쓸린 상단 추격 매수를 경계하시기 바랍니다.`;
+                    ? `AI 가치 분석 결과(고평가 상태, 약 ${valuationAmount} 격차)와 대중의 관망 우위 심리(${waitPercent}%)가 일치합니다. 무리한 추격 매수보다는 시장 가격 조정을 차분히 대기하는 것이 유리합니다.`
+                    : `시장은 고평가 상태(약 ${valuationAmount} 고평가)이나 대중의 매수 찬성 심리(${buyPercent}%)가 강하게 작동하고 있습니다. 군중 심리에 휩쓸린 상단 추격 매수를 경계하시기 바랍니다.`;
                 } else {
-                  return `⚖️ 현재 이 아파트의 시세는 DCF 내재가치와 균형(적정가 수준)을 이루고 있습니다. 대중들의 의견(매수 ${buyPercent}% vs 관망 ${waitPercent}%)과 개인의 자금 계획을 매칭하여 판단하시길 권장합니다.`;
+                  return `현재 이 아파트의 시세는 DCF 내재가치와 균형(적정가 수준)을 이루고 있습니다. 대중들의 의견(매수 ${buyPercent}% vs 관망 ${waitPercent}%)과 개인의 자금 계획을 매칭하여 판단하시길 권장합니다.`;
                 }
               })()}
             </p>

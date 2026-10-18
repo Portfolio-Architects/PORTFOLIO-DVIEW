@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePWA } from './PWAProvider';
 import { logger } from '@/lib/services/logger';
-import { X, BellRing, Sparkles, ShieldCheck } from 'lucide-react';
+import { X, BellRing, Sparkles, ShieldCheck, AlertTriangle } from 'lucide-react';
 
 interface PushSubscriptionModalProps {
   isOpen: boolean;
@@ -71,7 +71,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
     try {
       const success = await subscribeToPush(null, aptName);
       if (success && mountedRef.current) {
-        showToast(`🔔 ${aptName}의 실거래가 변동 알림 신청이 완료되었습니다!`);
+        showToast(`${aptName}의 실거래가 변동 알림 신청이 완료되었습니다.`);
         onClose();
       }
     } catch (err: unknown) {
@@ -183,30 +183,32 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
           </div>
 
           {errorState === 'denied' || (typeof window !== 'undefined' && typeof Notification !== 'undefined' && Notification.permission === 'denied') ? (
-            <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 mb-6 text-left">
-              <p className="text-[13px] font-extrabold text-rose-600 dark:text-rose-400 mb-1.5 flex items-center gap-1.5">
-                <span>⚠️ 알림 권한이 차단되어 있습니다</span>
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-red-600 dark:text-red-400 mb-1.5 flex items-center gap-1.5">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>알림 권한이 차단되어 있습니다</span>
               </p>
               <p className="text-[12px] text-secondary font-bold leading-relaxed">
                 브라우저 설정에서 알림 권한이 거부되어 실거래가 소식을 보내드릴 수 없습니다. 아래 설정 방법을 참고해 허용해 주세요.
               </p>
-              <div className="mt-3 pt-2.5 border-t border-rose-200/20 dark:border-rose-800/30 text-[11px] text-tertiary font-bold space-y-1">
-                <p>• <strong>안드로이드/Chrome</strong>: 주소창 왼쪽 설정(조절기) 아이콘 클릭 ➔ 권한 ➔ 알림 허용</p>
-                <p>• <strong>아이폰/Safari</strong>: 설정 ➔ 알림 ➔ DVIEW(또는 추가된 홈앱) ➔ 알림 허용</p>
+              <div className="mt-3 pt-2.5 border-t border-red-200/20 dark:border-red-800/30 text-[11px] text-tertiary font-bold space-y-1">
+                <p>• <strong>안드로이드/Chrome</strong>: 주소창 왼쪽 설정(조절기) 아이콘 클릭 -&gt; 권한 -&gt; 알림 허용</p>
+                <p>• <strong>아이폰/Safari</strong>: 설정 -&gt; 알림 -&gt; DVIEW(또는 추가된 홈앱) -&gt; 알림 허용</p>
               </div>
             </div>
           ) : errorState === 'failed' ? (
-            <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 mb-6 text-left">
-              <p className="text-[13px] font-extrabold text-rose-600 dark:text-rose-400 flex items-center gap-1.5">
-                <span>⚠️ 알림 등록 중 오류가 발생했습니다</span>
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-left">
+              <p className="text-[13px] font-extrabold text-red-600 dark:text-red-400 flex items-center gap-1.5">
+                <AlertTriangle size={15} className="shrink-0" />
+                <span>알림 등록 중 오류가 발생했습니다</span>
               </p>
               <p className="text-[12px] text-secondary font-bold mt-1 leading-relaxed">
                 네트워크 연결이 일시적으로 끊겼거나 브라우저 내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.
               </p>
             </div>
           ) : (!isPushSupported || errorState === 'unsupported') ? (
-            <div className="bg-rose-50 dark:bg-rose-950/20 border border-rose-100 dark:border-rose-900/30 rounded-2xl p-4 mb-6 text-center">
-              <p className="text-[12px] font-bold text-rose-600 dark:text-rose-400">
+            <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-center">
+              <p className="text-[12px] font-bold text-red-600 dark:text-red-400">
                 ※ 현재 사용 중이신 브라우저는 Web Push 알림을 지원하지 않습니다. Chrome, Safari(iOS 16.4+), Edge 브라우저를 이용해 주세요.
               </p>
             </div>
@@ -216,14 +218,14 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
           <div className="flex gap-3">
             <button
               onClick={onClose}
-              className="flex-1 py-3.5 px-4 bg-body hover:bg-neutral-200 dark:hover:bg-neutral-800 text-secondary font-bold rounded-2xl transition-colors text-[13.5px] cursor-pointer"
+              className="flex-1 py-3.5 px-4 bg-body hover:bg-slate-200 dark:hover:bg-slate-800 text-secondary font-bold rounded-2xl transition-colors text-[13.5px] cursor-pointer"
             >
               취소
             </button>
             <button
               onClick={handleSubscribe}
               disabled={!isPushSupported || submitting}
-              className="flex-1 py-3.5 px-4 bg-[#057e77] dark:bg-[#057e77] disabled:bg-gray-300 dark:disabled:bg-zinc-800 disabled:text-gray-500 text-white font-black rounded-2xl hover:bg-[#046660] dark:hover:bg-[#046660] active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 py-3.5 px-4 bg-[#057e77] dark:bg-[#057e77] disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl hover:bg-[#046660] dark:hover:bg-[#046660] active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

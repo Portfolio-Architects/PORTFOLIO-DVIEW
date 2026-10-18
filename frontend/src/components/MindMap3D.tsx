@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { Sparkles, Orbit, RotateCcw, Flame, CheckCircle, Info } from 'lucide-react';
+import { Sparkles, Orbit, RotateCcw, Flame, CheckCircle, Info, BarChart3 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import useSWR from 'swr';
 import type { DongApartment, AptTxSummary } from '@/types';
@@ -554,14 +554,14 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'
       }`} />
       <div className={`absolute bottom-0 left-0 w-64 h-64 rounded-full blur-3xl pointer-events-none ${
-        isDark ? 'bg-teal-500/10' : 'bg-teal-500/5'
+        isDark ? 'bg-emerald-500/10' : 'bg-emerald-500/5'
       }`} />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 z-10">
         <div className="flex items-center gap-2">
           <div className={`w-9 h-9 rounded-xl border flex items-center justify-center ${
-            isDark ? 'bg-slate-900/80 border-slate-700 text-emerald-400' : 'bg-body border-border/60 text-teal-600'
+            isDark ? 'bg-slate-900/80 border-slate-700 text-emerald-400' : 'bg-body border-border/60 text-emerald-600'
           }`}>
             <Orbit className="w-5 h-5 animate-spin-slow" />
           </div>
@@ -570,7 +570,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               isDark ? 'text-slate-100' : 'text-primary'
             }`}>
               동탄3D 매수 심리 시그널 맵
-              <Sparkles className="w-3.5 h-3.5 text-yellow-400 shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
             </h3>
             <span className={`text-[11.5px] font-bold mt-1 block ${
               isDark ? 'text-slate-400' : 'text-secondary'
@@ -588,23 +588,25 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
           }`}>
             <button
               onClick={() => setTemperatureMode('vote')}
-              className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all ${
+              className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all flex items-center gap-1 ${
                 temperatureMode === 'vote'
                   ? (isDark ? 'bg-slate-800 text-emerald-400' : 'bg-surface text-[#057e77] shadow-sm')
                   : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
-              🔥 매수 심리
+              <Flame size={12} className="text-emerald-500 fill-current" />
+              <span>매수 심리</span>
             </button>
             <button
               onClick={() => setTemperatureMode('ratio')}
-              className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all ${
+              className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all flex items-center gap-1 ${
                 temperatureMode === 'ratio'
                   ? (isDark ? 'bg-slate-800 text-emerald-400' : 'bg-surface text-[#057e77] shadow-sm')
                   : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
-              📊 전세가율
+              <BarChart3 size={12} className="text-blue-500" />
+              <span>전세가율</span>
             </button>
           </div>
 
@@ -639,7 +641,10 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
             <div className={`border px-4 py-2.5 rounded-xl text-center shadow-2xl flex flex-col items-center gap-1.5 ${
               isDark ? 'bg-slate-900 border-slate-700' : 'bg-surface border-border'
             }`}>
-              <span className={`text-[12px] font-black ${isDark ? 'text-white' : 'text-primary'}`}>💡 Ctrl 키를 누른 채 스크롤하면 3D 맵이 확대/축소됩니다.</span>
+              <span className={`text-[12px] font-black flex items-center gap-1 ${isDark ? 'text-white' : 'text-primary'}`}>
+                <Info size={14} className="text-blue-500 shrink-0" />
+                <span>Ctrl 키를 누른 채 스크롤하면 3D 맵이 확대/축소됩니다.</span>
+              </span>
               <span className={`text-[10px] font-bold ${isDark ? 'text-slate-400' : 'text-secondary'}`}>그냥 스크롤하면 페이지가 이동합니다.</span>
             </div>
           </div>
@@ -667,15 +672,18 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               <span className={isDark ? 'text-emerald-400' : 'text-emerald-600'}>
                 평균 매매: {hoveredNode.price > 0 ? `${Math.floor(hoveredNode.price / 10000)}억 ${(hoveredNode.price % 10000).toLocaleString()}만` : '정보 없음'}
               </span>
-              <span className="text-yellow-600 dark:text-yellow-400">
+              <span className="text-blue-600 dark:text-emerald-400">
                 전세율: {hoveredNode.ratio.toFixed(1)}%
               </span>
-              <span className="text-orange-500 flex items-center gap-1 mt-0.5">
-                <Flame className="w-3 h-3 text-orange-500 fill-current" />
+              <span className="text-emerald-500 flex items-center gap-1 mt-0.5">
+                <Flame className="w-3 h-3 text-emerald-500 fill-current" />
                 매수 찬성: {hoveredNode.buyPercent}%
               </span>
             </div>
-            <span className={`text-[9px] font-semibold mt-1 ${isDark ? 'text-slate-500' : 'text-tertiary'}`}>💡 클릭하면 임장 리포트 열기</span>
+            <span className={`text-[9px] font-semibold mt-1 flex items-center gap-1 ${isDark ? 'text-slate-500' : 'text-tertiary'}`}>
+              <Info size={11} className="text-blue-400 shrink-0" />
+              <span>클릭하면 임장 리포트 열기</span>
+            </span>
           </div>
         )}
 
@@ -690,11 +698,11 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
                 <span>매수 적극 (Hot Buy)</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-400 shadow-sm" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm" />
                 <span>중립 (Neutral)</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-indigo-400 shadow-sm shadow-indigo-400/30" />
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-400 shadow-sm shadow-blue-400/30" />
                 <span>관망 대기 (Cold Wait)</span>
               </div>
             </>
@@ -705,7 +713,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
                 <span>전세율 우수 (70% 이상)</span>
               </div>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-sm" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-sm" />
                 <span>보통 (55% ~ 70%)</span>
               </div>
               <div className="flex items-center gap-1.5">

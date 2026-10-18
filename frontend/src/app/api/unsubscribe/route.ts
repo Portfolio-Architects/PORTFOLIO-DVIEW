@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
         </head>
         <body>
           <div class="card">
-            <div class="icon">✓</div>
+            <div class="icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></div>
             <h1>알림 구독이 해지되었습니다</h1>
             <p><span class="email-badge">${escapeHtml(email)}</span> 계정으로 발송되던 D-VIEW 실거래 소식 및 리포트 발송이 정상적으로 중단되었습니다.</p>
             <a href="/" class="btn">D-VIEW 데이터 랩 가기</a>

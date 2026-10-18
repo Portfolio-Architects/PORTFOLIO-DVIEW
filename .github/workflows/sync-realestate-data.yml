@@ -26,6 +26,10 @@ jobs:
       - name: Fetch Real Estate Data
         run: |
           python fetch_molit_data.py
+        env:
+          BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: https://dongtanview.com
           
       - name: Commit and Push Changes
         run: |
@@ -36,6 +40,7 @@ jobs:
           # Only commit if there are changes
           if ! git diff --staged --quiet; then
             git commit -m "Auto-sync real estate data [skip ci]"
+            git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
             git push
           else
             echo "No changes in real estate data to commit."

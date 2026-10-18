@@ -73,11 +73,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   }}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'overview'
-                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Building2 size={18} className={activeTab === 'overview' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <Building2 size={18} className={activeTab === 'overview' ? 'text-emerald-700' : 'text-tertiary'} />
                   <span>아파트 랩</span>
                 </Link>
 
@@ -89,11 +89,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'imjang'
-                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Home size={18} className={activeTab === 'imjang' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <Home size={18} className={activeTab === 'imjang' ? 'text-emerald-700' : 'text-tertiary'} />
                   <span>아파트 탐색</span>
                 </Link>
 
@@ -105,11 +105,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/mbti', 'mbti')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'mbti'
-                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Sparkles size={18} className={activeTab === 'mbti' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <Sparkles size={18} className={activeTab === 'mbti' ? 'text-emerald-700' : 'text-tertiary'} />
                   <span>단지 MBTI</span>
                 </Link>
 
@@ -121,11 +121,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
-                      ? 'bg-hs-orange-light text-hs-orange font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <BookOpen size={18} className={activeTab === 'guide' ? 'text-hs-orange' : 'text-tertiary'} />
+                  <BookOpen size={18} className={activeTab === 'guide' ? 'text-emerald-700' : 'text-tertiary'} />
                   <span>부동산 가이드</span>
                 </Link>
               </nav>

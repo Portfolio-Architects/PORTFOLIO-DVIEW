@@ -52,32 +52,32 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
         {/* Chart Toggle Group */}
         <div className="flex items-center gap-2 flex-wrap shrink-0">
           {/* Absolute / Per-Pyeong Toggle */}
-          <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10">
+          <div className="flex bg-[#f2f4f6] dark:bg-slate-800 p-0.5 rounded-xl border border-border/10">
             <button
               onClick={() => setPriceMetric('absolute')}
-              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${priceMetric === 'absolute' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${priceMetric === 'absolute' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
             >
               절대 가격
             </button>
             <button
               onClick={() => setPriceMetric('perPyeong')}
-              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${priceMetric === 'perPyeong' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${priceMetric === 'perPyeong' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
             >
               평당 가격
             </button>
           </div>
 
           {/* Sale / Rent Toggle */}
-          <div className="flex bg-[#f2f4f6] dark:bg-zinc-800 p-0.5 rounded-xl border border-border/10">
+          <div className="flex bg-[#f2f4f6] dark:bg-slate-800 p-0.5 rounded-xl border border-border/10">
             <button
               onClick={() => setChartType('sale')}
-              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${chartType === 'sale' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${chartType === 'sale' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
             >
               매매 가격
             </button>
             <button
               onClick={() => setChartType('jeonse')}
-              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${chartType === 'jeonse' ? 'bg-white dark:bg-zinc-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
+              className={`px-3 py-1 rounded-[10px] text-[12.5px] font-bold transition-all cursor-pointer ${chartType === 'jeonse' ? 'bg-white dark:bg-slate-700 text-primary shadow-sm' : 'text-secondary hover:text-primary'}`}
             >
               전세 보증금
             </button>

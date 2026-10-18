@@ -5,6 +5,8 @@
  * zero division defense, edge cases, and performance benchmarking.
  */
 
+import fs from 'fs';
+import path from 'path';
 import {
   aggregateStatistics,
   aggregateStats,
@@ -687,6 +689,355 @@ describe('statsEngine Unit Test Suite', () => {
       }
       const totalElapsed = performance.now() - start;
       expect(totalElapsed).toBeLessThan(50.0); // 50 runs < 50ms (average < 1ms/run)
+    });
+  });
+
+  // ==========================================================================
+  // Suite 10: Time-Series Trend & SummaryMap Dong Resolution (Regression Defense)
+  // ==========================================================================
+  describe('Suite 10: Time-Series Trend & SummaryMap Dong Resolution', () => {
+    it('10.1: should NOT leak historical macroTrend months without sale transactions into timeSeriesTrend, and should forward-fill LKG rent for newer months', () => {
+      const mockTxs: RawTransactionRecord[] = [
+        {
+          aptName: '동탄역롯데캐슬',
+          txKey: '화성시 오산동 동탄역롯데캐슬',
+          contractDate: '20260725',
+          date: '07.25',
+          priceVal: 15.0, // 150,000만원
+          area: 84.9,
+          areaPyeong: 34,
+          floor: 20,
+          dealType: '중개거래',
+        },
+        {
+          aptName: '동탄역롯데캐슬',
+          txKey: '화성시 오산동 동탄역롯데캐슬',
+          contractDate: '20260815',
+          date: '08.15',
+          priceVal: 15.5, // 155,000만원
+          area: 84.9,
+          areaPyeong: 34,
+          floor: 22,
+          dealType: '중개거래',
+        },
+        {
+          aptName: '동탄역롯데캐슬',
+          txKey: '화성시 오산동 동탄역롯데캐슬',
+          contractDate: '20260912',
+          date: '09.12',
+          priceVal: 16.0, // 160,000만원
+          area: 84.9,
+          areaPyeong: 34,
+          floor: 25,
+          dealType: '중개거래',
+        },
+        {
+          aptName: '동탄역롯데캐슬',
+          txKey: '화성시 오산동 동탄역롯데캐슬',
+          contractDate: '20261010',
+          date: '10.10',
+          priceVal: 16.5, // 165,000만원
+          area: 84.9,
+          areaPyeong: 34,
+          floor: 28,
+          dealType: '중개거래',
+        },
+      ];
+
+      const mockMacroTrend: any[] = [
+        { month: '11.06', '동탄 아파트 매매 평균': '3억2,000', '동탄 아파트 전세 평균': '1억9,297' },
+        { month: '18.12', '동탄 아파트 매매 평균': '5억1,000', '동탄 아파트 전세 평균': '3억1,000' },
+        { month: '26.07', '동탄 아파트 매매 평균': '8억1,000', '동탄 아파트 전세 평균': '4억3,500' },
+        { month: '26.08', '동탄 아파트 매매 평균': '8억2,283', '동탄 아파트 전세 평균': '4억4,158' },
+      ];
+
+      const res = aggregateStatistics(
+        mockTxs,
+        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' },
+        { referenceDate: '2026-10-16', macroTrend: mockMacroTrend }
+      );
+
+      const months = res.timeSeriesTrend.map((pt) => pt.date);
+      expect(months).toEqual(['2026-07', '2026-08', '2026-09', '2026-10']);
+      expect(months).not.toContain('2011-06');
+      expect(months).not.toContain('2018-12');
+
+      // Every point in timeSeriesTrend must have positive avgSalePrice and volume
+      for (const pt of res.timeSeriesTrend) {
+        expect(pt.avgSalePrice).toBeGreaterThan(0);
+        expect(pt.volume).toBeGreaterThan(0);
+      }
+
+      // Check exact rent matching for 2026-07 and 2026-08, and LKG forward-fill for 2026-09 and 2026-10
+      const pt07 = res.timeSeriesTrend.find((p) => p.date === '2026-07')!;
+      const pt08 = res.timeSeriesTrend.find((p) => p.date === '2026-08')!;
+      const pt09 = res.timeSeriesTrend.find((p) => p.date === '2026-09')!;
+      const pt10 = res.timeSeriesTrend.find((p) => p.date === '2026-10')!;
+
+      expect(pt07.avgRentDeposit).toBe(43500);
+      expect(pt08.avgRentDeposit).toBe(44158);
+      expect(pt09.avgRentDeposit).toBe(44158); // Forward-filled from 26.08 instead of dropping to 0
+      expect(pt10.avgRentDeposit).toBe(44158); // Forward-filled from 26.08 instead of dropping to 0
+    });
+
+    it('10.2: should resolve dong via summaryMap when raw transaction record omits dong property', () => {
+      const mockTxsWithoutDong: RawTransactionRecord[] = [
+        {
+          aptName: '동탄역롯데캐슬',
+          txKey: '화성시 오산동 동탄역롯데캐슬',
+          contractDate: '20261010',
+          date: '10.10',
+          priceVal: 16.0,
+          area: 84.9,
+          areaPyeong: 34,
+          floor: 25,
+          dealType: '중개거래',
+        },
+        {
+          aptName: '시범다은마을월드메르디앙반도유보라',
+          txKey: '화성시 반송동 시범다은마을월드메르디앙반도유보라',
+          contractDate: '20261011',
+          date: '10.11',
+          priceVal: 8.5,
+          area: 84.8,
+          areaPyeong: 33,
+          floor: 12,
+          dealType: '중개거래',
+        },
+      ];
+
+      const mockSummaryMap: Record<string, any> = {
+        '화성시 오산동 동탄역롯데캐슬': { dong: '여울동', latestPriceEok: 16.0 },
+        '화성시 반송동 시범다은마을월드메르디앙반도유보라': { dong: '반송동', latestPriceEok: 8.5 },
+      };
+
+      const resDongtan1 = aggregateStatistics(
+        mockTxsWithoutDong,
+        { region: 'DONGTAN1', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' },
+        { referenceDate: '2026-10-16', summaryMap: mockSummaryMap }
+      );
+      expect(resDongtan1.totalVolume).toBe(1);
+      expect(resDongtan1.avgSalePrice).toBe(85000);
+
+      const resDongtan2 = aggregateStatistics(
+        mockTxsWithoutDong,
+        { region: 'DONGTAN2', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' },
+        { referenceDate: '2026-10-16', summaryMap: mockSummaryMap }
+      );
+      expect(resDongtan2.totalVolume).toBe(1);
+      expect(resDongtan2.avgSalePrice).toBe(160000);
+    });
+
+    it('10.3: should accurately aggregate production public/data/*.json files without zero-sale history leak or zero-rent drop', () => {
+      const dataDir = path.resolve(__dirname, '../../../public/data');
+      const recentTxs = JSON.parse(fs.readFileSync(path.join(dataDir, 'recent-transactions.json'), 'utf8'));
+      const macroTrend = JSON.parse(fs.readFileSync(path.join(dataDir, 'macro-trend.json'), 'utf8'));
+      const txSummaryRaw = JSON.parse(fs.readFileSync(path.join(dataDir, 'tx-summary.json'), 'utf8'));
+      const summaryMap = txSummaryRaw.summary || txSummaryRaw;
+
+      const resAll = aggregateStatistics(
+        { transactions: recentTxs, macroTrend, summaryMap },
+        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
+      );
+
+      expect(resAll.timeSeriesTrend.map((p) => p.date)).toEqual(['2026-07', '2026-08', '2026-09', '2026-10']);
+      for (const pt of resAll.timeSeriesTrend) {
+        expect(pt.avgSalePrice).toBeGreaterThan(0);
+        expect(pt.avgRentDeposit).toBeGreaterThan(0);
+        expect(pt.volume).toBeGreaterThan(0);
+      }
+
+      const resD1 = aggregateStatistics(
+        { transactions: recentTxs, macroTrend, summaryMap },
+        { region: 'DONGTAN1', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
+      );
+      const resD2 = aggregateStatistics(
+        { transactions: recentTxs, macroTrend, summaryMap },
+        { region: 'DONGTAN2', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
+      );
+
+      expect(resD1.totalVolume).toBeGreaterThan(0);
+      expect(resD2.totalVolume).toBeGreaterThan(0);
+      expect(resD1.totalVolume + resD2.totalVolume).toBe(resAll.totalVolume);
+    });
+
+    it('10.4: should normalize hyphenated and malformed contractDate strings when deriving maxDate without referenceDate', () => {
+      const mixedFormatTxs: RawTransactionRecord[] = [
+        {
+          aptName: '구축단지',
+          dong: '반송동',
+          contractDate: '2020-01-10',
+          priceVal: 5.0,
+          area: 84,
+        },
+        {
+          aptName: '신축단지',
+          dong: '여울동',
+          contractDate: '2026-09-15',
+          priceVal: 12.0,
+          area: 84,
+        },
+        {
+          aptName: '오류단지',
+          dong: '여울동',
+          contractDate: 'corrupted_date',
+          priceVal: 9.0,
+          area: 84,
+        },
+      ];
+
+      // Without explicit referenceDate, maxDate must resolve to 20260915 (2026-09-15)
+      const filtered1M = filterTransactions(mixedFormatTxs, {
+        region: 'ALL',
+        pyeong: 'ALL',
+        timeframe: '1M',
+      });
+      expect(filtered1M.length).toBe(1);
+      expect(filtered1M[0].aptName).toBe('신축단지');
+
+      const agg1M = aggregateStatistics(mixedFormatTxs, {
+        region: 'ALL',
+        pyeong: 'ALL',
+        timeframe: '1M',
+        sort: 'PYEONG_DESC',
+      });
+      expect(agg1M.totalVolume).toBe(1);
+      expect(agg1M.timeSeriesTrend.map((pt) => pt.date)).toEqual(['2026-09']);
+    });
+
+    it('10.5: should forward-fill LKG rent when filtered transactions start on a gap month prior to latestMacroYm', () => {
+      const gapMonthTxs: RawTransactionRecord[] = [
+        {
+          aptName: '동탄역롯데캐슬',
+          dong: '여울동',
+          contractDate: '20260815',
+          priceVal: 15.0,
+          area: 84,
+        },
+        {
+          aptName: '동탄역롯데캐슬',
+          dong: '여울동',
+          contractDate: '20260915',
+          priceVal: 16.0,
+          area: 84,
+        },
+      ];
+
+      // Macro trend has 26.07 and 26.09, with a gap at 26.08
+      const sparseMacro: any[] = [
+        { month: '26.07', '동탄 아파트 매매 평균': '8억1,000', '동탄 아파트 전세 평균': '4억3,500' },
+        { month: '26.09', '동탄 아파트 매매 평균': '8억3,000', '동탄 아파트 전세 평균': '4억4,500' },
+      ];
+
+      const agg = aggregateStatistics(
+        gapMonthTxs,
+        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' },
+        { referenceDate: '2026-09-20', macroTrend: sparseMacro }
+      );
+
+      expect(agg.timeSeriesTrend.map((p) => p.date)).toEqual(['2026-08', '2026-09']);
+      expect(agg.timeSeriesTrend[0].avgRentDeposit).toBe(43500);
+      expect(agg.timeSeriesTrend[1].avgRentDeposit).toBe(44500);
+
+      const standaloneTrend = computeMacroTimeSeries(gapMonthTxs, [], sparseMacro);
+      expect(standaloneTrend.map((p) => p.date)).toEqual(['2026-08', '2026-09']);
+      expect(standaloneTrend[0].avgRentDeposit).toBe(43500);
+      expect(standaloneTrend[1].avgRentDeposit).toBe(44500);
+    });
+
+    it('10.6: should resolve dong via summaryMap and respect filters.dong across standalone helper functions', () => {
+      const txsNoDong: RawTransactionRecord[] = [
+        {
+          aptKey: 'key-yeoul',
+          aptName: '동탄역롯데캐슬',
+          contractDate: '20260910',
+          priceVal: 16.0,
+          area: 84.9,
+        },
+        {
+          aptKey: 'key-bansong',
+          aptName: '메타폴리스',
+          contractDate: '20260912',
+          priceVal: 12.0,
+          area: 128.0,
+        },
+      ];
+
+      const summaryMap: Record<string, any> = {
+        'key-yeoul': { dong: '여울동', latestPriceEok: 16.0 },
+        'key-bansong': { dong: '반송동', latestPriceEok: 12.0 },
+      };
+
+      const filteredDong = filterTransactions(
+        txsNoDong,
+        { region: 'DONGTAN2', dong: '여울동', pyeong: 'ALL', timeframe: 'ALL', referenceDate: REF_DATE },
+        undefined,
+        undefined,
+        summaryMap
+      );
+      expect(filteredDong.length).toBe(1);
+      expect(filteredDong[0].aptName).toBe('동탄역롯데캐슬');
+
+      const rankings = computeComplexRankings(txsNoDong, [], 'PYEONG_DESC', 20, summaryMap);
+      expect(rankings.find((r) => r.aptName === '동탄역롯데캐슬')?.dong).toBe('여울동');
+      expect(rankings.find((r) => r.aptName === '메타폴리스')?.dong).toBe('반송동');
+
+      const distDong = computeVolumeDistribution(txsNoDong, 'DONG', summaryMap);
+      expect(distDong.find((d) => d.name === '여울동')?.value).toBe(1);
+      expect(distDong.find((d) => d.name === '반송동')?.value).toBe(1);
+
+      const distRegion = computeVolumeDistribution(txsNoDong, 'REGION', summaryMap);
+      expect(distRegion.find((d) => d.name === '동탄2')?.value).toBe(1);
+      expect(distRegion.find((d) => d.name === '동탄1')?.value).toBe(1);
+    });
+
+    it('10.7: should prevent LRU cache collision when options (referenceDate, excludeDirectDeals, rankLimit) differ on identical txs array', () => {
+      const sharedTxs: RawTransactionRecord[] = [
+        {
+          aptName: '단지A',
+          dong: '여울동',
+          contractDate: '20260915',
+          priceVal: 10.0,
+          area: 84,
+          dealType: '직거래',
+        },
+        {
+          aptName: '단지B',
+          dong: '여울동',
+          contractDate: '20260915',
+          priceVal: 12.0,
+          area: 84,
+          dealType: '중개거래',
+        },
+      ];
+
+      const filters = { region: 'ALL' as const, pyeong: 'ALL' as const, timeframe: '1M' as const, sort: 'PYEONG_DESC' as const };
+
+      const withDirect = aggregateStatistics(sharedTxs, filters, {
+        referenceDate: '2026-09-20',
+        excludeDirectDeals: false,
+        rankLimit: 20,
+      });
+      const withoutDirect = aggregateStatistics(sharedTxs, filters, {
+        referenceDate: '2026-09-20',
+        excludeDirectDeals: true,
+        rankLimit: 20,
+      });
+      const futureRef = aggregateStatistics(sharedTxs, filters, {
+        referenceDate: '2026-12-25',
+        excludeDirectDeals: false,
+        rankLimit: 20,
+      });
+      const rankLimit1 = aggregateStatistics(sharedTxs, filters, {
+        referenceDate: '2026-09-20',
+        excludeDirectDeals: false,
+        rankLimit: 1,
+      });
+
+      expect(withDirect.totalVolume).toBe(2);
+      expect(withoutDirect.totalVolume).toBe(1);
+      expect(futureRef.totalVolume).toBe(0);
+      expect(rankLimit1.pyeongRankings.length).toBe(1);
     });
   });
 });

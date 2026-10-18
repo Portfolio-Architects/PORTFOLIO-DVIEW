@@ -146,13 +146,15 @@ export function useTxData(
   }, [summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   // 5. Macro trend data fetching (macro-trend.json)
+  const hasMacroTrendFallback = !!(initialMacroTrend && initialMacroTrend.length > 0);
   const { data: trendData, error: trendError, isLoading: isTrendLoading } = useSWR<DongtanMacroTrendPoint[]>(
     isBrowser ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
     staticJsonFetcher,
     {
       fallbackData: initialMacroTrend,
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: !hasMacroTrendFallback,
+      revalidateOnMount: !hasMacroTrendFallback,
       revalidateOnReconnect: false,
       dedupingInterval: 3600000,
     }
@@ -244,6 +246,7 @@ export function usePeriodTransactions(
 ) {
   const isBrowser = typeof window !== 'undefined';
   const isRecentBased = period === '90d' || period === '7d' || period === '30d';
+  const hasRecentFallback = !!(isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0);
 
   const periodPathMap: Record<TimelinePeriod, string> = {
     '7d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
@@ -262,7 +265,8 @@ export function usePeriodTransactions(
     {
       fallbackData: isRecentBased ? fallbackRecentTransactions : undefined,
       revalidateOnFocus: false,
-      revalidateIfStale: false,
+      revalidateIfStale: !hasRecentFallback,
+      revalidateOnMount: !hasRecentFallback,
       revalidateOnReconnect: false,
       dedupingInterval: 3600000, // 1 hour memory cache
     }

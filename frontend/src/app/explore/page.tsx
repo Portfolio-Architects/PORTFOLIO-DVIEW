@@ -30,7 +30,7 @@ function ExploreSkeleton() {
             {/* Sidebar Skeleton (Hidden on Mobile) */}
             <aside 
               style={{ width: '240px' }}
-              className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
+              className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-slate-50/40 dark:bg-slate-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
             >
               <div className="mb-6">
                 <div className="w-16 h-4 bg-black/5 dark:bg-surface/5 rounded mb-3" />
@@ -73,7 +73,7 @@ function ExploreSkeleton() {
 
               <div className="flex-1 min-h-0 flex flex-col relative">
                 {/* Table Header Skeleton (Desktop Only) */}
-                <div className="hidden md:flex sticky top-[68px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-neutral-100 dark:border-zinc-900/40 text-[12.5px] font-extrabold text-neutral-500 dark:text-neutral-400 shrink-0 select-none shadow-sm">
+                <div className="hidden md:flex sticky top-[68px] z-20 bg-surface/90 backdrop-blur-md items-center md:pl-8 md:pr-[47px] py-3.5 border-b border-slate-100 dark:border-slate-900/40 text-[12.5px] font-extrabold text-slate-500 dark:text-slate-400 shrink-0 select-none shadow-sm">
                   <div className="w-[36px] shrink-0" />
                   <div className="w-[40px] text-center shrink-0">순위</div>
                   <div className="flex-1 min-w-[120px] ml-2 text-left">단지명</div>
@@ -91,7 +91,7 @@ function ExploreSkeleton() {
                     {[...Array(15)].map((_, i) => (
                       <div key={i} className="w-full flex flex-col px-0 md:px-4 py-0.5 md:py-1">
                         {/* Desktop item skeleton */}
-                        <div className="hidden md:flex items-center md:px-4 h-[66px] border border-neutral-100/70 dark:border-zinc-900/40 rounded-2xl bg-white dark:bg-zinc-950">
+                        <div className="hidden md:flex items-center md:px-4 h-[66px] border border-slate-100/70 dark:border-slate-900/40 rounded-2xl bg-white dark:bg-slate-950">
                           <div className="w-[36px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded" />
                           <div className="w-[40px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded mx-auto" />
                           <div className="flex-1 min-w-[120px] ml-2 h-5 bg-black/5 dark:bg-surface/5 rounded" />
@@ -103,7 +103,7 @@ function ExploreSkeleton() {
                           <div className="w-[100px] shrink-0 h-4 bg-black/5 dark:bg-surface/5 rounded ml-2 hidden xl:block" />
                         </div>
                         {/* Mobile item skeleton */}
-                        <div className="flex md:hidden items-center justify-between px-4 h-[64px] border-b border-neutral-100/40 dark:border-zinc-900/10 bg-white dark:bg-zinc-950">
+                        <div className="flex md:hidden items-center justify-between px-4 h-[64px] border-b border-slate-100/40 dark:border-slate-900/10 bg-white dark:bg-slate-950">
                           <div className="flex items-center gap-3 flex-1 min-w-0 pr-3">
                             <div className="w-[20px] h-[20px] rounded-full bg-black/5 dark:bg-surface/5 shrink-0" />
                             <div className="flex flex-col flex-1 min-w-0 gap-1.5">

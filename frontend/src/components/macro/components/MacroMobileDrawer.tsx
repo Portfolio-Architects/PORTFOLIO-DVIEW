@@ -111,10 +111,10 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
             const jeonseRateText = `${jeonseRate.toFixed(1)}%`;
             
             return (
-              <div className="bg-zinc-50 dark:bg-zinc-900/40 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3 shrink-0">
+              <div className="bg-slate-50 dark:bg-slate-900/40 border border-border/50 rounded-2xl p-3.5 flex flex-col gap-3 shrink-0">
                 <div className="flex items-center justify-between border-b border-border/30 pb-2 flex-wrap gap-2">
-                  <span className="inline-flex items-center justify-center bg-teal-500/10 text-teal-600 dark:text-teal-400 font-bold text-[11px] px-2 py-0.5 rounded-[5px] shrink-0 gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+                  <span className="inline-flex items-center justify-center bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold text-[11px] px-2 py-0.5 rounded-[5px] shrink-0 gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     실거래 요약
                   </span>
                   <span className="text-[10px] text-tertiary font-bold px-2 py-0.5 rounded border border-border/30">
@@ -137,7 +137,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-tertiary font-medium">실구매 갭</span>
-                    <span className="text-[12.5px] font-black text-teal-600 dark:text-teal-400">
+                    <span className="text-[12.5px] font-black text-emerald-600 dark:text-emerald-400">
                       {hasValues ? gapText : "-"}
                     </span>
                   </div>

@@ -219,17 +219,17 @@ describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test 
       // Click 디딤돌 대출 tab
       const didimdolTab = screen.getByRole('button', { name: '디딤돌 대출' });
       fireEvent.click(didimdolTab);
-      expect(didimdolTab).toHaveClass('text-[#057e77]');
+      expect(didimdolTab).toHaveClass('text-emerald-700');
 
       // Click 보금자리론 tab
       const bogeumTab = screen.getByRole('button', { name: '보금자리론' });
       fireEvent.click(bogeumTab);
-      expect(bogeumTab).toHaveClass('text-[#057e77]');
+      expect(bogeumTab).toHaveClass('text-emerald-700');
 
       // Click price preset button (5억)
       const price5 = screen.getByRole('button', { name: '5억' });
       fireEvent.click(price5);
-      expect(price5).toHaveClass('bg-[#057e77]');
+      expect(price5).toHaveClass('bg-emerald-600');
 
       // Click CTA button
       const ctaBtn = screen.getByRole('button', { name: /정밀 정책자금 한도 계산기 열기/ });
@@ -246,12 +246,12 @@ describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test 
       // Click deposit preset (3억)
       const dep3 = screen.getByRole('button', { name: '3억' });
       fireEvent.click(dep3);
-      expect(dep3).toHaveClass('bg-[#057e77]');
+      expect(dep3).toHaveClass('bg-emerald-600');
 
       // Click mortgage preset (5천만)
       const mort5 = screen.getByRole('button', { name: '5천만' });
       fireEvent.click(mort5);
-      expect(mort5).toHaveClass('bg-[#057e77]');
+      expect(mort5).toHaveClass('bg-emerald-600');
 
       // Click CTA
       const cta = screen.getByRole('button', { name: /내 전세 계약서 안심 4단계 정밀진단/ });

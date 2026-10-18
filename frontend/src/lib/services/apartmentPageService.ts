@@ -6,6 +6,7 @@
  */
 
 import type { Metadata } from 'next';
+import { z } from 'zod';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { redis } from '@/lib/redis';
@@ -45,6 +46,82 @@ export {
   type TransactionRecord,
   type PriceAnalytics,
 };
+
+export const TechnoValleyJisanSchema = z.object({
+  seq: z.union([z.string(), z.number()]),
+  name: z.string().min(1),
+  companyName: z.string().optional(),
+  regType: z.string().optional(),
+  complexName: z.string().optional(),
+  jurisdiction: z.string().optional(),
+  industrialParkType: z.string().optional(),
+  status: z.string().optional(),
+  initialApprovalDate: z.string().optional(),
+  approvalDate: z.string().optional(),
+  constructionStartDate: z.string().optional(),
+  completionDate: z.string().optional(),
+  completionYear: z.string().optional(),
+  scale: z.string().optional(),
+  phone: z.string().optional(),
+  landType: z.string().optional(),
+  landArea: z.union([z.number(), z.string()]).optional(),
+  totalFloorArea: z.union([z.number(), z.string()]).optional(),
+  factoryArea: z.union([z.number(), z.string()]).optional(),
+  auxiliaryArea: z.union([z.number(), z.string()]).optional(),
+  representativeBusiness: z.string().optional(),
+  parkingRatio: z.string().optional(),
+  roadAddress: z.string().optional(),
+  jibunAddress: z.string().optional(),
+  saleType: z.string().optional(),
+  buildingStatus: z.string().optional(),
+  zoning1: z.string().optional(),
+  zoning2: z.string().optional(),
+  installer: z.string().optional(),
+  unitCount: z.union([z.number(), z.string()]).optional(),
+  developer: z.string().optional(),
+  builder: z.string().optional(),
+  features: z.array(z.string()).optional(),
+});
+
+export type TechnoValleyJisan = z.infer<typeof TechnoValleyJisanSchema>;
+
+export const RealEstateListingSchema = z.object({
+  '@context': z.literal('https://schema.org'),
+  '@type': z.literal('RealEstateListing'),
+  name: z.string().min(1),
+  description: z.string().min(1),
+  url: z.string().url(),
+  offers: z.object({
+    '@type': z.literal('AggregateOffer'),
+    priceCurrency: z.literal('KRW'),
+    lowPrice: z.number().positive(),
+    highPrice: z.number().positive(),
+    offerCount: z.number().int().positive(),
+  }),
+}).refine(
+  (data) => data.offers.lowPrice <= data.offers.highPrice,
+  { message: 'lowPrice must be <= highPrice' }
+);
+
+export type RealEstateListing = z.infer<typeof RealEstateListingSchema>;
+
+/**
+ * 동탄테크노밸리 56개 지식산업센터 현황 데이터 (jisan-status-list.json) 조회 및 런타임 스키마 검증
+ * @complexity Time: O(N), Space: O(N) where N = 56 knowledge industry centers
+ * @sideEffects None (Read-only cached file I/O)
+ */
+export async function getTechnoValleyJisanList(): Promise<TechnoValleyJisan[]> {
+  const rawList = await readJsonFileCached<unknown[]>('public/data/jisan-status-list.json', []);
+  if (!Array.isArray(rawList)) return [];
+  const validated: TechnoValleyJisan[] = [];
+  for (const item of rawList) {
+    const parsed = TechnoValleyJisanSchema.safeParse(item);
+    if (parsed.success) {
+      validated.push(parsed.data);
+    }
+  }
+  return validated;
+}
 
 export interface LocationScore {
   distanceToElementary?: number;
@@ -314,6 +391,8 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
 
 /**
  * Search Engine Optimization: Schema.org JSON-LD 객체 생성
+ * @complexity Time: O(P), Space: O(P) where P = pyeongSummaries length
+ * @sideEffects None (Pure deterministic transformation)
  */
 export function buildApartmentJsonLd(
   data: ApartmentPageData,
@@ -451,6 +530,85 @@ export function buildApartmentJsonLd(
     } : undefined,
   }));
 
+  const positiveDeposits = pyeongSummaries
+    .map((p) => (p.latestDeposit > 0 ? p.latestDeposit : p.avgDeposit))
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v) && v > 0);
+
+  const summaryRecord = aptSummary as Record<string, unknown> | undefined;
+  const summaryMinPrice =
+    typeof summaryRecord?.minPrice === 'number' && Number.isFinite(summaryRecord.minPrice) && summaryRecord.minPrice > 0
+      ? summaryRecord.minPrice
+      : 0;
+  const summaryMaxPrice =
+    typeof summaryRecord?.maxPrice === 'number' && Number.isFinite(summaryRecord.maxPrice) && summaryRecord.maxPrice > 0
+      ? summaryRecord.maxPrice
+      : 0;
+
+  const rawMinManwon =
+    typeof analytics.minSalePrice === 'number' && Number.isFinite(analytics.minSalePrice) && analytics.minSalePrice > 0
+      ? analytics.minSalePrice
+      : summaryMinPrice > 0
+      ? summaryMinPrice
+      : typeof aptSummary?.latestPrice === 'number' && Number.isFinite(aptSummary.latestPrice) && aptSummary.latestPrice > 0
+      ? aptSummary.latestPrice
+      : positiveDeposits.length > 0
+      ? Math.min(...positiveDeposits)
+      : typeof aptSummary?.latestRentDeposit === 'number' && Number.isFinite(aptSummary.latestRentDeposit) && aptSummary.latestRentDeposit > 0
+      ? aptSummary.latestRentDeposit
+      : typeof aptSummary?.avg1MRentDeposit === 'number' && Number.isFinite(aptSummary.avg1MRentDeposit) && aptSummary.avg1MRentDeposit > 0
+      ? aptSummary.avg1MRentDeposit
+      : 0;
+
+  const rawMaxManwon =
+    typeof analytics.maxSalePrice === 'number' && Number.isFinite(analytics.maxSalePrice) && analytics.maxSalePrice > 0
+      ? analytics.maxSalePrice
+      : summaryMaxPrice > 0
+      ? summaryMaxPrice
+      : typeof aptSummary?.latestPrice === 'number' && Number.isFinite(aptSummary.latestPrice) && aptSummary.latestPrice > 0
+      ? aptSummary.latestPrice
+      : positiveDeposits.length > 0
+      ? Math.max(...positiveDeposits)
+      : rawMinManwon;
+
+  const hasValidRealPrice = rawMinManwon > 0 && rawMaxManwon > 0;
+  const lowPriceWon = hasValidRealPrice ? Math.round(Math.min(rawMinManwon, rawMaxManwon) * 10000) : 0;
+  const highPriceWon = hasValidRealPrice ? Math.max(lowPriceWon, Math.round(Math.max(rawMinManwon, rawMaxManwon) * 10000)) : 0;
+  const totalTxCount = pyeongSummaries.reduce((acc, p) => acc + (p.salesCount || 0) + (p.rentCount || 0), 0);
+  const summaryRentTxCount =
+    typeof summaryRecord?.rentTxCount === 'number' && summaryRecord.rentTxCount > 0
+      ? summaryRecord.rentTxCount
+      : 0;
+  const offerCountVal = Math.max(
+    1,
+    totalTxCount > 0
+      ? Math.round(totalTxCount)
+      : typeof aptSummary?.txCount === 'number' && aptSummary.txCount > 0
+      ? Math.round(aptSummary.txCount)
+      : summaryRentTxCount > 0
+      ? Math.round(summaryRentTxCount)
+      : 1
+  );
+
+  const safeAptName = aptName && aptName.trim().length > 0 ? aptName : '동탄 아파트';
+  const safeBaseUrl = baseUrl && /^https?:\/\//i.test(baseUrl) ? baseUrl : 'https://dongtanview.com';
+  const listingCandidate = {
+    '@context': 'https://schema.org' as const,
+    '@type': 'RealEstateListing' as const,
+    name: `${safeAptName} 실거래 매물 및 시세 리스팅`,
+    description: aiBriefing && aiBriefing.trim().length > 0 ? aiBriefing : `동탄 ${safeAptName} 아파트 실거래가 및 전세가율 분석`,
+    url: `${safeBaseUrl}/apartment/${encodeURIComponent(safeAptName)}`,
+    offers: {
+      '@type': 'AggregateOffer' as const,
+      priceCurrency: 'KRW' as const,
+      lowPrice: lowPriceWon,
+      highPrice: highPriceWon,
+      offerCount: offerCountVal,
+    },
+  };
+
+  const parsedListing = RealEstateListingSchema.safeParse(listingCandidate);
+  const realEstateListingNode: RealEstateListing | null = parsedListing.success ? parsedListing.data : null;
+
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -484,6 +642,14 @@ export function buildApartmentJsonLd(
           ],
         },
       },
+      ...(realEstateListingNode
+        ? [
+            {
+              ...realEstateListingNode,
+              '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#listing`,
+            },
+          ]
+        : []),
       {
         '@type': 'ApartmentComplex',
         '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#complex`,
@@ -491,10 +657,20 @@ export function buildApartmentJsonLd(
         description: `동탄 ${aptName} 아파트 실거래가 및 임장 리포트`,
         url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
         ...(structuredImages.length > 0 ? { image: structuredImages } : {}),
-        ...(analytics.offers ? { offers: analytics.offers } : {}),
-        priceRange: analytics.minSalePrice > 0
-          ? `₩${(analytics.minSalePrice * 10000).toLocaleString()} - ₩${(analytics.maxSalePrice * 10000).toLocaleString()}`
-          : undefined,
+        ...(analytics.offers
+          ? { offers: analytics.offers }
+          : realEstateListingNode
+          ? { offers: realEstateListingNode.offers }
+          : {}),
+        ...(analytics.minSalePrice > 0
+          ? {
+              priceRange: `₩${(analytics.minSalePrice * 10000).toLocaleString()} - ₩${(analytics.maxSalePrice * 10000).toLocaleString()}`,
+            }
+          : realEstateListingNode
+          ? {
+              priceRange: `₩${lowPriceWon.toLocaleString()} - ₩${highPriceWon.toLocaleString()}`,
+            }
+          : {}),
         address,
         ...(geo ? { geo } : {}),
         ...(containedPlaces.length > 0 ? { containedInPlace: containedPlaces } : {}),

@@ -11,6 +11,7 @@ import {
   ArrowRight,
   ShieldCheck,
   CheckCircle2,
+  Lightbulb,
 } from 'lucide-react';
 import { MbtiApartmentProfile } from '@/types/mbti';
 import { TEMPERAMENTS } from '@/lib/data/mbtiData';
@@ -74,7 +75,7 @@ export function MBTIResultView({
         >
           <div className="flex items-center justify-between">
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-black/25 backdrop-blur-md border border-white/20">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <Sparkles className="w-3.5 h-3.5 text-emerald-300" />
               나의 주거 성향 분석 리포트
             </span>
             <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white/20 backdrop-blur-md">
@@ -100,10 +101,10 @@ export function MBTIResultView({
           </p>
 
           {/* Matched Apartment Core Highlight Box */}
-          <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-orange-50/50 via-white to-amber-50/40 dark:from-slate-800/80 dark:via-slate-900 dark:to-slate-800/50 border-2 border-orange-400/40 dark:border-orange-500/30 shadow-sm flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-orange-100 dark:border-slate-800 pb-4">
+          <div className="rounded-2xl p-5 sm:p-6 bg-gradient-to-br from-emerald-50/50 via-white to-blue-50/40 dark:from-slate-800/80 dark:via-slate-900 dark:to-slate-800/50 border-2 border-emerald-400/40 dark:border-emerald-500/30 shadow-sm flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 dark:border-slate-800 pb-4">
               <div>
-                <div className="flex items-center gap-2 text-xs font-bold text-orange-600 dark:text-orange-400 mb-1">
+                <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-400 mb-1">
                   <Building2 className="w-4 h-4" />
                   <span>영혼의 궁합 동탄 매칭 단지</span>
                 </div>
@@ -122,7 +123,7 @@ export function MBTIResultView({
                   <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                     최근 실거래가
                   </span>
-                  <div className="flex items-baseline gap-1 text-orange-600 dark:text-orange-400 font-black text-lg sm:text-xl">
+                  <div className="flex items-baseline gap-1 text-emerald-700 dark:text-emerald-400 font-black text-lg sm:text-xl">
                     <TrendingUp className="w-4 h-4" />
                     <span>{txData.latestPriceEok}</span>
                   </div>
@@ -140,7 +141,7 @@ export function MBTIResultView({
               {profile.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-100/70 text-orange-800 dark:bg-orange-950/60 dark:text-orange-300"
+                  className="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-200/70 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
                 >
                   {tag}
                 </span>
@@ -151,7 +152,7 @@ export function MBTIResultView({
           {/* 5-Axis Radar Chart */}
           <div className="flex flex-col items-center">
             <div className="flex items-center gap-2 mb-2">
-              <ShieldCheck className="w-4 h-4 text-orange-500" />
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <h3 className="text-sm font-bold text-slate-700 dark:text-slate-300">
                 5대 주거 인프라 지표 평가
               </h3>
@@ -166,7 +167,7 @@ export function MBTIResultView({
           {/* Rationale & Why This Fits */}
           <div className="flex flex-col gap-3 rounded-2xl p-5 bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800">
             <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white flex items-center gap-1.5">
-              <span>💡</span>
+              <Lightbulb size={16} className="text-emerald-500 shrink-0" />
               <span>왜 {profile.type}에게 이 단지일까요?</span>
             </h3>
             <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -191,7 +192,7 @@ export function MBTIResultView({
             type="button"
             data-testid="cta-open-apt-modal"
             onClick={handleOpenAptModal}
-            className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 active:scale-[0.98] text-white font-black text-base shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+            className="w-full py-4 px-6 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-base shadow-lg shadow-emerald-600/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
           >
             <Building2 className="w-5 h-5" />
             <span>{profile.aptName} 실거래 & 가치평가 리포트 보기</span>

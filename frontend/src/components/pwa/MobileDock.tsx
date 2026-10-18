@@ -66,8 +66,8 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
       <div className="flex items-center justify-between w-full min-w-0 gap-0.5">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;
-          const activeTextColor = 'text-hs-orange';
-          const activeBgClass = 'bg-hs-orange-light border border-hs-orange/15';
+          const activeTextColor = 'text-emerald-700';
+          const activeBgClass = 'bg-emerald-50 border border-emerald-200/15';
 
           return (
             <Link

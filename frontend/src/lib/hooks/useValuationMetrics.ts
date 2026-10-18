@@ -172,7 +172,11 @@ export function useValuationMetrics(
   // 3. SWR Macro Rates Fetching
   const { data: ratesRes } = useSWR<MacroRatesResponse>(
     '/api/macro/rates',
-    (url: string) => fetch(url).then(res => res.json()),
+    async (url: string) => {
+      const res = await fetch(url);
+      if (!res.ok) return { success: false };
+      return res.json();
+    },
     { revalidateOnFocus: false }
   );
 

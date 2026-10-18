@@ -265,7 +265,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
     return `${name} 거리 1.2km 초과 (환승 필요)`;
   };
 
-  // 1. 🚇 교통 (Max 125)
+  // 1. 교통 (Max 125)
   const gtxPct = interpolateScore(validatedMetrics.distanceToSubway || 9999, DISTANCE_CURVE);
   const indkPct = interpolateScore(validatedMetrics.distanceToIndeokwon || 9999, DISTANCE_CURVE);
   const tramPct = interpolateScore(validatedMetrics.distanceToTram || 9999, DISTANCE_CURVE);
@@ -275,7 +275,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   const tramScore = Math.round(tramPct * 24);
   const transport = gtxScore + indkScore + tramScore;
 
-  // 2. 🎓 학군 (Max 25)
+  // 2. 학군 (Max 25)
   const minSchool = Math.min(validatedMetrics.distanceToElementary || 9999, validatedMetrics.distanceToMiddle || 9999, validatedMetrics.distanceToHigh || 9999);
   const schoolPct = interpolateScore(minSchool, [
     { v: 2000, pct: 0 }, { v: 1500, pct: 0.1 }, { v: 800, pct: 0.4 }, { v: 500, pct: 0.7 }, { v: 200, pct: 1.0 }
@@ -291,7 +291,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
   ]);
   const education = schScore + Math.round(academyPct * 10);
 
-  // 3. 🅿️ 주거 쾌적 (Max 20)
+  // 3. 주거 쾌적 (Max 20)
   const parkingPct = interpolateScore(validatedMetrics.parkingPerHousehold || 0, [
     { v: 0.8, pct: 0 }, { v: 1.0, pct: 0.2 }, { v: 1.2, pct: 0.5 }, { v: 1.4, pct: 0.8 }, { v: 1.6, pct: 1.0 }
   ]);
@@ -323,7 +323,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
 
   const livingComfort = parkScore + parkDistScore;
 
-  // 4. 🏢 단지 경쟁력 (Max 15)
+  // 4. 단지 경쟁력 (Max 15)
   const scalePct = interpolateScore(validatedMetrics.householdCount || 0, [
     { v: 0, pct: 0.1 }, { v: 500, pct: 0.3 }, { v: 1000, pct: 0.6 }, { v: 1500, pct: 0.8 }, { v: 3000, pct: 1.0 }
   ]);
@@ -374,7 +374,7 @@ export function calculatePremiumScores(metrics: ObjectiveMetrics | undefined): P
 
   const complex = scaleScore + brandScore + yearScore;
 
-  // 5. 🍽️ 생활 인프라 (Max 15)
+  // 5. 생활 인프라 (Max 15)
   const stores = (validatedMetrics.academyDensity || 0) + (validatedMetrics.restaurantDensity || 0);
   const hasAnchor = ((validatedMetrics.distanceToStarbucks ?? Infinity) <= 500) || ((validatedMetrics.distanceToSupermarket ?? Infinity) <= 500);
   let storeScore = 0; let storeLabel = '상권/학원가 정보 없음';

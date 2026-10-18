@@ -25,7 +25,7 @@
  */
 
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import MacroDashboardClient from '@/components/MacroDashboardClient';
@@ -122,6 +122,10 @@ const mockRecentTransactions = [
 describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+  });
+
+  afterEach(() => {
+    cleanup();
   });
 
   // ══════════════════════════════════════════════════════════════════════
@@ -307,7 +311,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
 
     it('2.3 VolumeDistributionChartSkeleton matches StatsVolumeDistributionChart donut circle and breakdown rows', () => {
       // 1. Render Skeleton
-      const { container: skelContainer } = render(<VolumeDistributionChartSkeleton />);
+      const { container: skelContainer, unmount: unmountSkel } = render(<VolumeDistributionChartSkeleton />);
       const skelRoot = skelContainer.querySelector('[data-testid="stats-volume-distribution-chart"]');
       expect(skelRoot).toBeInTheDocument();
       expect(skelRoot!.className).toContain('p-5 sm:p-6 rounded-2xl border border-border/60 bg-surface shadow-xs');
@@ -324,7 +328,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         { name: '중대형 (85~102㎡)', value: 30, percentage: 15 },
         { name: '대형 (102㎡ 초과)', value: 10, percentage: 5 },
       ];
-      const { container: loadedContainer } = render(
+      const { container: loadedContainer, unmount: unmountLoaded } = render(
         <StatsVolumeDistributionChart distribution={mockDist} />
       );
       const loadedRoot = loadedContainer.querySelector('[data-testid="stats-volume-distribution-chart"]');
@@ -334,9 +338,12 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       // Loaded chart has identical donut height: h-[220px] sm:h-[240px]
       const loadedDonut = loadedRoot!.querySelector('.h-\\[220px\\]');
       expect(loadedDonut).toBeInTheDocument();
+
+      unmountSkel();
+      unmountLoaded();
     });
 
-    it('2.4 Viewport lazy mount wraps all three charts in min-h boundary wrappers in StatsOverviewSection', () => {
+    it('2.4 Viewport lazy mount wraps active charts in min-h boundary wrappers in StatsOverviewSection', () => {
       render(
         <StatsOverviewSection
           recentTransactions={mockRecentTransactions as unknown as RawTransactionRecord[]}
@@ -346,15 +353,14 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         />
       );
 
-      // Verify that all 3 chart wrappers enforce strict min-height classes
+      // Verify that active chart wrappers enforce strict min-height classes and volume distribution is excluded
       const timeTrendSkeleton = screen.getByTestId('stats-time-trend-chart');
       expect(timeTrendSkeleton).toBeInTheDocument();
 
       const rankingSkeleton = screen.getByTestId('stats-pyeong-ranking-chart');
       expect(rankingSkeleton).toBeInTheDocument();
 
-      const volumeSkeleton = screen.getByTestId('stats-volume-distribution-chart');
-      expect(volumeSkeleton).toBeInTheDocument();
+      expect(screen.queryByTestId('stats-volume-distribution-chart')).not.toBeInTheDocument();
 
       // Cumulative Layout Shift (CLS) assertion:
       // Skeleton to component replacement preserves root dimensions, causing 0 shift

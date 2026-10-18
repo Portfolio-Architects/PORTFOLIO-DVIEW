@@ -110,7 +110,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Transit */}
-        <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
           <MapPin size={12} className="text-[#0284c7]" /> 역세권 인프라 (철도 및 트램)
         </div>
 
@@ -150,7 +150,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Education & Living */}
-        <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
           <School size={12} className="text-[#0ea5e9]" /> 교육 및 생활 인프라 (학교 및 편의시설)
         </div>
 
@@ -222,7 +222,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Specs */}
-        <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
           <Building2 size={12} className="text-[#db2777]" /> 단지 스펙 (규모·연식)
         </div>
 
@@ -274,7 +274,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
         </div>
 
         {/* Section: Price and Valuation */}
-        <div className="bg-[#f8fafc]/30 dark:bg-zinc-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
+        <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
           <TrendingUp size={12} className="text-[#057e77] dark:text-emerald-400" /> 가치 & 거래 정보 (최근 3M 기준)
         </div>
 

@@ -21,7 +21,7 @@ export const MacroHeader = React.memo(function MacroHeader({
         compactTitle="D-VIEW 동탄 아파트 랩"
         subtitleStrong={
           <>
-            동탄 179개 단지 <span className="text-brand-orange font-extrabold px-0.5">실거래가·AI 밸류에이션</span>
+            동탄 179개 단지 <span className="text-emerald-700 font-extrabold px-0.5">실거래가·AI 밸류에이션</span>
           </>
         }
         subtitleLight="주담대·갈아타기 적정가 진단부터 안심 전세 자산 리포트까지"

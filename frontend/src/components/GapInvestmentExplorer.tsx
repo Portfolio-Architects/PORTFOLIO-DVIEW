@@ -53,7 +53,7 @@ const GapComplexCard = React.memo(function GapComplexCard({
   return (
     <div
       data-testid="complex-card"
-      className="flex flex-col bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 hover:bg-surface/95 dark:hover:bg-zinc-900/95 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover-tilt-card rounded-[20px] p-5 transition-all duration-300 group relative"
+      className="flex flex-col bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 hover:bg-surface/95 dark:hover:bg-slate-900/95 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] hover-tilt-card rounded-[20px] p-5 transition-all duration-300 group relative"
       role="listitem"
     >
       <button
@@ -66,11 +66,11 @@ const GapComplexCard = React.memo(function GapComplexCard({
         <div className="flex flex-col min-w-0 pr-1">
           <span 
             data-testid="complex-name"
-            className="text-[16px] md:text-[18px] font-extrabold text-primary/95 dark:text-zinc-100 tracking-tight leading-normal break-keep whitespace-normal group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors"
+            className="text-[16px] md:text-[18px] font-extrabold text-primary/95 dark:text-slate-100 tracking-tight leading-normal break-keep whitespace-normal group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors"
           >
             {item.apt.name}
           </span>
-          <span className="text-[12px] md:text-[13px] font-semibold text-secondary/70 dark:text-zinc-400 mt-0.5">
+          <span className="text-[12px] md:text-[13px] font-semibold text-secondary/70 dark:text-slate-400 mt-0.5">
             {item.apt.dong} · {hh}세대
           </span>
         </div>
@@ -80,9 +80,9 @@ const GapComplexCard = React.memo(function GapComplexCard({
             item.gapScore >= 60 ? 'bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/20' :
             'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
           }`}>
-            {item.gapScore >= 80 ? '🔥 S등급 (우수)' : item.gapScore >= 60 ? '✅ A등급 (보통)' : '⚠️ B등급 (관망)'}
+            {item.gapScore >= 80 ? 'S등급 (우수)' : item.gapScore >= 60 ? 'A등급 (보통)' : 'B등급 (관망)'}
           </span>
-          <span className="text-[10px] font-bold text-secondary/60 dark:text-zinc-500">
+          <span className="text-[10px] font-bold text-secondary/60 dark:text-slate-500">
             지수 {item.gapScore}점
           </span>
         </div>
@@ -107,14 +107,14 @@ const GapComplexCard = React.memo(function GapComplexCard({
         </div>
       </div>
 
-      <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary/80 dark:text-zinc-400 font-medium mt-auto border-t border-border/20 dark:border-white/10 pt-3 px-0.5 w-full">
+      <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary/80 dark:text-slate-400 font-medium mt-auto border-t border-border/20 dark:border-white/10 pt-3 px-0.5 w-full">
         <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
-          매매 평균 <strong className="text-primary/90 dark:text-zinc-300 font-bold">{formatPrice(item.sales)}</strong>
+          <span className="w-1.5 h-1.5 rounded-full bg-slate-400/60" />
+          매매 평균 <strong className="text-primary/90 dark:text-slate-300 font-bold">{formatPrice(item.sales)}</strong>
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
-          전세 평균 <strong className="text-primary/90 dark:text-zinc-300 font-bold">{formatPrice(item.jeonse)}</strong>
+          <span className="w-1.5 h-1.5 rounded-full bg-red-400/60" />
+          전세 평균 <strong className="text-primary/90 dark:text-slate-300 font-bold">{formatPrice(item.jeonse)}</strong>
         </span>
       </div>
       </button>
@@ -136,15 +136,15 @@ const GapComplexCard = React.memo(function GapComplexCard({
         
         <div className="flex gap-1 shrink-0">
           <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
-            jeonseRatePercent >= 80 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/20' :
-            jeonseRatePercent >= 70 ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/20' :
+            jeonseRatePercent >= 80 ? 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-200/20' :
+            jeonseRatePercent >= 70 ? 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-200/20' :
             'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/20'
           }`}>
             역전세
           </span>
           <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded-md ${
-            item.txCount <= 2 ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border border-rose-200/20' :
-            item.txCount <= 5 ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border border-amber-200/20' :
+            item.txCount <= 2 ? 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-200/20' :
+            item.txCount <= 5 ? 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border border-red-200/20' :
             'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-200/20'
           }`}>
             유동성
@@ -159,16 +159,16 @@ const GapComplexCard = React.memo(function GapComplexCard({
         >
           <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
-              jeonseRatePercent >= 80 ? 'bg-rose-500 animate-pulse' :
-              jeonseRatePercent >= 70 ? 'bg-amber-500' :
+              jeonseRatePercent >= 80 ? 'bg-red-500 animate-pulse' :
+              jeonseRatePercent >= 70 ? 'bg-red-500' :
               'bg-emerald-500'
             }`} />
             <div className="flex-1">
               <p className="font-extrabold text-primary">
                 역전세 리스크: {' '}
                 <span className={
-                  jeonseRatePercent >= 80 ? 'text-rose-500 font-black' :
-                  jeonseRatePercent >= 70 ? 'text-amber-600 dark:text-amber-400 font-black' :
+                  jeonseRatePercent >= 80 ? 'text-red-500 font-black' :
+                  jeonseRatePercent >= 70 ? 'text-red-600 dark:text-red-400 font-black' :
                   'text-emerald-600 dark:text-emerald-400 font-black'
                 }>
                   {jeonseRatePercent >= 80 ? '위험' : jeonseRatePercent >= 70 ? '주의' : '안전'}
@@ -186,16 +186,16 @@ const GapComplexCard = React.memo(function GapComplexCard({
 
           <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
-              item.txCount <= 2 ? 'bg-rose-500' :
-              item.txCount <= 5 ? 'bg-amber-500' :
+              item.txCount <= 2 ? 'bg-red-500' :
+              item.txCount <= 5 ? 'bg-red-500' :
               'bg-emerald-500'
             }`} />
             <div className="flex-1">
               <p className="font-extrabold text-primary">
                 유동성 리스크: {' '}
                 <span className={
-                  item.txCount <= 2 ? 'text-rose-500 font-black' :
-                  item.txCount <= 5 ? 'text-amber-600 dark:text-amber-400 font-black' :
+                  item.txCount <= 2 ? 'text-red-500 font-black' :
+                  item.txCount <= 5 ? 'text-red-600 dark:text-red-400 font-black' :
                   'text-emerald-600 dark:text-emerald-400 font-black'
                 }>
                   {item.txCount <= 2 ? '높음' : item.txCount <= 5 ? '보통' : '낮음'}
@@ -213,16 +213,16 @@ const GapComplexCard = React.memo(function GapComplexCard({
 
           <div className="flex items-start gap-2 text-[11.5px] leading-relaxed">
             <span className={`w-1.5 h-1.5 rounded-full shrink-0 mt-1.5 ${
-              hh < 300 ? 'bg-rose-500' :
-              hh < 700 ? 'bg-amber-500' :
+              hh < 300 ? 'bg-red-500' :
+              hh < 700 ? 'bg-red-500' :
               'bg-emerald-500'
             }`} />
             <div className="flex-1">
               <p className="font-extrabold text-primary">
                 가격 변동성 (방어력): {' '}
                 <span className={
-                  hh < 300 ? 'text-rose-500 font-black' :
-                  hh < 700 ? 'text-amber-600 dark:text-amber-400 font-black' :
+                  hh < 300 ? 'text-red-500 font-black' :
+                  hh < 700 ? 'text-red-600 dark:text-red-400 font-black' :
                   'text-emerald-600 dark:text-emerald-400 font-black'
                 }>
                   {hh < 300 ? '높음' : hh < 700 ? '보통' : '낮음'}
@@ -308,7 +308,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           shareTimeoutRef.current = null;
         }
       }, 2000);
-      showToast('주거 안심 큐레이션 필터 링크가 클립보드에 복사되었습니다! 💚');
+      showToast('주거 안심 큐레이션 필터 링크가 클립보드에 복사되었습니다.');
     }).catch(err => {
       logger.error('GapInvestmentExplorer', 'Failed to copy URL', undefined, err);
       showToast('링크 복사에 실패했습니다.');
@@ -693,7 +693,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
   }, [gapList]);
 
   return (
-    <div className="w-full bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
+    <div className="w-full bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] p-5 md:p-6 shadow-[0_8px_30px_rgb(0,0,0,0.02)] transition-all">
       {jsonLd && (
         <script
           type="application/ld+json"
@@ -724,10 +724,10 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
               <Coins className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary/95 dark:text-zinc-100 tracking-tight leading-normal">
+              <h3 className="text-[18px] md:text-[20px] font-extrabold text-primary/95 dark:text-slate-100 tracking-tight leading-normal">
                 주거 안심 & 전세가율 큐레이션
               </h3>
-              <p className="text-[12px] md:text-[13px] font-medium text-secondary/80 dark:text-zinc-400 mt-0.5 leading-relaxed">
+              <p className="text-[12px] md:text-[13px] font-medium text-secondary/80 dark:text-slate-400 mt-0.5 leading-relaxed">
                 실거래가 기준 실구매 차액 및 주거 안심 다차원 분석 대시보드
               </p>
             </div>
@@ -768,13 +768,13 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
       {/* 주거 안심 종합 현황판 (Analytics Board) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <div className="bg-body/20 dark:bg-zinc-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
-          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
+        <div className="bg-body/20 dark:bg-slate-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
+          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
             <Percent className="w-3.5 h-3.5 text-[#057e77] dark:text-emerald-400" />
             평균 전세가율
           </span>
           <div className="flex items-baseline gap-1.5 mt-2.5">
-            <span className="text-[20px] font-black text-primary/95 dark:text-zinc-100 tracking-tight">
+            <span className="text-[20px] font-black text-primary/95 dark:text-slate-100 tracking-tight">
               {avgJeonseRate}%
             </span>
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
@@ -785,66 +785,66 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           </div>
         </div>
 
-        <div className="bg-body/20 dark:bg-zinc-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
-          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
+        <div className="bg-body/20 dark:bg-slate-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
+          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
             <Coins className="w-3.5 h-3.5 text-emerald-500" />
             실구매 안심 단지
           </span>
           <div className="flex items-baseline gap-1 mt-2.5">
-            <span className="text-[20px] font-black text-primary/95 dark:text-zinc-100 tracking-tight">
+            <span className="text-[20px] font-black text-primary/95 dark:text-slate-100 tracking-tight">
               {lowGapCount}개
             </span>
-            <span className="text-[10.5px] font-bold text-secondary/60 dark:text-zinc-500">
+            <span className="text-[10.5px] font-bold text-secondary/60 dark:text-slate-500">
               (전체 {allValidGapItems.length > 0 ? Math.round((lowGapCount / allValidGapItems.length) * 100) : 0}%)
             </span>
           </div>
         </div>
 
-        <div className="bg-body/20 dark:bg-zinc-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
-          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
-            <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+        <div className="bg-body/20 dark:bg-slate-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
+          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
+            <ShieldAlert className="w-3.5 h-3.5 text-red-500" />
             전세율 70%+ 단지
           </span>
           <div className="flex items-baseline gap-1 mt-2.5">
-            <span className="text-[20px] font-black text-primary/95 dark:text-zinc-100 tracking-tight">
+            <span className="text-[20px] font-black text-primary/95 dark:text-slate-100 tracking-tight">
               {highJeonseRatio}%
             </span>
-            <span className="text-[10.5px] font-bold text-secondary/60 dark:text-zinc-500">
+            <span className="text-[10.5px] font-bold text-secondary/60 dark:text-slate-500">
               의 비중
             </span>
           </div>
         </div>
 
-        <div className="bg-body/20 dark:bg-zinc-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
-          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+        <div className="bg-body/20 dark:bg-slate-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
+          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
+            <Sparkles className="w-3.5 h-3.5 text-blue-500" />
             최소 갭 단지
           </span>
           <div className="flex flex-col mt-1">
             {minGapItem ? (
               <>
-                <span className="text-[13px] font-black text-primary/95 dark:text-zinc-100 truncate max-w-full">
+                <span className="text-[13px] font-black text-primary/95 dark:text-slate-100 truncate max-w-full">
                   {minGapItem.apt.name}
                 </span>
-                <span className="text-[12px] font-black text-indigo-600 dark:text-indigo-400 mt-0.5">
+                <span className="text-[12px] font-black text-blue-600 dark:text-blue-400 mt-0.5">
                   갭 {formatPrice(minGapItem.gap)}
                 </span>
               </>
             ) : (
-              <span className="text-[13px] font-bold text-secondary/60 dark:text-zinc-500 mt-1">없음</span>
+              <span className="text-[13px] font-bold text-secondary/60 dark:text-slate-500 mt-1">없음</span>
             )}
           </div>
         </div>
       </div>
 
       {/* Dynamic Budget Controller Panel */}
-      <div className="flex flex-col gap-5 bg-body/20 dark:bg-zinc-950/20 p-5 rounded-[20px] border border-border/40 dark:border-white/10 mb-6 shadow-sm backdrop-blur-sm">
+      <div className="flex flex-col gap-5 bg-body/20 dark:bg-slate-950/20 p-5 rounded-[20px] border border-border/40 dark:border-white/10 mb-6 shadow-sm backdrop-blur-sm">
         {/* Slider & Numeric input */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
           {/* Slider input */}
           <div className="flex-1 flex flex-col gap-2">
             <div className="flex justify-between items-baseline">
-              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary dark:text-zinc-355">최대 투자금 (갭)</span>
+              <span className="text-[13px] md:text-[14px] font-extrabold text-secondary dark:text-slate-355">최대 투자금 (갭)</span>
               <span className="text-[18px] md:text-[20px] font-black text-[#057e77] dark:text-emerald-400 tracking-tight">
                 {formatGapLabel(localMaxGap)}
               </span>
@@ -870,7 +870,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
           {/* Direct Input & Match Count */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 bg-surface/80 dark:bg-zinc-800/80 border border-border/40 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:ring-2 focus-within:ring-[#057e77] dark:focus-within:ring-emerald-400 shadow-sm transition-all duration-300">
+            <div className="flex items-center gap-1.5 bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:ring-2 focus-within:ring-[#057e77] dark:focus-within:ring-emerald-400 shadow-sm transition-all duration-300">
               <input
                 type="number"
                 min="0"
@@ -883,9 +883,9 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                   setLocalMaxGap(Math.min(60000, val));
                   setShowAll(false);
                 }}
-                className="w-20 bg-transparent text-right font-black text-primary dark:text-zinc-100 text-[14px] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                className="w-20 bg-transparent text-right font-black text-primary dark:text-slate-100 text-[14px] focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
-              <span className="text-[12px] font-bold text-secondary/60 dark:text-zinc-400">만원</span>
+              <span className="text-[12px] font-bold text-secondary/60 dark:text-slate-400">만원</span>
             </div>
 
             <div className="bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 px-3 py-2.5 rounded-xl text-[12px] md:text-[13px] font-extrabold border border-emerald-500/20 dark:border-emerald-500/20 shrink-0">
@@ -896,7 +896,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
         {/* Preset Quick Buttons */}
         <div className="flex flex-wrap items-center gap-1.5 pt-3.5 border-t border-border/20 dark:border-white/10">
-          <span className="text-[11.5px] font-bold text-secondary/60 dark:text-zinc-400 mr-1.5">빠른 선택</span>
+          <span className="text-[11.5px] font-bold text-secondary/60 dark:text-slate-400 mr-1.5">빠른 선택</span>
           {PRESETS.map((preset) => (
             <button
               key={preset.label}
@@ -908,7 +908,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
               className={`px-3.5 py-1.5 text-[12px] font-extrabold rounded-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all border duration-200 ${
                 localMaxGap === preset.value
                   ? 'bg-[#057e77] text-white border-[#057e77] shadow-sm'
-                  : 'bg-surface dark:bg-zinc-800 text-secondary dark:text-zinc-300 hover:text-primary dark:hover:text-zinc-100 border-border/40 dark:border-white/10'
+                  : 'bg-surface dark:bg-slate-800 text-secondary dark:text-slate-300 hover:text-primary dark:hover:text-slate-100 border-border/40 dark:border-white/10'
               }`}
             >
               {preset.label}
@@ -921,8 +921,8 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
         {/* 행정동 필터 */}
         <div className="flex-1 flex flex-col gap-1.5">
-          <label htmlFor="dong-filter-select" className="text-[11.5px] font-bold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
-            <MapPin className="w-3.5 h-3.5 text-secondary/60 dark:text-zinc-500" />
+          <label htmlFor="dong-filter-select" className="text-[11.5px] font-bold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
+            <MapPin className="w-3.5 h-3.5 text-secondary/60 dark:text-slate-500" />
             행정동 필터
           </label>
           <div className="relative">
@@ -933,21 +933,21 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 setSelectedDong(e.target.value || null);
                 setShowAll(false);
               }}
-              className="w-full bg-surface/80 dark:bg-zinc-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-zinc-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
+              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
             >
               <option value="">전체 행정동</option>
               {dongsList.map(dong => (
                 <option key={dong} value={dong}>{dong}</option>
               ))}
             </select>
-            <ChevronDown className="w-4 h-4 text-secondary/60 dark:text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-secondary/60 dark:text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
         {/* 최소 전세가율 필터 */}
         <div className="flex-1 flex flex-col gap-1.5">
-          <label htmlFor="jeonse-filter-select" className="text-[11.5px] font-bold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
-            <Percent className="w-3.5 h-3.5 text-secondary/60 dark:text-zinc-500" />
+          <label htmlFor="jeonse-filter-select" className="text-[11.5px] font-bold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
+            <Percent className="w-3.5 h-3.5 text-secondary/60 dark:text-slate-500" />
             최소 전세가율
           </label>
           <div className="relative">
@@ -958,21 +958,21 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 setMinJeonseRate(Number(e.target.value));
                 setShowAll(false);
               }}
-              className="w-full bg-surface/80 dark:bg-zinc-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-zinc-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
+              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
             >
               <option value="0">전체 전세율</option>
               <option value="60">60% 이상</option>
               <option value="70">70% 이상</option>
               <option value="80">80% 이상</option>
             </select>
-            <ChevronDown className="w-4 h-4 text-secondary/60 dark:text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-secondary/60 dark:text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
         {/* 정렬 조건 */}
         <div className="flex-1 flex flex-col gap-1.5">
-          <label htmlFor="sort-select" className="text-[11.5px] font-bold text-secondary/80 dark:text-zinc-400 flex items-center gap-1.5">
-            <ArrowUpDown className="w-3.5 h-3.5 text-secondary/60 dark:text-zinc-500" />
+          <label htmlFor="sort-select" className="text-[11.5px] font-bold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
+            <ArrowUpDown className="w-3.5 h-3.5 text-secondary/60 dark:text-slate-500" />
             정렬 기준
           </label>
           <div className="relative">
@@ -983,22 +983,22 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 setSortBy(e.target.value);
                 setShowAll(false);
               }}
-              className="w-full bg-surface/80 dark:bg-zinc-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-zinc-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
+              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
             >
-              <option value="gapScore">🛡️ 주거 안심 지수 순</option>
-              <option value="gapAsc">💸 구매차액 낮은 순</option>
-              <option value="ratioDesc">📈 전세가율 높은 순</option>
-              <option value="pyeongPriceAsc">📉 평당가 낮은 순</option>
-              <option value="householdCountDesc">🏢 세대수 많은 순</option>
+              <option value="gapScore">주거 안심 지수 순</option>
+              <option value="gapAsc">구매차액 낮은 순</option>
+              <option value="ratioDesc">전세가율 높은 순</option>
+              <option value="pyeongPriceAsc">평당가 낮은 순</option>
+              <option value="householdCountDesc">세대수 많은 순</option>
             </select>
-            <ChevronDown className="w-4 h-4 text-secondary/60 dark:text-zinc-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <ChevronDown className="w-4 h-4 text-secondary/60 dark:text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
       </div>
 
       {/* Info Warning */}
-      <div className="flex items-start gap-2.5 bg-body/20 dark:bg-zinc-800/30 backdrop-blur-sm p-4 rounded-[20px] mb-6 text-[12px] sm:text-[13px] text-secondary dark:text-zinc-300 border border-border/40 dark:border-white/10">
-        <HelpCircle className="w-4 h-4 text-secondary/60 dark:text-zinc-400 shrink-0 mt-0.5" />
+      <div className="flex items-start gap-2.5 bg-body/20 dark:bg-slate-800/30 backdrop-blur-sm p-4 rounded-[20px] mb-6 text-[12px] sm:text-[13px] text-secondary dark:text-slate-300 border border-border/40 dark:border-white/10">
+        <HelpCircle className="w-4 h-4 text-secondary/60 dark:text-slate-400 shrink-0 mt-0.5" />
         <p className="leading-relaxed break-keep">
           최근 1개월(없을 시 3개월) 실거래가(매매 및 전세) 평균을 기초로 계산한 투자금액(갭) 정보입니다. 직거래나 비정상 거래는 제외될 수 있으며 실제 매물 가격과는 차이가 있을 수 있습니다.
         </p>
@@ -1007,9 +1007,9 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       {/* Complex List Grid */}
       {gapList.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Sparkles className="w-8 h-8 text-secondary/40 dark:text-zinc-500 mb-3" />
-          <p className="text-[14px] font-bold text-secondary dark:text-zinc-300">조건에 매칭되는 단지가 없습니다.</p>
-          <p className="text-[12px] text-secondary/60 dark:text-zinc-500 mt-1">투자 예산이나 필터링 조건을 변경해 보세요.</p>
+          <Sparkles className="w-8 h-8 text-secondary/40 dark:text-slate-500 mb-3" />
+          <p className="text-[14px] font-bold text-secondary dark:text-slate-300">조건에 매칭되는 단지가 없습니다.</p>
+          <p className="text-[12px] text-secondary/60 dark:text-slate-500 mt-1">투자 예산이나 필터링 조건을 변경해 보세요.</p>
         </div>
       ) : (
         <div className="flex flex-col gap-4 animate-in fade-in duration-300">
@@ -1030,7 +1030,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           {gapList.length > 6 && (
             <button
               onClick={() => setShowAll(!showAll)}
-              className="w-full py-3.5 border border-border/40 dark:border-white/10 border-dashed hover:border-secondary/40 hover:bg-body/30 rounded-[20px] text-[14px] font-extrabold text-secondary hover:text-primary dark:text-zinc-300 flex items-center justify-center gap-1.5 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 mt-2"
+              className="w-full py-3.5 border border-border/40 dark:border-white/10 border-dashed hover:border-secondary/40 hover:bg-body/30 rounded-[20px] text-[14px] font-extrabold text-secondary hover:text-primary dark:text-slate-300 flex items-center justify-center gap-1.5 hover:scale-[1.01] active:scale-[0.99] transition-all duration-200 mt-2"
             >
               <span>{showAll ? '접기' : `단지 더 보기 (+${gapList.length - 6}개)`}</span>
               <ArrowRight className={`w-3.5 h-3.5 transition-transform duration-300 ${showAll ? '-rotate-90' : ''}`} />

@@ -5,7 +5,7 @@ import {
 
 describe('sellTimingEngine Utility', () => {
   describe('calculateVerdictScore', () => {
-    it('should determine "🔴 지금 팔면 호구" when market drop rate, jeonse ratio are high and transaction count is low', () => {
+    it('should determine "지금 팔면 호구" when market drop rate, jeonse ratio are high and transaction count is low', () => {
       const result = calculateVerdictScore({
         currentPrice: 70000,
         maxPrice3Y: 100000, // 30% drop rate -> 30 * 1.5 = 45 drop score
@@ -16,13 +16,13 @@ describe('sellTimingEngine Utility', () => {
 
       // Total score: 45 + 18 + 25 = 88 >= 70
       expect(result.score).toBe(88);
-      expect(result.label).toBe('🔴 지금 팔면 호구 (보류 권장)');
+      expect(result.label).toBe('지금 팔면 호구 (보류 권장)');
       expect(result.color).toBe('#f43f5e');
       expect(result.metrics.dropRate).toBe(30.0);
       expect(result.metrics.rotationRate).toBe(0.1);
     });
 
-    it('should determine "🟡 매도 타이밍 관망" under moderate market metrics', () => {
+    it('should determine "매도 타이밍 관망" under moderate market metrics', () => {
       const result = calculateVerdictScore({
         currentPrice: 85000,
         maxPrice3Y: 100000, // 15% drop rate -> 15 * 1.5 = 22.5 drop score
@@ -34,11 +34,11 @@ describe('sellTimingEngine Utility', () => {
       // Total score: 23 (rounded dropScore) + 10 + 10 = 43 (approx) -> 40 <= score < 70
       expect(result.score).toBeGreaterThanOrEqual(40);
       expect(result.score).toBeLessThan(70);
-      expect(result.label).toBe('🟡 매도 타이밍 관망 (주의)');
+      expect(result.label).toBe('매도 타이밍 관망 (주의)');
       expect(result.color).toBe('#eab308');
     });
 
-    it('should determine "🟢 양호한 매도 기회" when drop rate and jeonse ratio are low and transaction count is high', () => {
+    it('should determine "양호한 매도 기회" when drop rate and jeonse ratio are low and transaction count is high', () => {
       const result = calculateVerdictScore({
         currentPrice: 95000,
         maxPrice3Y: 100000, // 5% drop rate -> 5 * 1.5 = 7.5 drop score
@@ -49,7 +49,7 @@ describe('sellTimingEngine Utility', () => {
 
       // Total score: 8 + 0 + 0 = 8 < 40
       expect(result.score).toBe(8);
-      expect(result.label).toBe('🟢 양호한 매도 기회 (매도 가능)');
+      expect(result.label).toBe('양호한 매도 기회 (매도 가능)');
       expect(result.color).toBe('#10b981');
     });
 

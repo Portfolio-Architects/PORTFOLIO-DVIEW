@@ -446,7 +446,7 @@ describe('M1 Empirical Challenger Adversarial Test Suite', () => {
           subValue: '+24%',
           description: '전주 대비 거래량 대폭 상승',
           icon: 'TrendingUp',
-          gradientBackground: 'from-blue-500 to-indigo-600',
+          gradientBackground: 'from-blue-500 to-blue-600',
           borderColor: 'border-blue-200',
           titleColor: 'text-blue-900',
         };
@@ -714,9 +714,9 @@ describe('M1 Empirical Challenger Adversarial Test Suite', () => {
         subValue: '+1.5억 (10.0%)',
         description: '직전 최고가 대비 1.5억 상승 거래',
         icon: 'Flame', // String name instead of JSX Element
-        gradientBackground: 'from-amber-500 to-orange-600',
-        borderColor: 'border-orange-200',
-        titleColor: 'text-orange-900',
+        gradientBackground: 'from-emerald-600 to-emerald-700',
+        borderColor: 'border-emerald-200',
+        titleColor: 'text-emerald-900',
       };
 
       expect(JSON.stringify(pureKPI)).toBeTruthy();

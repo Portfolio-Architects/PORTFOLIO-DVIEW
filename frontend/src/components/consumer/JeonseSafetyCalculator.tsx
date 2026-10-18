@@ -336,25 +336,25 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
       riskLevel = 'danger';
       riskLabel = '위험 (깡통전세)';
       riskColor = '#f43f5e'; // Red
-      riskBg = 'bg-rose-50 dark:bg-rose-950/20';
-      riskText = 'text-rose-600 dark:text-rose-400';
-      riskBorder = 'border-rose-500/30';
+      riskBg = 'bg-red-50 dark:bg-red-950/20';
+      riskText = 'text-red-600 dark:text-red-400';
+      riskBorder = 'border-red-500/30';
       advice = '보증금과 융자의 합계액이 매매 시세의 80%를 넘어 경매 진행 시 심각한 보증금 유실 위험이 우려됩니다. 보증금을 줄이고 월세로의 전환을 강력히 권장하며, 가급적 이 계약을 피하시는 것이 좋습니다.';
     } else if (debtRatio >= 70) {
       riskLevel = 'warning';
       riskLabel = '경고';
       riskColor = '#f97316'; // Orange
-      riskBg = 'bg-orange-50 dark:bg-orange-950/20';
-      riskText = 'text-orange-600 dark:text-orange-400';
-      riskBorder = 'border-orange-500/30';
+      riskBg = 'bg-red-50 dark:bg-red-950/20';
+      riskText = 'text-red-600 dark:text-red-400';
+      riskBorder = 'border-red-500/30';
       advice = '부채비율이 70%를 상회하여 경매 낙찰 시 전입 상태에 따라 전액 반환이 어려울 수 있습니다. 계약 체결 시 반드시 주택도시보증공사(HUG) 등 전세금 반환보증보험 가입 요건을 충족하는지 사전 확인하십시오.';
     } else if (debtRatio >= 60) {
       riskLevel = 'caution';
       riskLabel = '주의';
       riskColor = '#f59e0b'; // Yellow
-      riskBg = 'bg-amber-50 dark:bg-amber-950/20';
-      riskText = 'text-amber-600 dark:text-amber-400';
-      riskBorder = 'border-amber-500/30';
+      riskBg = 'bg-red-50 dark:bg-red-950/20';
+      riskText = 'text-red-600 dark:text-red-400';
+      riskBorder = 'border-red-500/30';
       advice = '부채비율이 경매 낙찰 통계 평균선(약 60~70%)에 걸쳐 있습니다. 집주인의 세금 체납 여부를 확인하고, 등기부상 선순위 융자 채무가 있는 경우 잔금 시 말소 혹은 대출금 전액 감액 등기를 특약 조건으로 계약해야 안전합니다.';
     }
 
@@ -398,10 +398,10 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
 내 입력 보증금: ${(calculationResult.totalJeonse / 10000).toFixed(1)}억원
 선순위 융자금: ${(calculationResult.totalLien / 10000).toFixed(1)}억원
 
-📊 진단 결과: [${calculationResult.riskLabel}] (부채비율 ${calculationResult.debtRatio.toFixed(1)}%)
-💡 진단 조언: ${calculationResult.advice}
+진단 결과: [${calculationResult.riskLabel}] (부채비율 ${calculationResult.debtRatio.toFixed(1)}%)
+진단 조언: ${calculationResult.advice}
 
-🔍 실거래가 및 상세 분석 조회는 D-VIEW에서 바로 확인하세요!`;
+실거래가 및 상세 분석 조회는 D-VIEW에서 바로 확인하세요!`;
 
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
@@ -452,7 +452,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
         aria-modal="true"
         aria-labelledby="jeonse-title"
         aria-describedby="jeonse-desc"
-        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
@@ -551,8 +551,8 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                         2. 전세 보증금 입력
                       </label>
                       {isBudgetExceeded && (
-                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-rose-600 dark:text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md animate-pulse">
-                          <ShieldAlert size={11} className="text-rose-500" />
+                        <span className="inline-flex items-center gap-1 text-[10.5px] font-black text-red-600 dark:text-red-400 bg-red-500/10 px-2 py-0.5 rounded-md animate-pulse">
+                          <ShieldAlert size={11} className="text-red-500" />
                           <span>유저 설정 예산({quizBudgetLabel}) 초과 단지</span>
                         </span>
                       )}

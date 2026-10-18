@@ -581,15 +581,15 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
 단지명: ${aptLabel} (${selectedApt.dong})
 최근 매매 평균시세: ${(marketPrice / 10000).toFixed(1)}억원
 
-✅ 추천 대출 상품: [${loanResults.bestProduct}]
+추천 대출 상품: [${loanResults.bestProduct}]
 - 최대 한도: ${(loanResults.maxLoanAmount / 10000).toFixed(2)}억원
 - 적용 이율: ${loanResults.finalRate.toFixed(2)}%
 - 만기 ${maturityYears}년 기준 월 원리금: ${(repaymentDetails.monthlyPayment / 10000).toFixed(1)}만원
 
-🏠 필요 자기자본(내 돈): ${(loanResults.ownCapitalRequired / 10000).toFixed(2)}억원
+필요 자기자본(내 돈): ${(loanResults.ownCapitalRequired / 10000).toFixed(2)}억원
 (매매 편차 + 취득세/수수료 등 부대비용 ${(loanResults.fees.totalFees / 10000).toFixed(2)}억원 포함)
 
-💡 대출 적합 자격 판정 및 상환 시뮬레이션 상세 내역은 D-VIEW에서 바로 진단해 보세요!`;
+대출 적합 자격 판정 및 상환 시뮬레이션 상세 내역은 D-VIEW에서 바로 진단해 보세요!`;
 
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
@@ -640,7 +640,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
         aria-modal="true"
         aria-labelledby="loan-title"
         aria-describedby="loan-desc"
-        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
@@ -750,7 +750,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                           }, 1200);
                         }}
                         disabled={isCalculating}
-                        className="w-full bg-zinc-900/95 dark:bg-emerald-950/20 hover:bg-zinc-800 dark:hover:bg-emerald-950/45 text-[#057e77] dark:text-emerald-400 border border-[#057e77]/40 py-3.5 rounded-xl text-[14px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                        className="w-full bg-slate-900/95 dark:bg-emerald-950/20 hover:bg-slate-800 dark:hover:bg-emerald-950/45 text-[#057e77] dark:text-emerald-400 border border-[#057e77]/40 py-3.5 rounded-xl text-[14px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                       >
                         <Sparkles size={14} className="fill-[#057e77]/30 text-[#057e77] dark:text-emerald-400" />
                         <span>{isCalculating ? '퀴즈 기반 자동 진단 중...' : '퀴즈 결과로 바로 진단하기 (원클릭)'}</span>

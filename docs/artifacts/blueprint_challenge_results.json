@@ -1,0 +1,206 @@
+{
+  "timestamp": "2026-10-18T08:08:38.186Z",
+  "blockVerification": {
+    "Phase_1": {
+      "allBlocksPresent": true,
+      "blocks": {
+        "문제 정의": true,
+        "불변식": true,
+        "입출력 시그니처": true,
+        "시간·공간 복잡도 및 부수 효과": true,
+        "결정론적 상태 전이": true,
+        "포퍼식 반증 기준": true,
+        "검증 하네스 명령어": true
+      }
+    },
+    "Phase_2": {
+      "allBlocksPresent": true,
+      "blocks": {
+        "문제 정의": true,
+        "불변식": true,
+        "입출력 시그니처": true,
+        "시간·공간 복잡도 및 부수 효과": true,
+        "결정론적 상태 전이": true,
+        "포퍼식 반증 기준": true,
+        "검증 하네스 명령어": true
+      }
+    },
+    "Phase_3": {
+      "allBlocksPresent": true,
+      "blocks": {
+        "문제 정의": true,
+        "불변식": true,
+        "입출력 시그니처": true,
+        "시간·공간 복잡도 및 부수 효과": true,
+        "결정론적 상태 전이": true,
+        "포퍼식 반증 기준": true,
+        "검증 하네스 명령어": true
+      }
+    },
+    "Phase_4": {
+      "allBlocksPresent": true,
+      "blocks": {
+        "문제 정의": true,
+        "불변식": true,
+        "입출력 시그니처": true,
+        "시간·공간 복잡도 및 부수 효과": true,
+        "결정론적 상태 전이": true,
+        "포퍼식 반증 기준": true,
+        "검증 하네스 명령어": true
+      }
+    },
+    "Phase_5": {
+      "allBlocksPresent": true,
+      "blocks": {
+        "문제 정의": true,
+        "불변식": true,
+        "입출력 시그니처": true,
+        "시간·공간 복잡도 및 부수 효과": true,
+        "결정론적 상태 전이": true,
+        "포퍼식 반증 기준": true,
+        "검증 하네스 명령어": true
+      }
+    }
+  },
+  "schemaSyntaxValidation": {
+    "Phase_1": {
+      "status": "PASS",
+      "defaultApplied": {
+        "slotId": "1000000001",
+        "threshold": 0.5,
+        "dwellThresholdMs": 30000,
+        "maxRefreshes": 10,
+        "rootMargin": "0px"
+      }
+    },
+    "Phase_2": {
+      "status": "PASS"
+    },
+    "Phase_3": {
+      "status": "PASS"
+    },
+    "Phase_4": {
+      "status": "FATAL_SYNTAX_ERROR",
+      "error": "z.function(...).args is not a function"
+    },
+    "Phase_5": {
+      "status": "PASS"
+    }
+  },
+  "runtimeValidationFindings": [
+    {
+      "phase": 2,
+      "severity": "HIGH_SECURITY",
+      "issue": "XSS_VULNERABILITY_TARGET_URL",
+      "description": "NativeCpaFallbackPayloadSchema uses z.string().url() which accepts javascript: URI scheme, enabling stored XSS attacks if rendered as href.",
+      "reproductionPayload": "javascript:alert(1)",
+      "recommendedFix": "z.string().url().refine(u => /^https?:\\/\\//i.test(u), 'Must be http or https')"
+    },
+    {
+      "phase": 3,
+      "severity": "CRITICAL_DATA_DESYNC",
+      "issue": "JISAN_DATASET_VALIDATION_FAILURE",
+      "totalItems": 56,
+      "failedItems": 56,
+      "failureRate": 1,
+      "description": "TechnoValleyJisanSchema is completely incompatible with existing production dataset public/data/jisan-status-list.json (100% fail). Missing id (has seq), empty roadAddress, missing estimatedPricePerPyeongWon.",
+      "sampleIssues": [
+        {
+          "index": 0,
+          "name": "(주)유앤미개발",
+          "issues": [
+            "id: Invalid input: expected string, received undefined",
+            "roadAddress: Too small: expected string to have >=1 characters",
+            "estimatedPricePerPyeongWon: Invalid input: expected number, received undefined"
+          ]
+        },
+        {
+          "index": 1,
+          "name": "(주)투게더홀딩스 지식산업센터",
+          "issues": [
+            "id: Invalid input: expected string, received undefined",
+            "roadAddress: Too small: expected string to have >=1 characters",
+            "estimatedPricePerPyeongWon: Invalid input: expected number, received undefined"
+          ]
+        },
+        {
+          "index": 2,
+          "name": "(주)홈에이스산업 지식산업센터",
+          "issues": [
+            "id: Invalid input: expected string, received undefined",
+            "roadAddress: Too small: expected string to have >=1 characters",
+            "estimatedPricePerPyeongWon: Invalid input: expected number, received undefined"
+          ]
+        }
+      ],
+      "recommendedFix": "Schema must align with actual dataset fields (seq as id alias, optional/empty roadAddress fallback to jibunAddress, price per pyeong optional or calculated via domain mapper)."
+    },
+    {
+      "phase": 3,
+      "severity": "MEDIUM_SEMANTIC",
+      "issue": "SCHEMA_ORG_INVERTED_PRICE_BOUNDS",
+      "description": "RealEstateListingSchema allows lowPrice > highPrice in AggregateOffer without refinement constraint.",
+      "recommendedFix": "Add .refine(data => data.offers.lowPrice <= data.offers.highPrice, { message: \"lowPrice must be <= highPrice\" })"
+    },
+    {
+      "phase": 4,
+      "severity": "CRITICAL_SYNTAX_FATAL",
+      "issue": "ZOD_4_FUNCTION_SYNTAX_TYPE_ERROR",
+      "description": "In installed Zod v4.3.6, z.function().args(...).returns(...) is deprecated/removed and throws fatal TypeError: z.function(...).args is not a function.",
+      "brokenCode": "onSelectApartment: z.function().args(z.string()).returns(z.void())",
+      "recommendedFix": "In Zod 4: z.function({ input: [z.string()], output: z.void() }) or z.custom<Function>(v => typeof v === \"function\")"
+    },
+    {
+      "phase": 4,
+      "severity": "HIGH_DOMAIN_CONSTRAINT",
+      "issue": "JEONSE_RATIO_REVERSE_CAP_OVERFLOW",
+      "description": "RecirculationTargetAptSchema caps jeonseRatioPercent at 100 (max: 100). In real estate reverse jeonse (역전세/깡통전세), jeonse ratio exceeds 100%, causing runtime parsing crashes.",
+      "recommendedFix": "Relax max constraint: z.number().min(0).max(250) or handle upside-down jeonse explicitly."
+    },
+    {
+      "phase": 5,
+      "severity": "CRITICAL_ARCHITECTURAL_DESYNC",
+      "issue": "PHASE_2_PHASE_5_TELEMETRY_SCHEMA_MISMATCH",
+      "description": "Phase 2 AdTelemetryBeaconSchema emits eventType \"FALLBACK_MOUNT\" without dwellTimeMs/intersectionRatio/userAgentCategory, but Phase 5 AdTelemetryClosedLoopEventSchema requires \"ADBLOCK_FALLBACK\" and non-optional metrics. Phase 2 beacons will be rejected with HTTP 400 at /api/ads/click.",
+      "incompatibleFields": [
+        "eventType: Invalid option: expected one of \"IMPRESSION\"|\"UNFILLED\"|\"ADBLOCK_FALLBACK\"|\"CLICK\"",
+        "dwellTimeMs: Invalid input: expected number, received undefined",
+        "intersectionRatio: Invalid input: expected number, received undefined",
+        "userAgentCategory: Invalid option: expected one of \"DESKTOP\"|\"MOBILE_WEB\"|\"IN_APP_BROWSER\""
+      ],
+      "recommendedFix": "Unify telemetry schema: permit optional dwellTimeMs/intersectionRatio for static fallbacks, and harmonize enum to include both or single canonical event names."
+    }
+  ],
+  "stateTransitionFindings": [
+    {
+      "phase": 1,
+      "severity": "HIGH_FSM_INCOMPLETENESS",
+      "issue": "UNDEFINED_TRANSITIONS_IN_FSM",
+      "description": "Phase 1 FSM does not define f(OBSERVING, TAB_HIDDEN) or f(PAUSED, RATIO_LT_50). Unconditional transition f(PAUSED, TAB_VISIBLE) => VIEWABLE violates Invariant 1 if ratio dropped below 0.50 while tab was hidden."
+    },
+    {
+      "phase": 1,
+      "severity": "MEDIUM_MEMORY_LEAK",
+      "issue": "VIEWABILITY_SLOT_STATE_STRONG_DOM_REFERENCE",
+      "description": "ViewabilitySlotState holds a strong reference element: HTMLElement in singleton observer state without WeakRef, risking detached DOM memory leaks during fast route/modal transitions."
+    },
+    {
+      "phase": 2,
+      "severity": "HIGH_RACE_CONDITION",
+      "issue": "RACE_CONDITION_TIMEOUT_VS_STATUS_FILLED",
+      "description": "If TIMEOUT_3S triggers FALLBACK_ACTIVE, and subsequent STATUS_FILLED arrives after 3000ms, f(FALLBACK_ACTIVE, STATUS_FILLED) is undefined, creating risk of double-rendering both AdSense and CPA fallback cards, triggering layout CLS spike."
+    },
+    {
+      "phase": 4,
+      "severity": "CRITICAL_ORPHANED_STATE",
+      "issue": "CALC_OPEN_ORPHANED_AND_COMPARE_OPEN_DEAD_END",
+      "description": "State CALC_OPEN(type, apt) is declared in S but has 0 incoming and 0 outgoing transitions in f: S x A => S. State COMPARE_OPEN has no transition for CLOSE_MODAL or POPSTATE, dead-ending user navigation."
+    },
+    {
+      "phase": 5,
+      "severity": "CRITICAL_UNREACHABLE_STATE_AND_INFINITE_LOOP",
+      "issue": "TELEMETRY_DISPATCHED_UNREACHABLE_AND_UNBOUNDED_REFRESH",
+      "description": "State TELEMETRY_DISPATCHED is declared in S but never transitioned to (side effect only). Additionally, f(REFRESH_ELIGIBLE, TRIGGER_REFRESH) does not enforce maxRefreshes <= 10 condition from Phase 1 Invariant 3, permitting unbounded infinite refresh loops on backgrounded/long sessions."
+    }
+  ]
+}

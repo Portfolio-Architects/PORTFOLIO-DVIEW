@@ -29,7 +29,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
       expect(screen.getByText('전체')).toBeInTheDocument();
       expect(screen.getByText('동탄1')).toBeInTheDocument();
       expect(screen.getByText('동탄2')).toBeInTheDocument();
-      expect(screen.getByText('신고가🔥')).toBeInTheDocument();
+      expect(screen.getByText('신고가')).toBeInTheDocument();
       expect(screen.getByText('30평대 국평')).toBeInTheDocument();
       expect(screen.getByText('10억 클럽')).toBeInTheDocument();
       expect(screen.getByText('대장단지')).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
       expect(dongtan2Chip).toHaveClass('bg-[#057e77]');
       expect(dongtan2Chip).toHaveClass('text-white');
 
-      const highChip = screen.getByRole('button', { name: /신고가🔥/i });
+      const highChip = screen.getByRole('button', { name: /신고가/i });
       fireEvent.click(highChip);
       expect(setQuickFilterMock).toHaveBeenCalledWith('high');
 
@@ -276,8 +276,52 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
         />
       );
 
-      expect(screen.getByText('⭐ 관심 단지 순서 편집')).toBeInTheDocument();
+      expect(screen.getByText('관심 단지 순서 편집')).toBeInTheDocument();
       expect(screen.getByText('동탄역 롯데캐슬')).toBeInTheDocument();
+    });
+  });
+
+  describe('8. Pyeong & Trade Type Filter Selects', () => {
+    it('renders pyeongFilter and tradeTypeFilter dropdowns when callbacks are provided and triggers state updates', () => {
+      const setPyeongFilterMock = jest.fn();
+      const setTradeTypeFilterMock = jest.fn();
+      const onResetFiltersMock = jest.fn();
+
+      const { rerender } = render(
+        <TimelineFilterControls
+          {...defaultProps}
+          pyeongFilter="all"
+          setPyeongFilter={setPyeongFilterMock}
+          tradeTypeFilter="all"
+          setTradeTypeFilter={setTradeTypeFilterMock}
+          onResetFilters={onResetFiltersMock}
+        />
+      );
+
+      const pyeongSelect = screen.getByTestId('timeline-pyeong-select');
+      const tradeTypeSelect = screen.getByTestId('timeline-tradetype-select');
+
+      expect(pyeongSelect).toBeInTheDocument();
+      expect(tradeTypeSelect).toBeInTheDocument();
+
+      fireEvent.change(pyeongSelect, { target: { value: '30s' } });
+      expect(setPyeongFilterMock).toHaveBeenCalledWith('30s');
+
+      fireEvent.change(tradeTypeSelect, { target: { value: 'high' } });
+      expect(setTradeTypeFilterMock).toHaveBeenCalledWith('high');
+
+      // Verify Reset button activates when pyeongFilter or tradeTypeFilter is non-default
+      rerender(
+        <TimelineFilterControls
+          {...defaultProps}
+          pyeongFilter="20s"
+          setPyeongFilter={setPyeongFilterMock}
+          tradeTypeFilter="all"
+          setTradeTypeFilter={setTradeTypeFilterMock}
+          onResetFilters={onResetFiltersMock}
+        />
+      );
+      expect(screen.getByLabelText('모든 필터 초기화')).toBeInTheDocument();
     });
   });
 });

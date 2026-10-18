@@ -1,5 +1,7 @@
 import { Metadata } from 'next';
+import { BarChart3, HelpCircle } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
+import { AdSlot } from '@/components/ads/AdSlot';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import {
@@ -30,28 +32,19 @@ export async function generateStaticParams() {
 
 export async function generateMetadata(props: {
   params: Promise<{ aptName: string }>;
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   try {
     const params = props.params ? await props.params : null;
-    let searchParams: { [key: string]: string | string[] | undefined } = {};
-    try {
-      searchParams = props.searchParams ? await props.searchParams : {};
-    } catch {
-      searchParams = {};
-    }
 
     if (!params?.aptName) {
       return getDefaultApartmentMetadata(baseUrl);
     }
 
-    return await buildApartmentSeoMetadata(params.aptName, searchParams, baseUrl);
-  } catch (err) {
-    if (err && typeof err === 'object' && ('digest' in err || (err as Error).message?.includes('Dynamic server usage'))) {
-      throw err;
-    }
+    return await buildApartmentSeoMetadata(params.aptName, undefined, baseUrl);
+  } catch {
     try {
       const params = props.params ? await props.params : null;
       return getDefaultApartmentMetadata(baseUrl, params?.aptName ? decodeAptName(params.aptName) : undefined);
@@ -112,14 +105,15 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
       <DashboardClient initialDashboardData={initialData} preselectedAptName={decodedName} />
 
-      {/* 📊 High-Value Comprehensive Apartment Analysis Report (Visible SSR Content for Users & AdSense Reviewers) */}
+      {/* High-Value Comprehensive Apartment Analysis Report (Visible SSR Content for Users & AdSense Reviewers) */}
       <section className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-8 my-6">
         <div className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-10 shadow-sm space-y-10">
           
           {/* Header Summary */}
           <div className="border-b border-border/60 pb-6">
             <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold px-3 py-1 rounded-full mb-3 border border-emerald-500/20">
-              📊 D-VIEW 부동산 데이터 랩스 정밀 진단
+              <BarChart3 size={13} className="shrink-0" />
+              <span>D-VIEW 부동산 데이터 랩스 정밀 진단</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
               {decodedName} 아파트 실거래가 및 입지 심층 분석 리포트
@@ -205,8 +199,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             </div>
           )}
 
-          {/* Pyeong-specific Transaction Summary Table */}
-          <div className="space-y-4">
+          {/* Pyeong-specific Transaction Summary Table (Chapter 02 SSR) */}
+          <div id="chapter-02-pyeong-ssr" className="space-y-4">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
               <span className="w-2 h-5 bg-emerald-500 rounded-full" />
               {decodedName} 평형별 실거래가 및 전세가율 현황표
@@ -251,7 +245,22 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             )}
           </div>
 
-          {/* Mortgage & Stress DSR Analysis Section */}
+          {/* Chapter 02 Post-Table Zero-CLS AdSlot (High-CPC Real Estate Valuation Context) */}
+          <div
+            data-testid="ssr-adslot-ch02"
+            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+          >
+            <AdSlot
+              slotId="1000000002"
+              refreshSlotId="1000000002_ssr_ch02"
+              format="rectangle"
+              minHeightClass="min-h-[250px]"
+              cpaCampaignId="mortgage-refinance"
+              apartmentName={decodedName}
+            />
+          </div>
+
+          {/* Mortgage & Stress DSR Analysis Section (Chapter 05 SSR) */}
           <section id="chapter-05-mortgage-ssr" className="space-y-6 pt-4 border-t border-border/60">
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
@@ -344,7 +353,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                           <th className="py-2 font-bold text-primary">+{sc.spreadPercent.toFixed(1)}%p 인상</th>
                           <td className="py-2">{sc.shockedRatePercent.toFixed(1)}%</td>
                           <td className="py-2">{formatWon(sc.monthlyPaymentWon)}</td>
-                          <td className="py-2 text-rose-600 dark:text-rose-400 font-bold">+{formatWon(sc.deltaMonthlyPaymentWon)}</td>
+                          <td className="py-2 text-red-600 dark:text-red-400 font-bold">+{formatWon(sc.deltaMonthlyPaymentWon)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -370,7 +379,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                         <tr key={sf.declineRate}>
                           <th className="py-2 font-bold text-primary">-{Math.round(sf.declineRate * 100)}% 하락</th>
                           <td className="py-2">{formatWon(sf.depositWon - sf.declineAmountWon)}</td>
-                          <td className="py-2 text-amber-600 dark:text-amber-400 font-bold">{formatWon(sf.shortfallWon)}</td>
+                          <td className="py-2 text-red-700 dark:text-red-400 font-bold">{formatWon(sf.shortfallWon)}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -381,7 +390,10 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
             {/* FAQ Accordion / List */}
             <div className="bg-body p-5 sm:p-6 rounded-2xl border border-border/50 space-y-3">
-              <h3 className="text-sm font-extrabold text-primary mb-2">💡 자주 묻는 금융 및 부동산 질문 (FAQ)</h3>
+              <h3 className="text-sm font-extrabold text-primary mb-2 flex items-center gap-1.5">
+                <HelpCircle size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>자주 묻는 금융 및 부동산 질문 (FAQ)</span>
+              </h3>
               <dl className="space-y-3 text-[13px]">
                 {mortgageSsr.faqList.map((faq) => (
                   <div key={faq.question} className="border-b border-border/40 pb-3 last:border-0 last:pb-0">
@@ -398,6 +410,21 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             </div>
 
           </section>
+
+          {/* Chapter 05 Post-Mortgage Zero-CLS AdSlot (High-CPC Mortgage & DSR Context) */}
+          <div
+            data-testid="ssr-adslot-ch05"
+            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+          >
+            <AdSlot
+              slotId="1000000002"
+              refreshSlotId="1000000002_ssr_ch05"
+              format="rectangle"
+              minHeightClass="min-h-[250px]"
+              cpaCampaignId="jeonse-sentinel"
+              apartmentName={decodedName}
+            />
+          </div>
 
         </div>
       </section>

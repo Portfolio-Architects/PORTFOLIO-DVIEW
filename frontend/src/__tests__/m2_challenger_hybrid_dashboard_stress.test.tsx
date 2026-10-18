@@ -453,10 +453,7 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       // High CPC Finance section below
       const financeSection = screen.getByTestId('high-cpc-finance-section');
       expect(financeSection).toBeInTheDocument();
-
-      // Realtime Ranking Board below
-      const rankingBoard = screen.getByTestId('realtime-ranking-board');
-      expect(rankingBoard).toBeInTheDocument();
+      expect(screen.queryByTestId('realtime-ranking-board')).not.toBeInTheDocument();
 
       // AdSlots
       const adContainers = screen.getAllByTestId('ad-slot-container');
@@ -476,11 +473,6 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       // StatsOverviewSection is preceding Finance Section
       expect(
         statsSection.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBeTruthy();
-
-      // Finance Section is preceding Ranking Board
-      expect(
-        financeSection.compareDocumentPosition(rankingBoard) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 
@@ -614,7 +606,7 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       });
 
       // The final state must accurately reflect 청계동
-      expect(screen.getByTestId('filter-region-cheonggye')).toHaveClass('bg-hs-orange');
+      expect(screen.getByTestId('filter-region-cheonggye')).toHaveClass('bg-emerald-600');
     });
   });
 

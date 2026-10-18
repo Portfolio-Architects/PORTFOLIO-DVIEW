@@ -44,13 +44,23 @@ function SWRReconnectSyncManager({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-// Default fetcher wrapper for preloading static data assets safely
-const defaultFetcher = async (url: string) => {
-  const res = await fetch(url);
-  if (!res.ok) {
-    throw new Error(`Preload fetch failed for: ${url}`);
+// Safe background preloader that only populates SWR preload cache on verified HTTP 200 JSON responses
+const safePreloadTarget = async (url: string): Promise<void> => {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      logger.warn('SWRProvider.preload', `Failed to background preload target: ${url}`, {
+        error: `HTTP ${res.status}`
+      });
+      return;
+    }
+    const data = await res.json();
+    preload(url, () => Promise.resolve(data));
+  } catch (err) {
+    logger.warn('SWRProvider.preload', `Failed to background preload target: ${url}`, {
+      error: String(err)
+    });
   }
-  return res.json();
 };
 
 const SWRProvider = React.memo(function SWRProvider({ children }: { children: ReactNode }) {
@@ -72,13 +82,7 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
       ];
 
       targets.forEach(url => {
-        try {
-          preload(url, defaultFetcher);
-        } catch (err) {
-          logger.warn('SWRProvider.preload', `Failed to background preload target: ${url}`, {
-            error: String(err)
-          });
-        }
+        void safePreloadTarget(url);
       });
     };
 

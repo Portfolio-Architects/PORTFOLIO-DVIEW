@@ -55,4 +55,31 @@ describe('SWRProvider Offline Resilience', () => {
     expect(screen.getByTestId('revalidateOnReconnect').textContent).toBe('false');
     expect(screen.getByTestId('refreshInterval').textContent).toBe('paused');
   });
+
+  it('catches asynchronous preload rejections without throwing unhandled rejection', async () => {
+    jest.useFakeTimers();
+    (useNetworkStatus as jest.Mock).mockReturnValue(true);
+
+    const originalFetch = global.fetch;
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: async () => ({})
+    }) as unknown as typeof fetch;
+
+    render(
+      <SWRProvider>
+        <TestChild />
+      </SWRProvider>
+    );
+
+    jest.advanceTimersByTime(2000);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/macro/news?limit=40');
+
+    global.fetch = originalFetch;
+    jest.useRealTimers();
+  });
 });

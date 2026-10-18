@@ -52,25 +52,113 @@ const RentTransactionSchema = z.object({
   _key: z.string().min(1)
 });
 
-const API_KEY = process.env.BUILDING_API_KEY || '';
+const DEFAULT_API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+const API_KEY = (process.env.BUILDING_API_KEY || DEFAULT_API_KEY).trim();
 const LAWD_CDS = ['41590', '41597']; // 화성시 및 동탄구 모두 스캔
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
 const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
 
-// 헬퍼: 타임아웃 및 지수 백오프 기반 재시도 로직이 탑재된 HTTP 클라이언트
+function buildRelayUrl(rawUrl, defaultTarget = 'rent') {
+  try {
+    const parsed = new URL(rawUrl);
+    if (!parsed.hostname.includes('apis.data.go.kr')) return null;
+    const lawdCd = parsed.searchParams.get('LAWD_CD') || parsed.searchParams.get('lawdCd');
+    const dealYmd = parsed.searchParams.get('DEAL_YMD') || parsed.searchParams.get('dealYmd');
+    if (!lawdCd || !dealYmd) return null;
+    const pageNo = parsed.searchParams.get('pageNo') || '1';
+    const numOfRows = parsed.searchParams.get('numOfRows') || '1000';
+    const _type = parsed.searchParams.get('_type') || '';
+    const target = parsed.pathname.toLowerCase().includes('trade') ? 'trade' : defaultTarget;
+    const baseUrl = (process.env.VERCEL_APP_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com').replace(/\/$/, '');
+    const relay = new URL(`${baseUrl}/api/cron/sync-transactions`);
+    relay.searchParams.set('mode', 'proxy');
+    relay.searchParams.set('target', target);
+    relay.searchParams.set('lawdCd', lawdCd);
+    relay.searchParams.set('dealYmd', dealYmd);
+    relay.searchParams.set('pageNo', pageNo);
+    relay.searchParams.set('numOfRows', numOfRows);
+    if (_type) relay.searchParams.set('_type', _type);
+    return relay.toString();
+  } catch {
+    return null;
+  }
+}
+
+let relayPreferred = false;
+
+function isGenuineMolitPayload(data) {
+  if (typeof data === 'string') {
+    const trimmed = data.trim();
+    return (
+      trimmed.includes('<response>') ||
+      trimmed.includes('<OpenAPI_ServiceResponse>') ||
+      trimmed.includes('<cmmMsgHeader>') ||
+      trimmed.startsWith('{')
+    );
+  }
+  if (data && typeof data === 'object') {
+    if (data.success !== undefined && !data.response && !data.OpenAPI_ServiceResponse) {
+      return false;
+    }
+    return Boolean(data.response || data.OpenAPI_ServiceResponse);
+  }
+  return false;
+}
+
+// 헬퍼: 타임아웃 및 지수 백오프 기반 재시도 로직이 탑재된 HTTP 클라이언트 (프록시 장애 시 직통 연결 및 한국 Vercel 리전 릴레이 폴백 지원)
 async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
+  const hadProxyAgent = Boolean(options.httpAgent || options.httpsAgent);
+  const defaultTimeout = process.env.CI ? 10000 : 25000;
+  const isJest = Boolean(process.env.JEST_WORKER_ID);
+  let lastRelayFailed = false;
+
   for (let i = 0; i < retries; i++) {
     try {
-      const response = await axios.get(url, {
+      const requestOptions = {
         ...options,
-        timeout: 25000 // 25초 타임아웃
-      });
+        timeout: options.timeout || defaultTimeout,
+      };
+      if (i > 0 && (requestOptions.httpAgent || requestOptions.httpsAgent)) {
+        delete requestOptions.httpAgent;
+        delete requestOptions.httpsAgent;
+      }
+      let targetUrl = url;
+      let usingRelay = false;
+      const shouldTryRelay =
+        (!isJest && relayPreferred && i === 0) ||
+        (i > 0 && !lastRelayFailed && (!hadProxyAgent || i === retries - 1));
+
+      if (shouldTryRelay) {
+        const relayUrl = buildRelayUrl(url, 'rent');
+        if (relayUrl) {
+          targetUrl = relayUrl;
+          usingRelay = true;
+          requestOptions.headers = {
+            ...(requestOptions.headers || {}),
+            Authorization: `Bearer ${(process.env.CRON_SECRET || 'dview-default-cron-secret-2026').trim()}`,
+            'x-building-api-key': API_KEY,
+          };
+        }
+      }
+      const response = await axios.get(targetUrl, requestOptions);
+      if (usingRelay && !isGenuineMolitPayload(response.data)) {
+        lastRelayFailed = true;
+        relayPreferred = false;
+        throw new Error('Invalid non-MOLIT relay response payload');
+      }
+      if (usingRelay && !isJest) {
+        relayPreferred = true;
+      }
       return response;
     } catch (err) {
+      if (err.message === 'Invalid non-MOLIT relay response payload' || (err.response && err.response.status >= 400)) {
+        lastRelayFailed = true;
+        relayPreferred = false;
+      }
       const isLastActive = i === retries - 1;
       const status = err.response ? err.response.status : (err.code || 'TIMEOUT_OR_NET_ERR');
       const isTimeout = err.code === 'ECONNABORTED' || (err.message && err.message.toLowerCase().includes('timeout'));
-      const errorLabel = isTimeout ? '네트워크 타임아웃(25s 초과)' : (err.message || '네트워크 연결 오류');
+      const errorLabel = isTimeout ? `네트워크 타임아웃(${Math.round(defaultTimeout / 1000)}s 초과)` : (err.message || '네트워크 연결 오류');
       console.warn(`   ⚠️ [Rent API] 호출 시도 ${i + 1}/${retries} 실패: ${errorLabel} (HTTP status/Code: ${status})`);
       if (isLastActive) throw err;
       
@@ -115,11 +203,20 @@ async function main() {
     console.warn('   기본 자격 증명(Default Credentials)으로 초기화를 시도합니다.');
   }
 
+  if (serviceAccount && typeof serviceAccount.private_key === 'string') {
+    serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+  }
+
   if (!admin.apps.length) {
     const config = serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : { projectId };
     admin.initializeApp(config);
   }
   const db = admin.firestore();
+  try {
+    db.settings({ ignoreUndefinedProperties: true, preferRest: true });
+  } catch {
+    // settings already locked
+  }
   const collRef = db.collection('transactions');
 
   // 1. 최신 전월세 데이터 연월 스캔 (기본 3개월, --full 옵션 시 17개월)
@@ -385,7 +482,7 @@ async function main() {
         }
 
         page++;
-      } while (page * 1000 <= totalCount + 1000);
+      } while ((page - 1) * 1000 < totalCount);
     }
 
     // 4. Firestore에 배치 쓰기 (신규 건만)
@@ -414,6 +511,8 @@ async function main() {
 
 module.exports = {
   RentTransactionSchema,
+  DEFAULT_API_KEY,
+  buildRelayUrl,
   fetchWithRetry,
   main,
 };

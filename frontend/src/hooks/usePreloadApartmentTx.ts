@@ -8,7 +8,7 @@ import { useCallback, useMemo } from 'react';
 import { preload } from 'swr';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
-import { normalizeAptName, isSameApartment, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, sanitizeAptKey, isSameApartment, findTxKey, HARDCODED_MAPPING } from '@/lib/utils/apartmentMapping';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { apiClient } from '@/lib/api/apiClient';
 
@@ -33,8 +33,12 @@ export function getApartmentFileKey(
     overrideKey ||
     (rawApt as { txKey?: string })?.txKey ||
     findTxKey(apartmentName, txSummaryData, nameMapping, false, dong);
-  const txKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
-  return txKey || normalizedName;
+  const normKey = rawTxKey ? normalizeAptName(rawTxKey) : '';
+  const sanitizedKey = rawTxKey ? sanitizeAptKey(rawTxKey) : '';
+  const txKey = (txSummaryData && normKey && normKey in txSummaryData)
+    ? normKey
+    : (sanitizedKey || normKey);
+  return txKey || sanitizeAptKey(normalizedName) || normalizedName;
 }
 
 export function preloadApartmentTxData(fileKey: string): void {

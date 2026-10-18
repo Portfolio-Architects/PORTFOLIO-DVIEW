@@ -121,7 +121,7 @@ export function StatsFilterBar({
                   }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 ${
                     isActive
-                      ? 'bg-hs-orange text-white shadow-sm ring-2 ring-hs-orange/30'
+                      ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-500/30'
                       : 'bg-body text-secondary hover:text-primary hover:bg-black/5 dark:hover:bg-surface/5 border border-border/60'
                   }`}
                 >
@@ -138,7 +138,7 @@ export function StatsFilterBar({
                 className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
                   DONGTAN1_DONGS.includes(region as any) ||
                   (DONGTAN2_DONGS.includes(region as any) && region !== '청계동')
-                    ? 'bg-hs-orange text-white border-hs-orange'
+                    ? 'bg-emerald-600 text-white border-emerald-200'
                     : 'bg-body text-secondary hover:text-primary border-border/60'
                 }`}
               >
@@ -162,7 +162,7 @@ export function StatsFilterBar({
                         onClick={() => handleDongSelect(d)}
                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition-colors ${
                           isDongActive(d)
-                            ? 'bg-hs-orange-light text-hs-orange font-bold'
+                            ? 'bg-emerald-50 text-emerald-700 font-bold'
                             : 'hover:bg-body text-secondary'
                         }`}
                       >
@@ -182,7 +182,7 @@ export function StatsFilterBar({
                         onClick={() => handleDongSelect(d)}
                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition-colors ${
                           isDongActive(d)
-                            ? 'bg-hs-orange-light text-hs-orange font-bold'
+                            ? 'bg-emerald-50 text-emerald-700 font-bold'
                             : 'hover:bg-body text-secondary'
                         }`}
                       >
@@ -199,7 +199,7 @@ export function StatsFilterBar({
           {/* Reset button & Loading indicator */}
           <div className="flex items-center gap-2">
             {isPending && (
-              <span className="text-xs text-hs-orange font-bold animate-pulse">
+              <span className="text-xs text-emerald-700 font-bold animate-pulse">
                 데이터 집계 중...
               </span>
             )}
@@ -281,7 +281,7 @@ export function StatsFilterBar({
                   data-testid="filter-sort-select"
                   value={sort}
                   onChange={(e) => onSortChange(e.target.value as SortOption)}
-                  className="appearance-none bg-body border border-border/60 text-secondary hover:text-primary text-xs font-bold rounded-xl pl-2.5 pr-7 py-2 focus:outline-none focus:ring-2 focus:ring-hs-orange/30 cursor-pointer"
+                  className="appearance-none bg-body border border-border/60 text-secondary hover:text-primary text-xs font-bold rounded-xl pl-2.5 pr-7 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
                 >
                   {SORT_OPTIONS.map((s) => (
                     <option key={s.id} value={s.id}>

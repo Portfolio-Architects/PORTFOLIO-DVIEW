@@ -14,7 +14,7 @@ import {
   CartesianGrid, 
   Tooltip 
 } from 'recharts';
-import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp, HelpCircle, ArrowUpDown } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { apiClient } from '@/lib/api/apiClient';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
@@ -42,7 +42,7 @@ function CircularProgress({ percent, color }: CircularProgressProps) {
     <div className="relative flex items-center justify-center shrink-0">
       <svg className="w-10 h-10 transform -rotate-90" aria-hidden="true">
         <circle
-          className="text-neutral-100 dark:text-zinc-800"
+          className="text-slate-100 dark:text-slate-800"
           strokeWidth="3.5"
           stroke="currentColor"
           fill="transparent"
@@ -540,7 +540,7 @@ function ChartTooltip({ active, payload, label, metricMode }: CustomTooltipProps
     });
 
     return (
-      <div className="bg-surface/95 dark:bg-zinc-900/90 p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2.5 min-w-[200px] transition-all duration-200 animate-tooltip-spring">
+      <div className="bg-surface/95 dark:bg-slate-900/90 p-4 rounded-2xl shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 flex flex-col gap-2.5 min-w-[200px] transition-all duration-200 animate-tooltip-spring">
         <div className="text-[12.5px] font-black text-primary border-b border-border/40 pb-1.5 mb-0.5">
           {label} 기준 분석
         </div>
@@ -588,7 +588,7 @@ const CompanyCard = React.memo(function CompanyCard({ co, sectorColor }: Company
   const isBlueTheme = sectorColor === '#004696' || sectorColor === '#38bdf8';
   const hoverBorderClass = isBlueTheme 
     ? 'hover:border-hs-blue/30 dark:hover:border-hs-blue/20' 
-    : 'hover:border-hs-orange/30 dark:hover:border-hs-orange/20';
+    : 'hover:border-emerald-200/30 dark:hover:border-emerald-200/20';
 
   return (
     <div className={`bg-surface border border-border/55 p-3 rounded-[16px] hover:shadow-sm hover:scale-[1.01] transition-all flex items-center gap-3 min-w-0 ${hoverBorderClass}`}>
@@ -880,7 +880,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
     
     return {
       value: latestRent,
-      changeText: `${isUp ? '▲' : '▼'} ${Math.abs(parseFloat(changePercent))}%`,
+      changeText: `${isUp ? '+' : '-'} ${Math.abs(parseFloat(changePercent))}%`,
       isUp
     };
   }, [trendData]);
@@ -896,7 +896,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
     
     return {
       value: parseFloat(latestVacancy.toFixed(1)),
-      changeText: `${isUp ? '▲' : '▼'} ${Math.abs(parseFloat(change.toFixed(2)))}%`,
+      changeText: `${isUp ? '+' : '-'} ${Math.abs(parseFloat(change.toFixed(2)))}%`,
       isUp
     };
   }, [trendData]);
@@ -989,11 +989,11 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
           <div id="donut-chart-card" className="bg-surface border border-border/80 p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:h-[370px] shrink-0">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-hs-orange" />
+                <span className="w-2 h-2 rounded-full bg-emerald-600" />
                 테크노밸리 입주 기업 업종 분포
               </h3>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black bg-neutral-100 dark:bg-zinc-800 text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wide">
+                <span className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-tertiary px-2.5 py-1 rounded-full uppercase tracking-wide">
                   업종 대분류 기준
                 </span>
               </div>
@@ -1046,7 +1046,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                         <span className="text-[14px] sm:text-[16px] font-black text-primary leading-tight mt-0.5">
                           {activeItem.value}%
                         </span>
-                        <span className="text-[11.5px] sm:text-[13px] text-secondary font-extrabold mt-0.5 bg-neutral-100 dark:bg-zinc-800/80 px-2 py-0.5 rounded-full">
+                        <span className="text-[11.5px] sm:text-[13px] text-secondary font-extrabold mt-0.5 bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 rounded-full">
                           {activeItem.count ? `${activeItem.count.toLocaleString()}개` : ''}
                         </span>
                       </>
@@ -1095,7 +1095,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                         {/* Selected Legend Row */}
                         <div 
                           onClick={handleResetActiveCategory}
-                          className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-emerald-50/20 dark:bg-emerald-500/5 px-3 py-2 rounded-xl border border-hs-orange/30 ring-2 ring-hs-orange/20 cursor-pointer"
+                          className="flex items-center justify-between text-[11.5px] sm:text-[13px] bg-emerald-50/20 dark:bg-emerald-500/5 px-3 py-2 rounded-xl border border-emerald-200/30 ring-2 ring-emerald-500/20 cursor-pointer"
                         >
                           <div className="flex items-center gap-2 min-w-0 pr-1">
                             <span 
@@ -1124,9 +1124,9 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                               return (
                                 <div 
                                   key={cIdx} 
-                                  className="bg-surface border border-border/60 dark:border-border/30 px-3 py-2 rounded-xl shadow-sm hover:border-hs-orange/40 transition-all text-left flex items-baseline justify-between gap-2 cursor-pointer group"
+                                  className="bg-surface border border-border/60 dark:border-border/30 px-3 py-2 rounded-xl shadow-sm hover:border-emerald-200/40 transition-all text-left flex items-baseline justify-between gap-2 cursor-pointer group"
                                 >
-                                  <span className="text-[12.5px] font-bold text-primary group-hover:text-hs-orange transition-colors truncate max-w-[55%]">
+                                  <span className="text-[12.5px] font-bold text-primary group-hover:text-emerald-700 transition-colors truncate max-w-[55%]">
                                     {compName}
                                   </span>
                                   {cleanedAddress && (
@@ -1162,7 +1162,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                 <div className="flex items-baseline gap-1.5 flex-wrap">
                   <span className="text-[14px] sm:text-[16px] font-black text-primary">25,257명</span>
                   <span className="text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 flex items-center gap-0.5 shrink-0">
-                    ▲ 109
+                    +109
                   </span>
                 </div>
               </div>
@@ -1180,7 +1180,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                   <span className="text-[14px] sm:text-[16px] font-black text-primary">{rentKPI.value}만원</span>
                   <span className={`text-[9px] sm:text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shrink-0 ${
                     rentKPI.isUp 
-                      ? 'bg-amber-500/10 text-amber-600 dark:text-amber-500' 
+                      ? 'bg-emerald-50 text-emerald-700 dark:text-emerald-600' 
                       : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500'
                   }`}>
                     {rentKPI.changeText}
@@ -1200,7 +1200,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                   <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">평균 공실률 (AI)</span>
                   <button 
                     onClick={() => setShowHelpModal(true)}
-                    className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
+                    className="hover:bg-slate-100 dark:hover:bg-slate-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
                     title="AI 추정 메커니즘 도움말"
                   >
                     <HelpCircle className="w-3 h-3" />
@@ -1230,17 +1230,17 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                 e.preventDefault();
                 document.getElementById('tax-simulator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.02] active:scale-[0.98] hover:border-hs-orange transition-all duration-300 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-hs-orange/20"
+              className="bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.02] active:scale-[0.98] hover:border-emerald-200 transition-all duration-300 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             >
               <div className="flex flex-col gap-1 min-w-0">
                 <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">세제 혜택 시뮬레이터</span>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[12px] sm:text-[13.5px] font-black text-hs-orange leading-snug">
+                  <span className="text-[12px] sm:text-[13.5px] font-black text-emerald-700 leading-snug">
                     내 예상 절세 혜택 알아보기 (클릭 시 이동)
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-hs-orange-light text-hs-orange shrink-0 ml-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 shrink-0 ml-3">
                 <ChevronRight className="w-4 h-4" />
               </div>
             </button>
@@ -1258,12 +1258,12 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
             {/* Left Panel: Title & Unit Inline */}
             <div className="flex items-center gap-2 min-w-0 flex-wrap">
               <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
-                <span className="w-2.5 h-2.5 rounded-full bg-hs-orange shrink-0" />
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 shrink-0" />
                 <span>{metricMode === 'rent' ? '테크노밸리 평당 임대료 추이' : '테크노밸리 평균 공실률 추이 (AI 추정)'}</span>
                 {metricMode === 'vacancy' && (
                   <button 
                     onClick={handleOpenHelpModal}
-                    className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer animate-pulse shrink-0"
+                    className="hover:bg-slate-100 dark:hover:bg-slate-800 p-0.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer animate-pulse shrink-0"
                     title="AI 추정 메커니즘 도움말"
                   >
                     <HelpCircle className="w-3.5 h-3.5" />
@@ -1319,7 +1319,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                 {/* Detailed Modal Trigger Button */}
                 <button
                   onClick={handleOpenDetailModal}
-                  className="h-[24px] sm:h-[26px] px-2 sm:px-2.5 rounded-lg border border-hs-orange/30 hover:border-hs-orange/50 bg-hs-orange/5 hover:bg-hs-orange/10 text-[9.5px] sm:text-[10px] font-black flex items-center gap-0.5 cursor-pointer transition-all text-hs-orange shadow-sm active:scale-[0.98] shrink-0"
+                  className="h-[24px] sm:h-[26px] px-2 sm:px-2.5 rounded-lg border border-emerald-200/30 hover:border-emerald-200/50 bg-emerald-600/5 hover:bg-emerald-600/10 text-[9.5px] sm:text-[10px] font-black flex items-center gap-0.5 cursor-pointer transition-all text-emerald-700 shadow-sm active:scale-[0.98] shrink-0"
                 >
                   <span>상세</span>
                   <ChevronRight className="w-3 h-3" />
@@ -1466,7 +1466,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 pb-3 border-b border-border/40">
               <div>
                 <h3 className="text-[15px] font-black text-primary tracking-tight flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-hs-orange" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-600" />
                   업종 구분별 기업 리스트
                 </h3>
                 <p className="text-[10px] sm:text-[11px] text-tertiary font-bold mt-1 whitespace-nowrap truncate max-w-[80vw] sm:max-w-none" title="각 업종 카테고리를 클릭하여 입주 기업 전체 목록을 확인하실 수 있습니다.">
@@ -1476,13 +1476,13 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
               <div className="flex items-center gap-2 self-end sm:self-auto">
                 <button
                   onClick={handleExpandAll}
-                  className="text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-border bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-secondary transition-all"
+                  className="text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-border bg-body hover:bg-slate-100 dark:hover:bg-slate-800 text-secondary transition-all"
                 >
                   전체 펼치기
                 </button>
                 <button
                   onClick={handleCollapseAll}
-                  className="text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-border bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-secondary transition-all"
+                  className="text-[10px] font-black px-2.5 py-1.5 rounded-lg border border-border bg-body hover:bg-slate-100 dark:hover:bg-slate-800 text-secondary transition-all"
                 >
                   전체 접기
                 </button>
@@ -1496,7 +1496,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                 value={searchQuery}
                 onChange={handleSearchChange}
                 placeholder="기업명 또는 건물명/도로명 검색..."
-                className="w-full bg-body border border-border/80 rounded-xl py-2 pl-9 pr-9 text-[12px] sm:text-[13px] text-primary focus:outline-none focus:border-hs-orange/40 focus:ring-1 focus:ring-hs-orange/30 transition-all font-bold"
+                className="w-full bg-body border border-border/80 rounded-xl py-2 pl-9 pr-9 text-[12px] sm:text-[13px] text-primary focus:outline-none focus:border-emerald-200/40 focus:ring-1 focus:ring-emerald-500/30 transition-all font-bold"
               />
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <svg className="w-3.5 h-3.5 text-tertiary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1540,12 +1540,12 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                     <div 
                       key={sector.name} 
                       id={`sector-card-${sector.name.replace(/\s+/g, '')}`}
-                      className="border border-border/60 rounded-2xl overflow-hidden bg-body/20 dark:bg-zinc-900/10 transition-all"
+                      className="border border-border/60 rounded-2xl overflow-hidden bg-body/20 dark:bg-slate-900/10 transition-all"
                     >
                     {/* Accordion Header */}
                     <button
                       onClick={() => handleToggleSector(sector.name)}
-                      className="w-full flex items-center justify-between p-4 bg-surface hover:bg-body/30 dark:hover:bg-zinc-800/20 transition-all text-left"
+                      className="w-full flex items-center justify-between p-4 bg-surface hover:bg-body/30 dark:hover:bg-slate-800/20 transition-all text-left"
                     >
                       <div className="flex items-center gap-2.5">
                         <span 
@@ -1553,7 +1553,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                           style={{ backgroundColor: sector.color }} 
                         />
                         <span className="text-[13.5px] font-black text-primary">{sector.name}</span>
-                        <span className="text-[11px] font-extrabold text-secondary bg-body dark:bg-zinc-800 px-2 py-0.5 rounded-full">
+                        <span className="text-[11px] font-extrabold text-secondary bg-body dark:bg-slate-800 px-2 py-0.5 rounded-full">
                           {deferredSearchQuery ? `${filteredCompanies.length}개 매칭` : `${companies.length}개 기업`}
                         </span>
                       </div>
@@ -1587,7 +1587,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                                 {hasMore && (
                                   <button
                                     onClick={() => handleShowMore(sector.name)}
-                                    className="text-[11px] font-black text-hs-orange bg-hs-orange-light px-4 py-2 rounded-xl border border-hs-orange/10 hover:bg-hs-orange/10 transition-all"
+                                    className="text-[11px] font-black text-emerald-700 bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-200/10 hover:bg-emerald-600/10 transition-all"
                                   >
                                     더보기 ({companies.length - visibleCount}개 남음)
                                   </button>
@@ -1595,7 +1595,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                                 {!deferredSearchQuery && visibleCount > 12 && (
                                   <button
                                     onClick={() => handleResetLimit(sector.name)}
-                                    className="text-[11px] font-black text-secondary bg-body px-4 py-2 rounded-xl border border-border hover:bg-neutral-100 dark:hover:bg-zinc-800 transition-all"
+                                    className="text-[11px] font-black text-secondary bg-body px-4 py-2 rounded-xl border border-border hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                                   >
                                     목록 접기
                                   </button>
@@ -1627,7 +1627,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-all duration-300">
           <div className="bg-surface/95 border border-border/80 rounded-[32px] shadow-2xl p-10 md:p-12 max-w-4xl w-full relative animate-in fade-in zoom-in-95 duration-200">
             <h4 className="text-[22px] font-black text-primary mb-6 flex items-center gap-2">
-              <span className="w-3.5 h-3.5 rounded-full bg-hs-orange animate-pulse" />
+              <span className="w-3.5 h-3.5 rounded-full bg-emerald-600 animate-pulse" />
               AI 공실률 추정 메커니즘 (하이브리드 모델)
             </h4>
             
@@ -1639,18 +1639,18 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-2">
                 {/* Layer 1 */}
-                <div className="p-6 bg-hs-orange/5 border border-hs-orange/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
-                  <div className="border-b border-hs-orange/10 pb-2">
-                    <span className="font-black text-hs-orange text-[14.5px] block truncate">
+                <div className="p-6 bg-emerald-600/5 border border-emerald-200/20 rounded-2xl flex flex-col gap-3.5 shadow-sm min-h-[230px]">
+                  <div className="border-b border-emerald-200/10 pb-2">
+                    <span className="font-black text-emerald-700 text-[14.5px] block truncate">
                       1단계: 실거래 베이스라인
                     </span>
                   </div>
-                  <ul className="text-[12.5px] text-tertiary dark:text-zinc-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
+                  <ul className="text-[12.5px] text-tertiary dark:text-slate-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
                     <li>국토부 매매/임대 실거래 데이터 분석</li>
                     <li>전용면적 로그 비례 <strong>연속형 면적 가중</strong> 적용</li>
                     <li>실질 공간 점유 비중 기반의 1차 기초 산출</li>
                   </ul>
-                  <div className="pt-2 text-[10px] font-mono text-hs-orange bg-hs-orange/10 p-2 rounded-lg text-center font-bold">
+                  <div className="pt-2 text-[10px] font-mono text-emerald-700 bg-emerald-600/10 p-2 rounded-lg text-center font-bold">
                     w(s) = log-proportional weight
                   </div>
                 </div>
@@ -1662,7 +1662,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                       2단계: 국민연금 고용 보정
                     </span>
                   </div>
-                  <ul className="text-[12.5px] text-tertiary dark:text-zinc-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
+                  <ul className="text-[12.5px] text-tertiary dark:text-slate-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
                     <li>국민연금(NPS) 가입자 증감 및 순고용률 계산</li>
                     <li><strong>대칭형 매크로 보정치(macroBonus)</strong> 가동</li>
                     <li>경기 변동에 따른 공실률 양/음수 보정</li>
@@ -1679,7 +1679,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                       3단계: 자연 퇴거율 결합
                     </span>
                   </div>
-                  <ul className="text-[12.5px] text-tertiary dark:text-zinc-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
+                  <ul className="text-[12.5px] text-tertiary dark:text-slate-400 leading-relaxed font-semibold flex-1 list-disc pl-4 space-y-1.5">
                     <li>준공 연도 기준 <strong>신축 입주 가속도</strong> 반영</li>
                     <li>기축 <strong>자연 퇴거율(Dynamic Turnover)</strong> 결합</li>
                     <li>연식별 지수 감쇄 및 연면적(GFA) 스케일러 조율</li>
@@ -1709,7 +1709,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
             <div className="flex justify-between items-start pb-4 border-b border-border/60 mb-5 shrink-0">
               <div className="flex flex-col gap-1">
                 <h4 className="text-[17px] font-black text-primary flex items-center gap-2">
-                  <span className="w-3 h-3 rounded-full bg-hs-orange" />
+                  <span className="w-3 h-3 rounded-full bg-emerald-600" />
                   동탄테크노밸리 지식산업센터 전체 현황 분석 (총 {jisanSummary.total}개소: 완공 {jisanSummary.completed} / 건축중 {jisanSummary.building} / 미착공 {jisanSummary.planned})
                 </h4>
                 <p className="text-[11px] text-tertiary font-bold">
@@ -1718,7 +1718,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
               </div>
               <button
                 onClick={handleCloseDetailModal}
-                className="hover:bg-neutral-100 dark:hover:bg-zinc-800 p-1.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
+                className="hover:bg-slate-100 dark:hover:bg-slate-800 p-1.5 rounded-full text-tertiary hover:text-secondary transition-all cursor-pointer"
               >
                 <ChevronUp className="w-5 h-5" />
               </button>
@@ -1876,19 +1876,54 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                     <thead>
                       <tr className="bg-body border-b border-border/60 text-[10px] font-black text-tertiary select-none">
                         <th className="py-2.5 px-3 cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('name')}>
-                          단지명 <span className={sortConfig.key === 'name' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'name' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          <span className="inline-flex items-center gap-0.5">
+                            단지명
+                            {sortConfig.key === 'name' ? (
+                              sortConfig.direction === 'asc' ? <ChevronUp size={11} className="text-emerald-700 shrink-0" /> : <ChevronDown size={11} className="text-emerald-700 shrink-0" />
+                            ) : (
+                              <ArrowUpDown size={11} className="text-tertiary/60 shrink-0" />
+                            )}
+                          </span>
                         </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('units')}>
-                          총 호수 <span className={sortConfig.key === 'units' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'units' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          <span className="inline-flex items-center justify-end gap-0.5 w-full">
+                            총 호수
+                            {sortConfig.key === 'units' ? (
+                              sortConfig.direction === 'asc' ? <ChevronUp size={11} className="text-emerald-700 shrink-0" /> : <ChevronDown size={11} className="text-emerald-700 shrink-0" />
+                            ) : (
+                              <ArrowUpDown size={11} className="text-tertiary/60 shrink-0" />
+                            )}
+                          </span>
                         </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('vacancy')}>
-                          공실률 <span className={sortConfig.key === 'vacancy' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'vacancy' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          <span className="inline-flex items-center justify-end gap-0.5 w-full">
+                            공실률
+                            {sortConfig.key === 'vacancy' ? (
+                              sortConfig.direction === 'asc' ? <ChevronUp size={11} className="text-emerald-700 shrink-0" /> : <ChevronDown size={11} className="text-emerald-700 shrink-0" />
+                            ) : (
+                              <ArrowUpDown size={11} className="text-tertiary/60 shrink-0" />
+                            )}
+                          </span>
                         </th>
                         <th className="py-2.5 px-3 text-right cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('rent')}>
-                          임대료 <span className={sortConfig.key === 'rent' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'rent' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          <span className="inline-flex items-center justify-end gap-0.5 w-full">
+                            임대료
+                            {sortConfig.key === 'rent' ? (
+                              sortConfig.direction === 'asc' ? <ChevronUp size={11} className="text-emerald-700 shrink-0" /> : <ChevronDown size={11} className="text-emerald-700 shrink-0" />
+                            ) : (
+                              <ArrowUpDown size={11} className="text-tertiary/60 shrink-0" />
+                            )}
+                          </span>
                         </th>
                         <th className="py-2.5 px-3 text-center cursor-pointer hover:text-primary transition-colors" onClick={() => handleSort('change')}>
-                          개선폭 <span className={sortConfig.key === 'change' ? "text-hs-orange" : "text-tertiary/60 ml-0.5"}>{sortConfig.key === 'change' ? (sortConfig.direction === 'asc' ? '▲' : '▼') : '⇅'}</span>
+                          <span className="inline-flex items-center justify-center gap-0.5 w-full">
+                            개선폭
+                            {sortConfig.key === 'change' ? (
+                              sortConfig.direction === 'asc' ? <ChevronUp size={11} className="text-emerald-700 shrink-0" /> : <ChevronDown size={11} className="text-emerald-700 shrink-0" />
+                            ) : (
+                              <ArrowUpDown size={11} className="text-tertiary/60 shrink-0" />
+                            )}
+                          </span>
                         </th>
                       </tr>
                     </thead>
@@ -1900,22 +1935,21 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                         const change = latestVal - firstVal;
                         const rank = index + 1;
                         
-                        let rankBadge = '';
-                        if (rank === 1) rankBadge = '🥇';
-                        else if (rank === 2) rankBadge = '🥈';
-                        else if (rank === 3) rankBadge = '🥉';
-                        else rankBadge = `${rank}`;
+                        let rankBadgeClass = 'bg-slate-100 dark:bg-slate-800 text-tertiary';
+                        if (rank === 1) rankBadgeClass = 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-black';
+                        else if (rank === 2) rankBadgeClass = 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 font-black';
+                        else if (rank === 3) rankBadgeClass = 'bg-slate-800/10 dark:bg-slate-800/30 text-slate-700 dark:text-emerald-600 font-black';
 
                         let vacancyColor = '';
                         if (latestVal < 15) vacancyColor = 'text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/20 px-1.5 py-0.5 rounded';
                         else if (latestVal < 20) vacancyColor = 'text-blue-600 dark:text-toss-blue bg-blue-50 dark:bg-blue-950/20 px-1.5 py-0.5 rounded';
-                        else vacancyColor = 'text-hs-orange bg-hs-orange/5 px-1.5 py-0.5 rounded';
+                        else vacancyColor = 'text-emerald-700 bg-emerald-600/5 px-1.5 py-0.5 rounded';
 
                         return (
                           <tr key={b.id} className="hover:bg-body/80 transition-all">
                             <td className="py-2.5 px-3 flex items-center gap-2">
-                              <span className="w-5 h-5 flex items-center justify-center text-[10px] font-black rounded-full bg-neutral-100 dark:bg-zinc-800 text-tertiary">
-                                {rankBadge}
+                              <span className={`w-5 h-5 flex items-center justify-center text-[10px] font-black rounded-full shrink-0 ${rankBadgeClass}`}>
+                                {rank}
                               </span>
                               <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: b.color }} />
                               <span className="truncate max-w-[150px]" title={b.name}>

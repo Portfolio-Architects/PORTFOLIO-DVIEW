@@ -31,7 +31,11 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import MobileDock from '@/components/pwa/MobileDock';
 
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) return {};
+  return res.json();
+};
 
 interface NewsItem {
   id: number;
@@ -74,21 +78,21 @@ const NewsCard = React.memo(function NewsCard({
       href={item.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform shadow-sm"
+      className="group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform shadow-sm"
     >
       <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${cat.bgClass}`}>
             {cat.label}
           </span>
-          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-zinc-400 tracking-tight">
+          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 tracking-tight">
             {item.sub}
           </span>
           <span className="text-[11px] text-tertiary font-medium">
             {formatDate(item.pubDate)}
           </span>
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
@@ -117,7 +121,7 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
     <button
       type="button"
       onClick={onClick}
-      className="w-full text-left group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+      className="w-full text-left group flex flex-col md:flex-row md:items-center justify-between gap-3.5 py-3.5 px-4 sm:p-5 rounded-[20px] border border-border/40 dark:border-white/10 bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] transition-all duration-300 transform shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
       aria-label={`소식: ${item.title}, 부서: ${item.dept}`}
     >
       <div className="flex flex-col gap-1.5 sm:gap-2 min-w-0 flex-1">
@@ -126,7 +130,7 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
             <Icon size={11} />
             {src.label}
           </span>
-          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-zinc-400 tracking-tight">
+          <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 tracking-tight">
             {item.dept}
           </span>
           <span className="text-[11px] text-tertiary font-medium">
@@ -138,7 +142,7 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
             </span>
           )}
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-zinc-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
@@ -246,13 +250,13 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
         return {
           label: '고시공고',
           icon: FileText,
-          bgClass: 'bg-amber-500/10 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30',
+          bgClass: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30',
         };
       case 'rail':
         return {
           label: '교통/철도',
           icon: Train,
-          bgClass: 'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30',
+          bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30',
         };
       case 'dong':
         return {
@@ -264,13 +268,13 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
         return {
           label: '문화/축제',
           icon: Sparkles,
-          bgClass: 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/30',
+          bgClass: 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 border border-red-500/20 dark:border-red-500/30',
         };
       default:
         return {
           label: '시정소식',
           icon: Megaphone,
-          bgClass: 'bg-sky-500/10 text-sky-600 dark:bg-sky-500/20 dark:text-sky-400 border border-sky-500/20 dark:border-sky-500/30',
+          bgClass: 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 border border-blue-500/20 dark:border-blue-500/30',
         };
     }
   };
@@ -279,15 +283,15 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
   const getNewsCategoryDetails = (category: string) => {
     switch (category) {
       case 'POLICY':
-        return { label: '부동산 정책', bgClass: 'bg-rose-500/10 text-rose-500 dark:bg-rose-500/20 dark:text-rose-400 border border-rose-500/20 dark:border-rose-500/30' };
+        return { label: '부동산 정책', bgClass: 'bg-red-500/10 text-red-500 dark:bg-red-500/20 dark:text-red-400 border border-red-500/20 dark:border-red-500/30' };
       case 'INFRASTRUCTURE':
-        return { label: '교통/개발', bgClass: 'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-500/20 dark:text-indigo-400 border border-indigo-500/20 dark:border-indigo-500/30' };
+        return { label: '교통/개발', bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30' };
       case 'COMMERCIAL':
-        return { label: '상권/기업', bgClass: 'bg-purple-500/10 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400 border border-purple-500/20 dark:border-purple-500/30' };
+        return { label: '상권/기업', bgClass: 'bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400 border border-slate-500/20 dark:border-slate-500/30' };
       case 'COMMUNITY':
-        return { label: '학군/주거', bgClass: 'bg-teal-500/10 text-teal-600 dark:bg-teal-500/20 dark:text-teal-400 border border-teal-500/20 dark:border-teal-500/30' };
+        return { label: '학군/주거', bgClass: 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 border border-emerald-500/20 dark:border-emerald-500/30' };
       default:
-        return { label: '시장 동향', bgClass: 'bg-zinc-500/10 text-zinc-600 dark:bg-zinc-500/20 dark:text-zinc-400 border border-zinc-500/20 dark:border-zinc-500/30' };
+        return { label: '시장 동향', bgClass: 'bg-slate-500/10 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400 border border-slate-500/20 dark:border-slate-500/30' };
     }
   };
 
@@ -393,7 +397,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               {isLoadingNews ? (
                 // Shimmer Loader for News
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <div key={idx} className="w-full h-[90px] bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] animate-pulse" />
+                  <div key={idx} className="w-full h-[90px] bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] animate-pulse" />
                 ))
               ) : (
                 <>
@@ -449,7 +453,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                       {filteredNewsList.length > visibleNewsCount && (
                         <button
                           onClick={() => setVisibleNewsCount(prev => prev + 12)}
-                          className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[14px] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
+                          className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[14px] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
                         >
                           <span>더보기</span>
                           <span className="text-[11px] font-bold text-tertiary">
@@ -468,7 +472,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               {isLoadingNotices ? (
                 // Shimmer Loader for Notices
                 Array.from({ length: 5 }).map((_, idx) => (
-                  <div key={idx} className="w-full h-[90px] bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] animate-pulse" />
+                  <div key={idx} className="w-full h-[90px] bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] animate-pulse" />
                 ))
               ) : noticesList.length === 0 ? (
                 <div className="text-center py-16 text-tertiary font-bold text-[14px] bg-surface/40 rounded-2xl border border-dashed border-border">
@@ -495,7 +499,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                   {noticesList.length > visibleNoticesCount && (
                     <button
                       onClick={() => setVisibleNoticesCount(prev => prev + 12)}
-                      className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[14px] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
+                      className="w-full mt-2 py-3 text-[13px] font-extrabold text-secondary bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/40 dark:border-white/10 hover:scale-[1.01] hover:shadow-[0_12px_40px_rgba(0,0,0,0.06)] dark:hover:shadow-[0_12px_40px_rgba(0,0,0,0.3)] rounded-[14px] transition-all duration-300 flex items-center justify-center gap-1.5 shadow-sm active:scale-[0.99] cursor-pointer"
                     >
                       <span>더보기</span>
                       <span className="text-[11px] font-bold text-tertiary">
@@ -556,7 +560,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-                <div className="w-12 h-12 rounded-full bg-amber-50 dark:bg-amber-950/20 text-amber-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-blue-50 dark:bg-blue-950/20 text-blue-500 flex items-center justify-center mb-4">
                   <FileText size={24} />
                 </div>
                 <h3 className="text-[15px] font-extrabold text-primary mb-2">AI 분석 요약 준비 중</h3>
@@ -577,7 +581,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           </div>
 
           {/* Modal Footer */}
-          <div className="p-5 border-t border-border/60 flex items-center justify-between gap-3 bg-neutral-50/40 dark:bg-zinc-900/10">
+          <div className="p-5 border-t border-border/60 flex items-center justify-between gap-3 bg-slate-50/40 dark:bg-slate-900/10">
             <a
               href={selectedNotice.url}
               target="_blank"

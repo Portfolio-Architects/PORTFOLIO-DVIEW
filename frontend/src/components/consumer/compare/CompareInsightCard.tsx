@@ -25,7 +25,7 @@ export const CompareInsightCard = React.memo(function CompareInsightCard({
   isCopied,
 }: CompareInsightCardProps) {
   return (
-    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-500/20 dark:border-emerald-500/10 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-gradient-to-br from-emerald-50 to-emerald-50 dark:from-emerald-950/20 dark:to-emerald-950/10 border border-emerald-500/20 dark:border-emerald-500/10 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div className="space-y-2 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-black text-emerald-600 dark:text-emerald-400 tracking-wider uppercase bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-md">

@@ -57,7 +57,7 @@ const Footer = React.memo(function Footer() {
               <span className="text-toss-gray">|</span>
               <span>이메일: ocs5672@gmail.com</span>
               <span className="hidden sm:inline text-toss-gray">|</span>
-              <span className="w-full sm:w-auto">© {new Date().getFullYear()} D-VIEW. All rights reserved.</span>
+              <span className="w-full sm:w-auto">Copyright {new Date().getFullYear()} D-VIEW. All rights reserved.</span>
             </div>
             
             <p aria-label="부동산 거래 면책 조항" className="text-left lg:text-right w-full tracking-tight text-[11.5px]">

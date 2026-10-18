@@ -7,10 +7,20 @@ import {
   Bar,
   XAxis,
   YAxis,
+  CartesianGrid,
   Tooltip as RechartsTooltip,
   Cell,
 } from 'recharts';
-import { Trophy, TrendingUp, Sparkles, Building2 } from 'lucide-react';
+import {
+  Trophy,
+  TrendingUp,
+  Building2,
+  BarChart3,
+  ListOrdered,
+  Layers,
+  ArrowUpRight,
+  Award,
+} from 'lucide-react';
 import type { ComplexStatItem } from '@/types/stats';
 import { formatPriceEok } from '@/lib/analytics/statsEngine';
 import { RankingBreakAdBanner } from './StatsAdBanners';
@@ -24,17 +34,39 @@ export interface StatsPyeongRankingChartProps {
 }
 
 const getRankBadgeColor = (rank: number) => {
-  if (rank === 1) return 'bg-amber-400 text-slate-950 font-black shadow-xs ring-2 ring-amber-300';
-  if (rank === 2) return 'bg-slate-300 text-slate-900 font-bold';
-  if (rank === 3) return 'bg-amber-700 text-amber-50 font-bold';
-  return 'bg-body text-slate-500 font-semibold border border-border/60';
+  if (rank === 1) {
+    return 'bg-emerald-600 text-white font-black shadow-xs ring-2 ring-emerald-500/30';
+  }
+  if (rank === 2) {
+    return 'bg-blue-600 text-white font-extrabold shadow-xs ring-2 ring-blue-500/25';
+  }
+  if (rank === 3) {
+    return 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-extrabold';
+  }
+  return 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold border border-border/60';
+};
+
+const getPodiumCardStyle = (rank: number) => {
+  if (rank === 1) {
+    return 'border-emerald-500/50 bg-emerald-50/25 dark:bg-emerald-950/15 hover:border-emerald-500';
+  }
+  if (rank === 2) {
+    return 'border-blue-500/40 bg-blue-50/20 dark:bg-blue-950/10 hover:border-blue-500';
+  }
+  return 'border-slate-300/80 dark:border-slate-700/80 bg-body/50 hover:border-slate-400 dark:hover:border-slate-600';
 };
 
 const getBarColor = (rank: number) => {
-  if (rank === 1) return '#f59e0b'; // Gold
-  if (rank === 2) return '#94a3b8'; // Silver
-  if (rank === 3) return '#b45309'; // Bronze
-  return '#057e77'; // Brand Teal
+  if (rank === 1) return '#059669'; // Emerald 600
+  if (rank === 2) return '#10b981'; // Emerald 500
+  if (rank === 3) return '#2563eb'; // Blue 600
+  if (rank <= 5) return '#3b82f6'; // Blue 500
+  return '#64748b'; // Slate 500
+};
+
+const formatPyeongAxisTick = (val: number) => {
+  if (!Number.isFinite(val) || val <= 0) return '0';
+  return `${val.toLocaleString()}만`;
 };
 
 export function StatsPyeongRankingChart({
@@ -46,29 +78,84 @@ export function StatsPyeongRankingChart({
 }: StatsPyeongRankingChartProps) {
   const [viewTab, setViewTab] = React.useState<'both' | 'chart' | 'table'>('both');
 
-  const topRankings = rankings.slice(0, 20);
-  const chartData = topRankings.slice(0, 10).map((item, idx) => ({
-    ...item,
-    rank: idx + 1,
-    displayName: item.aptName.length > 10 ? `${item.aptName.substring(0, 9)}…` : item.aptName,
-  }));
-
+  const safeRankings = Array.isArray(rankings) ? rankings : [];
+  const topRankings = safeRankings.slice(0, 20);
   const hasData = topRankings.length > 0;
+
+  const safeNum = (val: unknown) =>
+    typeof val === 'number' && Number.isFinite(val) && val > 0 ? val : 0;
+  const safePyeong = (val: number) => safeNum(val);
+
+  const maxPyeongPrice = hasData
+    ? Math.max(...topRankings.map((item) => safePyeong(item.avgPyeongPrice)), 1)
+    : 1;
+
+  const avgTopPyeongPrice = hasData
+    ? Math.round(
+        topRankings.reduce((acc, item) => acc + safePyeong(item.avgPyeongPrice), 0) /
+          topRankings.length
+      )
+    : 0;
+
+  const top1Item = hasData
+    ? topRankings.reduce(
+        (best, cur) =>
+          safePyeong(cur.avgPyeongPrice) > safePyeong(best.avgPyeongPrice) ? cur : best,
+        topRankings[0]
+      )
+    : null;
+  const cutoffItem = hasData
+    ? topRankings.reduce(
+        (worst, cur) =>
+          safePyeong(cur.avgPyeongPrice) < safePyeong(worst.avgPyeongPrice) ? cur : worst,
+        topRankings[topRankings.length - 1]
+      )
+    : null;
+  const cutoffRank = cutoffItem ? topRankings.indexOf(cutoffItem) + 1 : topRankings.length;
+  const dongtan2Count = topRankings.filter((item) => item.region === '동탄2').length;
+  const dongtan1Count = topRankings.filter((item) => item.region === '동탄1').length;
+  const newHighCount = topRankings.filter((item) => item.isNewHigh).length;
+
+  const chartData = topRankings.slice(0, 10).map((item, idx) => {
+    const rank = idx + 1;
+    const nameStr = String(item.aptName || '');
+    const shortName =
+      nameStr.length > 11 ? `${nameStr.substring(0, 10)}…` : nameStr;
+    return {
+      ...item,
+      rank,
+      avgPyeongPrice: safePyeong(item.avgPyeongPrice),
+      avgPrice: safeNum(item.avgPrice),
+      displayName: `${rank}위 ${shortName}`,
+      eq84Price: Math.round(safePyeong(item.avgPyeongPrice) * 34),
+    };
+  });
+
+  const podiumItems = topRankings.slice(0, 3);
+  const remainingItems = topRankings.slice(3);
 
   return (
     <div
       data-testid="stats-pyeong-ranking-chart"
+      aria-busy={isLoading}
       className={`p-5 sm:p-6 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between ${className}`}
     >
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
-          <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
-            <Trophy size={18} className="text-amber-500" />
-            <span>단지별 평당가 TOP 20</span>
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
+              <Trophy size={18} className="text-emerald-600 dark:text-emerald-400" />
+              <span>단지별 평당가 TOP 20</span>
+            </h3>
+            {hasData && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/70 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[11px] font-extrabold font-mono tabular-nums">
+                TOP {topRankings.length}
+              </span>
+            )}
+          </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            전용면적 기준 3.3㎡당 평균 실거래가 랭킹
+            전용면적 3.3㎡(1평)당 평균 실거래가 랭킹 · 단지 클릭 시 상세 실거래 리포트 확인
           </p>
         </div>
 
@@ -77,29 +164,32 @@ export function StatsPyeongRankingChart({
           <button
             type="button"
             onClick={() => setViewTab('both')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
               viewTab === 'both' ? 'bg-surface text-primary shadow-xs' : 'text-tertiary'
             }`}
           >
-            통합 뷰
+            <Layers size={12} />
+            <span>통합 뷰</span>
           </button>
           <button
             type="button"
             onClick={() => setViewTab('chart')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
               viewTab === 'chart' ? 'bg-surface text-primary shadow-xs' : 'text-tertiary'
             }`}
           >
-            차트만
+            <BarChart3 size={12} />
+            <span>차트만</span>
           </button>
           <button
             type="button"
             onClick={() => setViewTab('table')}
-            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+            className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
               viewTab === 'table' ? 'bg-surface text-primary shadow-xs' : 'text-tertiary'
             }`}
           >
-            목록만
+            <ListOrdered size={12} />
+            <span>목록만</span>
           </button>
         </div>
       </div>
@@ -110,126 +200,378 @@ export function StatsPyeongRankingChart({
         </div>
       ) : (
         <div className="flex flex-col gap-6">
+          {/* Intuitive Benchmark Summary Strip */}
+          <div
+            data-testid="ranking-summary-strip"
+            className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3"
+          >
+            {/* Card 1: 1위 선도 단지 평당가 */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-body/60 border border-border/50 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span>1위 최고 평당가</span>
+                <Award size={13} className="text-emerald-600 dark:text-emerald-400" />
+              </div>
+              <p className="text-sm sm:text-base font-black font-mono tabular-nums text-emerald-600 dark:text-emerald-400 mt-1">
+                {top1Item ? `${safePyeong(top1Item.avgPyeongPrice).toLocaleString()}만원/평` : '-'}
+              </p>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-mono tabular-nums">
+                {top1Item
+                  ? `${top1Item.aptName} · 34평 환산 ${formatPriceEok(
+                      Math.round(safePyeong(top1Item.avgPyeongPrice) * 34)
+                    )}`
+                  : '-'}
+              </span>
+            </div>
+
+            {/* Card 2: TOP 20 평균 평당가 */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-body/60 border border-border/50 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span>TOP {topRankings.length} 평균 평당가</span>
+                <TrendingUp size={13} className="text-blue-600 dark:text-blue-400" />
+              </div>
+              <p className="text-sm sm:text-base font-black font-mono tabular-nums text-slate-900 dark:text-white mt-1">
+                {avgTopPyeongPrice.toLocaleString()}만원/평
+              </p>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-mono tabular-nums">
+                34평(84㎡) 기준 평균 {formatPriceEok(Math.round(avgTopPyeongPrice * 34))}
+              </span>
+            </div>
+
+            {/* Card 3: TOP 20 진입 커트라인 */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-body/60 border border-border/50 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span>TOP {topRankings.length} 진입 기준선</span>
+                <span className="text-[10px] font-mono tabular-nums px-1.5 py-0.5 rounded bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                  {cutoffItem
+                    ? `1위 대비 ${Math.round((safePyeong(cutoffItem.avgPyeongPrice) / maxPyeongPrice) * 100)}%`
+                    : '-'}
+                </span>
+              </div>
+              <p className="text-sm sm:text-base font-black font-mono tabular-nums text-slate-900 dark:text-white mt-1">
+                {cutoffItem ? `${safePyeong(cutoffItem.avgPyeongPrice).toLocaleString()}만원/평` : '-'}
+              </p>
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                {cutoffItem ? `${cutoffRank}위 ${cutoffItem.aptName} (${cutoffItem.dong})` : '-'}
+              </span>
+            </div>
+
+            {/* Card 4: 권역 및 신고가 비중 */}
+            <div className="p-3 sm:p-3.5 rounded-xl bg-body/60 border border-border/50 flex flex-col justify-between">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                <span>권역 · 신고가 분포</span>
+                <Building2 size={13} className="text-slate-500 dark:text-slate-400" />
+              </div>
+              <p className="text-sm sm:text-base font-black font-mono tabular-nums text-slate-900 dark:text-white mt-1">
+                동탄2 {dongtan2Count}곳 · 동탄1 {dongtan1Count}곳
+              </p>
+              <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold truncate mt-0.5 font-mono tabular-nums">
+                신고가 경신 {newHighCount}개 단지 포함
+              </span>
+            </div>
+          </div>
+
           {/* Horizontal Bar Chart (TOP 10 visual comparison) */}
           {(viewTab === 'both' || viewTab === 'chart') && (
-            <div className="w-full h-[280px] sm:h-[320px] pt-2">
-              <ResponsiveContainer width="100%" height="100%" minWidth={280} minHeight={240}>
-                <BarChart
-                  data={chartData}
-                  layout="vertical"
-                  margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
-                >
-                  <XAxis
-                    type="number"
-                    tickFormatter={(val) => `${Math.round(val / 1000)}k`}
-                    tick={{ fontSize: 10, fill: 'currentColor' }}
-                    className="text-slate-400 dark:text-slate-500"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="displayName"
-                    width={90}
-                    tick={{ fontSize: 11, fill: 'currentColor' }}
-                    className="text-slate-700 dark:text-slate-300 font-semibold"
-                    axisLine={false}
-                    tickLine={false}
-                  />
-                  <RechartsTooltip
-                    formatter={(value: any) => [`${Number(value).toLocaleString()} 만원/평`, '3.3㎡당 평당가']}
-                    labelFormatter={(label, p) => {
-                      const item = p[0]?.payload;
-                      return item ? `${item.rank}위 ${item.aptName} (${item.dong})` : label;
-                    }}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      borderRadius: '16px',
-                      border: '1px solid rgba(0,0,0,0.08)',
-                      boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Bar
-                    dataKey="avgPyeongPrice"
-                    radius={[0, 6, 6, 0]}
-                    maxBarSize={20}
-                    onClick={(data: any) => {
-                      if (data && data.aptKey) {
-                        onSelectComplex?.(data.aptKey, data.aptName);
-                      }
-                    }}
-                    cursor="pointer"
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+                <span className="text-xs font-extrabold text-slate-700 dark:text-slate-200">
+                  TOP 10 단지 평당가 시각 비교 (단위: 만원/3.3㎡)
+                </span>
+                <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 inline-block" />
+                    1~2위 선도
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-blue-600 inline-block" />
+                    3~5위 상위권
+                  </span>
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="w-2.5 h-2.5 rounded-xs bg-slate-500 inline-block" />
+                    6~10위 주요권
+                  </span>
+                </div>
+              </div>
+
+              <div className="w-full h-[280px] sm:h-[320px] pt-2">
+                <ResponsiveContainer width="100%" height="100%" minWidth={280} minHeight={240}>
+                  <BarChart
+                    data={chartData}
+                    layout="vertical"
+                    margin={{ top: 5, right: 28, left: 8, bottom: 5 }}
                   >
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={getBarColor(index + 1)} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+                    <CartesianGrid
+                      strokeDasharray="3 3"
+                      horizontal={false}
+                      stroke="rgba(148, 163, 184, 0.2)"
+                    />
+                    <XAxis
+                      type="number"
+                      tickFormatter={formatPyeongAxisTick}
+                      tick={{ fontSize: 11, fill: 'currentColor' }}
+                      className="text-slate-500 dark:text-slate-400 font-mono tabular-nums"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis
+                      type="category"
+                      dataKey="displayName"
+                      width={136}
+                      tick={{ fontSize: 11, fill: 'currentColor' }}
+                      className="text-slate-700 dark:text-slate-200 font-bold"
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <RechartsTooltip
+                      formatter={(value: unknown) => [
+                        `${safeNum(Number(value)).toLocaleString()} 만원/평`,
+                        '3.3㎡당 평당가',
+                      ]}
+                      labelFormatter={(label, p) => {
+                        const item = p?.[0]?.payload;
+                        return item
+                          ? `${item.rank}위 ${item.aptName} (${item.dong} · ${item.region}) | 평균 ${formatPriceEok(safeNum(item.avgPrice))} · 34평 환산 ${formatPriceEok(safeNum(item.eq84Price))}`
+                          : String(label);
+                      }}
+                      contentStyle={{
+                        backgroundColor: 'rgba(15, 23, 42, 0.96)',
+                        color: '#f8fafc',
+                        borderRadius: '12px',
+                        border: '1px solid rgba(148, 163, 184, 0.25)',
+                        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.25)',
+                        fontSize: '12px',
+                      }}
+                      itemStyle={{ color: '#34d399', fontWeight: 800 }}
+                      labelStyle={{ color: '#f8fafc', fontWeight: 700, marginBottom: '4px' }}
+                    />
+                    <Bar
+                      dataKey="avgPyeongPrice"
+                      radius={[0, 6, 6, 0]}
+                      maxBarSize={22}
+                      onClick={(data: unknown) => {
+                        const payload = data as { aptKey?: string; aptName?: string } | null;
+                        if (payload && payload.aptKey && payload.aptName) {
+                          onSelectComplex?.(payload.aptKey, payload.aptName);
+                        }
+                      }}
+                      cursor="pointer"
+                    >
+                      {chartData.map((_, index) => (
+                        <Cell key={`cell-${index}`} fill={getBarColor(index + 1)} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
 
-          {/* Ranking List Table with Strategic Ad Placement after Rank 3 */}
+          {/* Full-Width Intuitive Ranking List (Top 3 Podium + Strategic Ad Break + Ranks 4-20 2-Column Grid) */}
           {(viewTab === 'both' || viewTab === 'table') && (
-            <div data-testid="ranking-list" className="space-y-1.5 pt-2 border-t border-border/40">
-              {topRankings.map((item, idx) => {
-                const rank = idx + 1;
-                return (
-                  <React.Fragment key={`${item.aptKey || item.aptName}-${rank}`}>
+            <div data-testid="ranking-list" className="flex flex-col gap-3 pt-3 border-t border-border/40">
+              {/* Section 1: TOP 1~3 Podium Highlight Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                {podiumItems.map((item, idx) => {
+                  const rank = idx + 1;
+                  const itemPyeong = safePyeong(item.avgPyeongPrice);
+                  const itemAvgPrice = safeNum(item.avgPrice);
+                  const itemHighestPrice = safeNum(item.highestPrice);
+                  const itemTxCount = safeNum(item.txCount);
+                  const itemJeonseRatio = safeNum(item.jeonseRatio);
+                  const rawPct =
+                    itemPyeong > 0 ? Math.round((itemPyeong / maxPyeongPrice) * 100) : 0;
+                  const relativePct =
+                    itemPyeong > 0 ? Math.max(12, Math.min(100, rawPct)) : 0;
+                  const isTopBenchmark = rank === 1 && itemPyeong >= maxPyeongPrice && itemPyeong > 0;
+                  const eq84Price = Math.round(itemPyeong * 34);
+
+                  return (
                     <div
+                      key={`${item.aptKey || item.aptName}-${rank}`}
                       data-testid={`ranking-item-${rank}`}
                       onClick={() => onSelectComplex?.(item.aptKey, item.aptName)}
-                      className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-body transition-colors cursor-pointer border-b border-border/30 last:border-0"
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between gap-3 group ${getPodiumCardStyle(
+                        rank
+                      )}`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        {/* Rank Badge */}
-                        <span
-                          className={`w-6 h-6 rounded-lg text-xs flex items-center justify-center shrink-0 ${getRankBadgeColor(
-                            rank
-                          )}`}
-                        >
-                          {rank}
-                        </span>
-
-                        <div className="flex flex-col min-w-0">
-                          <div className="flex items-center gap-1.5">
-                            <span className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
-                              {rank}위 {item.aptName} ({item.dong})
-                            </span>
-                            {item.isNewHigh && (
-                              <span className="px-1.5 py-0.2 rounded-md bg-orange-100 dark:bg-orange-950/60 text-orange-600 text-[10px] font-extrabold">
-                                신고가
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-slate-400">
-                            {item.dong} · {item.region} · 평균 {formatPriceEok(item.avgPrice)} · {item.txCount}건
+                      {/* Top Header: Rank Badge + Complex Name + Badges */}
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                          <span
+                            className={`w-7 h-7 rounded-lg text-xs font-mono tabular-nums flex items-center justify-center shrink-0 ${getRankBadgeColor(
+                              rank
+                            )}`}
+                          >
+                            {rank}
                           </span>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="font-extrabold text-sm text-slate-900 dark:text-white truncate">
+                                {rank}위 {item.aptName} ({item.dong})
+                              </span>
+                              {item.isNewHigh && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold shrink-0">
+                                  신고가
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 truncate block">
+                              {item.region} · {item.dong} · 실거래 {itemTxCount}건
+                            </span>
+                          </div>
+                        </div>
+
+                        <ArrowUpRight
+                          size={15}
+                          className="text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors shrink-0 mt-0.5"
+                        />
+                      </div>
+
+                      {/* Primary Pyeong Price & Relative Ratio Bar */}
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-baseline justify-between gap-2">
+                          <span className="text-base sm:text-lg font-black font-mono tabular-nums text-emerald-600 dark:text-emerald-400 truncate">
+                            {itemPyeong.toLocaleString()}만원/평
+                          </span>
+                          <span className="text-[11px] font-bold font-mono tabular-nums text-slate-500 dark:text-slate-400 shrink-0">
+                            {isTopBenchmark ? '1위 기준 (100%)' : `1위 대비 ${relativePct}%`}
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 rounded-full bg-slate-200/80 dark:bg-slate-800 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              rank === 1
+                                ? 'bg-emerald-600 dark:bg-emerald-500'
+                                : rank === 2
+                                ? 'bg-blue-600 dark:bg-blue-500'
+                                : 'bg-slate-700 dark:bg-slate-400'
+                            }`}
+                            style={{ width: `${relativePct}%` }}
+                          />
                         </div>
                       </div>
 
-                      <div className="flex flex-col items-end shrink-0 pl-2">
-                        <span className="text-orange-600 dark:text-orange-400 font-extrabold text-xs sm:text-sm">
-                          {item.avgPyeongPrice.toLocaleString()}만원/평
-                        </span>
-                        {item.jeonseRatio > 0 && (
-                          <span className="text-[10px] text-slate-400">
-                            전세가율 {item.jeonseRatio}%
+                      {/* Bottom 3-Metric Breakdown */}
+                      <div className="grid grid-cols-3 gap-2 pt-2.5 border-t border-border/40 text-[11px]">
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-slate-400 dark:text-slate-500 truncate">평균 실거래가</span>
+                          <span className="font-bold font-mono tabular-nums text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                            {formatPriceEok(itemAvgPrice)}
                           </span>
-                        )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-slate-400 dark:text-slate-500 truncate">34평(84㎡) 환산</span>
+                          <span className="font-bold font-mono tabular-nums text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                            {formatPriceEok(eq84Price)}
+                          </span>
+                        </div>
+                        <div className="flex flex-col items-end min-w-0">
+                          <span className="text-slate-400 dark:text-slate-500 truncate">
+                            {itemJeonseRatio > 0 ? '전세가율' : '최고 실거래가'}
+                          </span>
+                          <span className="font-bold font-mono tabular-nums text-slate-800 dark:text-slate-200 mt-0.5 truncate">
+                            {itemJeonseRatio > 0
+                              ? `전세가율 ${itemJeonseRatio}%`
+                              : `최고 ${formatPriceEok(itemHighestPrice)}`}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
 
-                    {/* 3. AdSense Placement: Ranking Break after Rank 3 */}
-                    {idx === 2 && (
-                      <div className="my-2">
-                        <RankingBreakAdBanner testMode={testMode} />
+              {/* Strategic Ad Placement: Ranking Break after Rank 3 */}
+              {topRankings.length >= 3 && (
+                <div className="my-1">
+                  <RankingBreakAdBanner testMode={testMode} />
+                </div>
+              )}
+
+              {/* Section 2: Ranks 4~20 Full-Width 2-Column Analytical Grid */}
+              {remainingItems.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {remainingItems.map((item, idx) => {
+                    const rank = idx + 4;
+                    const itemPyeong = safePyeong(item.avgPyeongPrice);
+                    const itemAvgPrice = safeNum(item.avgPrice);
+                    const itemTxCount = safeNum(item.txCount);
+                    const itemJeonseRatio = safeNum(item.jeonseRatio);
+                    const rawPct =
+                      itemPyeong > 0 ? Math.round((itemPyeong / maxPyeongPrice) * 100) : 0;
+                    const relativePct =
+                      itemPyeong > 0 ? Math.max(12, Math.min(100, rawPct)) : 0;
+                    const eq84Price = Math.round(itemPyeong * 34);
+
+                    return (
+                      <div
+                        key={`${item.aptKey || item.aptName}-${rank}`}
+                        data-testid={`ranking-item-${rank}`}
+                        onClick={() => onSelectComplex?.(item.aptKey, item.aptName)}
+                        className="p-3 sm:p-3.5 rounded-xl border border-border/50 bg-body/40 hover:bg-body hover:border-emerald-500/40 transition-all cursor-pointer flex flex-col gap-2 group"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                            <span
+                              className={`w-6 h-6 rounded-lg text-xs font-mono tabular-nums flex items-center justify-center shrink-0 ${getRankBadgeColor(
+                                rank
+                              )}`}
+                            >
+                              {rank}
+                            </span>
+
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1">
+                              <span className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white truncate">
+                                {rank}위 {item.aptName} ({item.dong})
+                              </span>
+                              {item.isNewHigh && (
+                                <span className="px-1.5 py-0.5 rounded-md bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-[10px] font-extrabold shrink-0">
+                                  신고가
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0 pl-2">
+                            <span className="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono tabular-nums text-xs sm:text-sm">
+                              {itemPyeong.toLocaleString()}만원/평
+                            </span>
+                            <ArrowUpRight
+                              size={13}
+                              className="text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"
+                            />
+                          </div>
+                        </div>
+
+                        {/* Relative Pyeong Price Visual Gauge Bar */}
+                        <div className="w-full h-1.5 rounded-full bg-slate-200/70 dark:bg-slate-800 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              rank <= 5
+                                ? 'bg-blue-600/85 dark:bg-blue-500/85'
+                                : 'bg-slate-500/75 dark:bg-slate-400/75'
+                            }`}
+                            style={{ width: `${relativePct}%` }}
+                          />
+                        </div>
+
+                        {/* Detailed Metadata Footer */}
+                        <div className="flex items-center justify-between gap-2 text-[11px] text-slate-500 dark:text-slate-400 font-mono tabular-nums">
+                          <span className="truncate">
+                            {item.region} · 평균 {formatPriceEok(itemAvgPrice)} · 34평 환산{' '}
+                            {formatPriceEok(eq84Price)} · {itemTxCount}건
+                          </span>
+                          <span className="shrink-0">
+                            {itemJeonseRatio > 0
+                              ? `전세가율 ${itemJeonseRatio}%`
+                              : `1위 대비 ${relativePct}%`}
+                          </span>
+                        </div>
                       </div>
-                    )}
-                  </React.Fragment>
-                );
-              })}
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -239,3 +581,4 @@ export function StatsPyeongRankingChart({
 }
 
 export default StatsPyeongRankingChart;
+

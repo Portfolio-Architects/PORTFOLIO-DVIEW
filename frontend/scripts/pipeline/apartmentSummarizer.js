@@ -36,6 +36,7 @@ function parseYYYYMMDD(str) {
 
 const {
   normalizeAptName,
+  sanitizeAptKey,
   isCancelledTransaction
 } = require('../../pipeline/core/normalizer');
 
@@ -279,7 +280,8 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs = [], dongMap = {},
     : 0;
 
   const normKey = normalizeAptName(targetAptName);
-  const dong = targetDongMap[normKey] || (validSaleTxs.length > 0 ? validSaleTxs[0].dong : (validRentTxs.length > 0 ? validRentTxs[0].dong : '')) || '';
+  const canonKey = sanitizeAptKey(targetAptName);
+  const dong = targetDongMap[normKey] || targetDongMap[canonKey] || (validSaleTxs.length > 0 ? validSaleTxs[0].dong : (validRentTxs.length > 0 ? validRentTxs[0].dong : '')) || '';
 
   return {
     // 법정동
@@ -352,7 +354,7 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
   return (allSaleTxs || [])
     .filter(t => !isCancelledTransaction(t))
     .filter(t => {
-      if (allowedApts && t.aptName && !allowedApts.has(t.aptName) && !allowedApts.has(normalizeAptName(t.aptName))) {
+      if (allowedApts && t.aptName && !allowedApts.has(t.aptName) && !allowedApts.has(normalizeAptName(t.aptName)) && !allowedApts.has(sanitizeAptKey(t.aptName))) {
         return false;
       }
       const dt = parseYYYYMMDD(t.contractDate);
@@ -370,7 +372,7 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
       }
       return {
         aptName: t.aptName,
-        txKey: normalizeAptName(t.aptName),
+        txKey: sanitizeAptKey(t.txKey || t.aptName || ''),
         date: `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
         contractDate: t.contractDate,
         priceVal: (t.price || 0) / 10000,
@@ -436,7 +438,7 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
     ];
     const data = filtered.map(t => [
       t.aptName || '',
-      normalizeAptName(t.aptName || ''),
+      sanitizeAptKey(t.txKey || t.aptName || ''),
       `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
       t.contractDate || '',
       (t.price || 0) / 10000,
@@ -462,7 +464,7 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
     }
     return {
       aptName: t.aptName,
-      txKey: normalizeAptName(t.aptName),
+      txKey: sanitizeAptKey(t.txKey || t.aptName || ''),
       date: `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
       contractDate: t.contractDate,
       priceVal: (t.price || 0) / 10000,

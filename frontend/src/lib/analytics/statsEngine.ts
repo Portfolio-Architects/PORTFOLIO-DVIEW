@@ -121,9 +121,9 @@ export function parsePriceEokToMan(eokStr: string): number {
  * Example: 85000 -> "8억5,000", 60000 -> "6억", 74500 -> "7억4,500"
  */
 export function formatPriceEok(manWon: number): string {
-  if (!manWon || manWon <= 0) return '0';
+  if (!manWon || !Number.isFinite(manWon) || manWon <= 0) return '0';
   const eok = Math.floor(manWon / 10000);
-  const remainder = manWon % 10000;
+  const remainder = Math.round(manWon % 10000);
 
   if (eok === 0) {
     return `${remainder.toLocaleString()}만`;
@@ -495,6 +495,94 @@ export const EMPTY_STATS_RESULT: Readonly<StatsAggregateResult> = Object.freeze(
 // 6. Pure Calculation Functions (6 Core Functions)
 // ============================================================================
 
+function extractValid8DigitDate(rawCd: unknown): string {
+  if (!rawCd) return '';
+  if (typeof rawCd === 'number') {
+    if (!isFinite(rawCd)) return '';
+    const s = String(Math.trunc(rawCd));
+    return s.length >= 8 && s >= '19000101' && s <= '21001231' ? s.substring(0, 8) : '';
+  }
+  if (typeof rawCd === 'string') {
+    if (rawCd.length === 8 && rawCd >= '19000101' && rawCd <= '21001231' && /^\d{8}$/.test(rawCd)) {
+      return rawCd;
+    }
+    const digits = rawCd.replace(/[^0-9]/g, '');
+    if (digits.length >= 8) {
+      const d8 = digits.substring(0, 8);
+      if (d8 >= '19000101' && d8 <= '21001231') return d8;
+    }
+  }
+  return '';
+}
+
+interface ParsedMacroRentPoint {
+  ym: string;
+  rent: number;
+}
+
+function parseMacroRentSeries(
+  macroTrend?: DongtanMacroTrendPoint[],
+  monthlyGroups?: Map<string, { saleSum: number; saleCount: number; rentSum: number; rentCount: number }>
+): {
+  points: ParsedMacroRentPoint[];
+  latestMacroYm: string;
+  latestMacroRent: number;
+} {
+  const points: ParsedMacroRentPoint[] = [];
+  let latestMacroYm = '';
+  let latestMacroRent = 0;
+
+  if (!macroTrend || !Array.isArray(macroTrend)) {
+    return { points, latestMacroYm, latestMacroRent };
+  }
+
+  let isSorted = true;
+  let prevYm = '';
+
+  for (let i = 0; i < macroTrend.length; i++) {
+    const pt = macroTrend[i];
+    if (!pt || typeof pt !== 'object') continue;
+    const ptRecord = pt as unknown as Record<string, unknown>;
+    let ym = String(pt.name || ptRecord.month || ptRecord.date || '');
+    if (ym.includes('.') && ym.length === 5) {
+      const [yy, mm] = ym.split('.');
+      const fullYear = parseInt(yy, 10) > 50 ? `19${yy}` : `20${yy}`;
+      ym = `${fullYear}-${mm.padStart(2, '0')}`;
+    }
+    const rawRent = pt['동탄 아파트 전세 평균'] ?? ptRecord.rent ?? 0;
+    const rentDepositMan =
+      typeof rawRent === 'number' && rawRent > 0 && isFinite(rawRent)
+        ? rawRent < 500
+          ? Math.round(rawRent * 10000)
+          : Math.round(rawRent)
+        : typeof rawRent === 'string'
+          ? parsePriceEokToMan(rawRent)
+          : 0;
+    if (rentDepositMan > 0 && ym) {
+      if (prevYm && ym < prevYm) isSorted = false;
+      prevYm = ym;
+      points.push({ ym, rent: rentDepositMan });
+      if (ym >= latestMacroYm) {
+        latestMacroYm = ym;
+        latestMacroRent = rentDepositMan;
+      }
+      if (monthlyGroups) {
+        const g = monthlyGroups.get(ym);
+        if (g && g.rentCount === 0) {
+          g.rentSum = rentDepositMan;
+          g.rentCount = 1;
+        }
+      }
+    }
+  }
+
+  if (!isSorted && points.length > 1) {
+    points.sort((a, b) => (a.ym < b.ym ? -1 : a.ym > b.ym ? 1 : 0));
+  }
+
+  return { points, latestMacroYm, latestMacroRent };
+}
+
 /**
  * 1. filterTransactions
  * High-performance single-pass multi-dimensional filtering.
@@ -505,23 +593,33 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
   filtersOrRegion?: StatsFilterState | RegionFilter,
   pyeong?: PyeongFilter,
   timeframe?: TimeframeFilter,
-  refDate?: string | Date
+  refDate?: string | Date | Record<string, AptTxSummary>,
+  options?:
+    | {
+        summaryMap?: Record<string, AptTxSummary>;
+        dongLookup?: Record<string, string>;
+      }
+    | Record<string, AptTxSummary>
 ): T[] {
   if (!transactions || !Array.isArray(transactions) || transactions.length === 0) {
     return [];
   }
 
   let region: RegionFilter = 'ALL';
+  let targetDong = '';
   let pyeongFilter: PyeongFilter = 'ALL';
   let timeframeFilter: TimeframeFilter = 'ALL';
   let excludeCanceled = true;
   let excludeOutliers = true;
   let excludeDirectDeals = false;
-  let effectiveRefDate: string | Date = refDate ?? '2026-09-19';
+  const resolvedRefArg =
+    typeof refDate === 'string' || refDate instanceof Date ? refDate : undefined;
+  let effectiveRefDate: string | Date = resolvedRefArg ?? '2026-09-19';
 
   if (filtersOrRegion && typeof filtersOrRegion === 'object' && !('substring' in filtersOrRegion)) {
     const f = filtersOrRegion as StatsFilterState;
     region = f.region ?? 'ALL';
+    targetDong = f.dong ? normalizeDongName(f.dong) : '';
     pyeongFilter = f.pyeong ?? 'ALL';
     timeframeFilter = f.timeframe ?? 'ALL';
     if (f.excludeCanceled !== undefined) excludeCanceled = f.excludeCanceled;
@@ -534,16 +632,16 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
     if (timeframe) timeframeFilter = timeframe;
   }
 
-  // If no reference date provided in options, find maximum contractDate in dataset
-  if (!refDate && (!filtersOrRegion || typeof filtersOrRegion !== 'object' || !filtersOrRegion.referenceDate)) {
+  // If no reference date provided in options, find maximum valid 8-digit contractDate in dataset
+  if (!resolvedRefArg && (!filtersOrRegion || typeof filtersOrRegion !== 'object' || !filtersOrRegion.referenceDate)) {
     let maxDate = '';
     for (let i = 0; i < transactions.length; i++) {
-      const cd = String((transactions[i] as any).contractDate || '');
-      if (cd.length >= 8 && cd > maxDate) {
-        maxDate = cd;
+      const d8 = extractValid8DigitDate((transactions[i] as any)?.contractDate);
+      if (d8 && d8 > maxDate) {
+        maxDate = d8;
       }
     }
-    if (maxDate.length >= 8) {
+    if (maxDate.length === 8) {
       effectiveRefDate = `${maxDate.substring(0, 4)}-${maxDate.substring(4, 6)}-${maxDate.substring(6, 8)}`;
     }
   }
@@ -553,13 +651,14 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
   const isTimeframeBounded = timeframeFilter !== 'ALL' && (timeframeFilter as string) !== 'all';
 
   if (isTimeframeBounded) {
-    const refDateObj =
+    const rawRefDateObj =
       effectiveRefDate instanceof Date
         ? effectiveRefDate
         : parseContractDate(effectiveRefDate) ??
           (typeof effectiveRefDate === 'string' && effectiveRefDate.includes('-')
             ? new Date(effectiveRefDate)
             : new Date('2026-09-19'));
+    const refDateObj = isNaN(rawRefDateObj.getTime()) ? new Date('2026-09-19') : rawRefDateObj;
 
     const daysMap: Record<string, number> = {
       '1M': 31,
@@ -584,6 +683,22 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
       (maxDate.getMonth() + 1) * 100 +
       maxDate.getDate();
   }
+
+  const isRegionAll = region === 'ALL' || (region as string) === 'all' || (region as string) === '전체';
+  const rawOptObj =
+    options && typeof options === 'object'
+      ? options
+      : refDate && typeof refDate === 'object' && !(refDate instanceof Date)
+        ? refDate
+        : undefined;
+  const summaryMap: Record<string, AptTxSummary> | undefined =
+    rawOptObj && ('summaryMap' in rawOptObj || 'dongLookup' in rawOptObj)
+      ? (rawOptObj as { summaryMap?: Record<string, AptTxSummary> }).summaryMap
+      : (rawOptObj as Record<string, AptTxSummary> | undefined);
+  const dongLookup: Record<string, string> | undefined =
+    rawOptObj && 'dongLookup' in rawOptObj
+      ? (rawOptObj as { dongLookup?: Record<string, string> }).dongLookup
+      : undefined;
 
   const result: T[] = [];
   const len = transactions.length;
@@ -621,8 +736,21 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
     }
 
     // 6. Region / Dong match
-    if (!matchesRegion(txRecord.dong, region)) {
-      continue;
+    if (!isRegionAll || targetDong) {
+      let dong = txRecord.dong;
+      if (!dong && (summaryMap || dongLookup)) {
+        const k = txRecord.aptKey || txRecord.txKey || txRecord.aptName || '';
+        dong =
+          (dongLookup && dongLookup[k]) ||
+          (summaryMap && (summaryMap[k]?.dong || (txRecord.aptName ? summaryMap[txRecord.aptName]?.dong : undefined))) ||
+          '';
+      }
+      if (!isRegionAll && !matchesRegion(dong, region)) {
+        continue;
+      }
+      if (targetDong && normalizeDongName(dong) !== targetDong) {
+        continue;
+      }
     }
 
     // 7. Pyeong match
@@ -667,13 +795,22 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
  */
 export function computeMacroTimeSeries(
   transactions: AnyTransaction[],
-  macroTrend?: DongtanMacroTrendPoint[],
-  timeframe: TimeframeFilter = 'ALL',
+  macroTrendOrRents?: DongtanMacroTrendPoint[] | RawRentRecord[],
+  timeframeOrMacroTrend: TimeframeFilter | DongtanMacroTrendPoint[] = 'ALL',
   referenceDate?: string | Date
 ): MacroTimeSeriesPoint[] {
   if (!transactions || transactions.length === 0) {
     return [];
   }
+
+  const hasRentsArg = Array.isArray(timeframeOrMacroTrend);
+  const rents: RawRentRecord[] =
+    hasRentsArg && Array.isArray(macroTrendOrRents)
+      ? (macroTrendOrRents as RawRentRecord[])
+      : [];
+  const macroTrend: DongtanMacroTrendPoint[] | undefined = hasRentsArg
+    ? (timeframeOrMacroTrend as DongtanMacroTrendPoint[])
+    : (macroTrendOrRents as DongtanMacroTrendPoint[] | undefined);
 
   const monthlyGroups = new Map<
     string,
@@ -704,32 +841,45 @@ export function computeMacroTimeSeries(
     }
   }
 
-  // Integrate macroTrend if provided
-  if (macroTrend && Array.isArray(macroTrend)) {
-    macroTrend.forEach((pt) => {
-      let ym = pt.name;
-      if (ym.includes('.') && ym.length === 5) {
-        const [yy, mm] = ym.split('.');
-        const fullYear = parseInt(yy, 10) > 50 ? `19${yy}` : `20${yy}`;
-        ym = `${fullYear}-${mm.padStart(2, '0')}`;
-      }
-      const rentDepositMan = Math.round((pt['동탄 아파트 전세 평균'] || 0) * 10000);
-      if (rentDepositMan > 0) {
-        const g = monthlyGroups.get(ym) || { saleSum: 0, saleCount: 0, rentSum: 0, rentCount: 0 };
-        g.rentSum = rentDepositMan;
-        g.rentCount = 1;
-        monthlyGroups.set(ym, g);
-      }
-    });
+  for (let i = 0; i < rents.length; i++) {
+    const r = rents[i];
+    if (!r || (r.deposit || 0) <= 0) continue;
+    const rCd = String(r.contractDate || '').replace(/[^0-9]/g, '');
+    if (rCd.length < 6) continue;
+    const rm = `${rCd.substring(0, 4)}-${rCd.substring(4, 6)}`;
+    const g = monthlyGroups.get(rm);
+    if (g) {
+      g.rentSum += r.deposit || 0;
+      g.rentCount += 1;
+    }
   }
 
+  const { points: macroPoints } = parseMacroRentSeries(macroTrend, monthlyGroups);
+
   const sortedMonths = Array.from(monthlyGroups.keys()).sort();
+  let macroIdx = 0;
+  let lastKnownMacroRent = 0;
+  let lastKnownRent = 0;
+
   return sortedMonths.map((m) => {
+    while (macroIdx < macroPoints.length && macroPoints[macroIdx].ym <= m) {
+      lastKnownMacroRent = macroPoints[macroIdx].rent;
+      macroIdx++;
+    }
     const g = monthlyGroups.get(m)!;
+    let avgRentDeposit = g.rentCount > 0 ? Math.round(g.rentSum / g.rentCount) : 0;
+    if (avgRentDeposit > 0) {
+      lastKnownRent = avgRentDeposit;
+    } else if (lastKnownMacroRent > 0) {
+      avgRentDeposit = lastKnownMacroRent;
+      lastKnownRent = lastKnownMacroRent;
+    } else if (lastKnownRent > 0) {
+      avgRentDeposit = lastKnownRent;
+    }
     return {
       date: m,
       avgSalePrice: g.saleCount > 0 ? Math.round(g.saleSum / g.saleCount) : 0,
-      avgRentDeposit: g.rentCount > 0 ? Math.round(g.rentSum / g.rentCount) : 0,
+      avgRentDeposit,
       volume: g.saleCount,
     };
   });
@@ -751,11 +901,23 @@ export interface RankingOptions {
 
 export function computeComplexRankings(
   transactions: AnyTransaction[],
-  options?: RankingOptions
+  optionsOrRents?: RankingOptions | RawRentRecord[],
+  sortByArg?: SortOption,
+  limitArg?: number,
+  summaryMapArg?: Record<string, AptTxSummary>
 ): ComplexStatItem[] {
   if (!transactions || transactions.length === 0) {
     return [];
   }
+
+  const options: RankingOptions | undefined = Array.isArray(optionsOrRents)
+    ? {
+        rents: optionsOrRents,
+        sortBy: sortByArg,
+        limit: limitArg,
+        summaryMap: summaryMapArg,
+      }
+    : optionsOrRents;
 
   interface ComplexAgg {
     aptKey: string;
@@ -784,7 +946,11 @@ export function computeComplexRankings(
     let entry = complexMap.get(groupKey);
     if (!entry) {
       const dong = normalizeDongName(
-        tx.dong || options?.dongLookup?.[aptKey] || options?.summaryMap?.[aptKey]?.dong || ''
+        tx.dong ||
+          options?.dongLookup?.[aptKey] ||
+          options?.summaryMap?.[aptKey]?.dong ||
+          options?.summaryMap?.[aptName]?.dong ||
+          ''
       );
       entry = {
         aptKey,
@@ -854,7 +1020,7 @@ export function computeComplexRankings(
       }
 
       let hasNewHigh = entry.hasNewHigh;
-      const summary = options?.summaryMap?.[entry.aptKey];
+      const summary = options?.summaryMap?.[entry.aptKey] || options?.summaryMap?.[entry.aptName];
       if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
         hasNewHigh = true;
       }
@@ -931,13 +1097,40 @@ export function computeComplexRankings(
  */
 export function computeVolumeDistribution(
   transactions: AnyTransaction[],
-  groupBy: 'PYEONG_TIER' | 'DONG' | 'REGION' = 'PYEONG_TIER'
+  groupBy: 'PYEONG_TIER' | 'DONG' | 'REGION' = 'PYEONG_TIER',
+  options?:
+    | {
+        summaryMap?: Record<string, AptTxSummary>;
+        dongLookup?: Record<string, string>;
+      }
+    | Record<string, AptTxSummary>
 ): VolumeDistributionItem[] {
   if (!transactions || transactions.length === 0) {
     return [];
   }
 
   const totalVolume = transactions.length;
+  const summaryMap: Record<string, AptTxSummary> | undefined =
+    options && ('summaryMap' in options || 'dongLookup' in options)
+      ? (options as { summaryMap?: Record<string, AptTxSummary> }).summaryMap
+      : (options as Record<string, AptTxSummary> | undefined);
+  const dongLookup: Record<string, string> | undefined =
+    options && 'dongLookup' in options
+      ? (options as { dongLookup?: Record<string, string> }).dongLookup
+      : undefined;
+
+  const resolveTxDong = (tx: Record<string, any>): string => {
+    if (tx?.dong) return tx.dong;
+    if (summaryMap || dongLookup) {
+      const k = tx?.aptKey || tx?.txKey || tx?.aptName || '';
+      return (
+        (dongLookup && dongLookup[k]) ||
+        (summaryMap && (summaryMap[k]?.dong || (tx?.aptName ? summaryMap[tx.aptName]?.dong : undefined))) ||
+        ''
+      );
+    }
+    return '';
+  };
 
   if (groupBy === 'PYEONG_TIER') {
     let smallCount = 0;
@@ -984,7 +1177,7 @@ export function computeVolumeDistribution(
     let d1Count = 0;
     for (let i = 0; i < totalVolume; i++) {
       const tx = transactions[i] as Record<string, any>;
-      if (getRegionFromDong(tx?.dong) === '동탄1') {
+      if (getRegionFromDong(resolveTxDong(tx)) === '동탄1') {
         d1Count++;
       }
     }
@@ -1008,7 +1201,7 @@ export function computeVolumeDistribution(
   const dongMap = new Map<string, number>();
   transactions.forEach((t) => {
     const tx = t as Record<string, any>;
-    const dong = normalizeDongName(tx.dong) || '기타';
+    const dong = normalizeDongName(resolveTxDong(tx)) || '기타';
     dongMap.set(dong, (dongMap.get(dong) || 0) + 1);
   });
 
@@ -1107,6 +1300,9 @@ interface StatsCacheEntry {
   result: StatsAggregateResult;
   datasetRef: unknown;
   datasetLen: number;
+  macroTrendRef: unknown;
+  summaryMapRef: unknown;
+  rentsLen: number;
 }
 
 const statsResultCache = new Map<string, StatsCacheEntry>();
@@ -1152,6 +1348,9 @@ export function singlePassAggregate(
   const normalizedRegion = !isRegionAll && !isD1 && !isD2 ? normalizeDongName(region) : null;
   const targetDong = filters.dong ? normalizeDongName(filters.dong) : null;
 
+  const summaryMap = options?.summaryMap;
+  const dongLookup = options?.dongLookup;
+
   // Pyeong filter
   const pyeongFilter = filters.pyeong ?? 'ALL';
   const isPyeongAll = pyeongFilter === 'ALL' || (pyeongFilter as string) === 'all' || (pyeongFilter as string) === '전체';
@@ -1169,12 +1368,12 @@ export function singlePassAggregate(
   if (!options?.referenceDate && !filters.referenceDate && isTimeframeBounded) {
     let maxDate = '';
     for (let i = 0; i < len; i++) {
-      const cd = String((transactions[i] as any)?.contractDate || '');
-      if (cd.length >= 8 && cd > maxDate) {
-        maxDate = cd;
+      const d8 = extractValid8DigitDate((transactions[i] as any)?.contractDate);
+      if (d8 && d8 > maxDate) {
+        maxDate = d8;
       }
     }
-    if (maxDate.length >= 8) {
+    if (maxDate.length === 8) {
       effectiveRefDate = `${maxDate.substring(0, 4)}-${maxDate.substring(4, 6)}-${maxDate.substring(6, 8)}`;
     }
   }
@@ -1182,13 +1381,14 @@ export function singlePassAggregate(
   let cutoffNum = 0;
   let maxNum = 99999999;
   if (isTimeframeBounded) {
-    const refDateObj =
+    const rawRefDateObj =
       effectiveRefDate instanceof Date
         ? effectiveRefDate
         : parseContractDate(effectiveRefDate) ??
           (typeof effectiveRefDate === 'string' && effectiveRefDate.includes('-')
             ? new Date(effectiveRefDate)
             : new Date('2026-09-19'));
+    const refDateObj = isNaN(rawRefDateObj.getTime()) ? new Date('2026-09-19') : rawRefDateObj;
 
     const daysMap: Record<string, number> = {
       '1M': 31,
@@ -1269,7 +1469,14 @@ export function singlePassAggregate(
 
     // 6. Region / Dong match
     if (!isRegionAll || targetDong) {
-      const dong = txRecord.dong;
+      let dong = txRecord.dong;
+      if (!dong && (summaryMap || dongLookup)) {
+        const k = txRecord.aptKey || txRecord.txKey || txRecord.aptName || '';
+        dong =
+          (dongLookup && dongLookup[k]) ||
+          (summaryMap && (summaryMap[k]?.dong || (txRecord.aptName ? summaryMap[txRecord.aptName]?.dong : undefined))) ||
+          '';
+      }
       const canonical = normalizeDongName(dong);
       if (!canonical) continue;
 
@@ -1347,7 +1554,11 @@ export function singlePassAggregate(
     let entry = complexMap.get(groupKey);
     if (!entry) {
       const dong = normalizeDongName(
-        txRecord.dong || options?.dongLookup?.[aptKey] || options?.summaryMap?.[aptKey]?.dong || ''
+        txRecord.dong ||
+          dongLookup?.[aptKey] ||
+          summaryMap?.[aptKey]?.dong ||
+          summaryMap?.[aptName]?.dong ||
+          ''
       );
       entry = {
         aptKey,
@@ -1399,7 +1610,7 @@ export function singlePassAggregate(
   const validRents = rents.length > 0 ? rents.filter((r) => {
     if (!matchesRegion(r.dong, filters.region)) return false;
     if (!matchesPyeong(r.area ?? 0, undefined, filters.pyeong)) return false;
-    if (!matchTimeframe(r.contractDate, filters.timeframe, filters.referenceDate)) return false;
+    if (!matchTimeframe(r.contractDate, filters.timeframe, effectiveRefDate)) return false;
     return (r.deposit || 0) > 0;
   }) : [];
 
@@ -1415,12 +1626,21 @@ export function singlePassAggregate(
         cur.sumDeposit += r.deposit || 0;
         cur.count++;
       }
+
+      const rCd = String(r.contractDate || '').replace(/[^0-9]/g, '');
+      if (rCd.length >= 6) {
+        const rm = getMonthFromContractDate(rCd);
+        const mg = rm ? monthlyGroups.get(rm) : undefined;
+        if (mg) {
+          mg.rentSum += r.deposit || 0;
+          mg.rentCount += 1;
+        }
+      }
     }
   }
 
   // Finalize Complex Rankings
   const minTx = 1;
-  const summaryMap = options?.summaryMap;
 
   const complexStats: ComplexStatItem[] = Array.from(complexMap.values())
     .filter((entry) => entry.count >= minTx)
@@ -1438,7 +1658,7 @@ export function singlePassAggregate(
       }
 
       let hasNewHigh = entry.hasNewHigh;
-      const summary = summaryMap?.[entry.aptKey];
+      const summary = summaryMap?.[entry.aptKey] || summaryMap?.[entry.aptName];
       if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
         hasNewHigh = true;
       }
@@ -1502,46 +1722,42 @@ export function singlePassAggregate(
   const rankLimit = options?.rankLimit ?? 20;
   const pyeongRankings = typeof rankLimit === 'number' && rankLimit > 0 ? complexStats.slice(0, rankLimit) : complexStats;
 
-  // MacroTrend integration for overall jeonseRatio & monthly chart
+  // MacroTrend integration for overall jeonseRatio & monthly chart (strictly restricted to active monthlyGroups)
   const macroTrend = options?.macroTrend;
+  const { points: macroPoints, latestMacroRent } = parseMacroRentSeries(macroTrend, monthlyGroups);
+
   let avgJeonseRatio = 0;
   if (validRents.length > 0 && avgSalePrice > 0) {
     const avgRentDeposit = validRents.reduce((acc, r) => acc + (r.deposit || 0), 0) / validRents.length;
     avgJeonseRatio = parseFloat(((avgRentDeposit / avgSalePrice) * 100).toFixed(1));
-  } else if (macroTrend && macroTrend.length > 0 && avgSalePrice > 0) {
-    const latestMacro = macroTrend[macroTrend.length - 1];
-    const rentAvg = (latestMacro['동탄 아파트 전세 평균'] || 0) * 10000;
-    if (rentAvg > 0) {
-      avgJeonseRatio = parseFloat(((rentAvg / avgSalePrice) * 100).toFixed(1));
-    }
-  }
-
-  // Monthly time series
-  if (macroTrend && Array.isArray(macroTrend)) {
-    macroTrend.forEach((pt) => {
-      let ym = pt.name;
-      if (ym.includes('.') && ym.length === 5) {
-        const [yy, mm] = ym.split('.');
-        const fullYear = parseInt(yy, 10) > 50 ? `19${yy}` : `20${yy}`;
-        ym = `${fullYear}-${mm.padStart(2, '0')}`;
-      }
-      const rentDepositMan = Math.round((pt['동탄 아파트 전세 평균'] || 0) * 10000);
-      if (rentDepositMan > 0) {
-        const g = monthlyGroups.get(ym) || { saleSum: 0, saleCount: 0, rentSum: 0, rentCount: 0 };
-        g.rentSum = rentDepositMan;
-        g.rentCount = 1;
-        monthlyGroups.set(ym, g);
-      }
-    });
+  } else if (latestMacroRent > 0 && avgSalePrice > 0) {
+    avgJeonseRatio = parseFloat(((latestMacroRent / avgSalePrice) * 100).toFixed(1));
   }
 
   const sortedMonths = Array.from(monthlyGroups.keys()).sort();
+  let macroIdx = 0;
+  let lastKnownMacroRent = 0;
+  let lastKnownRent = 0;
+
   const timeSeriesTrend: MacroTimeSeriesPoint[] = sortedMonths.map((m) => {
+    while (macroIdx < macroPoints.length && macroPoints[macroIdx].ym <= m) {
+      lastKnownMacroRent = macroPoints[macroIdx].rent;
+      macroIdx++;
+    }
     const g = monthlyGroups.get(m)!;
+    let avgRentDeposit = g.rentCount > 0 ? Math.round(g.rentSum / g.rentCount) : 0;
+    if (avgRentDeposit > 0) {
+      lastKnownRent = avgRentDeposit;
+    } else if (lastKnownMacroRent > 0) {
+      avgRentDeposit = lastKnownMacroRent;
+      lastKnownRent = lastKnownMacroRent;
+    } else if (lastKnownRent > 0) {
+      avgRentDeposit = lastKnownRent;
+    }
     return {
       date: m,
       avgSalePrice: g.saleCount > 0 ? Math.round(g.saleSum / g.saleCount) : 0,
-      avgRentDeposit: g.rentCount > 0 ? Math.round(g.rentSum / g.rentCount) : 0,
+      avgRentDeposit,
       volume: g.saleCount,
     };
   });
@@ -1611,41 +1827,67 @@ export function aggregateStatistics(
     referenceDate?: string | Date;
     summaryMap?: Record<string, AptTxSummary>;
     dongLookup?: Record<string, string>;
+    macroTrend?: DongtanMacroTrendPoint[];
+    rents?: RawRentRecord[];
+    excludeCanceled?: boolean;
+    excludeOutliers?: boolean;
+    excludeDirectDeals?: boolean;
   }
 ): StatsAggregateResult {
   const txs = Array.isArray(rawData) ? rawData : rawData?.transactions || [];
-  const rents = Array.isArray(rawData) ? [] : rawData?.rents || [];
-  const macroTrend = Array.isArray(rawData) ? undefined : rawData?.macroTrend;
+  const rents = Array.isArray(rawData) ? (options?.rents || []) : (rawData?.rents || options?.rents || []);
+  const macroTrend = Array.isArray(rawData) ? options?.macroTrend : (rawData?.macroTrend || options?.macroTrend);
   const summaryMap = Array.isArray(rawData) ? options?.summaryMap : (rawData?.summaryMap || options?.summaryMap);
 
   if (!txs || txs.length === 0) {
     return { ...EMPTY_STATS_RESULT };
   }
 
-  const activeFilters: StatsFilterState = filters || {
-    region: 'ALL',
-    pyeong: 'ALL',
-    timeframe: 'ALL',
+  // Clone filters to avoid mutating caller-owned objects in place
+  const activeFilters: StatsFilterState = {
+    ...(filters || {
+      region: 'ALL',
+      pyeong: 'ALL',
+      timeframe: 'ALL',
+    }),
   };
 
-  if (options?.referenceDate && !activeFilters.referenceDate) {
+  if (options?.referenceDate !== undefined) {
     activeFilters.referenceDate = options.referenceDate;
   }
+  if (options?.excludeCanceled !== undefined) {
+    activeFilters.excludeCanceled = options.excludeCanceled;
+  }
+  if (options?.excludeOutliers !== undefined) {
+    activeFilters.excludeOutliers = options.excludeOutliers;
+  }
+  if (options?.excludeDirectDeals !== undefined) {
+    activeFilters.excludeDirectDeals = options.excludeDirectDeals;
+  }
 
-  // Deterministic LRU cache key: `${region}_${dong}_${pyeong}_${timeframe}_${sort}`
+  // Deterministic LRU cache key covering all filter, sanitization, referenceDate, and limit dimensions
   const regionKey = activeFilters.region ?? 'ALL';
   const dongKey = activeFilters.dong ?? '';
   const pyeongKey = activeFilters.pyeong ?? 'ALL';
   const timeframeKey = activeFilters.timeframe ?? 'ALL';
   const sortKey = options?.sortBy || activeFilters.sort || 'PYEONG_DESC';
+  const refDateKey =
+    activeFilters.referenceDate instanceof Date
+      ? activeFilters.referenceDate.toISOString()
+      : String(activeFilters.referenceDate ?? '');
+  const flagsKey = `${activeFilters.excludeCanceled !== false ? 1 : 0}${activeFilters.excludeOutliers !== false ? 1 : 0}${activeFilters.excludeDirectDeals === true ? 1 : 0}`;
+  const rankLimitKey = options?.rankLimit ?? 20;
 
-  const cacheKey = `${regionKey}_${dongKey}_${pyeongKey}_${timeframeKey}_${sortKey}`;
+  const cacheKey = `${regionKey}_${dongKey}_${pyeongKey}_${timeframeKey}_${sortKey}_${refDateKey}_${flagsKey}_${rankLimitKey}`;
 
   const cached = statsResultCache.get(cacheKey);
   if (
     cached &&
     cached.datasetRef === txs &&
-    cached.datasetLen === txs.length
+    cached.datasetLen === txs.length &&
+    cached.macroTrendRef === macroTrend &&
+    cached.summaryMapRef === summaryMap &&
+    cached.rentsLen === rents.length
   ) {
     // Touch LRU: move to MRU (end of map)
     statsResultCache.delete(cacheKey);
@@ -1674,6 +1916,9 @@ export function aggregateStatistics(
     result,
     datasetRef: txs,
     datasetLen: txs.length,
+    macroTrendRef: macroTrend,
+    summaryMapRef: summaryMap,
+    rentsLen: rents.length,
   });
 
   return result;

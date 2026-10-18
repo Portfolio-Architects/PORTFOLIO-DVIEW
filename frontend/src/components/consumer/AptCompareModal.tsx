@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, Building2, Sparkles } from 'lucide-react';
+import { X, Building2, Sparkles, ArrowUpRight } from 'lucide-react';
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary, LocationScoreItem } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { syncShallowApartmentOpen } from '@/lib/ads/recirculationEngine';
 import {
   CompareHeaderSearch,
   CompareInsightCard,
@@ -20,6 +21,9 @@ export interface AptCompareModalProps {
   isOpen: boolean;
   onClose: () => void;
   initialAptName?: string;
+  initialSecondAptName?: string;
+  initialAptIds?: string[];
+  onSelectApartment?: (aptName: string) => void;
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
   nameMapping: Record<string, string>;
@@ -33,6 +37,9 @@ const AptCompareModal = React.memo(function AptCompareModal(props: AptCompareMod
     isOpen,
     onClose,
     initialAptName,
+    initialSecondAptName,
+    initialAptIds,
+    onSelectApartment,
     sheetApartments,
     txSummaryData,
     nameMapping,
@@ -52,16 +59,62 @@ const AptCompareModal = React.memo(function AptCompareModal(props: AptCompareMod
   const dropdownRef2 = useRef<HTMLDivElement>(null);
   const firstInputRef = useRef<HTMLInputElement>(null);
 
+  const effectiveInitialAptIds = useMemo(() => {
+    if (initialAptIds && initialAptIds.length > 0) {
+      return initialAptIds;
+    }
+    if (initialAptName && initialSecondAptName) {
+      return [initialAptName, initialSecondAptName];
+    }
+    if (isOpen && typeof window !== 'undefined' && window.location?.search) {
+      const params = new URLSearchParams(window.location.search);
+      const qApt1 = params.get('apt1');
+      const qApt2 = params.get('apt2');
+      if (initialAptName && qApt2) {
+        return [initialAptName, qApt2];
+      }
+      if (!initialAptName && qApt1 && qApt2) {
+        return [qApt1, qApt2];
+      }
+      const qCompare = params.get('compare');
+      if (!initialAptName && qCompare) {
+        const parts = qCompare
+          .split(',')
+          .map((s) => s.trim())
+          .filter(Boolean);
+        if (parts.length >= 2) {
+          return [parts[0], parts[1]];
+        }
+      }
+    }
+    return undefined;
+  }, [initialAptIds, initialAptName, initialSecondAptName, isOpen]);
+
   // Custom Comparison Hook
   const comp = useAptComparison({
     isOpen,
     initialAptName,
+    initialAptIds: effectiveInitialAptIds,
     sheetApartments,
     txSummaryData,
     nameMapping,
     fieldReportsMap,
     locationScores,
   });
+
+  const handleReverseEntry = useCallback(
+    (targetAptName: string) => {
+      if (!targetAptName) return;
+      if (onSelectApartment) {
+        onSelectApartment(targetAptName);
+      } else {
+        syncShallowApartmentOpen(targetAptName, { force: true });
+        onClose();
+      }
+    },
+    [onSelectApartment, onClose]
+  );
+
 
   useEffect(() => {
     mountedRef.current = true;
@@ -326,7 +379,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
         aria-labelledby="compare-modal-title"
         aria-describedby="compare-modal-desc"
         onKeyDown={handleFocusTrap}
-        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[1150px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[90vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[1150px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[90vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
@@ -436,12 +489,12 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                             </span>
                           </div>
 
-                          <div className="h-2 w-full bg-border/20 dark:bg-zinc-800/40 rounded-full overflow-hidden flex relative">
+                          <div className="h-2 w-full bg-border/20 dark:bg-slate-800/40 rounded-full overflow-hidden flex relative">
                             <div
                               style={{ width: `${ratio1}%` }}
                               className={`h-full bg-emerald-500 transition-all duration-500 ${isApt1Win ? 'opacity-100' : 'opacity-50'}`}
                             />
-                            <div className="w-[1.5px] h-full bg-white dark:zinc-900 z-10 shrink-0" />
+                            <div className="w-[1.5px] h-full bg-white dark:slate-900 z-10 shrink-0" />
                             <div
                               style={{ width: `${ratio2}%` }}
                               className={`h-full bg-[#4196f7] transition-all duration-500 ${isApt2Win ? 'opacity-100' : 'opacity-50'}`}
@@ -478,36 +531,52 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                 formatYearBuilt={comp.formatYearBuilt}
               />
 
-              {/* Sponsored moving/interior helper card */}
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-emerald-950/20 dark:to-teal-950/10 border border-emerald-500/10 dark:border-emerald-500/5 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              {/* Reverse-Entry Recirculation Card (DESIGN.md Slate/Emerald/Blue compliant) */}
+              <div
+                data-testid="compare-reverse-entry-bar"
+                className="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">
-                      AD
+                    <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded">
+                      DEEP DIVE
                     </span>
-                    <span className="text-[12px] font-black text-secondary">
-                      제휴 혜택 안내
+                    <span className="text-[12px] font-black text-slate-700 dark:text-slate-300">
+                      단독 8챕터 정밀 리포트 역진입
                     </span>
                   </div>
-                  <div className="text-[14px] font-extrabold text-primary leading-snug">
-                    동탄역 대단지 전문 이사 및 고품격 인테리어 무료 견적
+                  <div className="text-[14px] font-extrabold text-slate-900 dark:text-slate-100 leading-snug">
+                    비교 완료 단지의 실거래 원장·전세 안전진단·학군 세부 지표 열람
                   </div>
-                  <p className="text-[11.5px] font-medium text-tertiary">
-                    D-VIEW 제휴 파트너사를 통해 제공되는 매칭 특별 할인 혜택을 비교와 동시에 만나보세요.
+                  <p className="text-[11.5px] font-medium text-slate-500 dark:text-slate-400">
+                    선택한 단지의 8챕터 종합 가치분석 모노그래프로 즉시 전환합니다.
                   </p>
                 </div>
 
-                <a
-                  href="https://dview-moving.toss.im"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2.5 rounded-xl text-[12.5px] font-black text-center bg-toss-blue hover:bg-[#ff8f00] text-white shadow-md hover:shadow-lg transition-all duration-200 select-none shrink-0"
-                >
-                  무료 견적 받기
-                </a>
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
+                    type="button"
+                    data-testid="compare-reverse-entry-apt1"
+                    onClick={() => comp.apt1 && handleReverseEntry(comp.apt1.name)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition-colors cursor-pointer"
+                  >
+                    <span>{comp.apt1Label} 상세 리포트</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    data-testid="compare-reverse-entry-apt2"
+                    onClick={() => comp.apt2 && handleReverseEntry(comp.apt2.name)}
+                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[12.5px] font-black bg-blue-600 hover:bg-blue-700 text-white shadow-sm transition-colors cursor-pointer"
+                  >
+                    <span>{comp.apt2Label} 상세 리포트</span>
+                    <ArrowUpRight size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           )}
+
 
           {/* Subcomponent 5: PriceHistoryChart */}
           {comp.apt1 && comp.apt2 && (

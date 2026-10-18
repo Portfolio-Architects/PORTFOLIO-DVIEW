@@ -415,7 +415,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 취득가격: ${formatEokMan(acquisitionPrice)} | 예상 매도가격: ${formatEokMan(transferPrice)}
 보유기간: ${holdingYears}년 (실거주 ${resideYears}년) | 1주택 여부: ${isOneHouse ? '예' : '아니오'}
 
-📊 진단 결과
+진단 결과
 - 자산 안정성 스코어: ${verdictRes.score}% (${verdictRes.label})
 - 판단 근거: ${verdictRes.reason}
 - 간이 세액 계산:
@@ -424,7 +424,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   * 납부할 총 세액(지방세 포함): ${formatEokMan(taxRes.totalTax)}
   * 비과세 여부: ${taxRes.isTaxFree ? '대상' : '과세'} (${taxRes.taxFreeReason})
 
-💡 동탄 전문 안심 자문 부동산 상담 및 양도세 1:1 공익 전문 세무 자문은 D-VIEW에서 바로 확인해 보세요!`;
+동탄 전문 안심 자문 부동산 상담 및 양도세 1:1 공익 전문 세무 자문은 D-VIEW에서 바로 확인해 보세요!`;
 
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
@@ -499,7 +499,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         aria-modal="true"
         aria-labelledby="sell-title"
         aria-describedby="sell-desc"
-        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
@@ -792,7 +792,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 {/* Tax Report Section */}
                 <div className="space-y-3">
                   <h4 className="text-[13px] font-extrabold text-primary flex items-center gap-1">
-                    <Coins size={15} className="text-amber-500" /> 세무 전략 및 양도소득세 리포트
+                    <Coins size={15} className="text-blue-600" /> 세무 전략 및 양도소득세 리포트
                   </h4>
                   <div className="bg-body/30 border border-border/20 rounded-xl p-4 text-[12px] font-bold text-secondary space-y-3">
                     <div className="grid grid-cols-2 gap-x-4 gap-y-2 border-b border-border/20 pb-3">
@@ -845,13 +845,16 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
                 {/* B2B 제휴 광고 배너 (CPA) */}
                 <div className="space-y-2.5">
-                  <h4 className="text-[12px] font-extrabold text-primary">💡 D-VIEW 추천 전문 상담 및 세무 연계</h4>
+                  <h4 className="text-[12px] font-extrabold text-primary flex items-center gap-1.5">
+                    <Sparkles size={14} className="text-emerald-500 shrink-0" />
+                    <span>D-VIEW 추천 전문 상담 및 세무 연계</span>
+                  </h4>
                   
                   {/* Banner 1: Real Estate Broker */}
                   <button 
                     type="button"
                     onClick={() => handleB2BClick('broker')}
-                    className="w-full text-left p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-teal-50/20 dark:from-emerald-950/10 dark:to-teal-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+                    className="w-full text-left p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-emerald-50/20 dark:from-emerald-950/10 dark:to-emerald-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
                     aria-label="동탄 전문 안심 자문 공인중개사 연계"
                   >
                     <div className="space-y-1 text-left min-w-0 pr-4">
@@ -868,7 +871,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                   <button 
                     type="button"
                     onClick={() => handleB2BClick('tax_expert')}
-                    className="w-full text-left p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-teal-50/20 dark:from-emerald-950/10 dark:to-teal-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+                    className="w-full text-left p-4 rounded-2xl border border-emerald-500/10 bg-gradient-to-br from-emerald-50/40 to-emerald-50/20 dark:from-emerald-950/10 dark:to-emerald-950/5 hover:border-emerald-500/30 transition-all cursor-pointer flex justify-between items-center group relative overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
                     aria-label="양도소득세 1:1 공익 전문 세무사 연계 상담"
                   >
                     <div className="space-y-1 text-left min-w-0 pr-4">
@@ -886,7 +889,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 <div className="sticky bottom-2 left-0 right-0 z-30 flex justify-center w-full pointer-events-none mt-4">
                   <button
                     onClick={handleKakaoShare}
-                    className="pointer-events-auto bg-[#fee500] hover:bg-[#fddc00] active:scale-95 text-[#191919] font-black text-[13.5px] px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl shadow-yellow-500/30 transition-all cursor-pointer border-none animate-pulse w-full max-w-md justify-center"
+                    className="pointer-events-auto bg-[#fee500] hover:bg-[#fddc00] active:scale-95 text-[#191919] font-black text-[13.5px] px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl shadow-blue-500/30 transition-all cursor-pointer border-none animate-pulse w-full max-w-md justify-center"
                   >
                     <MessageSquare size={16} className="fill-[#191919] text-[#191919]" />
                     <span>진단 결과 1초 만에 카카오톡으로 공유하기</span>

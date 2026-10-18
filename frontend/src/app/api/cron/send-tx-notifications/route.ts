@@ -133,7 +133,7 @@ export async function GET(req: NextRequest) {
 
         for (const tx of aptTransactions) {
           const payload = JSON.stringify({
-            title: '🔔 DVIEW 실거래가 알림',
+            title: '[D-VIEW] 실거래가 알림',
             body: `${tx.aptName} ${Math.round(tx.areaPyeong)}평형 ${tx.floor}층이 ${tx.priceEok}에 실거래 등록되었습니다!`,
             url: `/apartment/${encodeURIComponent(tx.aptName)}`,
           });

@@ -34,38 +34,38 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
   return (
     <div
       data-testid="policy-loan-quick-widget"
-      className="bg-surface border border-border/80 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200"
+      className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200"
     >
       <div>
         {/* Header */}
         <div className="flex items-center justify-between gap-2 mb-3">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-[#057e77] dark:text-emerald-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Landmark size={17} />
             </div>
             <div>
-              <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight">
+              <h3 className="text-[14px] sm:text-[15px] font-bold text-slate-900 dark:text-slate-50 tracking-tight">
                 내집마련 정책대출 간이 진단
               </h3>
-              <p className="text-[10.5px] sm:text-[11px] text-tertiary font-medium">
+              <p className="text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 2026 정부 저리 정책자금 모의 한도 및 최저 금리
               </p>
             </div>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-[#057e77] dark:text-emerald-400 text-[10px] font-extrabold shrink-0 border border-teal-200/50 dark:border-teal-800/40">
+          <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold shrink-0 border border-emerald-200/50 dark:border-emerald-800/40">
             D-VIEW 금융
           </span>
         </div>
 
         {/* Loan Type Selector */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-zinc-100/80 dark:bg-zinc-800/60 rounded-xl mb-3.5">
+        <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100/80 dark:bg-slate-800/60 rounded-xl mb-3.5">
           <button
             type="button"
             onClick={() => setLoanType('NEWBORN')}
-            className={`py-1.5 text-[11px] font-black rounded-lg transition-all cursor-pointer text-center ${
+            className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center ${
               loanType === 'NEWBORN'
-                ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-xs'
-                : 'text-tertiary hover:text-primary'
+                ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
             신생아 특례
@@ -73,10 +73,10 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
           <button
             type="button"
             onClick={() => setLoanType('DIDIMDOL')}
-            className={`py-1.5 text-[11px] font-black rounded-lg transition-all cursor-pointer text-center ${
+            className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center ${
               loanType === 'DIDIMDOL'
-                ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-xs'
-                : 'text-tertiary hover:text-primary'
+                ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
             디딤돌 대출
@@ -84,10 +84,10 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
           <button
             type="button"
             onClick={() => setLoanType('BOGEUMJARI')}
-            className={`py-1.5 text-[11px] font-black rounded-lg transition-all cursor-pointer text-center ${
+            className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center ${
               loanType === 'BOGEUMJARI'
-                ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-xs'
-                : 'text-tertiary hover:text-primary'
+                ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
             }`}
           >
             보금자리론
@@ -98,7 +98,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
         <div className="flex flex-col gap-2.5 mb-4">
           {/* Home Price Preset */}
           <div className="flex items-center justify-between text-[11.5px]">
-            <span className="text-secondary font-bold">주택 매매가</span>
+            <span className="text-slate-700 dark:text-slate-300 font-bold">주택 매매가</span>
             <div className="flex gap-1">
               {[500_000_000, 700_000_000, 900_000_000].map((price) => (
                 <button
@@ -107,8 +107,8 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
                   onClick={() => setHomePriceWon(price)}
                   className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
                     homePriceWon === price
-                      ? 'bg-[#057e77] dark:bg-emerald-600 text-white border-[#057e77] dark:border-emerald-600'
-                      : 'bg-body text-secondary border-border/70 hover:border-border'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
                   }`}
                 >
                   {price / 100_000_000}억
@@ -119,7 +119,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
 
           {/* Annual Income Preset */}
           <div className="flex items-center justify-between text-[11.5px]">
-            <span className="text-secondary font-bold">부부합산 소득</span>
+            <span className="text-slate-700 dark:text-slate-300 font-bold">부부합산 소득</span>
             <div className="flex gap-1">
               {[50_000_000, 80_000_000, 130_000_000].map((inc) => (
                 <button
@@ -128,8 +128,8 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
                   onClick={() => setAnnualIncomeWon(inc)}
                   className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
                     annualIncomeWon === inc
-                      ? 'bg-[#057e77] dark:bg-emerald-600 text-white border-[#057e77] dark:border-emerald-600'
-                      : 'bg-body text-secondary border-border/70 hover:border-border'
+                      ? 'bg-emerald-600 text-white border-emerald-600'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
                   }`}
                 >
                   {inc / 10_000_000}천만
@@ -140,31 +140,31 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
         </div>
 
         {/* Result Card */}
-        <div className="bg-zinc-50 dark:bg-zinc-800/50 border border-border/60 rounded-xl p-3 mb-4">
+        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-3 mb-4">
           {result.isEligible ? (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-tertiary flex items-center gap-1">
-                  <CheckCircle2 size={13} className="text-[#057e77] dark:text-emerald-400" />
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
+                  <CheckCircle2 size={13} className="text-emerald-600 dark:text-emerald-400" />
                   예상 지원 한도
                 </span>
-                <span className="text-[14px] font-black text-[#057e77] dark:text-emerald-400">
+                <span className="text-[14px] font-bold text-emerald-600 dark:text-emerald-400">
                   최대 {(result.maxLimitWon / 100_000_000).toFixed(1)}억 원
                 </span>
               </div>
-              <div className="flex items-center justify-between text-[11px] text-secondary font-medium">
+              <div className="flex items-center justify-between text-[11px] text-slate-700 dark:text-slate-300 font-medium">
                 <span>예상 최저 금리</span>
-                <span className="font-extrabold text-primary">연 {result.estimatedRatePercent}%</span>
+                <span className="font-bold text-slate-900 dark:text-slate-100">연 {result.estimatedRatePercent}%</span>
               </div>
-              <div className="flex items-center justify-between text-[11px] text-secondary font-medium pt-1 border-t border-border/40">
+              <div className="flex items-center justify-between text-[11px] text-slate-700 dark:text-slate-300 font-medium pt-1 border-t border-slate-200/40 dark:border-slate-700/40">
                 <span>월 예상 원리금 (30년)</span>
-                <span className="font-extrabold text-primary">
+                <span className="font-bold text-slate-900 dark:text-slate-100">
                   약 {Math.round(result.monthlyPaymentWon / 10000).toLocaleString()}만 원
                 </span>
               </div>
             </div>
           ) : (
-            <div className="flex items-start gap-2 py-1 text-rose-600 dark:text-rose-400">
+            <div className="flex items-start gap-2 py-1 text-red-600 dark:text-red-400">
               <AlertCircle size={15} className="shrink-0 mt-0.5" />
               <div className="text-[11px] leading-tight">
                 <span className="font-bold block">{result.badgeText}</span>
@@ -180,7 +180,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
         <button
           type="button"
           onClick={handleOpen}
-          className="w-full py-2.5 px-3 bg-[#057e77] hover:bg-[#046660] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-[12px] font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]"
+          className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-[12px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]"
         >
           <span>정밀 정책자금 한도 계산기 열기</span>
           <ArrowRight size={13} />

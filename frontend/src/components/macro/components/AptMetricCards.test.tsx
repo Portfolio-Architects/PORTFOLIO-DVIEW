@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AptMetricCards } from './AptMetricCards';
@@ -272,11 +272,11 @@ describe('AptMetricCards Test Suite', () => {
 
       expect(screen.getByText('동탄역 시범 우남퍼스트빌')).toBeInTheDocument();
       expect(screen.getByText('11억 2,000만')).toBeInTheDocument();
-      expect(screen.getByText('▲4,000만')).toBeInTheDocument();
+      expect(screen.getByText('+4,000만')).toBeInTheDocument();
 
       expect(screen.getByText('동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();
       expect(screen.getByText('12억')).toBeInTheDocument();
-      expect(screen.getByText('▼2,000만')).toBeInTheDocument();
+      expect(screen.getByText('-2,000만')).toBeInTheDocument();
 
       // Middle analysis line displays pyeong price
       expect(screen.getAllByText(/평당/).length).toBeGreaterThanOrEqual(1);

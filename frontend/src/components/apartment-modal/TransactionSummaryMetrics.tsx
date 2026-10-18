@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { BarChart3 } from 'lucide-react';
 import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { useSettingsValues } from '@/contexts/SettingsContext';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
@@ -296,7 +297,10 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 onClick={() => setShowPriceHelp(false)} 
               />
               <div className="absolute left-4 top-12 z-[9999] w-[260px] bg-[#1e293b] text-surface text-[11px] leading-relaxed rounded-xl px-4 py-3 shadow-2xl">
-                <div className="font-bold mb-1.5">📊 기간별 평균가격이란?</div>
+                <div className="font-bold mb-1.5 flex items-center gap-1.5">
+                  <BarChart3 size={14} className="text-blue-400 shrink-0" />
+                  <span>기간별 평균가격이란?</span>
+                </div>
                 <p className="text-surface/80">각 기간 내 실거래된 모든 자료의 <span className="text-surface font-bold">산술 평균</span>입니다.</p>
                 <p className="text-surface/80 mt-1">100만 원 단위로 반올림하여 표시합니다.</p>
                 <p className="text-surface/50 mt-1.5 text-[10px]">예: "1개월" = 최근 1개월간 거래된 가격의 평균</p>

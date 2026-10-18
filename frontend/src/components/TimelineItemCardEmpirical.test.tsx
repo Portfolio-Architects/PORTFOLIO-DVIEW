@@ -176,8 +176,8 @@ export { TimelineItemCard, TimelineItemCardProps };
     const mobileDelta = deltaBadgeSpans[0]?.querySelector('.inline.sm\\:hidden')?.textContent;
     const desktopDelta = deltaBadgeSpans[0]?.querySelector('.hidden.sm\\:inline')?.textContent;
 
-    expect(desktopDelta).toBe('▲ 1억 500만');
-    expect(mobileDelta).toBe('▲ 1.05억');
+    expect(desktopDelta).toBe('+ 1억 500만');
+    expect(mobileDelta).toBe('+ 1.05억');
   });
 
   it('EMPIRICAL TEST: Row 1 Header shrinking and clipping behavior under long dong string', () => {
@@ -255,8 +255,8 @@ export { TimelineItemCard, TimelineItemCardProps };
     const deltaBadgeSpans = container.querySelectorAll('span.font-black.px-1');
     const mobileDelta = deltaBadgeSpans[0]?.querySelector('.inline.sm\\:hidden')?.textContent;
     const desktopDelta = deltaBadgeSpans[0]?.querySelector('.hidden.sm\\:inline')?.textContent;
-    expect(desktopDelta).toBe('▼ 5,000만');
-    expect(mobileDelta).toBe('▼ 5,000만');
+    expect(desktopDelta).toBe('- 5,000만');
+    expect(mobileDelta).toBe('- 5,000만');
   });
 
   it('verifies click and hover callback triggers and e.stopPropagation on details button', () => {

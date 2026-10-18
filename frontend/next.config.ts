@@ -82,11 +82,6 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: '/technovalley',
-        destination: '/',
-        permanent: false,
-      },
-      {
         source: '/techno',
         destination: '/',
         permanent: false,

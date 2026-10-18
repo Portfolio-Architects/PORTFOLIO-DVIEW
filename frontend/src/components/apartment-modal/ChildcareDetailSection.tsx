@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { Clock, Heart, Smile } from 'lucide-react';
+import { Clock, Heart, Smile, Shield, Lightbulb } from 'lucide-react';
 import { haversineDistance, parseCoordString } from '@/lib/utils/haversine';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 
@@ -387,7 +387,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
   const gradeStyles = {
     excellent: { text: 'text-brand-blue dark:text-brand-blue-light', bg: 'bg-brand-blue-light dark:bg-brand-blue-light/10 border-brand-blue/20', label: '최상' },
     good: { text: 'text-brand-green dark:text-brand-green', bg: 'bg-brand-green-light dark:bg-brand-green-light/10 border-brand-green/20', label: '우수' },
-    average: { text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-700/50', label: '보통' }
+    average: { text: 'text-slate-600 dark:text-slate-400', bg: 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/50', label: '보통' }
   };
 
   return (
@@ -396,12 +396,12 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* ─── 🏡 안심 보육 & 돌봄 인프라 그리드 ─── */}
+      {/* ─── 안심 보육 & 돌봄 인프라 그리드 ─── */}
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 보육 & 돌봄 시설</span>
           {!childcareData && (
-            <span className="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 ml-1">
+            <span className="text-[9.5px] font-black px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-1">
               준비 중
             </span>
           )}
@@ -409,12 +409,12 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
 
         {!childcareData ? (
           <div className="bg-body border border-border/40 rounded-2xl p-6 flex flex-col items-center justify-center text-center gap-3 shadow-sm">
-            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-zinc-800 text-slate-500 dark:text-zinc-400 flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center">
               <Clock size={22} className="animate-pulse" />
             </div>
             <div className="flex flex-col gap-1">
               <span className="text-[13.5px] font-extrabold text-primary">{dong} 보육 인프라 데이터 준비 중</span>
-              <p className="text-[11.5px] font-bold text-neutral-400 dark:text-neutral-500 max-w-[450px] leading-relaxed">
+              <p className="text-[11.5px] font-bold text-slate-400 dark:text-slate-500 max-w-[450px] leading-relaxed">
                 현재 {dong} 지역의 실거래 기반 어린이집 및 유치원 세부 통학 인프라 데이터를 정합성 검증 중입니다. 검증 완료 후 즉시 실데이터가 노출될 예정입니다.
               </p>
             </div>
@@ -425,7 +425,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               {/* 어린이집 카드 */}
               <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
                 <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
-                  <Heart size={14} className="text-brand-orange" /> 단지 인근 어린이집 (영유아)
+                  <Heart size={14} className="text-emerald-700" /> 단지 인근 어린이집 (영유아)
                 </h3>
                 
                 <div className="flex flex-col gap-3">
@@ -440,7 +440,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
                               {item.type}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-1 break-keep">{item.safetyGuide}</span>
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 break-keep">{item.safetyGuide}</span>
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
@@ -466,7 +466,7 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
               {/* 유치원 카드 */}
               <div className="bg-body rounded-2xl p-5 border border-border flex flex-col gap-4 shadow-sm hover:shadow-[0_4px_16px_rgba(0,0,0,0.02)] transition-all">
                 <h3 className="text-[13.5px] font-extrabold text-secondary flex items-center gap-1.5 border-b border-border/40 pb-2">
-                  <Smile size={14} className="text-brand-orange" /> 단지 인근 유치원 (5-7세)
+                  <Smile size={14} className="text-emerald-700" /> 단지 인근 유치원 (5-7세)
                 </h3>
 
                 <div className="flex flex-col gap-3">
@@ -477,11 +477,11 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
                         <div className="flex flex-col min-w-0">
                           <div className="flex items-center gap-1.5">
                             <span className="text-[13px] font-extrabold text-primary truncate leading-tight">{item.name}</span>
-                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-brand-orange-light text-brand-orange border border-brand-orange/10">
+                            <span className="text-[8.5px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200/10">
                               {item.type}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold text-neutral-400 dark:text-neutral-500 mt-1 break-keep">{item.safetyGuide}</span>
+                          <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 mt-1 break-keep">{item.safetyGuide}</span>
                         </div>
 
                         <div className="flex flex-col items-end shrink-0 pl-2">
@@ -506,8 +506,8 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
             </div>
             {!childcareData.isOverridden && (
               <div className="bg-surface border border-border/30 rounded-xl p-3 mt-3 flex items-start gap-2">
-                <span className="text-[12px] mt-0.5">💡</span>
-                <p className="text-[10.5px] font-bold text-neutral-500 dark:text-neutral-400 leading-relaxed break-keep">
+                <Lightbulb size={14} className="text-blue-500 shrink-0 mt-0.5" />
+                <p className="text-[10.5px] font-bold text-slate-500 dark:text-slate-400 leading-relaxed break-keep">
                   개별 단지 내 어린이집(예: 단지 내 국공립 어린이집 등)의 상세 인프라 및 단지별 실측 도보 거리는 정밀 매핑 준비 중입니다. 현재는 해당 행정동({dong}) 내 대표 보육 시설 정보가 표시됩니다.
                 </p>
               </div>
@@ -516,25 +516,25 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
         )}
       </div>
 
-      {/* ─── 🛡️ 초등 등하교 안심 길목 진단 스코어보드 ─── */}
+      {/* ─── 초등 등하교 안심 길목 진단 스코어보드 ─── */}
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">초등 통학로 안심 길목 진단</span>
-          <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400 ml-1">
+          <span className="text-[9.5px] font-black px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 ml-1">
             준비 중
           </span>
         </div>
 
         <div className="bg-body border border-border/45 rounded-2xl p-6 flex flex-col lg:flex-row items-center justify-between gap-6 shadow-sm overflow-hidden relative">
-          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-brand-orange/20 via-brand-orange-light to-brand-orange/20 animate-pulse" />
+          <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-emerald-500/20 via-emerald-100 dark:via-emerald-950/40 to-emerald-500/20 animate-pulse" />
           
           <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-3 max-w-[450px]">
-            <div className="w-12 h-12 rounded-full bg-brand-orange-light text-brand-orange flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center">
               <Clock size={22} className="animate-spin" style={{ animationDuration: '6s' }} />
             </div>
             <div className="flex flex-col gap-1.5">
               <span className="text-[14px] font-extrabold text-primary">더 정확하고 유용한 통학 안전 진단 서비스 준비 중</span>
-              <p className="text-[11.5px] font-bold text-neutral-400 dark:text-neutral-500 leading-relaxed break-keep">
+              <p className="text-[11.5px] font-bold text-slate-400 dark:text-slate-500 leading-relaxed break-keep">
                 실제 공공 데이터 및 지자체 안전 시설물(CCTV, 안전 펜스 등) GIS 연계 데이터를 정합 분석하여 보다 실체적이고 유용한 안심 통학로 진단 정보를 제공할 예정입니다.
               </p>
             </div>
@@ -543,19 +543,20 @@ const ChildcareDetailSection = React.memo(function ChildcareDetailSection({ dong
           {/* 예고 빌더 위젯 */}
           <div className="flex flex-col gap-2 w-full lg:w-auto shrink-0 bg-surface border border-border/40 p-4 rounded-xl text-left">
             <div className="text-[11px] font-black text-secondary border-b border-border/30 pb-1.5 mb-1 flex items-center gap-1.5">
-              🛡️ 분석 예정 안심 지표
+              <Shield size={12} className="text-emerald-500" />
+              <span>분석 예정 안심 지표</span>
             </div>
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand-orange animate-ping" />
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-ping" />
                 <span>스쿨존 어린이 보호구역 반경 진단</span>
               </div>
               <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
                 <span>통학로 횡단보도 및 교통 신호 가시성</span>
               </div>
               <div className="flex items-center gap-2 text-[11px] font-bold text-tertiary">
-                <span className="w-1.5 h-1.5 rounded-full bg-neutral-300 dark:bg-neutral-600" />
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600" />
                 <span>지자체 GIS 연계 안전 방범 CCTV 분포</span>
               </div>
             </div>

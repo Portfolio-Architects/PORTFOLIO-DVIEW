@@ -66,7 +66,7 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
             <span>{currentStep === 0 ? '처음으로' : '이전 질문'}</span>
           </button>
 
-          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 font-bold text-xs border border-orange-200/60 dark:border-orange-900/40">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 font-bold text-xs border border-emerald-200/60 dark:border-emerald-900/40">
             <Sparkles className="w-3.5 h-3.5" />
             <span>Q{currentQuestion.id} / {totalQuestions}</span>
           </div>
@@ -85,7 +85,7 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
         {/* Dynamic Progress Bar */}
         <div className="w-full bg-slate-200 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-orange-500 to-amber-500 transition-all duration-300 ease-out"
+            className="h-full bg-gradient-to-r from-emerald-500 to-emerald-600 transition-all duration-300 ease-out"
             style={{ width: `${progressPercent}%` }}
             role="progressbar"
             aria-valuenow={progressPercent}
@@ -97,7 +97,7 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
 
       {/* Question Body */}
       <div className="p-6 sm:p-8 flex flex-col items-center text-center">
-        <span className="text-xs font-bold uppercase tracking-wider text-orange-600 dark:text-orange-400 bg-orange-100/60 dark:bg-orange-950/40 px-3 py-1 rounded-full mb-3">
+        <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-100/60 dark:bg-emerald-950/40 px-3 py-1 rounded-full mb-3">
           {currentQuestion.theme}
         </span>
 
@@ -120,12 +120,12 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
             onClick={() => handleSelectOption('A')}
             className={`group w-full text-left p-5 sm:p-6 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden active:scale-[0.98] ${
               selectedAnim === 'A'
-                ? 'border-orange-500 bg-orange-500/10 shadow-md ring-2 ring-orange-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-orange-400 dark:hover:border-orange-500/70 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-orange-50/30 dark:hover:bg-orange-950/20 shadow-sm'
+                ? 'border-emerald-500 bg-emerald-500/10 shadow-md ring-2 ring-emerald-400'
+                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500/70 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 shadow-sm'
             }`}
           >
             <div className="flex items-start gap-4">
-              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-orange-100 text-orange-700 dark:bg-orange-900/60 dark:text-orange-300 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/60 dark:text-emerald-300 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                 A
               </span>
               <div className="flex flex-col">
@@ -148,12 +148,12 @@ export function MBTIQuizStepper({ onComplete, onCancel, className = '' }: MBTIQu
             onClick={() => handleSelectOption('B')}
             className={`group w-full text-left p-5 sm:p-6 rounded-2xl border-2 transition-all duration-200 cursor-pointer relative overflow-hidden active:scale-[0.98] ${
               selectedAnim === 'B'
-                ? 'border-orange-500 bg-orange-500/10 shadow-md ring-2 ring-orange-400'
-                : 'border-slate-200 dark:border-slate-800 hover:border-orange-400 dark:hover:border-orange-500/70 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-orange-50/30 dark:hover:bg-orange-950/20 shadow-sm'
+                ? 'border-emerald-500 bg-emerald-500/10 shadow-md ring-2 ring-emerald-400'
+                : 'border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500/70 bg-slate-50/50 dark:bg-slate-800/40 hover:bg-emerald-50/30 dark:hover:bg-emerald-950/20 shadow-sm'
             }`}
           >
             <div className="flex items-start gap-4">
-              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 group-hover:bg-orange-500 group-hover:text-white transition-colors">
+              <span className="flex items-center justify-center w-8 h-8 rounded-xl font-black text-sm shrink-0 bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
                 B
               </span>
               <div className="flex flex-col">

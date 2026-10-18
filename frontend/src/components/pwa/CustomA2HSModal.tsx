@@ -134,10 +134,10 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                홈 화면에 추가하여 편리하게 리포트 조회! 🎁
+                홈 화면에 추가하여 편리하게 리포트 조회!
               </div>
               <p className="text-[13.5px] font-black text-primary mb-3">
-                🍎 Safari 브라우저에서 홈화면 추가하기
+                Safari 브라우저에서 홈화면 추가하기
               </p>
               <div className="space-y-3.5 text-[13px] text-secondary font-bold">
                 <div className="flex items-start gap-3">
@@ -165,7 +165,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-                앱으로 간편하게 관심 단지 실거래가 분석! 🎁
+                앱으로 간편하게 관심 단지 실거래가 분석!
               </div>
               <ul className="space-y-2.5 text-[13px] text-secondary font-bold">
                 <li className="flex items-center gap-2.5">
@@ -187,7 +187,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           <div className="flex gap-3">
             <button
               onClick={() => setShowCustomA2HSModal(false)}
-              className="flex-1 py-3.5 px-4 bg-body text-secondary font-bold rounded-2xl hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors text-[13.5px]"
+              className="flex-1 py-3.5 px-4 bg-body text-secondary font-bold rounded-2xl hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors text-[13.5px]"
             >
               {isIOS ? '닫기' : '나중에 할게요'}
             </button>

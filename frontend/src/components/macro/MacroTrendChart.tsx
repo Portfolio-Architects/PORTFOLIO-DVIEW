@@ -54,9 +54,9 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     const gapPriceStr = gapPrice > 0 ? `${gapPrice.toFixed(1)}억` : null;
 
     return (
-      <div className="bg-surface/80 dark:bg-zinc-900/80 backdrop-blur-md p-3.5 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] border border-border/40 dark:border-white/10 flex flex-col gap-2 min-w-[170px] transition-all duration-300 ease-out">
+      <div className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.12)] border border-border/60 dark:border-white/10 flex flex-col gap-2 min-w-[170px] transition-all duration-300 ease-out">
         <div className="text-[12px] font-extrabold text-tertiary mb-0.5">
-          {label}
+          {label ? formatXAxisTick(String(label)) : ""}
         </div>
         {payload
           .filter((entry) => entry.value !== undefined && entry.value !== null && entry.value > 0)
@@ -466,10 +466,10 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           width={yWidth}
         />
         <RechartsTooltip
-          active={(!isBottomSheet && isTouchDevice) ? isTooltipActive : undefined}
           content={<CustomTooltip />}
           cursor={tooltipCursorStyle}
           isAnimationActive={false}
+          wrapperStyle={{ zIndex: 50, pointerEvents: "none", opacity: 1 }}
         />
         {twoSigmaStats.isValid && twoSigmaStats.lower2SD !== null && twoSigmaStats.upper2SD !== null && (
           <SafeReferenceArea

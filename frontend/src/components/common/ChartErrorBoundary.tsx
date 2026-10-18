@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { BarChart3 } from 'lucide-react';
 
 interface Props {
   children: ReactNode;
@@ -31,9 +32,9 @@ export class ChartErrorBoundary extends Component<Props, State> {
   public render() {
     if (this.state.hasError) {
       return (
-        <div className="w-full h-full min-h-[220px] flex flex-col items-center justify-center p-6 bg-surface/50 dark:bg-zinc-900/50 rounded-2xl border border-border/60 text-center">
-          <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center mb-2 text-lg font-bold">
-            📊
+        <div className="w-full h-full min-h-[220px] flex flex-col items-center justify-center p-6 bg-surface/50 dark:bg-slate-900/50 rounded-2xl border border-border/60 text-center">
+          <div className="w-10 h-10 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 flex items-center justify-center mb-2 font-bold">
+            <BarChart3 size={20} />
           </div>
           <p className="text-[13px] font-bold text-secondary">
             {this.props.fallbackText || '차트 데이터를 불러오는 중 오류가 발생했습니다.'}

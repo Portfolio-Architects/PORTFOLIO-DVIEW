@@ -12,39 +12,92 @@ export function useAdBlockDetector() {
       return;
     }
 
-    // 1. Create a dummy element that mimics ad placement
-    // easy-list filters look for classes like adsbox, ad-placeholder, adsbygoogle, etc.
+    // 1. Create a dummy bait element that mimics ad placement
+    // EasyList filters target classes like adsbox, ad-placeholder, adsbygoogle, ad-banner
     const testDiv = document.createElement('div');
     testDiv.className = 'adsbox ad-placeholder adsbygoogle ad-banner';
     testDiv.setAttribute(
       'style',
       'position: absolute; left: -9999px; top: -9999px; width: 1px; height: 1px; display: block !important;'
     );
-    
+
     document.body.appendChild(testDiv);
 
-    const checkAdBlock = () => {
-      // 2. Check if window.adsbygoogle is loaded and initialized
-      const adsbygoogle = window.adsbygoogle;
-      const scriptBlocked = !adsbygoogle || (adsbygoogle as { push?: unknown }).push === Array.prototype.push;
+    let scriptErrored = false;
+    let scriptLoaded = false;
+    const adsenseScriptEl = document.querySelector(
+      'script#google-adsense, script[src*="adsbygoogle"]'
+    );
 
-      // 3. Check if the DOM element is hidden or collapsed by the adblock extension
+    const evaluateBaitAndScript = () => {
+      const adsbygoogle = window.adsbygoogle as
+        | { push?: unknown; loaded?: boolean }
+        | unknown[]
+        | undefined;
+
+      const hasCustomPush =
+        Boolean(adsbygoogle) &&
+        typeof (adsbygoogle as { push?: unknown }).push === 'function' &&
+        (adsbygoogle as { push?: unknown }).push !== Array.prototype.push;
+      const isLoadedFlag =
+        Boolean(adsbygoogle) &&
+        (adsbygoogle as { loaded?: boolean }).loaded === true;
+
       const rect = testDiv.getBoundingClientRect();
       const computedStyle = window.getComputedStyle(testDiv);
-      const domBlocked = 
-        testDiv.offsetHeight === 0 || 
-        testDiv.clientHeight === 0 || 
-        rect.height === 0 || 
-        computedStyle.display === 'none' || 
-        computedStyle.visibility === 'hidden';
+      const cssExplicitlyHidden =
+        computedStyle.display === 'none' || computedStyle.visibility === 'hidden';
+      const domCollapsed =
+        testDiv.offsetHeight === 0 ||
+        testDiv.clientHeight === 0 ||
+        rect.height === 0 ||
+        cssExplicitlyHidden;
 
-      const isBlocked = scriptBlocked || domBlocked;
+      // Guard against slow network false-positive:
+      // If an AdSense script tag exists in the document, has not yet completed load or failed with an error event,
+      // and the bait element is NOT collapsed in DOM, do not false-positive on Array.prototype.push alone
+      // even when document.readyState has already transitioned to 'interactive' or 'complete'.
+      const currentScriptEl =
+        adsenseScriptEl ??
+        document.querySelector('script#google-adsense, script[src*="adsbygoogle"]');
+      const hasExplicitErrorAttr =
+        currentScriptEl?.getAttribute('data-adblock-error') === 'true';
+      const isSlowNetworkPending =
+        Boolean(currentScriptEl) &&
+        !domCollapsed &&
+        !scriptErrored &&
+        !scriptLoaded &&
+        !hasExplicitErrorAttr;
 
+      const scriptBlocked = !hasCustomPush && !isLoadedFlag && !isSlowNetworkPending;
+      const isBlocked = scriptBlocked || domCollapsed;
+
+      return { isBlocked, cssExplicitlyHidden, hasCustomPush, domCollapsed };
+    };
+
+    const checkAdBlock = () => {
+      const { isBlocked } = evaluateBaitAndScript();
       setIsAdBlockActive(isBlocked);
       setIsLoading(false);
     };
 
-    // Delay evaluation slightly to allow AdBlockers time to process the DOM element
+    const handleScriptError = () => {
+      scriptErrored = true;
+      adsenseScriptEl?.setAttribute('data-adblock-error', 'true');
+      setIsAdBlockActive(true);
+      setIsLoading(false);
+    };
+
+    const handleScriptLoad = () => {
+      scriptLoaded = true;
+      checkAdBlock();
+    };
+
+    if (adsenseScriptEl) {
+      adsenseScriptEl.addEventListener('error', handleScriptError);
+      adsenseScriptEl.addEventListener('load', handleScriptLoad);
+    }
+
     const timer = setTimeout(() => {
       checkAdBlock();
       if (document.body.contains(testDiv)) {
@@ -54,6 +107,10 @@ export function useAdBlockDetector() {
 
     return () => {
       clearTimeout(timer);
+      if (adsenseScriptEl) {
+        adsenseScriptEl.removeEventListener('error', handleScriptError);
+        adsenseScriptEl.removeEventListener('load', handleScriptLoad);
+      }
       if (document.body.contains(testDiv)) {
         document.body.removeChild(testDiv);
       }

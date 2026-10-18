@@ -81,7 +81,7 @@ export function MBTIContainer({
           onClick={() => setViewMode(currentProfile ? 'result' : 'intro')}
           className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
             viewMode === 'intro' || viewMode === 'quiz' || viewMode === 'result'
-              ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm'
+              ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
@@ -95,7 +95,7 @@ export function MBTIContainer({
           onClick={handleViewEncyclopedia}
           className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
             viewMode === 'encyclopedia'
-              ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-sm'
+              ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
@@ -110,12 +110,12 @@ export function MBTIContainer({
           data-testid="mbti-intro"
           className="w-full max-w-2xl mx-auto rounded-3xl p-6 sm:p-10 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xl flex flex-col items-center text-center gap-6"
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center text-white shadow-lg shadow-orange-500/30">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
             <Compass className="w-8 h-8" />
           </div>
 
           <div className="flex flex-col gap-2 max-w-lg">
-            <span className="text-xs font-bold text-orange-600 dark:text-orange-400 uppercase tracking-widest">
+            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
               D-VIEW 주거 성향 테스트
             </span>
             <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
@@ -128,7 +128,7 @@ export function MBTIContainer({
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-md my-2">
-            <div className="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-purple-700 dark:text-purple-300">
+            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
               <span className="block font-black text-xs">NT 분석가형</span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">데이터·환금성</span>
             </div>
@@ -140,7 +140,7 @@ export function MBTIContainer({
               <span className="block font-black text-xs">SJ 관리자형</span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">초품아·원스톱</span>
             </div>
-            <div className="p-3 rounded-xl bg-orange-500/10 border border-orange-500/20 text-orange-700 dark:text-orange-300">
+            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
               <span className="block font-black text-xs">SP 탐험가형</span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">기동력·슬세권</span>
             </div>
@@ -151,9 +151,9 @@ export function MBTIContainer({
               type="button"
               data-testid="start-quiz-btn"
               onClick={handleStartQuiz}
-              className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 active:scale-95 text-white font-black text-sm sm:text-base shadow-lg shadow-orange-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
+              className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-500 hover:to-emerald-500 active:scale-95 text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <Sparkles className="w-5 h-5 text-amber-300" />
+              <Sparkles className="w-5 h-5 text-emerald-300" />
               <span>1분 만에 테스트 시작하기</span>
               <ArrowRight className="w-4 h-4 ml-1" />
             </button>
@@ -166,6 +166,27 @@ export function MBTIContainer({
             >
               16개 도감 둘러보기
             </button>
+          </div>
+
+          {/* SSR Semantic Matrix of 16 MBTI Profiles */}
+          <div className="w-full pt-6 mt-2 border-t border-slate-200/70 dark:border-slate-800 text-left">
+            <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mb-3">
+              동탄 16개 주거 성향 유형별 매칭 랜드마크 단지 요약
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+              {Object.values(MBTI_PROFILES).map((item) => (
+                <button
+                  key={item.type}
+                  type="button"
+                  onClick={() => handleSelectFromEncyclopedia(item)}
+                  className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 hover:border-emerald-500/40 text-left transition-colors cursor-pointer"
+                >
+                  <span className="font-black text-emerald-600 dark:text-emerald-400 block">{item.type}</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block truncate">{item.aptName}</span>
+                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{item.dong}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}

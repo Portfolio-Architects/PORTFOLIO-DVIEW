@@ -32,7 +32,7 @@ export const MacroTimeframeToggle = React.memo(function MacroTimeframeToggle({
       role="group"
       aria-label="시계열 분석 기간 선택"
       data-testid="macro-timeframe-toggle"
-      className={`inline-flex items-center h-8 sm:h-9 min-h-[32px] sm:min-h-[36px] max-h-[32px] sm:max-h-[36px] p-0.5 sm:p-1 box-border shrink-0 select-none overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800/80 border border-border/50 shadow-inner ${className}`.trim()}
+      className={`inline-flex items-center h-8 sm:h-9 min-h-[32px] sm:min-h-[36px] max-h-[32px] sm:max-h-[36px] p-0.5 sm:p-1 box-border shrink-0 select-none overflow-hidden rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-border/50 shadow-inner ${className}`.trim()}
     >
       {MACRO_TIMEFRAME_OPTIONS.map((option) => {
         const isActive = currentTimeframe === option.id;
@@ -48,7 +48,7 @@ export const MacroTimeframeToggle = React.memo(function MacroTimeframeToggle({
             onClick={() => onTimeframeChange(option.id)}
             className={`h-7 sm:h-7 px-2.5 sm:px-3 text-[11px] sm:text-[12px] leading-none box-border flex items-center justify-center shrink-0 rounded-lg transition-colors duration-150 ease-out cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 focus-visible:ring-offset-1 ${
               isActive
-                ? 'bg-surface text-primary shadow-xs font-black dark:bg-zinc-700 dark:text-white'
+                ? 'bg-surface text-primary shadow-xs font-black dark:bg-slate-700 dark:text-white'
                 : 'text-tertiary hover:text-secondary font-bold'
             }`}
           >

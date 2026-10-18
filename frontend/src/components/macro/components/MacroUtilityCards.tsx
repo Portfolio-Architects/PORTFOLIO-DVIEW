@@ -128,15 +128,15 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           type="button"
           onClick={() => onOpenSellTimingCalculator()}
           aria-label="우리집 적정 가치 및 주거 자산 안정성 진단 상세 보기"
-          className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-rose-500/8 to-surface dark:from-rose-500/4 border border-rose-500/15 hover:border-rose-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
+          className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-red-500/8 to-surface dark:from-red-500/4 border border-red-500/15 hover:border-red-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
         >
-          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-rose-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+          <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
           <div className="relative z-10 flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 bg-rose-500/10 dark:bg-rose-500/15 text-rose-600 dark:text-rose-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+              <div className="w-10 h-10 bg-red-500/10 dark:bg-red-500/15 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
                 <TrendingUp size={18} />
               </div>
-              <span className="text-[10px] font-black bg-rose-100 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 자산</span>
+              <span className="text-[10px] font-black bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 자산</span>
             </div>
 
             <div className="flex flex-col gap-2 mt-2">
@@ -150,7 +150,7 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           </div>
 
           <div className="mt-6 relative z-10 w-full">
-            <div className="w-full py-3 bg-rose-600 hover:bg-rose-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+            <div className="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
               <span>자산 안정성 진단</span>
               <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </div>

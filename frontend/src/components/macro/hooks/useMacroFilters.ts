@@ -171,20 +171,20 @@ export function useMacroFilters({ sheetApartments }: UseMacroFiltersProps = {}):
 
   const setQuickFilter = useCallback((chip: QuickFilterChipType) => {
     setQuickFilterState(chip);
+    // Reset quick-chip-coupled filter dimensions first to prevent state contamination across chip switches
+    setRegionFilterState('all');
+    setTimelineDongFilter('전체');
+    setPyeongFilterState('all');
+    setTradeTypeFilterState('all');
+
     switch (chip) {
       case 'all':
-        setRegionFilterState('all');
-        setTimelineDongFilter('전체');
-        setPyeongFilterState('all');
-        setTradeTypeFilterState('all');
         break;
       case 'dongtan1':
         setRegionFilterState('dongtan1');
-        setTimelineDongFilter('전체');
         break;
       case 'dongtan2':
         setRegionFilterState('dongtan2');
-        setTimelineDongFilter('전체');
         break;
       case 'high':
         setTradeTypeFilterState('high');

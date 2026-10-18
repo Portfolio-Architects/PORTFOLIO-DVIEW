@@ -11,7 +11,7 @@ const fs = require('fs');
 const path = require('path');
 const { applyIqrOutlierDetection } = require('./outlierFilters');
 const { formatPriceEok, normalizeAptName } = require('./apartmentSummarizer');
-const { sanitizeAptChunkFileName, sanitizeAptKey } = require('../../pipeline/core/normalizer');
+const { sanitizeAptChunkFileName, sanitizeAptKey, isCancelledTransaction } = require('../../pipeline/core/normalizer');
 
 /**
  * Synchronous file writer with zero-spin OS thread backoff
@@ -142,15 +142,35 @@ function migrateLegacyPathologicalFiles(txDataDir) {
             const seen = new Map();
             for (const r of combined) {
               const dt = (r.dealType === '전세' || r.dealType === '월세') ? r.dealType : '매매';
+              const isRent = dt === '전세' || dt === '월세';
               const cleanDay = String(r.contractDay || '').trim().padStart(2, '0');
               const cleanArea = Math.round((Number(r.area) || 0) * 100) / 100;
               const cleanFloor = Number(r.floor) || 0;
-              const cleanPrice = Number(r.price) || 0;
-              const cleanDep = Number(r.deposit) || 0;
-              const cleanRent = Number(r.monthlyRent) || 0;
+              const cleanPrice = isRent ? 0 : (Number(r.price) || 0);
+              const cleanDep = isRent ? (Number(r.deposit) || 0) : 0;
+              const cleanRent = isRent ? (Number(r.monthlyRent) || 0) : 0;
               const k = `${r.contractYm}_${cleanDay}_${cleanPrice}_${cleanDep}_${cleanRent}_${cleanArea}_${cleanFloor}_${dt}`;
               if (!seen.has(k)) {
                 seen.set(k, r);
+              } else {
+                const existing = seen.get(k);
+                const getScore = (item) => {
+                  let s = 0;
+                  const idt = item.dealType ? item.dealType.trim() : '';
+                  if (idt && idt !== '' && idt !== '매매' && idt !== '전세' && idt !== '월세') s += 2;
+                  if (item.reqGb && item.reqGb.trim() && item.reqGb.trim() !== '-') s += 1;
+                  if (item.rnuYn && item.rnuYn.trim() && item.rnuYn.trim() !== '-') s += 1;
+                  if (isRent && Number(item.price) > 0) s += 1;
+                  if (isCancelledTransaction(item)) s += 5;
+                  return s;
+                };
+                const winner = getScore(r) >= getScore(existing) ? r : existing;
+                if (isCancelledTransaction(existing) || isCancelledTransaction(r)) {
+                  if (!winner.cancelDate) {
+                    winner.cancelDate = r.cancelDate || existing.cancelDate || r.cdealDay || existing.cdealDay || '취소';
+                  }
+                }
+                seen.set(k, winner);
               }
             }
             const merged = Array.from(seen.values());
@@ -210,7 +230,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
   const normalizedTargetApts = [];
   for (const rawApt of targetApts) {
     let norm = sanitizeAptKey(rawApt);
-    if (norm === '금호어울림레이크1차') norm = '금호어울림레이크';
+    if (norm.includes('금호어울림레이크1차')) norm = '금호어울림레이크';
     if (norm && !seenNormKeys.has(norm)) {
       seenNormKeys.add(norm);
       normalizedTargetApts.push(norm);
@@ -225,30 +245,34 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
     for (const [k, records] of Object.entries(byApt)) {
       if (k !== aptKey && Array.isArray(records)) {
         let normK = sanitizeAptKey(k);
-        if (normK === '금호어울림레이크1차' || normK === '장지동금호어울림레이크1차') normK = '금호어울림레이크';
+        if (normK.includes('금호어울림레이크1차')) normK = '금호어울림레이크';
         if (normK === aptKey) {
           txs.push(...records);
         }
       }
     }
 
-    const records = txs.map(t => ({
-      contractYm: t.contractYm,
-      contractDay: t.contractDay,
-      price: t.price,
-      priceEok: (t.dealType === '전세' || t.dealType === '월세') 
-        ? formatPriceEok(t.deposit || 0) + (t.monthlyRent ? ` / ${t.monthlyRent}만` : '')
-        : formatPriceEok(t.price || 0),
-      deposit: t.deposit || 0,
-      monthlyRent: t.monthlyRent || 0,
-      reqGb: t.reqGb || '',
-      rnuYn: t.rnuYn || '',
-      area: t.area,
-      areaPyeong: t.areaPyeong,
-      floor: t.floor,
-      dealType: (t.dealType && t.dealType.trim()) || '매매',
-      cancelDate: (t.cancelDate && t.cancelDate.trim()) || '',
-    }));
+    const records = txs.map(t => {
+      const canceled = isCancelledTransaction(t);
+      const cancelDateStr = (t.cancelDate && String(t.cancelDate).trim()) || (t.cdealDay && String(t.cdealDay).trim()) || (canceled ? '취소' : '');
+      return {
+        contractYm: t.contractYm,
+        contractDay: t.contractDay,
+        price: t.price,
+        priceEok: (t.dealType === '전세' || t.dealType === '월세') 
+          ? formatPriceEok(t.deposit || 0) + (t.monthlyRent ? ` / ${t.monthlyRent}만` : '')
+          : formatPriceEok(t.price || 0),
+        deposit: t.deposit || 0,
+        monthlyRent: t.monthlyRent || 0,
+        reqGb: t.reqGb || '',
+        rnuYn: t.rnuYn || '',
+        area: t.area,
+        areaPyeong: t.areaPyeong,
+        floor: t.floor,
+        dealType: (t.dealType && t.dealType.trim()) || '매매',
+        cancelDate: cancelDateStr,
+      };
+    });
 
     // Deduplicate records to prevent duplicate rows in the UI
     const seen = new Map();
@@ -288,15 +312,21 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
           if (isRent && Number(item.price) > 0) {
             score += 1;
           }
+          if (isCancelledTransaction(item)) {
+            score += 5;
+          }
           return score;
         };
 
         const existingScore = getRichnessScore(existing);
         const newScore = getRichnessScore(r);
-
-        if (newScore > existingScore) {
-          seen.set(key, r);
+        const winner = newScore >= existingScore ? r : existing;
+        if (isCancelledTransaction(existing) || isCancelledTransaction(r)) {
+          if (!winner.cancelDate) {
+            winner.cancelDate = r.cancelDate || existing.cancelDate || '취소';
+          }
         }
+        seen.set(key, winner);
       }
     }
     const uniqueRecords = Array.from(seen.values());

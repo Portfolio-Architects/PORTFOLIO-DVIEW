@@ -298,7 +298,7 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
     });
 
     it('verifies VolumeDistributionChartSkeleton preserves data-testid="stats-volume-distribution-chart" and matching dimensions', () => {
-      const { container: skelContainer } = render(<VolumeDistributionChartSkeleton />);
+      const { container: skelContainer, unmount: unmountSkel } = render(<VolumeDistributionChartSkeleton />);
       const skelEl = skelContainer.querySelector('[data-testid="stats-volume-distribution-chart"]');
       expect(skelEl).toBeInTheDocument();
       expect(skelEl?.className).toContain('min-h-[200px]');
@@ -309,16 +309,19 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
 
       // Compare with live chart
       const mockDist = [{ name: '소형 (60㎡ 이하)', value: 10, percentage: 100 }];
-      const { container: liveContainer } = render(
+      const { container: liveContainer, unmount: unmountLive } = render(
         <StatsVolumeDistributionChart distribution={mockDist} />
       );
       const liveEl = liveContainer.querySelector('[data-testid="stats-volume-distribution-chart"]');
       expect(liveEl).toBeInTheDocument();
       expect(liveEl?.className).toContain('p-5 sm:p-6 rounded-2xl border border-border/60 bg-surface shadow-xs');
       expect(liveEl?.querySelector('.h-\\[220px\\]')).toBeInTheDocument();
+
+      unmountSkel();
+      unmountLive();
     });
 
-    it('verifies StatsOverviewSection wraps all three charts with invariant min-height boundaries in both skeleton and mounted states', () => {
+    it('verifies StatsOverviewSection wraps active charts with invariant min-height boundaries in both skeleton and mounted states', () => {
       // 1. Skeleton state (testMode=false)
       const { unmount: unmountSkel } = render(
         <StatsOverviewSection
@@ -331,11 +334,10 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
 
       const timeTrendSkel = screen.getByTestId('stats-time-trend-chart');
       const rankingSkel = screen.getByTestId('stats-pyeong-ranking-chart');
-      const volumeSkel = screen.getByTestId('stats-volume-distribution-chart');
 
       expect(timeTrendSkel.parentElement?.className).toContain('min-h-[240px] md:min-h-[280px]');
       expect(rankingSkel.parentElement?.className).toContain('min-h-[240px] md:min-h-[280px]');
-      expect(volumeSkel.parentElement?.className).toContain('min-h-[200px]');
+      expect(screen.queryByTestId('stats-volume-distribution-chart')).not.toBeInTheDocument();
       unmountSkel();
 
       // 2. Mounted live state (testMode=true)
@@ -350,11 +352,10 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
 
       const timeTrendLive = screen.getByTestId('stats-time-trend-chart');
       const rankingLive = screen.getByTestId('stats-pyeong-ranking-chart');
-      const volumeLive = screen.getByTestId('stats-volume-distribution-chart');
 
       expect(timeTrendLive.parentElement?.className).toContain('min-h-[240px] md:min-h-[280px]');
       expect(rankingLive.parentElement?.className).toContain('min-h-[240px] md:min-h-[280px]');
-      expect(volumeLive.parentElement?.className).toContain('min-h-[200px]');
+      expect(screen.queryByTestId('stats-volume-distribution-chart')).not.toBeInTheDocument();
     });
   });
 

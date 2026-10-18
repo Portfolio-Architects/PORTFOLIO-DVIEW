@@ -33,7 +33,7 @@ Object.defineProperty(window, 'localStorage', {
 
 describe('SellTiming Engine Functions', () => {
   it('correctly calculates verdict score (verdictScore)', () => {
-    // 🔴 지금 팔면 호구 (보류 권장) 시나리오: 고점 대비 낙폭이 크고 전세가율이 높음
+    // 지금 팔면 호구 (보류 권장) 시나리오: 고점 대비 낙폭이 크고 전세가율이 높음
     const result1 = calculateVerdictScore({
       currentPrice: 80000,
       maxPrice3Y: 120000,
@@ -42,9 +42,9 @@ describe('SellTiming Engine Functions', () => {
       jeonseRatio: 82,
     });
     expect(result1.score).toBeGreaterThanOrEqual(70);
-    expect(result1.label).toBe('🔴 지금 팔면 호구 (보류 권장)');
+    expect(result1.label).toBe('지금 팔면 호구 (보류 권장)');
 
-    // 🟢 양호한 매도 기회 시나리오: 낙폭이 거의 없음
+    // 양호한 매도 기회 시나리오: 낙폭이 거의 없음
     const result2 = calculateVerdictScore({
       currentPrice: 115000,
       maxPrice3Y: 120000,
@@ -53,7 +53,7 @@ describe('SellTiming Engine Functions', () => {
       jeonseRatio: 55,
     });
     expect(result2.score).toBeLessThan(40);
-    expect(result2.label).toBe('🟢 양호한 매도 기회 (매도 가능)');
+    expect(result2.label).toBe('양호한 매도 기회 (매도 가능)');
   });
 
   it('correctly calculates capital gains tax (capitalGainsTax)', () => {

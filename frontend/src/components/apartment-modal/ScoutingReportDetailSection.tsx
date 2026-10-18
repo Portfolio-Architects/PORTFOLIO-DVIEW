@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import Image from 'next/image';
-import { Building, Camera, Info, ShieldAlert, Radar } from 'lucide-react';
+import { Building, Camera, Info, ShieldAlert, Radar, Lightbulb } from 'lucide-react';
 import { FieldReportData } from '@/lib/DashboardFacade';
 
 interface ScoutingReportDetailSectionProps {
@@ -228,7 +228,10 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
             <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
           </div>
           <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
-            <h4 className="text-[16px] font-extrabold text-primary mb-2">💡 최종 결론</h4>
+            <h4 className="text-[16px] font-extrabold text-primary mb-2 flex items-center gap-1.5">
+              <Lightbulb size={18} className="text-emerald-600 shrink-0" />
+              <span>최종 결론</span>
+            </h4>
             <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
             
             {s.assessment.probability && (

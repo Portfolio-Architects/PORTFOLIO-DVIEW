@@ -193,18 +193,18 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
     if (currentDsrPercent > 40.0) {
       return {
         label: '규제 한도 초과',
-        color: 'text-rose-600 dark:text-rose-400',
-        badgeBg: 'bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800',
-        barColor: 'bg-rose-500',
+        color: 'text-red-600 dark:text-red-400',
+        badgeBg: 'bg-red-100 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-200 dark:border-red-800',
+        barColor: 'bg-red-500',
         isExceeded: true,
       };
     }
     if (currentDsrPercent >= 35.0) {
       return {
         label: '한도 주의 구간',
-        color: 'text-amber-600 dark:text-amber-400',
-        badgeBg: 'bg-amber-100 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800',
-        barColor: 'bg-amber-500',
+        color: 'text-red-600 dark:text-red-400',
+        badgeBg: 'bg-red-100 text-red-700 dark:bg-red-950/80 dark:text-red-300 border-red-200 dark:border-red-800',
+        barColor: 'bg-red-600',
         isExceeded: false,
       };
     }
@@ -496,7 +496,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
             <span className="text-[12px] font-bold text-slate-500 dark:text-slate-400">
               총 납부 이자액
             </span>
-            <Percent size={16} className="text-amber-500" />
+            <Percent size={16} className="text-red-600" />
           </div>
           <div className="mt-2.5">
             <div className="text-[20px] md:text-[22px] font-extrabold font-mono tabular-nums text-slate-900 dark:text-slate-50">
@@ -559,11 +559,11 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
         <div className="relative w-full pt-4 pb-2">
           {/* 규제 기준선 40% 마커 레이블 */}
           <div
-            className="absolute top-0 text-[10px] font-mono font-bold text-rose-600 dark:text-rose-400 flex flex-col items-center -translate-x-1/2 pointer-events-none"
+            className="absolute top-0 text-[10px] font-mono font-bold text-red-600 dark:text-red-400 flex flex-col items-center -translate-x-1/2 pointer-events-none"
             style={{ left: `${(40 / 60) * 100}%` }}
           >
             <span>규제 상한 40.0%</span>
-            <div className="w-0.5 h-2 bg-rose-500 mt-0.5" />
+            <div className="w-0.5 h-2 bg-red-500 mt-0.5" />
           </div>
 
           {/* 게이지 트랙 */}
@@ -598,7 +598,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               className={`font-mono font-bold ${
                 loanMarginManwon >= 0
                   ? 'text-emerald-600 dark:text-emerald-400'
-                  : 'text-rose-600 dark:text-rose-400'
+                  : 'text-red-600 dark:text-red-400'
               }`}
             >
               {loanMarginManwon >= 0
@@ -613,7 +613,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Flame size={18} className="text-amber-500" />
+            <Flame size={18} className="text-red-600" />
             <h4 className="text-[14px] font-bold text-slate-900 dark:text-slate-100">
               금리 충격 민감도 히트맵 (Interest Rate Shock)
             </h4>
@@ -632,16 +632,16 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                 data-testid={`rate-shock-card-${sc.spreadPercent}`}
                 className={`p-3.5 rounded-xl border flex flex-col justify-between transition-all ${
                   isHighSeverity
-                    ? 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200/80 dark:border-rose-800/60'
-                    : 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200/70 dark:border-amber-800/50'
+                    ? 'bg-red-50/60 dark:bg-red-950/30 border-red-200/80 dark:border-red-800/60'
+                    : 'bg-red-50/50 dark:bg-red-950/20 border-red-200/70 dark:border-red-800/50'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <span
                     className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded ${
                       isHighSeverity
-                        ? 'bg-rose-200/70 text-rose-800 dark:bg-rose-900/60 dark:text-rose-300'
-                        : 'bg-amber-200/70 text-amber-800 dark:bg-amber-900/60 dark:text-amber-300'
+                        ? 'bg-red-200/70 text-red-800 dark:bg-red-900/60 dark:text-red-300'
+                        : 'bg-red-200/70 text-red-800 dark:bg-red-900/60 dark:text-red-300'
                     }`}
                   >
                     +{sc.spreadPercent.toFixed(1)}%p
@@ -656,8 +656,8 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                   <div
                     className={`text-[15px] font-mono font-extrabold tabular-nums ${
                       isHighSeverity
-                        ? 'text-rose-700 dark:text-rose-300'
-                        : 'text-amber-700 dark:text-amber-300'
+                        ? 'text-red-700 dark:text-red-300'
+                        : 'text-red-700 dark:text-red-300'
                     }`}
                   >
                     +{formatWon(sc.deltaMonthlyPaymentWon)}/월
@@ -682,7 +682,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
               size={18}
               className={
                 jeonseShortfallResult.hasShortfall
-                  ? 'text-rose-600 dark:text-rose-400'
+                  ? 'text-red-600 dark:text-red-400'
                   : 'text-emerald-600 dark:text-emerald-400'
               }
             />
@@ -713,7 +713,7 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
                 onClick={() => handleShockRateChange(rate)}
                 className={`py-1 px-2.5 text-[11px] font-mono font-bold rounded-lg border transition-all ${
                   jeonseShockRate === rate
-                    ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+                    ? 'bg-red-600 text-white border-red-600 shadow-sm'
                     : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
                 }`}
               >
@@ -728,13 +728,13 @@ export const MortgageLdiSentinelCard: React.FC<MortgageLdiSentinelCardProps> = (
           data-testid="jeonse-shortfall-alert"
           className={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
             jeonseShortfallResult.hasShortfall
-              ? 'bg-rose-50/80 dark:bg-rose-950/40 border-rose-200 dark:border-rose-800 text-rose-900 dark:text-rose-200'
+              ? 'bg-red-50/80 dark:bg-red-950/40 border-red-200 dark:border-red-800 text-red-900 dark:text-red-200'
               : 'bg-emerald-50/80 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200'
           }`}
         >
           <div className="flex items-start gap-2.5">
             {jeonseShortfallResult.hasShortfall ? (
-              <AlertTriangle size={20} className="text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <AlertTriangle size={20} className="text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
             ) : (
               <ShieldCheck size={20} className="text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             )}

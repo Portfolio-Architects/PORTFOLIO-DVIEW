@@ -8,11 +8,11 @@ import { safeReload } from '@/lib/utils/safeReload';
 const AnchorTenantSkeleton = () => (
   <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border animate-pulse">
     <div className="flex items-center justify-between mb-2 pb-3 border-b border-border">
-      <div className="w-40 h-5 bg-neutral-200 dark:bg-neutral-800 rounded-lg" />
+      <div className="w-40 h-5 bg-slate-200 dark:bg-slate-800 rounded-lg" />
     </div>
     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mt-4">
       {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-neutral-100 dark:bg-neutral-900 rounded-2xl p-5 border border-border flex flex-col gap-3 min-h-[140px]" />
+        <div key={i} className="bg-slate-100 dark:bg-slate-900 rounded-2xl p-5 border border-border flex flex-col gap-3 min-h-[140px]" />
       ))}
     </div>
   </div>
@@ -107,7 +107,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
           <MapPin size={18} className="text-[#057e77] dark:text-emerald-400"/> 단지 입지정보
         </h2>
 
-        {/* ─── 🚇 생활 인프라 종합 지수 (Infra Index) ─── */}
+        {/* ─── 생활 인프라 종합 지수 (Infra Index) ─── */}
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
@@ -124,7 +124,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                 <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활 인프라 지표</span>
                 <button
                   onClick={() => handleShareSection('infra')}
-                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 ${
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
                     copiedStatus === 'infra-link'
                       ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
                       : 'bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] border-[#0284c7]/20'
@@ -169,7 +169,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
           );
         })()}
 
-        {/* ─── 🚇 교통 Section ─── */}
+        {/* ─── 교통 Section ─── */}
         {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
           <div className="mb-8">
             <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
@@ -238,7 +238,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                       <a 
                         href={station.coords ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.coords)}` : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(station.name + (station.name.includes('정거장') ? ' 동탄' : ' 역'))}`}
                         target="_blank" rel="noopener noreferrer"
-                        className="text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 rounded-xl px-2.5 py-2 text-center text-secondary transition-all duration-300 hover:scale-[1.02] active:scale-95 bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1"
+                        className="text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 rounded-xl px-2.5 py-2 text-center text-secondary transition-all duration-300 hover:scale-[1.02] active:scale-95 bg-surface border border-border shadow-[0_2px_8px_rgba(0,0,0,0.02)] hover:border-[color:var(--hover-color)] hover:text-[color:var(--hover-color)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
                         style={{ '--hover-color': station.color } as React.CSSProperties}
                         title={`${station.name} 구글 지도에서 보기`}
                       >
@@ -253,7 +253,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
           </div>
         )}
 
-        {/* ─── 🏪 생활 인프라 Section ─── */}
+        {/* ─── 생활 인프라 Section ─── */}
         {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
           <div>
             <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#f59e0b] pl-2.5">
@@ -268,11 +268,11 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                   
                   if (cat.includes('한식') || cat.includes('구이') || cat.includes('갈비') || cat.includes('삼겹살') || cat.includes('육류') || cat.includes('탕') || cat.includes('찌개') || cat.includes('백반')) {
                     tag = '한식/고기';
-                    color = '#e11d48'; // rose-600
+                    color = '#e11d48'; // red-600
                     bg = 'bg-[#e11d48]';
                   } else if (cat.includes('커피') || cat.includes('카페') || cat.includes('디저트') || cat.includes('찻집') || cat.includes('제과') || cat.includes('빵')) {
                     tag = '카페/음료';
-                    color = '#b45309'; // amber-700
+                    color = '#b45309'; // slate-700
                     bg = 'bg-[#b45309]';
                   } else if (cat.includes('일식') || cat.includes('회') || cat.includes('초밥') || cat.includes('돈까스') || cat.includes('스시')) {
                     tag = '일식/일반';
@@ -280,19 +280,19 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                     bg = 'bg-[#0284c7]';
                   } else if (cat.includes('중식') || cat.includes('중국') || cat.includes('짜장') || cat.includes('짬뽕')) {
                     tag = '중식/아시안';
-                    color = '#ea580c'; // orange-600
+                    color = '#ea580c'; // emerald-600
                     bg = 'bg-[#ea580c]';
                   } else if (cat.includes('양식') || cat.includes('경양식') || cat.includes('피자') || cat.includes('파스타') || cat.includes('스테이크') || cat.includes('뷔페') || cat.includes('패스트')) {
                     tag = '양식/양식';
-                    color = '#7c3aed'; // purple-600
+                    color = '#7c3aed'; // blue-600
                     bg = 'bg-[#7c3aed]';
                   } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
                     tag = '분식/간식';
-                    color = '#057e77'; // teal-600
+                    color = '#057e77'; // emerald-600
                     bg = 'bg-[#057e77]';
                   } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
                     tag = '치킨/주점';
-                    color = '#f59e0b'; // amber-500
+                    color = '#f59e0b'; // slate-600
                     bg = 'bg-[#f59e0b]';
                   }
                   return { cat, cnt: cnt as number, tag, color, bg };

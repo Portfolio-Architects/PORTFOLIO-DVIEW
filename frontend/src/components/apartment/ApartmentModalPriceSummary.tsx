@@ -59,13 +59,13 @@ export const ApartmentModalPriceSummary = React.memo(function ApartmentModalPric
 
       <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
         <span className="text-[11px] font-bold text-tertiary">최근 전세가</span>
-        <span className="text-[16px] font-extrabold text-[#f9a825] dark:text-amber-400">{jeonseStr}</span>
+        <span className="text-[16px] font-extrabold text-[#f9a825] dark:text-emerald-400">{jeonseStr}</span>
       </div>
 
       <div className="flex flex-col gap-1 p-3 bg-body/50 rounded-xl border border-border/20">
         <span className="text-[11px] font-bold text-tertiary">실구매 갭</span>
         <div className="flex items-baseline gap-1">
-          <span className="text-[16px] font-extrabold text-teal-600 dark:text-teal-400">{gapStr}</span>
+          <span className="text-[16px] font-extrabold text-emerald-600 dark:text-emerald-400">{gapStr}</span>
           {ratio > 0 && <span className="text-[10.5px] font-bold text-secondary">({ratio.toFixed(1)}%)</span>}
         </div>
       </div>

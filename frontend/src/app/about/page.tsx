@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Landmark, TrendingUp, Sparkles, ShieldCheck, MapPin, Building2, Percent, CheckCircle2, AlertTriangle, Database } from 'lucide-react';
+import { ArrowLeft, Landmark, TrendingUp, Sparkles, ShieldCheck, MapPin, Building2, Percent, CheckCircle2, AlertTriangle, Database, Info } from 'lucide-react';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export const metadata = {
@@ -94,7 +94,7 @@ export default async function AboutPage() {
       <main className="max-w-[1000px] mx-auto px-4 sm:px-6 mt-6 sm:mt-10">
         
         {/* 히어로 비전 카드 */}
-        <div className="text-center py-12 sm:py-20 bg-gradient-to-br from-emerald-500/[0.04] to-teal-500/[0.01] dark:from-emerald-950/20 dark:to-neutral-900 rounded-3xl border border-emerald-500/10 dark:border-emerald-950/50 mb-12 shadow-sm relative overflow-hidden">
+        <div className="text-center py-12 sm:py-20 bg-gradient-to-br from-emerald-500/[0.04] to-emerald-500/[0.01] dark:from-emerald-950/20 dark:to-slate-900 rounded-3xl border border-emerald-500/10 dark:border-emerald-950/50 mb-12 shadow-sm relative overflow-hidden">
           <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/5 rounded-full blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/[0.03] rounded-full blur-3xl" />
           
@@ -130,8 +130,9 @@ export default async function AboutPage() {
                   금융 시장의 주가수익비율(PER) 방법론을 주거에 이식합니다. 아파트의 <strong>실거래 전세가(실주거 편익)</strong>를 연수익으로, <strong>매매가</strong>를 자산 가치로 규정하여 비율을 산출합니다. 전세가율이 높은 저PER 단지는 안정적인 지지 가격이 형성되어 실소유 시 가격 하방 복원력이 뛰어남을 수치로 분석합니다.
                 </p>
               </div>
-              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                💡 실거주 PER = 매매가 ÷ 전세가 (수치가 낮을수록 내재가치 대비 저평가)
+              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1.5">
+                <Info size={13} className="shrink-0" />
+                <span>실거주 PER = 매매가 ÷ 전세가 (수치가 낮을수록 내재가치 대비 저평가)</span>
               </div>
             </div>
 
@@ -146,8 +147,9 @@ export default async function AboutPage() {
                   지리 데이터와 행정 인프라 데이터를 융합해 입지 환경을 지표화합니다. 단지에서 배정 초등학교까지의 <strong>실측 도보 거리(초품아 가드레일)</strong>, 반경 내 보육 시설 수, 인근 동탄역/예정 트램역과의 <strong>교통 접근성</strong>, 상권 및 학원가 밀도를 분석하여 주거 편의성을 평가합니다.
                 </p>
               </div>
-              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                💡 특징: 소상공인 상권 밀집도 & 최단 도보 통학로 실측 데이터베이스 연동
+              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1.5">
+                <Info size={13} className="shrink-0" />
+                <span>특징: 소상공인 상권 밀집도 & 최단 도보 통학로 실측 데이터베이스 연동</span>
               </div>
             </div>
 
@@ -162,8 +164,9 @@ export default async function AboutPage() {
                   지식산업센터 10대 단지를 연계하여 입주사 및 공실 추이를 관리합니다. 공장등록 대장 정보(팩토리온)와 구글 시트 마스터 데이터(SSOT)를 융합하여 업종별(IT, 바이오, 제조업 등) 지형도를 도넛 차트로 실시간 시각화하고, 단지별 대표 기업 배치와 국민연금 가동 근로자 정보 및 평당 임대 추세를 추적합니다.
                 </p>
               </div>
-              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                💡 특징: 팩토리온 OpenAPI 및 구글 스프레드시트 Headless 동기화 모델
+              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1.5">
+                <Info size={13} className="shrink-0" />
+                <span>특징: 팩토리온 OpenAPI 및 구글 스프레드시트 Headless 동기화 모델</span>
               </div>
             </div>
 
@@ -178,8 +181,9 @@ export default async function AboutPage() {
                   수도권 과밀억제권역에서 성장관리권역(동탄 테크노밸리)으로 기업을 이전할 경우 제공되는 법인세 감면 등 세제 혜택을 계측합니다. 동시에 타겟 지산 주변 500m 내 임직원들의 거주 아파트 시세와 공실 여건을 비교 시각화하여, 직주근접 입지 선정과 직원 복지 비용 예측을 지원합니다.
                 </p>
               </div>
-              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                💡 활용: 기업 이전 의사 결정, 맞춤형 거주 복지 및 세법상 세액 감면 추정
+              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1.5">
+                <Info size={13} className="shrink-0" />
+                <span>활용: 기업 이전 의사 결정, 맞춤형 거주 복지 및 세법상 세액 감면 추정</span>
               </div>
             </div>
 
@@ -194,8 +198,9 @@ export default async function AboutPage() {
                   지속가능한 상업용 부동산 활성화를 위해 커뮤니티 라운지를 연계합니다. 예비 창업자 및 1인 스타트업이 중대형 오피스의 분할 공동 임차 파트너(공유오피스 메이트)를 구할 수 있도록 매칭 서비스를 제공하고, 관심 단지의 실거래 신규 신고가 등록 시 KST 07:00에 실시간 웹 푸시 알림으로 소식을 배달하는 지능형 알림 피드를 탑재했습니다.
                 </p>
               </div>
-              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold">
-                💡 특징: iOS PWA 독립 실행형 대응 및 Web Push API 표준 규격 전면 연동
+              <div className="mt-5 pt-3.5 border-t border-border/60 text-[11.5px] text-emerald-600 dark:text-emerald-400 font-extrabold flex items-center gap-1.5">
+                <Info size={13} className="shrink-0" />
+                <span>특징: iOS PWA 독립 실행형 대응 및 Web Push API 표준 규격 전면 연동</span>
               </div>
             </div>
 
@@ -242,10 +247,10 @@ export default async function AboutPage() {
         </div>
 
         {/* 면책 고지 */}
-        <div className="mt-8 bg-amber-500/[0.03] dark:bg-amber-950/10 p-6 rounded-2xl border border-amber-500/20 text-secondary relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-1 h-full bg-amber-500/60" />
-          <h4 className="text-[13.5px] sm:text-[14px] font-extrabold text-amber-800 dark:text-amber-400 tracking-tight mb-2.5 flex items-center gap-1.5">
-            <AlertTriangle size={16} className="text-amber-600 dark:text-amber-500" />
+        <div className="mt-8 bg-slate-100/60 dark:bg-slate-800/40 p-6 rounded-2xl border border-slate-300/60 text-secondary relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-1 h-full bg-slate-400" />
+          <h4 className="text-[13.5px] sm:text-[14px] font-extrabold text-slate-800 dark:text-slate-400 tracking-tight mb-2.5 flex items-center gap-1.5">
+            <AlertTriangle size={16} className="text-slate-600 dark:text-slate-500" />
             서비스 이용약관 관련 면책 고지
           </h4>
           <p className="text-[11.5px] sm:text-[12px] leading-relaxed font-medium break-keep">

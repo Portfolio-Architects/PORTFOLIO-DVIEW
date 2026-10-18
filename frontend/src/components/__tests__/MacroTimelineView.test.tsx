@@ -4,6 +4,8 @@ import '@testing-library/jest-dom';
 import {
   MacroTimelineView,
   formatDailyAvgPrice,
+  formatShortDateLabel,
+  computeTimelineAggregateMetrics,
   getGroupYear,
   TimelineGroup,
   TimelineItem,
@@ -108,9 +110,9 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       // Verify explicit highest price badge on first group
       const badge1 = screen.getByTestId('highest-price-badge-2026.08.21 (목)');
       expect(badge1).toBeInTheDocument();
-      expect(badge1).toHaveClass('bg-amber-50');
-      expect(badge1).toHaveClass('text-amber-700');
-      expect(badge1).toHaveTextContent('👑 최고가:');
+      expect(badge1).toHaveClass('bg-emerald-50');
+      expect(badge1).toHaveClass('text-emerald-700');
+      expect(badge1).toHaveTextContent('최고가:');
       expect(badge1).toHaveTextContent('동탄역 롯데캐슬');
       expect(badge1).toHaveTextContent('16억 5,000만');
 
@@ -131,7 +133,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       // The second group does not have explicit highestPriceApt, but contains 15.0 and 18.2 items -> 18.2 is max
       const badge2 = screen.getByTestId('highest-price-badge-2026.08.20 (수)');
       expect(badge2).toBeInTheDocument();
-      expect(badge2).toHaveTextContent('👑 최고가:');
+      expect(badge2).toHaveTextContent('최고가:');
       expect(badge2).toHaveTextContent('동탄린스트라우스 더레이크');
       expect(badge2).toHaveTextContent('18억 2,000만');
     });
@@ -663,4 +665,247 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(screen.getByText('2026.09.17 (목)')).toBeInTheDocument();
     });
   });
+
+  describe('11. Real-Time Summary KPI & High-CPC Financial Funnel Bar', () => {
+    it('accurately computes aggregate timeline metrics via computeTimelineAggregateMetrics', () => {
+      const emptyMetrics = computeTimelineAggregateMetrics([]);
+      expect(emptyMetrics.isValid).toBe(false);
+      expect(emptyMetrics.totalItems).toBe(0);
+      expect(emptyMetrics.avgPriceEokVal).toBe(0);
+
+      const metrics = computeTimelineAggregateMetrics(sampleGroups);
+      expect(metrics.isValid).toBe(true);
+      expect(metrics.totalItems).toBe(4);
+      expect(metrics.newHighCount).toBe(2);
+      expect(metrics.newHighRatio).toBe(50);
+      expect(metrics.risingCount).toBe(3);
+      expect(metrics.risingRatio).toBe(75);
+      // Avg of 16.5, 14.2, 15.0, 18.2 = 63.9 / 4 = 15.975 -> 15.98억
+      expect(metrics.avgPriceEokVal).toBe(15.98);
+      expect(metrics.minPriceEokVal).toBe(14.2);
+      expect(metrics.maxPriceEokVal).toBe(18.2);
+      expect(metrics.estimatedLtv70Eok).toBe(11.2);
+      expect(metrics.estimatedEquityEok).toBe(4.8);
+      expect(metrics.estimatedMonthlyPaymentMan).toBeGreaterThan(450);
+    });
+
+    it('formats short date labels cleanly via formatShortDateLabel', () => {
+      expect(formatShortDateLabel('2026.08.21 (목)')).toBe('08.21');
+      expect(formatShortDateLabel('2025년 12월 5일')).toBe('12/5');
+      expect(formatShortDateLabel('09.15')).toBe('09.15');
+      expect(formatShortDateLabel('')).toBe('');
+    });
+
+    it('renders summary KPI bar and triggers high-CPC financial calculators on CTA clicks', () => {
+      const onOpenMortgageMock = jest.fn();
+      const onOpenJeonseSafetyMock = jest.fn();
+      const onOpenTaxCalculatorMock = jest.fn();
+      const onSelectAptMock = jest.fn();
+
+      render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          selectedApt="동탄역 롯데캐슬"
+          onSelectApt={onSelectAptMock}
+          onOpenMortgage={onOpenMortgageMock}
+          onOpenJeonseSafety={onOpenJeonseSafetyMock}
+          onOpenTaxCalculator={onOpenTaxCalculatorMock}
+        />
+      );
+
+      const summaryBar = screen.getByTestId('timeline-summary-kpi-bar');
+      expect(summaryBar).toBeInTheDocument();
+      expect(summaryBar).toHaveTextContent('구간 평균 15.98억');
+      expect(summaryBar).toHaveTextContent('3.3㎡당 4,255만원');
+      expect(summaryBar).toHaveTextContent('최저 14.2억 ~ 최고 18.2억');
+      expect(summaryBar).toHaveTextContent('한도 약 11.2억');
+
+      const financeCtaBar = screen.getByTestId('timeline-finance-cta-bar');
+      expect(financeCtaBar).toBeInTheDocument();
+
+      const mortgageBtn = screen.getByTestId('timeline-cta-mortgage');
+      fireEvent.click(mortgageBtn);
+      expect(onOpenMortgageMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
+
+      const jeonseBtn = screen.getByTestId('timeline-cta-jeonse');
+      fireEvent.click(jeonseBtn);
+      expect(onOpenJeonseSafetyMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
+
+      const taxBtn = screen.getByTestId('timeline-cta-tax');
+      fireEvent.click(taxBtn);
+      expect(onOpenTaxCalculatorMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
+    });
+
+    it('gracefully handles malformed, zero, or negative priceVal items in computeTimelineAggregateMetrics and falls back to scrolling when callbacks are omitted', () => {
+      const malformedGroups: TimelineGroup[] = [
+        {
+          dateStr: '2026.08.21 (목)',
+          timestamp: 1787270400000,
+          items: [
+            {
+              aptName: '비정상 단지',
+              dong: '오산동',
+              priceEok: '0억',
+              priceVal: 0,
+              areaPyeong: 0,
+              area: 0,
+              floor: 1,
+              type: 'normal',
+              delta: 0,
+            },
+            {
+              aptName: '음수 단지',
+              dong: '오산동',
+              priceEok: '-5억',
+              priceVal: -5,
+              areaPyeong: -10,
+              area: -33,
+              floor: 1,
+              type: 'normal',
+              delta: -1,
+            },
+          ],
+        },
+      ];
+
+      const res = computeTimelineAggregateMetrics(malformedGroups);
+      expect(res.isValid).toBe(false);
+      expect(res.totalItems).toBe(0);
+      expect(res.estimatedMonthlyPaymentMan).toBe(0);
+
+      // Test scroll fallback when callbacks are omitted
+      const scrollIntoViewMock = jest.fn();
+      const dummyFinanceSection = document.createElement('div');
+      dummyFinanceSection.setAttribute('data-testid', 'high-cpc-finance-section');
+      dummyFinanceSection.scrollIntoView = scrollIntoViewMock;
+      document.body.appendChild(dummyFinanceSection);
+
+      render(<MacroTimelineView timelineGroups={sampleGroups} />);
+      fireEvent.click(screen.getByTestId('timeline-cta-mortgage'));
+      expect(scrollIntoViewMock).toHaveBeenCalled();
+
+      document.body.removeChild(dummyFinanceSection);
+    });
+  });
+
+  describe('12. Quick Date Jump Navigator & Date Filtering', () => {
+    it('renders date jump pills when multiple date groups exist, filters by selected date, auto-uncollapses target date, and resets when filter changes', () => {
+      const { rerender } = render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+          quickFilter="all"
+        />
+      );
+
+      const jumpBar = screen.getByTestId('timeline-date-jump-bar');
+      expect(jumpBar).toBeInTheDocument();
+
+      const allDatesBtn = screen.getByTestId('timeline-date-jump-all');
+      const datePill2 = screen.getByTestId('timeline-date-jump-pill-2026.08.20 (수)');
+
+      expect(allDatesBtn).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+      expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
+
+      // First collapse 2026.08.20 (수)
+      fireEvent.click(screen.getByTestId('timeline-date-header-2026.08.20 (수)'));
+      expect(screen.queryByTestId('timeline-card-동탄린스트라우스 더레이크')).not.toBeInTheDocument();
+
+      // Click datePill2 to isolate 2026.08.20 (수) -> should also auto-uncollapse it!
+      fireEvent.click(datePill2);
+      expect(datePill2).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+      expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
+
+      // Change upstream quickFilter -> should auto-reset selectedDateJump to null (all dates)
+      rerender(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={4}
+          quickFilter="high"
+        />
+      );
+      expect(screen.getByTestId('timeline-date-jump-all')).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+
+      // Verify new high count badge on date header
+      expect(screen.getByTestId('new-high-count-badge-2026.08.21 (목)')).toBeInTheDocument();
+    });
+  });
+
+  describe('13. Pagination Progress & Show-All Batch Action', () => {
+    it('renders pagination progress bar and show-all button when remaining items > 8', () => {
+      const setVisibleTimelineCountMock = jest.fn();
+      render(
+        <MacroTimelineView
+          timelineGroups={sampleGroups}
+          totalTimelineCardsCount={30}
+          visibleTimelineCount={8}
+          setVisibleTimelineCount={setVisibleTimelineCountMock}
+        />
+      );
+
+      expect(screen.getByTestId('timeline-load-more-progress')).toBeInTheDocument();
+      const showAllBtn = screen.getByTestId('timeline-show-all-btn');
+      expect(showAllBtn).toBeInTheDocument();
+
+      fireEvent.click(showAllBtn);
+      expect(setVisibleTimelineCountMock).toHaveBeenCalledWith(30);
+    });
+
+    it('prevents pagination slicing bias in KPI summary and date jump navigator when fullTimelineData is provided', () => {
+      const slicedDay1Only: TimelineGroup[] = [
+        {
+          dateStr: '2026.08.21 (목)',
+          dateKey: '2026-08-21',
+          timestamp: 1787270400000,
+          totalCount: 5,
+          items: [sampleGroups[0].items[0]], // Only 1 item (16.5억) visible in slice out of 5
+        },
+      ];
+
+      render(
+        <MacroTimelineView
+          displayedTimelineData={slicedDay1Only}
+          fullTimelineData={sampleGroups}
+          totalTimelineCardsCount={4}
+          visibleTimelineCount={1}
+          setVisibleTimelineCount={jest.fn()}
+          periodFilter="30d"
+          setPeriodFilter={jest.fn()}
+          selectedTimelineApt="동탄역 롯데캐슬"
+        />
+      );
+
+      // 1. Period tabs should only be rendered once in the header (no duplicate bar in TimelineFilterControls)
+      expect(screen.getAllByText('7일')).toHaveLength(1);
+      expect(screen.getAllByText('30일')).toHaveLength(1);
+
+      // 2. Summary KPI bar reflects fullTimelineData (4 items avg 15.98억), not just the 1 sliced item (16.5억)
+      const summaryBar = screen.getByTestId('timeline-summary-kpi-bar');
+      expect(summaryBar).toHaveTextContent('구간 평균 15.98억');
+
+      // 3. Finance CTA bar reflects selected apartment context
+      expect(screen.getByTestId('timeline-finance-cta-bar')).toHaveTextContent('[동탄역 롯데캐슬] 실거래 단지 맞춤 금융·세금 원클릭 진단');
+
+      // 4. Date header shows totalCount (5건) instead of sliced items.length (1건)
+      expect(screen.getByText('총 5건 거래')).toBeInTheDocument();
+
+      // 5. Date jump bar is visible even though displayedTimelineData has length 1, because fullTimelineData has 2 dates
+      const jumpBar = screen.getByTestId('timeline-date-jump-bar');
+      expect(jumpBar).toBeInTheDocument();
+      expect(screen.getByTestId('timeline-date-jump-all')).toHaveTextContent('모든 날짜 (2일)');
+
+      // 6. Clicking Day 2 pill (outside initial pagination slice) renders Day 2 items from fullTimelineData
+      const day2Pill = screen.getByTestId('timeline-date-jump-pill-2026.08.20 (수)');
+      fireEvent.click(day2Pill);
+      expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
+      // KPI bar updates to Day 2 average: (15.0 + 18.2) / 2 = 16.6억
+      expect(screen.getByTestId('timeline-summary-kpi-bar')).toHaveTextContent('구간 평균 16.6억');
+    });
+  });
 });
+

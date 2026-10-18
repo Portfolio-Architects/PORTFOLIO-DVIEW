@@ -1,0 +1,9 @@
+{
+  "status": "success",
+  "summary": {
+    "avg_price_krw": 81454,
+    "max_price_krw": 156000,
+    "total_transactions": 96,
+    "index_score": 114.2
+  }
+}

@@ -54,13 +54,13 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
       {/* Header with 3 Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-[#057e77] dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#057e77] dark:text-emerald-400 flex items-center justify-center shrink-0">
             <Flame size={18} />
           </div>
           <div>
             <h3 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight flex items-center gap-1.5">
               동탄 실시간 시장 랭킹 보드
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400">
+              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400">
                 LIVE
               </span>
             </h3>
@@ -71,7 +71,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
         </div>
 
         {/* Tab Controls */}
-        <div className="flex bg-zinc-100 dark:bg-zinc-800 p-1 rounded-xl shrink-0 overflow-x-auto">
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0 overflow-x-auto">
           <button
             type="button"
             data-testid="ranking-tab-high"
@@ -121,17 +121,17 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             key={`${item.rank}-${item.apartmentName}`}
             data-testid={`ranking-item-${item.rank}`}
             onClick={() => handleSelect?.(item.apartmentName)}
-            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-[#057e77]/40 dark:hover:border-emerald-400/40 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-all cursor-pointer group"
+            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-[#057e77]/40 dark:hover:border-emerald-400/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3 min-w-0">
               <span
                 className={`w-6 h-6 rounded-lg flex items-center justify-center text-[11px] font-black shrink-0 ${
                   item.rank === 1
-                    ? 'bg-amber-400 text-amber-950 shadow-xs'
+                    ? 'bg-emerald-400 text-slate-900 shadow-xs'
                     : item.rank === 2
                     ? 'bg-slate-200 text-slate-800 dark:bg-slate-700 dark:text-slate-100'
                     : item.rank === 3
-                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/60 dark:text-amber-200'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-slate-800/60 dark:text-emerald-200'
                     : 'text-tertiary font-bold'
                 }`}
               >
@@ -146,10 +146,10 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
                     <span
                       className={`px-1.5 py-0.2 rounded text-[9px] font-black shrink-0 ${
                         item.badgeType === 'high'
-                          ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-300 border border-rose-200/50'
+                          ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 border border-red-200/50'
                           : item.badgeType === 'gap'
-                          ? 'bg-teal-50 text-[#057e77] dark:bg-teal-950/40 dark:text-emerald-400 border border-teal-200/50'
-                          : 'bg-indigo-50 text-indigo-600 dark:bg-indigo-950/40 dark:text-indigo-300 border border-indigo-200/50'
+                          ? 'bg-emerald-50 text-[#057e77] dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50'
+                          : 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/50'
                       }`}
                     >
                       {item.badge || item.badgeText}

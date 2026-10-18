@@ -575,7 +575,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
 
       // Formulate reasonBreakdown
       const reasonBreakdown: string[] = [];
-      if (allSafe) reasonBreakdown.push('안심단지 🟢');
+      if (allSafe) reasonBreakdown.push('안심단지');
       
       if (deferredQuizAnswers) {
         if (deferredQuizAnswers.budget !== 'unlimited' && price > 0) {
@@ -684,11 +684,11 @@ const AIRecommendations = React.memo(function AIRecommendations({
 
   return (
     <div className="flex flex-col bg-surface rounded-2xl shadow-sm border border-border px-5 py-6 w-full relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-64 h-64 bg-teal-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="flex justify-between items-center gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-teal-50 dark:bg-teal-950/20 text-[#057e77] dark:text-emerald-400 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+          <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 rounded-xl flex items-center justify-center shadow-inner shrink-0">
             <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
           <div className="flex flex-col gap-0.5">
@@ -721,7 +721,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={handleShare}
-            className="p-2 hover:bg-neutral-100 dark:hover:bg-zinc-800 rounded-lg text-secondary hover:text-[#057e77] dark:hover:text-emerald-400 transition-all cursor-pointer"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-secondary hover:text-[#057e77] dark:hover:text-emerald-400 transition-all cursor-pointer"
             title="카카오톡 결과 공유"
           >
             <Share2 size={16} />
@@ -748,7 +748,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
               <div className={`w-7 h-7 rounded-lg font-black text-[12px] flex items-center justify-center shrink-0 border ${
                 index === 0 
                   ? 'bg-[#057e77] text-white border-transparent' 
-                  : 'bg-surface text-secondary dark:bg-zinc-900 border-border/40'
+                  : 'bg-surface text-secondary dark:bg-slate-900 border-border/40'
               }`}>
                 {index + 1}
               </div>
@@ -763,7 +763,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
                     #{item.tag}
                   </span>
                   {item.reasonBreakdown?.map((b) => (
-                    <span key={b} className="text-[9.5px] font-extrabold bg-[#fff3e0]/60 text-teal-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-1.5 py-0.5 rounded-[4px] border border-teal-500/10">
+                    <span key={b} className="text-[9.5px] font-extrabold bg-[#fff3e0]/60 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-1.5 py-0.5 rounded-[4px] border border-emerald-500/10">
                       {b}
                     </span>
                   ))}
@@ -793,15 +793,15 @@ const AIRecommendations = React.memo(function AIRecommendations({
               {/* Risks Mini Traffic Lights */}
               <div className="flex gap-1 mt-0 sm:mt-1 shrink-0">
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[4px] border ${
-                  item.risks.jeonse === 'danger' ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border-rose-200/20' :
-                  item.risks.jeonse === 'warning' ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200/20' :
+                  item.risks.jeonse === 'danger' ? 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border-red-200/20' :
+                  item.risks.jeonse === 'warning' ? 'bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 border-red-200/20' :
                   'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-200/20'
                 }`}>
                   역전세
                 </span>
                 <span className={`text-[9px] font-black px-1.5 py-0.5 rounded-[4px] border ${
-                  item.risks.liquidity === 'danger' ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/20 dark:text-rose-400 border-rose-200/20' :
-                  item.risks.liquidity === 'warning' ? 'bg-amber-50 text-amber-600 dark:bg-amber-950/20 dark:text-amber-400 border-amber-200/20' :
+                  item.risks.liquidity === 'danger' ? 'bg-red-50 text-red-600 dark:bg-red-950/20 dark:text-red-400 border-red-200/20' :
+                  item.risks.liquidity === 'warning' ? 'bg-red-50 text-red-700 dark:bg-red-950/20 dark:text-red-400 border-red-200/20' :
                   'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/20 dark:text-emerald-400 border-emerald-200/20'
                 }`}>
                   유동성
@@ -825,8 +825,8 @@ const AIRecommendations = React.memo(function AIRecommendations({
           className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#057e77] flex items-center gap-3.5 px-4 py-3 bg-gradient-to-r from-[#057e77]/8 to-surface dark:from-emerald-500/5 border border-[#057e77]/15 hover:border-[#057e77]/40 dark:border-emerald-500/20 dark:hover:border-emerald-500/40 rounded-xl shadow-[0_2px_12px_rgba(13,148,136,0.02)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.06)] cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-200 group relative overflow-hidden"
           aria-label={recommendationResult.isFallback ? '나만의 라이프스타일 퀴즈 풀기' : `${recommendationResult.items[0].name} 최적 대출 한도 조회`}
         >
-          <div className="absolute top-0 right-0 w-20 h-20 bg-teal-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform" />
-          <div className="w-9 h-9 bg-teal-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 rounded-lg flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+          <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform" />
+          <div className="w-9 h-9 bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 rounded-lg flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
             <TrendingUp size={16} />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0">

@@ -332,8 +332,8 @@ export { TimelineItemCard };
 
     // Badge "신고가" should render
     expect(screen.getByText('신고가')).toBeInTheDocument();
-    // Delta should display ▲ 200만
-    expect(screen.getAllByText(/▲ 200만/).length).toBeGreaterThan(0);
+    // Delta should display + 200만
+    expect(screen.getAllByText(/\+ 200만/).length).toBeGreaterThan(0);
   });
 
   it('6. Hover Callback Trigger Test: mouseenter fires onCardHover and onDetailsHover', () => {

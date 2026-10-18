@@ -32,8 +32,10 @@ const {
 } = require('./pipeline/apartmentSummarizer');
 const {
   writeSummaryFiles,
-  writeApartmentChunks
+  writeApartmentChunks,
+  migrateLegacyPathologicalFiles
 } = require('./pipeline/fileGenerators');
+const { sanitizeAptKey } = require('../pipeline/core/normalizer');
 
 // Firestore 'transactions' & 'transactionSync' 레코드 검증을 위한 Zod 스키마
 const TransactionRecordSchema = z.object({
@@ -68,8 +70,8 @@ let serviceAccount;
 let isOffline = process.env.OFFLINE_MODE === 'true';
 
 const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
-const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY || process.env.GOOGLE_PRIVATE_KEY;
+const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
 const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'portfolio-dtdls';
 
 if (!isOffline) {
@@ -93,10 +95,19 @@ if (!isOffline) {
   }
 }
 
+if (serviceAccount && typeof serviceAccount.private_key === 'string') {
+  serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+}
+
 if (!isOffline && !admin.apps.length) {
   try {
     const config = serviceAccount ? { credential: admin.credential.cert(serviceAccount) } : { projectId };
     admin.initializeApp(config);
+    try {
+      admin.firestore().settings({ ignoreUndefinedProperties: true, preferRest: true });
+    } catch {
+      // settings already applied
+    }
   } catch (err) {
     console.warn('⚠️ Firebase Admin 초기화 실패, 오프라인 모드로 전환합니다:', err.message);
     isOffline = true;
@@ -104,6 +115,54 @@ if (!isOffline && !admin.apps.length) {
 }
 
 const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
+
+const DEFAULT_DONG_MAP = {
+  '서해더블루90-2': '반송동',
+  '서해더블루106-7': '반송동',
+  '서해더블루93-8': '반송동',
+  '동탄하이페리온': '반송동',
+  '동탄2엘에이치씨26단지행복주택': '송동',
+  '동탄2엘에이치26단지아파트에이65블록': '송동',
+  '화성동탄2하우스디엔에이치에프': '산척동',
+  '화성동탄2엘에이치35단지3511-15': '산척동',
+  '화성동탄2엘에이치35단지3501-7': '산척동',
+  '화성동탄2LH2단지': '영천동',
+  '동탄2LH2단지': '영천동',
+  '엔에이치에프엘크루': '장지동',
+  '센트럴써밋': '산척동',
+  '동탄2엘에이치행복주택28단지': '장지동',
+  '동탄2엘에이치4단지': '영천동',
+  '동탄2엘에이치40단지': '신동',
+  '동탄2엘에이치1단지에이6블록': '영천동',
+  '동탄2신동포레경기행복주택': '신동',
+  '동탄2LH38단지': '신동',
+  '동탄238단지행복주택A-54BL': '신동',
+  '새강마을휴먼시아5단지': '반송동',
+  '동탄호수공원경기행복주택': '산척동',
+  '휴먼시아7단지아파트': '능동',
+  '화성동탄상록리슈빌아파트영구임대': '영천동',
+  '동탄에스원센트로빌': '반송동',
+  '동탄신도시금강펜테리움7차센트럴파크': '신동',
+  '엔에이치에프경남아너스빌': '목동',
+  '동탄능동마을상록예가': '능동',
+  '동탄호수공원리슈빌': '장지동',
+  '센트럴S타운': '반송동',
+  '금강펜테리움6차센트럴파크': '신동',
+  '동탄스카이뷰빌딩': '반송동',
+  '에스원스마트빌': '능동',
+  '동탄파크릭스A51-1BL아파트': '신동',
+  '동탄파크릭스A51-2BL아파트': '신동',
+  '동탄파크릭스A52BL아파트': '신동',
+  '동탄파크릭스A55BL아파트': '신동',
+  '동탄숨마데시앙': '신동',
+  '능동마을주공아파트': '능동',
+  '제일풍경채퍼스티어': '신동',
+  '동탄역금강펜테리움더시글로': '영천동',
+  '동탄아테라파밀리에': '신동',
+  '동탄호수공원자연앤자이': '장지동',
+  '풍림아이원THELAKE': '장지동',
+  '동탄역자이': '영천동',
+};
 
 function parseCsvLine(line) {
   const result = [];
@@ -124,6 +183,14 @@ function parseCsvLine(line) {
   return result;
 }
 
+function getCanonicalAptKey(name) {
+  let key = sanitizeAptKey(name);
+  if (key.includes('금호어울림레이크1차')) {
+    key = '금호어울림레이크';
+  }
+  return key;
+}
+
 async function fetchTypeMap() {
   const typeMap = {};
   try {
@@ -135,14 +202,21 @@ async function fetchTypeMap() {
       for (let i = 1; i < lines.length; i++) {
         const cols = parseCsvLine(lines[i]);
         if (cols.length < 3) continue;
-        const aptName = normalizeAptName(cols[1] || '');
+        const rawAptName = cols[1] || '';
+        const aptName = normalizeAptName(rawAptName);
+        const canonName = getCanonicalAptKey(rawAptName);
         const area = (cols[2] || '').trim();
         const typeM2Str = (cols[3] || '').trim();
         if (aptName && area && typeM2Str) {
-          if (!typeMap[aptName]) typeMap[aptName] = {};
           const match = typeM2Str.match(/\d+(\.\d+)?/);
           if (match) {
-            typeMap[aptName][area] = parseFloat(match[0]) * 0.3025;
+            const val = parseFloat(match[0]) * 0.3025;
+            if (!typeMap[aptName]) typeMap[aptName] = {};
+            typeMap[aptName][area] = val;
+            if (canonName) {
+              if (!typeMap[canonName]) typeMap[canonName] = {};
+              typeMap[canonName][area] = val;
+            }
           }
         }
       }
@@ -154,9 +228,26 @@ async function fetchTypeMap() {
 }
 
 function loadLocalDongMap() {
-  const dongMap = {};
-  const validTxKeys = new Set();
-  const allAptTxKeys = new Set();
+  const dongMap = { ...DEFAULT_DONG_MAP };
+  const validTxKeys = new Set(Object.keys(DEFAULT_DONG_MAP));
+  const allAptTxKeys = new Set(Object.keys(DEFAULT_DONG_MAP));
+  try {
+    if (fs.existsSync(OUTPUT_PATH)) {
+      const existingSummary = JSON.parse(fs.readFileSync(OUTPUT_PATH, 'utf-8'));
+      if (existingSummary && existingSummary.summary) {
+        for (const [k, v] of Object.entries(existingSummary.summary)) {
+          if (v && v.dong && String(v.dong).trim()) {
+            const d = String(v.dong).trim();
+            dongMap[k] = d;
+            dongMap[normalizeAptName(k)] = d;
+            dongMap[getCanonicalAptKey(k)] = d;
+          }
+        }
+      }
+    }
+  } catch {
+    // ignore existing summary parse error
+  }
   try {
     const aptsPath = path.resolve(__dirname, '../public/data/apartments-by-dong.json');
     if (fs.existsSync(aptsPath)) {
@@ -167,17 +258,28 @@ function loadLocalDongMap() {
             const name = apt.name || '';
             const txKey = apt.txKey || name;
             const normName = normalizeAptName(name);
+            const canonName = getCanonicalAptKey(name);
             const normTxKey = normalizeAptName(txKey);
+            const canonTxKey = getCanonicalAptKey(txKey);
             if (dong) {
               if (normName) dongMap[normName] = dong;
+              if (canonName) dongMap[canonName] = dong;
               if (normTxKey) dongMap[normTxKey] = dong;
+              if (canonTxKey) dongMap[canonTxKey] = dong;
             }
             if (normTxKey) {
               validTxKeys.add(normTxKey);
               allAptTxKeys.add(normTxKey);
             }
+            if (canonTxKey) {
+              validTxKeys.add(canonTxKey);
+              allAptTxKeys.add(canonTxKey);
+            }
             if (normName) {
               validTxKeys.add(normName);
+            }
+            if (canonName) {
+              validTxKeys.add(canonName);
             }
           }
         }
@@ -216,13 +318,23 @@ async function fetchDongMap() {
             
             if (name) {
               const normName = normalizeAptName(name);
-              if (dong) dongMap[normName] = dong;
+              const canonName = getCanonicalAptKey(name);
+              if (dong) {
+                if (normName) dongMap[normName] = dong;
+                if (canonName) dongMap[canonName] = dong;
+              }
               if (!txKey) txKey = name;
               const normTxKey = normalizeAptName(txKey);
-              if (dong) dongMap[normTxKey] = dong;
+              const canonTxKey = getCanonicalAptKey(txKey);
+              if (dong) {
+                if (normTxKey) dongMap[normTxKey] = dong;
+                if (canonTxKey) dongMap[canonTxKey] = dong;
+              }
               validTxKeys.add(normTxKey);
+              validTxKeys.add(canonTxKey);
               validTxKeys.add(normName);
-              allAptTxKeys.add(normTxKey);
+              validTxKeys.add(canonName);
+              allAptTxKeys.add(canonTxKey);
             }
           }
         }
@@ -236,14 +348,6 @@ async function fetchDongMap() {
 
 function getLocalAptTxKeys() {
   return loadLocalDongMap().allAptTxKeys;
-}
-
-function getCanonicalAptKey(name) {
-  let key = normalizeAptName(name);
-  if (key === '금호어울림레이크1차' || key === '장지동금호어울림레이크1차') {
-    key = '금호어울림레이크';
-  }
-  return key;
 }
 
 function isCancelledTransaction(t) {
@@ -263,6 +367,257 @@ function isCancelledTransaction(t) {
   return false;
 }
 
+const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
+const MOLIT_LAWD_CDS = ['41590', '41597'];
+const MOLIT_TRADE_URL = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
+const MOLIT_RENT_URL = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
+
+function extractMolitItems(rawData) {
+  const text = typeof rawData === 'string' ? rawData : JSON.stringify(rawData);
+  const isXml = typeof rawData === 'string' && rawData.trim().startsWith('<');
+  if (isXml) {
+    const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/i) ||
+                            text.match(/<returnReasonCode>([^<]*)<\/returnReasonCode>/i);
+    const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+    if ((resultCode && resultCode !== '00' && resultCode !== '000') || text.includes('<OpenAPI_ServiceResponse>') || text.includes('<cmmMsgHeader>')) {
+      return { totalCount: 0, items: [], isError: true };
+    }
+    const totalMatch = text.match(/<totalCount>(\d+)<\/totalCount>/);
+    const totalCount = totalMatch ? parseInt(totalMatch[1], 10) : 0;
+    if (totalCount === 0) return { totalCount: 0, items: [], isError: false };
+    const itemsXml = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+    const items = itemsXml.map((itemXml) => {
+      const tagMap = {};
+      const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
+      let tagMatch;
+      while ((tagMatch = tagRegex.exec(itemXml)) !== null) {
+        tagMap[tagMatch[1]] = tagMatch[2].trim();
+      }
+      return tagMap;
+    });
+    return { totalCount, items, isError: false };
+  }
+  const jsonResultCode = rawData?.response?.header?.resultCode || rawData?.OpenAPI_ServiceResponse?.cmmMsgHeader?.returnReasonCode;
+  if (jsonResultCode && jsonResultCode !== '000' && jsonResultCode !== '00') {
+    return { totalCount: 0, items: [], isError: true };
+  }
+  const body = rawData?.response?.body;
+  if (!body) return { totalCount: 0, items: [], isError: false };
+  const totalCount = Number(body.totalCount) || 0;
+  let items = body.items?.item || [];
+  if (!Array.isArray(items)) items = items ? [items] : [];
+  return { totalCount, items, isError: false };
+}
+
+function getMolitField(item, ...keys) {
+  for (const k of keys) {
+    if (item && item[k] !== undefined && item[k] !== null && String(item[k]).trim() !== '') {
+      return String(item[k]).trim();
+    }
+  }
+  return '';
+}
+
+async function fetchRecentMolitDirect(byApt, now = new Date()) {
+  const { fetchWithRetry: fetchTradeWithRetry, DEFAULT_API_KEY } = require('./fetch-transactions');
+  const { fetchWithRetry: fetchRentWithRetry } = require('./fetch-rent');
+  const apiKey = (process.env.BUILDING_API_KEY || DEFAULT_API_KEY).trim();
+  if (!apiKey) return { tradeAdded: 0, rentAdded: 0 };
+
+  const targetMonths = [];
+  for (let i = 0; i < 2; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    targetMonths.push(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+  }
+  targetMonths.sort();
+
+  console.log(`📡 국토부 OpenAPI 직통/릴레이 최신 실거래 보강 수집 중 (${targetMonths.join(', ')})...`);
+  let tradeAdded = 0;
+  let rentAdded = 0;
+
+  for (const ym of targetMonths) {
+    const seenTradeIds = new Set();
+    for (const lawdCd of MOLIT_LAWD_CDS) {
+      let page = 1;
+      let totalCount = 0;
+      const districtOcc = new Map();
+      do {
+        const url = `${MOLIT_TRADE_URL}?serviceKey=${encodeURIComponent(apiKey)}&LAWD_CD=${lawdCd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
+        try {
+          const res = await fetchTradeWithRetry(url, { timeout: 10000 }, 2, 800);
+          const parsedEnv = extractMolitItems(res.data);
+          if (parsedEnv.isError || parsedEnv.totalCount === 0 || parsedEnv.items.length === 0) break;
+          totalCount = parsedEnv.totalCount;
+
+          for (const item of parsedEnv.items) {
+            const dong = getMolitField(item, 'umdNm', '법정동', 'dong');
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
+            const aptName = getMolitField(item, 'aptNm', '아파트');
+            const price = parseInt(getMolitField(item, 'dealAmount', '거래금액').replace(/,/g, ''), 10) || 0;
+            const area = parseFloat(getMolitField(item, 'excluUseAr', '전용면적')) || 0;
+            const contractDay = getMolitField(item, 'dealDay', '일').padStart(2, '0');
+            const floor = parseInt(getMolitField(item, 'floor', '층'), 10) || 0;
+            const buildYear = parseInt(getMolitField(item, 'buildYear', '건축년도'), 10) || 0;
+            const contractYear = parseInt(ym.substring(0, 4), 10) || 0;
+            if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) continue;
+
+            const baseKey = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const occ = (districtOcc.get(baseKey) || 0) + 1;
+            districtOcc.set(baseKey, occ);
+            const txId = `${baseKey}_${occ}`;
+            if (seenTradeIds.has(txId)) continue;
+            seenTradeIds.add(txId);
+
+            const cancelDate = getMolitField(item, 'cdealDay', '해제사유발생일');
+            const cdealType = getMolitField(item, 'cdealType', '해제여부');
+            const dealingGbn = getMolitField(item, 'dealingGbn', '거래유형');
+            const dealType = dealingGbn || (cdealType && cdealType !== 'O' && cdealType !== '해제' ? cdealType : '') || '매매';
+
+            const rawRecord = {
+              aptName,
+              contractYm: ym,
+              contractDay,
+              price,
+              deposit: 0,
+              monthlyRent: 0,
+              dealType,
+              area,
+              areaPyeong: 0,
+              floor,
+              dong,
+              buildYear,
+              cancelDate,
+              cdealDay: cancelDate,
+              cdealType,
+            };
+            const valid = TransactionRecordSchema.safeParse(rawRecord);
+            if (!valid.success) continue;
+
+            const key = getCanonicalAptKey(aptName);
+            if (!byApt[key]) byApt[key] = [];
+            const isCanceled = isCancelledTransaction(rawRecord);
+            byApt[key].push({
+              aptName,
+              contractYm: ym,
+              contractDay,
+              price,
+              priceEok: formatPriceEok(price),
+              deposit: 0,
+              monthlyRent: 0,
+              reqGb: '',
+              rnuYn: '',
+              area,
+              areaPyeong: 0,
+              floor,
+              dong,
+              dealType,
+              contractDate: `${ym}${contractDay}`,
+              cancelDate: cancelDate || (isCanceled ? '취소' : ''),
+              cdealDay: cancelDate,
+              cdealType,
+              isCanceled,
+            });
+            tradeAdded++;
+          }
+          page++;
+        } catch (err) {
+          console.warn(`   ⚠️ [Direct Trade Sync] ${ym} (${lawdCd}) page ${page} 스킵: ${err.message}`);
+          break;
+        }
+      } while ((page - 1) * 1000 < totalCount);
+    }
+
+    const seenRentIds = new Set();
+    for (const lawdCd of MOLIT_LAWD_CDS) {
+      let page = 1;
+      let totalCount = 0;
+      const districtOcc = new Map();
+      do {
+        const url = `${MOLIT_RENT_URL}?serviceKey=${encodeURIComponent(apiKey)}&LAWD_CD=${lawdCd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000&_type=json`;
+        try {
+          const res = await fetchRentWithRetry(url, { timeout: 10000 }, 2, 800);
+          const parsedEnv = extractMolitItems(res.data);
+          if (parsedEnv.isError || parsedEnv.totalCount === 0 || parsedEnv.items.length === 0) break;
+          totalCount = parsedEnv.totalCount;
+
+          for (const item of parsedEnv.items) {
+            const dong = getMolitField(item, 'umdNm', '법정동', 'dong');
+            if (!DONGTAN_DONGS.some(d => dong.includes(d))) continue;
+            const aptName = getMolitField(item, 'aptNm', '아파트');
+            const deposit = parseInt(getMolitField(item, 'deposit', '보증금액', '보증금').replace(/,/g, ''), 10) || 0;
+            const monthlyRent = parseInt(getMolitField(item, 'monthlyRent', '월세금액', '월세').replace(/,/g, ''), 10) || 0;
+            const dealType = monthlyRent > 0 ? '월세' : '전세';
+            const area = parseFloat(getMolitField(item, 'excluUseAr', '전용면적')) || 0;
+            const contractDay = getMolitField(item, 'dealDay', '일').padStart(2, '0');
+            const floor = parseInt(getMolitField(item, 'floor', '층'), 10) || 0;
+            const buildYear = parseInt(getMolitField(item, 'buildYear', '건축년도'), 10) || 0;
+            const contractYear = parseInt(ym.substring(0, 4), 10) || 0;
+            if (buildYear > 0 && contractYear > 0 && contractYear < buildYear) continue;
+
+            const baseKey = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const occ = (districtOcc.get(baseKey) || 0) + 1;
+            districtOcc.set(baseKey, occ);
+            const txId = `${baseKey}_${occ}`;
+            if (seenRentIds.has(txId)) continue;
+            seenRentIds.add(txId);
+
+            const reqGb = getMolitField(item, 'contractType', '계약구분');
+            const rnuYn = getMolitField(item, 'useRRRight', '갱신요구권사용여부');
+
+            const rawRecord = {
+              aptName,
+              contractYm: ym,
+              contractDay,
+              price: deposit,
+              deposit,
+              monthlyRent,
+              dealType,
+              area,
+              areaPyeong: 0,
+              floor,
+              dong,
+              buildYear,
+            };
+            const valid = TransactionRecordSchema.safeParse(rawRecord);
+            if (!valid.success) continue;
+
+            const key = getCanonicalAptKey(aptName);
+            if (!byApt[key]) byApt[key] = [];
+            byApt[key].push({
+              aptName,
+              contractYm: ym,
+              contractDay,
+              price: deposit,
+              priceEok: formatPriceEok(deposit) + (monthlyRent ? `/${monthlyRent}` : ''),
+              deposit,
+              monthlyRent,
+              reqGb,
+              rnuYn,
+              area,
+              areaPyeong: 0,
+              floor,
+              dong,
+              dealType,
+              contractDate: `${ym}${contractDay}`,
+              cancelDate: '',
+              cdealDay: '',
+              cdealType: '',
+              isCanceled: false,
+            });
+            rentAdded++;
+          }
+          page++;
+        } catch (err) {
+          console.warn(`   ⚠️ [Direct Rent Sync] ${ym} (${lawdCd}) page ${page} 스킵: ${err.message}`);
+          break;
+        }
+      } while ((page - 1) * 1000 < totalCount);
+    }
+  }
+  console.log(`   ✅ 국토부 최신 실거래 보강 완료: 매매 ${tradeAdded}건, 전월세 ${rentAdded}건 병합`);
+  return { tradeAdded, rentAdded };
+}
+
 async function main() {
   const processedDocIds = new Set();
   let isFullSync = process.argv.includes('--full');
@@ -275,6 +630,7 @@ async function main() {
 
   if (!isFullSync && fs.existsSync(TX_DATA_DIR)) {
     console.log('📥 [Incremental] 로컬 JSON 캐시(기존 실거래가)를 로드합니다...');
+    migrateLegacyPathologicalFiles(TX_DATA_DIR);
     let indexList = [];
     const indexPath = path.join(TX_DATA_DIR, '_index.json');
     if (fs.existsSync(indexPath)) {
@@ -284,7 +640,7 @@ async function main() {
         console.warn('⚠️ 로컬 _index.json 파싱 실패, 디렉토리 파일 목록에서 재구성합니다:', e.message);
       }
     }
-    // Reconstruct / supplement index from fs.readdirSync(TX_DATA_DIR) to ensure all 182 complexes are loaded
+    // Reconstruct / supplement index from fs.readdirSync(TX_DATA_DIR) to ensure all complexes are loaded
     const diskFiles = fs.readdirSync(TX_DATA_DIR)
       .filter(f => f.endsWith('.json') && !f.endsWith('-recent.json') && f !== '_index.json')
       .map(f => f.replace('.json', ''));
@@ -293,25 +649,28 @@ async function main() {
     for (const aptName of indexList) {
       let filepath = path.join(TX_DATA_DIR, `${aptName}.json`);
       if (!fs.existsSync(filepath)) {
+        filepath = path.join(TX_DATA_DIR, `${getCanonicalAptKey(aptName)}.json`);
+      }
+      if (!fs.existsSync(filepath)) {
         filepath = path.join(TX_DATA_DIR, `${normalizeAptName(aptName)}.json`);
       }
       if (fs.existsSync(filepath)) {
         try {
+          const canonicalKey = getCanonicalAptKey(aptName);
           const records = JSON.parse(fs.readFileSync(filepath, 'utf8'));
           const filteredRecords = records
             .map(d => ({
               ...d,
-              aptName: d.aptName || aptName,
-              txKey: d.txKey || aptName,
+              aptName: d.aptName || canonicalKey,
+              txKey: canonicalKey,
               isCanceled: isCancelledTransaction(d),
               contractDate: d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`,
               dong: d.dong || ''
             }))
             .filter(d => {
               const hasValidYm = d.contractYm && d.contractYm.length === 6 && /^\d{6}$/.test(d.contractYm);
-              return hasValidYm && (isOffline ? true : d.contractDate < cutoffDate);
+              return Boolean(hasValidYm);
             });
-          const canonicalKey = getCanonicalAptKey(aptName);
           if (!byApt[canonicalKey]) byApt[canonicalKey] = [];
           byApt[canonicalKey].push(...filteredRecords);
         } catch (err) {
@@ -499,6 +858,10 @@ async function main() {
     }
   }
 
+  if (process.env.OFFLINE_MODE !== 'true' && process.env.SKIP_MOLIT_DIRECT_FETCH !== 'true') {
+    await fetchRecentMolitDirect(byApt, now);
+  }
+
   // raw 거래 데이터 중복 제거
   console.log('🧹 raw 거래 데이터 중복 제거 수행 중...');
   const getRichnessScore = (item, isRent) => {
@@ -544,12 +907,21 @@ async function main() {
         const existing = seen.get(key);
         const existingScore = getRichnessScore(existing, isRent);
         const newScore = getRichnessScore(t, isRent);
-        const winner = newScore > existingScore ? t : existing;
+        const winner = newScore >= existingScore ? t : existing;
         if (isCancelledTransaction(existing) || isCancelledTransaction(t)) {
           winner.isCanceled = true;
           if (!winner.cancelDate) {
-            winner.cancelDate = existing.cancelDate || t.cancelDate || '취소';
+            winner.cancelDate = t.cancelDate || existing.cancelDate || t.cdealDay || existing.cdealDay || '취소';
           }
+          if (!winner.cdealDay && (t.cdealDay || existing.cdealDay)) {
+            winner.cdealDay = t.cdealDay || existing.cdealDay;
+          }
+          if (!winner.cdealType && (t.cdealType || existing.cdealType)) {
+            winner.cdealType = t.cdealType || existing.cdealType;
+          }
+        }
+        if (!winner.dong && (t.dong || existing.dong)) {
+          winner.dong = t.dong || existing.dong;
         }
         seen.set(key, winner);
       }
@@ -580,18 +952,20 @@ async function main() {
   const { dongMap, validTxKeys, allAptTxKeys } = dongMapResult;
   console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료. 유효 아파트: ${validTxKeys.size}개. 원본 txKey: ${allAptTxKeys.size}개`);
 
-  // Guarantee all 182 complexes in byApt / TX_DATA_DIR are preserved in validTxKeys and allAptTxKeys
+  // Guarantee all complexes in byApt / TX_DATA_DIR are preserved in validTxKeys and allAptTxKeys
   Object.keys(byApt).forEach(k => {
+    const canonK = getCanonicalAptKey(k);
     validTxKeys.add(k);
+    validTxKeys.add(canonK);
     validTxKeys.add(normalizeAptName(k));
-    allAptTxKeys.add(normalizeAptName(k));
+    allAptTxKeys.add(canonK);
   });
 
   // 18년(216개월) 거시 트렌드 수집용 객체 초기화
   const { macroTrendData, trendMonths } = initMacroTrendData(216, 2, now);
 
   // 필터링된 아파트 목록
-  const filteredApts = Object.keys(byApt).filter(aptName => validTxKeys.has(aptName) || validTxKeys.has(normalizeAptName(aptName)));
+  const filteredApts = Object.keys(byApt).filter(aptName => validTxKeys.has(aptName) || validTxKeys.has(normalizeAptName(aptName)) || validTxKeys.has(getCanonicalAptKey(aptName)));
   console.log(`🧹 전체 ${Object.keys(byApt).length}개 중 동탄 지역 ${filteredApts.length}개 아파트만 필터링 완료`);
 
   const allSaleTxs = [];
@@ -617,7 +991,8 @@ async function main() {
     // 공급면적(분양평수) 평당 가격으로 재조정
     const getSupplyPyeong = (t) => {
       const dbAptName = normalizeAptName(aptName);
-      const supplyPyeong = typeMap[dbAptName]?.[String(t.area)];
+      const canonAptName = getCanonicalAptKey(aptName);
+      const supplyPyeong = typeMap[dbAptName]?.[String(t.area)] || typeMap[canonAptName]?.[String(t.area)];
       if (supplyPyeong) return supplyPyeong;
       return t.area * 0.3025 * 1.33; // Fallback
     };
@@ -680,7 +1055,7 @@ async function main() {
   const targetApts = Array.from(new Set(
     (combinedApts.size > 0 ? Array.from(combinedApts) : filteredApts)
       .filter(Boolean)
-      .map(k => normalizeAptName(k))
+      .map(k => getCanonicalAptKey(k))
   ));
 
   const chunkResult = writeApartmentChunks(TX_DATA_DIR, targetApts, byApt, isFullSync);
@@ -692,7 +1067,18 @@ async function main() {
   process.exit(0);
 }
 
-main().catch(err => {
-  console.error('❌ 동기화 실패:', err.message);
-  process.exit(1);
-});
+module.exports = {
+  main,
+  fetchRecentMolitDirect,
+  extractMolitItems,
+  isCancelledTransaction,
+  getCanonicalAptKey,
+};
+
+if (require.main === module) {
+  main().catch(err => {
+    console.error('❌ 동기화 실패:', err.message);
+    process.exit(1);
+  });
+}
+

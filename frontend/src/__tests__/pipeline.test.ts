@@ -1153,7 +1153,7 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       expect(summary.earliestPrice).toBe(40000);
     });
 
-    it('should verify catalog complexes and transactions scale integrity (180+ complex files, 160,000+ historical records)', () => {
+    it('should verify catalog complexes and transactions scale integrity (180+ complex files, 160,000+ historical records, and non-empty recent-transactions.json)', () => {
       const txDataDir = path.resolve(__dirname, '../../public/tx-data');
       if (fs.existsSync(txDataDir)) {
         const files = fs.readdirSync(txDataDir).filter((f: string) => f.endsWith('.json') && !f.endsWith('-recent.json') && f !== '_index.json');
@@ -1166,6 +1166,343 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
         });
         expect(totalTxs).toBeGreaterThan(160000);
       }
+
+      const recentTxPath = path.resolve(__dirname, '../../public/data/recent-transactions.json');
+      expect(fs.existsSync(recentTxPath)).toBe(true);
+      const recentTxs = JSON.parse(fs.readFileSync(recentTxPath, 'utf8'));
+      expect(Array.isArray(recentTxs)).toBe(true);
+      expect(recentTxs.length).toBeGreaterThan(100);
     });
+
+    it('should fall back from dead proxy agent to direct connection on retry in fetchTradeWithRetry and fetchRentWithRetry', async () => {
+      const axiosGetSpy = jest.spyOn(axios, 'get');
+      const fakeProxyAgent = { proxy: 'http://dead-proxy:8080' };
+
+      try {
+        const capturedOptions: any[] = [];
+        axiosGetSpy.mockImplementation(async (_url: string, opts: any) => {
+          capturedOptions.push({ ...opts });
+          if (capturedOptions.length === 1) {
+            const proxyErr: any = new Error('connect ETIMEDOUT dead-proxy:8080');
+            proxyErr.code = 'ETIMEDOUT';
+            throw proxyErr;
+          }
+          return { status: 200, data: '<response><header><resultCode>000</resultCode></header></response>' };
+        });
+
+        const res = await fetchTradeWithRetry(
+          'https://apis.data.go.kr/test-proxy',
+          { httpAgent: fakeProxyAgent, httpsAgent: fakeProxyAgent, proxy: false },
+          3,
+          5
+        );
+        expect(res.status).toBe(200);
+        expect(capturedOptions.length).toBe(2);
+        // Attempt 1 used proxy agent
+        expect(capturedOptions[0].httpAgent).toBe(fakeProxyAgent);
+        expect(capturedOptions[0].httpsAgent).toBe(fakeProxyAgent);
+        // Attempt 2 bypassed dead proxy agent and fell back to direct connection
+        expect(capturedOptions[1].httpAgent).toBeUndefined();
+        expect(capturedOptions[1].httpsAgent).toBeUndefined();
+
+        // Also verify fetchRentWithRetry proxy fallback
+        capturedOptions.length = 0;
+        const rentRes = await fetchRentWithRetry(
+          'https://apis.data.go.kr/test-rent-proxy',
+          { httpAgent: fakeProxyAgent, httpsAgent: fakeProxyAgent, proxy: false },
+          3,
+          5
+        );
+        expect(rentRes.status).toBe(200);
+        expect(capturedOptions.length).toBe(2);
+        expect(capturedOptions[0].httpAgent).toBe(fakeProxyAgent);
+        expect(capturedOptions[1].httpAgent).toBeUndefined();
+      } finally {
+        axiosGetSpy.mockRestore();
+      }
+    });
+
+    it('should accept both 00 and 000 in cron route parseGovApiXmlEnvelope and reject error envelopes', () => {
+      const { TextEncoder, TextDecoder } = require('util');
+      if (!global.TextEncoder) global.TextEncoder = TextEncoder;
+      if (!global.TextDecoder) global.TextDecoder = TextDecoder;
+      const { parseGovApiXmlEnvelope } = require('../app/api/cron/sync-transactions/route');
+      const ok000 = parseGovApiXmlEnvelope('<response><header><resultCode>000</resultCode><resultMsg>OK</resultMsg></header></response>');
+      expect(ok000.isError).toBe(false);
+      expect(ok000.resultCode).toBe('000');
+
+      const ok00 = parseGovApiXmlEnvelope('<response><header><resultCode>00</resultCode><resultMsg>NORMAL SERVICE.</resultMsg></header></response>');
+      expect(ok00.isError).toBe(false);
+      expect(ok00.resultCode).toBe('00');
+
+      const err99 = parseGovApiXmlEnvelope('<response><header><resultCode>99</resultCode><resultMsg>LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR</resultMsg></header></response>');
+      expect(err99.isError).toBe(true);
+      expect(err99.resultCode).toBe('99');
+
+      const gwErr = parseGovApiXmlEnvelope('<OpenAPI_ServiceResponse><cmmMsgHeader><returnReasonCode>04</returnReasonCode><returnAuthMsg>HTTP_ROUTING_ERROR</returnAuthMsg></cmmMsgHeader></OpenAPI_ServiceResponse>');
+      expect(gwErr.isError).toBe(true);
+      expect(gwErr.isGatewayError).toBe(true);
+      expect(gwErr.resultCode).toBe('04');
+    });
+
+    it('should sanitize Roman numerals, ampersands, and commas in sanitizeAptChunkFileName and merge legacy files with cancellation preservation', () => {
+      const { sanitizeAptChunkFileName, sanitizeAptKey } = require('../../pipeline/core/normalizer');
+      const { migrateLegacyPathologicalFiles } = require('../../scripts/pipeline/fileGenerators');
+
+      expect(sanitizeAptChunkFileName('동탄2신도시금강펜테리움센트럴파크Ⅰ.json')).toBe('동탄2신도시금강펜테리움센트럴파크1.json');
+      expect(sanitizeAptChunkFileName('동탄금강펜테리움센트럴파크Ⅳ-recent.json')).toBe('동탄금강펜테리움센트럴파크4-recent.json');
+      expect(sanitizeAptChunkFileName('산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ.json')).toBe('산척동동탄호수공원금강펜테리움센트럴파크2.json');
+      expect(sanitizeAptChunkFileName('동탄호수공원자연&자이.json')).toBe('동탄호수공원자연앤자이.json');
+      expect(sanitizeAptChunkFileName('_index.json')).toBe('_index.json');
+
+      const migDir = path.resolve(__dirname, '../../scratch/test-roman-migration');
+      if (fs.existsSync(migDir)) fs.rmSync(migDir, { recursive: true });
+      fs.mkdirSync(migDir, { recursive: true });
+
+      try {
+        // Legacy file has cancellation info; target file has uncanceled duplicate
+        fs.writeFileSync(
+          path.join(migDir, '동탄호수공원자연&자이.json'),
+          JSON.stringify([{ contractYm: '202605', contractDay: '10', price: 90000, area: 84.9, floor: 10, dealType: '매매', cancelDate: '20260520' }])
+        );
+        fs.writeFileSync(
+          path.join(migDir, '동탄호수공원자연앤자이.json'),
+          JSON.stringify([{ contractYm: '202605', contractDay: '10', price: 90000, area: 84.9, floor: 10, dealType: '중개거래', cancelDate: '' }])
+        );
+
+        migrateLegacyPathologicalFiles(migDir);
+
+        expect(fs.existsSync(path.join(migDir, '동탄호수공원자연&자이.json'))).toBe(false);
+        expect(fs.existsSync(path.join(migDir, '동탄호수공원자연앤자이.json'))).toBe(true);
+        const merged = JSON.parse(fs.readFileSync(path.join(migDir, '동탄호수공원자연앤자이.json'), 'utf8'));
+        expect(merged.length).toBe(1);
+        expect(merged[0].cancelDate).toBe('20260520');
+      } finally {
+        if (fs.existsSync(migDir)) fs.rmSync(migDir, { recursive: true });
+      }
+
+      // Verify static tx-summary.json has 0 duplicate sanitized keys and 0 empty dong fields
+      const summaryPath = path.resolve(__dirname, '../../public/data/tx-summary.json');
+      const summaryObj = JSON.parse(fs.readFileSync(summaryPath, 'utf8')).summary;
+      const summaryKeys = Object.keys(summaryObj);
+      const sanitizedSet = new Set(summaryKeys.map(k => sanitizeAptKey(k)));
+      expect(sanitizedSet.size).toBe(summaryKeys.length);
+      const emptyDongKeys = summaryKeys.filter(k => !summaryObj[k].dong || !summaryObj[k].dong.trim());
+      expect(emptyDongKeys).toEqual([]);
+    });
+
+    it('should exclude cancelled records from cron email alerts and support brokerage deals in notify-new-high', () => {
+      const { TextEncoder, TextDecoder } = require('util');
+      if (!global.TextEncoder) global.TextEncoder = TextEncoder;
+      if (!global.TextDecoder) global.TextDecoder = TextDecoder;
+      const { isCancelledRecord } = require('../app/api/cron/sync-transactions/route');
+      const { isEligibleSaleForNewHigh } = require('../app/api/push/notify-new-high/route');
+
+      expect(isCancelledRecord({ cancelDate: '20260515', cdealType: 'O' })).toBe(true);
+      expect(isCancelledRecord({ cancelDate: '', cdealType: '해제' })).toBe(true);
+      expect(isCancelledRecord({ cancelDate: '', cdealDay: '', cdealType: '' })).toBe(false);
+
+      expect(isEligibleSaleForNewHigh({ dealType: '매매', price: 100000, cancelDate: '' })).toBe(true);
+      expect(isEligibleSaleForNewHigh({ dealType: '중개거래', price: 100000, cancelDate: '' })).toBe(true);
+      expect(isEligibleSaleForNewHigh({ dealType: '직거래', price: 100000, cancelDate: '' })).toBe(false);
+      expect(isEligibleSaleForNewHigh({ dealType: '전세', price: 50000, cancelDate: '' })).toBe(false);
+      expect(isEligibleSaleForNewHigh({ dealType: '중개거래', price: 100000, cancelDate: '20260515' })).toBe(false);
+      expect(isEligibleSaleForNewHigh({ dealType: '매매', price: 100000, cdealType: 'O' })).toBe(false);
+    });
+
+    it('should configure icn1 region, cron auth fallbacks, and Korean Vercel relay fallback for MOLIT API requests', async () => {
+      const { TextEncoder, TextDecoder } = require('util');
+      const webStreams = require('stream/web');
+      const { MessagePort, MessageChannel } = require('worker_threads');
+      if (!global.TextEncoder) global.TextEncoder = TextEncoder;
+      if (!global.TextDecoder) global.TextDecoder = TextDecoder;
+      if (!global.ReadableStream) (global as any).ReadableStream = webStreams.ReadableStream;
+      if (!global.WritableStream) (global as any).WritableStream = webStreams.WritableStream;
+      if (!global.TransformStream) (global as any).TransformStream = webStreams.TransformStream;
+      if (!global.MessagePort) (global as any).MessagePort = MessagePort;
+      if (!global.MessageChannel) (global as any).MessageChannel = MessageChannel;
+
+      // 1. Verify vercel.json and route preferredRegion = 'icn1'
+      const vercelConfigPath = path.resolve(__dirname, '../../vercel.json');
+      const vercelConfig = JSON.parse(fs.readFileSync(vercelConfigPath, 'utf8'));
+      expect(vercelConfig.regions).toContain('icn1');
+
+      const syncTxRoute = require('../app/api/cron/sync-transactions/route');
+      const syncNoticesRoute = require('../app/api/cron/sync-local-notices/route');
+      expect(syncTxRoute.preferredRegion).toBe('icn1');
+      expect(syncNoticesRoute.preferredRegion).toBe('icn1');
+
+      // 2. Verify cron authorization fallbacks when CRON_SECRET is unset
+      const origCronSecret = process.env.CRON_SECRET;
+      try {
+        delete process.env.CRON_SECRET;
+        const makeMockReq = (headers: Record<string, string>) =>
+          ({
+            headers: {
+              get: (name: string) => headers[name.toLowerCase()] || null,
+            },
+          }) as any;
+
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(true);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-building-api-key': syncTxRoute.DEFAULT_BUILDING_API_KEY }))).toBe(true);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-building-api-key': 'wrong-api-key' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(true);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'x-vercel-cron': '1' }))).toBe(true);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: 'Bearer wrong-token' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({}))).toBe(false);
+
+        // Proxy mode must require explicit Authorization or x-building-api-key (rejects spoofed vercel-cron user-agent)
+        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0', 'x-vercel-cron': '1' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'x-building-api-key': 'wrong-api-key' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedProxyRequest(makeMockReq({ 'x-building-api-key': syncTxRoute.DEFAULT_BUILDING_API_KEY }))).toBe(true);
+
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(true);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ 'x-building-api-key': 'wrong-api-key' }))).toBe(false);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(true);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({}))).toBe(false);
+
+        // When CRON_SECRET is explicitly configured, DEFAULT_CRON_SECRET and vercel-cron UA must be rejected
+        process.env.CRON_SECRET = 'custom-production-cron-secret';
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ 'user-agent': 'vercel-cron/1.0' }))).toBe(false);
+        expect(syncTxRoute.isAuthorizedCronRequest(makeMockReq({ authorization: 'Bearer custom-production-cron-secret' }))).toBe(true);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` }))).toBe(false);
+        expect(syncNoticesRoute.isAuthorizedNoticesCronRequest(makeMockReq({ authorization: 'Bearer custom-production-cron-secret' }))).toBe(true);
+      } finally {
+        if (origCronSecret !== undefined) process.env.CRON_SECRET = origCronSecret;
+        else delete process.env.CRON_SECRET;
+      }
+
+      // 2b. Verify GET handler directly rejects wrong x-building-api-key (401) and malformed proxy/ym params (400)
+      const origNodeEnv = process.env.NODE_ENV;
+      const origBuildingKey = process.env.BUILDING_API_KEY;
+      try {
+        (process.env as any).NODE_ENV = 'production';
+        delete process.env.BUILDING_API_KEY;
+        delete process.env.CRON_SECRET;
+
+        const { NextRequest } = require('next/server');
+        // Wrong x-building-api-key must return 401 (no tautology bypass)
+        const unauthReq = new NextRequest('https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=202610', {
+          headers: { 'x-building-api-key': 'attacker-invalid-key' },
+        });
+        const unauthRes = await syncTxRoute.GET(unauthReq);
+        expect(unauthRes.status).toBe(401);
+
+        // Spoofed vercel-cron user-agent on mode=proxy must return 401
+        const spoofProxyReq = new NextRequest('https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=202610', {
+          headers: { 'user-agent': 'vercel-cron/1.0', 'x-vercel-cron': '1' },
+        });
+        const spoofProxyRes = await syncTxRoute.GET(spoofProxyReq);
+        expect(spoofProxyRes.status).toBe(401);
+
+        // SQL injection / invalid lawdCd or dealYmd or pageNo or target on mode=proxy must return 400
+        const badProxyUrls = [
+          'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590%27%20OR%201=1--&dealYmd=202610',
+          'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=999999',
+          'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&target=invalid&lawdCd=41590&dealYmd=202610',
+          'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=202610&pageNo=0',
+          'https://dongtanview.com/api/cron/sync-transactions?mode=proxy&lawdCd=41590&dealYmd=202610&_type=html',
+          'https://dongtanview.com/api/cron/sync-transactions?ym=2026-10-invalid',
+        ];
+        for (const badUrl of badProxyUrls) {
+          const badReq = new NextRequest(badUrl, {
+            headers: { authorization: `Bearer ${syncTxRoute.DEFAULT_CRON_SECRET}` },
+          });
+          const badRes = await syncTxRoute.GET(badReq);
+          expect(badRes.status).toBe(400);
+        }
+      } finally {
+        (process.env as any).NODE_ENV = origNodeEnv;
+        if (origBuildingKey !== undefined) process.env.BUILDING_API_KEY = origBuildingKey;
+      }
+
+      // Numeric cancelDate/cdealDay in isCancelledRecord
+      expect(syncTxRoute.isCancelledRecord({ cancelDate: 20260515 as any })).toBe(true);
+      expect(syncTxRoute.isCancelledRecord({ cdealDay: 20260515 as any })).toBe(true);
+
+      // 3. Verify buildRelayUrl and fetchWithRetry automatic fallback to Korean Vercel relay when direct MOLIT call fails
+      const { buildRelayUrl: buildTradeRelayUrl } = require('../../scripts/fetch-transactions');
+      const { buildRelayUrl: buildRentRelayUrl } = require('../../scripts/fetch-rent');
+      const tradeMolitUrl = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev?serviceKey=test&LAWD_CD=41590&DEAL_YMD=202610&pageNo=2&numOfRows=1000&_type=json';
+      const relayUrl = buildTradeRelayUrl(tradeMolitUrl, 'trade');
+      expect(relayUrl).toContain('/api/cron/sync-transactions?');
+      expect(relayUrl).toContain('mode=proxy');
+      expect(relayUrl).toContain('target=trade');
+      expect(relayUrl).toContain('lawdCd=41590');
+      expect(relayUrl).toContain('dealYmd=202610');
+      expect(relayUrl).toContain('pageNo=2');
+
+      const rentMolitUrl = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent?serviceKey=test&LAWD_CD=41597&DEAL_YMD=202610&pageNo=1&numOfRows=1000&_type=json';
+      const rentRelayUrl = buildRentRelayUrl(rentMolitUrl, 'rent');
+      expect(rentRelayUrl).toContain('target=rent');
+      expect(rentRelayUrl).toContain('lawdCd=41597');
+
+      const axiosGetSpy = jest.spyOn(axios, 'get');
+      try {
+        const calledUrls: string[] = [];
+        axiosGetSpy.mockImplementation(async (targetUrl: string) => {
+          calledUrls.push(targetUrl);
+          if (targetUrl.includes('apis.data.go.kr')) {
+            const err: any = new Error('timeout of 10000ms exceeded');
+            err.code = 'ECONNABORTED';
+            throw err;
+          }
+          return { status: 200, data: { response: { header: { resultCode: '000' }, body: { totalCount: 0, items: { item: [] } } } } };
+        });
+
+        const relayRes = await fetchTradeWithRetry(tradeMolitUrl, {}, 2, 5);
+        expect(relayRes.status).toBe(200);
+        expect(calledUrls.length).toBe(2);
+        expect(calledUrls[0]).toContain('apis.data.go.kr');
+        expect(calledUrls[1]).toContain('/api/cron/sync-transactions?mode=proxy');
+
+        // Also verify that if relay returns a non-MOLIT cron summary payload ({ success: true }), fetchWithRetry rejects it and retries direct URL on attempt 3
+        calledUrls.length = 0;
+        let callIdx = 0;
+        axiosGetSpy.mockImplementation(async (targetUrl: string) => {
+          callIdx++;
+          calledUrls.push(targetUrl);
+          if (callIdx === 1) {
+            const err: any = new Error('transient timeout');
+            err.code = 'ECONNABORTED';
+            throw err;
+          }
+          if (callIdx === 2) {
+            // Relay returns legacy cron JSON instead of MOLIT payload
+            return { status: 200, data: { success: true, data: { synced: 0 } } };
+          }
+          return { status: 200, data: { response: { header: { resultCode: '000' }, body: { totalCount: 1, items: { item: [] } } } } };
+        });
+
+        const fallbackToDirectRes = await fetchTradeWithRetry(tradeMolitUrl, {}, 3, 5);
+        expect(fallbackToDirectRes.status).toBe(200);
+        expect(calledUrls.length).toBe(3);
+        expect(calledUrls[0]).toContain('apis.data.go.kr');
+        expect(calledUrls[1]).toContain('/api/cron/sync-transactions?mode=proxy');
+        expect(calledUrls[2]).toContain('apis.data.go.kr');
+      } finally {
+        axiosGetSpy.mockRestore();
+      }
+
+      // 4. Verify extractMolitItems in sync-transactions.js handles both XML and JSON responses
+      const { extractMolitItems } = require('../../scripts/sync-transactions');
+      const xmlParsed = extractMolitItems('<response><header><resultCode>000</resultCode></header><body><totalCount>1</totalCount><items><item><aptNm>동탄역롯데캐슬</aptNm><dealAmount>150,000</dealAmount></item></items></body></response>');
+      expect(xmlParsed.isError).toBe(false);
+      expect(xmlParsed.totalCount).toBe(1);
+      expect(xmlParsed.items[0].aptNm).toBe('동탄역롯데캐슬');
+
+      const jsonParsed = extractMolitItems({
+        response: {
+          header: { resultCode: '000' },
+          body: { totalCount: 1, items: { item: { aptNm: '동탄역롯데캐슬', dealAmount: '150,000' } } },
+        },
+      });
+      expect(jsonParsed.isError).toBe(false);
+      expect(jsonParsed.totalCount).toBe(1);
+      expect(jsonParsed.items[0].aptNm).toBe('동탄역롯데캐슬');
+    }, 20000);
   });
 });
+
+

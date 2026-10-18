@@ -57,13 +57,13 @@ describe('Empirical Challenger 2: App Router, Build & Full Regression Suite', ()
   // SECTION 1: Next.js Routing & Redirect Invariants
   // =========================================================================
   describe('1. Next.js Routing & Server Redirect Invariants', () => {
-    it('1.1 next.config.ts declares 307 redirects for /technovalley, /techno, and office query', () => {
+    it('1.1 next.config.ts declares 307 redirects for /techno and office query while keeping /technovalley as 200 OK SSR route', () => {
       const configPath = path.resolve(__dirname, '../../next.config.ts');
       expect(fs.existsSync(configPath)).toBe(true);
       const content = fs.readFileSync(configPath, 'utf8');
 
-      // Check /technovalley redirect rule
-      expect(content).toContain("source: '/technovalley'");
+      // /technovalley is restored as a 200 OK B2B SSR Hub in Phase 3
+      expect(content).not.toContain("source: '/technovalley'");
       expect(content).toContain("destination: '/'");
 
       // Check /techno redirect rule
@@ -73,9 +73,10 @@ describe('Empirical Challenger 2: App Router, Build & Full Regression Suite', ()
       expect(content).toContain("value: 'office'");
     });
 
-    it('1.2 src/app/technovalley/page.tsx safely executes server redirect to "/"', () => {
-      TechnoValleyPage();
-      expect(redirect).toHaveBeenCalledWith('/');
+    it('1.2 src/app/technovalley/page.tsx renders SSR B2B catalog without redirecting to "/"', async () => {
+      const jsx = await TechnoValleyPage();
+      expect(jsx).toBeDefined();
+      expect(redirect).not.toHaveBeenCalled();
     });
   });
 

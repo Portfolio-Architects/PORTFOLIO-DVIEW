@@ -137,7 +137,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                     onTouchStart={() => onHoverApt && onHoverApt(selectedTimelineApt)}
                     className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#057e77] dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:text-emerald-400 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-xs"
                   >
-                    상세 리포트 보기 ➔
+                    상세 리포트 보기 -&gt;
                   </button>
                 )}
               </div>
@@ -151,7 +151,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 
             {/* Filter Bar: Dong Filter + Search Filter + Apartment Select Dropdown */}
             {isDefaultAptSettingUp ? (
-              <div className="w-full h-[32px] bg-gradient-to-r from-zinc-100 to-zinc-50 dark:from-zinc-800/50 dark:to-zinc-800/30 rounded-xl animate-pulse border border-border/10" />
+              <div className="w-full h-[32px] bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800/50 dark:to-slate-800/30 rounded-xl animate-pulse border border-border/10" />
             ) : (
               mounted && (
                 <div className="flex items-center gap-2 flex-wrap w-full min-w-0 pt-0.5">
@@ -164,7 +164,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         setSelectedDong(e.target.value);
                         setSearchQuery('');
                       }}
-                      className="px-3 h-[32px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0"
+                      className="px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0"
                     >
                       <option value="all">동탄 전체 ({dongsData.allApts.length}개 단지)</option>
                       <option value="default">대표 4개 단지</option>
@@ -189,7 +189,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         const val = e.target.value;
                         setSelectedTimelineApt(val === "" ? null : val);
                       }}
-                      className="w-full px-3 h-[32px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs truncate"
+                      className="w-full px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs truncate"
                     >
                       <option value="">전체 추이 보기 (동탄 매크로)</option>
 
@@ -234,7 +234,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         </optgroup>
                       ) : (
                         <>
-                          <optgroup label="⭐ 동탄 대표 단지">
+                          <optgroup label="동탄 대표 단지">
                             {defaultTimelineApts.map((apt) => (
                               <option key={`def-${apt}`} value={apt}>
                                 {getDisplayAptName(apt)}
@@ -267,7 +267,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       aria-label="단지명 실시간 검색"
-                      className="w-full pl-7 pr-6 h-[32px] bg-zinc-50 hover:bg-zinc-100 dark:bg-zinc-800 dark:hover:bg-zinc-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11.5px] font-bold transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs"
+                      className="w-full pl-7 pr-6 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11.5px] font-bold transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs"
                     />
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -302,7 +302,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 
           <div className="w-full flex-1 min-h-[240px] md:min-h-[280px] relative overflow-hidden mt-2 sm:mt-0">
             {isDefaultAptSettingUp || (isAptTxLoading && !aptRealTxData && !!selectedTimelineApt) ? (
-              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-zinc-50/30 dark:bg-zinc-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
+              <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-slate-50/30 dark:bg-slate-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                 {/* Background blur glow */}
                 <div className="absolute w-[180px] h-[180px] rounded-full bg-[#057e77]/5 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
                 <div className="absolute w-[180px] h-[180px] rounded-full bg-emerald-500/5 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />

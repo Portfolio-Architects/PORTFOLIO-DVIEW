@@ -495,13 +495,13 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
   describe('Tier 1: Feature Coverage E2E Suite', () => {
 
     describe('F1. All 7 Smart Quick Filter Chips', () => {
-      it('renders all 7 quick chips: 전체, 동탄1, 동탄2, 신고가🔥, 30평대 국평, 10억 클럽, 대장단지', () => {
+      it('renders all 7 quick chips: 전체, 동탄1, 동탄2, 신고가, 30평대 국평, 10억 클럽, 대장단지', () => {
         render(<E2ETestHarness />);
 
         expect(screen.getByRole('button', { name: /전체/ })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /동탄1/ })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /동탄2/ })).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: /신고가🔥/ })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: /신고가/ })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /30평대 국평/ })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /10억 클럽/ })).toBeInTheDocument();
         expect(screen.getByRole('button', { name: /대장단지/ })).toBeInTheDocument();
@@ -534,10 +534,10 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
         expect(screen.queryByTestId('timeline-card-시범다은마을 동탄포스코더샵')).not.toBeInTheDocument();
       });
 
-      it('clicking "신고가🔥" chip displays only new high transactions', () => {
+      it('clicking "신고가" chip displays only new high transactions', () => {
         render(<E2ETestHarness />);
 
-        fireEvent.click(screen.getByRole('button', { name: /신고가🔥/ }));
+        fireEvent.click(screen.getByRole('button', { name: /신고가/ }));
 
         expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
         expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
@@ -696,8 +696,8 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
       });
     });
 
-    describe('F5. Sticky Date Summary Header & Peak Price 👑 Highlight Badge', () => {
-      it('renders sticky date header with total count, average price, and 👑 최고가 highlight badge', () => {
+    describe('F5. Sticky Date Summary Header & Peak Price Highlight Badge', () => {
+      it('renders sticky date header with total count, average price, and 최고가 highlight badge', () => {
         render(<E2ETestHarness />);
 
         // Date 1: 2026.08.22 (토) - 4 items: 18.2, 16.5, 14.2, 8.5 (avg: 14.35 -> 14억 3,500만, peak: 동탄린스트라우스 더레이크 18.2억)
@@ -707,7 +707,7 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
 
         const peakBadge1 = screen.getByTestId('highest-price-badge-2026.08.22 (토)');
         expect(peakBadge1).toBeInTheDocument();
-        expect(peakBadge1).toHaveTextContent('👑 최고가:');
+        expect(peakBadge1).toHaveTextContent('최고가:');
         expect(peakBadge1).toHaveTextContent('동탄린스트라우스 더레이크');
         expect(peakBadge1).toHaveTextContent('18억 2,000만');
 
@@ -756,14 +756,14 @@ describe('D-VIEW MacroTimelineView 4-Tier E2E Master Test Suite', () => {
         expect(screen.getByText(/평당 4,044만/)).toBeInTheDocument();
       });
 
-      it('renders rising (▲) and falling (▼) delta badges with correct color cues', () => {
+      it('renders rising (+) and falling (-) delta badges with correct color cues', () => {
         render(<E2ETestHarness />);
 
-        // Rising delta: 1.5억 (동탄역 롯데캐슬) -> ▲ 1억 5,000만 (+10%)
-        expect(screen.getAllByText(/▲ 1억 5,000만/).length).toBeGreaterThanOrEqual(1);
+        // Rising delta: 1.5억 (동탄역 롯데캐슬) -> + 1억 5,000만 (+10%)
+        expect(screen.getAllByText(/\+ 1억 5,000만/).length).toBeGreaterThanOrEqual(1);
 
-        // Falling delta: -0.5억 (동탄역 시범 더샵 센트럴시티) -> ▼ 5,000만 (-3.6%)
-        expect(screen.getAllByText(/▼ 5,000만/).length).toBeGreaterThanOrEqual(1);
+        // Falling delta: -0.5억 (동탄역 시범 더샵 센트럴시티) -> - 5,000만 (-3.6%)
+        expect(screen.getAllByText(/- 5,000만/).length).toBeGreaterThanOrEqual(1);
       });
     });
 

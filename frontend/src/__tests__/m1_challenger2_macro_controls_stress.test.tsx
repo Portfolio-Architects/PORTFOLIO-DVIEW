@@ -518,7 +518,7 @@ describe('Milestone 1 (M1) Challenger 2 Empirical Stress Test Suite - MacroContr
         />
       );
 
-      expect(screen.getByText('⭐ 관심 단지 순서 편집')).toBeInTheDocument();
+      expect(screen.getByText('관심 단지 순서 편집')).toBeInTheDocument();
       // No items rendered, but modal frame intact
     });
 
@@ -586,7 +586,7 @@ describe('Milestone 1 (M1) Challenger 2 Empirical Stress Test Suite - MacroContr
         />
       );
 
-      expect(screen.getByText('⭐ 관심 단지 순서 편집')).toBeInTheDocument();
+      expect(screen.getByText('관심 단지 순서 편집')).toBeInTheDocument();
       expect(screen.getByText('동탄 아파트 단지 #1')).toBeInTheDocument();
       expect(screen.getByText('동탄 아파트 단지 #100')).toBeInTheDocument();
     });

@@ -1,8 +1,9 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
-import { StatsOverviewSection } from '@/components/stats/StatsOverviewSection';
+import { StatsOverviewSection, clearStatsChunkCache } from '@/components/stats/StatsOverviewSection';
+import { StatsTimeTrendChart } from '@/components/stats/StatsTimeTrendChart';
 import type { RawTransactionRecord, RawRentRecord } from '@/types/stats';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/types/transaction';
 
@@ -160,9 +161,12 @@ describe('StatsOverviewSection Modular Integration & Interaction Suite', () => {
       // Mid-feed ad slot
       expect(screen.getByTestId('ad-placement-mid-feed')).toBeInTheDocument();
 
-      // 2-Column Analytical Grid: Ranking Chart & Volume Distribution
-      expect(screen.getByTestId('stats-pyeong-ranking-chart')).toBeInTheDocument();
-      expect(screen.getByTestId('stats-volume-distribution-chart')).toBeInTheDocument();
+      // Full-Width Analytical Ranking Chart (Volume Distribution removed)
+      const rankingChart = screen.getByTestId('stats-pyeong-ranking-chart');
+      expect(rankingChart).toBeInTheDocument();
+      expect(rankingChart.parentElement).toHaveClass('w-full');
+      expect(rankingChart.parentElement).not.toHaveClass('lg:col-span-7');
+      expect(screen.queryByTestId('stats-volume-distribution-chart')).not.toBeInTheDocument();
     });
 
     it('calculates and displays accurate KPI metrics on initial render', () => {
@@ -180,6 +184,32 @@ describe('StatsOverviewSection Modular Integration & Interaction Suite', () => {
 
       // Average sale price: (165000 + 115000 + 75000 + 120000) / 4 = 118,750
       expect(screen.getByTestId('kpi-avg-sale-price')).toHaveTextContent('118,750만원');
+    });
+
+    it('renders the section header as a compact main-page component subtitle rather than a standalone hero title', () => {
+      render(
+        <StatsOverviewSection
+          recentTransactions={FIXTURE_TRANSACTIONS}
+          txSummaryData={FIXTURE_SUMMARY}
+          macroTrendData={FIXTURE_MACRO_TREND}
+          testMode={true}
+        />
+      );
+
+      const subtitleHeading = screen.getByRole('heading', {
+        level: 2,
+        name: '동탄 실거래 통계 지표 & 하이퍼로컬 인사이트',
+      });
+      expect(subtitleHeading).toBeInTheDocument();
+      expect(subtitleHeading).toHaveClass('text-[15px]', 'sm:text-[16px]', 'font-bold', 'truncate');
+      expect(subtitleHeading).not.toHaveClass('md:text-3xl');
+      expect(subtitleHeading.parentElement).toHaveClass('flex', 'items-center', 'gap-2', 'min-w-0');
+      expect(subtitleHeading.parentElement).not.toHaveClass('flex-wrap');
+      expect(screen.queryByText('동탄 신도시 거시 부동산 통계')).not.toBeInTheDocument();
+
+      const auxDesc = screen.getByText('182개 단지 전수 실거래 기반 5차원 심층 통계 및 실시간 시장 분석');
+      expect(auxDesc).toHaveClass('hidden', 'lg:inline-block', 'shrink-0');
+      expect(auxDesc).not.toHaveClass('sm:inline-block');
     });
   });
 
@@ -361,6 +391,189 @@ describe('StatsOverviewSection Modular Integration & Interaction Suite', () => {
       expect(screen.getByTestId('kpi-avg-sale-price')).toHaveTextContent('-');
       expect(screen.getByTestId('kpi-avg-pyeong-price')).toHaveTextContent('-');
       expect(screen.getByTestId('kpi-avg-jeonse-ratio')).toHaveTextContent('-');
+    });
+
+    it('excludes historical macroTrend months with zero sales from timeSeriesTrend and forward-fills latest rent deposit', () => {
+      const macroWithHistory: DongtanMacroTrendPoint[] = [
+        { month: '11.06', '동탄 아파트 매매 평균': '3억1,000', '동탄 아파트 전세 평균': '1억9,000' } as unknown as DongtanMacroTrendPoint,
+        { month: '26.08', '동탄 아파트 매매 평균': '8억2,283', '동탄 아파트 전세 평균': '4억4,158' } as unknown as DongtanMacroTrendPoint,
+      ];
+
+      render(
+        <StatsOverviewSection
+          recentTransactions={FIXTURE_TRANSACTIONS}
+          txSummaryData={FIXTURE_SUMMARY}
+          macroTrendData={macroWithHistory}
+          testMode={true}
+        />
+      );
+
+      expect(screen.queryByTestId('trend-point-2011-06')).not.toBeInTheDocument();
+      expect(screen.getByTestId('trend-point-2026-08')).toHaveTextContent('2026-08: 97500만원 (2건)');
+      expect(screen.getByTestId('trend-point-2026-09')).toHaveTextContent('2026-09: 140000만원 (2건)');
+    });
+
+    it('sanitizes zero-sale and non-finite (Infinity/NaN) points in StatsTimeTrendChart', () => {
+      render(
+        <StatsTimeTrendChart
+          data={[
+            { date: '2011-06', avgSalePrice: 0, avgRentDeposit: 19000, volume: 0 },
+            { date: '2026-07', avgSalePrice: Number.POSITIVE_INFINITY, avgRentDeposit: 43000, volume: 0 },
+            { date: '2026-08', avgSalePrice: Number.NaN, avgRentDeposit: 44000, volume: 0 },
+            { date: '2026-09', avgSalePrice: 92000, avgRentDeposit: 45000, volume: 12 },
+          ]}
+        />
+      );
+
+      expect(screen.queryByTestId('trend-point-2011-06')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('trend-point-2026-07')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('trend-point-2026-08')).not.toBeInTheDocument();
+      expect(screen.getByTestId('trend-point-2026-09')).toHaveTextContent('2026-09: 92000만원 (12건)');
+    });
+
+    it('prevents stale 1Y chunk response from overwriting ALL chunk response during rapid timeframe switching', async () => {
+      clearStatsChunkCache();
+      const originalFetch = global.fetch;
+
+      let resolve1Y!: (val: any) => void;
+      let resolveAll!: (val: any) => void;
+
+      const promise1Y = new Promise((r) => {
+        resolve1Y = r;
+      });
+      const promiseAll = new Promise((r) => {
+        resolveAll = r;
+      });
+
+      global.fetch = jest.fn((url: RequestInfo | URL) => {
+        const urlStr = String(url);
+        if (urlStr.includes('transactions-1y.json')) {
+          return promise1Y as Promise<Response>;
+        }
+        if (urlStr.includes('transactions-all.json')) {
+          return promiseAll as Promise<Response>;
+        }
+        return Promise.resolve({ ok: true, json: async () => [] } as Response);
+      }) as jest.Mock;
+
+      try {
+        render(
+          <StatsOverviewSection
+            recentTransactions={FIXTURE_TRANSACTIONS}
+            txSummaryData={FIXTURE_SUMMARY}
+            macroTrendData={FIXTURE_MACRO_TREND}
+            testMode={false}
+          />
+        );
+
+        // Switch to 1Y first, then immediately switch to ALL before 1Y resolves
+        fireEvent.click(screen.getByTestId('filter-timeframe-1y'));
+        fireEvent.click(screen.getByTestId('filter-timeframe-all'));
+
+        // ALL resolves first with 6 transactions
+        const allPayload = [
+          ...FIXTURE_TRANSACTIONS,
+          {
+            aptKey: 'apt-5',
+            aptName: '동탄역롯데캐슬',
+            dong: '여울동',
+            contractDate: '20240510',
+            date: '05.10',
+            priceVal: 145000,
+            area: 84.9,
+            areaPyeong: 25.7,
+            floor: 18,
+            dealType: '매매',
+          },
+          {
+            aptKey: 'apt-6',
+            aptName: '메타폴리스',
+            dong: '반송동',
+            contractDate: '20230315',
+            date: '03.15',
+            priceVal: 110000,
+            area: 128.2,
+            areaPyeong: 38.8,
+            floor: 30,
+            dealType: '매매',
+          },
+        ];
+
+        await act(async () => {
+          resolveAll({
+            ok: true,
+            json: async () => allPayload,
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.getByTestId('kpi-total-volume')).toHaveTextContent('6건');
+        });
+
+        // Now stale 1Y resolves late with only 5 transactions
+        const stale1YPayload = allPayload.slice(0, 5);
+        await act(async () => {
+          resolve1Y({
+            ok: true,
+            json: async () => stale1YPayload,
+          });
+        });
+
+        // Volume must remain 6건 (monotonic & cancellation guard holds)
+        expect(screen.getByTestId('kpi-total-volume')).toHaveTextContent('6건');
+      } finally {
+        global.fetch = originalFetch;
+        clearStatsChunkCache();
+      }
+    });
+
+    it('loads 6M chunk via transactions-1y.json, resets isLoadingChunk when switching back to 3M, and enforces monotonic baseTxs length guard', async () => {
+      clearStatsChunkCache();
+      const originalFetch = global.fetch;
+
+      let resolve1Y!: (val: any) => void;
+      const promise1Y = new Promise((r) => {
+        resolve1Y = r;
+      });
+
+      global.fetch = jest.fn(() => promise1Y as Promise<Response>) as jest.Mock;
+
+      try {
+        render(
+          <StatsOverviewSection
+            recentTransactions={FIXTURE_TRANSACTIONS}
+            txSummaryData={FIXTURE_SUMMARY}
+            macroTrendData={FIXTURE_MACRO_TREND}
+            testMode={false}
+          />
+        );
+
+        // Click 6M -> triggers fetch to transactions-1y.json and shows loading indicator
+        fireEvent.click(screen.getByTestId('filter-timeframe-6m'));
+        expect(global.fetch).toHaveBeenCalledWith('/data/transactions-1y.json');
+        expect(screen.getByText(/데이터 집계 중/)).toBeInTheDocument();
+
+        // Switch back to 3M while 6M fetch is still pending -> loading indicator must clear immediately
+        fireEvent.click(screen.getByTestId('filter-timeframe-3m'));
+        expect(screen.queryByText(/데이터 집계 중/)).not.toBeInTheDocument();
+
+        // Switch to 1Y and resolve with a smaller payload (2 items vs initial 4 items) -> monotonic guard preserves 4 items
+        fireEvent.click(screen.getByTestId('filter-timeframe-1y'));
+        await act(async () => {
+          resolve1Y({
+            ok: true,
+            json: async () => FIXTURE_TRANSACTIONS.slice(0, 2),
+          });
+        });
+
+        await waitFor(() => {
+          expect(screen.queryByText(/데이터 집계 중/)).not.toBeInTheDocument();
+        });
+        expect(screen.getByTestId('kpi-total-volume')).toHaveTextContent('4건');
+      } finally {
+        global.fetch = originalFetch;
+        clearStatsChunkCache();
+      }
     });
   });
 });

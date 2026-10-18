@@ -37,7 +37,7 @@ export async function fetchEnergyJsonFromPublicPortal(
       
       // Check for API Gateway errors inside JSON body
       const header = resData?.response?.header;
-      if (header && header.resultCode !== '00') {
+      if (header && header.resultCode && header.resultCode !== '00' && header.resultCode !== '000') {
         throw new Error(`Public energy API error: ${header.resultMsg}`);
       }
       

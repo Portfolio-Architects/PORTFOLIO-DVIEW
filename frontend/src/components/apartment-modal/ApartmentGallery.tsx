@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import { Star } from 'lucide-react';
 
 const GalleryRow = React.memo(function GalleryRow({
   children,
@@ -174,7 +175,10 @@ export const ApartmentGallery = React.memo(function ApartmentGallery({ images, t
                       <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-3.5 pt-8">
                         <div className="flex flex-col gap-1.5">
                           {img.isPremium && (
-                            <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-primary px-1.5 py-0.5 rounded-md">★ PRO</span>
+                            <span className="w-fit text-[9px] font-bold bg-[#ffc107] text-primary px-1.5 py-0.5 rounded-md inline-flex items-center gap-0.5">
+                              <Star size={10} className="fill-current" />
+                              <span>PRO</span>
+                            </span>
                           )}
                           {img.caption && (
                             <p className="text-[12px] font-medium text-surface line-clamp-2 leading-snug">{img.caption}</p>

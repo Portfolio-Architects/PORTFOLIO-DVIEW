@@ -354,11 +354,11 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
                   {/* Horizontal compare list for sales & rent averages */}
                   <div className="flex justify-between items-center text-[12.5px] sm:text-[13px] text-secondary font-medium mt-auto border-t border-border/20 pt-3 px-0.5">
                     <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-gray-400/60" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-slate-400/60" />
                       매매 평균 <strong className="text-primary font-bold">{formatPrice(item.sales)}</strong>
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400/60" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400/60" />
                       전세 평균 <strong className="text-primary font-bold">{formatPrice(item.jeonse)}</strong>
                     </span>
                   </div>

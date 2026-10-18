@@ -65,7 +65,7 @@ describe('MacroChartSection Test Suite', () => {
     expect(screen.getByText('동탄역 롯데캐슬 시세 추이')).toBeInTheDocument();
 
     // Detail button
-    expect(screen.getByText('상세 리포트 보기 ➔')).toBeInTheDocument();
+    expect(screen.getByText('상세 리포트 보기 ->')).toBeInTheDocument();
 
     // Chart rendered
     expect(screen.getByTestId('mock-chart')).toBeInTheDocument();
@@ -130,7 +130,7 @@ describe('MacroChartSection Test Suite', () => {
   it('invokes onSelectApt with apartment name and dong when detail button is clicked', () => {
     render(<MacroChartSection {...defaultProps} />);
 
-    const detailBtn = screen.getByText('상세 리포트 보기 ➔');
+    const detailBtn = screen.getByText('상세 리포트 보기 ->');
     fireEvent.click(detailBtn);
 
     expect(defaultProps.onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');

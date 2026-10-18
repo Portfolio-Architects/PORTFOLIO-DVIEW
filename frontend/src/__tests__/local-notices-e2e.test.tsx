@@ -629,7 +629,7 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
           isDongtan: true,
           source: 'culture',
           createdAt: new Date().toISOString(),
-          content: '### 📅 행사 안내\n동탄호수공원 루나 분수쇼가 개최됩니다.'
+          content: '### 행사 안내\n동탄호수공원 루나 분수쇼가 개최됩니다.'
         };
         const result = NoticeZodSchema.safeParse(cultureItem);
         expect(result.success).toBe(true);

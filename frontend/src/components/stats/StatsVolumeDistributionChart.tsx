@@ -56,7 +56,7 @@ export function StatsVolumeDistributionChart({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
-            <PieChartIcon size={18} className="text-teal-600" />
+            <PieChartIcon size={18} className="text-emerald-600" />
             <span>평형대별 거래량 비중</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">

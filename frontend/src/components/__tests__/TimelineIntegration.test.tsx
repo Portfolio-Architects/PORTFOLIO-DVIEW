@@ -148,7 +148,7 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
 
       const row = screen.getByTestId('timeline-row-동탄역 시범 더샵 센트럴시티');
       expect(row).toBeInTheDocument();
-      expect(row).toHaveClass('bg-orange-50/20');
+      expect(row).toHaveClass('bg-emerald-50/40');
 
       // Apt name and dong/floor/area
       expect(screen.getByText('동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();
@@ -156,7 +156,7 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
 
       // Price & delta
       expect(screen.getByText('12억')).toBeInTheDocument();
-      expect(screen.getByText(/▼ 8,000만/)).toBeInTheDocument();
+      expect(screen.getByText(/- 8,000만/)).toBeInTheDocument();
 
       // Favorite toggle is absent
       const favBtn = screen.queryByLabelText(/관심 단지/);
@@ -188,4 +188,54 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
       expect(formatDeltaPrice(2.0)).toBe('2억');
     });
   });
+
+  describe('4. 1-Click Mortgage Simulation CTA Integration', () => {
+    it('renders "한도조회" button on TimelineItemCard and TimelineItemRow when onMortgageClick is provided and isolates click', () => {
+      const onCardClickMock = jest.fn();
+      const onMortgageClickMock = jest.fn();
+
+      const { unmount } = render(
+        <TimelineItemCard
+          item={sampleCardItem}
+          isSelected={false}
+          areaUnit="m2"
+          onCardHover={jest.fn()}
+          onCardClick={onCardClickMock}
+          onDetailsClick={jest.fn()}
+          onDetailsHover={jest.fn()}
+          onMortgageClick={onMortgageClickMock}
+        />
+      );
+
+      const cardMortgageBtn = screen.getByTestId('card-mortgage-btn-동탄역 롯데캐슬');
+      expect(cardMortgageBtn).toBeInTheDocument();
+      expect(cardMortgageBtn).toHaveClass('inline-flex');
+      expect(cardMortgageBtn).not.toHaveClass('hidden');
+      fireEvent.click(cardMortgageBtn);
+      expect(onMortgageClickMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
+      expect(onCardClickMock).not.toHaveBeenCalled();
+
+      unmount();
+
+      render(
+        <TimelineItemRow
+          item={sampleFallingItem}
+          isSelected={false}
+          areaUnit="p"
+          onCardClick={onCardClickMock}
+          onDetailsClick={jest.fn()}
+          onMortgageClick={onMortgageClickMock}
+        />
+      );
+
+      const rowMortgageBtn = screen.getByTestId('row-mortgage-btn-동탄역 시범 더샵 센트럴시티');
+      expect(rowMortgageBtn).toBeInTheDocument();
+      expect(rowMortgageBtn).toHaveClass('inline-flex');
+      expect(rowMortgageBtn).not.toHaveClass('hidden');
+      fireEvent.click(rowMortgageBtn);
+      expect(onMortgageClickMock).toHaveBeenCalledWith('동탄역 시범 더샵 센트럴시티');
+      expect(onCardClickMock).not.toHaveBeenCalled();
+    });
+  });
 });
+

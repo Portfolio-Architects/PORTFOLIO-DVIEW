@@ -279,7 +279,7 @@ describe('Milestone M2 Empirical Challenger Stress Test Suite', () => {
   describe('2. Trade Type Filtering Stress Testing', () => {
     const mockItems = generateMockTransactions();
 
-    it('filters only new high (신고가🔥) transactions', () => {
+    it('filters only new high (신고가) transactions', () => {
       const result = filterTimelineItems(mockItems, {
         regionFilter: 'all',
         pyeongFilter: 'all',

@@ -17,7 +17,7 @@ export type VerdictParams = z.infer<typeof VerdictParamsSchema>;
 
 export const VerdictResultSchema = z.object({
   score: z.number(),
-  label: z.enum(['🔴 지금 팔면 호구 (보류 권장)', '🟡 매도 타이밍 관망 (주의)', '🟢 양호한 매도 기회 (매도 가능)']),
+  label: z.enum(['지금 팔면 호구 (보류 권장)', '매도 타이밍 관망 (주의)', '양호한 매도 기회 (매도 가능)']),
   color: z.string(),
   reason: z.string(),
   metrics: z.object({
@@ -118,20 +118,20 @@ export function calculateVerdictScore(params: VerdictParams): VerdictResult {
   const score = Math.round(dropScore + liquidityScore + jeonseScore);
 
   // 등급 판정
-  let label: VerdictResult['label'] = '🟢 양호한 매도 기회 (매도 가능)';
+  let label: VerdictResult['label'] = '양호한 매도 기회 (매도 가능)';
   let color = '#10b981'; // Emerald
   let reason = '';
 
   if (score >= 70) {
-    label = '🔴 지금 팔면 호구 (보류 권장)';
+    label = '지금 팔면 호구 (보류 권장)';
     color = '#f43f5e'; // Rose
     reason = `최근 3개년 최고가 대비 가격 낙폭(${dropRate.toFixed(1)}%)이 크며, 전세가율(${jeonseRatio}%)이 높고 매수세가 정체되어 급매로 처분할 시 자산 손실이 극대화됩니다. 보유 및 관망을 강력히 권장합니다.`;
   } else if (score >= 40) {
-    label = '🟡 매도 타이밍 관망 (주의)';
+    label = '매도 타이밍 관망 (주의)';
     color = '#eab308'; // Yellow
     reason = `시장 거래 회전율(${rotationRate.toFixed(2)}%)이 조정을 거치는 단계입니다. 전세 지지력이 보통 수준이며, 향후 거시 공급 일정 및 추가 거래 반등을 관망하며 매도 시기를 저울질하는 것이 좋습니다.`;
   } else {
-    label = '🟢 양호한 매도 기회 (매도 가능)';
+    label = '양호한 매도 기회 (매도 가능)';
     color = '#10b981'; // Emerald
     reason = `고점 대비 낙폭이 크지 않거나 회전율이 양호하여 시장 환금성이 확보된 상태입니다. 상급지 갈아타기 또는 포트폴리오 리밸런싱을 위해 매도를 고려하기에 적합한 가격 방어선이 구축되어 있습니다.`;
   }
@@ -152,7 +152,7 @@ export function calculateVerdictScore(params: VerdictParams): VerdictResult {
     logger.warn('SellTimingEngine', 'Failed to validate calculateVerdictScore output', { result }, outputParsed.error);
     return {
       score,
-      label: '🟡 매도 타이밍 관망 (주의)' as const,
+      label: '매도 타이밍 관망 (주의)' as const,
       color: '#eab308',
       reason: '매도 지수 데이터 규격 오류',
       metrics: {

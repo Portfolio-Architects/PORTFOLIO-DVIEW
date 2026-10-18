@@ -17,6 +17,28 @@ interface NewHighItem {
   area: number;
 }
 
+export function isEligibleSaleForNewHigh(tx: Record<string, unknown> | null | undefined): boolean {
+  if (!tx) return false;
+  const dealType = typeof tx.dealType === 'string' ? tx.dealType.trim() : '';
+  const dealingGbn = typeof tx.dealingGbn === 'string' ? tx.dealingGbn.trim() : '';
+  if (dealType === '전세' || dealType === '월세' || dealType === '직거래' || dealingGbn === '직거래') {
+    return false;
+  }
+  if (dealType !== '' && dealType !== '매매' && dealType !== '중개거래') {
+    return false;
+  }
+  if (tx.isCanceled === true) return false;
+  const cdealType = typeof tx.cdealType === 'string' ? tx.cdealType.trim() : '';
+  if (cdealType === 'O' || cdealType === '해제') return false;
+  const isValidDate = (v: unknown) => {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim().toLowerCase();
+    return s !== '' && s !== '-' && s !== 'null' && s !== 'undefined' && s !== 'nan';
+  };
+  if (isValidDate(tx.cancelDate) || isValidDate(tx.cdealDay)) return false;
+  return true;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const rateLimit = await checkRateLimit(req, {
@@ -53,16 +75,19 @@ export async function POST(req: NextRequest) {
     const dateLimitStr = `${threeDaysAgo.getFullYear()}${String(threeDaysAgo.getMonth() + 1).padStart(2, '0')}${String(threeDaysAgo.getDate()).padStart(2, '0')}`;
 
     const txSnap = await db.collection('transactions')
-      .where('dealType', '==', '매매')
+      .where('dealType', 'in', ['매매', '중개거래'])
       .where('contractDate', '>=', dateLimitStr)
       .get();
 
-    if (txSnap.empty) {
+    const recentTxs = txSnap.docs
+      .map((doc) => doc.data())
+      .filter((tx) => isEligibleSaleForNewHigh(tx));
+
+    if (recentTxs.length === 0) {
       logger.info('NotifyNewHighAPI.POST', 'No recent transactions to check');
       return apiSuccess({ message: 'No recent transactions to check' }, { message: 'No recent transactions to check' });
     }
 
-    const recentTxs = txSnap.docs.map((doc) => doc.data());
     const newHighs: NewHighItem[] = [];
 
     // 3. Determine if each transaction is a "New High"
@@ -71,16 +96,20 @@ export async function POST(req: NextRequest) {
       if (!aptName || !area || !price) continue;
 
       const historySnap = await db.collection('transactions')
-        .where('dealType', '==', '매매')
+        .where('dealType', 'in', ['매매', '중개거래'])
         .where('aptName', '==', aptName)
         .where('area', '==', area)
         .orderBy('price', 'desc')
-        .limit(5)
+        .limit(15)
         .get();
 
       if (historySnap.empty) continue;
 
-      const history = historySnap.docs.map((doc) => doc.data());
+      const history = historySnap.docs
+        .map((doc) => doc.data())
+        .filter((h) => isEligibleSaleForNewHigh(h));
+
+      if (history.length === 0) continue;
 
       const isCurrentTxHighest =
         history[0].contractDate === contractDate &&
@@ -151,7 +180,7 @@ export async function POST(req: NextRequest) {
     }
 
     const notificationPayload = JSON.stringify({
-      title: `🛎️ D-VIEW: [${mainHigh.aptName}] ${mainHigh.pyeong}평 ${priceText} 신고가 경신!`,
+      title: `[신고가] D-VIEW: [${mainHigh.aptName}] ${mainHigh.pyeong}평 ${priceText} 신고가 경신!`,
       body: `실거래가 등록 알림 ${deltaText}. 평형별 입지 분석과 적정 가치를 지금 확인하세요.`,
       url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com'}/overview#apt=${encodeURIComponent(mainHigh.aptName)}`,
     });

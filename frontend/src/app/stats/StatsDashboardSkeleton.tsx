@@ -90,33 +90,18 @@ export function StatsDashboardSkeleton() {
           <div className="w-48 h-4 rounded bg-slate-200 dark:bg-slate-800" />
         </div>
 
-        {/* 8. 2-Column Grid: Ranking Table & Donut Distribution Skeleton */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-          {/* Ranking Board Skeleton (7/12 cols) */}
-          <div className="lg:col-span-7 min-h-[480px] rounded-2xl bg-surface border border-border/60 p-5 sm:p-6 flex flex-col gap-4">
-            <div className="w-40 h-6 rounded-lg bg-slate-200 dark:bg-slate-800" />
-            <div className="flex flex-col divide-y divide-border/40">
-              {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="py-3 flex items-center justify-between">
-                  <div className="w-44 h-4 rounded bg-slate-200 dark:bg-slate-800" />
-                  <div className="w-24 h-4 rounded bg-slate-200 dark:bg-slate-800" />
-                </div>
-              ))}
-            </div>
+        {/* 8. Full-Width Pyeong Ranking Board Skeleton */}
+        <div className="w-full min-h-[480px] rounded-2xl bg-surface border border-border/60 p-5 sm:p-6 flex flex-col gap-4">
+          <div className="w-40 h-6 rounded-lg bg-slate-200 dark:bg-slate-800" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-16 rounded-xl bg-slate-100/80 dark:bg-slate-800/50" />
+            ))}
           </div>
-
-          {/* Volume Distribution Skeleton (5/12 cols) */}
-          <div className="lg:col-span-5 min-h-[480px] rounded-2xl bg-surface border border-border/60 p-5 sm:p-6 flex flex-col justify-between">
-            <div className="w-36 h-6 rounded-lg bg-slate-200 dark:bg-slate-800" />
-            <div className="w-48 h-48 mx-auto rounded-full bg-slate-100/80 dark:bg-slate-800/50 border-8 border-slate-200 dark:border-slate-700/60" />
-            <div className="flex flex-col gap-2">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="flex justify-between items-center">
-                  <div className="w-28 h-3.5 rounded bg-slate-200 dark:bg-slate-800" />
-                  <div className="w-16 h-3.5 rounded bg-slate-200 dark:bg-slate-800" />
-                </div>
-              ))}
-            </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 rounded-2xl bg-slate-100/80 dark:bg-slate-800/50" />
+            ))}
           </div>
         </div>
 

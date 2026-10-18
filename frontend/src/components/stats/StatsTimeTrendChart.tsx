@@ -52,7 +52,7 @@ const CustomTrendTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   const gapMan = salePriceMan > 0 && rentDepositMan > 0 ? salePriceMan - rentDepositMan : null;
 
   return (
-    <div className="bg-surface/95 dark:bg-zinc-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-border/80 text-xs flex flex-col gap-2 min-w-[200px] z-50">
+    <div className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-border/80 text-xs flex flex-col gap-2 min-w-[200px] z-50">
       <div className="font-extrabold text-slate-800 dark:text-slate-100 border-b border-border/50 pb-1.5 flex justify-between items-center">
         <span>{label} 월별 거래 분석</span>
         <span className="text-slate-400 font-semibold">{volume}건 체결</span>
@@ -61,18 +61,18 @@ const CustomTrendTooltip = ({ active, payload, label }: CustomTooltipProps) => {
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-teal-600" />
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
             <span className="text-slate-500 dark:text-slate-400 font-medium">평균 매매가</span>
           </div>
           <span className="font-bold text-slate-900 dark:text-slate-100">
-            {formatPriceEok(salePriceMan)}
+            {salePriceMan > 0 ? formatPriceEok(salePriceMan) : '-'}
           </span>
         </div>
 
         {rentDepositMan > 0 && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
               <span className="text-slate-500 dark:text-slate-400 font-medium">평균 전세가</span>
             </div>
             <span className="font-bold text-slate-900 dark:text-slate-100">
@@ -91,7 +91,7 @@ const CustomTrendTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         {gapMan && gapMan > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-slate-500 dark:text-slate-400 font-medium">예상 갭차이</span>
-            <span className="font-black text-rose-500">{formatPriceEok(gapMan)}</span>
+            <span className="font-black text-red-500">{formatPriceEok(gapMan)}</span>
           </div>
         )}
       </div>
@@ -107,12 +107,34 @@ export function StatsTimeTrendChart({
 }: StatsTimeTrendChartProps) {
   // Format price ticks for YAxis (만원 -> 억)
   const formatYAxisPrice = (manWon: number) => {
-    if (manWon <= 0) return '0';
+    if (!Number.isFinite(manWon) || manWon <= 0) return '0';
     const eok = manWon / 10000;
     return `${eok % 1 === 0 ? eok : eok.toFixed(1)}억`;
   };
 
-  const hasData = data && data.length > 0;
+  const chartData = React.useMemo(() => {
+    if (!data || data.length === 0) return [];
+    return data
+      .filter(
+        (pt) =>
+          (Number.isFinite(pt.avgSalePrice) && pt.avgSalePrice > 0) ||
+          (Number.isFinite(pt.volume) && pt.volume > 0)
+      )
+      .map((pt) => ({
+        ...pt,
+        avgSalePrice:
+          Number.isFinite(pt.avgSalePrice) && pt.avgSalePrice > 0
+            ? pt.avgSalePrice
+            : null,
+        avgRentDeposit:
+          Number.isFinite(pt.avgRentDeposit) && pt.avgRentDeposit > 0
+            ? pt.avgRentDeposit
+            : null,
+        volume: Number.isFinite(pt.volume) && pt.volume > 0 ? pt.volume : 0,
+      }));
+  }, [data]);
+
+  const hasData = chartData.length > 0;
 
   return (
     <div
@@ -133,15 +155,15 @@ export function StatsTimeTrendChart({
         {/* Legend pills */}
         <div className="flex items-center gap-3 text-xs font-semibold">
           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-xs bg-teal-600/30 border border-teal-600" />
+            <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600/30 border border-emerald-600" />
             <span>거래량</span>
           </div>
           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-1 rounded-full bg-teal-600" />
+            <span className="w-2.5 h-1 rounded-full bg-emerald-600" />
             <span>매매 평균</span>
           </div>
           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-1 rounded-full bg-amber-500 border-b border-dashed border-amber-500" />
+            <span className="w-2.5 h-1 rounded-full bg-blue-500 border-b border-dashed border-blue-500" />
             <span>전세 평균</span>
           </div>
         </div>
@@ -149,9 +171,9 @@ export function StatsTimeTrendChart({
 
       {/* Semantic test runner element (enables headless Jest DOM assertions) */}
       <div data-testid="time-trend-data-points" className="sr-only">
-        {data.map((pt) => (
+        {chartData.map((pt) => (
           <span key={pt.date} data-testid={`trend-point-${pt.date}`}>
-            {pt.date}: {pt.avgSalePrice}만원 ({pt.volume}건)
+            {pt.date}: {pt.avgSalePrice ?? 0}만원 ({pt.volume}건)
           </span>
         ))}
       </div>
@@ -166,7 +188,7 @@ export function StatsTimeTrendChart({
         <div className="w-full" style={{ height }}>
           <ResponsiveContainer width="100%" height="100%" minWidth={280} minHeight={240}>
             <ComposedChart
-              data={data}
+              data={chartData}
               margin={{ top: 10, right: 10, left: -10, bottom: 0 }}
             >
               <defs>
@@ -235,6 +257,7 @@ export function StatsTimeTrendChart({
                 stroke="#057e77"
                 strokeWidth={2.5}
                 fill="url(#trendSaleGrad)"
+                connectNulls
                 dot={{ r: 3, fill: '#057e77', strokeWidth: 1.5, stroke: '#fff' }}
                 activeDot={{ r: 6, fill: '#057e77', stroke: '#fff', strokeWidth: 2 }}
               />
@@ -248,6 +271,7 @@ export function StatsTimeTrendChart({
                 stroke="#f59e0b"
                 strokeWidth={2}
                 strokeDasharray="4 4"
+                connectNulls
                 dot={{ r: 2.5, fill: '#f59e0b', strokeWidth: 1, stroke: '#fff' }}
                 activeDot={{ r: 5, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }}
               />

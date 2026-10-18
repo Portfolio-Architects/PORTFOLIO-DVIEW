@@ -52,8 +52,8 @@ export const LocationPrefixesSchema = z.array(z.string());
 export const LocationSuffixesSchema = z.array(z.string());
 export const RomanMapSchema = z.record(z.string(), z.string());
 
-import { normalizeAptName } from '../../../pipeline/core/normalizer';
-export { normalizeAptName };
+import { normalizeAptName, sanitizeAptKey } from '../../../pipeline/core/normalizer';
+export { normalizeAptName, sanitizeAptKey };
 
 export const HARDCODED_MAPPING: Record<string, string> = {
   '능동숲속마을광명메이루즈': '동탄숲속마을광명메이루즈',
@@ -80,7 +80,8 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '송동린스트라우스더레이크': '동탄린스트라우스더레이크',
   '송동하우스디더레이크': '동탄2하우스디더레이크',
   '동탄역삼정그린코아더베스트': '동탄역삼정그린코아',
-  '여울동금강펜테리움센트럴파크': '동탄2신도시금강펜테리움센트럴파크Ⅰ',
+  '여울동금강펜테리움센트럴파크': '동탄2신도시금강펜테리움센트럴파크1',
+  '동탄2신도시금강펜테리움센트럴파크Ⅰ': '동탄2신도시금강펜테리움센트럴파크1',
   '여울동반도유보라아이비파크3.0': '반도유보라아이비파크3',
   '여울동센트럴힐즈': '화성동탄2센트럴힐즈동탄아파트',
   '장지동금호어울림레이크': '금호어울림레이크',
@@ -90,7 +91,8 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '장지동제일풍경채에듀앤파크': '제일풍경채에듀앤파크',
   '장지동호반베르디움': '동탄2신도시호반베르디움33단지',
   '신동디에트르포레': '동탄2디에트르포레',
-  '목동금강펜테리움센트럴파크4차': '동탄금강펜테리움센트럴파크Ⅳ',
+  '목동금강펜테리움센트럴파크4차': '동탄금강펜테리움센트럴파크4',
+  '동탄금강펜테리움센트럴파크Ⅳ': '동탄금강펜테리움센트럴파크4',
   '목동동원로얄듀크2차': '동탄동원로얄듀크2차',
   '목동르파비스': '르파비스',
   '목동베라체': '동탄2신도시베라체',
@@ -107,7 +109,10 @@ export const HARDCODED_MAPPING: Record<string, string> = {
   '산척동레이크힐반도유보라아이비파크10.2': '레이크힐반도유보라아이비파크10.2',
   '산척동서희스타힐스엔에이치에프': '서희스타힐스엔에이치에프',
   '산척동중흥에스클래스에듀하이': '중흥에스클래스에듀하이',
-  '호수공원금강펜테리움센트럴파크Ⅱ': '산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ',
+  '호수공원금강펜테리움센트럴파크Ⅱ': '산척동동탄호수공원금강펜테리움센트럴파크2',
+  '호수공원금강펜테리움센트럴파크2': '산척동동탄호수공원금강펜테리움센트럴파크2',
+  '산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ': '산척동동탄호수공원금강펜테리움센트럴파크2',
+  '동탄호수공원자연&자이': '동탄호수공원자연앤자이',
   '호수공원역레이크시티': '더레이크시티부영6단지',
   '호수공원역센트리체': '더레이크시티부영5단지',
   '동탄역센트럴자이': '동탄역센트럴자이A-10',
@@ -281,7 +286,7 @@ const BRAND_NAMES = new Set([
  * "동탄역롯데캐슬알바트로스" → "롯데캐슬알바트로스"
  * "동탄2신도시금강펜테리움" → "금강펜테리움"
  * 
- * ⚠️ 긴 접두사가 먼저 오도록 정렬 — 가장 구체적인 것부터 매칭
+ * [주의] 긴 접두사가 먼저 오도록 정렬 — 가장 구체적인 것부터 매칭
  */
 // 아파트명에서 지역, 역명, 법정동, 마을명 접두사를 제거하기 위한 목록 (가장 긴 패턴부터 내림차순 정렬)
 const LOCATION_PREFIXES = [
@@ -388,7 +393,7 @@ function deepNormalize(name: string): string {
   result = result.replace(/(\d+)번지/g, '$1');
   // ".0" 제거 (3.0 → 3, but keep 10.0 → 10)
   result = result.replace(/\.0(?=$|[^0-9])/g, '');
-  // 명칭 통일 (앱 ↔ 실거래DB 표기 차이)
+  // 명칭 통일 (앱 <-> 실거래DB 표기 차이)
   result = result.replace(/스위콈/g, '스위첸');
   result = result.replace(/케이씨씨/g, 'KCC');
   result = result.replace(/S클래스/g, '에스클래스');
@@ -485,6 +490,10 @@ export function findTxKey<T>(
     for (const key of Object.keys(txMap)) {
       const normKey = normalizeAptName(key);
       normalizedTxMap[normKey] = key;
+      const sanitizedKey = sanitizeAptKey(key);
+      if (sanitizedKey && !(sanitizedKey in normalizedTxMap)) {
+        normalizedTxMap[sanitizedKey] = key;
+      }
 
       const keyStripped = stripLocationSuffix(stripLocationPrefix(normKey));
       const keyDeep = stripLocationSuffix(stripLocationPrefix(deepNormalize(normKey)));
@@ -571,7 +580,7 @@ export function findTxKey<T>(
     return res;
   }
 
-  // 1.5단계: 단어 순서 반전 매칭 (예: "동탄역 힐스테이트" ↔ "힐스테이트동탄역")
+  // 1.5단계: 단어 순서 반전 매칭 (예: "동탄역 힐스테이트" <-> "힐스테이트동탄역")
   const tokens = vAptName.trim().split(/\s+/);
   if (tokens.length >= 2) {
     for (let i = 0; i < tokens.length; i++) {

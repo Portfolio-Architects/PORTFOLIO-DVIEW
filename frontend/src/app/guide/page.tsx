@@ -1,9 +1,10 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { BookOpen, ArrowRight, Clock, Calendar, CheckCircle2, TrendingUp, Compass, ShieldAlert } from 'lucide-react';
+import { BookOpen, ArrowRight, Clock, Calendar, CheckCircle2, Bookmark, Compass, Building2 } from 'lucide-react';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 export const metadata: Metadata = {
   title: '동탄 부동산 가이드 & 시장 심층 분석 리포트 | D-VIEW 인사이트',
@@ -72,7 +73,21 @@ export default function GuideIndexPage() {
 
       {/* Main Content Articles */}
       <main className="max-w-[1100px] mx-auto px-4 sm:px-6 mt-8 sm:mt-12 space-y-8">
-        
+        {/* Top In-Feed Zero-CLS AdSlot */}
+        <div
+          data-testid="guide-index-adslot-top"
+          className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+        >
+          <AdSlot
+            slotId="1000000001"
+            refreshSlotId="1000000001_guide_index_top"
+            format="rectangle"
+            minHeightClass="min-h-[250px]"
+            cpaCampaignId="mortgage-refinance"
+            apartmentName="동탄 가이드"
+          />
+        </div>
+
         {/* Articles Grid */}
         <div className="grid grid-cols-1 gap-8">
           {GUIDE_ARTICLES.map((article) => (
@@ -94,7 +109,7 @@ export default function GuideIndexPage() {
                     <Clock size={13} />
                     읽는 시간 약 {article.readingTime}
                   </span>
-                  <span className="text-toss-gray">|</span>
+                  <span className="text-slate-400">|</span>
                   <span>{article.author}</span>
                 </div>
 
@@ -117,7 +132,10 @@ export default function GuideIndexPage() {
 
                 {/* Key Takeaways Box */}
                 <div className="mt-5 bg-body p-4 sm:p-5 rounded-2xl border border-border/50">
-                  <span className="text-[12px] font-extrabold text-primary block mb-2">📌 핵심 리포트 요약</span>
+                  <span className="text-[12px] font-extrabold text-primary mb-2 flex items-center gap-1.5">
+                    <Bookmark size={13} className="text-emerald-500 shrink-0" />
+                    <span>핵심 리포트 요약</span>
+                  </span>
                   <ul className="space-y-2 text-[12.5px] text-secondary font-medium">
                     {article.keyTakeaways.map((point, pIdx) => (
                       <li key={pIdx} className="flex items-start gap-2">
@@ -155,6 +173,49 @@ export default function GuideIndexPage() {
 
             </article>
           ))}
+        </div>
+
+        {/* Recirculation Hub Links */}
+        <section className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-base sm:text-lg font-extrabold text-primary tracking-tight">
+              단지별 실거래가 및 테크노밸리 세제 혜택 직접 비교
+            </h2>
+            <p className="text-[13px] text-secondary mt-1 font-medium">
+              184개 아파트 단지 4대 금융 수리 테이블과 56개 지식산업센터 세제 혜택 데이터를 즉시 확인하세요.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-3 shrink-0">
+            <Link
+              href="/explore"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold transition-colors"
+            >
+              <Compass size={15} />
+              <span>184개 단지 탐색</span>
+            </Link>
+            <Link
+              href="/technovalley"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[13px] font-bold transition-colors"
+            >
+              <Building2 size={15} />
+              <span>지식산업센터 카탈로그</span>
+            </Link>
+          </div>
+        </section>
+
+        {/* Bottom Zero-CLS AdSlot */}
+        <div
+          data-testid="guide-index-adslot-bottom"
+          className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+        >
+          <AdSlot
+            slotId="1000000002"
+            refreshSlotId="1000000002_guide_index_bottom"
+            format="rectangle"
+            minHeightClass="min-h-[250px]"
+            cpaCampaignId="jeonse-sentinel"
+            apartmentName="동탄 가이드"
+          />
         </div>
 
       </main>

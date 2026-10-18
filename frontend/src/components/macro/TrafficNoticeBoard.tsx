@@ -22,7 +22,7 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
       {/* Header */}
       <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
         <div className="relative group/title flex items-center gap-1.5 min-w-0">
-          <span className="bg-hs-orange/10 dark:bg-hs-orange/25 text-hs-orange dark:text-hs-orange font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+          <span className="bg-emerald-600/10 dark:bg-emerald-600/25 text-emerald-700 dark:text-emerald-700 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
             철도·교통
           </span>
           <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
@@ -44,11 +44,11 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
         {/* 1. 철도전략과 소식 */}
         <div className="flex flex-col gap-1.5">
           <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2 mb-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-hs-orange shadow-[0_0_4px_rgba(220,110,45,0.4)]"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_4px_rgba(220,110,45,0.4)]"></span>
             철도전략과 소식
           </div>
           {railStrategyNotices.length === 0 ? (
-            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
+            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-slate-50/50 dark:bg-slate-900/10 rounded-xl border border-dashed border-border/30">
               관련 공지사항이 없습니다.
             </div>
           ) : (
@@ -60,14 +60,14 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                 onClick={() => {
                   window.location.href = `/news?notice=${item.id}`;
                 }}
-                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-hs-orange/50"
+                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-slate-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
                 {/* Left: Icon & Title */}
                 <div className="flex items-center gap-2.5 min-w-0 mr-3">
-                  <div className="w-6 h-6 rounded-lg bg-hs-orange/10 text-hs-orange flex items-center justify-center shrink-0">
+                  <div className="w-6 h-6 rounded-lg bg-emerald-600/10 text-emerald-700 flex items-center justify-center shrink-0">
                     <Train size={12} />
                   </div>
-                  <span className="text-[14px] font-bold text-primary group-hover/item:text-hs-orange transition-colors truncate" title={item.title}>
+                  <span className="text-[14px] font-bold text-primary group-hover/item:text-emerald-700 transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>
                 </div>
@@ -92,7 +92,7 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
             트램건설추진단 소식
           </div>
           {tramNotices.length === 0 ? (
-            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-neutral-50/50 dark:bg-zinc-900/10 rounded-xl border border-dashed border-border/30">
+            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-slate-50/50 dark:bg-slate-900/10 rounded-xl border border-dashed border-border/30">
               관련 공지사항이 없습니다.
             </div>
           ) : (
@@ -104,7 +104,7 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                 onClick={() => {
                   window.open(item.url, '_blank', 'noopener,noreferrer');
                 }}
-                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-zinc-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-slate-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
                 {/* Left: Icon & Title */}
                 <div className="flex items-center gap-2.5 min-w-0 mr-3">

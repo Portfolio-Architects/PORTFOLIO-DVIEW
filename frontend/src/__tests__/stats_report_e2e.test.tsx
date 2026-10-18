@@ -418,28 +418,28 @@ export const ReferenceStatsDashboardClient: React.FC<{
         <button
           data-testid="filter-region-all"
           onClick={() => setRegion('ALL')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === 'ALL' ? 'bg-orange-500 text-white' : 'bg-slate-100'}`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === 'ALL' ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}
         >
           동탄 전체
         </button>
         <button
           data-testid="filter-region-dongtan1"
           onClick={() => setRegion('DONGTAN1')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === 'DONGTAN1' ? 'bg-orange-500 text-white' : 'bg-slate-100'}`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === 'DONGTAN1' ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}
         >
           동탄1
         </button>
         <button
           data-testid="filter-region-dongtan2"
           onClick={() => setRegion('DONGTAN2')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === 'DONGTAN2' ? 'bg-orange-500 text-white' : 'bg-slate-100'}`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === 'DONGTAN2' ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}
         >
           동탄2
         </button>
         <button
           data-testid="filter-region-cheonggye"
           onClick={() => setRegion('청계동')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === '청계동' ? 'bg-orange-500 text-white' : 'bg-slate-100'}`}
+          className={`px-3 py-1.5 rounded-lg text-xs font-bold ${region === '청계동' ? 'bg-emerald-500 text-white' : 'bg-slate-100'}`}
         >
           청계동
         </button>
@@ -509,8 +509,8 @@ export const ReferenceStatsDashboardClient: React.FC<{
 
       {/* Hyperlocal Insights */}
       <div data-testid="stats-hyperlocal-insights" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <div data-testid="insight-card-new-high" className="p-4 rounded-2xl border border-slate-200 bg-orange-50/50">
-          <span className="text-xs font-bold text-orange-600">신고가 갱신</span>
+        <div data-testid="insight-card-new-high" className="p-4 rounded-2xl border border-slate-200 bg-emerald-50/50">
+          <span className="text-xs font-bold text-emerald-600">신고가 갱신</span>
           <h4 className="font-bold text-sm mt-1">{data.insights.newHighComplex?.aptName || '해당 없음'}</h4>
           <p className="text-xs text-slate-500">{data.insights.newHighComplex?.highestPrice ? `${data.insights.newHighComplex.highestPrice.toLocaleString()}만원` : '-'}</p>
         </div>
@@ -524,8 +524,8 @@ export const ReferenceStatsDashboardClient: React.FC<{
           <h4 className="font-bold text-sm mt-1">{data.insights.volumeSurgeComplex?.aptName || '해당 없음'}</h4>
           <p className="text-xs text-slate-500">{data.insights.volumeSurgeComplex?.txCount ? `${data.insights.volumeSurgeComplex.txCount}건` : '-'}</p>
         </div>
-        <div data-testid="insight-card-urgent-bargain" className="p-4 rounded-2xl border border-slate-200 bg-rose-50/50">
-          <span className="text-xs font-bold text-rose-600">낙폭과대 급매</span>
+        <div data-testid="insight-card-urgent-bargain" className="p-4 rounded-2xl border border-slate-200 bg-red-50/50">
+          <span className="text-xs font-bold text-red-600">낙폭과대 급매</span>
           <h4 className="font-bold text-sm mt-1">{data.insights.urgentBargainComplex?.aptName || '해당 없음'}</h4>
           <p className="text-xs text-slate-500">{data.insights.urgentBargainComplex?.urgentSaleDiscountRate ? `-${data.insights.urgentBargainComplex.urgentSaleDiscountRate}%` : '-'}</p>
         </div>
@@ -564,7 +564,7 @@ export const ReferenceStatsDashboardClient: React.FC<{
                   <span className="font-bold">
                     {idx + 1}위 {item.aptName} ({item.dong})
                   </span>
-                  <span className="text-orange-600 font-extrabold">{item.avgPyeongPrice.toLocaleString()}만원/평</span>
+                  <span className="text-emerald-600 font-extrabold">{item.avgPyeongPrice.toLocaleString()}만원/평</span>
                 </div>
                 {/* 3. AdSense Slot: Ranking Break after Rank 3 */}
                 {idx === 2 && (
@@ -944,13 +944,13 @@ describe('동탄 아파트 통계 리포트 & 애드센스 대시보드 종합 E
 
       it('F7.4: Validates activeTab state propagation in LoungeHeader', () => {
         const { container } = render(<LoungeHeader activeTab="overview" />);
-        const activeLink = container.querySelector('.text-hs-orange');
+        const activeLink = container.querySelector('.text-emerald-700');
         expect(activeLink).toBeInTheDocument();
       });
 
       it('F7.5: Validates activeTab state propagation in MobileDock', () => {
         const { container } = render(<MobileDock activeTab="overview" />);
-        const activeItem = container.querySelector('.text-hs-orange');
+        const activeItem = container.querySelector('.text-emerald-700');
         expect(activeItem).toBeInTheDocument();
       });
     });

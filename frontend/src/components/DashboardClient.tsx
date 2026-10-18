@@ -15,10 +15,18 @@ import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent } from '@/lib/utils/analytics';
+import {
+  decodeSafeAptParam,
+  syncShallowApartmentOpen,
+  syncShallowModalCloseToDashboard,
+  transitionRecirculationState,
+} from '@/lib/ads/recirculationEngine';
 import { logger } from '@/lib/services/logger';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 import { type DongApartment } from '@/lib/dong-apartments';
 import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { type LocationScoreItem } from '@/types/transaction';
+
 
 // LCP Optimization: Skeletons for Heavy Dynamic Components
 
@@ -101,13 +109,7 @@ const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentM
 });
 
 
-const MacroDashboardClient = dynamic(() => import(/* webpackPreload: true */ '@/components/MacroDashboardClient').catch(err => {
-  logger.warn('DashboardClient.dynamic', 'MacroDashboardClient Chunk Load failure, initiating fallback reload', undefined, err);
-  safeReload('MacroDashboardClient');
-  return { default: () => null };
-}), { 
-  loading: () => <MacroDashboardSkeleton />
-});
+import MacroDashboardClient from '@/components/MacroDashboardClient';
 
 const AptCompareModal = dynamic(() => import('@/components/consumer/AptCompareModal').catch(err => {
   logger.warn('DashboardClient.dynamic', 'AptCompareModal Chunk Load failure, initiating fallback reload', undefined, err);
@@ -171,6 +173,35 @@ const EMPTY_OBJECT: Record<string, never> = Object.freeze({});
 const EMPTY_SET = new Set<string>();
 const EMPTY_ARRAY: never[] = [];
 
+function buildStubObjectiveMetrics(
+  apt: StaticApartment | DongApartment,
+  loc?: LocationScoreItem,
+  base?: ObjectiveMetrics
+): ObjectiveMetrics {
+  const parsedYear = apt.yearBuilt ? Number(apt.yearBuilt) : (base?.yearBuilt ?? 0);
+  return {
+    ...(base || {}),
+    brand: apt.brand ?? base?.brand ?? '',
+    householdCount: apt.householdCount ?? base?.householdCount ?? 0,
+    far: base?.far ?? 0,
+    bcr: base?.bcr ?? 0,
+    parkingCount: base?.parkingCount,
+    parkingPerHousehold: base?.parkingPerHousehold ?? 0,
+    yearBuilt: Number.isFinite(parsedYear) ? parsedYear : 0,
+    minFloor: base?.minFloor,
+    maxFloor: base?.maxFloor,
+    distanceToElementary: loc?.distanceToElementary ?? base?.distanceToElementary ?? 0,
+    distanceToMiddle: loc?.distanceToMiddle ?? base?.distanceToMiddle ?? 0,
+    distanceToHigh: loc?.distanceToHigh ?? base?.distanceToHigh ?? 0,
+    distanceToSubway: loc?.distanceToSubway ?? base?.distanceToSubway ?? 0,
+    academyDensity: typeof loc?.academyDensity === 'number' ? loc.academyDensity : (base?.academyDensity ?? 0),
+    distanceToIndeokwon: loc?.distanceToIndeokwon ?? base?.distanceToIndeokwon,
+    distanceToTram: loc?.distanceToTram ?? base?.distanceToTram,
+    distanceToStarbucks: loc?.distanceToStarbucks ?? base?.distanceToStarbucks,
+    distanceToOliveYoung: loc?.distanceToOliveYoung ?? base?.distanceToOliveYoung,
+  };
+}
+
 const DashboardClient = React.memo(function DashboardClient({ 
   initialDashboardData, 
   preselectedAptName,
@@ -197,6 +228,9 @@ const DashboardClient = React.memo(function DashboardClient({
   // 1:1 아파트 비교 대시보드 상태
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [compareInitialApt, setCompareInitialApt] = useState<string | undefined>(undefined);
+  const [compareSecondApt, setCompareSecondApt] = useState<string | undefined>(undefined);
+  const returnToAptRef = useRef<string | null>(null);
+
   
   // 전세 안전진단 계산기 상태
   const [isJeonseSafetyOpen, setIsJeonseSafetyOpen] = useState(false);
@@ -242,12 +276,12 @@ const DashboardClient = React.memo(function DashboardClient({
     return filtered.length > 0 ? filtered : recentTransactions;
   }, [recentTransactions, nameMapping]);
 
-  const { locationScores = EMPTY_OBJECT } = useLocationScores((initialDashboardData as any)?.locationScores);
+  const { locationScores = EMPTY_OBJECT } = useLocationScores(initialDashboardData?.locationScores);
   
-  const getLocScore = useCallback((aptName: string) => {
-    if (!aptName || !locationScores) return {};
+  const getLocScore = useCallback((aptName: string): LocationScoreItem | undefined => {
+    if (!aptName || !locationScores) return undefined;
     const matchKey = findTxKey(aptName, locationScores, nameMapping);
-    return matchKey ? locationScores[matchKey] : {};
+    return matchKey ? locationScores[matchKey] : undefined;
   }, [locationScores, nameMapping]);
   
   const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummary);
@@ -427,7 +461,7 @@ const DashboardClient = React.memo(function DashboardClient({
               likes: 0,
               commentCount: 0,
               createdAt: null,
-              metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as ObjectiveMetrics,
+              metrics: buildStubObjectiveMetrics(targetApt, getLocScore(targetApt.name)),
             });
           }
           setMobileModalOpen(true);
@@ -477,7 +511,7 @@ const DashboardClient = React.memo(function DashboardClient({
           likes: 0,
           commentCount: 0,
           createdAt: null,
-          metrics: { ...targetApt, ...(getLocScore(targetApt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+          metrics: buildStubObjectiveMetrics(targetApt, getLocScore(targetApt.name)),
         });
         if (typeof window !== 'undefined' && window.innerWidth < 768) {
           setMobileModalOpen(true);
@@ -494,16 +528,52 @@ const DashboardClient = React.memo(function DashboardClient({
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
-      // If we go back to the root (no hash), clear selection (soft close)
-      if (!window.location.hash && (window.location.pathname === '/' || window.location.pathname === '')) {
+      const pathname = window.location.pathname || '/';
+      if (pathname.startsWith('/apartment/')) {
+        const aptParam = decodeSafeAptParam(pathname.slice('/apartment/'.length));
+        setIsCompareOpen(false);
+        setIsMortgageOpen(false);
+        setIsTaxCalcOpen(false);
+        returnToAptRef.current = null;
+        if (aptParam) {
+          const { sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
+          const allApts = apartments ? Object.values(apartments).flat() : [];
+          const targetApt = allApts.find(a => isSameApartment(a.name, aptParam, mapping));
+          const report = (targetApt && reportsMap?.get(targetApt.name)) || {
+            id: `stub-${normalizeAptName(targetApt?.name || aptParam)}`,
+            apartmentName: targetApt?.name || aptParam,
+            dong: targetApt?.dong || '',
+            author: '',
+            likes: 0,
+            commentCount: 0,
+            createdAt: null,
+            metrics: buildStubObjectiveMetrics(
+              targetApt || { name: aptParam, dong: '' },
+              getLocScore(targetApt?.name || aptParam)
+            ),
+          };
+          setSelectedReport(report);
+          setMobileModalOpen(true);
+          userHasSelected.current = true;
+        }
+        return;
+      }
+
+      // If we go back to the root (no hash), clear selection and close sub-modals (soft close)
+      if (!window.location.hash && (pathname === '/' || pathname === '')) {
+        returnToAptRef.current = null;
+        setIsCompareOpen(false);
+        setIsMortgageOpen(false);
+        setIsTaxCalcOpen(false);
         setSelectedReport(null);
         setMobileModalOpen(false);
         userHasSelected.current = true;
+        syncShallowModalCloseToDashboard();
       }
     };
     window.addEventListener('popstate', handlePopState, { passive: true });
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [setSelectedReport]);
+  }, [setSelectedReport, getLocScore]);
 
   const handleAptClick = useCallback((apt: StaticApartment) => {
     userHasSelected.current = true;
@@ -517,7 +587,7 @@ const DashboardClient = React.memo(function DashboardClient({
       likes: 0,
       commentCount: 0,
       createdAt: null,
-      metrics: { ...apt, ...(getLocScore(apt.name) || {}) } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+      metrics: buildStubObjectiveMetrics(apt, getLocScore(apt.name)),
     };
     setSelectedReport(initialReport);
 
@@ -535,11 +605,7 @@ const DashboardClient = React.memo(function DashboardClient({
                 if (!prev || prev.apartmentName !== apt.name) return prev;
                 return {
                   ...prev,
-                  metrics: {
-                    ...prev.metrics,
-                    ...targetApt,
-                    ...(getLocScore(apt.name) || {})
-                  } as unknown as import('@/lib/types/scoutingReport').ObjectiveMetrics,
+                  metrics: buildStubObjectiveMetrics(targetApt, getLocScore(apt.name), prev.metrics),
                 };
               });
             }
@@ -564,8 +630,8 @@ const DashboardClient = React.memo(function DashboardClient({
       }
     }
 
-    // Bypass Next.js completely to avoid any Suspense/Router triggers by pushing a hash state natively
-    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
+    // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV
+    syncShallowApartmentOpen(apt.name, { dong: apt.dong });
     setMobileModalOpen(true);
   }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore, triggerFetch]);
 
@@ -581,24 +647,149 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleOpenAdModal = useCallback(() => {}, []);
 
-  const handleOpenCompare = useCallback((aptName?: string) => {
-    setCompareInitialApt(aptName);
-    setIsCompareOpen(true);
-  }, []);
+  const handleOpenCompare = useCallback(
+    (aptName?: string, targetAptName?: string) => {
+      setIsMortgageOpen(false);
+      setIsTaxCalcOpen(false);
+      setCompareInitialApt(aptName);
+      setCompareSecondApt(targetAptName);
+      if ((mobileModalOpen && selectedReport) || returnToAptRef.current) {
+        const baseApt = aptName || returnToAptRef.current || selectedReport?.apartmentName || '';
+        returnToAptRef.current = baseApt;
+        setMobileModalOpen(false);
+        transitionRecirculationState(
+          { status: 'CHAPTER_EXPLORE', apt: baseApt },
+          {
+            type: 'CLICK_RECIRC_COMPARE',
+            baseApt,
+            targetApt: targetAptName || '',
+          }
+        );
+      } else if (aptName && targetAptName) {
+        transitionRecirculationState(
+          { status: 'DASHBOARD_IDLE' },
+          {
+            type: 'CLICK_RECIRC_COMPARE',
+            baseApt: aptName,
+            targetApt: targetAptName,
+          }
+        );
+      }
+      setIsCompareOpen(true);
+    },
+    [mobileModalOpen, selectedReport]
+  );
+
+  const handleCloseCompare = useCallback(() => {
+    setIsCompareOpen(false);
+    const prevBaseApt = returnToAptRef.current;
+    const prevSecondApt = compareSecondApt;
+    setCompareSecondApt(undefined);
+    if (prevBaseApt) {
+      returnToAptRef.current = null;
+      transitionRecirculationState(
+        { status: 'COMPARE_OPEN', apt1: prevBaseApt, apt2: prevSecondApt || '' },
+        { type: 'MODAL_CLOSE' }
+      );
+      setMobileModalOpen(true);
+    }
+  }, [compareSecondApt]);
 
   const handleOpenJeonseSafety = useCallback((aptName?: string) => {
     setJeonseSafetyInitialApt(aptName);
     setIsJeonseSafetyOpen(true);
   }, []);
 
-  const handleOpenMortgage = useCallback((aptName?: string) => {
-    setMortgageInitialApt(aptName);
-    setIsMortgageOpen(true);
+  const handleOpenMortgage = useCallback(
+    (aptName?: string, priceWon?: number) => {
+      setIsCompareOpen(false);
+      setIsTaxCalcOpen(false);
+      setMortgageInitialApt(aptName);
+      if ((mobileModalOpen && selectedReport) || returnToAptRef.current) {
+        const baseApt = aptName || returnToAptRef.current || selectedReport?.apartmentName || '';
+        returnToAptRef.current = baseApt;
+        setMobileModalOpen(false);
+        transitionRecirculationState(
+          { status: 'CHAPTER_EXPLORE', apt: baseApt },
+          {
+            type: 'CLICK_RECIRC_MORTGAGE',
+            apt: baseApt,
+            priceWon,
+            calcType: 'mortgage',
+          }
+        );
+      } else if (aptName) {
+        transitionRecirculationState(
+          { status: 'DASHBOARD_IDLE' },
+          {
+            type: 'CLICK_RECIRC_MORTGAGE',
+            apt: aptName,
+            priceWon,
+            calcType: 'mortgage',
+          }
+        );
+      }
+      setIsMortgageOpen(true);
+    },
+    [mobileModalOpen, selectedReport]
+  );
+
+  const handleCloseMortgage = useCallback(() => {
+    setIsMortgageOpen(false);
+    const prevBaseApt = returnToAptRef.current;
+    if (prevBaseApt) {
+      returnToAptRef.current = null;
+      transitionRecirculationState(
+        { status: 'CALC_OPEN', calcType: 'mortgage', apt: prevBaseApt },
+        { type: 'MODAL_CLOSE' }
+      );
+      setMobileModalOpen(true);
+    }
   }, []);
 
-  const handleOpenTaxCalculator = useCallback((aptName?: string) => {
-    setTaxCalcInitialApt(aptName);
-    setIsTaxCalcOpen(true);
+  const handleOpenTaxCalculator = useCallback(
+    (aptName?: string) => {
+      setIsCompareOpen(false);
+      setIsMortgageOpen(false);
+      setTaxCalcInitialApt(aptName);
+      if ((mobileModalOpen && selectedReport) || returnToAptRef.current) {
+        const baseApt = aptName || returnToAptRef.current || selectedReport?.apartmentName || '';
+        returnToAptRef.current = baseApt;
+        setMobileModalOpen(false);
+        transitionRecirculationState(
+          { status: 'CHAPTER_EXPLORE', apt: baseApt },
+          {
+            type: 'CLICK_RECIRC_MORTGAGE',
+            apt: baseApt,
+            calcType: 'tax',
+          }
+        );
+      } else if (aptName) {
+        transitionRecirculationState(
+          { status: 'DASHBOARD_IDLE' },
+          {
+            type: 'CLICK_RECIRC_MORTGAGE',
+            apt: aptName,
+            calcType: 'tax',
+          }
+        );
+      }
+      setIsTaxCalcOpen(true);
+    },
+    [mobileModalOpen, selectedReport]
+  );
+
+  const handleCloseTaxCalculator = useCallback(() => {
+    setIsTaxCalcOpen(false);
+    const prevBaseApt = returnToAptRef.current;
+    if (prevBaseApt) {
+      returnToAptRef.current = null;
+      transitionRecirculationState(
+        { status: 'CALC_OPEN', calcType: 'tax', apt: prevBaseApt },
+        { type: 'MODAL_CLOSE' }
+      );
+      setMobileModalOpen(true);
+    }
   }, []);
 
   const handleOpenSellTimingCalculator = useCallback((aptName?: string) => {
@@ -607,6 +798,7 @@ const DashboardClient = React.memo(function DashboardClient({
   }, []);
 
   const handleCloseMobileModal = useCallback(() => {
+    returnToAptRef.current = null;
     setSelectedReport(null);
     setMobileModalOpen(false);
     
@@ -619,8 +811,9 @@ const DashboardClient = React.memo(function DashboardClient({
       }
     }
     
-    window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    syncShallowModalCloseToDashboard();
   }, [setSelectedReport]);
+
 
 
 
@@ -654,6 +847,7 @@ const DashboardClient = React.memo(function DashboardClient({
                 fieldReportsMap={fieldReportsMap}
                 recent7DaysVolume={recent7DaysVolume}
                 typeMap={typeMap}
+                initialLocationScores={locationScores}
                 onOpenAdModal={handleOpenAdModal}
                 onOpenCompare={handleOpenCompare}
                 onOpenJeonseSafety={handleOpenJeonseSafety}
@@ -740,6 +934,7 @@ const DashboardClient = React.memo(function DashboardClient({
               nameMapping={nameMapping || {}}
               txSummaryData={txSummary}
               locationScores={locationScores}
+              onSelectApartment={handleAptClickByName}
               onOpenCompare={handleOpenCompare}
               onOpenJeonseSafety={handleOpenJeonseSafety}
               onOpenMortgage={handleOpenMortgage}
@@ -773,7 +968,7 @@ const DashboardClient = React.memo(function DashboardClient({
           return (
             <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
               <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
                   <span className="text-xl font-black">!</span>
                 </div>
                 <h3 className="text-[15px] font-black text-primary mb-1">비교 분석기 로드 실패</h3>
@@ -783,12 +978,12 @@ const DashboardClient = React.memo(function DashboardClient({
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={reset}
-                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                    className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                   >
                     다시 시도
                   </button>
                   <button
-                    onClick={() => setIsCompareOpen(false)}
+                    onClick={handleCloseCompare}
                     className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
                   >
                     닫기
@@ -801,8 +996,15 @@ const DashboardClient = React.memo(function DashboardClient({
       >
         <AptCompareModal
           isOpen={isCompareOpen}
-          onClose={() => setIsCompareOpen(false)}
+          onClose={handleCloseCompare}
           initialAptName={compareInitialApt}
+          initialSecondAptName={compareSecondApt}
+          onSelectApartment={(targetAptName) => {
+            returnToAptRef.current = null;
+            setIsCompareOpen(false);
+            setCompareSecondApt(undefined);
+            handleAptClickByName(targetAptName);
+          }}
           sheetApartments={sheetApartments}
           txSummaryData={txSummary}
           nameMapping={nameMapping || {}}
@@ -824,7 +1026,7 @@ const DashboardClient = React.memo(function DashboardClient({
           return (
             <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
               <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
                   <span className="text-xl font-black">!</span>
                 </div>
                 <h3 className="text-[15px] font-black text-primary mb-1">전세 안전진단 로드 실패</h3>
@@ -834,7 +1036,7 @@ const DashboardClient = React.memo(function DashboardClient({
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={reset}
-                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                    className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                   >
                     다시 시도
                   </button>
@@ -873,7 +1075,7 @@ const DashboardClient = React.memo(function DashboardClient({
           return (
             <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
               <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
                   <span className="text-xl font-black">!</span>
                 </div>
                 <h3 className="text-[15px] font-black text-primary mb-1">대출 계산기 로드 실패</h3>
@@ -883,12 +1085,12 @@ const DashboardClient = React.memo(function DashboardClient({
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={reset}
-                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                    className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                   >
                     다시 시도
                   </button>
                   <button
-                    onClick={() => setIsMortgageOpen(false)}
+                    onClick={handleCloseMortgage}
                     className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
                   >
                     닫기
@@ -901,11 +1103,12 @@ const DashboardClient = React.memo(function DashboardClient({
       >
         <MortgageCalculator
           isOpen={isMortgageOpen}
-          onClose={() => setIsMortgageOpen(false)}
+          onClose={handleCloseMortgage}
           initialAptName={mortgageInitialApt}
           sheetApartments={sheetApartments}
           txSummaryData={txSummary}
           nameMapping={nameMapping || {}}
+
           fieldReportsMap={fieldReportsMap}
         />
       </ErrorBoundary>
@@ -922,7 +1125,7 @@ const DashboardClient = React.memo(function DashboardClient({
           return (
             <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
               <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
                   <span className="text-xl font-black">!</span>
                 </div>
                 <h3 className="text-[15px] font-black text-primary mb-1">계산기 로드 실패</h3>
@@ -932,12 +1135,12 @@ const DashboardClient = React.memo(function DashboardClient({
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={reset}
-                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                    className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                   >
                     다시 시도
                   </button>
                   <button
-                    onClick={() => setIsTaxCalcOpen(false)}
+                    onClick={handleCloseTaxCalculator}
                     className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
                   >
                     닫기
@@ -950,7 +1153,7 @@ const DashboardClient = React.memo(function DashboardClient({
       >
         <PropertyTaxCalculator
           isOpen={isTaxCalcOpen}
-          onClose={() => setIsTaxCalcOpen(false)}
+          onClose={handleCloseTaxCalculator}
           initialAptName={taxCalcInitialApt}
           sheetApartments={sheetApartments}
           txSummaryData={txSummary}
@@ -970,7 +1173,7 @@ const DashboardClient = React.memo(function DashboardClient({
           return (
             <div className="fixed inset-0 z-[12000] flex items-center justify-center p-4 bg-black/40 dark:bg-black/60 backdrop-blur-md animate-in fade-in duration-200">
               <div className="bg-surface w-full max-w-[400px] rounded-2xl shadow-xl border border-border p-6 flex flex-col items-center text-center animate-in zoom-in-95 duration-200">
-                <div className="w-12 h-12 rounded-full bg-rose-500/10 text-rose-500 flex items-center justify-center mb-4">
+                <div className="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center mb-4">
                   <span className="text-xl font-black">!</span>
                 </div>
                 <h3 className="text-[15px] font-black text-primary mb-1">진단기 로드 실패</h3>
@@ -980,7 +1183,7 @@ const DashboardClient = React.memo(function DashboardClient({
                 <div className="flex gap-2 w-full">
                   <button
                     onClick={reset}
-                    className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
+                    className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 font-extrabold text-[12px] rounded-xl transition-all cursor-pointer border-none"
                   >
                     다시 시도
                   </button>

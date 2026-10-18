@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
+import { ChevronRight, ChevronDown, ChevronUp, Flame } from 'lucide-react';
 import { haversineDistance } from "@/lib/utils/haversine";
 import { normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit, formatGapPrice } from '../MacroDashboardClient';
@@ -397,8 +397,9 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                                 {apt.name}
                               </span>
                               {!!((apt.likes && apt.likes >= 3) || (apt.views && apt.views >= 100)) && (
-                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[10px] font-black bg-rose-50 dark:bg-rose-950/20 text-rose-500 border border-rose-500/10 leading-none shrink-0 gap-0.5 animate-pulse">
-                                  🔥 HOT
+                                <span className="inline-flex items-center px-1.5 py-0.5 rounded-[5px] text-[10px] font-black bg-red-50 dark:bg-red-950/20 text-red-500 border border-red-500/10 leading-none shrink-0 gap-0.5 animate-pulse">
+                                  <Flame size={11} className="shrink-0" />
+                                  <span>HOT</span>
                                 </span>
                               )}
                             </div>
@@ -414,12 +415,12 @@ export const RegionAccordion = React.memo(function RegionAccordion({
                                 </span>
                               )}
                               {apt.latestRentDeposit !== undefined && apt.latestPrice > apt.latestRentDeposit && apt.gap > 0 && (
-                                <span className="text-[10px] sm:text-[11px] font-bold text-[#ff8f00] bg-[#fff3e0] dark:bg-amber-950/20 px-2 py-[3px] rounded-[6px] border border-[#ff8f00]/10 inline-flex whitespace-nowrap">
+                                <span className="text-[10px] sm:text-[11px] font-bold text-blue-700 bg-blue-50 dark:bg-blue-950/20 px-2 py-[3px] rounded-[6px] border border-blue-200 dark:border-blue-800/40 inline-flex whitespace-nowrap">
                                   갭 {formatGapPrice(apt.latestPrice - apt.latestRentDeposit)} ({Math.round(apt.gap)}%)
                                 </span>
                               )}
                               {apt.mdd !== undefined && apt.mdd <= -5 && (
-                                <span className="text-[10px] sm:text-[11px] font-bold text-rose-500 bg-rose-50 dark:bg-rose-950/20 px-2 py-[3px] rounded-[6px] border border-rose-500/10 inline-flex whitespace-nowrap">
+                                <span className="text-[10px] sm:text-[11px] font-bold text-red-500 bg-red-50 dark:bg-red-950/20 px-2 py-[3px] rounded-[6px] border border-red-500/10 inline-flex whitespace-nowrap">
                                   낙폭 {apt.mdd.toFixed(1)}%
                                 </span>
                               )}

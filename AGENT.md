@@ -129,7 +129,7 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 아무리 뛰어난 그로스 해킹 기능이라도 다음 5가지를 위반하면 즉각 롤백합니다.
 1. **Zero-Jank UX & CLS 위반**: 모바일에서 프레임 드랍이나 렌더링 지연(Waterfall), 레이아웃 시프트(CLS > 0.01) 발생.
 2. **Type/Compile Error**: `tsc --noEmit` 실패 및 잠재적 런타임 에러(`any` 남용).
-3. **Design System 파괴**: 'Pastel Cute' 및 'Urban Emerald' 디자인 토큰을 무시한 이질적인 UI.
+3. **Design System 파괴**: `DESIGN.md` 단일 진실 공급원(SSOT)에 정의된 Slate 무채색 베이스 및 Urban Emerald/Blue 시맨틱 토큰 불변식을 위반한 이질적 UI.
 4. **Strict Real-Data 위반**: 추정치나 가짜 데이터를 생성/표출하여 유저에게 허위 정보를 전달하는 행위.
 5. **AdSense Policy & Fraud Click 위반**: 구글 애드센스 정책에 위배되는 강제 클릭 유도, 광고 가림, 비정상 트래픽 유발 행위.
 

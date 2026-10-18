@@ -38,16 +38,16 @@ export function createEmojiAvatar(emoji: string, gradientStart: string, gradient
 
 /** Pre-configured set of default friendly avatar SVG data URLs */
 export const DEFAULT_AVATARS: readonly string[] = [
-  createEmojiAvatar('🦦', '#FFF0E5', '#E5F4FB'), // Otter - Soft peach to soft baby blue
-  createEmojiAvatar('🍓', '#FFE6E6', '#FFF0F5'), // Strawberry - Baby pink to pale pink
-  createEmojiAvatar('🧸', '#FFF6D9', '#FFE4D6'), // Teddy Bear - Pale butter to apricot
-  createEmojiAvatar('🦕', '#E6F0FF', '#E6FAFF'), // Dinosaur - Pale sky to pale cyan
-  createEmojiAvatar('👻', '#F2E6FF', '#E6F0FF'), // Ghost - Pale lavender to sky blue
-  createEmojiAvatar('🍀', '#E6FFE6', '#E6FAFF'), // Clover - Pale mint to cyan
-  createEmojiAvatar('🍄', '#FFE6E6', '#FFE6CC'), // Mushroom - Pale pink to peach
-  createEmojiAvatar('🦔', '#F5F5F5', '#F0E6E6'), // Hedgehog - Soft gray to pale taupe
-  createEmojiAvatar('🍩', '#E6FAFF', '#FFE6F0'), // Donut - Pale cyan to pale rose
-  createEmojiAvatar('🦊', '#FFE6E6', '#E6E6FF'), // Fox - Pale pink to pale blue
+  createEmojiAvatar('D', '#F1F5F9', '#E2E8F0'), // Slate-100 to Slate-200
+  createEmojiAvatar('V', '#ECFDF5', '#D1FAE5'), // Emerald-50 to Emerald-100
+  createEmojiAvatar('I', '#EFF6FF', '#DBEAFE'), // Blue-50 to Blue-100
+  createEmojiAvatar('E', '#F8FAFC', '#E2E8F0'), // Slate-50 to Slate-200
+  createEmojiAvatar('W', '#ECFDF5', '#A7F3D0'), // Emerald-50 to Emerald-200
+  createEmojiAvatar('동', '#EFF6FF', '#BFDBFE'), // Blue-50 to Blue-200
+  createEmojiAvatar('탄', '#F1F5F9', '#CBD5E1'), // Slate-100 to Slate-300
+  createEmojiAvatar('1', '#ECFDF5', '#6EE7B7'), // Emerald-50 to Emerald-300
+  createEmojiAvatar('2', '#EFF6FF', '#93C5FD'), // Blue-50 to Blue-300
+  createEmojiAvatar('A', '#F8FAFC', '#CBD5E1'), // Slate-50 to Slate-300
 ];
 
 /**

@@ -355,7 +355,7 @@ export async function GET(req: NextRequest) {
                 https://dongtanview.com/mbti/{profile.type}
               </span>
               <span style={{ fontSize: '18px', color: '#f97316', fontWeight: 700 }}>
-                👉 나와 영혼의 궁합인 동탄 아파트 찾기 (D-VIEW)
+                나와 영혼의 궁합인 동탄 아파트 찾기 (D-VIEW)
               </span>
             </div>
           </div>
@@ -373,9 +373,9 @@ export async function GET(req: NextRequest) {
       
       let winnerText = '두 단지의 팽팽한 입지 분석 대조';
       if (s1 > s2) {
-        winnerText = `🏆 ${apt1} 단지가 ${s1}개 지표로 최종 우세`;
+        winnerText = `${apt1} 단지가 ${s1}개 지표로 최종 우세`;
       } else if (s2 > s1) {
-        winnerText = `🏆 ${apt2} 단지가 ${s2}개 지표로 최종 우세`;
+        winnerText = `${apt2} 단지가 ${s2}개 지표로 최종 우세`;
       }
 
       return new ImageResponse(

@@ -673,3 +673,108 @@ format="in-feed" 대상 min-h-[140px] sm:min-h-[160px] 및 my-6 여백 유지.
 - [ ] npm test -- src/__tests__/m2_zero_cls_layout_contract.challenger.test.tsx 실행 시 Pass (Exit Code 0)
 - [ ] 데스크톱 1024px, 1280px, 1920px 뷰포트에서 좌우 컬럼 높이 편차 ΔH = 0px
 - [ ] npx tsc --noEmit 실행 시 타입 에러 0건
+
+
+## 2026-10-18T02:56:19Z
+
+DVIEW 플랫폼의 디자인 컨텍스트 단일 진실 공급원(`DESIGN.md`)을 수립하여 에이전트 지침(`AGENT.md`, `GEMINI.md`)에 연동하고, 프론트엔드 전반의 서브 이모티콘 남발 제거·색상 토큰(Slate 무채색 베이스 및 Emerald/Blue 시맨틱 컬러) 통일·애드센스 수익화 컴포넌트의 직관적 네이티브 통합 리팩토링을 수행하는 프로덕션 고도화 프로젝트.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+Reference material:
+- Agent Protocol: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\AGENT.md`
+- Project Architecture: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\PROJECT.md`
+- Workspace Directives: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\GEMINI.md`
+- Frontend Package & Scripts: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\frontend\package.json`
+
+## Requirements
+
+### R1. 디자인 컨텍스트 단일 명세서(`DESIGN.md`) 수립 및 에이전트 지침 연동
+워크스페이스 루트에 `DESIGN.md`를 생성하여 향후 모든 디자인 업데이트 및 신규 컴포넌트 생성 시 참조할 디자인 컨텍스트 불변식을 명문화. `DESIGN.md`는 (1) 서브 이모티콘 사용 금지 및 `lucide-react` SVG 아이콘 대체 원칙, (2) Slate 무채색 베이스 및 단일 브랜드 시맨틱 컬러(Emerald/Blue) 팔레트 매핑 규격과 비표준 난색/과채도 배경 배제 규칙, (3) 애드센스 수익률($\mathcal{Y}_{\text{AdSense}}$) 극대화 목적함수 달성 시 비직관적·과잉 연산형 위젯 생성을 금지하고 핵심 탐색 흐름 내부의 직관적 네이티브 카드·CTA로만 설계하는 UI/UX 공리를 포함. `AGENT.md` 및 `GEMINI.md`를 갱신하여 UI/UX 작업 시 `DESIGN.md` 사전 참조 및 준수를 강제.
+
+### R2. 프론트엔드 서브 이모티콘 전면 배제 및 아이콘 체계 일원화
+`frontend/src/` 내 프론트엔드 컴포넌트 전반에서 본문, 배지, 카드 헤더, 버튼, 툴팁 등에 남발된 유니코드 서브 이모티콘을 전수 제거하고, 시각적 구분이 필요한 지점은 일관된 크기의 `lucide-react` 아이콘 또는 타이포그래피 계층으로 대체.
+
+### R3. 디자인 컨텍스트 기반 색상 토큰 통일 및 이질적 컬러 교정
+`AGENT.md` 내 구형 표현('Pastel Cute' 등) 및 프론트엔드 컴포넌트 내 파편화된 비표준 색상 클래스(무분별한 핑크/퍼플/오렌지/네온 그라데이션 등)를 제거하고, `DESIGN.md`에 정의된 Slate 무채색 배경/보더 체계 및 Emerald/Blue 시맨틱 포인트 컬러 토큰으로 일관되게 매칭.
+
+### R4. 애드센스 수익화 컴포넌트의 직관적 재설계 및 정적 검증 가드레일 구축
+애드센스 수익률 극대화 목적함수 하에서 생성된 비직관적·과잉 연산형 수익화 위젯 및 복잡한 파생 컴포넌트를 정리하고, 실거래가 조회·단지 비교·지역 인사이트 등 핵심 사용자 탐색 흐름 내부에 자연스럽게 결합되는 간결한 네이티브 카드 및 직관적 CTA 형태로 통합 재설계. 향후 디자인 컨텍스트 위반(서브 이모티콘 재유입, 비표준 색상 클래스 사용)을 자동 검출하는 정적 검증 스크립트 또는 테스트 스위트를 구축.
+
+### R5. 인프라 및 프로토콜 제약 사항
+- 원격 저장소 푸시(`git push`) 실행 엄격 금지 (`AGENT.md` 규정 준수).
+- 공공 실데이터 무결성 유지 및 임의 추정/가짜 데이터 생성 원천 금지.
+- Zero-CLS 레이아웃 불변식(580px 히어로 기하학 및 광고 슬롯 `min-h` 사전 예약)과 기존 핵심 AdSense 슬롯(`1000000001`, `1000000002`) 계약 보존.
+
+## Verification Resources
+
+- `cd frontend && npx tsc --noEmit` (TypeScript 정적 타입 검증)
+- `cd frontend && npm run lint` (ESLint 정적 코드 위생 검증)
+- `cd frontend && npm test` (Jest 단위 및 통합 테스트 스위트 검증)
+- `cd frontend && npm run build` (Next.js 프로덕션 빌드 무결성 검증)
+
+## Acceptance Criteria
+
+### 디자인 컨텍스트 문서화 및 지침 동기화
+- [ ] 루트 경로에 `DESIGN.md` 파일이 존재하며 이모티콘 배제 규칙, Slate + Emerald/Blue 색상 토큰 테이블, 애드센스 컴포넌트 직관성 설계 규격을 명시적으로 포함
+- [ ] `AGENT.md` 및 `GEMINI.md` 내에 `DESIGN.md` 참조 의무 규정이 반영되고, 기존의 상충되는 'Pastel Cute' 색상 문구가 `DESIGN.md` 표준 토큰 체계로 교정 완료
+
+### 서브 이모티콘 배제 및 색상 정합성 검증
+- [ ] `frontend/src/components/` 대상 정적 검증(스크립트 또는 Jest 테스트) 실행 시 허용되지 않은 유니코드 서브 이모티콘 검출 건수 `[0, ±0, 건]` 달성
+- [ ] `frontend/src/components/` 대상 비표준 색상 팔레트 클래스(금지된 임의 컬러 토큰) 검출 건수 `[0, ±0, 건]` 달성 및 Slate + Emerald/Blue 시맨틱 토큰 매핑 완료
+
+### 애드센스 컴포넌트 직관성 및 시스템 무결성 검증
+- [ ] 수익화/인텐트 컴포넌트가 핵심 정보 탐색 흐름(실거래가, 단지 비교, 도메인 인사이트)과 시각적·기능적으로 통합된 단일/직관적 네이티브 카드 및 CTA 구조로 정비되고 Zero-CLS(`min-h` 고정 높이 예약) 불변식 유지
+- [ ] `frontend` 디렉토리에서 `npx tsc --noEmit`, `npm run lint`, `npm test`, `npm run build` 실행 시 모두 종료 코드 `0`으로 통과
+
+
+## 2026-10-18T07:24:19Z
+
+DVIEW(동탄 뷰) 플랫폼의 최상위 목적함수($\max \mathcal{Y}_{\text{AdSense}}$, 구글 애드센스 수익률 극대화) 달성을 저해하는 프로덕션 코드베이스·인프라·콘텐츠 레이어별 병목(Bottleneck) 요인을 전수 실증 감사하고, 추후 `/boost` 모드를 통해 단계별로 즉시 업데이트할 수 있는 아키텍처 고도화 마스터 명세서(`ADSENSE_ARCHITECTURE_BLUEPRINT.md`)를 산출하는 프로젝트 수행.
+
+Working directory: c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW
+Integrity mode: development
+
+Reference material:
+- Workspace Epistemic & Linguistic Ruleset: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\GEMINI.md` (HODEP v2.2)
+- Design System & Zero-CLS SSOT: `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\DESIGN.md`
+- Prior Theoretical Audit & Engineering Reports: `IMPROVEMENT_REPORT.md`, `PORTFOLIO DVIEW - Engineering Report.md`, `PROJECT.md`
+
+## Requirements
+
+### R1. 최대 목적함수($\max \mathcal{Y}_{\text{AdSense}}$) 저해 5대 아키텍처 레이어 실증 병목 감사
+애드센스 수익 방정식 $\mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} [\text{PV} \times \text{AdDensity}(s) \times \text{Viewability}(s) \times \text{CTR}(s) \times \text{CPC}(s) \times (1 - \text{AdBlockRate})] + \text{Yield}_{\text{NativeCPA}}$의 각 변수별로 현재 프로덕션 코드(`frontend/src/`)에서 수익 창출을 방해하는 구조적·구현적 병목을 실제 소스 파일 경로 및 라인 번호 근거와 함께 5대 레이어로 분류하여 전수 규명:
+1. **문서-코드 괴리(Specification-Implementation Desync) 레이어**: 기존 문서(`IMPROVEMENT_REPORT.md`, `PORTFOLIO DVIEW - Engineering Report.md`)에 선언된 이론적 수익화 기작(IntersectionObserver 50% 가시성 지연 렌더링, 15초 체류 후 30초 스마트 리프레시, `document.hidden` 제어, 고단가 B2B CPA 폴백, 도메인별 JSON-LD 등)과 실제 프로덕션 코드(`frontend/src/components/ads/AdSlot.tsx`, `frontend/src/hooks/useAdBlockDetector.ts`, `frontend/src/app/**`) 간의 미구현·불일치 내역 1:1 매트릭스 도출.
+2. **광고 렌더링·가시성(Viewability & Fill-Rate Engine) 레이어**: `AdSlot.tsx`의 마운트 즉시 `adsbygoogle.push({})` 실행에 따른 비가시 영역(Below-the-fold) Active View 점수 하락 메커니즘, `data-ad-status="unfilled"` 발생 시 빈 컨테이너(`min-h-[250px]`)가 노출된 채 수익이 소멸되는 Unfilled Inventory 누수, SPA 라우트/모달 전환 시 슬롯 생명주기 및 환경변수 슬롯 ID 매핑 한계 분석.
+3. **검색 유입·시맨틱(Programmatic SEO & High-CPC RTB Matching) 레이어**: 179개 아파트 상세(`app/apartment/[aptName]/page.tsx`), 56개 지식산업센터(`app/technovalley/`), 가이드(`app/guide/`), MBTI(`app/mbti/`), 권역(`app/zone/[id]/`) 라우트의 SSR HTML 시맨틱 텍스트 밀도, Schema.org 구조화 데이터(JSON-LD), `sitemap.ts`/`robots.ts` 인덱싱 범위, 그리고 AdSense 문맥 크롤러(`Mediapartners-Google`)가 고단가 금융·주담대·대환대출·세무·법인이전 CPC 입찰을 매칭하는 데 실패하거나 저단가 일반 광고로 낙찰되게 만드는 DOM/메타데이터 병목 분석.
+4. **체류 동선·이탈 방어(Session PV Expansion & Recirculation Flow) 레이어**: 메인 대시보드(`app/page.tsx`)에서 단지 선택 시 페이지 네비게이션 대신 클라이언트 모달(`ApartmentModal.tsx`) 및 해시(`#apt-...`) 전환에 의존하여 세션당 유효 페이지뷰(PV) 및 광고 슬롯 갱신이 제한되는 구조적 한계, 모달 내 챕터(Chapter 01~06) 탐색 완료 후 타 단지/비교 뷰(`AptCompareModal.tsx`)/주담대 계산기로 이어지는 내부 순환(Recirculation) 단절 지점, 카카오톡 등 인앱 브라우저(`InAppBrowserBypass.tsx`) 유입 시 스크립트/쿠키/뷰포트 제약 분석.
+5. **수익 방어·트래킹·디자인 불변식(Yield Protection, Telemetry & DESIGN.md Alignment) 레이어**: `useAdBlockDetector.ts` 및 `AdSlot.tsx` 내 대체 프로모션 카드의 정적 내부 링크 구조, `/api/ads/click` 및 GA4 이벤트 텔레메트리와 실제 슬롯 노출·클릭·가시성 지표 간의 피드백 루프 단절, `DESIGN.md` 불변식($CLS < 0.001$, 히어로 2열 `lg:h-[566px]` 높이 편차 $\Delta H = [0, \pm 0, \text{px}]$, Slate/Emerald/Blue 컬러 토큰, `body.is-scrolling` 120fps 보호) 준수 조건 하의 슬롯 확장 제약 분석.
+
+### R2. `/boost` 모드 순차 실행을 위한 레이어별 고도화 아키텍처 및 Phase 로드맵 수립
+식별된 모든 병목을 해결하기 위한 목표 아키텍처(Target Architecture)를 설계하고, 추후 사용자가 `/boost` 모드로 1개 단위씩 순차 투입할 수 있도록 의존성 기반의 독립 실행 단계(Phase 1 ~ Phase N)로 분할 명세:
+- 각 아키텍처 레이어 및 실행 Phase는 `GEMINI.md` (HODEP v2.2)의 표준 스키마인 `[문제 정의] → [불변식(Invariant)] → [입출력 시그니처(TypeScript Interface & Zod Schema)] → [시간·공간 복잡도 및 부수 효과(Side-effects)] → [결정론적 상태 전이($f: S \times A \to S$)] → [포퍼식 반증 기준(귀무가설 $H_0$, 기각역, 유의수준 $\alpha$, CVaR 경계값)]`을 빠짐없이 포함.
+- 각 Phase 말미에는 추후 `/boost` 모드 실행 시 즉시 복사·투입할 수 있는 **실행 범위(수정 대상 파일, 추가할 컴포넌트/훅/유틸리티, 통과해야 할 Jest/Playwright 검증 명령어)**를 명시.
+
+### R3. 비개입 실증 감사 원칙 및 문서 규격(HODEP v2.2 & DESIGN.md) 엄수
+- 모든 분석 결과와 로드맵은 워크스페이스 루트의 `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\ADSENSE_ARCHITECTURE_BLUEPRINT.md` 단일 마스터 문서에 통합 작성.
+- 기존 프로덕션 소스 코드(`frontend/src/**`), 파이프라인(`frontend/pipeline/**`), 설정 파일에 대한 수정·삭제를 일절 배제(Read-Only Audit).
+- 문서 전체 문체는 `GEMINI.md`의 HODEP v2.2 규격(명사/체언형 종결, 금지 종결어미 `-함`/`-임`/`-다` 및 존대어 원천 차단, 비계량 어림수 `상당한`/`적절한`/`다수의`/`최적의`/`매우`/`일부` 전면 배제, 정량 수치 `[값, 오차범위/신뢰구간, 단위]` 튜플 표기, 이모티콘 0건)을 100% 준수.
+
+## Acceptance Criteria
+
+### 1. 프로덕션 코드베이스 무결성 및 산출물 존재 검증 (Programmatic Check)
+- [ ] `c:\Users\ocs56\OneDrive\바탕 화면\PORTFOLIO\PORTFOLIO - DVIEW\ADSENSE_ARCHITECTURE_BLUEPRINT.md` 파일이 생성되고, 최소 500라인 이상의 구조화된 아키텍처 분석 및 Phase별 명세를 포함.
+- [ ] `ADSENSE_ARCHITECTURE_BLUEPRINT.md` 외 기존 Git 추적 대상 프로덕션 코드 및 테스트 파일의 변경 사항이 `0`건(`git diff --name-only` 결과가 빈 문자열)임을 확인.
+
+### 2. 실증적 코드 근거 및 5대 병목 레이어 전수 커버리지 검증 (Evidence & Coverage Check)
+- [ ] R1에 명시된 5대 아키텍처 레이어(문서-코드 괴리, 광고 렌더링·가시성, 검색 유입·시맨틱, 체류 동선·이탈 방어, 수익 방어·트래킹·디자인 불변식)가 각각 독립 섹션으로 존재하며, `IMPROVEMENT_REPORT.md` 대비 실제 코드베이스의 미구현/병목 항목이 1:1 비교 테이블로 증명됨.
+- [ ] 문서에 인용된 모든 소스 코드 파일 경로(최소 15개 이상의 실제 `frontend/src/` 하위 파일: `AdSlot.tsx`, `useAdBlockDetector.ts`, `layout.tsx`, `page.tsx`, `ApartmentModal.tsx`, `AptCompareModal.tsx`, `InAppBrowserBypass.tsx`, `sitemap.ts`, `api/ads/click/route.ts` 등)가 실제 디스크 상에 존재하고 라인 번호 및 함수/컴포넌트 시그니처가 실제 코드와 100% 일치.
+
+### 3. `/boost` 모드 순차 업데이트 블루프린트 완결성 검증 (Actionability Check)
+- [ ] 최소 5개 이상의 순차적 `/boost` 실행 Phase가 정의되며, 모든 Phase가 `[문제 정의] → [불변식(Invariant)] → [입출력 시그니처] → [복잡도] → [결정론적 상태 전이] → [포퍼식 반증 기준($H_0$, 기각역, $\alpha$)] → [검증 하네스 명령어]`의 7대 필수 블록을 누락 없이 포함.
+- [ ] 제안된 모든 UI/UX 및 광고 슬롯 아키텍처가 `DESIGN.md`의 불변식(Slate 무채색 베이스, Emerald/Blue/Red 시맨틱 토큰, $CLS < 0.001$ 바운딩 박스 계약, 히어로 2열 `lg:h-[566px]` 대칭)과 충돌하지 않음을 명시적으로 입증.
+
+### 4. HODEP v2.2 어휘 및 형식 불변식 린트 검증 (Lexical Linter Check)
+- [ ] `ADSENSE_ARCHITECTURE_BLUEPRINT.md` 본문(코드 블록 제외) 내 금지 종결어미(`-함`, `-임`, `-다`) 및 경어체(`~합니다`, `~해요`, `~드립니다`) 매칭 건수 `0`건.
+- [ ] 금지 비계량 수식어(`상당한`, `적절한`, `다수의`, `최적의`, `매우`, `일부`) 및 유니코드 이모티콘 매칭 건수 `0`건.

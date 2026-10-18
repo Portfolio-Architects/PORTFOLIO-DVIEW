@@ -483,9 +483,10 @@ describe('Challenger 2: Core Public Feature Integrity & Zero-Auth Verification',
   // Dimension 5: Techno Valley & MBTI (100% Public Access)
   // =========================================================================
   describe('Dimension 5: Techno Valley & MBTI Public Routing & Features', () => {
-    it('TechnoValleyPage redirects cleanly to / without runtime errors', () => {
-      TechnoValleyPage();
-      expect(mockRedirect).toHaveBeenCalledWith('/');
+    it('TechnoValleyPage renders SSR B2B catalog cleanly without redirecting to /', async () => {
+      const jsx = await TechnoValleyPage();
+      expect(jsx).toBeDefined();
+      expect(mockRedirect).not.toHaveBeenCalled();
     });
 
     it('TechnoValleyClient renders public dashboard without authentication dependency', () => {

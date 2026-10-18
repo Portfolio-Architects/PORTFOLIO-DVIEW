@@ -28,9 +28,17 @@ import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, ca
 import { calculateDynamicDCF } from '@/lib/utils/valuationEngine';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { ApartmentGallery } from '@/components/apartment-modal/ApartmentGallery';
+import { ViralPaywallGate } from '@/components/apartment-modal/ViralPaywallGate';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { ApartmentChapterNavBar } from './ApartmentChapterNavBar';
+import { TerminalRecirculationHub } from './TerminalRecirculationHub';
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
+import {
+  selectRecirculationTargets,
+  syncShallowApartmentOpen,
+  syncShallowModalCloseToDashboard,
+  transitionRecirculationState,
+} from '@/lib/ads/recirculationEngine';
 
 import { useApartmentModalState } from './hooks/useApartmentModalState';
 import { ApartmentModalHeader } from './ApartmentModalHeader';
@@ -92,10 +100,10 @@ const TransactionTableSkeleton = () => (
 const TransactionChartSkeleton = () => (
   <div className="w-full h-[470px] md:h-[530px] flex flex-col gap-6 p-6 border border-border/40 rounded-[20px]">
     <div className="flex justify-between items-center">
-      <div className="h-6 w-32 rounded bg-neutral-250 dark:bg-zinc-800 animate-shimmer" />
+      <div className="h-6 w-32 rounded bg-slate-250 dark:bg-slate-800 animate-shimmer" />
       <div className="flex gap-2">
-        <div className="h-8 w-16 rounded-lg bg-neutral-200 dark:bg-zinc-800 animate-shimmer" />
-        <div className="h-8 w-16 rounded-lg bg-neutral-200 dark:bg-zinc-800 animate-shimmer" />
+        <div className="h-8 w-16 rounded-lg bg-slate-200 dark:bg-slate-800 animate-shimmer" />
+        <div className="h-8 w-16 rounded-lg bg-slate-200 dark:bg-slate-800 animate-shimmer" />
       </div>
     </div>
     <div className="flex-1 w-full rounded-[20px] relative overflow-hidden flex items-end p-4 border border-border/20">
@@ -104,7 +112,7 @@ const TransactionChartSkeleton = () => (
           <div 
             key={i} 
             style={{ height: `${h}%` }} 
-            className="flex-1 rounded-t bg-neutral-200/50 dark:bg-zinc-800/40 animate-shimmer" 
+            className="flex-1 rounded-t bg-slate-200/50 dark:bg-slate-800/40 animate-shimmer" 
           />
         ))}
       </div>
@@ -331,6 +339,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   txSummary: txSummaryProp,
   loadAllTransactions: loadAllTransactionsProp,
   onRequestLogin,
+  onSelectApartment,
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
@@ -354,9 +363,10 @@ const ApartmentModal = React.memo(function ApartmentModal({
   txSummary?: import('@/lib/types/transaction').AptTxSummary;
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
-  onOpenCompare?: (aptName: string) => void;
+  onSelectApartment?: (aptName: string, dong?: string) => void;
+  onOpenCompare?: (aptName: string, targetAptName?: string) => void;
   onOpenJeonseSafety?: (aptName: string) => void;
-  onOpenMortgage?: (aptName: string) => void;
+  onOpenMortgage?: (aptName: string, priceWon?: number) => void;
   onOpenTaxCalculator?: (aptName: string) => void;
   onOpenSellTimingCalculator?: (aptName: string) => void;
   isTxLoading?: boolean;
@@ -365,7 +375,15 @@ const ApartmentModal = React.memo(function ApartmentModal({
   txSummaryData?: Record<string, import('@/lib/types/transaction').AptTxSummary>;
   locationScores?: Record<string, import('@/lib/types/transaction').LocationScoreItem>;
 }) {
-  useSwipeNavigation({ onBack: onClose });
+  const handleModalClose = useCallback(() => {
+    if (!inline) {
+      syncShallowModalCloseToDashboard();
+    }
+    onClose();
+  }, [inline, onClose]);
+
+  useSwipeNavigation({ onBack: handleModalClose });
+
 
   const { 
     txSummaryData: _txSummaryData, 
@@ -535,6 +553,82 @@ const ApartmentModal = React.memo(function ApartmentModal({
     return { latestPrice: salePrice, latestDeposit: jeonsePrice, ratio };
   }, [transactions]);
 
+  const currentPriceWon = useMemo(() => {
+    const rawMan =
+      jeonseSafetyData?.latestPrice && jeonseSafetyData.latestPrice > 0
+        ? jeonseSafetyData.latestPrice
+        : txSummary?.latestPrice || txSummary?.avg1MPrice || txSummary?.avg3MPrice || 0;
+    const num = Number(rawMan);
+    if (!Number.isFinite(num) || num <= 0) return 0;
+    return num < 10_000_000 ? Math.round(num * 10_000) : Math.round(num);
+  }, [jeonseSafetyData, txSummary]);
+
+  const recirculationTargets = useMemo(() => {
+    return selectRecirculationTargets({
+      currentAptName: report.apartmentName,
+      currentDong: report.dong || '동탄',
+      currentPriceWon,
+      sheetApartments: sheetApartments || {},
+      txSummaryData: _txSummaryData || txSummaryData || {},
+      nameMapping: nameMapping || {},
+    });
+  }, [
+    report.apartmentName,
+    report.dong,
+    currentPriceWon,
+    sheetApartments,
+    _txSummaryData,
+    txSummaryData,
+    nameMapping,
+  ]);
+
+  useEffect(() => {
+    if (!inline && report.apartmentName) {
+      syncShallowApartmentOpen(report.apartmentName, { dong: report.dong });
+    }
+  }, [inline, report.apartmentName, report.dong]);
+
+  const handleRecircSelectApartment = useCallback(
+    (targetAptName: string) => {
+      if (onSelectApartment) {
+        const targetCandidate = recirculationTargets.find((t) => t.aptName === targetAptName);
+        onSelectApartment(targetAptName, targetCandidate?.dong);
+      } else {
+        syncShallowApartmentOpen(targetAptName, { force: true });
+      }
+      modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    },
+    [onSelectApartment, recirculationTargets]
+  );
+
+  const handleRecircOpenCompare = useCallback(
+    (apt1: string, apt2: string) => {
+      if (onOpenCompare) {
+        onOpenCompare(apt1, apt2);
+      } else {
+        transitionRecirculationState(
+          { status: 'CHAPTER_EXPLORE', apt: apt1 },
+          { type: 'CLICK_RECIRC_COMPARE', baseApt: apt1, targetApt: apt2 }
+        );
+      }
+    },
+    [onOpenCompare]
+  );
+
+  const handleRecircOpenMortgage = useCallback(
+    (aptName: string, priceWon: number) => {
+      if (onOpenMortgage) {
+        onOpenMortgage(aptName, priceWon);
+      } else {
+        transitionRecirculationState(
+          { status: 'CHAPTER_EXPLORE', apt: aptName },
+          { type: 'CLICK_RECIRC_MORTGAGE', apt: aptName, priceWon }
+        );
+      }
+    },
+    [onOpenMortgage]
+  );
+
   const eduScoreInfo = useMemo(() => {
     if (!report.metrics) return null;
     const s = calculateEducationScore(report.metrics);
@@ -577,6 +671,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   }, []);
 
   useEffect(() => {
+
     const slotCh02Id = '1000000002_ch02';
     const slotCh05Id = '1000000002_ch05';
 
@@ -624,7 +719,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
       adRefreshManager.unregisterSlot(slotCh02Id);
       adRefreshManager.unregisterSlot(slotCh05Id);
     };
-  }, [inline, isAnimationFinished]);
+  }, [inline]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
@@ -701,7 +796,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   const handleDownloadShareCard = useCallback(async () => {
     if (isSharing) return;
     setIsSharing(true);
-    showToast("📸 요약 카드 이미지를 생성하고 있습니다...");
+    showToast("요약 카드 이미지를 생성하고 있습니다...");
     
     try {
       if (shareActionTimeoutRef.current) {
@@ -735,7 +830,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         link.href = dataUrl;
         link.click();
         
-        showToast("🎉 인포그래픽 요약 카드가 이미지 파일로 저장되었습니다!");
+        showToast("인포그래픽 요약 카드가 이미지 파일로 저장되었습니다.");
       } else {
         showToast("이미지 캡처 대상을 찾을 수 없습니다.");
       }
@@ -769,10 +864,10 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
     let customDesc = '';
     if (eduScoreInfo) {
-      customDesc += `🏫 학군/육아 환경: 🌟 ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n`;
+      customDesc += `학군/육아 환경: ${eduScoreInfo.score}점 (${eduScoreInfo.grade}등급) - ${eduScoreInfo.description.split(' (')[0]}\n`;
     }
     if (infraScoreInfo) {
-      customDesc += `🚇 교통/생활 입지: 🛍️ ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n`;
+      customDesc += `교통/생활 입지: ${infraScoreInfo.score}점 (${infraScoreInfo.grade}등급) - ${infraScoreInfo.description.split(' (')[0]}\n`;
     }
 
     if (copiedTimeoutRef.current) {
@@ -793,7 +888,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
     if (success) {
       if (!mountedRef.current) return;
-      showToast("🎉 단톡방용 요약본 복사 완료!");
+      showToast("단톡방용 요약본 복사 완료!");
       setCopiedStatus('summary');
       if (copiedTimeoutRef.current) {
         clearTimeout(copiedTimeoutRef.current);
@@ -857,14 +952,14 @@ const ApartmentModal = React.memo(function ApartmentModal({
       const score = eduScoreInfo.score;
       const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
-        showToast("🎉 학군·육아 분석 링크가 복사되었습니다!");
+        showToast("학군·육아 분석 링크가 복사되었습니다!");
       });
     } else if (type === 'infra' && infraScoreInfo) {
       const grade = infraScoreInfo.grade;
       const score = infraScoreInfo.score;
       const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
-        showToast("🎉 입지·인프라 분석 링크가 복사되었습니다!");
+        showToast("입지·인프라 분석 링크가 복사되었습니다!");
       });
     }
   }, [report.metrics, report.apartmentName, eduScoreInfo, infraScoreInfo, showToast]);
@@ -1002,6 +1097,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         >
           <AdSlot 
             slotId="1000000002"
+            refreshSlotId="1000000002_ch02"
             format="in-feed"
             minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
             fallbackType="dashboard-promo"
@@ -1056,7 +1152,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 <div className="mt-2 text-right">
                   <span className={`text-[18px] font-black tabular-nums ${
                     valuation.status === 'undervalued' ? 'text-emerald-500' :
-                    valuation.status === 'overvalued' ? 'text-rose-500' : 'text-primary'
+                    valuation.status === 'overvalued' ? 'text-red-500' : 'text-primary'
                   }`}>
                     {valuation.amount}
                   </span>
@@ -1188,7 +1284,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                     onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
                     onMouseEnter={preloadCalculators}
                     onFocus={preloadCalculators}
-                    className="w-full sm:w-auto px-5 py-3.5 bg-rose-500 hover:bg-rose-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                    className="w-full sm:w-auto px-5 py-3.5 bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
                   >
                     <Calculator size={16} />
                     <span>지금 팔면 호구일까? AI 매도 진단하기</span>
@@ -1209,6 +1305,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         >
           <AdSlot 
             slotId="1000000002"
+            refreshSlotId="1000000002_ch05"
             format="in-feed"
             minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
             fallbackType="mbti-promo"
@@ -1303,7 +1400,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </h2>
                   <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border/40 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-[#057e77] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#7c3aed] mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600 mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
                     <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">
                       <Camera className="text-[#057e77] dark:text-emerald-400" size={32} strokeWidth={1.5} />
                     </div>
@@ -1340,6 +1437,20 @@ const ApartmentModal = React.memo(function ApartmentModal({
           ) : (
             <ScoutingReportDetailSkeleton />
           )}
+
+          {/* Chapter 08 Viral Paywall Gate */}
+          <ViralPaywallGate onShare={handleKakaoShare} />
+
+          {/* Chapter 08 Terminal 3-Way Recirculation Hub */}
+          <TerminalRecirculationHub
+            currentAptName={report.apartmentName}
+            currentDong={report.dong || '동탄'}
+            currentPriceWon={currentPriceWon}
+            targets={recirculationTargets}
+            onSelectApartment={handleRecircSelectApartment}
+            onOpenCompare={handleRecircOpenCompare}
+            onOpenMortgage={handleRecircOpenMortgage}
+          />
         </section>
 
         {/* AdSense Responsive Slot */}
@@ -1409,7 +1520,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   return createPortal(
     <div 
       className="fixed inset-0 z-[10000] flex items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
-      onClick={onClose}
+      onClick={handleModalClose}
     >
       <div 
         ref={modalRef}
@@ -1417,12 +1528,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
         className="relative w-full h-full md:h-[94vh] md:max-w-[1275px] bg-surface rounded-none md:rounded-3xl shadow-2xl overflow-y-auto overflow-x-hidden flex flex-col border border-border/80 outline-none"
       >
         <button
-          onClick={onClose}
+          onClick={handleModalClose}
           aria-label="닫기"
           className="absolute top-4 right-4 z-50 p-2.5 rounded-full bg-surface/80 hover:bg-surface text-secondary hover:text-primary border border-border shadow-sm transition-all cursor-pointer outline-none"
         >
           <X size={20} />
         </button>
+
 
         {content}
 

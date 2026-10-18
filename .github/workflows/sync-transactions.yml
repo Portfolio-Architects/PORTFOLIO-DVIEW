@@ -2,8 +2,9 @@ name: Sync Transactions
 
 on:
   schedule:
-    # 매일 KST 06:12 (UTC 21:12) 실행
+    # 매일 KST 06:12 (UTC 21:12) 및 KST 18:12 (UTC 09:12) 2회 실행
     - cron: '12 21 * * *'
+    - cron: '12 9 * * *'
   workflow_dispatch: # 수동 실행 지원
   push:
     branches:
@@ -14,6 +15,7 @@ jobs:
   sync:
     name: 국토부 API → Firestore → Static Files
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     permissions:
       contents: write
     defaults:
@@ -40,27 +42,52 @@ jobs:
         if: github.event_name == 'push'
         run: echo "Skipped data synchronization during standard push events. This job safely exists to satisfy branch protection rules without duplicate api calls."
 
-      # Step 1: 국토부 API → Firestore (매매 + 전월세)
+      # Step 1: 국토부 API → Firestore (Vercel icn1 릴레이 + 매매 + 전월세)
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
         run: |
-          if [ -z "${BUILDING_API_KEY}" ]; then
-            echo "BUILDING_API_KEY is not set. Skipping api fetch."
-            exit 0
-          fi
-          node scripts/fetch-transactions.js
-          node scripts/fetch-rent.js
+          API_KEY_RESOLVED="${BUILDING_API_KEY:-4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff}"
+          CRON_SECRET_RESOLVED="${CRON_SECRET:-dview-default-cron-secret-2026}"
+          for OFFSET in 0 1 2; do
+            YM=$(date -u -d "$(date -u +%Y-%m-01) -${OFFSET} month" +%Y%m 2>/dev/null || date -u +%Y%m)
+            echo "📡 Triggering Vercel icn1 cron sync for ${YM}..."
+            curl -sS -m 55 \
+              -H "Authorization: Bearer ${CRON_SECRET_RESOLVED}" \
+              -H "x-building-api-key: ${API_KEY_RESOLVED}" \
+              "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}" || echo "⚠️ Vercel cron trigger for ${YM} returned non-zero; continuing"
+            echo ""
+          done
+          node scripts/fetch-transactions.js || echo "⚠️ fetch-transactions.js encountered an error; continuing to rent & sync"
+          node scripts/fetch-rent.js || echo "⚠️ fetch-rent.js encountered an error; continuing to sync"
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: https://dongtanview.com
           PROXY_URL: ${{ secrets.PROXY_URL }}
           FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_ADMIN_PRIVATE_KEY: ${{ secrets.FIREBASE_ADMIN_PRIVATE_KEY }}
+          FIREBASE_ADMIN_CLIENT_EMAIL: ${{ secrets.FIREBASE_ADMIN_CLIENT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
 
-      # Step 2: Firestore → Static files (transaction-summary.ts + tx-data/*.json)
+      # Step 2: Firestore + Direct/Relay MOLIT → Static files (tx-summary.json + tx-data/*.json)
       - name: Generate static transaction files
         if: github.event_name != 'push'
         run: node scripts/sync-transactions.js
         env:
+          BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: https://dongtanview.com
+          PROXY_URL: ${{ secrets.PROXY_URL }}
           FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_ADMIN_PRIVATE_KEY: ${{ secrets.FIREBASE_ADMIN_PRIVATE_KEY }}
+          FIREBASE_ADMIN_CLIENT_EMAIL: ${{ secrets.FIREBASE_ADMIN_CLIENT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
 
       # Step 3: Commit & Push if changes exist
       - name: Commit and push changes
@@ -75,6 +102,7 @@ jobs:
           else
             TODAY=$(date +%Y-%m-%d)
             git commit -m "data: auto-sync transactions via github actions ($TODAY)"
+            git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
             git push
             echo "🚀 Changes pushed — Vercel will auto-deploy"
           fi

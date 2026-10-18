@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
 /**
- * 🧪 Challenger 2 Empirical Adversarial Stress Test Suite
+ * Challenger 2 Empirical Adversarial Stress Test Suite
  * 
  * Objective: Frontend Zero-Cost Firestore Leak & 60fps Virtualization Stress-Testing (R2, R3, R4)
  * Roles: critic, specialist (EMPIRICAL CHALLENGER)

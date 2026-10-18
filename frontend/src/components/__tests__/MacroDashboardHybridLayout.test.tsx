@@ -139,10 +139,7 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     // 5. Finance Section
     const financeSection = screen.getByTestId('high-cpc-finance-section');
     expect(financeSection).toBeInTheDocument();
-
-    // 6. Realtime Ranking Board
-    const rankingBoard = screen.getByTestId('realtime-ranking-board');
-    expect(rankingBoard).toBeInTheDocument();
+    expect(screen.queryByTestId('realtime-ranking-board')).not.toBeInTheDocument();
 
     // DOM Document Position Verification (Authoritative Vertical Flow)
     // Donut Hero is preceding Timeline Heading (Immediately below hero)
@@ -158,11 +155,6 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     // StatsOverviewSection is preceding Finance Section
     expect(
       statsSection.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-
-    // Finance Section is preceding Ranking Board
-    expect(
-      financeSection.compareDocumentPosition(rankingBoard) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
   });
 

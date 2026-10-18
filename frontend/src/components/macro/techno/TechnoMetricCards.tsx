@@ -36,7 +36,7 @@ export const TechnoMetricCards = React.memo(function TechnoMetricCards({
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border/40 shadow-sm flex flex-col justify-between gap-3">
         <div className="flex items-center justify-between">
           <span className="text-[12px] sm:text-[13px] font-extrabold text-tertiary">평균 공실률</span>
-          <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
             <Percent size={16} />
           </div>
         </div>
@@ -68,7 +68,7 @@ export const TechnoMetricCards = React.memo(function TechnoMetricCards({
       <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-border/40 shadow-sm flex flex-col justify-between gap-3">
         <div className="flex items-center justify-between">
           <span className="text-[12px] sm:text-[13px] font-extrabold text-tertiary">추정 근무자수</span>
-          <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center">
             <Users size={16} />
           </div>
         </div>

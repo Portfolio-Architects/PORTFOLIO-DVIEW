@@ -111,7 +111,7 @@ export const TechnoCompanyList = React.memo(function TechnoCompanyList({
                     <div className="flex justify-center pt-2">
                       <button
                         onClick={() => onLoadMore(sector.name)}
-                        className="px-4 py-2 rounded-xl bg-body text-[12px] font-bold text-secondary hover:text-primary hover:bg-neutral-200 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+                        className="px-4 py-2 rounded-xl bg-body text-[12px] font-bold text-secondary hover:text-primary hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                       >
                         기업 더보기 (+12)
                       </button>

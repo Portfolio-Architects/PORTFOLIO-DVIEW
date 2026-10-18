@@ -158,6 +158,49 @@ describe('useMacroFilters Hook - Comprehensive Unit Tests', () => {
       });
       expect(result.current.quickFilter).toBe('all');
     });
+
+    it('resets previously coupled filter dimensions when switching sequentially between quick filter chips', () => {
+      const { result } = renderHook(() => useMacroFilters({ sheetApartments: mockSheetApartments as any }));
+
+      // 1. Select 'high' -> tradeTypeFilter becomes 'high'
+      act(() => {
+        result.current.setQuickFilter('high');
+      });
+      expect(result.current.quickFilter).toBe('high');
+      expect(result.current.tradeTypeFilter).toBe('high');
+      expect(result.current.pyeongFilter).toBe('all');
+      expect(result.current.regionFilter).toBe('all');
+
+      // 2. Switch directly to 'pyeong30' -> tradeTypeFilter must reset to 'all'
+      act(() => {
+        result.current.setQuickFilter('pyeong30');
+      });
+      expect(result.current.quickFilter).toBe('pyeong30');
+      expect(result.current.pyeongFilter).toBe('30s');
+      expect(result.current.tradeTypeFilter).toBe('all');
+      expect(result.current.regionFilter).toBe('all');
+
+      // 3. Switch directly to 'dongtan1' -> pyeongFilter must reset to 'all' and timelineDongFilter to '전체'
+      act(() => {
+        result.current.setTimelineDongFilter('청계동');
+        result.current.setQuickFilter('dongtan1');
+      });
+      expect(result.current.quickFilter).toBe('dongtan1');
+      expect(result.current.regionFilter).toBe('dongtan1');
+      expect(result.current.timelineDongFilter).toBe('전체');
+      expect(result.current.pyeongFilter).toBe('all');
+      expect(result.current.tradeTypeFilter).toBe('all');
+
+      // 4. Switch directly to 'billion10' -> regionFilter & timelineDongFilter must reset
+      act(() => {
+        result.current.setQuickFilter('billion10');
+      });
+      expect(result.current.quickFilter).toBe('billion10');
+      expect(result.current.regionFilter).toBe('all');
+      expect(result.current.timelineDongFilter).toBe('전체');
+      expect(result.current.pyeongFilter).toBe('all');
+      expect(result.current.tradeTypeFilter).toBe('all');
+    });
   });
 
   describe('3. Search Query, Sort Order, View Mode & Reset', () => {

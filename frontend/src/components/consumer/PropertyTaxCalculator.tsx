@@ -411,7 +411,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
 단지명: ${aptLabel} (${selectedApt.dong})
 매매가액: ${formatEokMan(acquisitionPrice)}
 
-📊 진단 결과 (${housesStr} | ${areaStr})
+진단 결과 (${housesStr} | ${areaStr})
 - 취득세 등 세금 합계: ${formatEokMan(taxResults.totalTax)}
   * 취득세: ${formatEokMan(taxResults.acquisitionTax)} (${taxResults.acqTaxRate}%)
   * 지방교육세: ${formatEokMan(taxResults.localEducationTax)}
@@ -420,7 +420,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
 - 총 소요 부대비용: ${formatEokMan(taxResults.totalCost)}
 - 최종 인수 총자금: ${formatEokMan(acquisitionPrice + taxResults.totalCost)}
 
-💡 세금 계산 및 중개보수 정밀 진단 상세 내역은 D-VIEW에서 확인해 보세요!`;
+세금 계산 및 중개보수 정밀 진단 상세 내역은 D-VIEW에서 확인해 보세요!`;
 
     if (copyTimeoutRef.current) {
       clearTimeout(copyTimeoutRef.current);
@@ -473,7 +473,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
         aria-modal="true"
         aria-labelledby="tax-title"
         aria-describedby="tax-desc"
-        className="relative bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">

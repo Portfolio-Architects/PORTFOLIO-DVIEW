@@ -31,7 +31,7 @@ export function SearchSuggestionDropdown({
   return (
     <div 
       id="search-suggestions-listbox"
-      className="absolute top-full left-0 md:left-auto md:right-0 mt-2 w-full md:w-[360px] bg-white/98 dark:bg-zinc-950/98 backdrop-blur-xl border border-neutral-200/80 dark:border-zinc-800/80 shadow-2xl rounded-2xl z-50 overflow-y-auto max-h-[480px] p-4.5 flex flex-col gap-4.5"
+      className="absolute top-full left-0 md:left-auto md:right-0 mt-2 w-full md:w-[360px] bg-white/98 dark:bg-slate-950/98 backdrop-blur-xl border border-slate-200/80 dark:border-slate-800/80 shadow-2xl rounded-2xl z-50 overflow-y-auto max-h-[480px] p-4.5 flex flex-col gap-4.5"
       role="listbox"
       aria-label="검색 추천 및 자동완성"
     >
@@ -54,7 +54,7 @@ export function SearchSuggestionDropdown({
                     setSearchQuery(kw);
                     trackEvent('search_tag_click', { tag: kw });
                   }}
-                  className="bg-neutral-50 dark:bg-zinc-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-secondary text-[12px] font-bold px-3.5 py-1.5 rounded-full transition-all active:scale-95 border border-neutral-200/50 dark:border-zinc-800/50 outline-none focus:ring-1 focus:ring-emerald-500/50"
+                  className="bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-secondary text-[12px] font-bold px-3.5 py-1.5 rounded-full transition-all active:scale-95 border border-slate-200/50 dark:border-slate-800/50 outline-none focus:ring-1 focus:ring-emerald-500/50"
                 >
                   {kw}
                 </button>
@@ -81,7 +81,7 @@ export function SearchSuggestionDropdown({
                     setIsSearchFocused(false);
                     trackEvent('search_tag_click', { tag: `dong-${dong.name}` });
                   }}
-                  className="group flex flex-col bg-neutral-50/50 dark:bg-zinc-900/40 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/5 hover:border-emerald-500/30 p-2.5 rounded-xl text-left transition-all active:scale-95 border border-neutral-200/60 dark:border-zinc-800/60 outline-none focus:ring-1 focus:ring-emerald-500/50"
+                  className="group flex flex-col bg-slate-50/50 dark:bg-slate-900/40 hover:bg-emerald-500/5 dark:hover:bg-emerald-500/5 hover:border-emerald-500/30 p-2.5 rounded-xl text-left transition-all active:scale-95 border border-slate-200/60 dark:border-slate-800/60 outline-none focus:ring-1 focus:ring-emerald-500/50"
                 >
                   <div className="flex flex-col min-w-0">
                     <span className="text-primary text-[12.5px] font-bold truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{dong.name}</span>
@@ -195,7 +195,7 @@ export function SearchSuggestionDropdown({
                           setSearchQuery(brand);
                           trackEvent('search_tag_click', { tag: brand });
                         }}
-                        className="bg-neutral-50 dark:bg-zinc-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-primary text-[12px] font-bold px-3.5 py-1.5 rounded-full border border-neutral-200/50 dark:border-zinc-800/50 transition-all active:scale-95 outline-none focus:ring-1 focus:ring-emerald-500/50"
+                        className="bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-primary text-[12px] font-bold px-3.5 py-1.5 rounded-full border border-slate-200/50 dark:border-slate-800/50 transition-all active:scale-95 outline-none focus:ring-1 focus:ring-emerald-500/50"
                       >
                         {brand}
                       </button>

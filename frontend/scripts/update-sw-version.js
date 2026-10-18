@@ -20,9 +20,29 @@ function clearStaleNextLocks() {
   } catch (err) {}
 }
 
+function prewarmAppRouterDirectoryCache() {
+  const appDir = path.join(__dirname, '../src/app');
+  const walk = (dir) => {
+    try {
+      const entries = fs.readdirSync(dir, { withFileTypes: true });
+      for (const entry of entries) {
+        const fullPath = path.join(dir, entry.name);
+        try {
+          fs.lstatSync(fullPath);
+        } catch (err) {}
+        if (entry.isDirectory()) {
+          walk(fullPath);
+        }
+      }
+    } catch (err) {}
+  };
+  walk(appDir);
+}
+
 try {
   if (isDevMode && fs.existsSync(versionPath) && fs.existsSync(swPath)) {
     clearStaleNextLocks();
+    prewarmAppRouterDirectoryCache();
     console.log('[SW Update] Dev mode detected: preserved existing build-version.ts & sw.js to maintain compiler cache.');
     process.exit(0);
   }

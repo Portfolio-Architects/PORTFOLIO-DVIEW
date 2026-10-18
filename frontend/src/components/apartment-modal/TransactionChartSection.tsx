@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { logger } from '@/lib/services/logger';
-import { MapPin, TrendingUp, Camera } from 'lucide-react';
+import { MapPin, TrendingUp, Camera, EyeOff } from 'lucide-react';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
 import {
   ResponsiveContainer,
@@ -664,7 +664,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
     return (
       <div className="w-full flex flex-col">
         <div className="bg-body rounded-2xl p-8 flex flex-col items-center justify-center ring-1 ring-black/5 dark:ring-white/10 min-h-[300px]">
-          <span className="text-[40px] mb-2">🤫</span>
+          <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-tertiary mb-3">
+            <EyeOff size={24} />
+          </div>
           <span className="text-tertiary text-[15px] font-extrabold tracking-tight">현재 숨고르기 중인 단지입니다</span>
           <span className="text-tertiary text-[12px] font-medium mt-1">해당 기간 내 실거래 기록이 없습니다</span>
         </div>
@@ -714,8 +716,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                         <div 
                           className={`h-full rounded-full transition-all duration-1000 ${
                             dropRatio > 0 
-                              ? "bg-gradient-to-r from-rose-400 to-[#f04452] dark:from-rose-500/80 dark:to-[#f26d78]" 
-                              : "bg-gradient-to-r from-[#057e77] to-teal-500"
+                              ? "bg-gradient-to-r from-red-400 to-[#f04452] dark:from-red-500/80 dark:to-[#f26d78]" 
+                              : "bg-gradient-to-r from-[#057e77] to-emerald-500"
                           }`} 
                           style={{ width: `${ratio}%` }} 
                         />

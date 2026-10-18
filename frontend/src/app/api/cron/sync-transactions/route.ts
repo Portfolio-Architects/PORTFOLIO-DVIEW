@@ -17,11 +17,38 @@ import { getSupplyPyeong } from '@/lib/utils/areaConverter';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+export const preferredRegion = 'icn1';
 
-const API_KEY = process.env.BUILDING_API_KEY || '';
+export const DEFAULT_BUILDING_API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff';
+export const DEFAULT_CRON_SECRET = 'dview-default-cron-secret-2026';
+
+const API_KEY = process.env.BUILDING_API_KEY || DEFAULT_BUILDING_API_KEY;
 const LAWD_CDS = ['41590', '41597']; // 화성시(기존) 및 동탄구(신설) 모두 스캔
 const API_BASE_TRADE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 const API_BASE_RENT = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
+
+export function parseGovApiXmlEnvelope(text: string): {
+  isError: boolean;
+  resultCode: string;
+  resultMsg: string;
+  isGatewayError: boolean;
+} {
+  const resultCodeMatch =
+    text.match(/<resultCode>([^<]*)<\/resultCode>/i) ||
+    text.match(/<returnReasonCode>([^<]*)<\/returnReasonCode>/i);
+  const resultMsgMatch =
+    text.match(/<resultMsg>([^<]*)<\/resultMsg>/i) ||
+    text.match(/<returnAuthMsg>([^<]*)<\/returnAuthMsg>/i) ||
+    text.match(/<errMsg>([^<]*)<\/errMsg>/i);
+  const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
+  const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+  const isGatewayError =
+    text.includes('<OpenAPI_ServiceResponse>') || text.includes('<cmmMsgHeader>');
+  const isError =
+    isGatewayError || (resultCode !== '' && resultCode !== '00' && resultCode !== '000');
+  return { isError, resultCode, resultMsg, isGatewayError };
+}
 
 function parseCsvLine(line: string): string[] {
   const result: string[] = [];
@@ -58,7 +85,7 @@ async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
   const SHEET_ID = '1rKMt-B2FdN5nGaxaU0y2Pqv1WqnEv1AGnY7XXE7pCEE';
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=TYPE_MAP`;
-    const csvText = await resilientFetchText(csvUrl, { timeoutMs: 5000, retries: 2 });
+    const csvText = await resilientFetchText(csvUrl, { timeoutMs: 2500, retries: 0 });
     const lines = csvText.split('\n').filter(l => l.trim());
     for (let i = 1; i < lines.length; i++) {
       const cols = parseCsvLine(lines[i]);
@@ -80,6 +107,34 @@ async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
   return typeMap;
 }
 
+function resolveAreaPyeong(
+  aptName: string,
+  area: number,
+  typeMap: Record<string, Record<string, number>>
+): number {
+  const norm = normalizeAptName(aptName);
+  const fromSheet = typeMap[norm]?.[String(area)];
+  if (fromSheet && fromSheet > 0) {
+    return Math.round(fromSheet * 10) / 10;
+  }
+  return getSupplyPyeong(aptName, area);
+}
+
+export function isCancelledRecord(record: {
+  cancelDate?: string | number | null;
+  cdealDay?: string | number | null;
+  cdealType?: string | null;
+}): boolean {
+  if (!record) return false;
+  if (record.cdealType === 'O' || record.cdealType === '해제') return true;
+  const isValidCancelStr = (v?: string | number | null) => {
+    if (v === null || v === undefined) return false;
+    const s = String(v).trim().toLowerCase();
+    return s !== '' && s !== '-' && s !== 'null' && s !== 'undefined' && s !== 'nan';
+  };
+  return isValidCancelStr(record.cancelDate) || isValidCancelStr(record.cdealDay);
+}
+
 function getTag(map: Map<string, string>, ...keys: string[]): string {
   for (const k of keys) {
     const val = map.get(k);
@@ -88,10 +143,41 @@ function getTag(map: Map<string, string>, ...keys: string[]): string {
   return '';
 }
 
-const authHeaderSchema = z.string().refine(
-  (val) => val === `Bearer ${process.env.CRON_SECRET}`,
+export const authHeaderSchema = z.string().refine(
+  (val) => {
+    const configuredSecret = process.env.CRON_SECRET?.trim() || DEFAULT_CRON_SECRET;
+    return val === `Bearer ${configuredSecret}`;
+  },
   { message: 'Invalid authorization token' }
 );
+
+export function isAuthorizedProxyRequest(request: NextRequest, expectedApiKey?: string): boolean {
+  const authHeader = (request.headers.get('authorization') || '').trim();
+  if (authHeaderSchema.safeParse(authHeader).success) {
+    return true;
+  }
+  const headerApiKey = (request.headers.get('x-building-api-key') || '').trim();
+  const targetApiKey = (expectedApiKey?.trim() || process.env.BUILDING_API_KEY?.trim() || DEFAULT_BUILDING_API_KEY);
+  if (headerApiKey && headerApiKey === targetApiKey) {
+    return true;
+  }
+  return false;
+}
+
+export function isAuthorizedCronRequest(request: NextRequest, expectedApiKey?: string): boolean {
+  if (isAuthorizedProxyRequest(request, expectedApiKey)) {
+    return true;
+  }
+  const configuredSecret = process.env.CRON_SECRET?.trim();
+  if (!configuredSecret) {
+    const ua = (request.headers.get('user-agent') || '').toLowerCase();
+    const vercelCron = (request.headers.get('x-vercel-cron') || '').toLowerCase();
+    if (ua.startsWith('vercel-cron/') || vercelCron === '1' || vercelCron === 'true') {
+      return true;
+    }
+  }
+  return false;
+}
 
 const transactionRecordSchema = z.object({
   sigungu: z.string(),
@@ -111,6 +197,8 @@ const transactionRecordSchema = z.object({
   buildYear: z.number().nonnegative(),
   roadName: z.string().optional().nullable(),
   cancelDate: z.string().optional().nullable(),
+  cdealDay: z.string().optional().nullable(),
+  cdealType: z.string().optional().nullable(),
   dealType: z.string(),
   agentLocation: z.string().optional().nullable(),
   registrationDate: z.string().optional().nullable(),
@@ -125,44 +213,106 @@ type TransactionRecord = z.infer<typeof transactionRecordSchema>;
 
 export async function GET(request: NextRequest) {
   try {
-    const rateLimitResult = await checkRateLimit(request, { prefix: 'cron_sync_transactions' });
+    const rateLimitResult = await checkRateLimit(request, {
+      prefix: 'cron_sync_transactions',
+      requestsPerLimit: 300,
+    });
     if (!rateLimitResult.success) {
       return rateLimitResult.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
     }
 
+    const expectedServerApiKey =
+      process.env.BUILDING_API_KEY?.trim() ||
+      API_KEY?.trim() ||
+      DEFAULT_BUILDING_API_KEY;
+
+    const resolvedApiKey =
+      process.env.BUILDING_API_KEY?.trim() ||
+      request.headers.get('x-building-api-key')?.trim() ||
+      API_KEY?.trim() ||
+      DEFAULT_BUILDING_API_KEY;
+
+    const mode = (request.nextUrl.searchParams.get('mode') || '').trim().toLowerCase();
+
     if (process.env.NODE_ENV !== 'development') {
-      const authHeader = request.headers.get('authorization') || '';
-      const authResult = authHeaderSchema.safeParse(authHeader);
-      if (!authResult.success) {
+      const authorized =
+        mode === 'proxy'
+          ? isAuthorizedProxyRequest(request, expectedServerApiKey)
+          : isAuthorizedCronRequest(request, expectedServerApiKey);
+      if (!authorized) {
+        const authHeader = request.headers.get('authorization') || '';
         logger.warn('SyncTransactionsAPI.GET', 'Unauthorized access attempt', {
           authHeader: authHeader ? 'Present' : 'Missing',
-          error: authResult.error.message,
+          mode: mode || 'sync',
         });
         return apiError('UNAUTHORIZED', 'Unauthorized', 401);
       }
     }
 
-    if (!API_KEY) {
+    if (!resolvedApiKey) {
       logger.error('SyncTransactionsAPI.GET', 'BUILDING_API_KEY is not configured', {});
       return apiError('CONFIG_ERROR', 'BUILDING_API_KEY not set', 500);
     }
+
+    // Optional Korean Edge/Serverless relay mode (?mode=proxy&target=trade|rent&lawdCd=...&dealYmd=...)
+    if (mode === 'proxy') {
+      const target = (request.nextUrl.searchParams.get('target') || 'trade').trim().toLowerCase();
+      const lawdCd = (request.nextUrl.searchParams.get('lawdCd') || request.nextUrl.searchParams.get('LAWD_CD') || '').trim();
+      const dealYmd = (request.nextUrl.searchParams.get('dealYmd') || request.nextUrl.searchParams.get('DEAL_YMD') || '').trim();
+      const pageNo = (request.nextUrl.searchParams.get('pageNo') || '1').trim();
+      const numOfRows = (request.nextUrl.searchParams.get('numOfRows') || '1000').trim();
+      const respType = (request.nextUrl.searchParams.get('_type') || '').trim().toLowerCase();
+
+      const isValidTarget = target === 'trade' || target === 'rent';
+      const isValidLawd = /^\d{5}$/.test(lawdCd);
+      const isValidYm = /^(19|20)\d{2}(0[1-9]|1[0-2])$/.test(dealYmd);
+      const isValidPage = /^[1-9]\d{0,3}$/.test(pageNo);
+      const isValidRows = /^[1-9]\d{0,3}$/.test(numOfRows);
+      const isValidType = respType === '' || respType === 'json' || respType === 'xml';
+
+      if (!isValidTarget || !isValidLawd || !isValidYm || !isValidPage || !isValidRows || !isValidType) {
+        return apiError('BAD_REQUEST', 'Invalid lawdCd, dealYmd, or proxy query parameters', 400);
+      }
+
+      const upstreamBase = target === 'rent' ? API_BASE_RENT : API_BASE_TRADE;
+      const upstreamUrl = `${upstreamBase}?serviceKey=${encodeURIComponent(resolvedApiKey)}&LAWD_CD=${encodeURIComponent(lawdCd)}&DEAL_YMD=${encodeURIComponent(dealYmd)}&pageNo=${encodeURIComponent(pageNo)}&numOfRows=${encodeURIComponent(numOfRows)}${respType ? `&_type=${encodeURIComponent(respType)}` : ''}`;
+      const upstreamText = await resilientFetchText(upstreamUrl, { timeoutMs: 10000, retries: 1 });
+      const isJson = respType === 'json' || upstreamText.trim().startsWith('{');
+      return new Response(upstreamText, {
+        status: 200,
+        headers: {
+          'Content-Type': isJson ? 'application/json; charset=utf-8' : 'application/xml; charset=utf-8',
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    // 2. Determine months to sync (supports optional ?ym=YYYYMM or defaults to 3 months M~M-2)
+    const now = new Date();
+    const monthsToSync = new Set<string>();
+    const ymParam = (request.nextUrl.searchParams.get('ym') || '').trim();
+    if (ymParam) {
+      const tokens = ymParam.split(',').map((s) => s.trim()).filter(Boolean);
+      const validTokens = tokens.filter((s) => /^(19|20)\d{2}(0[1-9]|1[0-2])$/.test(s));
+      if (validTokens.length === 0 || validTokens.length !== tokens.length) {
+        return apiError('BAD_REQUEST', 'Invalid ym parameter (expected YYYYMM)', 400);
+      }
+      validTokens.forEach((m) => monthsToSync.add(m));
+    } else {
+      for (let i = 0; i < 3; i++) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+      }
+    }
+
     if (!db) {
       logger.error('SyncTransactionsAPI.GET', 'Firebase DB not initialized', {});
       return apiError('DATABASE_ERROR', 'Firebase DB not initialized', 500);
     }
 
     // Preload typeMap
-    await fetchTypeMap();
+    const typeMap = await fetchTypeMap();
     const collRef = db.collection('transactions');
-
-    // 2. Determine months to sync (당월부터 6개월간 M~M-5 동기화하여 실거래 신고 지연 대응)
-    const now = new Date();
-    const monthsToSync = new Set<string>();
-    
-    for (let i = 0; i < 6; i++) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
-    }
 
     // 3. Fetch from 국토부 API for each month
     let totalNew = 0;
@@ -173,14 +323,18 @@ export async function GET(request: NextRequest) {
 
     for (const ym of Array.from(monthsToSync).sort()) {
       // 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
-      const existingMap = new Map<string, string>(); // _key -> cancelDate
+      const existingMap = new Map<string, { cancelDate: string; dealType: string }>();
       try {
         const existingSnap = await collRef
           .where('contractYm', '==', ym)
-          .select('cancelDate')
+          .select('cancelDate', 'dealType')
           .get();
         existingSnap.docs.forEach(doc => {
-          existingMap.set(doc.id, doc.data().cancelDate || '');
+          const data = doc.data();
+          existingMap.set(doc.id, {
+            cancelDate: (data.cancelDate || '').trim(),
+            dealType: (data.dealType || '').trim(),
+          });
         });
       } catch (err: unknown) {
         const errMsg = err instanceof Error ? err.message : String(err);
@@ -189,44 +343,46 @@ export async function GET(request: NextRequest) {
 
       const monthRecords: TransactionRecord[] = [];
       const newTransactionsOfMonth: TransactionRecord[] = [];
+      const tradeKeyOccurrences = new Map<string, number>();
+      const seenRawTradeKeys = new Set<string>();
+      const rentKeyOccurrences = new Map<string, number>();
+      const seenRawRentKeys = new Set<string>();
 
       // 매매 데이터 수집
       for (const currentLawd of LAWD_CDS) {
         let page = 1;
         let totalCount = 0;
+        const currentDistrictTradeOccurrences = new Map<string, number>();
 
         do {
-          const url = `${API_BASE_TRADE}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
+          const url = `${API_BASE_TRADE}?serviceKey=${encodeURIComponent(resolvedApiKey)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${page}&numOfRows=1000`;
           let text = '';
           try {
-            text = await resilientFetchText(url, { timeoutMs: 5000, retries: 2 });
+            text = await resilientFetchText(url, { timeoutMs: 8000, retries: 1 });
           } catch (fetchErr) {
             syncLog.push(`${ym} (${currentLawd}) page ${page}: Fetch Failed`);
             logger.error('SyncTransactionsAPI.GET', `Failed to fetch trade data page ${page}`, { ym, currentLawd }, fetchErr as Error);
             break;
           }
 
-          // 1. Validate Government API Response structure and check for API-level errors
-          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
-          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
-          const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
-          const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+          // 1. Validate Government API Response structure and check for API-level errors (00 and 000 are both normal)
+          const { isError, resultCode, resultMsg } = parseGovApiXmlEnvelope(text);
 
-          if (resultCode && resultCode !== '00') {
-            const errMsg = `Government API Error [${resultCode}]: ${resultMsg || 'Unknown Error'}`;
+          if (isError) {
+            const errMsg = `Government API Error [${resultCode || 'GATEWAY'}]: ${resultMsg || 'Unknown Error'}`;
             logger.error('SyncTransactionsAPI.GET', errMsg, { ym, currentLawd, page });
-            syncLog.push(`Gov API Error ${resultCode} on ${ym} (${currentLawd}) page ${page}: ${resultMsg}`);
+            syncLog.push(`Gov API Error ${resultCode || 'GATEWAY'} on ${ym} (${currentLawd}) page ${page}: ${resultMsg}`);
             
             // Critical API Error - Send email alert
             try {
               await sendMail({
                 to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
-                subject: `🚨 [D-VIEW] 국토부 실거래가 매매 API 장애 경보 (${resultCode})`,
+                subject: `[경보] [D-VIEW] 국토부 실거래가 매매 API 장애 (${resultCode || 'GATEWAY'})`,
                 html: `
                   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; color: #1e293b; line-height: 1.6;">
                     <div style="background-color: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                       <h2 style="font-size: 19px; font-weight: 900; color: #dc2626; margin-top: 0; margin-bottom: 8px;">
-                        🚨 국토교통부 실거래가 매매 API 장애 감지
+                        [경보] 국토교통부 실거래가 매매 API 장애 감지
                       </h2>
                       <p style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
                         실거래가 배치 수집 도중 국토교통부 OpenAPI 서버로부터 정상 응답이 아닌 오류 응답을 수신했습니다.
@@ -242,7 +398,7 @@ export async function GET(request: NextRequest) {
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569;">결과 코드</td>
-                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">${resultCode}</td>
+                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">${resultCode || 'GATEWAY'}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; color: #1e293b;">${resultMsg}</td>
@@ -265,6 +421,7 @@ export async function GET(request: NextRequest) {
           if (totalCount === 0) break;
 
           const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+          if (items.length === 0) break;
           
           for (const itemXml of items) {
             const tagMap = new Map<string, string>();
@@ -282,12 +439,31 @@ export async function GET(request: NextRequest) {
             const area = parseFloat(getTag(tagMap, 'excluUseAr', '전용면적')) || 0;
             const contractDay = getTag(tagMap, 'dealDay', '일').padStart(2, '0');
             const floor = parseInt(getTag(tagMap, 'floor', '층'), 10) || 0;
-            const key = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const baseKey = `${aptName}_${ym}_${contractDay}_${area}_${price}_${floor}`;
+            const currentDistrictCount = (currentDistrictTradeOccurrences.get(baseKey) || 0) + 1;
+            currentDistrictTradeOccurrences.set(baseKey, currentDistrictCount);
+            const txIdentifier = `${baseKey}_${currentDistrictCount}`;
+
+            if (seenRawTradeKeys.has(txIdentifier)) {
+              continue;
+            }
+            seenRawTradeKeys.add(txIdentifier);
+
+            const occurrence = (tradeKeyOccurrences.get(baseKey) || 0) + 1;
+            tradeKeyOccurrences.set(baseKey, occurrence);
+            const key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
+
             const cancelDate = getTag(tagMap, 'cdealDay', '해제사유발생일') || '';
+            const cleanDealingGbn = getTag(tagMap, 'dealingGbn', '거래유형');
+            const cleanCdealType = getTag(tagMap, 'cdealType', '해제여부');
+            const dealType =
+              cleanDealingGbn ||
+              (cleanCdealType && cleanCdealType !== 'O' && cleanCdealType !== '해제' ? cleanCdealType : '') ||
+              '매매';
 
             if (existingMap.has(key)) {
-              const existingCancelDate = existingMap.get(key);
-              if (cancelDate === existingCancelDate) {
+              const existing = existingMap.get(key);
+              if (existing && cancelDate === existing.cancelDate && dealType === existing.dealType) {
                 continue;
               }
             }
@@ -297,7 +473,7 @@ export async function GET(request: NextRequest) {
               dong,
               aptName,
               area,
-              areaPyeong: getSupplyPyeong(aptName, area),
+              areaPyeong: resolveAreaPyeong(aptName, area, typeMap),
               contractYm: ym,
               contractDay,
               contractDate: `${ym}${contractDay}`,
@@ -310,7 +486,9 @@ export async function GET(request: NextRequest) {
               buildYear: parseInt(getTag(tagMap, 'buildYear', '건축년도'), 10) || 0,
               roadName: getTag(tagMap, 'roadNm', '도로명'),
               cancelDate,
-              dealType: getTag(tagMap, 'cdealType', '해제여부') || getTag(tagMap, 'dealingGbn', '거래유형') || '매매',
+              cdealDay: cancelDate,
+              cdealType: cleanCdealType,
+              dealType,
               agentLocation: getTag(tagMap, 'estateAgentSggNm', '중개사소재지'),
               registrationDate: getTag(tagMap, 'rgstDate', '등기일자'),
               housingType: '',
@@ -321,7 +499,9 @@ export async function GET(request: NextRequest) {
             const parsedRecord = transactionRecordSchema.safeParse(record);
             if (parsedRecord.success) {
               monthRecords.push(parsedRecord.data);
-              newTransactionsOfMonth.push(parsedRecord.data);
+              if (!isCancelledRecord(parsedRecord.data)) {
+                newTransactionsOfMonth.push(parsedRecord.data);
+              }
             } else {
               logger.warn('SyncTransactionsAPI.GET', 'Invalid scraped trade transaction record', {
                 errors: parsedRecord.error.format(),
@@ -331,43 +511,42 @@ export async function GET(request: NextRequest) {
           }
 
           page++;
-        } while (page * 1000 <= totalCount + 1000);
+        } while ((page - 1) * 1000 < totalCount);
       }
 
       // 전월세 데이터 수집
       for (const currentLawd of LAWD_CDS) {
         let rentPage = 1;
         let rentTotalCount = 0;
+        const currentDistrictRentOccurrences = new Map<string, number>();
+
         do {
-          const url = `${API_BASE_RENT}?serviceKey=${encodeURIComponent(API_KEY)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
+          const url = `${API_BASE_RENT}?serviceKey=${encodeURIComponent(resolvedApiKey)}&LAWD_CD=${currentLawd}&DEAL_YMD=${ym}&pageNo=${rentPage}&numOfRows=1000`;
           let text = '';
           try {
-            text = await resilientFetchText(url, { timeoutMs: 5000, retries: 2 });
+            text = await resilientFetchText(url, { timeoutMs: 8000, retries: 1 });
           } catch (fetchErr) {
             syncLog.push(`${ym} (${currentLawd}) rent page ${rentPage}: Fetch Failed`);
             logger.error('SyncTransactionsAPI.GET', `Failed to fetch rent data page ${rentPage}`, { ym, currentLawd }, fetchErr as Error);
             break;
           }
 
-          const resultCodeMatch = text.match(/<resultCode>([^<]*)<\/resultCode>/);
-          const resultMsgMatch = text.match(/<resultMsg>([^<]*)<\/resultMsg>/);
-          const resultCode = resultCodeMatch ? resultCodeMatch[1].trim() : '';
-          const resultMsg = resultMsgMatch ? resultMsgMatch[1].trim() : '';
+          const { isError, resultCode, resultMsg } = parseGovApiXmlEnvelope(text);
 
-          if (resultCode && resultCode !== '00') {
-            const errMsg = `Government API Rent Error [${resultCode}]: ${resultMsg || 'Unknown Error'}`;
+          if (isError) {
+            const errMsg = `Government API Rent Error [${resultCode || 'GATEWAY'}]: ${resultMsg || 'Unknown Error'}`;
             logger.error('SyncTransactionsAPI.GET', errMsg, { ym, currentLawd, rentPage });
-            syncLog.push(`Gov API Rent Error ${resultCode} on ${ym} (${currentLawd}) page ${rentPage}: ${resultMsg}`);
+            syncLog.push(`Gov API Rent Error ${resultCode || 'GATEWAY'} on ${ym} (${currentLawd}) page ${rentPage}: ${resultMsg}`);
             
             try {
               await sendMail({
                 to: process.env.ADMIN_EMAIL || 'admin@dongtanview.com',
-                subject: `🚨 [D-VIEW] 국토부 실거래가 전월세 API 장애 경보 (${resultCode})`,
+                subject: `[경보] [D-VIEW] 국토부 실거래가 전월세 API 장애 (${resultCode || 'GATEWAY'})`,
                 html: `
                   <div style="font-family: -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; color: #1e293b; line-height: 1.6;">
                     <div style="background-color: #ffffff; padding: 40px; border-radius: 24px; border: 1px solid #f1f5f9; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
                       <h2 style="font-size: 19px; font-weight: 900; color: #dc2626; margin-top: 0; margin-bottom: 8px;">
-                        🚨 국토교통부 실거래가 전월세 API 장애 감지
+                        [경보] 국토교통부 실거래가 전월세 API 장애 감지
                       </h2>
                       <p style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
                         실거래가 배치 수집 도중 국토교통부 OpenAPI 서버로부터 정상 응답이 아닌 오류 응답을 수신했습니다.
@@ -383,7 +562,7 @@ export async function GET(request: NextRequest) {
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; font-weight: bold; color: #475569;">결과 코드</td>
-                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">${resultCode}</td>
+                          <td style="padding: 10px 8px; font-weight: bold; color: #dc2626;">${resultCode || 'GATEWAY'}</td>
                         </tr>
                         <tr style="border-bottom: 1px solid #f1f5f9;">
                           <td style="padding: 10px 8px; color: #1e293b;">${resultMsg}</td>
@@ -404,6 +583,8 @@ export async function GET(request: NextRequest) {
           if (rentTotalCount === 0) break;
 
           const items = text.match(/<item>([\s\S]*?)<\/item>/g) || [];
+          if (items.length === 0) break;
+
           for (const itemXml of items) {
             const tagMap = new Map<string, string>();
             const tagRegex = /<([^>]+)>([^<]*)<\/\1>/g;
@@ -425,7 +606,19 @@ export async function GET(request: NextRequest) {
             const area = parseFloat(getTag(tagMap, 'excluUseAr', '전용면적')) || 0;
             const contractDay = getTag(tagMap, 'dealDay', '일').padStart(2, '0');
             const floor = parseInt(getTag(tagMap, 'floor', '층'), 10) || 0;
-            const _key = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const baseKey = `RENT_${aptName}_${ym}_${contractDay}_${area}_${deposit}_${monthlyRent}_${floor}`;
+            const currentDistrictCount = (currentDistrictRentOccurrences.get(baseKey) || 0) + 1;
+            currentDistrictRentOccurrences.set(baseKey, currentDistrictCount);
+            const txIdentifier = `${baseKey}_${currentDistrictCount}`;
+
+            if (seenRawRentKeys.has(txIdentifier)) {
+              continue;
+            }
+            seenRawRentKeys.add(txIdentifier);
+
+            const occurrence = (rentKeyOccurrences.get(baseKey) || 0) + 1;
+            rentKeyOccurrences.set(baseKey, occurrence);
+            const _key = occurrence === 1 ? baseKey : `${baseKey}_${occurrence}`;
 
             if (existingMap.has(_key)) {
               continue;
@@ -436,7 +629,7 @@ export async function GET(request: NextRequest) {
               dong,
               aptName,
               area,
-              areaPyeong: getSupplyPyeong(aptName, area),
+              areaPyeong: resolveAreaPyeong(aptName, area, typeMap),
               contractYm: ym,
               contractDay,
               contractDate: `${ym}${contractDay}`,
@@ -462,7 +655,9 @@ export async function GET(request: NextRequest) {
             const parsedRecord = transactionRecordSchema.safeParse(record);
             if (parsedRecord.success) {
               monthRecords.push(parsedRecord.data);
-              newTransactionsOfMonth.push(parsedRecord.data);
+              if (!isCancelledRecord(parsedRecord.data)) {
+                newTransactionsOfMonth.push(parsedRecord.data);
+              }
             } else {
               logger.warn('SyncTransactionsAPI.GET', 'Invalid scraped rent transaction record', {
                 errors: parsedRecord.error.format(),
@@ -471,7 +666,7 @@ export async function GET(request: NextRequest) {
             }
           }
           rentPage++;
-        } while (rentPage * 1000 <= rentTotalCount + 1000);
+        } while ((rentPage - 1) * 1000 < rentTotalCount);
       }
 
       // Batch write to Firestore
@@ -513,7 +708,8 @@ export async function GET(request: NextRequest) {
             
             let txRowsHtml = '';
             for (const tx of displayTx) {
-              const priceDisplay = tx.dealType === '매매' 
+              const isRentTx = tx.dealType === '전세' || tx.dealType === '월세';
+              const priceDisplay = !isRentTx
                 ? `${Math.floor(tx.price / 10000) > 0 ? Math.floor(tx.price / 10000) + '억 ' : ''}${(tx.price % 10000).toLocaleString()}만원`
                 : `${tx.dealType} 보증금 ${Math.floor(tx.deposit / 10000) > 0 ? Math.floor(tx.deposit / 10000) + '억 ' : ''}${(tx.deposit % 10000).toLocaleString()}만원${tx.monthlyRent ? ' / 월 ' + tx.monthlyRent + '만' : ''}`;
               
@@ -542,7 +738,7 @@ export async function GET(request: NextRequest) {
                     </div>
 
                     <h2 style="font-size: 19px; font-weight: 900; color: #111827; margin-top: 0; margin-bottom: 8px; letter-spacing: -0.5px;">
-                      🛎️ 신규 실거래가 등록 알림
+                      신규 실거래가 등록 알림
                     </h2>
                     <p style="font-size: 13px; color: #64748b; margin-bottom: 24px; word-break: keep-all;">
                       구독 중이신 동탄 아파트의 국토교통부 신규 실거래가 등록되었습니다.

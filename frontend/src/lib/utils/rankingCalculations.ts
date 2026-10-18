@@ -66,16 +66,16 @@ interface RawTxSummary {
 }
 
 const FALLBACK_ITEMS_NEW_HIGH: RealtimeRankingItem[] = [
-  { rank: 1, apartmentName: '동탄역 롯데캐슬', aptName: '동탄역 롯데캐슬', displayAptName: '동탄역 롯데캐슬', dong: '오산동', metricValue: '22.0억', primaryValue: '22.0억', subText: '▲ 1.5억 신고가 · 34평 · 32층', secondaryValue: '▲ 1.5억 신고가 · 34평 · 32층', badge: '최고가', badgeText: '최고가', badgeType: 'high', areaPyeong: 34, floor: 32 },
-  { rank: 2, apartmentName: '동탄역 시범더샵 센트럴시티', aptName: '동탄역 시범더샵 센트럴시티', displayAptName: '동탄역 시범더샵', dong: '청계동', metricValue: '14.8억', primaryValue: '14.8억', subText: '▲ 8,000만 신고가 · 33평 · 25층', secondaryValue: '▲ 8,000만 신고가 · 33평 · 25층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 25 },
-  { rank: 3, apartmentName: '동탄역 시범한화 꿈에그린', aptName: '동탄역 시범한화 꿈에그린', displayAptName: '동탄역 시범한화', dong: '청계동', metricValue: '14.5억', primaryValue: '14.5억', subText: '▲ 6,000만 신고가 · 33평 · 19층', secondaryValue: '▲ 6,000만 신고가 · 33평 · 19층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 19 },
-  { rank: 4, apartmentName: '동탄역 시범우남퍼스트빌', aptName: '동탄역 시범우남 퍼스트빌', displayAptName: '동탄역 시범우남', dong: '청계동', metricValue: '13.2억', primaryValue: '13.2억', subText: '▲ 5,000만 신고가 · 33평 · 21층', secondaryValue: '▲ 5,000만 신고가 · 33평 · 21층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 21 },
-  { rank: 5, apartmentName: '동탄역 유림노르웨이숲', aptName: '동탄역 유림노르웨이숲', displayAptName: '동탄역 유림노르웨이', dong: '오산동', metricValue: '12.8억', primaryValue: '12.8억', subText: '▲ 4,500만 신고가 · 34평 · 28층', secondaryValue: '▲ 4,500만 신고가 · 34평 · 28층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 34, floor: 28 },
-  { rank: 6, apartmentName: '동탄역 린스트라우스', aptName: '동탄역 린스트라우스', displayAptName: '동탄역 린스트라우스', dong: '오산동', metricValue: '12.0억', primaryValue: '12.0억', subText: '▲ 3,000만 신고가 · 34평 · 18층', secondaryValue: '▲ 3,000만 신고가 · 34평 · 18층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 34, floor: 18 },
-  { rank: 7, apartmentName: '동탄호수공원 그랑파사쥬', aptName: '동탄호수공원 그랑파사쥬', displayAptName: '호수공원 그랑파사쥬', dong: '송동', metricValue: '11.5억', primaryValue: '11.5억', subText: '▲ 4,000만 신고가 · 33평 · 22층', secondaryValue: '▲ 4,000만 신고가 · 33평 · 22층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 22 },
-  { rank: 8, apartmentName: '동탄2하우스디 더레이크', aptName: '동탄2하우스디 더레이크', displayAptName: '하우스디 더레이크', dong: '송동', metricValue: '9.8억', primaryValue: '9.8억', subText: '▲ 3,500만 신고가 · 33평 · 15층', secondaryValue: '▲ 3,500만 신고가 · 33평 · 15층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 15 },
-  { rank: 9, apartmentName: '동탄역 예미지 시그너스', aptName: '동탄역 예미지 시그너스', displayAptName: '동탄역 예미지', dong: '오산동', metricValue: '9.5억', primaryValue: '9.5억', subText: '▲ 2,000만 신고가 · 34평 · 14층', secondaryValue: '▲ 2,000만 신고가 · 34평 · 14층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 34, floor: 14 },
-  { rank: 10, apartmentName: '동탄레이크자연앤푸르지오', aptName: '동탄레이크자연앤푸르지오', displayAptName: '레이크자연앤푸르지오', dong: '산척동', metricValue: '9.2억', primaryValue: '9.2억', subText: '▲ 2,500만 신고가 · 33평 · 16층', secondaryValue: '▲ 2,500만 신고가 · 33평 · 16층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 16 },
+  { rank: 1, apartmentName: '동탄역 롯데캐슬', aptName: '동탄역 롯데캐슬', displayAptName: '동탄역 롯데캐슬', dong: '오산동', metricValue: '22.0억', primaryValue: '22.0억', subText: '+ 1.5억 신고가 · 34평 · 32층', secondaryValue: '+ 1.5억 신고가 · 34평 · 32층', badge: '최고가', badgeText: '최고가', badgeType: 'high', areaPyeong: 34, floor: 32 },
+  { rank: 2, apartmentName: '동탄역 시범더샵 센트럴시티', aptName: '동탄역 시범더샵 센트럴시티', displayAptName: '동탄역 시범더샵', dong: '청계동', metricValue: '14.8억', primaryValue: '14.8억', subText: '+ 8,000만 신고가 · 33평 · 25층', secondaryValue: '+ 8,000만 신고가 · 33평 · 25층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 25 },
+  { rank: 3, apartmentName: '동탄역 시범한화 꿈에그린', aptName: '동탄역 시범한화 꿈에그린', displayAptName: '동탄역 시범한화', dong: '청계동', metricValue: '14.5억', primaryValue: '14.5억', subText: '+ 6,000만 신고가 · 33평 · 19층', secondaryValue: '+ 6,000만 신고가 · 33평 · 19층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 19 },
+  { rank: 4, apartmentName: '동탄역 시범우남퍼스트빌', aptName: '동탄역 시범우남 퍼스트빌', displayAptName: '동탄역 시범우남', dong: '청계동', metricValue: '13.2억', primaryValue: '13.2억', subText: '+ 5,000만 신고가 · 33평 · 21층', secondaryValue: '+ 5,000만 신고가 · 33평 · 21층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 21 },
+  { rank: 5, apartmentName: '동탄역 유림노르웨이숲', aptName: '동탄역 유림노르웨이숲', displayAptName: '동탄역 유림노르웨이', dong: '오산동', metricValue: '12.8억', primaryValue: '12.8억', subText: '+ 4,500만 신고가 · 34평 · 28층', secondaryValue: '+ 4,500만 신고가 · 34평 · 28층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 34, floor: 28 },
+  { rank: 6, apartmentName: '동탄역 린스트라우스', aptName: '동탄역 린스트라우스', displayAptName: '동탄역 린스트라우스', dong: '오산동', metricValue: '12.0억', primaryValue: '12.0억', subText: '+ 3,000만 신고가 · 34평 · 18층', secondaryValue: '+ 3,000만 신고가 · 34평 · 18층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 34, floor: 18 },
+  { rank: 7, apartmentName: '동탄호수공원 그랑파사쥬', aptName: '동탄호수공원 그랑파사쥬', displayAptName: '호수공원 그랑파사쥬', dong: '송동', metricValue: '11.5억', primaryValue: '11.5억', subText: '+ 4,000만 신고가 · 33평 · 22층', secondaryValue: '+ 4,000만 신고가 · 33평 · 22층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 22 },
+  { rank: 8, apartmentName: '동탄2하우스디 더레이크', aptName: '동탄2하우스디 더레이크', displayAptName: '하우스디 더레이크', dong: '송동', metricValue: '9.8억', primaryValue: '9.8억', subText: '+ 3,500만 신고가 · 33평 · 15층', secondaryValue: '+ 3,500만 신고가 · 33평 · 15층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 15 },
+  { rank: 9, apartmentName: '동탄역 예미지 시그너스', aptName: '동탄역 예미지 시그너스', displayAptName: '동탄역 예미지', dong: '오산동', metricValue: '9.5억', primaryValue: '9.5억', subText: '+ 2,000만 신고가 · 34평 · 14층', secondaryValue: '+ 2,000만 신고가 · 34평 · 14층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 34, floor: 14 },
+  { rank: 10, apartmentName: '동탄레이크자연앤푸르지오', aptName: '동탄레이크자연앤푸르지오', displayAptName: '레이크자연앤푸르지오', dong: '산척동', metricValue: '9.2억', primaryValue: '9.2억', subText: '+ 2,500만 신고가 · 33평 · 16층', secondaryValue: '+ 2,500만 신고가 · 33평 · 16층', badge: '신고가', badgeText: '신고가', badgeType: 'high', areaPyeong: 33, floor: 16 },
 ];
 
 const FALLBACK_ITEMS_GAP: RealtimeRankingItem[] = [
@@ -149,7 +149,7 @@ export function calculateNewHighRankings(
     const aptName = tx.aptName || tx.apartmentName || '동탄 아파트';
     const delta = tx.delta || 0;
     const deltaText = delta > 0
-      ? `▲ ${delta >= 1 ? `${delta.toFixed(1)}억` : `${Math.round(delta * 10000).toLocaleString()}만`} 신고가`
+      ? `+ ${delta >= 1 ? `${delta.toFixed(1)}억` : `${Math.round(delta * 10000).toLocaleString()}만`} 신고가`
       : '최고가 갱신';
     const pyeong = tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평` : '';
     const floor = tx.floor ? `${tx.floor}층` : '';
@@ -166,8 +166,8 @@ export function calculateNewHighRankings(
       primaryValue: metricValue,
       subText,
       secondaryValue: subText,
-      badge: idx === 0 ? '👑 최고가' : '신고가',
-      badgeText: idx === 0 ? '👑 최고가' : '신고가',
+      badge: idx === 0 ? '최고가' : '신고가',
+      badgeText: idx === 0 ? '최고가' : '신고가',
       badgeType: 'high',
       areaPyeong: tx.areaPyeong,
       floor: typeof tx.floor === 'number' ? tx.floor : undefined,
@@ -290,7 +290,7 @@ export function calculateWeeklySurgeRankings(
   return sorted.map(([aptName, info], idx) => {
     const metricValue = `주간 ${info.count}건`;
     const subText = idx === 0 ? '동탄 거래량 1위 단지' : '실수요 활발 매수세';
-    const badge = idx === 0 ? '🔥 HOT 1위' : '거래활발';
+    const badge = idx === 0 ? 'HOT 1위' : '거래활발';
     return {
       rank: idx + 1,
       apartmentName: aptName,

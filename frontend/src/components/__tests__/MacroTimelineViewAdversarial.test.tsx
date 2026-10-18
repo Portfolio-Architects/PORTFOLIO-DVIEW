@@ -548,7 +548,7 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
 
       const badge = screen.getByTestId('highest-price-badge-2026.08.22 (토)');
       expect(badge).toBeInTheDocument();
-      expect(badge).toHaveTextContent('👑 최고가:');
+      expect(badge).toHaveTextContent('최고가:');
       expect(badge).toHaveTextContent('15억');
     });
 

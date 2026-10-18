@@ -32,7 +32,7 @@ export async function getEngineeringReport() {
           if (part.includes('**Branch**:')) reportMetadata.branch = part.replace('**Branch**:', '').trim();
           if (part.includes('**Status**:')) reportMetadata.status = part.replace('**Status**:', '').trim();
         });
-      } else if (line.trim().startsWith('# 📋 PORTFOLIO DVIEW')) {
+      } else if (/^#\s*.*PORTFOLIO DVIEW/.test(line.trim())) {
         continue;
       } else {
         contentLines.push(line);

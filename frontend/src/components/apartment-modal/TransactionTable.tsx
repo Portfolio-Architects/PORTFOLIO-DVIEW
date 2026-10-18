@@ -112,7 +112,7 @@ export const TransactionTable = React.memo(function TransactionTable({
   const getBadgeColorClasses = (dealType: string | undefined) => {
     if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#057e77] dark:text-emerald-400'; // 매매 기본
     if (dealType === '전세') return 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400';
-    if (dealType === '월세') return 'bg-[#fef0e6] dark:bg-orange-950/45 text-[#c2410c] dark:text-orange-400';
+    if (dealType === '월세') return 'bg-blue-50 dark:bg-blue-950/45 text-blue-700 dark:text-blue-400';
     // 중개거래, 직거래, 매매 등 모두 매매 계열
     return 'bg-toss-blue-light text-[#057e77] dark:text-emerald-400';
   };
@@ -414,7 +414,7 @@ const TransactionRow = React.memo(function TransactionRow({
         {tx.isOutlier && (
           <Tooltip content={tx.dealType === '직거래' ? "특수관계인 저가/고가 거래 의심 (직거래 편차)" : "시세 대비 이례적 편차"}>
             <div className="cursor-help flex items-center justify-center">
-              <AlertTriangle size={13} className="text-amber-500 dark:text-amber-400 drop-shadow-sm" />
+              <AlertTriangle size={13} className="text-blue-500 dark:text-blue-400 drop-shadow-sm" />
             </div>
           </Tooltip>
         )}
@@ -422,7 +422,7 @@ const TransactionRow = React.memo(function TransactionRow({
         {(tx.dealType === '전세' || tx.dealType === '월세' || tx.dealType === '직거래') && (
           <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
             tx.dealType === '전세' ? 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400' : 
-            tx.dealType === '월세' ? 'bg-[#fef0e6] dark:bg-orange-950/45 text-[#c2410c] dark:text-orange-400' : 
+            tx.dealType === '월세' ? 'bg-blue-50 dark:bg-blue-950/45 text-blue-700 dark:text-blue-400' : 
             'bg-toss-blue-light text-[#057e77] dark:text-emerald-400'
           }`}>
             {tx.dealType.charAt(0)}

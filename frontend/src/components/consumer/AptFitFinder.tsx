@@ -706,10 +706,10 @@ const AptFitFinder = React.memo(function AptFitFinder({
         aria-modal="true"
         aria-labelledby="fit-title"
         aria-describedby="fit-desc"
-        className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[94vh] sm:max-h-[92vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
+        className="w-full sm:w-[660px] md:w-[740px] lg:w-[800px] bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col min-h-[420px] sm:min-h-[460px] max-h-[94vh] sm:max-h-[92vh] relative animate-in slide-in-from-bottom-6 sm:zoom-in-95 duration-300"
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-5 py-3.5 sm:px-6 sm:py-4 border-b border-neutral-100 dark:border-zinc-900 shrink-0">
+        <div className="flex justify-between items-center px-5 py-3.5 sm:px-6 sm:py-4 border-b border-slate-100 dark:border-slate-900 shrink-0">
           <div className="flex items-center gap-2">
             <Compass className="w-5 h-5 text-[#057e77] dark:text-emerald-400 animate-pulse" />
             <span id="fit-title" className="font-extrabold text-[15px] sm:text-[16px] text-primary tracking-tight">나만의 동탄 찰떡 아파트 찾기</span>
@@ -718,7 +718,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
           <button 
             ref={closeButtonRef}
             onClick={onClose} 
-            className="p-1.5 hover:bg-neutral-100 dark:hover:bg-zinc-900 rounded-full transition-colors active:scale-95 cursor-pointer"
+            className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-full transition-colors active:scale-95 cursor-pointer"
             aria-label="닫기"
           >
             <X className="w-5 h-5 text-tertiary" />
@@ -731,7 +731,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
           {/* STEP 0: Intro Screen */}
           {step === 0 && (
             <div className="flex flex-col items-center text-center gap-6 py-4">
-              <div className="w-16 h-16 bg-gradient-to-tr from-[#057e77]/20 to-teal-500/20 dark:from-emerald-500/20 dark:to-teal-500/10 text-[#057e77] dark:text-emerald-400 rounded-2xl flex items-center justify-center shadow-inner scale-110">
+              <div className="w-16 h-16 bg-gradient-to-tr from-[#057e77]/20 to-emerald-500/20 dark:from-emerald-500/20 dark:to-emerald-500/10 text-[#057e77] dark:text-emerald-400 rounded-2xl flex items-center justify-center shadow-inner scale-110">
                 <Building2 size={32} />
               </div>
               <div className="flex flex-col gap-2">
@@ -775,7 +775,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                   <button
                     key={opt.value}
                     onClick={() => handleSelectOption('budget', opt.value)}
-                    className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex flex-col gap-0.5 sm:gap-1 cursor-pointer"
+                    className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex flex-col gap-0.5 sm:gap-1 cursor-pointer"
                   >
                     <span className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors">{opt.label}</span>
                     <span className="text-[10.5px] sm:text-[11.5px] text-tertiary font-medium">{opt.desc}</span>
@@ -807,9 +807,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('family', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
@@ -848,9 +848,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('transit', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
@@ -888,9 +888,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('lifestyle', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
@@ -928,9 +928,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('scaleBrand', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
@@ -968,9 +968,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('yearBuilt', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
@@ -1008,9 +1008,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                     <button
                       key={opt.value}
                       onClick={() => handleSelectOption('investmentStyle', opt.value)}
-                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-neutral-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-zinc-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
+                      className="w-full text-left py-2.5 px-3.5 sm:p-4 bg-slate-50 hover:bg-[#057e77]/5 border border-transparent hover:border-[#057e77]/20 dark:bg-slate-900/50 dark:hover:bg-emerald-500/10 dark:hover:border-emerald-500/30 rounded-2xl transition-all group flex items-center gap-3.5 cursor-pointer"
                     >
-                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-neutral-100 dark:border-zinc-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
+                      <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700/60 flex items-center justify-center text-secondary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 group-hover:scale-105 transition-all shrink-0">
                         <Icon size={16} />
                       </div>
                       <div className="flex flex-col gap-0.5">
@@ -1058,9 +1058,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                   return (
                     <div
                       key={item.apt.name}
-                      className={`group border border-neutral-100 dark:border-zinc-900 rounded-2xl bg-neutral-50/50 dark:bg-zinc-900/30 overflow-hidden transition-all duration-300 ${
+                      className={`group border border-slate-100 dark:border-slate-900 rounded-2xl bg-slate-50/50 dark:bg-slate-900/30 overflow-hidden transition-all duration-300 ${
                         isExpanded 
-                          ? 'ring-1 ring-[#057e77]/50 shadow-md bg-white dark:bg-zinc-950/80' 
+                          ? 'ring-1 ring-[#057e77]/50 shadow-md bg-white dark:bg-slate-950/80' 
                           : 'hover:border-[#057e77]/30 dark:hover:border-emerald-400/40'
                       }`}
                     >
@@ -1082,7 +1082,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                           <div className={`w-8 h-8 rounded-full font-black text-[14px] flex items-center justify-center shrink-0 shadow-sm border ${
                             index === 0 
                               ? 'bg-[#057e77] dark:bg-emerald-600 text-white border-transparent' 
-                              : 'bg-white text-secondary dark:bg-zinc-800 border-neutral-100 dark:border-zinc-700'
+                              : 'bg-white text-secondary dark:bg-slate-800 border-slate-100 dark:border-slate-700'
                           }`}>
                             {index + 1}
                           </div>
@@ -1100,7 +1100,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                               <span>평균가: {priceFormatter(item.salesPrice)}</span>
                               {item.jeonseRatio > 0 && (
                                 <>
-                                  <span className="text-neutral-300 dark:text-zinc-700">|</span>
+                                  <span className="text-slate-300 dark:text-slate-700">|</span>
                                   <span>전세율: {item.jeonseRatio.toFixed(0)}%</span>
                                 </>
                               )}
@@ -1108,17 +1108,17 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Matching Tags */}
                             <div className="flex gap-1.5 mt-0.5">
                               {item.tags.map((tag: string) => (
-                                <span key={tag} className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-neutral-100 dark:bg-zinc-800/80 text-secondary dark:text-zinc-300 rounded-[4px] tracking-wide">
+                                <span key={tag} className="text-[9.5px] font-extrabold px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800/80 text-secondary dark:text-slate-300 rounded-[4px] tracking-wide">
                                   #{tag}
                                 </span>
                               ))}
                             </div>
 
                             {/* Mini scoring breakdown (Visible at all times for easy comparison) */}
-                            <div className="grid grid-cols-4 gap-x-2.5 gap-y-1 mt-2.5 border-t border-neutral-100/60 dark:border-zinc-900/50 pt-2.5 w-[240px] sm:w-[320px] md:w-[360px] shrink-0">
+                            <div className="grid grid-cols-4 gap-x-2.5 gap-y-1 mt-2.5 border-t border-slate-100/60 dark:border-slate-900/50 pt-2.5 w-[240px] sm:w-[320px] md:w-[360px] shrink-0">
                               {[
-                                { label: '자금', score: item.scores.budget, color: 'bg-amber-400' },
-                                { label: '교통', score: item.scores.transit, color: 'bg-teal-500' },
+                                { label: '자금', score: item.scores.budget, color: 'bg-blue-500' },
+                                { label: '교통', score: item.scores.transit, color: 'bg-emerald-500' },
                                 { label: '교육', score: item.scores.education, color: 'bg-emerald-400' },
                                 { label: '생활', score: item.scores.lifestyle, color: 'bg-[#c084fc]' }
                               ].map(scoreItem => (
@@ -1127,7 +1127,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                                     <span>{scoreItem.label}</span>
                                     <span className="font-extrabold text-primary">{scoreItem.score}%</span>
                                   </div>
-                                  <div className="w-full h-1 bg-neutral-100 dark:bg-zinc-800/80 rounded-full overflow-hidden">
+                                  <div className="w-full h-1 bg-slate-100 dark:bg-slate-800/80 rounded-full overflow-hidden">
                                     <div 
                                       className={`h-full ${scoreItem.color} rounded-full`}
                                       style={{ width: `${scoreItem.score}%` }}
@@ -1155,7 +1155,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                       {/* Accordion Detail Breakdown Panel */}
                       <div 
                         className={`transition-all duration-300 ease-in-out overflow-hidden ${
-                          isExpanded ? 'max-h-[300px] border-t border-neutral-100 dark:border-zinc-900 bg-neutral-50/30 dark:bg-zinc-950/20' : 'max-h-0'
+                          isExpanded ? 'max-h-[300px] border-t border-slate-100 dark:border-slate-900 bg-slate-50/30 dark:bg-slate-950/20' : 'max-h-0'
                         }`}
                       >
                         <div className="p-4 flex flex-col gap-3.5">
@@ -1166,12 +1166,12 @@ const AptFitFinder = React.memo(function AptFitFinder({
                             {/* Budget Fit */}
                             <div className="flex flex-col gap-1">
                               <div className="flex justify-between items-center text-[10.5px] font-bold text-secondary">
-                                <span className="flex items-center gap-1"><Coins size={12} className="text-amber-500" /> 자금 적합성</span>
+                                <span className="flex items-center gap-1"><Coins size={12} className="text-blue-600" /> 자금 적합성</span>
                                 <span className="font-extrabold text-primary">{item.scores.budget}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500" 
+                                  className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.budget}%` }}
                                 />
                               </div>
@@ -1183,9 +1183,9 @@ const AptFitFinder = React.memo(function AptFitFinder({
                                 <span className="flex items-center gap-1"><Train size={12} className="text-[#057e77] dark:text-emerald-400" /> 교통 편의성</span>
                                 <span className="font-extrabold text-primary">{item.scores.transit}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div 
-                                  className="h-full bg-gradient-to-r from-[#057e77] to-teal-400 rounded-full transition-all duration-500" 
+                                  className="h-full bg-gradient-to-r from-[#057e77] to-emerald-400 rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.transit}%` }}
                                 />
                               </div>
@@ -1197,7 +1197,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                                 <span className="flex items-center gap-1"><GraduationCap size={12} className="text-emerald-500" /> 교육/보육</span>
                                 <span className="font-extrabold text-primary">{item.scores.education}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div 
                                   className="h-full bg-gradient-to-r from-emerald-500 to-[#057e77] rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.education}%` }}
@@ -1211,7 +1211,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
                                 <span className="flex items-center gap-1"><Sparkles size={12} className="text-[#a855f7]" /> 라이프스타일</span>
                                 <span className="font-extrabold text-primary">{item.scores.lifestyle}%</span>
                               </div>
-                              <div className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-full overflow-hidden">
+                              <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                                 <div 
                                   className="h-full bg-gradient-to-r from-[#c084fc] to-[#a855f7] rounded-full transition-all duration-500" 
                                   style={{ width: `${item.scores.lifestyle}%` }}
@@ -1242,7 +1242,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
               <div className="flex gap-2 mt-3 shrink-0">
                 <button
                   onClick={handleReset}
-                  className="flex-1 py-3 bg-neutral-100 hover:bg-neutral-200 dark:bg-zinc-900 dark:hover:bg-zinc-800 text-secondary dark:text-zinc-300 text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 border border-transparent"
+                  className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-secondary dark:text-slate-300 text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1 active:scale-95 border border-transparent"
                 >
                   <RefreshCw size={14} />
                   <span>다시 검사</span>
@@ -1258,7 +1258,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
 
                 <button
                   onClick={handleShare}
-                  className="flex-1 py-3 bg-neutral-50 hover:bg-neutral-100 dark:bg-zinc-900/50 dark:hover:bg-zinc-850 text-secondary dark:text-zinc-300 text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer border border-neutral-200/50 dark:border-zinc-800 flex items-center justify-center gap-1 active:scale-95"
+                  className="flex-1 py-3 bg-slate-50 hover:bg-slate-100 dark:bg-slate-900/50 dark:hover:bg-slate-850 text-secondary dark:text-slate-300 text-[12.5px] font-extrabold rounded-xl transition-all cursor-pointer border border-slate-200/50 dark:border-slate-800 flex items-center justify-center gap-1 active:scale-95"
                 >
                   {isCopied ? (
                     <>

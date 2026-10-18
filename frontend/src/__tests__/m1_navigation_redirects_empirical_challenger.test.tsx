@@ -154,11 +154,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       let tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       let tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab1).toHaveClass('text-hs-orange');
-      expect(tab1).toHaveClass('bg-hs-orange-light');
-      expect(tab2).not.toHaveClass('bg-hs-orange-light');
-      expect(tab3).not.toHaveClass('bg-hs-orange-light');
-      expect(tab4).not.toHaveClass('bg-hs-orange-light');
+      expect(tab1).toHaveClass('text-emerald-700');
+      expect(tab1).toHaveClass('bg-emerald-50');
+      expect(tab2).not.toHaveClass('bg-emerald-50');
+      expect(tab3).not.toHaveClass('bg-emerald-50');
+      expect(tab4).not.toHaveClass('bg-emerald-50');
 
       // Switch to 'imjang'
       rerender(<LoungeHeader activeTab="imjang" />);
@@ -167,11 +167,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab2).toHaveClass('text-hs-orange');
-      expect(tab2).toHaveClass('bg-hs-orange-light');
-      expect(tab1).not.toHaveClass('bg-hs-orange-light');
-      expect(tab3).not.toHaveClass('bg-hs-orange-light');
-      expect(tab4).not.toHaveClass('bg-hs-orange-light');
+      expect(tab2).toHaveClass('text-emerald-700');
+      expect(tab2).toHaveClass('bg-emerald-50');
+      expect(tab1).not.toHaveClass('bg-emerald-50');
+      expect(tab3).not.toHaveClass('bg-emerald-50');
+      expect(tab4).not.toHaveClass('bg-emerald-50');
 
       // Switch to 'mbti'
       rerender(<LoungeHeader activeTab="mbti" />);
@@ -180,11 +180,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab3).toHaveClass('text-hs-orange');
-      expect(tab3).toHaveClass('bg-hs-orange-light');
-      expect(tab1).not.toHaveClass('bg-hs-orange-light');
-      expect(tab2).not.toHaveClass('bg-hs-orange-light');
-      expect(tab4).not.toHaveClass('bg-hs-orange-light');
+      expect(tab3).toHaveClass('text-emerald-700');
+      expect(tab3).toHaveClass('bg-emerald-50');
+      expect(tab1).not.toHaveClass('bg-emerald-50');
+      expect(tab2).not.toHaveClass('bg-emerald-50');
+      expect(tab4).not.toHaveClass('bg-emerald-50');
 
       // Switch to 'guide'
       rerender(<LoungeHeader activeTab="guide" />);
@@ -193,11 +193,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab4).toHaveClass('text-hs-orange');
-      expect(tab4).toHaveClass('bg-hs-orange-light');
-      expect(tab1).not.toHaveClass('bg-hs-orange-light');
-      expect(tab2).not.toHaveClass('bg-hs-orange-light');
-      expect(tab3).not.toHaveClass('bg-hs-orange-light');
+      expect(tab4).toHaveClass('text-emerald-700');
+      expect(tab4).toHaveClass('bg-emerald-50');
+      expect(tab1).not.toHaveClass('bg-emerald-50');
+      expect(tab2).not.toHaveClass('bg-emerald-50');
+      expect(tab3).not.toHaveClass('bg-emerald-50');
     });
 
     it('handles popstate browser navigation events for /mbti and legacy paths', () => {
@@ -356,11 +356,9 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(redirects.length).toBeGreaterThanOrEqual(4);
     });
 
-    it('has a 307 temporary redirect rule for /technovalley -> /', () => {
+    it('does not redirect /technovalley in next.config.ts (restored as Phase 3 SSR B2B Hub)', () => {
       const technovalleyRule = redirects.find((r: any) => r.source === '/technovalley');
-      expect(technovalleyRule).toBeDefined();
-      expect(technovalleyRule.destination).toBe('/');
-      expect(technovalleyRule.permanent).toBe(false); // 307 temporary redirect
+      expect(technovalleyRule).toBeUndefined();
     });
 
     it('has a 307 temporary redirect rule for /techno -> /', () => {
@@ -393,18 +391,16 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
   });
 
   // =========================================================================
-  // Dimension 4: Route-Level & Page-Level Fallback Redirection
+  // Dimension 4: Route-Level & Page-Level SSR B2B Hub (Phase 3)
   // =========================================================================
-  describe('Dimension 4: Page-Level Server Redirection for /technovalley', () => {
-    it('executes redirect("/") when TechnoValleyPage is called', async () => {
+  describe('Dimension 4: Page-Level SSR Rendering for /technovalley', () => {
+    it('renders TechnoValleyPage SSR B2B catalog without executing redirect("/")', async () => {
       const { default: TechnoValleyPage } = await import('@/app/technovalley/page');
       const { redirect } = await import('next/navigation');
 
-      expect(() => {
-        TechnoValleyPage();
-      }).toThrow('NEXT_REDIRECT: /');
-
-      expect(redirect).toHaveBeenCalledWith('/');
+      const jsx = await TechnoValleyPage();
+      expect(jsx).toBeDefined();
+      expect(redirect).not.toHaveBeenCalled();
     });
   });
 });

@@ -63,7 +63,7 @@ export function MBTIShareButtons({ profile, className = '' }: MBTIShareButtonsPr
   const handleTwitter = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'https://dongtanview.com';
     const shareUrl = `${origin}/mbti/${profile.type}?utm_source=twitter&utm_medium=viral&utm_campaign=mbti_quiz`;
-    const text = `🏢 나의 동탄 주거 MBTI는 [${profile.type}] ${profile.alias}!\n나의 영혼의 맞춤 아파트: ${profile.aptName} (${profile.dong})\n\n👉 지금 D-VIEW에서 테스트해보세요:`;
+    const text = `[D-VIEW] 나의 동탄 주거 MBTI는 [${profile.type}] ${profile.alias}!\n나의 영혼의 맞춤 아파트: ${profile.aptName} (${profile.dong})\n\n지금 D-VIEW에서 테스트해보세요:`;
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(shareUrl)}`;
     window.open(twitterUrl, '_blank', 'noopener,noreferrer');
   };

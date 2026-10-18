@@ -324,7 +324,7 @@ describe('Milestone 2 Challenger 1 Comprehensive Empirical Verification Suite', 
         mockPWAContext.isAndroid = false;
 
         render(<CustomA2HSModal />);
-        expect(screen.getByText('🍎 Safari 브라우저에서 홈화면 추가하기')).toBeInTheDocument();
+        expect(screen.getByText('Safari 브라우저에서 홈화면 추가하기')).toBeInTheDocument();
         expect(screen.getByText(/Safari 브라우저 하단 도구 막대/i)).toBeInTheDocument();
       });
     });

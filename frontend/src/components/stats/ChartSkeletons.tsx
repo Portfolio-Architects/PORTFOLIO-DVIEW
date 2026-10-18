@@ -42,12 +42,12 @@ export function TimeTrendChartSkeleton({
         style={{ height }}
       >
         <div className="flex items-end gap-3 h-36 mb-4 opacity-40">
-          <div className="w-6 h-16 bg-teal-600/30 rounded-t" />
-          <div className="w-6 h-24 bg-teal-600/30 rounded-t" />
-          <div className="w-6 h-20 bg-teal-600/30 rounded-t" />
-          <div className="w-6 h-28 bg-teal-600/30 rounded-t" />
-          <div className="w-6 h-36 bg-teal-600/30 rounded-t" />
-          <div className="w-6 h-32 bg-teal-600/30 rounded-t" />
+          <div className="w-6 h-16 bg-emerald-600/30 rounded-t" />
+          <div className="w-6 h-24 bg-emerald-600/30 rounded-t" />
+          <div className="w-6 h-20 bg-emerald-600/30 rounded-t" />
+          <div className="w-6 h-28 bg-emerald-600/30 rounded-t" />
+          <div className="w-6 h-36 bg-emerald-600/30 rounded-t" />
+          <div className="w-6 h-32 bg-emerald-600/30 rounded-t" />
         </div>
         <span className="text-xs text-tertiary font-bold tracking-tight">
           시계열 실거래 추이 분석 차트 로드 중...
@@ -73,7 +73,7 @@ export function PyeongRankingChartSkeleton({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
           <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
-            <Trophy size={18} className="text-amber-500" />
+            <Trophy size={18} className="text-slate-400" />
             <span>단지별 평당가 TOP 20</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -86,11 +86,11 @@ export function PyeongRankingChartSkeleton({
       {/* Chart Canvas Placeholder */}
       <div className="w-full h-[280px] sm:h-[320px] bg-black/5 dark:bg-white/5 rounded-xl animate-pulse flex flex-col items-center justify-center p-6 gap-3">
         <div className="w-full space-y-2.5 opacity-40">
-          <div className="w-11/12 h-4 bg-teal-600/25 rounded" />
-          <div className="w-10/12 h-4 bg-teal-600/25 rounded" />
-          <div className="w-9/12 h-4 bg-teal-600/25 rounded" />
-          <div className="w-8/12 h-4 bg-teal-600/25 rounded" />
-          <div className="w-7/12 h-4 bg-teal-600/25 rounded" />
+          <div className="w-11/12 h-4 bg-emerald-600/25 rounded" />
+          <div className="w-10/12 h-4 bg-emerald-600/25 rounded" />
+          <div className="w-9/12 h-4 bg-emerald-600/25 rounded" />
+          <div className="w-8/12 h-4 bg-emerald-600/25 rounded" />
+          <div className="w-7/12 h-4 bg-emerald-600/25 rounded" />
         </div>
         <span className="text-xs text-tertiary font-bold tracking-tight">
           평당가 순위 랭킹 데이터 준비 중...
@@ -116,7 +116,7 @@ export function VolumeDistributionChartSkeleton({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
-            <PieChartIcon size={18} className="text-teal-600" />
+            <PieChartIcon size={18} className="text-emerald-600" />
             <span>평형대별 거래량 비중</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -127,7 +127,7 @@ export function VolumeDistributionChartSkeleton({
 
       {/* Donut Circle Placeholder */}
       <div className="w-full h-[220px] sm:h-[240px] flex items-center justify-center">
-        <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full border-8 border-dashed border-teal-600/30 animate-pulse flex items-center justify-center">
+        <div className="relative w-36 h-36 sm:w-40 sm:h-40 rounded-full border-8 border-dashed border-emerald-600/30 animate-pulse flex items-center justify-center">
           <div className="w-16 h-16 rounded-full bg-surface" />
         </div>
       </div>

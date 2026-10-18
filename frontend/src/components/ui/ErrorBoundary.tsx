@@ -86,9 +86,9 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className="w-full p-5 my-4 bg-rose-50/40 dark:bg-rose-950/10 border border-rose-500/20 rounded-2xl flex flex-col gap-3.5 select-none animate-in fade-in zoom-in-95 duration-200">
+        <div className="w-full p-5 my-4 bg-red-50/40 dark:bg-red-950/10 border border-red-500/20 rounded-2xl flex flex-col gap-3.5 select-none animate-in fade-in zoom-in-95 duration-200">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center shrink-0">
               <AlertTriangle size={18} />
             </div>
             <div className="flex-1 min-w-0">
@@ -104,7 +104,7 @@ export class ErrorBoundary extends Component<Props, State> {
           <div className="flex gap-2">
             <button
               onClick={this.handleReset}
-              className="flex-1 py-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-[11.5px] font-extrabold rounded-xl border-none transition-all flex items-center justify-center gap-1 cursor-pointer"
+              className="flex-1 py-2.5 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[11.5px] font-extrabold rounded-xl border-none transition-all flex items-center justify-center gap-1 cursor-pointer"
             >
               <RefreshCw size={12} />
               <span>다시 시도</span>
@@ -120,7 +120,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
 
           {this.state.showDetails && (
-            <div className="p-3 bg-zinc-950 text-rose-400 dark:text-rose-300 font-mono text-[9.5px] rounded-xl overflow-x-auto max-h-[120px] whitespace-pre select-text leading-normal border border-neutral-800">
+            <div className="p-3 bg-slate-950 text-red-400 dark:text-red-300 font-mono text-[9.5px] rounded-xl overflow-x-auto max-h-[120px] whitespace-pre select-text leading-normal border border-slate-800">
               {this.state.error.name}: {this.state.error.message}
               {"\n"}
               {this.state.error.stack}

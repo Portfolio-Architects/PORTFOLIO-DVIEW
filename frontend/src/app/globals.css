@@ -29,11 +29,7 @@
   --color-toss-green: var(--toss-green);
   --color-toss-gray: var(--toss-gray);
   --color-hs-blue: var(--hs-blue);
-  --color-hs-orange: var(--hs-orange);
   --color-hs-blue-light: var(--hs-blue-light);
-  --color-hs-orange-light: var(--hs-orange-light);
-  --color-brand-orange: var(--brand-orange);
-  --color-brand-orange-light: var(--brand-orange-light);
   --color-brand-blue: var(--brand-blue);
   --color-brand-blue-light: var(--brand-blue-light);
   --color-brand-green: var(--brand-green);
@@ -65,8 +61,6 @@
     --brand-primary-light: #e6f5f4;
     --brand-primary-hover: #046862;
 
-    --brand-orange: var(--brand-primary);
-    --brand-orange-light: var(--brand-primary-light);
     --brand-blue: #0f4c5c;
     --brand-blue-light: #e6eff2;
     --brand-red: #f04452;
@@ -83,9 +77,7 @@
     
     /* D-VIEW Theme Tokens */
     --hs-blue: var(--brand-blue);
-    --hs-orange: var(--brand-primary);
     --hs-blue-light: var(--brand-blue-light);
-    --hs-orange-light: var(--brand-primary-light);
 
     /* Glassmorphism Custom Variables */
     --glass-bg: rgba(255, 255, 255, 0.95);
@@ -143,8 +135,6 @@
     --brand-primary-light: #042f2e;
     --brand-primary-hover: #2dd4bf;
 
-    --brand-orange: var(--brand-primary);
-    --brand-orange-light: var(--brand-primary-light);
     --brand-blue: #38bdf8;
     --brand-blue-light: #082f49;
     --brand-red: #ef4444;
@@ -161,9 +151,7 @@
     
     /* D-VIEW Theme Tokens */
     --hs-blue: var(--brand-blue);
-    --hs-orange: var(--brand-primary);
     --hs-blue-light: var(--brand-blue-light);
-    --hs-orange-light: var(--brand-primary-light);
 
     /* Glassmorphism Custom Variables for Dark Mode */
     --glass-bg: rgba(30, 30, 30, 0.85);
@@ -243,13 +231,13 @@
     transition: background var(--transition-speed);
   }
   .btn-primary:active {
-    background: #ff8f00;
+    background: var(--brand-primary-hover);
   }
 
-  .tag-traffic { background: #fff3e0; color: var(--toss-blue); }
-  .tag-realestate { background: #fce4e4; color: var(--toss-red); }
-  .tag-edu { background: #e8f5e9; color: var(--toss-green); }
-  .tag-culture { background: #fff3e0; color: #ff9800; }
+  .tag-traffic { background: #eff6ff; color: var(--brand-blue); }
+  .tag-realestate { background: #fef2f2; color: var(--brand-red); }
+  .tag-edu { background: #ecfdf5; color: var(--brand-primary); }
+  .tag-culture { background: #f1f5f9; color: var(--text-secondary); }
 
   @keyframes tooltip-spring {
     0% {

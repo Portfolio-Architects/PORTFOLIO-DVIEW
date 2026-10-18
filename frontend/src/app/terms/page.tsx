@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { AlertTriangle } from 'lucide-react';
 
 export const metadata = {
   title: '이용약관 | D-VIEW',
@@ -73,8 +74,11 @@ export default function TermsPage() {
           </ol>
 
           <h2 className="text-xl font-bold text-primary mt-8 mb-4">제4조 (투자에 대한 면책 및 책임 제한)</h2>
-          <div className="bg-amber-500/[0.03] dark:bg-amber-950/10 p-4 rounded-xl border border-amber-500/20 my-4 text-secondary">
-            <h3 className="text-base font-bold text-amber-700 dark:text-amber-400 mb-2">⚠️ 투자 판단에 대한 면책 고지</h3>
+          <div className="bg-slate-100/60 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-300/60 my-4 text-secondary">
+            <h3 className="text-base font-bold text-slate-700 dark:text-slate-400 mb-2 flex items-center gap-1.5">
+              <AlertTriangle size={18} className="shrink-0" />
+              <span>투자 판단에 대한 면책 고지</span>
+            </h3>
             <p className="text-sm leading-relaxed">
               D-VIEW에서 제공하는 실거래 데이터, 입지 등급, 공실 지수, AI 밸류에이션 및 예상 세제 혜택 시뮬레이션 등은 공공데이터 및 독자적 알고리즘에 기초한 통계적 참고용 자료입니다. 
               <strong>회사는 정보의 실시간 무결성, 정확성 및 보증 책임을 지지 않으며, 본 서비스를 매개로 이루어지는 어떠한 매매/임대 계약이나 투자 결정에 대해서도 어떠한 법적 책임을 지지 않습니다. 최종 거래 책임은 이용자 본인에게 있습니다.</strong>

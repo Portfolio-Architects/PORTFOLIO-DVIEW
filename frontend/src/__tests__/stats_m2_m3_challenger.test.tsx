@@ -324,7 +324,7 @@ describe('Milestone 2 & 3 Adversarial Challenge Suite', () => {
       // Charts should display friendly empty fallback
       expect(screen.getByText('해당 조건의 월별 실거래 추이 데이터가 없습니다.')).toBeInTheDocument();
       expect(screen.getByText('해당 필터 조건에 매칭되는 아파트 단지 거래가 없습니다.')).toBeInTheDocument();
-      expect(screen.getByText('해당 조건에 매칭되는 거래 내역이 없습니다.')).toBeInTheDocument();
+      expect(screen.queryByTestId('stats-volume-distribution-chart')).not.toBeInTheDocument();
     });
   });
 

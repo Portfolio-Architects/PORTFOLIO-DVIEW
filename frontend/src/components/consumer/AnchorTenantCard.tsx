@@ -150,7 +150,7 @@ const AnchorTenantCard = memo(function AnchorTenantCard(props: AnchorTenantCardP
                     href={`https://www.google.com/maps/search/?api=1&query=${anchor.metaCoordinates}`} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="text-secondary bg-surface border border-border shadow-sm hover:bg-body hover:border-gray-300 hover:text-primary p-1.5 rounded-lg transition-all flex items-center justify-center gap-1 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1"
+                    className="text-secondary bg-surface border border-border shadow-sm hover:bg-body hover:border-slate-300 hover:text-primary p-1.5 rounded-lg transition-all flex items-center justify-center gap-1 shrink-0 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1"
                     title={`${anchor.metaName} 지도에서 보기`}
                   >
                     <MapPin size={12} strokeWidth={2.5} className="shrink-0" />

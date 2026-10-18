@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Sparkles, Calendar, Eye, Share, ExternalLink } from 'lucide-react';
+import { Sparkles, Calendar, Eye, Share, ExternalLink, MapPin } from 'lucide-react';
 import { AptTxSummary } from '@/lib/types/transaction';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import useSWR from 'swr';
@@ -56,20 +56,20 @@ function calculateDDay(dateStr: string): { text: string; bg: string; textClass: 
     if (diffDays < 0) {
       return { 
         text: '종료됨', 
-        bg: 'bg-neutral-100 dark:bg-neutral-800 text-neutral-400 border border-neutral-200/50 dark:border-neutral-700/50', 
-        textClass: 'text-neutral-400' 
+        bg: 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200/50 dark:border-slate-700/50', 
+        textClass: 'text-slate-400' 
       };
     } else if (diffDays === 0) {
       return { 
         text: 'D-Day', 
-        bg: 'bg-rose-500 text-white border border-rose-600 animate-pulse', 
-        textClass: 'text-rose-500 font-extrabold' 
+        bg: 'bg-red-500 text-white border border-red-600 animate-pulse', 
+        textClass: 'text-red-500 font-extrabold' 
       };
     } else {
       return { 
         text: `D-${diffDays}`, 
-        bg: 'bg-amber-500 text-white border border-amber-600 font-extrabold', 
-        textClass: 'text-amber-500 font-black' 
+        bg: 'bg-blue-600 text-white border border-blue-700 font-extrabold', 
+        textClass: 'text-blue-600 font-black' 
       };
     }
   } catch {
@@ -168,11 +168,11 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
       title: '동탄호수공원 루나 분수쇼',
       subtitle: '2026 루나쇼 일정',
       desc: '화려한 분수와 멀티미디어 레이저 융합쇼! 매월 격주 토요일 저녁 진행됩니다. 명당 단지는 집안에서도 감상이 가능하여 호재로 작용합니다.',
-      eventColor: 'text-indigo-600',
-      badgeColor: 'text-indigo-700',
-      bgColor: 'from-indigo-50/50 to-purple-50/30 dark:from-indigo-950/20 dark:to-purple-950/10 border-indigo-100/50 dark:border-indigo-900/30',
-      infoBorderColor: 'border-indigo-100',
-      infoColor: 'text-indigo-600',
+      eventColor: 'text-blue-600',
+      badgeColor: 'text-blue-700',
+      bgColor: 'from-blue-50/50 to-slate-50/30 dark:from-blue-950/20 dark:to-slate-950/10 border-blue-100/50 dark:border-blue-900/30',
+      infoBorderColor: 'border-blue-100',
+      infoColor: 'text-blue-600',
       infoList: [
         { 
           label: '가까운 일정', 
@@ -214,11 +214,11 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
       title: 'GTX-A 동탄~수서 개통 & 삼성 연장',
       subtitle: '교통망 호재 일정',
       desc: '수서까지 20분 내 도달하여 강남 생활권을 실현하는 핵심 교통 호재! GTX-A의 단계별 개통 및 연계 버스망으로 가치가 동반 상승합니다.',
-      eventColor: 'text-indigo-600',
-      badgeColor: 'text-indigo-700',
-      bgColor: 'from-indigo-50/50 to-cyan-50/30 dark:from-indigo-950/20 dark:to-cyan-950/10 border-indigo-100/50 dark:border-indigo-900/30',
-      infoBorderColor: 'border-indigo-100',
-      infoColor: 'text-indigo-600',
+      eventColor: 'text-blue-600',
+      badgeColor: 'text-blue-700',
+      bgColor: 'from-blue-50/50 to-blue-50/30 dark:from-blue-950/20 dark:to-blue-950/10 border-blue-100/50 dark:border-blue-900/30',
+      infoBorderColor: 'border-blue-100',
+      infoColor: 'text-blue-600',
       infoList: [
         { label: '동탄~수서', value: '2024년 3월 개통 완료', highlight: true },
         { label: '삼성역 연장', value: '2028년 완전 개통 예정', highlight: true },
@@ -248,11 +248,11 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
       title: '동탄 무료 어린이 물놀이장 & 공원 개장',
       subtitle: '2026 여름 시즌 개장 소식',
       desc: '여름철 무료로 개방되는 여울공원, 신리천공원, 동탄호수공원 어린이 물놀이장! 주말 가족 나들이 및 아이들 물놀이에 최고입니다. 주차가 편리하고 인접한 수혜 단지들이 주목받습니다.',
-      eventColor: 'text-teal-600',
-      badgeColor: 'text-teal-700',
-      bgColor: 'from-teal-50/50 to-emerald-50/30 dark:from-teal-950/20 dark:to-emerald-950/10 border-teal-100/50 dark:border-teal-900/30',
-      infoBorderColor: 'border-teal-100',
-      infoColor: 'text-teal-600',
+      eventColor: 'text-emerald-600',
+      badgeColor: 'text-emerald-700',
+      bgColor: 'from-emerald-50/50 to-emerald-50/30 dark:from-emerald-950/20 dark:to-emerald-950/10 border-emerald-100/50 dark:border-emerald-900/30',
+      infoBorderColor: 'border-emerald-100',
+      infoColor: 'text-emerald-600',
       infoList: [
         { 
           label: '개장 예정일', 
@@ -369,8 +369,8 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <div className="bg-amber-100 dark:bg-amber-950/30 p-1.5 rounded-lg">
-              <Sparkles size={18} className="text-amber-500" />
+            <div className="bg-blue-100 dark:bg-blue-950/30 p-1.5 rounded-lg">
+              <Sparkles size={18} className="text-blue-600" />
             </div>
             <h3 className="text-[18px] md:text-[20px] font-black text-primary tracking-tight">동탄 하이퍼로컬 라이프 큐레이션</h3>
           </div>
@@ -380,7 +380,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
         </div>
         <button
           onClick={handleShareCuration}
-          className="flex items-center gap-1.5 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/30 dark:hover:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 text-[12.5px] font-extrabold rounded-xl transition-all self-start md:self-center border border-indigo-100 dark:border-indigo-900/30 active:scale-95 shrink-0"
+          className="flex items-center gap-1.5 px-4 py-2 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 text-[12.5px] font-extrabold rounded-xl transition-all self-start md:self-center border border-blue-100 dark:border-blue-900/30 active:scale-95 shrink-0"
         >
           <Share size={14} />
           <span>{shareStatus === 'copied' ? '복사 완료!' : shareStatus === 'shared' ? '공유 완료!' : '일정 공유하기'}</span>
@@ -460,7 +460,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                           )}
                           {latestJeonse && (
                             <span className="flex items-center gap-1">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
                               최근 전세 <strong className="text-primary">{latestJeonse}</strong>
                             </span>
                           )}
@@ -480,7 +480,7 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
         ))}
       </div>
 
-      {/* 🏡 주민자치센터 추천 교육/강좌 리스트 (104차 신설) */}
+      {/* 주민자치센터 추천 교육/강좌 리스트 (104차 신설) */}
       {activeLectures.length > 0 && (
         <div className="mt-6 pt-8 border-t border-border/60 flex flex-col gap-5">
           <div className="flex flex-col gap-1">
@@ -544,7 +544,10 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                         className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue pt-2 border-t border-border/20 flex items-center justify-between text-[11.5px] text-[#057e77] dark:text-emerald-400 font-black hover:underline cursor-pointer"
                         aria-label={`센터 인근 추천단지: ${nearestApt} 분석보기`}
                       >
-                        <span>📍 센터 인근 추천단지: {nearestApt}</span>
+                        <span className="flex items-center gap-1">
+                          <MapPin size={12} className="shrink-0 text-[#057e77] dark:text-emerald-400" />
+                          <span>센터 인근 추천단지: {nearestApt}</span>
+                        </span>
                         <span className="shrink-0 flex items-center gap-0.5">분석보기 &rarr;</span>
                       </button>
                     ) : null;

@@ -74,17 +74,17 @@ export const ApartmentModalKakaoCard = React.memo(function ApartmentModalKakaoCa
             )}
             {valuation?.status === 'undervalued' && (
               <span className="bg-emerald-500/20 text-[#057e77] text-[14px] font-black px-3.5 py-1.5 rounded-full border border-emerald-500/30">
-                저평가 메리트 🟢
+                저평가 메리트
               </span>
             )}
             {valuation?.status === 'overvalued' && (
-              <span className="bg-rose-500/20 text-rose-400 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-rose-500/30">
-                시세 고평가 🚨
+              <span className="bg-red-500/20 text-red-400 text-[14px] font-black px-3.5 py-1.5 rounded-full border border-red-500/30">
+                시세 고평가
               </span>
             )}
             {valuation?.status === 'fair' && (
               <span className="bg-slate-800 text-slate-300 text-[14px] font-black px-3.5 py-1.5 rounded-full">
-                적정 시세 ⚖️
+                적정 시세
               </span>
             )}
           </div>

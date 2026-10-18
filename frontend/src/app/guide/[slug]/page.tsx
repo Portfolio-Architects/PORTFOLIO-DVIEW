@@ -2,9 +2,10 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ArrowLeft, Calendar, Clock, BookOpen, CheckCircle2, ChevronRight, Share2 } from 'lucide-react';
-import { GUIDE_ARTICLES, GuideArticle } from '@/lib/data/guides';
+import { ArrowLeft, Calendar, Clock, CheckCircle2, ChevronRight, Compass, Building2 } from 'lucide-react';
+import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 export async function generateStaticParams() {
   return GUIDE_ARTICLES.map((article) => ({
@@ -149,7 +150,7 @@ export default async function GuideArticlePage(props: {
                 <Clock size={13} />
                 약 {article.readingTime} 소요
               </span>
-              <span className="text-toss-gray">|</span>
+              <span className="text-slate-400">|</span>
               <span className="font-semibold text-secondary">{article.author}</span>
             </div>
 
@@ -179,6 +180,21 @@ export default async function GuideArticlePage(props: {
                 </li>
               ))}
             </ul>
+          </div>
+
+          {/* Mid-Article Zero-CLS AdSlot */}
+          <div
+            data-testid="guide-article-adslot-top"
+            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+          >
+            <AdSlot
+              slotId="1000000002"
+              refreshSlotId={`1000000002_guide_${article.slug}_top`}
+              format="rectangle"
+              minHeightClass="min-h-[250px]"
+              cpaCampaignId="mortgage-refinance"
+              apartmentName={article.title}
+            />
           </div>
 
           {/* Body Content */}
@@ -262,19 +278,44 @@ export default async function GuideArticlePage(props: {
             ))}
           </div>
 
-          {/* Footer Author Box */}
+          {/* Footer Article Zero-CLS AdSlot */}
+          <div
+            data-testid="guide-article-adslot-bottom"
+            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+          >
+            <AdSlot
+              slotId="1000000002"
+              refreshSlotId={`1000000002_guide_${article.slug}_bottom`}
+              format="rectangle"
+              minHeightClass="min-h-[250px]"
+              cpaCampaignId="jeonse-sentinel"
+              apartmentName={article.title}
+            />
+          </div>
+
+          {/* Footer Author & Recirculation Box */}
           <div className="bg-body p-6 rounded-2xl border border-border/60 flex items-center justify-between flex-wrap gap-4">
             <div>
               <span className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider block">작성 주체</span>
               <strong className="text-[15px] font-black text-primary">{article.author}</strong>
               <p className="text-[12px] text-secondary mt-0.5">국토교통부 실거래가 및 행정 인프라 공공데이터 융합 퀀트 리서치</p>
             </div>
-            <Link
-              href="/"
-              className="text-[13px] font-extrabold text-emerald-600 dark:text-emerald-400 hover:underline"
-            >
-              대시보드에서 단지 검색하기 →
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/explore"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-bold transition-colors"
+              >
+                <Compass size={14} />
+                <span>단지별 실거래가 탐색</span>
+              </Link>
+              <Link
+                href="/technovalley"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[12.5px] font-bold transition-colors"
+              >
+                <Building2 size={14} />
+                <span>지식산업센터 세제 분석</span>
+              </Link>
+            </div>
           </div>
 
         </article>

@@ -292,13 +292,17 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
 
   // 5. StatsPyeongRankingChart
   describe('StatsPyeongRankingChart', () => {
-    it('renders ranking items with rank badges and pyeong prices', () => {
+    it('renders ranking items with rank badges, benchmark summary strip, 34-pyeong equivalent prices, and relative ratios', () => {
       render(<StatsPyeongRankingChart rankings={MOCK_RANKINGS} testMode={true} />);
 
       expect(screen.getByTestId('stats-pyeong-ranking-chart')).toBeInTheDocument();
+      expect(screen.getByTestId('ranking-summary-strip')).toBeInTheDocument();
+      expect(screen.getByTestId('ranking-summary-strip')).toHaveTextContent('1위 최고 평당가');
       expect(screen.getByTestId('ranking-item-1')).toHaveTextContent('1위 동탄역롯데캐슬');
       expect(screen.getByTestId('ranking-item-1')).toHaveTextContent('4,850만원/평');
+      expect(screen.getByTestId('ranking-item-1')).toHaveTextContent('1위 기준 (100%)');
       expect(screen.getByTestId('ranking-item-2')).toHaveTextContent('2위 동탄역시범우남퍼스트빌');
+      expect(screen.getByTestId('ranking-item-4')).toHaveTextContent('34평 환산');
     });
 
     it('renders ranking break ad slot after rank 3', () => {
@@ -319,6 +323,75 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       fireEvent.click(chartOnlyBtn);
 
       expect(screen.queryByTestId('ranking-list')).not.toBeInTheDocument();
+    });
+
+    it('handles empty, 1-item, and 2-item boundary rankings and non-finite pyeong prices safely', () => {
+      const { rerender } = render(<StatsPyeongRankingChart rankings={[]} testMode={true} />);
+      expect(screen.getByText('해당 필터 조건에 매칭되는 아파트 단지 거래가 없습니다.')).toBeInTheDocument();
+      expect(screen.queryByTestId('ranking-summary-strip')).not.toBeInTheDocument();
+
+      // 2-item boundary: renders podium items 1 & 2, omits RankingBreakAdBanner and remaining grid
+      rerender(<StatsPyeongRankingChart rankings={MOCK_RANKINGS.slice(0, 2)} testMode={true} />);
+      expect(screen.getByTestId('ranking-item-1')).toBeInTheDocument();
+      expect(screen.getByTestId('ranking-item-2')).toBeInTheDocument();
+      expect(screen.queryByTestId('ad-placement-ranking-break')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('ranking-item-4')).not.toBeInTheDocument();
+
+      // Non-finite avgPyeongPrice and Infinity avgPrice sanitization, plus 50+ char name & 10^7 outlier
+      const poisonedItem: ComplexStatItem = {
+        ...MOCK_COMPLEX_STAT,
+        aptName: '동탄신도시제2지구시범단지센트럴파크뷰하늘채더퍼스트그랜드센트럴아이파크자이더클래스프리미엄에디션아파트',
+        avgPyeongPrice: Number.NaN,
+        avgPrice: Number.POSITIVE_INFINITY,
+        highestPrice: Number.POSITIVE_INFINITY,
+        jeonseRatio: 0,
+      };
+      rerender(<StatsPyeongRankingChart rankings={[poisonedItem]} testMode={true} />);
+      expect(screen.getByTestId('stats-pyeong-ranking-chart').textContent).not.toContain('NaN');
+      expect(screen.getByTestId('stats-pyeong-ranking-chart').textContent).not.toContain('Infinity');
+      expect(screen.getByTestId('ranking-item-1')).not.toHaveTextContent('1위 기준 (100%)');
+      expect(screen.getByTestId('ranking-item-1')).toHaveTextContent('최고 실거래가');
+
+      const extremeOutlier: ComplexStatItem = {
+        ...MOCK_COMPLEX_STAT,
+        aptName: '동탄신도시제2지구시범단지센트럴파크뷰하늘채더퍼스트그랜드센트럴아이파크자이더클래스프리미엄에디션아파트',
+        avgPyeongPrice: 10000000,
+        isNewHigh: true,
+      };
+      rerender(<StatsPyeongRankingChart rankings={[extremeOutlier]} testMode={true} />);
+      expect(screen.getByTestId('ranking-item-1')).toHaveTextContent('10,000,000만원/평');
+    });
+
+    it('maintains coherent max/cutoff summary strip and ratio badges when rankings are sorted in ascending order (PRICE_ASC)', () => {
+      const ascendingRankings = [...MOCK_RANKINGS].reverse(); // Lowest avgPyeongPrice first (3,100 -> 4,850)
+      render(<StatsPyeongRankingChart rankings={ascendingRankings} testMode={true} />);
+
+      const summaryStrip = screen.getByTestId('ranking-summary-strip');
+      // Card 1 must still show the true highest pyeong price (4,850만원/평) and Card 3 must show the true lowest (3,100만원/평, 64%)
+      expect(summaryStrip).toHaveTextContent('4,850만원/평');
+      expect(summaryStrip).toHaveTextContent('3,100만원/평');
+      expect(summaryStrip).toHaveTextContent('1위 대비 64%');
+
+      // Rank 1 item in ascending list has 3,100만원/평, so its badge must show '1위 대비 64%' instead of '1위 기준 (100%)'
+      expect(screen.getByTestId('ranking-item-1')).toHaveTextContent('1위 대비 64%');
+      expect(screen.getByTestId('ranking-item-1')).not.toHaveTextContent('1위 기준 (100%)');
+    });
+
+    it('invokes onSelectComplex when clicking podium or remaining grid items', () => {
+      const onSelectComplex = jest.fn();
+      render(
+        <StatsPyeongRankingChart
+          rankings={MOCK_RANKINGS}
+          onSelectComplex={onSelectComplex}
+          testMode={true}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('ranking-item-1'));
+      expect(onSelectComplex).toHaveBeenCalledWith('apt-1', '동탄역롯데캐슬');
+
+      fireEvent.click(screen.getByTestId('ranking-item-4'));
+      expect(onSelectComplex).toHaveBeenCalledWith('apt-4', '메타폴리스');
     });
   });
 
@@ -396,11 +469,13 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       { aptKey: 'cg-1', aptName: '동탄역시범우남퍼스트빌', dong: '청계동', contractDate: '20260915', priceVal: 115000, area: 84.9, isNewHigh: true },
     ];
 
-    it('renders full dashboard client with initial transactions and reacts to filter clicks', () => {
+    it('renders full dashboard client with initial transactions, full-width ranking chart, and reacts to filter clicks', () => {
       render(<StatsDashboardClient initialTxs={rawTxs} testMode={true} />);
 
       expect(screen.getByTestId('stats-dashboard-container')).toBeInTheDocument();
       expect(screen.getByTestId('kpi-total-volume')).toHaveTextContent('2건');
+      expect(screen.getByTestId('stats-pyeong-ranking-chart')).toBeInTheDocument();
+      expect(screen.queryByTestId('stats-volume-distribution-chart')).not.toBeInTheDocument();
 
       // Click Dongtan 1 filter
       fireEvent.click(screen.getByTestId('filter-region-dongtan1'));

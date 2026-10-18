@@ -18,13 +18,11 @@ import { MacroHeader } from "./macro/components/MacroHeader";
 import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
-import { MacroUtilityCards } from "./macro/components/MacroUtilityCards";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
 import { AptMetricCards } from "./macro/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
-import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { StatsOverviewSection } from "@/components/stats/StatsOverviewSection";
 
@@ -47,7 +45,22 @@ const MacroTrendChart = dynamic(() => import("@/components/macro/MacroTrendChart
   return { default: () => null };
 }), {
   ssr: false,
-  loading: () => <InlineLoader text="매크로 동향 차트 분석 중" />
+  loading: () => (
+    <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-slate-50/30 dark:bg-slate-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
+      <div className="absolute w-[180px] h-[180px] rounded-full bg-[#057e77]/5 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute w-[180px] h-[180px] rounded-full bg-emerald-500/5 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
+      <div className="flex items-center gap-1.5 mb-3.5 flex-none">
+        <div className="w-1.5 h-6 bg-[#057e77]/30 rounded-full animate-bounce duration-500 delay-100" />
+        <div className="w-1.5 h-10 bg-[#057e77]/40 rounded-full animate-bounce duration-500 delay-200" />
+        <div className="w-1.5 h-14 bg-[#057e77]/60 rounded-full animate-bounce duration-500 delay-300" />
+        <div className="w-1.5 h-10 bg-emerald-500/50 rounded-full animate-bounce duration-500 delay-400" />
+        <div className="w-1.5 h-12 bg-emerald-500/60 rounded-full animate-bounce duration-500 delay-500" />
+        <div className="w-1.5 h-8 bg-emerald-500/40 rounded-full animate-bounce duration-500 delay-600" />
+      </div>
+      <span className="text-secondary text-[12.5px] font-extrabold mb-1.5 tracking-tight">관심 단지 정보를 분석하고 있습니다...</span>
+      <span className="text-[10px] text-tertiary font-bold opacity-75">내 자산 가치에 맞춘 전용 리포트를 생성하는 중입니다.</span>
+    </div>
+  )
 });
 
 const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").catch(err => {
@@ -57,11 +70,6 @@ const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").
 }), {
   ssr: false,
   loading: () => <InlineLoader text="맞춤 단지 매칭 엔진 준비 중" />
-});
-
-const TrafficNoticeBoard = dynamic(() => import("./macro/TrafficNoticeBoard").then(mod => mod.TrafficNoticeBoard), {
-  ssr: false,
-  loading: () => <div className="w-full h-[260px] min-h-[260px] bg-body/20 dark:bg-zinc-800/20 rounded-[20px] animate-pulse" />
 });
 
 const EMPTY_OBJECT = Object.freeze({});
@@ -92,16 +100,6 @@ export interface TimelineItem {
   contractDate?: string;
   date?: string;
   isNewHigh?: boolean;
-}
-
-interface LocalNoticeItem {
-  id: string;
-  title: string;
-  url: string;
-  dept: string;
-  date: string;
-  isDongtan: boolean;
-  source?: 'bbs' | 'gosi' | 'rail' | 'dong' | 'culture';
 }
 
 interface RecentTransaction {
@@ -165,6 +163,7 @@ interface MacroDashboardProps {
   };
   recentTransactions?: RecentTransaction[];
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  initialLocationScores?: Record<string, import("@/types/transaction").LocationScoreItem>;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
 
@@ -256,6 +255,7 @@ export interface TimelineItemCardProps {
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
   onDetailsHover: (aptName: string, dong: string) => void;
+  onMortgageClick?: (aptName: string) => void;
 }
 
 export const TimelineItemCard = React.memo(function TimelineItemCard({
@@ -266,6 +266,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   onCardClick,
   onDetailsClick,
   onDetailsHover,
+  onMortgageClick,
 }: TimelineItemCardProps) {
   const isRising = item.delta > 0;
   const isFalling = item.delta < 0;
@@ -294,7 +295,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           {/* Row 1: [신고가 Badge] + [동 / 평형 / 층수 / 평당가] */}
           <div className="flex items-center gap-1.5 min-w-0 w-full overflow-hidden text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap">
             {item.type === 'high' && (
-              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-rose-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
               </span>
             )}
@@ -312,7 +313,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             {pyeongPriceMan > 0 && (
               <>
                 <span className="opacity-30 font-normal shrink-0 hidden sm:inline">•</span>
-                <span className="shrink-0 text-slate-400 dark:text-zinc-500 font-medium hidden sm:inline">
+                <span className="shrink-0 text-slate-400 dark:text-slate-500 font-medium hidden sm:inline">
                   평당 {pyeongPriceMan.toLocaleString()}만
                 </span>
               </>
@@ -338,13 +339,13 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
                 <span className="text-[10px] sm:text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
                   {formatEokWithUnit(item.prevPriceVal * 10000).value}
                 </span>
-                <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">➔</span>
+                <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">{'->'}</span>
               </>
             )}
             <span
               className={`text-[12.5px] xs:text-[13px] sm:text-[14.5px] font-black tracking-tight leading-none whitespace-nowrap ${
                 isRising
-                  ? "text-rose-500 dark:text-rose-400"
+                  ? "text-red-500 dark:text-red-400"
                   : isFalling
                     ? "text-slate-500 dark:text-slate-400"
                     : "text-primary"
@@ -367,7 +368,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           <span
             className={`text-[9px] sm:text-[9.5px] font-black px-1 sm:px-1.5 py-0.5 rounded-md shrink-0 whitespace-nowrap leading-none ${
               isRising
-                ? "bg-rose-50 text-rose-600 dark:bg-rose-950/30 dark:text-rose-400"
+                ? "bg-red-50 text-red-600 dark:bg-red-950/30 dark:text-red-400"
                 : isFalling
                   ? "bg-slate-100 text-slate-600 dark:bg-slate-800/60 dark:text-slate-400"
                   : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400"
@@ -375,14 +376,14 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           >
             <span className="inline sm:hidden">
               {isRising
-                ? `▲ ${formatDeltaPrice(item.delta).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
+                ? `+ ${formatDeltaPrice(item.delta).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
                     const num = parseInt(m.replace(/,/g, ''), 10);
                     if (!num || num <= 0) return '억';
                     const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
                     return `${dec}억`;
                   })}`
                 : isFalling
-                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta)).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
+                  ? `- ${formatDeltaPrice(Math.abs(item.delta)).replace(/억\s*([0-9,]+)만?/, (_match: string, m: string) => {
                       const num = parseInt(m.replace(/,/g, ''), 10);
                       if (!num || num <= 0) return '억';
                       const dec = (num / 10000).toFixed(2).substring(1).replace(/\.?0+$/, '');
@@ -392,17 +393,31 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             </span>
             <span className="hidden sm:inline">
               {isRising
-                ? `▲ ${formatDeltaPrice(item.delta)}${formatDeltaPercent(item.deltaPercent)}`
+                ? `+ ${formatDeltaPrice(item.delta)}${formatDeltaPercent(item.deltaPercent)}`
                 : isFalling
-                  ? `▼ ${formatDeltaPrice(Math.abs(item.delta))}${formatDeltaPercent(item.deltaPercent)}`
+                  ? `- ${formatDeltaPrice(Math.abs(item.delta))}${formatDeltaPercent(item.deltaPercent)}`
                   : "보합"}
             </span>
           </span>
         </div>
       </button>
 
-      {/* Right Section Column 2: Detail Action Button */}
-      <div className="flex items-center justify-center shrink-0 pl-1 sm:pl-2 border-l border-border/20 dark:border-zinc-800/50 my-0.5">
+      {/* Right Section Column 2: Detail & Finance Action Buttons */}
+      <div className="flex items-center justify-center gap-1 shrink-0 pl-1 sm:pl-2 border-l border-border/20 dark:border-slate-800/50 my-0.5">
+        {onMortgageClick && (
+          <button
+            type="button"
+            data-testid={`card-mortgage-btn-${item.aptName}`}
+            aria-label={`${item.aptName} 주담대 한도 및 금리 계산`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMortgageClick(item.aptName);
+            }}
+            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 min-h-[28px] sm:min-h-[32px] rounded-lg bg-[#3182f6]/10 hover:bg-[#3182f6]/20 dark:bg-[#3182f6]/20 dark:hover:bg-[#3182f6]/30 border border-[#3182f6]/25 text-[9.5px] sm:text-[10px] font-extrabold text-[#3182f6] dark:text-blue-400 transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-[#3182f6]/50 whitespace-nowrap"
+          >
+            한도조회
+          </button>
+        )}
         <button
           type="button"
           aria-label={`${item.aptName} 상세 정보 보기`}
@@ -428,6 +443,7 @@ export interface TimelineItemRowProps {
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
   onDetailsHover?: (aptName: string, dong: string) => void;
+  onMortgageClick?: (aptName: string) => void;
 }
 
 export const TimelineItemRow = React.memo(function TimelineItemRow({
@@ -438,6 +454,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   onCardClick,
   onDetailsClick,
   onDetailsHover,
+  onMortgageClick,
 }: TimelineItemRowProps) {
   const isRising = item.delta > 0;
   const isFalling = item.delta < 0;
@@ -449,8 +466,8 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
     <div
       data-testid={`timeline-row-${item.aptName}`}
       onMouseEnter={() => onCardHover?.(item.aptName, item.dong)}
-      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-pointer border-b border-border/40 last:border-b-0 ${
-        isSelected ? 'bg-orange-50/20 dark:bg-orange-950/20' : ''
+      className={`px-3.5 py-3 flex items-center justify-between gap-2 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors cursor-pointer border-b border-border/40 last:border-b-0 ${
+        isSelected ? 'bg-emerald-50/40 dark:bg-emerald-950/20' : ''
       }`}
     >
       {/* Left: Apt info */}
@@ -467,7 +484,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
               {displayName}
             </span>
             {item.type === 'high' && (
-              <span className="px-1.5 py-0.2 rounded bg-rose-500 text-white text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider">
+              <span className="px-1.5 py-0.2 rounded bg-red-500 text-white text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider">
                 신고가
               </span>
             )}
@@ -480,7 +497,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
       </div>
 
       {/* Right: Price, Delta, and Details Button */}
-      <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+      <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         <div className="text-right flex flex-col items-end justify-center">
           <div className="text-[12.5px] sm:text-[13.5px] font-black text-primary leading-tight">
             {item.priceEok}
@@ -488,16 +505,31 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
           {item.delta !== undefined && item.delta !== 0 ? (
             <div
               className={`text-[9.5px] font-extrabold flex items-center gap-0.5 ${
-                isRising ? 'text-rose-500' : isFalling ? 'text-blue-500' : 'text-slate-400'
+                isRising ? 'text-red-500' : isFalling ? 'text-blue-500' : 'text-slate-400'
               }`}
             >
-              {isRising ? '▲' : '▼'} {formatDeltaPrice(Math.abs(item.delta))}
+              {isRising ? '+' : '-'} {formatDeltaPrice(Math.abs(item.delta))}
               {formatDeltaPercent(item.deltaPercent)}
             </div>
           ) : (
             <div className="text-[9.5px] font-bold text-slate-400">보합</div>
           )}
         </div>
+
+        {onMortgageClick && (
+          <button
+            type="button"
+            data-testid={`row-mortgage-btn-${item.aptName}`}
+            aria-label={`${item.aptName} 주담대 한도 및 금리 계산`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onMortgageClick(item.aptName);
+            }}
+            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 rounded-lg bg-[#3182f6]/10 hover:bg-[#3182f6]/20 dark:bg-[#3182f6]/20 dark:hover:bg-[#3182f6]/30 border border-[#3182f6]/25 text-[9.5px] sm:text-[10.5px] font-extrabold text-[#3182f6] dark:text-blue-400 transition-all cursor-pointer shrink-0 whitespace-nowrap"
+          >
+            한도조회
+          </button>
+        )}
 
         <button
           type="button"
@@ -533,6 +565,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   recent7DaysVolume: _recent7DaysVolume,
   recentTransactions = [],
   typeMap = {},
+  initialLocationScores,
   preloadApartmentTx,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
@@ -543,28 +576,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     setMounted(true);
   }, []);
 
-  // Hero section idle staggering: Donut chart and KPI cards mount on Frame 1, AreaChart on Frame 2
-  const [trendChartReady, setTrendChartReady] = useState(() => {
-    return process.env.NODE_ENV === 'test';
-  });
-
-  useEffect(() => {
-    if (!mounted) return;
-    if (trendChartReady) return;
-
-    if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
-      const idleId = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number })
-        .requestIdleCallback(() => setTrendChartReady(true), { timeout: 120 });
-      return () => {
-        if ('cancelIdleCallback' in window) {
-          (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
-        }
-      };
-    } else {
-      const timer = setTimeout(() => setTrendChartReady(true), 60);
-      return () => clearTimeout(timer);
-    }
-  }, [mounted, trendChartReady]);
+  // Hero section trend chart ready immediately to prevent 2-stage loader transition
+  const [trendChartReady] = useState(true);
 
   // Background prefetching for 4 major apartments
   useEffect(() => {
@@ -655,44 +668,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     recentTransactions
   );
 
-  const { data: noticesData } = useSWR<{ notices: LocalNoticeItem[]; lastUpdated?: string }>('/api/local-notices', fetcher, { revalidateOnFocus: false, dedupingInterval: 300000 });
-  const { locationScores } = useLocationScores();
-
-  const railNotices = useMemo(() => {
-    if (!noticesData?.notices) return [];
-    const keywords = ['철도', '교통', 'gtx', '트램', '인동선', 'srt', '지하철', '복합환승', '대중교통', '철도교통', '동탄인덕원', '노선', '열차', '정거장', '서해선', '1호선', '신수원선'];
-    return noticesData.notices.filter((n: LocalNoticeItem) => {
-      if (n.source === 'rail') return true;
-      if (n.id.includes('1131') || n.id.includes('1154')) return true;
-      const deptLower = (n.dept || '').toLowerCase();
-      if (deptLower.includes('철도') || deptLower.includes('트램') || deptLower.includes('교통') || deptLower.includes('추진단')) return true;
-      const titleLower = (n.title || '').toLowerCase();
-      return keywords.some(kw => titleLower.includes(kw));
-    });
-  }, [noticesData]);
-
-  const rawTramNotices = useMemo(() => {
-    const matched = railNotices.filter((n: LocalNoticeItem) => 
-      n.id.includes('1154') ||
-      (n.dept || '').includes('트램') || (n.dept || '').includes('추진단') ||
-      (n.title || '').includes('트램')
-    );
-    if (matched.length > 0) return matched;
-    if (!noticesData?.notices || noticesData.notices.length === 0) return [];
-    return noticesData.notices.slice(2, 4);
-  }, [railNotices, noticesData]);
-
-  const tramNotices = rawTramNotices;
-
-  const rawRailStrategyNotices = useMemo(() => {
-    const tramNoticeIds = new Set(rawTramNotices.map(t => t.id));
-    const matched = railNotices.filter((n: LocalNoticeItem) => !tramNoticeIds.has(n.id));
-    if (matched.length > 0) return matched;
-    if (!noticesData?.notices || noticesData.notices.length === 0) return [];
-    return noticesData.notices.slice(0, 2);
-  }, [railNotices, rawTramNotices, noticesData]);
-
-  const railStrategyNotices = rawRailStrategyNotices;
+  const { locationScores } = useLocationScores(initialLocationScores);
 
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
@@ -769,21 +745,50 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     setIsQuizOpen(true);
   }, []);
 
+  const scrollToHighCpcFinanceSection = useCallback(() => {
+    if (typeof document !== 'undefined') {
+      const financeEl = document.querySelector('[data-testid="high-cpc-finance-section"]');
+      if (financeEl && typeof financeEl.scrollIntoView === 'function') {
+        financeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, []);
+
   const handleOpenJeonseSafety = useCallback((aptName?: string) => {
-    onOpenJeonseSafety?.(aptName);
-  }, [onOpenJeonseSafety]);
+    if (onOpenJeonseSafety) {
+      onOpenJeonseSafety(aptName);
+    } else {
+      scrollToHighCpcFinanceSection();
+    }
+  }, [onOpenJeonseSafety, scrollToHighCpcFinanceSection]);
 
   const handleOpenMortgage = useCallback((aptName?: string) => {
-    onOpenMortgage?.(aptName);
-  }, [onOpenMortgage]);
+    if (onOpenMortgage) {
+      onOpenMortgage(aptName);
+    } else {
+      scrollToHighCpcFinanceSection();
+    }
+  }, [onOpenMortgage, scrollToHighCpcFinanceSection]);
 
   const handleOpenSellTiming = useCallback((aptName?: string) => {
-    onOpenSellTimingCalculator?.(aptName);
-  }, [onOpenSellTimingCalculator]);
+    if (onOpenSellTimingCalculator) {
+      onOpenSellTimingCalculator(aptName);
+    } else if (_onOpenTaxCalculator) {
+      _onOpenTaxCalculator(aptName);
+    } else {
+      scrollToHighCpcFinanceSection();
+    }
+  }, [onOpenSellTimingCalculator, _onOpenTaxCalculator, scrollToHighCpcFinanceSection]);
 
   const handleOpenTaxCalculator = useCallback((aptName?: string) => {
-    _onOpenTaxCalculator?.(aptName);
-  }, [_onOpenTaxCalculator]);
+    if (_onOpenTaxCalculator) {
+      _onOpenTaxCalculator(aptName);
+    } else if (onOpenSellTimingCalculator) {
+      onOpenSellTimingCalculator(aptName);
+    } else {
+      scrollToHighCpcFinanceSection();
+    }
+  }, [_onOpenTaxCalculator, onOpenSellTimingCalculator, scrollToHighCpcFinanceSection]);
 
   const handleSelectApt = useCallback((name: string, dong?: string) => {
     onSelectApt?.(name, dong);
@@ -1362,9 +1367,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
+        onMortgageClick={handleOpenMortgage}
       />
     );
-  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover, handleOpenMortgage]);
 
   const renderTimelineItemRowNode = useCallback((item: TimelineItem, isSelected: boolean) => {
     return (
@@ -1377,9 +1383,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
+        onMortgageClick={handleOpenMortgage}
       />
     );
-  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover, handleOpenMortgage]);
 
   const renderChart = useCallback(() => {
     if (!trendChartReady) {
@@ -1488,6 +1495,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           <ErrorBoundary name="실거래 타임라인">
             <MacroTimelineView
               displayedTimelineData={displayedTimelineData}
+              fullTimelineData={filteredTimelineData}
               selectedTimelineApt={selectedTimelineApt}
               selectedApt={selectedTimelineApt}
               nameMapping={nameMapping}
@@ -1526,6 +1534,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               viewMode={viewMode}
               setViewMode={setViewMode}
               onResetFilters={resetFilters}
+              showQuickFilters={true}
+              onOpenMortgage={handleOpenMortgage}
+              onOpenJeonseSafety={handleOpenJeonseSafety}
+              onOpenSellTimingCalculator={handleOpenSellTiming}
+              onOpenTaxCalculator={handleOpenTaxCalculator}
               renderTimelineItemCard={renderTimelineItemCardNode}
               renderTimelineItemRow={renderTimelineItemRowNode}
             />
@@ -1563,17 +1576,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           />
         </ErrorBoundary>
 
-        {/* Real-time Dynamic Ranking Board (Dwell Time & PV Maximization) */}
-        <ErrorBoundary name="실시간 랭킹 보드">
-          <RealtimeRankingBoard
-            recentTransactions={recentTransactions}
-            txSummaryData={txSummaryData}
-            sheetApartments={sheetApartments}
-            onSelectComplex={handleSelectApt}
-            onSelectApt={handleSelectApt}
-          />
-        </ErrorBoundary>
-
         {/* In-Feed Responsive AdSlot 2 (Zero-CLS) */}
         <div className="w-full my-6">
           <AdSlot
@@ -1582,26 +1584,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             className="w-full"
           />
         </div>
-
-        {/* Traffic Notice Board Widget */}
-        <div className="w-full flex flex-col gap-4 mb-2">
-          <ErrorBoundary name="교통/철도 공지 알림판">
-            <TrafficNoticeBoard
-              railStrategyNotices={railStrategyNotices}
-              tramNotices={tramNotices}
-            />
-          </ErrorBoundary>
-        </div>
-
-        {/* Utility Toolkit Cards Grid */}
-        <ErrorBoundary name="부동산 진단 툴킷">
-          <MacroUtilityCards
-            setIsQuizOpen={setIsQuizOpen}
-            onOpenJeonseSafety={handleOpenJeonseSafety}
-            onOpenMortgage={handleOpenMortgage}
-            onOpenSellTimingCalculator={handleOpenSellTiming}
-          />
-        </ErrorBoundary>
       </div>
 
       <ErrorBoundary name="맞춤 단지 찾기">

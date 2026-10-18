@@ -1,5 +1,6 @@
 {
   "buildCommand": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build",
+  "regions": ["icn1"],
   "crons": [
     {
       "path": "/api/cron/sync-transactions",
@@ -7,3 +8,4 @@
     }
   ]
 }
+

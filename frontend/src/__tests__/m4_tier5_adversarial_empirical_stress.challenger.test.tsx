@@ -365,7 +365,7 @@ describe('Milestone 4 Tier 5 Adversarial Empirical Challenger Harness', () => {
         fireEvent.click(screen.getByTestId('filter-reset-button'));
       });
 
-      expect(screen.getByTestId('filter-region-all')).toHaveClass('bg-hs-orange');
+      expect(screen.getByTestId('filter-region-all')).toHaveClass('bg-emerald-600');
       expect(screen.getByTestId('filter-pyeong-all')).toHaveClass('bg-blue-600');
     });
   });

@@ -59,11 +59,11 @@ export default function RelocationTaxSimulator() {
 
   const handleCopy = () => {
     const text = `[D-VIEW 동탄 지산 세제 혜택 시뮬레이션 결과]\n` +
-      `- 이전 조건: ${existingLocation === 'overconcentrated' ? '수도권 과밀억제권역 ➡️ 동탄 테크노밸리' : '기타 지역 ➡️ 동탄 테크노밸리'}\n` +
+      `- 이전 조건: ${existingLocation === 'overconcentrated' ? '수도권 과밀억제권역 -> 동탄 테크노밸리' : '기타 지역 -> 동탄 테크노밸리'}\n` +
       `- 연간 법인세: ${formatKoreanPrice(annualCorpTax)}\n` +
       `- 지산 매입가: ${formatKoreanPrice(purchasePrice)}\n` +
       `----------------------------------------\n` +
-      `💡 총 절세 혜택 규모: ${formatKoreanPrice(totalSavings)}\n` +
+      `총 절세 혜택 규모: ${formatKoreanPrice(totalSavings)}\n` +
       `  - 법인세/소득세 감면 (6개년): ${formatKoreanPrice(corpTaxSavings)}\n` +
       `  - 취득세 감면 (최초 1회): ${formatKoreanPrice(acquisitionTaxSavings)}\n` +
       `  - 재산세 감면 (5개년 누적): ${formatKoreanPrice(propTaxSavings)}\n` +
@@ -88,7 +88,7 @@ export default function RelocationTaxSimulator() {
       {/* Unified Main Header */}
       <div className="flex flex-col gap-1 border-b border-border/40 pb-5">
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
-          <span className="w-2.5 h-2.5 rounded-full bg-hs-orange animate-pulse shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 animate-pulse shrink-0" />
           <h3 className="text-[14.5px] sm:text-[16px] font-black text-primary tracking-tight break-keep" title="테크노밸리 이전 세금 감면 시뮬레이터">
             테크노밸리 이전 세금 감면 시뮬레이터
           </h3>
@@ -108,7 +108,7 @@ export default function RelocationTaxSimulator() {
         <div className="flex flex-col gap-5 min-w-0">
           {/* Step 1 Title */}
           <div className="text-[13px] font-black text-primary flex items-center gap-2 mb-1">
-            <span className="w-5 h-5 rounded-full bg-hs-orange/10 text-hs-orange flex items-center justify-center text-[10px] font-black">1</span>
+            <span className="w-5 h-5 rounded-full bg-emerald-600/10 text-emerald-700 flex items-center justify-center text-[10px] font-black">1</span>
             <span>이전 조건 및 자산 정보 입력</span>
           </div>
  
@@ -118,7 +118,7 @@ export default function RelocationTaxSimulator() {
               <span>기존 법인(사업자) 소재지</span>
               <div className="group relative cursor-pointer">
                 <HelpCircle size={13} className="text-tertiary" />
-                <div className="absolute left-0 bottom-full mb-1.5 w-[280px] p-2.5 bg-neutral-900 text-white text-[10px] rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-20 leading-normal font-bold">
+                <div className="absolute left-0 bottom-full mb-1.5 w-[280px] p-2.5 bg-slate-900 text-white text-[10px] rounded-xl shadow-xl opacity-0 group-hover:opacity-100 pointer-events-none transition-all z-20 leading-normal font-bold">
                   서울 및 수도권 주요 도시(과밀억제권역)에서 이전하는 법인은 법인세/소득세 감면 대상이 됩니다.
                 </div>
               </div>
@@ -155,7 +155,7 @@ export default function RelocationTaxSimulator() {
           }`}>
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연평균 법인세 (또는 사업소득세)</span>
-              <span className="text-hs-orange text-[13px] font-black">{formatKoreanPrice(annualCorpTax)}</span>
+              <span className="text-emerald-700 text-[13px] font-black">{formatKoreanPrice(annualCorpTax)}</span>
             </div>
             <input
               type="range"
@@ -165,7 +165,7 @@ export default function RelocationTaxSimulator() {
               value={annualCorpTax}
               onChange={(e) => setAnnualCorpTax(Number(e.target.value))}
               disabled={existingLocation !== 'overconcentrated'}
-              className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange disabled:opacity-40"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-hs-orange disabled:opacity-40"
             />
             {existingLocation !== 'overconcentrated' ? (
               <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
@@ -183,7 +183,7 @@ export default function RelocationTaxSimulator() {
           <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">동탄 지식산업센터 매입(취득) 가격</span>
-              <span className="text-hs-orange text-[13px] font-black">{formatKoreanPrice(purchasePrice)}</span>
+              <span className="text-emerald-700 text-[13px] font-black">{formatKoreanPrice(purchasePrice)}</span>
             </div>
             <input
               type="range"
@@ -192,7 +192,7 @@ export default function RelocationTaxSimulator() {
               step="5000"
               value={purchasePrice}
               onChange={(e) => setPurchasePrice(Number(e.target.value))}
-              className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
             />
             <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
               <span>※</span>
@@ -204,7 +204,7 @@ export default function RelocationTaxSimulator() {
           <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연간 예상 재산세 납부액</span>
-              <span className="text-hs-orange text-[13px] font-black">{formatKoreanPrice(annualPropTax)}</span>
+              <span className="text-emerald-700 text-[13px] font-black">{formatKoreanPrice(annualPropTax)}</span>
             </div>
             <input
               type="range"
@@ -213,7 +213,7 @@ export default function RelocationTaxSimulator() {
               step="20"
               value={annualPropTax}
               onChange={(e) => setAnnualPropTax(Number(e.target.value))}
-              className="w-full h-1.5 bg-neutral-200 dark:bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
+              className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
             />
             <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
               <span>※</span>
@@ -250,7 +250,7 @@ export default function RelocationTaxSimulator() {
               {/* Corp Tax Savings */}
               <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-2.5 h-2.5 rounded-full bg-hs-orange" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   <div className="flex flex-col">
                     <span className="text-[13px] font-black text-primary">법인세 / 소득세 감면 (6개년)</span>
                     <span className="text-[10.5px] text-tertiary font-bold mt-0.5">이전 후 최초 4년 100%, 이후 2년 50%</span>
@@ -296,7 +296,7 @@ export default function RelocationTaxSimulator() {
           <button
             type="button"
             onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-border/80 bg-body hover:bg-neutral-100 dark:hover:bg-zinc-800 text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-border/80 bg-body hover:bg-slate-100 dark:hover:bg-slate-800 text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
           >
             {isCopied ? (
               <>

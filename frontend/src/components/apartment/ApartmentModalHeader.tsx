@@ -77,7 +77,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             className={`h-10 px-4 rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
               copiedStatus === 'all-link'
                 ? 'bg-emerald-500 text-white shadow-md'
-                : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary'
+                : 'bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary'
             }`}
             title="아파트 분석 리포트 공유하기"
           >
@@ -110,7 +110,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
           {/* Infographic Summary Image Download Button */}
           <button
             onClick={handleDownloadShareCard}
-            className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-zinc-800 dark:hover:bg-zinc-700 text-secondary border-none rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
+            className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary border-none rounded-[12px] shadow-sm hidden lg:flex items-center gap-1.5 font-extrabold text-[13px] cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
             title="인포그래픽 요약 카드 이미지 다운로드"
           >
             <Camera size={14} strokeWidth={2.5} className="text-secondary/80" />
@@ -131,7 +131,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
           <div className="relative shrink-0" ref={toolDropdownRef}>
             <button
               onClick={() => setIsToolDropdownOpen(prev => !prev)}
-              className={`h-10 px-4 bg-gradient-to-r from-emerald-700 to-teal-600 hover:from-emerald-600 hover:to-teal-500 text-white rounded-[12px] shadow-md flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
+              className={`h-10 px-4 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-[12px] shadow-md flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]`}
               title="AI 분석 리포트 및 부동산 금융 계산기 열기"
             >
               <Calculator size={14} />
@@ -140,7 +140,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             </button>
 
             {isToolDropdownOpen && (
-              <div className="absolute right-0 mt-2.5 w-[240px] bg-surface/85 dark:bg-zinc-900/85 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] py-2 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
+              <div className="absolute right-0 mt-2.5 w-[240px] bg-surface/85 dark:bg-slate-900/85 backdrop-blur-md border border-border/40 dark:border-white/10 rounded-[20px] shadow-[0_12px_40px_rgba(0,0,0,0.06)] py-2 z-[100] animate-in fade-in slide-in-from-top-3 duration-200">
                 <div className="px-4 py-1.5 text-[11px] font-black text-tertiary border-b border-border/40 select-none uppercase tracking-wider">
                   AI 진단 & 금융 계산기
                 </div>
@@ -166,7 +166,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <Shield size={15} className="text-[#ff8f00]" />
+                    <Shield size={15} className="text-blue-600 dark:text-blue-400" />
                     <div className="flex flex-col">
                       <span>전세 안전진단</span>
                     </div>
@@ -194,7 +194,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <GraduationCap size={15} className="text-[#ff8f00]" />
+                    <GraduationCap size={15} className="text-blue-600 dark:text-blue-400" />
                     <div className="flex flex-col">
                       <span>취득세 계산기</span>
                     </div>
@@ -208,7 +208,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <ShieldAlert size={15} className="text-[#f04452]" />
+                    <ShieldAlert size={15} className="text-red-600 dark:text-red-400" />
                     <div className="flex flex-col">
                       <span>AI 매도 진단기</span>
                     </div>

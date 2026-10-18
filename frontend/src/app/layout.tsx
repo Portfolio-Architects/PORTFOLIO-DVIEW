@@ -182,10 +182,10 @@ export default function RootLayout({
           <SWRProvider>
             <SettingsProvider>
               <AuthProvider>
-                {/* 🔧 Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
+                {/* Register PWA Service Worker (Dev 모드에서는 기존 캐시 충돌 방지를 위해 해제) */}
                 <Script src="/js/pwa-register.js" strategy="afterInteractive" nonce={nonce} />
                 
-                {/* 🔧 ResizeObserver loop error shield to prevent janks in charts */}
+                {/* ResizeObserver loop error shield to prevent janks in charts */}
                 <Script src="/js/resize-observer-shield.js" strategy="afterInteractive" nonce={nonce} />
                 <NextTopLoader color="#057e77" showSpinner={false} />
                 <PWAProvider>

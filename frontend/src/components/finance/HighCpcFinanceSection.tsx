@@ -28,12 +28,12 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
     >
       <div className="flex items-center justify-between px-1">
         <div className="flex items-center gap-2">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#057e77] dark:bg-emerald-400 animate-pulse" />
-          <h2 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight">
+          <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400" />
+          <h2 className="text-[15px] sm:text-[16px] font-bold text-slate-900 dark:text-slate-100 tracking-tight">
             내집마련 정책자금 & 전세 안전진단 센터
           </h2>
         </div>
-        <span className="text-[11px] text-tertiary font-medium hidden sm:inline-block">
+        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden sm:inline-block">
           실시간 최저 금리 및 깡통전세 예방 솔루션
         </span>
       </div>

@@ -5,6 +5,7 @@ import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offline
 import { usePathname, useSearchParams } from 'next/navigation';
 import { initSafeReloadDiagnostics } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
+import { X } from 'lucide-react';
 
 
 
@@ -125,7 +126,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     mountedRef.current = true;
     initSafeReloadDiagnostics();
 
-    // 🔧 Clear SW update reload flags after page loads
+    // Clear SW update reload flags after page loads
     if (typeof window !== 'undefined') {
       if (sessionStorage.getItem('dview_sw_reloading') === 'true' || sessionStorage.getItem('dview_sw_update_in_progress') === 'true') {
         logger.info('PWAProvider', 'Detected SW update state on mount. Clearing flags in 2 seconds.');
@@ -144,15 +145,25 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     };
   }, []);
 
-  // 🔧 Nextjs-Toploader progress bar cleanup is handled by NProgressCleaner
+  // Nextjs-Toploader progress bar cleanup is handled by NProgressCleaner
 
-  // 🔧 모바일/데스크톱 웹 뷰 내 차트 툴팁 잔존 방지 전역 클릭/터치 가드
+  // 모바일/데스크톱 웹 뷰 내 차트 툴팁 잔존 방지 및 호버 복원 가드
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const handleGlobalInteraction = (e: MouseEvent | TouchEvent) => {
-      const target = e.target as HTMLElement;
-      if (target && !target.closest('.recharts-wrapper')) {
+    const handleGlobalInteraction = (e: Event) => {
+      const target = e.target as HTMLElement | null;
+      if (!target || typeof target.closest !== 'function') return;
+      const wrapper = target.closest('.recharts-wrapper');
+      if (wrapper) {
+        const activeTooltips = wrapper.querySelectorAll('.recharts-tooltip-wrapper') as NodeListOf<HTMLElement>;
+        activeTooltips.forEach((tooltip) => {
+          if (tooltip.style.opacity === '0') {
+            tooltip.style.opacity = '';
+          }
+          tooltip.style.pointerEvents = 'none';
+        });
+      } else if (e.type === 'touchstart') {
         const tooltips = document.querySelectorAll('.recharts-tooltip-wrapper') as NodeListOf<HTMLElement>;
         tooltips.forEach((tooltip) => {
           tooltip.style.opacity = '0';
@@ -162,13 +173,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       }
     };
 
-    window.addEventListener('click', handleGlobalInteraction, { passive: true });
-    window.addEventListener('touchend', handleGlobalInteraction, { passive: true });
+    window.addEventListener('pointermove', handleGlobalInteraction, { passive: true });
+    window.addEventListener('mousemove', handleGlobalInteraction, { passive: true });
     window.addEventListener('touchstart', handleGlobalInteraction, { passive: true });
 
     return () => {
-      window.removeEventListener('click', handleGlobalInteraction);
-      window.removeEventListener('touchend', handleGlobalInteraction);
+      window.removeEventListener('pointermove', handleGlobalInteraction);
+      window.removeEventListener('mousemove', handleGlobalInteraction);
       window.removeEventListener('touchstart', handleGlobalInteraction);
     };
   }, []);
@@ -201,7 +212,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       }
     }
 
-    // 🔧 Multi-tab LocalStorage synchronization
+    // Multi-tab LocalStorage synchronization
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'dview_quiz_answers') {
         window.dispatchEvent(new Event('dview_quiz_answers_changed'));
@@ -211,30 +222,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     };
     window.addEventListener('storage', handleStorageChange);
 
-    // 🔧 Multi-tab Service Worker lifecycle update synchronization
-    const hasExistingController = typeof navigator !== 'undefined' && !!navigator.serviceWorker?.controller;
-
+    // Multi-tab Service Worker lifecycle update synchronization
     const handleControllerChange = () => {
-      if (!hasExistingController) {
-        logger.info('PWAProvider', 'Service Worker active for the first time. Bypassing reload.');
-        return;
-      }
-      if (isReloadingRef.current) return;
-      if (sessionStorage.getItem('dview_sw_reloading') === 'true') {
-        logger.info('PWAProvider', 'Already reloaded recently due to SW controller change. Bypassing...');
-        return;
-      }
-      isReloadingRef.current = true;
-      sessionStorage.setItem('dview_sw_reloading', 'true');
-      logger.info('PWAProvider', 'Service Worker controller changed. Reloading page to apply updates...');
-      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        try {
-          navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-        } catch (err) {
-          logger.warn('PWAProvider', 'Failed to remove controllerchange listener during reload', undefined, err);
-        }
-      }
-      window.location.reload();
+      logger.info('PWAProvider', 'Service Worker controller updated in background. Bypassing forced reload to prevent double loading.');
     };
 
     const isDevEnv = typeof window !== 'undefined' && (
@@ -250,7 +240,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
     }
 
-    // 🔧 Online status restoration manual queue replay
+    // Online status restoration manual queue replay
     const handleOnlineStatus = () => {
       logger.info('PWAProvider', 'Network restored. Triggering manual offline sync queue replay...');
       retryOfflineRequests();
@@ -263,7 +253,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     window.addEventListener('online', handleOnlineStatus);
     window.addEventListener('offline', handleOfflineStatus);
 
-    // 🔧 Service Worker message handler for cache expiration detection
+    // Service Worker message handler for cache expiration detection
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'CACHE_EXPIRED_WARNING') {
         if (sessionStorage.getItem('dview_cache_expired_warned') === 'true') {
@@ -295,7 +285,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       const currentPasses = Number(localStorage.getItem('dview_free_passes') || '0');
       localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
 
-      setToastMessage('🎉 홈화면 앱 설치 완료! 모바일에서 더 빠르고 편하게 분석 리포트를 확인해 보세요.');
+      setToastMessage('홈화면 앱 설치 완료! 모바일에서 더 빠르고 편하게 분석 리포트를 확인해 보세요.');
       if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
       installRewardTimeoutRef.current = setTimeout(() => {
         if (isMounted) {
@@ -333,7 +323,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     const handleStateChange = () => {
       if (registeredWorker && registeredWorker.state === 'installed' && registeredReg && registeredReg.waiting) {
-        registeredReg.waiting.postMessage({ type: 'SKIP_WAITING' });
+        logger.info('PWAProvider', 'New Service Worker installed and waiting for next session activation.');
       }
     };
 
@@ -349,7 +339,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       }
     };
 
-    // 🔧 SW Update monitor
+    // SW Update monitor
     if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
       let isConfigured = false;
       const setupMonitor = (reg: ServiceWorkerRegistration) => {
@@ -357,11 +347,6 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         isConfigured = true;
         registeredReg = reg;
         swRegistrationRef.current = reg;
-        
-        // 1. If SW is already waiting to activate, silently apply update
-        if (reg.waiting) {
-          reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        }
 
         // Trigger manual update check on mount to ensure fresh status
         reg.update().catch((err) => {
@@ -489,7 +474,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
             body: { subscription: sub, uid: uid || null, apartmentName: aptName || null }
           });
           if (mountedRef.current) {
-            showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다 💚');
+            showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다.');
           }
         } catch (err) {
           logger.error('PWAProvider', 'Failed to enqueue push subscription', undefined, err);
@@ -511,7 +496,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
               body: { subscription: sub, uid: uid || null, apartmentName: aptName || null }
             });
             if (mountedRef.current) {
-              showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다 💚');
+              showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다.');
             }
           } catch (err) {
             logger.error('PWAProvider', 'Failed to enqueue push subscription after fetch failure', undefined, err);
@@ -538,7 +523,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
             body: { endpoint: pushSubscription.endpoint, apartmentName: aptName || null }
           });
           if (mountedRef.current) {
-            showToast('오프라인 상태입니다. 수신 거부 요청이 오프라인 큐에 저장되었습니다 💚');
+            showToast('오프라인 상태입니다. 수신 거부 요청이 오프라인 큐에 저장되었습니다.');
           }
         } catch (err) {
           logger.error('PWAProvider', 'Failed to enqueue push unsubscribe', undefined, err);
@@ -560,7 +545,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
               body: { endpoint: pushSubscription.endpoint, apartmentName: aptName || null }
             });
             if (mountedRef.current) {
-              showToast('네트워크 불안정으로 수신 거부 요청이 오프라인 큐에 저장되었습니다 💚');
+              showToast('네트워크 불안정으로 수신 거부 요청이 오프라인 큐에 저장되었습니다.');
             }
           } catch (err) {
             logger.error('PWAProvider', 'Failed to enqueue push unsubscribe after fetch failure', undefined, err);
@@ -576,7 +561,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         }
       } else {
         if (mountedRef.current) {
-          showToast(`🔔 ${aptName} 알림 구독이 해제되었습니다.`);
+          showToast(`${aptName} 알림 구독이 해제되었습니다.`);
         }
       }
       return true;
@@ -629,14 +614,15 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       </React.Suspense>
       {children}
       {toastMessage && (
-        <div key={toastMessage} className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-neutral-900/95 dark:bg-neutral-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none overflow-hidden">
+        <div key={toastMessage} className="fixed bottom-[calc(env(safe-area-inset-bottom)+24px)] sm:bottom-8 left-1/2 -translate-x-1/2 z-[99999] w-[calc(100%-32px)] max-w-sm bg-slate-900/95 dark:bg-slate-800/95 backdrop-blur-md text-white font-extrabold px-5 py-4 rounded-[20px] shadow-2xl flex flex-col gap-1.5 animate-in fade-in slide-in-from-bottom-5 duration-300 border border-white/10 select-none overflow-hidden">
           <div className="flex items-center justify-between gap-3 w-full pr-1">
             <span className="text-[12.5px] md:text-[13.5px] leading-relaxed flex-1">{toastMessage}</span>
             <button 
               onClick={() => setToastMessage(null)} 
               className="hover:opacity-85 text-white/80 focus:outline-none text-[10px] font-black cursor-pointer bg-white/10 hover:bg-white/20 rounded-full w-[22px] h-[22px] flex items-center justify-center shrink-0"
+              aria-label="알림 닫기"
             >
-              ✕
+              <X size={12} />
             </button>
           </div>
           {/* Timeout Progress Bar (Using GPU-accelerated scaleX to avoid Reflows) */}
@@ -648,16 +634,16 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
       {showCacheExpiredModal && (
         <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
-          <div className="w-full max-w-sm bg-white dark:bg-neutral-900 border border-neutral-100 dark:border-neutral-800 rounded-[24px] shadow-2xl p-6 text-center animate-in zoom-in-95 duration-300 select-none">
-            <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-950/40 flex items-center justify-center text-rose-500 mb-4 animate-bounce">
+          <div className="w-full max-w-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-[24px] shadow-2xl p-6 text-center animate-in zoom-in-95 duration-300 select-none">
+            <div className="mx-auto w-12 h-12 rounded-full bg-red-50 dark:bg-red-950/40 flex items-center justify-center text-red-500 mb-4 animate-bounce">
               <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-wifi-off"><path d="M1 1l22 22"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.5"/><path d="M5 12.5a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.5 8"/><path d="M1.5 8a15.89 15.89 0 0 1 5.9-2.27"/><path d="M8.58 16.58A5 5 0 0 1 12 15a5 5 0 0 1 2.24.54"/><path d="M12 21a2 2 0 1 1 0-4 2 2 0 0 1 0 4Z"/></svg>
             </div>
             
-            <h3 className="text-[17px] font-black text-neutral-900 dark:text-neutral-50 mb-2">
+            <h3 className="text-[17px] font-black text-slate-900 dark:text-slate-50 mb-2">
               오프라인 캐시 만료 안내
             </h3>
             
-            <p className="text-[13px] text-neutral-500 dark:text-neutral-400 leading-relaxed mb-6">
+            <p className="text-[13px] text-slate-500 dark:text-slate-400 leading-relaxed mb-6">
               현재 네트워크와 연결되어 있지 않으며, 불러온 데이터는 24시간이 경과한 오래된 캐시 정보입니다. 최신 데이터를 보려면 인터넷 연결을 확인해 주세요.
             </p>
             
@@ -680,7 +666,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
                   sessionStorage.setItem('dview_cache_expired_warned', 'true');
                   setShowCacheExpiredModal(false);
                 }}
-                className="w-full bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 text-[13px] font-bold py-2.5 px-4 rounded-[14px] transition-colors cursor-pointer"
+                className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[13px] font-bold py-2.5 px-4 rounded-[14px] transition-colors cursor-pointer"
               >
                 오래된 데이터로 계속 보기
               </button>

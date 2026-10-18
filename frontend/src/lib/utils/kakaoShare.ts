@@ -127,11 +127,11 @@ export const checkKakaoSdkAndFallback = async (
     }
 
     // 이쁘게 정렬된 클립보드 텍스트 구성
-    let text = `📢 [DVIEW] ${title}\n`;
+    let text = `[DVIEW] ${title}\n`;
     if (description) {
-      text += `👉 ${description}\n\n`;
+      text += `${description}\n\n`;
     }
-    text += `🔗 링크 바로가기: ${shareUrl}\n\n`;
+    text += `링크 바로가기: ${shareUrl}\n\n`;
     text += `#DVIEW #동탄부동산`;
     
     const copied = await copyTextToClipboardDirect(text);
@@ -298,7 +298,7 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
 
   const description = customDesc || `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`;
   const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
-  const titleText = customTitle || `🧐 지금 사면 호구될까? ${aptName} 가치분석 리포트`;
+  const titleText = customTitle || `지금 사면 호구될까? ${aptName} 가치분석 리포트`;
 
   try {
     const sdkOk = await checkKakaoSdkAndFallback(
@@ -437,13 +437,13 @@ export const shareJeonseSafetyToKakao = async (params: ShareJeonseSafetyParams, 
     const baseUrl = window.location.origin;
     const finalImageUrl = `${baseUrl}/api/og?type=jeonse&title=${encodeURIComponent(aptName)}&status=${encodeURIComponent(riskLabel)}&ratio=${debtRatio.toFixed(1)}&price=${encodeURIComponent(marketPriceStr)}&lien=${encodeURIComponent(lienStr)}&totalDebt=${encodeURIComponent(totalDebtStr)}`;
 
-    const description = `🚨 HUG 보증보험 가입 여부 및 경매 낙찰 안전마진 진단 결과:\n보증금 ${jeonseStr} | 부채비율 ${debtRatio.toFixed(1)}% [${riskLabel}]\n소중한 보증금 반환 안전 지수를 D-VIEW에서 1초 만에 진단받으세요!`;
+    const description = `HUG 보증보험 가입 여부 및 경매 낙찰 안전마진 진단 결과:\n보증금 ${jeonseStr} | 부채비율 ${debtRatio.toFixed(1)}% [${riskLabel}]\n소중한 보증금 반환 안전 지수를 D-VIEW에서 1초 만에 진단받으세요!`;
     const shareUrl = `${window.location.origin}/overview#apt=${encodeURIComponent(aptName)}&calc=jeonse&utm_source=kakaotalk&utm_medium=share&utm_campaign=jeonse_share`;
 
     window.Kakao!.Share.sendDefault({
       objectType: "feed",
       content: {
-        title: `⚠️ 내 전세금, 깡통전세 위험은? [${aptName} 안전진단]`,
+        title: `내 전세금, 깡통전세 위험은? [${aptName} 안전진단]`,
         description: description,
         imageUrl: finalImageUrl,
         imageWidth: 1200,
@@ -1044,34 +1044,34 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
   // Utilizes client side hash routing exactly same as shareAptToKakao
   const shareUrl = `${baseUrl}/overview#apt=${encodeURIComponent(aptName)}&utm_source=clipboard&utm_medium=share&utm_campaign=apt_detail`;
 
-  let valuationLabel = '⚖️ 적정 수준 (시세와 적정 가치 균형 상태)';
+  let valuationLabel = '적정 수준 (시세와 적정 가치 균형 상태)';
   if (valStatus === 'undervalued') {
-    valuationLabel = `🟢 저평가 상태 (적정가 대비 약 ${valAmount} 메리트!)`;
+    valuationLabel = `저평가 상태 (적정가 대비 약 ${valAmount} 메리트!)`;
   } else if (valStatus === 'overvalued') {
-    valuationLabel = `🚨 고평가 상태 (적정가 대비 약 ${valAmount} 고평가)`;
+    valuationLabel = `고평가 상태 (적정가 대비 약 ${valAmount} 고평가)`;
   }
 
   // Calculate highest price drop
   const priceNum = priceEok + (priceMan / 10000);
   const dropPriceEok = maxPrice && maxPrice > priceNum ? maxPrice - priceNum : 0;
   const dropStr = dropPriceEok > 0
-    ? ` (📉 최고가 대비 -${dropPriceEok.toFixed(1)}억 하락!)`
+    ? ` (최고가 대비 -${dropPriceEok.toFixed(1)}억 하락!)`
     : '';
 
-  let text = `📢 [DVIEW] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약 📊\n`;
-  text += `🔥 "동탄 입주민 단톡방 및 맘카페 화제의 그 리포트!"\n`;
-  text += `👉 안심하고 거주할 수 있는 환경일까요? 주거 안심 가치분석 결과:\n\n`;
-  text += `💸 최근 실거래가: ${priceStr}${dropStr}\n`;
-  text += `📊 실거래 전세가율: ${ratio.toFixed(1)}%\n`;
-  text += `📈 내재가치 평가: ${valuationLabel}\n`;
+  let text = `[DVIEW] 동탄 ${aptName} 실거래 & 가치분석 리포트 요약\n`;
+  text += `"동탄 입주민 단톡방 및 커뮤니티 화제의 분석 리포트"\n`;
+  text += `안심하고 거주할 수 있는 환경일까요? 주거 안심 가치분석 결과:\n\n`;
+  text += `최근 실거래가: ${priceStr}${dropStr}\n`;
+  text += `실거래 전세가율: ${ratio.toFixed(1)}%\n`;
+  text += `내재가치 평가: ${valuationLabel}\n`;
   
   if (customDesc) {
     text += `${customDesc}`;
   }
 
-  text += `👀 적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!\n`;
-  text += `💡 실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.\n`;
-  text += `👉 ${shareUrl}\n\n`;
+  text += `적정 매수가(DCF) 평가 결과 및 학원 셔틀 노선, 대장 단지 비교 분석 완료!\n`;
+  text += `실거래 상승/하락 추이와 학원가, 역세권 미래 호재를 지금 바로 확인해보세요.\n`;
+  text += `바로가기: ${shareUrl}\n\n`;
   text += `#DVIEW #동탄부동산 #가치분석 #아파트실거래 #학세권 #동탄맘 #신혼부부`;
 
   try {
@@ -1116,13 +1116,13 @@ export const copyMbtiResultToClipboard = async (
 
   const tagString = tags.map((t) => (t.startsWith('#') ? t : `#${t}`)).join(' ');
 
-  let text = `🏡 [D-VIEW 주거 성향 테스트]\n`;
+  let text = `[D-VIEW 주거 성향 테스트]\n`;
   text += `나의 MBTI 결과: [${mbtiType}] ${alias}\n`;
   text += `나의 맞춤 동탄 아파트: ${aptName} (${dong})\n`;
   if (tagString) {
     text += `${tagString}\n`;
   }
-  text += `\n👉 나와 어울리는 동탄 아파트 찾기: ${shareUrl}\n`;
+  text += `\n나와 어울리는 동탄 아파트 찾기: ${shareUrl}\n`;
   text += `#DVIEW #동탄아파트 #주거MBTI #동탄부동산`;
 
   try {
@@ -1157,7 +1157,7 @@ export const shareMbtiResultToKakao = async (
   const { mbtiType, alias, aptName, dong } = validation.data;
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://dongtanview.com';
   const shareUrl = `${baseUrl}/mbti/${mbtiType.toUpperCase()}?utm_source=kakaotalk&utm_medium=viral&utm_campaign=mbti_quiz`;
-  const titleText = `🏢 나의 주거 MBTI는 [${mbtiType}] ${alias}!`;
+  const titleText = `나의 주거 MBTI는 [${mbtiType}] ${alias}!`;
   const description = `나와 영혼의 궁합인 동탄 아파트는 바로 '${aptName}' (${dong})! 당신에게 어울리는 동탄 아파트는 어디일까요? 지금 D-VIEW에서 테스트해보세요.`;
   const imageUrl = `${baseUrl}/api/og?type=mbti&mbti=${mbtiType}&apt=${encodeURIComponent(aptName)}&dong=${encodeURIComponent(dong)}`;
 

@@ -582,7 +582,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
           <aside 
             style={{ width: `${sidebarWidth}px` }}
-            className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-neutral-50/40 dark:bg-zinc-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
+            className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-slate-50/40 dark:bg-slate-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
           >
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -709,7 +709,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 className={`px-3 py-1 rounded-full text-[11.5px] font-bold transition-all shrink-0 active:scale-95 ${
                   isActive
                     ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 ring-1 ring-emerald-500/20'
-                    : 'bg-neutral-100 dark:bg-zinc-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800'
+                    : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-800'
                 }`}
               >
                 {cat.label}
@@ -810,7 +810,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all shrink-0 active:scale-95 ${
                       isActive
                         ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 ring-1 ring-emerald-500/20'
-                        : 'bg-neutral-100 dark:bg-zinc-900 text-neutral-500 dark:text-neutral-400 hover:text-neutral-800'
+                        : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-800'
                     }`}
                   >
                     {cat.label}
@@ -850,7 +850,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenJeonseSafety && (
                 <button
                   onClick={() => onOpenJeonseSafety()}
-                  className="px-4 py-2.5 bg-teal-50/50 hover:bg-teal-100/50 text-teal-700 dark:bg-teal-950/10 dark:hover:bg-teal-900/20 dark:text-teal-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-teal-500/15 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-emerald-50/50 hover:bg-emerald-100/50 text-emerald-700 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 dark:text-emerald-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/15 whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   전세 안전진단
                 </button>
@@ -874,7 +874,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             <div className="w-[36px] shrink-0" aria-hidden="true">&nbsp;</div>
             <button 
               onClick={() => handleHeaderSort('views')}
-              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' || (sortKey === 'custom' && currentCategory === 'favorites') ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[40px] text-center shrink-0 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1.5 rounded-lg transition-all cursor-pointer relative flex items-center justify-center ${sortKey === 'views' || (sortKey === 'custom' && currentCategory === 'favorites') ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               <span className="w-full text-center">순위</span>
               {(sortKey === 'views' || sortKey === 'custom') && (
@@ -885,49 +885,49 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </button>
             <button 
               onClick={() => handleHeaderSort('name')}
-              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`flex-1 min-w-[120px] ml-2 text-left focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 px-2 rounded-lg transition-all cursor-pointer flex items-center gap-1 ${sortKey === 'name' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               <span>단지명</span>
               {sortKey === 'name' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
             </button>
             <button 
               onClick={() => handleHeaderSort('yearBuilt')}
-              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[95px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'yearBuilt' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               {sortKey === 'yearBuilt' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>연식</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('totalPrice')}
-              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[130px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'totalPrice' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               {sortKey === 'totalPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>매매가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('pyeongPrice')}
-              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'pyeongPrice' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               {sortKey === 'pyeongPrice' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>평당가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('ratio')}
-              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[120px] text-right pr-3 shrink-0 hidden lg:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'ratio' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               {sortKey === 'ratio' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>전세가</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('householdCount')}
-              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-emerald-700 dark:text-toss-blue bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[90px] text-right pr-3 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'householdCount' ? 'text-emerald-700 dark:text-toss-blue bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               {sortKey === 'householdCount' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-emerald-700 dark:text-toss-blue" /> : <ArrowUp className="w-3 h-3 text-emerald-700 dark:text-toss-blue" />)}
               <span>세대수</span>
             </button>
             <button 
               onClick={() => handleHeaderSort('volume3M')}
-              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-neutral-50 dark:hover:bg-zinc-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#057e77] dark:text-emerald-400 bg-neutral-50 dark:bg-zinc-900/50 font-black' : ''}`}
+              className={`w-[100px] text-right pr-2 shrink-0 hidden xl:flex items-center justify-end gap-1 focus:outline-none hover:bg-slate-50 dark:hover:bg-slate-900/50 py-1 rounded-lg transition-all cursor-pointer ${sortKey === 'volume3M' ? 'text-[#057e77] dark:text-emerald-400 bg-slate-50 dark:bg-slate-900/50 font-black' : ''}`}
             >
               {sortKey === 'volume3M' && (sortDirection === 'desc' ? <ArrowDown className="w-3 h-3 text-[#057e77] dark:text-emerald-400" /> : <ArrowUp className="w-3 h-3 text-[#057e77] dark:text-emerald-400" />)}
               <span>거래량</span>
@@ -939,7 +939,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             <div 
               className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-20 transition-all duration-300 min-h-[300px]"
             >
-              <span className="text-[40px] mb-3 animate-bounce">🔍</span>
+              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-tertiary mb-3">
+                <Search size={24} />
+              </div>
               <span className="text-[15px] font-extrabold text-primary">검색 결과가 없습니다</span>
               <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
             </div>

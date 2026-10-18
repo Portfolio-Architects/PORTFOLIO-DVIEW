@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useTransition, useCallback } from 'react';
-import { BarChart3 } from 'lucide-react';
 import type {
   RegionFilter,
   PyeongFilter,
@@ -22,7 +21,6 @@ import { useInView } from '@/hooks/useInView';
 import {
   TimeTrendChartSkeleton,
   PyeongRankingChartSkeleton,
-  VolumeDistributionChartSkeleton,
 } from '@/components/stats/ChartSkeletons';
 
 const StatsTimeTrendChart = dynamic(
@@ -38,14 +36,6 @@ const StatsPyeongRankingChart = dynamic(
   {
     ssr: false,
     loading: () => <PyeongRankingChartSkeleton />,
-  }
-);
-
-const StatsVolumeDistributionChart = dynamic(
-  () => import('@/components/stats/StatsVolumeDistributionChart'),
-  {
-    ssr: false,
-    loading: () => <VolumeDistributionChartSkeleton />,
   }
 );
 
@@ -79,6 +69,11 @@ const clientDataCache: {
   transactions1y?: RawTransactionRecord[];
   transactionsAll?: RawTransactionRecord[];
 } = {};
+
+export function clearStatsChunkCache(): void {
+  delete clientDataCache.transactions1y;
+  delete clientDataCache.transactionsAll;
+}
 
 export function StatsOverviewSection({
   initialData,
@@ -125,10 +120,6 @@ export function StatsOverviewSection({
     rootMargin: '250px 0px',
     testMode,
   });
-  const [volumeRef, volumeInView] = useInView<HTMLDivElement>({
-    rootMargin: '250px 0px',
-    testMode,
-  });
 
   // Sync state if props update
   useEffect(() => {
@@ -163,7 +154,9 @@ export function StatsOverviewSection({
         ]);
 
         if (isMounted) {
-          if (Array.isArray(txsRes) && txsRes.length > 0) setBaseTxs(txsRes);
+          if (Array.isArray(txsRes) && txsRes.length > 0) {
+            setBaseTxs((prev) => (prev.length >= txsRes.length ? prev : txsRes));
+          }
           if (Array.isArray(macroRes) && macroRes.length > 0) setMacroTrend(macroRes);
           if (sumRes && typeof sumRes === 'object') {
             const parsedSummary = (sumRes as { summary?: Record<string, AptTxSummary> })?.summary || (sumRes as Record<string, AptTxSummary>);
@@ -181,46 +174,72 @@ export function StatsOverviewSection({
     };
   }, [baseTxs.length]);
 
-  // On-demand chunk loading for 1Y and ALL timeframes
+  // On-demand chunk loading for 6M, 1Y, and ALL timeframes
   useEffect(() => {
-    if (testMode || baseTxs.length >= 10000) return;
+    if (testMode) return;
 
-    if (timeframe === '1Y') {
+    let isCancelled = false;
+
+    if (timeframe === '6M' || timeframe === '1Y') {
+      if (clientDataCache.transactionsAll) {
+        const cachedAll = clientDataCache.transactionsAll;
+        setBaseTxs((prev) => (prev.length >= cachedAll.length ? prev : cachedAll));
+        setIsLoadingChunk(false);
+        return;
+      }
       if (clientDataCache.transactions1y) {
-        setBaseTxs(clientDataCache.transactions1y);
+        const cached1y = clientDataCache.transactions1y;
+        setBaseTxs((prev) => (prev.length >= cached1y.length ? prev : cached1y));
+        setIsLoadingChunk(false);
         return;
       }
       setIsLoadingChunk(true);
       fetch('/data/transactions-1y.json')
-        .then((r) => (r.ok ? r.json() : null))
+        .then((r) => (r && r.ok ? r.json() : null))
         .then((data) => {
-          const parsed = parsePeriodTransactions(data);
+          const parsed = parsePeriodTransactions(data) as unknown as RawTransactionRecord[];
           if (Array.isArray(parsed) && parsed.length > 0) {
-            clientDataCache.transactions1y = parsed as unknown as RawTransactionRecord[];
-            setBaseTxs(parsed as unknown as RawTransactionRecord[]);
+            clientDataCache.transactions1y = parsed;
+            if (!isCancelled && !clientDataCache.transactionsAll) {
+              setBaseTxs((prev) => (prev.length >= parsed.length ? prev : parsed));
+            }
           }
         })
         .catch(() => {})
-        .finally(() => setIsLoadingChunk(false));
+        .finally(() => {
+          if (!isCancelled) setIsLoadingChunk(false);
+        });
     } else if (timeframe === 'ALL') {
       if (clientDataCache.transactionsAll) {
-        setBaseTxs(clientDataCache.transactionsAll);
+        const cachedAll = clientDataCache.transactionsAll;
+        setBaseTxs((prev) => (prev.length >= cachedAll.length ? prev : cachedAll));
+        setIsLoadingChunk(false);
         return;
       }
       setIsLoadingChunk(true);
       fetch('/data/transactions-all.json')
-        .then((r) => (r.ok ? r.json() : null))
+        .then((r) => (r && r.ok ? r.json() : null))
         .then((data) => {
-          const parsed = parsePeriodTransactions(data);
+          const parsed = parsePeriodTransactions(data) as unknown as RawTransactionRecord[];
           if (Array.isArray(parsed) && parsed.length > 0) {
-            clientDataCache.transactionsAll = parsed as unknown as RawTransactionRecord[];
-            setBaseTxs(parsed as unknown as RawTransactionRecord[]);
+            clientDataCache.transactionsAll = parsed;
+            if (!isCancelled) {
+              setBaseTxs((prev) => (prev.length >= parsed.length ? prev : parsed));
+            }
           }
         })
         .catch(() => {})
-        .finally(() => setIsLoadingChunk(false));
+        .finally(() => {
+          if (!isCancelled) setIsLoadingChunk(false);
+        });
+    } else {
+      setIsLoadingChunk(false);
     }
-  }, [timeframe, testMode, baseTxs.length]);
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [timeframe, testMode]);
 
   const handleRegionChange = useCallback((newRegion: RegionFilter) => {
     startTransition(() => {
@@ -311,27 +330,23 @@ export function StatsOverviewSection({
       id="stats-overview-section"
       className={`w-full flex flex-col gap-6 mb-6 box-border ${className}`}
     >
-      <div data-testid="stats-dashboard-container" className="w-full flex flex-col gap-6">
-        {/* 1. Header / Section Title */}
-        <div className="w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 text-xs font-black mb-2">
-              <BarChart3 size={13} />
-              <span>동탄 신도시 거시 부동산 통계</span>
+      <div data-testid="stats-dashboard-container" className="w-full flex flex-col gap-4 sm:gap-5">
+        {/* 1. Header / Section Subtitle */}
+        <div className="flex flex-wrap items-center justify-between gap-y-1.5 gap-x-3 px-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400 shrink-0" />
+              <h2 className="text-[15px] sm:text-[16px] font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
+                동탄 실거래 통계 지표 & 하이퍼로컬 인사이트
+              </h2>
             </div>
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              동탄 실거래 통계 지표 & 하이퍼로컬 인사이트
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-              182개 단지 전수 실거래 기반 5차원 심층 통계 및 실시간 시장 분석
-            </p>
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
+              실거래 표본: <span className="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono tabular-nums">{statsData.totalVolume.toLocaleString()}건</span>
+            </span>
           </div>
-
-          <div className="flex items-center gap-3 self-start sm:self-auto">
-            <div className="px-3 py-1.5 rounded-xl bg-body border border-border/60 text-xs font-bold text-slate-600 dark:text-slate-300">
-              실거래 표본: <span className="text-teal-600 font-extrabold">{statsData.totalVolume.toLocaleString()}건</span>
-            </div>
-          </div>
+          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden lg:inline-block shrink-0">
+            182개 단지 전수 실거래 기반 5차원 심층 통계 및 실시간 시장 분석
+          </span>
         </div>
 
         {/* 2. Interactive 5D Filter Bar */}
@@ -363,7 +378,7 @@ export function StatsOverviewSection({
                 <span
                   className={`text-[11px] font-extrabold px-1.5 py-0.5 rounded-md ${
                     statsData.volumeChangeMoM > 0
-                      ? 'bg-rose-50 text-rose-600 dark:bg-rose-950/40'
+                      ? 'bg-red-50 text-red-600 dark:bg-red-950/40'
                       : 'bg-blue-50 text-blue-600 dark:bg-blue-950/40'
                   }`}
                 >
@@ -382,7 +397,7 @@ export function StatsOverviewSection({
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
             <span className="text-xs font-bold text-slate-400">평균 매매가</span>
-            <p className="text-xl sm:text-2xl font-black text-teal-600 dark:text-teal-400 mt-2">
+            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
               {statsData.avgSalePrice > 0 ? `${statsData.avgSalePrice.toLocaleString()}만원` : '-'}
             </p>
           </div>
@@ -438,33 +453,18 @@ export function StatsOverviewSection({
         {/* 7. Strategic Ad Placement 2: Mid-Feed In-Feed Slot */}
         <MidFeedAdBanner testMode={testMode} />
 
-        {/* 8. 2-Column Grid: Pyeong Ranking Table/Bar Chart & Volume Distribution Donut */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
-          {/* Left Column (7 cols): TOP 20 Pyeong Price Rankings */}
-          <div ref={rankingRef} className="lg:col-span-7 min-h-[240px] md:min-h-[280px]">
-            {rankingInView ? (
-              <StatsPyeongRankingChart
-                rankings={statsData.pyeongRankings}
-                onSelectComplex={handleSelectComplex}
-                isLoading={isPending}
-                testMode={testMode}
-              />
-            ) : (
-              <PyeongRankingChartSkeleton />
-            )}
-          </div>
-
-          {/* Right Column (5 cols): Donut Volume Distribution */}
-          <div ref={volumeRef} className="lg:col-span-5 min-h-[200px]">
-            {volumeInView ? (
-              <StatsVolumeDistributionChart
-                distribution={statsData.volumeDistribution}
-                isLoading={isPending}
-              />
-            ) : (
-              <VolumeDistributionChartSkeleton />
-            )}
-          </div>
+        {/* 8. Full-Width Analytical Pyeong Ranking Table/Bar Chart */}
+        <div ref={rankingRef} className="w-full min-h-[240px] md:min-h-[280px]">
+          {rankingInView ? (
+            <StatsPyeongRankingChart
+              rankings={statsData.pyeongRankings}
+              onSelectComplex={handleSelectComplex}
+              isLoading={isPending}
+              testMode={testMode}
+            />
+          ) : (
+            <PyeongRankingChartSkeleton />
+          )}
         </div>
       </div>
     </section>

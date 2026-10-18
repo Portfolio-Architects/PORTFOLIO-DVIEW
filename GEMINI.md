@@ -19,3 +19,9 @@
 ## 5. Strict Real Data Only
 - 추정값, 시범(샘플) 데이터, Mock 데이터, 임의 가공 시세 데이터 일체 배제 및 공공기관·검증 공식 데이터만 취급
 
+## 6. Design System Invariants & Single Source of Truth
+- 프론트엔드 컴포넌트 생성 및 수정 시 루트 `DESIGN.md` 단일 진실 공급원 사전 참조 및 준수 의무 강제
+- 임의 유니코드 이모티콘 사용 금지 및 `lucide-react` SVG 아이콘 체계 일원화
+- Slate 무채색 베이스(`slate-50`~`slate-950`) 및 Emerald/Blue 시맨틱 컬러 토큰 외 비표준 난색/과채도 배경·보더 적용 배제
+- Zero-CLS 기하학($CLS < 0.001$) 유지 및 핵심 탐색 흐름 결합 네이티브 수익화 카드 아키텍처 엄수
+

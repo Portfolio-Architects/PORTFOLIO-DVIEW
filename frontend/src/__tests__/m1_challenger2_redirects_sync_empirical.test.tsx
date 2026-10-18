@@ -310,13 +310,13 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
         const links = within(headerNav).getAllByRole('link');
 
         const activeLinkIndex = tabs.indexOf(tab);
-        expect(links[activeLinkIndex]).toHaveClass('text-hs-orange');
-        expect(links[activeLinkIndex]).toHaveClass('bg-hs-orange-light');
+        expect(links[activeLinkIndex]).toHaveClass('text-emerald-700');
+        expect(links[activeLinkIndex]).toHaveClass('bg-emerald-50');
 
         // Other links should not have active background
         links.forEach((link, idx) => {
           if (idx !== activeLinkIndex) {
-            expect(link).not.toHaveClass('bg-hs-orange-light');
+            expect(link).not.toHaveClass('bg-emerald-50');
           }
         });
         unmount();

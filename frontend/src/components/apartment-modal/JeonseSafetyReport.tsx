@@ -136,24 +136,24 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
   const styles = {
     safe: {
       themeColor: '#057e77', // Teal-600
-      bgClass: 'bg-teal-50 dark:bg-teal-950/20 border-teal-100 dark:border-teal-900/30',
-      textClass: 'text-teal-700 dark:text-teal-400 font-extrabold',
-      gaugeClass: 'stroke-teal-500',
-      icon: <Shield className="text-teal-500 fill-teal-500/10" size={26} />
+      bgClass: 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/30',
+      textClass: 'text-emerald-700 dark:text-emerald-400 font-extrabold',
+      gaugeClass: 'stroke-emerald-500',
+      icon: <Shield className="text-emerald-500 fill-emerald-500/10" size={26} />
     },
     caution: {
       themeColor: '#ea580c', // Orange-600
-      bgClass: 'bg-orange-50 dark:bg-orange-950/20 border-orange-100 dark:border-orange-900/30',
-      textClass: 'text-orange-800 dark:text-orange-400 font-extrabold',
-      gaugeClass: 'stroke-orange-500',
-      icon: <AlertTriangle className="text-orange-500 fill-orange-500/10" size={26} />
+      bgClass: 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30',
+      textClass: 'text-red-800 dark:text-red-400 font-extrabold',
+      gaugeClass: 'stroke-red-500',
+      icon: <AlertTriangle className="text-red-500 fill-red-500/10" size={26} />
     },
     danger: {
       themeColor: '#ef4444', // Red-500
-      bgClass: 'bg-rose-50 dark:bg-rose-950/20 border-rose-100 dark:border-rose-900/30',
-      textClass: 'text-rose-800 dark:text-rose-400 font-extrabold',
-      gaugeClass: 'stroke-rose-500',
-      icon: <ShieldAlert className="text-rose-500 fill-rose-500/10" size={26} />
+      bgClass: 'bg-red-50 dark:bg-red-950/20 border-red-100 dark:border-red-900/30',
+      textClass: 'text-red-800 dark:text-red-400 font-extrabold',
+      gaugeClass: 'stroke-red-500',
+      icon: <ShieldAlert className="text-red-500 fill-red-500/10" size={26} />
     }
   }[grade];
 
@@ -214,7 +214,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      {/* ─── 📊 전세 안전성 스코어 대시보드 ─── */}
+      {/* ─── 전세 안전성 스코어 대시보드 ─── */}
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">보증금 반환 안전성 진단</span>
@@ -278,7 +278,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
         </div>
       </div>
 
-      {/* ─── 📋 4대 안전 진단 영역 리스트 ─── */}
+      {/* ─── 4대 안전 진단 영역 리스트 ─── */}
       <div>
         <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
           <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">진단 부문별 채점 상세</span>
@@ -287,7 +287,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* 1. 전세가율 */}
           <div className="bg-body border border-border/50 rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
               <CheckCircle2 size={16} strokeWidth={2.5} />
             </div>
             <div className="flex-1 min-w-0">
@@ -295,7 +295,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
                 <span className="text-[12.5px] font-extrabold text-secondary">실거래 전세가율</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{ratioScore} / 50점</span>
               </div>
-              <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-medium text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
                 이 아파트의 실거래가 전세가율은 **{jeonseRatePercent.toFixed(1)}%**입니다. 
                 {jeonseRatePercent >= 80 ? ' 80% 이상의 고위험 깡통전세 구간입니다.' : ' 70% 이하의 비교적 안전한 격차를 유지하고 있습니다.'}
               </p>
@@ -304,15 +304,15 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
           {/* 2. 경매 낙찰 안전마진 */}
           <div className="bg-body border border-border/50 rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
-              <Coins className="text-teal-600" size={16} />
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+              <Coins className="text-emerald-600" size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px] font-extrabold text-secondary">경매 낙찰 보장 마진</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{marginScore} / 20점</span>
               </div>
-              <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-medium text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
                 화성시 경매 낙찰기준가(매매가의 78%)는 **{Math.round(auctionLimit).toLocaleString()}만원**입니다. 
                 전세금({safeLatestDeposit.toLocaleString()}만원)이 낙찰가보다 {safeLatestDeposit < auctionLimit ? '낮아 안전합니다.' : '높아 경매 진행 시 유실 우려가 있습니다.'}
               </p>
@@ -321,15 +321,15 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
           {/* 3. 매매 유동성 */}
           <div className="bg-body border border-border/50 rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
-              <TrendingUp className="text-teal-600" size={16} />
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+              <TrendingUp className="text-emerald-600" size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px] font-extrabold text-secondary">매매 회전 환금성</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{liquidityScore} / 20점</span>
               </div>
-              <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-medium text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
                 최근 3개월 매매 거래량은 **{safeVolume3M}건**입니다. 
                 {safeVolume3M >= 5 ? '유동성이 풍부하여 보증금 반환 지연 시 급매 처분 등을 통한 조기 자금 회수가 수월합니다.' : '거래가 뜸하여 자금 회수 정체 리스크가 다소 우려됩니다.'}
               </p>
@@ -338,15 +338,15 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
 
           {/* 4. 단지 신뢰도 */}
           <div className="bg-body border border-border/50 rounded-2xl p-4 flex items-start gap-3">
-            <div className="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-600 flex items-center justify-center shrink-0 mt-0.5">
-              <Shield className="text-teal-600" size={16} />
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0 mt-0.5">
+              <Shield className="text-emerald-600" size={16} />
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <span className="text-[12.5px] font-extrabold text-secondary">대단지 신뢰 규모</span>
                 <span className="text-[11.5px] font-black text-primary tabular-nums">{scaleScore} / 10점</span>
               </div>
-              <p className="text-[12px] font-medium text-neutral-600 dark:text-neutral-400 mt-1 leading-normal break-keep">
+              <p className="text-[12px] font-medium text-slate-600 dark:text-slate-400 mt-1 leading-normal break-keep">
                 본 단지는 총 **{safeHouseholdCount.toLocaleString()}세대** 대규모 단지입니다. 세대 규모가 클수록 시세 왜곡이나 갑작스러운 하방 위험에 대한 방어력이 높아 보증 위험이 낮아집니다.
               </p>
             </div>
@@ -354,12 +354,13 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
         </div>
       </div>
 
-      {/* ─── 🏦 HUG 반환보증 공식 가이드 안내 배너 ─── */}
+      {/* ─── HUG 반환보증 공식 가이드 안내 배너 ─── */}
       {(grade === 'caution' || grade === 'danger') && (
-        <div className="border border-orange-500/20 bg-orange-500/5 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="border border-red-500/20 bg-red-500/5 rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex-1 text-center sm:text-left min-w-0">
-            <p className="text-[14px] font-black text-primary mb-1">
-              ⚠️ 임차인 필수: 전세보증금 반환보증보험 가입 요건 확인
+            <p className="text-[14px] font-black text-primary mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
+              <AlertTriangle size={15} className="text-red-500 shrink-0" />
+              <span>임차인 필수: 전세보증금 반환보증보험 가입 요건 확인</span>
             </p>
             <p className="text-[12px] font-bold text-secondary">
               전세가율 {jeonseRatePercent.toFixed(1)}%로 HUG 보증보험 가입이 거절되거나 특별 보증이 필요할 수 있습니다. HUG 주택도시보증공사의 공식 가입 기준을 확인하세요.
@@ -367,7 +368,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
           </div>
           <button
             onClick={() => window.open('https://www.khug.or.kr/web/ig/dr/igdr000001.jsp', '_blank', 'noopener,noreferrer')}
-            className="shrink-0 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white font-extrabold text-[12px] px-4 py-2.5 rounded-xl flex items-center gap-1 active:scale-[0.97] transition-all cursor-pointer border-none shadow-md"
+            className="shrink-0 bg-gradient-to-r from-red-600 to-red-600 hover:from-red-500 hover:to-red-500 text-white font-extrabold text-[12px] px-4 py-2.5 rounded-xl flex items-center gap-1 active:scale-[0.97] transition-all cursor-pointer border-none shadow-md"
           >
             <span>HUG 공식 기준 확인</span>
             <ChevronRight size={14} strokeWidth={2.5} />
@@ -378,7 +379,7 @@ const JeonseSafetyReport = React.memo(function JeonseSafetyReport({
       <div className="sticky bottom-4 left-0 right-0 z-30 flex justify-center w-full pointer-events-none mt-4">
         <button
           onClick={handleKakaoShare}
-          className="pointer-events-auto bg-[#fee500] hover:bg-[#fddc00] active:scale-95 text-[#191919] font-black text-[13.5px] px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl shadow-yellow-500/30 transition-all cursor-pointer border-none animate-pulse"
+          className="pointer-events-auto bg-[#fee500] hover:bg-[#fddc00] active:scale-95 text-[#191919] font-black text-[13.5px] px-6 py-3.5 rounded-full flex items-center gap-2 shadow-xl shadow-red-500/30 transition-all cursor-pointer border-none animate-pulse"
         >
           <MessageSquare size={16} className="fill-[#191919] text-[#191919]" />
           <span>진단 결과 1초 만에 카카오톡으로 공유하기</span>

@@ -58,7 +58,7 @@ export const auth = (app ? getAuth(app) : null) as unknown as ReturnType<typeof 
 export const googleProvider = new GoogleAuthProvider();
 export const storage = (app ? getStorage(app) : null) as unknown as ReturnType<typeof getStorage>;
 
-// 🔧 Firebase App Check Initialization (reCAPTCHA Enterprise for S+ security rating)
+// Firebase App Check Initialization (reCAPTCHA Enterprise for S+ security rating)
 if (typeof window !== 'undefined' && app) {
   const isDev = process.env.NODE_ENV === 'development';
   const debugToken = process.env.NEXT_PUBLIC_APPCHECK_DEBUG_TOKEN;

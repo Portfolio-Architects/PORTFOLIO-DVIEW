@@ -598,7 +598,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
             수요 분포
           </h3>
           {totalCount > 0 && (
-            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-zinc-800 text-[10px] sm:text-[10.5px] font-extrabold text-secondary shrink-0">
+            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[10.5px] font-extrabold text-secondary shrink-0">
               총 {totalCount}건
             </span>
           )}
@@ -607,7 +607,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         {/* Element 2: Divider & Mode Switch Toggle (Desktop inline order-2, Mobile full-width order-3) */}
         <div className="w-full sm:w-auto order-3 sm:order-2 flex items-center gap-2 sm:gap-2.5">
           <div className="hidden sm:block h-3.5 w-px bg-border/60" />
-          <div className="grid grid-cols-2 sm:flex sm:items-center w-full sm:w-auto p-0.5 bg-neutral-100 dark:bg-zinc-800 rounded-lg text-[11px] font-bold border border-border/40">
+          <div className="grid grid-cols-2 sm:flex sm:items-center w-full sm:w-auto p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[11px] font-bold border border-border/40">
             <button
               type="button"
               onClick={() => handleModeChange('pyeong')}
@@ -648,7 +648,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           )}
 
           {/* Period Selector (7d / 30d / 90d / 1y) */}
-          <div className="flex items-center p-0.5 bg-neutral-100 dark:bg-zinc-800 rounded-lg text-[10px] sm:text-[10.5px] font-bold border border-border/40">
+          <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] sm:text-[10.5px] font-bold border border-border/40">
             {PERIOD_BUTTONS.map((btn) => (
               <button
                 key={btn.key}
@@ -692,7 +692,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       stroke="transparent"
                       isAnimationActive={false}
                     >
-                      <Cell className="fill-slate-200 dark:fill-zinc-800" fill="currentColor" />
+                      <Cell className="fill-slate-200 dark:fill-slate-800" fill="currentColor" />
                     </Pie>
                   ) : (
                     <Pie
@@ -749,7 +749,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
                 {displaySector ? (
                   <>
-                    <span className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight px-2 truncate max-w-[150px]">
+                    <span className="text-[10.5px] sm:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate max-w-[150px]">
                       {displaySector.name}
                     </span>
                     <span className="text-[22px] sm:text-[26px] font-black text-primary leading-tight mt-0.5">
@@ -766,7 +766,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   </>
                 ) : (
                   <>
-                    <span className="text-[11px] sm:text-[12px] font-bold text-slate-400 dark:text-zinc-500 tracking-tight">
+                    <span className="text-[11px] sm:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight">
                       총 거래
                       <span className="sr-only">총 실거래</span>
                     </span>
@@ -864,7 +864,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 </div>
 
                 {/* Bottom Row: Visual Progress Gauge Bar */}
-                <div className="w-full bg-neutral-100 dark:bg-zinc-800/80 h-1.5 rounded-full overflow-hidden">
+                <div className="w-full bg-slate-100 dark:bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{

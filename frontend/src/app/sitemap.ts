@@ -1,201 +1,150 @@
 import { MetadataRoute } from 'next';
-import { AptTxSummary } from '@/lib/types/transaction';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { ZONES } from '@/lib/zones';
+import { ALL_MBTI_TYPES } from '@/lib/data/mbtiData';
+import { GUIDE_ARTICLES } from '@/lib/data/guides';
+import {
+  getTxSummaryData,
+  getTechnoValleyJisanList,
+} from '@/lib/services/apartmentPageService';
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
-export async function generateSitemaps() {
-  // id: 0 -> Main static pages and apartment detail pages
-  return [
-    { id: 0 }
-  ];
-}
-
-export default async function sitemap({ id }: { id: string | number }): Promise<MetadataRoute.Sitemap> {
+/**
+ * Generates unified programmatic sitemap for D-VIEW (266 URLs).
+ * @complexity Time: O(N), Space: O(N) where N = 266 programmatic entities
+ * @sideEffects Read-only file cache and optional Firestore metadata read
+ */
+export default async function sitemap(
+  props: { id?: string | number | Promise<string | number> } = { id: 0 }
+): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-  const targetId = Number(id);
+  const rawId = props?.id !== undefined ? await props.id : 0;
+  const targetId = rawId !== undefined ? Number(rawId) : 0;
 
-  // 1. MAIN static pages and apartment pages
-  if (targetId === 0) {
-    let latestNewsDate = new Date();
-
-    if (adminDb) {
-      try {
-        const latestNoticeSnap = await adminDb.collection('localNotices')
-          .select('createdAt')
-          .orderBy('createdAt', 'desc')
-          .limit(1)
-          .get();
-
-        if (!latestNoticeSnap.empty) {
-          const doc = latestNoticeSnap.docs[0].data();
-          if (doc.createdAt) {
-            if (typeof doc.createdAt.toDate === 'function') {
-              latestNewsDate = doc.createdAt.toDate();
-            } else if (doc.createdAt._seconds) {
-              latestNewsDate = new Date(doc.createdAt._seconds * 1000);
-            }
-          }
-        }
-      } catch (err) {
-        logger.error('Sitemap.news', 'Failed to fetch latest notice for sitemap', {}, err as Error);
-      }
-    }
-
-    const staticFixedDate = new Date('2026-06-26T00:00:00Z');
-    const homeLastModified = latestNewsDate;
-
-    const routes: MetadataRoute.Sitemap = [
-      {
-        url: baseUrl,
-        lastModified: homeLastModified,
-        changeFrequency: 'always',
-        priority: 1.0,
-      },
-      {
-        url: `${baseUrl}/explore`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/news`,
-        lastModified: latestNewsDate,
-        changeFrequency: 'daily',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/mbti`,
-        lastModified: staticFixedDate,
-        changeFrequency: 'daily',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/guide`,
-        lastModified: new Date(),
-        changeFrequency: 'weekly',
-        priority: 0.95,
-      },
-      {
-        url: `${baseUrl}/guide/dongtan-1-vs-2-comparison`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/guide/gtx-a-tram-rail-network`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/guide/stress-dsr-valuation-guide`,
-        lastModified: new Date(),
-        changeFrequency: 'monthly',
-        priority: 0.9,
-      },
-      {
-        url: `${baseUrl}/about`,
-        lastModified: staticFixedDate,
-        changeFrequency: 'weekly',
-        priority: 0.85,
-      },
-      {
-        url: `${baseUrl}/contact`,
-        lastModified: staticFixedDate,
-        changeFrequency: 'monthly',
-        priority: 0.8,
-      },
-      {
-        url: `${baseUrl}/privacy`,
-        lastModified: staticFixedDate,
-        changeFrequency: 'monthly',
-        priority: 0.5,
-      },
-      {
-        url: `${baseUrl}/terms`,
-        lastModified: staticFixedDate,
-        changeFrequency: 'monthly',
-        priority: 0.5,
-      },
-    ];
-
-    // Add Zone Routes dynamically from ZONES config
-    ZONES.forEach((zone) => {
-      routes.push({
-        url: `${baseUrl}/zone/${zone.id}`,
-        lastModified: new Date(),
-        changeFrequency: 'daily',
-        priority: 0.85,
-      });
-    });
-
-
-    // Apartment Routes
-    try {
-      const { buildInitialApartments } = await import('@/lib/dong-apartments');
-      const apts = buildInitialApartments();
-      const allApts = Object.values(apts).flat();
-      
-      const { readJsonFileCached } = await import('@/lib/utils/server/fileReader');
-      const txSummary = await readJsonFileCached<Record<string, AptTxSummary>>('public/data/tx-summary.json', {});
-      
-      // Fetch all scouting reports to get image URLs for SEO
-      const reportsMap = new Map<string, string[]>();
-      if (adminDb) {
-        try {
-          // Use projection select() to only fetch required fields, saving firestore read costs
-          const reportsSnap = await adminDb.collection('scoutingReports').select('apartmentName', 'images').get();
-          reportsSnap.forEach(doc => {
-            const data = doc.data();
-            if (data.apartmentName && data.images && Array.isArray(data.images) && data.images.length > 0) {
-              reportsMap.set(data.apartmentName, (data.images as { url?: string }[]).map((img) => img?.url || '').filter(Boolean));
-            }
-          });
-        } catch (err) {
-          logger.error('Sitemap.apartmentSitemap', 'Failed to fetch scoutingReports for sitemap', {}, err as Error);
-        }
-      }
-      
-      allApts.forEach((apt) => {
-        const images = reportsMap.get(apt.name);
-        const aptSummary = txSummary[apt.name];
-        
-        let lastModified = new Date();
-        if (aptSummary && aptSummary.latestDate) {
-          const dateStr = String(aptSummary.latestDate).trim();
-          if (dateStr.length === 8) {
-            const y = parseInt(dateStr.substring(0, 4), 10);
-            const m = parseInt(dateStr.substring(4, 6), 10) - 1; // 0-indexed month
-            const d = parseInt(dateStr.substring(6, 8), 10);
-            if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-              lastModified = new Date(Date.UTC(y, m, d));
-            }
-          }
-        }
-        
-        const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
-          url: `${baseUrl}/apartment/${encodeURIComponent(apt.name)}`,
-          lastModified,
-          changeFrequency: 'weekly',
-          priority: 0.95,
-        };
-        
-        // If Next.js sitemap supports images, attach them
-        if (images && images.length > 0) {
-          routeData.images = images;
-        }
-        
-        routes.push(routeData);
-      });
-    } catch (error) {
-      logger.error('Sitemap.apartmentSitemap', 'Failed to generate apartment sitemap', {}, error as Error);
-    }
-
-    return routes;
+  if (targetId !== 0) {
+    return [];
   }
 
-  return [];
+  const staticFixedDate = new Date('2026-06-26T00:00:00Z');
+  const nowDate = new Date();
+  const routes: MetadataRoute.Sitemap = [];
+
+  // 1. Guide Articles (3 programmatic long-form articles)
+  GUIDE_ARTICLES.forEach((article) => {
+    routes.push({
+      url: `${baseUrl}/guide/${article.slug}`,
+      lastModified: article.updatedDate ? new Date(article.updatedDate) : nowDate,
+      changeFrequency: 'monthly',
+      priority: 0.9,
+    });
+  });
+
+  // 2. Zone Routes (7 Dongtan investment zones)
+  ZONES.forEach((zone) => {
+    routes.push({
+      url: `${baseUrl}/zone/${zone.id}`,
+      lastModified: nowDate,
+      changeFrequency: 'daily',
+      priority: 0.85,
+    });
+  });
+
+  // 3. MBTI Routes (16 housing personality profiles)
+  ALL_MBTI_TYPES.forEach((type) => {
+    routes.push({
+      url: `${baseUrl}/mbti/${type}`,
+      lastModified: staticFixedDate,
+      changeFrequency: 'weekly',
+      priority: 0.85,
+    });
+  });
+
+  // 4. TechnoValley Knowledge Industry Center Routes (56 B2B centers)
+  try {
+    const jisanList = await getTechnoValleyJisanList();
+    jisanList.forEach((item, idx) => {
+      routes.push({
+        url:
+          idx === 0
+            ? `${baseUrl}/technovalley`
+            : `${baseUrl}/technovalley?jisan=${encodeURIComponent(item.name)}`,
+        lastModified: staticFixedDate,
+        changeFrequency: 'weekly',
+        priority: idx === 0 ? 0.95 : 0.85,
+      });
+    });
+  } catch (err) {
+    logger.error('Sitemap.technovalley', 'Failed to load TechnoValley Jisan list for sitemap', {}, err as Error);
+  }
+
+  // 5. Apartment Routes (184 apartments from tx-summary.json)
+  try {
+    const txSummary = await getTxSummaryData();
+    const aptNames = Object.keys(txSummary || {});
+
+    const reportsMap = new Map<string, string[]>();
+    if (adminDb) {
+      try {
+        const reportsSnap = await adminDb
+          .collection('scoutingReports')
+          .select('apartmentName', 'images')
+          .get();
+        reportsSnap.forEach((doc) => {
+          const data = doc.data();
+          if (
+            data.apartmentName &&
+            data.images &&
+            Array.isArray(data.images) &&
+            data.images.length > 0
+          ) {
+            reportsMap.set(
+              data.apartmentName,
+              (data.images as { url?: string }[])
+                .map((img) => img?.url || '')
+                .filter(Boolean)
+            );
+          }
+        });
+      } catch (err) {
+        logger.error('Sitemap.apartmentSitemap', 'Failed to fetch scoutingReports for sitemap', {}, err as Error);
+      }
+    }
+
+    aptNames.forEach((aptName) => {
+      const images = reportsMap.get(aptName);
+      const aptSummary = txSummary[aptName];
+
+      let lastModified = nowDate;
+      if (aptSummary && aptSummary.latestDate) {
+        const dateStr = String(aptSummary.latestDate).trim();
+        if (dateStr.length === 8) {
+          const y = parseInt(dateStr.substring(0, 4), 10);
+          const m = parseInt(dateStr.substring(4, 6), 10) - 1;
+          const d = parseInt(dateStr.substring(6, 8), 10);
+          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+            lastModified = new Date(Date.UTC(y, m, d));
+          }
+        }
+      }
+
+      const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
+        url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+        lastModified,
+        changeFrequency: 'weekly',
+        priority: 0.95,
+      };
+
+      if (images && images.length > 0) {
+        routeData.images = images;
+      }
+
+      routes.push(routeData);
+    });
+  } catch (error) {
+    logger.error('Sitemap.apartmentSitemap', 'Failed to generate apartment sitemap', {}, error as Error);
+  }
+
+  return routes;
 }

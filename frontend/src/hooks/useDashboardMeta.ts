@@ -12,7 +12,7 @@ import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartment
 import { normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { KPIData } from '@/lib/types/dashboard.types';
 import type { FieldReportData } from '@/lib/types/report.types';
-import type { DongtanMacroTrendPoint, AptTxSummary, Recent7DaysVolume, RecentTransaction } from '@/types/transaction';
+import type { DongtanMacroTrendPoint, AptTxSummary, Recent7DaysVolume, RecentTransaction, LocationScoreItem } from '@/types/transaction';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/apiClient';
 
@@ -45,6 +45,7 @@ export interface DashboardInitialDataLocal {
   txSummary?: Record<string, AptTxSummary>;
   recent7DaysVolume?: Recent7DaysVolume;
   recentTransactions?: RecentTransaction[];
+  locationScores?: Record<string, LocationScoreItem>;
 }
 
 const dashboardInitFetcher = (url: string) => apiClient.get(url);
