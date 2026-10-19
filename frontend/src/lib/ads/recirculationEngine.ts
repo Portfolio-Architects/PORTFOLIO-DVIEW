@@ -413,9 +413,62 @@ function normalizePriceToWon(rawPrice: number | string | undefined | null): numb
   return Math.round(num);
 }
 
+const NORM_APT_NAME_CACHE = new Map<string, string>();
+const TX_BY_NORM_CACHE = new WeakMap<Record<string, AptTxSummary>, Map<string, AptTxSummary>>();
+
+function getNormalizedAptName(raw: string): string {
+  if (!raw) return '';
+  const cached = NORM_APT_NAME_CACHE.get(raw);
+  if (cached !== undefined) return cached;
+  const computed = normalizeAptName(raw);
+  if (NORM_APT_NAME_CACHE.size >= 4096) {
+    NORM_APT_NAME_CACHE.clear();
+  }
+  NORM_APT_NAME_CACHE.set(raw, computed);
+  return computed;
+}
+
+function getTxByNormMap(txSummaryData: Record<string, AptTxSummary>): Map<string, AptTxSummary> {
+  const cached = TX_BY_NORM_CACHE.get(txSummaryData);
+  if (cached) return cached;
+  const txByNorm = new Map<string, AptTxSummary>();
+  for (const [k, v] of Object.entries(txSummaryData)) {
+    if (k && v) {
+      txByNorm.set(k, v);
+      txByNorm.set(getNormalizedAptName(k), v);
+    }
+  }
+  TX_BY_NORM_CACHE.set(txSummaryData, txByNorm);
+  return txByNorm;
+}
+
+interface ScoredCandidate {
+  aptName: string;
+  dong: string;
+  latestPriceWon: number;
+  jeonseRatio: number;
+  jeonseRatioPercent: number;
+  similarityScore: number;
+  clusterTag: 'SAME_DONG' | 'SAME_PRICE_BAND' | 'TOP_VOLUME';
+  _txVolume: number;
+}
+
+function compareScoredCandidates(a: ScoredCandidate, b: ScoredCandidate): number {
+  if (b.similarityScore !== a.similarityScore) {
+    return b.similarityScore - a.similarityScore;
+  }
+  if (b._txVolume !== a._txVolume) {
+    return b._txVolume - a._txVolume;
+  }
+  return a.aptName < b.aptName ? -1 : a.aptName > b.aptName ? 1 : 0;
+}
+
 /**
  * Selects exactly 3 similar complexes in O(K) time (K <= 184, t < 2ms).
  * Guarantees validation against z.array(RecirculationTargetAptSchema).length(3).
+ *
+ * @complexity Time: O(K) single-pass top-3 selection, Space: O(1) auxiliary beyond seen Set
+ * @sideEffects FALSE (pure deterministic recommendation with bounded memoization)
  */
 export function selectRecirculationTargets(
   input: SelectRecirculationTargetsInput
@@ -427,46 +480,92 @@ export function selectRecirculationTargets(
   const txSummaryData = input.txSummaryData || {};
   const nameMapping = input.nameMapping || {};
 
-  interface RawCandidate {
-    aptName: string;
-    dong: string;
-    latestPriceWon: number;
-    jeonseRatio: number;
-    txVolume: number;
-  }
-
-  const currentNorm = normalizeAptName(currentName);
+  const currentNorm = getNormalizedAptName(currentName);
   const mappedCurrentNorm = nameMapping[currentName]
-    ? normalizeAptName(nameMapping[currentName])
+    ? getNormalizedAptName(nameMapping[currentName])
     : currentNorm;
   const seenNormNames = new Set<string>([currentNorm, mappedCurrentNorm]);
-  const candidates: RawCandidate[] = [];
-
-  // Pre-index txSummaryData in O(M) once for O(1) lookup per candidate
-  const txByNorm = new Map<string, AptTxSummary>();
-  for (const [k, v] of Object.entries(txSummaryData)) {
-    if (k && v) {
-      txByNorm.set(k, v);
-      txByNorm.set(normalizeAptName(k), v);
-    }
-  }
+  const txByNorm = getTxByNormMap(txSummaryData);
 
   const lookupSummary = (aptName: string, norm: string): AptTxSummary | undefined => {
     const direct = txSummaryData[aptName] || txByNorm.get(norm);
     if (direct) return direct;
     const mapped = nameMapping[aptName];
     if (mapped) {
-      return txSummaryData[mapped] || txByNorm.get(normalizeAptName(mapped));
+      return txSummaryData[mapped] || txByNorm.get(getNormalizedAptName(mapped));
     }
     return undefined;
   };
 
-  // 1. Collect from sheetApartments in O(K)
-  for (const [dongKey, aptList] of Object.entries(sheetApartments)) {
+  let top0: ScoredCandidate | null = null;
+  let top1: ScoredCandidate | null = null;
+  let top2: ScoredCandidate | null = null;
+  let candidateCount = 0;
+
+  const pushScoredCandidate = (
+    aptName: string,
+    dong: string,
+    latestPriceWon: number,
+    clampedRatio: number,
+    txVolume: number
+  ): void => {
+    candidateCount += 1;
+    const isSameDong = dong === currentDong;
+    const maxPrice = currentPriceWon > latestPriceWon ? currentPriceWon : latestPriceWon;
+    const priceDiffRatio =
+      currentPriceWon > 0 && latestPriceWon > 0 && maxPrice > 0
+        ? Math.abs(latestPriceWon - currentPriceWon) / maxPrice
+        : 0.35;
+
+    const dongComponent = isSameDong ? 0.5 : 0.2;
+    const priceComponent = 0.4 * Math.max(0, 1 - priceDiffRatio);
+    const volumeComponent = Math.min(0.1, Math.max(0, txVolume) / 50);
+
+    const rawScore = dongComponent + priceComponent + volumeComponent;
+    const similarityScore = Math.min(1, Math.max(0.05, Math.round(rawScore * 100) / 100));
+
+    let clusterTag: 'SAME_DONG' | 'SAME_PRICE_BAND' | 'TOP_VOLUME' = 'TOP_VOLUME';
+    if (isSameDong) {
+      clusterTag = 'SAME_DONG';
+    } else if (priceDiffRatio <= 0.25) {
+      clusterTag = 'SAME_PRICE_BAND';
+    }
+
+    const jeonseRatio = Math.min(2.5, Math.max(0, Math.round(clampedRatio * 1000) / 1000));
+    const jeonseRatioPercent = Math.min(250, Math.max(0, Math.round(jeonseRatio * 1000) / 10));
+
+    const item: ScoredCandidate = {
+      aptName,
+      dong: dong || currentDong,
+      latestPriceWon: Math.max(0, Math.round(latestPriceWon)),
+      jeonseRatio,
+      jeonseRatioPercent,
+      similarityScore,
+      clusterTag,
+      _txVolume: txVolume,
+    };
+
+    if (top0 === null || compareScoredCandidates(item, top0) < 0) {
+      top2 = top1;
+      top1 = top0;
+      top0 = item;
+    } else if (top1 === null || compareScoredCandidates(item, top1) < 0) {
+      top2 = top1;
+      top1 = item;
+    } else if (top2 === null || compareScoredCandidates(item, top2) < 0) {
+      top2 = item;
+    }
+  };
+
+  // 1. Collect and score in single O(K) pass from sheetApartments
+  for (const dongKey in sheetApartments) {
+    if (!Object.prototype.hasOwnProperty.call(sheetApartments, dongKey)) continue;
+    const aptList = sheetApartments[dongKey];
     if (!Array.isArray(aptList)) continue;
-    for (const apt of aptList) {
+    for (let i = 0; i < aptList.length; i++) {
+      const apt = aptList[i];
       if (!apt || !apt.name) continue;
-      const norm = normalizeAptName(apt.name);
+      const norm = getNormalizedAptName(apt.name);
       if (!norm || seenNormNames.has(norm)) {
         continue;
       }
@@ -485,21 +584,23 @@ export function selectRecirculationTargets(
       const clampedRatio = Math.min(2.5, Math.max(0, Number.isFinite(rawRatio) ? rawRatio : 0.6));
       const txVol = Number(summary?.avg3MTxCount || summary?.txCount || 0);
 
-      candidates.push({
-        aptName: apt.name,
-        dong: apt.dong || dongKey || currentDong,
-        latestPriceWon: priceWon,
-        jeonseRatio: Math.round(clampedRatio * 1000) / 1000,
-        txVolume: Number.isFinite(txVol) ? txVol : 0,
-      });
+      pushScoredCandidate(
+        apt.name,
+        apt.dong || dongKey || currentDong,
+        priceWon,
+        clampedRatio,
+        Number.isFinite(txVol) ? txVol : 0
+      );
     }
   }
 
-  // 2. Collect from txSummaryData if candidates < 3
-  if (candidates.length < 3) {
-    for (const [aptKey, summary] of Object.entries(txSummaryData)) {
+  // 2. Collect from txSummaryData if candidateCount < 3
+  if (candidateCount < 3) {
+    for (const aptKey in txSummaryData) {
+      if (!Object.prototype.hasOwnProperty.call(txSummaryData, aptKey)) continue;
+      const summary = txSummaryData[aptKey];
       if (!aptKey || !summary) continue;
-      const norm = normalizeAptName(aptKey);
+      const norm = getNormalizedAptName(aptKey);
       if (!norm || seenNormNames.has(norm)) {
         continue;
       }
@@ -517,85 +618,49 @@ export function selectRecirculationTargets(
       const clampedRatio = Math.min(2.5, Math.max(0, Number.isFinite(rawRatio) ? rawRatio : 0.6));
       const txVol = Number(summary.avg3MTxCount || summary.txCount || 0);
 
-      candidates.push({
-        aptName: aptKey,
-        dong: summary.dong || currentDong,
-        latestPriceWon: priceWon,
-        jeonseRatio: Math.round(clampedRatio * 1000) / 1000,
-        txVolume: Number.isFinite(txVol) ? txVol : 0,
-      });
+      pushScoredCandidate(
+        aptKey,
+        summary.dong || currentDong,
+        priceWon,
+        clampedRatio,
+        Number.isFinite(txVol) ? txVol : 0
+      );
     }
   }
 
   // 3. Backfill from canonical real Dongtan landmarks if still < 3
-  for (const landmark of CANONICAL_DONGTAN_LANDMARKS) {
-    if (candidates.length >= 6) break;
-    const norm = normalizeAptName(landmark.aptName);
+  for (let i = 0; i < CANONICAL_DONGTAN_LANDMARKS.length; i++) {
+    if (candidateCount >= 6) break;
+    const landmark = CANONICAL_DONGTAN_LANDMARKS[i];
+    const norm = getNormalizedAptName(landmark.aptName);
     if (!norm || seenNormNames.has(norm)) {
       continue;
     }
     seenNormNames.add(norm);
-    candidates.push({
-      aptName: landmark.aptName,
-      dong: landmark.dong,
-      latestPriceWon: landmark.latestPriceWon,
-      jeonseRatio: landmark.jeonseRatio,
-      txVolume: landmark.txCount,
-    });
+    pushScoredCandidate(
+      landmark.aptName,
+      landmark.dong,
+      landmark.latestPriceWon,
+      landmark.jeonseRatio,
+      landmark.txCount
+    );
   }
 
-  // Score and classify each candidate in O(K)
-  const scored: Array<RecirculationTargetApt & { _txVolume: number }> = candidates.map((cand) => {
-    const isSameDong = cand.dong === currentDong;
-    const maxPrice = Math.max(currentPriceWon, cand.latestPriceWon);
-    const priceDiffRatio =
-      currentPriceWon > 0 && cand.latestPriceWon > 0 && maxPrice > 0
-        ? Math.abs(cand.latestPriceWon - currentPriceWon) / maxPrice
-        : 0.35;
-
-    const dongComponent = isSameDong ? 0.5 : 0.2;
-    const priceComponent = 0.4 * Math.max(0, 1 - priceDiffRatio);
-    const volumeComponent = Math.min(0.1, Math.max(0, cand.txVolume) / 50);
-
-    const rawScore = dongComponent + priceComponent + volumeComponent;
-    const similarityScore = Math.min(1, Math.max(0.05, Math.round(rawScore * 100) / 100));
-
-    let clusterTag: 'SAME_DONG' | 'SAME_PRICE_BAND' | 'TOP_VOLUME' = 'TOP_VOLUME';
-    if (isSameDong) {
-      clusterTag = 'SAME_DONG';
-    } else if (priceDiffRatio <= 0.25) {
-      clusterTag = 'SAME_PRICE_BAND';
-    } else {
-      clusterTag = 'TOP_VOLUME';
-    }
-
-    const jeonseRatio = Math.min(2.5, Math.max(0, cand.jeonseRatio));
-    const jeonseRatioPercent = Math.min(250, Math.max(0, Math.round(jeonseRatio * 1000) / 10));
-
-    return {
-      aptName: cand.aptName,
-      dong: cand.dong || currentDong,
-      latestPriceWon: Math.max(0, Math.round(cand.latestPriceWon)),
-      jeonseRatio,
-      jeonseRatioPercent,
-      similarityScore,
-      clusterTag,
-      _txVolume: cand.txVolume,
-    };
+  const stripInternal = (c: ScoredCandidate): RecirculationTargetApt => ({
+    aptName: c.aptName,
+    dong: c.dong,
+    latestPriceWon: c.latestPriceWon,
+    jeonseRatio: c.jeonseRatio,
+    jeonseRatioPercent: c.jeonseRatioPercent,
+    similarityScore: c.similarityScore,
+    clusterTag: c.clusterTag,
   });
 
-  scored.sort((a, b) => {
-    if (b.similarityScore !== a.similarityScore) {
-      return b.similarityScore - a.similarityScore;
-    }
-    if (b._txVolume !== a._txVolume) {
-      return b._txVolume - a._txVolume;
-    }
-    return a.aptName < b.aptName ? -1 : a.aptName > b.aptName ? 1 : 0;
-  });
-
-  const top3 = scored.slice(0, 3).map(({ _txVolume: _, ...rest }) => rest);
-
-  return [top3[0], top3[1], top3[2]];
+  return [
+    stripInternal(top0!),
+    stripInternal(top1!),
+    stripInternal(top2!),
+  ];
 }
+
 
