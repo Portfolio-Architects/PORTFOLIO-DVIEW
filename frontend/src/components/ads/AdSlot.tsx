@@ -40,6 +40,23 @@ import {
   CascadeFallbackStateMachine,
   createCascadeFallbackStateMachine,
   sendAdTelemetryBeacon,
+  UserAgentCategorySchema,
+  type UserAgentCategory,
+  AdTelemetryClosedLoopEventSchema,
+  type AdTelemetryClosedLoopEvent,
+  TelemetryApiResponseSchema,
+  type TelemetryApiResponse,
+  detectUserAgentCategory,
+  type ClosedLoopTelemetryInput,
+  sendTelemetry,
+  ClosedLoopSlotStatusSchema,
+  type ClosedLoopSlotStatus,
+  type ClosedLoopSlotState,
+  type ClosedLoopSlotAction,
+  createInitialClosedLoopState,
+  transitionClosedLoopState,
+  ClosedLoopTelemetryController,
+  createClosedLoopTelemetryController,
 } from '@/lib/ads/cascadeFallback';
 
 export {
@@ -70,6 +87,23 @@ export {
   CascadeFallbackStateMachine,
   createCascadeFallbackStateMachine,
   sendAdTelemetryBeacon,
+  UserAgentCategorySchema,
+  type UserAgentCategory,
+  AdTelemetryClosedLoopEventSchema,
+  type AdTelemetryClosedLoopEvent,
+  TelemetryApiResponseSchema,
+  type TelemetryApiResponse,
+  detectUserAgentCategory,
+  type ClosedLoopTelemetryInput,
+  sendTelemetry,
+  ClosedLoopSlotStatusSchema,
+  type ClosedLoopSlotStatus,
+  type ClosedLoopSlotState,
+  type ClosedLoopSlotAction,
+  createInitialClosedLoopState,
+  transitionClosedLoopState,
+  ClosedLoopTelemetryController,
+  createClosedLoopTelemetryController,
 };
 
 export interface AdSlotProps {
@@ -87,6 +121,7 @@ export interface AdSlotProps {
   maxRefreshes?: number;
   cpaCampaignId?: CpaCampaignId;
   apartmentName?: string;
+  dong?: string;
   cascadeTimeoutMs?: number;
   customCpaPayload?: Partial<NativeCpaFallbackPayload>;
 }
@@ -173,6 +208,7 @@ export function AdSlot({
   maxRefreshes = MAX_REFRESHES_PER_SLOT,
   cpaCampaignId,
   apartmentName = 'GLOBAL',
+  dong = '',
   cascadeTimeoutMs = CASCADE_TIMEOUT_MS,
   customCpaPayload,
 }: AdSlotProps) {
@@ -245,6 +281,28 @@ export function AdSlot({
   const effectiveCampaignId =
     cpaCampaignId ?? selectDeterministicCampaignId(baseObserverSlotId);
 
+  const getSlotTelemetryMetrics = useCallback(
+    (minimumDwellMs = 0) => {
+      const activeKey = registeredKeyRef.current || baseObserverSlotId;
+      const managerState = adRefreshManager.getState(activeKey);
+      const computedDwell =
+        managerState && managerState.dwellTimeMs > 0
+          ? managerState.dwellTimeMs
+          : lastRefreshAtRef.current !== null
+          ? Math.max(0, Date.now() - lastRefreshAtRef.current)
+          : 0;
+      const dwellTimeMs = Math.max(minimumDwellMs, computedDwell);
+      const intersectionRatio =
+        managerState && managerState.intersectionRatio > 0
+          ? managerState.intersectionRatio
+          : isViewableRef.current
+          ? Math.min(1, Math.max(0.5, viewabilityThreshold))
+          : 0;
+      return { dwellTimeMs, intersectionRatio };
+    },
+    [baseObserverSlotId, viewabilityThreshold]
+  );
+
   const effectiveRefreshKey = (() => {
     if (isPlaceholder || isAdBlockActive) {
       return refreshKey;
@@ -304,16 +362,28 @@ export function AdSlot({
           cpaCampaignId: effectiveCampaignId,
           overrides: customCpaPayload,
         });
-        sendAdTelemetryBeacon({
+        const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+        sendTelemetry({
           slotId: effectiveSlotId,
           eventType: 'UNFILLED',
           campaignId: payload.cpaCampaignId,
           apartmentName,
+          dong,
+          dwellTimeMs,
+          intersectionRatio,
           timestamp: new Date().toISOString(),
         });
       }
     },
-    [clearCascadeTimeout, effectiveSlotId, effectiveCampaignId, customCpaPayload, apartmentName]
+    [
+      clearCascadeTimeout,
+      effectiveSlotId,
+      effectiveCampaignId,
+      customCpaPayload,
+      apartmentName,
+      dong,
+      getSlotTelemetryMetrics,
+    ]
   );
 
   const discardLateFilledResponse = useCallback(() => {
@@ -459,6 +529,19 @@ export function AdSlot({
     }
   }, [clientId, isAdBlockActive, isPlaceholder, effectiveCascadeTimeoutMs, startCascadeTimeout]);
 
+  const latestTelemetryContextRef = useRef({
+    apartmentName,
+    dong,
+    campaignId: cpaPayload.cpaCampaignId,
+    effectiveSlotId,
+  });
+  latestTelemetryContextRef.current = {
+    apartmentName,
+    dong,
+    campaignId: cpaPayload.cpaCampaignId,
+    effectiveSlotId,
+  };
+
   // Dispatch ADBLOCK_FALLBACK beacon when adblock fallback is active
   useEffect(() => {
     if (!isAdBlockActive) {
@@ -467,15 +550,26 @@ export function AdSlot({
     }
     if (!adblockBeaconSentRef.current) {
       adblockBeaconSentRef.current = true;
-      sendAdTelemetryBeacon({
+      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+      sendTelemetry({
         slotId: effectiveSlotId,
         eventType: 'ADBLOCK_FALLBACK',
         campaignId: cpaPayload.cpaCampaignId,
         apartmentName,
+        dong,
+        dwellTimeMs,
+        intersectionRatio,
         timestamp: new Date().toISOString(),
       });
     }
-  }, [isAdBlockActive, effectiveSlotId, cpaPayload.cpaCampaignId, apartmentName]);
+  }, [
+    isAdBlockActive,
+    effectiveSlotId,
+    cpaPayload.cpaCampaignId,
+    apartmentName,
+    dong,
+    getSlotTelemetryMetrics,
+  ]);
 
   // Track external refreshKey prop transitions with maxRefreshes cap & dwell-window deduplication
   const prevRefreshKeyRef = useRef(refreshKey);
@@ -512,6 +606,7 @@ export function AdSlot({
         return;
       }
 
+      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
       totalRefreshCountRef.current = targetRefreshCount;
       lastRefreshAtRef.current = now;
       currentCycleRef.current += 1;
@@ -520,6 +615,16 @@ export function AdSlot({
       resetInsDomForRefresh();
       setTotalRefreshCount(totalRefreshCountRef.current);
       executeAdPush();
+      sendTelemetry({
+        slotId: effectiveSlotId,
+        eventType: 'IMPRESSION',
+        campaignId: cpaPayload.cpaCampaignId,
+        apartmentName,
+        dong,
+        dwellTimeMs,
+        intersectionRatio,
+        timestamp: new Date(now).toISOString(),
+      });
     }
   }, [
     refreshKey,
@@ -530,6 +635,11 @@ export function AdSlot({
     baseObserverSlotId,
     resetInsDomForRefresh,
     executeAdPush,
+    effectiveSlotId,
+    cpaPayload.cpaCampaignId,
+    apartmentName,
+    dong,
+    getSlotTelemetryMetrics,
   ]);
 
   // Smart Viewability & 30s Dwell Refresh Observer Binding
@@ -599,6 +709,11 @@ export function AdSlot({
         return;
       }
 
+      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(
+        effectiveDwellThresholdMs
+      );
+      const ctx = latestTelemetryContextRef.current;
+
       totalRefreshCountRef.current += 1;
       lastRefreshAtRef.current = now;
       currentCycleRef.current += 1;
@@ -607,6 +722,16 @@ export function AdSlot({
       executeAdPush();
       setIsAdLoaded(false);
       setTotalRefreshCount(totalRefreshCountRef.current);
+      sendTelemetry({
+        slotId: ctx.effectiveSlotId,
+        eventType: 'IMPRESSION',
+        campaignId: ctx.campaignId,
+        apartmentName: ctx.apartmentName,
+        dong: ctx.dong,
+        dwellTimeMs,
+        intersectionRatio,
+        timestamp: new Date(now).toISOString(),
+      });
     };
 
     localManager.observe(registeredKey, targetEl, handleDwellRefresh, {
@@ -1085,16 +1210,20 @@ export function AdSlot({
 
       if (clickBeaconSentCycleRef.current !== currentCycleRef.current) {
         clickBeaconSentCycleRef.current = currentCycleRef.current;
-        sendAdTelemetryBeacon({
+        const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+        sendTelemetry({
           slotId: effectiveSlotId,
           eventType: 'FALLBACK_CLICK',
           campaignId: cpaPayload.cpaCampaignId,
           apartmentName,
+          dong,
+          dwellTimeMs,
+          intersectionRatio,
           timestamp: new Date().toISOString(),
         });
       }
     },
-    [effectiveSlotId, cpaPayload.cpaCampaignId, apartmentName]
+    [effectiveSlotId, cpaPayload.cpaCampaignId, apartmentName, dong, getSlotTelemetryMetrics]
   );
 
   const handleAdBlockFallbackClick = useCallback(() => {
@@ -1104,15 +1233,19 @@ export function AdSlot({
 
     if (clickBeaconSentCycleRef.current !== currentCycleRef.current) {
       clickBeaconSentCycleRef.current = currentCycleRef.current;
-      sendAdTelemetryBeacon({
+      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+      sendTelemetry({
         slotId: effectiveSlotId,
         eventType: 'FALLBACK_CLICK',
         campaignId: cpaPayload.cpaCampaignId,
         apartmentName,
+        dong,
+        dwellTimeMs,
+        intersectionRatio,
         timestamp: new Date().toISOString(),
       });
     }
-  }, [effectiveSlotId, cpaPayload.cpaCampaignId, apartmentName]);
+  }, [effectiveSlotId, cpaPayload.cpaCampaignId, apartmentName, dong, getSlotTelemetryMetrics]);
 
   const isCascadeFallbackActive =
     cascadeStatus === 'FALLBACK_ACTIVE' || cascadeStatus === 'CLICKED';

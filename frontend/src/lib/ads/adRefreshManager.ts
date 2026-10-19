@@ -663,7 +663,10 @@ export class AdRefreshManager implements SmartViewabilityObserver {
               if (typeof legacySlot.onRefresh === 'function') {
                 legacySlot.onRefresh(entry.state.refreshCount);
               }
-              if (typeof legacySlot.onRefreshKeyChange === 'function') {
+              if (
+                typeof legacySlot.onRefreshKeyChange === 'function' &&
+                legacySlot.onRefreshKeyChange !== legacySlot.onRefresh
+              ) {
                 legacySlot.onRefreshKeyChange(entry.state.refreshCount);
               }
             } catch (err) {
@@ -966,7 +969,10 @@ export class AdRefreshManager implements SmartViewabilityObserver {
       if (typeof slot.onRefresh === 'function') {
         slot.onRefresh(nextKey);
       }
-      if (typeof slot.onRefreshKeyChange === 'function') {
+      if (
+        typeof slot.onRefreshKeyChange === 'function' &&
+        slot.onRefreshKeyChange !== slot.onRefresh
+      ) {
         slot.onRefreshKeyChange(nextKey);
       }
     } catch (error) {
@@ -1087,5 +1093,23 @@ export {
   CascadeFallbackStateMachine,
   createCascadeFallbackStateMachine,
   sendAdTelemetryBeacon,
+  UserAgentCategorySchema,
+  type UserAgentCategory,
+  AdTelemetryClosedLoopEventSchema,
+  type AdTelemetryClosedLoopEvent,
+  TelemetryApiResponseSchema,
+  type TelemetryApiResponse,
+  detectUserAgentCategory,
+  type ClosedLoopTelemetryInput,
+  sendTelemetry,
+  ClosedLoopSlotStatusSchema,
+  type ClosedLoopSlotStatus,
+  type ClosedLoopSlotState,
+  type ClosedLoopSlotAction,
+  createInitialClosedLoopState,
+  transitionClosedLoopState,
+  ClosedLoopTelemetryController,
+  createClosedLoopTelemetryController,
 } from './cascadeFallback';
+
 

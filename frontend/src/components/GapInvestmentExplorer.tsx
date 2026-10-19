@@ -76,9 +76,9 @@ const GapComplexCard = React.memo(function GapComplexCard({
         </div>
         <div className="flex flex-col gap-1 items-end shrink-0">
           <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border transition-all ${
-            item.gapScore >= 80 ? 'bg-[#fff3e0] dark:bg-[#ff8f00]/10 text-[#ff8f00] border-[#ff8f00]/20 animate-emerald-pulse' :
+            item.gapScore >= 80 ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 animate-emerald-pulse' :
             item.gapScore >= 60 ? 'bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/20' :
-            'bg-[#fffbeb] dark:bg-[#d97706]/10 text-[#d97706] border-[#d97706]/20'
+            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300/60 dark:border-slate-700'
           }`}>
             {item.gapScore >= 80 ? 'S등급 (우수)' : item.gapScore >= 60 ? 'A등급 (보통)' : 'B등급 (관망)'}
           </span>

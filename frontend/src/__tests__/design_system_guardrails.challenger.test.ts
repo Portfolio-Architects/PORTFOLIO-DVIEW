@@ -17,6 +17,7 @@ import path from 'path';
 import { getAdSlotMinHeightClass } from '@/components/ads/AdSlot';
 
 const COMPONENTS_DIR = path.resolve(__dirname, '../components');
+const APP_DIR = path.resolve(__dirname, '../app');
 const MACRO_DASHBOARD_FILE = path.join(COMPONENTS_DIR, 'MacroDashboardClient.tsx');
 const APT_MODAL_FILE = path.join(COMPONENTS_DIR, 'apartment/ApartmentModal.tsx');
 
@@ -47,10 +48,12 @@ function getSourceFiles(dir: string): string[] {
 
 describe('Design System Static Verification Guardrails (Challenger Suite)', () => {
   const componentFiles = getSourceFiles(COMPONENTS_DIR);
+  const appFiles = getSourceFiles(APP_DIR);
 
   // Pre-condition: Guarantee that files are actively discovered and scanned (No vacuous truth)
-  test('Sanity Pre-condition: Discovers active component source files', () => {
+  test('Sanity Pre-condition: Discovers active component and app source files', () => {
     expect(componentFiles.length).toBeGreaterThanOrEqual(40);
+    expect(appFiles.length).toBeGreaterThanOrEqual(10);
   });
 
   // =========================================================================
@@ -70,10 +73,10 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       expect('순수 텍스트 라벨'.match(emojiRegex)).toBeNull();
     });
 
-    test('1.2 Scanning frontend/src/components/ must detect exactly 0 unicode sub-emojis', () => {
+    test('1.2 Scanning frontend/src/components/ and frontend/src/app/ must detect exactly 0 unicode sub-emojis', () => {
       const violations: { file: string; line: number; match: string; snippet: string }[] = [];
 
-      for (const file of componentFiles) {
+      for (const file of [...componentFiles, ...appFiles]) {
         const content = fs.readFileSync(file, 'utf8');
         const lines = content.split('\n');
 
@@ -81,7 +84,7 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
           const match = lineText.match(emojiRegex);
           if (match) {
             violations.push({
-              file: path.relative(COMPONENTS_DIR, file).replace(/\\/g, '/'),
+              file: path.relative(path.resolve(__dirname, '..'), file).replace(/\\/g, '/'),
               line: idx + 1,
               match: match[0],
               snippet: lineText.trim().slice(0, 80),
@@ -100,9 +103,9 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
   // SUITE 2: Prohibited Color Classes (Slate & Emerald/Blue Enforcement)
   // =========================================================================
   describe('Suite 2: Prohibited Color Classes & Non-Standard Palette Guardrail', () => {
-    // Prohibited palettes: pink, purple, fuchsia, violet, indigo, yellow, orange, amber, rose, zinc, neutral, stone, gray, teal, cyan
+    // Prohibited palettes: pink, purple, fuchsia, violet, indigo, yellow, orange, amber, rose, zinc, neutral, stone, gray, teal, cyan, sky, green
     const prohibitedColorRegex =
-      /\b(?:bg|text|border|ring|fill|stroke|from|to|via)-(?:pink|purple|fuchsia|violet|indigo|yellow|orange|amber|rose|zinc|neutral|stone|gray|teal|cyan)(?:-[a-z0-9/\[\]]+)?\b/i;
+      /\b(?:bg|text|border|ring|fill|stroke|from|to|via)-(?:pink|purple|fuchsia|violet|indigo|yellow|orange|amber|rose|zinc|neutral|stone|gray|teal|cyan|sky|green)(?:-[a-z0-9/\[\]]+)?\b/i;
 
     test('2.1 Verifies color regex detector sensitivity against positive synthetic controls', () => {
       expect('bg-purple-600'.match(prohibitedColorRegex)).not.toBeNull();
@@ -112,6 +115,8 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       expect('text-amber-600'.match(prohibitedColorRegex)).not.toBeNull();
       expect('bg-teal-500'.match(prohibitedColorRegex)).not.toBeNull();
       expect('text-cyan-400'.match(prohibitedColorRegex)).not.toBeNull();
+      expect('bg-sky-600'.match(prohibitedColorRegex)).not.toBeNull();
+      expect('text-green-600'.match(prohibitedColorRegex)).not.toBeNull();
       expect('from-indigo-500 to-purple-600'.match(prohibitedColorRegex)).not.toBeNull();
 
       // Standard allowed tokens must NOT trigger
@@ -145,6 +150,52 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       // Assert zero violations
       expect(violations).toEqual([]);
       expect(violations.length).toBe(0);
+    });
+
+    test('2.3 Phase 5 Invariant 3: Eliminates prohibited hex color tokens (#ff8f00, #7c3aed, #f9ce3f, #e1306c, #833ab4) in AptCompareModal, InAppBrowserBypass, ApartmentModal & InfraAnalysisSection', () => {
+      const prohibitedHexRegex = /#(?:ff8f00|7c3aed|f9ce3f|e1306c|833ab4)\b/i;
+
+      // Verify positive synthetic detection
+      expect('hover:bg-[#ff8f00]'.match(prohibitedHexRegex)).not.toBeNull();
+      expect('bg-[#7c3aed]'.match(prohibitedHexRegex)).not.toBeNull();
+      expect('from-[#f9ce3f] via-[#e1306c] to-[#833ab4]'.match(prohibitedHexRegex)).not.toBeNull();
+      expect('hover:bg-emerald-700 bg-slate-800 bg-blue-600'.match(prohibitedHexRegex)).toBeNull();
+
+      const aptCompareFile = path.join(COMPONENTS_DIR, 'consumer/AptCompareModal.tsx');
+      const inAppBypassFile = path.join(COMPONENTS_DIR, 'pwa/InAppBrowserBypass.tsx');
+      const infraSectionFile = path.join(COMPONENTS_DIR, 'apartment-modal/InfraAnalysisSection.tsx');
+
+      const aptCompareContent = fs.readFileSync(aptCompareFile, 'utf8');
+      const inAppBypassContent = fs.readFileSync(inAppBypassFile, 'utf8');
+      const aptModalContent = fs.readFileSync(APT_MODAL_FILE, 'utf8');
+      const infraSectionContent = fs.readFileSync(infraSectionFile, 'utf8');
+
+      expect(aptCompareContent.match(prohibitedHexRegex)).toBeNull();
+      expect(aptCompareContent).toContain('hover:bg-emerald-700');
+
+      expect(inAppBypassContent.match(prohibitedHexRegex)).toBeNull();
+      expect(inAppBypassContent).toContain('bg-slate-800');
+
+      expect(aptModalContent.match(prohibitedHexRegex)).toBeNull();
+      expect(infraSectionContent.match(prohibitedHexRegex)).toBeNull();
+      expect(infraSectionContent).toContain('bg-blue-600');
+
+      // Scan all component files for prohibited hex tokens
+      const hexViolations: { file: string; line: number; token: string }[] = [];
+      for (const file of componentFiles) {
+        const content = fs.readFileSync(file, 'utf8');
+        content.split('\n').forEach((lineText, idx) => {
+          const match = lineText.match(prohibitedHexRegex);
+          if (match) {
+            hexViolations.push({
+              file: path.relative(COMPONENTS_DIR, file).replace(/\\/g, '/'),
+              line: idx + 1,
+              token: match[0],
+            });
+          }
+        });
+      }
+      expect(hexViolations).toEqual([]);
     });
   });
 

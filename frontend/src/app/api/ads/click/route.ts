@@ -7,7 +7,18 @@ import { checkRateLimit } from '@/lib/api/rateLimiter';
 import {
   AdTelemetryBeaconSchema,
   AdTelemetryEventTypeSchema,
+  AdTelemetryClosedLoopEventSchema,
+  type AdTelemetryClosedLoopEvent,
+  TelemetryApiResponseSchema,
+  type TelemetryApiResponse,
 } from '@/lib/ads/cascadeFallback';
+
+export {
+  AdTelemetryClosedLoopEventSchema,
+  type AdTelemetryClosedLoopEvent,
+  TelemetryApiResponseSchema,
+  type TelemetryApiResponse,
+};
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -35,6 +46,7 @@ const LegacyAdClickInputSchema = z.object({
 });
 
 export const AdClickInputSchema = z.union([
+  AdTelemetryClosedLoopEventSchema,
   ExtendedTelemetryBeaconSchema,
   LegacyAdClickInputSchema,
 ]);
@@ -79,6 +91,10 @@ export async function POST(request: NextRequest) {
     const apartmentName = data.apartmentName;
     const dong = data.dong;
     const clickedAt = isBeaconPayload ? data.timestamp : data.clickedAt;
+    const dwellTimeMs = isBeaconPayload ? data.dwellTimeMs : 0;
+    const intersectionRatio = isBeaconPayload ? data.intersectionRatio : 0;
+    const userAgentCategory = isBeaconPayload ? data.userAgentCategory : 'DESKTOP';
+    const persistedId = `telemetry_${slotId}_${Date.now()}`;
 
     logger.info('AdClick.POST', `Ad telemetry [${eventType}]: ${adId} at ${apartmentName}`, {
       adId,
@@ -87,6 +103,9 @@ export async function POST(request: NextRequest) {
       campaignId,
       apartmentName,
       dong,
+      dwellTimeMs,
+      intersectionRatio,
+      userAgentCategory,
       clickedAt,
     });
 
@@ -100,6 +119,9 @@ export async function POST(request: NextRequest) {
           ...(campaignId ? { campaignId } : {}),
           apartmentName,
           dong,
+          dwellTimeMs,
+          intersectionRatio,
+          userAgentCategory,
           clickedAt: new Date(clickedAt),
           serverTimestamp: new Date(),
         })
@@ -123,8 +145,14 @@ export async function POST(request: NextRequest) {
     }
 
     return apiSuccess(
-      { message: 'Click logged successfully', slotId, eventType, ...(campaignId ? { campaignId } : {}) },
-      { message: 'Click logged successfully' }
+      {
+        message: 'Click logged successfully',
+        slotId,
+        eventType,
+        persistedId,
+        ...(campaignId ? { campaignId } : {}),
+      },
+      { message: 'Click logged successfully', persistedId }
     );
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
@@ -132,4 +160,5 @@ export async function POST(request: NextRequest) {
     return apiError('SERVER_ERROR', 'Server error', 500);
   }
 }
+
 

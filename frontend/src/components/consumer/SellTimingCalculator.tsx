@@ -15,6 +15,8 @@ import { localCache } from '@/lib/utils/localCache';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
+import { sendTelemetry } from '@/lib/ads/cascadeFallback';
+
 
 interface SellTimingCalculatorProps {
   isOpen: boolean;
@@ -463,20 +465,16 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   };
 
   const handleB2BClick = (adType: 'broker' | 'tax_expert') => {
-    if (db && selectedApt) {
-      const clickLog = {
-        apartmentName: selectedApt.name,
-        dong: selectedApt.dong,
-        adType,
-        adTitle: adType === 'broker' ? '동탄 제휴 부동산 매물 접수' : '양도세 절세 전문 세무사 1:1 연계',
-        userId: userId || 'anonymous',
-        deviceType: typeof window !== 'undefined' && window.innerWidth < 768 ? 'mobile' : 'desktop',
-        timestamp: serverTimestamp()
-      };
-      throttle(() => addDoc(collection(db, 'ad_clicks'), clickLog)).catch(err => {
-        logger.warn('SellTimingCalculator', '[CPA Tracker] Failed to log ad click', { apartmentName: selectedApt?.name, adType }, err);
-      });
-    }
+    const slotId = adType === 'broker' ? 'sell-timing-broker' : 'sell-timing-tax-expert';
+    sendTelemetry({
+      eventType: 'FALLBACK_CLICK',
+      slotId,
+      apartmentName: selectedApt?.name || 'GLOBAL',
+      dong: selectedApt?.dong || '',
+      dwellTimeMs: 0,
+      intersectionRatio: 1,
+      timestamp: new Date().toISOString(),
+    });
 
     const link = adType === 'broker'
       ? 'https://m.land.naver.com/' // Placeholder for partner broker landing page

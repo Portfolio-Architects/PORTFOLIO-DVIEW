@@ -113,7 +113,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
             S: { bg: 'bg-[#e6f7f3]', text: 'text-[#057e77] dark:text-emerald-400', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#057e77]/5', scoreText: 'text-[#057e77] dark:text-emerald-400' },
             A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
-            B: { bg: 'bg-[#f5f3ff]', text: 'text-[#4f46e5]', border: 'border-[#c7d2fe]/50', descBg: 'bg-[#4f46e5]/5', scoreText: 'text-[#4f46e5]' },
+            B: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600' },
             C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
           };
           const colors = scoreColors[infraScoreInfo.grade] || scoreColors.C;
@@ -178,8 +178,8 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
             <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
               {[
                 { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#057e77', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
-                { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#7c3aed', bgFrom: '#f5f3ff', bgTo: '#ede9fe' },
-                { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0891b2', bgFrom: '#ecfeff', bgTo: '#cffafe' },
+                { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
+                { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0284c7', bgFrom: '#f0f9ff', bgTo: '#e0f2fe' },
               ].filter(s => s.dist != null && s.dist > 0).map(station => {
                 const dist = station.dist ?? 0;
                 const percent = Math.min((dist / 1200) * 100, 100);
@@ -256,7 +256,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
         {/* ─── 생활 인프라 Section ─── */}
         {report.metrics.restaurantDensity != null && report.metrics.restaurantDensity > 0 && (
           <div>
-            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#f59e0b] pl-2.5">
+            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
               <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">생활권 인프라</span>
             </div>
             <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-1 md:gap-3">
@@ -264,36 +264,36 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                 const restaurantData = Object.entries(report.metrics.restaurantCategories || {}).map(([cat, cnt]) => {
                   let tag = '기타';
                   let color = '#64748b'; // slate-500
-                  let bg = 'bg-[#64748b]';
+                  let bg = 'bg-slate-500';
                   
                   if (cat.includes('한식') || cat.includes('구이') || cat.includes('갈비') || cat.includes('삼겹살') || cat.includes('육류') || cat.includes('탕') || cat.includes('찌개') || cat.includes('백반')) {
                     tag = '한식/고기';
-                    color = '#e11d48'; // red-600
-                    bg = 'bg-[#e11d48]';
+                    color = '#dc2626'; // red-600
+                    bg = 'bg-red-600';
                   } else if (cat.includes('커피') || cat.includes('카페') || cat.includes('디저트') || cat.includes('찻집') || cat.includes('제과') || cat.includes('빵')) {
                     tag = '카페/음료';
-                    color = '#b45309'; // slate-700
-                    bg = 'bg-[#b45309]';
+                    color = '#334155'; // slate-700
+                    bg = 'bg-slate-700';
                   } else if (cat.includes('일식') || cat.includes('회') || cat.includes('초밥') || cat.includes('돈까스') || cat.includes('스시')) {
                     tag = '일식/일반';
-                    color = '#0284c7'; // sky-600
-                    bg = 'bg-[#0284c7]';
+                    color = '#2563eb'; // blue-600
+                    bg = 'bg-blue-600';
                   } else if (cat.includes('중식') || cat.includes('중국') || cat.includes('짜장') || cat.includes('짬뽕')) {
                     tag = '중식/아시안';
-                    color = '#ea580c'; // emerald-600
-                    bg = 'bg-[#ea580c]';
+                    color = '#059669'; // emerald-600
+                    bg = 'bg-emerald-600';
                   } else if (cat.includes('양식') || cat.includes('경양식') || cat.includes('피자') || cat.includes('파스타') || cat.includes('스테이크') || cat.includes('뷔페') || cat.includes('패스트')) {
                     tag = '양식/양식';
-                    color = '#7c3aed'; // blue-600
-                    bg = 'bg-[#7c3aed]';
+                    color = '#2563eb'; // blue-600
+                    bg = 'bg-blue-600';
                   } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
                     tag = '분식/간식';
                     color = '#057e77'; // emerald-600
-                    bg = 'bg-[#057e77]';
+                    bg = 'bg-emerald-600';
                   } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
                     tag = '치킨/주점';
-                    color = '#f59e0b'; // slate-600
-                    bg = 'bg-[#f59e0b]';
+                    color = '#475569'; // slate-600
+                    bg = 'bg-slate-600';
                   }
                   return { cat, cnt: cnt as number, tag, color, bg };
                 });
@@ -315,7 +315,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                       <span className="text-[13px] md:text-[14px] font-extrabold text-secondary/80 truncate pr-1">
                         음식점·카페·500m
                       </span>
-                      <span className="w-2 h-2 rounded-full shrink-0 bg-[#f59e0b]" />
+                      <span className="w-2 h-2 rounded-full shrink-0 bg-blue-600" />
                     </div>
                     
                     <div className="flex items-baseline gap-0.5 mb-4 whitespace-nowrap">

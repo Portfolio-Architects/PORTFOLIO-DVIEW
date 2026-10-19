@@ -274,7 +274,7 @@ const ChopoomaCuration = React.memo(function ChopoomaCuration({
             ))}
           </div>
 
-          <div className="bg-[#fff3e0] text-[#ff8f00] px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-[#ff8f00]/10 shrink-0 self-start sm:self-auto">
+          <div className="bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-emerald-500/20 shrink-0 self-start sm:self-auto">
             총 {chopoomaList.length}개 매칭
           </div>
         </div>

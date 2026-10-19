@@ -677,14 +677,14 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
     adRefreshManager.registerSlot(slotCh02Id, {
       domElement: ch02AdContainerRef.current,
-      onRefreshKeyChange: (nextKey) => setCh02AdRefreshKey(nextKey),
-      onRefresh: (nextKey) => setCh02AdRefreshKey(nextKey),
+      onRefreshKeyChange: setCh02AdRefreshKey,
+      onRefresh: setCh02AdRefreshKey,
     });
 
     adRefreshManager.registerSlot(slotCh05Id, {
       domElement: ch05AdContainerRef.current,
-      onRefreshKeyChange: (nextKey) => setCh05AdRefreshKey(nextKey),
-      onRefresh: (nextKey) => setCh05AdRefreshKey(nextKey),
+      onRefreshKeyChange: setCh05AdRefreshKey,
+      onRefresh: setCh05AdRefreshKey,
     });
 
     let observer: IntersectionObserver | null = null;
@@ -1102,6 +1102,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
             minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
             fallbackType="dashboard-promo"
             refreshKey={ch02AdRefreshKey}
+            apartmentName={report.apartmentName}
+            dong={report.dong || '동탄'}
           />
         </div>
 
@@ -1310,6 +1312,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
             minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
             fallbackType="mbti-promo"
             refreshKey={ch05AdRefreshKey}
+            apartmentName={report.apartmentName}
+            dong={report.dong || '동탄'}
           />
         </div>
 

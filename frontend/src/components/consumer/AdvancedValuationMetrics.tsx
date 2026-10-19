@@ -696,7 +696,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                       <div className="flex items-center gap-2">
                         <span className={`px-2.5 py-1 rounded-lg text-[12px] font-extrabold shadow-sm ${
                           vm.utilityScoreResult.total >= 130
-                            ? 'bg-[#fff3e0] text-[#ff8f00]'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
                             : vm.utilityScoreResult.total >= 100
                             ? 'bg-[#e6f3f0] dark:bg-[#057e77]/20 text-[#057e77] dark:text-emerald-400'
                             : 'bg-slate-100 text-blue-600'

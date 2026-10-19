@@ -337,7 +337,7 @@ export const RegionAccordion = React.memo(function RegionAccordion({
 
                 <div className="flex items-center gap-3 shrink-0">
                   {/* volume info */}
-                  <span className="hidden sm:inline-flex text-[11px] font-bold text-[#ff8f00] bg-[#fff3e0] px-2 py-[3.5px] rounded-[6px]">
+                  <span className="hidden sm:inline-flex text-[11px] font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 px-2 py-[3.5px] rounded-[6px]">
                     90일 거래 {group.recentTxCount || 0}건
                   </span>
 

@@ -429,6 +429,29 @@ export function sendAdTelemetryBeacon(
   const serialized = JSON.stringify(parsed.data);
 
   try {
+    if (
+      typeof window !== 'undefined' &&
+      typeof (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag === 'function'
+    ) {
+      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
+        'event',
+        'ad_telemetry',
+        {
+          event_category: parsed.data.eventType,
+          event_label: parsed.data.slotId,
+          slot_id: parsed.data.slotId,
+          event_type: parsed.data.eventType,
+          apartment_name: parsed.data.apartmentName,
+          campaign_id: parsed.data.campaignId,
+          timestamp: parsed.data.timestamp,
+        }
+      );
+    }
+  } catch {
+    // Swallow synchronous GA4 exception (Delta Jank = 0ms)
+  }
+
+  try {
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
       const queued = navigator.sendBeacon(endpoint, serialized);
       if (queued) {
@@ -459,3 +482,435 @@ export function sendAdTelemetryBeacon(
 
   return false;
 }
+
+// ============================================================================
+// Phase 5: Yield Protection Closed-Loop Telemetry & Deterministic State Machine
+// ============================================================================
+
+export const UserAgentCategorySchema = z.enum([
+  'DESKTOP',
+  'MOBILE_WEB',
+  'IN_APP_BROWSER',
+]);
+
+export type UserAgentCategory = z.infer<typeof UserAgentCategorySchema>;
+
+/**
+ * Phase 5 Section 3.5 Closed-Loop Telemetry Event Schema
+ */
+export const AdTelemetryClosedLoopEventSchema = z.object({
+  eventType: z.enum([
+    'IMPRESSION',
+    'VIEWABLE_IMPRESSION',
+    'CLICK',
+    'UNFILLED',
+    'ADBLOCK_FALLBACK',
+    'FALLBACK_CLICK',
+  ]),
+  slotId: z.string().min(1),
+  apartmentName: z.string().default('GLOBAL'),
+  dong: z.string().default(''),
+  dwellTimeMs: z.number().nonnegative().default(0),
+  intersectionRatio: z.number().min(0).max(1).default(0),
+  userAgentCategory: UserAgentCategorySchema.optional().default('DESKTOP'),
+  timestamp: z.string().datetime(),
+  campaignId: z.string().optional(),
+});
+
+export type AdTelemetryClosedLoopEvent = z.infer<typeof AdTelemetryClosedLoopEventSchema>;
+
+/**
+ * Phase 5 Section 3.5 Telemetry API Response Schema
+ */
+export const TelemetryApiResponseSchema = z.object({
+  success: z.boolean(),
+  persistedId: z.string().optional(),
+  error: z.string().optional(),
+});
+
+export type TelemetryApiResponse = z.infer<typeof TelemetryApiResponseSchema>;
+
+/**
+ * Deterministically classifies User-Agent string into DESKTOP, MOBILE_WEB, or IN_APP_BROWSER.
+ * Complexity: Time O(1), Space O(1), Side-effects: False.
+ */
+export function detectUserAgentCategory(uaInput?: string): UserAgentCategory {
+  const rawUa =
+    typeof uaInput === 'string'
+      ? uaInput
+      : typeof navigator !== 'undefined' && typeof navigator.userAgent === 'string'
+      ? navigator.userAgent
+      : '';
+  const ua = rawUa.toLowerCase();
+
+  if (/kakaotalk|naver|line|instagram|fb_iab|fb4a|fban|fbios|twitter|twttr|wv/i.test(ua)) {
+    return 'IN_APP_BROWSER';
+  }
+  if (/android|iphone|ipad|ipod|mobile/i.test(ua)) {
+    return 'MOBILE_WEB';
+  }
+  return 'DESKTOP';
+}
+
+export type ClosedLoopTelemetryInput = Omit<
+  z.input<typeof AdTelemetryClosedLoopEventSchema>,
+  'userAgentCategory' | 'timestamp'
+> & {
+  userAgentCategory?: UserAgentCategory;
+  timestamp?: string;
+};
+
+/**
+ * Dispatches a Phase 5 AdTelemetryClosedLoopEvent to both GA4 custom event (`ad_telemetry`)
+ * and `/api/ads/click` (`ad_clicks` collection) via non-blocking `navigator.sendBeacon`
+ * with `fetch(..., { keepalive: true })` fallback.
+ * Complexity: Time O(1), Space O(1), Side-effects: True (Beacon + GA4).
+ */
+export function sendTelemetry(
+  eventInput: ClosedLoopTelemetryInput,
+  endpoint: string = '/api/ads/click'
+): boolean {
+  const candidate = {
+    ...eventInput,
+    userAgentCategory: eventInput.userAgentCategory ?? detectUserAgentCategory(),
+    timestamp: eventInput.timestamp ?? new Date().toISOString(),
+  };
+
+  const parsed = AdTelemetryClosedLoopEventSchema.safeParse(candidate);
+  if (!parsed.success) {
+    return false;
+  }
+
+  const serialized = JSON.stringify(parsed.data);
+
+  try {
+    if (
+      typeof window !== 'undefined' &&
+      typeof (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag === 'function'
+    ) {
+      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
+        'event',
+        'ad_telemetry',
+        {
+          event_category: parsed.data.eventType,
+          event_label: parsed.data.slotId,
+          slot_id: parsed.data.slotId,
+          event_type: parsed.data.eventType,
+          apartment_name: parsed.data.apartmentName,
+          dong: parsed.data.dong,
+          dwell_time_ms: parsed.data.dwellTimeMs,
+          intersection_ratio: parsed.data.intersectionRatio,
+          user_agent_category: parsed.data.userAgentCategory,
+          timestamp: parsed.data.timestamp,
+        }
+      );
+    }
+  } catch {
+    // Swallow synchronous GA4 exception (Delta Jank = 0ms)
+  }
+
+  try {
+    if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+      const queued = navigator.sendBeacon(endpoint, serialized);
+      if (queued) {
+        return true;
+      }
+    }
+  } catch {
+    // Swallow synchronous sendBeacon exception (Delta Jank = 0ms)
+  }
+
+  try {
+    if (typeof fetch === 'function') {
+      void Promise.resolve(
+        fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: serialized,
+          keepalive: true,
+        })
+      ).catch(() => {
+        // Swallow async network rejection (Delta Jank = 0ms)
+      });
+      return true;
+    }
+  } catch {
+    // Swallow synchronous fetch exception (Delta Jank = 0ms)
+  }
+
+  return false;
+}
+
+export const ClosedLoopSlotStatusSchema = z.enum([
+  'MOUNTED',
+  'ACTIVE_VIEW',
+  'REFRESH_ELIGIBLE',
+  'UNFILLED_FALLBACK',
+  'TELEMETRY_DISPATCHED',
+]);
+
+export type ClosedLoopSlotStatus = z.infer<typeof ClosedLoopSlotStatusSchema>;
+
+export interface ClosedLoopSlotState {
+  slotId: string;
+  status: ClosedLoopSlotStatus;
+  intersectionRatio: number;
+  lastTimestampMs: number;
+  dwellTimeMs: number;
+  refreshCount: number;
+  refreshKey: number;
+  maxRefreshesPerSlot: number;
+  apartmentName: string;
+  dong: string;
+  intermediateStatus?: 'TELEMETRY_DISPATCHED';
+  path: ClosedLoopSlotStatus[];
+}
+
+export type ClosedLoopSlotAction =
+  | { type: 'REGISTER'; ratio?: number; timestampMs?: number }
+  | { type: 'TICK'; ratio: number; timestampMs: number; isDocumentHidden?: boolean }
+  | { type: 'TRIGGER_REFRESH'; ratio?: number; timestampMs?: number }
+  | { type: 'EVENT_UNFILLED'; timestampMs?: number };
+
+export function createInitialClosedLoopState(params: {
+  slotId: string;
+  apartmentName?: string;
+  dong?: string;
+  maxRefreshesPerSlot?: number;
+  timestampMs?: number;
+}): ClosedLoopSlotState {
+  return {
+    slotId: params.slotId,
+    status: 'MOUNTED',
+    intersectionRatio: 0,
+    lastTimestampMs: params.timestampMs ?? Date.now(),
+    dwellTimeMs: 0,
+    refreshCount: 0,
+    refreshKey: 0,
+    maxRefreshesPerSlot: params.maxRefreshesPerSlot ?? 10,
+    apartmentName: params.apartmentName ?? 'GLOBAL',
+    dong: params.dong ?? '',
+    path: ['MOUNTED'],
+  };
+}
+
+/**
+ * Pure deterministic state transition function f: S x A -> S for Phase 5 Section 3.5:
+ * S = { MOUNTED, ACTIVE_VIEW(ratio, t, n), REFRESH_ELIGIBLE(n), UNFILLED_FALLBACK, TELEMETRY_DISPATCHED }
+ * Complexity: Time O(1), Space O(1), Side-effects: False (pure transition; telemetry side-effect optional via controller).
+ */
+export function transitionClosedLoopState(
+  state: ClosedLoopSlotState,
+  action: ClosedLoopSlotAction,
+  options?: { dispatchTelemetry?: boolean; endpoint?: string }
+): ClosedLoopSlotState {
+  const shouldDispatch = options?.dispatchTelemetry ?? false;
+
+  switch (action.type) {
+    case 'REGISTER': {
+      // 1. f(MOUNTED, REGISTER) => ACTIVE_VIEW(ratio_0, t_0, 0)
+      if (state.status !== 'MOUNTED') {
+        return {
+          ...state,
+          intermediateStatus: undefined,
+          path: [state.status],
+        };
+      }
+      const ratio0 = Math.max(0, Math.min(1, action.ratio ?? 0));
+      const t0 = action.timestampMs ?? Date.now();
+      return {
+        ...state,
+        status: 'ACTIVE_VIEW',
+        intersectionRatio: ratio0,
+        lastTimestampMs: t0,
+        dwellTimeMs: 0,
+        refreshCount: 0,
+        intermediateStatus: undefined,
+        path: ['MOUNTED', 'ACTIVE_VIEW'],
+      };
+    }
+
+    case 'TICK': {
+      // 2. f(ACTIVE_VIEW(n), TICK(t_1, ratio_1)) => REFRESH_ELIGIBLE(n) if (t_1 - t_0 >= 30000 && ratio_1 >= 0.50 && n < 10 && !hidden) else ACTIVE_VIEW(n)
+      if (state.status !== 'ACTIVE_VIEW' && state.status !== 'REFRESH_ELIGIBLE') {
+        return {
+          ...state,
+          intermediateStatus: undefined,
+          path: [state.status],
+        };
+      }
+
+      const ratio1 = Math.max(0, Math.min(1, action.ratio));
+      const t1 = action.timestampMs;
+      const elapsedMs = Math.max(0, t1 - state.lastTimestampMs);
+      const isHidden =
+        action.isDocumentHidden ??
+        (typeof document !== 'undefined' ? Boolean(document.hidden) : false);
+
+      if (
+        !isHidden &&
+        elapsedMs >= 30000 &&
+        ratio1 >= 0.50 &&
+        state.refreshCount < state.maxRefreshesPerSlot
+      ) {
+        return {
+          ...state,
+          status: 'REFRESH_ELIGIBLE',
+          intersectionRatio: ratio1,
+          dwellTimeMs: elapsedMs,
+          intermediateStatus: undefined,
+          path: [state.status, 'REFRESH_ELIGIBLE'],
+        };
+      }
+
+      return {
+        ...state,
+        status: 'ACTIVE_VIEW',
+        intersectionRatio: ratio1,
+        dwellTimeMs: isHidden || ratio1 < 0.50 ? 0 : elapsedMs,
+        lastTimestampMs: isHidden || ratio1 < 0.50 ? t1 : state.lastTimestampMs,
+        intermediateStatus: undefined,
+        path: [state.status, 'ACTIVE_VIEW'],
+      };
+    }
+
+    case 'TRIGGER_REFRESH': {
+      // 3. f(REFRESH_ELIGIBLE(n), TRIGGER_REFRESH) => TELEMETRY_DISPATCHED -> ACTIVE_VIEW(ratio_1, t_1, n + 1)
+      if (
+        state.status !== 'REFRESH_ELIGIBLE' ||
+        state.refreshCount >= state.maxRefreshesPerSlot
+      ) {
+        return {
+          ...state,
+          intermediateStatus: undefined,
+          path: [state.status],
+        };
+      }
+
+      const ratio1 = Math.max(0, Math.min(1, action.ratio ?? state.intersectionRatio));
+      const t1 = action.timestampMs ?? Date.now();
+      const nextCount = state.refreshCount + 1;
+      const nextKey = state.refreshKey + 1;
+
+      if (shouldDispatch) {
+        sendTelemetry(
+          {
+            eventType: 'IMPRESSION',
+            slotId: state.slotId,
+            apartmentName: state.apartmentName,
+            dong: state.dong,
+            dwellTimeMs: state.dwellTimeMs,
+            intersectionRatio: ratio1,
+            timestamp: new Date(t1).toISOString(),
+          },
+          options?.endpoint
+        );
+      }
+
+      return {
+        ...state,
+        status: 'ACTIVE_VIEW',
+        intersectionRatio: ratio1,
+        lastTimestampMs: t1,
+        dwellTimeMs: 0,
+        refreshCount: nextCount,
+        refreshKey: nextKey,
+        intermediateStatus: 'TELEMETRY_DISPATCHED',
+        path: ['REFRESH_ELIGIBLE', 'TELEMETRY_DISPATCHED', 'ACTIVE_VIEW'],
+      };
+    }
+
+    case 'EVENT_UNFILLED': {
+      // 4. f(ACTIVE_VIEW, EVENT_UNFILLED) => TELEMETRY_DISPATCHED -> UNFILLED_FALLBACK
+      if (state.status !== 'ACTIVE_VIEW' && state.status !== 'REFRESH_ELIGIBLE') {
+        return {
+          ...state,
+          intermediateStatus: undefined,
+          path: [state.status],
+        };
+      }
+
+      const t1 = action.timestampMs ?? Date.now();
+      if (shouldDispatch) {
+        sendTelemetry(
+          {
+            eventType: 'UNFILLED',
+            slotId: state.slotId,
+            apartmentName: state.apartmentName,
+            dong: state.dong,
+            dwellTimeMs: state.dwellTimeMs,
+            intersectionRatio: state.intersectionRatio,
+            timestamp: new Date(t1).toISOString(),
+          },
+          options?.endpoint
+        );
+      }
+
+      return {
+        ...state,
+        status: 'UNFILLED_FALLBACK',
+        lastTimestampMs: t1,
+        intermediateStatus: 'TELEMETRY_DISPATCHED',
+        path: [state.status, 'TELEMETRY_DISPATCHED', 'UNFILLED_FALLBACK'],
+      };
+    }
+  }
+}
+
+/**
+ * Stateful controller wrapping Phase 5 Closed-Loop State Machine and dispatching telemetry.
+ */
+export class ClosedLoopTelemetryController {
+  private state: ClosedLoopSlotState;
+  private history: ClosedLoopSlotStatus[];
+  private endpoint: string;
+
+  constructor(params: {
+    slotId: string;
+    apartmentName?: string;
+    dong?: string;
+    maxRefreshesPerSlot?: number;
+    timestampMs?: number;
+    endpoint?: string;
+  }) {
+    this.state = createInitialClosedLoopState(params);
+    this.history = ['MOUNTED'];
+    this.endpoint = params.endpoint ?? '/api/ads/click';
+  }
+
+  public getState(): Readonly<ClosedLoopSlotState> {
+    return this.state;
+  }
+
+  public getHistory(): ReadonlyArray<ClosedLoopSlotStatus> {
+    return this.history;
+  }
+
+  public dispatch(action: ClosedLoopSlotAction): ClosedLoopSlotState {
+    const prevStatus = this.state.status;
+    const nextState = transitionClosedLoopState(this.state, action, {
+      dispatchTelemetry: true,
+      endpoint: this.endpoint,
+    });
+    if (nextState.intermediateStatus) {
+      this.history.push(nextState.intermediateStatus);
+    }
+    if (nextState.status !== prevStatus || nextState.intermediateStatus) {
+      this.history.push(nextState.status);
+    }
+    this.state = nextState;
+    return nextState;
+  }
+}
+
+export function createClosedLoopTelemetryController(params: {
+  slotId: string;
+  apartmentName?: string;
+  dong?: string;
+  maxRefreshesPerSlot?: number;
+  timestampMs?: number;
+  endpoint?: string;
+}): ClosedLoopTelemetryController {
+  return new ClosedLoopTelemetryController(params);
+}
+
