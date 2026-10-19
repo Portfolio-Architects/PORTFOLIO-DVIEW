@@ -8298,22 +8298,5 @@
     "delta": 0.05,
     "deltaPercent": 0.8,
     "dateLabel": "7월 21일"
-  },
-  {
-    "aptName": "동탄파크한양수자인",
-    "txKey": "동탄파크한양수자인",
-    "date": "07.20",
-    "contractDate": "20260720",
-    "priceVal": 4.5,
-    "priceEok": "4억5,000",
-    "area": 51.79,
-    "areaPyeong": 22.0825,
-    "floor": 14,
-    "dealType": "매매",
-    "isNewHigh": false,
-    "prevPriceVal": 4.28,
-    "delta": 0.22,
-    "deltaPercent": 5.1,
-    "dateLabel": "7월 20일"
   }
 ]
