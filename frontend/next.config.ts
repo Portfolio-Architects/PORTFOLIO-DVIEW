@@ -210,6 +210,14 @@ const nextConfig: NextConfig = {
       './public/tx-data/*-recent.json',
       './public/tx-data/_index.json',
     ],
+    '*': [
+      './node_modules/@google-cloud/storage/**',
+      './node_modules/@firebase/database-compat/**',
+      './public/data/transactions-1y.json',
+      './public/data/transactions-3y.json',
+      './public/data/transactions-all.json',
+      './scratch/**',
+    ],
   },
   webpack: (config, { dev, isServer }) => {
     // 🔧 HMR (Fast Refresh) 무한 리로드 루프 방지를 위한 watchOptions 설정 추가

@@ -107,7 +107,14 @@ jobs:
             echo "🚀 Changes pushed — Vercel will auto-deploy"
           fi
 
-      # Step 4: Notify on failure (Optional, requires SLACK_WEBHOOK_URL secret)
+      # Step 4: Prune Vercel deployments (Retain top N=2 READY production deployments)
+      - name: Prune Vercel deployments
+        if: always()
+        run: node scripts/prune-vercel-deployments.js
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+
+      # Step 5: Notify on failure (Optional, requires SLACK_WEBHOOK_URL secret)
       - name: Send notification on failure
         if: failure()
         run: |

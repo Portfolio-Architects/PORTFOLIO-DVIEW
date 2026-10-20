@@ -617,7 +617,7 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(geumgangMeta?.txKey).toBe('동탄2신도시금강펜테리움센트럴파크1');
     });
 
-    it('excludes *-recent.json and _index.json and includes required public/data JSONs in next.config.ts', () => {
+    it('excludes *-recent.json, _index.json, and global non-runtime assets in next.config.ts without excluding required runtime packages', () => {
       const configPath = path.resolve(process.cwd(), 'next.config.ts');
       const content = fs.readFileSync(configPath, 'utf8');
       expect(content).toContain("'./public/tx-data/!(*-recent|_index).json'");
@@ -627,9 +627,174 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(content).toContain('outputFileTracingExcludes');
       expect(content).toContain("'./public/tx-data/*-recent.json'");
       expect(content).toContain("'./public/tx-data/_index.json'");
+
+      // Global '*' exclusions
+      expect(content).toContain("'./node_modules/@google-cloud/storage/**'");
+      expect(content).toContain("'./node_modules/@firebase/database-compat/**'");
+      expect(content).toContain("'./public/data/transactions-1y.json'");
+      expect(content).toContain("'./public/data/transactions-3y.json'");
+      expect(content).toContain("'./public/data/transactions-all.json'");
+      expect(content).toContain("'./scratch/**'");
+
+      // Ensure runtime-critical packages are NOT in outputFileTracingExcludes
+      const excludesMatch = content.match(/outputFileTracingExcludes:\s*\{([\s\S]*?)\n  \},/);
+      expect(excludesMatch).not.toBeNull();
+      const excludesBlock = excludesMatch ? excludesMatch[1] : '';
+      expect(excludesBlock).not.toContain('node_modules/firebase/');
+      expect(excludesBlock).not.toContain('@firebase/firestore');
+      expect(excludesBlock).not.toContain('@grpc/grpc-js');
+      expect(excludesBlock).not.toContain('@grpc/proto-loader');
     });
 
-    it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 in sync-transactions.yml, and empirically verifies ignoreCommand in a git repo', () => {
+    it('prunes Vercel deployments retaining top N=2 READY production deployments, preserves in-flight deployments, paginates, and handles edge cases', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pruneModule = require('../../scripts/prune-vercel-deployments.js');
+      const { pruneVercelDeployments, planDeploymentPruning } = pruneModule;
+
+      // 1. Missing token skips gracefully
+      const noTokenFetch = jest.fn();
+      const skipResult = await pruneVercelDeployments({
+        token: '   ',
+        fetchImpl: noTokenFetch,
+        logger: { log: jest.fn(), warn: jest.fn() },
+      });
+      expect(skipResult).toEqual({
+        skipped: true,
+        reason: 'missing_token',
+        kept: [],
+        deleted: [],
+        failed: [],
+      });
+      expect(noTokenFetch).not.toHaveBeenCalled();
+
+      // 2. Polling for in-flight deployments (BUILDING/INITIALIZING/QUEUED) until READY + pagination + retention (N=2)
+      let pollCount = 0;
+      let virtualNow = 1000;
+      const sleepDelays: number[] = [];
+      const calledUrls: Array<{ url: string; method: string }> = [];
+
+      const mockFetch = jest.fn(async (url: string, init?: { method?: string }) => {
+        const method = init?.method || 'GET';
+        calledUrls.push({ url, method });
+
+        if (method === 'GET') {
+          const parsedUrl = new URL(url);
+          const until = parsedUrl.searchParams.get('until');
+
+          if (!until) {
+            pollCount += 1;
+            const inFlightState = pollCount === 1 ? 'BUILDING' : 'READY';
+            return {
+              ok: true,
+              status: 200,
+              json: async () => ({
+                deployments: [
+                  { uid: 'dpl_new_prod', state: inFlightState, target: 'production', createdAt: 5000 },
+                  { uid: 'dpl_canceled_1', state: 'CANCELED', target: 'production', createdAt: 4500 },
+                  { uid: 'dpl_ready_prod_2', state: 'READY', target: 'production', createdAt: 4000 },
+                ],
+                pagination: { next: 4000 },
+              }),
+            };
+          }
+
+          return {
+            ok: true,
+            status: 200,
+            json: async () => ({
+              deployments: [
+                { uid: 'dpl_ready_prod_2', state: 'READY', target: 'production', createdAt: 4000 }, // duplicate across page boundary
+                { uid: 'dpl_ready_prod_3_old', state: 'READY', target: 'production', createdAt: 3000 },
+                { uid: 'dpl_error_1', state: 'ERROR', target: 'production', createdAt: 2000 },
+                { uid: 'dpl_preview_ready', state: 'READY', target: null, createdAt: 4800 },
+              ],
+              pagination: { next: null },
+            }),
+          };
+        }
+
+        if (method === 'DELETE') {
+          if (url.includes('dpl_error_1')) {
+            return {
+              ok: false,
+              status: 500,
+              text: async () => 'Internal Server Error',
+            };
+          }
+          return { ok: true, status: 200, json: async () => ({ state: 'DELETED' }) };
+        }
+
+        throw new Error(`Unexpected method ${method}`);
+      });
+
+      const result = await pruneVercelDeployments({
+        token: 'test-vercel-token',
+        projectId: 'prj_OCym05uVc30QN4JhiMj9paHaK0Yt',
+        teamId: 'team_6oiLYgowOwsSHPYuKP3NPrSY',
+        retainCount: 2,
+        maxWaitMs: 180000,
+        pollIntervalMs: 5000,
+        deleteDelayMs: 150,
+        fetchImpl: mockFetch,
+        sleepImpl: async (ms: number) => {
+          sleepDelays.push(ms);
+          virtualNow += ms;
+        },
+        nowImpl: () => virtualNow,
+        logger: { log: jest.fn(), warn: jest.fn() },
+      });
+
+      expect(result.skipped).toBe(false);
+      // Top 2 READY production deployments kept: dpl_new_prod (5000) and dpl_ready_prod_2 (4000)
+      expect(result.kept).toEqual(['dpl_new_prod', 'dpl_ready_prod_2']);
+      // Deleted: dpl_preview_ready (4800), dpl_canceled_1 (4500), dpl_ready_prod_3_old (3000)
+      expect(result.deleted).toEqual(['dpl_preview_ready', 'dpl_canceled_1', 'dpl_ready_prod_3_old']);
+      // dpl_error_1 returned 500 and was recorded in failed without aborting
+      expect(result.failed).toEqual([{ uid: 'dpl_error_1', status: 500 }]);
+      // Sleep called once for 5000ms poll and 3 times for 150ms between 4 delete attempts
+      expect(sleepDelays).toEqual([5000, 150, 150, 150]);
+
+      // 3. Timeout preservation invariant: in-flight deployments (BUILDING, INITIALIZING, QUEUED) are never deleted even after timeout
+      let timeoutClock = 0;
+      const timeoutResult = await pruneVercelDeployments({
+        token: 'test-vercel-token',
+        retainCount: 0, // invalid retainCount clamps to default 2
+        maxWaitMs: 10000,
+        pollIntervalMs: 5000,
+        deleteDelayMs: 0,
+        fetchImpl: jest.fn(async (url: string, init?: { method?: string }) => {
+          if ((init?.method || 'GET') === 'GET') {
+            return {
+              ok: true,
+              status: 200,
+              json: async () => ({
+                deployments: [
+                  { uid: 'dpl_stuck_q', state: null, readyState: 'QUEUED', target: 'production', created: 9000 },
+                  { uid: 'dpl_init', state: 'INITIALIZING', target: 'production', createdAt: 8000 },
+                  { uid: 'dpl_b', state: 'BUILDING', target: null, createdAt: 7000 },
+                  { uid: 'dpl_r1', state: 'READY', target: 'production', createdAt: 6000 },
+                  { uid: 'dpl_r2', state: 'READY', target: 'production', createdAt: 5000 },
+                  { uid: 'dpl_r3', state: 'READY', target: 'production', createdAt: 4000 },
+                ],
+                pagination: { next: 4000 }, // cycle guard test: returns same cursor 4000 repeatedly
+              }),
+            };
+          }
+          return { ok: true, status: 200, json: async () => ({}) };
+        }),
+        sleepImpl: async (ms: number) => {
+          timeoutClock += ms;
+        },
+        nowImpl: () => timeoutClock,
+        logger: { log: jest.fn(), warn: jest.fn() },
+      });
+
+      expect(timeoutResult.kept).toEqual(['dpl_stuck_q', 'dpl_init', 'dpl_b', 'dpl_r1', 'dpl_r2']);
+      expect(timeoutResult.deleted).toEqual(['dpl_r3']);
+      expect(planDeploymentPruning([], -5)).toEqual({ toKeep: [], toDelete: [] });
+    });
+
+    it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 + prune step in sync-transactions.yml, and empirically verifies ignoreCommand in a git repo', () => {
       const vercelJsonPath = path.resolve(process.cwd(), 'vercel.json');
       const vercelConfig = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'));
       expect(typeof vercelConfig.ignoreCommand).toBe('string');
@@ -647,6 +812,9 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       if (fs.existsSync(syncTxWorkflowPath)) {
         const syncTxWorkflowContent = fs.readFileSync(syncTxWorkflowPath, 'utf8');
         expect(syncTxWorkflowContent).toContain('/api/cron/sync-transactions?ym=${YM}&skipDeploy=1');
+        expect(syncTxWorkflowContent).toContain('if: always()');
+        expect(syncTxWorkflowContent).toContain('node scripts/prune-vercel-deployments.js');
+        expect(syncTxWorkflowContent).toContain('VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}');
       }
 
       // Empirically execute ignoreCommand inside an isolated temporary git repository
