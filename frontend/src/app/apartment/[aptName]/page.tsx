@@ -20,6 +20,7 @@ function formatWon(val: number): string {
   return `${Math.round(val).toLocaleString('ko-KR')}원`;
 }
 
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 export const dynamicParams = true;
 

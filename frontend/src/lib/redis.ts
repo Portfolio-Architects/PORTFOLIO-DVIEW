@@ -347,6 +347,7 @@ function initRedis(): Redis | null {
     return new Redis({
       url: UPSTASH_REDIS_REST_URL,
       token: UPSTASH_REDIS_REST_TOKEN,
+      cache: "default",
     });
   } catch (e) {
     logger.error("RedisConnection.init", "Failed to create Redis client instance", {}, e as Error);

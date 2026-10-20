@@ -931,8 +931,9 @@ export async function buildApartmentSeoMetadata(
 
   try {
     let imageUrl = '';
+    let reportData: ScoutingReportData | null = null;
     try {
-      const reportData = await fetchScoutingReportCached(decodedName);
+      reportData = await fetchScoutingReportCached(decodedName);
       if (reportData) {
         if (reportData.images && reportData.images.length > 0) {
           imageUrl = reportData.images[0].url;
@@ -946,13 +947,34 @@ export async function buildApartmentSeoMetadata(
       logger.warn('ApartmentPageService.buildApartmentSeoMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
     }
 
-    const [txSummary, txs, locationScore] = await Promise.all([
+    const [txSummary, byDong] = await Promise.all([
       getTxSummaryData(),
-      getApartmentTransactions(decodedName),
-      getLocationScore(decodedName),
+      getApartmentsByDongData(),
     ]);
 
-    const aptSummary = txSummary[decodedName];
+    const { matchedDongApt, manualMapping } = resolveDongApartment(
+      decodedName,
+      byDong,
+      txSummary[decodedName]?.dong || reportData?.dong
+    );
+
+    const sanitizedDongTxKey = matchedDongApt?.txKey
+      ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
+      : null;
+    const resolvedTxKey =
+      (txSummary[decodedName] ? decodedName : null) ||
+      (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
+      (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null) ||
+      findTxKey(decodedName, txSummary, manualMapping, false, matchedDongApt?.dong || reportData?.dong);
+
+    const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : txSummary[decodedName];
+    const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || reportData?.dong || null;
+
+    const [txs, locationScore] = await Promise.all([
+      getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || decodedName),
+      getLocationScore(decodedName, resolvedDong, manualMapping, matchedDongApt?.name),
+    ]);
+
     const pyeongSummaries = getPyeongSummaries(txs);
     const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
 
@@ -968,8 +990,8 @@ export async function buildApartmentSeoMetadata(
     if (score && typeof score === 'string') ogUrl.searchParams.set('score', score);
 
     let subtitleText = '동탄 실거래가 및 가치 분석';
-    if (aptSummary?.dong) {
-      subtitleText = `동탄구 ${aptSummary.dong} · 실거래 가치 분석 리포트`;
+    if (resolvedDong) {
+      subtitleText = `동탄구 ${resolvedDong} · 실거래 가치 분석 리포트`;
     }
     ogUrl.searchParams.set('subtitle', subtitleText);
 

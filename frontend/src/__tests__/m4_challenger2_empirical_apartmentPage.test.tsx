@@ -35,7 +35,11 @@ import {
   type LocationScore,
 } from '@/lib/services/apartmentPageService';
 import { safeJsonLd } from '@/lib/utils/structuredData';
-import ApartmentPage, { generateStaticParams, generateMetadata } from '@/app/apartment/[aptName]/page';
+import ApartmentPage, {
+  dynamic as apartmentPageDynamic,
+  generateStaticParams,
+  generateMetadata,
+} from '@/app/apartment/[aptName]/page';
 
 // Mock DashboardClient to isolate SSR wrapper rendering
 let lastCapturedInitialDashboardData: Record<string, unknown> | undefined;
@@ -355,9 +359,25 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(ogImageUrl.searchParams.get('score')).toBe('95');
       expect(ogImageUrl.searchParams.get('title')).toBe('동탄역린스트라우스');
     });
+
+    it('resolves display-named apartment (apartments-by-dong name differing from tx-summary key) in buildApartmentSeoMetadata without ENOENT', async () => {
+      const meta = await buildApartmentSeoMetadata('여울동 금강펜테리움 센트럴파크');
+      expect(meta).toBeDefined();
+      expect(String(meta.title)).toContain('여울동 금강펜테리움 센트럴파크');
+      expect(String(meta.title)).toMatch(/\d+평/);
+      const ogImages = meta.openGraph?.images as Array<{ url: string }>;
+      expect(ogImages).toBeDefined();
+      const ogImageUrl = new URL(ogImages[0].url);
+      expect(ogImageUrl.searchParams.get('subtitle')).toContain('여울동');
+      expect(ogImageUrl.searchParams.get('price')).toBeTruthy();
+    });
   });
 
   describe('8. Server Page generateStaticParams & SSR Route Generation', () => {
+    it('exports dynamic = force-static to prevent runtime static-to-dynamic bailout during on-demand ISR', () => {
+      expect(apartmentPageDynamic).toBe('force-static');
+    });
+
     it('returns all apartment static params matching tx-summary', async () => {
       const summary = await getTxSummaryData();
       const summaryKeys = Object.keys(summary || {});
