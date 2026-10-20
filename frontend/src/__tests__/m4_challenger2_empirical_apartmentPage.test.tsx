@@ -717,6 +717,10 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
         runGit(['add', '-A']);
         runGit(['commit', '-m', 'docs: update root summary after frontend change']);
         expect(runIgnoreCmd({ VERCEL_GIT_PREVIOUS_SHA: sha0 }).status).toBe(1);
+
+        // Scenario 6: Non-commit object SHA (e.g., blob SHA) in VERCEL_GIT_PREVIOUS_SHA falls back to HEAD^ via ^{commit} check
+        const blobSha = runGit(['rev-parse', 'HEAD:frontend/app.ts']).stdout.trim();
+        expect(runIgnoreCmd({ VERCEL_GIT_PREVIOUS_SHA: blobSha }).status).toBe(0);
       } finally {
         fs.rmSync(tmpRepo, { recursive: true, force: true });
       }

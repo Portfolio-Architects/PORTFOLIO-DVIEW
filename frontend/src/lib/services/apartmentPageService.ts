@@ -931,7 +931,7 @@ export async function buildApartmentSeoMetadata(
 
   try {
     let imageUrl = '';
-    let reportData: ScoutingReportData | null = null;
+    let reportData: FieldReportData | null = null;
     try {
       reportData = await fetchScoutingReportCached(decodedName);
       if (reportData) {
