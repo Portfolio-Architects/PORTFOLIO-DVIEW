@@ -73,6 +73,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const jsonLd = buildApartmentJsonLd(pageData, baseUrl);
 
   const {
+    resolvedTxKey: pageResolvedTxKey,
     aptSummary,
     pyeongSummaries,
     locationScore,
@@ -82,7 +83,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   } = pageData;
 
   const aptDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || '';
-  const resolvedTxKey = matchedDongApt?.txKey || (aptSummary ? decodedName : undefined);
+  const resolvedTxKey = pageResolvedTxKey || matchedDongApt?.txKey || (aptSummary ? decodedName : undefined);
   const sanitizedReport = matchedReportData
     ? JSON.parse(
         JSON.stringify({
@@ -93,7 +94,14 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       )
     : undefined;
   const scopedInitialData: DashboardInitialDataLocal = {
-    ...(aptSummary ? { txSummary: { [decodedName]: aptSummary } } : {}),
+    ...(aptSummary
+      ? {
+          txSummary: {
+            [decodedName]: aptSummary,
+            ...(resolvedTxKey && resolvedTxKey !== decodedName ? { [resolvedTxKey]: aptSummary } : {}),
+          },
+        }
+      : {}),
     ...(locationScore ? { locationScores: { [decodedName]: locationScore as LocationScoreItem } } : {}),
     ...(sanitizedReport ? { fieldReports: [sanitizedReport] } : {}),
     ...(aptDong || matchedDongApt
@@ -104,6 +112,15 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
               dong: aptDong,
               txKey: resolvedTxKey || decodedName,
             },
+            ...(matchedDongApt?.name && matchedDongApt.name !== decodedName
+              ? {
+                  [matchedDongApt.name]: {
+                    ...matchedDongApt,
+                    dong: aptDong,
+                    txKey: resolvedTxKey || decodedName,
+                  },
+                }
+              : {}),
           },
         }
       : {}),

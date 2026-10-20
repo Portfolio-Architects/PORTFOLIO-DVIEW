@@ -155,6 +155,7 @@ export interface MortgageSsrData {
 
 export interface ApartmentPageData {
   aptName: string;
+  resolvedTxKey?: string;
   aptSummary?: AptTxSummary;
   txs: TransactionRecord[];
   pyeongSummaries: PyeongSummary[];
@@ -464,16 +465,20 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
     txSummary[aptName]?.dong || matchedReportData?.dong
   );
 
+  const sanitizedDongTxKey = matchedDongApt?.txKey
+    ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
+    : null;
   const resolvedTxKey =
     (txSummary[aptName] ? aptName : null) ||
     (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
+    (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null) ||
     findTxKey(aptName, txSummary, manualMapping, false, matchedDongApt?.dong || matchedReportData?.dong);
 
   const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : txSummary[aptName];
   const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || null;
 
   const [txs, locationScore] = await Promise.all([
-    getApartmentTransactions(resolvedTxKey || aptName),
+    getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || aptName),
     getLocationScore(aptName, resolvedDong, manualMapping, matchedDongApt?.name),
   ]);
 
@@ -494,6 +499,7 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
 
   return {
     aptName,
+    resolvedTxKey: resolvedTxKey || sanitizedDongTxKey || undefined,
     aptSummary,
     txs,
     pyeongSummaries,

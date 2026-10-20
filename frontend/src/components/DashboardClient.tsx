@@ -519,12 +519,18 @@ const DashboardClient = React.memo(function DashboardClient({
     // If preselectedAptName is passed from the SEO page wrapper
     if (preselectedAptName) {
       userHasSelected.current = true;
-      const targetApt = allApts.find(a => isSameApartment(a.name, preselectedAptName, nameMapping));
       const metaEntry = initialDashboardData?.apartmentMeta?.[preselectedAptName] as Partial<DongApartment> | undefined;
       const fallbackDong =
         metaEntry?.dong ||
         initialDashboardData?.txSummary?.[preselectedAptName]?.dong ||
         '';
+      const targetApt = allApts.find(
+        a =>
+          isSameApartment(a.name, preselectedAptName, nameMapping, a.dong, fallbackDong || undefined) ||
+          (metaEntry?.name
+            ? isSameApartment(a.name, metaEntry.name, nameMapping, a.dong, fallbackDong || undefined)
+            : false)
+      );
       const resolvedApt: StaticApartment | DongApartment | undefined = targetApt
         ? {
             ...targetApt,

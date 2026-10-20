@@ -567,12 +567,32 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(serializedBytes).toBeLessThan(15000);
     });
 
-    it('resolves canonical txKey, transactions, and locationScore when queried via display name with spaces', async () => {
+    it('resolves canonical sanitized txKey, transactions, and locationScore when queried via display name with spaces or Roman numerals', async () => {
       const dataWithSpace = await getApartmentPageData('동탄역 롯데캐슬');
       expect(dataWithSpace.aptSummary).toBeDefined();
+      expect(dataWithSpace.resolvedTxKey).toBe('동탄역롯데캐슬');
       expect(dataWithSpace.txs.length).toBeGreaterThan(0);
       expect(dataWithSpace.locationScore).not.toBeNull();
       expect(dataWithSpace.matchedDongApt?.householdCount).toBe(940);
+
+      // Verify apartment where apartments-by-dong.json txKey contains space ('동탄역 시범우남퍼스트빌아파트')
+      lastCapturedInitialDashboardData = undefined;
+      const UnamJsx = await ApartmentPage({
+        params: Promise.resolve({ aptName: '동탄역 시범 우남퍼스트빌' }),
+      });
+      render(UnamJsx);
+      const unamMeta = (lastCapturedInitialDashboardData?.apartmentMeta as Record<string, Record<string, unknown>>)?.['동탄역 시범 우남퍼스트빌'];
+      expect(unamMeta?.txKey).toBe('동탄역시범우남퍼스트빌아파트');
+      expect((lastCapturedInitialDashboardData?.txSummary as Record<string, unknown>)?.['동탄역시범우남퍼스트빌아파트']).toBeDefined();
+
+      // Verify apartment where apartments-by-dong.json txKey contains Roman numeral ('동탄2신도시금강펜테리움센트럴파크Ⅰ')
+      lastCapturedInitialDashboardData = undefined;
+      const GeumgangJsx = await ApartmentPage({
+        params: Promise.resolve({ aptName: '여울동 금강펜테리움 센트럴파크' }),
+      });
+      render(GeumgangJsx);
+      const geumgangMeta = (lastCapturedInitialDashboardData?.apartmentMeta as Record<string, Record<string, unknown>>)?.['여울동 금강펜테리움 센트럴파크'];
+      expect(geumgangMeta?.txKey).toBe('동탄2신도시금강펜테리움센트럴파크1');
     });
 
     it('excludes *-recent.json and _index.json and includes required public/data JSONs in next.config.ts', () => {
@@ -587,11 +607,13 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(content).toContain("'./public/tx-data/_index.json'");
     });
 
-    it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 in sync-transactions.yml', () => {
+    it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 in sync-transactions.yml, and empirically verifies ignoreCommand in a git repo', () => {
+      const { spawnSync } = require('child_process');
+      const os = require('os');
       const vercelJsonPath = path.resolve(process.cwd(), 'vercel.json');
       const vercelConfig = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'));
       expect(typeof vercelConfig.ignoreCommand).toBe('string');
-      expect(vercelConfig.ignoreCommand).toContain('git diff --quiet HEAD^ HEAD ./');
+      expect(vercelConfig.ignoreCommand).toContain('VERCEL_GIT_PREVIOUS_SHA');
       expect(vercelConfig.ignoreCommand).toContain('vercel skip');
 
       const workflowPath = path.resolve(process.cwd(), '..', '.github', 'workflows', 'sync-realestate-data.yml');
@@ -605,7 +627,79 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
         const syncTxWorkflowContent = fs.readFileSync(syncTxWorkflowPath, 'utf8');
         expect(syncTxWorkflowContent).toContain('/api/cron/sync-transactions?ym=${YM}&skipDeploy=1');
       }
+
+      // Empirically execute ignoreCommand inside an isolated temporary git repository
+      const shBin =
+        process.platform === 'win32' && fs.existsSync('C:\\Program Files\\Git\\bin\\sh.exe')
+          ? 'C:\\Program Files\\Git\\bin\\sh.exe'
+          : 'sh';
+      const tmpRepo = fs.mkdtempSync(path.join(os.tmpdir(), 'dview-ignore-cmd-'));
+      try {
+        const frontendDir = path.join(tmpRepo, 'frontend');
+        const dataDir = path.join(tmpRepo, 'data');
+        fs.mkdirSync(frontendDir, { recursive: true });
+        fs.mkdirSync(dataDir, { recursive: true });
+
+        const gitEnv = {
+          ...process.env,
+          PATH:
+            process.platform === 'win32'
+              ? `C:\\Program Files\\Git\\usr\\bin;C:\\Program Files\\Git\\bin;${process.env.PATH || ''}`
+              : process.env.PATH,
+        };
+        const runGit = (args: string[]) =>
+          spawnSync('git', args, { cwd: tmpRepo, env: gitEnv, encoding: 'utf8' });
+        const runIgnoreCmd = (extraEnv: Record<string, string> = {}) =>
+          spawnSync(shBin, ['-c', vercelConfig.ignoreCommand], {
+            cwd: frontendDir,
+            env: { ...gitEnv, ...extraEnv },
+            encoding: 'utf8',
+          });
+
+        runGit(['init']);
+        runGit(['config', 'user.name', 'test']);
+        runGit(['config', 'user.email', 'test@example.com']);
+
+        // Commit 0 (Initial baseline)
+        fs.writeFileSync(path.join(frontendDir, 'app.ts'), 'v0');
+        fs.writeFileSync(path.join(dataDir, 'summary.json'), '{}');
+        runGit(['add', '-A']);
+        runGit(['commit', '-m', 'chore: initial commit']);
+        const sha0 = runGit(['rev-parse', 'HEAD']).stdout.trim();
+
+        // Scenario 1: Root data/ commit with [skip ci] [vercel skip] -> exit 0 (skip build)
+        fs.writeFileSync(path.join(dataDir, 'summary.json'), '{"v":1}');
+        runGit(['add', '-A']);
+        runGit(['commit', '-m', 'Auto-sync real estate data [skip ci] [vercel skip]']);
+        expect(runIgnoreCmd().status).toBe(0);
+
+        // Scenario 2: Root data/ commit WITHOUT skip tags -> exit 0 (skip build via git diff)
+        fs.writeFileSync(path.join(dataDir, 'summary.json'), '{"v":2}');
+        runGit(['add', '-A']);
+        runGit(['commit', '-m', 'chore: update root data only']);
+        expect(runIgnoreCmd().status).toBe(0);
+
+        // Scenario 3: Frontend change commit -> exit 1 (proceed with build)
+        fs.writeFileSync(path.join(frontendDir, 'app.ts'), 'v1');
+        runGit(['add', '-A']);
+        runGit(['commit', '-m', 'feat: update frontend app']);
+        const shaFrontend = runGit(['rev-parse', 'HEAD']).stdout.trim();
+        expect(runIgnoreCmd().status).toBe(1);
+
+        // Scenario 4: Redeploy on same SHA (VERCEL_GIT_PREVIOUS_SHA === HEAD) -> exit 1 (proceed with build)
+        expect(runIgnoreCmd({ VERCEL_GIT_PREVIOUS_SHA: shaFrontend }).status).toBe(1);
+
+        // Scenario 5: Multi-commit push where Commit A modifies frontend/ and Commit B (HEAD) modifies root data/
+        // With VERCEL_GIT_PREVIOUS_SHA = sha0, ignoreCommand must detect Commit A's frontend change and exit 1!
+        fs.writeFileSync(path.join(dataDir, 'summary.json'), '{"v":3}');
+        runGit(['add', '-A']);
+        runGit(['commit', '-m', 'docs: update root summary after frontend change']);
+        expect(runIgnoreCmd({ VERCEL_GIT_PREVIOUS_SHA: sha0 }).status).toBe(1);
+      } finally {
+        fs.rmSync(tmpRepo, { recursive: true, force: true });
+      }
     });
   });
 });
+
 
