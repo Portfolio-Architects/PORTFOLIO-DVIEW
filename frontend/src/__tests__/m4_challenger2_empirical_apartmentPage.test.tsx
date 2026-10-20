@@ -14,7 +14,9 @@
  *  6. SSR Page layout component rendering with simulated edge case params.
  */
 
+import { spawnSync } from 'child_process';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import React from 'react';
 import { render } from '@testing-library/react';
@@ -628,8 +630,6 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
     });
 
     it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 in sync-transactions.yml, and empirically verifies ignoreCommand in a git repo', () => {
-      const { spawnSync } = require('child_process');
-      const os = require('os');
       const vercelJsonPath = path.resolve(process.cwd(), 'vercel.json');
       const vercelConfig = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'));
       expect(typeof vercelConfig.ignoreCommand).toBe('string');
