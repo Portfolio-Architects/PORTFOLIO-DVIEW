@@ -2,7 +2,8 @@ import { Metadata } from 'next';
 import { BarChart3, HelpCircle } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { AdSlot } from '@/components/ads/AdSlot';
-import { getInitialData } from '@/lib/services/dashboardData';
+import type { DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
+import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import {
   decodeAptName,
@@ -66,10 +67,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     // fallback to default
   }
 
-  const [initialData, pageData] = await Promise.all([
-    getInitialData(),
-    getApartmentPageData(decodedName),
-  ]);
+  const pageData = await getApartmentPageData(decodedName);
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const jsonLd = buildApartmentJsonLd(pageData, baseUrl);
@@ -79,8 +77,37 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     pyeongSummaries,
     locationScore,
     matchedReportData,
+    matchedDongApt,
     aiBriefing,
   } = pageData;
+
+  const aptDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || '';
+  const resolvedTxKey = matchedDongApt?.txKey || (aptSummary ? decodedName : undefined);
+  const sanitizedReport = matchedReportData
+    ? JSON.parse(
+        JSON.stringify({
+          ...matchedReportData,
+          id: matchedReportData.id || `report-${decodedName}`,
+          createdAt: typeof matchedReportData.createdAt === 'string' ? matchedReportData.createdAt : null,
+        })
+      )
+    : undefined;
+  const scopedInitialData: DashboardInitialDataLocal = {
+    ...(aptSummary ? { txSummary: { [decodedName]: aptSummary } } : {}),
+    ...(locationScore ? { locationScores: { [decodedName]: locationScore as LocationScoreItem } } : {}),
+    ...(sanitizedReport ? { fieldReports: [sanitizedReport] } : {}),
+    ...(aptDong || matchedDongApt
+      ? {
+          apartmentMeta: {
+            [decodedName]: {
+              ...(matchedDongApt || {}),
+              dong: aptDong,
+              txKey: resolvedTxKey || decodedName,
+            },
+          },
+        }
+      : {}),
+  };
 
   const mortgageSsr =
     pageData.mortgageSsr ||
@@ -103,7 +130,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
         <p>{aiBriefing}</p>
       </div>
 
-      <DashboardClient initialDashboardData={initialData} preselectedAptName={decodedName} />
+      <DashboardClient initialDashboardData={scopedInitialData} preselectedAptName={decodedName} />
 
       {/* High-Value Comprehensive Apartment Analysis Report (Visible SSR Content for Users & AdSense Reviewers) */}
       <section className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-8 my-6">

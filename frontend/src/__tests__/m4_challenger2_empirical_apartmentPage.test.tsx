@@ -14,6 +14,8 @@
  *  6. SSR Page layout component rendering with simulated edge case params.
  */
 
+import fs from 'fs';
+import path from 'path';
 import React from 'react';
 import { render } from '@testing-library/react';
 import {
@@ -36,8 +38,16 @@ import { safeJsonLd } from '@/lib/utils/structuredData';
 import ApartmentPage, { generateStaticParams, generateMetadata } from '@/app/apartment/[aptName]/page';
 
 // Mock DashboardClient to isolate SSR wrapper rendering
+let lastCapturedInitialDashboardData: Record<string, unknown> | undefined;
 jest.mock('@/components/DashboardClient', () => {
-  return function MockDashboardClient({ preselectedAptName }: { preselectedAptName?: string }) {
+  return function MockDashboardClient({
+    preselectedAptName,
+    initialDashboardData,
+  }: {
+    preselectedAptName?: string;
+    initialDashboardData?: Record<string, unknown>;
+  }) {
+    lastCapturedInitialDashboardData = initialDashboardData;
     return <div data-testid="mock-dashboard-client">DashboardClient for {preselectedAptName}</div>;
   };
 });
@@ -528,4 +538,74 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(chapter05Section?.textContent).not.toContain('Infinity');
     });
   });
+
+  describe('11. Deployment Payload & Build Footprint Optimization Invariants', () => {
+    it('passes single-apartment scoped initialDashboardData to DashboardClient instead of global 184-complex payload', async () => {
+      lastCapturedInitialDashboardData = undefined;
+      const PageJsx = await ApartmentPage({
+        params: Promise.resolve({ aptName: '동탄역롯데캐슬' }),
+      });
+      render(PageJsx);
+
+      expect(lastCapturedInitialDashboardData).toBeDefined();
+      const txSummaryKeys = Object.keys((lastCapturedInitialDashboardData?.txSummary as Record<string, unknown>) || {});
+      const locScoreKeys = Object.keys((lastCapturedInitialDashboardData?.locationScores as Record<string, unknown>) || {});
+      const aptMeta = (lastCapturedInitialDashboardData?.apartmentMeta as Record<string, Record<string, unknown>>)?.['동탄역롯데캐슬'];
+
+      expect(txSummaryKeys).toEqual(['동탄역롯데캐슬']);
+      expect(locScoreKeys).toEqual(['동탄역롯데캐슬']);
+      expect(aptMeta).toBeDefined();
+      expect(aptMeta?.dong).toBe('여울동');
+      expect(aptMeta?.txKey).toBe('동탄역롯데캐슬');
+      expect(aptMeta?.householdCount).toBe(940);
+      expect(aptMeta?.brand).toBe('롯데건설');
+      expect(lastCapturedInitialDashboardData?.recentTransactions).toBeUndefined();
+      expect(lastCapturedInitialDashboardData?.sheetApartments).toBeUndefined();
+      expect(lastCapturedInitialDashboardData?.typeMap).toBeUndefined();
+
+      const serializedBytes = Buffer.byteLength(JSON.stringify(lastCapturedInitialDashboardData), 'utf8');
+      expect(serializedBytes).toBeLessThan(15000);
+    });
+
+    it('resolves canonical txKey, transactions, and locationScore when queried via display name with spaces', async () => {
+      const dataWithSpace = await getApartmentPageData('동탄역 롯데캐슬');
+      expect(dataWithSpace.aptSummary).toBeDefined();
+      expect(dataWithSpace.txs.length).toBeGreaterThan(0);
+      expect(dataWithSpace.locationScore).not.toBeNull();
+      expect(dataWithSpace.matchedDongApt?.householdCount).toBe(940);
+    });
+
+    it('excludes *-recent.json and _index.json and includes required public/data JSONs in next.config.ts', () => {
+      const configPath = path.resolve(process.cwd(), 'next.config.ts');
+      const content = fs.readFileSync(configPath, 'utf8');
+      expect(content).toContain("'./public/tx-data/!(*-recent|_index).json'");
+      expect(content).toContain("'./public/data/tx-summary.json'");
+      expect(content).toContain("'./public/data/location-scores.json'");
+      expect(content).toContain("'./public/data/apartments-by-dong.json'");
+      expect(content).toContain('outputFileTracingExcludes');
+      expect(content).toContain("'./public/tx-data/*-recent.json'");
+      expect(content).toContain("'./public/tx-data/_index.json'");
+    });
+
+    it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 in sync-transactions.yml', () => {
+      const vercelJsonPath = path.resolve(process.cwd(), 'vercel.json');
+      const vercelConfig = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'));
+      expect(typeof vercelConfig.ignoreCommand).toBe('string');
+      expect(vercelConfig.ignoreCommand).toContain('git diff --quiet HEAD^ HEAD ./');
+      expect(vercelConfig.ignoreCommand).toContain('vercel skip');
+
+      const workflowPath = path.resolve(process.cwd(), '..', '.github', 'workflows', 'sync-realestate-data.yml');
+      if (fs.existsSync(workflowPath)) {
+        const workflowContent = fs.readFileSync(workflowPath, 'utf8');
+        expect(workflowContent).toContain('[skip ci] [vercel skip]');
+      }
+
+      const syncTxWorkflowPath = path.resolve(process.cwd(), '..', '.github', 'workflows', 'sync-transactions.yml');
+      if (fs.existsSync(syncTxWorkflowPath)) {
+        const syncTxWorkflowContent = fs.readFileSync(syncTxWorkflowPath, 'utf8');
+        expect(syncTxWorkflowContent).toContain('/api/cron/sync-transactions?ym=${YM}&skipDeploy=1');
+      }
+    });
+  });
 });
+

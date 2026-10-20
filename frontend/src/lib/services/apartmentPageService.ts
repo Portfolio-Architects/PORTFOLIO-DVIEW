@@ -12,6 +12,8 @@ import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { redis } from '@/lib/redis';
 import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
+import type { DongApartment } from '@/lib/dong-apartments';
+import { findTxKey, isSameApartment, normalizeAptName, sanitizeAptKey } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
 import {
   decodeAptName,
@@ -158,6 +160,7 @@ export interface ApartmentPageData {
   pyeongSummaries: PyeongSummary[];
   locationScore: LocationScore | null;
   matchedReportData: FieldReportData | null;
+  matchedDongApt?: DongApartment | null;
   structuredImages: string[];
   analytics: PriceAnalytics;
   aiBriefing: string;
@@ -177,6 +180,60 @@ export async function getTxSummaryData(): Promise<Record<string, AptTxSummary>> 
 }
 
 /**
+ * 동별 아파트 메타데이터 (apartments-by-dong.json) 조회
+ */
+export async function getApartmentsByDongData(): Promise<Record<string, DongApartment[]>> {
+  const raw = await readJsonFileCached<Record<string, unknown>>('public/data/apartments-by-dong.json', {});
+  if (!raw || typeof raw !== 'object') return {};
+  if ('byDong' in raw && raw.byDong && typeof raw.byDong === 'object') {
+    return raw.byDong as Record<string, DongApartment[]>;
+  }
+  return raw as Record<string, DongApartment[]>;
+}
+
+function resolveDongApartment(
+  aptName: string,
+  byDong: Record<string, DongApartment[]>,
+  hintDong?: string | null
+): { matchedDongApt: DongApartment | null; manualMapping: Record<string, string> } {
+  const manualMapping: Record<string, string> = {};
+  const allApts: DongApartment[] = [];
+  for (const [dong, apts] of Object.entries(byDong)) {
+    if (!Array.isArray(apts)) continue;
+    for (const apt of apts) {
+      if (!apt || !apt.name) continue;
+      const enriched = apt.dong ? apt : { ...apt, dong };
+      allApts.push(enriched);
+      if (apt.txKey) {
+        manualMapping[apt.name] = sanitizeAptKey(apt.txKey) || normalizeAptName(apt.txKey);
+      }
+    }
+  }
+  if (!aptName || !aptName.trim()) {
+    return { matchedDongApt: null, manualMapping };
+  }
+  const exactMatch = allApts.find((a) => a.name === aptName || a.txKey === aptName);
+  if (exactMatch) {
+    return { matchedDongApt: exactMatch, manualMapping };
+  }
+  const normTarget = normalizeAptName(aptName);
+  const sanitizedTarget = sanitizeAptKey(aptName);
+  if (normTarget || sanitizedTarget) {
+    const normMatch = allApts.find(
+      (a) =>
+        normalizeAptName(a.name) === normTarget ||
+        sanitizeAptKey(a.name) === sanitizedTarget ||
+        (a.txKey && (normalizeAptName(a.txKey) === normTarget || sanitizeAptKey(a.txKey) === sanitizedTarget))
+    );
+    if (normMatch) {
+      return { matchedDongApt: normMatch, manualMapping };
+    }
+  }
+  const fuzzyMatch = allApts.find((a) => isSameApartment(a.name, aptName, manualMapping, a.dong, hintDong));
+  return { matchedDongApt: fuzzyMatch || null, manualMapping };
+}
+
+/**
  * 단지별 실거래 내역 (tx-data/{aptName}.json) 조회
  */
 export async function getApartmentTransactions(aptName: string): Promise<TransactionRecord[]> {
@@ -186,10 +243,47 @@ export async function getApartmentTransactions(aptName: string): Promise<Transac
 /**
  * 단지별 입지 점수 및 인근 인프라 정보 조회
  */
-export async function getLocationScore(aptName: string): Promise<LocationScore | null> {
+export async function getLocationScore(
+  aptName: string,
+  aptDong?: string | null,
+  manualMapping?: Record<string, string>,
+  matchedDongAptName?: string | null
+): Promise<LocationScore | null> {
   try {
     const allScores = await readJsonFileCached<Record<string, LocationScore>>('public/data/location-scores.json', {});
-    return allScores[aptName] || null;
+    if (!allScores || typeof allScores !== 'object') return null;
+    if (allScores[aptName]) return allScores[aptName];
+    if (matchedDongAptName && allScores[matchedDongAptName]) {
+      return allScores[matchedDongAptName];
+    }
+    const resolvedKey = findTxKey(aptName, allScores, manualMapping, false, aptDong);
+    if (resolvedKey && allScores[resolvedKey]) {
+      return allScores[resolvedKey];
+    }
+    if (matchedDongAptName) {
+      const resolvedFromDongName = findTxKey(matchedDongAptName, allScores, manualMapping, false, aptDong);
+      if (resolvedFromDongName && allScores[resolvedFromDongName]) {
+        return allScores[resolvedFromDongName];
+      }
+    }
+    if (!manualMapping && !matchedDongAptName) {
+      const byDong = await getApartmentsByDongData();
+      const { matchedDongApt, manualMapping: derivedMapping } = resolveDongApartment(aptName, byDong, aptDong);
+      if (matchedDongApt?.name && allScores[matchedDongApt.name]) {
+        return allScores[matchedDongApt.name];
+      }
+      const fallbackKey = findTxKey(
+        matchedDongApt?.name || aptName,
+        allScores,
+        derivedMapping,
+        false,
+        aptDong || matchedDongApt?.dong
+      );
+      if (fallbackKey && allScores[fallbackKey]) {
+        return allScores[fallbackKey];
+      }
+    }
+    return null;
   } catch (err) {
     logger.warn('ApartmentPageService', `Failed to read location-scores for ${aptName}`, {}, err as Error);
     return null;
@@ -217,7 +311,13 @@ export async function fetchScoutingReportCached(aptName: string): Promise<FieldR
     try {
       const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', aptName).limit(1).get();
       if (!snap.empty) {
-        const data = snap.docs[0].data() as FieldReportData;
+        const docSnap = snap.docs[0];
+        const data = JSON.parse(
+          JSON.stringify({
+            id: docSnap.id,
+            ...docSnap.data(),
+          })
+        ) as FieldReportData;
         if (redis) {
           await redis.set(cacheKey, data, { ex: 3600 }).catch((err) =>
             logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Redis write error', { aptName }, err as Error)
@@ -352,14 +452,31 @@ export function buildMortgageSsrData(
 export async function getApartmentPageData(rawAptName: string): Promise<ApartmentPageData> {
   const aptName = decodeAptName(rawAptName);
 
-  const [txSummary, txs, locationScore, matchedReportData] = await Promise.all([
+  const [txSummary, byDong, matchedReportData] = await Promise.all([
     getTxSummaryData(),
-    getApartmentTransactions(aptName),
-    getLocationScore(aptName),
+    getApartmentsByDongData(),
     fetchScoutingReportCached(aptName),
   ]);
 
-  const aptSummary = txSummary[aptName];
+  const { matchedDongApt, manualMapping } = resolveDongApartment(
+    aptName,
+    byDong,
+    txSummary[aptName]?.dong || matchedReportData?.dong
+  );
+
+  const resolvedTxKey =
+    (txSummary[aptName] ? aptName : null) ||
+    (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
+    findTxKey(aptName, txSummary, manualMapping, false, matchedDongApt?.dong || matchedReportData?.dong);
+
+  const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : txSummary[aptName];
+  const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || null;
+
+  const [txs, locationScore] = await Promise.all([
+    getApartmentTransactions(resolvedTxKey || aptName),
+    getLocationScore(aptName, resolvedDong, manualMapping, matchedDongApt?.name),
+  ]);
+
   const pyeongSummaries = getPyeongSummaries(txs);
   const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
   const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore);
@@ -382,6 +499,7 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
     pyeongSummaries,
     locationScore,
     matchedReportData,
+    matchedDongApt,
     structuredImages,
     analytics,
     aiBriefing,
@@ -404,6 +522,7 @@ export function buildApartmentJsonLd(
     pyeongSummaries,
     locationScore,
     matchedReportData,
+    matchedDongApt,
     structuredImages,
     analytics,
     aiBriefing,
@@ -424,6 +543,7 @@ export function buildApartmentJsonLd(
     rawReport?.lat ||
     rawReport?.latitude ||
     rawMetrics?.lat ||
+    matchedDongApt?.lat ||
     locationScore?.nearestStationCoords?.split(',')[0]?.trim() ||
     37.2005;
 
@@ -431,6 +551,7 @@ export function buildApartmentJsonLd(
     rawReport?.lng ||
     rawReport?.longitude ||
     rawMetrics?.lng ||
+    matchedDongApt?.lng ||
     locationScore?.nearestStationCoords?.split(',')[1]?.trim() ||
     127.0985;
 
@@ -505,13 +626,20 @@ export function buildApartmentJsonLd(
     addressCountry: 'KR',
     addressRegion: '경기도',
     addressLocality: '화성시',
-    streetAddress: `${aptSummary?.dong || matchedReportData?.dong || ''} ${aptName}`,
+    streetAddress: `${aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || ''} ${aptName}`,
   };
 
   const rawScale = matchedReportData?.sections?.specs?.scale;
   const rawBuiltYear = matchedReportData?.sections?.specs?.builtYear;
-  const totalHouseholds = rawScale ? parseInt(rawScale.replace(/[^0-9]/g, ''), 10) : undefined;
-  const yearBuiltVal = rawBuiltYear ? parseInt(rawBuiltYear.replace(/[^0-9]/g, ''), 10) : undefined;
+  const totalHouseholds =
+    (rawScale ? parseInt(rawScale.replace(/[^0-9]/g, ''), 10) : undefined) ||
+    matchedDongApt?.householdCount ||
+    undefined;
+  const rawDongYear = matchedDongApt?.yearBuilt ? String(matchedDongApt.yearBuilt).slice(0, 4) : undefined;
+  const yearBuiltVal =
+    (rawBuiltYear ? parseInt(rawBuiltYear.replace(/[^0-9]/g, ''), 10) : undefined) ||
+    (rawDongYear ? parseInt(rawDongYear, 10) : undefined) ||
+    undefined;
 
   const floorPlans = pyeongSummaries.map((p) => ({
     '@type': 'FloorPlan',

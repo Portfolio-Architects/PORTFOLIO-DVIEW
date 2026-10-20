@@ -198,7 +198,18 @@ const nextConfig: NextConfig = {
   },
 
   outputFileTracingIncludes: {
-    '/apartment/[aptName]': ['./public/tx-data/**/*.json'],
+    '/apartment/[aptName]': [
+      './public/tx-data/!(*-recent|_index).json',
+      './public/data/tx-summary.json',
+      './public/data/location-scores.json',
+      './public/data/apartments-by-dong.json',
+    ],
+  },
+  outputFileTracingExcludes: {
+    '/apartment/[aptName]': [
+      './public/tx-data/*-recent.json',
+      './public/tx-data/_index.json',
+    ],
   },
   webpack: (config, { dev, isServer }) => {
     // 🔧 HMR (Fast Refresh) 무한 리로드 루프 방지를 위한 watchOptions 설정 추가

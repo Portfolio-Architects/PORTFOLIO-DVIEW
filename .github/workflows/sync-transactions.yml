@@ -54,7 +54,7 @@ jobs:
             curl -sS -m 55 \
               -H "Authorization: Bearer ${CRON_SECRET_RESOLVED}" \
               -H "x-building-api-key: ${API_KEY_RESOLVED}" \
-              "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}" || echo "⚠️ Vercel cron trigger for ${YM} returned non-zero; continuing"
+              "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}&skipDeploy=1" || echo "⚠️ Vercel cron trigger for ${YM} returned non-zero; continuing"
             echo ""
           done
           node scripts/fetch-transactions.js || echo "⚠️ fetch-transactions.js encountered an error; continuing to rent & sync"

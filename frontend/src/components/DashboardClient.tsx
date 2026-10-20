@@ -178,18 +178,19 @@ function buildStubObjectiveMetrics(
   loc?: LocationScoreItem,
   base?: ObjectiveMetrics
 ): ObjectiveMetrics {
+  const dongApt = apt as DongApartment;
   const parsedYear = apt.yearBuilt ? Number(apt.yearBuilt) : (base?.yearBuilt ?? 0);
   return {
     ...(base || {}),
     brand: apt.brand ?? base?.brand ?? '',
     householdCount: apt.householdCount ?? base?.householdCount ?? 0,
-    far: base?.far ?? 0,
-    bcr: base?.bcr ?? 0,
-    parkingCount: base?.parkingCount,
-    parkingPerHousehold: base?.parkingPerHousehold ?? 0,
+    far: dongApt.far ?? base?.far ?? 0,
+    bcr: dongApt.bcr ?? base?.bcr ?? 0,
+    parkingCount: dongApt.parkingCount ?? base?.parkingCount,
+    parkingPerHousehold: dongApt.parkingPerHousehold ?? base?.parkingPerHousehold ?? 0,
     yearBuilt: Number.isFinite(parsedYear) ? parsedYear : 0,
-    minFloor: base?.minFloor,
-    maxFloor: base?.maxFloor,
+    minFloor: dongApt.minFloor ?? base?.minFloor,
+    maxFloor: dongApt.maxFloor ?? base?.maxFloor,
     distanceToElementary: loc?.distanceToElementary ?? base?.distanceToElementary ?? 0,
     distanceToMiddle: loc?.distanceToMiddle ?? base?.distanceToMiddle ?? 0,
     distanceToHigh: loc?.distanceToHigh ?? base?.distanceToHigh ?? 0,
@@ -197,8 +198,8 @@ function buildStubObjectiveMetrics(
     academyDensity: typeof loc?.academyDensity === 'number' ? loc.academyDensity : (base?.academyDensity ?? 0),
     distanceToIndeokwon: loc?.distanceToIndeokwon ?? base?.distanceToIndeokwon,
     distanceToTram: loc?.distanceToTram ?? base?.distanceToTram,
-    distanceToStarbucks: loc?.distanceToStarbucks ?? base?.distanceToStarbucks,
-    distanceToOliveYoung: loc?.distanceToOliveYoung ?? base?.distanceToOliveYoung,
+    distanceToStarbucks: loc?.distanceToStarbucks ?? dongApt.distanceToStarbucks ?? base?.distanceToStarbucks,
+    distanceToOliveYoung: loc?.distanceToOliveYoung ?? dongApt.distanceToOliveYoung ?? base?.distanceToOliveYoung,
   };
 }
 
@@ -248,11 +249,19 @@ const DashboardClient = React.memo(function DashboardClient({
   const [isSellTimingOpen, setIsSellTimingOpen] = useState(false);
   const [sellTimingInitialApt, setSellTimingInitialApt] = useState<string | undefined>(undefined);
   
-  const { txSummary = EMPTY_OBJECT, recentTransactions = [], macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
+  const { txSummary: fetchedTxSummary = EMPTY_OBJECT, recentTransactions = [], macroTrend = [], recent7DaysVolume, isLoading: isStaticDataLoading } = useTxData(
     initialDashboardData?.macroTrend,
-    initialDashboardData?.txSummary,
+    preselectedAptName ? undefined : initialDashboardData?.txSummary,
     initialDashboardData?.recent7DaysVolume,
     initialDashboardData?.recentTransactions
+  );
+
+  const txSummary = useMemo(
+    () =>
+      preselectedAptName && initialDashboardData?.txSummary
+        ? { ...initialDashboardData.txSummary, ...fetchedTxSummary }
+        : fetchedTxSummary,
+    [preselectedAptName, initialDashboardData?.txSummary, fetchedTxSummary]
   );
 
   const filteredRecentTransactions = useMemo(() => {
@@ -276,7 +285,17 @@ const DashboardClient = React.memo(function DashboardClient({
     return filtered.length > 0 ? filtered : recentTransactions;
   }, [recentTransactions, nameMapping]);
 
-  const { locationScores = EMPTY_OBJECT } = useLocationScores(initialDashboardData?.locationScores);
+  const { locationScores: fetchedLocationScores = EMPTY_OBJECT } = useLocationScores(
+    preselectedAptName ? undefined : initialDashboardData?.locationScores
+  );
+
+  const locationScores = useMemo(
+    () =>
+      preselectedAptName && initialDashboardData?.locationScores
+        ? { ...initialDashboardData.locationScores, ...fetchedLocationScores }
+        : fetchedLocationScores,
+    [preselectedAptName, initialDashboardData?.locationScores, fetchedLocationScores]
+  );
   
   const getLocScore = useCallback((aptName: string): LocationScoreItem | undefined => {
     if (!aptName || !locationScores) return undefined;
@@ -501,17 +520,39 @@ const DashboardClient = React.memo(function DashboardClient({
     if (preselectedAptName) {
       userHasSelected.current = true;
       const targetApt = allApts.find(a => isSameApartment(a.name, preselectedAptName, nameMapping));
-      if (targetApt) {
-        const report = fieldReportsMap.get(targetApt.name);
+      const metaEntry = initialDashboardData?.apartmentMeta?.[preselectedAptName] as Partial<DongApartment> | undefined;
+      const fallbackDong =
+        metaEntry?.dong ||
+        initialDashboardData?.txSummary?.[preselectedAptName]?.dong ||
+        '';
+      const resolvedApt: StaticApartment | DongApartment | undefined = targetApt
+        ? {
+            ...targetApt,
+            ...metaEntry,
+            name: targetApt.name,
+            dong: targetApt.dong || fallbackDong,
+          }
+        : fallbackDong || metaEntry || fieldReports.length > 0
+        ? {
+            ...metaEntry,
+            name: metaEntry?.name || preselectedAptName,
+            dong: fallbackDong,
+          }
+        : undefined;
+      if (resolvedApt) {
+        const report =
+          (targetApt && fieldReportsMap.get(targetApt.name)) ||
+          fieldReports.find(r => isSameApartment(r.apartmentName, preselectedAptName, nameMapping));
+        const locScore = getLocScore(resolvedApt.name) || getLocScore(preselectedAptName);
         setSelectedReport(report || {
-          id: `stub-${normalizeAptName(targetApt.name)}`,
-          apartmentName: targetApt.name,
-          dong: targetApt.dong,
+          id: `stub-${normalizeAptName(resolvedApt.name)}`,
+          apartmentName: resolvedApt.name,
+          dong: resolvedApt.dong,
           author: '',
           likes: 0,
           commentCount: 0,
           createdAt: null,
-          metrics: buildStubObjectiveMetrics(targetApt, getLocScore(targetApt.name)),
+          metrics: buildStubObjectiveMetrics(resolvedApt, locScore),
         });
         if (typeof window !== 'undefined' && window.innerWidth < 768) {
           setMobileModalOpen(true);

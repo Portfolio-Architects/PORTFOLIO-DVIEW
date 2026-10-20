@@ -96,6 +96,15 @@ export interface DongApartment {
   lat?: number;
   lng?: number;
   txKey?: string;
+  isPublicRental?: boolean;
+  far?: number;
+  bcr?: number;
+  parkingCount?: number;
+  parkingPerHousehold?: number;
+  minFloor?: number;
+  maxFloor?: number;
+  distanceToStarbucks?: number;
+  distanceToOliveYoung?: number;
 }
 
 /** 데이터를 byDong 형식으로 변환 */

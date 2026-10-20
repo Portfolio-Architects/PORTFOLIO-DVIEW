@@ -1,5 +1,6 @@
 {
   "buildCommand": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build",
+  "ignoreCommand": "git log -1 --pretty=%B | grep -qE '\\[(skip ci|vercel skip)\\]' || git diff --quiet HEAD^ HEAD ./",
   "regions": ["icn1"],
   "crons": [
     {

@@ -1332,6 +1332,20 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       expect(syncTxRoute.preferredRegion).toBe('icn1');
       expect(syncNoticesRoute.preferredRegion).toBe('icn1');
 
+      // 1b. Verify shouldTriggerDeployHook guards redundant VERCEL_DEPLOY_HOOK_URL calls
+      expect(syncTxRoute.shouldTriggerDeployHook(10, null, 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(true);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, '0', 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(true);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, 'false', 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(true);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, '1', 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, 'true', 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, 'TRUE', 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, 'yes', 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(0, null, 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(-1, null, 'https://api.vercel.com/v1/integrations/deploy/hook')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, null, '')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, null, '   ')).toBe(false);
+      expect(syncTxRoute.shouldTriggerDeployHook(10, null, undefined)).toBe(false);
+
       // 2. Verify cron authorization fallbacks when CRON_SECRET is unset
       const origCronSecret = process.env.CRON_SECRET;
       try {

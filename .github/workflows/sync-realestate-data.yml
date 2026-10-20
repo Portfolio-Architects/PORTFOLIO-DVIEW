@@ -39,7 +39,7 @@ jobs:
           
           # Only commit if there are changes
           if ! git diff --staged --quiet; then
-            git commit -m "Auto-sync real estate data [skip ci]"
+            git commit -m "Auto-sync real estate data [skip ci] [vercel skip]"
             git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
             git push
           else

@@ -179,6 +179,17 @@ export function isAuthorizedCronRequest(request: NextRequest, expectedApiKey?: s
   return false;
 }
 
+export function shouldTriggerDeployHook(
+  totalNew: number,
+  skipDeployParam?: string | null,
+  deployHookUrl: string | undefined = process.env.VERCEL_DEPLOY_HOOK_URL
+): boolean {
+  if (totalNew <= 0 || !deployHookUrl || !deployHookUrl.trim()) return false;
+  const normalized = (skipDeployParam || '').trim().toLowerCase();
+  if (normalized === '1' || normalized === 'true' || normalized === 'yes') return false;
+  return true;
+}
+
 const transactionRecordSchema = z.object({
   sigungu: z.string(),
   dong: z.string(),
@@ -791,8 +802,9 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // 5. Trigger Vercel Deploy Hook if there are new transactions
-    if (totalNew > 0 && process.env.VERCEL_DEPLOY_HOOK_URL) {
+    // 5. Trigger Vercel Deploy Hook if there are new transactions (unless suppressed by skipDeploy query param)
+    const skipDeployParam = request.nextUrl.searchParams.get('skipDeploy');
+    if (shouldTriggerDeployHook(totalNew, skipDeployParam, process.env.VERCEL_DEPLOY_HOOK_URL) && process.env.VERCEL_DEPLOY_HOOK_URL) {
       try {
         const deployRes = await resilientFetch(process.env.VERCEL_DEPLOY_HOOK_URL, { method: 'POST', timeoutMs: 5000, retries: 2 });
         if (deployRes.ok) {
@@ -806,6 +818,8 @@ export async function GET(request: NextRequest) {
         syncLog.push(`Vercel Deploy Hook Error: ${(err as Error).message}`);
         logger.error('SyncTransactionsAPI.GET', 'Vercel Deploy Hook Error', {}, err as Error);
       }
+    } else if (totalNew > 0 && skipDeployParam) {
+      syncLog.push('Vercel Deploy Hook Skipped (skipDeploy=1)');
     }
 
     // 6. Trigger Web Push Notifications for New Highs if there are new transactions

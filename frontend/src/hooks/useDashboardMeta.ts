@@ -36,7 +36,7 @@ const DashboardInitResponseSchema = z.object({
 
 export interface DashboardInitialDataLocal {
   typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
-  apartmentMeta?: Record<string, { dong?: string; txKey?: string; isPublicRental?: boolean }>;
+  apartmentMeta?: Record<string, Partial<DongApartment> & { dong?: string; txKey?: string; isPublicRental?: boolean }>;
   favoriteCounts?: Record<string, number>;
   sheetApartments?: Record<string, DongApartment[]>;
   kpis?: KPIData[];
