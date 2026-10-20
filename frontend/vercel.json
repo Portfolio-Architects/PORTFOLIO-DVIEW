@@ -1,6 +1,6 @@
 {
   "buildCommand": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build",
-  "ignoreCommand": "git log -1 --pretty=%B | grep -qE '\\[(skip ci|vercel skip)\\]' || { BASE_SHA=HEAD^; if [ -n \"$VERCEL_GIT_PREVIOUS_SHA\" ] && [ \"$VERCEL_GIT_PREVIOUS_SHA\" != \"$(git rev-parse HEAD)\" ] && git cat-file -e \"$VERCEL_GIT_PREVIOUS_SHA^{commit}\" 2>/dev/null; then BASE_SHA=\"$VERCEL_GIT_PREVIOUS_SHA\"; fi; git diff --quiet \"$BASE_SHA\" HEAD ./; }",
+  "ignoreCommand": "git log -1 --format=%B | grep -qE '\\[(skip ci|vercel skip)\\]' || { B=$VERCEL_GIT_PREVIOUS_SHA; [ \"$B\" != \"$(git rev-parse HEAD)\" ] && git cat-file -e \"$B\" 2>/dev/null || B=HEAD^; git diff --quiet \"$B\" HEAD ./ 2>/dev/null || exit 1; }",
   "regions": ["icn1"],
   "crons": [
     {

@@ -613,6 +613,7 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       const vercelJsonPath = path.resolve(process.cwd(), 'vercel.json');
       const vercelConfig = JSON.parse(fs.readFileSync(vercelJsonPath, 'utf8'));
       expect(typeof vercelConfig.ignoreCommand).toBe('string');
+      expect(vercelConfig.ignoreCommand.length).toBeLessThanOrEqual(256);
       expect(vercelConfig.ignoreCommand).toContain('VERCEL_GIT_PREVIOUS_SHA');
       expect(vercelConfig.ignoreCommand).toContain('vercel skip');
 
@@ -660,12 +661,13 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
         runGit(['config', 'user.name', 'test']);
         runGit(['config', 'user.email', 'test@example.com']);
 
-        // Commit 0 (Initial baseline)
+        // Commit 0 (Initial baseline — simulates shallow clone depth=1 where HEAD^ does not exist)
         fs.writeFileSync(path.join(frontendDir, 'app.ts'), 'v0');
         fs.writeFileSync(path.join(dataDir, 'summary.json'), '{}');
         runGit(['add', '-A']);
         runGit(['commit', '-m', 'chore: initial commit']);
         const sha0 = runGit(['rev-parse', 'HEAD']).stdout.trim();
+        expect(runIgnoreCmd({ VERCEL_GIT_PREVIOUS_SHA: 'deadbeef00000000000000000000000000000000' }).status).toBe(1);
 
         // Scenario 1: Root data/ commit with [skip ci] [vercel skip] -> exit 0 (skip build)
         fs.writeFileSync(path.join(dataDir, 'summary.json'), '{"v":1}');
