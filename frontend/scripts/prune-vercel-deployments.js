@@ -20,6 +20,7 @@ const DEFAULT_PROJECT_ID = 'prj_OCym05uVc30QN4JhiMj9paHaK0Yt';
 const DEFAULT_TEAM_ID = 'team_6oiLYgowOwsSHPYuKP3NPrSY';
 const DEFAULT_RETAIN_COUNT = 2;
 const DEFAULT_MAX_WAIT_MS = 180000;
+const DEFAULT_REGISTRATION_WAIT_MS = 15000;
 const DEFAULT_POLL_INTERVAL_MS = 5000;
 const DEFAULT_DELETE_DELAY_MS = 150;
 const PAGE_LIMIT = 100;
@@ -29,12 +30,19 @@ const DELETABLE_STATES = new Set(['READY', 'CANCELED', 'ERROR']);
 
 const DeploymentItemSchema = z.object({
   uid: z.string().min(1),
-  name: z.string().optional(),
+  name: z.string().nullable().optional(),
   state: z.string().nullable().optional(),
   readyState: z.string().nullable().optional(),
   target: z.string().nullable().optional(),
   createdAt: z.number().nullable().optional(),
   created: z.number().nullable().optional(),
+  meta: z
+    .object({
+      githubCommitSha: z.string().nullable().optional(),
+    })
+    .passthrough()
+    .nullable()
+    .optional(),
 });
 
 const DeploymentsResponseSchema = z.object({
@@ -50,12 +58,63 @@ const DeploymentsResponseSchema = z.object({
 });
 
 /**
+ * Resolve positive integer parameter (>= 1) with deterministic fallback.
+ * @complexity Time: O(1), Space: O(1), Side-effects: false
+ */
+function resolvePositiveInt(value, fallback) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return fallback;
+  }
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 1 ? Math.floor(num) : fallback;
+}
+
+/**
+ * Resolve non-negative integer parameter (>= 0) with deterministic fallback.
+ * @complexity Time: O(1), Space: O(1), Side-effects: false
+ */
+function resolveNonNegativeInt(value, fallback) {
+  if (value === undefined || value === null || String(value).trim() === '') {
+    return fallback;
+  }
+  const num = Number(value);
+  return Number.isFinite(num) && num >= 0 ? Math.floor(num) : fallback;
+}
+
+/**
  * Normalize deployment state from `state` or `readyState`.
  * @complexity Time: O(1), Space: O(1), Side-effects: false
  */
 function getDeploymentState(deployment) {
   const raw = deployment?.state || deployment?.readyState || '';
   return String(raw).trim().toUpperCase();
+}
+
+/**
+ * Normalize deployment target (e.g. 'production').
+ * @complexity Time: O(1), Space: O(1), Side-effects: false
+ */
+function getDeploymentTarget(deployment) {
+  return String(deployment?.target ?? '').trim().toLowerCase();
+}
+
+/**
+ * Extract normalized commit SHA from deployment metadata.
+ * @complexity Time: O(1), Space: O(1), Side-effects: false
+ */
+function getDeploymentCommitSha(deployment) {
+  return String(deployment?.meta?.githubCommitSha ?? '').trim().toLowerCase();
+}
+
+/**
+ * Check whether a deployment matches an expected Git commit SHA (prefix-compatible).
+ * @complexity Time: O(1), Space: O(1), Side-effects: false
+ */
+function matchesCommitSha(deployment, expectedCommitSha) {
+  const expected = String(expectedCommitSha ?? '').trim().toLowerCase();
+  const actual = getDeploymentCommitSha(deployment);
+  if (!expected || !actual) return false;
+  return actual.startsWith(expected) || expected.startsWith(actual);
 }
 
 /**
@@ -148,8 +207,7 @@ async function fetchAllDeployments({
  * @complexity Time: O(D log D), Space: O(D), Side-effects: false
  */
 function planDeploymentPruning(deployments, retainCount = DEFAULT_RETAIN_COUNT) {
-  const safeRetainCount =
-    Number.isFinite(retainCount) && retainCount >= 1 ? Math.floor(retainCount) : DEFAULT_RETAIN_COUNT;
+  const safeRetainCount = resolvePositiveInt(retainCount, DEFAULT_RETAIN_COUNT);
 
   const sorted = [...deployments].sort((a, b) => {
     const diff = getDeploymentTimestamp(b) - getDeploymentTimestamp(a);
@@ -163,6 +221,7 @@ function planDeploymentPruning(deployments, retainCount = DEFAULT_RETAIN_COUNT) 
 
   for (const d of sorted) {
     const state = getDeploymentState(d);
+    const target = getDeploymentTarget(d);
 
     // Invariant 1: Always preserve in-flight deployments
     if (IN_FLIGHT_STATES.has(state)) {
@@ -171,7 +230,7 @@ function planDeploymentPruning(deployments, retainCount = DEFAULT_RETAIN_COUNT) 
     }
 
     // Invariant 2: Retain top N READY production deployments
-    if (d.target === 'production' && state === 'READY') {
+    if (target === 'production' && state === 'READY') {
       if (retainedReadyProdCount < safeRetainCount) {
         retainedReadyProdCount += 1;
         toKeep.push(d);
@@ -204,14 +263,31 @@ async function pruneVercelDeployments(options = {}) {
   ).trim();
   const projectId = options.projectId || process.env.VERCEL_PROJECT_ID || DEFAULT_PROJECT_ID;
   const teamId = options.teamId || process.env.VERCEL_TEAM_ID || DEFAULT_TEAM_ID;
-  const retainCount = Number(options.retainCount ?? process.env.VERCEL_RETAIN_COUNT ?? DEFAULT_RETAIN_COUNT);
-  const maxWaitMs = Number(options.maxWaitMs ?? process.env.VERCEL_WAIT_MAX_MS ?? DEFAULT_MAX_WAIT_MS);
-  const pollIntervalMs = Number(
-    options.pollIntervalMs ?? process.env.VERCEL_POLL_INTERVAL_MS ?? DEFAULT_POLL_INTERVAL_MS
+  const retainCount = resolvePositiveInt(
+    options.retainCount ?? process.env.VERCEL_RETAIN_COUNT,
+    DEFAULT_RETAIN_COUNT
   );
-  const deleteDelayMs = Number(
-    options.deleteDelayMs ?? process.env.VERCEL_DELETE_DELAY_MS ?? DEFAULT_DELETE_DELAY_MS
+  const maxWaitMs = resolveNonNegativeInt(
+    options.maxWaitMs ?? process.env.VERCEL_WAIT_MAX_MS,
+    DEFAULT_MAX_WAIT_MS
   );
+  const registrationWaitMs = resolveNonNegativeInt(
+    options.registrationWaitMs ?? process.env.VERCEL_REGISTRATION_WAIT_MS,
+    DEFAULT_REGISTRATION_WAIT_MS
+  );
+  const pollIntervalMs = resolvePositiveInt(
+    options.pollIntervalMs ?? process.env.VERCEL_POLL_INTERVAL_MS,
+    DEFAULT_POLL_INTERVAL_MS
+  );
+  const deleteDelayMs = resolveNonNegativeInt(
+    options.deleteDelayMs ?? process.env.VERCEL_DELETE_DELAY_MS,
+    DEFAULT_DELETE_DELAY_MS
+  );
+  const expectedCommitSha = String(
+    options.expectedCommitSha ?? process.env.VERCEL_EXPECTED_COMMIT_SHA ?? ''
+  )
+    .trim()
+    .toLowerCase();
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   const sleepImpl = options.sleepImpl || defaultSleep;
   const nowImpl = options.nowImpl || (() => Date.now());
@@ -233,8 +309,30 @@ async function pruneVercelDeployments(options = {}) {
 
   while (true) {
     const inFlight = deployments.filter((d) => IN_FLIGHT_STATES.has(getDeploymentState(d)));
+    const hasExpectedCommit =
+      !expectedCommitSha || deployments.some((d) => matchesCommitSha(d, expectedCommitSha));
+
     if (inFlight.length === 0) {
-      break;
+      if (hasExpectedCommit) {
+        break;
+      }
+
+      const elapsedMs = nowImpl() - startTime;
+      const effectiveRegLimit = Math.min(maxWaitMs, registrationWaitMs);
+      if (elapsedMs >= effectiveRegLimit) {
+        logger.warn(
+          `[PruneVercel] Registration wait (${effectiveRegLimit}ms) elapsed without seeing commit ${expectedCommitSha}. Proceeding with current deployments.`
+        );
+        break;
+      }
+
+      const waitMs = Math.min(pollIntervalMs, Math.max(1, effectiveRegLimit - elapsedMs));
+      logger.log(
+        `[PruneVercel] Waiting for expected commit ${expectedCommitSha} to register on Vercel... Polling again in ${waitMs}ms...`
+      );
+      await sleepImpl(waitMs);
+      deployments = await fetchAllDeployments({ token, projectId, teamId, fetchImpl });
+      continue;
     }
 
     const elapsedMs = nowImpl() - startTime;
@@ -327,11 +425,17 @@ module.exports = {
   DEFAULT_TEAM_ID,
   DEFAULT_RETAIN_COUNT,
   DEFAULT_MAX_WAIT_MS,
+  DEFAULT_REGISTRATION_WAIT_MS,
   DEFAULT_POLL_INTERVAL_MS,
   DEFAULT_DELETE_DELAY_MS,
   IN_FLIGHT_STATES,
   DELETABLE_STATES,
+  resolvePositiveInt,
+  resolveNonNegativeInt,
   getDeploymentState,
+  getDeploymentTarget,
+  getDeploymentCommitSha,
+  matchesCommitSha,
   getDeploymentTimestamp,
   fetchAllDeployments,
   planDeploymentPruning,

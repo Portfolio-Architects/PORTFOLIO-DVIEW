@@ -42,6 +42,13 @@ import ApartmentPage, {
   generateStaticParams,
   generateMetadata,
 } from '@/app/apartment/[aptName]/page';
+import {
+  pruneVercelDeployments,
+  planDeploymentPruning,
+  resolvePositiveInt,
+  resolveNonNegativeInt,
+  matchesCommitSha,
+} from '../../scripts/prune-vercel-deployments.js';
 
 // Mock DashboardClient to isolate SSR wrapper rendering
 let lastCapturedInitialDashboardData: Record<string, unknown> | undefined;
@@ -647,10 +654,6 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
     });
 
     it('prunes Vercel deployments retaining top N=2 READY production deployments, preserves in-flight deployments, paginates, and handles edge cases', async () => {
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const pruneModule = require('../../scripts/prune-vercel-deployments.js');
-      const { pruneVercelDeployments, planDeploymentPruning } = pruneModule;
-
       // 1. Missing token skips gracefully
       const noTokenFetch = jest.fn();
       const skipResult = await pruneVercelDeployments({
@@ -689,7 +692,13 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
               status: 200,
               json: async () => ({
                 deployments: [
-                  { uid: 'dpl_new_prod', state: inFlightState, target: 'production', createdAt: 5000 },
+                  {
+                    uid: 'dpl_new_prod',
+                    name: null,
+                    state: inFlightState,
+                    target: 'PRODUCTION',
+                    createdAt: 5000,
+                  },
                   { uid: 'dpl_canceled_1', state: 'CANCELED', target: 'production', createdAt: 4500 },
                   { uid: 'dpl_ready_prod_2', state: 'READY', target: 'production', createdAt: 4000 },
                 ],
@@ -762,7 +771,7 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
         maxWaitMs: 10000,
         pollIntervalMs: 5000,
         deleteDelayMs: 0,
-        fetchImpl: jest.fn(async (url: string, init?: { method?: string }) => {
+        fetchImpl: jest.fn(async (_url: string, init?: { method?: string }) => {
           if ((init?.method || 'GET') === 'GET') {
             return {
               ok: true,
@@ -792,6 +801,82 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
       expect(timeoutResult.kept).toEqual(['dpl_stuck_q', 'dpl_init', 'dpl_b', 'dpl_r1', 'dpl_r2']);
       expect(timeoutResult.deleted).toEqual(['dpl_r3']);
       expect(planDeploymentPruning([], -5)).toEqual({ toKeep: [], toDelete: [] });
+
+      // 4. Webhook registration delay (expectedCommitSha): waits for commit to register -> BUILDING -> READY -> prunes
+      let regFetchCount = 0;
+      let regClock = 0;
+      const regSleeps: number[] = [];
+      const regResult = await pruneVercelDeployments({
+        token: 'test-vercel-token',
+        expectedCommitSha: 'abcdef1234567890abcdef1234567890abcdef12',
+        registrationWaitMs: 15000,
+        maxWaitMs: 'invalid', // malformed string clamps to DEFAULT_MAX_WAIT_MS (180000)
+        pollIntervalMs: '', // empty string clamps to DEFAULT_POLL_INTERVAL_MS (5000)
+        deleteDelayMs: -10, // negative clamps to DEFAULT_DELETE_DELAY_MS (150)
+        fetchImpl: jest.fn(async (_url: string, init?: { method?: string }) => {
+          if ((init?.method || 'GET') === 'GET') {
+            regFetchCount += 1;
+            if (regFetchCount === 1) {
+              // Poll 1: webhook hasn't created deployment for abcdef1 yet; 0 in-flight
+              return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                  deployments: [
+                    { uid: 'dpl_old_1', state: 'READY', target: 'production', createdAt: 2000, meta: { githubCommitSha: '1111111' } },
+                    { uid: 'dpl_old_2', state: 'READY', target: 'production', createdAt: 1000, meta: { githubCommitSha: '2222222' } },
+                  ],
+                  pagination: { next: null },
+                }),
+              };
+            }
+            if (regFetchCount === 2) {
+              // Poll 2: webhook registered deployment in BUILDING state
+              return {
+                ok: true,
+                status: 200,
+                json: async () => ({
+                  deployments: [
+                    { uid: 'dpl_new_sha', state: 'BUILDING', target: 'production', createdAt: 3000, meta: { githubCommitSha: 'abcdef1234567890abcdef1234567890abcdef12' } },
+                    { uid: 'dpl_old_1', state: 'READY', target: 'production', createdAt: 2000, meta: { githubCommitSha: '1111111' } },
+                    { uid: 'dpl_old_2', state: 'READY', target: 'production', createdAt: 1000, meta: { githubCommitSha: '2222222' } },
+                  ],
+                  pagination: { next: null },
+                }),
+              };
+            }
+            // Poll 3: new deployment reached READY
+            return {
+              ok: true,
+              status: 200,
+              json: async () => ({
+                deployments: [
+                  { uid: 'dpl_new_sha', state: 'READY', target: 'production', createdAt: 3000, meta: { githubCommitSha: 'abcdef1234567890abcdef1234567890abcdef12' } },
+                  { uid: 'dpl_old_1', state: 'READY', target: 'production', createdAt: 2000, meta: { githubCommitSha: '1111111' } },
+                  { uid: 'dpl_old_2', state: 'READY', target: 'production', createdAt: 1000, meta: { githubCommitSha: '2222222' } },
+                ],
+                pagination: { next: null },
+              }),
+            };
+          }
+          return { ok: true, status: 200, json: async () => ({}) };
+        }),
+        sleepImpl: async (ms: number) => {
+          regSleeps.push(ms);
+          regClock += ms;
+        },
+        nowImpl: () => regClock,
+        logger: { log: jest.fn(), warn: jest.fn() },
+      });
+
+      expect(regResult.kept).toEqual(['dpl_new_sha', 'dpl_old_1']);
+      expect(regResult.deleted).toEqual(['dpl_old_2']);
+      expect(regSleeps).toEqual([5000, 5000]);
+      expect(resolvePositiveInt('', 5000)).toBe(5000);
+      expect(resolvePositiveInt(0, 5000)).toBe(5000);
+      expect(resolveNonNegativeInt('invalid', 180000)).toBe(180000);
+      expect(resolveNonNegativeInt(0, 150)).toBe(0);
+      expect(matchesCommitSha({ uid: 'x', meta: { githubCommitSha: 'abcdef1234' } }, 'abcdef1')).toBe(true);
     });
 
     it('configures ignoreCommand in vercel.json, [vercel skip] in sync-realestate-data.yml, and skipDeploy=1 + prune step in sync-transactions.yml, and empirically verifies ignoreCommand in a git repo', () => {
@@ -815,6 +900,8 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
         expect(syncTxWorkflowContent).toContain('if: always()');
         expect(syncTxWorkflowContent).toContain('node scripts/prune-vercel-deployments.js');
         expect(syncTxWorkflowContent).toContain('VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}');
+        expect(syncTxWorkflowContent).toContain('VERCEL_EXPECTED_COMMIT_SHA:');
+        expect(syncTxWorkflowContent).toContain('pushed_sha=$(git rev-parse HEAD)');
       }
 
       // Empirically execute ignoreCommand inside an isolated temporary git repository

@@ -91,6 +91,7 @@ jobs:
 
       # Step 3: Commit & Push if changes exist
       - name: Commit and push changes
+        id: commit_push
         if: github.event_name != 'push'
         run: |
           cd ..
@@ -104,6 +105,7 @@ jobs:
             git commit -m "data: auto-sync transactions via github actions ($TODAY)"
             git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
             git push
+            echo "pushed_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
             echo "🚀 Changes pushed — Vercel will auto-deploy"
           fi
 
@@ -113,6 +115,7 @@ jobs:
         run: node scripts/prune-vercel-deployments.js
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_EXPECTED_COMMIT_SHA: ${{ steps.commit_push.outputs.pushed_sha || (github.event_name == 'push' && github.sha) || '' }}
 
       # Step 5: Notify on failure (Optional, requires SLACK_WEBHOOK_URL secret)
       - name: Send notification on failure
