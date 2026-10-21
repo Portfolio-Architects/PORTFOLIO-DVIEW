@@ -35,7 +35,7 @@ const {
   writeApartmentChunks,
   migrateLegacyPathologicalFiles
 } = require('./pipeline/fileGenerators');
-const { sanitizeAptKey } = require('../pipeline/core/normalizer');
+const { sanitizeAptKey, getSupplyPyeong } = require('../pipeline/core/normalizer');
 
 // Firestore 'transactions' & 'transactionSync' 레코드 검증을 위한 Zod 스키마
 const TransactionRecordSchema = z.object({
@@ -193,6 +193,35 @@ function getCanonicalAptKey(name) {
 
 async function fetchTypeMap() {
   const typeMap = {};
+  try {
+    const localTypeMapPath = path.resolve(__dirname, '../public/data/type-map.json');
+    if (fs.existsSync(localTypeMapPath)) {
+      const localItems = JSON.parse(fs.readFileSync(localTypeMapPath, 'utf-8'));
+      if (Array.isArray(localItems)) {
+        for (const item of localItems) {
+          if (!item.aptName || !item.area) continue;
+          const aptName = normalizeAptName(item.aptName);
+          const canonName = getCanonicalAptKey(item.aptName);
+          const area = String(item.area).trim();
+          const typeM2Str = String(item.typeM2 || '').trim();
+          if (aptName && area && typeM2Str) {
+            const match = typeM2Str.match(/\d+(\.\d+)?/);
+            if (match) {
+              const val = parseFloat(match[0]) * 0.3025;
+              if (!typeMap[aptName]) typeMap[aptName] = {};
+              typeMap[aptName][area] = val;
+              if (canonName) {
+                if (!typeMap[canonName]) typeMap[canonName] = {};
+                typeMap[canonName][area] = val;
+              }
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn('⚠️ 로컬 type-map.json 로드 경고:', e.message);
+  }
   try {
     const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=TYPE_MAP`;
     const res = await fetch(csvUrl, { signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined });
@@ -367,7 +396,7 @@ function isCancelledTransaction(t) {
   return false;
 }
 
-const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
+const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동', '석우동'];
 const MOLIT_LAWD_CDS = ['41590', '41597'];
 const MOLIT_TRADE_URL = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptTradeDev/getRTMSDataSvcAptTradeDev';
 const MOLIT_RENT_URL = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
@@ -425,7 +454,7 @@ async function fetchRecentMolitDirect(byApt, now = new Date()) {
   if (!apiKey) return { tradeAdded: 0, rentAdded: 0 };
 
   const targetMonths = [];
-  for (let i = 0; i < 2; i++) {
+  for (let i = 0; i < 4; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
     targetMonths.push(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
   }
@@ -701,6 +730,13 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.aptName || '';
 
+    const rawDealType =
+      d.dealingGbn === '직거래' || d.dealType === '직거래' || d.isDirectDeal === true
+        ? '직거래'
+        : d.dealingGbn === '중개거래' && (!d.dealType || d.dealType.trim() === '매매')
+          ? '중개거래'
+          : (d.dealType && d.dealType.trim()) || '매매';
+
     const rawRecord = {
       aptName,
       contractYm: d.contractYm || '',
@@ -708,7 +744,7 @@ async function main() {
       price: d.price,
       deposit: d.deposit,
       monthlyRent: d.monthlyRent,
-      dealType: (d.dealType && d.dealType.trim()) || '매매',
+      dealType: rawDealType,
       area: d.area,
       areaPyeong: d.areaPyeong,
       floor: d.floor,
@@ -764,6 +800,7 @@ async function main() {
       floor: validData.floor || 0,
       dong: validData.dong || '',
       dealType: validData.dealType,
+      isDirectDeal: validData.dealType === '직거래' || d.isDirectDeal === true,
       contractDate: cDate,
       cancelDate: validData.cancelDate || d.cdealDay || (isCanceled ? '취소' : ''),
       cdealDay: d.cdealDay || '',
@@ -784,6 +821,13 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.apartmentName || d.aptName || '';
 
+    const rawSyncDealType =
+      d.dealingGbn === '직거래' || d.dealType === '직거래' || d.isDirectDeal === true
+        ? '직거래'
+        : d.dealingGbn === '중개거래' && (!d.dealType || d.dealType.trim() === '매매')
+          ? '중개거래'
+          : (d.dealType && d.dealType.trim()) || '매매';
+
     const rawRecord = {
       aptName,
       contractYm: d.contractYm || '',
@@ -791,7 +835,7 @@ async function main() {
       price: d.price,
       deposit: d.deposit,
       monthlyRent: d.monthlyRent,
-      dealType: (d.dealType && d.dealType.trim()) || '매매',
+      dealType: rawSyncDealType,
       area: d.area,
       areaPyeong: d.areaPyeong,
       floor: d.floor,
@@ -846,6 +890,7 @@ async function main() {
       floor: validData.floor || 0,
       dong: validData.dong || '',
       dealType: validData.dealType,
+      isDirectDeal: validData.dealType === '직거래' || d.isDirectDeal === true,
       contractDate: cDate,
       cancelDate: validData.cancelDate || d.cdealDay || (isCanceled ? '취소' : ''),
       cdealDay: d.cdealDay || '',
@@ -920,6 +965,22 @@ async function main() {
             winner.cdealType = t.cdealType || existing.cdealType;
           }
         }
+        if (
+          existing.dealType === '직거래' ||
+          existing.dealingGbn === '직거래' ||
+          existing.isDirectDeal === true ||
+          t.dealType === '직거래' ||
+          t.dealingGbn === '직거래' ||
+          t.isDirectDeal === true
+        ) {
+          winner.dealType = '직거래';
+          winner.isDirectDeal = true;
+        } else if (
+          winner.dealType === '매매' &&
+          (existing.dealType === '중개거래' || t.dealType === '중개거래')
+        ) {
+          winner.dealType = '중개거래';
+        }
         if (!winner.dong && (t.dong || existing.dong)) {
           winner.dong = t.dong || existing.dong;
         }
@@ -988,18 +1049,10 @@ async function main() {
     const rentTxs = filterOutliersRolling(rawRentTxs);
     allSaleTxs.push(...saleTxs);
 
-    // 공급면적(분양평수) 평당 가격으로 재조정
-    const getSupplyPyeong = (t) => {
-      const dbAptName = normalizeAptName(aptName);
-      const canonAptName = getCanonicalAptKey(aptName);
-      const supplyPyeong = typeMap[dbAptName]?.[String(t.area)] || typeMap[canonAptName]?.[String(t.area)];
-      if (supplyPyeong) return supplyPyeong;
-      return t.area * 0.3025 * 1.33; // Fallback
-    };
-    
-    txs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
-    saleTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
-    rentTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(t); });
+    // 공급면적(분양평수) 평당 가격으로 재조정 (normalizer.getSupplyPyeong 단일 진실 공급원 통합)
+    txs.forEach(t => { t.areaPyeong = getSupplyPyeong(aptName, t.area, typeMap); });
+    saleTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(aptName, t.area, typeMap); });
+    rentTxs.forEach(t => { t.areaPyeong = getSupplyPyeong(aptName, t.area, typeMap); });
 
     // 거시 트렌드 누적
     accumulateMacroTrend(macroTrendData, trendMonths, saleTxs, rentTxs);

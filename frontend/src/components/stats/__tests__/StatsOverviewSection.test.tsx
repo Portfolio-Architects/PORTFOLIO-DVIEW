@@ -306,6 +306,83 @@ describe('StatsOverviewSection Modular Integration & Interaction Suite', () => {
       expect(onSelectApt).toHaveBeenCalledWith('동탄역롯데캐슬', '여울동');
     });
 
+    it('resolves dong via sanitizeAptKey/resolveSummaryEntry when clicking a complex with Roman numerals or commas', () => {
+      const onSelectApt = jest.fn();
+      const romanTxs = [
+        {
+          aptKey: '산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ',
+          aptName: '산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ',
+          dong: '산척동',
+          contractDate: '20260915',
+          date: '09.15',
+          priceVal: 95000,
+          area: 84.9,
+          areaPyeong: 33.5,
+          floor: 15,
+          dealType: '매매',
+        },
+      ];
+      const sanitizedSummary = {
+        산척동동탄호수공원금강펜테리움센트럴파크2: {
+          dong: '산척동',
+          latestPrice: 95000,
+          latestPriceEok: '9억5,000',
+          latestArea: 33.5,
+          latestFloor: 15,
+          latestDate: '20260915',
+          maxPrice: 98000,
+          maxPriceEok: '9억8,000',
+          maxPriceByArea: {},
+          minPrice: 70000,
+          minPriceEok: '7억',
+          minPriceByArea: {},
+          allTimeHigh: 98000,
+          allTimeHighEok: '9억8,000',
+          allTimeLow: 70000,
+          allTimeLowEok: '7억',
+          annualVolumes: {},
+          appreciationRate: 10,
+          allTimeAppreciationRate: 20,
+          earliestDate: '20200101',
+          earliestPrice: 70000,
+          txCount: 5,
+          avg1MPrice: 95000,
+          avg1MPriceEok: '9억5,000',
+          avg1MPerPyeong: 2836,
+          avg1MTxCount: 1,
+          avg3MPrice: 95000,
+          avg3MPriceEok: '9억5,000',
+          avg3MPerPyeong: 2836,
+          avg3MTxCount: 1,
+          rentTxCount: 2,
+          latestRentDeposit: 45000,
+          latestRentDepositEok: '4억5,000',
+          latestRentMonthly: 0,
+          latestRentDate: '20260910',
+          avg1MRentDeposit: 45000,
+          avg1MRentDepositEok: '4억5,000',
+          avg3MRentDeposit: 45000,
+          avg3MRentDepositEok: '4억5,000',
+        },
+      };
+
+      render(
+        <StatsOverviewSection
+          recentTransactions={romanTxs}
+          txSummaryData={sanitizedSummary}
+          macroTrendData={FIXTURE_MACRO_TREND}
+          onSelectApt={onSelectApt}
+          testMode={true}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('ranking-item-1'));
+      expect(onSelectApt).toHaveBeenCalledWith(
+        '산척동,동탄호수공원금강펜테리움센트럴파크Ⅱ',
+        '산척동'
+      );
+    });
+
     it('invokes onSelectApt when clicking the new-high hyperlocal insight card', () => {
       const onSelectApt = jest.fn();
 

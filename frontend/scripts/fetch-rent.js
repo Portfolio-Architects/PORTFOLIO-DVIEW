@@ -56,7 +56,7 @@ const DEFAULT_API_KEY = '4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253
 const API_KEY = (process.env.BUILDING_API_KEY || DEFAULT_API_KEY).trim();
 const LAWD_CDS = ['41590', '41597']; // 화성시 및 동탄구 모두 스캔
 const API_BASE = 'https://apis.data.go.kr/1613000/RTMSDataSvcAptRent/getRTMSDataSvcAptRent';
-const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
+const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동', '석우동'];
 
 function buildRelayUrl(rawUrl, defaultTarget = 'rent') {
   try {

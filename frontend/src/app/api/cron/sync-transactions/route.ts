@@ -97,7 +97,7 @@ async function fetchTypeMap(): Promise<Record<string, Record<string, number>>> {
         if (!typeMap[aptName]) typeMap[aptName] = {};
         const match = typeM2Str.match(/\d+(\.\d+)?/);
         if (match) {
-          typeMap[aptName][area] = parseFloat(match[0]) * 0.3025;
+          typeMap[aptName][area] = Math.round(parseFloat(match[0]) * 0.3025 * 10) / 10;
         }
       }
     }
@@ -112,12 +112,7 @@ function resolveAreaPyeong(
   area: number,
   typeMap: Record<string, Record<string, number>>
 ): number {
-  const norm = normalizeAptName(aptName);
-  const fromSheet = typeMap[norm]?.[String(area)];
-  if (fromSheet && fromSheet > 0) {
-    return Math.round(fromSheet * 10) / 10;
-  }
-  return getSupplyPyeong(aptName, area);
+  return getSupplyPyeong(aptName, area, typeMap);
 }
 
 export function isCancelledRecord(record: {
@@ -330,7 +325,7 @@ export async function GET(request: NextRequest) {
     const syncLog: string[] = [];
     const allNewTransactions: TransactionRecord[] = [];
     
-    const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동'];
+    const DONGTAN_DONGS = ['반송동', '능동', '청계동', '영천동', '오산동', '신동', '목동', '산척동', '장지동', '송동', '방교동', '금곡동', '여울동', '석우동'];
 
     for (const ym of Array.from(monthsToSync).sort()) {
       // 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축

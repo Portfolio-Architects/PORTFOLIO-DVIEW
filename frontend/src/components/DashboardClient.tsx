@@ -155,7 +155,7 @@ const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTim
 });
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+import { isSameApartment, normalizeAptName, sanitizeAptKey, HARDCODED_MAPPING, findTxKey } from '@/lib/utils/apartmentMapping';
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/types/user.types';
@@ -270,20 +270,42 @@ const DashboardClient = React.memo(function DashboardClient({
     
     const targetTxKeys = new Set<string>();
     for (const [key, tKey] of Object.entries(nameMapping)) {
-      if (key) targetTxKeys.add(normalizeAptName(key));
-      if (tKey) targetTxKeys.add(normalizeAptName(tKey));
+      if (key) {
+        targetTxKeys.add(normalizeAptName(key));
+        targetTxKeys.add(sanitizeAptKey(key));
+      }
+      if (tKey) {
+        targetTxKeys.add(normalizeAptName(tKey));
+        targetTxKeys.add(sanitizeAptKey(tKey));
+      }
+    }
+    for (const [k, v] of Object.entries(HARDCODED_MAPPING)) {
+      targetTxKeys.add(normalizeAptName(k));
+      targetTxKeys.add(normalizeAptName(v));
+      targetTxKeys.add(sanitizeAptKey(k));
+      targetTxKeys.add(sanitizeAptKey(v));
+    }
+    if (txSummary) {
+      for (const k of Object.keys(txSummary)) {
+        targetTxKeys.add(normalizeAptName(k));
+        targetTxKeys.add(sanitizeAptKey(k));
+      }
     }
 
     const filtered = recentTransactions.filter((tx: { aptName?: string; txKey?: string }) => {
       if (!tx) return false;
       const normTxKey = tx.txKey ? normalizeAptName(tx.txKey) : '';
       const normAptName = tx.aptName ? normalizeAptName(tx.aptName) : '';
+      const sanTxKey = tx.txKey ? sanitizeAptKey(tx.txKey) : '';
+      const sanAptName = tx.aptName ? sanitizeAptKey(tx.aptName) : '';
       return (normTxKey !== '' && targetTxKeys.has(normTxKey)) || 
-             (normAptName !== '' && targetTxKeys.has(normAptName));
+             (normAptName !== '' && targetTxKeys.has(normAptName)) ||
+             (sanTxKey !== '' && targetTxKeys.has(sanTxKey)) ||
+             (sanAptName !== '' && targetTxKeys.has(sanAptName));
     });
 
     return filtered.length > 0 ? filtered : recentTransactions;
-  }, [recentTransactions, nameMapping]);
+  }, [recentTransactions, nameMapping, txSummary]);
 
   const { locationScores: fetchedLocationScores = EMPTY_OBJECT } = useLocationScores(
     preselectedAptName ? undefined : initialDashboardData?.locationScores
@@ -920,7 +942,7 @@ const DashboardClient = React.memo(function DashboardClient({
     activeTab,
     mounted,
     sheetApartments,
-
+    filteredRecentTransactions,
     macroTrend,
     nameMapping,
     publicRentalSet,

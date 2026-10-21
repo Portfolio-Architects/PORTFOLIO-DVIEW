@@ -155,7 +155,7 @@ export function StatsPyeongRankingChart({
             )}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            전용면적 3.3㎡(1평)당 평균 실거래가 랭킹 · 단지 클릭 시 상세 실거래 리포트 확인
+            공급면적(분양평수) 3.3㎡(1평)당 평균 실거래가 랭킹 · 단지 클릭 시 상세 실거래 리포트 확인
           </p>
         </div>
 

@@ -11,8 +11,8 @@ import type {
   RawRentRecord,
 } from '@/types/stats';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/types/transaction';
-import { aggregateStats } from '@/lib/analytics/statsEngine';
-import { normalizeAptName } from '@/lib/utils/apartmentMapping';
+import { aggregateStats, resolveSummaryEntry } from '@/lib/analytics/statsEngine';
+import { normalizeAptName, sanitizeAptKey } from '@/lib/utils/apartmentMapping';
 import { parsePeriodTransactions } from '@/lib/services/staticDataService';
 import { StatsFilterBar } from '@/components/stats/StatsFilterBar';
 import { HyperlocalInsightCards } from '@/components/stats/HyperlocalInsightCards';
@@ -280,7 +280,18 @@ export function StatsOverviewSection({
   }, []);
 
   const handleSelectComplex = useCallback((_aptKey: string, aptName: string) => {
-    const summary = summaryMap?.[aptName] || summaryMap?.[normalizeAptName(aptName)];
+    const sanKey = _aptKey ? sanitizeAptKey(_aptKey) : '';
+    const sanName = aptName ? sanitizeAptKey(aptName) : '';
+    const normKey = _aptKey ? normalizeAptName(_aptKey) : '';
+    const normName = aptName ? normalizeAptName(aptName) : '';
+    const summary =
+      resolveSummaryEntry(summaryMap, _aptKey || aptName, aptName || _aptKey) ||
+      (_aptKey ? summaryMap?.[_aptKey] : undefined) ||
+      (sanKey ? summaryMap?.[sanKey] : undefined) ||
+      (normKey ? summaryMap?.[normKey] : undefined) ||
+      summaryMap?.[aptName] ||
+      (sanName ? summaryMap?.[sanName] : undefined) ||
+      (normName ? summaryMap?.[normName] : undefined);
     const dongVal = summary?.dong;
     onSelectApt?.(aptName, dongVal);
   }, [summaryMap, onSelectApt]);

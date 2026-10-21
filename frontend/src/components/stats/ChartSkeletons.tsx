@@ -77,7 +77,7 @@ export function PyeongRankingChartSkeleton({
             <span>단지별 평당가 TOP 20</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            전용면적 기준 3.3㎡당 평균 실거래가 랭킹
+            공급면적(분양평수) 3.3㎡(1평)당 평균 실거래가 랭킹
           </p>
         </div>
         <div className="w-28 h-7 bg-black/5 dark:bg-white/5 rounded-xl animate-pulse" />

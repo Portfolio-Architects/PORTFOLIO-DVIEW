@@ -1039,5 +1039,98 @@ describe('statsEngine Unit Test Suite', () => {
       expect(futureRef.totalVolume).toBe(0);
       expect(rankLimit1.pyeongRankings.length).toBe(1);
     });
+
+    it('10.8: should include 동탄역롯데캐슬 at 6,276만원/평 (supply pyeong basis) in 3M TOP 20 rankings (#1) and resolve normalized summaryMap keys', () => {
+      const dataDir = path.resolve(__dirname, '../../../public/data');
+      const recentTxs = JSON.parse(fs.readFileSync(path.join(dataDir, 'recent-transactions.json'), 'utf8'));
+      const txs1y = JSON.parse(fs.readFileSync(path.join(dataDir, 'transactions-1y.json'), 'utf8'));
+      const txSummaryRaw = JSON.parse(fs.readFileSync(path.join(dataDir, 'tx-summary.json'), 'utf8'));
+      const summaryMap = txSummaryRaw.summary || txSummaryRaw;
+
+      expect(summaryMap['동탄역롯데캐슬']).toBeDefined();
+      expect(summaryMap['동탄역롯데캐슬'].avg1MPerPyeong).toBe(6276);
+
+      const res3M = aggregateStatistics(
+        { transactions: recentTxs, summaryMap },
+        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
+      );
+      const lotte3M = res3M.pyeongRankings.find((r) => r.aptName === '동탄역롯데캐슬');
+      expect(lotte3M).toBeDefined();
+      expect(lotte3M?.avgPyeongPrice).toBe(6276);
+      expect(lotte3M?.dong).toBe('여울동');
+      expect(res3M.pyeongRankings[0].aptName).toBe('동탄역롯데캐슬');
+
+      // Verify all 8 target complexes in e1 appear in 3M TOP 20 rankings
+      const requiredTopComplexes = [
+        '더샵센트럴시티',
+        '동탄역시범한화꿈에그린프레스티지',
+        '동탄역반도유보라아이비파크6.0',
+        '동탄역예미지시그너스',
+        '동탄역시범대원칸타빌아파트',
+        '동탄역시범금강펜테리움센트럴파크3',
+        '동탄역삼정그린코아',
+        '동탄역시범리슈빌아파트',
+      ];
+      const top20Names3M = res3M.pyeongRankings.map((r) => r.aptName);
+      for (const targetApt of requiredTopComplexes) {
+        expect(top20Names3M).toContain(targetApt);
+      }
+
+      const res6M = aggregateStatistics(
+        { transactions: txs1y, summaryMap },
+        { region: 'ALL', pyeong: 'ALL', timeframe: '6M', sort: 'PYEONG_DESC' }
+      );
+      const lotte6M = res6M.pyeongRankings.find((r) => r.aptName === '동탄역롯데캐슬');
+      expect(lotte6M).toBeDefined();
+      expect(res6M.pyeongRankings[0].aptName).toBe('동탄역롯데캐슬');
+      const top20Names6M = res6M.pyeongRankings.map((r) => r.aptName);
+      for (const targetApt of requiredTopComplexes) {
+        expect(top20Names6M).toContain(targetApt);
+      }
+
+      // Verify getSupplyPyeong HARDCODED_MAPPING resolution
+      const { getSupplyPyeong } = require('../../../pipeline/core/normalizer');
+      expect(getSupplyPyeong('동탄역시범더샵센트럴시티', 106.537)).toBe(41.1);
+
+      // Verify findTxKey for 금강펜테리움6차센트럴파크 and new complexes
+      const { findTxKey } = require('@/lib/utils/apartmentMapping');
+      expect(findTxKey('동탄신도시 금강펜테리움 6차', summaryMap)).toBe('금강펜테리움6차센트럴파크');
+      expect(findTxKey('엔에이치에프엘크루', summaryMap)).toBe('엔에이치에프엘크루');
+      expect(findTxKey('엔에이치에프경남아너스빌', summaryMap)).toBe('엔에이치에프경남아너스빌');
+      expect(findTxKey('동탄역자이', summaryMap)).toBe('동탄역자이');
+
+      // Verify 동탄역롯데캐슬 2026 bull-market transactions are not falsely flagged as outliers
+      const lotteChunk = JSON.parse(
+        fs.readFileSync(path.resolve(__dirname, '../../../public/tx-data/동탄역롯데캐슬.json'), 'utf8')
+      );
+      const tx20 = lotteChunk.find((t: any) => t.contractYm === '202606' && t.price === 200000);
+      const tx22 = lotteChunk.find((t: any) => t.contractYm === '202606' && t.price === 222500);
+      expect(tx20?.isOutlier).toBe(false);
+      expect(tx22?.isOutlier).toBe(false);
+
+      // Verify normalized / HARDCODED_MAPPING summaryMap resolution
+      const aliasTxs: RawTransactionRecord[] = [
+        {
+          aptKey: '그린힐반도유보라아이비파크101단지',
+          aptName: '그린힐 반도유보라 아이비파크 10(1단지)',
+          contractDate: '20261015',
+          priceVal: 5.43,
+          area: 59.77,
+          areaPyeong: 24.5,
+        },
+      ];
+      const aliasSummary: Record<string, any> = {
+        '그린힐 반도유보라 아이비파크 10.0': {
+          dong: '산척동',
+          allTimeHigh: 60000,
+          avg3MRentDeposit: 35000,
+          avg3MPrice: 54300,
+        },
+      };
+      const aliasRankings = computeComplexRankings(aliasTxs, { summaryMap: aliasSummary });
+      expect(aliasRankings[0].dong).toBe('산척동');
+      expect(aliasRankings[0].jeonseRatio).toBeGreaterThan(0);
+    });
   });
 });
+

@@ -33,6 +33,11 @@ import type {
   RecentTransaction,
   TransactionRecord,
 } from '@/types/transaction';
+import {
+  normalizeAptName,
+  sanitizeAptKey,
+  HARDCODED_MAPPING,
+} from '@/lib/utils/apartmentMapping';
 
 // Re-export constants for downstream consumption
 export { DONGTAN1_DONGS, DONGTAN2_DONGS, ALL_LEGAL_DONGS };
@@ -177,6 +182,95 @@ export const normalizeDong = normalizeDongName;
 
 export const D1_SET = new Set<string>(DONGTAN1_DONGS);
 export const D2_SET = new Set<string>(DONGTAN2_DONGS);
+
+const summaryNormalizedCache = new WeakMap<
+  Record<string, AptTxSummary>,
+  Map<string, AptTxSummary>
+>();
+
+function getSummaryNormalizedIndex(
+  summaryMap: Record<string, AptTxSummary>
+): Map<string, AptTxSummary> {
+  let cached = summaryNormalizedCache.get(summaryMap);
+  if (cached) return cached;
+
+  cached = new Map<string, AptTxSummary>();
+  for (const [k, v] of Object.entries(summaryMap)) {
+    if (!v || typeof v !== 'object') continue;
+    cached.set(k, v);
+    const san = sanitizeAptKey(k);
+    if (san && !cached.has(san)) cached.set(san, v);
+    const norm = normalizeAptName(k);
+    if (norm && !cached.has(norm)) cached.set(norm, v);
+    const mapped = norm ? HARDCODED_MAPPING[norm] : undefined;
+    if (mapped) {
+      if (!cached.has(mapped)) cached.set(mapped, v);
+      const sanMapped = sanitizeAptKey(mapped);
+      if (sanMapped && !cached.has(sanMapped)) cached.set(sanMapped, v);
+    }
+  }
+  summaryNormalizedCache.set(summaryMap, cached);
+  return cached;
+}
+
+export function resolveSummaryEntry(
+  summaryMap: Record<string, AptTxSummary> | undefined,
+  aptKey: string,
+  aptName: string
+): AptTxSummary | undefined {
+  if (!summaryMap) return undefined;
+  const direct = summaryMap[aptKey] || summaryMap[aptName];
+  if (direct) return direct;
+
+  const idx = getSummaryNormalizedIndex(summaryMap);
+  const byKey = idx.get(aptKey) || idx.get(aptName);
+  if (byKey) return byKey;
+
+  const sanKey = sanitizeAptKey(aptKey);
+  if (sanKey && idx.get(sanKey)) return idx.get(sanKey);
+  const sanName = aptName !== aptKey ? sanitizeAptKey(aptName) : '';
+  if (sanName && idx.get(sanName)) return idx.get(sanName);
+
+  const normKey = normalizeAptName(aptKey);
+  if (normKey) {
+    if (idx.get(normKey)) return idx.get(normKey);
+    const mapped = HARDCODED_MAPPING[normKey];
+    if (mapped && (idx.get(mapped) || idx.get(sanitizeAptKey(mapped)))) {
+      return idx.get(mapped) || idx.get(sanitizeAptKey(mapped));
+    }
+  }
+  const normName = aptName !== aptKey ? normalizeAptName(aptName) : '';
+  if (normName) {
+    if (idx.get(normName)) return idx.get(normName);
+    const mapped = HARDCODED_MAPPING[normName];
+    if (mapped && (idx.get(mapped) || idx.get(sanitizeAptKey(mapped)))) {
+      return idx.get(mapped) || idx.get(sanitizeAptKey(mapped));
+    }
+  }
+  return undefined;
+}
+
+export function resolveDongFromMaps(
+  rawDong: string | undefined,
+  dongLookup: Record<string, string> | undefined,
+  summaryMap: Record<string, AptTxSummary> | undefined,
+  aptKey: string,
+  aptName: string
+): string {
+  if (rawDong) return normalizeDongName(rawDong);
+  if (dongLookup) {
+    const dl =
+      dongLookup[aptKey] ||
+      dongLookup[aptName] ||
+      dongLookup[sanitizeAptKey(aptKey)] ||
+      dongLookup[normalizeAptName(aptKey)] ||
+      (aptName !== aptKey ? dongLookup[normalizeAptName(aptName)] : undefined);
+    if (dl) return normalizeDongName(dl);
+  }
+  const summary = resolveSummaryEntry(summaryMap, aptKey, aptName);
+  if (summary?.dong) return normalizeDongName(summary.dong);
+  return '';
+}
 
 /**
  * Determines whether a given dong matches the specified RegionFilter.
@@ -740,10 +834,7 @@ export function filterTransactions<T extends AnyTransaction = AnyTransaction>(
       let dong = txRecord.dong;
       if (!dong && (summaryMap || dongLookup)) {
         const k = txRecord.aptKey || txRecord.txKey || txRecord.aptName || '';
-        dong =
-          (dongLookup && dongLookup[k]) ||
-          (summaryMap && (summaryMap[k]?.dong || (txRecord.aptName ? summaryMap[txRecord.aptName]?.dong : undefined))) ||
-          '';
+        dong = resolveDongFromMaps(undefined, dongLookup, summaryMap, k, txRecord.aptName || k);
       }
       if (!isRegionAll && !matchesRegion(dong, region)) {
         continue;
@@ -945,12 +1036,12 @@ export function computeComplexRankings(
 
     let entry = complexMap.get(groupKey);
     if (!entry) {
-      const dong = normalizeDongName(
-        tx.dong ||
-          options?.dongLookup?.[aptKey] ||
-          options?.summaryMap?.[aptKey]?.dong ||
-          options?.summaryMap?.[aptName]?.dong ||
-          ''
+      const dong = resolveDongFromMaps(
+        tx.dong,
+        options?.dongLookup,
+        options?.summaryMap,
+        aptKey,
+        aptName
       );
       entry = {
         aptKey,
@@ -1020,7 +1111,7 @@ export function computeComplexRankings(
       }
 
       let hasNewHigh = entry.hasNewHigh;
-      const summary = options?.summaryMap?.[entry.aptKey] || options?.summaryMap?.[entry.aptName];
+      const summary = resolveSummaryEntry(options?.summaryMap, entry.aptKey, entry.aptName);
       if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
         hasNewHigh = true;
       }
@@ -1123,11 +1214,7 @@ export function computeVolumeDistribution(
     if (tx?.dong) return tx.dong;
     if (summaryMap || dongLookup) {
       const k = tx?.aptKey || tx?.txKey || tx?.aptName || '';
-      return (
-        (dongLookup && dongLookup[k]) ||
-        (summaryMap && (summaryMap[k]?.dong || (tx?.aptName ? summaryMap[tx.aptName]?.dong : undefined))) ||
-        ''
-      );
+      return resolveDongFromMaps(undefined, dongLookup, summaryMap, k, tx?.aptName || k);
     }
     return '';
   };
@@ -1379,6 +1466,7 @@ export function singlePassAggregate(
   }
 
   let cutoffNum = 0;
+  let cutoff6MNum = 0;
   let maxNum = 99999999;
   if (isTimeframeBounded) {
     const rawRefDateObj =
@@ -1406,6 +1494,12 @@ export function singlePassAggregate(
       cutoffDate.getFullYear() * 10000 +
       (cutoffDate.getMonth() + 1) * 100 +
       cutoffDate.getDate();
+
+    const cutoff6MDate = new Date(refYear, refMonth, refDay - 183);
+    cutoff6MNum =
+      cutoff6MDate.getFullYear() * 10000 +
+      (cutoff6MDate.getMonth() + 1) * 100 +
+      cutoff6MDate.getDate();
 
     const maxDate = new Date(refYear, refMonth, refDay + 1);
     maxNum =
@@ -1472,10 +1566,7 @@ export function singlePassAggregate(
       let dong = txRecord.dong;
       if (!dong && (summaryMap || dongLookup)) {
         const k = txRecord.aptKey || txRecord.txKey || txRecord.aptName || '';
-        dong =
-          (dongLookup && dongLookup[k]) ||
-          (summaryMap && (summaryMap[k]?.dong || (txRecord.aptName ? summaryMap[txRecord.aptName]?.dong : undefined))) ||
-          '';
+        dong = resolveDongFromMaps(undefined, dongLookup, summaryMap, k, txRecord.aptName || k);
       }
       const canonical = normalizeDongName(dong);
       if (!canonical) continue;
@@ -1553,12 +1644,12 @@ export function singlePassAggregate(
 
     let entry = complexMap.get(groupKey);
     if (!entry) {
-      const dong = normalizeDongName(
-        txRecord.dong ||
-          dongLookup?.[aptKey] ||
-          summaryMap?.[aptKey]?.dong ||
-          summaryMap?.[aptName]?.dong ||
-          ''
+      const dong = resolveDongFromMaps(
+        txRecord.dong,
+        dongLookup,
+        summaryMap,
+        aptKey,
+        aptName
       );
       entry = {
         aptKey,
@@ -1639,6 +1730,135 @@ export function singlePassAggregate(
     }
   }
 
+  // Supplement complexMap from summaryMap for 3M/6M timeframes when complexes have recent transactions outside the 90-day initial slice
+  if ((timeframeFilter === '3M' || timeframeFilter === '6M') && totalVolume > 0 && summaryMap) {
+    const seenComplexKeys = new Set<string>();
+    for (const existing of complexMap.values()) {
+      seenComplexKeys.add(existing.aptKey);
+      seenComplexKeys.add(existing.aptName);
+      const sanK = sanitizeAptKey(existing.aptKey);
+      const sanN = sanitizeAptKey(existing.aptName);
+      const normK = normalizeAptName(existing.aptKey);
+      const normN = normalizeAptName(existing.aptName);
+      if (sanK) seenComplexKeys.add(sanK);
+      if (sanN) seenComplexKeys.add(sanN);
+      if (normK) {
+        seenComplexKeys.add(normK);
+        if (HARDCODED_MAPPING[normK]) seenComplexKeys.add(HARDCODED_MAPPING[normK]);
+      }
+      if (normN) {
+        seenComplexKeys.add(normN);
+        if (HARDCODED_MAPPING[normN]) seenComplexKeys.add(HARDCODED_MAPPING[normN]);
+      }
+
+      // Smooth single-transaction complexes when summaryMap has >= 6 recent 3M transactions
+      if (existing.count === 1) {
+        const existSum = resolveSummaryEntry(summaryMap, existing.aptKey, existing.aptName);
+        if (
+          existSum &&
+          existSum.avg3MTxCount &&
+          existSum.avg3MTxCount >= 6 &&
+          existSum.avg3MPerPyeong &&
+          existSum.avg3MPerPyeong > 0 &&
+          existSum.latestDate
+        ) {
+          const eldStr = String(existSum.latestDate).replace(/[^0-9]/g, '');
+          const eldNum = eldStr.length >= 8 ? parseInt(eldStr.substring(0, 8), 10) : 0;
+          if (eldNum >= cutoff6MNum && eldNum <= maxNum) {
+            const extraCount = existSum.avg3MTxCount - 1;
+            const extraPrice = parsePriceToManWon({ price: existSum.avg3MPrice || existSum.latestPrice || 0 }) || existing.sumPrice;
+            existing.sumPyeongPrice += Math.round(existSum.avg3MPerPyeong) * extraCount;
+            existing.sumPrice += extraPrice * extraCount;
+            existing.count += extraCount;
+          }
+        }
+      }
+    }
+
+    for (const [sumKey, sumVal] of Object.entries(summaryMap)) {
+      if (!sumVal || typeof sumVal !== 'object') continue;
+      const a1Pyeong = sumVal.avg1MPerPyeong || 0;
+      const a3Pyeong = sumVal.avg3MPerPyeong || 0;
+      const basePyeong = Math.max(a1Pyeong, a3Pyeong);
+      const rawAvgPrice =
+        a1Pyeong >= a3Pyeong && sumVal.avg1MPrice
+          ? sumVal.avg1MPrice
+          : sumVal.avg3MPrice || sumVal.latestPrice || 0;
+      if (basePyeong <= 0 || rawAvgPrice <= 0 || !sumVal.latestDate) continue;
+
+      const sanSumKey = sanitizeAptKey(sumKey);
+      const normSumKey = normalizeAptName(sumKey);
+      const mappedSumKey = normSumKey ? HARDCODED_MAPPING[normSumKey] : undefined;
+      if (
+        seenComplexKeys.has(sumKey) ||
+        (sanSumKey && seenComplexKeys.has(sanSumKey)) ||
+        (normSumKey && seenComplexKeys.has(normSumKey)) ||
+        (mappedSumKey && seenComplexKeys.has(mappedSumKey))
+      ) {
+        continue;
+      }
+
+      const ldStr = String(sumVal.latestDate).replace(/[^0-9]/g, '');
+      if (ldStr.length < 8) continue;
+      const ldNum = parseInt(ldStr.substring(0, 8), 10);
+      if (isNaN(ldNum) || ldNum < cutoff6MNum || ldNum > maxNum) continue;
+
+      const canonicalDong = resolveDongFromMaps(sumVal.dong, dongLookup, undefined, sanSumKey || sumKey, sumKey);
+      if (!isRegionAll || targetDong) {
+        if (!canonicalDong) continue;
+        if (targetDong && canonicalDong !== targetDong) continue;
+        if (isD1 && !D1_SET.has(canonicalDong)) continue;
+        if (isD2 && !D2_SET.has(canonicalDong)) continue;
+        if (normalizedRegion && canonicalDong !== normalizedRegion) continue;
+      }
+
+      if (!isPyeongAll) {
+        const repTier = getPyeongTier(0, sumVal.latestArea);
+        if (repTier !== pyeongFilter) continue;
+      }
+
+      const sPrice = parsePriceToManWon({ price: rawAvgPrice });
+      const sLatestPrice = parsePriceToManWon({ price: sumVal.latestPrice || rawAvgPrice });
+      if (sPrice <= 0 || !isFinite(sPrice)) continue;
+      if (excludeOutliers && (sPrice < 1000 || sPrice > 1000000)) continue;
+
+      const latestPyeong =
+        sLatestPrice > 0 && sumVal.latestArea && sumVal.latestArea > 0
+          ? Math.round(sLatestPrice / sumVal.latestArea)
+          : 0;
+      const effectivePyeong =
+        latestPyeong > basePyeong && basePyeong > 0 && latestPyeong <= Math.round(basePyeong * 1.08)
+          ? latestPyeong
+          : basePyeong;
+
+      const sCount = Math.max(1, sumVal.avg1MTxCount || sumVal.avg3MTxCount || 1);
+      const sPyeongPrice = Math.round(effectivePyeong);
+      const sMaxPrice = parsePriceToManWon({ price: sumVal.allTimeHigh || sumVal.maxPrice || sLatestPrice }) || sPrice;
+      const sMinPrice = parsePriceToManWon({ price: sumVal.allTimeLow || sumVal.minPrice || sLatestPrice }) || sPrice;
+      const groupKey = sanSumKey || sumKey;
+
+      complexMap.set(groupKey, {
+        aptKey: groupKey,
+        aptName: sumKey,
+        dong: canonicalDong,
+        count: sCount,
+        sumPrice: sPrice * sCount,
+        sumPyeongPrice: sPyeongPrice * sCount,
+        maxPrice: Math.max(sMaxPrice, sPrice),
+        minPrice: Math.min(sMinPrice, sPrice),
+        hasNewHigh: Boolean(sumVal.allTimeHigh && sLatestPrice >= sumVal.allTimeHigh),
+        maxDiscountRate: 0,
+        latestContractDate: ldStr.substring(0, 8),
+        latestPrice: sLatestPrice || sPrice,
+      });
+
+      seenComplexKeys.add(sumKey);
+      if (sanSumKey) seenComplexKeys.add(sanSumKey);
+      if (normSumKey) seenComplexKeys.add(normSumKey);
+      if (mappedSumKey) seenComplexKeys.add(mappedSumKey);
+    }
+  }
+
   // Finalize Complex Rankings
   const minTx = 1;
 
@@ -1658,7 +1878,7 @@ export function singlePassAggregate(
       }
 
       let hasNewHigh = entry.hasNewHigh;
-      const summary = summaryMap?.[entry.aptKey] || summaryMap?.[entry.aptName];
+      const summary = resolveSummaryEntry(summaryMap, entry.aptKey, entry.aptName);
       if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
         hasNewHigh = true;
       }

@@ -170,6 +170,22 @@ function migrateLegacyPathologicalFiles(txDataDir) {
                     winner.cancelDate = r.cancelDate || existing.cancelDate || r.cdealDay || existing.cdealDay || '취소';
                   }
                 }
+                if (
+                  existing.dealType === '직거래' ||
+                  existing.dealingGbn === '직거래' ||
+                  existing.isDirectDeal === true ||
+                  r.dealType === '직거래' ||
+                  r.dealingGbn === '직거래' ||
+                  r.isDirectDeal === true
+                ) {
+                  winner.dealType = '직거래';
+                  winner.isDirectDeal = true;
+                } else if (
+                  winner.dealType === '매매' &&
+                  (existing.dealType === '중개거래' || r.dealType === '중개거래')
+                ) {
+                  winner.dealType = '중개거래';
+                }
                 seen.set(k, winner);
               }
             }
@@ -255,6 +271,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
     const records = txs.map(t => {
       const canceled = isCancelledTransaction(t);
       const cancelDateStr = (t.cancelDate && String(t.cancelDate).trim()) || (t.cdealDay && String(t.cdealDay).trim()) || (canceled ? '취소' : '');
+      const isDirect = t.isDirectDeal === true || t.dealType === '직거래' || t.dealingGbn === '직거래';
       return {
         contractYm: t.contractYm,
         contractDay: t.contractDay,
@@ -269,7 +286,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
         area: t.area,
         areaPyeong: t.areaPyeong,
         floor: t.floor,
-        dealType: (t.dealType && t.dealType.trim()) || '매매',
+        dealType: isDirect ? '직거래' : ((t.dealType && t.dealType.trim()) || '매매'),
         cancelDate: cancelDateStr,
       };
     });
@@ -325,6 +342,22 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
           if (!winner.cancelDate) {
             winner.cancelDate = r.cancelDate || existing.cancelDate || '취소';
           }
+        }
+        if (
+          existing.dealType === '직거래' ||
+          existing.dealingGbn === '직거래' ||
+          existing.isDirectDeal === true ||
+          r.dealType === '직거래' ||
+          r.dealingGbn === '직거래' ||
+          r.isDirectDeal === true
+        ) {
+          winner.dealType = '직거래';
+          winner.isDirectDeal = true;
+        } else if (
+          winner.dealType === '매매' &&
+          (existing.dealType === '중개거래' || r.dealType === '중개거래')
+        ) {
+          winner.dealType = '중개거래';
         }
         seen.set(key, winner);
       }
