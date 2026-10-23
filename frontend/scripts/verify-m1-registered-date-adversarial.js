@@ -34,7 +34,7 @@ const currStr = execSync('git show 3e76c71e:frontend/public/data/recent-transact
 const prevRecent = JSON.parse(prevStr);
 const currRecent = JSON.parse(currStr);
 
-const makeKey = (t) => `${t.aptName}|${t.contractDate}|${t.priceVal}|${t.area}|${t.floor}`;
+const makeKey = (t) => `${(t.txKey || t.aptName || '').replace(/\s+/g, '')}|${t.contractDate}|${t.priceVal}|${t.area}|${t.floor}`;
 const prevKeySet = new Set(prevRecent.map(makeKey));
 const canonical13 = currRecent.filter(t => !prevKeySet.has(makeKey(t)));
 
@@ -74,7 +74,7 @@ canonical13.forEach((c) => {
 
 // 4. Verify the 13 transactions in transactions-1y.json and transactions-3y.json
 console.log('\n--- Phase 4: Verifying 13 Transactions in transactions-1y.json & transactions-3y.json ---');
-const makePeriodKey = (t) => `${t.aptName}|${t.contractDate}|${t.priceVal}|${t.area}|${t.floor}`;
+const makePeriodKey = (t) => `${(t.txKey || t.aptName || '').replace(/\s+/g, '')}|${t.contractDate}|${t.priceVal}|${t.area}|${t.floor}`;
 const map1y = new Map();
 txs1y.forEach(t => map1y.set(makePeriodKey(t), t));
 
@@ -182,7 +182,12 @@ function auditDataset(name, items, canonical13Keys) {
     }
 
     const is3e76c71e = canonical13Keys.has(k);
-    if (!is3e76c71e) {
+    const isFaa8b848 = canonical23Keys.has(k);
+    if (is3e76c71e) {
+      if (t.registeredDate !== '20261022') invalidFallback++;
+    } else if (isFaa8b848) {
+      if (t.registeredDate !== '20261023') invalidFallback++;
+    } else {
       const expectedFallback = t.registrationDate || t.contractDate;
       if (t.registeredDate !== expectedFallback) {
         invalidFallback++;
@@ -205,6 +210,11 @@ function auditDataset(name, items, canonical13Keys) {
 }
 
 const canonical13Keys = new Set(canonical13.map(makeKey));
+const prev23Str = execSync('git show faa8b848~1:frontend/public/data/recent-transactions.json', { maxBuffer: 50 * 1024 * 1024, encoding: 'utf8' });
+const curr23Str = execSync('git show faa8b848:frontend/public/data/recent-transactions.json', { maxBuffer: 50 * 1024 * 1024, encoding: 'utf8' });
+const prev23Set = new Set(JSON.parse(prev23Str).map(makeKey));
+const canonical23 = JSON.parse(curr23Str).filter(t => !prev23Set.has(makeKey(t)) && !canonical13Keys.has(makeKey(t)));
+const canonical23Keys = new Set(canonical23.map(makeKey));
 auditDataset('recent-transactions.json', recentTxs, canonical13Keys);
 auditDataset('transactions-1y.json', txs1y, canonical13Keys);
 auditDataset('transactions-3y.json', txs3y, canonical13Keys);

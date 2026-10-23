@@ -530,7 +530,7 @@ async function fetchRecentMolitDirect(byApt, now = new Date()) {
             const rgstDate = getMolitField(item, 'rgstDate', '등기일자');
             const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
             const todayKst = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
-            const registeredDate = rgstDate && rgstDate.length === 8 ? rgstDate : todayKst;
+            const registeredDate = todayKst;
             const registeredDateLabel = `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}`;
 
             const key = getCanonicalAptKey(aptName);
@@ -554,6 +554,7 @@ async function fetchRecentMolitDirect(byApt, now = new Date()) {
               contractDate: `${ym}${contractDay}`,
               registeredDate,
               registeredDateLabel,
+              _isLiveMolitFetch: true,
               cancelDate: cancelDate || (isCanceled ? '취소' : ''),
               cdealDay: cancelDate,
               cdealType,
@@ -704,7 +705,7 @@ async function main() {
             .map(d => {
               const contractDate = d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
               const registeredDate = normalizeRegisteredDate(d.registeredDate || d.registrationDate, contractDate);
-              const registeredDateLabel = d.registeredDateLabel || (registeredDate && registeredDate.length >= 8 ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '');
+              const registeredDateLabel = registeredDate && /^\d{8}$/.test(registeredDate) ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '';
               return {
                 ...d,
                 aptName: d.aptName || canonicalKey,
@@ -713,6 +714,7 @@ async function main() {
                 contractDate,
                 registeredDate,
                 registeredDateLabel,
+                _fromLocalCache: true,
                 dong: d.dong || ''
               };
             })
@@ -1014,8 +1016,10 @@ async function main() {
         if (!winner.dong && (t.dong || existing.dong)) {
           winner.dong = t.dong || existing.dong;
         }
-        winner.registeredDate = normalizeRegisteredDate(winner.registeredDate || existing.registeredDate || t.registeredDate, winner.contractDate);
-        winner.registeredDateLabel = winner.registeredDateLabel || existing.registeredDateLabel || t.registeredDateLabel || (winner.registeredDate && winner.registeredDate.length >= 8 ? `${winner.registeredDate.slice(4, 6)}.${winner.registeredDate.slice(6, 8)}` : '');
+        const preservedReg = (existing._fromLocalCache && existing.registeredDate) ? existing.registeredDate : (winner.registeredDate || existing.registeredDate || t.registeredDate);
+        winner.registeredDate = normalizeRegisteredDate(preservedReg, winner.contractDate);
+        winner.registeredDateLabel = winner.registeredDate && /^\d{8}$/.test(winner.registeredDate) ? `${winner.registeredDate.slice(4, 6)}.${winner.registeredDate.slice(6, 8)}` : '';
+        if (existing._fromLocalCache) winner._fromLocalCache = true;
         seen.set(key, winner);
       }
     }

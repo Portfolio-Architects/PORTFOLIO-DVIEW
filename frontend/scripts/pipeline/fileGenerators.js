@@ -274,7 +274,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
       const isDirect = t.isDirectDeal === true || t.dealType === '직거래' || t.dealingGbn === '직거래';
       const contractDate = t.contractDate || `${t.contractYm || ''}${String(t.contractDay || '').padStart(2, '0')}`;
       const registeredDate = normalizeRegisteredDate(t.registeredDate || t.registrationDate, contractDate);
-      const registeredDateLabel = t.registeredDateLabel || (registeredDate && registeredDate.length >= 8 ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '');
+      const registeredDateLabel = registeredDate && /^\d{8}$/.test(registeredDate) ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '';
       return {
         contractYm: t.contractYm,
         contractDay: t.contractDay,
