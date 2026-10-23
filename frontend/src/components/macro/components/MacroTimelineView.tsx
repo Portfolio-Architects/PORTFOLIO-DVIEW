@@ -38,6 +38,8 @@ export interface TimelineItem {
   contractDate?: string;
   date?: string;
   isNewHigh?: boolean;
+  registeredDate?: string;
+  registeredDateLabel?: string;
 }
 
 export interface TimelineGroup {
@@ -307,6 +309,14 @@ function DefaultTimelineCard({
           </div>
           <span className="text-[10px] text-tertiary">
             {item.dong} · {item.floor}층 · {item.areaPyeong ? `${item.areaPyeong}평` : `${item.area}㎡`}
+            {(() => {
+              const cDate = item.contractDate || item.date;
+              if (!cDate) return null;
+              const clean = cDate.replace(/[-.]/g, '');
+              const mm = clean.length >= 6 ? clean.substring(4, 6) : '';
+              const dd = clean.length >= 8 ? clean.substring(6, 8) : '';
+              return mm && dd ? ` · 계약일 ${mm}.${dd}` : null;
+            })()}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -393,6 +403,14 @@ function DefaultTimelineRow({
           </div>
           <span className="text-[9.5px] text-tertiary">
             {item.dong} · {item.floor}층 · {item.areaPyeong ? `${item.areaPyeong}평` : `${item.area}㎡`}
+            {(() => {
+              const cDate = item.contractDate || item.date;
+              if (!cDate) return null;
+              const clean = cDate.replace(/[-.]/g, '');
+              const mm = clean.length >= 6 ? clean.substring(4, 6) : '';
+              const dd = clean.length >= 8 ? clean.substring(6, 8) : '';
+              return mm && dd ? ` · 계약일 ${mm}.${dd}` : null;
+            })()}
           </span>
         </div>
       </div>
@@ -1013,7 +1031,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                       />
                       <h3 className="text-[12.5px] xs:text-[13.5px] font-black text-primary flex items-center gap-1.5 truncate">
                         <Calendar size={13.5} className="text-[#057e77] shrink-0" />
-                        {group.dateStr}
+                        <span>{group.dateStr}</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 text-[9.5px] font-extrabold shrink-0">
+                          국토부 등록일
+                        </span>
                       </h3>
                       {isCollapsed && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-tertiary">

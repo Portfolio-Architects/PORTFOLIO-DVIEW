@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import PageHeroHeader from '@/components/PageHeroHeader';
+import { AdSlot } from '@/components/ads/AdSlot';
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import MobileDock from '@/components/pwa/MobileDock';
 
@@ -441,14 +442,36 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                     </div>
                   ) : (
                     <>
-                      {filteredNewsList.slice(0, visibleNewsCount).map((item) => (
-                        <NewsCard
-                          key={item.id}
-                          item={item}
-                          getNewsCategoryDetails={getNewsCategoryDetails}
-                          formatDate={formatDate}
-                        />
+                      {filteredNewsList.slice(0, visibleNewsCount).map((item, idx) => (
+                        <React.Fragment key={item.id}>
+                          <NewsCard
+                            item={item}
+                            getNewsCategoryDetails={getNewsCategoryDetails}
+                            formatDate={formatDate}
+                          />
+                          {idx === 3 && (
+                            <div className="w-full my-4">
+                              <AdSlot
+                                slotId="1000000001"
+                                format="in-feed"
+                                minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                                cpaCampaignId={activeNewsSubTab === 'industry' ? 'corporate-relocation' : 'mortgage-refinance'}
+                              />
+                            </div>
+                          )}
+                        </React.Fragment>
                       ))}
+
+                      {filteredNewsList.length <= 3 && (
+                        <div className="w-full my-4">
+                          <AdSlot
+                            slotId="1000000001"
+                            format="in-feed"
+                            minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                            cpaCampaignId={activeNewsSubTab === 'industry' ? 'corporate-relocation' : 'mortgage-refinance'}
+                          />
+                        </div>
+                      )}
                       
                       {filteredNewsList.length > visibleNewsCount && (
                         <button
@@ -480,21 +503,43 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                 </div>
               ) : (
                 <>
-                  {noticesList.slice(0, visibleNoticesCount).map((item) => (
-                    <NoticeItemCard
-                      key={item.id}
-                      item={item}
-                      getNoticeSourceDetails={getNoticeSourceDetails}
-                      hasDetails={!!item.content}
-                      onClick={() => {
-                        if (item.content) {
-                          setSelectedNotice(item);
-                        } else {
-                          window.open(item.url, '_blank', 'noopener,noreferrer');
-                        }
-                      }}
-                    />
+                  {noticesList.slice(0, visibleNoticesCount).map((item, idx) => (
+                    <React.Fragment key={item.id}>
+                      <NoticeItemCard
+                        item={item}
+                        getNoticeSourceDetails={getNoticeSourceDetails}
+                        hasDetails={!!item.content}
+                        onClick={() => {
+                          if (item.content) {
+                            setSelectedNotice(item);
+                          } else {
+                            window.open(item.url, '_blank', 'noopener,noreferrer');
+                          }
+                        }}
+                      />
+                      {idx === 3 && (
+                        <div className="w-full my-4">
+                          <AdSlot
+                            slotId="1000000001"
+                            format="in-feed"
+                            minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                            cpaCampaignId="interior-quote"
+                          />
+                        </div>
+                      )}
+                    </React.Fragment>
                   ))}
+
+                  {noticesList.length <= 3 && (
+                    <div className="w-full my-4">
+                      <AdSlot
+                        slotId="1000000001"
+                        format="in-feed"
+                        minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                        cpaCampaignId="interior-quote"
+                      />
+                    </div>
+                  )}
                   
                   {noticesList.length > visibleNoticesCount && (
                     <button

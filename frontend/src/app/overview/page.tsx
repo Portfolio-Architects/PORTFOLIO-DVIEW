@@ -13,6 +13,8 @@ interface HomeTransactionRecord {
   dealType?: string;
   contractYm?: string | number;
   contractDay?: string | number;
+  registeredDate?: string;
+  registeredDateLabel?: string;
 }
 
 interface TxSummaryItem {
@@ -104,9 +106,15 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
 
   return (
     <>
-      <div className="sr-only" aria-hidden="true">
-        <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
-        <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 및 전세 사기 안심 진단 전문 분석 리포트 플랫폼</p>
+      <section
+        id="overview-ssr-semantic-catalog"
+        aria-label="동탄 대장 아파트 랭킹 및 최신 실거래 내역"
+        className="sr-only"
+      >
+        <header>
+          <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
+          <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 및 전세 사기 안심 진단 전문 분석 리포트 플랫폼</p>
+        </header>
         <section>
           <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>
           <ol>
@@ -129,14 +137,15 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
                   <li key={idx}>
                     <strong>{tx.apartmentName || '아파트'}</strong> ({tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) - 
                     {tx.dealType || '매매'} {formatPrice(txPrice)} 
-                    {tx.contractYm && tx.contractDay ? ` (거래일: ${tx.contractYm}.${tx.contractDay})` : ''}
+                    {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
+                    {tx.registeredDate ? ` [등록일: ${tx.registeredDate}]` : ''}
                   </li>
                 );
               })}
             </ul>
           </section>
         )}
-      </div>
+      </section>
       <DashboardClient initialDashboardData={initialData} initialTab={initialTab} />
     </>
   );

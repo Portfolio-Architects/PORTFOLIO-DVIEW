@@ -331,6 +331,38 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs = [], dongMap = {},
 }
 
 /**
+ * 국토교통부 등록일 정규화 및 물리적 인과성(registeredDate >= contractDate) 보장 유틸리티
+ */
+function normalizeRegisteredDate(rawRegDate, contractDate) {
+  if (typeof rawRegDate === 'string') {
+    const trimmed = rawRegDate.trim();
+    if (/^\d{8}$/.test(trimmed)) {
+      if (contractDate && trimmed < contractDate) {
+        return contractDate;
+      }
+      return trimmed;
+    }
+    const dotMatch = trimmed.match(/^(\d{2})\.(\d{2})\.(\d{2})$/);
+    if (dotMatch) {
+      const formatted = `20${dotMatch[1]}${dotMatch[2]}${dotMatch[3]}`;
+      if (contractDate && formatted < contractDate) {
+        return contractDate;
+      }
+      return formatted;
+    }
+    const dot4Match = trimmed.match(/^(\d{4})\.(\d{2})\.(\d{2})$/);
+    if (dot4Match) {
+      const formatted = `${dot4Match[1]}${dot4Match[2]}${dot4Match[3]}`;
+      if (contractDate && formatted < contractDate) {
+        return contractDate;
+      }
+      return formatted;
+    }
+  }
+  return contractDate || '';
+}
+
+/**
  * 최근 90일간의 전체 매매 실거래 플랫 리스트 생성
  * 계약 해제/취소 거래는 결과 피드에서 전면 배제됩니다.
  * @param {Array<Object>} allSaleTxs - 전체 매매 거래 목록
@@ -350,6 +382,7 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
   }
 
   const ninetyDaysAgo = new Date(activeNow.getFullYear(), activeNow.getMonth(), activeNow.getDate() - 90);
+  const getEffectiveDate = (t) => normalizeRegisteredDate(t.registeredDate || t.registrationDate, t.contractDate);
 
   return (allSaleTxs || [])
     .filter(t => !isCancelledTransaction(t))
@@ -357,10 +390,16 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
       if (allowedApts && t.aptName && !allowedApts.has(t.aptName) && !allowedApts.has(normalizeAptName(t.aptName)) && !allowedApts.has(sanitizeAptKey(t.aptName))) {
         return false;
       }
-      const dt = parseYYYYMMDD(t.contractDate);
+      const dt = parseYYYYMMDD(getEffectiveDate(t));
       return dt && dt >= ninetyDaysAgo;
     })
-    .sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''))
+    .sort((a, b) => {
+      const dateA = getEffectiveDate(a);
+      const dateB = getEffectiveDate(b);
+      const comp = dateB.localeCompare(dateA);
+      if (comp !== 0) return comp;
+      return (b.contractDate || '').localeCompare(a.contractDate || '');
+    })
     .slice(0, limit)
     .map(t => {
       const dt = parseYYYYMMDD(t.contractDate);
@@ -370,11 +409,15 @@ function formatRecentTransactions(allSaleTxs, now = new Date(), maxCount = 1000)
         const dateVal = dt.getDate();
         dateLabel = `${month}월 ${dateVal}일`;
       }
+      const registeredDate = normalizeRegisteredDate(t.registeredDate || t.registrationDate, t.contractDate);
+      const registeredDateLabel = t.registeredDateLabel || (registeredDate && registeredDate.length >= 8 ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '');
       return {
         aptName: t.aptName,
         txKey: sanitizeAptKey(t.txKey || t.aptName || ''),
         date: `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
         contractDate: t.contractDate,
+        registeredDate,
+        registeredDateLabel,
         priceVal: (t.price || 0) / 10000,
         priceEok: t.priceEok || formatPriceEok(t.price || 0),
         area: t.area,
@@ -411,14 +454,22 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
     cutoffDate = new Date(activeNow.getFullYear() - 3, activeNow.getMonth(), activeNow.getDate());
   }
 
+  const getEffectiveDate = (t) => normalizeRegisteredDate(t.registeredDate || t.registrationDate, t.contractDate);
+
   const filtered = (allSaleTxs || [])
     .filter(t => !isCancelledTransaction(t))
     .filter(t => {
       if (!cutoffDate) return true;
-      const dt = parseYYYYMMDD(t.contractDate);
+      const dt = parseYYYYMMDD(getEffectiveDate(t));
       return dt && dt >= cutoffDate;
     })
-    .sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+    .sort((a, b) => {
+      const dateA = getEffectiveDate(a);
+      const dateB = getEffectiveDate(b);
+      const comp = dateB.localeCompare(dateA);
+      if (comp !== 0) return comp;
+      return (b.contractDate || '').localeCompare(a.contractDate || '');
+    });
 
   if (asTuple) {
     const fields = [
@@ -462,11 +513,15 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
       const dateVal = dt.getDate();
       dateLabel = `${month}월 ${dateVal}일`;
     }
+    const registeredDate = normalizeRegisteredDate(t.registeredDate || t.registrationDate, t.contractDate);
+    const registeredDateLabel = t.registeredDateLabel || (registeredDate && registeredDate.length >= 8 ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '');
     return {
       aptName: t.aptName,
       txKey: sanitizeAptKey(t.txKey || t.aptName || ''),
       date: `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
       contractDate: t.contractDate,
+      registeredDate,
+      registeredDateLabel,
       priceVal: (t.price || 0) / 10000,
       priceEok: t.priceEok || formatPriceEok(t.price || 0),
       area: t.area,
@@ -488,6 +543,7 @@ module.exports = {
   formatPriceEok,
   parseYYYYMMDD,
   normalizeAptName,
+  normalizeRegisteredDate,
   calculateApartmentSummary,
   formatRecentTransactions,
   formatPeriodTransactions

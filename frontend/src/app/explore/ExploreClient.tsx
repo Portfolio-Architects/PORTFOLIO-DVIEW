@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import PageHeroHeader from '@/components/PageHeroHeader';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
@@ -452,6 +453,14 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   subtitleStrong="동탄 아파트 조건별 맞춤 탐색"
                   subtitleLight="입지 점수·학군·동탄역 접근성 기준 조건 비교"
                 />
+                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 my-4">
+                  <AdSlot
+                    slotId="1000000001"
+                    format="in-feed"
+                    minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                    cpaCampaignId="jeonse-sentinel"
+                  />
+                </div>
                 <ErrorBoundary name="아파트 맞춤 탐색">
                   <TossApartmentExploreClient
                     sheetApartments={sheetApartments}

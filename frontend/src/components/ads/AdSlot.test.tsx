@@ -93,7 +93,7 @@ describe('AdSlot Component', () => {
     });
   });
 
-  describe('4. Ad-Blocker Detection Fallback Integration', () => {
+  describe('4. Ad-Blocker Detection Fallback Integration (Milestone M3)', () => {
     beforeEach(() => {
       jest.spyOn(AdBlockDetectorHook, 'useAdBlockDetector').mockReturnValue({
         isAdBlockActive: true,
@@ -101,22 +101,34 @@ describe('AdSlot Component', () => {
       });
     });
 
-    it('renders MBTI quiz promotion by default when ad-blocker is active', () => {
-      render(<AdSlot format="banner" fallbackType="mbti-promo" />);
+    it('renders unified high-CPC CPA campaign card in general mode when ad-blocker is active', () => {
+      render(<AdSlot format="banner" slotId="1000000001" />);
 
-      expect(screen.getByTestId('ad-slot-adblock-fallback')).toBeInTheDocument();
-      expect(screen.getByText(/주거 MBTI 테스트 하러가기/)).toBeInTheDocument();
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/mbti');
+      const fallback = screen.getByTestId('ad-slot-adblock-fallback');
+      expect(fallback).toBeInTheDocument();
+      expect(fallback).toHaveAttribute('data-cpa-campaign-id', 'jeonse-sentinel');
+      expect(fallback).toHaveAttribute('data-source-trigger', 'ADBLOCK_ACTIVE');
+      expect(fallback).toHaveAttribute('data-estimated-cpa-won', '30000');
+
+      const ctaLink = screen.getByTestId('ad-slot-adblock-cta');
+      expect(ctaLink).toBeInTheDocument();
+      expect(ctaLink).toHaveAttribute('href');
+      expect(ctaLink.getAttribute('href')).toMatch(/^https?:\/\//);
+      expect(screen.getByText(/HUG 전세보증금 반환보증 126% 룰/)).toBeInTheDocument();
+      expect(screen.getByText(/단지별 실거래가 대비 전세가율 기반 역전세 위험도 즉시 판별/)).toBeInTheDocument();
+      expect(screen.getByText(/D-VIEW 리스크 진단/)).toBeInTheDocument();
+      expect(screen.getByText(/전세 안전도 정밀 진단/)).toBeInTheDocument();
     });
 
-    it('renders dashboard trend promotion when fallbackType="dashboard-promo"', () => {
-      render(<AdSlot format="banner" fallbackType="dashboard-promo" />);
+    it('renders corporate-relocation CPA campaign card deterministically for matching slot', () => {
+      render(<AdSlot format="in-feed" slotId="1000000001" cpaCampaignId="corporate-relocation" />);
 
-      expect(screen.getByTestId('ad-slot-adblock-fallback')).toBeInTheDocument();
-      expect(screen.getByText(/동탄 호수공원 & 대장 단지 실거래가 트렌드 확인하기/)).toBeInTheDocument();
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/overview');
+      const fallback = screen.getByTestId('ad-slot-adblock-fallback');
+      expect(fallback).toBeInTheDocument();
+      expect(fallback).toHaveAttribute('data-cpa-campaign-id', 'corporate-relocation');
+      expect(screen.getByTestId('ad-slot-adblock-cta')).toBeInTheDocument();
+      expect(screen.getByText(/동탄테크노밸리 지식산업센터 법인 이전 세제 혜택 분석/)).toBeInTheDocument();
+      expect(screen.getByText(/D-VIEW B2B 인사이트/)).toBeInTheDocument();
     });
 
     it('renders minimal non-intrusive sponsorship text when fallbackType="minimal"', () => {

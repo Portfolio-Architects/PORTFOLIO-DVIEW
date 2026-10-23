@@ -208,6 +208,8 @@ const transactionRecordSchema = z.object({
   dealType: z.string(),
   agentLocation: z.string().optional().nullable(),
   registrationDate: z.string().optional().nullable(),
+  registeredDate: z.string().optional().nullable(),
+  registeredDateLabel: z.string().optional().nullable(),
   housingType: z.string().optional().nullable(),
   source: z.string(),
   _key: z.string(),
@@ -329,17 +331,18 @@ export async function GET(request: NextRequest) {
 
     for (const ym of Array.from(monthsToSync).sort()) {
       // 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
-      const existingMap = new Map<string, { cancelDate: string; dealType: string }>();
+      const existingMap = new Map<string, { cancelDate: string; dealType: string; registeredDate?: string }>();
       try {
         const existingSnap = await collRef
           .where('contractYm', '==', ym)
-          .select('cancelDate', 'dealType')
+          .select('cancelDate', 'dealType', 'registeredDate')
           .get();
         existingSnap.docs.forEach(doc => {
           const data = doc.data();
           existingMap.set(doc.id, {
             cancelDate: (data.cancelDate || '').trim(),
             dealType: (data.dealType || '').trim(),
+            registeredDate: (data.registeredDate || '').trim(),
           });
         });
       } catch (err: unknown) {
@@ -497,6 +500,20 @@ export async function GET(request: NextRequest) {
               dealType,
               agentLocation: getTag(tagMap, 'estateAgentSggNm', '중개사소재지'),
               registrationDate: getTag(tagMap, 'rgstDate', '등기일자'),
+              registeredDate: (() => {
+                const existingDoc = existingMap.get(key);
+                if (existingDoc?.registeredDate) return existingDoc.registeredDate;
+                const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+                return `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+              })(),
+              registeredDateLabel: (() => {
+                const existingDoc = existingMap.get(key);
+                const regDate = existingDoc?.registeredDate || (() => {
+                  const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+                  return `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+                })();
+                return `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}`;
+              })(),
               housingType: '',
               source: 'govt_api',
               _key: key,
@@ -651,6 +668,20 @@ export async function GET(request: NextRequest) {
               dealType,
               agentLocation: '',
               registrationDate: '',
+              registeredDate: (() => {
+                const existingDoc = existingMap.get(_key);
+                if (existingDoc?.registeredDate) return existingDoc.registeredDate;
+                const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+                return `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+              })(),
+              registeredDateLabel: (() => {
+                const existingDoc = existingMap.get(_key);
+                const regDate = existingDoc?.registeredDate || (() => {
+                  const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+                  return `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+                })();
+                return `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}`;
+              })(),
               housingType: '',
               source: 'govt_api_rent',
               reqGb: getTag(tagMap, 'contractType', '계약구분') || '',

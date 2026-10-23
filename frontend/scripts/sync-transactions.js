@@ -26,6 +26,7 @@ const {
   formatPriceEok,
   parseYYYYMMDD,
   normalizeAptName,
+  normalizeRegisteredDate,
   calculateApartmentSummary,
   formatRecentTransactions,
   formatPeriodTransactions
@@ -55,6 +56,10 @@ const TransactionRecordSchema = z.object({
   cdealDay: z.string().optional().nullable(),
   cdealType: z.string().optional().nullable(),
   isCanceled: z.boolean().optional().nullable(),
+  contractDate: z.string().optional().nullable(),
+  registeredDate: z.string().optional().nullable(),
+  registeredDateLabel: z.string().optional().nullable(),
+  registrationDate: z.string().optional().nullable(),
 });
 
 const OUTPUT_PATH = path.resolve(__dirname, '../public/data/tx-summary.json');
@@ -522,6 +527,12 @@ async function fetchRecentMolitDirect(byApt, now = new Date()) {
             const valid = TransactionRecordSchema.safeParse(rawRecord);
             if (!valid.success) continue;
 
+            const rgstDate = getMolitField(item, 'rgstDate', '등기일자');
+            const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+            const todayKst = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+            const registeredDate = rgstDate && rgstDate.length === 8 ? rgstDate : todayKst;
+            const registeredDateLabel = `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}`;
+
             const key = getCanonicalAptKey(aptName);
             if (!byApt[key]) byApt[key] = [];
             const isCanceled = isCancelledTransaction(rawRecord);
@@ -541,6 +552,8 @@ async function fetchRecentMolitDirect(byApt, now = new Date()) {
               dong,
               dealType,
               contractDate: `${ym}${contractDay}`,
+              registeredDate,
+              registeredDateLabel,
               cancelDate: cancelDate || (isCanceled ? '취소' : ''),
               cdealDay: cancelDate,
               cdealType,
@@ -688,14 +701,21 @@ async function main() {
           const canonicalKey = getCanonicalAptKey(aptName);
           const records = JSON.parse(fs.readFileSync(filepath, 'utf8'));
           const filteredRecords = records
-            .map(d => ({
-              ...d,
-              aptName: d.aptName || canonicalKey,
-              txKey: canonicalKey,
-              isCanceled: isCancelledTransaction(d),
-              contractDate: d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`,
-              dong: d.dong || ''
-            }))
+            .map(d => {
+              const contractDate = d.contractDate || `${d.contractYm || ''}${String(d.contractDay || '').padStart(2, '0')}`;
+              const registeredDate = normalizeRegisteredDate(d.registeredDate || d.registrationDate, contractDate);
+              const registeredDateLabel = d.registeredDateLabel || (registeredDate && registeredDate.length >= 8 ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '');
+              return {
+                ...d,
+                aptName: d.aptName || canonicalKey,
+                txKey: canonicalKey,
+                isCanceled: isCancelledTransaction(d),
+                contractDate,
+                registeredDate,
+                registeredDateLabel,
+                dong: d.dong || ''
+              };
+            })
             .filter(d => {
               const hasValidYm = d.contractYm && d.contractYm.length === 6 && /^\d{6}$/.test(d.contractYm);
               return Boolean(hasValidYm);
@@ -783,6 +803,9 @@ async function main() {
 
     const isCanceled = isCancelledTransaction(validData) || isCancelledTransaction(d);
 
+    const regDate = normalizeRegisteredDate(d.registeredDate || d.registrationDate || validData.registeredDate || validData.registrationDate, cDate);
+    const regDateLabel = d.registeredDateLabel || validData.registeredDateLabel || (regDate && regDate.length >= 8 ? `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}` : '');
+
     byApt[key].push({
       aptName: validData.aptName,
       contractYm: validData.contractYm,
@@ -802,6 +825,8 @@ async function main() {
       dealType: validData.dealType,
       isDirectDeal: validData.dealType === '직거래' || d.isDirectDeal === true,
       contractDate: cDate,
+      registeredDate: regDate,
+      registeredDateLabel: regDateLabel,
       cancelDate: validData.cancelDate || d.cdealDay || (isCanceled ? '취소' : ''),
       cdealDay: d.cdealDay || '',
       cdealType: d.cdealType || '',
@@ -873,6 +898,9 @@ async function main() {
 
     const isCanceled = isCancelledTransaction(validData) || isCancelledTransaction(d);
 
+    const regDate = normalizeRegisteredDate(d.registeredDate || d.registrationDate || validData.registeredDate || validData.registrationDate, cDate);
+    const regDateLabel = d.registeredDateLabel || validData.registeredDateLabel || (regDate && regDate.length >= 8 ? `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}` : '');
+
     byApt[key].push({
       aptName: validData.aptName,
       contractYm: validData.contractYm,
@@ -892,6 +920,8 @@ async function main() {
       dealType: validData.dealType,
       isDirectDeal: validData.dealType === '직거래' || d.isDirectDeal === true,
       contractDate: cDate,
+      registeredDate: regDate,
+      registeredDateLabel: regDateLabel,
       cancelDate: validData.cancelDate || d.cdealDay || (isCanceled ? '취소' : ''),
       cdealDay: d.cdealDay || '',
       cdealType: d.cdealType || '',
@@ -984,6 +1014,8 @@ async function main() {
         if (!winner.dong && (t.dong || existing.dong)) {
           winner.dong = t.dong || existing.dong;
         }
+        winner.registeredDate = normalizeRegisteredDate(winner.registeredDate || existing.registeredDate || t.registeredDate, winner.contractDate);
+        winner.registeredDateLabel = winner.registeredDateLabel || existing.registeredDateLabel || t.registeredDateLabel || (winner.registeredDate && winner.registeredDate.length >= 8 ? `${winner.registeredDate.slice(4, 6)}.${winner.registeredDate.slice(6, 8)}` : '');
         seen.set(key, winner);
       }
     }

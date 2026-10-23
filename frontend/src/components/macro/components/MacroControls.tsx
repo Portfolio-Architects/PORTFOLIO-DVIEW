@@ -30,7 +30,7 @@ export const TIMELINE_SORT_OPTIONS: Array<{
   value: TimelineSortOrder;
   label: string;
 }> = [
-  { value: 'latest', label: '최신 계약순' },
+  { value: 'latest', label: '최신 등록순' },
   { value: 'price_desc', label: '실거래가 높은순' },
   { value: 'delta_desc', label: '상승률 높은순' },
   { value: 'area_desc', label: '전용면적순' },

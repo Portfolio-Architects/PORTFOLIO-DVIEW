@@ -309,37 +309,40 @@ describe('Milestone 3 Empirical Challenger: AdSlot Stress & Zero-CLS Verificatio
   // =========================================================================
   // 3. AdBlocker Fallback Variant & Dynamic Toggle Stress
   // =========================================================================
-  describe('3. AdBlocker Fallback Variants & Transition Stress', () => {
-    it('renders mbti-promo with correct link, headline, and badges', () => {
+  describe('3. AdBlocker Fallback Variants & Transition Stress (Milestone M3)', () => {
+    it('renders unified high-CPC CPA card with correct link, headline, and badges in general mode', () => {
       jest.spyOn(AdBlockDetectorHook, 'useAdBlockDetector').mockReturnValue({
         isAdBlockActive: true,
         isLoading: false,
       });
 
-      render(<AdSlot format="banner" fallbackType="mbti-promo" />);
+      render(<AdSlot format="banner" slotId="1000000001" />);
       const fallback = screen.getByTestId('ad-slot-adblock-fallback');
       expect(fallback).toBeInTheDocument();
+      expect(fallback).toHaveAttribute('data-cpa-campaign-id', 'jeonse-sentinel');
+      expect(fallback).toHaveAttribute('data-source-trigger', 'ADBLOCK_ACTIVE');
 
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/mbti');
-      expect(screen.getByText(/주거 MBTI 테스트 하러가기/)).toBeInTheDocument();
-      expect(screen.getByText(/7가지 라이프스타일 질문으로 알아보는 16가지 동탄 아파트 매칭/)).toBeInTheDocument();
+      const link = screen.getByTestId('ad-slot-adblock-cta');
+      expect(link).toHaveAttribute('href');
+      expect(screen.getByText(/HUG 전세보증금 반환보증 126% 룰/)).toBeInTheDocument();
+      expect(screen.getByText(/단지별 실거래가 대비 전세가율 기반 역전세 위험도 즉시 판별/)).toBeInTheDocument();
     });
 
-    it('renders dashboard-promo with correct link, headline, and badges', () => {
+    it('renders corporate-relocation CPA card deterministically for matching slot', () => {
       jest.spyOn(AdBlockDetectorHook, 'useAdBlockDetector').mockReturnValue({
         isAdBlockActive: true,
         isLoading: false,
       });
 
-      render(<AdSlot format="in-feed" fallbackType="dashboard-promo" />);
+      render(<AdSlot format="in-feed" slotId="1000000001" cpaCampaignId="corporate-relocation" />);
       const fallback = screen.getByTestId('ad-slot-adblock-fallback');
       expect(fallback).toBeInTheDocument();
+      expect(fallback).toHaveAttribute('data-cpa-campaign-id', 'corporate-relocation');
 
-      const link = screen.getByRole('link');
-      expect(link).toHaveAttribute('href', '/overview');
-      expect(screen.getByText(/동탄 호수공원 & 대장 단지 실거래가 트렌드 확인하기/)).toBeInTheDocument();
-      expect(screen.getByText(/179개 전 단지의 실거래가와 전세가율 데이터를 확인해보세요/)).toBeInTheDocument();
+      const link = screen.getByTestId('ad-slot-adblock-cta');
+      expect(link).toHaveAttribute('href');
+      expect(screen.getByText(/동탄테크노밸리 지식산업센터 법인 이전 세제 혜택 분석/)).toBeInTheDocument();
+      expect(screen.getByText(/D-VIEW B2B 인사이트/)).toBeInTheDocument();
     });
 
     it('renders minimal fallback without any interactive links', () => {

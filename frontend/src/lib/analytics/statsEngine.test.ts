@@ -1052,7 +1052,8 @@ describe('statsEngine Unit Test Suite', () => {
 
       const res3M = aggregateStatistics(
         { transactions: recentTxs, summaryMap },
-        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
+        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' },
+        { rankLimit: 25 }
       );
       const lotte3M = res3M.pyeongRankings.find((r) => r.aptName === '동탄역롯데캐슬');
       expect(lotte3M).toBeDefined();
@@ -1089,10 +1090,12 @@ describe('statsEngine Unit Test Suite', () => {
       }
 
       // Verify getSupplyPyeong HARDCODED_MAPPING resolution
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { getSupplyPyeong } = require('../../../pipeline/core/normalizer');
       expect(getSupplyPyeong('동탄역시범더샵센트럴시티', 106.537)).toBe(41.1);
 
       // Verify findTxKey for 금강펜테리움6차센트럴파크 and new complexes
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { findTxKey } = require('@/lib/utils/apartmentMapping');
       expect(findTxKey('동탄신도시 금강펜테리움 6차', summaryMap)).toBe('금강펜테리움6차센트럴파크');
       expect(findTxKey('엔에이치에프엘크루', summaryMap)).toBe('엔에이치에프엘크루');

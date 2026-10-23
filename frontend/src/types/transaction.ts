@@ -31,6 +31,8 @@ export interface TransactionRecord {
   seller?: string;
   roadName?: string;
   contractDate?: string;
+  registeredDate?: string;
+  registeredDateLabel?: string;
   priceVal?: number;
   isNewHigh?: boolean;
   newHighDelta?: number;
@@ -57,6 +59,8 @@ export interface RecentTx {
   delta?: number;
   deltaPercent?: number;
   contractDate?: string;
+  registeredDate?: string;
+  registeredDateLabel?: string;
   dateLabel?: string;
 }
 
@@ -66,6 +70,8 @@ export interface RecentTransaction {
   txKey: string;
   date: string;
   contractDate: string;
+  registeredDate?: string;
+  registeredDateLabel?: string;
   priceVal: number;
   priceEok: string;
   area: number;

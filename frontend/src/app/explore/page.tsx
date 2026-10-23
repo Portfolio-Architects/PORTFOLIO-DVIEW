@@ -169,9 +169,15 @@ async function ExploreDataLoader() {
   return (
     <>
       {/* SSR SEO Semantic HTML Block */}
-      <div className="sr-only" aria-hidden="true">
-        <h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>
-        <p>동탄 1, 2신도시 전체 179개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
+      <section
+        id="explore-ssr-semantic-catalog"
+        aria-label="동탄 전역 아파트 실거래가 및 입지 가치 비교 카탈로그"
+        className="sr-only"
+      >
+        <header>
+          <h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>
+          <p>동탄 1, 2신도시 전체 179개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
+        </header>
         <table>
           <thead>
             <tr>
@@ -205,7 +211,7 @@ async function ExploreDataLoader() {
             })}
           </tbody>
         </table>
-      </div>
+      </section>
       <ExploreClient initialDashboardData={initialData} />
     </>
   );

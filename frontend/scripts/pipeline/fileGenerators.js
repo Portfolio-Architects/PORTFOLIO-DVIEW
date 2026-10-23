@@ -10,7 +10,7 @@
 const fs = require('fs');
 const path = require('path');
 const { applyIqrOutlierDetection } = require('./outlierFilters');
-const { formatPriceEok, normalizeAptName } = require('./apartmentSummarizer');
+const { formatPriceEok, normalizeAptName, normalizeRegisteredDate } = require('./apartmentSummarizer');
 const { sanitizeAptChunkFileName, sanitizeAptKey, isCancelledTransaction } = require('../../pipeline/core/normalizer');
 
 /**
@@ -272,9 +272,15 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
       const canceled = isCancelledTransaction(t);
       const cancelDateStr = (t.cancelDate && String(t.cancelDate).trim()) || (t.cdealDay && String(t.cdealDay).trim()) || (canceled ? '취소' : '');
       const isDirect = t.isDirectDeal === true || t.dealType === '직거래' || t.dealingGbn === '직거래';
+      const contractDate = t.contractDate || `${t.contractYm || ''}${String(t.contractDay || '').padStart(2, '0')}`;
+      const registeredDate = normalizeRegisteredDate(t.registeredDate || t.registrationDate, contractDate);
+      const registeredDateLabel = t.registeredDateLabel || (registeredDate && registeredDate.length >= 8 ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '');
       return {
         contractYm: t.contractYm,
         contractDay: t.contractDay,
+        contractDate,
+        registeredDate,
+        registeredDateLabel,
         price: t.price,
         priceEok: (t.dealType === '전세' || t.dealType === '월세') 
           ? formatPriceEok(t.deposit || 0) + (t.monthlyRent ? ` / ${t.monthlyRent}만` : '')
@@ -359,6 +365,8 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
         ) {
           winner.dealType = '중개거래';
         }
+        winner.registeredDate = winner.registeredDate || existing.registeredDate || r.registeredDate;
+        winner.registeredDateLabel = winner.registeredDateLabel || existing.registeredDateLabel || r.registeredDateLabel;
         seen.set(key, winner);
       }
     }
@@ -367,10 +375,15 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
     // IQR 아웃라이어 필터링 적용
     applyIqrOutlierDetection(uniqueRecords);
 
-    // Sort unique records by contract date descending (newest first)
+    // Sort unique records by registered date descending, then contract date descending (newest first)
     uniqueRecords.sort((a, b) => {
-      const dateA = `${a.contractYm || ''}${String(a.contractDay || '').padStart(2, '0')}`;
-      const dateB = `${b.contractYm || ''}${String(b.contractDay || '').padStart(2, '0')}`;
+      const regA = a.registeredDate || a.contractDate || `${a.contractYm || ''}${String(a.contractDay || '').padStart(2, '0')}`;
+      const regB = b.registeredDate || b.contractDate || `${b.contractYm || ''}${String(b.contractDay || '').padStart(2, '0')}`;
+      if (regA !== regB) {
+        return regB.localeCompare(regA);
+      }
+      const dateA = a.contractDate || `${a.contractYm || ''}${String(a.contractDay || '').padStart(2, '0')}`;
+      const dateB = b.contractDate || `${b.contractYm || ''}${String(b.contractDay || '').padStart(2, '0')}`;
       if (dateA !== dateB) {
         return dateB.localeCompare(dateA);
       }

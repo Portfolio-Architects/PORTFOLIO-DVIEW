@@ -98,6 +98,8 @@ export interface TimelineItem {
   areaLabelPyeong?: string;
   displayAptName?: string;
   contractDate?: string;
+  registeredDate?: string;
+  registeredDateLabel?: string;
   date?: string;
   isNewHigh?: boolean;
 }
@@ -107,6 +109,8 @@ interface RecentTransaction {
   txKey: string;
   date: string;
   contractDate: string;
+  registeredDate?: string;
+  registeredDateLabel?: string;
   priceVal: number;
   priceEok: string;
   area: number;
@@ -310,6 +314,14 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             </span>
             <span className="opacity-30 font-normal shrink-0">•</span>
             <span className="shrink-0">{item.floor}층</span>
+            {item.contractDate && (
+              <>
+                <span className="opacity-30 font-normal shrink-0">•</span>
+                <span className="shrink-0 text-secondary font-medium">
+                  계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
+                </span>
+              </>
+            )}
             {pyeongPriceMan > 0 && (
               <>
                 <span className="opacity-30 font-normal shrink-0 hidden sm:inline">•</span>
@@ -491,6 +503,11 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
           </div>
           <span className="text-[10px] text-tertiary font-medium">
             {item.dong} · {item.floor}층 · {areaUnit === 'm2' ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`) : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+            {item.contractDate && (
+              <span className="text-secondary font-medium">
+                {' '}· 계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
+              </span>
+            )}
             {pyeongPriceMan > 0 && <span className="hidden sm:inline"> · 평당 {pyeongPriceMan.toLocaleString()}만</span>}
           </span>
         </button>
@@ -887,7 +904,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       ? timelinePeriodTransactions
       : recentTransactions;
     txSource.forEach((tx) => {
-      const dt = parseDateHelper(tx.contractDate || tx.date);
+      const dt = parseDateHelper(tx.registeredDate || tx.contractDate || tx.date);
       if (dt) {
         const time = dt.getTime();
         if (time > maxVal) {
@@ -1106,7 +1123,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     activeTimelineTxs.forEach((tx) => {
       if (publicRentalSet && publicRentalSet.has && publicRentalSet.has(tx.aptName)) return;
 
-      const dt = parseDateHelper(tx.contractDate || tx.date);
+      const dt = parseDateHelper(tx.registeredDate || tx.contractDate || tx.date);
       if (!dt) return;
 
       const diffMs = maxDateTime - dt.getTime();
@@ -1154,6 +1171,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           areaLabelPyeong: labelPyeong,
           contractDate: tx.contractDate,
           date: tx.date,
+          registeredDate: tx.registeredDate,
+          registeredDateLabel: tx.registeredDateLabel,
         });
       }
     });
@@ -1161,7 +1180,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return Object.values(groups)
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((group) => {
-        const sortedItems = [...group.items].sort((a, b) => b.priceVal - a.priceVal);
+        const sortedItems = [...group.items].sort((a, b) => {
+          const dateDiff = (b.contractDate || '').localeCompare(a.contractDate || '');
+          if (dateDiff !== 0) return dateDiff;
+          return b.priceVal - a.priceVal;
+        });
         const totalCount = sortedItems.length;
         const avgVal = totalCount > 0 ? (sortedItems.reduce((s, it) => s + it.priceVal, 0) / totalCount) : 0;
         const avgRoundedMan = Math.round(avgVal * 10000);
@@ -1169,7 +1192,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         const man = avgRoundedMan % 10000;
         const avgPriceEok = eok === 0 ? `${man.toLocaleString()}만` : man === 0 ? `${eok}억` : `${eok}억 ${man.toLocaleString()}만`;
 
-        const highest = sortedItems[0];
+        const priceSorted = [...group.items].sort((a, b) => b.priceVal - a.priceVal);
+        const highest = priceSorted[0];
         const highestPriceApt = highest
           ? {
               aptName: highest.aptName,
@@ -1300,7 +1324,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           if (sortOrder === 'area_desc') {
             return (b.area || b.areaPyeong) - (a.area || a.areaPyeong);
           }
-          // 'latest' or default: keep natural / priceVal order
+          // 'latest' or default: keep contractDate desc then priceVal desc
+          const dateDiff = (b.contractDate || '').localeCompare(a.contractDate || '');
+          if (dateDiff !== 0) return dateDiff;
           return b.priceVal - a.priceVal;
         });
 

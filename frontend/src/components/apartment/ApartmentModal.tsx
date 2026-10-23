@@ -30,7 +30,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { ApartmentGallery } from '@/components/apartment-modal/ApartmentGallery';
 import { ViralPaywallGate } from '@/components/apartment-modal/ViralPaywallGate';
 import { AdSlot } from '@/components/ads/AdSlot';
-import { ApartmentChapterNavBar } from './ApartmentChapterNavBar';
+import { ApartmentChapterNavBar, APARTMENT_CHAPTERS } from './ApartmentChapterNavBar';
 import { TerminalRecirculationHub } from './TerminalRecirculationHub';
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
 import {
@@ -444,19 +444,136 @@ const ApartmentModal = React.memo(function ApartmentModal({
   const [selectedAreaFilter, setSelectedAreaFilter] = useState<string>('전체');
 
   const [activeChapter, setActiveChapter] = useState('chapter-01-overview');
+  const [mountedChapters, setMountedChapters] = useState<Set<string>>(
+    () => new Set(['chapter-01-overview'])
+  );
   const [ch02AdRefreshKey, setCh02AdRefreshKey] = useState(0);
   const [ch05AdRefreshKey, setCh05AdRefreshKey] = useState(0);
   const ch02AdContainerRef = useRef<HTMLDivElement | null>(null);
   const ch05AdContainerRef = useRef<HTMLDivElement | null>(null);
 
+  const isChapterMounted = useCallback(
+    (chapterId: string) => mountedChapters.has(chapterId) || activeChapter === chapterId,
+    [mountedChapters, activeChapter]
+  );
+
   const handleSelectChapter = useCallback((chapterId: string) => {
     setActiveChapter(chapterId);
+    setMountedChapters((prev) => {
+      if (prev.has(chapterId)) return prev;
+      const next = new Set(prev);
+      next.add(chapterId);
+      return next;
+    });
     const targetElement = document.getElementById(chapterId);
     if (targetElement) {
       targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
     adRefreshManager.onTabSwitch();
   }, []);
+
+  // Synchronize activeChapter into mountedChapters set
+  useEffect(() => {
+    setMountedChapters((prev) => {
+      if (prev.has(activeChapter)) return prev;
+      const next = new Set(prev);
+      next.add(activeChapter);
+      return next;
+    });
+  }, [activeChapter]);
+
+  // Viewport proximity observation for pre-mounting chapters within 350px
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof IntersectionObserver === 'undefined') {
+      setMountedChapters(new Set(APARTMENT_CHAPTERS.map((c) => c.id)));
+      return;
+    }
+
+    const rootEl = inline ? null : (modalRef.current || null);
+    const chapterObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && entry.target.id) {
+            const chapterId = entry.target.id;
+            setMountedChapters((prev) => {
+              if (prev.has(chapterId)) return prev;
+              const next = new Set(prev);
+              next.add(chapterId);
+              return next;
+            });
+          }
+        });
+      },
+      {
+        root: rootEl,
+        rootMargin: '350px 0px 350px 0px',
+        threshold: 0,
+      }
+    );
+
+    const registerChapterTargets = () => {
+      APARTMENT_CHAPTERS.forEach((chapter) => {
+        const el = rootEl
+          ? (rootEl.querySelector(`#${chapter.id}`) as HTMLElement | null)
+          : document.getElementById(chapter.id);
+        if (el) {
+          chapterObserver.observe(el);
+        }
+      });
+    };
+
+    registerChapterTargets();
+    const t1 = setTimeout(registerChapterTargets, 200);
+
+    return () => {
+      clearTimeout(t1);
+      chapterObserver.disconnect();
+    };
+  }, [inline]);
+
+  // Progressive idle background mounting for remaining unmounted chapters
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let cancelled = false;
+    let idleId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+
+    const unmountedChapters = APARTMENT_CHAPTERS.map((c) => c.id).filter((id) => !mountedChapters.has(id));
+    if (unmountedChapters.length === 0) return;
+
+    const mountNextChapter = () => {
+      if (cancelled) return;
+      setMountedChapters((prev) => {
+        const remaining = APARTMENT_CHAPTERS.find((c) => !prev.has(c.id));
+        if (!remaining) return prev;
+        const next = new Set(prev);
+        next.add(remaining.id);
+        return next;
+      });
+    };
+
+    if ('requestIdleCallback' in window) {
+      idleId = (window as unknown as { requestIdleCallback: (cb: () => void, opts?: { timeout: number }) => number }).requestIdleCallback(
+        () => {
+          mountNextChapter();
+        },
+        { timeout: 1200 }
+      );
+    } else {
+      timeoutId = setTimeout(mountNextChapter, 800);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId !== null && 'cancelIdleCallback' in window) {
+        (window as unknown as { cancelIdleCallback: (id: number) => void }).cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
+    };
+  }, [mountedChapters]);
 
   useEffect(() => {
     setMounted(true);
@@ -1077,15 +1194,21 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 </span>
               )}
             </div>
-            <ErrorBoundary name="거래량 회전율 분석">
-              <TransactionSummaryMetrics 
-                transactions={filteredTransactions} 
-                apartmentName={report.apartmentName}
-                typeMap={typeMap}
-                filterOutliers={filterOutliers}
-                chartType={chartType}
-              />
-            </ErrorBoundary>
+            {isChapterMounted('chapter-02-volume') ? (
+              <ErrorBoundary name="거래량 회전율 분석">
+                <TransactionSummaryMetrics 
+                  transactions={filteredTransactions} 
+                  apartmentName={report.apartmentName}
+                  typeMap={typeMap}
+                  filterOutliers={filterOutliers}
+                  chartType={chartType}
+                />
+              </ErrorBoundary>
+            ) : (
+              <div className="w-full h-48 rounded-[20px] border border-border/40 animate-shimmer flex items-center justify-center">
+                <span className="text-tertiary text-[12px] font-bold">거래량 분석 로딩 중...</span>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1126,41 +1249,47 @@ const ApartmentModal = React.memo(function ApartmentModal({
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-              <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
-                <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
-                <div className="mt-2 text-right">
-                  <span className="text-[20px] font-black text-toss-blue tabular-nums">
-                    {jeonseSafetyData && jeonseSafetyData.latestPrice > 0 && jeonseSafetyData.latestDeposit > 0
-                      ? `${Math.max(0, Math.round((jeonseSafetyData.latestPrice - jeonseSafetyData.latestDeposit) / 10000))}억`
-                      : '산정 중'}
-                  </span>
-                  <span className="text-[12px] font-bold text-secondary ml-1">필요</span>
+            {isChapterMounted('chapter-03-gap') ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+                <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                  <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
+                  <div className="mt-2 text-right">
+                    <span className="text-[20px] font-black text-toss-blue tabular-nums">
+                      {jeonseSafetyData && jeonseSafetyData.latestPrice > 0 && jeonseSafetyData.latestDeposit > 0
+                        ? `${Math.max(0, Math.round((jeonseSafetyData.latestPrice - jeonseSafetyData.latestDeposit) / 10000))}억`
+                        : '산정 중'}
+                    </span>
+                    <span className="text-[12px] font-bold text-secondary ml-1">필요</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
-                <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
-                <div className="mt-2 text-right">
-                  <span className="text-[20px] font-black text-[#057e77] dark:text-emerald-400 tabular-nums">
-                    {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '데이터 수집 중'}
-                  </span>
-                  <span className="text-[12px] font-bold text-secondary ml-1">기록</span>
+                <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                  <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
+                  <div className="mt-2 text-right">
+                    <span className="text-[20px] font-black text-[#057e77] dark:text-emerald-400 tabular-nums">
+                      {jeonseSafetyData && jeonseSafetyData.ratio > 0 ? `${jeonseSafetyData.ratio.toFixed(1)}%` : '데이터 수집 중'}
+                    </span>
+                    <span className="text-[12px] font-bold text-secondary ml-1">기록</span>
+                  </div>
                 </div>
-              </div>
 
-              <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm sm:col-span-2 md:col-span-1">
-                <span className="text-[12px] font-bold text-tertiary">DCF 밸류에이션 판정</span>
-                <div className="mt-2 text-right">
-                  <span className={`text-[18px] font-black tabular-nums ${
-                    valuation.status === 'undervalued' ? 'text-emerald-500' :
-                    valuation.status === 'overvalued' ? 'text-red-500' : 'text-primary'
-                  }`}>
-                    {valuation.amount}
-                  </span>
+                <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm sm:col-span-2 md:col-span-1">
+                  <span className="text-[12px] font-bold text-tertiary">DCF 밸류에이션 판정</span>
+                  <div className="mt-2 text-right">
+                    <span className={`text-[18px] font-black tabular-nums ${
+                      valuation.status === 'undervalued' ? 'text-emerald-500' :
+                      valuation.status === 'overvalued' ? 'text-red-500' : 'text-primary'
+                    }`}>
+                      {valuation.amount}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="w-full h-28 rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center">
+                <span className="text-tertiary text-[12px] font-bold">갭투자 매트릭스 산정 중...</span>
+              </div>
+            )}
           </div>
         </section>
 
@@ -1170,7 +1299,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           data-testid="chapter-04-infra"
           className="scroll-mt-14 snap-start w-full flex flex-col gap-8"
         >
-          {isAnimationFinished ? (
+          {isAnimationFinished && isChapterMounted('chapter-04-infra') ? (
             <>
               {/* Location & Infra Section */}
               <ErrorBoundary name="입지·인프라 분석">
@@ -1211,7 +1340,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           data-testid="chapter-05-mortgage"
           className="scroll-mt-14 snap-start w-full flex flex-col gap-6"
         >
-          {isAnimationFinished ? (
+          {isAnimationFinished && isChapterMounted('chapter-05-mortgage') ? (
             <>
               {/* Mortgage LDI Sentinel Card */}
               <ErrorBoundary name="주담대 LDI 센티넬">
@@ -1323,7 +1452,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           data-testid="chapter-06-ledger"
           className="scroll-mt-14 snap-start w-full"
         >
-          {isAnimationFinished ? (
+          {isAnimationFinished && isChapterMounted('chapter-06-ledger') ? (
             <ErrorBoundary name="단지 기본정보 및 평형 대장">
               <ApartmentSpecsSection
                 report={report}
@@ -1342,7 +1471,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           data-testid="chapter-07-macro"
           className="scroll-mt-14 snap-start w-full flex flex-col gap-4"
         >
-          {isAnimationFinished ? (
+          {isAnimationFinished && isChapterMounted('chapter-07-macro') ? (
             <div className="relative w-full">
               <div>
                 <ErrorBoundary name="거시 체제 및 밸류에이션 분석">
@@ -1364,7 +1493,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           data-testid="chapter-08-report"
           className="scroll-mt-14 snap-start w-full flex flex-col gap-8"
         >
-          {isAnimationFinished ? (
+          {isAnimationFinished && isChapterMounted('chapter-08-report') ? (
             <>
               {/* Photo Gallery */}
               {report.images && report.images.length > 0 ? (() => {
