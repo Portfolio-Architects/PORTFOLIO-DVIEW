@@ -198,6 +198,7 @@ describe('SellTimingCalculator Component', () => {
     // Verification of results panels
     expect(screen.getByText('자산 안정성 스코어')).toBeInTheDocument();
     expect(screen.getByText('세무 전략 및 양도소득세 리포트')).toBeInTheDocument();
+    expect(screen.getByTestId('sell-timing-result-ad-slot')).toBeInTheDocument();
     expect(screen.getByText('납부할 총 세액 합계')).toBeInTheDocument();
   });
 });

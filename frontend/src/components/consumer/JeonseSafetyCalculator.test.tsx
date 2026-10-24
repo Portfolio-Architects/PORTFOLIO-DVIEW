@@ -155,5 +155,6 @@ describe('JeonseSafetyCalculator', () => {
     // Should render results details (like '진단 결과:')
     expect(screen.getByText(/진단 결과:/)).toBeInTheDocument();
     expect(screen.getByText('부채비율(LTV)')).toBeInTheDocument();
+    expect(screen.getByTestId('jeonse-result-ad-slot')).toBeInTheDocument();
   });
 });

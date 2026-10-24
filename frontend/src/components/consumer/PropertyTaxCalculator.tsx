@@ -12,6 +12,7 @@ import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { logger } from '@/lib/services/logger';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface PropertyTaxCalculatorProps {
   isOpen: boolean;
@@ -830,6 +831,17 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Zero-CLS High-CPC Financial AdSlot on Property Tax Result */}
+                <div className="w-full pt-1" data-testid="tax-result-ad-slot">
+                  <AdSlot
+                    slotId="1000000002"
+                    format="in-feed"
+                    apartmentName={selectedApt?.name}
+                    dong={selectedApt?.dong}
+                    className="w-full"
+                  />
                 </div>
 
                 {/* Bottom Buttons */}

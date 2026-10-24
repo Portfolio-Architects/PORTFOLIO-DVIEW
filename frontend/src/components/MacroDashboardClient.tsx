@@ -1479,6 +1479,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 txSummaryData={txSummaryData}
                 macroTrendData={deferredMacroTrendData}
                 onOpenSellTimingCalculator={handleOpenSellTiming}
+                onOpenMortgageModal={handleOpenMortgage}
+                onOpenJeonseSafetyModal={handleOpenJeonseSafety}
                 activeSector={activeDonutSector}
                 onResetSector={() => {
                   setActiveDonutCategory(null);

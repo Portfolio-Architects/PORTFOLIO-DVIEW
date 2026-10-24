@@ -155,5 +155,6 @@ describe('MortgageCalculator', () => {
     // Should render results (Step 4)
     expect(screen.getByText('최적 정책금융 상품 매칭 완료')).toBeInTheDocument();
     expect(screen.getByText('추천:')).toBeInTheDocument();
+    expect(screen.getByTestId('mortgage-result-ad-slot')).toBeInTheDocument();
   });
 });

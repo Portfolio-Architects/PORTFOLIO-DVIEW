@@ -16,6 +16,7 @@ import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 import { sendTelemetry } from '@/lib/ads/cascadeFallback';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 
 interface SellTimingCalculatorProps {
@@ -892,6 +893,17 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                     <MessageSquare size={16} className="fill-[#191919] text-[#191919]" />
                     <span>진단 결과 1초 만에 카카오톡으로 공유하기</span>
                   </button>
+                </div>
+
+                {/* Zero-CLS High-CPC Financial AdSlot on Sell Timing Result */}
+                <div className="w-full pt-1" data-testid="sell-timing-result-ad-slot">
+                  <AdSlot
+                    slotId="1000000002"
+                    format="in-feed"
+                    apartmentName={selectedApt?.name}
+                    dong={selectedApt?.dong}
+                    className="w-full"
+                  />
                 </div>
 
                 {/* Footer Buttons */}

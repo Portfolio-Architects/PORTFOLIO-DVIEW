@@ -72,6 +72,28 @@ describe('AptMetricCards Test Suite', () => {
     expect(mockOpenSellTiming).toHaveBeenCalledTimes(1);
   });
 
+  it('triggers onOpenMortgageModal and onOpenJeonseSafetyModal when clicking Card 2 and Card 3', () => {
+    const mockOpenMortgage = jest.fn();
+    const mockOpenJeonse = jest.fn();
+
+    render(
+      <AptMetricCards
+        recentTransactions={mockRecentTransactions}
+        macroTrendData={mockMacroTrend as any}
+        onOpenMortgageModal={mockOpenMortgage}
+        onOpenJeonseSafetyModal={mockOpenJeonse}
+      />
+    );
+
+    const mortgageCardBtn = screen.getByTestId('metric-card-mortgage-cta');
+    fireEvent.click(mortgageCardBtn);
+    expect(mockOpenMortgage).toHaveBeenCalledTimes(1);
+
+    const jeonseCardBtn = screen.getByTestId('metric-card-jeonse-cta');
+    fireEvent.click(jeonseCardBtn);
+    expect(mockOpenJeonse).toHaveBeenCalledTimes(1);
+  });
+
   it('respects explicit props overrides', () => {
     render(
       <AptMetricCards

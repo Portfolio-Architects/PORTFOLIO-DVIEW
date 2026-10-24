@@ -13,6 +13,7 @@ import { localCache } from '@/lib/utils/localCache';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface MortgageCalculatorProps {
   isOpen: boolean;
@@ -1091,6 +1092,17 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
                   )}
                 </div>
+              </div>
+
+              {/* Zero-CLS High-CPC Financial AdSlot on Diagnosis Result */}
+              <div className="w-full pt-1" data-testid="mortgage-result-ad-slot">
+                <AdSlot
+                  slotId="1000000002"
+                  format="in-feed"
+                  apartmentName={selectedApt?.name}
+                  dong={selectedApt?.dong}
+                  className="w-full"
+                />
               </div>
 
               {/* Action buttons */}

@@ -12,6 +12,7 @@ import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 import { usePWA } from '@/components/pwa/PWAProvider';
+import { AdSlot } from '@/components/ads/AdSlot';
 
 interface JeonseSafetyCalculatorProps {
   isOpen: boolean;
@@ -807,6 +808,17 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                       </div>
                     </label>
                   </div>
+                </div>
+
+                {/* Zero-CLS High-CPC Financial AdSlot on Jeonse Safety Result */}
+                <div className="w-full pt-1" data-testid="jeonse-result-ad-slot">
+                  <AdSlot
+                    slotId="1000000002"
+                    format="in-feed"
+                    apartmentName={selectedApt?.name}
+                    dong={selectedApt?.dong}
+                    className="w-full"
+                  />
                 </div>
 
                 {/* Footer Buttons */}

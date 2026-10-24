@@ -133,6 +133,7 @@ describe('PropertyTaxCalculator', () => {
 
     // Should now show results
     expect(screen.getByText('최종 소요 부대비용:')).toBeInTheDocument();
+    expect(screen.getByTestId('tax-result-ad-slot')).toBeInTheDocument();
   });
 
   it('calculates heavy rate Local Education Tax (fixed 0.4%) and Rural Special Tax for 3 houses (>85m2)', () => {
