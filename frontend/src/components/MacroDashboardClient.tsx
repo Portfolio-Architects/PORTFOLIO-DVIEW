@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
+﻿import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
@@ -25,6 +25,7 @@ import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
 import { AdSlot } from "@/components/ads/AdSlot";
 import { StatsOverviewSection } from "@/components/stats/StatsOverviewSection";
+import { Landmark, ShieldCheck, Calculator, TrendingUp } from "lucide-react";
 
 
 const InlineLoader = ({ text }: { text: string }) => (
@@ -1453,6 +1454,62 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       <MacroHeader macroTrendJsonLd={macroTrendJsonLd} />
 
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
+        {/* Responsive Above-the-Fold Financial Quick Action Bar (Wide 1-Row / Narrow Horizontal Swipe) */}
+        <div
+          data-testid="hero-finance-quick-bar"
+          className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-2 mb-3.5 rounded-2xl bg-surface border border-border/80 shadow-2xs min-w-0 box-border"
+        >
+          <div className="hidden lg:flex items-center gap-2 min-w-0 truncate">
+            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-[#057e77] dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 text-[10.5px] font-black shrink-0">
+              실수요 금융·세무 직결
+            </span>
+            <span className="text-[12px] font-bold text-secondary truncate">
+              {selectedTimelineApt
+                ? `${getDisplayAptName(selectedTimelineApt)} 기준 주담대 DSR 한도·전세보증·세액 원클릭 진단`
+                : "신생아특례 1.6%~ · 스트레스 DSR 2단계 한도 · 취득세 원클릭 시뮬레이션"}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto shrink-0 py-0.5">
+            <button
+              type="button"
+              data-testid="hero-quick-mortgage"
+              onClick={() => handleOpenMortgage(selectedTimelineApt || undefined)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#057e77] hover:bg-[#046660] text-white text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs"
+            >
+              <Landmark size={13} className="shrink-0" />
+              <span>주담대 최저금리·한도</span>
+            </button>
+            <button
+              type="button"
+              data-testid="hero-quick-jeonse"
+              onClick={() => handleOpenJeonseSafety(selectedTimelineApt || undefined)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+            >
+              <ShieldCheck size={13} className="text-[#1b64da] dark:text-blue-400 shrink-0" />
+              <span>전세보증 안전진단</span>
+            </button>
+            <button
+              type="button"
+              data-testid="hero-quick-tax"
+              onClick={() => handleOpenTaxCalculator(selectedTimelineApt || undefined)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+            >
+              <Calculator size={13} className="text-[#057e77] dark:text-emerald-400 shrink-0" />
+              <span>취득세·중개보수</span>
+            </button>
+            <button
+              type="button"
+              data-testid="hero-quick-sell"
+              onClick={() => handleOpenSellTiming(selectedTimelineApt || undefined)}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+            >
+              <TrendingUp size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>양도세·매도타이밍</span>
+            </button>
+          </div>
+        </div>
+
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
@@ -1505,6 +1562,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 sheetApartments={sheetApartments}
                 onSelectApt={handleSelectApt}
                 onHoverApt={handleHoverApt}
+                onOpenMortgageModal={handleOpenMortgage}
                 timeframe={timeframe}
                 setTimeframe={setTimeframe}
                 isAptTxLoading={isAptTxLoading}
@@ -1516,6 +1574,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               />
             </ChartErrorBoundary>
           </div>
+        </div>
+
+        {/* Top Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (High-Viewability Transition) */}
+        <div className="w-full mb-6" data-testid="hero-ad-slot-1">
+          <AdSlot
+            slotId="1000000001"
+            format="in-feed"
+            apartmentName={selectedTimelineApt || undefined}
+            className="w-full"
+          />
         </div>
 
         {/* ═══ Daily Real Transactions Section (Wide Layout) Immediately Below Top Hero ═══ */}
@@ -1571,15 +1639,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               renderTimelineItemRow={renderTimelineItemRowNode}
             />
           </ErrorBoundary>
-        </div>
-
-        {/* In-Feed Responsive AdSlot 1 (Zero-CLS Transition Separator) */}
-        <div className="w-full my-6">
-          <AdSlot
-            slotId="1000000001"
-            format="in-feed"
-            className="w-full"
-          />
         </div>
 
         {/* ═══ Connected Section: StatsOverviewSection ═══ */}

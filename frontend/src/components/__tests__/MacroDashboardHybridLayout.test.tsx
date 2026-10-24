@@ -117,6 +117,13 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     );
 
     // 1. Signature Hero components (Donut section & Price trend chart)
+    // 1. Signature Hero components (Quick finance bar, Donut section & Price trend chart)
+    const quickFinanceBar = screen.getByTestId('hero-finance-quick-bar');
+    expect(quickFinanceBar).toBeInTheDocument();
+    expect(screen.getByTestId('hero-quick-mortgage')).toBeInTheDocument();
+    expect(screen.getByTestId('hero-quick-jeonse')).toBeInTheDocument();
+    expect(screen.getByTestId('hero-quick-tax')).toBeInTheDocument();
+    expect(screen.getByTestId('hero-quick-sell')).toBeInTheDocument();
     const donutContainer = container.querySelector('#apt-market-energy-donut');
     expect(donutContainer).toBeInTheDocument();
     const trendChartTitles = screen.getAllByText(/시세 추이/);
@@ -133,7 +140,14 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(adContainers.length).toBeGreaterThanOrEqual(2);
 
     // 4. Timeline View
+    // 4. Timeline View & Hero-to-Timeline AdSlot 1
+    const heroAdSlot1 = screen.getByTestId('hero-ad-slot-1');
+    expect(heroAdSlot1).toBeInTheDocument();
     const timelineHeading = screen.getByText('일자별 최근 실거래');
+    expect(timelineHeading).toBeInTheDocument();
+    expect(
+      heroAdSlot1.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
     expect(timelineHeading).toBeInTheDocument();
 
     // 5. Finance Section
