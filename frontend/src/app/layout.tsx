@@ -160,6 +160,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://t1.kakaocdn.net" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
+        <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'} />
         {/* Google AdSense (Conditionally loaded with strategy="afterInteractive") */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
           <Script

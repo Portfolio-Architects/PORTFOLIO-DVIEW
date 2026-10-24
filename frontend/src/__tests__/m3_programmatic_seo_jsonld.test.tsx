@@ -334,28 +334,32 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (266 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [266, ±0, 개] programmatic URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (274 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
+    it('registers exact [274, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(266);
+      expect(entries).toHaveLength(274);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(266);
+      expect(asyncEntries).toHaveLength(274);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(266);
+      expect(defaultEntries).toHaveLength(274);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
       const jisanUrls = entries.filter((e) => e.url.includes('/technovalley'));
       const mbtiUrls = entries.filter((e) => e.url.includes('/mbti/'));
       const zoneUrls = entries.filter((e) => e.url.includes('/zone/'));
       const guideUrls = entries.filter((e) => e.url.includes('/guide/'));
+      const coreStaticUrls = entries.filter((e) =>
+        ['https://dongtanview.com', 'https://dongtanview.com/guide', 'https://dongtanview.com/explore', 'https://dongtanview.com/news', 'https://dongtanview.com/about', 'https://dongtanview.com/contact', 'https://dongtanview.com/terms', 'https://dongtanview.com/privacy'].includes(e.url)
+      );
 
       expect(aptUrls).toHaveLength(184);
       expect(jisanUrls).toHaveLength(56);
       expect(mbtiUrls).toHaveLength(16);
       expect(zoneUrls).toHaveLength(7);
       expect(guideUrls).toHaveLength(3);
+      expect(coreStaticUrls).toHaveLength(8);
 
       const emptyChunk = await sitemap({ id: 99 });
       expect(emptyChunk).toEqual([]);

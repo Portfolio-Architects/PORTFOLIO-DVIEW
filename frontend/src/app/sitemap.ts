@@ -31,6 +31,26 @@ export default async function sitemap(
   const nowDate = new Date();
   const routes: MetadataRoute.Sitemap = [];
 
+  // 0. Core Hub & Trust Compliance Static Routes (8 routes for AdSense & Search Crawler verification)
+  const coreStaticRoutes: Array<{ path: string; changeFrequency: 'daily' | 'weekly' | 'monthly'; priority: number }> = [
+    { path: '', changeFrequency: 'daily', priority: 1.0 },
+    { path: '/guide', changeFrequency: 'weekly', priority: 0.95 },
+    { path: '/explore', changeFrequency: 'daily', priority: 0.9 },
+    { path: '/news', changeFrequency: 'daily', priority: 0.85 },
+    { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
+    { path: '/contact', changeFrequency: 'monthly', priority: 0.7 },
+    { path: '/terms', changeFrequency: 'monthly', priority: 0.6 },
+    { path: '/privacy', changeFrequency: 'monthly', priority: 0.6 },
+  ];
+  coreStaticRoutes.forEach((item) => {
+    routes.push({
+      url: `${baseUrl}${item.path}`,
+      lastModified: nowDate,
+      changeFrequency: item.changeFrequency,
+      priority: item.priority,
+    });
+  });
+
   // 1. Guide Articles (3 programmatic long-form articles)
   GUIDE_ARTICLES.forEach((article) => {
     routes.push({

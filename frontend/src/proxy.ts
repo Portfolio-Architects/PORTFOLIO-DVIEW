@@ -20,7 +20,8 @@ const proxyConfig = ProxyConfigSchema.parse({
     'localhost:',
     '127.0.0.1:',
     'vercel.app',
-    'dview.kr'
+    'dview.kr',
+    'dongtanview.com'
   ]
 });
 

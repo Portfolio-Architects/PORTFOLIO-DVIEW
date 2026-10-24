@@ -198,6 +198,40 @@ const nextConfig: NextConfig = {
   },
 
   outputFileTracingIncludes: {
+    '/': [
+      './public/data/tx-summary.json',
+      './public/data/macro-trend.json',
+      './public/data/recent-transactions.json',
+      './public/data/apartments-by-dong.json',
+      './public/data/type-map.json',
+      './public/data/location-scores.json',
+    ],
+    '/overview': [
+      './public/data/tx-summary.json',
+      './public/data/macro-trend.json',
+      './public/data/recent-transactions.json',
+      './public/data/apartments-by-dong.json',
+      './public/data/type-map.json',
+      './public/data/location-scores.json',
+    ],
+    '/technovalley': [
+      './public/data/jisan-status-list.json',
+    ],
+    '/sitemap.xml': [
+      './public/data/tx-summary.json',
+      './public/data/jisan-status-list.json',
+    ],
+    '/api/dashboard-init': [
+      './public/data/tx-summary.json',
+      './public/data/macro-trend.json',
+      './public/data/recent-transactions.json',
+      './public/data/apartments-by-dong.json',
+      './public/data/type-map.json',
+      './public/data/location-scores.json',
+    ],
+    '/api/transaction-summary': [
+      './public/data/tx-summary.json',
+    ],
     '/apartment/[aptName]': [
       './public/tx-data/!(*-recent|_index).json',
       './public/data/tx-summary.json',

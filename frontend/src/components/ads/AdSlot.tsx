@@ -426,6 +426,11 @@ export function AdSlot({
     startCascadeTimeout,
   });
 
+  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+  if (isApprovalMode && !testMode) {
+    return null;
+  }
+
   return (
     <div
       ref={containerRef}
