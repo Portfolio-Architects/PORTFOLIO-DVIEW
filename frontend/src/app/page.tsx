@@ -2,11 +2,13 @@ import { Suspense } from 'react';
 import Script from 'next/script';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { BookOpen, ArrowRight, Building2, Compass, Clock } from 'lucide-react';
+import { BookOpen, ArrowRight, Building2, Compass, Clock, MapPin } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
+import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
+import { ZONES } from '@/lib/zones';
 
 interface HomeTransactionRecord {
   apartmentName?: string;
@@ -113,7 +115,10 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
               {top10Leaderboard.map((apt, index) => (
                 <li key={apt.name}>
                   <strong>
-                    {index + 1}위: {apt.name}
+                    {index + 1}위:{' '}
+                    <Link href={`/apartment/${encodeURIComponent(apt.name)}`} prefetch={false}>
+                      {apt.name}
+                    </Link>
                   </strong>{' '}
                   ({apt.dong}) - 최근 실거래가: {formatPrice(apt.latestPrice)}
                   {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
@@ -128,7 +133,16 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
             <ul>
               {recentTxs.slice(0, 15).map((tx, idx) => (
                 <li key={idx}>
-                  <strong>{tx.apartmentName || '아파트'}</strong> (
+                  <strong>
+                    {tx.apartmentName ? (
+                      <Link href={`/apartment/${encodeURIComponent(tx.apartmentName)}`} prefetch={false}>
+                        {tx.apartmentName}
+                      </Link>
+                    ) : (
+                      '아파트'
+                    )}
+                  </strong>{' '}
+                  (
                   {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) -{' '}
                   {tx.dealType || '매매'} {formatPrice(tx.price || 0)}
                   {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
@@ -148,6 +162,16 @@ export default async function HomePage() {
   const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const jsonLd = getMainPageSchema(baseUrl);
+  const txSummary = await getTxSummaryData();
+  const top10LeaderApts = Object.entries(txSummary || {})
+    .map(([name, sum]) => ({
+      name,
+      latestPrice: sum?.latestPrice || 0,
+      dong: sum?.dong || '',
+    }))
+    .filter((a) => a.latestPrice > 0)
+    .sort((a, b) => b.latestPrice - a.latestPrice)
+    .slice(0, 10);
 
   return (
     <>
@@ -223,6 +247,87 @@ export default async function HomePage() {
               </p>
             </article>
           </div>
+
+          {/* 7 Investment Zones Direct Crawl & User Navigation Grid */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                <MapPin size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>동탄 7대 핵심 권역별 아파트 실거래가 및 입지 리포트</span>
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {ZONES.map((zone) => (
+                <Link
+                  key={zone.id}
+                  href={`/zone/${zone.id}`}
+                  prefetch={false}
+                  className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
+                        {zone.dongLabel}
+                      </span>
+                      <ArrowRight
+                        size={14}
+                        className="text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors shrink-0"
+                      />
+                    </div>
+                    <h4 className="text-sm font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
+                      {zone.name}
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                      {zone.description}
+                    </p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Top 10 Real Transaction Leader Apartments Direct Links */}
+          {top10LeaderApts.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                  <Building2 size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>동탄 실거래 시세 리더 대장 단지 TOP 10 심층 리포트</span>
+                </h3>
+                <Link
+                  href="/explore"
+                  prefetch={false}
+                  className="text-xs font-extrabold text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                >
+                  <span>전체 단지 탐색</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
+                {top10LeaderApts.map((apt, idx) => (
+                  <Link
+                    key={apt.name}
+                    href={`/apartment/${encodeURIComponent(apt.name)}`}
+                    prefetch={false}
+                    className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 rounded-xl p-3.5 flex flex-col justify-between gap-1.5 transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                      <span className="font-mono tabular-nums text-emerald-700 dark:text-emerald-400">
+                        TOP {idx + 1}
+                      </span>
+                      <span>{apt.dong}</span>
+                    </div>
+                    <div className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 truncate transition-colors">
+                      {apt.name}
+                    </div>
+                    <div className="text-xs font-mono tabular-nums font-bold text-emerald-700 dark:text-emerald-400">
+                      {formatPrice(apt.latestPrice)}
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Editorial Guide Cards */}
           <div className="space-y-3">

@@ -272,7 +272,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
   describe('4. /guide, /mbti, and /zone/[id] SSR Semantic & Accessibility Invariants', () => {
     it('renders Zero-CLS AdSlots and recirculation links in /guide and /guide/[slug]', async () => {
       const guideParams = await generateGuideStaticParams();
-      expect(guideParams).toHaveLength(3);
+      expect(guideParams).toHaveLength(6);
 
       const indexRender = render(GuideIndexPage());
       expect(indexRender.getByTestId('guide-index-adslot-top').className).toContain('min-h-[250px]');
@@ -334,16 +334,16 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (274 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [274, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (277 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
+    it('registers exact [277, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(274);
+      expect(entries).toHaveLength(277);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(274);
+      expect(asyncEntries).toHaveLength(277);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(274);
+      expect(defaultEntries).toHaveLength(277);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
       const jisanUrls = entries.filter((e) => e.url.includes('/technovalley'));
@@ -358,7 +358,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
       expect(jisanUrls).toHaveLength(56);
       expect(mbtiUrls).toHaveLength(16);
       expect(zoneUrls).toHaveLength(7);
-      expect(guideUrls).toHaveLength(3);
+      expect(guideUrls).toHaveLength(6);
       expect(coreStaticUrls).toHaveLength(8);
 
       const emptyChunk = await sitemap({ id: 99 });

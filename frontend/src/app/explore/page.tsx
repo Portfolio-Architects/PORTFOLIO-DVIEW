@@ -5,6 +5,8 @@ import ExploreClient from './ExploreClient';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { DongApartment } from '@/lib/dong-apartments';
+import Link from 'next/link';
+import { ZONES } from '@/lib/zones';
 
 export const revalidate = 600; // Revalidate every 10 minutes (ISR)
 
@@ -199,7 +201,11 @@ async function ExploreDataLoader() {
 
               return (
                 <tr key={apt.name}>
-                  <td>{apt.name}</td>
+                  <td>
+                    <Link href={`/apartment/${encodeURIComponent(apt.name)}`} prefetch={false}>
+                      {apt.name}
+                    </Link>
+                  </td>
                   <td>{apt.dong}</td>
                   <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
                   <td>{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
@@ -211,6 +217,17 @@ async function ExploreDataLoader() {
             })}
           </tbody>
         </table>
+        <nav aria-label="동탄 7대 핵심 권역별 아파트 시세 분석">
+          <ul>
+            {ZONES.map((zone) => (
+              <li key={zone.id}>
+                <Link href={`/zone/${zone.id}`} prefetch={false}>
+                  {zone.name} ({zone.dongLabel}) 아파트 시세 리포트
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
       </section>
       <ExploreClient initialDashboardData={initialData} />
     </>

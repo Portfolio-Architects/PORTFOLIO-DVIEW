@@ -146,6 +146,25 @@ export default function GuideIndexPage() {
                   </ul>
                 </div>
 
+                {/* Featured Apartments Quick Links */}
+                {article.featuredApartments && article.featuredApartments.length > 0 && (
+                  <div className="mt-4 flex flex-wrap items-center gap-1.5">
+                    <span className="text-[11px] font-extrabold text-slate-600 dark:text-slate-400 mr-1">
+                      관련 주요 단지:
+                    </span>
+                    {article.featuredApartments.slice(0, 5).map((aptName) => (
+                      <Link
+                        key={aptName}
+                        href={`/apartment/${encodeURIComponent(aptName)}`}
+                        prefetch={false}
+                        className="text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 px-2.5 py-1 rounded-lg hover:underline transition-colors"
+                      >
+                        {aptName}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+
                 {/* Tags */}
                 <div className="mt-5 flex flex-wrap gap-2">
                   {article.tags.map((tag) => (

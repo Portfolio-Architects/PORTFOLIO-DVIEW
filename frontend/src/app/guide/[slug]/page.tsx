@@ -2,10 +2,13 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ArrowLeft, Calendar, Clock, CheckCircle2, ChevronRight, Compass, Building2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Calendar, Clock, CheckCircle2, ChevronRight, Compass, Building2, MapPin } from 'lucide-react';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
+import ReportShareBar from '@/components/common/ReportShareBar';
+import { getTxSummaryData, formatPriceEok } from '@/lib/services/apartmentPageService';
+import { getZoneById } from '@/lib/zones';
 
 export async function generateStaticParams() {
   return GUIDE_ARTICLES.map((article) => ({
@@ -88,6 +91,30 @@ export default async function GuideArticlePage(props: {
   };
 
   const otherArticles = GUIDE_ARTICLES.filter((a) => a.slug !== article.slug);
+  const txSummary = await getTxSummaryData();
+
+  const featuredAptRows = (article.featuredApartments || [])
+    .map((aptName) => {
+      const s = txSummary[aptName];
+      if (!s) return null;
+      const latestPrice = s.latestPrice || 0;
+      const latestRent = s.latestRentDeposit || 0;
+      const jeonseRatio =
+        latestPrice > 0 && latestRent > 0 ? Math.round((latestRent / latestPrice) * 100) : 0;
+      return {
+        name: aptName,
+        dong: s.dong || '동탄',
+        latestPriceStr: s.latestPriceEok || formatPriceEok(latestPrice),
+        latestRentStr: s.latestRentDepositEok || (latestRent > 0 ? formatPriceEok(latestRent) : '정보 없음'),
+        jeonseRatio,
+        txCount: s.txCount || 0,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+
+  const featuredZoneItems = (article.featuredZones || [])
+    .map((zId) => getZoneById(zId))
+    .filter((z): z is NonNullable<typeof z> => z !== undefined);
 
   return (
     <div className="min-h-screen bg-body font-sans pb-24">
@@ -266,6 +293,89 @@ export default async function GuideArticlePage(props: {
             })}
           </div>
 
+          {/* Live Real-Data Comparison Table & Zone Links */}
+          {(featuredAptRows.length > 0 || featuredZoneItems.length > 0) && (
+            <section
+              id="guide-live-data-comparison"
+              aria-label="리포트 연관 주요 아파트 국토교통부 실거래 비교표"
+              className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                    <Building2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>리포트 핵심 아파트 국토교통부 최신 실거래가 비교표</span>
+                  </h3>
+                  <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                    본 칼럼에서 다룬 대표 단지의 실제 실거래가·전세가율 현황입니다. 단지명을 클릭하면 평형별 시세와 DSR 대출 한도 리포트로 이동합니다.
+                  </p>
+                </div>
+                {featuredZoneItems.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    {featuredZoneItems.map((zone) => (
+                      <Link
+                        key={zone.id}
+                        href={`/zone/${zone.id}`}
+                        prefetch={false}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                      >
+                        <MapPin size={12} />
+                        <span>{zone.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {featuredAptRows.length > 0 && (
+                <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800">
+                  <table className="w-full text-left text-[12.5px] sm:text-[13px] text-slate-600 dark:text-slate-400">
+                    <caption className="sr-only">
+                      리포트 연관 주요 아파트 단지별 행정동, 최근 실거래 매매가, 최근 전세가, 전세가율 및 누적 거래량 비교표
+                    </caption>
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-900 dark:text-slate-50 font-bold border-b border-slate-200 dark:border-slate-800">
+                      <tr>
+                        <th scope="col" className="p-3.5 whitespace-nowrap">단지명 (상세 리포트)</th>
+                        <th scope="col" className="p-3.5 whitespace-nowrap">행정동</th>
+                        <th scope="col" className="p-3.5 whitespace-nowrap">최근 실거래 매매가</th>
+                        <th scope="col" className="p-3.5 whitespace-nowrap">최근 전세가</th>
+                        <th scope="col" className="p-3.5 whitespace-nowrap">전세가율</th>
+                        <th scope="col" className="p-3.5 whitespace-nowrap">누적 거래량</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800/60 font-medium">
+                      {featuredAptRows.map((apt) => (
+                        <tr key={apt.name} className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors">
+                          <th scope="row" className="p-3.5 font-extrabold text-slate-900 dark:text-slate-50 whitespace-nowrap">
+                            <Link
+                              href={`/apartment/${encodeURIComponent(apt.name)}`}
+                              prefetch={false}
+                              className="text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
+                            >
+                              <span>{apt.name}</span>
+                              <ArrowRight size={13} />
+                            </Link>
+                          </th>
+                          <td className="p-3.5 whitespace-nowrap">{apt.dong}</td>
+                          <td className="p-3.5 font-mono tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            {apt.latestPriceStr}
+                          </td>
+                          <td className="p-3.5 font-mono tabular-nums whitespace-nowrap">{apt.latestRentStr}</td>
+                          <td className="p-3.5 font-mono tabular-nums whitespace-nowrap">
+                            {apt.jeonseRatio > 0 ? `${apt.jeonseRatio}%` : '정보 없음'}
+                          </td>
+                          <td className="p-3.5 font-mono tabular-nums whitespace-nowrap">
+                            {apt.txCount > 0 ? `${apt.txCount.toLocaleString()}건` : '정보 없음'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </section>
+          )}
+
           {/* Tags */}
           <div className="pt-6 border-t border-border/60 flex flex-wrap gap-2">
             {article.tags.map((tag) => (
@@ -277,6 +387,14 @@ export default async function GuideArticlePage(props: {
               </span>
             ))}
           </div>
+
+          {/* One-Click Viral Summary Share Bar */}
+          <ReportShareBar
+            title={article.title}
+            summaryLines={article.keyTakeaways}
+            canonicalPath={`/guide/${article.slug}`}
+            campaign={`guide_${article.slug}`}
+          />
 
           {/* Footer Article Zero-CLS AdSlot */}
           <div
@@ -343,7 +461,10 @@ export default async function GuideArticlePage(props: {
                 </div>
                 <div className="mt-4 pt-3 border-t border-border/40 text-[12px] text-tertiary flex items-center justify-between">
                   <span>약 {nextArt.readingTime}</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold group-hover:translate-x-0.5 transition-transform">읽기 →</span>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold inline-flex items-center gap-1 group-hover:translate-x-0.5 transition-transform">
+                    <span>읽기</span>
+                    <ArrowRight size={13} />
+                  </span>
                 </div>
               </Link>
             ))}

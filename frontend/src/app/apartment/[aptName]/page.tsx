@@ -1,12 +1,16 @@
 import { Metadata } from 'next';
-import { BarChart3, HelpCircle } from 'lucide-react';
+import Link from 'next/link';
+import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { AdSlot } from '@/components/ads/AdSlot';
+import ReportShareBar from '@/components/common/ReportShareBar';
 import type { DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
+import { dongToZoneId, getZoneById } from '@/lib/zones';
 import {
   decodeAptName,
+  formatPriceEok,
   getTxSummaryData,
   getApartmentPageData,
   buildApartmentJsonLd,
@@ -135,6 +139,25 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0)
     );
 
+  const parentZoneId = dongToZoneId(aptDong || undefined);
+  const parentZone = getZoneById(parentZoneId);
+  const allTxSummary = await getTxSummaryData();
+  const peerApartments = Object.entries(allTxSummary || {})
+    .filter(([name, s]) => {
+      if (!s || name === decodedName || name === resolvedTxKey) return false;
+      if ((s.latestPrice || 0) <= 0) return false;
+      return aptDong ? s.dong === aptDong : true;
+    })
+    .map(([name, s]) => ({
+      name,
+      dong: s.dong || aptDong || '동탄',
+      latestPrice: s.latestPrice || 0,
+      latestPriceStr: s.latestPriceEok || formatPriceEok(s.latestPrice || 0),
+      txCount: s.txCount || 0,
+    }))
+    .sort((a, b) => b.latestPrice - a.latestPrice)
+    .slice(0, 8);
+
   return (
     <>
       <script
@@ -166,6 +189,20 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             <p className="mt-3 text-secondary text-[14px] sm:text-[15.5px] leading-relaxed max-w-[900px] font-medium">
               {aiBriefing}
             </p>
+            <div className="mt-5">
+              <ReportShareBar
+                title={`${decodedName} 실거래가 및 입지 심층 분석 리포트`}
+                summaryLines={[
+                  aptDong ? `소속 행정동: 동탄 ${aptDong}` : `분석 대상: 동탄 ${decodedName}`,
+                  aptSummary?.latestPrice
+                    ? `최근 실거래 매매가: ${aptSummary.latestPriceEok || formatPriceEok(aptSummary.latestPrice)}`
+                    : `평형별 실거래가 및 전세가율 정밀 분석`,
+                  `30년 만기 원리금균등 월 납부액(LTV 70% 기준): ${formatWon(mortgageSsr.amortization.equalPi.monthlyPaymentWon)}`,
+                ]}
+                canonicalPath={`/apartment/${encodeURIComponent(decodedName)}`}
+                campaign="apt_ssr_report"
+              />
+            </div>
           </div>
 
           {/* School & Infrastructure Location Analytics */}
@@ -470,6 +507,83 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
               apartmentName={decodedName}
             />
           </div>
+
+          {/* Chapter 06 Neighborhood & Zone Internal Link Mesh (SSR Crawl & User Recirculation) */}
+          <section
+            id="chapter-06-neighborhood-links-ssr"
+            aria-label={`${decodedName} 소속 권역 및 인근 단지 비교 리포트`}
+            className="space-y-5 pt-4 border-t border-slate-200 dark:border-slate-800"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                  <MapPin size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>
+                    {aptDong ? `동탄 ${aptDong}` : '동탄 권역'} 주요 비교 단지 및 소속 권역 시세 리포트
+                  </span>
+                </h2>
+                <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                  같은 행정동 및 생활권 내 주요 아파트 단지의 국토교통부 최신 실거래가와 입지 가치를 함께 비교해 보세요.
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                {parentZone && (
+                  <Link
+                    href={`/zone/${parentZone.id}`}
+                    prefetch={false}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-xs font-extrabold transition-colors"
+                  >
+                    <span>{parentZone.name} 전체 단지 보기</span>
+                    <ArrowRight size={14} />
+                  </Link>
+                )}
+                <Link
+                  href="/explore"
+                  prefetch={false}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/60 dark:bg-slate-800 dark:hover:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-50 text-xs font-extrabold transition-colors"
+                >
+                  <span>동탄 전체 단지 탐색</span>
+                  <ArrowRight size={14} />
+                </Link>
+              </div>
+            </div>
+
+            {peerApartments.length > 0 && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {peerApartments.map((peer) => (
+                  <Link
+                    key={peer.name}
+                    href={`/apartment/${encodeURIComponent(peer.name)}`}
+                    prefetch={false}
+                    className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
+                          <Building2 size={12} />
+                          <span>{peer.dong}</span>
+                        </span>
+                        {peer.txCount > 0 && (
+                          <span className="font-mono tabular-nums">누적 {peer.txCount}건</span>
+                        )}
+                      </div>
+                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 truncate transition-colors">
+                        {peer.name}
+                      </h3>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/60">
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        최근 실거래가
+                      </span>
+                      <span className="text-xs sm:text-[13px] font-mono tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400">
+                        {peer.latestPriceStr}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
 
         </div>
       </section>
