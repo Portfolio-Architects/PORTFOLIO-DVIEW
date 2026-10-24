@@ -89,7 +89,7 @@ export const metadata: Metadata = {
     },
   },
   other: {
-    'ai-search-crawling': 'allowed',
+    'ai-search-crawling': 'allowed', 'naver-site-verification': 'e0240efa3f3f36785b2ca54faa765e9058f3707a',
   },
   openGraph: {
     title: 'D-VIEW | 동탄 아파트 가치분석',
@@ -160,6 +160,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://t1.kakaocdn.net" />
         <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
+        <meta name="naver-site-verification" content="e0240efa3f3f36785b2ca54faa765e9058f3707a" />
         <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'} />
         {/* Google AdSense (Conditionally loaded with strategy="afterInteractive") */}
         {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (

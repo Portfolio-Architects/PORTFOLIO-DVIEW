@@ -70,7 +70,7 @@ export async function proxy(request: NextRequest) {
     pathname === '/ads.txt' ||
     pathname === '/robots.txt' ||
     pathname === '/sitemap.xml' ||
-    /\.(json|png|jpg|jpeg|gif|svg|ico|css|js|map)$/.test(pathname)
+    /\.(json|png|jpg|jpeg|gif|svg|ico|css|js|map|html)$/.test(pathname)
   ) {
     return NextResponse.next();
   }
