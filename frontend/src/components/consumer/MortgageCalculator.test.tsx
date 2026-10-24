@@ -75,6 +75,10 @@ describe('MortgageCalculator', () => {
     );
 
     expect(screen.getByText('내 집 마련 대출 자가진단')).toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('hidden');
+    expect(document.documentElement.style.overscrollBehavior).toBe('none');
+    expect(screen.getByTestId('recent-apartments-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('apt-region-tabs')).toBeInTheDocument();
   });
 
   it('pre-fills household, income, and assets based on quiz answers', () => {
@@ -112,6 +116,14 @@ describe('MortgageCalculator', () => {
 
     // In Step 3, the fields should be prefilled and badges should show
     expect(screen.getAllByText('설문 기반 자동 입력됨').length).toBeGreaterThan(0);
+    const incomeSlider = screen.getByTestId('mortgage-income-slider');
+    const assetsSlider = screen.getByTestId('mortgage-assets-slider');
+    expect(incomeSlider).toBeInTheDocument();
+    expect(assetsSlider).toBeInTheDocument();
+    fireEvent.change(incomeSlider, { target: { value: '12000' } });
+    expect(screen.getByDisplayValue('12,000')).toBeInTheDocument();
+    fireEvent.change(assetsSlider, { target: { value: '4.6' } });
+    expect(screen.getAllByDisplayValue('4.6').length).toBeGreaterThanOrEqual(1);
   });
 
   it('allows skipping straight to results with one-click diagnosis button', () => {
@@ -156,5 +168,12 @@ describe('MortgageCalculator', () => {
     expect(screen.getByText('최적 정책금융 상품 매칭 완료')).toBeInTheDocument();
     expect(screen.getByText('추천:')).toBeInTheDocument();
     expect(screen.getByTestId('mortgage-result-ad-slot')).toBeInTheDocument();
+    expect(screen.getByTestId('mortgage-alternatives-list')).toBeInTheDocument();
+    expect(screen.getByTestId('mortgage-macro-rate-badge')).toBeInTheDocument();
+    expect(screen.getByText('대안 2')).toBeInTheDocument();
+    expect(screen.getByText('대안 3')).toBeInTheDocument();
+
+    // Clicking 대안 2 dynamically switches the active simulation
+    fireEvent.click(screen.getByText('대안 2'));
   });
 });

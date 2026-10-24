@@ -691,7 +691,10 @@ const AptFitFinder = React.memo(function AptFitFinder({
   if (!isOpen || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-300">
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overscroll-none animate-in fade-in duration-300"
+      onWheel={(e) => e.stopPropagation()}
+    >
       {/* Sibling Backdrop Button */}
       <button 
         type="button"
@@ -726,7 +729,7 @@ const AptFitFinder = React.memo(function AptFitFinder({
         </div>
 
         {/* Dynamic Step View */}
-        <div className="flex-1 overflow-y-auto scrollbar-none p-5 sm:p-6 flex flex-col justify-center min-h-[320px] sm:min-h-[360px]">
+        <div className="flex-1 overflow-y-auto overscroll-contain scrollbar-none p-5 sm:p-6 flex flex-col justify-center min-h-[320px] sm:min-h-[360px]">
 
           {/* STEP 0: Intro Screen */}
           {step === 0 && (

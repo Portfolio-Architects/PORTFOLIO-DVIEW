@@ -356,7 +356,10 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
   if (!mounted || !isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 overscroll-none animate-in fade-in duration-200"
+      onWheel={(e) => e.stopPropagation()}
+    >
       {jsonLd && (
         <script
           type="application/ld+json"
@@ -401,7 +404,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
         </header>
 
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-6 space-y-6">
           {/* Subcomponent 1: HeaderSearch */}
           <CompareHeaderSearch
             firstInputRef={firstInputRef}

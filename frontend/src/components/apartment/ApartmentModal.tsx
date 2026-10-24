@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
@@ -704,6 +704,18 @@ const ApartmentModal = React.memo(function ApartmentModal({
       syncShallowApartmentOpen(report.apartmentName, { dong: report.dong });
     }
   }, [inline, report.apartmentName, report.dong]);
+
+  useEffect(() => {
+    if (inline || typeof document === 'undefined') return;
+    const originalOverflow = document.body.style.overflow;
+    const originalOverscroll = document.documentElement.style.overscrollBehavior;
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overscrollBehavior = 'none';
+    return () => {
+      document.body.style.overflow = originalOverflow;
+      document.documentElement.style.overscrollBehavior = originalOverscroll;
+    };
+  }, [inline]);
 
   const handleRecircSelectApartment = useCallback(
     (targetAptName: string) => {
@@ -1652,13 +1664,14 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   return createPortal(
     <div 
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-[10000] flex items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md overscroll-none animate-in fade-in duration-200"
+      onWheel={(e) => e.stopPropagation()}
       onClick={handleModalClose}
     >
       <div 
         ref={modalRef}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full h-full md:h-[94vh] md:max-w-[1275px] bg-surface rounded-none md:rounded-3xl shadow-2xl overflow-y-auto overflow-x-hidden flex flex-col border border-border/80 outline-none"
+        className="relative w-full h-full md:h-[94vh] md:max-w-[1275px] bg-surface rounded-none md:rounded-3xl shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden flex flex-col border border-border/80 outline-none"
       >
         <button
           onClick={handleModalClose}

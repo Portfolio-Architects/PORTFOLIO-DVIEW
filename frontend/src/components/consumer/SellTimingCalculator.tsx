@@ -17,6 +17,7 @@ import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
 import { sendTelemetry } from '@/lib/ads/cascadeFallback';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { getRecentApartments, addRecentApartment, removeRecentApartment, type RecentApartmentItem } from '@/lib/utils/recentApartments';
 
 
 interface SellTimingCalculatorProps {
@@ -69,11 +70,27 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 }: SellTimingCalculatorProps) {
   const { showToast } = usePWA();
   const allApartments = useMemo(() => {
-    return Object.values(sheetApartments).flat().map(a => ({
-      ...a,
-      normalizedName: normalizeAptName(a.name)
-    }));
-  }, [sheetApartments]);
+    const map = new Map<string, DongApartment & { normalizedName: string }>();
+    for (const apt of Object.values(sheetApartments || {}).flat()) {
+      const norm = normalizeAptName(apt.name);
+      if (norm && !map.has(norm)) {
+        map.set(norm, { ...apt, normalizedName: norm });
+      }
+    }
+    for (const [txKey, summary] of Object.entries(txSummaryData || {})) {
+      const norm = normalizeAptName(txKey);
+      if (norm && !map.has(norm)) {
+        map.set(norm, {
+          name: getDisplayAptName(txKey),
+          dong: summary?.dong || '동탄',
+          normalizedName: norm,
+        });
+      }
+    }
+    return Array.from(map.values());
+  }, [sheetApartments, txSummaryData]);
+
+  const [recentApts, setRecentApts] = useState<RecentApartmentItem[]>([]);
 
   // Selected apartment state
   const [selectedApt, setSelectedApt] = useState<DongApartment | null>(null);
@@ -136,6 +153,10 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   // Focus and Escape key management
   useEffect(() => {
     if (isOpen && mounted) {
+      const originalOverflow = document.body.style.overflow;
+      const originalOverscroll = document.documentElement.style.overscrollBehavior;
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overscrollBehavior = 'none';
       setTimeout(() => {
         if (closeButtonRef.current) {
           closeButtonRef.current.focus();
@@ -149,6 +170,8 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
       };
       window.addEventListener('keydown', handleEscape);
       return () => {
+        document.body.style.overflow = originalOverflow;
+        document.documentElement.style.overscrollBehavior = originalOverscroll;
         window.removeEventListener('keydown', handleEscape);
       };
     }
@@ -317,10 +340,13 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
 
   // Filter list
   const filteredApts = useMemo(() => {
-    if (!searchQuery.trim()) return allApartments;
-    const query = normalizeAptName(searchQuery);
-    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(searchQuery));
-  }, [searchQuery, allApartments]);
+    const trimmed = searchQuery.trim();
+    const isShowingSelectedName =
+      selectedApt && normalizeAptName(trimmed) === normalizeAptName(getDisplayAptName(selectedApt.name));
+    if (!trimmed || isShowingSelectedName) return allApartments;
+    const query = normalizeAptName(trimmed);
+    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(trimmed));
+  }, [searchQuery, allApartments, selectedApt]);
 
   // Run Calculations
   const calculations = useMemo(() => {
@@ -486,9 +512,12 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   if (!isOpen || !mounted) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 animate-in fade-in duration-200">
+    <div
+      className="fixed inset-0 z-[12000] flex flex-col justify-end md:justify-center items-center p-0 md:p-6 lg:p-8 overscroll-none animate-in fade-in duration-200"
+      onWheel={(e) => e.stopPropagation()}
+    >
       {/* Backdrop */}
-      <button type="button" className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-md border-none cursor-default" onClick={onClose} aria-label="자산 안정성 진단기 창 닫기" />
+      <button type="button" className="absolute inset-0 bg-slate-900/25 dark:bg-slate-950/55 backdrop-blur-[2px] border-none cursor-default" onClick={onClose} aria-label="자산 안정성 진단기 창 닫기" />
 
       {/* Modal Container */}
       <div
@@ -498,7 +527,9 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         aria-modal="true"
         aria-labelledby="sell-title"
         aria-describedby="sell-desc"
-        className="relative bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border border-white/20 dark:border-white/10 w-full max-w-[550px] h-[92vh] md:h-auto md:min-h-[460px] md:max-h-[85vh] rounded-t-[24px] md:rounded-[24px] flex flex-col shadow-2xl overflow-hidden"
+        className={`relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 w-full ${
+          showResult ? 'max-w-[580px] md:max-w-[900px]' : 'max-w-[580px]'
+        } max-h-[90vh] md:max-h-[86vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
       >
         {/* Header */}
         <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
@@ -521,11 +552,11 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         </header>
 
         {/* Content Section */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto overscroll-contain custom-scrollbar p-6 space-y-6">
           {!showResult ? (
-            <div className="space-y-5">
+            <div className="min-h-[380px] space-y-5">
               {/* Step 1: Select Apartment */}
-              <div className="space-y-2" ref={dropdownRef}>
+              <div className="space-y-2 relative" ref={dropdownRef}>
                 <label className="block text-[13px] font-extrabold text-secondary">
                   1. 대상 단지 선택
                 </label>
@@ -537,6 +568,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                     value={searchQuery}
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
+                      setIsFocused(true);
                       if (selectedApt) setSelectedApt(null);
                     }}
                     onFocus={() => setIsFocused(true)}
@@ -547,6 +579,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       onClick={() => {
                         setSearchQuery('');
                         setSelectedApt(null);
+                        setIsFocused(true);
                       }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary"
                     >
@@ -554,8 +587,10 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                     </button>
                   )}
 
-                  {isFocused && (
-                    <div className="absolute left-0 right-0 mt-1 bg-surface border border-border shadow-xl rounded-xl z-50 overflow-y-auto max-h-[180px] py-1">
+                </div>
+                <div>
+                  {(isFocused || !selectedApt) && (
+                    <div className="absolute left-0 right-0 top-full mt-1.5 bg-surface border border-border shadow-2xl rounded-xl z-50 overflow-y-auto overscroll-contain max-h-[200px] py-1">
                       {filteredApts.length > 0 ? (
                         filteredApts.map(apt => (
                           <button
@@ -724,7 +759,8 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
             </div>
           ) : (
             calculations && (
-              <div className="space-y-6 animate-in zoom-in-95 fade-in duration-300">
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start animate-in zoom-in-95 fade-in duration-300">
+                <div className="md:col-span-5 space-y-4">
                 {/* Gauge Section */}
                 <div className="flex flex-col items-center text-center">
                   <div className="relative">
@@ -788,6 +824,10 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                   <p className="break-keep font-semibold">{calculations.verdict.reason}</p>
                 </div>
 
+                </div>
+
+                {/* Right Column (7 cols): Tax Report & AdSlot */}
+                <div className="md:col-span-7 space-y-4">
                 {/* Tax Report Section */}
                 <div className="space-y-3">
                   <h4 className="text-[13px] font-extrabold text-primary flex items-center gap-1">
@@ -907,7 +947,10 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="flex gap-2 pt-2 border-t border-border/30">
+                </div>
+
+                {/* Footer Buttons */}
+                <div className="md:col-span-12 flex gap-2 pt-3 border-t border-slate-200/70 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm pb-1 z-10">
                   <button
                     onClick={() => setShowResult(false)}
                     className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1 active:scale-95"
