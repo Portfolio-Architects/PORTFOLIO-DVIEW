@@ -606,7 +606,7 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       });
 
       // The final state must accurately reflect 청계동
-      expect(screen.getByTestId('filter-region-cheonggye')).toHaveClass('bg-emerald-600');
+      expect(screen.getByTestId('filter-region-cheonggye')).toHaveClass('bg-blue-600');
     });
   });
 

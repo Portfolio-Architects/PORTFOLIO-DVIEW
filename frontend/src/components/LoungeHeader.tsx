@@ -51,7 +51,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
   return (
     <>
       {/* Main Header — Minimalist Navigation integrated */}
-      <header className="hidden md:block shrink-0 w-full bg-surface/85 backdrop-blur-xl border-b border-border/60 sticky top-0 z-50 transition-colors duration-300" role="banner">
+      <header className="hidden md:block shrink-0 w-full bg-surface/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-slate-200/80 dark:border-slate-800 sticky top-0 z-50 transition-colors duration-300" role="banner">
         <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-10 lg:px-16">
           <div className="flex flex-col md:flex-row md:items-center justify-between h-[80px] gap-4 md:gap-0">
             
@@ -60,7 +60,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <div className="hidden md:flex shrink-0 items-center gap-3" aria-label="메인 메뉴">
-              <nav aria-label="메인 메뉴" className="hidden md:flex items-center space-x-1 bg-body p-1.5 rounded-[18px] border border-border/40">
+              <nav aria-label="메인 메뉴" className="hidden md:flex items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
                 {/* 1. 아파트 랩 */}
                 <Link
                   href="/"
@@ -73,11 +73,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   }}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'overview'
-                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Building2 size={18} className={activeTab === 'overview' ? 'text-emerald-700' : 'text-tertiary'} />
+                  <Building2 size={18} className={activeTab === 'overview' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>아파트 랩</span>
                 </Link>
 
@@ -89,11 +89,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'imjang'
-                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Home size={18} className={activeTab === 'imjang' ? 'text-emerald-700' : 'text-tertiary'} />
+                  <Home size={18} className={activeTab === 'imjang' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>아파트 탐색</span>
                 </Link>
 
@@ -105,11 +105,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/mbti', 'mbti')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'mbti'
-                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Sparkles size={18} className={activeTab === 'mbti' ? 'text-emerald-700' : 'text-tertiary'} />
+                  <Sparkles size={18} className={activeTab === 'mbti' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>단지 MBTI</span>
                 </Link>
 
@@ -121,11 +121,11 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
-                      ? 'bg-emerald-50 text-emerald-700 font-extrabold shadow-[0_2px_12px_rgba(0,0,0,0.06)]'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <BookOpen size={18} className={activeTab === 'guide' ? 'text-emerald-700' : 'text-tertiary'} />
+                  <BookOpen size={18} className={activeTab === 'guide' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>부동산 가이드</span>
                 </Link>
               </nav>

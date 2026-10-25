@@ -541,11 +541,11 @@ const LocalEventCuration = React.memo(function LocalEventCuration({ txSummaryDat
                           e.stopPropagation();
                           onSelectApt(nearestApt);
                         }}
-                        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue pt-2 border-t border-border/20 flex items-center justify-between text-[11.5px] text-[#057e77] dark:text-emerald-400 font-black hover:underline cursor-pointer"
+                        className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue pt-2 border-t border-border/20 flex items-center justify-between text-[11.5px] text-blue-600 dark:text-blue-400 font-black hover:underline cursor-pointer"
                         aria-label={`센터 인근 추천단지: ${nearestApt} 분석보기`}
                       >
                         <span className="flex items-center gap-1">
-                          <MapPin size={12} className="shrink-0 text-[#057e77] dark:text-emerald-400" />
+                          <MapPin size={12} className="shrink-0 text-blue-600 dark:text-blue-400" />
                           <span>센터 인근 추천단지: {nearestApt}</span>
                         </span>
                         <span className="shrink-0 flex items-center gap-0.5">분석보기 &rarr;</span>

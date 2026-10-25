@@ -154,11 +154,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       let tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       let tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab1).toHaveClass('text-emerald-700');
-      expect(tab1).toHaveClass('bg-emerald-50');
-      expect(tab2).not.toHaveClass('bg-emerald-50');
-      expect(tab3).not.toHaveClass('bg-emerald-50');
-      expect(tab4).not.toHaveClass('bg-emerald-50');
+      expect(tab1).toHaveClass('text-blue-600');
+      expect(tab1).toHaveClass('bg-white');
+      expect(tab2).not.toHaveClass('bg-white');
+      expect(tab3).not.toHaveClass('bg-white');
+      expect(tab4).not.toHaveClass('bg-white');
 
       // Switch to 'imjang'
       rerender(<LoungeHeader activeTab="imjang" />);
@@ -167,11 +167,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab2).toHaveClass('text-emerald-700');
-      expect(tab2).toHaveClass('bg-emerald-50');
-      expect(tab1).not.toHaveClass('bg-emerald-50');
-      expect(tab3).not.toHaveClass('bg-emerald-50');
-      expect(tab4).not.toHaveClass('bg-emerald-50');
+      expect(tab2).toHaveClass('text-blue-600');
+      expect(tab2).toHaveClass('bg-white');
+      expect(tab1).not.toHaveClass('bg-white');
+      expect(tab3).not.toHaveClass('bg-white');
+      expect(tab4).not.toHaveClass('bg-white');
 
       // Switch to 'mbti'
       rerender(<LoungeHeader activeTab="mbti" />);
@@ -180,11 +180,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab3).toHaveClass('text-emerald-700');
-      expect(tab3).toHaveClass('bg-emerald-50');
-      expect(tab1).not.toHaveClass('bg-emerald-50');
-      expect(tab2).not.toHaveClass('bg-emerald-50');
-      expect(tab4).not.toHaveClass('bg-emerald-50');
+      expect(tab3).toHaveClass('text-blue-600');
+      expect(tab3).toHaveClass('bg-white');
+      expect(tab1).not.toHaveClass('bg-white');
+      expect(tab2).not.toHaveClass('bg-white');
+      expect(tab4).not.toHaveClass('bg-white');
 
       // Switch to 'guide'
       rerender(<LoungeHeader activeTab="guide" />);
@@ -193,11 +193,11 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
 
-      expect(tab4).toHaveClass('text-emerald-700');
-      expect(tab4).toHaveClass('bg-emerald-50');
-      expect(tab1).not.toHaveClass('bg-emerald-50');
-      expect(tab2).not.toHaveClass('bg-emerald-50');
-      expect(tab3).not.toHaveClass('bg-emerald-50');
+      expect(tab4).toHaveClass('text-blue-600');
+      expect(tab4).toHaveClass('bg-white');
+      expect(tab1).not.toHaveClass('bg-white');
+      expect(tab2).not.toHaveClass('bg-white');
+      expect(tab3).not.toHaveClass('bg-white');
     });
 
     it('handles popstate browser navigation events for /mbti and legacy paths', () => {

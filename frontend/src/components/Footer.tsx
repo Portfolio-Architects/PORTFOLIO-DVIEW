@@ -23,7 +23,7 @@ const Footer = React.memo(function Footer() {
             <div className="flex items-center gap-2.5">
               <div className="w-[26px] h-[26px] rounded-[6px] overflow-hidden">
                 <img
-                  src="/d-view-icon.png"
+                  src="/d-view-logo-lg.png"
                   alt="D-VIEW 로고"
                   className="w-full h-full object-contain"
                 />

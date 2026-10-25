@@ -247,7 +247,7 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      expect(screen.getByText('수요 분포')).toBeInTheDocument();
+      expect(screen.getByText('실거래 비중')).toBeInTheDocument();
     });
 
     it('applies responsive layout classes preventing mobile vertical overflow and width shrinkage', () => {
@@ -562,10 +562,10 @@ describe('AptDonutSection Test Suite', () => {
       expect(PRICE_TIER_COLORS.under15).toBe(PYEONG_TIER_COLORS.large);
       expect(PRICE_TIER_COLORS.over15).toBe(PYEONG_TIER_COLORS.xlarge);
 
-      expect(PRICE_TIER_COLORS.under6).toBe('#10b981');
-      expect(PRICE_TIER_COLORS.under9).toBe('#057e77');
-      expect(PRICE_TIER_COLORS.under15).toBe('#3b82f6');
-      expect(PRICE_TIER_COLORS.over15).toBe('#e11d48');
+      expect(PRICE_TIER_COLORS.under6).toBe('#059669');
+      expect(PRICE_TIER_COLORS.under9).toBe('#2563eb');
+      expect(PRICE_TIER_COLORS.under15).toBe('#60a5fa');
+      expect(PRICE_TIER_COLORS.over15).toBe('#334155');
     });
 
     it('triggers onOpenMortgageModal callback when loan CTA is clicked in selected card in price mode', () => {
@@ -651,7 +651,7 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
-      const titleHeading = screen.getByRole('heading', { level: 3, name: '수요 분포' });
+      const titleHeading = screen.getByRole('heading', { level: 3, name: '실거래 비중' });
       expect(titleHeading).toBeInTheDocument();
       expect(screen.getByText('총 4건')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: '평형대별' })).toBeInTheDocument();

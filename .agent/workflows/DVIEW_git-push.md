@@ -1,18 +1,18 @@
 ---
-description: DTDLS 프로젝트 코드 변경 후 Git 커밋 & 푸시
+description: DVIEW 프로젝트 코드 변경 후 Git 커밋 & 푸시
 ---
 
-# DTDLS Git Push 워크플로우
+# DVIEW Git Push 워크플로우
 
 코드 변경이 완료된 후 사용자가 커밋 또는 푸시를 요청하면 다음 순서로 작업을 수행합니다.
 
 ## Step 1. 문서화 및 정합성 검토 (필수)
 
-1. **엔지니어링 리포트 기록**:
-   - `PORTFOLIO DVIEW - Engineering Report.md` 파일의 **11. Maintenance Policy** 섹션(패치노트) 맨 위에 현재 세션의 패치 및 업데이트 내역을 구체적으로 기록합니다.
+1. **패치노트 및 리포트 기록**:
+   - `DVIEW_PORTFOLIO DVIEW - Patch History.md` 파일 맨 위에 현재 세션의 패치 및 업데이트 내역을 구체적으로 기록하고, `DVIEW_PORTFOLIO DVIEW - Engineering Report.md`를 최신 정합성에 맞게 갱신합니다.
    
-2. **AGENT.md 검토 및 정합성 검증**:
-   - 리포트 수정 내역과 연계하여 `AGENT.md` 파일도 업데이트가 필요한지 검증하고 필요 시 즉시 반영합니다.
+2. **DVIEW_AGENT.md 검토 및 정합성 검증**:
+   - 리포트 수정 내역과 연계하여 `DVIEW_AGENT.md` 파일도 업데이트가 필요한지 검증하고 필요 시 즉시 반영합니다.
    - 두 문서 간의 논리적 정합성 및 무결성이 유지되는지 최종 검토합니다.
 
 ## Step 2. Git 제출 진행

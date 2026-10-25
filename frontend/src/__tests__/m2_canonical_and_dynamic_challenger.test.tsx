@@ -274,7 +274,7 @@ describe('Milestone 2 Empirical Challenger Stress Test Suite', () => {
           />
         );
         expect(container).toBeInTheDocument();
-        expect(screen.getByText('수요 분포')).toBeInTheDocument();
+        expect(screen.getByText('실거래 비중')).toBeInTheDocument();
       });
 
       it('survives null and undefined recentTransactions safely', () => {
@@ -314,7 +314,7 @@ describe('Milestone 2 Empirical Challenger Stress Test Suite', () => {
           />
         );
         expect(container).toBeInTheDocument();
-        expect(screen.getByText('수요 분포')).toBeInTheDocument();
+        expect(screen.getByText('실거래 비중')).toBeInTheDocument();
       });
 
       it('supports mode switching between pyeong and price under empty data', () => {
@@ -380,7 +380,7 @@ describe('Milestone 2 Empirical Challenger Stress Test Suite', () => {
             />
           );
         }
-        expect(screen.getByText('수요 분포')).toBeInTheDocument();
+        expect(screen.getByText('실거래 비중')).toBeInTheDocument();
       });
     });
 

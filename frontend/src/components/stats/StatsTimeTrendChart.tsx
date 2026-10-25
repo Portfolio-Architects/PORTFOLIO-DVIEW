@@ -52,19 +52,19 @@ const CustomTrendTooltip = ({ active, payload, label }: CustomTooltipProps) => {
   const gapMan = salePriceMan > 0 && rentDepositMan > 0 ? salePriceMan - rentDepositMan : null;
 
   return (
-    <div className="bg-surface/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-xl border border-border/80 text-xs flex flex-col gap-2 min-w-[200px] z-50">
-      <div className="font-extrabold text-slate-800 dark:text-slate-100 border-b border-border/50 pb-1.5 flex justify-between items-center">
+    <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-3.5 rounded-2xl shadow-lg border border-slate-200/80 dark:border-slate-800 text-xs flex flex-col gap-2 min-w-[200px] z-50">
+      <div className="font-extrabold text-slate-800 dark:text-slate-100 border-b border-slate-100 dark:border-slate-800 pb-1.5 flex justify-between items-center">
         <span>{label} 월별 거래 분석</span>
-        <span className="text-slate-400 font-semibold">{volume}건 체결</span>
+        <span className="text-slate-400 font-semibold tabular-nums">{volume}건 체결</span>
       </div>
 
       <div className="flex flex-col gap-1.5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
             <span className="text-slate-500 dark:text-slate-400 font-medium">평균 매매가</span>
           </div>
-          <span className="font-bold text-slate-900 dark:text-slate-100">
+          <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
             {salePriceMan > 0 ? formatPriceEok(salePriceMan) : '-'}
           </span>
         </div>
@@ -72,26 +72,26 @@ const CustomTrendTooltip = ({ active, payload, label }: CustomTooltipProps) => {
         {rentDepositMan > 0 && (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
               <span className="text-slate-500 dark:text-slate-400 font-medium">평균 전세가</span>
             </div>
-            <span className="font-bold text-slate-900 dark:text-slate-100">
+            <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               {formatPriceEok(rentDepositMan)}
             </span>
           </div>
         )}
 
         {jeonseRatio && (
-          <div className="flex items-center justify-between pt-1 border-t border-border/40">
+          <div className="flex items-center justify-between pt-1 border-t border-slate-100 dark:border-slate-800">
             <span className="text-slate-500 dark:text-slate-400 font-medium">전세가율</span>
-            <span className="font-black text-emerald-600 dark:text-emerald-400">{jeonseRatio}%</span>
+            <span className="font-black text-blue-600 dark:text-blue-400 tabular-nums">{jeonseRatio}%</span>
           </div>
         )}
 
         {gapMan && gapMan > 0 && (
           <div className="flex items-center justify-between">
             <span className="text-slate-500 dark:text-slate-400 font-medium">예상 갭차이</span>
-            <span className="font-black text-red-500">{formatPriceEok(gapMan)}</span>
+            <span className="font-black text-red-500 tabular-nums">{formatPriceEok(gapMan)}</span>
           </div>
         )}
       </div>
@@ -105,7 +105,6 @@ export function StatsTimeTrendChart({
   className = '',
   height = 360,
 }: StatsTimeTrendChartProps) {
-  // Format price ticks for YAxis (만원 -> 억)
   const formatYAxisPrice = (manWon: number) => {
     if (!Number.isFinite(manWon) || manWon <= 0) return '0';
     const eok = manWon / 10000;
@@ -155,15 +154,15 @@ export function StatsTimeTrendChart({
         {/* Legend pills */}
         <div className="flex items-center gap-3 text-xs font-semibold">
           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600/30 border border-emerald-600" />
+            <span className="w-2.5 h-2.5 rounded-xs bg-blue-600/25 border border-blue-600" />
             <span>거래량</span>
           </div>
           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-1 rounded-full bg-emerald-600" />
+            <span className="w-2.5 h-1 rounded-full bg-blue-600" />
             <span>매매 평균</span>
           </div>
           <div className="flex items-center gap-1 text-slate-600 dark:text-slate-300">
-            <span className="w-2.5 h-1 rounded-full bg-blue-500 border-b border-dashed border-blue-500" />
+            <span className="w-2.5 h-1 rounded-full bg-emerald-600 border-b border-dashed border-emerald-600" />
             <span>전세 평균</span>
           </div>
         </div>
@@ -193,15 +192,15 @@ export function StatsTimeTrendChart({
             >
               <defs>
                 <linearGradient id="trendSaleGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#057e77" stopOpacity={0.35} />
-                  <stop offset="95%" stopColor="#057e77" stopOpacity={0.02} />
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.28} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0.01} />
                 </linearGradient>
               </defs>
 
               <CartesianGrid
                 strokeDasharray="3 3"
                 stroke="currentColor"
-                className="text-slate-200 dark:text-slate-800"
+                className="text-slate-200/80 dark:text-slate-800"
                 vertical={false}
               />
 
@@ -209,11 +208,10 @@ export function StatsTimeTrendChart({
                 dataKey="date"
                 tick={{ fontSize: 11, fill: 'currentColor' }}
                 className="text-slate-400 dark:text-slate-500"
-                axisLine={{ stroke: 'currentColor', className: 'text-border/40' }}
+                axisLine={{ stroke: 'currentColor', className: 'text-slate-200 dark:text-slate-800' }}
                 tickLine={false}
               />
 
-              {/* Left YAxis: Price (만원 / 억) */}
               <YAxis
                 yAxisId="price"
                 tickFormatter={formatYAxisPrice}
@@ -224,7 +222,6 @@ export function StatsTimeTrendChart({
                 domain={['auto', 'auto']}
               />
 
-              {/* Right YAxis: Volume */}
               <YAxis
                 yAxisId="volume"
                 orientation="right"
@@ -242,8 +239,8 @@ export function StatsTimeTrendChart({
                 yAxisId="volume"
                 dataKey="volume"
                 name="거래량"
-                fill="#057e77"
-                fillOpacity={0.2}
+                fill="#2563eb"
+                fillOpacity={0.18}
                 radius={[4, 4, 0, 0]}
                 maxBarSize={40}
               />
@@ -254,12 +251,12 @@ export function StatsTimeTrendChart({
                 type="monotone"
                 dataKey="avgSalePrice"
                 name="매매 평균가"
-                stroke="#057e77"
+                stroke="#2563eb"
                 strokeWidth={2.5}
                 fill="url(#trendSaleGrad)"
                 connectNulls
-                dot={{ r: 3, fill: '#057e77', strokeWidth: 1.5, stroke: '#fff' }}
-                activeDot={{ r: 6, fill: '#057e77', stroke: '#fff', strokeWidth: 2 }}
+                dot={{ r: 3, fill: '#2563eb', strokeWidth: 1.5, stroke: '#fff' }}
+                activeDot={{ r: 6, fill: '#2563eb', stroke: '#fff', strokeWidth: 2 }}
               />
 
               {/* Rent Price Line */}
@@ -268,12 +265,12 @@ export function StatsTimeTrendChart({
                 type="monotone"
                 dataKey="avgRentDeposit"
                 name="전세 평균가"
-                stroke="#f59e0b"
+                stroke="#059669"
                 strokeWidth={2}
                 strokeDasharray="4 4"
                 connectNulls
-                dot={{ r: 2.5, fill: '#f59e0b', strokeWidth: 1, stroke: '#fff' }}
-                activeDot={{ r: 5, fill: '#f59e0b', stroke: '#fff', strokeWidth: 2 }}
+                dot={{ r: 2.5, fill: '#059669', strokeWidth: 1, stroke: '#fff' }}
+                activeDot={{ r: 5, fill: '#059669', stroke: '#fff', strokeWidth: 2 }}
               />
             </ComposedChart>
           </ResponsiveContainer>

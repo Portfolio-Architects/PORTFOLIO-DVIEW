@@ -45,7 +45,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">최근 평균 매매가</span>
-          <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
+          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
         </div>
       );
     }
@@ -69,7 +69,7 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">최근 3개월 회전율</span>
-          <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}</span>
+          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{item.turnoverRate > 0 ? `${item.turnoverRate.toFixed(1)}%` : '-'}</span>
         </div>
       );
     }
@@ -77,14 +77,14 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">조회수</span>
-          <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{views > 0 ? `${views.toLocaleString()}회` : '0회'}</span>
+          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{views > 0 ? `${views.toLocaleString()}회` : '0회'}</span>
         </div>
       );
     }
     return (
       <div className="flex flex-col items-start md:items-end">
         <span className="text-[11px] font-bold text-tertiary">최근 평균 매매가</span>
-        <span className="text-sm md:text-base font-black text-[#057e77] dark:text-emerald-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
+        <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 mt-0.5">{item.totalPrice > 0 ? item.formattedPrice : '-'}</span>
       </div>
     );
   };

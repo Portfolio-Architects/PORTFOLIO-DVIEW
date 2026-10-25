@@ -161,7 +161,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const activeDots = container.querySelectorAll('.bg-\\[\\#057e77\\]');
+      const activeDots = container.querySelectorAll('.bg-blue-600.ring-4');
       expect(activeDots.length).toBeGreaterThanOrEqual(1);
     });
   });

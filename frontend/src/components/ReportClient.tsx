@@ -106,8 +106,8 @@ const ReportClient = React.memo(function ReportClient() {
               {/* Badges */}
               <div className="flex flex-wrap items-center justify-end gap-2 sm:gap-3">
                 {engReportData.metadata?.grade && (
-                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-full text-[11px] font-bold text-[#057e77] dark:text-emerald-400 shadow-sm">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#057e77] dark:bg-emerald-400" />
+                  <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[#e5e8eb] rounded-full text-[11px] font-bold text-blue-600 dark:text-blue-400 shadow-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                     GRADE {engReportData.metadata.grade}
                   </div>
                 )}

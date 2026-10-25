@@ -124,7 +124,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
               {/* Title & Detail CTA */}
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 <h3 className="text-[14.5px] sm:text-[15.5px] font-black text-primary tracking-tight flex items-center gap-1.5 break-keep">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#057e77] shrink-0" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
                   <span>
                     {selectedTimelineApt
                       ? `${getDisplayAptName(selectedTimelineApt)} 시세 추이`
@@ -148,7 +148,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                     onClick={() => onSelectApt && onSelectApt(selectedTimelineApt, currentAptObj?.dong)}
                     onMouseEnter={() => onHoverApt && onHoverApt(selectedTimelineApt)}
                     onTouchStart={() => onHoverApt && onHoverApt(selectedTimelineApt)}
-                    className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-[#057e77] dark:bg-emerald-950/40 dark:hover:bg-emerald-900/50 dark:text-emerald-400 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-xs"
+                    className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 dark:text-blue-400 border-none rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-xs"
                   >
                     상세 리포트 보기 -&gt;
                   </button>
@@ -177,7 +177,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         setSelectedDong(e.target.value);
                         setSearchQuery('');
                       }}
-                      className="px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0"
+                      className="px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0"
                     >
                       <option value="all">동탄 전체 ({dongsData.allApts.length}개 단지)</option>
                       <option value="default">대표 4개 단지</option>
@@ -202,7 +202,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         const val = e.target.value;
                         setSelectedTimelineApt(val === "" ? null : val);
                       }}
-                      className="w-full px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs truncate"
+                      className="w-full px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs truncate"
                     >
                       <option value="">전체 추이 보기 (동탄 매크로)</option>
 
@@ -280,7 +280,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       aria-label="단지명 실시간 검색"
-                      className="w-full pl-7 pr-6 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11.5px] font-bold transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs"
+                      className="w-full pl-7 pr-6 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11.5px] font-bold transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs"
                     />
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
@@ -317,13 +317,13 @@ export const MacroChartSection = React.memo(function MacroChartSection({
             {isDefaultAptSettingUp || (isAptTxLoading && !aptRealTxData && !!selectedTimelineApt) ? (
               <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-slate-50/30 dark:bg-slate-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
                 {/* Background blur glow */}
-                <div className="absolute w-[180px] h-[180px] rounded-full bg-[#057e77]/5 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
+                <div className="absolute w-[180px] h-[180px] rounded-full bg-blue-50/60 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
                 <div className="absolute w-[180px] h-[180px] rounded-full bg-emerald-500/5 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
                 
                 <div className="flex items-center gap-1.5 mb-3.5 flex-none">
-                  <div className="w-1.5 h-6 bg-[#057e77]/30 rounded-full animate-bounce duration-500 delay-100" />
-                  <div className="w-1.5 h-10 bg-[#057e77]/40 rounded-full animate-bounce duration-500 delay-200" />
-                  <div className="w-1.5 h-14 bg-[#057e77]/60 rounded-full animate-bounce duration-500 delay-300" />
+                  <div className="w-1.5 h-6 bg-blue-600/30 rounded-full animate-bounce duration-500 delay-100" />
+                  <div className="w-1.5 h-10 bg-blue-600/40 rounded-full animate-bounce duration-500 delay-200" />
+                  <div className="w-1.5 h-14 bg-blue-600/60 rounded-full animate-bounce duration-500 delay-300" />
                   <div className="w-1.5 h-10 bg-emerald-500/50 rounded-full animate-bounce duration-500 delay-400" />
                   <div className="w-1.5 h-12 bg-emerald-500/60 rounded-full animate-bounce duration-500 delay-500" />
                   <div className="w-1.5 h-8 bg-emerald-500/40 rounded-full animate-bounce duration-500 delay-600" />

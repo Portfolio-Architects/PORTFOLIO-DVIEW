@@ -42,7 +42,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
           aria-label="바텀시트 닫기"
           className="w-full flex justify-center py-3 shrink-0 cursor-pointer outline-none focus:ring-2 focus:ring-emerald-500/50 bg-transparent border-none"
         >
-          <div className="w-12 h-1.5 bg-[#e5e8eb] dark:bg-slate-700 rounded-full" />
+          <div className="w-12 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full" />
         </button>
         {/* Header */}
         <div className="px-5 pb-3 flex items-center justify-between border-b border-border/50 shrink-0">
@@ -51,7 +51,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
           </h3>
           <button 
             onClick={() => setIsBottomSheetOpen(false)}
-            className="text-[12px] font-bold text-secondary bg-body hover:bg-[#e5e8eb] px-3 py-1.5 rounded-lg border-none transition-colors cursor-pointer"
+            className="text-[12px] font-bold text-secondary bg-body hover:bg-slate-200 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg border-none transition-colors cursor-pointer"
           >
             닫기
           </button>
@@ -87,11 +87,11 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
           {/* 커스텀 범례 */}
           <div className="flex items-center justify-center gap-3 mb-5 shrink-0">
             <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#057e77]" />
+              <span className="w-1.5 h-1.5 rounded-full bg-blue-600" />
               <span>평균 매매가</span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-[#f9a825]/8 text-[#f9a825] rounded-full text-[10px] font-bold border border-[#f9a825]/15">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#f9a825]" />
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 rounded-full text-[10px] font-bold border border-emerald-200/60 dark:border-emerald-800/40">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
               <span>평균 전세가</span>
             </div>
           </div>
@@ -131,7 +131,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
                   </div>
                   <div className="flex flex-col gap-0.5">
                     <span className="text-[10px] text-tertiary font-medium">평균 전세가</span>
-                    <span className="text-[12.5px] font-black text-[#d97706] dark:text-[#f9a825]">
+                    <span className="text-[12.5px] font-black text-emerald-600 dark:text-emerald-400">
                       {avgRent > 0 ? `${(avgRent / 10000).toFixed(1)}억` : "-"}
                     </span>
                   </div>
@@ -144,7 +144,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
                 </div>
                 {hasValues && (
                   <div className="text-[10.5px] text-center text-secondary font-bold pt-1 border-t border-border/20">
-                    전세가율: <span className="text-[#057e77] dark:text-emerald-400">{jeonseRateText}</span>
+                    전세가율: <span className="text-blue-600 dark:text-blue-400">{jeonseRateText}</span>
                   </div>
                 )}
               </div>

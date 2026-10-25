@@ -688,7 +688,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
 
       <div className="flex justify-between items-center gap-2 mb-5">
         <div className="flex items-center gap-2">
-          <div className="w-10 h-10 bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 rounded-xl flex items-center justify-center shadow-inner shrink-0">
+          <div className="w-10 h-10 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shadow-inner shrink-0">
             <Sparkles className="w-5 h-5 animate-pulse" />
           </div>
           <div className="flex flex-col gap-0.5">
@@ -696,7 +696,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
               <h2 className="text-[17px] sm:text-[18px] font-extrabold text-primary tracking-tight whitespace-nowrap">
                 AI 맞춤 아파트 추천
               </h2>
-              <span className="text-[10px] font-black bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-500/20 dark:text-emerald-400 px-2 py-0.5 rounded-[6px] tracking-wider uppercase">
+              <span className="text-[10px] font-black bg-blue-600/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400 px-2 py-0.5 rounded-[6px] tracking-wider uppercase">
                 {recommendationResult.isFallback 
                   ? '인기단지' 
                   : (viewedApts.length > 0 && quizAnswers) 
@@ -721,7 +721,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={handleShare}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-secondary hover:text-[#057e77] dark:hover:text-emerald-400 transition-all cursor-pointer"
+            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-all cursor-pointer"
             title="카카오톡 결과 공유"
           >
             <Share2 size={16} />
@@ -741,13 +741,13 @@ const AIRecommendations = React.memo(function AIRecommendations({
             key={item.name}
             type="button"
             onClick={() => onSelectApt && onSelectApt(item.name)}
-            className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#057e77] flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-border/50 hover:border-[#057e77]/30 dark:hover:border-emerald-500/30 bg-body/20 hover:bg-[#057e77]/5 dark:hover:bg-emerald-950/5 cursor-pointer transition-all duration-200 gap-3 group"
+            className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-xl border border-border/50 hover:border-blue-600/30 dark:hover:border-blue-500/30 bg-body/20 hover:bg-blue-600/5 dark:hover:bg-blue-950/5 cursor-pointer transition-all duration-200 gap-3 group"
             aria-label={`${index + 1}위 추천 단지: ${item.name} 선택`}
           >
             <div className="flex items-start gap-3 min-w-0 flex-1">
               <div className={`w-7 h-7 rounded-lg font-black text-[12px] flex items-center justify-center shrink-0 border ${
                 index === 0 
-                  ? 'bg-[#057e77] text-white border-transparent' 
+                  ? 'bg-blue-600 text-white border-transparent' 
                   : 'bg-surface text-secondary dark:bg-slate-900 border-border/40'
               }`}>
                 {index + 1}
@@ -755,7 +755,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
 
               <div className="flex flex-col gap-1 min-w-0 flex-1">
                 <div className="flex items-baseline gap-1.5 flex-wrap">
-                  <span className="font-extrabold text-[14.5px] text-primary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors truncate">
+                  <span className="font-extrabold text-[14.5px] text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
                     {item.name}
                   </span>
                   <span className="text-[11px] text-tertiary font-bold">{item.dong}</span>
@@ -778,7 +778,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
               <div className="flex items-center gap-x-1.5 gap-y-1 flex-wrap sm:flex-col sm:items-end sm:gap-y-0.5">
                 <div className="flex items-baseline gap-0.5 text-[11px] font-bold text-tertiary whitespace-nowrap shrink-0">
                   <span className="text-[10px] mr-1 sm:hidden">매칭률</span>
-                  <span className="text-[17px] sm:text-[19px] font-black text-[#057e77] dark:text-emerald-400 tracking-tighter leading-none">{item.score}%</span>
+                  <span className="text-[17px] sm:text-[19px] font-black text-blue-600 dark:text-blue-400 tracking-tighter leading-none">{item.score}%</span>
                   <span className="leading-none">매칭</span>
                 </div>
                 
@@ -822,16 +822,16 @@ const AIRecommendations = React.memo(function AIRecommendations({
               onOpenMortgage(recommendationResult.items[0].name);
             }
           }}
-          className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-[#057e77] flex items-center gap-3.5 px-4 py-3 bg-gradient-to-r from-[#057e77]/8 to-surface dark:from-emerald-500/5 border border-[#057e77]/15 hover:border-[#057e77]/40 dark:border-emerald-500/20 dark:hover:border-emerald-500/40 rounded-xl shadow-[0_2px_12px_rgba(13,148,136,0.02)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.06)] cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-200 group relative overflow-hidden"
+          className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600 flex items-center gap-3.5 px-4 py-3 bg-gradient-to-r from-blue-600/8 to-surface dark:from-blue-500/5 border border-blue-600/15 hover:border-blue-600/40 dark:border-blue-500/20 dark:hover:border-blue-500/40 rounded-xl shadow-[0_2px_12px_rgba(13,148,136,0.02)] hover:shadow-[0_4px_16px_rgba(13,148,136,0.06)] cursor-pointer hover:scale-[1.005] active:scale-[0.995] transition-all duration-200 group relative overflow-hidden"
           aria-label={recommendationResult.isFallback ? '나만의 라이프스타일 퀴즈 풀기' : `${recommendationResult.items[0].name} 최적 대출 한도 조회`}
         >
           <div className="absolute top-0 right-0 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none group-hover:scale-110 transition-transform" />
-          <div className="w-9 h-9 bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 rounded-lg flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
+          <div className="w-9 h-9 bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center shadow-inner shrink-0 group-hover:scale-105 transition-transform">
             <TrendingUp size={16} />
           </div>
           <div className="flex flex-col gap-0.5 min-w-0">
             <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-extrabold text-[#057e77] dark:text-emerald-400 bg-[#057e77]/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-[5px] tracking-wider uppercase shrink-0">
+              <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-600/10 dark:bg-blue-500/20 px-2 py-0.5 rounded-[5px] tracking-wider uppercase shrink-0">
                 제휴 연계
               </span>
               <span className="text-[12.5px] font-extrabold text-primary tracking-tight truncate">
@@ -840,7 +840,7 @@ const AIRecommendations = React.memo(function AIRecommendations({
                   : `${recommendationResult.items[0].name} 최적 대출 한도 조회`}
               </span>
             </div>
-            <p className="text-[11.5px] text-secondary font-bold group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors leading-tight">
+            <p className="text-[11.5px] text-secondary font-bold group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight">
               {recommendationResult.isFallback 
                 ? '7가지 질문에 답하고 내 맞춤형 아파트를 찾아보세요' 
                 : '1금융 정책자금 금리 시뮬레이션을 즉시 시작합니다'}

@@ -159,9 +159,9 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
           </div>
 
           {/* Curation Value Props Banner */}
-          <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-[#057e77]/20 text-left mb-6 relative overflow-hidden">
+          <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-blue-600/20 text-left mb-6 relative overflow-hidden">
             <div className="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-500/10 dark:bg-emerald-500/20 rounded-full blur-xl pointer-events-none" />
-            <div className="flex items-center gap-2 mb-3 bg-emerald-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12px] font-extrabold text-[#057e77] dark:text-emerald-400 border border-[#057e77]/20 w-fit">
+            <div className="flex items-center gap-2 mb-3 bg-blue-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12px] font-extrabold text-blue-600 dark:text-blue-400 border border-blue-600/20 w-fit">
               <Sparkles size={13} className="text-emerald-500" />
               <span>DVIEW 실시간 알림 서비스</span>
             </div>
@@ -225,7 +225,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
             <button
               onClick={handleSubscribe}
               disabled={!isPushSupported || submitting}
-              className="flex-1 py-3.5 px-4 bg-[#057e77] dark:bg-[#057e77] disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl hover:bg-[#046660] dark:hover:bg-[#046660] active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />

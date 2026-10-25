@@ -139,7 +139,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 onClick={() => setQuickFilter?.(chip.id)}
                 className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
                   isActive
-                    ? "bg-[#057e77] text-white shadow-xs scale-[1.02] ring-2 ring-[#057e77]/20"
+                    ? "bg-blue-600 text-white shadow-xs scale-[1.02] ring-2 ring-blue-500/25"
                     : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 text-secondary border border-border/70 hover:border-border"
                 }`}
                 title={chip.description}
@@ -179,7 +179,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="단지명 검색..."
                 aria-label="단지명 검색"
-                className="w-full pl-7 pr-7 h-[28px] bg-slate-50 dark:bg-slate-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] transition-colors shadow-2xs"
+                className="w-full pl-7 pr-7 h-[28px] bg-slate-50 dark:bg-slate-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors shadow-2xs"
               />
               {searchQuery && (
                 <button
@@ -216,7 +216,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as TimelineSortOrder)}
               aria-label="정렬 기준 선택"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[108px] truncate"
+              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[108px] truncate"
             >
               {TIMELINE_SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -231,7 +231,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={currentRegion}
             onChange={(e) => handleRegionChange(e.target.value)}
             aria-label="권역 및 법정동 선택"
-            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[82px] xs:w-[94px] sm:w-[124px] truncate"
+            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[82px] xs:w-[94px] sm:w-[124px] truncate"
           >
             <option value="all">전체 권역/동</option>
             <optgroup label="권역 그룹">
@@ -254,7 +254,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setPyeongFilter(e.target.value as PyeongFilterType)}
               aria-label="평형대 선택"
               data-testid="timeline-pyeong-select"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[76px] xs:w-[88px] sm:w-[104px] truncate"
+              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[76px] xs:w-[88px] sm:w-[104px] truncate"
             >
               <option value="all">전체 평형</option>
               <option value="under20">20평 미만</option>
@@ -271,7 +271,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setTradeTypeFilter(e.target.value as TradeTypeFilterType)}
               aria-label="거래 유형 선택"
               data-testid="timeline-tradetype-select"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[78px] xs:w-[90px] sm:w-[106px] truncate"
+              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[78px] xs:w-[90px] sm:w-[106px] truncate"
             >
               <option value="all">전체 유형</option>
               <option value="high">신고가 거래</option>
@@ -285,7 +285,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={timelineAptFilter}
             onChange={(e) => setTimelineAptFilter(e.target.value)}
             aria-label="단지 선택"
-            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-[#057e77] focus:border-[#057e77] shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[130px] truncate"
+            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[130px] truncate"
           >
             <option value="전체">전체 단지</option>
             {availableApts.map((apt) => (
@@ -316,7 +316,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                     data-testid={`period-filter-${p}`}
                     className={`px-1.5 xs:px-2 py-0.5 rounded-lg text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold transition-all cursor-pointer ${
                       isSelected
-                        ? "bg-surface text-[#057e77] shadow-xs font-black"
+                        ? "bg-surface text-blue-600 shadow-xs font-black"
                         : "text-tertiary hover:text-secondary"
                     }`}
                   >
@@ -337,7 +337,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 title="카드 그리드 뷰"
                 className={`p-1 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'card'
-                    ? "bg-surface text-[#057e77] shadow-xs font-black"
+                    ? "bg-surface text-blue-600 shadow-xs font-black"
                     : "text-tertiary hover:text-secondary"
                 }`}
               >
@@ -350,7 +350,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 title="컴팩트 리스트 뷰"
                 className={`p-1 rounded-lg transition-all cursor-pointer ${
                   viewMode === 'list'
-                    ? "bg-surface text-[#057e77] shadow-xs font-black"
+                    ? "bg-surface text-blue-600 shadow-xs font-black"
                     : "text-tertiary hover:text-secondary"
                 }`}
               >
@@ -418,7 +418,7 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
       <button
         onClick={() => setShowOrderEditor(!showOrderEditor)}
         title="관심 단지 정렬 순서 편집"
-        className="w-7 h-7 flex items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-[#057e77] shadow-sm shrink-0"
+        className="w-7 h-7 flex items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-blue-600 shadow-sm shrink-0"
       >
         <Settings size={13} />
       </button>
@@ -441,7 +441,7 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
                 onDragOver={(e) => handleDragOver(e, index)}
                 onDragEnd={handleDragEnd}
                 className={`flex justify-between items-center px-2.5 py-1.5 bg-slate-50 dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/40 rounded-xl cursor-grab active:cursor-grabbing text-[11px] font-bold text-primary select-none transition-colors ${
-                  draggedIndex === index ? "opacity-40 border-dashed border-[#057e77]" : ""
+                  draggedIndex === index ? "opacity-40 border-dashed border-blue-600" : ""
                 }`}
               >
                 <span className="truncate pr-2">{getDisplayAptName(fav)}</span>

@@ -35,10 +35,10 @@ export interface StatsPyeongRankingChartProps {
 
 const getRankBadgeColor = (rank: number) => {
   if (rank === 1) {
-    return 'bg-emerald-600 text-white font-black shadow-xs ring-2 ring-emerald-500/30';
+    return 'bg-blue-600 text-white font-black shadow-xs ring-2 ring-blue-500/30';
   }
   if (rank === 2) {
-    return 'bg-blue-600 text-white font-extrabold shadow-xs ring-2 ring-blue-500/25';
+    return 'bg-emerald-600 text-white font-extrabold shadow-xs ring-2 ring-emerald-500/25';
   }
   if (rank === 3) {
     return 'bg-slate-800 dark:bg-slate-200 text-white dark:text-slate-900 font-extrabold';
@@ -48,19 +48,19 @@ const getRankBadgeColor = (rank: number) => {
 
 const getPodiumCardStyle = (rank: number) => {
   if (rank === 1) {
-    return 'border-emerald-500/50 bg-emerald-50/25 dark:bg-emerald-950/15 hover:border-emerald-500';
+    return 'border-blue-500/50 bg-blue-50/25 dark:bg-blue-950/15 hover:border-blue-500';
   }
   if (rank === 2) {
-    return 'border-blue-500/40 bg-blue-50/20 dark:bg-blue-950/10 hover:border-blue-500';
+    return 'border-emerald-500/40 bg-emerald-50/20 dark:bg-emerald-950/10 hover:border-emerald-500';
   }
   return 'border-slate-300/80 dark:border-slate-700/80 bg-body/50 hover:border-slate-400 dark:hover:border-slate-600';
 };
 
 const getBarColor = (rank: number) => {
-  if (rank === 1) return '#059669'; // Emerald 600
-  if (rank === 2) return '#10b981'; // Emerald 500
-  if (rank === 3) return '#2563eb'; // Blue 600
-  if (rank <= 5) return '#3b82f6'; // Blue 500
+  if (rank === 1) return '#2563eb'; // Trust Blue 600
+  if (rank === 2) return '#3b82f6'; // Blue 500
+  if (rank === 3) return '#059669'; // Emerald 600
+  if (rank <= 5) return '#10b981'; // Emerald 500
   return '#64748b'; // Slate 500
 };
 

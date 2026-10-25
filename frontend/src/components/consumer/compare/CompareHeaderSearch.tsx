@@ -73,7 +73,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
             }}
             onFocus={() => setIsFocused1(true)}
             onKeyDown={handleKeyDown1}
-            className="w-full bg-surface border border-border/40 focus:border-[#057e77] rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+            className="w-full bg-surface border border-border/40 focus:border-blue-600 rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
           />
           {searchQuery1 && (
             <button
@@ -135,7 +135,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
 
       {/* VS Divider */}
       <div className="md:col-span-1 flex items-center justify-center">
-        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#057e77] to-emerald-500 text-white font-black text-[12px] flex items-center justify-center shadow-md select-none shrink-0">
+        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-600 to-blue-500 text-white font-black text-[12px] flex items-center justify-center shadow-md select-none shrink-0">
           VS
         </span>
       </div>
@@ -154,7 +154,7 @@ export const CompareHeaderSearch = React.memo(function CompareHeaderSearch({
             }}
             onFocus={() => setIsFocused2(true)}
             onKeyDown={handleKeyDown2}
-            className="w-full bg-surface border border-border/40 focus:border-[#057e77] rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+            className="w-full bg-surface border border-border/40 focus:border-blue-600 rounded-xl py-2 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
           />
           {searchQuery2 && (
             <button

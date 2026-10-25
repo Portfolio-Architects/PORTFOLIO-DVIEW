@@ -137,7 +137,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
       />
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <GraduationCap size={18} className="text-[#057e77] dark:text-emerald-400"/> 학군/육아 분석
+          <GraduationCap size={18} className="text-blue-600 dark:text-blue-400"/> 학군/육아 분석
         </h2>
 
         <div className="relative w-full">
@@ -149,14 +149,14 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
               const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
                 S: { bg: 'bg-[#fdf2f8]', text: 'text-[#db2777]', border: 'border-[#fbcfe8]/50', descBg: 'bg-[#db2777]/5', scoreText: 'text-[#db2777]' },
                 A: { bg: 'bg-[#ecfdf5]', text: 'text-[#059669]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#059669]/5', scoreText: 'text-[#059669]' },
-                B: { bg: 'bg-[#fffbeb]', text: 'text-[#d97706]', border: 'border-[#fde68a]/50', descBg: 'bg-[#d97706]/5', scoreText: 'text-[#d97706]' },
+                B: { bg: 'bg-[#fffbeb]', text: 'text-blue-600', border: 'border-[#fde68a]/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600' },
                 C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
               };
               const colors = scoreColors[eduScoreInfo.grade] || scoreColors.C;
               
               return (
                 <div className="mb-8">
-                  <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
+                  <div className="flex items-center justify-between gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
                     <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">육아 친화 지표</span>
                     <button
                       onClick={() => handleShareSection('childcare')}
@@ -222,7 +222,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                         </div>
                       </div>
                       
-                      <div className={`p-4 rounded-xl ${colors.descBg} border border-[#057e77]/10 text-left`}>
+                      <div className={`p-4 rounded-xl ${colors.descBg} border border-blue-600/10 text-left`}>
                         <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 자녀양육 환경 리포트</p>
                         <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
                           {eduScoreInfo.description} (초등학교까지의 실제 도보 안심 통학 요건, 인근 중고교 접근성 및 500m 반경 내 교육 학원 인프라 밀집도를 종합 연산한 지표입니다.)
@@ -237,7 +237,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 배정 학교 정보 (Assigned Schools) ─── */}
             {(report.metrics.distanceToElementary > 0 || report.metrics.distanceToMiddle > 0 || report.metrics.distanceToHigh > 0) && (
               <div className="mb-8">
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
+                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
                   <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">안심 학군 배정 정보</span>
                 </div>
                 <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
@@ -385,7 +385,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 전문가 학군 및 통학로 분석 (Expert School/Route Review) ─── */}
             {(report.sections?.ecosystem?.schoolText || report.sections?.ecosystem?.schoolImg) && (
               <div className="mb-8 bg-body rounded-2xl p-5 md:p-6 border border-border">
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
+                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
                   <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">전문가 임장 분석 및 통학로 리포트</span>
                 </div>
                 <div className="flex flex-col md:flex-row gap-6 items-start">
@@ -410,7 +410,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {/* ─── 주변 학원가 분석 (Academy Density) ─── */}
             {report.metrics.academyDensity > 0 && (
               <div>
-                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
+                <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
                   <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">주변 학원가 구성 (500m 반경)</span>
                 </div>
                 
@@ -431,8 +431,8 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                   {(() => {
                     const academyData = Object.entries(report.metrics.academyCategories || {}).map(([cat, cnt]) => {
                       let tag = '일반학원';
-                      let color = '#057e77'; // brand-teal
-                      let bg = 'bg-[#057e77]';
+                      let color = '#2563eb'; // brand-teal
+                      let bg = 'bg-blue-600';
                       if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
                         tag = '예체능';
                         color = '#004696'; // brand-blue
@@ -505,8 +505,8 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
 
                         {/* AI 진단 코멘트 박스 */}
                         <div className="mt-2.5 p-3.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl">
-                          <p className="text-[11.5px] font-extrabold text-[#057e77] dark:text-emerald-400 leading-relaxed break-keep flex items-center gap-1">
-                            <Lightbulb size={14} className="shrink-0 text-[#057e77]" />
+                          <p className="text-[11.5px] font-extrabold text-blue-600 dark:text-blue-400 leading-relaxed break-keep flex items-center gap-1">
+                            <Lightbulb size={14} className="shrink-0 text-blue-600" />
                             <span><strong>AI 학원가 진단:</strong> {aiComment}</span>
                           </p>
                         </div>

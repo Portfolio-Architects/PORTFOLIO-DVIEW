@@ -528,7 +528,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
         aria-labelledby="sell-title"
         aria-describedby="sell-desc"
         className={`relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 w-full ${
-          showResult ? 'max-w-[580px] md:max-w-[900px]' : 'max-w-[580px]'
+          showResult ? 'max-w-[580px] md:max-w-[940px]' : 'max-w-[580px]'
         } max-h-[90vh] md:max-h-[86vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
       >
         {/* Header */}
@@ -572,7 +572,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       if (selectedApt) setSelectedApt(null);
                     }}
                     onFocus={() => setIsFocused(true)}
-                    className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                    className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                   />
                   {searchQuery && (
                     <button
@@ -626,7 +626,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                           placeholder="0"
                           value={acquisitionInput}
                           onChange={handleAcquisitionChange}
-                          className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
+                          className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">만원</span>
                       </div>
@@ -645,7 +645,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                           placeholder="0"
                           value={transferInput}
                           onChange={handleTransferChange}
-                          className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
+                          className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">만원</span>
                       </div>
@@ -668,7 +668,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       step="1"
                       value={holdingYears}
                       onChange={(e) => setHoldingYears(parseInt(e.target.value))}
-                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#057e77]"
+                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                     <div className="flex justify-between text-[9px] text-tertiary font-bold px-1">
                       <span>0년 (신규취득)</span>
@@ -692,7 +692,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                       step="1"
                       value={resideYears}
                       onChange={(e) => setResideYears(parseInt(e.target.value))}
-                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#057e77]"
+                      className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-blue-600"
                     />
                     <div className="flex justify-between text-[9px] text-tertiary font-bold px-1">
                       <span>0년 (미거주)</span>
@@ -718,7 +718,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         onClick={() => setIsOneHouse(true)}
                         className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                           isOneHouse
-                            ? 'border-[#057e77] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                            ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
                             : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                         }`}
                       >
@@ -729,7 +729,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         onClick={() => setIsOneHouse(false)}
                         className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                           !isOneHouse
-                            ? 'border-[#057e77] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                            ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
                             : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                         }`}
                       >
@@ -741,7 +741,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                   <button
                     onClick={handleStartSimulate}
                     disabled={isCalculating || transferPrice <= 0}
-                    className="w-full bg-[#057e77] hover:bg-[#046660] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
                   >
                     {isCalculating ? (
                       <>
@@ -760,7 +760,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
           ) : (
             calculations && (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start animate-in zoom-in-95 fade-in duration-300">
-                <div className="md:col-span-5 space-y-4">
+                <div className="md:col-span-6 space-y-4">
                 {/* Gauge Section */}
                 <div className="flex flex-col items-center text-center">
                   <div className="relative">
@@ -772,11 +772,11 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         </linearGradient>
                         <linearGradient id="verdictMid" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor="#f59e0b" />
-                          <stop offset="100%" stopColor="#d97706" />
+                          <stop offset="100%" stopColor="#2563eb" />
                         </linearGradient>
                         <linearGradient id="verdictHigh" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#f43f5e" />
-                          <stop offset="100%" stopColor="#e11d48" />
+                          <stop offset="0%" stopColor="#f04452" />
+                          <stop offset="100%" stopColor="#f04452" />
                         </linearGradient>
                       </defs>
                       <path
@@ -827,7 +827,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 </div>
 
                 {/* Right Column (7 cols): Tax Report & AdSlot */}
-                <div className="md:col-span-7 space-y-4">
+                <div className="md:col-span-6 space-y-4">
                 {/* Tax Report Section */}
                 <div className="space-y-3">
                   <h4 className="text-[13px] font-extrabold text-primary flex items-center gap-1">
@@ -870,7 +870,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                         <span className="text-secondary font-bold">2. 지방소득세 (양도세의 10%)</span>
                         <span className="font-extrabold">{formatEokMan(calculations.tax.localTax)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#f43f5e] font-black pt-2 border-t border-border/10 text-[13.5px]">
+                      <div className="flex justify-between items-center text-red-500 font-black pt-2 border-t border-border/10 text-[13.5px]">
                         <span>납부할 총 세액 합계</span>
                         <span className="text-right">{formatEokMan(calculations.tax.totalTax)}</span>
                       </div>
@@ -950,8 +950,14 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="md:col-span-12 flex gap-2 pt-3 border-t border-slate-200/70 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm pb-1 z-10">
-                  <button
+                              </div>
+            )
+          )}
+        </div>
+
+        {showResult && calculations && (
+          <footer className="shrink-0 border-t border-slate-200/80 dark:border-slate-800 px-6 py-3.5 bg-white dark:bg-slate-900 flex items-center gap-2.5">
+            <button
                     onClick={() => setShowResult(false)}
                     className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1 active:scale-95"
                   >
@@ -983,11 +989,8 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                     <MessageSquare size={14} />
                     <span>카카오톡 공유</span>
                   </button>
-                </div>
-              </div>
-            )
-          )}
-        </div>
+          </footer>
+        )}
       </div>
     </div>,
     document.getElementById('modal-root') || document.body

@@ -39,8 +39,8 @@ export default function TechnoValleyClient() {
         {/* Hero Header */}
         <PageHeroHeader 
           title="D-VIEW 테크노 랩"
-          subtitleStrong="동탄 테크노밸리 심층 데이터 분석"
-          subtitleLight="입주 동향·공실률 분석 및 직주근접 지표 제공"
+          subtitleStrong="동탄테크노밸리 지식산업센터 56곳"
+          subtitleLight="공실률·입주 동향부터 이전 시 세제 감면 혜택까지 한눈에"
           bottomContent={undefined}
         />
 

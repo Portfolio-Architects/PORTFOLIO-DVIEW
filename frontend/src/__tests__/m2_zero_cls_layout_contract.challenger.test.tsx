@@ -424,14 +424,14 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(slot1000000001Container).toBeInTheDocument();
       expect(slot1000000001Container).toHaveAttribute('data-slot-format', 'in-feed');
 
-      // Assert outer container spacing has my-6
+      // Slot 1 sits directly under the hero grid (which already provides mb-6), so its wrapper uses mb-6
       const adWrapper = slot1000000001Container!.parentElement;
-      expect(adWrapper?.className).toContain('my-6');
+      expect(adWrapper?.className).toContain('mb-6');
 
       // Verify DOM vertical ordering:
-      // timelineHeading is preceding slot1000000001
+      // slot1000000001 is preceding timelineHeading (hero -> slot 1 -> timeline -> stats)
       expect(
-        timelineHeading.compareDocumentPosition(slot1000000001Container!) & Node.DOCUMENT_POSITION_FOLLOWING
+        slot1000000001Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
       // slot1000000001 is preceding statsSection

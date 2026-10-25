@@ -93,11 +93,11 @@ const NewsCard = React.memo(function NewsCard({
             {formatDate(item.pubDate)}
           </span>
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
-      <div className="flex items-center text-tertiary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 shrink-0 self-end md:self-center">
+      <div className="flex items-center text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0 self-end md:self-center">
         <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
       </div>
     </a>
@@ -138,16 +138,16 @@ const NoticeItemCard = React.memo(function NoticeItemCard({
             {item.date}
           </span>
           {hasDetails && (
-            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-[#057e77]/10 text-[#057e77] dark:text-emerald-400 border border-[#057e77]/10 animate-pulse">
+            <span className="text-[9px] font-extrabold px-1.5 py-0.5 rounded bg-blue-600/10 text-blue-600 dark:text-blue-400 border border-blue-600/10 animate-pulse">
               AI 분석 완료
             </span>
           )}
         </div>
-        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
+        <h3 className="text-[14px] sm:text-[15.5px] font-extrabold text-primary/90 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 md:line-clamp-1 leading-snug tracking-tight">
           {item.title}
         </h3>
       </div>
-      <div className="flex items-center text-tertiary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 shrink-0 self-end md:self-center">
+      <div className="flex items-center text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 shrink-0 self-end md:self-center">
         <ArrowUpRight size={17} className="transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
       </div>
     </button>
@@ -360,8 +360,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
       <div className="w-full flex flex-col bg-transparent pb-16 min-h-screen">
         <PageHeroHeader
           title="D-VIEW 동탄 소식"
-          subtitleStrong="동탄 시정·부동산 뉴스 수집"
-          subtitleLight="화성시 고시공고 및 지역 주요 뉴스 브리핑"
+          subtitleStrong="동탄 시정·부동산·교통 뉴스"
+          subtitleLight="화성시 고시공고와 GTX·트램 소식을 한곳에 모아보기"
         />
 
         <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 mt-6 w-full max-w-[1400px] mx-auto">
@@ -412,7 +412,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         }}
                         className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                           activeNewsSubTab === 'industry'
-                            ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
                             : 'text-tertiary hover:text-secondary'
                         }`}
                       >
@@ -425,7 +425,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         }}
                         className={`px-5 py-1.5 rounded-full text-[12px] font-extrabold transition-all duration-300 active:scale-[0.98] ${
                           activeNewsSubTab === 'realestate'
-                            ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
+                            ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-[0_2px_8px_rgba(0,0,0,0.04)] ring-1 ring-black/5 dark:ring-white/5'
                             : 'text-tertiary hover:text-secondary'
                         }`}
                       >
@@ -578,7 +578,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           <div className="flex items-start justify-between p-6 border-b border-border/60">
             <div className="flex flex-col gap-1.5 min-w-0 pr-4">
               <div className="flex items-center gap-2">
-                <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-[#057e77]/10 text-[#057e77] dark:text-emerald-400">
+                <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-blue-600/10 text-blue-600 dark:text-blue-400">
                   D-VIEW AI 데이터 랩
                 </span>
                 <span className="text-[11.5px] text-tertiary font-bold">
@@ -616,7 +616,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                   href={selectedNotice.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-5 py-2.5 bg-[#057e77] hover:bg-[#04635e] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-[13px] font-extrabold rounded-xl transition-all shadow-md flex items-center gap-1.5 cursor-pointer"
                 >
                   <ExternalLink size={14} />
                   원문 고시 바로보기
@@ -631,7 +631,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               href={selectedNotice.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-[#057e77] dark:text-emerald-400 hover:underline"
+              className="flex items-center gap-1.5 text-[12.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline"
             >
               <ExternalLink size={15} />
               화성시 원문 고시 보기

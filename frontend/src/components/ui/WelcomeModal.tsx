@@ -173,14 +173,14 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         </button>
 
         {/* Decorative Brand Emblem */}
-        <div className="w-16 h-16 rounded-[22px] bg-[#057e77]/10 dark:bg-emerald-500/10 flex items-center justify-center mb-6 shadow-inner border border-[#057e77]/15 dark:border-emerald-500/15">
-          <Compass size={32} className="text-[#057e77] dark:text-emerald-400 animate-pulse" />
+        <div className="w-16 h-16 rounded-[22px] bg-blue-600/10 dark:bg-blue-500/10 flex items-center justify-center mb-6 shadow-inner border border-blue-600/15 dark:border-blue-500/15">
+          <Compass size={32} className="text-blue-600 dark:text-blue-400 animate-pulse" />
         </div>
 
         {/* Title */}
         <h2 id="welcome-modal-title" className="text-[19px] sm:text-[21px] font-black text-primary leading-snug tracking-tight mb-3">
           데이터 기반 주거·일터 통합 포털<br />
-          <span className="text-[#057e77] dark:text-emerald-400 font-black">D-VIEW</span>에 오신 것을 환영합니다
+          <span className="text-blue-600 dark:text-blue-400 font-black">D-VIEW</span>에 오신 것을 환영합니다
         </h2>
 
         {/* Description */}
@@ -191,8 +191,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         {/* Feature List */}
         <ul className="w-full flex flex-col gap-3.5 text-left bg-body/40 dark:bg-body/20 rounded-2xl p-4.5 mb-7 border border-border/30">
           <li className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-md bg-[#057e77]/10 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#057e77]/10 dark:border-emerald-500/10">
-              <ShieldCheck size={12} className="text-[#057e77] dark:text-emerald-400" />
+            <div className="w-5 h-5 rounded-md bg-blue-600/10 dark:bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-blue-600/10 dark:border-blue-500/10">
+              <ShieldCheck size={12} className="text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">실시간 주거·오피스 실거래가 분석</h4>
@@ -200,8 +200,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-md bg-[#057e77]/10 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#057e77]/10 dark:border-emerald-500/10">
-              <ShieldCheck size={12} className="text-[#057e77] dark:text-emerald-400" />
+            <div className="w-5 h-5 rounded-md bg-blue-600/10 dark:bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-blue-600/10 dark:border-blue-500/10">
+              <ShieldCheck size={12} className="text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">KICOX 공공데이터 기반 입주 매칭</h4>
@@ -209,8 +209,8 @@ const WelcomeModal = React.memo(function WelcomeModal() {
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <div className="w-5 h-5 rounded-md bg-[#057e77]/10 dark:bg-emerald-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-[#057e77]/10 dark:border-emerald-500/10">
-              <ShieldCheck size={12} className="text-[#057e77] dark:text-emerald-400" />
+            <div className="w-5 h-5 rounded-md bg-blue-600/10 dark:bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5 border border-blue-600/10 dark:border-blue-500/10">
+              <ShieldCheck size={12} className="text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <h4 className="text-[12.5px] font-extrabold text-primary leading-tight">직주근접 & 세제 감면 시뮬레이터</h4>
@@ -222,7 +222,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         {/* CTA Button */}
         <button
           onClick={handleClose}
-          className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-[#057e77] hover:bg-[#046660] dark:bg-[#057e77] dark:hover:bg-[#046660] text-white text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.96] shadow-md shadow-emerald-500/15"
+          className="w-full flex items-center justify-center gap-2 py-4 px-6 rounded-2xl bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white text-[14.5px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)] active:scale-[0.96] shadow-md shadow-blue-500/15"
         >
           <span>D-VIEW 탐색 시작하기</span>
           <ArrowRight size={16} strokeWidth={2.5} />

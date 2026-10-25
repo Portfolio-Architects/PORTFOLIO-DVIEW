@@ -1,5 +1,5 @@
 ---
-description: 로컬 개발 서버 실행 및 AGENT.md, 엔지니어링 리포트 아티팩트 노출
+description: 로컬 개발 서버 실행 및 DVIEW_AGENT.md, 엔지니어링 리포트 아티팩트 노출
 ---
 
 # 로컬 개발 환경 및 문서 자동 노출 워크플로우
@@ -14,5 +14,5 @@ description: 로컬 개발 서버 실행 및 AGENT.md, 엔지니어링 리포트
    npm run dev
    ```
 
-2. **에이전트 가이드(AGENT.md) 오픈**:
-   - `AGENT.md`와 `PORTFOLIO DVIEW - Engineering Report.md`를 아티팩트 디렉토리에 파일로 생성하여, 아티팩트 사이드바(Artifact Sidebar) 탭으로 노출합니다.
+2. **에이전트 가이드(DVIEW_AGENT.md) 오픈**:
+   - `DVIEW_AGENT.md`와 `DVIEW_PORTFOLIO DVIEW - Engineering Report.md`를 아티팩트 디렉토리에 파일로 생성하여, 아티팩트 사이드바(Artifact Sidebar) 탭으로 노출합니다.

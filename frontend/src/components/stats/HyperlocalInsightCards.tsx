@@ -29,11 +29,11 @@ export function HyperlocalInsightCards({
       <div
         data-testid="insight-card-new-high"
         onClick={() => newHighComplex && onSelectComplex?.(newHighComplex.aptKey, newHighComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/70 to-white dark:from-emerald-950/20 dark:to-surface shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-800 shadow-xs hover:shadow-md transition-all cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40">
               <Flame size={12} className="animate-pulse" />
               신고가 갱신
             </span>
@@ -69,7 +69,7 @@ export function HyperlocalInsightCards({
             }
           }
         }}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-emerald-200/80 dark:border-emerald-900/40 bg-gradient-to-br from-emerald-50/70 to-white dark:from-emerald-950/20 dark:to-surface shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-800 shadow-xs hover:shadow-md transition-all cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -99,7 +99,7 @@ export function HyperlocalInsightCards({
       <div
         data-testid="insight-card-volume-surge"
         onClick={() => volumeSurgeComplex && onSelectComplex?.(volumeSurgeComplex.aptKey, volumeSurgeComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-blue-200/80 dark:border-blue-900/40 bg-gradient-to-br from-blue-50/70 to-white dark:from-blue-950/20 dark:to-surface shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-800 shadow-xs hover:shadow-md transition-all cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -137,7 +137,7 @@ export function HyperlocalInsightCards({
             }
           }
         }}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-red-200/80 dark:border-red-900/40 bg-gradient-to-br from-red-50/70 to-white dark:from-red-950/20 dark:to-surface shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-red-300 dark:hover:border-red-900 shadow-xs hover:shadow-md transition-all cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between mb-2">

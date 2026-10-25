@@ -346,7 +346,7 @@ export function StatsOverviewSection({
         <div className="flex flex-wrap items-center justify-between gap-y-1.5 gap-x-3 px-1">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 min-w-0">
             <div className="flex items-center gap-2 min-w-0">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-600 dark:bg-emerald-400 shrink-0" />
+              <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400 shrink-0" />
               <h2 className="text-[15px] sm:text-[16px] font-bold text-slate-900 dark:text-slate-100 tracking-tight truncate">
                 동탄 실거래 통계 지표 & 하이퍼로컬 인사이트
               </h2>
@@ -408,7 +408,7 @@ export function StatsOverviewSection({
             className="p-4 sm:p-5 rounded-2xl border border-border/60 bg-surface shadow-xs flex flex-col justify-between"
           >
             <span className="text-xs font-bold text-slate-400">평균 매매가</span>
-            <p className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-2">
+            <p className="text-xl sm:text-2xl font-black text-blue-600 dark:text-blue-400 mt-2">
               {statsData.avgSalePrice > 0 ? `${statsData.avgSalePrice.toLocaleString()}만원` : '-'}
             </p>
           </div>

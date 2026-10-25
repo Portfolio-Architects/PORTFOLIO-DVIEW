@@ -461,7 +461,7 @@ D-VIEW에서 더 자세한 입지 분석과 실거래가 분석을 확인해보�
                 {/* 5 Gauge Bars */}
                 <div className="flex-1 flex flex-col justify-between space-y-3">
                   <div className="space-y-2">
-                    <h4 className="text-[13px] font-black text-[#057e77] dark:text-emerald-400 tracking-wider uppercase">단지 가치 오각형 분석</h4>
+                    <h4 className="text-[13px] font-black text-blue-600 dark:text-blue-400 tracking-wider uppercase">단지 가치 오각형 분석</h4>
                     <h3 className="text-[16px] font-black text-primary">5대 지표 스펙트럼 대조</h3>
                     <p className="text-[12px] font-medium text-tertiary leading-relaxed break-keep">
                       철도교통, 초·중등 학군, 상권 인프라, 세대당 주차 및 단지 규모, 준공 연식 등 입지를 구성하는 5가지 다차원 가치를 정량화한 분석 차트입니다. 다각형 면적이 넓고 균형 잡힐수록 완성도 높은 입지를 뜻합니다.

@@ -71,7 +71,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
   return (
     <div className="space-y-4">
       <h3 className="text-[14px] font-extrabold text-primary flex items-center gap-1.5 px-1">
-        <Award size={16} className="text-[#057e77] dark:text-emerald-400" />
+        <Award size={16} className="text-blue-600 dark:text-blue-400" />
         <span>1:1 지표 매트릭스 비교</span>
       </h3>
 
@@ -81,7 +81,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           <div className="flex flex-col justify-center">비교 평가 지표</div>
           <div className="text-center truncate flex flex-col items-center justify-center gap-1">
             {aiFitScores.winner === 'apt1' && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#057e77] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-blue-600 px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
                 <Sparkles size={8} className="fill-white" />
                 <span>AI 맞춤 위너</span>
               </span>
@@ -95,7 +95,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
           </div>
           <div className="text-center truncate flex flex-col items-center justify-center gap-1">
             {aiFitScores.winner === 'apt2' && (
-              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-[#057e77] px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
+              <span className="inline-flex items-center gap-1 text-[9px] font-black text-white bg-blue-600 px-2 py-0.5 rounded-full shadow-sm animate-pulse mb-1 shrink-0">
                 <Sparkles size={8} className="fill-white" />
                 <span>AI 맞춤 위너</span>
               </span>
@@ -275,7 +275,7 @@ export const CompareSpecTable = React.memo(function CompareSpecTable({
 
         {/* Section: Price and Valuation */}
         <div className="bg-[#f8fafc]/30 dark:bg-slate-950/20 px-4 py-2 border-b border-t border-border/30 text-[11.5px] font-extrabold text-secondary flex items-center gap-1">
-          <TrendingUp size={12} className="text-[#057e77] dark:text-emerald-400" /> 가치 & 거래 정보 (최근 3M 기준)
+          <TrendingUp size={12} className="text-blue-600 dark:text-blue-400" /> 가치 & 거래 정보 (최근 3M 기준)
         </div>
 
         <div className="divide-y divide-border/20">

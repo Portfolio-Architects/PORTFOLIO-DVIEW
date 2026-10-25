@@ -34,7 +34,7 @@ export default function Error({
         <div className="flex items-center justify-center gap-3">
           <button
             onClick={() => reset?.()}
-            className="flex items-center gap-2 px-6 py-3 bg-[#057e77] dark:bg-[#057e77] text-white rounded-xl font-bold text-[14px] hover:bg-[#046660] dark:hover:bg-[#046660] transition-colors shadow-lg shadow-emerald-500/20"
+            className="flex items-center gap-2 px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white rounded-xl font-bold text-[14px] hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
           >
             <RefreshCw size={16} />
             다시 시도

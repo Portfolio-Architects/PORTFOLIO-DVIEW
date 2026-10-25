@@ -115,14 +115,14 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon-192x192.png?v=10', sizes: '192x192', type: 'image/png' },
-      { url: '/favicon.ico?v=10', sizes: 'any' }
+      { url: '/icon-192x192.png?v=11', sizes: '192x192', type: 'image/png' },
+      { url: '/favicon.ico?v=11', sizes: 'any' }
     ],
     apple: [
-      { url: '/icon-192x192.png?v=10', sizes: '192x192', type: 'image/png' }
+      { url: '/icon-192x192.png?v=11', sizes: '192x192', type: 'image/png' }
     ]
   },
-  manifest: '/manifest.webmanifest?v=10',
+  manifest: '/manifest.webmanifest?v=11',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
@@ -136,7 +136,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: '(prefers-color-scheme: light)', color: '#ffffff' },
-    { media: '(prefers-color-scheme: dark)', color: '#121212' },
+    { media: '(prefers-color-scheme: dark)', color: '#020617' },
   ],
   width: 'device-width',
   initialScale: 1,
@@ -172,7 +172,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 aurora-bg">
+      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 selection:bg-blue-600/15 selection:text-blue-600 dark:selection:bg-blue-500/25 dark:selection:text-blue-400">
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 
@@ -189,7 +189,7 @@ export default function RootLayout({
                 
                 {/* ResizeObserver loop error shield to prevent janks in charts */}
                 <Script src="/js/resize-observer-shield.js" strategy="afterInteractive" nonce={nonce} />
-                <NextTopLoader color="#057e77" showSpinner={false} />
+                <NextTopLoader color="#007AFF" showSpinner={false} height={2} />
                 <PWAProvider>
                   <InAppBrowserBypass />
                   <OfflineBanner />
@@ -198,8 +198,8 @@ export default function RootLayout({
                   <svg xmlns="http://www.w3.org/2000/svg" style={{ position: 'absolute', width: 0, height: 0, overflow: 'hidden' }} aria-hidden="true">
                     <defs>
                       <linearGradient id="dview-logo-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-                        <stop offset="0%" stopColor="#057e77" />
-                        <stop offset="100%" stopColor="#046862" />
+                        <stop offset="0%" stopColor="#007AFF" />
+                        <stop offset="100%" stopColor="#2563eb" />
                       </linearGradient>
                     </defs>
                   </svg>

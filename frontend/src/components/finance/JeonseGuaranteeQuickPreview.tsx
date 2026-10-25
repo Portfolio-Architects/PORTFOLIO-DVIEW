@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
 import {
   evaluateJeonseSafety,
-  JeonseRiskLevel,
 } from '@/lib/utils/jeonseSafetyCalculators';
 
 export interface JeonseGuaranteeQuickPreviewProps {
@@ -33,25 +32,25 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
   return (
     <div
       data-testid="jeonse-guarantee-quick-preview"
-      className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 flex flex-col justify-between shadow-sm hover:shadow-md transition-all duration-200"
+      className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xs hover:shadow-sm transition-all duration-200"
     >
       <div>
         {/* Header */}
-        <div className="flex items-center justify-between gap-2 mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={17} />
+        <div className="flex items-center justify-between gap-2 mb-3.5">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <ShieldCheck size={16} />
             </div>
             <div>
-              <h3 className="text-[14px] sm:text-[15px] font-bold text-slate-900 dark:text-slate-50 tracking-tight">
+              <h3 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
                 HUG 126% 전세보증금 안심 진단
               </h3>
-              <p className="text-[10.5px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
                 공시가 126% 룰 기준 깡통전세 및 반환보증 가입성 검증
               </p>
             </div>
           </div>
-          <span className="px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-bold shrink-0 border border-emerald-200/50 dark:border-emerald-800/40">
+          <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-extrabold shrink-0 border border-emerald-200/60 dark:border-emerald-800/50">
             D-VIEW 안심
           </span>
         </div>
@@ -67,10 +66,10 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                   key={price}
                   type="button"
                   onClick={() => setEstimatedPriceWon(price)}
-                  className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
+                  className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     estimatedPriceWon === price
-                      ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 hover:border-emerald-300'
                   }`}
                 >
                   {price / 100_000_000}억
@@ -88,10 +87,10 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                   key={dep}
                   type="button"
                   onClick={() => setJeonseDepositWon(dep)}
-                  className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
+                  className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     jeonseDepositWon === dep
-                      ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 hover:border-emerald-300'
                   }`}
                 >
                   {dep / 100_000_000}억
@@ -109,10 +108,10 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                   key={mort}
                   type="button"
                   onClick={() => setSeniorMortgageWon(mort)}
-                  className={`px-2 py-0.5 rounded-md text-[10.5px] font-bold border cursor-pointer transition-colors ${
+                  className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     seniorMortgageWon === mort
-                      ? 'bg-emerald-600 text-white border-emerald-600'
-                      : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 hover:border-emerald-300'
                   }`}
                 >
                   {mort === 0 ? '무융자' : `${mort / 10_000_000}천만`}
@@ -123,15 +122,15 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
         </div>
 
         {/* Diagnosis Result Card */}
-        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/60 rounded-xl p-3 mb-4">
+        <div className="bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700/60 rounded-xl p-3.5 mb-4">
           <div className="flex items-center justify-between mb-2">
             <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">부채비율 (보증산정 대비)</span>
             <div className="flex items-center gap-1.5">
-              <span className="text-[14px] font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+              <span className="text-[14px] font-black text-slate-900 dark:text-slate-100 tabular-nums">
                 {result.debtRatioPercent}%
               </span>
               <span
-                className={`px-1.5 py-0.5 rounded text-[10px] font-bold ${
+                className={`px-1.5 py-0.5 rounded-md text-[10px] font-bold ${
                   result.riskLevel === 'SAFE'
                     ? 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400 border border-emerald-200/60'
                     : result.riskLevel === 'CAUTION'
@@ -144,14 +143,14 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-700 dark:text-slate-300 font-medium pt-1.5 border-t border-slate-200/40 dark:border-slate-700/40">
+          <div className="flex items-center justify-between text-[11px] text-slate-700 dark:text-slate-300 font-medium pt-1.5 border-t border-slate-200/60 dark:border-slate-700/60">
             <span>HUG 산정 상한액</span>
-            <span className="font-bold text-slate-900 dark:text-slate-100">
+            <span className="font-bold text-slate-900 dark:text-slate-100 tabular-nums">
               약 {(result.guaranteeLimitWon / 100_000_000).toFixed(1)}억 원
             </span>
           </div>
 
-          <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
+          <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
             {result.diagnosisSummary}
           </p>
         </div>

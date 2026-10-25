@@ -110,11 +110,11 @@ export const TransactionTable = React.memo(function TransactionTable({
     !dealType || (dealType !== '전세' && dealType !== '월세');
 
   const getBadgeColorClasses = (dealType: string | undefined) => {
-    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-[#057e77] dark:text-emerald-400'; // 매매 기본
+    if (!dealType || dealType === '-') return 'bg-toss-blue-light text-blue-600 dark:text-blue-400'; // 매매 기본
     if (dealType === '전세') return 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400';
     if (dealType === '월세') return 'bg-blue-50 dark:bg-blue-950/45 text-blue-700 dark:text-blue-400';
     // 중개거래, 직거래, 매매 등 모두 매매 계열
-    return 'bg-toss-blue-light text-[#057e77] dark:text-emerald-400';
+    return 'bg-toss-blue-light text-blue-600 dark:text-blue-400';
   };
 
   const getDealTypeLabel = (dealType: string | undefined) => {
@@ -226,7 +226,7 @@ export const TransactionTable = React.memo(function TransactionTable({
       )}
       <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
         <h2 className="text-[14px] font-bold text-secondary shrink-0">
-          실거래가 <span className="text-[#057e77] dark:text-emerald-400 ml-1">{filteredTransactions.length}</span>건
+          실거래가 <span className="text-blue-600 dark:text-blue-400 ml-1">{filteredTransactions.length}</span>건
         </h2>
         {/* 정렬 필터 */}
         <div className="relative">
@@ -423,7 +423,7 @@ const TransactionRow = React.memo(function TransactionRow({
           <span className={`w-[20px] h-[20px] md:w-[22px] md:h-[22px] flex items-center justify-center text-[11px] font-extrabold rounded-md shrink-0 ${isCancelled ? 'opacity-50' : ''} ${
             tx.dealType === '전세' ? 'bg-[#e6f4ea] dark:bg-emerald-950/45 text-[#0d652d] dark:text-emerald-400' : 
             tx.dealType === '월세' ? 'bg-blue-50 dark:bg-blue-950/45 text-blue-700 dark:text-blue-400' : 
-            'bg-toss-blue-light text-[#057e77] dark:text-emerald-400'
+            'bg-toss-blue-light text-blue-600 dark:text-blue-400'
           }`}>
             {tx.dealType.charAt(0)}
           </span>

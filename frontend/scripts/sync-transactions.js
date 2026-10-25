@@ -68,6 +68,7 @@ const PERIOD_1Y_OUTPUT_PATH = path.resolve(__dirname, '../public/data/transactio
 const PERIOD_3Y_OUTPUT_PATH = path.resolve(__dirname, '../public/data/transactions-3y.json');
 const PERIOD_ALL_OUTPUT_PATH = path.resolve(__dirname, '../public/data/transactions-all.json');
 const MACRO_TREND_OUTPUT_PATH = path.resolve(__dirname, '../public/data/macro-trend.json');
+const MARKET_STATS_OUTPUT_PATH = path.resolve(__dirname, '../public/data/market-stats.json');
 const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
 
 const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
@@ -1131,6 +1132,26 @@ async function main() {
     transactions3y,
     transactionsAll,
   });
+
+  // 헤더 서브타이틀용 경량 실시간 지표 (국토부 매매 실거래 누적 건수 / 최신 계약일) - 실제 집계값만 기록
+  try {
+    const marketStats = {
+      apartmentCount: (() => {
+        try {
+          const raw = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../public/data/apartments-by-dong.json'), 'utf8'));
+          const byDong = raw && raw.byDong ? raw.byDong : raw;
+          return Object.values(byDong || {}).reduce((n, list) => n + (Array.isArray(list) ? list.length : 0), 0);
+        } catch (_) {
+          return 0;
+        }
+      })(),
+      saleTxCount: Object.values(summaries).reduce((n, s) => n + (Number(s && s.txCount) || 0), 0),
+      latestContractDate: recentTransactions.map((t) => String((t && t.contractDate) || '')).filter(Boolean).sort().pop() || null,
+    };
+    fs.writeFileSync(MARKET_STATS_OUTPUT_PATH, JSON.stringify(marketStats, null, 2));
+  } catch (statsErr) {
+    console.warn('market-stats.json 생성 실패 (헤더는 정적 문구로 폴백):', statsErr.message);
+  }
 
   console.log(`🎉 동기화 완료!`);
 

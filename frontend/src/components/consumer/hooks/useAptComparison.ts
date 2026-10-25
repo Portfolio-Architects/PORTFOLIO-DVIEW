@@ -1051,7 +1051,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     if (winValue === null) return 'border-border/50 text-secondary bg-surface/30';
     const isWinner = isApt1 ? winValue === true : winValue === false;
     return isWinner
-      ? 'border-[#057e77] text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 shadow-[0_0_0_1px_#057e77_inset]'
+      ? 'border-blue-600 text-blue-600 dark:text-blue-400 bg-blue-500/10 shadow-[0_0_0_1px_#2563eb_inset]'
       : 'border-border/30 text-tertiary opacity-70 bg-surface/10';
   }, []);
 

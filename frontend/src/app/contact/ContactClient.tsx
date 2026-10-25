@@ -112,8 +112,8 @@ export default function ContactClient() {
 
         {isSuccess ? (
           <div className="flex flex-col items-center justify-center py-10 text-center animate-in fade-in duration-300">
-            <div className="w-16 h-16 bg-[#e6f4f2] dark:bg-emerald-500/10 text-[#057e77] dark:text-emerald-400 rounded-full flex items-center justify-center mb-4 shadow-inner">
-              <Send size={28} className="ml-0.5 mt-0.5 text-[#057e77] dark:text-emerald-400" />
+            <div className="w-16 h-16 bg-[#e6f4f2] dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-4 shadow-inner">
+              <Send size={28} className="ml-0.5 mt-0.5 text-blue-600 dark:text-blue-400" />
             </div>
             <h3 className="text-[20px] font-extrabold text-primary mb-2">피드백이 성공적으로 접수되었습니다!</h3>
             <p className="text-[14px] text-secondary leading-relaxed mb-6">

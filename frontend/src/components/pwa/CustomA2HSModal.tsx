@@ -128,8 +128,8 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           </div>
 
           {isIOS ? (
-            <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-[#057e77]/20 text-left mb-6">
-              <div className="flex items-center gap-2 mb-3 bg-emerald-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-[#057e77] dark:text-emerald-400 border border-[#057e77]/20">
+            <div className="bg-[#e8f8f5] dark:bg-[#002f23] rounded-2xl p-5 border border-blue-600/20 text-left mb-6">
+              <div className="flex items-center gap-2 mb-3 bg-blue-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-blue-600 dark:text-blue-400 border border-blue-600/20">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -160,7 +160,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
           ) : (
             <div className="bg-body rounded-2xl p-4.5 mb-6 border border-border/40">
               {/* 리워드 그로스 배지 */}
-              <div className="flex items-center gap-2 mb-3 bg-emerald-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-[#057e77] dark:text-emerald-400 border border-[#057e77]/20">
+              <div className="flex items-center gap-2 mb-3 bg-blue-50 dark:bg-[#003829]/60 px-3 py-2 rounded-xl text-[12.5px] font-black text-blue-600 dark:text-blue-400 border border-blue-600/20">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
@@ -169,15 +169,15 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
               </div>
               <ul className="space-y-2.5 text-[13px] text-secondary font-bold">
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[#057e77] dark:bg-emerald-400 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
                   브라우저 주소창 없이 전체화면으로 넓게 보기
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[#057e77] dark:bg-emerald-400 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
                   클릭 한 번으로 관심 아파트 실시간 접속
                 </li>
                 <li className="flex items-center gap-2.5">
-                  <span className="w-1.5 h-1.5 bg-[#057e77] dark:bg-emerald-400 rounded-full"></span>
+                  <span className="w-1.5 h-1.5 bg-blue-600 dark:bg-blue-400 rounded-full"></span>
                   네이티브 앱 수준의 빠르고 부드러운 속도
                 </li>
               </ul>
@@ -194,7 +194,7 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
             {!isIOS && (
               <button
                 onClick={handleInstall}
-                className="flex-1 py-3.5 px-4 bg-[#057e77] dark:bg-[#057e77] text-white font-bold rounded-2xl hover:bg-[#046660] dark:hover:bg-[#046660] active:scale-[0.98] transition-all shadow-md text-[13.5px]"
+                className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px]"
               >
                 지금 추가하기
               </button>

@@ -141,26 +141,26 @@ export interface AptDonutSectionProps {
 }
 
 export const ENERGY_COLORS: Record<'high' | 'rising' | 'flat' | 'falling', string> = {
-  high: '#f43f5e',    // 신고가: Rose Red
-  rising: '#ea6100',  // 상승거래: D-VIEW Orange
-  flat: '#10b981',    // 보합: Emerald Green
-  falling: '#3b82f6', // 하락거래: Blue
+  high: '#f04452',    // 신고가: Brand Red (국내 부동산 상승=적색 관례)
+  rising: '#f87171',  // 상승거래: Soft Red
+  flat: '#059669',    // 보합: Emerald
+  falling: '#2563eb', // 하락거래: Trust Blue
 };
 
 export const PRICE_TIER_COLORS: Record<'under6' | 'under9' | 'under15' | 'over15', string> = {
-  under6: '#10b981',   // 6억 이하: Emerald (엔트리·안정)
-  under9: '#057e77',   // 6억 ~ 9억: Brand Deep Teal (주력 볼륨)
-  under15: '#3b82f6',  // 9억 ~ 15억: Ocean Blue (상급지 확장)
-  over15: '#e11d48',   // 15억 초과: Ruby Rose (하이엔드 희소)
+  under6: '#059669',   // 6억 이하: Emerald (엔트리·안정)
+  under9: '#2563eb',   // 6억 ~ 9억: Trust Blue (주력 볼륨)
+  under15: '#60a5fa',  // 9억 ~ 15억: Light Blue (상급지 확장)
+  over15: '#334155',   // 15억 초과: Deep Slate (하이엔드 희소)
 };
 
 export const POLICY_COLORS = PRICE_TIER_COLORS;
 
 export const PYEONG_TIER_COLORS: Record<'small' | 'medium' | 'large' | 'xlarge', string> = {
-  small: '#10b981',   // 소형 (60㎡ 이하): Emerald
-  medium: '#057e77',  // 중소형 (60~85㎡): Brand Deep Teal
-  large: '#3b82f6',   // 중대형 (85~102㎡): Ocean Blue
-  xlarge: '#e11d48',  // 대형 (102㎡ 초과): Ruby Rose
+  small: '#059669',   // 소형 (60㎡ 이하): Emerald
+  medium: '#2563eb',  // 중소형 (60~85㎡): Trust Blue
+  large: '#60a5fa',   // 중대형 (85~102㎡): Light Blue
+  xlarge: '#334155',  // 대형 (102㎡ 초과): Deep Slate
 };
 
 export const PYEONG_COLORS = PYEONG_TIER_COLORS;
@@ -593,9 +593,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       <div className="flex flex-wrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-x-3 mb-3 sm:mb-4">
         {/* Element 1: Title Group (Indicator dot + Section Title + Count Badge) */}
         <div className="flex items-center gap-1.5 sm:gap-2 order-1 shrink-0">
-          <span className="w-2.5 h-2.5 rounded-full bg-[#057e77] shrink-0" />
+          <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
           <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight whitespace-nowrap">
-            수요 분포
+            실거래 비중
           </h3>
           {totalCount > 0 && (
             <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[10.5px] font-extrabold text-secondary shrink-0">
@@ -767,7 +767,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 ) : (
                   <>
                     <span className="text-[11px] sm:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight">
-                      총 거래
+                      {PERIOD_LABELS[period]} 거래
                       <span className="sr-only">총 실거래</span>
                     </span>
                     <span className="text-[22px] sm:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5">
@@ -856,7 +856,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       size={14}
                       className={`shrink-0 transition-transform duration-200 ${
                         isSelected
-                          ? 'rotate-90 text-[#057e77] dark:text-emerald-400'
+                          ? 'rotate-90 text-blue-600 dark:text-blue-400'
                           : 'text-tertiary group-hover:text-primary group-hover:translate-x-0.5'
                       }`}
                     />
@@ -891,7 +891,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                           onOpenMortgageModal();
                         }
                       }}
-                      className="text-[10.5px] font-bold text-[#057e77] dark:text-emerald-400 hover:underline flex items-center gap-0.5 cursor-pointer"
+                      className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5 cursor-pointer"
                     >
                       대출 한도·금리 &gt;
                     </span>

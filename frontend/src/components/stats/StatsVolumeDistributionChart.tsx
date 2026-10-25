@@ -19,13 +19,13 @@ export interface StatsVolumeDistributionChartProps {
 }
 
 const TIER_COLORS: Record<string, string> = {
-  '소형 (60㎡ 이하)': '#10b981', // Emerald
-  '중소형 (60~85㎡)': '#057e77', // Brand Deep Teal
-  '중대형 (85~102㎡)': '#3b82f6', // Ocean Blue
-  '대형 (102㎡ 초과)': '#e11d48', // Ruby Rose
+  '소형 (60㎡ 이하)': '#3b82f6', // Soft Blue
+  '중소형 (60~85㎡)': '#2563eb', // Trust Blue
+  '중대형 (85~102㎡)': '#059669', // Emerald
+  '대형 (102㎡ 초과)': '#475569', // Slate
 };
 
-const FALLBACK_COLORS = ['#057e77', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+const FALLBACK_COLORS = ['#2563eb', '#3b82f6', '#059669', '#10b981', '#475569', '#64748b'];
 
 export function StatsVolumeDistributionChart({
   distribution,
@@ -56,7 +56,7 @@ export function StatsVolumeDistributionChart({
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2">
-            <PieChartIcon size={18} className="text-emerald-600" />
+            <PieChartIcon size={18} className="text-blue-600" />
             <span>평형대별 거래량 비중</span>
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -113,9 +113,9 @@ export function StatsVolumeDistributionChart({
                     name,
                   ]}
                   contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.96)',
                     borderRadius: '12px',
-                    border: '1px solid rgba(0,0,0,0.08)',
+                    border: '1px solid rgba(226, 232, 240, 0.8)',
                     fontSize: '12px',
                   }}
                 />
@@ -127,14 +127,14 @@ export function StatsVolumeDistributionChart({
               <span className="text-[11px] font-bold text-slate-400">
                 {activeItem ? activeItem.name.split(' ')[0] : '총 거래'}
               </span>
-              <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
+              <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tabular-nums">
                 {activeItem ? `${activeItem.percentage}%` : `${totalVolume}건`}
               </span>
             </div>
           </div>
 
           {/* Donut Slices Breakdown Table / Legend */}
-          <div data-testid="donut-slices" className="w-full space-y-2 mt-4 pt-3 border-t border-border/40 text-xs sm:text-sm">
+          <div data-testid="donut-slices" className="w-full space-y-2 mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 text-xs sm:text-sm">
             {distribution.map((tier, idx) => {
               const color =
                 TIER_COLORS[tier.name] || FALLBACK_COLORS[idx % FALLBACK_COLORS.length];
@@ -148,7 +148,7 @@ export function StatsVolumeDistributionChart({
                   onMouseEnter={() => setActiveIndex(idx)}
                   onMouseLeave={() => setActiveIndex(null)}
                   className={`flex items-center justify-between p-2 rounded-xl transition-colors cursor-pointer ${
-                    isSelected ? 'bg-body font-bold' : 'hover:bg-body/60 text-secondary'
+                    isSelected ? 'bg-slate-50 dark:bg-slate-800 font-bold' : 'hover:bg-slate-50/70 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300'
                   }`}
                 >
                   <div className="flex items-center gap-2">
@@ -158,7 +158,7 @@ export function StatsVolumeDistributionChart({
                     />
                     <span className="font-semibold">{tier.name}</span>
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-white">
+                  <span className="font-bold text-slate-900 dark:text-white tabular-nums">
                     {tier.value}건 ({tier.percentage}%)
                   </span>
                 </div>

@@ -33,7 +33,9 @@ export function useInView<T extends HTMLElement = HTMLDivElement>(
     process.env.NODE_ENV === 'test' ||
     testMode;
 
-  const [inView, setInView] = useState<boolean>(isImmediatelyActive);
+  // Initial state must be identical on server and client to avoid hydration mismatch;
+  // immediate activation is applied in the effect below (post-hydration).
+  const [inView, setInView] = useState<boolean>(testMode);
   const elementRef = useRef<T | null>(null);
 
   const refCallback = useCallback((node: T | null) => {

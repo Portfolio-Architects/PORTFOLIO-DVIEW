@@ -397,8 +397,8 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   const chartData = useMemo(() => {
     if (!taxResults) return [];
     return [
-      { name: '매매 가액', value: acquisitionPrice, color: '#057e77', gradientUrl: 'url(#colorAcq)' },
-      { name: '세금 합계', value: taxResults.totalTax, color: '#f43f5e', gradientUrl: 'url(#colorTax)' },
+      { name: '매매 가액', value: acquisitionPrice, color: '#2563eb', gradientUrl: 'url(#colorAcq)' },
+      { name: '세금 합계', value: taxResults.totalTax, color: '#f04452', gradientUrl: 'url(#colorTax)' },
       { name: '중개수수료', value: taxResults.brokerFee, color: '#64748b', gradientUrl: 'url(#colorFee)' },
     ];
   }, [taxResults, acquisitionPrice]);
@@ -504,7 +504,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
         aria-labelledby="tax-title"
         aria-describedby="tax-desc"
         className={`relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 w-full ${
-          showResult ? 'max-w-[580px] md:max-w-[900px]' : 'max-w-[580px]'
+          showResult ? 'max-w-[580px] md:max-w-[940px]' : 'max-w-[580px]'
         } max-h-[90vh] md:max-h-[86vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
       >
         {/* Header */}
@@ -548,7 +548,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                       if (selectedApt) setSelectedApt(null);
                     }}
                     onFocus={() => setIsFocused(true)}
-                    className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                    className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                   />
                   {searchQuery && (
                     <button
@@ -600,7 +600,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                         placeholder="예: 75,000"
                         value={inputValue}
                         onChange={handlePriceChange}
-                        className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
+                        className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all pr-12"
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-bold text-tertiary">만원</span>
                     </div>
@@ -621,7 +621,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                         step="1000"
                         value={acquisitionPrice || 10000}
                         onChange={(e) => setAcquisitionPrice(parseInt(e.target.value))}
-                        className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-[#057e77]"
+                        className="w-full h-1 bg-border rounded-lg appearance-none cursor-pointer accent-blue-600"
                       />
                       <div className="flex justify-between text-[10px] text-tertiary mt-1 font-medium">
                         <span>1억원</span>
@@ -650,7 +650,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                           onClick={() => setOwnedHouses(num)}
                           className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                             ownedHouses === num
-                              ? 'border-[#057e77] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                              ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
                               : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                           }`}
                         >
@@ -677,7 +677,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                         onClick={() => setExclusiveArea('85under')}
                         className={`py-2.5 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                           exclusiveArea === '85under'
-                            ? 'border-[#057e77] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                            ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
                               : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                         }`}
                       >
@@ -688,7 +688,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                         onClick={() => setExclusiveArea('85over')}
                         className={`py-2.5 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                           exclusiveArea === '85over'
-                            ? 'border-[#057e77] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                            ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
                               : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                         }`}
                       >
@@ -700,7 +700,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                   <button
                     onClick={handleStartSimulate}
                     disabled={isCalculating || acquisitionPrice <= 0}
-                    className="w-full bg-[#057e77] hover:bg-[#046862] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
+                    className="w-full bg-blue-600 hover:bg-[#046862] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
                   >
                     {isCalculating ? (
                       <>
@@ -719,7 +719,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
           ) : (
             taxResults && (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start animate-in zoom-in-95 fade-in duration-300">
-                <div className="md:col-span-5 space-y-4">
+                <div className="md:col-span-6 space-y-4">
                 {/* Result Headline Card */}
                 <div className="bg-body/70 border border-border/40 p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
@@ -727,7 +727,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                     자금 계획 부대비용 리포트
                   </span>
                   <h3 className="text-[15px] font-black text-primary mt-1">
-                    최종 소요 부대비용: <span className="text-[#f43f5e]">{formatEokMan(taxResults.totalCost)}</span>
+                    최종 소요 부대비용: <span className="text-red-500">{formatEokMan(taxResults.totalCost)}</span>
                   </h3>
                   <p className="text-[11.5px] font-medium text-tertiary">
                     매수 단지 가액 {formatEokMan(acquisitionPrice)} 포함 시 최종 인수 금액은{' '}
@@ -741,7 +741,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                 {/* Pie Chart Visualization */}
                 <div className="space-y-3">
                   <h4 className="text-[12.5px] font-extrabold text-primary flex items-center gap-1.5">
-                    <Calculator size={14} className="text-[#057e77] dark:text-emerald-400" /> 총 소요 자금 비중 분석
+                    <Calculator size={14} className="text-blue-600 dark:text-blue-400" /> 총 소요 자금 비중 분석
                   </h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-center bg-body/20 p-4 rounded-xl border border-border/20">
                     <div className="w-full h-32 relative flex items-center justify-center">
@@ -749,11 +749,11 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                         <PieChart width={128} height={128}>
                           <defs>
                             <linearGradient id="colorAcq" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#057e77" stopOpacity={1}/>
+                              <stop offset="5%" stopColor="#2563eb" stopOpacity={1}/>
                               <stop offset="95%" stopColor="#059669" stopOpacity={1}/>
                             </linearGradient>
                             <linearGradient id="colorTax" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#f43f5e" stopOpacity={1}/>
+                              <stop offset="5%" stopColor="#f04452" stopOpacity={1}/>
                               <stop offset="95%" stopColor="#be123c" stopOpacity={1}/>
                             </linearGradient>
                             <linearGradient id="colorFee" x1="0" y1="0" x2="0" y2="1">
@@ -792,7 +792,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                       )}
                       <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                         <span className="text-[9px] font-bold text-tertiary">부대비용</span>
-                        <span className="text-[10px] font-black text-[#f43f5e]">
+                        <span className="text-[10px] font-black text-red-500">
                           {((taxResults.totalCost / (acquisitionPrice + taxResults.totalCost)) * 100).toFixed(1)}%
                         </span>
                       </div>
@@ -800,12 +800,12 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
 
                     <div className="text-[11.5px] font-bold text-secondary space-y-2">
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#057e77]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
                         <span className="text-tertiary">매매 가액:</span>
                         <span className="ml-auto text-primary">{formatEokMan(acquisitionPrice)}</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2.5 h-2.5 rounded-full bg-[#f43f5e]" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
                         <span className="text-tertiary">세금 합계:</span>
                         <span className="ml-auto text-primary">{formatEokMan(taxResults.totalTax)}</span>
                       </div>
@@ -821,7 +821,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                 </div>
 
                 {/* Right Column (7 cols): Details Breakdown & AdSlot */}
-                <div className="md:col-span-7 space-y-4">
+                <div className="md:col-span-6 space-y-4">
                 {/* Details Breakdown */}
                 <div className="space-y-3">
                   <h4 className="text-[12.5px] font-extrabold text-primary">항목별 정밀 세액 내역</h4>
@@ -848,7 +848,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                         <span className="text-tertiary font-semibold">{taxResults.ruralSpecialTaxRate}%</span>
                         <span className="font-extrabold">{formatEokMan(taxResults.ruralSpecialTax)}</span>
                       </div>
-                      <div className="flex justify-between items-center text-[#f43f5e] font-black pt-1">
+                      <div className="flex justify-between items-center text-red-500 font-black pt-1">
                         <span>세금 합계액</span>
                         <span className="text-right">{formatEokMan(taxResults.totalTax)}</span>
                       </div>
@@ -888,8 +888,14 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                 </div>
 
                 {/* Bottom Buttons */}
-                <div className="md:col-span-12 flex gap-2 pt-3 border-t border-slate-200/70 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm pb-1 z-10">
-                  <button
+                              </div>
+            )
+          )}
+        </div>
+
+        {showResult && taxResults && (
+          <footer className="shrink-0 border-t border-slate-200/80 dark:border-slate-800 px-6 py-3.5 bg-white dark:bg-slate-900 flex items-center gap-2.5">
+            <button
                     onClick={() => setShowResult(false)}
                     className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1 active:scale-95"
                   >
@@ -921,11 +927,8 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                     <MessageSquare size={14} />
                     <span>카카오톡 공유</span>
                   </button>
-                </div>
-              </div>
-            )
-          )}
-        </div>
+          </footer>
+        )}
       </div>
     </div>,
     document.getElementById('modal-root') || document.body

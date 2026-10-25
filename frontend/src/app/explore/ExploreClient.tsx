@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 
 import PullToRefresh from '@/components/pwa/PullToRefresh';
 import PageHeroHeader from '@/components/PageHeroHeader';
+import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 import { AdSlot } from '@/components/ads/AdSlot';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -450,8 +451,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
               <section className="w-full bg-transparent min-h-[85vh] min-h-[800px]">
                 <PageHeroHeader 
                   title="D-VIEW 아파트 탐색"
-                  subtitleStrong="동탄 아파트 조건별 맞춤 탐색"
-                  subtitleLight="입지 점수·학군·동탄역 접근성 기준 조건 비교"
+                  subtitleStrong={<MarketStatsStrong />}
+                  subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
                 />
                 <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 my-4">
                   <AdSlot

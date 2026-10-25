@@ -104,14 +104,14 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
       />
       <div className="flex flex-col w-full">
         <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-          <MapPin size={18} className="text-[#057e77] dark:text-emerald-400"/> 단지 입지정보
+          <MapPin size={18} className="text-blue-600 dark:text-blue-400"/> 단지 입지정보
         </h2>
 
         {/* ─── 생활 인프라 종합 지수 (Infra Index) ─── */}
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-            S: { bg: 'bg-[#e6f7f3]', text: 'text-[#057e77] dark:text-emerald-400', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#057e77]/5', scoreText: 'text-[#057e77] dark:text-emerald-400' },
+            S: { bg: 'bg-[#e6f7f3]', text: 'text-blue-600 dark:text-blue-400', border: 'border-[#a7f3d0]/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
             A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
             B: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600' },
             C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
@@ -172,12 +172,12 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
         {/* ─── 교통 Section ─── */}
         {(report.metrics.distanceToSubway > 0 || (report.metrics.distanceToIndeokwon != null && report.metrics.distanceToIndeokwon > 0) || (report.metrics.distanceToTram != null && report.metrics.distanceToTram > 0)) && (
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-[#057e77] pl-2.5">
+            <div className="flex items-center gap-2 mb-4 border-l-[3px] border-blue-600 pl-2.5">
               <span className="text-[14px] md:text-[15px] font-black text-primary tracking-tight">교통망 정보</span>
             </div>
             <div className="flex overflow-x-auto custom-scrollbar gap-3 pb-2 sm:grid sm:grid-cols-3 md:gap-3">
               {[
-                { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#057e77', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
+                { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                 { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
                 { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0284c7', bgFrom: '#f0f9ff', bgTo: '#e0f2fe' },
               ].filter(s => s.dist != null && s.dist > 0).map(station => {
@@ -288,7 +288,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                     bg = 'bg-blue-600';
                   } else if (cat.includes('분식') || cat.includes('떡볶이') || cat.includes('김밥') || cat.includes('만두') || cat.includes('라면')) {
                     tag = '분식/간식';
-                    color = '#057e77'; // emerald-600
+                    color = '#2563eb'; // blue-600
                     bg = 'bg-emerald-600';
                   } else if (cat.includes('호프') || cat.includes('맥주') || cat.includes('치킨') || cat.includes('닭강정') || cat.includes('통닭') || cat.includes('술집')) {
                     tag = '치킨/주점';

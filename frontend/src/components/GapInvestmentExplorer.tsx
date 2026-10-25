@@ -60,13 +60,13 @@ const GapComplexCard = React.memo(function GapComplexCard({
         type="button"
         onClick={() => onSelect(item.apt.name)}
         aria-label={`${item.apt.name} 필요 투자금 갭 ${formatPrice(item.gap)} 최근 매매/전세 평균 상세 보기`}
-        className="flex flex-col text-left w-full outline-none focus:ring-2 focus:ring-[#057e77]/30 rounded-xl focus:ring-offset-2"
+        className="flex flex-col text-left w-full outline-none focus:ring-2 focus:ring-blue-600/30 rounded-xl focus:ring-offset-2"
       >
       <div className="flex justify-between items-start gap-2 mb-4">
         <div className="flex flex-col min-w-0 pr-1">
           <span 
             data-testid="complex-name"
-            className="text-[16px] md:text-[18px] font-extrabold text-primary/95 dark:text-slate-100 tracking-tight leading-normal break-keep whitespace-normal group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors"
+            className="text-[16px] md:text-[18px] font-extrabold text-primary/95 dark:text-slate-100 tracking-tight leading-normal break-keep whitespace-normal group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors"
           >
             {item.apt.name}
           </span>
@@ -77,7 +77,7 @@ const GapComplexCard = React.memo(function GapComplexCard({
         <div className="flex flex-col gap-1 items-end shrink-0">
           <span className={`px-2 py-0.5 text-[10px] sm:text-[11px] font-extrabold rounded-md shrink-0 border transition-all ${
             item.gapScore >= 80 ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400 border-emerald-500/30 animate-emerald-pulse' :
-            item.gapScore >= 60 ? 'bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 border-emerald-500/20 dark:border-emerald-500/20' :
+            item.gapScore >= 60 ? 'bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 border-blue-500/20 dark:border-blue-500/20' :
             'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-300/60 dark:border-slate-700'
           }`}>
             {item.gapScore >= 80 ? 'S등급 (우수)' : item.gapScore >= 60 ? 'A등급 (보통)' : 'B등급 (관망)'}
@@ -88,19 +88,19 @@ const GapComplexCard = React.memo(function GapComplexCard({
         </div>
       </div>
 
-      <div className="flex justify-between items-center bg-[#057e77]/5 dark:bg-emerald-500/10 rounded-[14px] p-3.5 border border-[#057e77]/10 dark:border-emerald-500/20 mb-4 w-full">
+      <div className="flex justify-between items-center bg-blue-600/5 dark:bg-blue-500/10 rounded-[14px] p-3.5 border border-blue-600/10 dark:border-blue-500/20 mb-4 w-full">
         <div className="flex flex-col">
-          <span className="text-[11px] font-bold text-[#057e77] dark:text-emerald-400">필요 투자금 (갭)</span>
-          <span className="text-[18px] md:text-[20px] font-black text-[#057e77] dark:text-emerald-400 tracking-tight">
+          <span className="text-[11px] font-bold text-blue-600 dark:text-blue-400">필요 투자금 (갭)</span>
+          <span className="text-[18px] md:text-[20px] font-black text-blue-600 dark:text-blue-400 tracking-tight">
             {formatPrice(item.gap)}
           </span>
         </div>
         
         <div className="flex flex-col items-end">
-          <span className="text-[11px] md:text-[12px] font-bold text-[#057e77] dark:text-emerald-400">전세율 {jeonseRatePercent}%</span>
+          <span className="text-[11px] md:text-[12px] font-bold text-blue-600 dark:text-blue-400">전세율 {jeonseRatePercent}%</span>
           <div className="w-16 h-1.5 bg-border/50 dark:bg-emerald-950/30 rounded-full mt-1.5 overflow-hidden">
             <div 
-              className="h-full bg-gradient-to-r from-emerald-400 to-[#057e77]" 
+              className="h-full bg-gradient-to-r from-blue-400 to-blue-600" 
               style={{ width: `${Math.min(jeonseRatePercent, 100)}%` }}
             />
           </div>
@@ -123,7 +123,7 @@ const GapComplexCard = React.memo(function GapComplexCard({
         <button
           onClick={(e) => onToggleExpand(item.apt.name, e)}
           data-testid="risk-btn"
-          className="flex items-center gap-1 text-[11px] font-black text-secondary hover:text-[#057e77] dark:hover:text-emerald-400 transition-colors focus:outline-none"
+          className="flex items-center gap-1 text-[11px] font-black text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors focus:outline-none"
         >
           <ShieldAlert className="w-3.5 h-3.5 text-tertiary" />
           <span>3대 리스크 진단</span>
@@ -720,7 +720,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div className="flex items-center justify-between w-full sm:w-auto">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 dark:bg-emerald-950/20 flex items-center justify-center text-[#057e77] dark:text-emerald-400">
+            <div className="w-8 h-8 rounded-xl bg-blue-500/10 dark:bg-blue-950/20 flex items-center justify-center text-blue-600 dark:text-blue-400">
               <Coins className="w-4 h-4" />
             </div>
             <div>
@@ -736,12 +736,12 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           {/* Mobile Share Button */}
           <button
             onClick={handleShare}
-            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-[#057e77]/30 hover:bg-[#057e77]/5 text-secondary hover:text-[#057e77] dark:hover:text-emerald-400 active:scale-95 transition-all duration-300 relative focus:outline-none"
+            className="sm:hidden flex items-center justify-center w-9 h-9 rounded-xl border border-border/80 hover:border-blue-600/30 hover:bg-blue-600/5 text-secondary hover:text-blue-600 dark:hover:text-blue-400 active:scale-95 transition-all duration-300 relative focus:outline-none"
             title="현재 큐레이션 조건 공유하기"
           >
             <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
               {isCopied ? (
-                <Check size={14} className="text-[#057e77] dark:text-emerald-400 animate-in zoom-in duration-200" />
+                <Check size={14} className="text-blue-600 dark:text-blue-400 animate-in zoom-in duration-200" />
               ) : (
                 <Share2 size={14} className="animate-in zoom-in duration-200" />
               )}
@@ -752,12 +752,12 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
         {/* Desktop Share Button */}
         <button
           onClick={handleShare}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-[#057e77]/30 hover:bg-[#057e77]/5 text-secondary hover:text-[#057e77] dark:hover:text-emerald-400 active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
+          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-extrabold border border-border/80 hover:border-blue-600/30 hover:bg-blue-600/5 text-secondary hover:text-blue-600 dark:hover:text-blue-400 active:scale-95 transition-all duration-300 relative focus:outline-none shrink-0"
           title="현재 큐레이션 조건 공유하기"
         >
           <div className="relative w-4 h-4 flex items-center justify-center shrink-0">
             {isCopied ? (
-              <Check size={14} className="text-[#057e77] dark:text-emerald-400 animate-in zoom-in duration-200" />
+              <Check size={14} className="text-blue-600 dark:text-blue-400 animate-in zoom-in duration-200" />
             ) : (
               <Share2 size={14} className="animate-in zoom-in duration-200" />
             )}
@@ -770,7 +770,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
         <div className="bg-body/20 dark:bg-slate-950/20 border border-border/40 dark:border-white/10 rounded-[20px] p-4 flex flex-col justify-between shadow-[0_2px_8px_rgba(0,0,0,0.01)] backdrop-blur-sm">
           <span className="text-[11.5px] font-extrabold text-secondary/80 dark:text-slate-400 flex items-center gap-1.5">
-            <Percent className="w-3.5 h-3.5 text-[#057e77] dark:text-emerald-400" />
+            <Percent className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             평균 전세가율
           </span>
           <div className="flex items-baseline gap-1.5 mt-2.5">
@@ -778,7 +778,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
               {avgJeonseRate}%
             </span>
             <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
-              avgJeonseRate >= 70 ? 'bg-[#fffbeb] text-[#d97706] dark:bg-[#d97706]/10' : 'bg-emerald-50 text-[#057e77] dark:bg-[#042820] dark:text-emerald-400'
+              avgJeonseRate >= 70 ? 'bg-[#fffbeb] text-blue-600 dark:bg-blue-600/10' : 'bg-blue-50 text-blue-600 dark:bg-[#042820] dark:text-blue-400'
             }`}>
               {avgJeonseRate >= 70 ? '보증보험 점검' : '실구매 부담 적음'}
             </span>
@@ -845,7 +845,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
           <div className="flex-1 flex flex-col gap-2">
             <div className="flex justify-between items-baseline">
               <span className="text-[13px] md:text-[14px] font-extrabold text-secondary dark:text-slate-355">최대 투자금 (갭)</span>
-              <span className="text-[18px] md:text-[20px] font-black text-[#057e77] dark:text-emerald-400 tracking-tight">
+              <span className="text-[18px] md:text-[20px] font-black text-blue-600 dark:text-blue-400 tracking-tight">
                 {formatGapLabel(localMaxGap)}
               </span>
             </div>
@@ -860,9 +860,9 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                   setLocalMaxGap(Number(e.target.value));
                   setShowAll(false);
                 }}
-                className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-[#057e77] dark:accent-emerald-400 transition-all bg-slate-100 dark:bg-slate-800"
+                className="flex-1 h-2 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-400 transition-all bg-slate-100 dark:bg-slate-800"
                 style={{
-                  background: `linear-gradient(to right, #057e77 0%, #057e77 ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
+                  background: `linear-gradient(to right, #2563eb 0%, #2563eb ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) ${((localMaxGap - 3000) / (60000 - 3000)) * 100}%, rgba(156, 163, 175, 0.2) 100%)`
                 }}
               />
             </div>
@@ -870,7 +870,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
 
           {/* Direct Input & Match Count */}
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:ring-2 focus-within:ring-[#057e77] dark:focus-within:ring-emerald-400 shadow-sm transition-all duration-300">
+            <div className="flex items-center gap-1.5 bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 rounded-xl px-3.5 py-2.5 focus-within:ring-2 focus-within:ring-blue-600 dark:focus-within:ring-blue-400 shadow-sm transition-all duration-300">
               <input
                 type="number"
                 min="0"
@@ -888,7 +888,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
               <span className="text-[12px] font-bold text-secondary/60 dark:text-slate-400">만원</span>
             </div>
 
-            <div className="bg-emerald-50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400 px-3 py-2.5 rounded-xl text-[12px] md:text-[13px] font-extrabold border border-emerald-500/20 dark:border-emerald-500/20 shrink-0">
+            <div className="bg-blue-50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400 px-3 py-2.5 rounded-xl text-[12px] md:text-[13px] font-extrabold border border-blue-500/20 dark:border-blue-500/20 shrink-0">
                총 {gapList.length}개 매칭
             </div>
           </div>
@@ -907,7 +907,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
               }}
               className={`px-3.5 py-1.5 text-[12px] font-extrabold rounded-[10px] hover:scale-[1.02] active:scale-[0.98] transition-all border duration-200 ${
                 localMaxGap === preset.value
-                  ? 'bg-[#057e77] text-white border-[#057e77] shadow-sm'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
                   : 'bg-surface dark:bg-slate-800 text-secondary dark:text-slate-300 hover:text-primary dark:hover:text-slate-100 border-border/40 dark:border-white/10'
               }`}
             >
@@ -933,7 +933,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 setSelectedDong(e.target.value || null);
                 setShowAll(false);
               }}
-              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
+              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-blue-600/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600/30 dark:focus:ring-blue-400/30 appearance-none cursor-pointer transition-all duration-300"
             >
               <option value="">전체 행정동</option>
               {dongsList.map(dong => (
@@ -958,7 +958,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 setMinJeonseRate(Number(e.target.value));
                 setShowAll(false);
               }}
-              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
+              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-blue-600/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600/30 dark:focus:ring-blue-400/30 appearance-none cursor-pointer transition-all duration-300"
             >
               <option value="0">전체 전세율</option>
               <option value="60">60% 이상</option>
@@ -983,7 +983,7 @@ const GapInvestmentExplorer = React.memo(function GapInvestmentExplorer({
                 setSortBy(e.target.value);
                 setShowAll(false);
               }}
-              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-[#057e77]/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-[#057e77]/30 dark:focus:ring-emerald-400/30 appearance-none cursor-pointer transition-all duration-300"
+              className="w-full bg-surface/80 dark:bg-slate-800/80 border border-border/40 dark:border-white/10 hover:border-blue-600/30 text-primary dark:text-slate-150 rounded-xl px-3.5 py-2.5 text-[12.5px] font-extrabold focus:outline-none focus:ring-2 focus:ring-blue-600/30 dark:focus:ring-blue-400/30 appearance-none cursor-pointer transition-all duration-300"
             >
               <option value="gapScore">주거 안심 지수 순</option>
               <option value="gapAsc">구매차액 낮은 순</option>

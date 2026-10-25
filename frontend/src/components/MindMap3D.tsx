@@ -357,7 +357,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
         } else {
           const jeonseRatioVal = Math.min(100, Math.max(0, node.ratio));
           if (jeonseRatioVal >= 70) {
-            nodeColor = '#057e77'; // Emerald
+            nodeColor = '#2563eb'; // Emerald
           } else if (jeonseRatioVal >= 55) {
             nodeColor = '#eab308'; // Yellow
           } else {
@@ -590,7 +590,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               onClick={() => setTemperatureMode('vote')}
               className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all flex items-center gap-1 ${
                 temperatureMode === 'vote'
-                  ? (isDark ? 'bg-slate-800 text-emerald-400' : 'bg-surface text-[#057e77] shadow-sm')
+                  ? (isDark ? 'bg-slate-800 text-blue-400' : 'bg-surface text-blue-600 shadow-sm')
                   : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
@@ -601,7 +601,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
               onClick={() => setTemperatureMode('ratio')}
               className={`px-3 py-1 text-[11px] font-extrabold rounded-md transition-all flex items-center gap-1 ${
                 temperatureMode === 'ratio'
-                  ? (isDark ? 'bg-slate-800 text-emerald-400' : 'bg-surface text-[#057e77] shadow-sm')
+                  ? (isDark ? 'bg-slate-800 text-blue-400' : 'bg-surface text-blue-600 shadow-sm')
                   : (isDark ? 'text-slate-400 hover:text-slate-200' : 'text-secondary hover:text-primary')
               }`}
             >
@@ -709,7 +709,7 @@ const MindMap3D = React.memo(function MindMap3D({ sheetApartments, txSummaryData
           ) : (
             <>
               <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-[#057e77] shadow-sm" />
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-sm" />
                 <span>전세율 우수 (70% 이상)</span>
               </div>
               <div className="flex items-center gap-1.5">

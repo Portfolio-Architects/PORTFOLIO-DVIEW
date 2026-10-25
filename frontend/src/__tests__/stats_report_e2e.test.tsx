@@ -944,13 +944,13 @@ describe('동탄 아파트 통계 리포트 & 애드센스 대시보드 종합 E
 
       it('F7.4: Validates activeTab state propagation in LoungeHeader', () => {
         const { container } = render(<LoungeHeader activeTab="overview" />);
-        const activeLink = container.querySelector('.text-emerald-700');
+        const activeLink = container.querySelector('.text-blue-600');
         expect(activeLink).toBeInTheDocument();
       });
 
       it('F7.5: Validates activeTab state propagation in MobileDock', () => {
         const { container } = render(<MobileDock activeTab="overview" />);
-        const activeItem = container.querySelector('.text-emerald-700');
+        const activeItem = container.querySelector('.text-blue-600');
         expect(activeItem).toBeInTheDocument();
       });
     });

@@ -392,9 +392,9 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
       expect(slot1Container?.className).toContain('min-h-[140px]');
       expect(slot1Container?.className).toContain('sm:min-h-[160px]');
 
-      // Ordering check: timelineHeading is preceding slot1Container, which precedes statsSection
+      // Ordering check: slot1Container precedes timelineHeading and statsSection (hero -> slot 1 -> timeline -> stats)
       expect(
-        timelineHeading.compareDocumentPosition(slot1Container!) & Node.DOCUMENT_POSITION_FOLLOWING
+        slot1Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
       expect(
         slot1Container!.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING

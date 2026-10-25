@@ -498,7 +498,7 @@ describe('Challenger 2: Core Public Feature Integrity & Zero-Auth Verification',
         </SettingsProvider>
       );
       expect(screen.getAllByText('D-VIEW 테크노 랩').length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText('동탄 테크노밸리 심층 데이터 분석')).toBeInTheDocument();
+      expect(screen.getByText('동탄테크노밸리 지식산업센터 56곳')).toBeInTheDocument();
     });
 
     it('MBTIContainer renders public 1-minute housing personality quiz intro without login', () => {

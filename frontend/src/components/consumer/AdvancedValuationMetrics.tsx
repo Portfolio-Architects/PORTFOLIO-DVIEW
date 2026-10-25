@@ -236,7 +236,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
 
                       {/* AI 진단 코멘트 */}
                       <div className="text-[11px] font-bold text-secondary bg-body p-2.5 rounded-xl border border-border/40 leading-relaxed break-keep">
-                        <span className="text-[#057e77] dark:text-emerald-400 font-extrabold mr-1 inline-flex items-center gap-1">
+                        <span className="text-blue-600 dark:text-blue-400 font-extrabold mr-1 inline-flex items-center gap-1">
                           <Sparkles size={13} className="text-emerald-500 shrink-0" />
                           <span>D-VIEW AI 진단:</span>
                         </span>
@@ -657,7 +657,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                     href="https://dview-loan.toss.im"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full sm:w-auto text-center px-4 py-2.5 bg-[#057e77] hover:bg-[#046c66] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-surface font-extrabold text-[12.5px] rounded-xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
+                    className="w-full sm:w-auto text-center px-4 py-2.5 bg-blue-600 hover:bg-[#046c66] dark:bg-blue-600 dark:hover:bg-blue-500 text-surface font-extrabold text-[12.5px] rounded-xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
                   >
                     우대금리 조회하기
                   </a>
@@ -677,14 +677,14 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                   <div className="flex-1 flex flex-col justify-center items-center md:items-start bg-body border border-border rounded-2xl p-5 text-center md:text-left min-w-0">
                     <span className="text-[11px] font-bold text-tertiary uppercase tracking-wider">종합 가치평가 점수</span>
                     <div className="flex items-baseline gap-1 mt-2">
-                      <span className="text-[44px] font-black text-[#057e77] dark:text-emerald-400 leading-none tracking-tight">
+                      <span className="text-[44px] font-black text-blue-600 dark:text-blue-400 leading-none tracking-tight">
                         {vm.utilityScoreResult.total}
                       </span>
                       <span className="text-[14px] font-bold text-tertiary">/ {vm.utilityScoreResult.maxTotal}점</span>
                     </div>
                     <div className="w-full bg-[#e5e8eb] h-2.5 rounded-full mt-4 overflow-hidden">
                       <div
-                        className="bg-[#057e77] dark:bg-emerald-500 h-full rounded-full transition-all duration-1000 ease-out"
+                        className="bg-blue-600 dark:bg-blue-500 h-full rounded-full transition-all duration-1000 ease-out"
                         style={{ width: `${(vm.utilityScoreResult.total / vm.utilityScoreResult.maxTotal) * 100}%` }}
                       />
                     </div>
@@ -698,7 +698,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                           vm.utilityScoreResult.total >= 130
                             ? 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-400'
                             : vm.utilityScoreResult.total >= 100
-                            ? 'bg-[#e6f3f0] dark:bg-[#057e77]/20 text-[#057e77] dark:text-emerald-400'
+                            ? 'bg-[#e6f3f0] dark:bg-blue-600/20 text-blue-600 dark:text-blue-400'
                             : 'bg-slate-100 text-blue-600'
                         }`}>
                           {vm.utilityScoreResult.total >= 130 ? '최우수 단지' : vm.utilityScoreResult.total >= 100 ? '우수 단지' : '표준 단지'}
@@ -718,7 +718,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                       className="mt-6 w-full p-4 rounded-xl border flex items-center justify-between bg-body hover:bg-body border-border transition-all active:scale-[0.99] group cursor-pointer"
                     >
                       <span className="text-[14px] font-extrabold text-secondary flex items-center gap-2">
-                        <Info size={16} className="text-[#057e77] dark:text-emerald-400" />
+                        <Info size={16} className="text-blue-600 dark:text-blue-400" />
                         세부 가치평가 내역 {vm.isScoreAccordionOpen ? '접기' : '펼치기'} (11개 항목)
                       </span>
                       <ChevronDown
@@ -755,7 +755,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                                 </div>
                                 <span className="text-[12px] md:text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
                                 {log.data && (
-                                  <span className="text-[11px] text-[#057e77] dark:text-emerald-400 font-bold mt-1 px-2.5 py-1 bg-[#057e77]/5 dark:bg-emerald-400/10 rounded border border-[#057e77]/10 dark:border-emerald-400/20 w-fit ml-1">
+                                  <span className="text-[11px] text-blue-600 dark:text-blue-400 font-bold mt-1 px-2.5 py-1 bg-blue-600/5 dark:bg-blue-400/10 rounded border border-blue-600/10 dark:border-blue-400/20 w-fit ml-1">
                                     실데이터: {log.data}
                                   </span>
                                 )}
@@ -767,7 +767,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
 
                       {/* Infra */}
                       <div className="flex flex-col gap-4">
-                        <h4 className="text-[13px] md:text-[13.5px] font-extrabold text-[#057e77] dark:text-emerald-400 border-b border-border pb-2 flex items-center gap-1.5">
+                        <h4 className="text-[13px] md:text-[13.5px] font-extrabold text-blue-600 dark:text-blue-400 border-b border-border pb-2 flex items-center gap-1.5">
                           <MapPin size={16} />
                           주변 인프라 & 교통 입지 (7개 지표)
                         </h4>
@@ -778,7 +778,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                               <div key={i} className="bg-body/40 border border-border/60 rounded-2xl p-4 flex flex-col gap-2">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-[#057e77]/10 dark:bg-emerald-400/10 text-[#057e77] dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                    <div className="w-8 h-8 rounded-full bg-blue-600/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
                                       <Icon size={16} />
                                     </div>
                                     <span className="text-[13px] md:text-[13.5px] font-bold text-primary">{log.category}</span>
@@ -787,7 +787,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                                 </div>
                                 <span className="text-[12px] md:text-[12.5px] text-secondary font-medium pl-1">{log.label}</span>
                                 {log.data && (
-                                  <span className="text-[11px] text-[#057e77] dark:text-emerald-400 font-bold mt-1 px-2.5 py-1 bg-[#057e77]/5 dark:bg-emerald-400/10 rounded border border-[#057e77]/10 dark:border-emerald-400/20 w-fit ml-1">
+                                  <span className="text-[11px] text-blue-600 dark:text-blue-400 font-bold mt-1 px-2.5 py-1 bg-blue-600/5 dark:bg-blue-400/10 rounded border border-blue-600/10 dark:border-blue-400/20 w-fit ml-1">
                                     실데이터: {log.data}
                                   </span>
                                 )}
@@ -807,7 +807,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
           <div className="p-5 bg-body/20 border-t border-border flex justify-center">
             <button
               onClick={() => vm.setIsValuationModalOpen(true)}
-              className="w-full sm:w-auto px-8 py-4 bg-[#057e77] hover:bg-[#04635e] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-surface text-[15px] font-extrabold rounded-2xl shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-8 py-4 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-surface text-[15px] font-extrabold rounded-2xl shadow-sm hover:shadow active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <Info size={16} />
               [ 가치평가 상세분석 및 계산법 보기 ]
@@ -841,8 +841,8 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
             {/* Header */}
             <div className="flex items-center justify-between border-b border-body pb-4 shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-[#057e77]/10 dark:bg-emerald-400/10 flex items-center justify-center">
-                  <ShieldCheck size={18} className="text-[#057e77] dark:text-emerald-400" />
+                <div className="w-8 h-8 rounded-full bg-blue-600/10 dark:bg-blue-400/10 flex items-center justify-center">
+                  <ShieldCheck size={18} className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <h3 className="text-[18px] font-extrabold text-primary tracking-tight">종합 가치평가 상세 분석</h3>
               </div>
@@ -872,7 +872,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
 
                   <div className="flex flex-col gap-4 bg-body/30 rounded-2xl p-4 border border-border/60">
                     <div className="flex gap-3 items-start">
-                      <div className="w-5 h-5 rounded-full bg-[#057e77] dark:bg-emerald-500 text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">1</div>
+                      <div className="w-5 h-5 rounded-full bg-blue-600 dark:bg-blue-500 text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">1</div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[13px] font-extrabold text-primary">목표수익 기준 설정 (할인율 r: {vm.dcf.discountRate.toFixed(2)}%)</span>
                         <span className="text-[12px] text-secondary font-medium leading-relaxed">
@@ -882,7 +882,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                     </div>
 
                     <div className="flex gap-3 items-start">
-                      <div className="w-5 h-5 rounded-full bg-[#057e77] dark:bg-emerald-500 text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">2</div>
+                      <div className="w-5 h-5 rounded-full bg-blue-600 dark:bg-blue-500 text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">2</div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[13px] font-extrabold text-primary">예상 월세 도출 (전환율: {(vm.dynamicConversionRate * 100).toFixed(1)}%)</span>
                         <span className="text-[12px] text-secondary font-medium leading-relaxed">
@@ -892,7 +892,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                     </div>
 
                     <div className="flex gap-3 items-start">
-                      <div className="w-5 h-5 rounded-full bg-[#057e77] dark:bg-emerald-500 text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">3</div>
+                      <div className="w-5 h-5 rounded-full bg-blue-600 dark:bg-blue-500 text-surface flex items-center justify-center text-[11px] font-black shrink-0 mt-0.5 shadow-sm">3</div>
                       <div className="flex flex-col gap-1">
                         <span className="text-[13px] font-extrabold text-primary">적정가 산정 및 성장률 반영 (장기 성장률 g: {vm.dcf.growthRate.toFixed(2)}%)</span>
                         <span className="text-[12px] text-secondary font-medium leading-relaxed">
@@ -917,15 +917,15 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                   <div className="bg-body rounded-2xl p-4 border border-border flex items-center justify-between gap-4">
                     <div className="flex flex-col gap-1 shrink-0">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-[28px] font-black text-[#057e77] dark:text-emerald-400 leading-none">{vm.utilityScoreResult.total}</span>
+                        <span className="text-[28px] font-black text-blue-600 dark:text-blue-400 leading-none">{vm.utilityScoreResult.total}</span>
                         <span className="text-[12px] text-tertiary font-bold">/ {vm.utilityScoreResult.maxTotal}점</span>
                       </div>
                       <span className={`px-2 py-0.5 rounded text-[11px] font-extrabold w-fit shadow-sm ${
                         vm.utilityScoreResult.total >= 130
-                          ? 'bg-[#e6f7f3] dark:bg-emerald-500/20 text-[#057e77] dark:text-emerald-300 font-black'
+                          ? 'bg-[#e6f7f3] dark:bg-blue-500/20 text-blue-600 dark:text-blue-300 font-black'
                           : vm.utilityScoreResult.total >= 100
-                          ? 'bg-[#e6f7f3] dark:bg-emerald-500/10 text-[#057e77] dark:text-emerald-400'
-                          : 'bg-emerald-50/50 dark:bg-emerald-950/20 text-[#057e77] dark:text-emerald-400'
+                          ? 'bg-[#e6f7f3] dark:bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                          : 'bg-blue-50/50 dark:bg-blue-950/20 text-blue-600 dark:text-blue-400'
                       }`}>
                         {vm.utilityScoreResult.total >= 130 ? '최우수 단지' : vm.utilityScoreResult.total >= 100 ? '우수 단지' : '표준 단지'}
                       </span>
@@ -944,7 +944,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                       const Icon = iconMap[log.iconKey] || Award;
                       return (
                         <div key={i} className="flex gap-3.5 items-start p-3 bg-surface hover:bg-body/35 rounded-xl border border-border/40 transition-colors">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${log.isInfra ? 'bg-[#057e77]/10 dark:bg-emerald-400/10 text-[#057e77] dark:text-emerald-400' : 'bg-[#f59e0b]/10 text-[#f59e0b]'}`}>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${log.isInfra ? 'bg-blue-600/10 dark:bg-blue-400/10 text-blue-600 dark:text-blue-400' : 'bg-[#f59e0b]/10 text-[#f59e0b]'}`}>
                             <Icon size={16} />
                           </div>
                           <div className="flex flex-col gap-1 w-full">
@@ -957,7 +957,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                             </div>
                             <span className="text-[12px] text-secondary font-medium pl-0.5">{log.label}</span>
                             {log.data && (
-                              <span className="text-[11px] text-[#057e77] dark:text-emerald-400 font-semibold mt-1 px-2.5 py-0.5 bg-[#057e77]/5 dark:bg-emerald-400/10 rounded border border-[#057e77]/10 dark:border-emerald-400/20 w-fit ml-0.5">
+                              <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold mt-1 px-2.5 py-0.5 bg-blue-600/5 dark:bg-blue-400/10 rounded border border-blue-600/10 dark:border-blue-400/20 w-fit ml-0.5">
                                 실데이터: {log.data}
                               </span>
                             )}
@@ -975,7 +975,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
               {vm.txStats.realEstatePER > 0 && (
                 <div className="flex flex-col gap-4">
                   <h4 className="text-[15px] font-extrabold text-primary flex items-center gap-1.5">
-                    <span className="w-1.5 h-3.5 bg-[#057e77] dark:bg-emerald-400 rounded-full inline-block" />
+                    <span className="w-1.5 h-3.5 bg-blue-600 dark:bg-blue-400 rounded-full inline-block" />
                     3. 매매가 ÷ 전세가 배수 기준 (PER 구간 가이드)
                   </h4>
 
@@ -1005,13 +1005,13 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                     </div>
 
                     <div className="flex gap-3">
-                      <div className="w-2 h-2 rounded-full bg-[#057e77] dark:bg-emerald-400 mt-2 shrink-0" />
+                      <div className="w-2 h-2 rounded-full bg-blue-600 dark:bg-blue-400 mt-2 shrink-0" />
                       <div>
                         <div className="text-[13px] font-bold text-primary flex items-center gap-1.5">
                           평균구간 (1.6배 ~ 1.8배) <span className="text-[11px] text-tertiary font-normal">(전세가율 55~62%)</span>
                         </div>
                         <div className="text-[12px] text-secondary mt-1 leading-relaxed font-medium">
-                          <b className="text-[#057e77] dark:text-emerald-400 font-bold">시장의 딱 중간 수준입니다.</b> 수도권 아파트들이 일반적으로 가지고 있는 생활 인프라와 사람들의 평범한 선호도가 그대로 반영된 상태입니다.
+                          <b className="text-blue-600 dark:text-blue-400 font-bold">시장의 딱 중간 수준입니다.</b> 수도권 아파트들이 일반적으로 가지고 있는 생활 인프라와 사람들의 평범한 선호도가 그대로 반영된 상태입니다.
                         </div>
                       </div>
                     </div>

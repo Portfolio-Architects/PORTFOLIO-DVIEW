@@ -156,10 +156,10 @@ export const ComparePriceHistoryChart = React.memo(function ComparePriceHistoryC
                     type="monotone"
                     dataKey={apt1Label}
                     name={apt1Label}
-                    stroke="#057e77"
+                    stroke="#2563eb"
                     strokeWidth={3}
-                    dot={{ r: 3, fill: '#057e77', strokeWidth: 2 }}
-                    activeDot={{ r: 6, fill: '#057e77' }}
+                    dot={{ r: 3, fill: '#2563eb', strokeWidth: 2 }}
+                    activeDot={{ r: 6, fill: '#2563eb' }}
                     connectNulls
                   />
                   <Line

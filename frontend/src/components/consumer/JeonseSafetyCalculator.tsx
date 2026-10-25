@@ -362,7 +362,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
     if (debtRatio >= 80) {
       riskLevel = 'danger';
       riskLabel = '위험 (깡통전세)';
-      riskColor = '#f43f5e'; // Red
+      riskColor = '#f04452'; // Red
       riskBg = 'bg-red-50 dark:bg-red-950/20';
       riskText = 'text-red-600 dark:text-red-400';
       riskBorder = 'border-red-500/30';
@@ -483,7 +483,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
         aria-labelledby="jeonse-title"
         aria-describedby="jeonse-desc"
         className={`relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 w-full ${
-          showResult ? 'max-w-[580px] md:max-w-[900px]' : 'max-w-[580px]'
+          showResult ? 'max-w-[580px] md:max-w-[940px]' : 'max-w-[580px]'
         } max-h-[90vh] md:max-h-[86vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
       >
         {/* Header */}
@@ -527,7 +527,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                       if (selectedApt) setSelectedApt(null);
                     }}
                     onFocus={() => setIsFocused(true)}
-                    className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                    className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                   />
                   {searchQuery && (
                     <button
@@ -575,7 +575,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                       <p className="text-[11px] text-tertiary font-bold">최근 3M 매매 평균시세</p>
                       <p className="text-[15px] text-primary font-black mt-0.5">{(marketPrice / 10000).toFixed(1)}억원</p>
                     </div>
-                    <span className="text-[10.5px] font-bold bg-[#e8f3ff] text-[#1b64da] px-2 py-0.5 rounded-md">
+                    <span className="text-[10.5px] font-bold bg-[#e8f3ff] text-blue-600 px-2 py-0.5 rounded-md">
                       실거래 시세 연동
                     </span>
                   </div>
@@ -606,7 +606,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                           placeholder="0"
                           value={jeonseEok}
                           onChange={(e) => setJeonseEok(e.target.value)}
-                          className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
+                          className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
                         />
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">억</span>
                       </div>
@@ -616,7 +616,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                           placeholder="0"
                           value={jeonseMan}
                           onChange={(e) => setJeonseMan(e.target.value)}
-                          className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
+                          className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
                         />
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">만원</span>
                       </div>
@@ -639,7 +639,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                           placeholder="0"
                           value={lienEok}
                           onChange={(e) => setLienEok(e.target.value)}
-                          className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
+                          className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
                         />
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">억</span>
                       </div>
@@ -649,7 +649,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                           placeholder="0"
                           value={lienMan}
                           onChange={(e) => setLienMan(e.target.value)}
-                          className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
+                          className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 px-3 text-right text-[13.5px] font-bold text-primary outline-none transition-all"
                         />
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[11px] font-bold text-tertiary">만원</span>
                       </div>
@@ -663,7 +663,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                   <button
                     onClick={handleStartDiagnosis}
                     disabled={isCalculating || !jeonseEok}
-                    className="w-full bg-[#057e77] hover:bg-[#046c66] dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:pointer-events-none"
+                    className="w-full bg-blue-600 hover:bg-[#046c66] dark:bg-blue-600 dark:hover:bg-blue-500 text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-2 mt-4 disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {isCalculating ? (
                       <>
@@ -683,27 +683,27 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
             /* Results Panel */
             calculationResult && (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start animate-in zoom-in-95 fade-in duration-300">
-                <div className="md:col-span-5 space-y-4">
+                <div className="md:col-span-6 space-y-4">
                 {/* SVG Gauge Chart */}
                 <div className="flex flex-col items-center text-center">
                   <div className="relative">
                     <svg viewBox="0 0 200 120" className="w-52 h-32 mx-auto">
                       <defs>
                         <linearGradient id="gaugeSafe" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#057e77" />
+                          <stop offset="0%" stopColor="#2563eb" />
                           <stop offset="100%" stopColor="#059669" />
                         </linearGradient>
                         <linearGradient id="gaugeCaution" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor="#f59e0b" />
-                          <stop offset="100%" stopColor="#d97706" />
+                          <stop offset="100%" stopColor="#2563eb" />
                         </linearGradient>
                         <linearGradient id="gaugeWarning" x1="0" y1="0" x2="1" y2="0">
                           <stop offset="0%" stopColor="#f97316" />
                           <stop offset="100%" stopColor="#ea580c" />
                         </linearGradient>
                         <linearGradient id="gaugeDanger" x1="0" y1="0" x2="1" y2="0">
-                          <stop offset="0%" stopColor="#f43f5e" />
-                          <stop offset="100%" stopColor="#e11d48" />
+                          <stop offset="0%" stopColor="#f04452" />
+                          <stop offset="100%" stopColor="#f04452" />
                         </linearGradient>
                       </defs>
                       {/* Background Track */}
@@ -771,7 +771,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                     </div>
                     <div>
                       <span className="text-[11px] text-tertiary font-bold block">총 채무액</span>
-                      <span className="text-[14px] font-black text-[#f43f5e] block mt-0.5">
+                      <span className="text-[14px] font-black text-red-500 block mt-0.5">
                         {(calculationResult.totalDebt / 10000).toFixed(1)}억원
                       </span>
                     </div>
@@ -789,11 +789,11 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                 </div>
 
                 {/* Right Column (7 cols): Checklist & AdSlot */}
-                <div className="md:col-span-7 space-y-4">
+                <div className="md:col-span-6 space-y-4">
                 {/* Checklist Section */}
                 <div className="space-y-3">
                   <h4 className="text-[13px] font-extrabold text-primary flex items-center gap-1">
-                    <Award size={15} className="text-[#057e77] dark:text-emerald-400" /> 안전 전세계약을 위한 임차인 필수 체크리스트
+                    <Award size={15} className="text-blue-600 dark:text-blue-400" /> 안전 전세계약을 위한 임차인 필수 체크리스트
                   </h4>
                   <div className="space-y-2">
                     <label className="flex items-start gap-2.5 p-3 bg-body hover:bg-body/80 rounded-xl border border-border/20 cursor-pointer transition-colors select-none">
@@ -801,7 +801,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                         type="checkbox"
                         checked={checklist.taxArrears}
                         onChange={(e) => setChecklist(prev => ({ ...prev, taxArrears: e.target.checked }))}
-                        className="mt-0.5 text-[#057e77] focus:ring-[#057e77] border-border rounded"
+                        className="mt-0.5 text-blue-600 focus:ring-blue-600 border-border rounded"
                       />
                       <div className="text-[11.5px] leading-normal">
                         <span className="font-extrabold text-secondary block">임대인 세금 완납증명서 확인</span>
@@ -814,7 +814,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                         type="checkbox"
                         checked={checklist.lienExtinguished}
                         onChange={(e) => setChecklist(prev => ({ ...prev, lienExtinguished: e.target.checked }))}
-                        className="mt-0.5 text-[#057e77] focus:ring-[#057e77] border-border rounded"
+                        className="mt-0.5 text-blue-600 focus:ring-blue-600 border-border rounded"
                       />
                       <div className="text-[11.5px] leading-normal">
                         <span className="font-extrabold text-secondary block">근저당 말소/감액 등기 특약 조건</span>
@@ -827,7 +827,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                         type="checkbox"
                         checked={checklist.occupancyReport}
                         onChange={(e) => setChecklist(prev => ({ ...prev, occupancyReport: e.target.checked }))}
-                        className="mt-0.5 text-[#057e77] focus:ring-[#057e77] border-border rounded"
+                        className="mt-0.5 text-blue-600 focus:ring-blue-600 border-border rounded"
                       />
                       <div className="text-[11.5px] leading-normal">
                         <span className="font-extrabold text-secondary block">이사 당일 전입신고 및 확정일자 부여</span>
@@ -840,7 +840,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                         type="checkbox"
                         checked={checklist.insuranceCheck}
                         onChange={(e) => setChecklist(prev => ({ ...prev, insuranceCheck: e.target.checked }))}
-                        className="mt-0.5 text-[#057e77] focus:ring-[#057e77] border-border rounded"
+                        className="mt-0.5 text-blue-600 focus:ring-blue-600 border-border rounded"
                       />
                       <div className="text-[11.5px] leading-normal">
                         <span className="font-extrabold text-secondary block">HUG 전세반환보증보험 가입 가부 확인</span>
@@ -865,8 +865,14 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                 </div>
 
                 {/* Footer Buttons */}
-                <div className="md:col-span-12 flex gap-2 pt-3 border-t border-slate-200/70 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm pb-1 z-10">
-                  <button
+                              </div>
+            )
+          )}
+        </div>
+
+        {showResult && calculationResult && (
+          <footer className="shrink-0 border-t border-slate-200/80 dark:border-slate-800 px-6 py-3.5 bg-white dark:bg-slate-900 flex items-center gap-2.5">
+            <button
                     onClick={() => {
                       setShowResult(false);
                     }}
@@ -900,11 +906,8 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                     <MessageSquare size={15} />
                     <span>카카오톡 공유</span>
                   </button>
-                </div>
-              </div>
-            )
-          )}
-        </div>
+          </footer>
+        )}
       </div>
     </div>,
     document.getElementById('modal-root') || document.body

@@ -97,7 +97,7 @@ export function StatsFilterBar({
   return (
     <div
       data-testid="stats-filter-bar"
-      className="w-full bg-surface/90 backdrop-blur-md border-y border-border/60 py-3 sm:py-4 transition-all"
+      className="w-full bg-white dark:bg-slate-900 border-y border-slate-200/80 dark:border-slate-800/80 py-3.5 sm:py-4 transition-all"
     >
       <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 flex flex-col gap-3">
         {/* Row 1: Region Pills & Dong Dropdown + Reset Button */}
@@ -119,10 +119,10 @@ export function StatsFilterBar({
                     onRegionChange(tab.id);
                     if (onDongChange && tab.id !== '청계동') onDongChange('');
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all active:scale-95 cursor-pointer ${
                     isActive
-                      ? 'bg-emerald-600 text-white shadow-sm ring-2 ring-emerald-500/30'
-                      : 'bg-body text-secondary hover:text-primary hover:bg-black/5 dark:hover:bg-surface/5 border border-border/60'
+                      ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-500/25'
+                      : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/70 dark:border-slate-700/70'
                   }`}
                 >
                   {tab.label}
@@ -135,11 +135,11 @@ export function StatsFilterBar({
               <button
                 type="button"
                 onClick={() => setIsDongMenuOpen(!isDongMenuOpen)}
-                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                   DONGTAN1_DONGS.includes(region as any) ||
                   (DONGTAN2_DONGS.includes(region as any) && region !== '청계동')
-                    ? 'bg-emerald-600 text-white border-emerald-200'
-                    : 'bg-body text-secondary hover:text-primary border-border/60'
+                    ? 'bg-blue-600 text-white border-blue-500 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 border-slate-200/70 dark:border-slate-700/70'
                 }`}
               >
                 <span>
@@ -152,7 +152,7 @@ export function StatsFilterBar({
               </button>
 
               {isDongMenuOpen && (
-                <div className="absolute left-0 top-full mt-1.5 z-50 w-56 rounded-2xl bg-surface border border-border shadow-xl p-2 animate-in fade-in zoom-in-95">
+                <div className="absolute left-0 top-full mt-1.5 z-50 w-56 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-lg p-2 animate-in fade-in zoom-in-95">
                   <div className="text-[11px] font-bold text-slate-400 px-2 py-1">동탄1동 법정동</div>
                   <div className="grid grid-cols-2 gap-1 mb-2">
                     {DONGTAN1_DONGS.map((d) => (
@@ -162,8 +162,8 @@ export function StatsFilterBar({
                         onClick={() => handleDongSelect(d)}
                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition-colors ${
                           isDongActive(d)
-                            ? 'bg-emerald-50 text-emerald-700 font-bold'
-                            : 'hover:bg-body text-secondary'
+                            ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-bold'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
                         }`}
                       >
                         <span>{d}</span>
@@ -171,7 +171,7 @@ export function StatsFilterBar({
                       </button>
                     ))}
                   </div>
-                  <div className="text-[11px] font-bold text-slate-400 px-2 py-1 border-t border-border/40 pt-1.5">
+                  <div className="text-[11px] font-bold text-slate-400 px-2 py-1 border-t border-slate-100 dark:border-slate-800 pt-1.5">
                     동탄2동 법정동
                   </div>
                   <div className="grid grid-cols-2 gap-1">
@@ -182,8 +182,8 @@ export function StatsFilterBar({
                         onClick={() => handleDongSelect(d)}
                         className={`flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs font-semibold text-left transition-colors ${
                           isDongActive(d)
-                            ? 'bg-emerald-50 text-emerald-700 font-bold'
-                            : 'hover:bg-body text-secondary'
+                            ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 font-bold'
+                            : 'hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300'
                         }`}
                       >
                         <span>{d}</span>
@@ -199,7 +199,7 @@ export function StatsFilterBar({
           {/* Reset button & Loading indicator */}
           <div className="flex items-center gap-2">
             {isPending && (
-              <span className="text-xs text-emerald-700 font-bold animate-pulse">
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-bold animate-pulse">
                 데이터 집계 중...
               </span>
             )}
@@ -208,7 +208,7 @@ export function StatsFilterBar({
                 type="button"
                 data-testid="filter-reset-button"
                 onClick={onReset}
-                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-body transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 title="필터 조건 초기화"
               >
                 <RotateCcw size={13} />
@@ -219,7 +219,7 @@ export function StatsFilterBar({
         </div>
 
         {/* Row 2: Pyeong Chips & Timeframe Tabs & Sort Selector */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/40">
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/80">
           {/* Pyeong Chips */}
           <div className="flex flex-wrap items-center gap-1 sm:gap-1.5">
             <span className="text-xs font-bold text-slate-400 dark:text-slate-500 mr-1 hidden sm:inline">
@@ -233,15 +233,15 @@ export function StatsFilterBar({
                   type="button"
                   data-testid={opt.testId}
                   onClick={() => onPyeongChange(opt.id)}
-                  className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                  className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold transition-all active:scale-95 cursor-pointer ${
                     isActive
-                      ? 'bg-blue-600 text-white shadow-sm ring-2 ring-blue-600/30'
-                      : 'bg-body text-secondary hover:text-primary border border-border/60 hover:bg-black/5 dark:hover:bg-surface/5'
+                      ? 'bg-blue-600 text-white shadow-xs ring-2 ring-blue-600/25'
+                      : 'bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 border border-slate-200/70 dark:border-slate-700/70 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
                   <span>{opt.label}</span>
                   {opt.id !== 'ALL' && (
-                    <span className={`ml-1 text-[10px] ${isActive ? 'text-blue-100' : 'text-tertiary'}`}>
+                    <span className={`ml-1 text-[10px] ${isActive ? 'text-blue-100' : 'text-slate-400'}`}>
                       {opt.subLabel}
                     </span>
                   )}
@@ -253,7 +253,7 @@ export function StatsFilterBar({
           {/* Timeframe & Sort Controls */}
           <div className="flex items-center gap-2">
             {/* Timeframe Tabs */}
-            <div className="flex items-center bg-body p-1 rounded-xl border border-border/60">
+            <div className="flex items-center bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
               {TIMEFRAME_OPTIONS.map((opt) => {
                 const isActive = timeframe === opt.id;
                 return (
@@ -262,10 +262,10 @@ export function StatsFilterBar({
                     type="button"
                     data-testid={opt.testId}
                     onClick={() => onTimeframeChange(opt.id)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors ${
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       isActive
-                        ? 'bg-emerald-600 text-white shadow-xs'
-                        : 'text-secondary hover:text-primary'
+                        ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
                     }`}
                   >
                     {opt.label}
@@ -281,7 +281,7 @@ export function StatsFilterBar({
                   data-testid="filter-sort-select"
                   value={sort}
                   onChange={(e) => onSortChange(e.target.value as SortOption)}
-                  className="appearance-none bg-body border border-border/60 text-secondary hover:text-primary text-xs font-bold rounded-xl pl-2.5 pr-7 py-2 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 cursor-pointer"
+                  className="appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl pl-2.5 pr-7 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/25 cursor-pointer"
                 >
                   {SORT_OPTIONS.map((s) => (
                     <option key={s.id} value={s.id}>

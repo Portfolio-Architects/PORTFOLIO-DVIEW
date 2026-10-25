@@ -850,16 +850,21 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
         aria-labelledby="loan-title"
         aria-describedby="loan-desc"
         className={`relative bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/80 w-full ${
-          step === 4 ? 'max-w-[580px] md:max-w-[900px]' : 'max-w-[580px]'
-        } max-h-[90vh] md:max-h-[86vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
+          step === 4 ? 'max-w-[580px] md:max-w-[960px]' : 'max-w-[580px]'
+        } max-h-[90vh] md:max-h-[88vh] rounded-t-[24px] md:rounded-[20px] flex flex-col shadow-[0_24px_64px_-12px_rgba(15,23,42,0.28)] overflow-hidden transition-[max-width] duration-300`}
       >
         {/* Header */}
-        <header className="flex items-center justify-between border-b border-border/40 px-6 py-4 shrink-0 bg-surface/50">
+        <header className="flex items-center justify-between border-b border-slate-200/70 dark:border-slate-800 px-6 py-4 shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="flex flex-col gap-0.5">
-            <h2 id="loan-title" className="text-[17px] font-black text-primary flex items-center gap-1.5">
-              <span>내 집 마련 대출 자가진단</span>
-            </h2>
-            <p id="loan-desc" className="text-[12px] font-medium text-tertiary">
+            <div className="flex items-center gap-2">
+              <h2 id="loan-title" className="text-[17px] font-black text-primary tracking-tight flex items-center gap-1.5">
+                <span>내 집 마련 대출 자가진단</span>
+              </h2>
+              <span className="text-[10px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md tabular-nums">
+                STEP {step} / 4
+              </span>
+            </div>
+            <p id="loan-desc" className="text-[12px] font-medium text-tertiary break-keep">
               내 상황에 꼭 맞는 가장 금리가 낮은 대출과 매수 자금 조달 계획을 수립합니다.
             </p>
           </div>
@@ -902,7 +907,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                         if (selectedApt) setSelectedApt(null);
                       }}
                       onFocus={() => setIsFocused(true)}
-                      className="w-full bg-body border border-transparent focus:border-[#057e77] focus:bg-surface rounded-xl py-2 pl-9 pr-8 text-[13px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
+                      className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2 pl-9 pr-8 text-[13px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                     />
                     {searchQuery && (
                       <button
@@ -957,7 +962,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                             key={item.name}
                             className={`inline-flex items-center gap-1 pl-2.5 pr-1.5 py-1 rounded-lg border text-[11px] font-bold shrink-0 transition-all ${
                               isCurrent
-                                ? 'bg-emerald-500/10 border-[#057e77] text-[#057e77] dark:text-emerald-400'
+                                ? 'bg-blue-500/10 border-blue-600 text-blue-600 dark:text-blue-400'
                                 : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-secondary hover:border-slate-300'
                             }`}
                           >
@@ -1000,7 +1005,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                         onClick={() => setSelectedRegion(tab.id)}
                         className={`px-2.5 py-1 rounded-lg text-[10.5px] font-extrabold shrink-0 transition-all cursor-pointer border ${
                           selectedRegion === tab.id
-                            ? 'bg-[#057e77] text-white border-[#057e77]'
+                            ? 'bg-blue-600 text-white border-blue-600'
                             : 'bg-body text-tertiary border-border/40 hover:text-secondary'
                         }`}
                       >
@@ -1026,12 +1031,12 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                             onClick={() => handleAptSelect(apt)}
                             className={`w-full text-left px-3.5 py-2 text-[12.5px] font-bold flex items-center justify-between cursor-pointer transition-colors ${
                               isSelected
-                                ? 'bg-emerald-50/70 dark:bg-emerald-950/25 text-[#057e77] dark:text-emerald-400'
+                                ? 'bg-blue-50/70 dark:bg-blue-950/25 text-blue-600 dark:text-blue-400'
                                 : 'hover:bg-body text-secondary'
                             }`}
                           >
                             <div className="flex items-center gap-1.5 min-w-0">
-                              {isSelected && <Check size={13} className="text-[#057e77] shrink-0" />}
+                              {isSelected && <Check size={13} className="text-blue-600 shrink-0" />}
                               <span className="truncate">{getDisplayAptName(apt.name)}</span>
                               <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded shrink-0">
                                 {apt.dong}
@@ -1065,7 +1070,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       </p>
                     )}
                   </div>
-                  <span className="text-[10.5px] font-bold bg-[#e8f3ff] text-[#1b64da] px-2 py-0.5 rounded-md shrink-0">
+                  <span className="text-[10.5px] font-bold bg-[#e8f3ff] text-blue-600 px-2 py-0.5 rounded-md shrink-0">
                     D-VIEW 실거래 기준
                   </span>
                 </div>
@@ -1076,7 +1081,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   type="button"
                   onClick={handleNextStep}
                   disabled={!selectedApt}
-                  className="w-full bg-[#057e77] hover:bg-[#046862] disabled:opacity-40 disabled:pointer-events-none text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1"
+                  className="w-full bg-blue-600 hover:bg-[#046862] disabled:opacity-40 disabled:pointer-events-none text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1"
                 >
                   <span>다음 단계 (가구 요건)</span>
                 </button>
@@ -1093,9 +1098,9 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       }, 1200);
                     }}
                     disabled={isCalculating || !selectedApt}
-                    className="w-full bg-slate-900/95 dark:bg-emerald-950/20 hover:bg-slate-800 dark:hover:bg-emerald-950/45 disabled:opacity-40 text-[#057e77] dark:text-emerald-400 border border-[#057e77]/40 py-3 rounded-xl text-[13.5px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                    className="w-full bg-slate-900/95 dark:bg-blue-950/20 hover:bg-slate-800 dark:hover:bg-blue-950/45 disabled:opacity-40 text-blue-600 dark:text-blue-400 border border-blue-600/40 py-3 rounded-xl text-[13.5px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Sparkles size={14} className="fill-[#057e77]/30 text-[#057e77] dark:text-emerald-400" />
+                    <Sparkles size={14} className="fill-blue-600/30 text-blue-600 dark:text-blue-400" />
                     <span>{isCalculating ? '퀴즈 기반 자동 진단 중...' : '퀴즈 결과로 바로 진단하기 (원클릭)'}</span>
                   </button>
                 )}
@@ -1125,13 +1130,13 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     onClick={() => setHouseholdType(type.id)}
                     className={`w-full text-left p-4 rounded-2xl border text-secondary transition-all cursor-pointer flex flex-col gap-1.5 ${
                       householdType === type.id
-                        ? 'border-[#057e77] bg-emerald-50/40 dark:bg-emerald-950/10 shadow-sm'
+                        ? 'border-blue-600 bg-blue-50/40 dark:bg-blue-950/10 shadow-sm'
                         : 'border-border/30 bg-body/60 hover:bg-body'
                     }`}
                   >
                     <span className="text-[13.5px] font-black text-primary flex items-center justify-between w-full">
                       <span>{type.label}</span>
-                      {householdType === type.id && <span className="w-5 h-5 rounded-full bg-[#057e77] text-white flex items-center justify-center text-[10px]"><Check size={12} strokeWidth={3} /></span>}
+                      {householdType === type.id && <span className="w-5 h-5 rounded-full bg-blue-600 text-white flex items-center justify-center text-[10px]"><Check size={12} strokeWidth={3} /></span>}
                     </span>
                     <span className="text-[11.5px] text-tertiary font-medium">{type.desc}</span>
                   </button>
@@ -1148,7 +1153,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 </button>
                 <button
                   onClick={handleNextStep}
-                  className="flex-[2] bg-[#057e77] hover:bg-[#046862] text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
+                  className="flex-[2] bg-blue-600 hover:bg-[#046862] text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
                 >
                   <span>다음 단계 (소득/자산)</span>
                 </button>
@@ -1195,7 +1200,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                         placeholder="7,500"
                         value={annualIncomeInputValue}
                         onChange={handleAnnualIncomeChange}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#057e77] rounded-xl py-1.5 pl-2.5 pr-12 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-blue-600 rounded-xl py-1.5 pl-2.5 pr-12 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
                       />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-bold text-tertiary pointer-events-none">만원/년</span>
                     </div>
@@ -1212,7 +1217,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     step="500"
                     value={Math.min(25000, Math.max(2000, parseInt(annualIncome.replace(/,/g, ''), 10) || 7500))}
                     onChange={(e) => setAnnualIncome(e.target.value)}
-                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#057e77]"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
                   <div className="flex justify-between text-[10px] text-tertiary font-bold mt-1.5 px-0.5">
                     <button type="button" onClick={() => setAnnualIncome('2000')} className="hover:text-primary cursor-pointer">2,000만</button>
@@ -1251,7 +1256,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                         placeholder="3.5"
                         value={netAssetsInputValue}
                         onChange={handleNetAssetsChange}
-                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-[#057e77] rounded-xl py-1.5 pl-2.5 pr-9 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
+                        className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-blue-600 rounded-xl py-1.5 pl-2.5 pr-9 text-right text-[13px] font-black text-primary outline-none transition-all tabular-nums"
                       />
                       <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[10.5px] font-bold text-tertiary pointer-events-none">억원</span>
                     </div>
@@ -1268,7 +1273,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                     step="0.1"
                     value={Math.min(15, Math.max(0, parseFloat(netAssets.replace(/,/g, '')) || 3.5))}
                     onChange={(e) => setNetAssets(parseFloat(e.target.value).toFixed(1))}
-                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-[#057e77]"
+                    className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600"
                   />
                   <div className="flex justify-between text-[10px] text-tertiary font-bold mt-1.5 px-0.5">
                     <button type="button" onClick={() => setNetAssets('0.5')} className="hover:text-primary cursor-pointer">5천만</button>
@@ -1300,7 +1305,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       onClick={() => setChildrenCount(count)}
                       className={`py-2 rounded-xl text-[12.5px] font-extrabold border transition-all cursor-pointer ${
                         childrenCount === count
-                          ? 'border-[#057e77] bg-emerald-50/50 dark:bg-emerald-950/10 text-primary'
+                          ? 'border-blue-600 bg-blue-50/50 dark:bg-blue-950/10 text-primary'
                           : 'border-border/30 bg-body/60 hover:bg-body text-tertiary'
                       }`}
                     >
@@ -1321,7 +1326,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 <button
                   onClick={handleStartSimulate}
                   disabled={isCalculating || !annualIncome}
-                  className="flex-[2] bg-[#057e77] hover:bg-[#046862] text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-emerald-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-[2] bg-blue-600 hover:bg-[#046862] text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   {isCalculating ? (
                     <>
@@ -1341,299 +1346,306 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
           {/* STEP 4: Diagnosis Results */}
           {step === 4 && loanResults && repaymentDetails && (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start animate-in zoom-in-95 fade-in duration-300">
-              {/* Left Column (5 cols): Verdict & Capital Breakdown */}
-              <div className="md:col-span-5 space-y-4">
-              
-              {/* Product Badge Area */}
-              <div className="bg-body/70 border border-border/40 p-5 rounded-2xl flex flex-col gap-2 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
-                <div className="flex flex-wrap items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
-                    최적 정책금융 상품 매칭 완료
-                  </span>
-                  <span
-                    className="text-[9.5px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200/70 dark:bg-slate-800 px-2 py-0.5 rounded-md tabular-nums"
-                    data-testid="mortgage-macro-rate-badge"
-                  >
-                    국고채 {loanResults.macroMeta.riskFreeRate.toFixed(2)}% · COFIX {loanResults.macroMeta.fundingCost.toFixed(2)}% 연동
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedCandidateName(loanResults.bestProduct)}
-                  className={`w-full text-left rounded-xl p-2.5 -mx-1 transition-all cursor-pointer border ${
-                    loanResults.activeProduct === loanResults.bestProduct
-                      ? 'bg-emerald-500/5 border-emerald-500/30'
-                      : 'bg-transparent border-transparent hover:bg-slate-100/60 dark:hover:bg-slate-800/40'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <h3 className="text-[15.5px] font-black text-primary">
-                      추천: <span className="text-emerald-500">{loanResults.bestProduct}</span>
-                    </h3>
-                    <span className="text-[9.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-1.5 py-0.5 rounded shrink-0">
-                      {loanResults.matchBadge}
+              {/* Left Column (6 cols): Verdict & Capital Breakdown */}
+              <div className="md:col-span-6 space-y-3.5">
+                {/* Product Badge & Alternatives Card */}
+                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl flex flex-col gap-2.5 relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none" />
+                  <div className="flex flex-wrap items-center justify-between gap-1.5">
+                    <span className="text-[10.5px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                      최적 정책금융 상품 매칭 완료
+                    </span>
+                    <span
+                      className="text-[10px] font-bold text-slate-600 dark:text-slate-300 bg-slate-200/75 dark:bg-slate-800 px-2 py-0.5 rounded-md tabular-nums"
+                      data-testid="mortgage-macro-rate-badge"
+                    >
+                      국고채 {loanResults.macroMeta.riskFreeRate.toFixed(2)}% · COFIX {loanResults.macroMeta.fundingCost.toFixed(2)}% 연동
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 gap-4 mt-2 border-t border-border/30 pt-2.5">
-                    <div>
-                      <span className="text-[11px] text-tertiary font-bold block">대출 가능 한도 (LTV·DSR)</span>
-                      <span className="text-[14.5px] font-black text-primary mt-0.5 block tabular-nums">
-                        {(loanResults.maxLoanAmount / 10000).toFixed(1)}억원
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-tertiary font-bold block">적용 금리 (시장연동)</span>
-                      <span className="text-[14.5px] font-black text-[#1b64da] mt-0.5 block tabular-nums">
-                        {loanResults.finalRate.toFixed(2)}% <span className="text-[10px] text-tertiary">({loanResults.rateTypeLabel})</span>
-                      </span>
-                    </div>
-                  </div>
-                </button>
 
-                {loanResults.alternatives && loanResults.alternatives.length > 0 && (
-                  <div className="mt-1 pt-2.5 border-t border-border/30 space-y-2" data-testid="mortgage-alternatives-list">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10.5px] font-extrabold text-tertiary">
-                        차순위 대안 상품 비교 (시장·DSR 연동)
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCandidateName(loanResults.bestProduct)}
+                    className={`w-full text-left rounded-xl p-3 transition-all cursor-pointer border ${
+                      loanResults.activeProduct === loanResults.bestProduct
+                        ? 'bg-white dark:bg-slate-900 border-blue-600 shadow-sm'
+                        : 'bg-white/60 dark:bg-slate-900/40 border-slate-200/70 dark:border-slate-800 hover:border-slate-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <span className="inline-flex items-center text-[10px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                        {loanResults.matchBadge}
                       </span>
-                      <span className="text-[9.5px] font-bold text-tertiary">
-                        클릭 시 상환 시뮬레이션 전환
+                      <span className="text-[10px] font-bold text-tertiary shrink-0">
+                        {loanResults.activeProduct === loanResults.bestProduct ? '시뮬레이션 적용 중' : '클릭 시 시뮬레이션 전환'}
                       </span>
                     </div>
-                    <div className="space-y-1.5">
-                      {loanResults.alternatives.map((alt) => {
-                        const isSelected = loanResults.activeProduct === alt.name;
-                        return (
-                          <button
-                            key={alt.name}
-                            type="button"
-                            onClick={() => setSelectedCandidateName(alt.name)}
-                            className={`w-full text-left flex items-center justify-between gap-2 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-emerald-50/70 dark:bg-emerald-950/20 border-[#057e77]'
-                                : 'bg-white/70 dark:bg-slate-900/60 border-slate-200/60 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
-                            }`}
-                          >
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-1.5">
-                                <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded shrink-0 ${
-                                  isSelected
-                                    ? 'bg-[#057e77] text-white'
-                                    : 'text-slate-600 dark:text-slate-300 bg-slate-200/80 dark:bg-slate-800'
-                                }`}>
-                                  {alt.rankLabel}
-                                </span>
-                                <span className="text-[12px] font-extrabold text-primary truncate">
-                                  {alt.name}
+                    <h3 className="text-[15px] font-black text-primary break-keep tracking-tight leading-snug">
+                      추천: <span className="text-blue-600 dark:text-blue-400">{loanResults.bestProduct}</span>
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3 mt-2.5 pt-2.5 border-t border-slate-200/70 dark:border-slate-800">
+                      <div>
+                        <span className="text-[10.5px] text-tertiary font-bold block">대출 가능 한도 (LTV·DSR)</span>
+                        <span className="text-[15px] font-black text-primary mt-0.5 block tabular-nums tracking-tight">
+                          {(loanResults.maxLoanAmount / 10000).toFixed(1)}억원
+                        </span>
+                      </div>
+                      <div className="pl-3 border-l border-slate-200/70 dark:border-slate-800">
+                        <span className="text-[10.5px] text-tertiary font-bold block">적용 금리 (시장연동)</span>
+                        <span className="text-[15px] font-black text-blue-600 dark:text-blue-400 mt-0.5 block tabular-nums tracking-tight">
+                          {loanResults.finalRate.toFixed(2)}% <span className="text-[10px] font-bold text-tertiary">({loanResults.rateTypeLabel})</span>
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+
+                  {loanResults.alternatives && loanResults.alternatives.length > 0 && (
+                    <div className="pt-2 border-t border-slate-200/70 dark:border-slate-800 space-y-2" data-testid="mortgage-alternatives-list">
+                      <div className="flex items-center justify-between px-0.5">
+                        <span className="text-[10.5px] font-extrabold text-secondary">
+                          차순위 대안 상품 비교 (시장·DSR 연동)
+                        </span>
+                        <span className="text-[9.5px] font-bold text-tertiary">
+                          클릭 시 상환 시뮬레이션 전환
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {loanResults.alternatives.map((alt) => {
+                          const isSelected = loanResults.activeProduct === alt.name;
+                          return (
+                            <button
+                              key={alt.name}
+                              type="button"
+                              onClick={() => setSelectedCandidateName(alt.name)}
+                              className={`w-full text-left flex items-center justify-between gap-2.5 px-3 py-2 rounded-xl border transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-white dark:bg-slate-900 border-blue-600 shadow-sm'
+                                  : 'bg-white/75 dark:bg-slate-900/60 border-slate-200/70 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'
+                              }`}
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-1.5">
+                                  <span className={`text-[9.5px] font-black px-1.5 py-0.5 rounded shrink-0 ${
+                                    isSelected
+                                      ? 'bg-blue-600 text-white'
+                                      : 'text-slate-600 dark:text-slate-300 bg-slate-200/80 dark:bg-slate-800'
+                                  }`}>
+                                    {alt.rankLabel}
+                                  </span>
+                                  <span className="text-[12px] font-extrabold text-primary break-keep truncate">
+                                    {alt.name}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-tertiary font-medium block mt-0.5 truncate">
+                                  {alt.summary}
                                 </span>
                               </div>
-                              <span className="text-[10px] text-tertiary font-medium block mt-0.5 truncate">
-                                {alt.summary}
-                              </span>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <span className="text-[11.5px] font-black text-primary block tabular-nums">
-                                한도 {(alt.maxLoanAmount / 10000).toFixed(1)}억
-                              </span>
-                              <span className="text-[11px] font-extrabold text-[#1b64da] block tabular-nums">
-                                금리 {alt.finalRate.toFixed(2)}%
-                              </span>
-                            </div>
-                          </button>
-                        );
-                      })}
+                              <div className="text-right shrink-0 pl-2.5 border-l border-slate-200/70 dark:border-slate-800">
+                                <span className="text-[11.5px] font-black text-primary block tabular-nums">
+                                  한도 {(alt.maxLoanAmount / 10000).toFixed(1)}억
+                                </span>
+                                <span className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 block tabular-nums">
+                                  금리 {alt.finalRate.toFixed(2)}%
+                                </span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Capital breakdown detail card */}
+                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-2.5">
+                  <h4 className="text-[12.5px] font-extrabold text-primary flex items-center gap-1.5">
+                    <Calculator size={14} className="text-blue-600 dark:text-blue-400" /> 총 매수 자금 조달 내역
+                  </h4>
+
+                  <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-secondary bg-white dark:bg-slate-900/70 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
+                    <div className="flex justify-between items-center col-span-2 border-b border-slate-200/60 dark:border-slate-800 pb-2 mb-0.5">
+                      <span className="text-tertiary">대상 단지 매매가</span>
+                      <span className="text-primary tabular-nums">{(marketPrice / 10000).toFixed(1)}억원</span>
+                    </div>
+                    <div className="flex justify-between items-center col-span-2">
+                      <span className="text-tertiary">1순위 매칭 대출액</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 tabular-nums">-{(loanResults.maxLoanAmount / 10000).toFixed(1)}억원</span>
+                    </div>
+                    <div className="flex justify-between items-center col-span-2">
+                      <span className="text-tertiary">취득세 및 부대비용</span>
+                      <span className="text-red-500 tabular-nums">+{(loanResults.fees.totalFees / 10000).toFixed(2)}억원</span>
+                    </div>
+                    <div className="flex justify-between items-center col-span-2 border-t border-slate-200/60 dark:border-slate-800 pt-2 mt-0.5 font-black text-[13px]">
+                      <span className="text-primary">필요 자기자본 (실제 내 돈)</span>
+                      <span className="text-blue-600 dark:text-blue-400 tabular-nums">{(loanResults.ownCapitalRequired / 10000).toFixed(2)}억원</span>
                     </div>
                   </div>
-                )}
-              </div>
 
-              {/* Capital breakdown detail */}
-              <div className="space-y-3">
-                <h4 className="text-[12.5px] font-extrabold text-primary flex items-center gap-1.5">
-                  <Calculator size={14} className="text-[#057e77] dark:text-emerald-400" /> 총 매수 자금 조달 내역
-                </h4>
-
-                <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-secondary bg-body/30 p-4 rounded-xl border border-border/20">
-                  <div className="flex justify-between col-span-2 border-b border-border/30 pb-2 mb-1">
-                    <span className="text-tertiary">대상 단지 매매가</span>
-                    <span className="text-primary">{(marketPrice / 10000).toFixed(1)}억원</span>
-                  </div>
-                  <div className="flex justify-between col-span-2">
-                    <span className="text-tertiary">1순위 매칭 대출액</span>
-                    <span className="text-emerald-600">-{(loanResults.maxLoanAmount / 10000).toFixed(1)}억원</span>
-                  </div>
-                  <div className="flex justify-between col-span-2">
-                    <span className="text-tertiary">취득세 및 부대비용</span>
-                    <span className="text-[#f43f5e]">+{(loanResults.fees.totalFees / 10000).toFixed(2)}억원</span>
-                  </div>
-                  <div className="flex justify-between col-span-2 border-t border-border/30 pt-2 mt-1 font-black text-[13px]">
-                    <span className="text-primary">필요 자기자본 (실제 내 돈)</span>
-                    <span className="text-[#1b64da]">{(loanResults.ownCapitalRequired / 10000).toFixed(2)}억원</span>
-                  </div>
-                </div>
-
-                {/* Cost breakdown alert */}
-                <div className="text-[10.5px] text-tertiary leading-relaxed px-1">
-                  * 부대비용은 취득세 약 {(loanResults.fees.tax / 10000).toFixed(2)}억원, 중개보수 약 {(loanResults.fees.brokerFee / 10000).toFixed(1)}만원, 법무비용 등 기타 {(loanResults.fees.otherFee / 10000).toFixed(1)}만원을 합산한 근사값입니다.
-                </div>
-              </div>
-              </div>
-
-              {/* Right Column (7 cols): Repayment Simulation & AdSlot */}
-              <div className="md:col-span-7 space-y-4">
-
-              {/* Repayment Selector & Result */}
-              <div className="space-y-3 pt-1">
-                <div className="flex items-center justify-between">
-                  <h4 className="text-[12.5px] font-extrabold text-primary">월 고정 상환액 시뮬레이션</h4>
-                  {/* Maturity selector */}
-                  <div className="flex bg-body rounded-lg p-0.5 border border-border/20">
-                    {[10, 20, 30].map(y => (
-                      <button
-                        key={y}
-                        onClick={() => setMaturityYears(y)}
-                        className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all cursor-pointer ${
-                          maturityYears === y ? 'bg-surface text-primary shadow-sm' : 'text-tertiary hover:text-secondary'
-                        }`}
-                      >
-                        {y}년
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-body p-4 rounded-xl border border-border/20 flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] text-tertiary font-bold block">매월 원리금 상환액</span>
-                    <span className="text-[16px] font-black text-primary block mt-0.5">
-                      {(repaymentDetails.monthlyPayment / 10000).toFixed(1)}만원
-                    </span>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[11px] text-tertiary font-bold block">상환 방식</span>
-                    <span className="text-[12px] font-bold text-secondary block mt-0.5">
-                      원리금균등분할상환
-                    </span>
-                  </div>
-                </div>
-
-                {/* Recharts Area Chart */}
-                <div className="w-full h-36 bg-body/20 rounded-xl border border-border/20 p-2.5 relative">
-                  <div className="absolute top-2 left-3 text-[10px] font-bold text-tertiary flex gap-3">
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#057e77] rounded" />남은 대출 원금</span>
-                    <span className="flex items-center gap-1"><span className="w-2 h-2 bg-[#f43f5e]/70 rounded" />납부 누적이자</span>
-                  </div>
-                  {mounted ? (
-                    <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                      <AreaChart
-                        data={repaymentDetails.chartData}
-                        margin={{ top: 22, right: 8, left: 4, bottom: 0 }}
-                      >
-                        <defs>
-                          <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#057e77" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#057e77" stopOpacity={0.0}/>
-                          </linearGradient>
-                          <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.15}/>
-                            <stop offset="95%" stopColor="#f43f5e" stopOpacity={0.0}/>
-                          </linearGradient>
-                        </defs>
-                        <XAxis dataKey="year" tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
-                        <YAxis
-                          width={40}
-                          tickLine={false}
-                          axisLine={false}
-                          tick={{ fontSize: 9.5, fontWeight: 'bold', fill: '#888' }}
-                          tickFormatter={(val: number) => {
-                            if (!val || val === 0) return '0';
-                            if (val >= 10000) {
-                              const eok = val / 10000;
-                              return Number.isInteger(eok) ? `${eok}억` : `${eok.toFixed(1).replace(/\.0$/, '')}억`;
-                            }
-                            if (val >= 1000) {
-                              const cheon = val / 1000;
-                              return Number.isInteger(cheon) ? `${cheon}천만` : `${cheon.toFixed(1).replace(/\.0$/, '')}천만`;
-                            }
-                            return `${val.toLocaleString()}만`;
-                          }}
-                        />
-                        <Tooltip 
-                          contentStyle={{ 
-                            background: 'rgba(255, 255, 255, 0.95)', 
-                            border: '1px solid #ddd', 
-                            borderRadius: '8px', 
-                            fontSize: '11px',
-                            fontWeight: 'bold'
-                          }} 
-                          formatter={(value: any, name: any) => [formatEokMan(Number(value) || 0), name]}
-                          isAnimationActive={false}
-                        />
-                        <Area type="monotone" dataKey="남은 대출 원금" stroke="#057e77" fillOpacity={1} fill="url(#colorPrincipal)" isAnimationActive={false} />
-                        <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f43f5e" fillOpacity={1} fill="url(#colorInterest)" isAnimationActive={false} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
-                  )}
+                  <p className="text-[10.5px] text-tertiary leading-relaxed break-keep px-0.5">
+                    * 부대비용은 취득세 약 {(loanResults.fees.tax / 10000).toFixed(2)}억원, 중개보수 약 {(loanResults.fees.brokerFee / 10000).toFixed(1)}만원, 법무비용 등 기타 {(loanResults.fees.otherFee / 10000).toFixed(1)}만원을 합산한 근사값입니다.
+                  </p>
                 </div>
               </div>
 
-              {/* Zero-CLS High-CPC Financial AdSlot on Diagnosis Result */}
-              <div className="w-full pt-1" data-testid="mortgage-result-ad-slot">
-                <AdSlot
-                  slotId="1000000002"
-                  format="in-feed"
-                  apartmentName={selectedApt?.name}
-                  dong={selectedApt?.dong}
-                  className="w-full"
-                />
+              {/* Right Column (6 cols): Repayment Simulation & AdSlot */}
+              <div className="md:col-span-6 space-y-3.5">
+                {/* Repayment Selector & Chart Card */}
+                <div className="bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 p-4 rounded-2xl space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[12.5px] font-extrabold text-primary">월 고정 상환액 시뮬레이션</h4>
+                    <div className="flex bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200/70 dark:border-slate-800">
+                      {[10, 20, 30].map(y => (
+                        <button
+                          key={y}
+                          onClick={() => setMaturityYears(y)}
+                          className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all cursor-pointer tabular-nums ${
+                            maturityYears === y ? 'bg-blue-600 text-white shadow-sm' : 'text-tertiary hover:text-secondary'
+                          }`}
+                        >
+                          {y}년
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="bg-white dark:bg-slate-900/70 px-4 py-3 rounded-xl border border-slate-200/60 dark:border-slate-800 flex items-center justify-between gap-3">
+                    <div>
+                      <span className="text-[10.5px] text-tertiary font-bold block">매월 원리금 상환액</span>
+                      <span className="text-[16.5px] font-black text-primary block mt-0.5 tabular-nums tracking-tight">
+                        {(repaymentDetails.monthlyPayment / 10000).toFixed(1)}만원
+                      </span>
+                    </div>
+                    <div className="text-right pl-3 border-l border-slate-200/70 dark:border-slate-800">
+                      <span className="text-[10.5px] text-tertiary font-bold block">상환 방식</span>
+                      <span className="text-[12px] font-extrabold text-secondary block mt-0.5">
+                        원리금균등분할상환
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Recharts Area Chart with non-overlapping Legend header */}
+                  <div className="w-full bg-white dark:bg-slate-900/70 rounded-xl border border-slate-200/60 dark:border-slate-800 p-3">
+                    <div className="flex items-center justify-between mb-2 px-0.5">
+                      <span className="text-[10px] font-bold text-tertiary">연차별 잔액 · 누적이자 추이</span>
+                      <div className="flex items-center gap-3 text-[10px] font-bold text-tertiary">
+                        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-blue-600 rounded-sm" />남은 대출 원금</span>
+                        <span className="flex items-center gap-1"><span className="w-2 h-2 bg-red-500/75 rounded-sm" />납부 누적이자</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-36">
+                      {mounted ? (
+                        <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                          <AreaChart
+                            data={repaymentDetails.chartData}
+                            margin={{ top: 6, right: 8, left: 4, bottom: 0 }}
+                          >
+                            <defs>
+                              <linearGradient id="colorPrincipal" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2}/>
+                                <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0}/>
+                              </linearGradient>
+                              <linearGradient id="colorInterest" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#f04452" stopOpacity={0.15}/>
+                                <stop offset="95%" stopColor="#f04452" stopOpacity={0.0}/>
+                              </linearGradient>
+                            </defs>
+                            <XAxis dataKey="year" tickLine={false} axisLine={false} tick={{ fontSize: 9, fontWeight: 'bold', fill: '#888' }} />
+                            <YAxis
+                              width={40}
+                              tickLine={false}
+                              axisLine={false}
+                              tick={{ fontSize: 9.5, fontWeight: 'bold', fill: '#888' }}
+                              tickFormatter={(val: number) => {
+                                if (!val || val === 0) return '0';
+                                if (val >= 10000) {
+                                  const eok = val / 10000;
+                                  return Number.isInteger(eok) ? `${eok}억` : `${eok.toFixed(1).replace(/\.0$/, '')}억`;
+                                }
+                                if (val >= 1000) {
+                                  const cheon = val / 1000;
+                                  return Number.isInteger(cheon) ? `${cheon}천만` : `${cheon.toFixed(1).replace(/\.0$/, '')}천만`;
+                                }
+                                return `${val.toLocaleString()}만`;
+                              }}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                background: 'rgba(255, 255, 255, 0.95)', 
+                                border: '1px solid #ddd', 
+                                borderRadius: '8px', 
+                                fontSize: '11px',
+                                fontWeight: 'bold'
+                              }} 
+                              formatter={(value: any, name: any) => [formatEokMan(Number(value) || 0), name]}
+                              isAnimationActive={false}
+                            />
+                            <Area type="monotone" dataKey="남은 대출 원금" stroke="#2563eb" fillOpacity={1} fill="url(#colorPrincipal)" isAnimationActive={false} />
+                            <Area type="monotone" dataKey="납부한 누적 이자" stroke="#f04452" fillOpacity={1} fill="url(#colorInterest)" isAnimationActive={false} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-body/20 rounded-xl" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Zero-CLS High-CPC Financial AdSlot on Diagnosis Result */}
+                <div className="w-full" data-testid="mortgage-result-ad-slot">
+                  <AdSlot
+                    slotId="1000000002"
+                    format="in-feed"
+                    apartmentName={selectedApt?.name}
+                    dong={selectedApt?.dong}
+                    className="w-full"
+                  />
+                </div>
               </div>
-
-              {/* Action buttons */}
-               {/* Sticky Popup Footer Action Bar */}
-               </div>
-               <div className="md:col-span-12 flex gap-2 pt-3 border-t border-slate-200/70 dark:border-slate-800 sticky bottom-0 bg-white/95 dark:bg-slate-900/95 backdrop-blur-sm pb-1 z-10">
-                <button
-                  onClick={() => setStep(3)}
-                  className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1 active:scale-95"
-                >
-                  <ArrowLeft size={14} />
-                  <span>조건 수정</span>
-                </button>
-
-                <button
-                  onClick={handleShare}
-                  className="flex-1 bg-body hover:bg-border/30 text-secondary py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1.5 active:scale-95"
-                >
-                  {isCopied ? (
-                    <>
-                      <Check size={14} className="text-emerald-500" />
-                      <span>복사 완료!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Share2 size={14} />
-                      <span>텍스트 복사</span>
-                    </>
-                  )}
-                </button>
-
-                <button
-                  onClick={handleKakaoShare}
-                  className="flex-1 bg-primary hover:bg-primary/90 text-surface py-3.5 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
-                >
-                  <MessageSquare size={14} />
-                  <span>카카오톡 공유</span>
-                </button>
-              </div>
-
             </div>
           )}
 
         </div>
+
+        {/* Docked Footer Action Bar for Step 4 (Prevents scroll overlap) */}
+        {step === 4 && loanResults && repaymentDetails && (
+          <footer className="shrink-0 border-t border-slate-200/80 dark:border-slate-800 px-6 py-3.5 bg-white dark:bg-slate-900 flex items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="flex-1 bg-body hover:bg-border/30 text-secondary py-3 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              <ArrowLeft size={14} />
+              <span>조건 수정</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex-1 bg-body hover:bg-border/30 text-secondary py-3 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border border-border/40 flex items-center justify-center gap-1.5 active:scale-95"
+            >
+              {isCopied ? (
+                <>
+                  <Check size={14} className="text-emerald-500" />
+                  <span>복사 완료!</span>
+                </>
+              ) : (
+                <>
+                  <Share2 size={14} />
+                  <span>텍스트 복사</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleKakaoShare}
+              className="flex-1 bg-primary hover:bg-primary/90 text-surface py-3 rounded-xl text-[13px] font-extrabold transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 active:scale-95 shadow-sm"
+            >
+              <MessageSquare size={14} />
+              <span>카카오톡 공유</span>
+            </button>
+          </footer>
+        )}
       </div>
     </div>,
     document.getElementById('modal-root') || document.body

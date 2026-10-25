@@ -48,7 +48,7 @@ export const GlobalOfflineBanner = React.memo(function GlobalOfflineBanner() {
       aria-live={isOnline ? 'polite' : 'assertive'}
       className={`fixed top-0 left-0 right-0 z-[9999] flex items-center justify-center gap-2 py-2.5 px-4 text-[13px] md:text-[13.5px] font-extrabold shadow-sm border-b backdrop-blur-md transition-all duration-300 animate-in slide-in-from-top ${
         isOnline
-          ? 'bg-emerald-50/90 dark:bg-[#003829]/80 text-[#057e77] dark:text-emerald-400 border-[#057e77]/20 dark:border-[#057e77]/30'
+          ? 'bg-blue-50/90 dark:bg-[#003829]/80 text-blue-600 dark:text-blue-400 border-blue-600/20 dark:border-blue-600/30'
           : 'bg-red-50/95 dark:bg-red-950/85 text-[#df223b] dark:text-[#f87171] border-red-100 dark:border-red-900/30'
       }`}
     >

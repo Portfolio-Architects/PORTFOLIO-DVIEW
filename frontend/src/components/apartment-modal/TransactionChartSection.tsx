@@ -94,13 +94,13 @@ const TransactionChartTooltip = React.memo(({ active, payload }: TransactionChar
         {item?.saleAvg != null && (
           <div className="flex items-center justify-between gap-4">
             <span className="text-tertiary text-[13px] font-bold">매매 평균</span>
-            <span className="text-[#057e77] dark:text-emerald-400 text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
+            <span className="text-blue-600 dark:text-blue-400 text-[15px] font-extrabold">{item.saleAvg.toFixed(2)}억</span>
           </div>
         )}
         {item?.jeonseAvg != null && (
           <div className="flex items-center justify-between gap-4">
             <span className="text-tertiary text-[13px] font-bold">전월세 평균</span>
-            <span className="text-[#f9a825] text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
+            <span className="text-emerald-600 text-[15px] font-extrabold">{item.jeonseAvg.toFixed(2)}억</span>
           </div>
         )}
 
@@ -185,7 +185,7 @@ const CustomActiveDot = React.memo((props: { cx?: number; cy?: number; fill?: st
       cx={cx}
       cy={cy}
       r={6}
-      fill={fill || '#057e77'}
+      fill={fill || '#2563eb'}
       stroke="#ffffff"
       strokeWidth={2}
       style={{
@@ -200,8 +200,8 @@ const CustomActiveDot = React.memo((props: { cx?: number; cy?: number; fill?: st
 });
 CustomActiveDot.displayName = 'CustomActiveDot';
 
-const ACTIVE_DOT_SALE = <CustomActiveDot fill="#057e77" />;
-const ACTIVE_DOT_JEONSE = <CustomActiveDot fill="#f9a825" />;
+const ACTIVE_DOT_SALE = <CustomActiveDot fill="#2563eb" />;
+const ACTIVE_DOT_JEONSE = <CustomActiveDot fill="#059669" />;
 
 interface TransactionChartSectionProps {
   transactions: TransactionRecord[];
@@ -510,8 +510,8 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   }, [displayAptName, chartType, jsonLdElements, relevantTxs, rawData]);
   
   const getFloorColor = (dealType: string | undefined) => {
-    if (dealType === '전세' || dealType === '월세') return '#f9a825'; // Orange/amber for Rent/Jeonse
-    return '#057e77'; // Emerald/green for Sale
+    if (dealType === '전세' || dealType === '월세') return '#059669'; // Orange/amber for Rent/Jeonse
+    return '#2563eb'; // Emerald/green for Sale
   };
 
   const byMonthTier = React.useMemo(() => {
@@ -708,7 +708,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     <div className="flex flex-col gap-1 mt-1">
                       <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
-                        <span className={dropRatio > 0 ? "text-[#d33340] dark:text-red-300" : "text-[#057e77] dark:text-emerald-400"}>
+                        <span className={dropRatio > 0 ? "text-[#d33340] dark:text-red-300" : "text-blue-600 dark:text-blue-400"}>
                           최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})
                         </span>
                       </div>
@@ -717,7 +717,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                           className={`h-full rounded-full transition-all duration-1000 ${
                             dropRatio > 0 
                               ? "bg-gradient-to-r from-red-400 to-[#f04452] dark:from-red-500/80 dark:to-[#f26d78]" 
-                              : "bg-gradient-to-r from-[#057e77] to-emerald-500"
+                              : "bg-gradient-to-r from-blue-600 to-blue-500"
                           }`} 
                           style={{ width: `${ratio}%` }} 
                         />
@@ -767,15 +767,15 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                 key={item.label} 
                 className={`flex flex-col px-3 py-2.5 sm:px-4 sm:py-3.5 flex-1 relative rounded-xl border transition-all duration-200 ${
                   isTarget 
-                    ? 'bg-surface border-[#057e77] shadow-[0_4px_12px_rgba(5,126,119,0.08)] ring-1 ring-[#057e77]/10 z-10' 
+                    ? 'bg-surface border-blue-600 shadow-[0_4px_12px_rgba(5,126,119,0.08)] ring-1 ring-blue-600/10 z-10' 
                     : 'bg-surface border-border/60 hover:bg-body/30'
                 }`}
               >
-                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-[#057e77] dark:text-emerald-400' : 'text-tertiary'}`}>
+                <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
-                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-[#057e77] rounded-full animate-pulse shadow-[0_0_6px_rgba(5,126,119,0.3)]" />}
+                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-blue-600 rounded-full animate-pulse shadow-[0_0_6px_rgba(5,126,119,0.3)]" />}
                 </div>
-                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-[#057e77] dark:text-emerald-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-blue-600 dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
@@ -807,18 +807,18 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
               >
                 <defs>
                   <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#057e77" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#057e77" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                   </linearGradient>
                   <linearGradient id="saleLineGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#057e77" />
+                    <stop offset="0%" stopColor="#2563eb" />
                     <stop offset="50%" stopColor="#10b981" />
-                    <stop offset="100%" stopColor="#057e77" />
+                    <stop offset="100%" stopColor="#2563eb" />
                   </linearGradient>
                   <linearGradient id="jeonseLineGrad" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#f9a825" />
-                    <stop offset="50%" stopColor="#d97706" />
-                    <stop offset="100%" stopColor="#f9a825" />
+                    <stop offset="0%" stopColor="#059669" />
+                    <stop offset="50%" stopColor="#2563eb" />
+                    <stop offset="100%" stopColor="#059669" />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
@@ -846,7 +846,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                     x1={refAreaLeft}
                     x2={refAreaRight}
                     strokeOpacity={0.3}
-                    fill="#057e77"
+                    fill="#2563eb"
                     fillOpacity={0.15}
                   />
                 )}
@@ -857,7 +857,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   animationDuration={0}
                   wrapperStyle={{ zIndex: 30, pointerEvents: 'none' }}
                 />
-                <Bar dataKey="volume" yAxisId="volume" fill="#057e77" radius={BAR_RADIUS_SECTION} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
+                <Bar dataKey="volume" yAxisId="volume" fill="#2563eb" radius={BAR_RADIUS_SECTION} maxBarSize={12} opacity={0.15} isAnimationActive={false} />
                 <Area type="linear" dataKey="saleAvg" yAxisId="price" stroke="url(#saleLineGrad)" strokeWidth={3} fillOpacity={1} fill="url(#colorPrice)" dot={DOT_SALE_SECTION} activeDot={ACTIVE_DOT_SALE} connectNulls isAnimationActive={false} baseValue={Math.max(0, domainMin)} />
                 <Line type="linear" dataKey="jeonseAvg" yAxisId="price" stroke="url(#jeonseLineGrad)" strokeWidth={2.5} dot={DOT_JEONSE_SECTION} activeDot={ACTIVE_DOT_JEONSE} connectNulls isAnimationActive={false} />
 
@@ -882,7 +882,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   {d.priceEok || `${d.price.toFixed(2)}억`}
                 </div>
                 <div className="text-tertiary text-[11px] flex gap-1.5 items-center">
-                  {typeName ? <span className="text-[#057e77] dark:text-emerald-400 font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
+                  {typeName ? <span className="text-blue-600 dark:text-blue-400 font-bold">{typeName}</span> : <span>{areaUnit === 'm2' ? `${d.rawArea}m²` : `${d.area}평`}</span>}
                   <span>·</span><span style={{ color: floorColor }}>{d.floor}층</span>
                   {d.dealType && <><span>·</span><span>{d.dealType}</span></>}
                 </div>
@@ -891,9 +891,9 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
           })()}
         </div>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 mt-2 px-1 text-[12px] sm:text-[13px] font-bold text-tertiary">
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-[#057e77] rounded"/>매매 평균</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-blue-600 rounded"/>매매 평균</span>
 
-          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-[#f9a825] rounded"/>전월세 평균</span>
+          <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-5 sm:w-6 h-[2px] bg-emerald-600 rounded"/>전월세 평균</span>
           <span className="flex items-center gap-1.5 whitespace-nowrap"><span className="w-3.5 h-3.5 bg-[#e5e8eb] rounded-sm"/>{chartType === 'sale' ? '매매 거래량' : '전월세 거래량'}</span>
         </div>
       </div>

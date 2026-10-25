@@ -47,8 +47,8 @@ export const CompareRadarChart = React.memo(function CompareRadarChart({
           <Radar
             name={apt1Name}
             dataKey={key1}
-            stroke="#057e77"
-            fill="#057e77"
+            stroke="#2563eb"
+            fill="#2563eb"
             fillOpacity={0.4}
             strokeWidth={2}
           />

@@ -53,7 +53,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             <a 
               href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
               target="_blank" rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs font-bold text-[#1b64da] bg-[#e8f3ff] hover:bg-[#dbeafe] px-2.5 py-1 rounded-full transition-all shrink-0 group border border-[#1b64da]/20"
+              className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-[#e8f3ff] hover:bg-[#dbeafe] px-2.5 py-1 rounded-full transition-all shrink-0 group border border-blue-600/20"
               title="구글 지도에서 아파트 위치 보기"
             >
               <MapPin className="w-3 h-3 group-hover:scale-105 transition-transform" />
@@ -152,7 +152,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <Radar size={15} className="text-[#057e77] dark:text-emerald-400" />
+                    <Radar size={15} className="text-blue-600 dark:text-blue-400" />
                     <div className="flex flex-col">
                       <span>단지 1:1 비교</span>
                     </div>
@@ -180,7 +180,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                     onFocus={preloadCalculators}
                     className="w-full text-left px-4 py-3 text-[13.5px] font-bold text-secondary hover:bg-body hover:text-primary transition-colors flex items-center gap-2 border-none bg-transparent cursor-pointer"
                   >
-                    <Calculator size={15} className="text-[#057e77] dark:text-emerald-400" />
+                    <Calculator size={15} className="text-blue-600 dark:text-blue-400" />
                     <div className="flex flex-col">
                       <span>대출 계산기</span>
                     </div>

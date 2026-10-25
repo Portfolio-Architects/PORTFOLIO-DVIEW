@@ -247,11 +247,11 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
       {/* Premium Underline Title */}
       <div className="flex border-b border-border/60 bg-body/25 px-5 py-3.5 shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-[#057e77] dark:text-emerald-400 animate-pulse" />
+          <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-pulse" />
           <span className="text-[14.5px] font-black text-primary">최근 실거래 단지</span>
         </div>
         {recentList.length > 0 && (
-          <div className="hidden sm:flex items-center gap-1.5 text-[12px] text-[#057e77] dark:text-emerald-400 font-bold h-5 overflow-hidden relative">
+          <div className="hidden sm:flex items-center gap-1.5 text-[12px] text-blue-600 dark:text-blue-400 font-bold h-5 overflow-hidden relative">
             <span className="text-[10px] bg-emerald-50 dark:bg-emerald-500/10 px-1 py-0.5 rounded mr-1">HOT</span>
             <div 
               className="flex flex-col transition-transform duration-500 ease-in-out"
@@ -278,7 +278,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
       <div className="p-4 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
           {displayList.map((item, index) => {
-            const badgeStyle = "bg-emerald-50 dark:bg-emerald-500/10 text-[#057e77] dark:text-emerald-400 font-bold border border-transparent";
+            const badgeStyle = "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-transparent";
             
             return (
               <button
@@ -297,7 +297,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
                   </div>
  
                   <div className="flex flex-col min-w-0">
-                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors">
+                    <span className="text-[14px] md:text-[15px] font-extrabold text-primary break-keep whitespace-normal leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {item.apt.name}
                     </span>
                     <span className="text-[11px] md:text-[12px] font-semibold text-tertiary mt-0.5">
@@ -308,7 +308,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
  
                 {/* Right (or Bottom on desktop) Area */}
                 <div className="flex md:flex-row items-end md:items-center md:justify-between w-auto md:w-full mt-0 md:mt-3.5 px-0 shrink-0 gap-1.5 md:gap-0 flex-col md:flex-row text-right">
-                  <span className="text-[14.5px] md:text-[15.5px] text-[#057e77] dark:text-emerald-400 font-extrabold leading-none">
+                  <span className="text-[14.5px] md:text-[15.5px] text-blue-600 dark:text-blue-400 font-extrabold leading-none">
                     {item.latestPriceEok}
                   </span>
                   <span className="text-tertiary font-semibold text-[10.5px] md:text-[11.5px] leading-none mt-1 md:mt-0">
@@ -327,7 +327,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
           {hasMore ? (
             <button
               onClick={() => setVisibleCount(prev => Math.min(prev + 15, recentList.length))}
-              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-[#057e77] dark:text-emerald-400 hover:bg-emerald-500/5 active:bg-emerald-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:bg-blue-500/5 active:bg-blue-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
             >
               실거래 이력 더보기 ({Math.min(15, recentList.length - visibleCount)}개 더보기, {visibleCount}/{recentList.length}) <ChevronDown className="w-4 h-4" />
             </button>

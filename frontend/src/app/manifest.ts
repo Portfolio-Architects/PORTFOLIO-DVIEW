@@ -10,16 +10,16 @@ export default function manifest(): MetadataRoute.Manifest {
     background_color: '#fcfbfa',
     theme_color: '#fcfbfa',
     // Note: W3C PWA standards mandate PNG format for standalone launch icons.
-    // Instead of converting to WebP, we apply lossy compression and cache-busting (?v=10) to optimize load time.
+    // Instead of converting to WebP, we apply lossy compression and cache-busting (?v=11) to optimize load time.
     icons: [
       {
-        src: '/icon-192x192.png?v=10',
+        src: '/icon-192x192.png?v=11',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any maskable' as 'any',
       },
       {
-        src: '/icon-512x512.png?v=10',
+        src: '/icon-512x512.png?v=11',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'any maskable' as 'any',
@@ -31,21 +31,21 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: '동탄 소식',
         description: '동탄 부동산 뉴스 및 행정 공지',
         url: '/news',
-        icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
+        icons: [{ src: '/icon-192x192.png?v=11', sizes: '192x192' }]
       },
       {
         name: '주거안심 분석기',
         short_name: '주거안심',
         description: '동탄 주거 안심 및 전세가율 분석',
         url: '/explore',
-        icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
+        icons: [{ src: '/icon-192x192.png?v=11', sizes: '192x192' }]
       },
       {
         name: '동탄 아파트 랩',
         short_name: '아파트 랩',
         description: '동탄 179개 단지 밸류에이션 및 실거래가 분석',
         url: '/',
-        icons: [{ src: '/icon-192x192.png?v=10', sizes: '192x192' }]
+        icons: [{ src: '/icon-192x192.png?v=11', sizes: '192x192' }]
       }
     ]
   };

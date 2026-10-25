@@ -121,7 +121,7 @@ describe('Milestone M2 Apartment Lab Market Energy & Metric Cards Integration Su
     );
 
     // Donut Section Verification
-    expect(screen.getByText('수요 분포')).toBeInTheDocument();
+    expect(screen.getByText('실거래 비중')).toBeInTheDocument();
     expect(screen.getByText('6억 이하')).toBeInTheDocument();
     expect(screen.getByText('6억 ~ 9억')).toBeInTheDocument();
     expect(screen.getByText('9억 ~ 15억')).toBeInTheDocument();

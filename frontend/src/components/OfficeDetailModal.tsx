@@ -229,7 +229,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
       {/* Toast Notification Floating Alert */}
       {toastMsg && (
         <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[13000] bg-slate-900/95 dark:bg-white/95 text-white dark:text-slate-900 px-5 py-2.5 rounded-full text-xs font-black shadow-xl border border-white/10 dark:border-black/10 flex items-center gap-2 animate-in slide-in-from-top duration-300">
-          <Sparkles size={14} className="text-[#057e77] dark:text-emerald-400" />
+          <Sparkles size={14} className="text-blue-600 dark:text-blue-400" />
           <span>{toastMsg}</span>
         </div>
       )}
@@ -246,12 +246,12 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
             
             {/* Building Identity Title */}
             <div className="flex items-start gap-4 min-w-0">
-              <div className="p-4 bg-gradient-to-br from-[#057e77]/20 to-emerald-500/10 text-[#057e77] dark:text-emerald-400 rounded-2xl shrink-0 border border-[#057e77]/20 dark:border-emerald-400/20 shadow-md">
+              <div className="p-4 bg-gradient-to-br from-blue-600/20 to-blue-500/10 text-blue-600 dark:text-blue-400 rounded-2xl shrink-0 border border-blue-600/20 dark:border-blue-400/20 shadow-md">
                 <Building2 size={30} />
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-2.5 flex-wrap">
-                  <span className="text-xs font-black px-3 py-1 rounded-lg bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/20 dark:text-emerald-400 border border-[#057e77]/20 dark:border-emerald-400/20">
+                  <span className="text-xs font-black px-3 py-1 rounded-lg bg-blue-600/10 text-blue-600 dark:bg-blue-400/20 dark:text-blue-400 border border-blue-600/20 dark:border-blue-400/20">
                     종합 {building.score}점
                   </span>
                   <span className="text-xs font-bold text-secondary/70 dark:text-slate-400">
@@ -276,7 +276,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   <span>{building.type}</span>
                   <span className="text-border dark:text-slate-700">•</span>
                   <span className="flex items-center gap-1 font-bold text-primary/90 dark:text-slate-200">
-                    <MapPin size={14} className="text-[#057e77] dark:text-emerald-400 shrink-0" />
+                    <MapPin size={14} className="text-blue-600 dark:text-blue-400 shrink-0" />
                     <span>{building.address || `경기도 화성시 ${building.dong}`}</span>
                   </span>
                 </div>
@@ -331,7 +331,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   onClick={() => setActiveTab(tab.id as any)}
                   className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold transition-all cursor-pointer whitespace-nowrap ${
                     isActive 
-                      ? 'bg-[#057e77] dark:bg-emerald-600 text-white shadow-lg shadow-[#057e77]/25 scale-[1.01]' 
+                      ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-lg shadow-blue-600/25 scale-[1.01]' 
                       : 'text-secondary/70 dark:text-slate-400 hover:bg-body/60 dark:hover:bg-slate-800/60'
                   }`}
                 >
@@ -351,9 +351,9 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
             <div className="space-y-6 animate-in fade-in duration-200">
               
               {/* Score Highlight Banner */}
-              <div className="p-5 rounded-2xl bg-gradient-to-r from-[#057e77]/15 via-[#057e77]/5 to-transparent border border-[#057e77]/25 dark:border-emerald-400/20 flex items-center justify-between">
+              <div className="p-5 rounded-2xl bg-gradient-to-r from-blue-600/15 via-blue-600/5 to-transparent border border-blue-600/25 dark:border-blue-400/20 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="p-3 bg-[#057e77] dark:bg-emerald-600 text-white rounded-2xl shadow-md">
+                  <div className="p-3 bg-blue-600 dark:bg-blue-600 text-white rounded-2xl shadow-md">
                     <BadgeCheck size={24} />
                   </div>
                   <div>
@@ -364,7 +364,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   </div>
                 </div>
                 <div className="text-right">
-                  <span className="text-2xl sm:text-3xl font-black text-[#057e77] dark:text-emerald-400">{building.score}점</span>
+                  <span className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400">{building.score}점</span>
                   <span className="block text-xs font-bold text-secondary/60 dark:text-slate-400">상위 랜드마크</span>
                 </div>
               </div>
@@ -372,12 +372,12 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
               {/* 4 Major Building Specs Grid (Wide 4 columns) */}
               <div>
                 <h4 className="text-xs sm:text-sm font-black text-secondary/90 dark:text-slate-300 tracking-tight leading-normal mb-3 flex items-center gap-1.5">
-                  <Maximize2 size={16} className="text-[#057e77] dark:text-emerald-400" />
+                  <Maximize2 size={16} className="text-blue-600 dark:text-blue-400" />
                   빌딩 핵심 제원
                 </h4>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="p-4 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl flex items-center gap-3.5">
-                    <div className="p-2.5 bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/10 dark:text-emerald-400 rounded-xl shrink-0"><Maximize2 size={18} /></div>
+                    <div className="p-2.5 bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400 rounded-xl shrink-0"><Maximize2 size={18} /></div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[11px] text-secondary/60 dark:text-slate-400 font-bold">연면적 (GFA)</span>
                       <span className="text-xs sm:text-sm text-primary/95 dark:text-slate-100 font-black mt-0.5 truncate">{building.specs.gfa}</span>
@@ -385,7 +385,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   </div>
 
                   <div className="p-4 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl flex items-center gap-3.5">
-                    <div className="p-2.5 bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/10 dark:text-emerald-400 rounded-xl shrink-0"><Layers size={18} /></div>
+                    <div className="p-2.5 bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400 rounded-xl shrink-0"><Layers size={18} /></div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[11px] text-secondary/60 dark:text-slate-400 font-bold">건물 규모</span>
                       <span className="text-xs sm:text-sm text-primary/95 dark:text-slate-100 font-black mt-0.5 truncate">{building.specs.scale}</span>
@@ -393,7 +393,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   </div>
 
                   <div className="p-4 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl flex items-center gap-3.5">
-                    <div className="p-2.5 bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/10 dark:text-emerald-400 rounded-xl shrink-0"><Car size={18} /></div>
+                    <div className="p-2.5 bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400 rounded-xl shrink-0"><Car size={18} /></div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[11px] text-secondary/60 dark:text-slate-400 font-bold">주차 시설</span>
                       <span className="text-xs sm:text-sm text-primary/95 dark:text-slate-100 font-black mt-0.5 truncate">{building.specs.parking}</span>
@@ -401,7 +401,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   </div>
 
                   <div className="p-4 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl flex items-center gap-3.5">
-                    <div className="p-2.5 bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/10 dark:text-emerald-400 rounded-xl shrink-0"><Calendar size={18} /></div>
+                    <div className="p-2.5 bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400 rounded-xl shrink-0"><Calendar size={18} /></div>
                     <div className="flex flex-col min-w-0">
                       <span className="text-[10px] text-secondary/60 dark:text-slate-400 font-bold">준공 연월</span>
                       <span className="text-xs sm:text-sm text-primary/95 dark:text-slate-100 font-black mt-0.5 truncate">{building.specs.completion}</span>
@@ -449,7 +449,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   {/* Brand & Location Card */}
                   <div className="p-5 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl space-y-3">
                     <h4 className="text-xs font-black text-secondary/90 dark:text-slate-300 flex items-center gap-2">
-                      <MapPin size={16} className="text-[#057e77] dark:text-emerald-400" />
+                      <MapPin size={16} className="text-blue-600 dark:text-blue-400" />
                       입지 및 입주사 분석
                     </h4>
                     <div className="space-y-2 text-xs text-secondary/80 dark:text-slate-300">
@@ -460,7 +460,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                       <div className="flex justify-between items-start py-1 border-b border-border/20 dark:border-white/5 gap-3">
                         <span className="font-bold shrink-0">소재지 주소:</span>
                         <span className="font-black text-primary dark:text-white text-right flex items-center justify-end gap-1">
-                          <MapPin size={12} className="text-[#057e77] dark:text-emerald-400 shrink-0" />
+                          <MapPin size={12} className="text-blue-600 dark:text-blue-400 shrink-0" />
                           <span>{building.address || `경기도 화성시 ${building.dong}`}</span>
                         </span>
                       </div>
@@ -470,7 +470,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                       </div>
                       <div className="flex justify-between py-1">
                         <span className="font-bold">주요 특징:</span>
-                        <span className="font-black text-[#057e77] dark:text-emerald-400">{building.driveIn ? '물류/하역 특화' : '오피스형 특화'}</span>
+                        <span className="font-black text-blue-600 dark:text-blue-400">{building.driveIn ? '물류/하역 특화' : '오피스형 특화'}</span>
                       </div>
                     </div>
                   </div>
@@ -501,7 +501,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-5 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl">
                   <span className="text-xs font-bold text-secondary/60 dark:text-slate-400 block">평당 예상 임대료</span>
-                  <span className="text-xl font-black text-[#057e77] dark:text-emerald-400 mt-1 block">{building.rentPerPy}</span>
+                  <span className="text-xl font-black text-blue-600 dark:text-blue-400 mt-1 block">{building.rentPerPy}</span>
                   <span className="text-[11px] text-secondary/50 dark:text-slate-500 mt-0.5 block">전용면적 기준 월세 추정</span>
                 </div>
 
@@ -549,7 +549,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
 
                 {isLoadingTxs ? (
                   <div className="p-10 text-center border border-dashed border-border/50 dark:border-white/10 rounded-2xl bg-body/20 text-secondary/60 dark:text-slate-400 text-xs flex items-center justify-center gap-2">
-                    <span className="inline-block w-4 h-4 border-2 border-[#057e77] dark:border-emerald-400 border-t-transparent rounded-full animate-spin"></span>
+                    <span className="inline-block w-4 h-4 border-2 border-blue-600 dark:border-blue-400 border-t-transparent rounded-full animate-spin"></span>
                     <span>국토교통부 매매 실거래가 데이터를 실시간 조회 중입니다...</span>
                   </div>
                 ) : filteredTxs.length === 0 ? (
@@ -651,10 +651,10 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                 <div className="lg:col-span-7 p-6 bg-body/40 dark:bg-slate-800/40 border border-border/40 dark:border-white/10 rounded-2xl space-y-5">
                   <div className="flex items-center justify-between">
                     <h4 className="text-sm font-black text-primary/95 dark:text-slate-100 flex items-center gap-2">
-                      <Calculator size={20} className="text-[#057e77] dark:text-emerald-400" />
+                      <Calculator size={20} className="text-blue-600 dark:text-blue-400" />
                       취득세 절감액 즉시 시뮬레이터
                     </h4>
-                    <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-[#057e77]/10 text-[#057e77] dark:bg-emerald-400/10 dark:text-emerald-400">
+                    <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-blue-600/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
                       실시간 계산기
                     </span>
                   </div>
@@ -663,7 +663,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-xs sm:text-sm">
                       <span className="text-secondary/70 dark:text-slate-400 font-bold">예상 취득/분양가 금액 설정:</span>
-                      <span className="font-black text-[#057e77] dark:text-emerald-400 text-base sm:text-lg">{(priceInput / 10000).toFixed(1)}억 원 ({(priceInput * 10000).toLocaleString()} 원)</span>
+                      <span className="font-black text-blue-600 dark:text-blue-400 text-base sm:text-lg">{(priceInput / 10000).toFixed(1)}억 원 ({(priceInput * 10000).toLocaleString()} 원)</span>
                     </div>
                     <input
                       type="range"
@@ -672,7 +672,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                       step={2000}
                       value={priceInput}
                       onChange={(e) => setPriceInput(Number(e.target.value))}
-                      className="w-full accent-[#057e77] dark:accent-emerald-400 cursor-pointer h-2 bg-body/80 rounded-lg"
+                      className="w-full accent-blue-600 dark:accent-blue-400 cursor-pointer h-2 bg-body/80 rounded-lg"
                     />
                   </div>
 
@@ -692,16 +692,16 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                       </span>
                     </div>
 
-                    <div className="p-4 bg-[#057e77]/10 border border-[#057e77]/30 dark:border-emerald-400/30 rounded-2xl">
-                      <span className="text-xs text-[#057e77] dark:text-emerald-400 block font-black">절감되는 세금</span>
-                      <span className="text-sm sm:text-base font-black text-[#057e77] dark:text-emerald-400 mt-1 block">
+                    <div className="p-4 bg-blue-600/10 border border-blue-600/30 dark:border-blue-400/30 rounded-2xl">
+                      <span className="text-xs text-blue-600 dark:text-blue-400 block font-black">절감되는 세금</span>
+                      <span className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400 mt-1 block">
                         -{(taxSavings.savedAmount / 10000).toFixed(0)}만 원
                       </span>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-[#057e77]/5 rounded-xl border border-[#057e77]/20 dark:border-emerald-400/20 flex items-center gap-2">
-                    <Info size={16} className="text-[#057e77] dark:text-emerald-400 shrink-0" />
+                  <div className="p-4 bg-blue-600/5 rounded-xl border border-blue-600/20 dark:border-blue-400/20 flex items-center gap-2">
+                    <Info size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
                     <span className="text-xs font-bold text-secondary dark:text-slate-300">
                       법인세 100% 감면 대상 기업인 경우 5년간 수억 원의 절세 효과가 추가로 발생합니다.
                     </span>
@@ -719,10 +719,10 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 
                 {/* Left: Co-leasing Intro */}
-                <div className="p-6 bg-gradient-to-br from-[#057e77]/15 via-body/40 to-body/20 dark:from-emerald-400/10 dark:to-slate-800/40 rounded-2xl border border-[#057e77]/20 dark:border-emerald-400/20 space-y-4 flex flex-col justify-between">
+                <div className="p-6 bg-gradient-to-br from-blue-600/15 via-body/40 to-body/20 dark:from-blue-400/10 dark:to-slate-800/40 rounded-2xl border border-blue-600/20 dark:border-blue-400/20 space-y-4 flex flex-col justify-between">
                   <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                      <div className="p-3 bg-[#057e77] dark:bg-emerald-600 text-white rounded-2xl">
+                      <div className="p-3 bg-blue-600 dark:bg-blue-600 text-white rounded-2xl">
                         <Users size={22} />
                       </div>
                       <div>
@@ -741,7 +741,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   <a
                     href="tel:031-000-0000"
                     onClick={() => showToast('공동임차 신청 상담 센터로 연결됩니다.')}
-                    className="w-full py-3.5 bg-[#057e77] hover:bg-[#04635e] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
+                    className="w-full py-3.5 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
                   >
                     <span>공동임차 오피스 메이트 매칭 신청하기</span>
                     <ArrowRight size={16} />
@@ -763,7 +763,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                       '소형 E-커머스 물류'
                     ].map((item, idx) => (
                       <div key={idx} className="p-4 bg-body/40 dark:bg-slate-800/40 border border-border/30 dark:border-white/10 rounded-xl flex items-center gap-2.5">
-                        <Sparkles size={16} className="text-[#057e77] dark:text-emerald-400 shrink-0" />
+                        <Sparkles size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
                         <span className="font-black text-primary/90 dark:text-slate-200">{item}</span>
                       </div>
                     ))}
@@ -802,7 +802,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
           <a
             href="tel:031-000-0000"
             onClick={() => showToast('공실 매칭 전담 센터로 연결됩니다.')}
-            className="py-3.5 px-6 sm:px-8 bg-[#057e77] hover:bg-[#04635e] dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-[#057e77]/25 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
+            className="py-3.5 px-6 sm:px-8 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
           >
             <PhoneCall size={18} />
             <span>맞춤 공실 / 임대 매칭 상담 신청</span>

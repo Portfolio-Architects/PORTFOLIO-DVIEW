@@ -43,7 +43,7 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
         </div>
 
         <div className="mt-6 relative z-10 w-full">
-          <div className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-[#057e77] dark:hover:bg-[#057e77] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+          <div className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-blue-600 dark:hover:bg-blue-600 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
             <span>지금 추천 받기</span>
             <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
@@ -114,7 +114,7 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           </div>
 
           <div className="mt-6 relative z-10 w-full">
-            <div className="w-full py-3 bg-[#057e77] hover:bg-[#046862] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+            <div className="w-full py-3 bg-blue-600 hover:bg-[#046862] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
               <span>대출 한도 조회</span>
               <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </div>

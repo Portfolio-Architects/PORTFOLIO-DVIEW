@@ -33,10 +33,10 @@ describe('MacroTrendChart Component', () => {
     );
     const polygons = container.querySelectorAll('polygon');
     expect(polygons.length).toBe(2);
-    // Sale diamond vertex with brand emerald fill and white stroke
-    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#057e77')).toBe(true);
+    // Sale diamond vertex with trust blue fill and white stroke
+    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#2563eb')).toBe(true);
     // Rent diamond vertex with brand yellow fill and white stroke
-    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#f9a825')).toBe(true);
+    expect(Array.from(polygons).some(p => p.getAttribute('fill') === '#059669')).toBe(true);
     // Both vertices have white stroke
     expect(Array.from(polygons).every(p => p.getAttribute('stroke') === '#ffffff')).toBe(true);
   });
@@ -73,7 +73,7 @@ describe('MacroTrendChart Component', () => {
       />
     );
     // nonNullSaleCount is 3 (so sale has NO dots under ALL), but nonNullRentCount is 1 (so rent HAS a diamond vertex)
-    const rentPolygon = container.querySelector('polygon[fill="#f9a825"]');
+    const rentPolygon = container.querySelector('polygon[fill="#059669"]');
     expect(rentPolygon).toBeInTheDocument();
     expect(rentPolygon).toHaveAttribute('points');
     expect(rentPolygon).toHaveAttribute('stroke', '#ffffff');
@@ -163,24 +163,24 @@ describe('MacroTrendChart Component', () => {
   it('renders DiamondVertex polygon points with exact mathematical radius calculation', () => {
     const { container: r36Container } = render(
       <svg>
-        <DiamondVertex cx={100} cy={50} radius={3.6} fill="#057e77" stroke="#ffffff" />
+        <DiamondVertex cx={100} cy={50} radius={3.6} fill="#2563eb" stroke="#ffffff" />
       </svg>
     );
     const poly36 = r36Container.querySelector('polygon');
     expect(poly36).toBeInTheDocument();
     expect(poly36).toHaveAttribute('points', '100,46.4 103.6,50 100,53.6 96.4,50');
-    expect(poly36).toHaveAttribute('fill', '#057e77');
+    expect(poly36).toHaveAttribute('fill', '#2563eb');
     expect(poly36).toHaveAttribute('stroke', '#ffffff');
 
     const { container: r60Container } = render(
       <svg>
-        <DiamondVertex cx={100} cy={50} radius={6.0} fill="#f9a825" stroke="#ffffff" />
+        <DiamondVertex cx={100} cy={50} radius={6.0} fill="#059669" stroke="#ffffff" />
       </svg>
     );
     const poly60 = r60Container.querySelector('polygon');
     expect(poly60).toBeInTheDocument();
     expect(poly60).toHaveAttribute('points', '100,44 106,50 100,56 94,50');
-    expect(poly60).toHaveAttribute('fill', '#f9a825');
+    expect(poly60).toHaveAttribute('fill', '#059669');
   });
 
   it('verifies canonical macro/MacroTrendChart module export integrity', async () => {

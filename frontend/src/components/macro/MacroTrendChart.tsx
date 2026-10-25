@@ -93,7 +93,7 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
                   <span className="text-[12px] font-bold text-tertiary">
                     예상 갭차이
                   </span>
-                  <span className="text-[13.5px] font-black text-[#057e77] dark:text-emerald-400">
+                  <span className="text-[13.5px] font-black text-blue-600 dark:text-blue-400">
                     {gapPriceStr}
                   </span>
                 </div>
@@ -140,7 +140,7 @@ export const DiamondVertex = React.memo(function DiamondVertex({
   cy,
   radius = 3.6,
   r,
-  fill = "#057e77",
+  fill = "#2563eb",
   stroke = "#ffffff",
   strokeWidth = 1.5,
   className,
@@ -181,7 +181,7 @@ export const SaleDiamondDot = (props: MacroDotProps): React.ReactElement | null 
     cx={props.cx}
     cy={props.cy}
     radius={3.6}
-    fill="#057e77"
+    fill="#2563eb"
     stroke="#ffffff"
     strokeWidth={1.5}
     className={props.className}
@@ -194,7 +194,7 @@ export const SaleActiveDiamondDot = (props: MacroDotProps): React.ReactElement |
     cx={props.cx}
     cy={props.cy}
     radius={6.0}
-    fill="#057e77"
+    fill="#2563eb"
     stroke="#ffffff"
     strokeWidth={2}
     className={props.className}
@@ -207,7 +207,7 @@ export const RentDiamondDot = (props: MacroDotProps): React.ReactElement | null 
     cx={props.cx}
     cy={props.cy}
     radius={3.6}
-    fill="#f9a825"
+    fill="#059669"
     stroke="#ffffff"
     strokeWidth={1.5}
     className={props.className}
@@ -220,7 +220,7 @@ export const RentActiveDiamondDot = (props: MacroDotProps): React.ReactElement |
     cx={props.cx}
     cy={props.cy}
     radius={6.0}
-    fill="#f9a825"
+    fill="#059669"
     stroke="#ffffff"
     strokeWidth={2}
     className={props.className}
@@ -430,12 +430,12 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
       >
         <defs>
           <linearGradient id="colorSale" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#057e77" stopOpacity={0.30} />
-            <stop offset="95%" stopColor="#057e77" stopOpacity={0.0} />
+            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.30} />
+            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
           </linearGradient>
           <linearGradient id="colorRent" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="#f9a825" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="#f9a825" stopOpacity={0.0} />
+            <stop offset="5%" stopColor="#059669" stopOpacity={0.25} />
+            <stop offset="95%" stopColor="#059669" stopOpacity={0.0} />
           </linearGradient>
         </defs>
         <CartesianGrid
@@ -506,7 +506,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           type="linear"
           name="평균 매매가"
           dataKey="동탄 아파트 전체"
-          stroke="#057e77"
+          stroke="#2563eb"
           strokeWidth={isBottomSheet ? 1.8 : 2.2}
           fill="url(#colorSale)"
           isAnimationActive={false}
@@ -519,7 +519,7 @@ const MacroTrendChart = React.memo(function MacroTrendChart({
           type="linear"
           name="평균 전세가"
           dataKey="동탄 아파트 전세 평균"
-          stroke="#f9a825"
+          stroke="#059669"
           strokeWidth={isBottomSheet ? 1.2 : 1.5}
           fill="url(#colorRent)"
           isAnimationActive={false}

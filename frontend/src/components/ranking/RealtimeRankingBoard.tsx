@@ -54,7 +54,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
       {/* Header with 3 Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-[#057e77] dark:text-emerald-400 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
             <Flame size={18} />
           </div>
           <div>
@@ -78,7 +78,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             onClick={() => setActiveTab('high')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
               activeTab === 'high'
-                ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-xs'
+                ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-tertiary hover:text-primary'
             }`}
           >
@@ -91,7 +91,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             onClick={() => setActiveTab('gap')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
               activeTab === 'gap'
-                ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-xs'
+                ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-tertiary hover:text-primary'
             }`}
           >
@@ -104,7 +104,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             onClick={() => setActiveTab('surge')}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
               activeTab === 'surge'
-                ? 'bg-surface text-[#057e77] dark:text-emerald-400 shadow-xs'
+                ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-tertiary hover:text-primary'
             }`}
           >
@@ -121,7 +121,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             key={`${item.rank}-${item.apartmentName}`}
             data-testid={`ranking-item-${item.rank}`}
             onClick={() => handleSelect?.(item.apartmentName)}
-            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-[#057e77]/40 dark:hover:border-emerald-400/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
+            className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-blue-600/40 dark:hover:border-blue-400/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3 min-w-0">
               <span
@@ -139,7 +139,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
               </span>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[12.5px] font-extrabold text-primary truncate group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors">
+                  <span className="text-[12.5px] font-extrabold text-primary truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                     {item.displayAptName || item.apartmentName}
                   </span>
                   {(item.badge || item.badgeText) && (
@@ -148,7 +148,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
                         item.badgeType === 'high'
                           ? 'bg-red-50 text-red-600 dark:bg-red-950/40 dark:text-red-300 border border-red-200/50'
                           : item.badgeType === 'gap'
-                          ? 'bg-emerald-50 text-[#057e77] dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50'
+                          ? 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400 border border-blue-200/50'
                           : 'bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300 border border-blue-200/50'
                       }`}
                     >
@@ -163,10 +163,10 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             </div>
 
             <div className="flex items-center gap-2 shrink-0 pl-2">
-              <span className="text-[13px] font-black text-primary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors">
+              <span className="text-[13px] font-black text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {item.metricValue || item.primaryValue}
               </span>
-              <ArrowUpRight size={13} className="text-tertiary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              <ArrowUpRight size={13} className="text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </div>
           </div>
         ))}

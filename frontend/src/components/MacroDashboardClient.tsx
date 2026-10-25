@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
@@ -19,6 +19,7 @@ import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
+import { trackEvent } from '@/lib/utils/analytics';
 import { AptMetricCards } from "./macro/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
@@ -48,12 +49,12 @@ const MacroTrendChart = dynamic(() => import("@/components/macro/MacroTrendChart
   ssr: false,
   loading: () => (
     <div className="w-full h-full min-h-[200px] flex flex-col items-center justify-center bg-slate-50/30 dark:bg-slate-900/10 border border-border/30 rounded-2xl animate-pulse relative overflow-hidden">
-      <div className="absolute w-[180px] h-[180px] rounded-full bg-[#057e77]/5 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute w-[180px] h-[180px] rounded-full bg-blue-50/60 blur-[60px] top-1/2 left-1/3 -translate-y-1/2 pointer-events-none" />
       <div className="absolute w-[180px] h-[180px] rounded-full bg-emerald-500/5 blur-[60px] top-1/2 right-1/3 -translate-y-1/2 pointer-events-none" />
       <div className="flex items-center gap-1.5 mb-3.5 flex-none">
-        <div className="w-1.5 h-6 bg-[#057e77]/30 rounded-full animate-bounce duration-500 delay-100" />
-        <div className="w-1.5 h-10 bg-[#057e77]/40 rounded-full animate-bounce duration-500 delay-200" />
-        <div className="w-1.5 h-14 bg-[#057e77]/60 rounded-full animate-bounce duration-500 delay-300" />
+        <div className="w-1.5 h-6 bg-blue-600/30 rounded-full animate-bounce duration-500 delay-100" />
+        <div className="w-1.5 h-10 bg-blue-600/40 rounded-full animate-bounce duration-500 delay-200" />
+        <div className="w-1.5 h-14 bg-blue-600/60 rounded-full animate-bounce duration-500 delay-300" />
         <div className="w-1.5 h-10 bg-emerald-500/50 rounded-full animate-bounce duration-500 delay-400" />
         <div className="w-1.5 h-12 bg-emerald-500/60 rounded-full animate-bounce duration-500 delay-500" />
         <div className="w-1.5 h-8 bg-emerald-500/40 rounded-full animate-bounce duration-500 delay-600" />
@@ -283,7 +284,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
       className={`flex items-center justify-between p-3 xs:p-3.5 sm:p-4 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-full max-w-full box-border ${
         isSelected
-          ? "border-[#057e77] bg-[#057e77]/5 dark:bg-[#057e77]/10 shadow-[0_2px_12px_rgba(5,126,119,0.08)]"
+          ? "border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 shadow-xs"
           : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
       } group gap-2 sm:gap-3`}
     >
@@ -293,7 +294,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-[#057e77]/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-2"
+        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-2"
       >
         {/* Left Column: 2-Row Layout */}
         <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
@@ -336,7 +337,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           {/* Row 2: [아파트 Full Name] */}
           <div className="flex items-center min-w-0 w-full overflow-hidden">
             <span
-              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-[#057e77] dark:group-hover:text-emerald-400 transition-colors leading-tight truncate break-keep min-w-0 flex-1"
+              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0 flex-1"
               title={item.displayAptName || item.aptName}
             >
               {item.displayAptName || item.aptName}
@@ -426,7 +427,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
               e.stopPropagation();
               onMortgageClick(item.aptName);
             }}
-            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 min-h-[28px] sm:min-h-[32px] rounded-lg bg-[#3182f6]/10 hover:bg-[#3182f6]/20 dark:bg-[#3182f6]/20 dark:hover:bg-[#3182f6]/30 border border-[#3182f6]/25 text-[9.5px] sm:text-[10px] font-extrabold text-[#3182f6] dark:text-blue-400 transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-[#3182f6]/50 whitespace-nowrap"
+            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 min-h-[28px] sm:min-h-[32px] rounded-lg bg-blue-600/10 hover:bg-blue-600/20 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600/25 text-[9.5px] sm:text-[10px] font-extrabold text-blue-600 dark:text-blue-400 transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-600/50 whitespace-nowrap"
           >
             한도조회
           </button>
@@ -543,7 +544,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
               e.stopPropagation();
               onMortgageClick(item.aptName);
             }}
-            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 rounded-lg bg-[#3182f6]/10 hover:bg-[#3182f6]/20 dark:bg-[#3182f6]/20 dark:hover:bg-[#3182f6]/30 border border-[#3182f6]/25 text-[9.5px] sm:text-[10.5px] font-extrabold text-[#3182f6] dark:text-blue-400 transition-all cursor-pointer shrink-0 whitespace-nowrap"
+            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600/25 text-[9.5px] sm:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 transition-all cursor-pointer shrink-0 whitespace-nowrap"
           >
             한도조회
           </button>
@@ -773,6 +774,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, []);
 
   const handleOpenJeonseSafety = useCallback((aptName?: string) => {
+    trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
     if (onOpenJeonseSafety) {
       onOpenJeonseSafety(aptName);
     } else {
@@ -781,6 +783,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [onOpenJeonseSafety, scrollToHighCpcFinanceSection]);
 
   const handleOpenMortgage = useCallback((aptName?: string) => {
+    trackEvent('open_calculator', { calculator_type: 'mortgage', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
     if (onOpenMortgage) {
       onOpenMortgage(aptName);
     } else {
@@ -789,6 +792,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [onOpenMortgage, scrollToHighCpcFinanceSection]);
 
   const handleOpenSellTiming = useCallback((aptName?: string) => {
+    trackEvent('open_calculator', { calculator_type: 'sell_timing', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
     if (onOpenSellTimingCalculator) {
       onOpenSellTimingCalculator(aptName);
     } else if (_onOpenTaxCalculator) {
@@ -799,6 +803,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [onOpenSellTimingCalculator, _onOpenTaxCalculator, scrollToHighCpcFinanceSection]);
 
   const handleOpenTaxCalculator = useCallback((aptName?: string) => {
+    trackEvent('open_calculator', { calculator_type: 'property_tax', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
     if (_onOpenTaxCalculator) {
       _onOpenTaxCalculator(aptName);
     } else if (onOpenSellTimingCalculator) {
@@ -1459,23 +1464,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           data-testid="hero-finance-quick-bar"
           className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-2 mb-3.5 rounded-2xl bg-surface border border-border/80 shadow-2xs min-w-0 box-border"
         >
-          <div className="hidden lg:flex items-center gap-2 min-w-0 truncate">
-            <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-[#057e77] dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-800/40 text-[10.5px] font-black shrink-0">
-              실수요 금융·세무 직결
-            </span>
-            <span className="text-[12px] font-bold text-secondary truncate">
-              {selectedTimelineApt
-                ? `${getDisplayAptName(selectedTimelineApt)} 기준 주담대 DSR 한도·전세보증·세액 원클릭 진단`
-                : "신생아특례 1.6%~ · 스트레스 DSR 2단계 한도 · 취득세 원클릭 시뮬레이션"}
-            </span>
-          </div>
-
           <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto shrink-0 py-0.5">
             <button
               type="button"
               data-testid="hero-quick-mortgage"
-              onClick={() => handleOpenMortgage(selectedTimelineApt || undefined)}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-[#057e77] hover:bg-[#046660] text-white text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs"
+              onClick={() => { trackEvent('hero_quick_click', { button: 'mortgage', apt_name: selectedTimelineApt || undefined }); handleOpenMortgage(selectedTimelineApt || undefined); }}
+              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs"
             >
               <Landmark size={13} className="shrink-0" />
               <span>주담대 최저금리·한도</span>
@@ -1483,25 +1477,25 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             <button
               type="button"
               data-testid="hero-quick-jeonse"
-              onClick={() => handleOpenJeonseSafety(selectedTimelineApt || undefined)}
+              onClick={() => { trackEvent('hero_quick_click', { button: 'jeonse_safety', apt_name: selectedTimelineApt || undefined }); handleOpenJeonseSafety(selectedTimelineApt || undefined); }}
               className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
             >
-              <ShieldCheck size={13} className="text-[#1b64da] dark:text-blue-400 shrink-0" />
+              <ShieldCheck size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
               <span>전세보증 안전진단</span>
             </button>
             <button
               type="button"
               data-testid="hero-quick-tax"
-              onClick={() => handleOpenTaxCalculator(selectedTimelineApt || undefined)}
+              onClick={() => { trackEvent('hero_quick_click', { button: 'property_tax', apt_name: selectedTimelineApt || undefined }); handleOpenTaxCalculator(selectedTimelineApt || undefined); }}
               className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
             >
-              <Calculator size={13} className="text-[#057e77] dark:text-emerald-400 shrink-0" />
+              <Calculator size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
               <span>취득세·중개보수</span>
             </button>
             <button
               type="button"
               data-testid="hero-quick-sell"
-              onClick={() => handleOpenSellTiming(selectedTimelineApt || undefined)}
+              onClick={() => { trackEvent('hero_quick_click', { button: 'sell_timing', apt_name: selectedTimelineApt || undefined }); handleOpenSellTiming(selectedTimelineApt || undefined); }}
               className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
             >
               <TrendingUp size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />

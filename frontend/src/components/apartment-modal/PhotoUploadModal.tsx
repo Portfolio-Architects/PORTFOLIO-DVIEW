@@ -295,7 +295,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                     ${previewUrl 
                       ? 'border-transparent bg-black' 
                       : isDragging 
-                        ? 'border-[#3182f6] bg-[#3182f6]/5' 
+                        ? 'border-blue-600 bg-blue-600/5' 
                         : 'border-border bg-body hover:bg-surface'}`}
                   onClick={() => fileInputRef.current?.click()}
                   onDragEnter={handleDragEnter}

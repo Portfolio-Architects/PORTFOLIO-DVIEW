@@ -71,9 +71,9 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   });
 
   it.each([
-    ['overview', '아파트 랩', 'bg-emerald-50', 'text-emerald-700'],
-    ['imjang', '아파트 탐색', 'bg-emerald-50', 'text-emerald-700'],
-    ['mbti', '단지 MBTI', 'bg-emerald-50', 'text-emerald-700'],
+    ['overview', '아파트 랩', 'bg-white', 'text-blue-600'],
+    ['imjang', '아파트 탐색', 'bg-white', 'text-blue-600'],
+    ['mbti', '단지 MBTI', 'bg-white', 'text-blue-600'],
   ])('highlights activeTab "%s" correctly with expected visual feedback in LoungeHeader and MobileDock', (activeTab, label, expectedBg, expectedText) => {
     const { container: headerContainer } = render(
       <LoungeHeader activeTab={activeTab as any} />

@@ -10,7 +10,13 @@ export async function getEngineeringReport() {
   const reportMetadata = { date: '', grade: '', branch: '', status: '' };
   
   try {
-    let filePath = path.join(process.cwd(), '..', 'PORTFOLIO DVIEW - Engineering Report.md');
+    let filePath = path.join(process.cwd(), '..', 'DVIEW_PORTFOLIO DVIEW - Engineering Report.md');
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(process.cwd(), '..', 'PORTFOLIO DVIEW - Engineering Report.md');
+    }
+    if (!fs.existsSync(filePath)) {
+      filePath = path.join(process.cwd(), 'DVIEW_PORTFOLIO DVIEW - Engineering Report.md');
+    }
     if (!fs.existsSync(filePath)) {
       filePath = path.join(process.cwd(), 'PORTFOLIO DVIEW - Engineering Report.md');
     }
@@ -47,4 +53,3 @@ export async function getEngineeringReport() {
 
   return { metadata: reportMetadata, markdownContent };
 }
-
