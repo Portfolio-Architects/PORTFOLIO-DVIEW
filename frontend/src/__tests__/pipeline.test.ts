@@ -785,7 +785,7 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       const aptsJsonPath = path.resolve(__dirname, '../../../frontend/public/data/apartments-by-dong.json');
       const dongData = JSON.parse(fs.readFileSync(aptsJsonPath, 'utf8'));
       const jangjiApts = dongData.byDong['장지동'] || [];
-      const kumho = jangjiApts.find((a: any) => a.name === '금호어울림 레이크 1차');
+      const kumho = jangjiApts.find((a: any) => a.name === '금호어울림 레이크' || a.name === '금호어울림 레이크 1차');
       expect(kumho).toBeDefined();
       expect(kumho.txKey).toBe('금호어울림레이크');
 

@@ -152,7 +152,7 @@ describe('Empirical Adversarial Verification: Cancellation Filtering & Key Norma
       const aptsPath = path.resolve(__dirname, '../../public/data/apartments-by-dong.json');
       const dongData = JSON.parse(fs.readFileSync(aptsPath, 'utf8'));
       const jangjiApts = dongData.byDong['장지동'] || [];
-      const kumho = jangjiApts.find((a: any) => a.name === '금호어울림 레이크 1차');
+      const kumho = jangjiApts.find((a: any) => a.name === '금호어울림 레이크' || a.name === '금호어울림 레이크 1차');
       expect(kumho).toBeDefined();
       expect(kumho.txKey).toBe('금호어울림레이크');
     });

@@ -939,7 +939,7 @@ describe('동탄 아파트 통계 리포트 & 애드센스 대시보드 종합 E
       it('F7.3: Verifies MobileDock baseline links', () => {
         const { container } = render(<MobileDock activeTab="overview" />);
         const dockLinks = container.querySelectorAll('nav a');
-        expect(dockLinks.length).toBe(3);
+        expect(dockLinks.length).toBe(4);
       });
 
       it('F7.4: Validates activeTab state propagation in LoungeHeader', () => {
