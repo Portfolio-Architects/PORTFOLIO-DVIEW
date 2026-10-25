@@ -34,6 +34,13 @@ declare global {
 
 export async function getInitialData(): Promise<InitialPageDataWithScores> {
   const now = Date.now();
+  if (
+    process.env.NODE_ENV === 'development' &&
+    globalThis._initialPageDataCache?.data?.recentTransactions?.length &&
+    !('registeredDate' in (globalThis._initialPageDataCache.data.recentTransactions[0] as Record<string, unknown>))
+  ) {
+    globalThis._initialPageDataCache = undefined;
+  }
   const cache = globalThis._initialPageDataCache;
 
   if (cache) {

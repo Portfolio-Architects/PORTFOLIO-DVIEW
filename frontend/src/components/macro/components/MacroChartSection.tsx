@@ -132,17 +132,6 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                   </span>
                 </h3>
 
-                {selectedTimelineApt && !isDefaultAptSettingUp && onOpenMortgageModal && (
-                  <button
-                    type="button"
-                    data-testid="chart-header-mortgage-cta"
-                    aria-label={`${getDisplayAptName(selectedTimelineApt)} 대출 및 한도 계산기 열기`}
-                    onClick={() => onOpenMortgageModal(selectedTimelineApt)}
-                    className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200/80 text-secondary hover:text-primary dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/60 rounded-xl text-[11px] font-extrabold cursor-pointer transition-colors shrink-0 flex items-center gap-1 shadow-xs"
-                  >
-                    대출·한도 계산
-                  </button>
-                )}
                 {selectedTimelineApt && !isDefaultAptSettingUp && (
                   <button
                     onClick={() => onSelectApt && onSelectApt(selectedTimelineApt, currentAptObj?.dong)}

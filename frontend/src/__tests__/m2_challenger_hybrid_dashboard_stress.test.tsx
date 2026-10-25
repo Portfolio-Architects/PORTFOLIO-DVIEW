@@ -443,7 +443,7 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       expect(donutSection).toBeInTheDocument();
 
       // StatsOverviewSection immediately below
-      const statsSection = screen.getByTestId('stats-overview-section');
+      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
       expect(statsSection).toBeInTheDocument();
 
       // Timeline section below
@@ -511,8 +511,9 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-overview-section');
-      const rank1 = within(statsSection).getByTestId('ranking-item-1');
+      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
+      fireEvent.click(screen.getByTestId('timeline-tab-rankings'));
+      const rank1 = screen.getByTestId('ranking-item-1');
       expect(rank1).toBeInTheDocument();
 
       fireEvent.click(rank1);
@@ -728,8 +729,9 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-overview-section');
-      const rankItem = within(statsSection).getByTestId('ranking-item-1');
+      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
+      fireEvent.click(screen.getByTestId('timeline-tab-rankings'));
+      const rankItem = screen.getByTestId('ranking-item-1');
       fireEvent.click(rankItem);
 
       expect(onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', expect.anything());

@@ -713,30 +713,16 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const summaryBar = screen.getByTestId('timeline-summary-kpi-bar');
-      expect(summaryBar).toBeInTheDocument();
-      expect(summaryBar).toHaveTextContent('구간 평균 15.98억');
-      expect(summaryBar).toHaveTextContent('3.3㎡당 4,255만원');
-      expect(summaryBar).toHaveTextContent('최저 14.2억 ~ 최고 18.2억');
-      expect(summaryBar).toHaveTextContent('한도 약 11.2억');
+      expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
 
-      const financeCtaBar = screen.getByTestId('timeline-finance-cta-bar');
-      expect(financeCtaBar).toBeInTheDocument();
 
-      const mortgageBtn = screen.getByTestId('timeline-cta-mortgage');
-      fireEvent.click(mortgageBtn);
-      expect(onOpenMortgageMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
 
-      const jeonseBtn = screen.getByTestId('timeline-cta-jeonse');
-      fireEvent.click(jeonseBtn);
-      expect(onOpenJeonseSafetyMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
 
-      const taxBtn = screen.getByTestId('timeline-cta-tax');
-      fireEvent.click(taxBtn);
-      expect(onOpenTaxCalculatorMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
+
+      expect(screen.queryByTestId('timeline-finance-cta-bar')).not.toBeInTheDocument();
     });
 
-    it('gracefully handles malformed, zero, or negative priceVal items in computeTimelineAggregateMetrics and falls back to scrolling when callbacks are omitted', () => {
+    it('gracefully handles malformed, zero, or negative priceVal items in computeTimelineAggregateMetrics', () => {
       const malformedGroups: TimelineGroup[] = [
         {
           dateStr: '2026.08.21 (목)',
@@ -772,19 +758,6 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(res.isValid).toBe(false);
       expect(res.totalItems).toBe(0);
       expect(res.estimatedMonthlyPaymentMan).toBe(0);
-
-      // Test scroll fallback when callbacks are omitted
-      const scrollIntoViewMock = jest.fn();
-      const dummyFinanceSection = document.createElement('div');
-      dummyFinanceSection.setAttribute('data-testid', 'high-cpc-finance-section');
-      dummyFinanceSection.scrollIntoView = scrollIntoViewMock;
-      document.body.appendChild(dummyFinanceSection);
-
-      render(<MacroTimelineView timelineGroups={sampleGroups} />);
-      fireEvent.click(screen.getByTestId('timeline-cta-mortgage'));
-      expect(scrollIntoViewMock).toHaveBeenCalled();
-
-      document.body.removeChild(dummyFinanceSection);
     });
   });
 
@@ -885,11 +858,11 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(screen.getAllByText('30일')).toHaveLength(1);
 
       // 2. Summary KPI bar reflects fullTimelineData (4 items avg 15.98억), not just the 1 sliced item (16.5억)
-      const summaryBar = screen.getByTestId('timeline-summary-kpi-bar');
-      expect(summaryBar).toHaveTextContent('구간 평균 15.98억');
+      expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
 
-      // 3. Finance CTA bar reflects selected apartment context
-      expect(screen.getByTestId('timeline-finance-cta-bar')).toHaveTextContent('[동탄역 롯데캐슬] 실거래 단지 맞춤 금융·세금 원클릭 진단');
+
+      // 3. Duplicate finance CTA bar is removed
+      expect(screen.queryByTestId('timeline-finance-cta-bar')).not.toBeInTheDocument();
 
       // 4. Date header shows totalCount (5건) instead of sliced items.length (1건)
       expect(screen.getByText('총 5건 거래')).toBeInTheDocument();
@@ -904,7 +877,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       fireEvent.click(day2Pill);
       expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
       // KPI bar updates to Day 2 average: (15.0 + 18.2) / 2 = 16.6억
-      expect(screen.getByTestId('timeline-summary-kpi-bar')).toHaveTextContent('구간 평균 16.6억');
+      expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
     });
   });
 });

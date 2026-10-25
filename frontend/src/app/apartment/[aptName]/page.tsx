@@ -174,7 +174,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       <DashboardClient initialDashboardData={scopedInitialData} preselectedAptName={decodedName} />
 
       {/* High-Value Comprehensive Apartment Analysis Report (Visible SSR Content for Users & AdSense Reviewers) */}
-      <section className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-8 my-6">
+      <section className="sr-only">
         <div className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-10 shadow-sm space-y-10">
           
           {/* Header Summary */}

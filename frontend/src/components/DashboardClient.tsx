@@ -505,7 +505,7 @@ const DashboardClient = React.memo(function DashboardClient({
               metrics: buildStubObjectiveMetrics(targetApt, getLocScore(targetApt.name)),
             });
           }
-          setMobileModalOpen(true);
+        setMobileModalOpen(true);
         }
       }
     };
@@ -566,7 +566,7 @@ const DashboardClient = React.memo(function DashboardClient({
             name: metaEntry?.name || preselectedAptName,
             dong: fallbackDong,
           }
-        : undefined;
+        : { name: preselectedAptName, dong: fallbackDong };
       if (resolvedApt) {
         const report =
           (targetApt && fieldReportsMap.get(targetApt.name)) ||
@@ -582,16 +582,34 @@ const DashboardClient = React.memo(function DashboardClient({
           createdAt: null,
           metrics: buildStubObjectiveMetrics(resolvedApt, locScore),
         });
-        if (typeof window !== 'undefined' && window.innerWidth < 768) {
-          setMobileModalOpen(true);
-        }
+        triggerFetch();
+        setMobileModalOpen(true);
       }
       return; 
     }
 
     if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     // Auto-select is disabled so that the Ad slot placeholder remains visible on desktop until a user actively clicks an apartment.
-  }, [fieldReports, preselectedAptName]);
+  }, [fieldReports, preselectedAptName, triggerFetch]);
+
+  useEffect(() => {
+    if (!selectedReport || selectedReport.metrics?.householdCount) return;
+    const allApts = Object.values(sheetApartments).flat();
+    if (allApts.length === 0) return;
+    const targetApt = allApts.find(a =>
+      isSameApartment(a.name, selectedReport.apartmentName, nameMapping, a.dong, selectedReport.dong || undefined)
+    );
+    if (targetApt && targetApt.householdCount) {
+      setSelectedReport(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          dong: prev.dong || targetApt.dong || '',
+          metrics: buildStubObjectiveMetrics(targetApt, getLocScore(targetApt.name), prev.metrics),
+        };
+      });
+    }
+  }, [sheetApartments, selectedReport, nameMapping, getLocScore]);
 
   // Handle Browser Back Button for soft-navigation URL routing
   useEffect(() => {
@@ -622,7 +640,7 @@ const DashboardClient = React.memo(function DashboardClient({
             ),
           };
           setSelectedReport(report);
-          setMobileModalOpen(true);
+        setMobileModalOpen(true);
           userHasSelected.current = true;
         }
         return;
@@ -887,11 +905,12 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
   const handleTabChange = useCallback((tab: string) => {
-    const targetTab = tab as 'overview' | 'imjang' | 'mbti';
-    setActiveTab(targetTab);
+    const targetTab = tab as 'overview' | 'imjang' | 'mbti' | 'guide';
+    if (targetTab !== 'guide') setActiveTab(targetTab);
     let href = '/';
     if (targetTab === 'imjang') href = '/explore';
     else if (targetTab === 'mbti') href = '/mbti';
+    else if (targetTab === 'guide') href = '/guide';
     else if (targetTab === 'overview') href = '/';
     window.history.pushState(null, '', href);
     try { router.replace(href, { scroll: false }); } catch (err) {}

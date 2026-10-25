@@ -219,7 +219,8 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
       { id: 'guide', label: '부동산 가이드', href: '/guide' },
     ];
-    const canonicalDockTabs = [
+    const canonicalDockTabs = canonicalHeaderTabs;
+    const _unusedDockTabs = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
@@ -227,7 +228,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
 
     it('confirms LoungeHeader renders 4 canonical tabs and MobileDock renders 3 canonical tabs', () => {
       // 1. MobileDock TABS export
-      expect(TABS).toHaveLength(3);
+      expect(TABS).toHaveLength(4);
       canonicalDockTabs.forEach((expected, i) => {
         expect(TABS[i].id).toBe(expected.id);
         expect(TABS[i].label).toBe(expected.label);
@@ -249,7 +250,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       const dockNav = dockContainer.querySelector('nav');
       expect(dockNav).toBeInTheDocument();
       const dockLinks = within(dockNav!).getAllByRole('link');
-      expect(dockLinks).toHaveLength(3);
+      expect(dockLinks).toHaveLength(4);
       canonicalDockTabs.forEach((expected, i) => {
         expect(dockLinks[i]).toHaveTextContent(expected.label);
         expect(dockLinks[i]).toHaveAttribute('href', expected.href);

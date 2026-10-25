@@ -454,7 +454,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   subtitleStrong={<MarketStatsStrong />}
                   subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
                 />
-                <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 my-4">
+                <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5">
                   <AdSlot
                     slotId="1000000001"
                     format="in-feed"

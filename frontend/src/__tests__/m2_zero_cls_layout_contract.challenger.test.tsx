@@ -191,7 +191,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-overview-section');
+      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
       expect(statsSection).toBeInTheDocument();
 
       // The top offset of downstream sections is governed by the 566px hero bounding box
@@ -413,7 +413,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-overview-section');
+      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
       const timelineHeading = screen.getByText('일자별 최근 실거래');
 
       // Find slot 1000000001 container specifically

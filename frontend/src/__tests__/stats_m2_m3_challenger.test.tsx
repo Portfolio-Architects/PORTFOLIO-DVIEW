@@ -456,7 +456,7 @@ describe('Milestone 2 & 3 Adversarial Challenge Suite', () => {
     it('4.2: MobileDock tab text has font size text-[9.5px] preventing line wrap on 320px screens', () => {
       const { container } = render(<MobileDock activeTab="overview" />);
       const spans = container.querySelectorAll('span.whitespace-nowrap');
-      expect(spans.length).toBe(3);
+      expect(spans.length).toBe(4);
 
       spans.forEach((s) => {
         expect(s.className).toMatch(/text-\[9\.5px\]/);

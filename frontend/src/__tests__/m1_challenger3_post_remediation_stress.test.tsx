@@ -164,14 +164,15 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
       { id: 'guide', label: '부동산 가이드', href: '/guide' },
     ];
-    const canonicalDockOrder = [
+    const canonicalDockOrder = canonicalHeaderOrder;
+    const _unusedDockOrder = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
     ];
 
     it('confirms MobileDock exported TABS matches canonical spec in exact order', () => {
-      expect(TABS).toHaveLength(3);
+      expect(TABS).toHaveLength(4);
       canonicalDockOrder.forEach((expected, i) => {
         expect(TABS[i].id).toBe(expected.id);
         expect(TABS[i].label).toBe(expected.label);
@@ -187,13 +188,13 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
       const dockLinks = within(dockContainer).getAllByRole('link');
 
       expect(headerLinks).toHaveLength(4);
-      expect(dockLinks).toHaveLength(3);
+      expect(dockLinks).toHaveLength(4);
 
       for (let i = 0; i < 4; i++) {
         expect(headerLinks[i]).toHaveAttribute('href', canonicalHeaderOrder[i].href);
         expect(headerLinks[i]).toHaveTextContent(canonicalHeaderOrder[i].label);
       }
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
         expect(dockLinks[i]).toHaveAttribute('href', canonicalDockOrder[i].href);
         expect(dockLinks[i]).toHaveTextContent(canonicalDockOrder[i].label);
       }
@@ -292,7 +293,7 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
         const dockLinks = within(dockContainer).getAllByRole('link');
 
         expect(headerLinks).toHaveLength(4);
-        expect(dockLinks).toHaveLength(3);
+        expect(dockLinks).toHaveLength(4);
 
         unmountH();
         unmountD();

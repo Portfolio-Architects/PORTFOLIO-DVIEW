@@ -568,15 +568,13 @@ describe('AptDonutSection Test Suite', () => {
       expect(PRICE_TIER_COLORS.over15).toBe('#334155');
     });
 
-    it('triggers onOpenMortgageModal callback when loan CTA is clicked in selected card in price mode', () => {
-      const mockOpenMortgage = jest.fn();
+    it('does not render duplicate loan CTA in selected card in price mode (unified in top hero bar)', () => {
       render(
         <AptDonutSection
           mounted={true}
           initialMode="price"
           recentTransactions={mockRecentTransactions}
           txSummaryData={mockSummary as any}
-          onOpenMortgageModal={mockOpenMortgage}
         />
       );
 
@@ -584,13 +582,7 @@ describe('AptDonutSection Test Suite', () => {
       const under9Row = screen.getByLabelText(/6억 ~ 9억 1건/i);
       fireEvent.click(under9Row);
 
-      // Verify CTA button appears
-      const loanCta = screen.getByText(/대출 한도·금리 >/i);
-      expect(loanCta).toBeInTheDocument();
-
-      // Click loan CTA
-      fireEvent.click(loanCta);
-      expect(mockOpenMortgage).toHaveBeenCalledTimes(1);
+      expect(screen.queryByText(/대출 한도·금리 >/i)).not.toBeInTheDocument();
     });
 
     it('transitions center HUD cleanly when hovering over pie slice without floating tooltip overlap', () => {

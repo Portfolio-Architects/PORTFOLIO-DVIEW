@@ -1,5 +1,4 @@
 import React from 'react';
-import { Compass, Shield, Calculator, TrendingUp, ChevronRight } from 'lucide-react';
 
 export interface MacroUtilityCardsProps {
   setIsQuizOpen: (open: boolean) => void;
@@ -24,15 +23,12 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
         className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
       >
         <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-        <div className="relative z-10 flex flex-col gap-4">
+        <div className="relative z-10 flex flex-col gap-3">
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-              <Compass size={18} />
-            </div>
             <span className="text-[10px] font-black bg-[#ffebed] text-[#ff4b5c] px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">New 콘텐츠</span>
           </div>
           
-          <div className="flex flex-col gap-2 mt-2">
+          <div className="flex flex-col gap-2 mt-1">
             <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
               나만의 동탄 안심 정착 단지 찾기 Quiz
             </h3>
@@ -43,9 +39,8 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
         </div>
 
         <div className="mt-6 relative z-10 w-full">
-          <div className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-blue-600 dark:hover:bg-blue-600 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+          <div className="w-full py-3 bg-slate-900 dark:bg-slate-800 hover:bg-blue-600 dark:hover:bg-blue-600 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center border-none">
             <span>지금 추천 받기</span>
-            <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
           </div>
         </div>
       </button>
@@ -59,15 +54,12 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
         >
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-          <div className="relative z-10 flex flex-col gap-4">
+          <div className="relative z-10 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                <Shield size={18} />
-              </div>
               <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 안전</span>
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-2 mt-1">
               <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
                 전세금 반환 안전진단 & 역전세 계산기
               </h3>
@@ -78,9 +70,8 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           </div>
 
           <div className="mt-6 relative z-10 w-full">
-            <div className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+            <div className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center border-none">
               <span>보증금 진단하기</span>
-              <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>
         </button>
@@ -95,15 +86,12 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-emerald-500/8 to-surface dark:from-emerald-500/4 border border-emerald-500/15 hover:border-emerald-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
         >
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-emerald-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-          <div className="relative z-10 flex flex-col gap-4">
+          <div className="relative z-10 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 bg-emerald-500/10 dark:bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                <Calculator size={18} />
-              </div>
               <span className="text-[10px] font-black bg-emerald-100 text-emerald-600 dark:bg-emerald-950/30 dark:text-emerald-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 금융</span>
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-2 mt-1">
               <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
                 내집마련 정책자금 대출 계산기
               </h3>
@@ -114,9 +102,8 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           </div>
 
           <div className="mt-6 relative z-10 w-full">
-            <div className="w-full py-3 bg-blue-600 hover:bg-[#046862] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+            <div className="w-full py-3 bg-blue-600 hover:bg-[#046862] text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center border-none">
               <span>대출 한도 조회</span>
-              <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>
         </button>
@@ -131,15 +118,12 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           className="text-left w-full flex flex-col justify-between h-full p-6 bg-gradient-to-br from-red-500/8 to-surface dark:from-red-500/4 border border-red-500/15 hover:border-red-500/40 rounded-[22px] shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.06)] cursor-pointer hover:-translate-y-1 active:scale-[0.99] transition-all duration-300 group relative overflow-hidden outline-none focus:ring-2 focus:ring-inset focus:ring-emerald-500/50 focus:border-transparent"
         >
           <div className="absolute top-0 right-0 w-48 h-48 bg-gradient-to-br from-red-500/10 to-transparent rounded-full blur-2xl pointer-events-none group-hover:scale-110 transition-transform duration-500" />
-          <div className="relative z-10 flex flex-col gap-4">
+          <div className="relative z-10 flex flex-col gap-3">
             <div className="flex items-center justify-between">
-              <div className="w-10 h-10 bg-red-500/10 dark:bg-red-500/15 text-red-600 dark:text-red-400 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                <TrendingUp size={18} />
-              </div>
               <span className="text-[10px] font-black bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400 px-2.5 py-1 rounded-full tracking-wide uppercase shadow-sm">D-VIEW 자산</span>
             </div>
 
-            <div className="flex flex-col gap-2 mt-2">
+            <div className="flex flex-col gap-2 mt-1">
               <h3 className="text-[15.5px] font-black text-primary tracking-tight leading-snug">
                 우리집 적정 가치 & 주거 자산 안정성 진단
               </h3>
@@ -150,9 +134,8 @@ export const MacroUtilityCards = React.memo(function MacroUtilityCards({
           </div>
 
           <div className="mt-6 relative z-10 w-full">
-            <div className="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center gap-1.5 border-none">
+            <div className="w-full py-3 bg-red-600 hover:bg-red-500 text-white text-[12.5px] font-black rounded-xl shadow-sm transition-all duration-300 flex items-center justify-center border-none">
               <span>자산 안정성 진단</span>
-              <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
             </div>
           </div>
         </button>

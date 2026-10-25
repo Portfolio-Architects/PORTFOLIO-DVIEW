@@ -145,7 +145,7 @@ export const MBTI_PROFILES: Record<MbtiType, MbtiApartmentProfile> = {
     group: 'SJ',
     alias: '청렴결백한 공무원 (신뢰의 올라운더)',
     tagline: '10년 이상 검증된 센트럴파크 생활권과 굳건한 안정감',
-    aptName: '시범다은마을 동탄포스코더샵',
+    aptName: '시범다은마을 포스코더샵',
     dong: '반송동',
     zoneId: 'zone-metapolis',
     tags: ['#동탄1대장', '#센트럴파크', '#성숙된인프라', '#가성비최고'],
@@ -158,7 +158,7 @@ export const MBTI_PROFILES: Record<MbtiType, MbtiApartmentProfile> = {
     radar: { transit: 75, nature: 90, education: 92, commerce: 88, futureValue: 80 },
     bannerGradient: 'from-slate-800 via-blue-900 to-slate-950',
     accentColor: '#059669',
-    txKey: '시범다은마을동탄포스코더샵',
+    txKey: '시범다은마을포스코더샵',
   },
   ESTP: {
     type: 'ESTP',

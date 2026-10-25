@@ -2,7 +2,6 @@ import { Suspense } from 'react';
 import Script from 'next/script';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { BookOpen, ArrowRight, Building2, Compass, Clock, MapPin } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
@@ -195,7 +194,6 @@ export default async function HomePage() {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-6">
             <div className="space-y-2 max-w-3xl">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold">
-                <BookOpen size={14} />
                 <span>D-VIEW 부동산 데이터 랩스 공식 분석 브리핑</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight">
@@ -211,7 +209,6 @@ export default async function HomePage() {
               className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-xs sm:text-sm font-extrabold transition-colors shrink-0 self-start lg:self-auto"
             >
               <span>전체 심층 리포트 열람</span>
-              <ArrowRight size={16} />
             </Link>
           </div>
 
@@ -219,7 +216,6 @@ export default async function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             <article className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-sm">
-                <Building2 size={16} />
                 <h3>실거주 PER 및 전세가율 하방 경직성</h3>
               </div>
               <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -229,7 +225,6 @@ export default async function HomePage() {
 
             <article className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 space-y-2.5">
               <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-extrabold text-sm">
-                <Compass size={16} />
                 <h3>스트레스 DSR 40% 한도 및 주담대 감응도</h3>
               </div>
               <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -239,7 +234,6 @@ export default async function HomePage() {
 
             <article className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 rounded-2xl p-5 space-y-2.5">
               <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-sm">
-                <BookOpen size={16} />
                 <h3>광역 교통망(GTX-A·트램·동인선) 입지 점수</h3>
               </div>
               <p className="text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 leading-relaxed">
@@ -252,7 +246,6 @@ export default async function HomePage() {
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
               <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                <MapPin size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <span>동탄 7대 핵심 권역별 아파트 실거래가 및 입지 리포트</span>
               </h3>
             </div>
@@ -269,10 +262,6 @@ export default async function HomePage() {
                       <span className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
                         {zone.dongLabel}
                       </span>
-                      <ArrowRight
-                        size={14}
-                        className="text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors shrink-0"
-                      />
                     </div>
                     <h4 className="text-sm font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors">
                       {zone.name}
@@ -291,7 +280,6 @@ export default async function HomePage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
-                  <Building2 size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
                   <span>동탄 실거래 시세 리더 대장 단지 TOP 10 심층 리포트</span>
                 </h3>
                 <Link
@@ -300,7 +288,6 @@ export default async function HomePage() {
                   className="text-xs font-extrabold text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
                 >
                   <span>전체 단지 탐색</span>
-                  <ArrowRight size={13} />
                 </Link>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5">
@@ -346,7 +333,6 @@ export default async function HomePage() {
                     <div className="flex items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
                       <span className="font-bold text-emerald-700 dark:text-emerald-400">{article.category}</span>
                       <span className="inline-flex items-center gap-1 font-mono">
-                        <Clock size={12} />
                         {article.readingTime}
                       </span>
                     </div>
@@ -359,7 +345,6 @@ export default async function HomePage() {
                   </div>
                   <div className="inline-flex items-center gap-1 text-xs font-extrabold text-blue-700 dark:text-blue-400">
                     <span>칼럼 전문 읽기</span>
-                    <ArrowRight size={14} />
                   </div>
                 </Link>
               ))}

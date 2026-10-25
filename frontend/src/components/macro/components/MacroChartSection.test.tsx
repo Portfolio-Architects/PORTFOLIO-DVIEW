@@ -150,15 +150,8 @@ describe('MacroChartSection Test Suite', () => {
     expect(screen.queryByRole('option', { name: /내 관심 단지/i })).not.toBeInTheDocument();
   });
 
-  it('renders mortgage CTA button and invokes onOpenMortgageModal with selected apartment when clicked', () => {
-    const onOpenMortgageModal = jest.fn();
-    render(<MacroChartSection {...defaultProps} onOpenMortgageModal={onOpenMortgageModal} />);
-
-    const mortgageBtn = screen.getByTestId('chart-header-mortgage-cta');
-    expect(mortgageBtn).toBeInTheDocument();
-    expect(mortgageBtn).toHaveTextContent('대출·한도 계산');
-
-    fireEvent.click(mortgageBtn);
-    expect(onOpenMortgageModal).toHaveBeenCalledWith('동탄역 롯데캐슬');
+  it('does not render duplicate mortgage CTA button in chart header (unified in top hero bar)', () => {
+    render(<MacroChartSection {...defaultProps} />);
+    expect(screen.queryByTestId('chart-header-mortgage-cta')).not.toBeInTheDocument();
   });
 });

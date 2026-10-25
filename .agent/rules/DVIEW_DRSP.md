@@ -22,7 +22,7 @@ description: DVIEW Response Standard Protocol (DRSP) - 디뷰 답변 출력 표�
 - 디뷰(DVIEW) 서비스 전반에서 추정값, 시범(샘플) 데이터, Mock 데이터, 임의 가공 시세 데이터는 일체 사용하지 않으며, 국토교통부·화성시·DART 등 공공기관 및 공식 검증 데이터만 취급합니다.
 
 ## 5. Design System Invariants & Single Source of Truth (디자인 시스템 준수)
-- 프론트엔드 컴포넌트 생성 및 수정 시 루트 `DVIEW_DESIGN.md`를 단일 진실 공급원(SSOT)으로 참조하고 준수합니다.
+- 프론트엔드 컴포넌트 생성 및 수정 시 루트 `DVIEW_DESIGN.md`에 정의된 **Ad Money (애드 머니) 디자인 시스템**(구글 애드센스 수익률 극대화 목적)을 단일 진실 공급원(SSOT)으로 참조하고 준수합니다.
 - 임의 유니코드 이모티콘 사용을 금지하고 `lucide-react` SVG 아이콘 체계로 일원화합니다.
 - Slate 무채색 베이스(`slate-50`~`slate-950`) 및 Emerald/Blue 시맨틱 컬러 토큰 외 비표준 난색·과채도 배경 및 보더 적용을 배제합니다.
 - Zero-CLS 기하학($CLS < 0.001$) 유지 및 핵심 탐색 흐름과 결합된 네이티브 수익화 카드 아키텍처를 준수합니다.

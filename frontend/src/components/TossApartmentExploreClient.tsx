@@ -1,12 +1,12 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect, useDeferredValue, useCallback } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Search, ArrowUp, ArrowDown, ChevronDown, X, Sparkles } from 'lucide-react';
+import { Search, ArrowUp, ArrowDown, ChevronDown, X } from 'lucide-react';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { DONGS } from '@/lib/dongs';
-import { findTxKey, normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
+import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import { AptTxSummary } from '@/lib/types/transaction';
@@ -14,7 +14,6 @@ import { FieldReportData } from '@/lib/types/report.types';
 import { trackEvent } from '@/lib/utils/analytics';
 
 // subcomponents
-import { EnrichedApt } from './explore/types';
 import { SearchSuggestionDropdown } from './explore/SearchSuggestionDropdown';
 import { AptRow } from './explore/AptRow';
 
@@ -64,8 +63,6 @@ const formatYearBuilt = (yearStr?: string | number) => {
   
   return ageStr;
 };
-
-
 
 interface TossApartmentExploreClientProps {
   sheetApartments: Record<string, DongApartment[]>;
@@ -177,12 +174,13 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     };
   }, []);
 
-  const [currentCategory, setCurrentCategory] = useState<string>('rank-abs-price');
+  // Default to 'rank-price' (단지별 평단가) as the primary top tab on Apartment Explore
+  const [currentCategory, setCurrentCategory] = useState<string>('rank-price');
   const [searchQuery, setSearchQuery] = useState('');
   const [inputValue, setInputValue] = useState('');
-  const [isPending, startTransition] = React.useTransition();
+  const [, startTransition] = React.useTransition();
 
-  // Read URL search param on mount without SSR mismatch
+  // Read URL search & category param on mount without SSR mismatch
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -190,6 +188,18 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       if (initialQ) {
         setSearchQuery(initialQ);
         setInputValue(initialQ);
+      }
+      const initialCat = params.get('category') || params.get('tab') || '';
+      if (initialCat === 'pyeong' || initialCat === 'rank-price') {
+        setCurrentCategory('rank-price');
+      } else if (
+        initialCat === 'rank-abs-price' ||
+        initialCat === 'rank-jeonse' ||
+        initialCat === 'rank-turnover' ||
+        initialCat === 'rank-views' ||
+        initialCat.startsWith('dong-')
+      ) {
+        setCurrentCategory(initialCat);
       }
     }
   }, []);
@@ -259,10 +269,17 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     }
   }, [sheetApartments, txSummaryData, nameMapping, typeMap]);
 
+  const topRankingTabs = useMemo(() => [
+    { id: 'rank-price', label: '단지별 평단가', badge: 'TOP' },
+    { id: 'rank-abs-price', label: '실거래 총액순' },
+    { id: 'rank-jeonse', label: '전세가율 높은 순' },
+    { id: 'rank-turnover', label: '거래 회전율순' },
+    { id: 'rank-views', label: '인기 조회순' },
+  ], []);
 
   const categories = useMemo(() => [
+    { id: 'rank-price', label: '단지별 평단가' },
     { id: 'rank-abs-price', label: '매매가순' },
-    { id: 'rank-price', label: '평당가순' },
     { id: 'rank-jeonse', label: '전세율순' },
     { id: 'rank-turnover', label: '회전율순' },
     { id: 'rank-views', label: '조회순' },
@@ -285,7 +302,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
-  const [sortKey, setSortKey] = useState<string>('totalPrice');
+  const [sortKey, setSortKey] = useState<string>('pyeongPrice');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   const handleHeaderSort = (key: string) => {
@@ -473,6 +490,27 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     return filtered;
   }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, fieldReportsMap]);
 
+  const pyeongSummary = useMemo(() => {
+    const valid = sortedApts.filter((a) => a.pyeongPrice > 0 && Number.isFinite(a.pyeongPrice));
+    if (valid.length === 0) {
+      return { maxPyeongPrice: 0, avgPyeongPrice: 0, topApt: null, validCount: 0 };
+    }
+    let topApt = valid[0];
+    let sum = 0;
+    for (const item of valid) {
+      if (item.pyeongPrice > topApt.pyeongPrice) topApt = item;
+      sum += item.pyeongPrice;
+    }
+    return {
+      maxPyeongPrice: Math.floor(topApt.pyeongPrice),
+      avgPyeongPrice: Math.round(sum / valid.length),
+      topApt,
+      validCount: valid.length,
+    };
+  }, [sortedApts]);
+
+  const isPyeongMode = currentCategory === 'rank-price' || currentCategory.startsWith('dong-');
+
   const exploreJsonLd = useMemo(() => {
     if (!sortedApts || sortedApts.length === 0) return null;
 
@@ -567,7 +605,18 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
   const recommendedKeywords = ['동탄역', '시범단지', '롯데캐슬', '반도유보라', '자이', '더샵'];
 
-
+  const categoryTitle =
+    currentCategory === 'rank-price'
+      ? '단지별 평단가 랭킹'
+      : currentCategory === 'rank-abs-price'
+        ? '실거래 총액 높은 순'
+        : currentCategory === 'rank-jeonse'
+          ? '전세가율 높은 순'
+          : currentCategory === 'rank-turnover'
+            ? '거래 회전율 높은 순'
+            : currentCategory === 'rank-views'
+              ? '인기 조회수 많은 순'
+              : `${currentCategory.replace('dong-', '')} 평단가 랭킹`;
 
   return (
     <div className="flex flex-col w-full bg-transparent">
@@ -588,14 +637,14 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
           <div className="flex flex-col gap-1" role="tablist" aria-label="단지 랭킹 필터">
             <SidebarItem 
-              label="가격 높은 순" 
-              active={currentCategory === 'rank-abs-price'} 
-              onClick={() => setCurrentCategory('rank-abs-price')} 
-            />
-            <SidebarItem 
-              label="평당가 높은 순" 
+              label="단지별 평단가 높은 순" 
               active={currentCategory === 'rank-price'} 
               onClick={() => setCurrentCategory('rank-price')} 
+            />
+            <SidebarItem 
+              label="실거래 총액 높은 순" 
+              active={currentCategory === 'rank-abs-price'} 
+              onClick={() => setCurrentCategory('rank-abs-price')} 
             />
             <SidebarItem 
               label="전세가율 높은 순" 
@@ -603,12 +652,12 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               onClick={() => setCurrentCategory('rank-jeonse')} 
             />
             <SidebarItem 
-              label="회전율 높은 순" 
+              label="거래 회전율 높은 순" 
               active={currentCategory === 'rank-turnover'} 
               onClick={() => setCurrentCategory('rank-turnover')} 
             />
             <SidebarItem 
-              label="조회수 많은 순" 
+              label="인기 조회수 많은 순" 
               active={currentCategory === 'rank-views'} 
               onClick={() => setCurrentCategory('rank-views')} 
             />
@@ -616,7 +665,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         </div>
 
         <div className="mb-6">
-          <h2 className="text-[14px] font-extrabold text-primary mb-3">법정동별 보기</h2>
+          <h2 className="text-[14px] font-extrabold text-primary mb-3">법정동별 평단가</h2>
           <div className="flex flex-col gap-1" role="tablist" aria-label="법정동별 보기 필터">
             {DONGS.map(dong => (
               <SidebarItem 
@@ -664,12 +713,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             onClick={() => setIsMobileMenuOpen(true)}
           >
             <h2 className="text-[15px] font-black text-primary tracking-tight">
-              {currentCategory === 'rank-price' ? '평당가 높은 순' :
-               currentCategory === 'rank-abs-price' ? '가격 높은 순' :
-               currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
-               currentCategory === 'rank-turnover' ? '회전율 높은 순' :
-               currentCategory === 'rank-views' ? '조회수 많은 순' :
-               `${currentCategory.replace('dong-', '')} 아파트`}
+              {categoryTitle}
             </h2>
             <ChevronDown className="w-4 h-4 text-primary" />
           </button>
@@ -708,7 +752,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 onClick={() => setCurrentCategory(cat.id)}
                 className={`px-3 py-1 rounded-full text-[11.5px] font-bold transition-all shrink-0 active:scale-95 ${
                   isActive
-                    ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 ring-1 ring-emerald-500/20'
+                    ? 'bg-blue-600 text-white shadow-2xs'
                     : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-800'
                 }`}
               >
@@ -721,24 +765,63 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
       {/* Main Table Area */}
       <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
+        {/* Top Ranking Navigation Tab Bar (Prominent on Desktop & Mobile) */}
+        <div
+          data-testid="explore-top-ranking-tabs"
+          role="tablist"
+          aria-label="아파트 탐색 상단 랭킹 탭"
+          className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pt-2 pb-3 border-b border-border/60 shrink-0"
+          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        >
+          {topRankingTabs.map((tab) => {
+            const isActive =
+              currentCategory === tab.id ||
+              (tab.id === 'rank-price' && currentCategory.startsWith('dong-'));
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setCurrentCategory(tab.id)}
+                className={`px-3.5 py-2 rounded-xl text-[13px] font-extrabold transition-all shrink-0 flex items-center gap-1.5 cursor-pointer ${
+                  isActive
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-slate-100/80 dark:bg-slate-800/70 text-secondary hover:text-primary hover:bg-slate-200/70 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.badge && (
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[10px] font-bold leading-none ${
+                      isActive
+                        ? 'bg-white/20 text-white'
+                        : 'bg-blue-500/10 text-blue-600 dark:text-blue-400'
+                    }`}
+                  >
+                    {tab.badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="px-0 py-3 md:py-4 border-b border-border flex flex-col md:flex-row md:justify-between md:items-end gap-3 md:gap-4 shrink-0 bg-white/95 dark:bg-[#1e1e1e]/95 backdrop-blur-md relative z-30">
           <div className="flex flex-row justify-between items-center md:flex-col md:items-start">
             <button 
               className="flex items-center gap-1 focus:outline-none md:pointer-events-none"
               onClick={() => setIsMobileMenuOpen(true)}
             >
-              <h2 className="text-[20px] md:text-[28px] font-extrabold text-primary tracking-tight">
-                {currentCategory === 'rank-price' ? '평당가 높은 순' :
-                 currentCategory === 'rank-abs-price' ? '가격 높은 순' :
-                 currentCategory === 'rank-jeonse' ? '전세가율 높은 순' :
-                 currentCategory === 'rank-turnover' ? '회전율 높은 순' :
-                 currentCategory === 'rank-views' ? '조회수 많은 순' :
-                 `${currentCategory.replace('dong-', '')} 아파트`}
+              <h2 className="text-[20px] md:text-[26px] font-extrabold text-primary tracking-tight">
+                {categoryTitle}
               </h2>
               <ChevronDown className="w-5 h-5 text-primary md:hidden" />
             </button>
-            <div className="flex items-center gap-2 mt-0 md:mt-2">
-              <p className="text-[13px] md:text-[15px] font-medium text-tertiary">총 {sortedApts.length}개 단지</p>
+            <div className="flex items-center gap-2 mt-0 md:mt-1.5">
+              <p className="text-[13px] md:text-[14px] font-medium text-tertiary">
+                총 {sortedApts.length}개 단지 · 3.3㎡당 실거래 평단가 및 34평 환산 시세 비교
+              </p>
             </div>
           </div>
 
@@ -796,29 +879,6 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             )}
             </div>
 
-            {/* Mobile Category Chips Scrollbar (Default view below search bar) */}
-            <div 
-              className="flex md:hidden overflow-x-auto no-scrollbar gap-1.5 py-1.5 w-full scroll-smooth shrink-0"
-              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', WebkitOverflowScrolling: 'touch' }}
-            >
-              {categories.map((cat) => {
-                const isActive = currentCategory === cat.id;
-                return (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCurrentCategory(cat.id)}
-                    className={`px-3.5 py-1.5 rounded-full text-[12.5px] font-bold transition-all shrink-0 active:scale-95 ${
-                      isActive
-                        ? 'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/10 dark:text-emerald-400 ring-1 ring-emerald-500/20'
-                        : 'bg-slate-100 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:text-slate-800'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                );
-              })}
-            </div>
-
             {/* Premium Autocomplete & Suggestions Dropdown */}
             {isSearchFocused && (
               <SearchSuggestionDropdown
@@ -866,6 +926,90 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </div>
           </div>
         </div>
+
+        {/* Consumer-Friendly Pyeong Ranking Summary & Quick Dong Filter Panel */}
+        {isPyeongMode && (
+          <div className="flex flex-col gap-3 pt-3 pb-1 border-b border-border/50">
+            {/* Quick Legal Dong Filter Pills */}
+            <div
+              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+              <button
+                type="button"
+                onClick={() => setCurrentCategory('rank-price')}
+                className={`px-3 py-1 rounded-full text-xs font-bold transition-colors shrink-0 cursor-pointer ${
+                  currentCategory === 'rank-price'
+                    ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                    : 'bg-slate-100 dark:bg-slate-800 text-secondary hover:text-primary'
+                }`}
+              >
+                동탄 전체
+              </button>
+              {DONGS.map((dong) => {
+                const isDongActive = currentCategory === `dong-${dong.name}`;
+                return (
+                  <button
+                    key={dong.name}
+                    type="button"
+                    onClick={() => setCurrentCategory(`dong-${dong.name}`)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold transition-colors shrink-0 cursor-pointer ${
+                      isDongActive
+                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900'
+                        : 'bg-slate-100 dark:bg-slate-800 text-secondary hover:text-primary'
+                    }`}
+                  >
+                    {dong.name}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 3-Column Benchmark Summary Strip */}
+            {pyeongSummary.validCount > 0 && (
+              <div
+                data-testid="explore-pyeong-summary-strip"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-3 px-4 mb-2 rounded-xl bg-body/60 border border-border/50"
+              >
+                <div className="flex flex-col justify-between min-w-0 sm:pr-3 sm:border-r sm:border-border/40">
+                  <span className="text-[11px] font-medium text-tertiary">1위 최고 평단가</span>
+                  <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
+                    {pyeongSummary.maxPyeongPrice.toLocaleString()}만원/평
+                  </p>
+                  <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+                    {pyeongSummary.topApt
+                      ? `${pyeongSummary.topApt.apt.name} · 34평 환산 ${formatPrice(
+                          Math.round(pyeongSummary.maxPyeongPrice * 34)
+                        )}`
+                      : '-'}
+                  </span>
+                </div>
+
+                <div className="flex flex-col justify-between min-w-0 sm:pr-3 sm:border-r sm:border-border/40">
+                  <span className="text-[11px] font-medium text-tertiary">탐색 단지 평균 평단가</span>
+                  <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+                    {pyeongSummary.avgPyeongPrice.toLocaleString()}만원/평
+                  </p>
+                  <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+                    34평(84㎡) 기준 평균 {formatPrice(Math.round(pyeongSummary.avgPyeongPrice * 34))}
+                  </span>
+                </div>
+
+                <div className="flex flex-col justify-between min-w-0">
+                  <span className="text-[11px] font-medium text-tertiary">실거래 분석 대상</span>
+                  <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+                    총 {pyeongSummary.validCount.toLocaleString()}개 단지
+                  </p>
+                  <span className="text-[11px] text-secondary truncate mt-0.5">
+                    {currentCategory.startsWith('dong-')
+                      ? `${currentCategory.replace('dong-', '')} 실거래 보유 단지 기준`
+                      : '동탄 전 권역 실거래 보유 단지 기준'}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex-1 min-h-0 flex flex-col relative py-4">
           <div className="w-full flex flex-col">
@@ -957,6 +1101,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       currentCategory={currentCategory}
                       photoCount={fieldReportsMap.get(item.apt.name)?.images?.length || 0}
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
+                      maxPyeongPrice={pyeongSummary.maxPyeongPrice}
                       preloadApartmentTx={preloadApartmentTx}
                     />
                   </React.Fragment>
@@ -970,9 +1115,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     onClick={() => setVisibleCount(prev => prev + 15)}
                     className="w-full py-4 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 font-extrabold text-[14.5px] rounded-2xl border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.995]"
                   >
-                    <Sparkles size={16} className="text-emerald-600 dark:text-emerald-400 animate-pulse" />
+
                     <span>분석 단지 더보기 ({visibleCount} / {sortedApts.length})</span>
-                    <ChevronDown size={16} className="text-emerald-600 dark:text-emerald-400" />
+
                   </button>
                 </div>
               )}
@@ -1008,19 +1153,19 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             </div>
             
             {/* Scrollable Content */}
-            <div className="flex-1 px-5 py-2">
+            <div className="flex-1 px-5 py-2 overflow-y-auto">
               <div className="py-3 mt-1">
                 <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2">단지 랭킹</h3>
                 <div className="flex flex-col gap-1" role="tablist" aria-label="모바일 단지 랭킹 필터">
                   <MobileSidebarItem 
-                    label="가격 높은 순" 
-                    active={currentCategory === 'rank-abs-price'} 
-                    onClick={() => { setCurrentCategory('rank-abs-price'); setIsMobileMenuOpen(false); }} 
-                  />
-                  <MobileSidebarItem 
-                    label="평당가 높은 순" 
+                    label="단지별 평단가 높은 순" 
                     active={currentCategory === 'rank-price'} 
                     onClick={() => { setCurrentCategory('rank-price'); setIsMobileMenuOpen(false); }} 
+                  />
+                  <MobileSidebarItem 
+                    label="실거래 총액 높은 순" 
+                    active={currentCategory === 'rank-abs-price'} 
+                    onClick={() => { setCurrentCategory('rank-abs-price'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
                     label="전세가율 높은 순" 
@@ -1028,12 +1173,12 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     onClick={() => { setCurrentCategory('rank-jeonse'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
-                    label="회전율 높은 순" 
+                    label="거래 회전율 높은 순" 
                     active={currentCategory === 'rank-turnover'} 
                     onClick={() => { setCurrentCategory('rank-turnover'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
-                    label="조회수 많은 순" 
+                    label="인기 조회수 많은 순" 
                     active={currentCategory === 'rank-views'} 
                     onClick={() => { setCurrentCategory('rank-views'); setIsMobileMenuOpen(false); }} 
                   />
@@ -1041,7 +1186,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               </div>
 
               <div className="py-3 border-t border-border mt-1">
-                <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2 mt-2">법정동별 보기</h3>
+                <h3 className="text-[13px] font-extrabold text-tertiary mb-2 px-2 mt-2">법정동별 평단가 보기</h3>
                 <div className="flex flex-col gap-1 pb-6" role="tablist" aria-label="모바일 법정동별 보기 필터">
                   {DONGS.map(dong => (
                     <MobileSidebarItem 

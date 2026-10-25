@@ -6,7 +6,9 @@ import { logger } from "@/lib/services/logger";
 import { preloadApartmentModal } from "@/lib/preload";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint, FieldReportData } from "@/types";
-import { normalizeAptName, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
+import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
+import { aggregateStats, resolveSummaryEntry } from "@/lib/analytics/statsEngine";
+import type { RegionFilter, PyeongFilter, TimeframeFilter, SortOption, RawTransactionRecord } from "@/types/stats";
 import { useSettingsValues } from "@/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores, usePeriodTransactions } from "@/hooks/useStaticData";
@@ -25,8 +27,7 @@ import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
 import { AdSlot } from "@/components/ads/AdSlot";
-import { StatsOverviewSection } from "@/components/stats/StatsOverviewSection";
-import { Landmark, ShieldCheck, Calculator, TrendingUp } from "lucide-react";
+
 
 
 const InlineLoader = ({ text }: { text: string }) => (
@@ -261,7 +262,6 @@ export interface TimelineItemCardProps {
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
   onDetailsHover: (aptName: string, dong: string) => void;
-  onMortgageClick?: (aptName: string) => void;
 }
 
 export const TimelineItemCard = React.memo(function TimelineItemCard({
@@ -272,7 +272,6 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   onCardClick,
   onDetailsClick,
   onDetailsHover,
-  onMortgageClick,
 }: TimelineItemCardProps) {
   const isRising = item.delta > 0;
   const isFalling = item.delta < 0;
@@ -416,22 +415,8 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
         </div>
       </button>
 
-      {/* Right Section Column 2: Detail & Finance Action Buttons */}
+      {/* Right Section Column 2: Detail Action Button */}
       <div className="flex items-center justify-center gap-1 shrink-0 pl-1 sm:pl-2 border-l border-border/20 dark:border-slate-800/50 my-0.5">
-        {onMortgageClick && (
-          <button
-            type="button"
-            data-testid={`card-mortgage-btn-${item.aptName}`}
-            aria-label={`${item.aptName} 주담대 한도 및 금리 계산`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMortgageClick(item.aptName);
-            }}
-            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 sm:py-1.5 min-h-[28px] sm:min-h-[32px] rounded-lg bg-blue-600/10 hover:bg-blue-600/20 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600/25 text-[9.5px] sm:text-[10px] font-extrabold text-blue-600 dark:text-blue-400 transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-600/50 whitespace-nowrap"
-          >
-            한도조회
-          </button>
-        )}
         <button
           type="button"
           aria-label={`${item.aptName} 상세 정보 보기`}
@@ -457,7 +442,6 @@ export interface TimelineItemRowProps {
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
   onDetailsHover?: (aptName: string, dong: string) => void;
-  onMortgageClick?: (aptName: string) => void;
 }
 
 export const TimelineItemRow = React.memo(function TimelineItemRow({
@@ -468,7 +452,6 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   onCardClick,
   onDetailsClick,
   onDetailsHover,
-  onMortgageClick,
 }: TimelineItemRowProps) {
   const isRising = item.delta > 0;
   const isFalling = item.delta < 0;
@@ -534,21 +517,6 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
             <div className="text-[9.5px] font-bold text-slate-400">보합</div>
           )}
         </div>
-
-        {onMortgageClick && (
-          <button
-            type="button"
-            data-testid={`row-mortgage-btn-${item.aptName}`}
-            aria-label={`${item.aptName} 주담대 한도 및 금리 계산`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onMortgageClick(item.aptName);
-            }}
-            className="inline-flex items-center justify-center px-1.5 sm:px-2 py-1 rounded-lg bg-blue-600/10 hover:bg-blue-600/20 dark:bg-blue-600/20 dark:hover:bg-blue-600/30 border border-blue-600/25 text-[9.5px] sm:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 transition-all cursor-pointer shrink-0 whitespace-nowrap"
-          >
-            한도조회
-          </button>
-        )}
 
         <button
           type="button"
@@ -1373,6 +1341,112 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return filteredTimelineData.reduce((acc, group) => acc + group.items.length, 0);
   }, [filteredTimelineData]);
 
+  const unifiedStatsData = useMemo(() => {
+    const rawTxSource = (timelinePeriodTransactions && timelinePeriodTransactions.length > 0)
+      ? timelinePeriodTransactions
+      : recentTransactions;
+    const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || (txSummaryData as Record<string, AptTxSummary>) || {};
+
+    let mappedRegion: RegionFilter = 'ALL';
+    let mappedDong = '';
+    if (regionFilter === 'dongtan1') {
+      mappedRegion = 'DONGTAN1';
+    } else if (regionFilter === 'dongtan2') {
+      mappedRegion = 'DONGTAN2';
+    } else if (regionFilter !== 'all' && regionFilter !== '전체') {
+      mappedRegion = regionFilter;
+      mappedDong = regionFilter;
+    } else if (timelineDongFilter !== '전체' && timelineDongFilter !== 'all') {
+      mappedRegion = timelineDongFilter;
+      mappedDong = timelineDongFilter;
+    }
+
+    let mappedPyeong: PyeongFilter = 'ALL';
+    if (pyeongFilter === 'under20') mappedPyeong = 'SMALL';
+    else if (pyeongFilter === '20s') mappedPyeong = 'MEDIUM_SMALL';
+    else if (pyeongFilter === '30s') mappedPyeong = 'MEDIUM_LARGE';
+    else if (pyeongFilter === '40plus') mappedPyeong = 'LARGE';
+
+    let mappedTimeframe: TimeframeFilter = '3M';
+    if (periodFilter === '7d' || periodFilter === '30d') mappedTimeframe = '1M';
+    else if (periodFilter === '90d') mappedTimeframe = '3M';
+    else if (periodFilter === '1y') mappedTimeframe = '1Y';
+
+    let mappedSort: SortOption = 'PYEONG_DESC';
+    if (sortOrder === 'price_desc') mappedSort = 'PRICE_DESC';
+
+    const trimmedSearch = searchQuery ? searchQuery.trim().toLowerCase() : '';
+    const isAptFiltered = timelineAptFilter !== '전체' && timelineAptFilter !== 'all';
+
+    const filteredTxs = (rawTxSource as unknown as RawTransactionRecord[]).filter((tx) => {
+      if (isAptFiltered) {
+        const matchesApt =
+          tx.aptName === timelineAptFilter ||
+          normalizeAptName(tx.aptName) === normalizeAptName(timelineAptFilter) ||
+          isSameApartment(tx.aptName, timelineAptFilter, nameMapping);
+        if (!matchesApt) return false;
+      }
+      if (trimmedSearch) {
+        const nameMatch = tx.aptName && tx.aptName.toLowerCase().includes(trimmedSearch);
+        const displayName = getDisplayAptName(tx.aptName);
+        const displayMatch = displayName && displayName.toLowerCase().includes(trimmedSearch);
+        if (!nameMatch && !displayMatch) return false;
+      }
+      return true;
+    });
+
+    return aggregateStats(
+      {
+        transactions: filteredTxs,
+        rents: [],
+        macroTrend: deferredMacroTrendData,
+        summaryMap,
+      },
+      {
+        region: mappedRegion,
+        dong: mappedDong,
+        pyeong: mappedPyeong,
+        timeframe: mappedTimeframe,
+        sort: mappedSort,
+      },
+      {
+        sortBy: mappedSort,
+        rankLimit: 20,
+      }
+    );
+  }, [
+    timelinePeriodTransactions,
+    recentTransactions,
+    txSummaryData,
+    deferredMacroTrendData,
+    regionFilter,
+    timelineDongFilter,
+    pyeongFilter,
+    periodFilter,
+    sortOrder,
+    searchQuery,
+    timelineAptFilter,
+    nameMapping,
+  ]);
+
+  const handleSelectComplex = useCallback((_aptKey: string, aptName: string) => {
+    const rawSummary = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || (txSummaryData as Record<string, AptTxSummary>) || {};
+    const sanKey = _aptKey ? sanitizeAptKey(_aptKey) : '';
+    const sanName = aptName ? sanitizeAptKey(aptName) : '';
+    const normKey = _aptKey ? normalizeAptName(_aptKey) : '';
+    const normName = aptName ? normalizeAptName(aptName) : '';
+    const summary =
+      resolveSummaryEntry(rawSummary, _aptKey || aptName, aptName || _aptKey) ||
+      (_aptKey ? rawSummary?.[_aptKey] : undefined) ||
+      (sanKey ? rawSummary?.[sanKey] : undefined) ||
+      (normKey ? rawSummary?.[normKey] : undefined) ||
+      rawSummary?.[aptName] ||
+      (sanName ? rawSummary?.[sanName] : undefined) ||
+      (normName ? rawSummary?.[normName] : undefined);
+    const dongVal = summary?.dong;
+    handleSelectApt(aptName, dongVal);
+  }, [txSummaryData, handleSelectApt]);
+
   const displayedTimelineData = useMemo(() => {
     let count = 0;
     const result = [];
@@ -1399,10 +1473,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
-        onMortgageClick={handleOpenMortgage}
       />
     );
-  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover, handleOpenMortgage]);
+  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderTimelineItemRowNode = useCallback((item: TimelineItem, isSelected: boolean) => {
     return (
@@ -1415,10 +1488,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
-        onMortgageClick={handleOpenMortgage}
       />
     );
-  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover, handleOpenMortgage]);
+  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderChart = useCallback(() => {
     if (!trendChartReady) {
@@ -1459,47 +1531,71 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       <MacroHeader macroTrendJsonLd={macroTrendJsonLd} />
 
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
-        {/* Responsive Above-the-Fold Financial Quick Action Bar (Wide 1-Row / Narrow Horizontal Swipe) */}
+        {/* Responsive Above-the-Fold Financial Quick Action Bar (4-Column Full-Width Balanced Grid) */}
         <div
           data-testid="hero-finance-quick-bar"
-          className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-2 mb-3.5 rounded-2xl bg-surface border border-border/80 shadow-2xs min-w-0 box-border"
+          className="w-full p-2 sm:p-2.5 mb-3.5 rounded-2xl bg-surface border border-border/80 shadow-2xs min-w-0 box-border"
         >
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar w-full lg:w-auto shrink-0 py-0.5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5 w-full">
             <button
               type="button"
               data-testid="hero-quick-mortgage"
               onClick={() => { trackEvent('hero_quick_click', { button: 'mortgage', apt_name: selectedTimelineApt || undefined }); handleOpenMortgage(selectedTimelineApt || undefined); }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5 shadow-2xs"
+              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
-              <Landmark size={13} className="shrink-0" />
-              <span>주담대 최저금리·한도</span>
+              <span className="flex items-center gap-1.5 min-w-0 truncate">
+
+                <span className="truncate">주담대 최저금리·한도</span>
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+                <span>DSR·LTV</span>
+
+              </span>
             </button>
             <button
               type="button"
               data-testid="hero-quick-jeonse"
               onClick={() => { trackEvent('hero_quick_click', { button: 'jeonse_safety', apt_name: selectedTimelineApt || undefined }); handleOpenJeonseSafety(selectedTimelineApt || undefined); }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
-              <ShieldCheck size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
-              <span>전세보증 안전진단</span>
+              <span className="flex items-center gap-1.5 min-w-0 truncate">
+
+                <span className="truncate">전세보증 안전진단</span>
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+                <span>HUG 126%</span>
+
+              </span>
             </button>
             <button
               type="button"
               data-testid="hero-quick-tax"
               onClick={() => { trackEvent('hero_quick_click', { button: 'property_tax', apt_name: selectedTimelineApt || undefined }); handleOpenTaxCalculator(selectedTimelineApt || undefined); }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
-              <Calculator size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
-              <span>취득세·중개보수</span>
+              <span className="flex items-center gap-1.5 min-w-0 truncate">
+
+                <span className="truncate">취득세·중개보수</span>
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+                <span>부대비용</span>
+
+              </span>
             </button>
             <button
               type="button"
               data-testid="hero-quick-sell"
               onClick={() => { trackEvent('hero_quick_click', { button: 'sell_timing', apt_name: selectedTimelineApt || undefined }); handleOpenSellTiming(selectedTimelineApt || undefined); }}
-              className="px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[11.5px] font-extrabold transition-colors cursor-pointer shrink-0 flex items-center gap-1.5"
+              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
-              <TrendingUp size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-              <span>양도세·매도타이밍</span>
+              <span className="flex items-center gap-1.5 min-w-0 truncate">
+
+                <span className="truncate">양도세·매도타이밍</span>
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+                <span>갈아타기</span>
+
+              </span>
             </button>
           </div>
         </div>
@@ -1521,7 +1617,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 activeCategory={activeDonutCategory}
                 onActiveCategoryChange={setActiveDonutCategory}
                 onActiveSectorChange={setActiveDonutSector}
-                onOpenMortgageModal={handleOpenMortgage}
               />
             </ChartErrorBoundary>
             <ErrorBoundary name="핵심 지표 카드">
@@ -1556,7 +1651,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 sheetApartments={sheetApartments}
                 onSelectApt={handleSelectApt}
                 onHoverApt={handleHoverApt}
-                onOpenMortgageModal={handleOpenMortgage}
                 timeframe={timeframe}
                 setTimeframe={setTimeframe}
                 isAptTxLoading={isAptTxLoading}
@@ -1624,28 +1718,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               viewMode={viewMode}
               setViewMode={setViewMode}
               onResetFilters={resetFilters}
-              showQuickFilters={true}
-              onOpenMortgage={handleOpenMortgage}
+              showQuickFilters={false}
+              insights={unifiedStatsData.insights}
+              pyeongRankings={unifiedStatsData.pyeongRankings}
+              onSelectComplex={handleSelectComplex}
               onOpenJeonseSafety={handleOpenJeonseSafety}
-              onOpenSellTimingCalculator={handleOpenSellTiming}
-              onOpenTaxCalculator={handleOpenTaxCalculator}
+              onOpenCompare={_onOpenCompare}
               renderTimelineItemCard={renderTimelineItemCardNode}
               renderTimelineItemRow={renderTimelineItemRowNode}
             />
           </ErrorBoundary>
         </div>
-
-        {/* ═══ Connected Section: StatsOverviewSection ═══ */}
-        <ErrorBoundary name="동탄 실거래 통계 및 인사이트">
-          <StatsOverviewSection
-            onSelectApt={handleSelectApt}
-            onOpenJeonseSafety={handleOpenJeonseSafety}
-            onOpenCompare={_onOpenCompare}
-            recentTransactions={recentTransactions as unknown as import('@/types/stats').RawTransactionRecord[]}
-            macroTrendData={deferredMacroTrendData}
-            txSummaryData={txSummaryData}
-          />
-        </ErrorBoundary>
 
         {/* AdSense High-CPC Finance Section */}
         <ErrorBoundary name="정책자금 및 전세안전진단">

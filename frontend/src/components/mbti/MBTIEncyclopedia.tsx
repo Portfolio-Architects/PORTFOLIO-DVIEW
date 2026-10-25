@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Sparkles, Building2, MapPin, TrendingUp, ArrowUpRight, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { MbtiApartmentProfile, MbtiGroup } from '@/types/mbti';
 import { ALL_MBTI_TYPES, MBTI_PROFILES, TEMPERAMENTS } from '@/lib/data/mbtiData';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
@@ -60,19 +60,18 @@ export function MBTIEncyclopedia({
   return (
     <div
       data-testid="mbti-encyclopedia"
-      className={`w-full max-w-6xl mx-auto flex flex-col gap-6 ${className}`}
+      className={`w-full flex flex-col gap-5 ${className}`}
     >
       {/* Header Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-sm">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl bg-surface border border-border/80 shadow-xs">
         <div>
           <div className="flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">
-            <Sparkles className="w-4 h-4" />
             <span>동탄 16대 랜드마크 아파트 주거 도감</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+          <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight">
             MBTI 16-유형 맞춤 아파트 백과사전
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          </h2>
+          <p className="text-xs sm:text-sm text-secondary mt-1">
             동탄 신도시 16개 대표 랜드마크의 성향별 가치와 라이프스타일 큐레이션을 한눈에 둘러보세요.
           </p>
         </div>
@@ -82,9 +81,8 @@ export function MBTIEncyclopedia({
             type="button"
             data-testid="encyclopedia-start-quiz"
             onClick={onStartQuiz}
-            className="self-start md:self-auto py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-500 hover:to-emerald-500 active:scale-95 text-white font-black text-xs sm:text-sm shadow-md shadow-emerald-500/20 flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+            className="self-start md:self-auto py-3 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-black text-xs sm:text-sm shadow-xs flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
           >
-            <Sparkles className="w-4 h-4 text-emerald-300" />
             <span>나의 주거 MBTI 테스트하기</span>
           </button>
         )}
@@ -93,7 +91,7 @@ export function MBTIEncyclopedia({
       {/* Filter Tabs & Search Row */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Temperament Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/80 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 overflow-x-auto scrollbar-none">
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -102,9 +100,9 @@ export function MBTIEncyclopedia({
                 type="button"
                 data-testid={`filter-tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-3.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                className={`py-2 px-3.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
-                    ? 'bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
@@ -115,14 +113,14 @@ export function MBTIEncyclopedia({
         </div>
 
         {/* Search input */}
-        <div className="relative w-full sm:w-64">
+        <div className="relative w-full sm:w-72">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="단지명, MBTI, 동 검색..."
-            className="w-full pl-9 pr-3 py-2 rounded-xl text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs sm:text-sm bg-surface border border-border/80 text-primary placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
           />
         </div>
       </div>
@@ -139,7 +137,7 @@ export function MBTIEncyclopedia({
               key={profile.type}
               data-testid={`profile-card-${profile.type}`}
               onClick={() => handleCardClick(profile)}
-              className="group relative flex flex-col justify-between rounded-2xl p-5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500/60 shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.99]"
+              className="group relative flex flex-col justify-between rounded-2xl p-5 bg-surface border border-border/80 hover:border-emerald-500/50 shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-[0.99]"
             >
               <div>
                 {/* Header: MBTI Badge + Temperament Indicator */}
@@ -151,52 +149,47 @@ export function MBTIEncyclopedia({
                     >
                       {profile.type}
                     </span>
-                    <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span className="text-[11px] font-bold text-secondary">
                       {temperament.label}
                     </span>
                   </div>
-
-                  <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-emerald-500 transition-colors" />
                 </div>
 
                 {/* Alias */}
-                <h3 className="text-sm font-black text-slate-900 dark:text-white leading-tight mb-1">
+                <h3 className="text-sm font-black text-primary leading-tight mb-1">
                   {profile.alias}
                 </h3>
 
                 {/* Matched Complex Name */}
                 <div className="flex items-center gap-1 text-base font-black text-emerald-600 dark:text-emerald-400 tracking-tight mt-2 mb-1">
-                  <Building2 className="w-4 h-4 shrink-0" />
                   <span className="truncate">{profile.aptName}</span>
                 </div>
 
                 {/* Dong Location */}
-                <div className="flex items-center gap-1 text-xs text-slate-400 dark:text-slate-500 mb-3">
-                  <MapPin className="w-3 h-3 shrink-0" />
+                <div className="flex items-center gap-1 text-xs text-tertiary mb-3">
                   <span>화성시 {profile.dong}</span>
                 </div>
 
                 {/* Tagline */}
-                <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed mb-4">
+                <p className="text-xs text-secondary line-clamp-2 leading-relaxed mb-4">
                   {profile.tagline}
                 </p>
               </div>
 
               {/* Bottom: Price & Tags */}
-              <div className="border-t border-slate-100 dark:border-slate-800/80 pt-3 flex flex-col gap-2">
+              <div className="border-t border-border/60 pt-3 flex flex-col gap-2">
                 {/* Price Display */}
                 {tx ? (
                   <div className="flex items-baseline justify-between text-xs">
-                    <span className="text-slate-400 text-[11px]">최근 실거래</span>
+                    <span className="text-tertiary text-[11px]">최근 실거래</span>
                     <div className="flex items-baseline gap-0.5 text-emerald-600 dark:text-emerald-400 font-black text-sm">
-                      <TrendingUp className="w-3.5 h-3.5" />
                       <span>{tx.latestPriceEok}</span>
                     </div>
                   </div>
                 ) : (
                   <div className="flex items-baseline justify-between text-xs">
-                    <span className="text-slate-400 text-[11px]">입지 추천</span>
-                    <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
+                    <span className="text-tertiary text-[11px]">입지 추천</span>
+                    <span className="text-xs font-bold text-secondary">
                       {profile.dong} 랜드마크
                     </span>
                   </div>
@@ -207,7 +200,7 @@ export function MBTIEncyclopedia({
                   {profile.tags.slice(0, 3).map((tag) => (
                     <span
                       key={tag}
-                      className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"
+                      className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-body text-secondary border border-border/50"
                     >
                       {tag}
                     </span>

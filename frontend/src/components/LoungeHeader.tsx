@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { Home, Sparkles, Building2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -71,13 +70,12 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
                     scrollTimeoutRef.current = setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 50);
                   }}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'overview'
                       ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Building2 size={18} className={activeTab === 'overview' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>아파트 랩</span>
                 </Link>
 
@@ -87,13 +85,12 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/explore')}
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'imjang'
                       ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Home size={18} className={activeTab === 'imjang' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>아파트 탐색</span>
                 </Link>
 
@@ -103,13 +100,12 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/mbti')}
                   onClick={(e) => handleNavClick(e, '/mbti', 'mbti')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'mbti'
                       ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <Sparkles size={18} className={activeTab === 'mbti' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>단지 MBTI</span>
                 </Link>
 
@@ -119,13 +115,12 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   prefetch={true}
                   onMouseEnter={() => router.prefetch('/guide')}
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
                       ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
                 >
-                  <BookOpen size={18} className={activeTab === 'guide' ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400 dark:text-slate-500'} />
                   <span>부동산 가이드</span>
                 </Link>
               </nav>

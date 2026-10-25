@@ -189,32 +189,21 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
     });
   });
 
-  describe('4. 1-Click Mortgage Simulation CTA Integration', () => {
-    it('renders "한도조회" button on TimelineItemCard and TimelineItemRow when onMortgageClick is provided and isolates click', () => {
-      const onCardClickMock = jest.fn();
-      const onMortgageClickMock = jest.fn();
-
+  describe('4. Duplicate Mortgage CTA Removal Verification', () => {
+    it('does not render duplicate "한도조회" button on TimelineItemCard and TimelineItemRow (unified in top hero bar)', () => {
       const { unmount } = render(
         <TimelineItemCard
           item={sampleCardItem}
           isSelected={false}
           areaUnit="m2"
           onCardHover={jest.fn()}
-          onCardClick={onCardClickMock}
+          onCardClick={jest.fn()}
           onDetailsClick={jest.fn()}
           onDetailsHover={jest.fn()}
-          onMortgageClick={onMortgageClickMock}
         />
       );
 
-      const cardMortgageBtn = screen.getByTestId('card-mortgage-btn-동탄역 롯데캐슬');
-      expect(cardMortgageBtn).toBeInTheDocument();
-      expect(cardMortgageBtn).toHaveClass('inline-flex');
-      expect(cardMortgageBtn).not.toHaveClass('hidden');
-      fireEvent.click(cardMortgageBtn);
-      expect(onMortgageClickMock).toHaveBeenCalledWith('동탄역 롯데캐슬');
-      expect(onCardClickMock).not.toHaveBeenCalled();
-
+      expect(screen.queryByTestId('card-mortgage-btn-동탄역 롯데캐슬')).not.toBeInTheDocument();
       unmount();
 
       render(
@@ -222,19 +211,12 @@ describe('Milestone 3 Integration Tests: TimelineItemCard & TimelineItemRow', ()
           item={sampleFallingItem}
           isSelected={false}
           areaUnit="p"
-          onCardClick={onCardClickMock}
+          onCardClick={jest.fn()}
           onDetailsClick={jest.fn()}
-          onMortgageClick={onMortgageClickMock}
         />
       );
 
-      const rowMortgageBtn = screen.getByTestId('row-mortgage-btn-동탄역 시범 더샵 센트럴시티');
-      expect(rowMortgageBtn).toBeInTheDocument();
-      expect(rowMortgageBtn).toHaveClass('inline-flex');
-      expect(rowMortgageBtn).not.toHaveClass('hidden');
-      fireEvent.click(rowMortgageBtn);
-      expect(onMortgageClickMock).toHaveBeenCalledWith('동탄역 시범 더샵 센트럴시티');
-      expect(onCardClickMock).not.toHaveBeenCalled();
+      expect(screen.queryByTestId('row-mortgage-btn-동탄역 시범 더샵 센트럴시티')).not.toBeInTheDocument();
     });
   });
 });

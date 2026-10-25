@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Flame, ShieldCheck, TrendingUp, Zap, ArrowUpRight } from 'lucide-react';
 import type { ComplexStatItem, HyperlocalInsightCardsData } from '@/types/stats';
 import { formatPriceEok } from '@/lib/analytics/statsEngine';
 
@@ -10,6 +9,7 @@ export interface HyperlocalInsightCardsProps {
   onSelectComplex?: (aptKey: string, aptName: string) => void;
   onOpenJeonseSafety?: (aptName: string) => void;
   onOpenCompare?: (aptName: string) => void;
+  className?: string;
 }
 
 export function HyperlocalInsightCards({
@@ -17,13 +17,14 @@ export function HyperlocalInsightCards({
   onSelectComplex,
   onOpenJeonseSafety,
   onOpenCompare,
+  className,
 }: HyperlocalInsightCardsProps) {
   const { newHighComplex, optimalGapComplex, volumeSurgeComplex, urgentBargainComplex } = insights;
 
   return (
     <div
       data-testid="stats-hyperlocal-insights"
-      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8"
+      className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${className ?? 'mb-8'}`}
     >
       {/* 1. 신고가 갱신 단지 */}
       <div
@@ -33,11 +34,9 @@ export function HyperlocalInsightCards({
       >
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40">
-              <Flame size={12} className="animate-pulse" />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40">
               신고가 갱신
             </span>
-            <ArrowUpRight size={14} className="text-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-1">
             {newHighComplex?.aptName || '해당 없음'}
@@ -73,11 +72,9 @@ export function HyperlocalInsightCards({
       >
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
-              <ShieldCheck size={12} />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
               전세가율 최적
             </span>
-            <ArrowUpRight size={14} className="text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-1">
             {optimalGapComplex?.aptName || '해당 없음'}
@@ -103,11 +100,9 @@ export function HyperlocalInsightCards({
       >
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
-              <TrendingUp size={12} />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300">
               거래량 급증
             </span>
-            <ArrowUpRight size={14} className="text-blue-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors line-clamp-1">
             {volumeSurgeComplex?.aptName || '해당 없음'}
@@ -141,11 +136,9 @@ export function HyperlocalInsightCards({
       >
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300">
-              <Zap size={12} />
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300">
               낙폭과대 급매
             </span>
-            <ArrowUpRight size={14} className="text-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
           </div>
           <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-red-600 transition-colors line-clamp-1">
             {urgentBargainComplex?.aptName || '해당 없음'}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import MacroDashboardClient from '../MacroDashboardClient';
@@ -17,7 +17,6 @@ jest.mock('next/navigation', () => ({
   }),
   useSearchParams: () => new URLSearchParams(),
 }));
-
 
 const mockSheetApartments: Record<string, DongApartment[]> = {
   반송동: [
@@ -96,7 +95,7 @@ const mockMacroTrendData: DongtanMacroTrendPoint[] = [
 ];
 
 describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () => {
-  it('renders all sections in authoritative order: Hero -> StatsOverviewSection -> AdSlot 1 -> Timeline -> Finance -> Rankings -> AdSlot 2', () => {
+  it('renders unified Timeline + Hyperlocal Insights + Ranking Tab Switcher in authoritative vertical order', () => {
     const onSelectApt = jest.fn();
 
     const { container } = render(
@@ -116,7 +115,6 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       </SettingsProvider>
     );
 
-    // 1. Signature Hero components (Donut section & Price trend chart)
     // 1. Signature Hero components (Quick finance bar, Donut section & Price trend chart)
     const quickFinanceBar = screen.getByTestId('hero-finance-quick-bar');
     expect(quickFinanceBar).toBeInTheDocument();
@@ -129,17 +127,18 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     const trendChartTitles = screen.getAllByText(/시세 추이/);
     expect(trendChartTitles.length).toBeGreaterThanOrEqual(1);
 
-    // 2. StatsOverviewSection immediately below
-    const statsSection = screen.getByTestId('stats-overview-section');
-    expect(statsSection).toBeInTheDocument();
-    expect(screen.getByText('동탄 실거래 통계 지표 & 하이퍼로컬 인사이트')).toBeInTheDocument();
-    expect(screen.getByTestId('stats-kpi-grid')).toBeInTheDocument();
+    // 2. Unified Timeline + Hyperlocal Insights + Tab Switcher (No duplicate standalone StatsOverviewSection)
+    expect(screen.queryByTestId('stats-overview-section')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
+    expect(screen.getByTestId('stats-hyperlocal-insights')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-view-tab-switcher')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-tab-transactions')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-tab-rankings')).toBeInTheDocument();
 
     // 3. AdSlots rendered with zero-CLS containers
     const adContainers = screen.getAllByTestId('ad-slot-container');
     expect(adContainers.length).toBeGreaterThanOrEqual(2);
 
-    // 4. Timeline View
     // 4. Timeline View & Hero-to-Timeline AdSlot 1
     const heroAdSlot1 = screen.getByTestId('hero-ad-slot-1');
     expect(heroAdSlot1).toBeInTheDocument();
@@ -148,7 +147,6 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(
       heroAdSlot1.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
-    expect(timelineHeading).toBeInTheDocument();
 
     // 5. Finance Section
     const financeSection = screen.getByTestId('high-cpc-finance-section');
@@ -156,23 +154,16 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(screen.queryByTestId('realtime-ranking-board')).not.toBeInTheDocument();
 
     // DOM Document Position Verification (Authoritative Vertical Flow)
-    // Donut Hero is preceding Timeline Heading (Immediately below hero)
     expect(
       donutContainer!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
-    // Timeline Heading is preceding StatsOverviewSection
     expect(
-      timelineHeading.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-
-    // StatsOverviewSection is preceding Finance Section
-    expect(
-      statsSection.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
+      timelineHeading.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
   });
 
-  it('wires onSelectApt from StatsOverviewSection ranking item click up to MacroDashboardClient callback', () => {
+  it('switches to Complex Pyeong Ranking tab and wires ranking item click up to MacroDashboardClient onSelectApt', () => {
     const onSelectApt = jest.fn();
 
     render(
@@ -192,9 +183,11 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       </SettingsProvider>
     );
 
-    // Find StatsOverviewSection and its specific ranking list item
-    const statsSection = screen.getByTestId('stats-overview-section');
-    const rank1Item = within(statsSection).getByTestId('ranking-item-1');
+    // Switch to the Ranking tab inside the unified section
+    const rankingTabBtn = screen.getByTestId('timeline-tab-rankings');
+    fireEvent.click(rankingTabBtn);
+
+    const rank1Item = screen.getByTestId('ranking-item-1');
     expect(rank1Item).toBeInTheDocument();
     fireEvent.click(rank1Item);
 

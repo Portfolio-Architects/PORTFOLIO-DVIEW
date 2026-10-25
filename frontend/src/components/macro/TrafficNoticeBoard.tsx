@@ -1,5 +1,5 @@
 import React from "react";
-import { Info, Train } from "lucide-react";
+import { Info } from "lucide-react";
 
 export interface LocalNoticeItem {
   id: string;
@@ -62,11 +62,8 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                 }}
                 className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-slate-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
-                {/* Left: Icon & Title */}
-                <div className="flex items-center gap-2.5 min-w-0 mr-3">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-600/10 text-emerald-700 flex items-center justify-center shrink-0">
-                    <Train size={12} />
-                  </div>
+                {/* Left: Title */}
+                <div className="flex items-center min-w-0 mr-3">
                   <span className="text-[14px] font-bold text-primary group-hover/item:text-emerald-700 transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>
@@ -106,11 +103,8 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                 }}
                 className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-slate-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
-                {/* Left: Icon & Title */}
-                <div className="flex items-center gap-2.5 min-w-0 mr-3">
-                  <div className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-600 flex items-center justify-center shrink-0">
-                    <Train size={12} />
-                  </div>
+                {/* Left: Title */}
+                <div className="flex items-center min-w-0 mr-3">
                   <span className="text-[14px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>

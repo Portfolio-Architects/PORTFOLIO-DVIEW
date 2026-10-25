@@ -873,30 +873,6 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     }}
                   />
                 </div>
-
-                {/* Selected Loan CTA */}
-                {isSelected && onOpenMortgageModal && (
-                  <div className="flex items-center justify-end pt-1 border-t border-border/30 mt-0.5">
-                    <span
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onOpenMortgageModal();
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          onOpenMortgageModal();
-                        }
-                      }}
-                      className="text-[10.5px] font-bold text-blue-600 dark:text-blue-400 hover:underline flex items-center gap-0.5 cursor-pointer"
-                    >
-                      대출 한도·금리 &gt;
-                    </span>
-                  </div>
-                )}
               </div>
             );
           })}

@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, BookOpen, Compass, ArrowRight } from 'lucide-react';
 import { MbtiApartmentProfile } from '@/types/mbti';
 import { getProfileByType, MBTI_PROFILES } from '@/lib/data/mbtiData';
 import { getRecommendedProfile } from '@/lib/utils/mbtiScoring';
@@ -71,119 +70,146 @@ export function MBTIContainer({
   return (
     <div
       data-testid="mbti-container"
-      className={`w-full flex flex-col items-center gap-6 py-4 px-4 sm:px-6 ${className}`}
+      className={`w-full flex flex-col gap-5 ${className}`}
     >
-      {/* Top Segmented Navigation Tab */}
-      <div className="flex items-center gap-1.5 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 shadow-inner">
-        <button
-          type="button"
-          data-testid="tab-nav-quiz"
-          onClick={() => setViewMode(currentProfile ? 'result' : 'intro')}
-          className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-            viewMode === 'intro' || viewMode === 'quiz' || viewMode === 'result'
-              ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <Sparkles className="w-4 h-4" />
-          <span>성향 진단 퀴즈</span>
-        </button>
+      {/* Top Action & Sub-Navigation Control Bar (Synchronized with Main Dashboard Control Bar) */}
+      <div className="w-full p-2 sm:p-2.5 rounded-2xl bg-surface border border-border/80 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60">
+          <button
+            type="button"
+            data-testid="tab-nav-quiz"
+            onClick={() => setViewMode(currentProfile ? 'result' : 'intro')}
+            className={`flex items-center py-2 px-3.5 sm:px-4 rounded-lg font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
+              viewMode === 'intro' || viewMode === 'quiz' || viewMode === 'result'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <span>성향 진단 퀴즈</span>
+          </button>
 
-        <button
-          type="button"
-          data-testid="tab-nav-encyclopedia"
-          onClick={handleViewEncyclopedia}
-          className={`flex items-center gap-2 py-2.5 px-4 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-            viewMode === 'encyclopedia'
-              ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>16개 아파트 도감</span>
-        </button>
+          <button
+            type="button"
+            data-testid="tab-nav-encyclopedia"
+            onClick={handleViewEncyclopedia}
+            className={`flex items-center py-2 px-3.5 sm:px-4 rounded-lg font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
+              viewMode === 'encyclopedia'
+                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+            }`}
+          >
+            <span>16개 아파트 도감</span>
+          </button>
+        </div>
+
+        <div className="hidden md:flex items-center gap-2 px-2 text-xs font-semibold text-secondary">
+          <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-500/20">
+            <span>5대 입지 지표 · 16개 랜드마크 정량 매칭</span>
+          </span>
+        </div>
       </div>
 
-      {/* Intro Landing View */}
+      {/* Intro Landing View — Synchronized 2-Column Dashboard Grid */}
       {viewMode === 'intro' && (
         <div
           data-testid="mbti-intro"
-          className="w-full max-w-2xl mx-auto rounded-3xl p-6 sm:p-10 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xl flex flex-col items-center text-center gap-6"
+          className="w-full rounded-2xl p-5 sm:p-6 lg:p-8 bg-surface border border-border/80 shadow-xs grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch"
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-500 to-emerald-400 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
-            <Compass className="w-8 h-8" />
+          {/* Left Panel: Quiz Intro & Primary Actions */}
+          <div className="lg:col-span-5 flex flex-col justify-between gap-6 p-5 sm:p-6 rounded-2xl bg-body border border-border/60">
+            <div className="flex flex-col gap-4">
+              <div>
+                <span className="text-[11px] font-extrabold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">
+                  D-VIEW 주거 성향 테스트
+                </span>
+                <span className="text-xs font-semibold text-secondary">
+                  교통·자연·학군·상권·미래가치 5대 축 진단
+                </span>
+              </div>
+
+              <h2 className="text-2xl sm:text-3xl font-black text-primary leading-tight tracking-tight">
+                나와 영혼의 궁합인<br />동탄 아파트는 어디일까요?
+              </h2>
+              <p className="text-xs sm:text-sm text-secondary leading-relaxed font-medium">
+                교통 vs 자연, 슬세권 vs 숲세권, 초품아 학군 vs 미래 가치! 단 7가지 라이프스타일 질문으로 16가지 MBTI 성향에 딱 맞는 동탄 대표 랜드마크 단지를 찾아드립니다.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2.5 w-full pt-1">
+                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
+                  <span className="block font-black text-xs">NT 분석가형</span>
+                  <span className="text-[11px] text-secondary font-medium">데이터·환금성</span>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                  <span className="block font-black text-xs">NF 외교관형</span>
+                  <span className="text-[11px] text-secondary font-medium">호수·자연힐링</span>
+                </div>
+                <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
+                  <span className="block font-black text-xs">SJ 관리자형</span>
+                  <span className="text-[11px] text-secondary font-medium">초품아·원스톱</span>
+                </div>
+                <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+                  <span className="block font-black text-xs">SP 탐험가형</span>
+                  <span className="text-[11px] text-secondary font-medium">기동력·슬세권</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-2.5 w-full pt-2">
+              <button
+                type="button"
+                data-testid="start-quiz-btn"
+                onClick={handleStartQuiz}
+                className="flex-1 py-3.5 px-5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-black text-sm shadow-sm flex items-center justify-center transition-all cursor-pointer"
+              >
+                <span>1분 만에 테스트 시작하기</span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="browse-encyclopedia-btn"
+                onClick={handleViewEncyclopedia}
+                className="py-3.5 px-4 rounded-xl bg-surface hover:bg-slate-100 dark:hover:bg-slate-800 text-primary border border-border/80 font-bold text-xs sm:text-sm transition-colors cursor-pointer shrink-0"
+              >
+                16개 도감 둘러보기
+              </button>
+            </div>
           </div>
 
-          <div className="flex flex-col gap-2 max-w-lg">
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
-              D-VIEW 주거 성향 테스트
-            </span>
-            <h1 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight">
-              나와 영혼의 궁합인<br />동탄 아파트는 어디일까요?
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed mt-2">
-              교통 vs 자연, 슬세권 vs 숲세권, 초품아 학군 vs 미래 가치!<br />
-              단 7가지 라이프스타일 질문으로 16가지 MBTI 성향에 딱 맞는 동탄 대표 랜드마크 단지를 찾아드립니다.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 w-full max-w-md my-2">
-            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
-              <span className="block font-black text-xs">NT 분석가형</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">데이터·환금성</span>
+          {/* Right Panel: SSR Semantic Matrix of 16 MBTI Profiles */}
+          <div className="lg:col-span-7 flex flex-col justify-between text-left">
+            <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-border/60">
+              <div>
+                <h3 className="text-sm sm:text-base font-extrabold text-primary">
+                  동탄 16개 주거 성향 유형별 매칭 랜드마크 단지 요약
+                </h3>
+                <p className="text-[11px] sm:text-xs text-secondary mt-0.5">
+                  유형 카드를 클릭하면 해당 MBTI의 5대 입지 레이더 차트와 매칭 단지를 즉시 확인할 수 있습니다.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 shrink-0">
+                16개 유형
+              </span>
             </div>
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-              <span className="block font-black text-xs">NF 외교관형</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">호수·자연힐링</span>
-            </div>
-            <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300">
-              <span className="block font-black text-xs">SJ 관리자형</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">초품아·원스톱</span>
-            </div>
-            <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
-              <span className="block font-black text-xs">SP 탐험가형</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400">기동력·슬세권</span>
-            </div>
-          </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full max-w-md mt-2">
-            <button
-              type="button"
-              data-testid="start-quiz-btn"
-              onClick={handleStartQuiz}
-              className="flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-600 hover:from-emerald-500 hover:to-emerald-500 active:scale-95 text-white font-black text-sm sm:text-base shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all cursor-pointer"
-            >
-              <Sparkles className="w-5 h-5 text-emerald-300" />
-              <span>1분 만에 테스트 시작하기</span>
-              <ArrowRight className="w-4 h-4 ml-1" />
-            </button>
-
-            <button
-              type="button"
-              data-testid="browse-encyclopedia-btn"
-              onClick={handleViewEncyclopedia}
-              className="py-4 px-5 rounded-2xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-sm transition-colors cursor-pointer"
-            >
-              16개 도감 둘러보기
-            </button>
-          </div>
-
-          {/* SSR Semantic Matrix of 16 MBTI Profiles */}
-          <div className="w-full pt-6 mt-2 border-t border-slate-200/70 dark:border-slate-800 text-left">
-            <h2 className="text-xs sm:text-sm font-extrabold text-slate-800 dark:text-slate-200 mb-3">
-              동탄 16개 주거 성향 유형별 매칭 랜드마크 단지 요약
-            </h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-[11px]">
               {Object.values(MBTI_PROFILES).map((item) => (
                 <button
                   key={item.type}
                   type="button"
                   onClick={() => handleSelectFromEncyclopedia(item)}
-                  className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 hover:border-emerald-500/40 text-left transition-colors cursor-pointer"
+                  className="p-3 rounded-xl bg-body hover:bg-emerald-500/[0.04] border border-border/60 hover:border-emerald-500/40 text-left transition-all cursor-pointer group flex flex-col justify-between gap-1"
                 >
-                  <span className="font-black text-emerald-600 dark:text-emerald-400 block">{item.type}</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200 block truncate">{item.aptName}</span>
-                  <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate">{item.dong}</span>
+                  <div className="flex items-center justify-between w-full">
+                    <span className="font-black text-xs text-emerald-600 dark:text-emerald-400">
+                      {item.type}
+                    </span>
+                  </div>
+                  <span className="font-bold text-primary block truncate text-[12px]">
+                    {item.aptName}
+                  </span>
+                  <span className="text-[10.5px] text-secondary block truncate">
+                    화성시 {item.dong}
+                  </span>
                 </button>
               ))}
             </div>

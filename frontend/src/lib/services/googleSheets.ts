@@ -6,7 +6,7 @@ import typeMapStatic from '../../../public/data/type-map.json';
 import apartmentsByDongStatic from '../../../public/data/apartments-by-dong.json';
 import jisanStatusStatic from '../../../public/data/jisan-status-list.json';
 import { FULL_DONG_DATA } from '../dong-apartments';
-import { normalizeAptName, isSameApartment } from '../utils/apartmentMapping';
+import { normalizeAptName, isSameApartment, HARDCODED_MAPPING } from '../utils/apartmentMapping';
 import { SheetApartmentSchema, JisanStatusItemSchema } from '@/lib/validation/facade.schemas';
 import * as SheetsRepo from '@/lib/repositories/googleSheets.repository';
 
@@ -55,7 +55,7 @@ export async function fetchSheetTypeMap(bypassLocalCache: boolean = false): Prom
     return memCached.data as TypeMapItem[];
   }
 
-  const rows = await fetchCsv(SHEET_TABS.TYPE_MAP);
+  const rows = await fetchCsv(SHEET_TABS.TYPE_MAP, bypassLocalCache);
   if (rows.length < 2) return [];
 
   const result: TypeMapItem[] = [];
@@ -173,9 +173,9 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
   }
 
   const [aptRows, sboydsRows, restRows] = await Promise.all([
-    fetchCsv(SHEET_TABS.APARTMENTS),
-    fetchCsv(SHEET_TABS.SBOYDS),
-    fetchCsv(SHEET_TABS.RESTAURANTS)
+    fetchCsv(SHEET_TABS.APARTMENTS, bypassLocalCache),
+    fetchCsv(SHEET_TABS.SBOYDS, bypassLocalCache),
+    fetchCsv(SHEET_TABS.RESTAURANTS, bypassLocalCache)
   ]);
 
   if (aptRows.length < 2) throw new Error(`Sheet tab '${SHEET_TABS.APARTMENTS}' not found or empty`);
@@ -262,7 +262,7 @@ export async function fetchSheetApartmentsByDong(bypassLocalCache: boolean = fal
           dong: dongName,
           lat: 0,
           lng: 0,
-          txKey: aptName
+          txKey: HARDCODED_MAPPING[normalizeAptName(aptName)] || aptName
         };
         const parsed = SheetApartmentSchema.safeParse(fallbackApt);
         if (parsed.success) {

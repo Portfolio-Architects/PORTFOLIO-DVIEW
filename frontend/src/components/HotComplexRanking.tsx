@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useMemo, useState, useEffect } from 'react';
-import { Clock, ChevronDown, ChevronUp } from 'lucide-react';
 import type { FieldReportData, AptTxSummary, DongApartment } from '@/types';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { useSettingsValues } from '@/contexts/SettingsContext';
@@ -247,7 +246,6 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
       {/* Premium Underline Title */}
       <div className="flex border-b border-border/60 bg-body/25 px-5 py-3.5 shrink-0 items-center justify-between">
         <div className="flex items-center gap-2">
-          <Clock className="w-4 h-4 text-blue-600 dark:text-blue-400 animate-pulse" />
           <span className="text-[14.5px] font-black text-primary">최근 실거래 단지</span>
         </div>
         {recentList.length > 0 && (
@@ -277,7 +275,7 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
       {/* Lists Layout */}
       <div className="p-4 md:p-5 flex flex-col md:flex-row gap-3 md:gap-4">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-3 md:gap-4 w-full">
-          {displayList.map((item, index) => {
+          {displayList.map((item) => {
             const badgeStyle = "bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-bold border border-transparent";
             
             return (
@@ -327,16 +325,16 @@ const HotComplexRanking = React.memo(function HotComplexRanking({
           {hasMore ? (
             <button
               onClick={() => setVisibleCount(prev => Math.min(prev + 15, recentList.length))}
-              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:bg-blue-500/5 active:bg-blue-500/10 transition-all flex items-center justify-center gap-1 focus:outline-none"
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:bg-blue-500/5 active:bg-blue-500/10 transition-all flex items-center justify-center focus:outline-none"
             >
-              실거래 이력 더보기 ({Math.min(15, recentList.length - visibleCount)}개 더보기, {visibleCount}/{recentList.length}) <ChevronDown className="w-4 h-4" />
+              실거래 이력 더보기 ({Math.min(15, recentList.length - visibleCount)}개 더보기, {visibleCount}/{recentList.length})
             </button>
           ) : (
             <button
               onClick={() => setVisibleCount(5)}
-              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-tertiary hover:bg-body/45 active:bg-body/90 transition-all flex items-center justify-center gap-1 focus:outline-none"
+              className="flex-1 py-4 text-center text-[13.5px] font-extrabold text-tertiary hover:bg-body/45 active:bg-body/90 transition-all flex items-center justify-center focus:outline-none"
             >
-              접기 <ChevronUp className="w-4 h-4" />
+              접기
             </button>
           )}
         </div>

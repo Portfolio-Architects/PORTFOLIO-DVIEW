@@ -1,17 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Home, Sparkles, Building2 } from 'lucide-react';
+import { Home, Sparkles, Building2, BookOpen } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface MobileDockProps {
-  activeTab?: 'imjang' | 'overview' | 'mbti' | string;
-  onTabClick?: (tab: 'imjang' | 'overview' | 'mbti' | any) => void;
+  activeTab?: 'imjang' | 'overview' | 'mbti' | 'guide' | string;
+  onTabClick?: (tab: 'imjang' | 'overview' | 'mbti' | 'guide' | any) => void;
 }
 
 export const TABS: Array<{
-  id: 'overview' | 'imjang' | 'mbti';
+  id: 'overview' | 'imjang' | 'mbti' | 'guide';
   label: string;
   icon: React.ComponentType<any>;
   href: string;
@@ -19,6 +19,7 @@ export const TABS: Array<{
   { id: 'overview', label: '아파트 랩', icon: Building2, href: '/' },
   { id: 'imjang', label: '아파트 탐색', icon: Home, href: '/explore' },
   { id: 'mbti', label: '단지 MBTI', icon: Sparkles, href: '/mbti' },
+  { id: 'guide', label: '부동산 가이드', icon: BookOpen, href: '/guide' },
 ];
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
@@ -31,6 +32,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
     router.prefetch('/');
     router.prefetch('/explore');
     router.prefetch('/mbti');
+    router.prefetch('/guide');
   }, [router]);
 
   React.useEffect(() => {
@@ -59,10 +61,10 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
   }, []);
 
   return (
-    <nav className={`sm:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-2.5 pt-2 pb-[calc(env(safe-area-inset-bottom)+10px)] flex items-center justify-between border-t border-border/40 transition-transform transition-opacity duration-300 ease-out transform-gpu ${
+    <nav className={`md:hidden fixed bottom-0 left-0 right-0 z-[10000] bg-surface/85 backdrop-blur-xl shadow-[0_-8px_32px_rgba(0,0,0,0.06)] rounded-t-[24px] px-2.5 pt-2 pb-[calc(env(safe-area-inset-bottom)+10px)] flex items-center justify-between border-t border-border/40 transition-transform transition-opacity duration-300 ease-out transform-gpu ${
       shouldHide ? 'translate-y-full opacity-0 pointer-events-none' : 'translate-y-0 opacity-100'
     }`}>
-      {/* 3개 핵심 탭 */}
+      {/* 4개 핵심 탭 */}
       <div className="flex items-center justify-between w-full min-w-0 gap-0.5">
         {TABS.map((tab) => {
           const isActive = activeTab === tab.id;

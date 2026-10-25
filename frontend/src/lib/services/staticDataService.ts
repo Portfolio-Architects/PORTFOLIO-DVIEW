@@ -119,6 +119,8 @@ export function parsePeriodTransactions(data: unknown): RecentTransaction[] {
     const isNewHighIdx = isStandard13 ? 10 : Array.isArray(fields) ? fields.indexOf('isNewHigh') : -1;
     const deltaIdx = isStandard13 ? 11 : Array.isArray(fields) ? fields.indexOf('delta') : -1;
     const deltaPercentIdx = isStandard13 ? 12 : Array.isArray(fields) ? fields.indexOf('deltaPercent') : -1;
+    const registeredDateIdx = Array.isArray(fields) ? fields.indexOf('registeredDate') : -1;
+    const registeredDateLabelIdx = Array.isArray(fields) ? fields.indexOf('registeredDateLabel') : -1;
 
     const result = new Array<RecentTransaction>(count);
     for (let i = 0; i < count; i++) {
@@ -142,6 +144,8 @@ export function parsePeriodTransactions(data: unknown): RecentTransaction[] {
         isNewHigh,
         ...(deltaIdx >= 0 ? { delta: r[deltaIdx] as number } : {}),
         ...(deltaPercentIdx >= 0 ? { deltaPercent: r[deltaPercentIdx] as number } : {}),
+        ...(registeredDateIdx >= 0 && r[registeredDateIdx] ? { registeredDate: String(r[registeredDateIdx]) } : {}),
+        ...(registeredDateLabelIdx >= 0 && r[registeredDateLabelIdx] ? { registeredDateLabel: String(r[registeredDateLabelIdx]) } : {}),
       };
     }
     return result;

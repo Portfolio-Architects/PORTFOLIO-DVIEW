@@ -3,9 +3,9 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * DVIEW — Ad-Astra Soft Modernism Design System (v3.1)
- * Goal: Long-Session Eye Comfort (Low Glare) + AdSense & High-CPC Yield Optimization
- * Theme: Comfortable Trust Blue (#2563eb / #3b82f6) + Soft Slate Canvas (#f8fafc)
+ * DVIEW — Ad Money Design System (v4.0)
+ * Purpose: Google AdSense Monetization Yield (RPM, eCPM, CTR, Active Viewability) Maximization
+ * Concept: Native Content-Ad Isomorphism + High-CPC Trust Blue (#2563eb / #3b82f6) + Eye-Comfort Slate Canvas (#f8fafc) + Zero-CLS Geometry
  */
 :root {
   /* Eye-Comfort Soft Slate Canvas & Pure White Elevated Cards */

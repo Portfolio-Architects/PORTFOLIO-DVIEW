@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Landmark, ArrowRight, CheckCircle2, AlertCircle } from 'lucide-react';
 import {
   calculatePolicyLoan,
   PolicyLoanType,
@@ -39,18 +38,13 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
       <div>
         {/* Header */}
         <div className="flex items-center justify-between gap-2 mb-3.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/50 border border-blue-200/60 dark:border-blue-800/50 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-              <Landmark size={16} />
-            </div>
-            <div>
-              <h3 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
-                내집마련 정책대출 간이 진단
-              </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                2026 정부 저리 정책자금 모의 한도 및 최저 금리
-              </p>
-            </div>
+          <div>
+            <h3 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
+              내집마련 정책대출 간이 진단
+            </h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              2026 정부 저리 정책자금 모의 한도 및 최저 금리
+            </p>
           </div>
           <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold shrink-0 border border-blue-200/60 dark:border-blue-800/50">
             D-VIEW 금융
@@ -144,8 +138,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
           {result.isEligible ? (
             <div className="flex flex-col gap-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                  <CheckCircle2 size={13} className="text-blue-600 dark:text-blue-400" />
+                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                   예상 지원 한도
                 </span>
                 <span className="text-[14px] font-black text-blue-600 dark:text-blue-400 tabular-nums">
@@ -164,8 +157,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
               </div>
             </div>
           ) : (
-            <div className="flex items-start gap-2 py-1 text-red-600 dark:text-red-400">
-              <AlertCircle size={15} className="shrink-0 mt-0.5" />
+            <div className="flex items-start py-1 text-red-600 dark:text-red-400">
               <div className="text-[11px] leading-tight">
                 <span className="font-bold block">{result.badgeText}</span>
                 <span className="text-[10px] opacity-90">{result.ineligibleReason}</span>
@@ -180,10 +172,9 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
         <button
           type="button"
           onClick={handleOpen}
-          className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-xl text-[12px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]"
+          className="w-full py-2.5 px-3 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white rounded-xl text-[12px] font-bold transition-all cursor-pointer flex items-center justify-center shadow-xs active:scale-[0.98]"
         >
           <span>정밀 정책자금 한도 계산기 열기</span>
-          <ArrowRight size={13} />
         </button>
       )}
     </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { Flame, TrendingUp, Sparkles, BarChart3, ArrowUpRight } from 'lucide-react';
 import {
   getRealtimeRankings,
   RealtimeRankingItem,
@@ -53,21 +52,16 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
     >
       {/* Header with 3 Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
-            <Flame size={18} />
-          </div>
-          <div>
-            <h3 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight flex items-center gap-1.5">
-              동탄 실시간 시장 랭킹 보드
-              <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400">
-                LIVE
-              </span>
-            </h3>
-            <p className="text-[11px] text-tertiary font-medium">
-              국토교통부 실거래가 기반 신고가·갭투자·거래량 급상승 순위
-            </p>
-          </div>
+        <div>
+          <h3 className="text-[15px] sm:text-[16px] font-black text-primary tracking-tight flex items-center gap-1.5">
+            동탄 실시간 시장 랭킹 보드
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400">
+              LIVE
+            </span>
+          </h3>
+          <p className="text-[11px] text-tertiary font-medium">
+            국토교통부 실거래가 기반 신고가·갭투자·거래량 급상승 순위
+          </p>
         </div>
 
         {/* Tab Controls */}
@@ -76,39 +70,36 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             type="button"
             data-testid="ranking-tab-high"
             onClick={() => setActiveTab('high')}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
               activeTab === 'high'
                 ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-tertiary hover:text-primary'
             }`}
           >
-            <Sparkles size={12} />
             <span>실시간 신고가 TOP 10</span>
           </button>
           <button
             type="button"
             data-testid="ranking-tab-gap"
             onClick={() => setActiveTab('gap')}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
               activeTab === 'gap'
                 ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-tertiary hover:text-primary'
             }`}
           >
-            <TrendingUp size={12} />
             <span>전세가율·갭 최적</span>
           </button>
           <button
             type="button"
             data-testid="ranking-tab-surge"
             onClick={() => setActiveTab('surge')}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
+            className={`px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
               activeTab === 'surge'
                 ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-tertiary hover:text-primary'
             }`}
           >
-            <BarChart3 size={12} />
             <span>주간 거래량 급증</span>
           </button>
         </div>
@@ -166,7 +157,6 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
               <span className="text-[13px] font-black text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {item.metricValue || item.primaryValue}
               </span>
-              <ArrowUpRight size={13} className="text-tertiary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </div>
           </div>
         ))}

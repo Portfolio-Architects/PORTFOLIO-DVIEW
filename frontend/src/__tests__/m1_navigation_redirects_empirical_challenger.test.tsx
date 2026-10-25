@@ -242,10 +242,10 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
   // =========================================================================
   describe('Dimension 2: MobileDock 3-Tab Architecture & Interaction', () => {
     it('declares and renders exactly 3 canonical tabs in MobileDock TABS export', () => {
-      expect(TABS).toHaveLength(3);
-      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI']);
-      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti']);
+      expect(TABS).toHaveLength(4);
+      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
+      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide']);
     });
 
     it('renders all 3 tabs in DOM and confirms "테크노 랩" and "사무실 탐색" are 100% removed', () => {
@@ -254,7 +254,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(dockNav).toBeInTheDocument();
 
       const links = within(dockNav!).getAllByRole('link');
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(4);
 
       expect(within(dockNav!).queryByText(/테크노/)).toBeNull();
       expect(within(dockNav!).queryByText(/사무실/)).toBeNull();

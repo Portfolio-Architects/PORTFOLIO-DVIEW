@@ -380,7 +380,7 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-overview-section');
+      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
       const timelineHeading = screen.getByText('일자별 최근 실거래');
 
       const slot1Text = screen.getByText(/1000000001/);

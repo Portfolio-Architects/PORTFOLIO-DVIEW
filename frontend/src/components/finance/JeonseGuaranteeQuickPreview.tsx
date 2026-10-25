@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useMemo } from 'react';
-import { ShieldCheck, ArrowRight } from 'lucide-react';
 import {
   evaluateJeonseSafety,
 } from '@/lib/utils/jeonseSafetyCalculators';
@@ -37,18 +36,13 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
       <div>
         {/* Header */}
         <div className="flex items-center justify-between gap-2 mb-3.5">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/60 dark:border-emerald-800/50 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
-              <ShieldCheck size={16} />
-            </div>
-            <div>
-              <h3 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
-                HUG 126% 전세보증금 안심 진단
-              </h3>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-                공시가 126% 룰 기준 깡통전세 및 반환보증 가입성 검증
-              </p>
-            </div>
+          <div>
+            <h3 className="text-[14px] sm:text-[15px] font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">
+              HUG 126% 전세보증금 안심 진단
+            </h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">
+              공시가 126% 룰 기준 깡통전세 및 반환보증 가입성 검증
+            </p>
           </div>
           <span className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-[10px] font-extrabold shrink-0 border border-emerald-200/60 dark:border-emerald-800/50">
             D-VIEW 안심
@@ -161,10 +155,9 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
         <button
           type="button"
           onClick={handleOpen}
-          className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-[12px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-[0.98]"
+          className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white rounded-xl text-[12px] font-bold transition-all cursor-pointer flex items-center justify-center shadow-xs active:scale-[0.98]"
         >
           <span>내 전세 계약서 안심 4단계 정밀진단</span>
-          <ArrowRight size={13} />
         </button>
       )}
     </div>

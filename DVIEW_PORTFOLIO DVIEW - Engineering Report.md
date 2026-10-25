@@ -12,7 +12,7 @@
   3. **러닝 및 산책 (Running & Sports Gear Intent)**: 동탄호수공원, 치동천, 신리천, 반석산, 여울공원 등 5대 시그니처 트레일 코스 실측 거리, 표고차, 편의시설 및 대장 아파트 큐레이션 연계 **러닝화/웨어러블 스마트워치/피트니스** 광고 유치.
   4. **축제 및 문화 (Festivals & Family Intent)**: 동탄호수공원 루나쇼(Luna Show) D-Day 카운트다운, 영구 조망 명당 단지 매핑, 화성시 대표 축제 및 1~9동 문화강좌 SSOT 연계 **패밀리 호텔/리조트, 유아 테마파크, 문화 공연** 광고 유치.
   5. **맛집 및 로컬 상권 (Dining & Hotplaces)**: 영천동 11자 상가, 레이크꼬모/그랑파사쥬, 카림애비뉴 3대 상권 및 4대 앵커 테넌트(스타벅스, 올리브영, 다이소, 배스킨라빈스) 거리 메트릭스 연계 **외식 상품권, 로컬 프랜차이즈 창업, 홈 인테리어/입주 청소** 광고 유치.
-- **디자인 목적 함수 (Design Aesthetics)**: 고밀도 금융/자산 데이터를 거부감 없이 직관적으로 소비하고 광고 슬롯으로의 시선 흐름을 자연스럽게 유도하는 **'Pastel Cute(파스텔톤 친근한 감성)' & 'Urban Emerald(정갈한 금융 신뢰감)'** 디자인 시스템 결합.
+- **디자인 목적 함수 (Design System — "Ad Money")**: 구글 애드센스 수익률(RPM, eCPM, CTR, Active Viewability) 극대화를 최상위 목적으로 설계된 **'Ad Money (애드 머니)'** 디자인 시스템 적용. 콘텐츠 카드와 광고 슬롯의 1:1 동형화(Native Content-Ad Isomorphism), 고단가 금융 신뢰 컬러(Trust Blue & Value Emerald), 장기 체류 아이컴포트 슬레이트 캔버스, Zero-CLS($\text{CLS} < 0.001$) 바운딩 박스 계약 결합.
 - **수익화 모델 (Monetization Yield Engine)**: CLS < 0.01을 기술적으로 보증하는 Zero-Jank Google AdSense 네이티브 광고 슬롯(피드 인피드, 모달 배너, 스티키 앵커), Active View 가시성 75% 이상 확보, 30초 뷰포트 인지형 스마트 리프레시, 그리고 애드블록 감지 시 1st-party 고단가 B2B CPA(건당 ₩30,000 ~ ₩100,000) 자동 폴백을 아우르는 하이브리드 수익화 엔진.
 - **성능 및 신뢰성 보장 (Enterprise Quality)**: 86개 테스트 수트 / 846개 단위·통합 테스트 100% 통과(🟢 GREEN), TypeScript 0 컴파일 에러, Sub-100ms 라우팅 전환 및 Zero-Jank 120fps 모바일 인터랙션 달성.
 
@@ -277,11 +277,11 @@ $$\text{Utility Score} = S_{\text{transport}} + S_{\text{education}} + S_{\text{
 
 ---
 
-## 6. UI/UX 디자인 시스템 규격 (Pastel Cute & Urban Emerald)
+## 6. UI/UX 디자인 시스템 규격 ("Ad Money" — Google AdSense Yield Maximization System)
 
 ### 1. Philosophy & Principles
-- **Pastel Cute (친근한 데이터 경험)**: 차가운 금융/부동산 데이터를 부드러운 파스텔 톤(라벤더, 베이비블루, 소프트오렌지, 앰버)과 곡선형 카드로 시각화하여 3040 부모와 젊은 직장인이 편안하게 탐색하도록 유도.
-- **Urban Emerald (정갈한 금융 신뢰감)**: `"Stable as land; insightful as deep data."` 깊이 있는 에메랄드 그린과 슬레이트 그레이를 기준 축으로 세워 엔터프라이즈급 신뢰성을 확립.
+- **Native Content-Ad Isomorphism (네이티브 콘텐츠-광고 동형화)**: 콘텐츠 카드와 인피드 광고(`AdSlot`), 고단가 금융 CPA 위젯의 곡률(`rounded-2xl`, `16px`), 보더(`border-slate-200/80`), 표면(`#ffffff`) 규격을 1:1로 동기화하여 배너 맹목성(Banner Blindness)을 제거하고 광고 클릭률(CTR)을 극대화.
+- **High-CPC Trust Psychology & Dwell-Time Canvas**: 고단가 금융·자산 광고주 섹터와 조화되는 **Trust Blue (`#2563eb`)** 및 **Value Emerald (`#059669`)**, **아이컴포트 슬레이트 캔버스(`#f8fafc`)**를 적용해 체류 시간(9분+)과 Active View 가시성($\ge 75\%$), 전환율을 극대화.
 
 ### 2. Design Token Architecture (`globals.css`)
 - **Surface & Background**:
@@ -320,7 +320,7 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 | $\text{PV}$ | 인당 페이지뷰 | **13.57회** | **20.0회+** | MBTI 퀴즈(7문항 60fps), 아파트 랩 2-Column 무한 탐색, 루나쇼/트레일 탭 전환 프리페칭 |
 | $\text{AdDensity}(s)$ | 뷰당 광고 밀도 | 1.2 슬롯/뷰 | 2.5 슬롯/뷰 | CLS 0을 유지하는 네이티브 인피드(5개당 1개), 모달 배너, 스티키 앵커 배치 |
 | $\text{Viewability}(s)$ | 활성 가시성 (Active View) | ~52.0% | **$\ge \mathbf{75.0\%}$** | IntersectionObserver 50% 교차 감지 시 렌더링, 뷰포트 고정 스티키 위젯 |
-| $\text{CTR}(s)$ | 광고 클릭률 | ~0.8% | **2.2% ~ 3.5%** | 고밀도 데이터와 어우러진 Pastel Cute 네이티브 카드 디자인, 도파민 마이크로 카피 |
+| $\text{CTR}(s)$ | 광고 클릭률 | ~0.8% | **2.2% ~ 3.5%** | 고밀도 데이터와 1:1 동형화된 Ad Money 네이티브 카드 디자인, 시선 정류장 배치 |
 | $\text{CPC}(s)$ | 클릭당 단가 (입찰가) | $0.25 | **$1.80 ~ $4.50+** | 주담대, 대환대출, 양도세 절세, 지산 법인 이전 등 고단가 금융/부동산 키워드 시맨틱 매핑 |
 | $\text{AdBlockRate}$ | 광고 차단율 | ~18.0% | **0.0% (수익 누수 제로)** | 애드블록 감지(`useAdBlockDetector`) 시 1st-party 고단가 CPA 제휴 배너 즉시 폴백 |
 | $\text{Yield}_{\text{NativeCPA}}$ | 자체 제휴 순익 | - | **₩30,000~₩100,000/건** | 테크노밸리 오피스 공동임차, 세무사 자문, 아파트 올수리 인테리어 상담 중개 |
@@ -417,7 +417,7 @@ DVIEW의 실제 체류 시간(9분 5초)과 인당 PV(13.57회), 최적화된 eC
 - **Stop-the-Line 원칙**:
   1. *Zero-Jank UX & CLS 위반*: 모바일 프레임 드랍 또는 광고 삽입 전후 CLS > 0.01 발생 시 즉각 수정.
   2. *Type/Compile Error*: `tsc --noEmit` 실패 시 배포 중단.
-  3. *Design System 파괴*: Pastel Cute & Urban Emerald 토큰을 벗어난 UI 불허.
+  3. *Ad Money Design System 파괴*: `DVIEW_DESIGN.md`에 정의된 Ad Money 디자인 시스템(Slate 무채색 베이스 및 Trust Blue/Value Emerald 토큰, 네이티브 동형화)을 벗어난 UI 불허.
   4. *Strict Real-Data Only*: 추정/가짜 데이터 노출 엄격 금지, 100% 공공/실측 데이터만 허용.
   5. *AdSense Policy 위반*: 강제 클릭 유도나 비정상 트래픽 유발 행위 엄격 금지.
 

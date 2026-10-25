@@ -102,13 +102,13 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         expect(nav).toBeInTheDocument();
 
         const links = within(nav!).getAllByRole('link');
-        expect(links).toHaveLength(3);
+        expect(links).toHaveLength(4);
 
         const hrefs = links.map((l) => l.getAttribute('href'));
-        expect(hrefs).toEqual(['/', '/explore', '/mbti']);
+        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide']);
 
         const labels = links.map((l) => l.querySelector('span')?.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
 
         // Zero trace of obsolete tabs
         expect(within(container).queryByText(/통계/)).toBeNull();
@@ -118,10 +118,10 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
     );
 
     it('confirms TABS constant in MobileDock is strictly frozen to 3 canonical tabs', () => {
-      expect(TABS).toHaveLength(3);
-      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti']);
-      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI']);
+      expect(TABS).toHaveLength(4);
+      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide']);
+      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
     });
   });
 
@@ -163,7 +163,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       render(<MobileDock activeTab="overview" onTabClick={onTabClickSpy} />);
 
       const links = screen.getAllByRole('link');
-      expect(links).toHaveLength(3);
+      expect(links).toHaveLength(4);
 
       const expectedIds = ['overview', 'imjang', 'mbti'];
       const expectedHrefs = ['/', '/explore', '/mbti'];

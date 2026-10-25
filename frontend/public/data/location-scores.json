@@ -187,7 +187,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동역 숲속마을 리체더포레스트": {
+  "동탄숲속마을 능동역 리체더포레스트": {
     "distanceToElementary": 545,
     "distanceToMiddle": 172,
     "distanceToHigh": 264,
@@ -239,7 +239,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 숲속마을 광명메이루즈": {
+  "동탄숲속마을 광명메이루즈": {
     "distanceToElementary": 158,
     "distanceToMiddle": 487,
     "distanceToHigh": 564,
@@ -304,7 +304,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 숲속마을 모아미래도 1단지": {
+  "동탄숲속마을 모아미래도 1단지": {
     "distanceToElementary": 230,
     "distanceToMiddle": 478,
     "distanceToHigh": 333,
@@ -369,7 +369,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 숲속마을 모아미래도 2단지": {
+  "동탄숲속마을 모아미래도 2단지": {
     "distanceToElementary": 405,
     "distanceToMiddle": 445,
     "distanceToHigh": 541,
@@ -423,7 +423,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 숲속마을 자연앤데시앙": {
+  "동탄숲속마을 자연앤데시앙": {
     "distanceToElementary": 206,
     "distanceToMiddle": 581,
     "distanceToHigh": 618,
@@ -476,7 +476,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 푸른마을 두산위브": {
+  "동탄푸른마을 두산위브": {
     "distanceToElementary": 204,
     "distanceToMiddle": 275,
     "distanceToHigh": 526,
@@ -537,7 +537,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 푸른마을 모아미래도": {
+  "동탄푸른마을 모아미래도": {
     "distanceToElementary": 261,
     "distanceToMiddle": 188,
     "distanceToHigh": 452,
@@ -601,7 +601,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 푸른마을 신일해피트리": {
+  "동탄푸른마을 신일해피트리": {
     "distanceToElementary": 202,
     "distanceToMiddle": 262,
     "distanceToHigh": 643,
@@ -664,7 +664,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "능동 푸른마을 포스코더샵 2차": {
+  "푸른마을 포스코더샵 2차": {
     "distanceToElementary": 250,
     "distanceToMiddle": 149,
     "distanceToHigh": 239,
@@ -1091,7 +1091,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "동탄역 시범 금강펜테리움 센트럴파크 Ⅲ": {
+  "동탄역 시범 금강펜테리움 센트럴파크 3차": {
     "distanceToElementary": 204,
     "distanceToMiddle": 240,
     "distanceToHigh": 638,
@@ -1903,7 +1903,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "송동 하우스디 더레이크": {
+  "동탄2신도시 하우스디 더레이크": {
     "distanceToElementary": 255,
     "distanceToMiddle": 258,
     "distanceToHigh": 636,
@@ -1966,7 +1966,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "송동 린스트라우스 더레이크": {
+  "동탄린스트라우스 더레이크": {
     "distanceToElementary": 392,
     "distanceToMiddle": 481,
     "distanceToHigh": 582,
@@ -2031,7 +2031,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "여울동 금강펜테리움 센트럴파크": {
+  "동탄2신도시 금강펜테리움 센트럴파크 1차": {
     "distanceToElementary": 441,
     "distanceToMiddle": 926,
     "distanceToHigh": 851,
@@ -3038,7 +3038,7 @@
     "supermarketName": "101번지남산돈가스이마트트레이더스",
     "supermarketCoordinates": "37.19367, 127.0972"
   },
-  "여울동 반도유보라 아이비파크 3.0": {
+  "반도유보라 아이비파크 3.0": {
     "distanceToElementary": 760,
     "distanceToMiddle": 890,
     "distanceToHigh": 1103,
@@ -3098,7 +3098,7 @@
     "supermarketName": "101번지남산돈가스이마트트레이더스",
     "supermarketCoordinates": "37.19367, 127.0972"
   },
-  "여울동 센트럴힐즈": {
+  "센트럴힐즈 동탄": {
     "distanceToElementary": 260,
     "distanceToMiddle": 1093,
     "distanceToHigh": 863,
@@ -3204,7 +3204,7 @@
     "supermarketName": "101번지남산돈가스이마트트레이더스",
     "supermarketCoordinates": "37.19367, 127.0972"
   },
-  "장지동 금호 어울림 레이크": {
+  "금호어울림 레이크": {
     "distanceToElementary": 129,
     "distanceToMiddle": 274,
     "distanceToHigh": 371,
@@ -3270,7 +3270,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "장지동 금호어울림 레이크 2차": {
+  "금호어울림 레이크 2차": {
     "distanceToElementary": 276,
     "distanceToMiddle": 734,
     "distanceToHigh": 232,
@@ -3327,7 +3327,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "동탄레이크 자연앤푸르지오": {
+  "동탄 레이크 자연앤푸르지오": {
     "distanceToElementary": 229,
     "distanceToMiddle": 744,
     "distanceToHigh": 401,
@@ -3395,7 +3395,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "장지동 아이파크 1단지": {
+  "동탄2 아이파크 1단지": {
     "distanceToElementary": 637,
     "distanceToMiddle": 683,
     "distanceToHigh": 782,
@@ -3447,7 +3447,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "장지동 아이파크 2단지": {
+  "동탄2 아이파크 2단지": {
     "distanceToElementary": 628,
     "distanceToMiddle": 888,
     "distanceToHigh": 823,
@@ -3497,7 +3497,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "장지동 호반베르디움": {
+  "동탄2신도시 호반베르디움 33단지": {
     "distanceToElementary": 272,
     "distanceToMiddle": 415,
     "distanceToHigh": 368,
@@ -3733,7 +3733,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "장지동 제일풍경채 에듀앤파크": {
+  "제일풍경채 에듀앤파크": {
     "distanceToElementary": 216,
     "distanceToMiddle": 286,
     "distanceToHigh": 244,
@@ -3856,7 +3856,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "신동 디에트르포레": {
+  "동탄2 디에트르포레": {
     "distanceToElementary": 203,
     "distanceToMiddle": 282,
     "distanceToHigh": 716,
@@ -3907,7 +3907,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 e편한세상": {
+  "e편한세상 동탄": {
     "distanceToElementary": 362,
     "distanceToMiddle": 394,
     "distanceToHigh": 1420,
@@ -3954,7 +3954,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "목동 금강펜테리움 센트럴파크 4차": {
+  "금강펜테리움 센트럴파크 4차": {
     "distanceToElementary": 394,
     "distanceToMiddle": 212,
     "distanceToHigh": 1215,
@@ -4002,7 +4002,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 동원로얄듀크 2차": {
+  "동탄 동원로얄듀크 2차": {
     "distanceToElementary": 141,
     "distanceToMiddle": 364,
     "distanceToHigh": 845,
@@ -4056,7 +4056,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 베라체": {
+  "동탄2신도시 베라체": {
     "distanceToElementary": 209,
     "distanceToMiddle": 383,
     "distanceToHigh": 1290,
@@ -4105,7 +4105,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "목동 호반베르디움 2차": {
+  "동탄2신도시 호반베르디움 22단지": {
     "distanceToElementary": 280,
     "distanceToMiddle": 493,
     "distanceToHigh": 557,
@@ -4170,7 +4170,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 르파비스": {
+  "르파비스": {
     "distanceToElementary": 321,
     "distanceToMiddle": 522,
     "distanceToHigh": 626,
@@ -4235,7 +4235,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 한신더휴": {
+  "한신더휴": {
     "distanceToElementary": 238,
     "distanceToMiddle": 215,
     "distanceToHigh": 830,
@@ -4297,7 +4297,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 호반베르디움 센트럴포레": {
+  "호반베르디움 센트럴포레": {
     "distanceToElementary": 345,
     "distanceToMiddle": 1145,
     "distanceToHigh": 313,
@@ -4355,7 +4355,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "목동 힐스테이트": {
+  "힐스테이트 동탄": {
     "distanceToElementary": 244,
     "distanceToMiddle": 646,
     "distanceToHigh": 489,
@@ -4420,7 +4420,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 그린힐 반도유보라 아이비파크 10": {
+  "그린힐 반도유보라 아이비파크 10단지": {
     "distanceToElementary": 279,
     "distanceToMiddle": 413,
     "distanceToHigh": 1126,
@@ -4477,7 +4477,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 더레이크시티 부영 2단지": {
+  "더레이크시티 부영 2단지": {
     "distanceToElementary": 182,
     "distanceToMiddle": 359,
     "distanceToHigh": 427,
@@ -4541,7 +4541,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 더 레이크 파크뷰": {
+  "더레이크파크뷰": {
     "distanceToElementary": 352,
     "distanceToMiddle": 528,
     "distanceToHigh": 593,
@@ -4606,7 +4606,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 더 레이크 팰리스": {
+  "동탄 더레이크팰리스": {
     "distanceToElementary": 383,
     "distanceToMiddle": 205,
     "distanceToHigh": 289,
@@ -4671,7 +4671,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 더샵 레이크 에듀타운": {
+  "동탄 더샵 레이크에듀타운": {
     "distanceToElementary": 248,
     "distanceToMiddle": 361,
     "distanceToHigh": 255,
@@ -4733,7 +4733,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "호수공원 금강펜테리움 센트럴파크 Ⅱ": {
+  "동탄호수공원 금강펜테리움 센트럴파크 2차": {
     "distanceToElementary": 368,
     "distanceToMiddle": 751,
     "distanceToHigh": 541,
@@ -4857,7 +4857,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 레이크힐 반도유보라 아이비파크 10.2": {
+  "레이크힐 반도유보라 아이비파크 10.2": {
     "distanceToElementary": 351,
     "distanceToMiddle": 497,
     "distanceToHigh": 1303,
@@ -4913,7 +4913,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 서희스타힐스 엔에이치에프": {
+  "서희스타힐스 엔에이치에프": {
     "distanceToElementary": 456,
     "distanceToMiddle": 622,
     "distanceToHigh": 598,
@@ -4976,7 +4976,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "산척동 중흥에스클래스 에듀하이": {
+  "중흥에스클래스 에듀하이": {
     "distanceToElementary": 313,
     "distanceToMiddle": 445,
     "distanceToHigh": 382,
@@ -5175,7 +5175,7 @@
     "supermarketName": "노브랜드버거동탄산척점",
     "supermarketCoordinates": "37.1693, 127.1195"
   },
-  "영천동 파크자이": {
+  "동탄 파크자이": {
     "distanceToElementary": 193,
     "distanceToMiddle": 610,
     "distanceToHigh": 482,
@@ -5235,7 +5235,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "영천동 파크푸르지오": {
+  "동탄 파크푸르지오": {
     "distanceToElementary": 133,
     "distanceToMiddle": 964,
     "distanceToHigh": 1117,
@@ -5398,7 +5398,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "영천동 동원로얄듀크포레 4차": {
+  "동탄2신도시 4차 동원로얄듀크포레": {
     "distanceToElementary": 396,
     "distanceToMiddle": 639,
     "distanceToHigh": 1191,
@@ -5656,7 +5656,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "동탄역 센트럴상록아파트": {
+  "동탄역 센트럴상록": {
     "distanceToElementary": 419,
     "distanceToMiddle": 395,
     "distanceToHigh": 854,
@@ -6122,7 +6122,7 @@
     "supermarketName": "101번지남산돈가스이마트트레이더스",
     "supermarketCoordinates": "37.19367, 127.0972"
   },
-  "동탄역 힐스테이트": {
+  "힐스테이트 동탄역": {
     "distanceToElementary": 697,
     "distanceToMiddle": 464,
     "distanceToHigh": 597,
@@ -6185,7 +6185,7 @@
     "supermarketName": "노브랜드버거동탄",
     "supermarketCoordinates": "37.20625, 127.1107"
   },
-  "반송동 시범 한빛마을 금호어울림": {
+  "시범한빛마을 금호어울림": {
     "distanceToElementary": 123,
     "distanceToMiddle": 383,
     "distanceToHigh": 632,
@@ -6317,7 +6317,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 나루마을 한화꿈에그린우림필유": {
+  "나루마을 한화꿈에그린 우림필유": {
     "distanceToElementary": 184,
     "distanceToMiddle": 414,
     "distanceToHigh": 258,
@@ -6384,7 +6384,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 나루마을 신도브래뉴": {
+  "나루마을 신도브래뉴": {
     "distanceToElementary": 261,
     "distanceToMiddle": 423,
     "distanceToHigh": 199,
@@ -6451,7 +6451,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 나루마을 한화꿈에그린": {
+  "나루마을 한화꿈에그린": {
     "distanceToElementary": 214,
     "distanceToMiddle": 160,
     "distanceToHigh": 483,
@@ -6518,7 +6518,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 센트럴포레스트": {
+  "동탄 센트럴포레스트": {
     "distanceToElementary": 229,
     "distanceToMiddle": 453,
     "distanceToHigh": 1018,
@@ -6573,7 +6573,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 다은마을 월드메르디앙": {
+  "시범다은마을 월드메르디앙 반도유보라": {
     "distanceToElementary": 277,
     "distanceToMiddle": 717,
     "distanceToHigh": 512,
@@ -6635,7 +6635,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 한빛마을 KCC스위첸": {
+  "시범한빛마을 KCC스위첸": {
     "distanceToElementary": 88,
     "distanceToMiddle": 175,
     "distanceToHigh": 979,
@@ -6702,48 +6702,48 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 메타폴리스": {
-    "distanceToElementary": 280,
-    "distanceToMiddle": 504,
-    "distanceToHigh": 729,
-    "distanceToSubway": 2428,
-    "distanceToIndeokwon": 325,
-    "distanceToTram": 612,
-    "academyDensity": 228,
+  "메타폴리스": {
+    "distanceToElementary": 256,
+    "distanceToMiddle": 493,
+    "distanceToHigh": 711,
+    "distanceToSubway": 2448,
+    "distanceToIndeokwon": 333,
+    "distanceToTram": 627,
+    "academyDensity": 202,
     "academyCategories": {
-      "음악학원": 20,
-      "입시·교과학원": 105,
-      "외국어학원": 7,
+      "음악학원": 16,
+      "입시·교과학원": 85,
+      "외국어학원": 8,
       "교육컨설팅업": 11,
       "기타 교육지원 서비스업": 12,
-      "요가/필라테스 학원": 21,
-      "레크리에이션 교육기관": 6,
+      "요가/필라테스 학원": 19,
       "그 외 기타 교육기관": 10,
-      "미술학원": 14,
-      "기타 기술/직업 훈련학원": 9,
+      "기타 기술/직업 훈련학원": 10,
+      "미술학원": 13,
+      "레크리에이션 교육기관": 5,
       "기타 예술/스포츠 교육기관": 4,
       "태권도/무술학원": 8,
       "직원 훈련기관": 1
     },
-    "restaurantDensity": 372,
+    "restaurantDensity": 353,
     "restaurantCategories": {
-      "주점": 67,
-      "한식": 130,
-      "베이커리": 12,
-      "기타 간이": 46,
-      "카페": 49,
-      "일식": 33,
-      "중식": 15,
-      "동남아시아": 3,
+      "주점": 60,
+      "한식": 127,
+      "베이커리": 11,
+      "기타 간이": 44,
+      "카페": 45,
+      "일식": 28,
+      "중식": 17,
+      "동남아시아": 4,
       "서양식": 14,
       "디저트": 2,
       "구내식당·뷔페": 1
     },
-    "distanceToStarbucks": 339,
-    "distanceToMcDonalds": 440,
-    "distanceToOliveYoung": 139,
-    "distanceToDaiso": 60,
-    "distanceToSupermarket": 60,
+    "distanceToStarbucks": 349,
+    "distanceToMcDonalds": 445,
+    "distanceToOliveYoung": 129,
+    "distanceToDaiso": 83,
+    "distanceToSupermarket": 83,
     "nearestSchoolNames": {
       "elementary": "학동초등학교",
       "middle": "석우중학교",
@@ -6769,7 +6769,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 솔빛마을 신도브래뉴": {
+  "솔빛마을 신도브래뉴": {
     "distanceToElementary": 98,
     "distanceToMiddle": 218,
     "distanceToHigh": 500,
@@ -6838,7 +6838,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 솔빛마을 경남아너스빌": {
+  "솔빛마을 경남아너스빌": {
     "distanceToElementary": 216,
     "distanceToMiddle": 295,
     "distanceToHigh": 766,
@@ -6907,7 +6907,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 솔빛마을 쌍용예가": {
+  "솔빛마을 쌍용예가": {
     "distanceToElementary": 221,
     "distanceToMiddle": 130,
     "distanceToHigh": 502,
@@ -6972,7 +6972,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 솔빛마을 서해그랑블": {
+  "솔빛마을 서해그랑블": {
     "distanceToElementary": 329,
     "distanceToMiddle": 276,
     "distanceToHigh": 868,
@@ -7106,74 +7106,73 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 다은마을 동탄포스코더샵": {
-    "distanceToElementary": 291,
-    "distanceToMiddle": 467,
-    "distanceToHigh": 956,
-    "distanceToSubway": 2314,
-    "distanceToIndeokwon": 670,
-    "distanceToTram": 207,
-    "academyDensity": 202,
+  "시범다은마을 포스코더샵": {
+    "distanceToElementary": 300,
+    "distanceToMiddle": 229,
+    "distanceToHigh": 191,
+    "distanceToSubway": 3338,
+    "distanceToIndeokwon": 894,
+    "distanceToTram": 474,
+    "academyDensity": 84,
     "academyCategories": {
-      "음악학원": 12,
-      "입시·교과학원": 105,
-      "교육컨설팅업": 7,
-      "기타 교육지원 서비스업": 11,
-      "레크리에이션 교육기관": 6,
-      "기타 기술/직업 훈련학원": 10,
-      "미술학원": 14,
-      "요가/필라테스 학원": 16,
-      "기타 예술/스포츠 교육기관": 4,
-      "외국어학원": 7,
-      "직원 훈련기관": 1,
-      "그 외 기타 교육기관": 4,
-      "태권도/무술학원": 4,
-      "컴퓨터 학원": 1
+      "레크리에이션 교육기관": 1,
+      "입시·교과학원": 34,
+      "기타 기술/직업 훈련학원": 5,
+      "외국어학원": 3,
+      "미술학원": 10,
+      "음악학원": 13,
+      "요가/필라테스 학원": 5,
+      "기타 예술/스포츠 교육기관": 5,
+      "청소년 수련시설": 1,
+      "그 외 기타 교육기관": 2,
+      "기타 교육지원 서비스업": 2,
+      "태권도/무술학원": 3
     },
-    "restaurantDensity": 288,
+    "restaurantDensity": 118,
     "restaurantCategories": {
-      "주점": 56,
-      "한식": 113,
-      "기타 간이": 38,
-      "일식": 19,
-      "카페": 26,
-      "베이커리": 7,
-      "중식": 15,
-      "서양식": 11,
       "동남아시아": 2,
-      "구내식당·뷔페": 1
+      "베이커리": 18,
+      "서양식": 5,
+      "한식": 23,
+      "중식": 2,
+      "주점": 3,
+      "기타 간이": 32,
+      "카페": 29,
+      "구내식당·뷔페": 1,
+      "디저트": 1,
+      "일식": 2
     },
-    "distanceToStarbucks": 416,
-    "distanceToMcDonalds": 751,
-    "distanceToOliveYoung": 613,
-    "distanceToDaiso": 375,
-    "distanceToSupermarket": 454,
+    "distanceToStarbucks": 774,
+    "distanceToMcDonalds": 547,
+    "distanceToOliveYoung": 824,
+    "distanceToDaiso": 972,
+    "distanceToSupermarket": 972,
     "nearestSchoolNames": {
-      "elementary": "화성금곡초등학교",
-      "middle": "솔빛중학교",
+      "elementary": "숲속초등학교",
+      "middle": "푸른중학교",
       "high": "동탄고등학교"
     },
     "nearestStationName": "동탄역",
     "nearestStationLine": "GTX-A",
     "nearestStationCoords": "37.200092, 127.095514",
-    "nearestIndeokwonStationName": "116 정거장",
+    "nearestIndeokwonStationName": "115 정거장",
     "nearestIndeokwonLine": "동탄인덕원선",
-    "nearestIndeokwonCoords": "37.205188, 127.071692",
-    "nearestTramStationName": "304 정거장",
+    "nearestIndeokwonCoords": "37.211605, 127.055652",
+    "nearestTramStationName": "303 정거장",
     "nearestTramLine": "동탄 도시철도 2호선",
-    "nearestTramCoords": "37.198307, 127.067546",
-    "starbucksName": "스타벅스 동탄점",
-    "starbucksCoordinates": "37.201675, 127.07317",
-    "mcdonaldsName": "배스킨라빈스동탄나루",
-    "mcdonaldsCoordinates": "37.19417, 127.0747",
-    "oliveYoungName": "올리브영 동탄타임테라스점",
-    "oliveYoungCoordinates": "37.204947, 127.068955",
-    "daisoName": "다이소 동탄점",
-    "daisoCoordinates": "37.201659, 127.072587",
+    "nearestTramCoords": "37.199697, 127.059521",
+    "starbucksName": "스타벅스 동탄센트럴파크점",
+    "starbucksCoordinates": "37.208555, 127.06451",
+    "mcdonaldsName": "배스킨라빈스동탄푸른",
+    "mcdonaldsCoordinates": "37.20094, 127.0531",
+    "oliveYoungName": "올리브영 동탄센트럴파크점",
+    "oliveYoungCoordinates": "37.208401, 127.065425",
+    "daisoName": "다이소 홈플러스화성동탄점",
+    "daisoCoordinates": "37.203518, 127.069092",
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 다은마을 삼성래미안": {
+  "시범다은마을 삼성래미안": {
     "distanceToElementary": 317,
     "distanceToMiddle": 645,
     "distanceToHigh": 808,
@@ -7241,7 +7240,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 다은마을 우남퍼스트빌": {
+  "시범다은마을 우남퍼스트빌": {
     "distanceToElementary": 184,
     "distanceToMiddle": 718,
     "distanceToHigh": 681,
@@ -7304,7 +7303,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 한빛마을 삼부르네상스": {
+  "시범한빛마을 삼부르네상스": {
     "distanceToElementary": 354,
     "distanceToMiddle": 134,
     "distanceToHigh": 771,
@@ -7372,7 +7371,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 한빛마을 아이파크": {
+  "시범한빛마을 동탄아이파크": {
     "distanceToElementary": 363,
     "distanceToMiddle": 172,
     "distanceToHigh": 913,
@@ -7439,7 +7438,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 한빛마을 한화꿈에그린": {
+  "시범한빛마을 한화꿈에그린": {
     "distanceToElementary": 202,
     "distanceToMiddle": 261,
     "distanceToHigh": 739,
@@ -7507,7 +7506,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 다은마을 메타역 롯데캐슬": {
+  "동탄시범다은마을 메타역 롯데캐슬": {
     "distanceToElementary": 428,
     "distanceToMiddle": 593,
     "distanceToHigh": 933,
@@ -7575,7 +7574,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "반송동 시범 다은마을 센트럴파크뷰": {
+  "동탄시범다은마을 센트럴파크뷰": {
     "distanceToElementary": 321,
     "distanceToMiddle": 625,
     "distanceToHigh": 494,
@@ -7636,7 +7635,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "석우동 예당마을 롯데캐슬": {
+  "예당마을 롯데캐슬": {
     "distanceToElementary": 184,
     "distanceToMiddle": 375,
     "distanceToHigh": 652,
@@ -7702,7 +7701,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "석우동 예당마을 신일유토빌": {
+  "예당마을 신일유토빌": {
     "distanceToElementary": 239,
     "distanceToMiddle": 312,
     "distanceToHigh": 417,
@@ -7770,7 +7769,7 @@
     "supermarketName": "다이소 홈플러스화성동탄점",
     "supermarketCoordinates": "37.203518, 127.069092"
   },
-  "석우동 예당마을 우미린 제일풍경채": {
+  "예당마을 우미린 제일풍경채": {
     "distanceToElementary": 179,
     "distanceToMiddle": 487,
     "distanceToHigh": 494,

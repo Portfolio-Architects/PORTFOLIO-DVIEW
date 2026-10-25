@@ -1,5 +1,5 @@
 import React from 'react';
-import { Settings, Search, X, LayoutGrid, List, RotateCcw, Zap, Building, Trees, Flame, Maximize2, Gem, Crown, Star, GripVertical } from 'lucide-react';
+import { Settings, Search, X, LayoutGrid, List, GripVertical } from 'lucide-react';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import type { TimelinePeriod } from '@/types/transaction';
 import type {
@@ -104,19 +104,6 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
     }
   };
 
-  const renderChipIcon = (id: QuickFilterChipType) => {
-    switch (id) {
-      case 'all': return <Zap size={11} className="shrink-0" />;
-      case 'dongtan1': return <Building size={11} className="shrink-0" />;
-      case 'dongtan2': return <Trees size={11} className="shrink-0" />;
-      case 'high': return <Flame size={11} className="shrink-0 text-red-500 fill-current" />;
-      case 'pyeong30': return <Maximize2 size={11} className="shrink-0" />;
-      case 'billion10': return <Gem size={11} className="shrink-0 text-blue-600" />;
-      case 'landmark': return <Crown size={11} className="shrink-0 text-emerald-600" />;
-      default: return null;
-    }
-  };
-
   const isFiltersActive =
     (showQuickFilters && quickFilter !== 'all') ||
     (searchQuery && searchQuery.trim().length > 0) ||
@@ -137,14 +124,13 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 key={chip.id}
                 type="button"
                 onClick={() => setQuickFilter?.(chip.id)}
-                className={`flex items-center gap-1 px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
+                className={`flex items-center px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
                   isActive
                     ? "bg-blue-600 text-white shadow-xs scale-[1.02] ring-2 ring-blue-500/25"
                     : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 text-secondary border border-border/70 hover:border-border"
                 }`}
                 title={chip.description}
               >
-                {renderChipIcon(chip.id)}
                 <span>{chip.label}</span>
               </button>
             );
@@ -155,11 +141,10 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             <button
               type="button"
               onClick={onResetFilters}
-              className="flex items-center gap-1 px-2 py-1 rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/30 border border-border/60 hover:border-red-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+              className="flex items-center px-2 py-1 rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/30 border border-border/60 hover:border-red-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
               title="모든 필터 초기화"
               aria-label="모든 필터 초기화"
             >
-              <RotateCcw size={11} />
               <span>초기화</span>
             </button>
           )}
@@ -198,11 +183,10 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             <button
               type="button"
               onClick={onResetFilters}
-              className="flex items-center gap-1 px-2 py-1 h-[28px] rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/30 border border-border/60 hover:border-red-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+              className="flex items-center px-2 py-1 h-[28px] rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/30 border border-border/60 hover:border-red-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
               title="모든 필터 초기화"
               aria-label="모든 필터 초기화"
             >
-              <RotateCcw size={11} />
               <span>초기화</span>
             </button>
           )}
@@ -426,10 +410,7 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
       {showOrderEditor && (
         <div className="absolute right-0 top-[32px] z-[50] w-[260px] max-w-[calc(100vw-32px)] max-h-[320px] overflow-y-auto bg-surface border border-border rounded-2xl shadow-xl p-3 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="text-[11px] text-secondary font-extrabold mb-2 border-b border-border/60 pb-1.5 flex justify-between items-center">
-            <span className="flex items-center gap-1">
-              <Star size={12} className="text-emerald-600 shrink-0" />
-              <span>관심 단지 순서 편집</span>
-            </span>
+            <span>관심 단지 순서 편집</span>
             <span className="text-[9px] text-tertiary font-normal">드래그하여 순서 변경</span>
           </div>
           <div className="flex flex-col gap-1.5">

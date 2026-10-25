@@ -34,10 +34,18 @@ function ThemeColorUpdater() {
 
 export function ThemeProvider({
   children,
+  scriptProps,
   ...props
 }: React.ComponentProps<typeof NextThemesProvider>) {
+  // React 19 warns when a <script> without a data-block type is rendered on the client.
+  // Keep default executable <script> during SSR to prevent FOUC, and mark as data block on client.
+  const resolvedScriptProps =
+    typeof window === "undefined"
+      ? scriptProps
+      : { type: "application/json", ...scriptProps };
+
   return (
-    <NextThemesProvider {...props}>
+    <NextThemesProvider {...props} scriptProps={resolvedScriptProps}>
       <ThemeColorUpdater />
       {children}
     </NextThemesProvider>
