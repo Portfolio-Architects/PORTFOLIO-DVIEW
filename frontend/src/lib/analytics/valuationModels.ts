@@ -4,7 +4,7 @@
  */
 
 import type { FieldReportData } from '@/lib/DashboardFacade';
-import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import type { ObjectiveMetrics } from '@/types/report';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
 

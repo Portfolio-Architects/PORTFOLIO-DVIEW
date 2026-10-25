@@ -7,6 +7,7 @@ import { logger } from '@/lib/services/logger';
 import { googleNewsItemSchema, noticeSchema } from '@/lib/validation/facade.schemas';
 import * as NewsRepo from '@/lib/repositories/news.repository';
 import { redis } from '@/lib/redis';
+import type { NoticeData } from '@/types/notice';
 
 const parser = new Parser();
 
@@ -170,7 +171,7 @@ export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
   }
 }
 
-export type NoticeData = z.infer<typeof noticeSchema>;
+export type { NoticeData } from '@/types/notice';
 
 export interface LocalNoticesResult {
   notices: NoticeData[];

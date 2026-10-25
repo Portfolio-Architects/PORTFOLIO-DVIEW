@@ -5,6 +5,7 @@ import {
   calculatePolicyLoan,
   PolicyLoanType,
 } from '@/lib/utils/policyLoanCalculators';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 export interface PolicyLoanQuickWidgetProps {
   onOpenMortgageModal?: () => void;
@@ -52,37 +53,25 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
         </div>
 
         {/* Loan Type Selector */}
-        <div className="grid grid-cols-3 gap-1.5 p-1 bg-slate-100/90 dark:bg-slate-800/80 rounded-xl border border-slate-200/60 dark:border-slate-700/60 mb-3.5">
+        <div className={getToggleTrackClass('grid grid-cols-3 w-full mb-3.5')}>
           <button
             type="button"
             onClick={() => setLoanType('NEWBORN')}
-            className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center ${
-              loanType === 'NEWBORN'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
+            className={getToggleBtnClass({ active: loanType === 'NEWBORN' })}
           >
             신생아 특례
           </button>
           <button
             type="button"
             onClick={() => setLoanType('DIDIMDOL')}
-            className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center ${
-              loanType === 'DIDIMDOL'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
+            className={getToggleBtnClass({ active: loanType === 'DIDIMDOL' })}
           >
             디딤돌 대출
           </button>
           <button
             type="button"
             onClick={() => setLoanType('BOGEUMJARI')}
-            className={`py-1.5 text-[11px] font-bold rounded-lg transition-all cursor-pointer text-center ${
-              loanType === 'BOGEUMJARI'
-                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-            }`}
+            className={getToggleBtnClass({ active: loanType === 'BOGEUMJARI' })}
           >
             보금자리론
           </button>

@@ -7,7 +7,7 @@ import { adminDb as db } from '@/lib/firebaseAdmin';
 import { redis } from '@/lib/redis';
 import { logger } from '@/lib/services/logger';
 import { noticeSchema } from '@/lib/validation/facade.schemas';
-import type { NoticeData } from '@/lib/services/newsData';
+import type { NoticeData } from '@/types/notice';
 import type * as admin from 'firebase-admin';
 
 export interface RawNoticesFetchResult {

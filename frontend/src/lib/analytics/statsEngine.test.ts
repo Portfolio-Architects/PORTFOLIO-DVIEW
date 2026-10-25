@@ -553,7 +553,8 @@ describe('statsEngine Unit Test Suite', () => {
       expect(res.insights.newHighComplex?.aptName).toBe('단지B');
       expect(res.insights.volumeSurgeComplex?.aptName).toBe('단지A');
       expect(res.insights.urgentBargainComplex?.aptName).toBe('단지C');
-      expect(res.insights.optimalGapComplex?.aptName).toBe('단지A');
+      expect(res.insights.optimalGapComplex?.aptName).toBe('단지B');
+      expect(res.insights.optimalGapComplex?.highestPyeongPrice).toBeGreaterThan(7000);
     });
 
     it('8.2: should return null for insight cards when criteria are unmet', () => {
@@ -577,6 +578,132 @@ describe('statsEngine Unit Test Suite', () => {
 
       expect(res.insights.newHighComplex).toBeNull();
       expect(res.insights.urgentBargainComplex).toBeNull();
+    });
+
+    it('8.3: should track peak per-pyeong transaction specs independently from peak total price transaction', () => {
+      const mockTxs: any[] = [
+        // Complex Z: Tx 1 has higher total price (17.0억, 112㎡ -> ~5,018만/평)
+        {
+          aptName: '복합평형단지',
+          dong: '오산동',
+          contractDate: '20260910',
+          priceVal: 17.0,
+          area: 112,
+          floor: 10,
+          isNewHigh: true,
+        },
+        // Complex Z: Tx 2 has lower total price (12.5억) but higher per-pyeong price (59㎡ -> ~7,004만/평)
+        {
+          aptName: '복합평형단지',
+          dong: '오산동',
+          contractDate: '20260918',
+          priceVal: 12.5,
+          area: 59,
+          floor: 25,
+          isNewHigh: false,
+        },
+      ];
+
+      const res = computeStats(
+        mockTxs,
+        { region: 'ALL', pyeong: 'ALL', timeframe: '1M' },
+        { referenceDate: REF_DATE }
+      );
+
+      // 1st card (최고 거래가) should reflect the 17.0억 (112㎡, 10층) transaction
+      expect(res.insights.newHighComplex?.aptName).toBe('복합평형단지');
+      expect(res.insights.newHighComplex?.highestPrice).toBe(170000);
+      expect(res.insights.newHighComplex?.highestArea).toBe(112);
+      expect(res.insights.newHighComplex?.highestFloor).toBe(10);
+      expect(res.insights.newHighComplex?.highestContractDate).toBe('20260910');
+
+      // 2nd card (최고 평당가) should reflect the 12.5억 (59㎡, 25층) transaction
+      expect(res.insights.optimalGapComplex?.aptName).toBe('복합평형단지');
+      expect(res.insights.optimalGapComplex?.highestPyeongPrice).toBe(Math.round(125000 / (59 / 3.305785)));
+      expect(res.insights.optimalGapComplex?.highestPrice).toBe(125000);
+      expect(res.insights.optimalGapComplex?.highestArea).toBe(59);
+      expect(res.insights.optimalGapComplex?.highestFloor).toBe(25);
+      expect(res.insights.optimalGapComplex?.highestContractDate).toBe('20260918');
+    });
+
+    it('8.4: should not contaminate optimalGapComplex floor or areaPyeong from a different transaction or summaryMap', () => {
+      const mockTxs: any[] = [
+        // Tx 1 (highest total price): 112㎡ (34평), 10층, 17.0억
+        {
+          aptName: '복합평형단지',
+          dong: '오산동',
+          contractDate: '20260910',
+          priceVal: 17.0,
+          area: 112,
+          areaPyeong: 34,
+          floor: 10,
+          isNewHigh: true,
+        },
+        // Tx 2 (highest per-pyeong price): 59㎡ (areaPyeong and floor omitted), 12.5억
+        {
+          aptName: '복합평형단지',
+          dong: '오산동',
+          contractDate: '20260918',
+          priceVal: 12.5,
+          area: 59,
+          isNewHigh: false,
+        },
+      ];
+
+      const summaryMap: any = {
+        복합평형단지: {
+          dong: '여울동',
+          latestArea: 34,
+          latestFloor: 10,
+          latestDate: '20260910',
+          latestPrice: 170000,
+        },
+      };
+
+      const res = computeStats(
+        mockTxs,
+        { region: 'ALL', pyeong: 'ALL', timeframe: '1M' },
+        { referenceDate: REF_DATE, summaryMap }
+      );
+
+      expect(res.insights.optimalGapComplex?.highestArea).toBe(59);
+      expect(res.insights.optimalGapComplex?.highestAreaPyeong).toBeUndefined();
+      expect(res.insights.optimalGapComplex?.highestFloor).toBeUndefined();
+      expect(res.insights.optimalGapComplex?.highestContractDate).toBe('20260918');
+    });
+
+    it('8.5: should tie-break identical per-pyeong and total prices within the same complex by most recent contractDate', () => {
+      const mockTxs: any[] = [
+        {
+          aptName: '동일가격단지',
+          dong: '청계동',
+          contractDate: '20260902',
+          priceVal: 15.0,
+          area: 84,
+          floor: 5,
+          isNewHigh: true,
+        },
+        {
+          aptName: '동일가격단지',
+          dong: '청계동',
+          contractDate: '20260919',
+          priceVal: 15.0,
+          area: 84,
+          floor: 22,
+          isNewHigh: true,
+        },
+      ];
+
+      const res = computeStats(
+        mockTxs,
+        { region: 'ALL', pyeong: 'ALL', timeframe: '1M' },
+        { referenceDate: REF_DATE }
+      );
+
+      expect(res.insights.newHighComplex?.highestContractDate).toBe('20260919');
+      expect(res.insights.newHighComplex?.highestFloor).toBe(22);
+      expect(res.insights.optimalGapComplex?.highestContractDate).toBe('20260919');
+      expect(res.insights.optimalGapComplex?.highestFloor).toBe(22);
     });
   });
 

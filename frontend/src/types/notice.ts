@@ -19,6 +19,7 @@ export interface NoticeItem {
 }
 
 export type LocalNoticeItem = NoticeItem;
+export type NoticeData = NoticeItem;
 
 /** Google News RSS curated item */
 export interface GoogleNewsItem {

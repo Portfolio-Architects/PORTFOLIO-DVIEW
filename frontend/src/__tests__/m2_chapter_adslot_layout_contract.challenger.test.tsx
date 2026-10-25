@@ -398,7 +398,7 @@ describe('Milestone M2 Empirical Adversarial Challenge: 8-Chapter & AdSlot Invar
       });
     });
 
-    it('2.4 Verifies Arctic Lumina glassmorphic surface styling on both in-feed ad slots', () => {
+    it('2.4 Verifies Ad Money v5.0 soft-surface isomorphism styling on both in-feed ad slots', () => {
       const { container } = render(
         <ApartmentModal
           report={mockReport}
@@ -414,11 +414,11 @@ describe('Milestone M2 Empirical Adversarial Challenge: 8-Chapter & AdSlot Invar
       const adCh05 = container.querySelector('[data-testid="apartment-ad-slot-ch05"]')!;
 
       [adCh02, adCh05].forEach((slotWrapper) => {
-        expect(slotWrapper.className).toContain('bg-white/85');
-        expect(slotWrapper.className).toContain('dark:bg-slate-900/85');
-        expect(slotWrapper.className).toContain('backdrop-blur-xl');
-        expect(slotWrapper.className).toContain('rounded-[20px]');
-        expect(slotWrapper.className).toContain('border');
+        expect(slotWrapper.className).toContain('bg-elevated');
+        expect(slotWrapper.className).toContain('dark:bg-slate-900');
+        expect(slotWrapper.className).toContain('rounded-2xl');
+        expect(slotWrapper.className).toContain('overflow-hidden');
+        expect(slotWrapper.className).toContain('flex-col');
       });
     });
 

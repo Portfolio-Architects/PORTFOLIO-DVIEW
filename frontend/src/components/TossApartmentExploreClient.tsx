@@ -9,8 +9,8 @@ import { DONGS } from '@/lib/dongs';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
-import { AptTxSummary } from '@/lib/types/transaction';
-import { FieldReportData } from '@/lib/types/report.types';
+import type { AptTxSummary } from '@/types/transaction';
+import type { FieldReportData } from '@/types/report';
 import { trackEvent } from '@/lib/utils/analytics';
 
 // subcomponents
@@ -628,10 +628,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       )}
       {/* Main Content Area */}
       <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
-        <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
+        <div className="flex w-full bg-surface border-t border-border items-stretch flex-1 min-h-0">
           <aside 
             style={{ width: `${sidebarWidth}px` }}
-            className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-slate-50/40 dark:bg-slate-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
+            className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-surface py-6 pr-5 sticky top-[68px] self-start"
           >
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -854,7 +854,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               aria-controls="search-suggestions-listbox"
               aria-autocomplete="list"
               aria-label="단지명 검색"
-              className="w-full bg-body border border-transparent focus:border-toss-blue focus:bg-surface focus:shadow-[0_0_0_2px_rgba(0,210,157,0.2)] rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
+              className="w-full bg-elevated focus:bg-surface focus:ring-2 focus:ring-blue-600/20 rounded-xl py-2 md:py-2.5 pl-10 pr-10 text-[14px] font-medium text-primary outline-none transition-all"
             />
             {/* CSS Rolling Placeholder */}
             {!inputValue && !isSearchFocused && (
@@ -902,7 +902,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenCompare && (
                 <button
                   onClick={onOpenCompare}
-                  className="px-4 py-2.5 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-toss-blue text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/20 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   단지 비교분석
                 </button>
@@ -910,7 +910,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenJeonseSafety && (
                 <button
                   onClick={() => onOpenJeonseSafety()}
-                  className="px-4 py-2.5 bg-emerald-50/50 hover:bg-emerald-100/50 text-emerald-700 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 dark:text-emerald-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/15 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   전세 안전진단
                 </button>
@@ -918,7 +918,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               {onOpenMortgage && (
                 <button
                   onClick={() => onOpenMortgage()}
-                  className="px-4 py-2.5 bg-emerald-50/50 hover:bg-emerald-100/50 text-emerald-700 dark:bg-emerald-950/10 dark:hover:bg-emerald-900/20 dark:text-emerald-400 text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer border border-emerald-500/15 whitespace-nowrap shrink-0 text-center inline-block"
+                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
                 >
                   대출 한도진단
                 </button>
@@ -969,7 +969,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             {pyeongSummary.validCount > 0 && (
               <div
                 data-testid="explore-pyeong-summary-strip"
-                className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-3 px-4 mb-2 rounded-xl bg-body/60 border border-border/50"
+                className="grid grid-cols-1 sm:grid-cols-3 gap-3 py-3.5 px-4 mb-2 rounded-2xl bg-elevated"
               >
                 <div className="flex flex-col justify-between min-w-0 sm:pr-3 sm:border-r sm:border-border/40">
                   <span className="text-[11px] font-medium text-tertiary">1위 최고 평단가</span>
@@ -1113,7 +1113,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 <div className="w-full flex justify-center p-4">
                   <button
                     onClick={() => setVisibleCount(prev => prev + 15)}
-                    className="w-full py-4 bg-emerald-50 dark:bg-emerald-950/20 hover:bg-emerald-100 dark:hover:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400 font-extrabold text-[14.5px] rounded-2xl border border-emerald-100/50 dark:border-emerald-900/30 shadow-sm flex items-center justify-center gap-1.5 transition-all duration-200 cursor-pointer hover:shadow-md active:scale-[0.995]"
+                    className="w-full py-4 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary font-extrabold text-[14.5px] rounded-2xl flex items-center justify-center gap-1.5 transition-colors duration-200 cursor-pointer active:scale-[0.995]"
                   >
 
                     <span>분석 단지 더보기 ({visibleCount} / {sortedApts.length})</span>
@@ -1215,7 +1215,7 @@ function SidebarItem({ label, active, onClick }: { label: string, active: boolea
       role="tab"
       aria-selected={active}
       className={`text-left px-3 py-2.5 rounded-xl text-[14px] font-bold transition-all ${
-        active ? 'bg-body text-primary' : 'text-secondary hover:bg-body/50'
+        active ? 'bg-elevated text-blue-600 dark:text-blue-400' : 'text-secondary hover:bg-elevated/60'
       }`}
     >
       {label}

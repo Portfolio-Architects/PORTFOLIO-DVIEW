@@ -9,6 +9,11 @@ import type {
   SortOption,
 } from '@/types/stats';
 import { DONGTAN1_DONGS, DONGTAN2_DONGS } from '@/types/stats';
+import {
+  getToggleTrackClass,
+  getToggleBtnClass,
+  getControlSelectClass,
+} from '@/lib/design-system/controls';
 
 export interface StatsFilterBarProps {
   region: RegionFilter;
@@ -251,9 +256,9 @@ export function StatsFilterBar({
           </div>
 
           {/* Timeframe & Sort Controls */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Timeframe Tabs */}
-            <div className="flex items-center bg-slate-100/90 dark:bg-slate-800/80 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+            <div className={getToggleTrackClass('overflow-x-auto no-scrollbar max-w-full')}>
               {TIMEFRAME_OPTIONS.map((opt) => {
                 const isActive = timeframe === opt.id;
                 return (
@@ -262,11 +267,7 @@ export function StatsFilterBar({
                     type="button"
                     data-testid={opt.testId}
                     onClick={() => onTimeframeChange(opt.id)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      isActive
-                        ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs font-extrabold'
-                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                    }`}
+                    className={getToggleBtnClass({ active: isActive, size: 'sm' })}
                   >
                     {opt.label}
                   </button>
@@ -281,7 +282,7 @@ export function StatsFilterBar({
                   data-testid="filter-sort-select"
                   value={sort}
                   onChange={(e) => onSortChange(e.target.value as SortOption)}
-                  className="appearance-none bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl pl-2.5 pr-7 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500/25 cursor-pointer"
+                  className={getControlSelectClass('appearance-none pl-2.5 sm:pl-3 pr-7')}
                 >
                   {SORT_OPTIONS.map((s) => (
                     <option key={s.id} value={s.id}>

@@ -183,7 +183,8 @@ import OfficeDetailModal, { OfficeBuilding } from '@/components/OfficeDetailModa
 import PushSubscriptionModal from '@/components/pwa/PushSubscriptionModal';
 import EngineeringReportClient from '@/components/EngineeringReportClient';
 import ReportClient from '@/components/ReportClient';
-import { scheduleIdle, preloadComponent, preloadApartmentModal, preloadDashboardFeatures } from '@/lib/preload';
+import { scheduleIdle, preloadComponent } from '@/lib/preload';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/ComponentPreloader';
 
 describe('Milestone 2 Challenger 1 Comprehensive Empirical Verification Suite', () => {
   beforeEach(() => {

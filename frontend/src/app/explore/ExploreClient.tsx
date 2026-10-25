@@ -17,7 +17,7 @@ import { useTxData, useLocationScores } from '@/hooks/useStaticData';
 import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { type DongApartment } from '@/lib/dong-apartments';
-import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { type ObjectiveMetrics } from '@/types/report';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
@@ -29,11 +29,11 @@ import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 const ExploreListSkeleton = () => (
   <div className="flex flex-col w-full bg-transparent">
     <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col animate-pulse">
-      <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
+      <div className="flex w-full bg-surface border-t border-border items-stretch flex-1 min-h-0">
         {/* Sidebar Skeleton (Hidden on Mobile) */}
         <aside 
           style={{ width: '240px' }}
-          className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-slate-50/40 dark:bg-slate-900/10 py-6 px-4 sticky top-[68px] self-start md:rounded-l-2xl"
+          className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-surface py-6 pr-5 sticky top-[68px] self-start"
         >
           <div className="mb-6">
             <div className="w-16 h-4 bg-black/5 dark:bg-surface/5 rounded mb-3" />

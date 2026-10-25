@@ -288,7 +288,7 @@ function auditBenchmark() {
   }
   log(colors.cyan, '🔄 Running Automated Performance Benchmark audit (FPS >= 60, CLS < 0.01, Heap Growth <= 5%)...');
   try {
-    execSync('node scripts/benchmark.js', { stdio: 'inherit' });
+    execSync('npx tsx scripts/benchmark.ts', { stdio: 'inherit' });
     log(colors.green, '✅ Performance Benchmark check: PASSED');
     return true;
   } catch (error) {

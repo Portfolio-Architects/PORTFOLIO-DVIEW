@@ -9,7 +9,7 @@ import {
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
 import { findTxKey, isSameApartment, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import type { DongApartment } from '@/lib/dong-apartments';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary } from '@/types/transaction';
 
 // ============================================================================
 // 1. Zod Schemas & TypeScript Signatures (ADSENSE_ARCHITECTURE_BLUEPRINT 3.4)

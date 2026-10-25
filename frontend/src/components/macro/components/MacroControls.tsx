@@ -1,6 +1,13 @@
 import React from 'react';
 import { Settings, Search, X, LayoutGrid, List, GripVertical } from 'lucide-react';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import {
+  getToggleTrackClass,
+  getToggleBtnClass,
+  getControlSelectClass,
+  getControlInputClass,
+  getControlPillClass,
+} from '@/lib/design-system/controls';
 import type { TimelinePeriod } from '@/types/transaction';
 import type {
   RegionFilterType,
@@ -124,11 +131,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                 key={chip.id}
                 type="button"
                 onClick={() => setQuickFilter?.(chip.id)}
-                className={`flex items-center px-2.5 py-1 rounded-xl text-[10.5px] xs:text-[11px] font-extrabold whitespace-nowrap transition-all duration-150 cursor-pointer shrink-0 shadow-2xs ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-xs scale-[1.02] ring-2 ring-blue-500/25"
-                    : "bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-800 text-secondary border border-border/70 hover:border-border"
-                }`}
+                className={getControlPillClass({ active: isActive })}
                 title={chip.description}
               >
                 <span>{chip.label}</span>
@@ -141,7 +144,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             <button
               type="button"
               onClick={onResetFilters}
-              className="flex items-center px-2 py-1 rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/30 border border-border/60 hover:border-red-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+              className={getControlPillClass({ extraClass: 'hover:text-red-500' })}
               title="모든 필터 초기화"
               aria-label="모든 필터 초기화"
             >
@@ -154,17 +157,17 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
       {/* 2. Action Toolbar: Search + Sort + Dropdowns + View Mode Toggle */}
       <div className="flex flex-wrap items-center justify-between gap-2 w-full">
         {/* Left: Real-Time Inline Search Input & Reset Button */}
-        <div className="flex items-center gap-2 flex-1 min-w-[130px] max-w-[300px]">
+        <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1 sm:min-w-[160px] sm:max-w-[300px]">
           {setSearchQuery && (
             <div className="relative flex items-center w-full">
-              <Search size={12} className="absolute left-2.5 text-tertiary pointer-events-none" />
+              <Search size={14} className="absolute left-3 text-tertiary pointer-events-none" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="단지명 검색..."
                 aria-label="단지명 검색"
-                className="w-full pl-7 pr-7 h-[28px] bg-slate-50 dark:bg-slate-800 border border-border/80 text-primary rounded-xl text-[10px] xs:text-[11px] font-bold placeholder:text-tertiary/70 outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 transition-colors shadow-2xs"
+                className={getControlInputClass('w-full pl-8 pr-8')}
               />
               {searchQuery && (
                 <button
@@ -173,7 +176,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                   className="absolute right-2 text-tertiary hover:text-primary transition-colors p-0.5 rounded-full"
                   aria-label="검색어 지우기"
                 >
-                  <X size={12} />
+                  <X size={14} />
                 </button>
               )}
             </div>
@@ -183,7 +186,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             <button
               type="button"
               onClick={onResetFilters}
-              className="flex items-center px-2 py-1 h-[28px] rounded-xl text-[10px] xs:text-[10.5px] font-bold text-tertiary hover:text-red-500 bg-slate-50 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/30 border border-border/60 hover:border-red-300 transition-colors cursor-pointer shrink-0 whitespace-nowrap"
+              className={getControlPillClass({ extraClass: 'hover:text-red-500' })}
               title="모든 필터 초기화"
               aria-label="모든 필터 초기화"
             >
@@ -193,14 +196,14 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
         </div>
 
         {/* Right: Dropdowns + Sort + View Mode Toggle */}
-        <div className="flex items-center justify-end gap-1.5 sm:gap-2 shrink-0 min-w-0 ml-auto flex-wrap">
+        <div className="flex flex-wrap items-center justify-start sm:justify-end gap-1.5 sm:gap-2 w-full sm:w-auto min-w-0 sm:ml-auto">
           {/* Multi-Sort Selector */}
           {setSortOrder && (
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as TimelineSortOrder)}
               aria-label="정렬 기준 선택"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[108px] truncate"
+              className={getControlSelectClass('shrink-0 min-w-0 w-[104px] xs:w-[112px] sm:w-[124px] truncate')}
             >
               {TIMELINE_SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -215,7 +218,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={currentRegion}
             onChange={(e) => handleRegionChange(e.target.value)}
             aria-label="권역 및 법정동 선택"
-            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[82px] xs:w-[94px] sm:w-[124px] truncate"
+            className={getControlSelectClass('shrink-0 min-w-0 w-[104px] xs:w-[114px] sm:w-[134px] truncate')}
           >
             <option value="all">전체 권역/동</option>
             <optgroup label="권역 그룹">
@@ -238,7 +241,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setPyeongFilter(e.target.value as PyeongFilterType)}
               aria-label="평형대 선택"
               data-testid="timeline-pyeong-select"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[76px] xs:w-[88px] sm:w-[104px] truncate"
+              className={getControlSelectClass('shrink-0 min-w-0 w-[96px] xs:w-[106px] sm:w-[120px] truncate')}
             >
               <option value="all">전체 평형</option>
               <option value="under20">20평 미만</option>
@@ -255,7 +258,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setTradeTypeFilter(e.target.value as TradeTypeFilterType)}
               aria-label="거래 유형 선택"
               data-testid="timeline-tradetype-select"
-              className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[78px] xs:w-[90px] sm:w-[106px] truncate"
+              className={getControlSelectClass('shrink-0 min-w-0 w-[96px] xs:w-[106px] sm:w-[118px] truncate')}
             >
               <option value="all">전체 유형</option>
               <option value="high">신고가 거래</option>
@@ -269,7 +272,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={timelineAptFilter}
             onChange={(e) => setTimelineAptFilter(e.target.value)}
             aria-label="단지 선택"
-            className="px-1.5 sm:px-2 h-[26px] sm:h-[28px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0 min-w-0 w-[84px] xs:w-[96px] sm:w-[130px] truncate"
+            className={getControlSelectClass('shrink-0 min-w-0 w-[104px] xs:w-[114px] sm:w-[140px] truncate')}
           >
             <option value="전체">전체 단지</option>
             {availableApts.map((apt) => (
@@ -281,7 +284,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
 
           {/* Period Selector (7d / 30d / 90d / 1y) */}
           {setPeriodFilter && (
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl shrink-0 border border-border/50">
+            <div className={getToggleTrackClass()}>
               {(['7d', '30d', '90d', '1y'] as const).map((p) => {
                 const labelMap = { '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
                 const isSelected = periodFilter === p;
@@ -298,11 +301,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
                     }}
                     aria-label={`조회 기간 ${labelMap[p]}`}
                     data-testid={`period-filter-${p}`}
-                    className={`px-1.5 xs:px-2 py-0.5 rounded-lg text-[9.5px] xs:text-[10px] sm:text-[11px] font-extrabold transition-all cursor-pointer ${
-                      isSelected
-                        ? "bg-surface text-blue-600 shadow-xs font-black"
-                        : "text-tertiary hover:text-secondary"
-                    }`}
+                    className={getToggleBtnClass({ active: isSelected })}
                   >
                     {labelMap[p]}
                   </button>
@@ -313,32 +312,30 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
 
           {/* View Mode Toggle (Card Grid vs Compact List) */}
           {setViewMode && (
-            <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl shrink-0 border border-border/50">
+            <div className={getToggleTrackClass()}>
               <button
                 type="button"
                 onClick={() => setViewMode('card')}
                 aria-label="카드 뷰 보기"
                 title="카드 그리드 뷰"
-                className={`p-1 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'card'
-                    ? "bg-surface text-blue-600 shadow-xs font-black"
-                    : "text-tertiary hover:text-secondary"
-                }`}
+                className={getToggleBtnClass({
+                  active: viewMode === 'card',
+                  extraClass: 'px-2.5 sm:px-3',
+                })}
               >
-                <LayoutGrid size={13} />
+                <LayoutGrid size={15} />
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('list')}
                 aria-label="리스트 뷰 보기"
                 title="컴팩트 리스트 뷰"
-                className={`p-1 rounded-lg transition-all cursor-pointer ${
-                  viewMode === 'list'
-                    ? "bg-surface text-blue-600 shadow-xs font-black"
-                    : "text-tertiary hover:text-secondary"
-                }`}
+                className={getToggleBtnClass({
+                  active: viewMode === 'list',
+                  extraClass: 'px-2.5 sm:px-3',
+                })}
               >
-                <List size={13} />
+                <List size={15} />
               </button>
             </div>
           )}
@@ -358,16 +355,17 @@ export const TimeframeSelector = React.memo(function TimeframeSelector({
   setTimeframe,
 }: TimeframeSelectorProps) {
   return (
-    <div className="flex bg-body p-0.5 rounded-lg shadow-inner self-start sm:self-auto shrink-0 mt-1 sm:mt-0">
+    <div className={getToggleTrackClass('self-start sm:self-auto mt-1 sm:mt-0')}>
       {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
         <button
           key={tf}
+          type="button"
           onClick={() => setTimeframe(tf)}
-          className={`px-1.5 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[10.5px] font-extrabold rounded-md transition-all duration-200 cursor-pointer ${
-            timeframe === tf
-              ? "bg-surface text-primary shadow-sm"
-              : "text-tertiary hover:text-secondary"
-          }`}
+          aria-pressed={timeframe === tf}
+          className={getToggleBtnClass({
+            active: timeframe === tf,
+            size: 'sm',
+          })}
         >
           {tf}
         </button>
@@ -402,9 +400,9 @@ export const FavoriteOrderEditor = React.memo(function FavoriteOrderEditor({
       <button
         onClick={() => setShowOrderEditor(!showOrderEditor)}
         title="관심 단지 정렬 순서 편집"
-        className="w-7 h-7 flex items-center justify-center bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-1 focus:ring-blue-600 shadow-sm shrink-0"
+        className="w-9 h-9 flex items-center justify-center bg-elevated hover:bg-[#f2f4f6] dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary rounded-xl transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-600/20 shrink-0"
       >
-        <Settings size={13} />
+        <Settings size={15} />
       </button>
 
       {showOrderEditor && (

@@ -6,9 +6,9 @@
 import { db } from '@/lib/firebaseConfig';
 import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
-import type { UserProfile, VerificationLevel } from '@/lib/types/user.types';
+import type { UserProfile, VerificationLevel } from '@/types/user';
 import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
-import { getRandomDefaultAvatar } from '@/lib/types/user.types';
+import { getRandomDefaultAvatar } from '@/lib/utils/userUtils';
 import { userProfileConverter } from '@/lib/utils/firestoreConverters';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';

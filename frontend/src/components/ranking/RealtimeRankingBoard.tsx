@@ -6,6 +6,7 @@ import {
   RealtimeRankingItem,
   RealtimeRankingData,
 } from '@/lib/utils/rankingCalculations';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 export interface RealtimeRankingBoardProps {
   recentTransactions?: any[] | null;
@@ -65,16 +66,12 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
         </div>
 
         {/* Tab Controls */}
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl shrink-0 overflow-x-auto">
+        <div className={getToggleTrackClass('overflow-x-auto no-scrollbar max-w-full')}>
           <button
             type="button"
             data-testid="ranking-tab-high"
             onClick={() => setActiveTab('high')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
-              activeTab === 'high'
-                ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-tertiary hover:text-primary'
-            }`}
+            className={getToggleBtnClass({ active: activeTab === 'high', size: 'sm' })}
           >
             <span>실시간 신고가 TOP 10</span>
           </button>
@@ -82,11 +79,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             type="button"
             data-testid="ranking-tab-gap"
             onClick={() => setActiveTab('gap')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
-              activeTab === 'gap'
-                ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-tertiary hover:text-primary'
-            }`}
+            className={getToggleBtnClass({ active: activeTab === 'gap', size: 'sm' })}
           >
             <span>전세가율·갭 최적</span>
           </button>
@@ -94,11 +87,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
             type="button"
             data-testid="ranking-tab-surge"
             onClick={() => setActiveTab('surge')}
-            className={`px-3 py-1.5 rounded-lg text-[11px] font-black cursor-pointer transition-all whitespace-nowrap ${
-              activeTab === 'surge'
-                ? 'bg-surface text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-tertiary hover:text-primary'
-            }`}
+            className={getToggleBtnClass({ active: activeTab === 'surge', size: 'sm' })}
           >
             <span>주간 거래량 급증</span>
           </button>

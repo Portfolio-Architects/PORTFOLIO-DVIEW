@@ -22,7 +22,8 @@ import {
   MapPin,
 } from 'lucide-react';
 import type { FieldReportData } from '@/lib/DashboardFacade';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary } from '@/types/transaction';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 import { useValuationMetrics } from '@/lib/hooks/useValuationMetrics';
 import type { TxRecord, UtilityMetricIconKey } from '@/lib/analytics/valuationModels';
 
@@ -271,7 +272,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                 <div className="flex flex-col lg:flex-row gap-6">
                   {/* Left: Destination tabs & Details */}
                   <div className="flex-1 flex flex-col gap-4">
-                    <div className="flex bg-[#f2f4f6] dark:bg-slate-800 p-0.5 rounded-xl border border-border/10">
+                    <div className={getToggleTrackClass('w-full')}>
                       {([
                         { id: 'gangnam', label: '강남역' },
                         { id: 'pangyo', label: '판교역' },
@@ -281,11 +282,10 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                           key={dest.id}
                           type="button"
                           onClick={() => vm.setCommuteDest(dest.id)}
-                          className={`flex-1 py-2 rounded-lg text-[12px] font-bold transition-all cursor-pointer border-none ${
-                            vm.commuteDest === dest.id
-                              ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
-                              : 'text-secondary hover:text-primary bg-transparent'
-                          }`}
+                          className={getToggleBtnClass({
+                            active: vm.commuteDest === dest.id,
+                            extraClass: 'flex-1',
+                          })}
                         >
                           {dest.label}
                         </button>

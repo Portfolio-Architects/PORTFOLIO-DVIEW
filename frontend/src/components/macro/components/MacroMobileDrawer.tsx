@@ -1,7 +1,8 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
+import type { AptTxSummary } from '@/types/transaction';
 
 export interface MacroMobileDrawerProps {
   isBottomSheetOpen: boolean;
@@ -51,7 +52,7 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
           </h3>
           <button 
             onClick={() => setIsBottomSheetOpen(false)}
-            className="text-[12px] font-bold text-secondary bg-body hover:bg-slate-200 dark:hover:bg-slate-800 px-3 py-1.5 rounded-lg border-none transition-colors cursor-pointer"
+            className="text-[12px] font-bold text-secondary bg-[#f2f4f6] dark:bg-[#202027] hover:bg-slate-200 dark:hover:bg-[#2c2c35] px-3 py-1.5 rounded-lg border-none transition-colors cursor-pointer"
           >
             닫기
           </button>
@@ -62,16 +63,12 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
           {/* 기간 선택 버튼 (3M, 6M, 1Y, 3Y, 5Y, ALL) */}
           <div className="flex justify-between items-center mb-4 flex-wrap gap-2 shrink-0">
             <span className="text-[11.5px] font-bold text-tertiary">조회 기간</span>
-            <div className="flex bg-body p-0.5 rounded-lg text-secondary">
+            <div className={getToggleTrackClass()}>
               {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
                 <button
                   key={tf}
                   onClick={() => setTimeframe(tf)}
-                  className={`px-2.5 py-1 text-[11px] font-bold rounded-[6px] border-none transition-all cursor-pointer ${
-                    timeframe === tf
-                      ? "bg-surface text-primary shadow-sm"
-                      : "text-tertiary hover:text-secondary"
-                  }`}
+                  className={getToggleBtnClass({ active: timeframe === tf, size: 'sm' })}
                 >
                   {tf}
                 </button>

@@ -30,7 +30,7 @@ import * as LegacyAuthContext from '@/lib/contexts/AuthContext';
 // Components & Utils
 import SettingsModal from '@/components/SettingsModal';
 import { preloadImage, preloadJson } from '@/lib/utils/preloadHelpers';
-import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/preload';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/ComponentPreloader';
 
 // Mock usePWA
 jest.mock('@/components/pwa/PWAProvider', () => ({
@@ -381,9 +381,10 @@ describe('Milestone 2 Challenger 1: Context Relocation & UI Preload Decoupling',
       expect(result).toBeNull();
     });
 
-    test('presentation preload.ts preloads components without throwing errors', () => {
+    test('presentation preload preloads components without throwing errors', async () => {
       expect(() => preloadApartmentModal()).not.toThrow();
       expect(() => preloadDashboardFeatures()).not.toThrow();
+      await new Promise((r) => setTimeout(r, 250));
     });
   });
 });

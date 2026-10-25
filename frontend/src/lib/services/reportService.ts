@@ -1,5 +1,5 @@
-import { ScoutingReport } from '@/lib/types/scoutingReport';
-import type { ReportSections } from '@/lib/types/report.types';
+import type { ScoutingReport } from '@/types/report';
+import type { ReportSections } from '@/types/report';
 import * as UserRepo from '@/lib/repositories/user.repository';
 import * as ReportRepo from '@/lib/repositories/report.repository';
 import { logger } from '@/lib/services/logger';

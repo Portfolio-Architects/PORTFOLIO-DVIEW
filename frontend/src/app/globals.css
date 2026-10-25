@@ -9,28 +9,28 @@
  */
 :root {
   /* Eye-Comfort Soft Slate Canvas & Pure White Elevated Cards */
-  --bg-body: #f8fafc;
+  --bg-body: #ffffff;
   --bg-surface: #ffffff;
-  --bg-elevated: #f1f5f9;
-  --border-color: #e2e8f0;
-  --border-hairline: rgba(226, 232, 240, 0.85);
+  --bg-elevated: #f9fafb;
+  --border-color: #f2f4f6;
+  --border-hairline: #f2f4f6;
   
   /* Comfortable High-Legibility Text Hierarchy */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #64748b;
-  --text-disabled: #cbd5e1;
+  --text-primary: #191f28;
+  --text-secondary: #4e5968;
+  --text-tertiary: #8b95a1;
+  --text-disabled: #d1d6db;
   
   /* Comfortable Trust Blue (Universally Preferred & Eye-Friendly Primary Theme) */
-  --brand-primary: #2563eb;
-  --brand-primary-light: #eff6ff;
-  --brand-primary-hover: #1d4ed8;
+  --brand-primary: #3182f6;
+  --brand-primary-light: #e8f3ff;
+  --brand-primary-hover: #1b64da;
 
   /* Semantic Accents (Korean Real-Estate & Fintech Standard) */
   --brand-red: #f04452;
-  --brand-red-light: #fff0f1;
-  --brand-blue: #2563eb;
-  --brand-blue-light: #eff6ff;
+  --brand-red-light: #ffeeee;
+  --brand-blue: #3182f6;
+  --brand-blue-light: #e8f3ff;
   --brand-green: #059669;
   --brand-green-light: #ecfdf5;
   
@@ -48,6 +48,17 @@
   --radius-xl: 20px;
   --radius-full: 9999px;
 
+  /* Global Control & Toggle System Tokens (Ad Money v5.0) */
+  --control-height-sm: 32px;
+  --control-height-md: 36px;
+  --control-radius-track: 10px;
+  --control-radius-item: 7px;
+  --control-font-size: 12.5px;
+  --control-track-bg: #f2f4f6;
+  --control-active-bg: #ffffff;
+  --control-surface-bg: #f9fafb;
+  --control-surface-hover: #f2f4f6;
+
   /* Hardware-Accelerated Motion Curves */
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -55,11 +66,11 @@
 }
 
 .dark {
-  --bg-body: #0b1120;
-  --bg-surface: #111827;
-  --bg-elevated: #1e293b;
-  --border-color: #1e293b;
-  --border-hairline: rgba(30, 41, 59, 0.85);
+  --bg-body: #101013;
+  --bg-surface: #101013;
+  --bg-elevated: #17171c;
+  --border-color: #202027;
+  --border-hairline: #202027;
   
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
@@ -82,6 +93,10 @@
   --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.45);
   --shadow-lg: 0 12px 28px rgba(0, 0, 0, 0.55);
   --shadow-inner: inset 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --control-track-bg: #202027;
+  --control-active-bg: #2c2c35;
+  --control-surface-bg: #202027;
+  --control-surface-hover: #2c2c35;
 }
 
 @theme inline {
@@ -104,6 +119,8 @@
   --color-brand-blue-light: var(--brand-blue-light);
   --color-brand-green: var(--brand-green);
   --color-brand-green-light: var(--brand-green-light);
+  --color-toss-blue: var(--brand-blue);
+  --color-toss-green: var(--brand-green);
   
   --shadow-xs: var(--shadow-xs);
   --shadow-sm: var(--shadow-sm);
@@ -176,6 +193,224 @@ body {
   border-color: rgba(37, 99, 235, 0.35);
   box-shadow: var(--shadow-sm);
 }
+
+/* Global Control & Toggle System (Ad Money v5.0 Unified Controls — @layer components + Concentric 10px/7px Geometry) */
+@layer components {
+  .dview-toggle-track {
+    align-items: center;
+    gap: 2px;
+    padding: 3px;
+    border-radius: var(--control-radius-track, 10px);
+    background-color: var(--control-track-bg, #f2f4f6);
+    flex-shrink: 0;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  .dark .dview-toggle-track {
+    background-color: var(--control-track-bg, #202027);
+  }
+
+  .dview-toggle-btn {
+    min-height: 28px;
+    padding: 4px 10px;
+    border-radius: var(--control-radius-item, 7px);
+    font-size: 12px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  @media (min-width: 640px) {
+    .dview-toggle-btn {
+      min-height: 30px;
+      padding: 4px 14px;
+      font-size: 13px;
+    }
+  }
+
+  .dview-toggle-btn-sm {
+    min-height: 26px;
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+
+  @media (min-width: 640px) {
+    .dview-toggle-btn-sm {
+      min-height: 28px;
+      padding: 2px 10px;
+      font-size: 12px;
+    }
+  }
+
+  .dview-toggle-btn-active {
+    background-color: var(--control-active-bg, #ffffff);
+    color: #2563eb;
+    box-shadow: var(--shadow-xs);
+    font-weight: 900;
+  }
+
+  .dark .dview-toggle-btn-active {
+    background-color: var(--control-active-bg, #2c2c35);
+    color: #60a5fa;
+  }
+
+  .dview-toggle-btn-active-emerald {
+    background-color: var(--control-active-bg, #ffffff);
+    color: #059669;
+    box-shadow: var(--shadow-xs);
+    font-weight: 900;
+  }
+
+  .dark .dview-toggle-btn-active-emerald {
+    background-color: var(--control-active-bg, #2c2c35);
+    color: #34d399;
+  }
+
+  .dview-toggle-btn-active-neutral {
+    background-color: var(--control-active-bg, #ffffff);
+    color: var(--text-primary);
+    box-shadow: var(--shadow-xs);
+    font-weight: 900;
+  }
+
+  .dark .dview-toggle-btn-active-neutral {
+    background-color: var(--control-active-bg, #2c2c35);
+  }
+
+  .dview-toggle-btn-inactive {
+    background-color: transparent;
+    color: var(--text-secondary);
+  }
+
+  .dview-toggle-btn-inactive:hover {
+    color: var(--text-primary);
+  }
+
+  .dview-control-select {
+    height: 34px;
+    padding: 0 10px;
+    border-radius: var(--control-radius-track, 10px);
+    background-color: var(--control-surface-bg, #f9fafb);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    cursor: pointer;
+    outline: none;
+  }
+
+  .dview-control-select:hover {
+    background-color: var(--control-surface-hover, #f2f4f6);
+    color: var(--text-primary);
+  }
+
+  .dark .dview-control-select {
+    background-color: var(--control-surface-bg, #202027);
+  }
+
+  .dark .dview-control-select:hover {
+    background-color: var(--control-surface-hover, #2c2c35);
+  }
+
+  @media (min-width: 640px) {
+    .dview-control-select {
+      height: 36px;
+      padding: 0 12px;
+      font-size: 13px;
+    }
+  }
+
+  .dview-control-input {
+    height: 34px;
+    border-radius: var(--control-radius-track, 10px);
+    background-color: var(--control-surface-bg, #f9fafb);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-primary);
+    transition: background-color 0.2s ease, color 0.2s ease;
+    outline: none;
+  }
+
+  .dview-control-input:focus {
+    background-color: var(--control-active-bg, #ffffff);
+  }
+
+  .dark .dview-control-input {
+    background-color: var(--control-surface-bg, #202027);
+  }
+
+  .dark .dview-control-input:focus {
+    background-color: var(--control-active-bg, #2c2c35);
+  }
+
+  @media (min-width: 640px) {
+    .dview-control-input {
+      height: 36px;
+      font-size: 13px;
+    }
+  }
+
+  .dview-control-pill {
+    height: 34px;
+    padding: 0 12px;
+    border-radius: var(--control-radius-track, 10px);
+    background-color: var(--control-surface-bg, #f9fafb);
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .dview-control-pill:hover {
+    background-color: var(--control-surface-hover, #f2f4f6);
+    color: var(--text-primary);
+  }
+
+  .dark .dview-control-pill {
+    background-color: var(--control-surface-bg, #202027);
+  }
+
+  .dark .dview-control-pill:hover {
+    background-color: var(--control-surface-hover, #2c2c35);
+  }
+
+  @media (min-width: 640px) {
+    .dview-control-pill {
+      height: 36px;
+      padding: 0 14px;
+      font-size: 13px;
+    }
+  }
+
+  .dview-control-pill-active {
+    background-color: #2563eb;
+    color: #ffffff;
+    box-shadow: var(--shadow-xs);
+  }
+
+  .dview-control-pill-active:hover {
+    background-color: #1d4ed8;
+    color: #ffffff;
+  }
+
+  .dark .dview-control-pill-active {
+    background-color: #3b82f6;
+  }
+}
+
 
 /* Skeleton Shimmer Animation */
 @keyframes shimmer {

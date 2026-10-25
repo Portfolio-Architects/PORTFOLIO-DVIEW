@@ -34,7 +34,7 @@ export function AdSlotAdBlockView({
       data-cpa-campaign-id={cpaPayload.cpaCampaignId}
       data-source-trigger="ADBLOCK_ACTIVE"
       data-estimated-cpa-won={cpaPayload.estimatedCpaValueWon}
-      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-center z-10 ${minHeightClass}`}
+      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-elevated dark:bg-slate-900 text-center z-10 ${minHeightClass}`}
     >
       {fallbackType === 'minimal' ? (
         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">

@@ -24,7 +24,7 @@ import {
 import { logger } from '@/lib/services/logger';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 import { type DongApartment } from '@/lib/dong-apartments';
-import { type ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import { type ObjectiveMetrics } from '@/types/report';
 import { type LocationScoreItem } from '@/types/transaction';
 
 
@@ -158,14 +158,14 @@ interface StaticApartment { name: string; dong: string; householdCount?: number;
 import { isSameApartment, normalizeAptName, sanitizeAptKey, HARDCODED_MAPPING, findTxKey } from '@/lib/utils/apartmentMapping';
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { getDisplayName } from '@/lib/types/user.types';
+import { getDisplayName } from '@/lib/utils/userUtils';
 import { useAuth } from '@/hooks/useAuth';
 import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 
 import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
-import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/preload';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/ComponentPreloader';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 

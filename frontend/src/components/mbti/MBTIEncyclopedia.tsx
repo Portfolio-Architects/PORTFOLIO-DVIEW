@@ -6,6 +6,11 @@ import { MbtiApartmentProfile, MbtiGroup } from '@/types/mbti';
 import { ALL_MBTI_TYPES, MBTI_PROFILES, TEMPERAMENTS } from '@/lib/data/mbtiData';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
+import {
+  getToggleTrackClass,
+  getToggleBtnClass,
+  getControlInputClass,
+} from '@/lib/design-system/controls';
 
 export interface MBTIEncyclopediaProps {
   onSelectProfile?: (profile: MbtiApartmentProfile) => void;
@@ -91,7 +96,7 @@ export function MBTIEncyclopedia({
       {/* Filter Tabs & Search Row */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
         {/* Temperament Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 overflow-x-auto scrollbar-none">
+        <div className={getToggleTrackClass('overflow-x-auto no-scrollbar max-w-full')}>
           {tabs.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
@@ -100,11 +105,7 @@ export function MBTIEncyclopedia({
                 type="button"
                 data-testid={`filter-tab-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`py-2 px-3.5 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
+                className={getToggleBtnClass({ active: isActive, tone: 'emerald' })}
               >
                 {tab.label}
               </button>
@@ -120,7 +121,7 @@ export function MBTIEncyclopedia({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="단지명, MBTI, 동 검색..."
-            className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs sm:text-sm bg-surface border border-border/80 text-primary placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+            className={getControlInputClass('w-full pl-9 pr-3')}
           />
         </div>
       </div>

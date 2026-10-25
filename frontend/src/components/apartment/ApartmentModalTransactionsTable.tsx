@@ -2,6 +2,7 @@ import React from 'react';
 import { ChevronDown } from 'lucide-react';
 import SegmentedControl from '@/components/ui/SegmentedControl';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
+import { getControlSelectClass } from '@/lib/design-system/controls';
 import type { AptTxSummary, TransactionRecord } from '@/types';
 
 export interface ApartmentModalTransactionsTableProps {
@@ -47,7 +48,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
   return (
     <>
       {/* Hero Section — Layout: Global Filter Bar + (35% table / 65% chart) */}
-      <section className={`w-full flex flex-col p-4 ${inline ? 'bg-surface md:p-6 border-b border-body' : 'bg-surface/60 dark:bg-surface/30 backdrop-blur-md md:px-10 md:py-6 border-b border-border'} shrink-0 md:h-[700px]`}>
+      <section className="w-full flex flex-col py-4 md:py-6 bg-surface border-b border-border shrink-0 md:h-[700px]">
         {/* Global Real Transaction Filter Bar */}
         {isAnimationFinished && (
           <div className="w-full flex flex-wrap items-center justify-between gap-4 pb-4.5 mb-4.5 border-b border-border/50 shrink-0">
@@ -59,7 +60,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
                     <select
                       value={selectedAreaFilter}
                       onChange={(e) => { setSelectedAreaFilter(e.target.value); loadAllTransactions?.(); }}
-                      className="appearance-none bg-[#f2f4f6] hover:bg-[#e5e8eb] text-primary pl-4 pr-9 py-2 rounded-2xl transition-all shadow-sm font-extrabold text-[13.5px] border border-border/20 outline-none cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                      className={getControlSelectClass('appearance-none pl-3.5 pr-8 disabled:opacity-60 disabled:cursor-not-allowed')}
                       aria-label="평형 타입 필터 선택"
                       disabled={areaFilterChips.length === 1 && areaFilterChips[0] === '전체'}
                     >
@@ -69,7 +70,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
                         </option>
                       ))}
                     </select>
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-secondary">
                       <ChevronDown size={14} strokeWidth={2.5} />
                     </div>
                   </div>
@@ -96,7 +97,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
             </div>
 
             {/* Outliers Filter Switch */}
-            <div className="flex items-center gap-2 bg-[#f2f4f6] px-3.5 py-2 rounded-2xl border border-border/20 shadow-sm shrink-0">
+            <div className="flex items-center gap-2 bg-elevated h-[34px] sm:h-[36px] px-3.5 rounded-[10px] shrink-0">
               <span className="text-[12.5px] font-extrabold text-secondary tracking-tight select-none">이상거래 필터</span>
               <button
                 onClick={handleToggleFilter}

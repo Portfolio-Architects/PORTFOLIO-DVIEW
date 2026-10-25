@@ -17,3 +17,21 @@ export * from './technovalley';
 export * from './calculator';
 export * from './notice';
 export * from './inquiry';
+export type {
+  StatsFilterState,
+  RegionFilter,
+  PyeongFilter,
+  TimeframeFilter,
+  SortOption,
+  ComplexStatItem,
+  MacroTimeSeriesPoint,
+  VolumeDistributionItem,
+  HyperlocalInsightCardsData,
+  StatsAggregateResult,
+  RawRentRecord,
+  StatsRawTransactionRecord,
+  RawDataBundle,
+  StatsEngineInput,
+  IStatsDataLoader,
+  StatsDataLoaderInput,
+} from './stats';

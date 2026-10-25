@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { getDisplayAptName, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { TimeframeSelector } from './MacroControls';
 import { DongApartment, buildInitialApartments } from '@/lib/dong-apartments';
+import { getControlSelectClass, getControlInputClass } from '@/lib/design-system/controls';
 
 export interface MacroChartSectionProps {
   isDefaultAptSettingUp: boolean;
@@ -116,7 +117,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   return (
     <div className={`w-full flex flex-col gap-4 min-w-0 lg:h-[566px] box-border ${className || ''}`}>
       {/* Right Panel: Interactive Market Feed & Trend */}
-      <div className="w-full flex flex-col bg-surface rounded-[20px] sm:rounded-[24px] shadow-sm border border-border/80 p-4 sm:p-5 flex-1 lg:h-[566px] min-h-[420px] min-w-0 box-border justify-between">
+      <div className="w-full flex flex-col bg-surface pb-2 flex-1 lg:h-[566px] min-h-[420px] min-w-0 box-border justify-between">
         <div className="flex-1 flex flex-col min-h-[260px] md:min-h-[300px]">
           {/* Header Row: Title & Action + Timeframe */}
           <div className="flex flex-col gap-3 mb-4 pb-3.5 border-b border-border/40 w-full min-w-0">
@@ -166,7 +167,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         setSelectedDong(e.target.value);
                         setSearchQuery('');
                       }}
-                      className="px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs shrink-0"
+                      className={getControlSelectClass('shrink-0')}
                     >
                       <option value="all">동탄 전체 ({dongsData.allApts.length}개 단지)</option>
                       <option value="default">대표 4개 단지</option>
@@ -182,7 +183,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                   </div>
 
                   {/* 2. Apartment Select Dropdown */}
-                  <div className="relative flex items-center gap-1 flex-1 min-w-[150px] max-w-[280px]">
+                  <div className="relative flex items-center gap-1 flex-1 min-w-[140px] max-w-full sm:max-w-[260px]">
                     <select
                       aria-label="시세 그래프 조회 아파트 선택"
                       value={selectedTimelineApt || ""}
@@ -191,7 +192,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         const val = e.target.value;
                         setSelectedTimelineApt(val === "" ? null : val);
                       }}
-                      className="w-full px-3 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-secondary rounded-xl text-[11.5px] font-extrabold cursor-pointer transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs truncate"
+                      className={getControlSelectClass('w-full truncate')}
                     >
                       <option value="">전체 추이 보기 (동탄 매크로)</option>
 
@@ -262,14 +263,14 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                   </div>
 
                   {/* 3. Quick Search Filter Input */}
-                  <div className="relative flex items-center flex-1 min-w-[120px] max-w-[190px]">
+                  <div className="relative flex items-center w-full sm:w-auto sm:flex-1 min-w-[120px] max-w-full sm:max-w-[190px]">
                     <input
                       type="text"
                       placeholder="단지명 검색..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       aria-label="단지명 실시간 검색"
-                      className="w-full pl-7 pr-6 h-[32px] bg-slate-50 hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-border/80 text-primary placeholder:text-tertiary rounded-xl text-[11.5px] font-bold transition-colors outline-none focus:ring-1 focus:ring-blue-600 focus:border-blue-600 shadow-xs"
+                      className={getControlInputClass('w-full pl-8 pr-7')}
                     />
                     <svg
                       xmlns="http://www.w3.org/2000/svg"

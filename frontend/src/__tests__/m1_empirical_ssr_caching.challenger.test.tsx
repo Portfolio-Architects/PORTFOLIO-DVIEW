@@ -21,7 +21,7 @@ import { clearFileReaderCache, readJsonFileCached } from '@/lib/utils/server/fil
 import { staticDataService } from '@/lib/services/staticDataService';
 import { useDashboardMeta } from '@/hooks/useDashboardMeta';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
-import { preloadApartmentModal, preloadDashboardFeatures } from '@/lib/preload';
+import { preloadApartmentModal, preloadDashboardFeatures } from '@/components/common/ComponentPreloader';
 import DashboardClient from '@/components/DashboardClient';
 
 // Mock dependencies for DashboardClient rendering
@@ -92,8 +92,8 @@ jest.mock('@/components/PageHeroHeader', () => {
 });
 
 // Spy on preloader functions
-jest.mock('@/lib/preload', () => {
-  const actual = jest.requireActual('@/lib/preload');
+jest.mock('@/components/common/ComponentPreloader', () => {
+  const actual = jest.requireActual('@/components/common/ComponentPreloader');
   return {
     ...actual,
     preloadApartmentModal: jest.fn(actual.preloadApartmentModal),

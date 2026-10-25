@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 
-import { preloadApartmentModal } from '@/lib/preload';
+import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
 import { formatDeltaPrice, formatPriceEok, type AptDonutDataItem } from './AptDonutSection';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/types';
 
@@ -198,6 +198,8 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         {displayItems.map((item, idx) => {
           const hasDelta = typeof item.delta === 'number' && isFinite(item.delta);
           const deltaFormatted = hasDelta ? formatDeltaPrice(item.delta) : '';
+          const isRising = Boolean(item.isNewHigh || (hasDelta && item.delta > 0));
+          const isFalling = Boolean(!item.isNewHigh && hasDelta && item.delta < 0);
           const pyeongVal = item.areaPyeong && item.areaPyeong > 0
             ? item.areaPyeong
             : (item.area && item.area > 0 ? item.area / 3.3058 : 0);
@@ -226,7 +228,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                   onSelectApt?.(item.aptName, item.dong);
                 }
               }}
-              className="bg-surface border border-border/80 px-3.5 py-2.5 rounded-xl sm:rounded-2xl shadow-2xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-150 cursor-pointer text-left group"
+              className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left group"
             >
               {/* Top: Rank badge + Dong + Area/Floor (left) | Date (right) */}
               <div className="flex items-center justify-between gap-1 min-w-0">
@@ -259,7 +261,13 @@ export const AptMetricCards = React.memo(function AptMetricCards({
 
               {/* Middle: Apartment Name */}
               <div className="my-auto truncate">
-                <span className="text-[12px] sm:text-[12.5px] font-bold text-primary truncate block group-hover:text-blue-600 transition-colors leading-tight">
+                <span
+                  className={`text-[12px] sm:text-[12.5px] font-bold text-primary truncate block transition-colors leading-tight ${
+                    isRising
+                      ? 'group-hover:text-red-600 dark:group-hover:text-red-400'
+                      : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
+                  }`}
+                >
                   {item.displayAptName || item.aptName}
                 </span>
               </div>
@@ -267,7 +275,15 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               {/* Bottom: Price + Delta (left) | Unit Pyeong Price + Chevron (right) */}
               <div className="flex items-center justify-between gap-1">
                 <div className="flex items-baseline gap-1.5 min-w-0">
-                  <span className="text-[12.5px] sm:text-[13.5px] font-bold text-blue-600 dark:text-blue-400 tabular-nums tracking-tight leading-none">
+                  <span
+                    className={`text-[12.5px] sm:text-[13.5px] font-bold tabular-nums tracking-tight leading-none ${
+                      isRising
+                        ? 'text-red-600 dark:text-red-400'
+                        : isFalling
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-slate-900 dark:text-white'
+                    }`}
+                  >
                     {item.priceEok}
                   </span>
                   {item.isNewHigh ? (
@@ -275,7 +291,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                       신고가
                     </span>
                   ) : hasDelta && item.delta !== 0 && deltaFormatted ? (
-                    <span className={`text-[9px] font-medium tabular-nums shrink-0 leading-none ${
+                    <span className={`text-[9px] font-semibold tabular-nums shrink-0 leading-none ${
                       item.delta > 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
                     }`}>
                       {item.delta > 0 ? `+${deltaFormatted}` : `-${deltaFormatted}`}
@@ -311,7 +327,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
   return (
     <div className={`grid grid-cols-2 gap-2.5 sm:gap-3 lg:h-[152px] ${className}`}>
       {/* Card 1: 상승 거래 비중 */}
-      <div className="bg-surface border border-border/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-2xs flex flex-col justify-between transition-colors duration-150">
+      <div className="bg-elevated px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150">
         <div className="flex items-center justify-between gap-1.5 w-full">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
             상승 거래 비중
@@ -327,14 +343,18 @@ export const AptMetricCards = React.memo(function AptMetricCards({
           </span>
           <span className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded shrink-0 leading-none ${
             risingMetrics.risingRatio >= 50
-              ? 'text-emerald-700 dark:text-emerald-400 bg-emerald-500/10'
+              ? 'text-red-600 dark:text-red-400 bg-red-500/10'
               : 'text-blue-700 dark:text-blue-400 bg-blue-500/10'
           }`}>
             {risingMetrics.statusLabel}
           </span>
         </div>
         <div className="flex items-baseline justify-between gap-2 mt-auto">
-          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight">
+          <span className={`text-[15px] sm:text-[16px] font-bold tabular-nums leading-none tracking-tight ${
+            risingMetrics.risingRatio >= 50
+              ? 'text-red-600 dark:text-red-400'
+              : 'text-blue-600 dark:text-blue-400'
+          }`}>
             {risingMetrics.risingRatio.toFixed(1)}%
           </span>
           <span className="text-[10px] font-medium text-tertiary tabular-nums leading-none truncate">
@@ -349,7 +369,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         data-testid="metric-card-mortgage-cta"
         onClick={() => onOpenMortgageModal && onOpenMortgageModal()}
         aria-label="평당 평균 실거래가 기반 주담대 및 정책자금 한도 계산기 열기"
-        className="bg-surface border border-border/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-2xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
       >
         <div className="flex items-center justify-between gap-1.5 w-full">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
@@ -375,7 +395,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         data-testid="metric-card-jeonse-cta"
         onClick={() => onOpenJeonseSafetyModal && onOpenJeonseSafetyModal()}
         aria-label="평균 전세가율 기반 전세보증보험 및 깡통전세 안전진단 계산기 열기"
-        className="bg-surface border border-border/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-2xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
       >
         <div className="flex items-center justify-between gap-1.5 w-full">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
@@ -400,7 +420,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         type="button"
         onClick={() => onOpenSellTimingCalculator && onOpenSellTimingCalculator()}
         aria-label="우리집 적정 가치 및 매도 타이밍 진단 계산기 열기"
-        className="bg-surface border border-border/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl shadow-2xs flex flex-col justify-between hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
       >
         <div className="flex items-center justify-between gap-1.5 w-full">
           <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">

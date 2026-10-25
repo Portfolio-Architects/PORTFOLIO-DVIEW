@@ -13,7 +13,7 @@ import {
   AcademyPOISchema,
   RestaurantPOISchema,
 } from '@/lib/validation/facade.schemas';
-import type { ApartmentPOI, SchoolPOI, StationPOI, AcademyPOI, RestaurantPOI } from '@/lib/services/locationService';
+import type { ApartmentPOI, SchoolPOI, StationPOI, AcademyPOI, RestaurantPOI } from '@/types/apartment';
 
 async function fetchCSVWithRetry(url: string, options: RequestInit = {}, retries = 3, delayMs = 1000): Promise<Response> {
   const TIMEOUT_MS = 5000;

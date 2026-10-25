@@ -33,7 +33,7 @@ export function AdSlotCascadeFallbackView({
       data-cascade-status={cascadeStatus}
       data-estimated-cpa-won={cpaPayload.estimatedCpaValueWon}
       data-late-fill-discarded={lateFillDiscarded ? 'true' : 'false'}
-      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 text-center z-10 ${minHeightClass}`}
+      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-elevated dark:bg-slate-900 text-center z-10 ${minHeightClass}`}
     >
       <a
         href={cpaPayload.targetUrl}

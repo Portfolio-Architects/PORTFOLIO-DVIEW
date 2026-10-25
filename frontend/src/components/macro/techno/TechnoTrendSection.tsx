@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from 'recharts';
 import { TrendingUp, HelpCircle } from 'lucide-react';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 export interface BuildingOption {
   id: string;
@@ -77,40 +78,28 @@ export const TechnoTrendSection = React.memo(function TechnoTrendSection({
         {/* Mode & Timeframe Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Metric Switch */}
-          <div className="flex bg-body p-0.5 rounded-xl border border-border/30">
+          <div className={getToggleTrackClass()}>
             <button
               onClick={() => setMetricMode('vacancy')}
-              className={`px-3 py-1.5 rounded-[10px] text-[12px] font-extrabold transition-all cursor-pointer ${
-                metricMode === 'vacancy'
-                  ? 'bg-surface text-primary shadow-sm'
-                  : 'text-tertiary hover:text-primary'
-              }`}
+              className={getToggleBtnClass({ active: metricMode === 'vacancy', size: 'sm' })}
             >
               공실률 (%)
             </button>
             <button
               onClick={() => setMetricMode('rent')}
-              className={`px-3 py-1.5 rounded-[10px] text-[12px] font-extrabold transition-all cursor-pointer ${
-                metricMode === 'rent'
-                  ? 'bg-surface text-primary shadow-sm'
-                  : 'text-tertiary hover:text-primary'
-              }`}
+              className={getToggleBtnClass({ active: metricMode === 'rent', size: 'sm' })}
             >
               임대료 (만/평)
             </button>
           </div>
 
           {/* Timeframe selector */}
-          <div className="flex bg-body p-0.5 rounded-xl border border-border/30">
+          <div className={getToggleTrackClass()}>
             {(['6M', '1Y', '3Y', 'ALL'] as const).map((tf) => (
               <button
                 key={tf}
                 onClick={() => setTimeframe(tf)}
-                className={`px-2.5 py-1.5 rounded-[10px] text-[11px] font-extrabold transition-all cursor-pointer ${
-                  timeframe === tf
-                    ? 'bg-surface text-primary shadow-sm'
-                    : 'text-tertiary hover:text-primary'
-                }`}
+                className={getToggleBtnClass({ active: timeframe === tf, size: 'sm' })}
               >
                 {tf}
               </button>

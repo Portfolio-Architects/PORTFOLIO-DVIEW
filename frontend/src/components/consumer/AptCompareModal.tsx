@@ -4,8 +4,8 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom';
 import { X, Building2, Sparkles, ArrowUpRight } from 'lucide-react';
 import type { DongApartment } from '@/lib/dong-apartments';
-import type { AptTxSummary, LocationScoreItem } from '@/lib/types/transaction';
-import type { FieldReportData } from '@/lib/types/report.types';
+import type { AptTxSummary, LocationScoreItem } from '@/types/transaction';
+import type { FieldReportData } from '@/types/report';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { syncShallowApartmentOpen } from '@/lib/ads/recirculationEngine';
 import {

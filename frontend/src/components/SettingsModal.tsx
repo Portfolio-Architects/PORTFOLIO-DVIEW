@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { X, Moon, Sun, Monitor, Scaling, Bell, BellOff, Loader2 } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { usePWA } from './pwa/PWAProvider';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 const SettingsModal = React.memo(function SettingsModal() {
   const [mounted, setMounted] = useState(false);
@@ -173,7 +174,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <Sun size={16} />
               화면 모드
             </h3>
-            <div role="group" aria-label="화면 모드 선택" className="grid grid-cols-3 gap-2 bg-body p-1 rounded-[20px]">
+            <div role="group" aria-label="화면 모드 선택" className={getToggleTrackClass('grid grid-cols-3 gap-1.5 w-full')}>
               {[
                 { id: 'light' as const, label: '라이트', icon: Sun },
                 { id: 'dark' as const, label: '다크', icon: Moon },
@@ -186,11 +187,10 @@ const SettingsModal = React.memo(function SettingsModal() {
                     ref={opt.id === 'light' ? firstOptionRef : undefined}
                     onClick={() => setTheme(opt.id)}
                     aria-pressed={isActive}
-                    className={`flex flex-col items-center justify-center gap-1.5 py-3 rounded-lg transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] ${
-                      isActive 
-                        ? 'bg-surface text-toss-blue shadow-sm font-bold' 
-                        : 'text-tertiary hover:text-secondary font-medium'
-                    }`}
+                    className={getToggleBtnClass({
+                      active: isActive,
+                      extraClass: 'flex-col py-2.5 gap-1.5',
+                    })}
                   >
                     <opt.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
                     <span className="text-xs">{opt.label}</span>
@@ -206,7 +206,7 @@ const SettingsModal = React.memo(function SettingsModal() {
               <Scaling size={16} />
               면적 표시 기준
             </h3>
-            <div role="group" aria-label="면적 표시 기준 선택" className="grid grid-cols-2 gap-2 bg-body p-1 rounded-[20px]">
+            <div role="group" aria-label="면적 표시 기준 선택" className={getToggleTrackClass('grid grid-cols-2 gap-1.5 w-full')}>
               {[
                 { id: 'm2', label: '제곱미터 (m²)' },
                 { id: 'pyeong', label: '평' },
@@ -217,11 +217,10 @@ const SettingsModal = React.memo(function SettingsModal() {
                     key={opt.id}
                     onClick={() => setAreaUnit(opt.id as 'm2' | 'pyeong')}
                     aria-pressed={isActive}
-                    className={`py-3 rounded-lg transition-all duration-300 ease-out hover:scale-[1.01] active:scale-[0.99] text-sm ${
-                      isActive 
-                        ? 'bg-surface text-toss-blue shadow-sm font-bold' 
-                        : 'text-tertiary hover:text-secondary font-medium'
-                    }`}
+                    className={getToggleBtnClass({
+                      active: isActive,
+                      extraClass: 'py-2.5 text-sm',
+                    })}
                   >
                     {opt.label}
                   </button>

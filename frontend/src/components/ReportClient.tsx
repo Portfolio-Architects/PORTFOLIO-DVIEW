@@ -4,11 +4,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Download, Copy, Check } from 'lucide-react';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import PageHeroHeader from '@/components/PageHeroHeader';
-import { getEngineeringReport } from '@/app/actions/getEngineeringReport';
 import { logger } from '@/lib/services/logger';
 import EngineeringReportClient, { ReportMetadata } from './EngineeringReportClient';
 
-const ReportClient = React.memo(function ReportClient() {
+export interface ReportClientProps {
+  /** Optional report fetcher to decouple direct server action dependency */
+  fetchReport?: () => Promise<{ metadata: ReportMetadata; markdownContent: string }>;
+}
+
+const ReportClient = React.memo(function ReportClient({ fetchReport }: ReportClientProps = {}) {
   const [mounted, setMounted] = useState(false);
   const [engReportData, setEngReportData] = useState<{metadata: ReportMetadata, markdownContent: string} | null>(null);
 
@@ -83,7 +87,11 @@ const ReportClient = React.memo(function ReportClient() {
   useEffect(() => {
     let active = true;
     setMounted(true);
-    getEngineeringReport().then(data => {
+    const fetchHandler = fetchReport ?? (async () => {
+      const { getEngineeringReport } = await import('@/app/actions/getEngineeringReport');
+      return getEngineeringReport();
+    });
+    fetchHandler().then(data => {
       if (active && mountedRef.current) {
         setEngReportData(data);
       }
@@ -91,7 +99,7 @@ const ReportClient = React.memo(function ReportClient() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [fetchReport]);
 
   return (
     <div className="flex-1 flex flex-col w-full bg-body pb-28 md:pb-12">

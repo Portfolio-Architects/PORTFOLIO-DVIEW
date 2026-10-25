@@ -13,6 +13,7 @@ import { getDisplayAptName, normalizeAptName, findTxKey } from '@/lib/utils/apar
 import type { AptTxSummary } from '@/types';
 import { usePeriodTransactions } from '@/hooks/useStaticData';
 import type { TimelinePeriod } from '@/types/transaction';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 export type AptDonutPeriod = '7d' | '30d' | '90d' | '1y';
 
@@ -587,7 +588,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   return (
     <div
       id="apt-market-energy-donut"
-      className={`bg-surface border border-border/80 p-4 sm:p-5 rounded-[20px] sm:rounded-[24px] shadow-sm flex flex-col justify-between h-auto sm:min-h-[350px] lg:h-[400px] shrink-0 ${className}`}
+      className={`bg-surface border-b border-border pb-4 sm:pb-5 flex flex-col justify-between h-auto sm:min-h-[350px] lg:h-[400px] shrink-0 ${className}`}
     >
       {/* Header with Mode Toggle & Period Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-x-3 mb-3 sm:mb-4">
@@ -598,7 +599,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
             실거래 비중
           </h3>
           {totalCount > 0 && (
-            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10px] sm:text-[10.5px] font-extrabold text-secondary shrink-0">
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] sm:text-[11.5px] font-extrabold text-secondary shrink-0">
               총 {totalCount}건
             </span>
           )}
@@ -607,16 +608,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         {/* Element 2: Divider & Mode Switch Toggle (Desktop inline order-2, Mobile full-width order-3) */}
         <div className="w-full sm:w-auto order-3 sm:order-2 flex items-center gap-2 sm:gap-2.5">
           <div className="hidden sm:block h-3.5 w-px bg-border/60" />
-          <div className="grid grid-cols-2 sm:flex sm:items-center w-full sm:w-auto p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[11px] font-bold border border-border/40">
+          <div className={getToggleTrackClass('grid grid-cols-2 sm:inline-flex w-full sm:w-auto')}>
             <button
               type="button"
               onClick={() => handleModeChange('pyeong')}
               aria-pressed={mode === 'pyeong'}
-              className={`px-2.5 py-1 text-center rounded-md transition-all cursor-pointer ${
-                mode === 'pyeong'
-                  ? 'bg-surface text-primary shadow-xs font-black'
-                  : 'text-tertiary hover:text-primary'
-              }`}
+              className={getToggleBtnClass({ active: mode === 'pyeong' })}
             >
               평형대별
             </button>
@@ -624,11 +621,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               type="button"
               onClick={() => handleModeChange('price')}
               aria-pressed={mode === 'price' || mode === 'policy'}
-              className={`px-2.5 py-1 text-center rounded-md transition-all cursor-pointer ${
-                mode === 'price' || mode === 'policy'
-                  ? 'bg-surface text-primary shadow-xs font-black'
-                  : 'text-tertiary hover:text-primary'
-              }`}
+              className={getToggleBtnClass({ active: mode === 'price' || mode === 'policy' })}
             >
               가격대별
             </button>
@@ -648,17 +641,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           )}
 
           {/* Period Selector (7d / 30d / 90d / 1y) */}
-          <div className="flex items-center p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg text-[10px] sm:text-[10.5px] font-bold border border-border/40">
+          <div className={getToggleTrackClass()}>
             {PERIOD_BUTTONS.map((btn) => (
               <button
                 key={btn.key}
                 type="button"
                 onClick={() => handlePeriodChange(btn.key)}
-                className={`px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md transition-all cursor-pointer ${
-                  period === btn.key
-                    ? 'bg-surface text-primary shadow-xs font-black'
-                    : 'text-tertiary hover:text-primary'
-                }`}
+                className={getToggleBtnClass({ active: period === btn.key })}
                 aria-label={btn.ariaLabel}
               >
                 {btn.label}
@@ -792,12 +781,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           )}
         </div>
 
-        {/* Right: 4 Category Breakdown Cards (Flexible Width) */}
-        <div className="w-full sm:flex-1 min-w-0 flex flex-col justify-center gap-1.5 sm:gap-2 my-auto py-0.5 pl-0 sm:pl-1">
+        {/* Right: 4 Category Breakdown Tabs (Minimalist Concept) */}
+        <div className="w-full sm:flex-1 min-w-0 flex flex-col justify-center gap-1 sm:gap-1.5 my-auto py-0.5 pl-0 sm:pl-2">
           {donutData.map((sector) => {
             const isSelected = activeCategory === sector.name || activeCategory === sector.category;
             const isHovered = hoveredCategory === sector.name || hoveredCategory === sector.category;
-            const isMainstream = sector.isTop;
+            const hasActiveOrHover = activeCategory !== null || hoveredCategory !== null;
+            const isDimmed = hasActiveOrHover && !isSelected && !isHovered;
             return (
               <div
                 key={sector.name}
@@ -810,6 +800,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 onMouseLeave={() => setHoveredCategory(null)}
                 role="button"
                 tabIndex={0}
+                aria-pressed={isSelected}
                 aria-label={
                   sector.repApt
                     ? `${sector.name} ${sector.count}건 (${sector.value.toFixed(1)}%) - 하단 대표 실거래 4건 확인`
@@ -821,54 +812,60 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     setActiveCategory(isSelected ? null : sector.name);
                   }
                 }}
-                className={`group p-2 sm:py-2 sm:px-2.5 rounded-xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1 ${
+                className={`group px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1.5 ${
                   isSelected
-                    ? 'bg-body border-primary/60 shadow-md ring-2 ring-primary/20 scale-[1.01]'
+                    ? 'bg-elevated dark:bg-slate-800/80'
                     : isHovered
-                      ? 'bg-body/80 border-border/90 shadow-xs scale-[1.005]'
-                      : isMainstream
-                        ? 'bg-surface/90 border-border/70 hover:border-border'
-                        : 'bg-surface/80 hover:bg-body border-border/40 hover:border-border/70'
-                }`}
+                      ? 'bg-elevated/70 dark:bg-slate-800/40'
+                      : 'bg-transparent hover:bg-elevated/70 dark:hover:bg-slate-800/40'
+                } ${isDimmed ? 'opacity-45' : 'opacity-100'}`}
               >
                 {/* Top Row: Indicator Dot + Category Name (Left) | Ratio & Count + Chevron (Right) */}
                 <div className="flex items-center justify-between w-full gap-2">
                   <div className="flex items-center gap-2 min-w-0">
                     <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs"
+                      className={`w-2 h-2 rounded-full shrink-0 transition-transform duration-200 ${
+                        isSelected || isHovered ? 'scale-110' : ''
+                      }`}
                       style={{ backgroundColor: sector.color }}
                     />
-                    <span className="text-[12.5px] sm:text-[13px] font-black text-primary whitespace-nowrap">
+                    <span
+                      className={`text-[12.5px] sm:text-[13px] tracking-tight whitespace-nowrap transition-colors duration-200 ${
+                        isSelected || isHovered
+                          ? 'font-bold text-slate-900 dark:text-white'
+                          : 'font-medium text-slate-700 dark:text-slate-300'
+                      }`}
+                    >
                       {sector.name}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-1.5 shrink-0 ml-auto pl-1">
                     <div className="flex items-baseline gap-1">
-                      <span className="text-[12.5px] sm:text-[13px] font-black text-primary whitespace-nowrap tabular-nums">
+                      <span className="text-[13px] sm:text-[13.5px] font-bold text-slate-900 dark:text-white whitespace-nowrap tabular-nums tracking-tight">
                         {sector.value.toFixed(1)}%
                       </span>
-                      <span className="text-[9.5px] sm:text-[10px] font-medium text-tertiary whitespace-nowrap tabular-nums">
+                      <span className="text-[10.5px] sm:text-[11px] font-normal text-slate-400 dark:text-slate-500 whitespace-nowrap tabular-nums">
                         ({sector.count.toLocaleString()}건)
                       </span>
                     </div>
                     <ChevronRight
-                      size={14}
-                      className={`shrink-0 transition-transform duration-200 ${
+                      size={13}
+                      className={`shrink-0 transition-all duration-200 ${
                         isSelected
                           ? 'rotate-90 text-blue-600 dark:text-blue-400'
-                          : 'text-tertiary group-hover:text-primary group-hover:translate-x-0.5'
+                          : 'text-slate-300 dark:text-slate-600 group-hover:text-slate-500 dark:group-hover:text-slate-400 group-hover:translate-x-0.5'
                       }`}
                     />
                   </div>
                 </div>
 
-                {/* Bottom Row: Visual Progress Gauge Bar */}
-                <div className="w-full bg-slate-100 dark:bg-slate-800/80 h-1.5 rounded-full overflow-hidden">
+                {/* Bottom Row: Ultra-Slim Minimalist Gauge Line */}
+                <div className="w-full bg-slate-100 dark:bg-slate-800/70 h-[3px] rounded-full overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full rounded-full transition-all duration-500 ease-out"
                     style={{
-                      width: `${Math.min(100, Math.max(3, sector.value))}%`,
+                      width: `${Math.min(100, Math.max(2, sector.value))}%`,
                       backgroundColor: sector.color,
                     }}
                   />

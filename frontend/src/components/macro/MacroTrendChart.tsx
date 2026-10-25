@@ -9,7 +9,7 @@ import {
   ReferenceArea,
   ReferenceLine,
 } from "recharts";
-import type { DongtanMacroTrendPoint } from "@/lib/types/transaction";
+import type { DongtanMacroTrendPoint } from "@/types/transaction";
 import { processMacroTrendData, formatXAxisTick } from "@/lib/utils/macroChartTransform";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { calculateTwoSigma, type TwoSigmaStats } from "@/lib/analytics/twoSigmaEngine";

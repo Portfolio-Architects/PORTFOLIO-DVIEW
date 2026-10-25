@@ -3,11 +3,10 @@
  * @description Service Layer for coordinating Google Search Console metrics.
  * Architecture Layer: Service (Domain Logic & Orchestration)
  */
-import { z } from 'zod';
-import { SearchConsoleStatusSchema } from '@/lib/validation/facade.schemas';
+import type { SearchConsoleStatus } from '@/types/api';
 import * as SearchConsoleRepo from '@/lib/repositories/searchConsole.repository';
 
-export type SearchConsoleStatus = z.infer<typeof SearchConsoleStatusSchema>;
+export type { SearchConsoleStatus };
 
 /**
  * Returns Google Search Console indexing and performance metrics.

@@ -80,6 +80,17 @@ export interface ComplexStatItem {
   lowestPrice: number; // in 만원
   urgentSaleDiscountRate?: number; // percentage, e.g. 8.5
   isNewHigh: boolean;
+  highestPyeongPrice?: number;
+  highestContractDate?: string;
+  highestFloor?: number | string;
+  highestArea?: number;
+  highestAreaPyeong?: number;
+  maxPyeongPrice?: number;
+  maxPyeongTxPrice?: number;
+  maxPyeongContractDate?: string;
+  maxPyeongFloor?: number | string;
+  maxPyeongArea?: number;
+  maxPyeongAreaPyeong?: number;
 }
 
 /** Time-series trend point for macro composed chart (price & volume) */
@@ -136,7 +147,7 @@ export interface RawRentRecord {
 }
 
 /** Raw transaction record structure compatible with tests and legacy models */
-export interface RawTransactionRecord {
+export interface StatsRawTransactionRecord {
   aptKey?: string;
   aptName: string;
   dong?: string;
@@ -159,6 +170,8 @@ export interface RawTransactionRecord {
   cdealType?: string | null;
   [key: string]: unknown;
 }
+
+export type RawTransactionRecord = StatsRawTransactionRecord;
 
 /** Raw data bundle passed to engine */
 export interface RawDataBundle {

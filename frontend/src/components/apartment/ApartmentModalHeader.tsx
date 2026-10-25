@@ -3,7 +3,7 @@ import {
   MapPin, Share, Check, MessageSquare, Camera, Bell,
   Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert
 } from 'lucide-react';
-import type { FieldReportData } from '@/lib/types/report.types';
+import type { FieldReportData } from '@/types/report';
 
 export interface ApartmentModalHeaderProps {
   report: FieldReportData;

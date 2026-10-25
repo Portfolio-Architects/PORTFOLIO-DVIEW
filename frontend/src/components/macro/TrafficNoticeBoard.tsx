@@ -18,7 +18,7 @@ interface TrafficNoticeBoardProps {
 
 export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: TrafficNoticeBoardProps) {
   return (
-    <div className="w-full bg-surface rounded-2xl border border-border p-4 sm:p-5 flex flex-col gap-4 relative shadow-sm md:h-[350px] justify-start">
+    <div className="w-full bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative md:h-[350px] justify-start">
       {/* Header */}
       <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
         <div className="relative group/title flex items-center gap-1.5 min-w-0">

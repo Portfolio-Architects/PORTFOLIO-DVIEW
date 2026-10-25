@@ -111,7 +111,8 @@ import OfflineBanner, {
   OfflineBannerGlobal,
   OfflineBannerUI,
 } from '@/components/ui/OfflineBanner';
-import { preloadApartmentModal, preloadComponent, scheduleIdle } from '@/lib/preload';
+import { preloadComponent, scheduleIdle } from '@/lib/preload';
+import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { DongtanMacroTrendPoint } from '@/lib/types/transaction';
 

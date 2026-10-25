@@ -58,3 +58,23 @@ export interface RedisCacheEnvelope<T = unknown> {
   ttl?: number;
   source?: string;
 }
+
+/** Google Search Console status contract */
+export interface SearchConsoleStatus {
+  success: boolean;
+  isMock: boolean;
+  siteUrl: string;
+  indexStatus: {
+    totalIndexed: number;
+    notIndexed: number;
+    crawledNotIndexed: number;
+    discoveredNotIndexed: number;
+    errors: number;
+  };
+  searchMetrics: {
+    clicks: number;
+    impressions: number;
+    ctr: number;
+    averagePosition: number;
+  };
+}

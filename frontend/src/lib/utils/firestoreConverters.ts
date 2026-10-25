@@ -1,5 +1,5 @@
 import { FirestoreDataConverter, DocumentData, QueryDocumentSnapshot, SnapshotOptions, Timestamp } from 'firebase/firestore';
-import type { UserProfile } from '@/lib/types/user.types';
+import type { UserProfile } from '@/types/user';
 import { DEFAULT_NICKNAME } from '@/lib/services/nickname.service';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';

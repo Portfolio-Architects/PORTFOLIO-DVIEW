@@ -1023,6 +1023,17 @@ export function computeComplexRankings(
     maxDiscountRate: number;
     latestContractDate: string;
     latestPrice: number;
+    highestPyeongPrice?: number;
+    highestContractDate?: string;
+    highestFloor?: number | string;
+    highestArea?: number;
+    highestAreaPyeong?: number;
+    maxPyeongPrice?: number;
+    maxPyeongTxPrice?: number;
+    maxPyeongContractDate?: string;
+    maxPyeongFloor?: number | string;
+    maxPyeongArea?: number;
+    maxPyeongAreaPyeong?: number;
   }
 
   const complexMap = new Map<string, ComplexAgg>();
@@ -1056,6 +1067,17 @@ export function computeComplexRankings(
         maxDiscountRate: 0,
         latestContractDate: '',
         latestPrice: 0,
+        highestPyeongPrice: 0,
+        highestContractDate: '',
+        highestFloor: undefined,
+        highestArea: 0,
+        highestAreaPyeong: 0,
+        maxPyeongPrice: 0,
+        maxPyeongTxPrice: 0,
+        maxPyeongContractDate: '',
+        maxPyeongFloor: undefined,
+        maxPyeongArea: 0,
+        maxPyeongAreaPyeong: 0,
       };
       complexMap.set(groupKey, entry);
     } else if (!entry.dong && tx.dong) {
@@ -1064,10 +1086,36 @@ export function computeComplexRankings(
 
     const p = parsePriceToManWon(tx);
     const cd = String(tx.contractDate || '');
+    const pp = computePyeongPrice(p, tx.area ?? 0, tx.areaPyeong);
 
     entry.count++;
     entry.sumPrice += p;
-    if (p > entry.maxPrice) entry.maxPrice = p;
+    if (
+      p > entry.maxPrice ||
+      (p === entry.maxPrice &&
+        (pp > (entry.highestPyeongPrice || 0) ||
+          (pp === (entry.highestPyeongPrice || 0) && cd > (entry.highestContractDate || ''))))
+    ) {
+      entry.maxPrice = p;
+      entry.highestPyeongPrice = pp;
+      entry.highestContractDate = cd;
+      entry.highestFloor = tx.floor;
+      entry.highestArea = tx.area ?? 0;
+      entry.highestAreaPyeong = tx.areaPyeong ?? 0;
+    }
+    if (
+      pp > (entry.maxPyeongPrice || 0) ||
+      (pp === entry.maxPyeongPrice &&
+        (p > (entry.maxPyeongTxPrice || 0) ||
+          (p === (entry.maxPyeongTxPrice || 0) && cd > (entry.maxPyeongContractDate || ''))))
+    ) {
+      entry.maxPyeongPrice = pp;
+      entry.maxPyeongTxPrice = p;
+      entry.maxPyeongContractDate = cd;
+      entry.maxPyeongFloor = tx.floor;
+      entry.maxPyeongArea = tx.area ?? 0;
+      entry.maxPyeongAreaPyeong = tx.areaPyeong ?? 0;
+    }
     if (p < entry.minPrice) entry.minPrice = p;
 
     if (entry.count === 1 || cd > entry.latestContractDate) {
@@ -1075,7 +1123,6 @@ export function computeComplexRankings(
       entry.latestPrice = p;
     }
 
-    const pp = computePyeongPrice(p, tx.area ?? 0, tx.areaPyeong);
     entry.sumPyeongPrice += pp;
 
     if (outTotals) {
@@ -1142,6 +1189,47 @@ export function computeComplexRankings(
 
       const dong = entry.dong || '여울동';
       const region = getRegionFromDong(dong);
+      const hasTxHighestArea = Boolean(
+        (entry.highestArea && entry.highestArea > 0) ||
+          (entry.highestAreaPyeong && entry.highestAreaPyeong > 0)
+      );
+      const resolvedHighestArea =
+        (entry.highestArea && entry.highestArea > 0
+          ? entry.highestArea
+          : !hasTxHighestArea && summary?.maxPriceByArea
+          ? (() => {
+              for (const [ak, av] of Object.entries(summary.maxPriceByArea)) {
+                if (parsePriceToManWon({ price: av }) === highestPrice) return parseFloat(ak) || 0;
+              }
+              return 0;
+            })()
+          : 0) || undefined;
+      const resolvedHighestAreaPyeong =
+        (entry.highestAreaPyeong && entry.highestAreaPyeong > 0
+          ? entry.highestAreaPyeong
+          : !hasTxHighestArea && !resolvedHighestArea
+          ? summary?.latestArea
+          : 0) || undefined;
+
+      const hasMaxPyeongTx = Boolean(entry.maxPyeongPrice && entry.maxPyeongPrice > 0);
+      const hasTxMaxPyeongArea = Boolean(
+        (entry.maxPyeongArea && entry.maxPyeongArea > 0) ||
+          (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0)
+      );
+      const resolvedMaxPyeongArea = hasMaxPyeongTx
+        ? (entry.maxPyeongArea && entry.maxPyeongArea > 0
+            ? entry.maxPyeongArea
+            : !hasTxMaxPyeongArea
+            ? resolvedHighestArea
+            : 0) || undefined
+        : resolvedHighestArea;
+      const resolvedMaxPyeongAreaPyeong = hasMaxPyeongTx
+        ? (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0
+            ? entry.maxPyeongAreaPyeong
+            : !hasTxMaxPyeongArea
+            ? resolvedHighestAreaPyeong
+            : 0) || undefined
+        : resolvedHighestAreaPyeong;
 
       return {
         aptKey: entry.aptKey,
@@ -1157,6 +1245,21 @@ export function computeComplexRankings(
         lowestPrice,
         urgentSaleDiscountRate: maxDiscountRate > 0 ? maxDiscountRate : undefined,
         isNewHigh: hasNewHigh,
+        highestPyeongPrice: entry.highestPyeongPrice || avgPyeongPrice,
+        highestContractDate: entry.highestContractDate || summary?.latestDate,
+        highestFloor: entry.highestFloor ?? summary?.latestFloor,
+        highestArea: resolvedHighestArea,
+        highestAreaPyeong: resolvedHighestAreaPyeong,
+        maxPyeongPrice: entry.maxPyeongPrice || entry.highestPyeongPrice || avgPyeongPrice,
+        maxPyeongTxPrice: entry.maxPyeongTxPrice || highestPrice,
+        maxPyeongContractDate: hasMaxPyeongTx
+          ? entry.maxPyeongContractDate || summary?.latestDate
+          : entry.highestContractDate || summary?.latestDate,
+        maxPyeongFloor: hasMaxPyeongTx
+          ? entry.maxPyeongFloor
+          : entry.highestFloor ?? summary?.latestFloor,
+        maxPyeongArea: resolvedMaxPyeongArea,
+        maxPyeongAreaPyeong: resolvedMaxPyeongAreaPyeong,
       };
     });
 
@@ -1324,17 +1427,39 @@ export function computeHyperlocalInsights(
   let newHighComplex: ComplexStatItem | null = null;
   if (newHighCandidates.length > 0) {
     newHighComplex = [...newHighCandidates].sort(
-      (a, b) => b.latestPrice - a.latestPrice
+      (a, b) => b.highestPrice - a.highestPrice || b.latestPrice - a.latestPrice
     )[0];
   }
 
-  // 2. optimalGapComplex: Highest jeonse ratio
-  const gapCandidates = complexStats.filter((c) => c.jeonseRatio > 0);
+  // 2. optimalGapComplex: Highest per-pyeong price complex (최고 평당가 대장 단지)
+  const pyeongCandidates = complexStats.filter(
+    (c) => (c.maxPyeongPrice || c.highestPyeongPrice || c.avgPyeongPrice) > 0
+  );
   let optimalGapComplex: ComplexStatItem | null = null;
-  if (gapCandidates.length > 0) {
-    optimalGapComplex = [...gapCandidates].sort(
-      (a, b) => b.jeonseRatio - a.jeonseRatio || b.txCount - a.txCount
+  if (pyeongCandidates.length > 0) {
+    const bestPyeong = [...pyeongCandidates].sort(
+      (a, b) =>
+        (b.maxPyeongPrice || b.highestPyeongPrice || b.avgPyeongPrice) -
+          (a.maxPyeongPrice || a.highestPyeongPrice || a.avgPyeongPrice) ||
+        b.avgPyeongPrice - a.avgPyeongPrice ||
+        b.highestPrice - a.highestPrice ||
+        b.txCount - a.txCount
     )[0];
+    const hasDistinctMaxPyeong = Boolean(bestPyeong.maxPyeongPrice && bestPyeong.maxPyeongPrice > 0);
+    optimalGapComplex = {
+      ...bestPyeong,
+      highestPyeongPrice:
+        bestPyeong.maxPyeongPrice || bestPyeong.highestPyeongPrice || bestPyeong.avgPyeongPrice,
+      highestPrice: bestPyeong.maxPyeongTxPrice || bestPyeong.highestPrice,
+      highestContractDate: hasDistinctMaxPyeong
+        ? bestPyeong.maxPyeongContractDate || bestPyeong.highestContractDate
+        : bestPyeong.highestContractDate,
+      highestFloor: hasDistinctMaxPyeong ? bestPyeong.maxPyeongFloor : bestPyeong.highestFloor,
+      highestArea: hasDistinctMaxPyeong ? bestPyeong.maxPyeongArea : bestPyeong.highestArea,
+      highestAreaPyeong: hasDistinctMaxPyeong
+        ? bestPyeong.maxPyeongAreaPyeong
+        : bestPyeong.highestAreaPyeong,
+    };
   } else if (complexStats.length > 0) {
     optimalGapComplex = complexStats[0];
   }
@@ -1531,6 +1656,17 @@ export function singlePassAggregate(
     maxDiscountRate: number;
     latestContractDate: string;
     latestPrice: number;
+    highestPyeongPrice?: number;
+    highestContractDate?: string;
+    highestFloor?: number | string;
+    highestArea?: number;
+    highestAreaPyeong?: number;
+    maxPyeongPrice?: number;
+    maxPyeongTxPrice?: number;
+    maxPyeongContractDate?: string;
+    maxPyeongFloor?: number | string;
+    maxPyeongArea?: number;
+    maxPyeongAreaPyeong?: number;
   }>();
 
   const monthlyGroups = new Map<
@@ -1664,6 +1800,17 @@ export function singlePassAggregate(
         maxDiscountRate: typeof txRecord.deltaPercent === 'number' && txRecord.deltaPercent <= -5.0 ? Math.abs(txRecord.deltaPercent) : 0,
         latestContractDate: cdStr,
         latestPrice: price,
+        highestPyeongPrice: pp,
+        highestContractDate: cdStr,
+        highestFloor: txRecord.floor,
+        highestArea: area,
+        highestAreaPyeong: areaP ?? 0,
+        maxPyeongPrice: pp,
+        maxPyeongTxPrice: price,
+        maxPyeongContractDate: cdStr,
+        maxPyeongFloor: txRecord.floor,
+        maxPyeongArea: area,
+        maxPyeongAreaPyeong: areaP ?? 0,
       };
       complexMap.set(groupKey, entry);
     } else {
@@ -1673,7 +1820,32 @@ export function singlePassAggregate(
       entry.count++;
       entry.sumPrice += price;
       entry.sumPyeongPrice += pp;
-      if (price > entry.maxPrice) entry.maxPrice = price;
+      if (
+        price > entry.maxPrice ||
+        (price === entry.maxPrice &&
+          (pp > (entry.highestPyeongPrice || 0) ||
+            (pp === (entry.highestPyeongPrice || 0) && cdStr > (entry.highestContractDate || ''))))
+      ) {
+        entry.maxPrice = price;
+        entry.highestPyeongPrice = pp;
+        entry.highestContractDate = cdStr;
+        entry.highestFloor = txRecord.floor;
+        entry.highestArea = area;
+        entry.highestAreaPyeong = areaP ?? 0;
+      }
+      if (
+        pp > (entry.maxPyeongPrice || 0) ||
+        (pp === entry.maxPyeongPrice &&
+          (price > (entry.maxPyeongTxPrice || 0) ||
+            (price === (entry.maxPyeongTxPrice || 0) && cdStr > (entry.maxPyeongContractDate || ''))))
+      ) {
+        entry.maxPyeongPrice = pp;
+        entry.maxPyeongTxPrice = price;
+        entry.maxPyeongContractDate = cdStr;
+        entry.maxPyeongFloor = txRecord.floor;
+        entry.maxPyeongArea = area;
+        entry.maxPyeongAreaPyeong = areaP ?? 0;
+      }
       if (price < entry.minPrice) entry.minPrice = price;
       if (entry.count === 1 || cdStr > entry.latestContractDate) {
         entry.latestContractDate = cdStr;
@@ -1850,6 +2022,17 @@ export function singlePassAggregate(
         maxDiscountRate: 0,
         latestContractDate: ldStr.substring(0, 8),
         latestPrice: sLatestPrice || sPrice,
+        highestPyeongPrice: sPyeongPrice,
+        highestContractDate: ldStr.substring(0, 8),
+        highestFloor: sumVal.latestFloor,
+        highestArea: 0,
+        highestAreaPyeong: sumVal.latestArea ?? 0,
+        maxPyeongPrice: sPyeongPrice,
+        maxPyeongTxPrice: sLatestPrice || sPrice,
+        maxPyeongContractDate: ldStr.substring(0, 8),
+        maxPyeongFloor: sumVal.latestFloor,
+        maxPyeongArea: 0,
+        maxPyeongAreaPyeong: sumVal.latestArea ?? 0,
       });
 
       seenComplexKeys.add(sumKey);
@@ -1904,6 +2087,47 @@ export function singlePassAggregate(
 
       const dong = entry.dong || '여울동';
       const itemRegion = getRegionFromDong(dong);
+      const hasTxHighestArea = Boolean(
+        (entry.highestArea && entry.highestArea > 0) ||
+          (entry.highestAreaPyeong && entry.highestAreaPyeong > 0)
+      );
+      const resolvedHighestArea =
+        (entry.highestArea && entry.highestArea > 0
+          ? entry.highestArea
+          : !hasTxHighestArea && summary?.maxPriceByArea
+          ? (() => {
+              for (const [ak, av] of Object.entries(summary.maxPriceByArea)) {
+                if (parsePriceToManWon({ price: av }) === highestPrice) return parseFloat(ak) || 0;
+              }
+              return 0;
+            })()
+          : 0) || undefined;
+      const resolvedHighestAreaPyeong =
+        (entry.highestAreaPyeong && entry.highestAreaPyeong > 0
+          ? entry.highestAreaPyeong
+          : !hasTxHighestArea && !resolvedHighestArea
+          ? summary?.latestArea
+          : 0) || undefined;
+
+      const hasMaxPyeongTx = Boolean(entry.maxPyeongPrice && entry.maxPyeongPrice > 0);
+      const hasTxMaxPyeongArea = Boolean(
+        (entry.maxPyeongArea && entry.maxPyeongArea > 0) ||
+          (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0)
+      );
+      const resolvedMaxPyeongArea = hasMaxPyeongTx
+        ? (entry.maxPyeongArea && entry.maxPyeongArea > 0
+            ? entry.maxPyeongArea
+            : !hasTxMaxPyeongArea
+            ? resolvedHighestArea
+            : 0) || undefined
+        : resolvedHighestArea;
+      const resolvedMaxPyeongAreaPyeong = hasMaxPyeongTx
+        ? (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0
+            ? entry.maxPyeongAreaPyeong
+            : !hasTxMaxPyeongArea
+            ? resolvedHighestAreaPyeong
+            : 0) || undefined
+        : resolvedHighestAreaPyeong;
 
       return {
         aptKey: entry.aptKey,
@@ -1919,6 +2143,21 @@ export function singlePassAggregate(
         lowestPrice,
         urgentSaleDiscountRate: maxDiscountRate > 0 ? maxDiscountRate : undefined,
         isNewHigh: hasNewHigh,
+        highestPyeongPrice: entry.highestPyeongPrice || avgPyeong,
+        highestContractDate: entry.highestContractDate || summary?.latestDate,
+        highestFloor: entry.highestFloor ?? summary?.latestFloor,
+        highestArea: resolvedHighestArea,
+        highestAreaPyeong: resolvedHighestAreaPyeong,
+        maxPyeongPrice: entry.maxPyeongPrice || entry.highestPyeongPrice || avgPyeong,
+        maxPyeongTxPrice: entry.maxPyeongTxPrice || highestPrice,
+        maxPyeongContractDate: hasMaxPyeongTx
+          ? entry.maxPyeongContractDate || summary?.latestDate
+          : entry.highestContractDate || summary?.latestDate,
+        maxPyeongFloor: hasMaxPyeongTx
+          ? entry.maxPyeongFloor
+          : entry.highestFloor ?? summary?.latestFloor,
+        maxPyeongArea: resolvedMaxPyeongArea,
+        maxPyeongAreaPyeong: resolvedMaxPyeongAreaPyeong,
       };
     });
 
@@ -2016,7 +2255,7 @@ export function singlePassAggregate(
     },
   ];
 
-  const insights = computeHyperlocalInsights(pyeongRankings, transactions, summaryMap);
+  const insights = computeHyperlocalInsights(complexStats, transactions, summaryMap);
 
   return {
     totalVolume,

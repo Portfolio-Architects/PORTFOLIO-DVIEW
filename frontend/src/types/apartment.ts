@@ -149,6 +149,14 @@ export interface LocationScoreItem {
   distanceToOliveYoung?: number;
   distanceToIndeokwon?: number;
   distanceToTram?: number;
+  nearestSchoolNames?: {
+    elementary?: string;
+    middle?: string;
+    high?: string;
+  };
+  nearestStationCoords?: string;
+  nearestStationName?: string;
+  nearestStationLine?: string;
   [key: string]: unknown;
 }
 

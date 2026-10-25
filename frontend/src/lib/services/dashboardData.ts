@@ -44,6 +44,15 @@ export async function getInitialData(): Promise<InitialPageDataWithScores> {
   const cache = globalThis._initialPageDataCache;
 
   if (cache) {
+    if (process.env.NODE_ENV === 'development') {
+      const freshRecent = await readJsonFileCached<z.infer<typeof RecentTransactionSchema>[]>(
+        'public/data/recent-transactions.json',
+        cache.data.recentTransactions ?? []
+      );
+      if (Array.isArray(freshRecent) && freshRecent.length > 0) {
+        cache.data.recentTransactions = freshRecent;
+      }
+    }
     const isStale = (now - cache.timestamp) > PAGE_DATA_CACHE_TTL * 1000;
     if (isStale && !isRefreshingPageData) {
       isRefreshingPageData = true;

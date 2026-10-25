@@ -12,6 +12,73 @@ export interface HyperlocalInsightCardsProps {
   className?: string;
 }
 
+function formatContractDateShort(rawDate?: string): string {
+  if (!rawDate) return '';
+  const digits = String(rawDate).replace(/[^0-9]/g, '');
+  if (digits.length >= 8) {
+    const yy = digits.substring(2, 4);
+    const mm = digits.substring(4, 6);
+    const dd = digits.substring(6, 8);
+    return `${yy}.${mm}.${dd}`;
+  }
+  return rawDate;
+}
+
+function formatHighestSpecMeta(item: ComplexStatItem, preferMaxPyeong = false): string {
+  const parts: string[] = [];
+  if (item.dong) {
+    parts.push(item.dong);
+  }
+
+  const hasMaxPyeongArea = Boolean(
+    preferMaxPyeong &&
+      ((item.maxPyeongArea && item.maxPyeongArea > 0) ||
+        (item.maxPyeongAreaPyeong && item.maxPyeongAreaPyeong > 0))
+  );
+  const rawAreaPyeong = hasMaxPyeongArea ? item.maxPyeongAreaPyeong : item.highestAreaPyeong;
+  const rawArea = hasMaxPyeongArea ? item.maxPyeongArea : item.highestArea;
+  const rawFloor =
+    preferMaxPyeong && item.maxPyeongPrice && item.maxPyeongPrice > 0
+      ? item.maxPyeongFloor !== undefined
+        ? item.maxPyeongFloor
+        : item.maxPyeongTxPrice && item.maxPyeongTxPrice !== item.highestPrice
+        ? undefined
+        : item.highestFloor
+      : item.highestFloor;
+  const rawContractDate = preferMaxPyeong
+    ? item.maxPyeongContractDate || item.highestContractDate
+    : item.highestContractDate;
+
+  const pyeong =
+    rawAreaPyeong && rawAreaPyeong > 0
+      ? Math.round(rawAreaPyeong)
+      : rawArea && rawArea > 0
+      ? Math.round(rawArea / 3.30578)
+      : 0;
+  const areaM2 = rawArea && rawArea > 0 ? Math.round(rawArea) : 0;
+
+  if (pyeong > 0 && areaM2 > 0) {
+    parts.push(`${pyeong}평(${areaM2}㎡)`);
+  } else if (pyeong > 0) {
+    parts.push(`${pyeong}평형`);
+  } else if (areaM2 > 0) {
+    parts.push(`${areaM2}㎡`);
+  } else if (item.region) {
+    parts.push(item.region);
+  }
+
+  if (rawFloor !== undefined && rawFloor !== null && rawFloor !== '') {
+    parts.push(`${rawFloor}층`);
+  }
+
+  const shortDate = formatContractDateShort(rawContractDate);
+  if (shortDate) {
+    parts.push(`${shortDate} 거래`);
+  }
+
+  return parts.join(' · ');
+}
+
 export function HyperlocalInsightCards({
   insights,
   onSelectComplex,
@@ -21,42 +88,74 @@ export function HyperlocalInsightCards({
 }: HyperlocalInsightCardsProps) {
   const { newHighComplex, optimalGapComplex, volumeSurgeComplex, urgentBargainComplex } = insights;
 
+  const newHighPyeongPrice =
+    newHighComplex?.highestPyeongPrice || newHighComplex?.avgPyeongPrice || 0;
+  const newHighDateBadge = formatContractDateShort(newHighComplex?.highestContractDate);
+
+  const topPyeongPrice =
+    optimalGapComplex?.maxPyeongPrice ||
+    optimalGapComplex?.highestPyeongPrice ||
+    optimalGapComplex?.avgPyeongPrice ||
+    0;
+  const topPyeongTotalPrice =
+    optimalGapComplex?.maxPyeongTxPrice ||
+    optimalGapComplex?.highestPrice ||
+    optimalGapComplex?.avgPrice ||
+    0;
+  const topPyeongDateBadge = formatContractDateShort(
+    optimalGapComplex?.maxPyeongContractDate || optimalGapComplex?.highestContractDate
+  );
+
   return (
     <div
       data-testid="stats-hyperlocal-insights"
       className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 ${className ?? 'mb-8'}`}
     >
-      {/* 1. 신고가 갱신 단지 */}
+      {/* 1. 최고 거래가 단지 */}
       <div
         data-testid="insight-card-new-high"
         onClick={() => newHighComplex && onSelectComplex?.(newHighComplex.aptKey, newHighComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-800 shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
       >
         <div>
-          <div className="flex items-center justify-between mb-2">
-            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/40">
-              신고가 갱신
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400">
+              최고 거래가
             </span>
+            {newHighDateBadge && (
+              <span className="text-[11px] font-bold font-mono tabular-nums text-tertiary">
+                {newHighDateBadge} 계약
+              </span>
+            )}
           </div>
-          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-1">
+          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-1">
             {newHighComplex?.aptName || '해당 없음'}
           </h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {newHighComplex ? `${newHighComplex.dong} · ${newHighComplex.region}` : '최근 90일 거래 없음'}
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+            {newHighComplex ? formatHighestSpecMeta(newHighComplex) : '최근 거래 내역 없음'}
           </p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-emerald-100/80 dark:border-emerald-900/30 flex items-baseline justify-between">
-          <span className="text-[11px] font-bold text-slate-400">최고 체결가</span>
-          <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
-            {newHighComplex?.highestPrice
-              ? `${newHighComplex.highestPrice.toLocaleString()}만원`
-              : '-'}
-          </p>
+        <div className="mt-4 pt-3 border-t border-border flex items-end justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-[11px] font-bold text-slate-400">최고 거래가</span>
+            {newHighPyeongPrice > 0 && (
+              <span className="text-[11px] font-semibold font-mono tabular-nums text-secondary mt-0.5">
+                평당 {newHighPyeongPrice.toLocaleString()}만원
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col items-end">
+            <p className="text-sm sm:text-base font-black font-mono tabular-nums text-blue-600 dark:text-blue-400">
+              {newHighComplex?.highestPrice
+                ? `${formatPriceEok(newHighComplex.highestPrice)} (${newHighComplex.highestPrice.toLocaleString()}만원)`
+                : '-'}
+            </p>
+          </div>
         </div>
       </div>
 
-      {/* 2. 전세가율·갭 최적 단지 */}
+      {/* 2. 최고 평당가 단지 */}
       <div
         data-testid="insight-card-optimal-gap"
         onClick={() => {
@@ -68,27 +167,45 @@ export function HyperlocalInsightCards({
             }
           }
         }}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-800 shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
       >
         <div>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between gap-2 mb-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300">
-              전세가율 최적
+              최고 평당가
             </span>
+            {topPyeongDateBadge && (
+              <span className="text-[11px] font-bold font-mono tabular-nums text-tertiary">
+                {topPyeongDateBadge} 계약
+              </span>
+            )}
           </div>
-          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 transition-colors line-clamp-1">
+          <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors line-clamp-1">
             {optimalGapComplex?.aptName || '해당 없음'}
           </h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {optimalGapComplex ? `${optimalGapComplex.dong} · 매매 ${formatPriceEok(optimalGapComplex.avgPrice)}` : '전세 데이터 없음'}
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 truncate">
+            {optimalGapComplex
+              ? formatHighestSpecMeta(optimalGapComplex, true)
+              : '최근 거래 내역 없음'}
           </p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-emerald-100/80 dark:border-emerald-900/30 flex items-baseline justify-between">
-          <span className="text-[11px] font-bold text-slate-400">전세가율</span>
-          <p className="text-sm sm:text-base font-black text-emerald-600 dark:text-emerald-400">
-            {optimalGapComplex?.jeonseRatio ? `${optimalGapComplex.jeonseRatio}%` : '-'}
-          </p>
+        <div className="mt-4 pt-3 border-t border-border flex items-end justify-between gap-2">
+          <div className="flex flex-col">
+            <span className="text-[11px] font-bold text-slate-400">최고 평당가</span>
+            {topPyeongTotalPrice > 0 && (
+              <span className="text-[11px] font-semibold font-mono tabular-nums text-secondary mt-0.5">
+                매매 {formatPriceEok(topPyeongTotalPrice)} ({topPyeongTotalPrice.toLocaleString()}만원)
+              </span>
+            )}
+          </div>
+          <div className="flex flex-col items-end">
+            <p className="text-sm sm:text-base font-black font-mono tabular-nums text-emerald-600 dark:text-emerald-400">
+              {topPyeongPrice > 0
+                ? `평당 ${topPyeongPrice.toLocaleString()}만원`
+                : '-'}
+            </p>
+          </div>
         </div>
       </div>
 
@@ -96,7 +213,7 @@ export function HyperlocalInsightCards({
       <div
         data-testid="insight-card-volume-surge"
         onClick={() => volumeSurgeComplex && onSelectComplex?.(volumeSurgeComplex.aptKey, volumeSurgeComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-blue-300 dark:hover:border-blue-800 shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -107,14 +224,14 @@ export function HyperlocalInsightCards({
           <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors line-clamp-1">
             {volumeSurgeComplex?.aptName || '해당 없음'}
           </h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {volumeSurgeComplex ? `${volumeSurgeComplex.dong} · 평당 ${volumeSurgeComplex.avgPyeongPrice.toLocaleString()}만` : '거래 데이터 없음'}
           </p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-blue-100/80 dark:border-blue-900/30 flex items-baseline justify-between">
+        <div className="mt-4 pt-3 border-t border-border flex items-baseline justify-between">
           <span className="text-[11px] font-bold text-slate-400">체결 건수</span>
-          <p className="text-sm sm:text-base font-black text-blue-600 dark:text-blue-400">
+          <p className="text-sm sm:text-base font-black font-mono tabular-nums text-blue-600 dark:text-blue-400">
             {volumeSurgeComplex?.txCount ? `${volumeSurgeComplex.txCount}건` : '-'}
           </p>
         </div>
@@ -132,7 +249,7 @@ export function HyperlocalInsightCards({
             }
           }
         }}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900 hover:border-red-300 dark:hover:border-red-900 shadow-xs hover:shadow-md transition-all cursor-pointer"
+        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
       >
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -143,16 +260,16 @@ export function HyperlocalInsightCards({
           <h4 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white group-hover:text-red-600 transition-colors line-clamp-1">
             {urgentBargainComplex?.aptName || '해당 없음'}
           </h4>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
             {urgentBargainComplex
               ? `${urgentBargainComplex.dong} · 고점 ${formatPriceEok(urgentBargainComplex.highestPrice)}`
               : '급매 데이터 없음'}
           </p>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-red-100/80 dark:border-red-900/30 flex items-baseline justify-between">
+        <div className="mt-4 pt-3 border-t border-border flex items-baseline justify-between">
           <span className="text-[11px] font-bold text-slate-400">고점 대비 할인율</span>
-          <p className="text-sm sm:text-base font-black text-red-600 dark:text-red-400">
+          <p className="text-sm sm:text-base font-black font-mono tabular-nums text-red-600 dark:text-red-400">
             {urgentBargainComplex?.urgentSaleDiscountRate
               ? `-${urgentBargainComplex.urgentSaleDiscountRate}%`
               : '-'}

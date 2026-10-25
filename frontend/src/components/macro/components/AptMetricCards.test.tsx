@@ -3,11 +3,11 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { AptMetricCards } from './AptMetricCards';
 
-jest.mock('@/lib/preload', () => ({
+jest.mock('@/components/common/ComponentPreloader', () => ({
   preloadApartmentModal: jest.fn(),
 }));
 
-import { preloadApartmentModal } from '@/lib/preload';
+import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
 
 describe('AptMetricCards Test Suite', () => {
   const mockRecentTransactions = [

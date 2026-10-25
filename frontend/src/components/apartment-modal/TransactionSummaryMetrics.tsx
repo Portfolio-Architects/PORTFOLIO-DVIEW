@@ -3,6 +3,7 @@ import { BarChart3 } from 'lucide-react';
 import { normalizeAptName, findTypeMapEntry } from '@/lib/utils/apartmentMapping';
 import { useSettingsValues } from '@/contexts/SettingsContext';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 interface TransactionRecord {
   dong: string;
@@ -283,9 +284,9 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 aria-label="기준 설명"
               >?</button>
             </h3>
-            <div className="bg-body p-1 rounded-lg flex items-center shadow-inner ml-2">
-              <button onClick={() => setPeriodDealType('sale')} className={`px-3.5 py-1.5 rounded-md text-[13px] md:text-[14px] font-bold transition-all ${periodDealType === 'sale' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>매매</button>
-              <button onClick={() => setPeriodDealType('jeonse')} className={`px-3.5 py-1.5 rounded-md text-[13px] md:text-[14px] font-bold transition-all ${periodDealType === 'jeonse' ? 'bg-surface text-primary shadow-[0_1px_3px_rgba(0,0,0,0.1)]' : 'text-tertiary hover:text-secondary'}`}>전월세</button>
+            <div className={getToggleTrackClass('ml-2')}>
+              <button onClick={() => setPeriodDealType('sale')} className={getToggleBtnClass({ active: periodDealType === 'sale' })}>매매</button>
+              <button onClick={() => setPeriodDealType('jeonse')} className={getToggleBtnClass({ active: periodDealType === 'jeonse' })}>전월세</button>
             </div>
           </div>
           {showPriceHelp && (

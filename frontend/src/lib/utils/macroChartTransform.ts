@@ -1,4 +1,4 @@
-import type { DongtanMacroTrendPoint } from "@/lib/types/transaction";
+import type { DongtanMacroTrendPoint } from "@/types/transaction";
 
 export interface FormattedMacroPoint extends Record<string, unknown> {
   name: string;

@@ -1,6 +1,6 @@
 import React, { memo } from 'react';
 import { EnrichedApt } from './types';
-import { preloadApartmentModal } from '@/lib/preload';
+import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 
 interface AptRowProps {
@@ -122,7 +122,7 @@ export const AptRow = memo(({
           preloadApartmentModal();
         }}
         onClick={() => handleSelectApt(item.apt.name)}
-        className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 border border-border hover:border-blue-500/30 rounded-2xl bg-surface hover:bg-slate-50/40 dark:hover:bg-slate-900/20 transition-all cursor-pointer shadow-xs relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
+        className="group flex flex-col md:flex-row items-stretch md:items-center justify-between p-4 md:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer relative overflow-hidden w-full text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50"
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Rank Badge */}
@@ -172,17 +172,17 @@ export const AptRow = memo(({
 
             <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] font-bold text-tertiary select-none">
               {item.totalPrice > 0 && (
-                <span className="bg-slate-50 dark:bg-slate-800/40 px-2.5 py-1 rounded-lg border border-border/30 text-secondary">
+                <span className="bg-surface px-2.5 py-1 rounded-lg text-secondary">
                   평당 <strong className="text-primary font-black font-mono tabular-nums">{item.formattedPyeong}</strong> · 평균 매매 <strong className="text-secondary font-black font-mono tabular-nums">{item.formattedPrice}</strong>
                 </span>
               )}
               {item.jeonsePrice > 0 && (
-                <span className="bg-slate-50 dark:bg-slate-800/40 px-2.5 py-1 rounded-lg border border-border/30 text-secondary">
+                <span className="bg-surface px-2.5 py-1 rounded-lg text-secondary">
                   전세 <strong className="text-secondary font-black font-mono tabular-nums">{item.formattedJeonse}</strong> (전세가율 {item.formattedRatio})
                 </span>
               )}
               {item.volume3M > 0 && (
-                <span className="bg-slate-50 dark:bg-slate-800/40 px-2.5 py-1 rounded-lg border border-border/30 text-secondary">
+                <span className="bg-surface px-2.5 py-1 rounded-lg text-secondary">
                   3개월 거래 <strong className="text-secondary font-black font-mono tabular-nums">{item.formattedVolume}</strong> (회전율 {item.formattedTurnover || '0%'})
                 </span>
               )}
@@ -196,7 +196,7 @@ export const AptRow = memo(({
         {/* Right Side Metric and Action Button */}
         <div className="flex md:flex-col items-end justify-between md:justify-center gap-2.5 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 border-dashed shrink-0 pl-0 md:pl-6 md:w-40">
           {renderRightMetric()}
-          <span className="text-[12px] font-extrabold text-secondary bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-border/40 group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-200/40 transition-all">
+          <span className="text-[12px] font-extrabold text-secondary bg-surface px-3 py-1.5 rounded-xl group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             상세 분석
           </span>
         </div>

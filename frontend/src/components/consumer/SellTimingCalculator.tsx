@@ -7,7 +7,7 @@ import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '@/lib/firebaseConfig';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { DongApartment } from '@/lib/dong-apartments';
-import { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary } from '@/types/transaction';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { calculateVerdictScore, calculateCapitalGainsTax, VerdictResult, TaxResult } from '@/lib/utils/sellTimingEngine';
 import { shareSellTimingToKakao } from '@/lib/utils/kakaoShare';
@@ -71,20 +71,37 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
   const { showToast } = usePWA();
   const allApartments = useMemo(() => {
     const map = new Map<string, DongApartment & { normalizedName: string }>();
+    const seenKeys = new Set<string>();
     for (const apt of Object.values(sheetApartments || {}).flat()) {
-      const norm = normalizeAptName(apt.name);
-      if (norm && !map.has(norm)) {
-        map.set(norm, { ...apt, normalizedName: norm });
+      const displayName = getDisplayAptName(apt.name);
+      const norm = normalizeAptName(displayName);
+      const rawNorm = normalizeAptName(apt.name);
+      if (norm && !map.has(norm) && !seenKeys.has(displayName)) {
+        map.set(norm, { ...apt, name: displayName, normalizedName: norm });
+        seenKeys.add(displayName);
+        seenKeys.add(norm);
+        if (rawNorm) seenKeys.add(rawNorm);
       }
     }
     for (const [txKey, summary] of Object.entries(txSummaryData || {})) {
-      const norm = normalizeAptName(txKey);
-      if (norm && !map.has(norm)) {
+      const displayName = getDisplayAptName(txKey);
+      const norm = normalizeAptName(displayName);
+      const rawNorm = normalizeAptName(txKey);
+      if (
+        norm &&
+        !map.has(norm) &&
+        !seenKeys.has(displayName) &&
+        !seenKeys.has(norm) &&
+        (!rawNorm || !seenKeys.has(rawNorm))
+      ) {
         map.set(norm, {
-          name: getDisplayAptName(txKey),
+          name: displayName,
           dong: summary?.dong || '동탄',
           normalizedName: norm,
         });
+        seenKeys.add(displayName);
+        seenKeys.add(norm);
+        if (rawNorm) seenKeys.add(rawNorm);
       }
     }
     return Array.from(map.values());

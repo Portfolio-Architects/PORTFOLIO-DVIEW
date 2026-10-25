@@ -5,8 +5,8 @@
  * Architecture Layer: Domain Utilities (`src/lib/utils/`)
  */
 
-import type { AptTxSummary } from '@/lib/types/transaction';
-import type { LocationScore } from '@/lib/services/apartmentPageService';
+import type { AptTxSummary } from '@/types/transaction';
+import type { LocationScore } from '@/types/apartment';
 
 export interface TransactionRecord {
   contractYm: string;

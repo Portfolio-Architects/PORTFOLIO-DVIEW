@@ -3,7 +3,7 @@ import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
 import { logger } from "@/lib/services/logger";
-import { preloadApartmentModal } from "@/lib/preload";
+import { preloadApartmentModal } from "@/components/common/ComponentPreloader";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint, FieldReportData } from "@/types";
 import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
@@ -281,10 +281,10 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-3 xs:p-3.5 sm:p-4 rounded-xl transition-[background-color,border-color,transform] duration-150 ease-out border w-full max-w-full box-border ${
+      className={`flex items-center justify-between p-3 xs:p-3.5 sm:p-4 rounded-2xl transition-[background-color,transform] duration-150 ease-out w-full max-w-full box-border ${
         isSelected
-          ? "border-blue-600 bg-blue-50/60 dark:bg-blue-950/30 shadow-xs"
-          : "bg-body hover:bg-slate-50 dark:hover:bg-slate-900/40 border-transparent hover:border-border"
+          ? "ring-2 ring-blue-600/30 bg-blue-50/70 dark:bg-blue-950/30"
+          : "bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80"
       } group gap-2 sm:gap-3`}
     >
 
@@ -425,7 +425,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             onDetailsClick(item.aptName);
           }}
           onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-          className="px-2 xs:px-2.5 py-1.5 min-h-[32px] rounded-lg bg-surface hover:bg-slate-50 dark:hover:bg-slate-800 border border-border hover:border-slate-300 dark:hover:border-slate-700 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-primary transition-[background-color,border-color,color,transform] duration-150 ease-out active:scale-95 cursor-pointer shadow-sm shrink-0 outline-none focus:ring-2 focus:ring-emerald-500/50 whitespace-nowrap"
+          className="px-2.5 py-1.5 min-h-[32px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
         >
           상세
         </button>
@@ -1534,20 +1534,20 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Responsive Above-the-Fold Financial Quick Action Bar (4-Column Full-Width Balanced Grid) */}
         <div
           data-testid="hero-finance-quick-bar"
-          className="w-full p-2 sm:p-2.5 mb-3.5 rounded-2xl bg-surface border border-border/80 shadow-2xs min-w-0 box-border"
+          className="w-full pb-3.5 mb-4 border-b border-border bg-surface min-w-0 box-border"
         >
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5 w-full">
             <button
               type="button"
               data-testid="hero-quick-mortgage"
               onClick={() => { trackEvent('hero_quick_click', { button: 'mortgage', apt_name: selectedTimelineApt || undefined }); handleOpenMortgage(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
               <span className="flex items-center gap-1.5 min-w-0 truncate">
 
                 <span className="truncate">주담대 최저금리·한도</span>
               </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
                 <span>DSR·LTV</span>
 
               </span>
@@ -1556,13 +1556,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               type="button"
               data-testid="hero-quick-jeonse"
               onClick={() => { trackEvent('hero_quick_click', { button: 'jeonse_safety', apt_name: selectedTimelineApt || undefined }); handleOpenJeonseSafety(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
               <span className="flex items-center gap-1.5 min-w-0 truncate">
 
                 <span className="truncate">전세보증 안전진단</span>
               </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
                 <span>HUG 126%</span>
 
               </span>
@@ -1571,13 +1571,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               type="button"
               data-testid="hero-quick-tax"
               onClick={() => { trackEvent('hero_quick_click', { button: 'property_tax', apt_name: selectedTimelineApt || undefined }); handleOpenTaxCalculator(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
               <span className="flex items-center gap-1.5 min-w-0 truncate">
 
                 <span className="truncate">취득세·중개보수</span>
               </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
                 <span>부대비용</span>
 
               </span>
@@ -1586,13 +1586,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               type="button"
               data-testid="hero-quick-sell"
               onClick={() => { trackEvent('hero_quick_click', { button: 'sell_timing', apt_name: selectedTimelineApt || undefined }); handleOpenSellTiming(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary border border-border/70 text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
+              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
             >
               <span className="flex items-center gap-1.5 min-w-0 truncate">
 
                 <span className="truncate">양도세·매도타이밍</span>
               </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium text-tertiary group-hover:text-secondary shrink-0">
+              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
                 <span>갈아타기</span>
 
               </span>
@@ -1601,9 +1601,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         </div>
 
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6 items-stretch box-border">
+        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-6 mb-6 border-b border-border items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] justify-between box-border">
+          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] lg:border-r lg:border-border lg:pr-6 justify-between box-border">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}

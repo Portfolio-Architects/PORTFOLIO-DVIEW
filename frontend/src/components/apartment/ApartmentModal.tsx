@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
@@ -360,7 +360,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   isLoadingDetail?: boolean;
   isAdmin?: boolean;
   inline?: boolean;
-  txSummary?: import('@/lib/types/transaction').AptTxSummary;
+  txSummary?: import('@/types/transaction').AptTxSummary;
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
   onSelectApartment?: (aptName: string, dong?: string) => void;
@@ -372,8 +372,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
   isTxLoading?: boolean;
   sheetApartments?: Record<string, import('@/lib/dong-apartments').DongApartment[]>;
   nameMapping?: Record<string, string>;
-  txSummaryData?: Record<string, import('@/lib/types/transaction').AptTxSummary>;
-  locationScores?: Record<string, import('@/lib/types/transaction').LocationScoreItem>;
+  txSummaryData?: Record<string, import('@/types/transaction').AptTxSummary>;
+  locationScores?: Record<string, import('@/types/transaction').LocationScoreItem>;
 }) {
   const handleModalClose = useCallback(() => {
     if (!inline) {
@@ -1228,7 +1228,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <div 
           data-testid="apartment-ad-slot-ch02"
           ref={ch02AdContainerRef}
-          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-[20px] border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 flex flex-col justify-center items-center shadow-sm overflow-hidden"
+          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl p-4 sm:p-5 flex flex-col justify-center items-center overflow-hidden"
         >
           <AdSlot 
             slotId="1000000002"
@@ -1248,7 +1248,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           data-testid="chapter-03-gap"
           className="scroll-mt-14 snap-start w-full"
         >
-          <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border flex flex-col gap-5`}>
+          <div className="bg-surface py-5 md:py-6 border-b border-border flex flex-col gap-5">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <h2 className="text-[18px] md:text-[20px] font-bold text-primary flex items-center gap-2">
                 <Layers size={20} className="text-blue-600 dark:text-blue-400" />
@@ -1263,7 +1263,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
             {isChapterMounted('chapter-03-gap') ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-                <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between">
                   <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
                   <div className="mt-2 text-right">
                     <span className="text-[20px] font-black text-toss-blue tabular-nums">
@@ -1275,7 +1275,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </div>
                 </div>
 
-                <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm">
+                <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between">
                   <span className="text-[12px] font-bold text-tertiary">실거래 전세가율</span>
                   <div className="mt-2 text-right">
                     <span className="text-[20px] font-black text-blue-600 dark:text-blue-400 tabular-nums">
@@ -1285,7 +1285,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </div>
                 </div>
 
-                <div className="bg-body border border-border/80 rounded-2xl p-4.5 flex flex-col justify-between shadow-sm sm:col-span-2 md:col-span-1">
+                <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between sm:col-span-2 md:col-span-1">
                   <span className="text-[12px] font-bold text-tertiary">DCF 밸류에이션 판정</span>
                   <div className="mt-2 text-right">
                     <span className={`text-[18px] font-black tabular-nums ${
@@ -1370,7 +1370,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
               {/* Jeonse Safety Section */}
               {jeonseSafetyData && (
-                <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border`}>
+                <div className="bg-surface py-5 md:py-6 border-b border-border">
                   <div className="flex flex-col w-full">
                     <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                       <ShieldAlert size={18} className="text-blue-600 dark:text-blue-400"/> 전세 안전성 진단 리포트 & 주담대 LDI
@@ -1444,7 +1444,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <div 
           data-testid="apartment-ad-slot-ch05"
           ref={ch05AdContainerRef}
-          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl rounded-[20px] border border-slate-200/80 dark:border-slate-800/80 p-4 sm:p-5 flex flex-col justify-center items-center shadow-sm overflow-hidden"
+          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl p-4 sm:p-5 flex flex-col justify-center items-center overflow-hidden"
         >
           <AdSlot 
             slotId="1000000002"
@@ -1515,7 +1515,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 };
                 const allTags = ['전체', ...Array.from(new Set(report.images.map(img => img.locationTag || '기타')))];
                 return (
-                  <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm overflow-hidden relative`}>
+                  <div className="bg-surface py-5 md:py-6 border-b border-border overflow-hidden relative">
                     <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
                       <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
                       <button 
@@ -1539,11 +1539,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   </div>
                 );
               })() : (
-                <div className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm overflow-hidden relative group`}>
+                <div className="bg-surface py-5 md:py-6 border-b border-border overflow-hidden relative group">
                   <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
                     <Camera size={20} className="text-blue-600 dark:text-blue-400"/> 우리 단지 갤러리
                   </h2>
-                  <div className="w-full relative overflow-hidden rounded-[20px] bg-gradient-to-br from-[#f8f9fa] to-[#f2f4f6] border border-border/40 dark:border-white/10 shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-8 md:p-12 flex flex-col items-center justify-center min-h-[300px]">
+                  <div className="w-full relative overflow-hidden rounded-2xl bg-elevated p-8 md:p-12 flex flex-col items-center justify-center min-h-[280px]">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-blue-600 mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform translate-x-1/2 -translate-y-1/2" />
                     <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-600 mix-blend-multiply filter blur-[80px] opacity-[0.03] rounded-full transform -translate-x-1/2 translate-y-1/2" />
                     <div className="w-16 h-16 bg-surface shadow-[0_4px_12px_rgba(0,0,0,0.03)] border border-border/40 dark:border-white/10 rounded-[20px] flex items-center justify-center mb-5 relative z-10">

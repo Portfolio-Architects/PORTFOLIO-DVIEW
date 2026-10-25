@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import useSWR from 'swr';
 import type { FieldReportData } from '@/lib/DashboardFacade';
-import type { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary } from '@/types/transaction';
 import { MACRO_CONFIG } from '@/lib/macro-summary';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';

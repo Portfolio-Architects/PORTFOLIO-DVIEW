@@ -9,7 +9,7 @@ import {
   doc, updateDoc, increment, deleteDoc, getDocs, getDoc
 } from 'firebase/firestore';
 import { logger } from '@/lib/services/logger';
-import type { UserReview } from '@/lib/types/review.types';
+import type { UserReview } from '@/types/review';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { formatTimestamp } from '@/lib/utils/date';

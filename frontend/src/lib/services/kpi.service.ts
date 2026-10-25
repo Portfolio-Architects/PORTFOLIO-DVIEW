@@ -4,7 +4,7 @@
  * Architecture Layer: Service (business logic, no I/O)
  */
 
-import type { KPIData } from '@/lib/types/dashboard.types';
+import type { KPIData } from '@/types/dashboard';
 import { logger } from '@/lib/services/logger';
 import { KPIDataSchema, FakePriceDataSchema } from '@/lib/validation/facade.schemas';
 

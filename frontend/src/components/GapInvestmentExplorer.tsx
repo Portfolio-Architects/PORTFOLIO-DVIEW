@@ -19,7 +19,7 @@ import {
   Info
 } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
-import { AptTxSummary } from '@/lib/types/transaction';
+import type { AptTxSummary } from '@/types/transaction';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
 import { usePWA } from '@/components/pwa/PWAProvider';
 

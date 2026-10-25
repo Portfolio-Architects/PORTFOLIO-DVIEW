@@ -2,9 +2,8 @@
 
 import React, { useState, useMemo, useEffect, useRef, useDeferredValue, useCallback } from 'react';
 import type { DongApartment } from '@/lib/dong-apartments';
-import type { AptTxSummary, LocationScoreItem } from '@/lib/types/transaction';
-import type { FieldReportData } from '@/lib/types/report.types';
-import type { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import type { AptTxSummary, LocationScoreItem } from '@/types/transaction';
+import type { FieldReportData, ObjectiveMetrics } from '@/types/report';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
@@ -310,9 +309,18 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     initialChartType = 'sale',
   } = options;
 
-  // Flattened all apartments
+  // Flattened all apartments (deduplicated by display name)
   const allApartments = useMemo(() => {
-    return Object.values(sheetApartments).flat();
+    const seen = new Set<string>();
+    const result: DongApartment[] = [];
+    for (const apt of Object.values(sheetApartments).flat()) {
+      const displayName = getDisplayAptName(apt.name);
+      if (displayName && !seen.has(displayName)) {
+        seen.add(displayName);
+        result.push({ ...apt, name: displayName });
+      }
+    }
+    return result;
   }, [sheetApartments]);
 
   // Selected apartment states

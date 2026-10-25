@@ -1,6 +1,11 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import {
+  DVIEW_CONTROL_CLASSES,
+  getToggleTrackClass,
+  type ControlSize,
+} from '@/lib/design-system/controls';
 
 interface Option<T> {
   label: string;
@@ -13,6 +18,7 @@ interface SegmentedControlProps<T> {
   onChange: (value: T) => void;
   className?: string;
   disabled?: boolean;
+  size?: ControlSize;
 }
 
 function SegmentedControlInner<T extends string | number>({
@@ -21,6 +27,7 @@ function SegmentedControlInner<T extends string | number>({
   onChange,
   className = '',
   disabled = false,
+  size = 'md',
 }: SegmentedControlProps<T>) {
   const [sliderStyle, setSliderStyle] = useState<React.CSSProperties>({});
   const containerRef = useRef<HTMLDivElement>(null);
@@ -49,7 +56,7 @@ function SegmentedControlInner<T extends string | number>({
           const activeRect = activeTabRef.current.getBoundingClientRect();
           const containerRect = containerRef.current.getBoundingClientRect();
           
-          const left = activeRect.left - containerRect.left;
+          const left = activeRect.left - containerRect.left + containerRef.current.scrollLeft;
           const width = activeRect.width;
           
           setSliderStyle({
@@ -74,14 +81,16 @@ function SegmentedControlInner<T extends string | number>({
   return (
     <div
       ref={containerRef}
-      className={`relative flex bg-[#f2f4f6] dark:bg-[#151b26]/50 p-0.5 rounded-xl shrink-0 overflow-hidden shadow-inner select-none ${
-        disabled ? 'opacity-60 pointer-events-none' : ''
-      } ${className}`}
+      className={getToggleTrackClass(
+        `relative overflow-x-auto no-scrollbar max-w-full ${
+          disabled ? 'opacity-60 pointer-events-none' : ''
+        } ${className}`
+      )}
     >
       {/* Sliding Background */}
       {isMounted && (
         <div
-          className="absolute top-0.5 bottom-0.5 left-0 bg-surface rounded-lg shadow-sm transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
+          className="absolute top-[3px] bottom-[3px] left-0 bg-surface dark:bg-[#2c2c35] rounded-[7px] shadow-xs transition-all duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)]"
           style={sliderStyle}
         />
       )}
@@ -95,10 +104,10 @@ function SegmentedControlInner<T extends string | number>({
             ref={isActive ? activeTabRef : null}
             onClick={() => !disabled && onChange(opt.value)}
             disabled={disabled}
-            className={`relative flex-1 z-10 px-4 py-1.5 rounded-lg text-[13.5px] font-extrabold text-center whitespace-nowrap border-none outline-none transition-colors duration-200 bg-transparent ${
+            className={`${DVIEW_CONTROL_CLASSES.btnBase} ${DVIEW_CONTROL_CLASSES.btnSize[size]} relative flex-1 z-10 border-none outline-none bg-transparent ${
               disabled ? 'cursor-not-allowed text-tertiary' : 'cursor-pointer'
             } ${
-              isActive ? 'text-primary' : 'text-tertiary hover:text-secondary'
+              isActive ? 'text-blue-600 dark:text-blue-400 font-black' : 'text-secondary hover:text-primary'
             }`}
           >
             {opt.label}

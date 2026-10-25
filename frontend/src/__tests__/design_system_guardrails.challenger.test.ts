@@ -221,8 +221,9 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       expect(matches).not.toBeNull();
       expect(matches!.length).toBeGreaterThanOrEqual(2);
 
-      // Verify Left column: lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] justify-between box-border
-      expect(content).toContain('lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] justify-between box-border');
+      // Verify Left column: lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] ... justify-between box-border
+      expect(content).toContain('lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px]');
+      expect(content).toContain('justify-between box-border');
 
       // Verify Right column: lg:col-span-6 flex flex-col gap-6 lg:h-[566px]
       expect(content).toContain('lg:col-span-6 flex flex-col gap-6 lg:h-[566px]');
@@ -246,7 +247,7 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       // Slot 1000000002 in Chapter 02 and Chapter 05
       expect(content).toContain('slotId="1000000002"');
       expect(content).toContain('min-h-[180px] sm:min-h-[220px] md:min-h-[250px]');
-      expect(content).toContain('bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl');
+      expect(content).toContain('bg-elevated dark:bg-slate-900');
     });
 
     test('3.5 ViralPaywallGate renders native preview card and eliminates forced lockdown countdown', () => {

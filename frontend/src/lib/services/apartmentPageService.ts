@@ -10,8 +10,9 @@ import { z } from 'zod';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { readJsonFileCached } from '@/lib/utils/server/fileReader';
 import { redis } from '@/lib/redis';
-import type { AptTxSummary } from '@/lib/types/transaction';
-import type { FieldReportData } from '@/lib/types/report.types';
+import type { AptTxSummary } from '@/types/transaction';
+import type { FieldReportData } from '@/types/report';
+import type { LocationScore } from '@/types/apartment';
 import type { DongApartment } from '@/lib/dong-apartments';
 import { findTxKey, isSameApartment, normalizeAptName, sanitizeAptKey } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
@@ -125,20 +126,7 @@ export async function getTechnoValleyJisanList(): Promise<TechnoValleyJisan[]> {
   return validated;
 }
 
-export interface LocationScore {
-  distanceToElementary?: number;
-  distanceToMiddle?: number;
-  distanceToHigh?: number;
-  nearestSchoolNames?: {
-    elementary?: string;
-    middle?: string;
-    high?: string;
-  };
-  nearestStationCoords?: string;
-  nearestStationName?: string;
-  nearestStationLine?: string;
-  distanceToSubway?: number;
-}
+export type { LocationScore };
 
 export interface MortgageSsrData {
   principalWon: number;

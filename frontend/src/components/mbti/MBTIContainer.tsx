@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { MbtiApartmentProfile } from '@/types/mbti';
 import { getProfileByType, MBTI_PROFILES } from '@/lib/data/mbtiData';
 import { getRecommendedProfile } from '@/lib/utils/mbtiScoring';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 import { MBTIQuizStepper } from './MBTIQuizStepper';
 import { MBTIResultView } from './MBTIResultView';
 import { MBTIEncyclopedia } from './MBTIEncyclopedia';
@@ -74,16 +75,15 @@ export function MBTIContainer({
     >
       {/* Top Action & Sub-Navigation Control Bar (Synchronized with Main Dashboard Control Bar) */}
       <div className="w-full p-2 sm:p-2.5 rounded-2xl bg-surface border border-border/80 shadow-2xs flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60">
+        <div className={getToggleTrackClass()}>
           <button
             type="button"
             data-testid="tab-nav-quiz"
             onClick={() => setViewMode(currentProfile ? 'result' : 'intro')}
-            className={`flex items-center py-2 px-3.5 sm:px-4 rounded-lg font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
-              viewMode === 'intro' || viewMode === 'quiz' || viewMode === 'result'
-                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+            className={getToggleBtnClass({
+              active: viewMode === 'intro' || viewMode === 'quiz' || viewMode === 'result',
+              tone: 'emerald',
+            })}
           >
             <span>성향 진단 퀴즈</span>
           </button>
@@ -92,11 +92,10 @@ export function MBTIContainer({
             type="button"
             data-testid="tab-nav-encyclopedia"
             onClick={handleViewEncyclopedia}
-            className={`flex items-center py-2 px-3.5 sm:px-4 rounded-lg font-bold text-xs sm:text-[13px] transition-all cursor-pointer ${
-              viewMode === 'encyclopedia'
-                ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
+            className={getToggleBtnClass({
+              active: viewMode === 'encyclopedia',
+              tone: 'emerald',
+            })}
           >
             <span>16개 아파트 도감</span>
           </button>

@@ -9,7 +9,7 @@ import fs from 'fs';
 import { redis } from '@/lib/redis';
 import { logger } from '@/lib/services/logger';
 import { SearchConsoleStatusSchema } from '@/lib/validation/facade.schemas';
-import type { SearchConsoleStatus } from '@/lib/services/searchConsole';
+import type { SearchConsoleStatus } from '@/types/api';
 
 const SEARCH_CONSOLE_CACHE_KEY = 'dtdls:searchconsole:status:lkg';
 const SEARCH_CONSOLE_CACHE_TTL = 3600; // 1 hour

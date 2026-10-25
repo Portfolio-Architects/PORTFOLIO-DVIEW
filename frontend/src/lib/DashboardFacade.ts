@@ -15,14 +15,14 @@
 // Removed static Firebase Storage imports to defer loading
 
 // Types (re-export for backward compatibility)
-export type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
-export type { FieldReportData, ReportSections } from '@/lib/types/report.types';
-export type { UserReview } from '@/lib/types/review.types';
+export type { KPIData, NewsItemData, AdBannerData } from '@/types/dashboard';
+export type { FieldReportData, ReportSections } from '@/types/report';
+export type { UserReview } from '@/types/review';
 
 // Internal imports
-import type { KPIData, NewsItemData, AdBannerData } from '@/lib/types/dashboard.types';
-import type { FieldReportData, ReportSections } from '@/lib/types/report.types';
-import type { UserReview } from '@/lib/types/review.types';
+import type { KPIData, NewsItemData, AdBannerData } from '@/types/dashboard';
+import type { FieldReportData, ReportSections } from '@/types/report';
+import type { UserReview } from '@/types/review';
 
 import * as ReportRepo from '@/lib/repositories/report.repository';
 import * as ReviewRepo from '@/lib/repositories/review.repository';
@@ -63,7 +63,7 @@ export interface DashboardDataStrategy {
   incrementFieldReportLike?(reportId: string): Promise<void>;
   incrementReviewLike?(reviewId: string): Promise<void>;
   deleteReview?(reviewId: string): Promise<void>;
-  getUserProfile?(uid: string): Promise<import('@/lib/types/user.types').UserProfile>;
+  getUserProfile?(uid: string): Promise<import('@/types/user').UserProfile>;
   getUserReviews?(): UserReview[];
   addUserReview?(apartmentName: string, rating: number, content: string, authorUid: string, imageFile?: File): Promise<void>;
   getDongtanApartments?(): string[];
@@ -176,7 +176,7 @@ class FirebaseDashboardDataStrategy implements DashboardDataStrategy {
     }
   }
 
-  async getUserProfile(uid: string): Promise<import('@/lib/types/user.types').UserProfile> {
+  async getUserProfile(uid: string): Promise<import('@/types/user').UserProfile> {
     return this.userRepo.getOrCreateProfile(uid);
   }
 

@@ -1,8 +1,8 @@
 import { useSyncExternalStore, useCallback, useState, useEffect } from 'react';
 import { dashboardFacade } from '@/lib/DashboardFacade';
-import type { KPIData, NewsItemData } from '@/lib/types/dashboard.types';
-import type { FieldReportData } from '@/lib/types/report.types';
-import type { UserReview } from '@/lib/types/review.types';
+import type { KPIData, NewsItemData } from '@/types/dashboard';
+import type { FieldReportData } from '@/types/report';
+import type { UserReview } from '@/types/review';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { z } from 'zod';

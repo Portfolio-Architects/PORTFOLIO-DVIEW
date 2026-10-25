@@ -4,8 +4,8 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Search, ShieldAlert, Check, Share2, ChevronDown, Award, ArrowLeft, RefreshCw, MessageSquare, Sparkles } from 'lucide-react';
 import { DongApartment } from '@/lib/dong-apartments';
-import { AptTxSummary } from '@/lib/types/transaction';
-import { FieldReportData } from '@/lib/types/report.types';
+import type { AptTxSummary } from '@/types/transaction';
+import type { FieldReportData } from '@/types/report';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
@@ -56,20 +56,37 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
   // Flatten list of all apartments
   const allApartments = useMemo(() => {
     const map = new Map<string, DongApartment & { normalizedName: string }>();
+    const seenKeys = new Set<string>();
     for (const apt of Object.values(sheetApartments || {}).flat()) {
-      const norm = normalizeAptName(apt.name);
-      if (norm && !map.has(norm)) {
-        map.set(norm, { ...apt, normalizedName: norm });
+      const displayName = getDisplayAptName(apt.name);
+      const norm = normalizeAptName(displayName);
+      const rawNorm = normalizeAptName(apt.name);
+      if (norm && !map.has(norm) && !seenKeys.has(displayName)) {
+        map.set(norm, { ...apt, name: displayName, normalizedName: norm });
+        seenKeys.add(displayName);
+        seenKeys.add(norm);
+        if (rawNorm) seenKeys.add(rawNorm);
       }
     }
     for (const [txKey, summary] of Object.entries(txSummaryData || {})) {
-      const norm = normalizeAptName(txKey);
-      if (norm && !map.has(norm)) {
+      const displayName = getDisplayAptName(txKey);
+      const norm = normalizeAptName(displayName);
+      const rawNorm = normalizeAptName(txKey);
+      if (
+        norm &&
+        !map.has(norm) &&
+        !seenKeys.has(displayName) &&
+        !seenKeys.has(norm) &&
+        (!rawNorm || !seenKeys.has(rawNorm))
+      ) {
         map.set(norm, {
-          name: getDisplayAptName(txKey),
+          name: displayName,
           dong: summary?.dong || '동탄',
           normalizedName: norm,
         });
+        seenKeys.add(displayName);
+        seenKeys.add(norm);
+        if (rawNorm) seenKeys.add(rawNorm);
       }
     }
     return Array.from(map.values());

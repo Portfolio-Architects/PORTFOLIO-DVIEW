@@ -39,10 +39,12 @@ export function useTxData(
   initialRecentTransactions?: RecentTransaction[]
 ) {
   const [shouldFetch, setShouldFetch] = useState(false);
+  const [hasHydrated, setHasHydrated] = useState(false);
   const isMountedRef = useRef(true);
 
   useEffect(() => {
     isMountedRef.current = true;
+    setHasHydrated(true);
     if (typeof window === 'undefined') return;
 
     let idleId: number | null = null;
@@ -124,19 +126,19 @@ export function useTxData(
 
   // 3. Static data + real-time Firestore data merged summary
   const mergedSummary = useMemo(() => {
-    const activeSummary = summaryData?.summary || initialTxSummary;
+    const activeSummary = (!hasHydrated && hasTxSummaryFallback ? initialTxSummary : summaryData?.summary) || initialTxSummary;
     if (!activeSummary) return undefined;
     if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeSummary;
     return mergeTransactions(activeSummary, recentFirestoreTxs);
-  }, [summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
+  }, [hasHydrated, hasTxSummaryFallback, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   // 3-2. Static recent transactions + real-time Firestore data merged list
   const mergedRecentTxs = useMemo(() => {
-    const activeRecent = recentTxData || initialRecentTransactions || [];
+    const activeRecent = (!hasHydrated && hasRecentTxFallback ? initialRecentTransactions : recentTxData) || initialRecentTransactions || [];
     if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeRecent;
     const targetAptKeys = new Set(Object.keys(summaryData?.summary || initialTxSummary || {}));
     return mergeRecentTransactions(activeRecent, recentFirestoreTxs, targetAptKeys);
-  }, [recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary]);
+  }, [hasHydrated, hasRecentTxFallback, recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary]);
 
   // 4. 7-day transaction volume metric calculation
   const mergedRecent7DaysVolume = useMemo(() => {
@@ -244,6 +246,11 @@ export function usePeriodTransactions(
   period: TimelinePeriod = '90d',
   fallbackRecentTransactions?: RecentTransaction[]
 ) {
+  const [hasHydrated, setHasHydrated] = useState(false);
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
   const isBrowser = typeof window !== 'undefined';
   const isRecentBased = period === '90d' || period === '7d' || period === '30d';
   const hasRecentFallback = !!(isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0);
@@ -274,7 +281,9 @@ export function usePeriodTransactions(
 
   const transactions = useMemo(() => {
     let list: RecentTransaction[] = [];
-    if (!rawData) {
+    if (!hasHydrated && hasRecentFallback && fallbackRecentTransactions) {
+      list = fallbackRecentTransactions;
+    } else if (!rawData) {
       if (isRecentBased && fallbackRecentTransactions) {
         list = fallbackRecentTransactions;
       } else {
@@ -291,7 +300,7 @@ export function usePeriodTransactions(
       return filterTransactionsByDays(list, 30);
     }
     return list;
-  }, [rawData, isRecentBased, fallbackRecentTransactions, period]);
+  }, [hasHydrated, hasRecentFallback, rawData, isRecentBased, fallbackRecentTransactions, period]);
 
   return {
     transactions,

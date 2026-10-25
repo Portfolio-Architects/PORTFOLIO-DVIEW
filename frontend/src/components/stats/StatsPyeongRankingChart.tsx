@@ -15,6 +15,7 @@ import {
 import type { ComplexStatItem } from '@/types/stats';
 import { formatPriceEok } from '@/lib/analytics/statsEngine';
 import { RankingBreakAdBanner } from './StatsAdBanners';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 
 export interface StatsPyeongRankingChartProps {
   rankings: ComplexStatItem[];
@@ -140,37 +141,25 @@ export function StatsPyeongRankingChart({
             <span>아파트 탐색에서 전체 보기</span>
           </Link>
 
-          <div className="flex items-center bg-slate-100/80 dark:bg-slate-800/70 p-0.5 rounded-lg">
+          <div className={getToggleTrackClass()}>
             <button
               type="button"
               onClick={() => setViewTab('table')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                viewTab === 'table'
-                  ? 'bg-surface text-primary shadow-2xs'
-                  : 'text-tertiary hover:text-secondary'
-              }`}
+              className={getToggleBtnClass({ active: viewTab === 'table', size: 'sm' })}
             >
               목록만
             </button>
             <button
               type="button"
               onClick={() => setViewTab('chart')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                viewTab === 'chart'
-                  ? 'bg-surface text-primary shadow-2xs'
-                  : 'text-tertiary hover:text-secondary'
-              }`}
+              className={getToggleBtnClass({ active: viewTab === 'chart', size: 'sm' })}
             >
               차트만
             </button>
             <button
               type="button"
               onClick={() => setViewTab('both')}
-              className={`px-2.5 py-1 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                viewTab === 'both'
-                  ? 'bg-surface text-primary shadow-2xs'
-                  : 'text-tertiary hover:text-secondary'
-              }`}
+              className={getToggleBtnClass({ active: viewTab === 'both', size: 'sm' })}
             >
               통합 뷰
             </button>

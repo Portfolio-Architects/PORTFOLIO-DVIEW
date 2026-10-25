@@ -1,7 +1,7 @@
 'use server';
 
 import { calculatePremiumScores } from '@/lib/utils/scoring';
-import { ObjectiveMetrics } from '@/lib/types/scoutingReport';
+import type { ObjectiveMetrics } from '@/types/report';
 import { logger } from '@/lib/services/logger';
 
 /**
