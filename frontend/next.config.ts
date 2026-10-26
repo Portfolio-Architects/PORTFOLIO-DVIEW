@@ -72,16 +72,6 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: '/stats',
-        destination: '/',
-        permanent: true,
-      },
-      {
-        source: '/stats/:path*',
-        destination: '/',
-        permanent: true,
-      },
-      {
         source: '/techno',
         destination: '/',
         permanent: false,

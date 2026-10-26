@@ -439,6 +439,16 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     setIsMortgageOpen(true);
   }, []);
 
+  const handleOpenTaxCalculator = useCallback((aptName?: string) => {
+    setTaxCalcInitialApt(aptName);
+    setIsTaxCalcOpen(true);
+  }, []);
+
+  const handleOpenSellTimingCalculator = useCallback((aptName?: string) => {
+    setSellTimingInitialApt(aptName);
+    setIsSellTimingOpen(true);
+  }, []);
+
   return (
     <>
       <PullToRefresh
@@ -474,6 +484,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                     onOpenCompare={handleOpenCompare}
                     onOpenJeonseSafety={handleOpenJeonseSafety}
                     onOpenMortgage={handleOpenMortgage}
+                    onOpenTaxCalculator={handleOpenTaxCalculator}
+                    onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
                     onSearchFocus={triggerFetch}
                     preloadApartmentTx={preloadApartmentTx}
                   />

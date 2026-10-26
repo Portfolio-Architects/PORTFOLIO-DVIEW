@@ -714,7 +714,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         }}
                         aria-label={`실거래 기간 ${labelMap[p]}`}
                         data-testid={`timeline-period-tab-${p}`}
-                        className={getToggleBtnClass({ active: isSelected })}
+                        className={getToggleBtnClass({ active: isSelected, size: 'sm', extraClass: 'tabular-nums' })}
                       >
                         {labelMap[p]}
                       </button>

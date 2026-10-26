@@ -194,7 +194,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
   if (activeSector) {
     const displayItems = (activeSector.items || []).slice(0, 4);
     return (
-      <div className={`grid grid-cols-2 gap-2.5 sm:gap-3 lg:h-[152px] ${className}`}>
+      <div className={`grid grid-cols-2 grid-rows-2 gap-2.5 sm:gap-3 h-[148px] sm:h-[152px] lg:h-[152px] shrink-0 box-border ${className}`}>
         {displayItems.map((item, idx) => {
           const hasDelta = typeof item.delta === 'number' && isFinite(item.delta);
           const deltaFormatted = hasDelta ? formatDeltaPrice(item.delta) : '';
@@ -228,13 +228,13 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                   onSelectApt?.(item.aptName, item.dong);
                 }
               }}
-              className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left group"
+              className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2 sm:px-3.5 sm:py-2.5 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
             >
               {/* Top: Rank badge + Dong + Area/Floor (left) | Date (right) */}
-              <div className="flex items-center justify-between gap-1 min-w-0">
-                <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex items-center justify-between gap-1 min-w-0 w-full shrink-0">
+                <div className="flex items-center gap-1 sm:gap-1.5 min-w-0 overflow-hidden">
                   <span
-                    className="text-[9.5px] font-bold px-1.5 py-0.5 rounded shrink-0 leading-none"
+                    className="text-[9.5px] font-bold px-1.5 py-0.5 rounded shrink-0 leading-none tabular-nums"
                     style={{
                       backgroundColor: `${activeSector.color}15`,
                       color: activeSector.color,
@@ -243,24 +243,24 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                     #{idx + 1}
                   </span>
                   {item.dong && (
-                    <span className="text-[10px] font-medium text-tertiary shrink-0 leading-none">
+                    <span className="text-[10px] font-medium text-tertiary shrink-0 leading-none whitespace-nowrap">
                       {item.dong}
                     </span>
                   )}
-                  <span className="text-[10px] font-normal text-tertiary truncate leading-none">
+                  <span className="text-[10px] font-normal text-tertiary truncate leading-none whitespace-nowrap">
                     {item.areaPyeong ? `${Math.round(item.areaPyeong)}평` : ''}
                     {item.floor ? ` · ${item.floor}층` : ''}
                   </span>
                 </div>
                 {cleanDate && (
-                  <span className="text-[10px] font-medium text-tertiary tabular-nums shrink-0 leading-none">
+                  <span className="text-[10px] font-medium text-tertiary tabular-nums shrink-0 leading-none whitespace-nowrap">
                     {cleanDate}
                   </span>
                 )}
               </div>
 
               {/* Middle: Apartment Name */}
-              <div className="my-auto truncate">
+              <div className="my-auto min-w-0 w-full truncate shrink-0">
                 <span
                   className={`text-[12px] sm:text-[12.5px] font-bold text-primary truncate block transition-colors leading-tight ${
                     isRising
@@ -273,10 +273,10 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               </div>
 
               {/* Bottom: Price + Delta (left) | Unit Pyeong Price + Chevron (right) */}
-              <div className="flex items-center justify-between gap-1">
-                <div className="flex items-baseline gap-1.5 min-w-0">
+              <div className="flex items-center justify-between gap-1 min-w-0 w-full shrink-0 overflow-hidden">
+                <div className="flex items-baseline gap-1 sm:gap-1.5 min-w-0 overflow-hidden">
                   <span
-                    className={`text-[12.5px] sm:text-[13.5px] font-bold tabular-nums tracking-tight leading-none ${
+                    className={`text-[11.5px] sm:text-[13.5px] font-bold tabular-nums tracking-tighter sm:tracking-tight leading-none whitespace-nowrap shrink-0 ${
                       isRising
                         ? 'text-red-600 dark:text-red-400'
                         : isFalling
@@ -287,24 +287,23 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                     {item.priceEok}
                   </span>
                   {item.isNewHigh ? (
-                    <span className="text-[9px] font-semibold text-red-600 dark:text-red-400 bg-red-500/10 px-1 py-0.5 rounded shrink-0 leading-none">
+                    <span className="text-[8.5px] sm:text-[9px] font-semibold text-red-600 dark:text-red-400 bg-red-500/10 px-1 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
                       신고가
                     </span>
                   ) : hasDelta && item.delta !== 0 && deltaFormatted ? (
-                    <span className={`text-[9px] font-semibold tabular-nums shrink-0 leading-none ${
+                    <span className={`text-[8.5px] sm:text-[9px] font-semibold tabular-nums tracking-tighter sm:tracking-normal leading-none whitespace-nowrap truncate ${
                       item.delta > 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
                     }`}>
                       {item.delta > 0 ? `+${deltaFormatted}` : `-${deltaFormatted}`}
                     </span>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0 ml-auto pl-0.5">
                   {pyeongPriceStr && (
-                    <span className="text-[9.5px] font-medium text-tertiary tabular-nums tracking-tight leading-none">
+                    <span className="text-[8.5px] sm:text-[9.5px] font-medium text-tertiary tabular-nums tracking-tighter sm:tracking-tight leading-none whitespace-nowrap">
                       {pyeongPriceStr}
                     </span>
                   )}
-
                 </div>
               </div>
             </div>
@@ -315,7 +314,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         {Array.from({ length: Math.max(0, 4 - displayItems.length) }).map((_, placeholderIdx) => (
           <div
             key={`empty-${placeholderIdx}`}
-            className="bg-surface/50 border border-dashed border-border/60 p-2 rounded-xl sm:rounded-2xl flex items-center justify-center text-center"
+            className="bg-surface/50 border border-dashed border-border/60 p-2 rounded-xl sm:rounded-2xl flex items-center justify-center text-center h-full min-h-0 overflow-hidden box-border"
           >
             <span className="text-[10.5px] text-tertiary font-medium">추가 거래 내역 없음</span>
           </div>
@@ -325,11 +324,11 @@ export const AptMetricCards = React.memo(function AptMetricCards({
   }
 
   return (
-    <div className={`grid grid-cols-2 gap-2.5 sm:gap-3 lg:h-[152px] ${className}`}>
+    <div className={`grid grid-cols-2 grid-rows-2 gap-2.5 sm:gap-3 h-[148px] sm:h-[152px] lg:h-[152px] shrink-0 box-border ${className}`}>
       {/* Card 1: 상승 거래 비중 */}
-      <div className="bg-elevated px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150">
-        <div className="flex items-center justify-between gap-1.5 w-full">
-          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
+      <div className="bg-elevated px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150">
+        <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
+          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
             상승 거래 비중
             <span className="sr-only">신고가 달성</span>
             <span className="sr-only">{computedNewHighCount}건</span>
@@ -341,7 +340,7 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                 : `전기 대비 ${newHighChange}건 하락세`}
             </span>
           </span>
-          <span className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded shrink-0 leading-none ${
+          <span className={`text-[9.5px] font-semibold px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap ${
             risingMetrics.risingRatio >= 50
               ? 'text-red-600 dark:text-red-400 bg-red-500/10'
               : 'text-blue-700 dark:text-blue-400 bg-blue-500/10'
@@ -349,8 +348,8 @@ export const AptMetricCards = React.memo(function AptMetricCards({
             {risingMetrics.statusLabel}
           </span>
         </div>
-        <div className="flex items-baseline justify-between gap-2 mt-auto">
-          <span className={`text-[15px] sm:text-[16px] font-bold tabular-nums leading-none tracking-tight ${
+        <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto w-full min-w-0 shrink-0">
+          <span className={`text-[15px] sm:text-[16px] font-bold tabular-nums leading-none tracking-tight whitespace-nowrap shrink-0 ${
             risingMetrics.risingRatio >= 50
               ? 'text-red-600 dark:text-red-400'
               : 'text-blue-600 dark:text-blue-400'
@@ -369,21 +368,21 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         data-testid="metric-card-mortgage-cta"
         onClick={() => onOpenMortgageModal && onOpenMortgageModal()}
         aria-label="평당 평균 실거래가 기반 주담대 및 정책자금 한도 계산기 열기"
-        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
       >
-        <div className="flex items-center justify-between gap-1.5 w-full">
-          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
+        <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
+          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
             평당 평균 실거래가
           </span>
-          <span className="text-[9.5px] font-medium text-tertiary bg-slate-100 dark:bg-slate-800/80 px-1.5 py-0.5 rounded shrink-0 leading-none">
+          <span className="text-[9.5px] font-medium text-tertiary bg-slate-100 dark:bg-slate-800/80 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
             동탄 전체
           </span>
         </div>
-        <div className="flex items-baseline justify-between gap-2 mt-auto w-full">
-          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto w-full min-w-0 shrink-0">
+          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap shrink-0">
             {computedAvgPyeongPrice.toLocaleString()}만원
           </span>
-          <span className="text-[10px] font-medium text-tertiary tabular-nums leading-none shrink-0">
+          <span className="text-[10px] font-medium text-tertiary tabular-nums leading-none truncate">
             84㎡ 약 {(Math.round((computedAvgPyeongPrice * 34) / 1000) / 10).toFixed(1)}억
           </span>
         </div>
@@ -395,21 +394,21 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         data-testid="metric-card-jeonse-cta"
         onClick={() => onOpenJeonseSafetyModal && onOpenJeonseSafetyModal()}
         aria-label="평균 전세가율 기반 전세보증보험 및 깡통전세 안전진단 계산기 열기"
-        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
       >
-        <div className="flex items-center justify-between gap-1.5 w-full">
-          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
+        <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
+          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
             평균 전세가율
           </span>
-          <span className="text-[9.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none">
+          <span className="text-[9.5px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
             안정권
           </span>
         </div>
-        <div className="flex items-baseline justify-between gap-2 mt-auto w-full">
-          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+        <div className="flex items-baseline justify-between gap-1.5 sm:gap-2 mt-auto w-full min-w-0 shrink-0">
+          <span className="text-[15px] sm:text-[16px] font-bold text-primary tabular-nums leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors whitespace-nowrap shrink-0">
             {computedAvgJeonseRate.toFixed(1)}%
           </span>
-          <span className="text-[10px] font-medium text-tertiary leading-none shrink-0">
+          <span className="text-[10px] font-medium text-tertiary leading-none truncate">
             매매 대비 전세
           </span>
         </div>
@@ -420,21 +419,20 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         type="button"
         onClick={() => onOpenSellTimingCalculator && onOpenSellTimingCalculator()}
         aria-label="우리집 적정 가치 및 매도 타이밍 진단 계산기 열기"
-        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
+        className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-blue-600/20 group"
       >
-        <div className="flex items-center justify-between gap-1.5 w-full">
-          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none">
+        <div className="flex items-center justify-between gap-1.5 w-full min-w-0 shrink-0">
+          <span className="text-[11px] text-tertiary font-medium tracking-tight leading-none truncate">
             자산 진단 시뮬레이터
           </span>
-          <span className="text-[9.5px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none">
+          <span className="text-[9.5px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
             AI 진단
           </span>
         </div>
-        <div className="flex items-center justify-between gap-1.5 w-full mt-auto">
+        <div className="flex items-center justify-between gap-1.5 w-full min-w-0 mt-auto shrink-0">
           <span className="text-[12px] sm:text-[13px] font-bold text-primary leading-none tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors truncate">
             우리집 적정 가치 & 매도 타이밍
           </span>
-
         </div>
       </button>
     </div>

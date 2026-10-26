@@ -48,13 +48,14 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
   });
 
   // =========================================================================
-  // Stress Dimension 1: Exact 3-Tab Invariant Under Adversarial Props
+  // Stress Dimension 1: Exact 5-Tab Invariant Under Adversarial Props
   // =========================================================================
-  describe('Dimension 1: Exact 3-Tab Invariant Under Adversarial Props', () => {
+  describe('Dimension 1: Exact 5-Tab Invariant Under Adversarial Props', () => {
     const adversarialTabs = [
       'overview',
       'imjang',
       'mbti',
+      'guide',
       'stats',
       'admin',
       'lounge',
@@ -70,23 +71,22 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
     ];
 
     it.each(adversarialTabs)(
-      'LoungeHeader renders EXACTLY 4 tabs when activeTab is "%s"',
+      'LoungeHeader renders EXACTLY 5 tabs when activeTab is "%s"',
       (activeTab) => {
         const { container } = render(<LoungeHeader activeTab={activeTab} />);
         const nav = container.querySelector('nav');
         expect(nav).toBeInTheDocument();
 
         const links = within(nav!).getAllByRole('link');
-        expect(links).toHaveLength(4);
+        expect(links).toHaveLength(5);
 
         const hrefs = links.map((l) => l.getAttribute('href'));
-        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide']);
+        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
 
         const labels = links.map((l) => l.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
 
-        // Zero trace of obsolete /stats, /techno, /office, /admin, /lounge
-        expect(within(container).queryByText(/통계/)).toBeNull();
+        // Zero trace of obsolete /techno, /office, /admin, /lounge
         expect(within(container).queryByText(/테크노/)).toBeNull();
         expect(within(container).queryByText(/사무실/)).toBeNull();
         expect(within(container).queryByText(/관리자/)).toBeNull();
@@ -95,33 +95,32 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
     );
 
     it.each(adversarialTabs)(
-      'MobileDock renders EXACTLY 3 tabs when activeTab is "%s"',
+      'MobileDock renders EXACTLY 5 tabs when activeTab is "%s"',
       (activeTab) => {
         const { container } = render(<MobileDock activeTab={activeTab} />);
         const nav = container.querySelector('nav');
         expect(nav).toBeInTheDocument();
 
         const links = within(nav!).getAllByRole('link');
-        expect(links).toHaveLength(4);
+        expect(links).toHaveLength(5);
 
         const hrefs = links.map((l) => l.getAttribute('href'));
-        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide']);
+        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
 
         const labels = links.map((l) => l.querySelector('span')?.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
 
         // Zero trace of obsolete tabs
-        expect(within(container).queryByText(/통계/)).toBeNull();
         expect(within(container).queryByText(/테크노/)).toBeNull();
         expect(within(container).queryByText(/사무실/)).toBeNull();
       }
     );
 
-    it('confirms TABS constant in MobileDock is strictly frozen to 3 canonical tabs', () => {
-      expect(TABS).toHaveLength(4);
-      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide']);
-      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
+    it('confirms TABS constant in MobileDock is strictly frozen to 5 canonical tabs', () => {
+      expect(TABS).toHaveLength(5);
+      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide', 'stats']);
+      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
     });
   });
 
@@ -139,13 +138,14 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       const tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
-      const tabs = [tab1, tab2, tab3, tab4];
-      const expectedIds = ['overview', 'imjang', 'mbti', 'guide'];
-      const expectedHrefs = ['/', '/explore', '/mbti', '/guide'];
+      const tab5 = screen.getByRole('link', { name: /아파트 통계/i });
+      const tabs = [tab1, tab2, tab3, tab4, tab5];
+      const expectedIds = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
+      const expectedHrefs = ['/', '/explore', '/mbti', '/guide', '/stats'];
 
       act(() => {
         for (let i = 0; i < 100; i++) {
-          const tabIndex = i % 4;
+          const tabIndex = i % 5;
           fireEvent.click(tabs[tabIndex]);
           expect(onTabChangeSpy).toHaveBeenLastCalledWith(expectedIds[tabIndex]);
           expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', expectedHrefs[tabIndex]);
@@ -163,14 +163,14 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       render(<MobileDock activeTab="overview" onTabClick={onTabClickSpy} />);
 
       const links = screen.getAllByRole('link');
-      expect(links).toHaveLength(4);
+      expect(links).toHaveLength(5);
 
-      const expectedIds = ['overview', 'imjang', 'mbti'];
-      const expectedHrefs = ['/', '/explore', '/mbti'];
+      const expectedIds = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
+      const expectedHrefs = ['/', '/explore', '/mbti', '/guide', '/stats'];
 
       act(() => {
         for (let i = 0; i < 100; i++) {
-          const tabIndex = i % 3;
+          const tabIndex = i % 5;
           fireEvent.click(links[tabIndex]);
           expect(onTabClickSpy).toHaveBeenLastCalledWith(expectedIds[tabIndex]);
           expect(mockReplace).toHaveBeenLastCalledWith(expectedHrefs[tabIndex], { scroll: false });
@@ -216,8 +216,8 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         { path: '/guide', hash: '', expected: 'guide' },
         { path: '/', hash: '#report', expected: 'overview' },
         { path: '/explore', hash: '', expected: 'imjang' },
-        { path: '/stats', hash: '', expected: 'overview' }, // Legacy /stats falls back to overview
-        { path: '/technovalley', hash: '', expected: 'overview' }, // Legacy /techno falls back to overview
+        { path: '/stats', hash: '', expected: 'stats' },
+        { path: '/technovalley', hash: '', expected: 'overview' },
         { path: '/unknown-route', hash: '#something', expected: 'overview' },
       ];
 
@@ -229,7 +229,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
 
           window.dispatchEvent(new HashChangeEvent('hashchange'));
           expect(onTabChangeSpy).toHaveBeenLastCalledWith(expected);
-        } );
+        });
       });
 
       expect(onTabChangeSpy).toHaveBeenCalledTimes(scenarios.length * 2);
@@ -329,7 +329,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
   // Stress Dimension 6: Server & Page Redirection Invariant Verification
   // =========================================================================
   describe('Dimension 6: Server & Route-Level Redirection Invariants', () => {
-    it('next.config.ts enforces permanent 301/308 redirect for /stats and /stats/:path* to /', () => {
+    it('next.config.ts confirms /stats and /stats/:path* redirect rules are removed', () => {
       const configPath = path.resolve(process.cwd(), 'next.config.ts');
       const rawContent = fs.readFileSync(configPath, 'utf-8');
 
@@ -340,25 +340,17 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       const redirects: any[] = fn();
 
       const statsRule = redirects.find((r: any) => r.source === '/stats');
-      expect(statsRule).toBeDefined();
-      expect(statsRule.destination).toBe('/');
-      expect(statsRule.permanent).toBe(true);
+      expect(statsRule).toBeUndefined();
 
       const statsWildcardRule = redirects.find((r: any) => r.source === '/stats/:path*');
-      expect(statsWildcardRule).toBeDefined();
-      expect(statsWildcardRule.destination).toBe('/');
-      expect(statsWildcardRule.permanent).toBe(true);
+      expect(statsWildcardRule).toBeUndefined();
     });
 
-    it('src/app/stats/page.tsx calls permanentRedirect("/")', async () => {
+    it('src/app/stats/page.tsx renders active Server Component without throwing', async () => {
       const { default: StatsPage } = await import('@/app/stats/page');
-      const { permanentRedirect } = await import('next/navigation');
-
       expect(() => {
         StatsPage();
-      }).toThrow('NEXT_REDIRECT:/:308');
-
-      expect(permanentRedirect).toHaveBeenCalledWith('/');
+      }).not.toThrow();
     });
   });
 });

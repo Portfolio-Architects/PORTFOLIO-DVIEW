@@ -916,30 +916,33 @@ describe('동탄 아파트 통계 리포트 & 애드센스 대시보드 종합 E
       });
     });
 
-    // --- F7: 3-Tab Navigation & HeaderDockSync ---
-    describe('F7: 3-Tab Navigation & HeaderDockSync', () => {
-      const EXPECTED_3_TABS = [
+    // --- F7: 5-Tab Navigation & HeaderDockSync ---
+    describe('F7: 5-Tab Navigation & HeaderDockSync', () => {
+      const EXPECTED_5_TABS = [
         { id: 'overview', label: '아파트 랩', href: '/' },
         { id: 'imjang', label: '아파트 탐색', href: '/explore' },
         { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
+        { id: 'guide', label: '부동산 가이드', href: '/guide' },
+        { id: 'stats', label: '아파트 통계', href: '/stats' },
       ];
 
-      it('F7.1: Verifies specification contract defines 3 canonical routes', () => {
-        expect(EXPECTED_3_TABS).toHaveLength(3);
-        const statsTab = EXPECTED_3_TABS.find((t) => (t as any).id === 'stats');
-        expect(statsTab).toBeUndefined();
+      it('F7.1: Verifies specification contract defines 5 canonical routes including stats', () => {
+        expect(EXPECTED_5_TABS).toHaveLength(5);
+        const statsTab = EXPECTED_5_TABS.find((t) => t.id === 'stats');
+        expect(statsTab).toBeDefined();
+        expect(statsTab?.href).toBe('/stats');
       });
 
       it('F7.2: Verifies Desktop LoungeHeader baseline links', () => {
         const { container } = render(<LoungeHeader activeTab="overview" />);
         const links = container.querySelectorAll('nav a');
-        expect(links.length).toBe(4);
+        expect(links.length).toBe(5);
       });
 
       it('F7.3: Verifies MobileDock baseline links', () => {
         const { container } = render(<MobileDock activeTab="overview" />);
         const dockLinks = container.querySelectorAll('nav a');
-        expect(dockLinks.length).toBe(4);
+        expect(dockLinks.length).toBe(5);
       });
 
       it('F7.4: Validates activeTab state propagation in LoungeHeader', () => {

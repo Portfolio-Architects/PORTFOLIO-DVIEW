@@ -649,5 +649,37 @@ describe('AptDonutSection Test Suite', () => {
       expect(screen.getByRole('button', { name: '평형대별' })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: '가격대별' })).toBeInTheDocument();
     });
+
+    it('never highlights two categories simultaneously when one category is selected and another is hovered (Narrow View / Touch Fix)', () => {
+      render(
+        <AptDonutSection
+          recentTransactions={mockRecentTransactions}
+          txSummaryData={mockSummary as any}
+          mounted={true}
+        />
+      );
+
+      const largeRow = screen.getByLabelText(/중대형 \(85~102㎡\) 1건/i);
+      const xlargeRow = screen.getByLabelText(/대형 \(102㎡ 초과\) 1건/i);
+
+      // Simulate hover on '중대형', then click on '대형'
+      fireEvent.mouseEnter(largeRow);
+      fireEvent.click(xlargeRow);
+
+      // Only '대형' should be selected and highlighted; '중대형' must be dimmed and transparent
+      expect(xlargeRow).toHaveAttribute('aria-pressed', 'true');
+      expect(largeRow).toHaveAttribute('aria-pressed', 'false');
+      expect(xlargeRow.className).toContain('bg-elevated');
+      expect(xlargeRow.className).toContain('opacity-100');
+      expect(largeRow.className).toContain('bg-transparent');
+      expect(largeRow.className).toContain('opacity-45');
+
+      // Even if pointer enters '중대형' while '대형' is selected, '중대형' must not look selected
+      fireEvent.mouseEnter(largeRow);
+      expect(largeRow.className).toContain('bg-transparent');
+      expect(largeRow.className).toContain('opacity-45');
+      expect(xlargeRow.className).toContain('bg-elevated');
+      expect(xlargeRow.className).toContain('opacity-100');
+    });
   });
 });

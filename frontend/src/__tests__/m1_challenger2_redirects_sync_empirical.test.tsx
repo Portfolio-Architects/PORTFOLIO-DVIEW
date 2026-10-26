@@ -4,8 +4,6 @@ import '@testing-library/jest-dom';
 import fs from 'fs';
 import path from 'path';
 import { match } from 'next/dist/compiled/path-to-regexp';
-import { getRedirectStatusCodeFromError, getURLFromRedirectError } from 'next/dist/client/components/redirect';
-import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock, { TABS } from '@/components/pwa/MobileDock';
 import StatsPage from '@/app/stats/page';
@@ -93,16 +91,9 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       statsWildcardRule = redirects.find((r: any) => r.source === '/stats/:path*');
     });
 
-    it('defines permanent redirect for exact /stats to /', () => {
-      expect(statsRule).toBeDefined();
-      expect(statsRule.destination).toBe('/');
-      expect(statsRule.permanent).toBe(true);
-    });
-
-    it('defines permanent redirect for wildcard /stats/:path* to /', () => {
-      expect(statsWildcardRule).toBeDefined();
-      expect(statsWildcardRule.destination).toBe('/');
-      expect(statsWildcardRule.permanent).toBe(true);
+    it('verifies /stats and /stats/:path* permanent redirect rules are removed from next.config.ts for route activation', () => {
+      expect(statsRule).toBeUndefined();
+      expect(statsWildcardRule).toBeUndefined();
     });
 
     it('matches exact /stats via Next.js path-to-regexp engine', () => {
@@ -136,7 +127,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       }
     });
 
-    it('ensures query parameter URLs (/stats/nested?query=123) correctly extract base path and match redirect', () => {
+    it('ensures query parameter URLs (/stats/nested?query=123) correctly extract base path and route target', () => {
       const matcher = match('/stats/:path*', { decode: decodeURIComponent });
 
       // In Next.js router, pathname is parsed before path matching:
@@ -178,39 +169,29 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
   // =========================================================================
   // Dimension 2: Server-Side Page Redirection (src/app/stats/page.tsx)
   // =========================================================================
-  describe('Dimension 2: Server-Side Page Redirection Execution', () => {
-    it('executes StatsPage() and throws Next.js redirect targeting "/"', () => {
+  describe('Dimension 2: Server-Side Page Activation Execution', () => {
+    it('executes StatsPage() and renders active Server Component without throwing redirect error', () => {
       let thrownError: any;
+      let result: any;
       try {
-        StatsPage();
+        result = StatsPage();
       } catch (err: any) {
         thrownError = err;
       }
 
-      expect(thrownError).toBeDefined();
-      expect(isRedirectError(thrownError)).toBe(true);
-      expect(getURLFromRedirectError(thrownError)).toBe('/');
+      expect(thrownError).toBeUndefined();
+      expect(result).toBeDefined();
     });
 
-    it('observes and records the redirect status code in the thrown error digest', () => {
-      let thrownError: any;
-      try {
-        StatsPage();
-      } catch (err: any) {
-        thrownError = err;
-      }
-
-      expect(thrownError).toBeDefined();
-      const statusCode = getRedirectStatusCodeFromError(thrownError);
-      // HTTP 308 Permanent Redirect verified: StatsPage invokes permanentRedirect('/')
-      expect(statusCode).toBe(308);
-      expect(thrownError.digest).toContain('NEXT_REDIRECT');
-      expect(thrownError.digest).toContain('/');
+    it('confirms StatsPage component produces valid JSX with LoungeHeader and MobileDock', () => {
+      const { container } = render(<StatsPage />);
+      expect(within(container).getByRole('heading', { name: '아파트 통계' })).toBeInTheDocument();
+      expect(container.querySelectorAll('nav').length).toBeGreaterThanOrEqual(1);
     });
   });
 
   // =========================================================================
-  // Dimension 3: Canonical 3-Tab Desktop & Mobile Navigation Integrity
+  // Dimension 3: Canonical 5-Tab Desktop & Mobile Navigation Integrity
   // =========================================================================
   describe('Dimension 3: Canonical Desktop & Mobile Navigation Sync', () => {
     const canonicalHeaderTabs = [
@@ -218,17 +199,13 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
       { id: 'guide', label: '부동산 가이드', href: '/guide' },
+      { id: 'stats', label: '아파트 통계', href: '/stats' },
     ];
     const canonicalDockTabs = canonicalHeaderTabs;
-    const _unusedDockTabs = [
-      { id: 'overview', label: '아파트 랩', href: '/' },
-      { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-      { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-    ];
 
-    it('confirms LoungeHeader renders 4 canonical tabs and MobileDock renders 3 canonical tabs', () => {
+    it('confirms LoungeHeader and MobileDock render 5 canonical tabs in matching order', () => {
       // 1. MobileDock TABS export
-      expect(TABS).toHaveLength(4);
+      expect(TABS).toHaveLength(5);
       canonicalDockTabs.forEach((expected, i) => {
         expect(TABS[i].id).toBe(expected.id);
         expect(TABS[i].label).toBe(expected.label);
@@ -239,7 +216,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
       const headerNav = within(headerContainer).getByRole('navigation', { name: '메인 메뉴' });
       const headerLinks = within(headerNav).getAllByRole('link');
-      expect(headerLinks).toHaveLength(4);
+      expect(headerLinks).toHaveLength(5);
       canonicalHeaderTabs.forEach((expected, i) => {
         expect(headerLinks[i]).toHaveTextContent(expected.label);
         expect(headerLinks[i]).toHaveAttribute('href', expected.href);
@@ -250,14 +227,14 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       const dockNav = dockContainer.querySelector('nav');
       expect(dockNav).toBeInTheDocument();
       const dockLinks = within(dockNav!).getAllByRole('link');
-      expect(dockLinks).toHaveLength(4);
+      expect(dockLinks).toHaveLength(5);
       canonicalDockTabs.forEach((expected, i) => {
         expect(dockLinks[i]).toHaveTextContent(expected.label);
         expect(dockLinks[i]).toHaveAttribute('href', expected.href);
       });
     });
 
-    it('verifies obsolete routes (/stats, /technovalley, /lounge, /admin) are 100% absent from navigation', () => {
+    it('verifies obsolete routes (/technovalley, /techno, /lounge, /admin) are 100% absent from navigation', () => {
       const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
       const { container: dockContainer } = render(<MobileDock activeTab="overview" />);
 
@@ -265,12 +242,10 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
         const links = within(container).getAllByRole('link');
         const hrefs = links.map((l) => l.getAttribute('href') || '');
 
-        expect(hrefs.some((h) => h.includes('stats'))).toBe(false);
         expect(hrefs.some((h) => h.includes('techno'))).toBe(false);
         expect(hrefs.some((h) => h.includes('lounge'))).toBe(false);
         expect(hrefs.some((h) => h.includes('admin'))).toBe(false);
 
-        expect(within(container).queryByText(/통계/)).toBeNull();
         expect(within(container).queryByText(/테크노/)).toBeNull();
         expect(within(container).queryByText(/라운지/)).toBeNull();
         expect(within(container).queryByText(/관리자/)).toBeNull();
@@ -303,7 +278,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
     });
 
     it('verifies dynamic active tab visual indication across all states', () => {
-      const tabs: Array<'overview' | 'imjang' | 'mbti' | 'guide'> = ['overview', 'imjang', 'mbti', 'guide'];
+      const tabs: Array<'overview' | 'imjang' | 'mbti' | 'guide' | 'stats'> = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
 
       tabs.forEach((tab) => {
         const { unmount, container } = render(<LoungeHeader activeTab={tab} />);

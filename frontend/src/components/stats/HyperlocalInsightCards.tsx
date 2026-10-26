@@ -123,7 +123,7 @@ export function HyperlocalInsightCards({
               최고 거래가
             </span>
             {newHighDateBadge && (
-              <span className="text-[11px] font-bold font-mono tabular-nums text-tertiary">
+              <span className="text-[11px] font-bold tabular-nums text-tertiary">
                 {newHighDateBadge} 계약
               </span>
             )}
@@ -140,15 +140,15 @@ export function HyperlocalInsightCards({
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-slate-400">최고 거래가</span>
             {newHighPyeongPrice > 0 && (
-              <span className="text-[11px] font-semibold font-mono tabular-nums text-secondary mt-0.5">
+              <span className="text-[11px] font-semibold tabular-nums text-secondary mt-0.5">
                 평당 {newHighPyeongPrice.toLocaleString()}만원
               </span>
             )}
           </div>
           <div className="flex flex-col items-end">
-            <p className="text-sm sm:text-base font-black font-mono tabular-nums text-blue-600 dark:text-blue-400">
+            <p className="text-sm sm:text-base font-black tabular-nums text-blue-600 dark:text-blue-400">
               {newHighComplex?.highestPrice
-                ? `${formatPriceEok(newHighComplex.highestPrice)} (${newHighComplex.highestPrice.toLocaleString()}만원)`
+                ? formatPriceEok(newHighComplex.highestPrice)
                 : '-'}
             </p>
           </div>
@@ -158,15 +158,7 @@ export function HyperlocalInsightCards({
       {/* 2. 최고 평당가 단지 */}
       <div
         data-testid="insight-card-optimal-gap"
-        onClick={() => {
-          if (optimalGapComplex) {
-            if (onOpenJeonseSafety) {
-              onOpenJeonseSafety(optimalGapComplex.aptName);
-            } else if (onSelectComplex) {
-              onSelectComplex(optimalGapComplex.aptKey, optimalGapComplex.aptName);
-            }
-          }
-        }}
+        onClick={() => optimalGapComplex && onSelectComplex?.(optimalGapComplex.aptKey, optimalGapComplex.aptName)}
         className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
       >
         <div>
@@ -175,7 +167,7 @@ export function HyperlocalInsightCards({
               최고 평당가
             </span>
             {topPyeongDateBadge && (
-              <span className="text-[11px] font-bold font-mono tabular-nums text-tertiary">
+              <span className="text-[11px] font-bold tabular-nums text-tertiary">
                 {topPyeongDateBadge} 계약
               </span>
             )}
@@ -194,13 +186,13 @@ export function HyperlocalInsightCards({
           <div className="flex flex-col">
             <span className="text-[11px] font-bold text-slate-400">최고 평당가</span>
             {topPyeongTotalPrice > 0 && (
-              <span className="text-[11px] font-semibold font-mono tabular-nums text-secondary mt-0.5">
-                매매 {formatPriceEok(topPyeongTotalPrice)} ({topPyeongTotalPrice.toLocaleString()}만원)
+              <span className="text-[11px] font-semibold tabular-nums text-secondary mt-0.5">
+                매매 {formatPriceEok(topPyeongTotalPrice)}
               </span>
             )}
           </div>
           <div className="flex flex-col items-end">
-            <p className="text-sm sm:text-base font-black font-mono tabular-nums text-emerald-600 dark:text-emerald-400">
+            <p className="text-sm sm:text-base font-black tabular-nums text-emerald-600 dark:text-emerald-400">
               {topPyeongPrice > 0
                 ? `평당 ${topPyeongPrice.toLocaleString()}만원`
                 : '-'}
@@ -231,7 +223,7 @@ export function HyperlocalInsightCards({
 
         <div className="mt-4 pt-3 border-t border-border flex items-baseline justify-between">
           <span className="text-[11px] font-bold text-slate-400">체결 건수</span>
-          <p className="text-sm sm:text-base font-black font-mono tabular-nums text-blue-600 dark:text-blue-400">
+          <p className="text-sm sm:text-base font-black tabular-nums text-blue-600 dark:text-blue-400">
             {volumeSurgeComplex?.txCount ? `${volumeSurgeComplex.txCount}건` : '-'}
           </p>
         </div>
@@ -240,15 +232,7 @@ export function HyperlocalInsightCards({
       {/* 4. 낙폭과대 급매 단지 */}
       <div
         data-testid="insight-card-urgent-bargain"
-        onClick={() => {
-          if (urgentBargainComplex) {
-            if (onOpenCompare) {
-              onOpenCompare(urgentBargainComplex.aptName);
-            } else if (onSelectComplex) {
-              onSelectComplex(urgentBargainComplex.aptKey, urgentBargainComplex.aptName);
-            }
-          }
-        }}
+        onClick={() => urgentBargainComplex && onSelectComplex?.(urgentBargainComplex.aptKey, urgentBargainComplex.aptName)}
         className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
       >
         <div>
@@ -269,7 +253,7 @@ export function HyperlocalInsightCards({
 
         <div className="mt-4 pt-3 border-t border-border flex items-baseline justify-between">
           <span className="text-[11px] font-bold text-slate-400">고점 대비 할인율</span>
-          <p className="text-sm sm:text-base font-black font-mono tabular-nums text-red-600 dark:text-red-400">
+          <p className="text-sm sm:text-base font-black tabular-nums text-red-600 dark:text-red-400">
             {urgentBargainComplex?.urgentSaleDiscountRate
               ? `-${urgentBargainComplex.urgentSaleDiscountRate}%`
               : '-'}

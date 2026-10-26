@@ -68,20 +68,21 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
   // =========================================================================
   // Dimension 1: Desktop Navigation (LoungeHeader) Rendering & Click Simulation
   // =========================================================================
-  describe('Dimension 1: LoungeHeader 4-Tab Architecture & Interaction', () => {
+  describe('Dimension 1: LoungeHeader 5-Tab Architecture & Interaction', () => {
     const expectedTabs = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
       { id: 'guide', label: '부동산 가이드', href: '/guide' },
+      { id: 'stats', label: '아파트 통계', href: '/stats' },
     ];
 
-    it('renders exactly the 4 canonical tabs with matching labels and href attributes', () => {
+    it('renders exactly the 5 canonical tabs with matching labels and href attributes', () => {
       const { container } = render(<LoungeHeader activeTab="overview" />);
       const navElement = within(container).getByRole('navigation', { name: '메인 메뉴' });
       const links = within(navElement).getAllByRole('link');
 
-      expect(links).toHaveLength(4);
+      expect(links).toHaveLength(5);
       expectedTabs.forEach((tab, index) => {
         expect(links[index]).toHaveTextContent(tab.label);
         expect(links[index]).toHaveAttribute('href', tab.href);
@@ -108,7 +109,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(allHrefs.some((h) => h?.includes('techno') || h?.includes('office'))).toBe(false);
     });
 
-    it('simulates click events on all 4 tabs and triggers onTabChange & router.replace correctly', () => {
+    it('simulates click events on all 5 tabs and triggers onTabChange & router.replace correctly', () => {
       const onTabChangeSpy = jest.fn();
       const pushStateSpy = jest.spyOn(window.history, 'pushState').mockImplementation(() => {});
 
@@ -118,6 +119,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       const tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      const tab5 = screen.getByRole('link', { name: /아파트 통계/i });
 
       // Click Tab 1 ('아파트 랩')
       fireEvent.click(tab1);
@@ -143,22 +145,30 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(mockReplace).toHaveBeenLastCalledWith('/guide', { scroll: false });
       expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', '/guide');
 
+      // Click Tab 5 ('아파트 통계')
+      fireEvent.click(tab5);
+      expect(onTabChangeSpy).toHaveBeenLastCalledWith('stats');
+      expect(mockReplace).toHaveBeenLastCalledWith('/stats', { scroll: false });
+      expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', '/stats');
+
       pushStateSpy.mockRestore();
     });
 
-    it('updates activeTab visual highlighting dynamically across all 4 tabs', () => {
+    it('updates activeTab visual highlighting dynamically across all 5 tabs', () => {
       const { rerender } = render(<LoungeHeader activeTab="overview" />);
       
       let tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       let tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       let tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       let tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      let tab5 = screen.getByRole('link', { name: /아파트 통계/i });
 
       expect(tab1).toHaveClass('text-blue-600');
       expect(tab1).toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
       expect(tab3).not.toHaveClass('bg-white');
       expect(tab4).not.toHaveClass('bg-white');
+      expect(tab5).not.toHaveClass('bg-white');
 
       // Switch to 'imjang'
       rerender(<LoungeHeader activeTab="imjang" />);
@@ -166,12 +176,14 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab5 = screen.getByRole('link', { name: /아파트 통계/i });
 
       expect(tab2).toHaveClass('text-blue-600');
       expect(tab2).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab3).not.toHaveClass('bg-white');
       expect(tab4).not.toHaveClass('bg-white');
+      expect(tab5).not.toHaveClass('bg-white');
 
       // Switch to 'mbti'
       rerender(<LoungeHeader activeTab="mbti" />);
@@ -179,12 +191,14 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab5 = screen.getByRole('link', { name: /아파트 통계/i });
 
       expect(tab3).toHaveClass('text-blue-600');
       expect(tab3).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
       expect(tab4).not.toHaveClass('bg-white');
+      expect(tab5).not.toHaveClass('bg-white');
 
       // Switch to 'guide'
       rerender(<LoungeHeader activeTab="guide" />);
@@ -192,15 +206,32 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
       tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab5 = screen.getByRole('link', { name: /아파트 통계/i });
 
       expect(tab4).toHaveClass('text-blue-600');
       expect(tab4).toHaveClass('bg-white');
       expect(tab1).not.toHaveClass('bg-white');
       expect(tab2).not.toHaveClass('bg-white');
       expect(tab3).not.toHaveClass('bg-white');
+      expect(tab5).not.toHaveClass('bg-white');
+
+      // Switch to 'stats'
+      rerender(<LoungeHeader activeTab="stats" />);
+      tab1 = screen.getByRole('link', { name: /아파트 랩/i });
+      tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
+      tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab5 = screen.getByRole('link', { name: /아파트 통계/i });
+
+      expect(tab5).toHaveClass('text-blue-600');
+      expect(tab5).toHaveClass('bg-white');
+      expect(tab1).not.toHaveClass('bg-white');
+      expect(tab2).not.toHaveClass('bg-white');
+      expect(tab3).not.toHaveClass('bg-white');
+      expect(tab4).not.toHaveClass('bg-white');
     });
 
-    it('handles popstate browser navigation events for /mbti and legacy paths', () => {
+    it('handles popstate browser navigation events for /mbti, /stats, and legacy paths', () => {
       const onTabChangeSpy = jest.fn();
       render(<LoungeHeader activeTab="overview" onTabChange={onTabChangeSpy} />);
 
@@ -225,6 +256,13 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       });
       expect(onTabChangeSpy).toHaveBeenLastCalledWith('guide');
 
+      // Simulate popstate to /stats
+      act(() => {
+        window.history.pushState({}, '', '/stats');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      });
+      expect(onTabChangeSpy).toHaveBeenLastCalledWith('stats');
+
       // Simulate popstate to legacy route /technovalley -> falls back to 'overview'
       act(() => {
         window.history.pushState({}, '', '/technovalley');
@@ -240,21 +278,21 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
   // =========================================================================
   // Dimension 2: Mobile Dock Navigation (MobileDock) Rendering & Click Simulation
   // =========================================================================
-  describe('Dimension 2: MobileDock 3-Tab Architecture & Interaction', () => {
-    it('declares and renders exactly 3 canonical tabs in MobileDock TABS export', () => {
-      expect(TABS).toHaveLength(4);
-      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드']);
-      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide']);
+  describe('Dimension 2: MobileDock 5-Tab Architecture & Interaction', () => {
+    it('declares and renders exactly 5 canonical tabs in MobileDock TABS export', () => {
+      expect(TABS).toHaveLength(5);
+      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide', 'stats']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
+      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
     });
 
-    it('renders all 3 tabs in DOM and confirms "테크노 랩" and "사무실 탐색" are 100% removed', () => {
+    it('renders all 5 tabs in DOM and confirms "테크노 랩" and "사무실 탐색" are 100% removed', () => {
       const { container } = render(<MobileDock activeTab="overview" />);
       const dockNav = container.querySelector('nav');
       expect(dockNav).toBeInTheDocument();
 
       const links = within(dockNav!).getAllByRole('link');
-      expect(links).toHaveLength(4);
+      expect(links).toHaveLength(5);
 
       expect(within(dockNav!).queryByText(/테크노/)).toBeNull();
       expect(within(dockNav!).queryByText(/사무실/)).toBeNull();
@@ -285,6 +323,16 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       fireEvent.click(links[2]);
       expect(onTabClickSpy).toHaveBeenLastCalledWith('mbti');
       expect(mockReplace).toHaveBeenLastCalledWith('/mbti', { scroll: false });
+
+      // Tab 3: 부동산 가이드
+      fireEvent.click(links[3]);
+      expect(onTabClickSpy).toHaveBeenLastCalledWith('guide');
+      expect(mockReplace).toHaveBeenLastCalledWith('/guide', { scroll: false });
+
+      // Tab 4: 아파트 통계
+      fireEvent.click(links[4]);
+      expect(onTabClickSpy).toHaveBeenLastCalledWith('stats');
+      expect(mockReplace).toHaveBeenLastCalledWith('/stats', { scroll: false });
     });
 
     it('stress tests rapid tab cycling (30 rapid clicks) across MobileDock without errors', () => {

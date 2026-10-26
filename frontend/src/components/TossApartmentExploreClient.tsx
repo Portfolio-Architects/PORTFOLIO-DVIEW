@@ -75,6 +75,8 @@ interface TossApartmentExploreClientProps {
   onOpenCompare?: () => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
+  onOpenTaxCalculator?: (aptName?: string) => void;
+  onOpenSellTimingCalculator?: (aptName?: string) => void;
   onSearchFocus?: () => void;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
 }
@@ -102,6 +104,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
+  onOpenTaxCalculator,
+  onOpenSellTimingCalculator,
   onSearchFocus,
   preloadApartmentTx,
 }: TossApartmentExploreClientProps) {
@@ -923,6 +927,22 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                   대출 한도진단
                 </button>
               )}
+              {onOpenTaxCalculator && (
+                <button
+                  onClick={() => onOpenTaxCalculator()}
+                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                >
+                  취득세·중개보수
+                </button>
+              )}
+              {onOpenSellTimingCalculator && (
+                <button
+                  onClick={() => onOpenSellTimingCalculator()}
+                  className="px-4 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-primary text-[12px] font-extrabold rounded-full transition-all active:scale-95 cursor-pointer whitespace-nowrap shrink-0 text-center inline-block"
+                >
+                  양도세·매도타이밍
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -973,10 +993,10 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               >
                 <div className="flex flex-col justify-between min-w-0 sm:pr-3 sm:border-r sm:border-border/40">
                   <span className="text-[11px] font-medium text-tertiary">1위 최고 평단가</span>
-                  <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
+                  <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
                     {pyeongSummary.maxPyeongPrice.toLocaleString()}만원/평
                   </p>
-                  <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+                  <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
                     {pyeongSummary.topApt
                       ? `${pyeongSummary.topApt.apt.name} · 34평 환산 ${formatPrice(
                           Math.round(pyeongSummary.maxPyeongPrice * 34)
@@ -987,17 +1007,17 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
                 <div className="flex flex-col justify-between min-w-0 sm:pr-3 sm:border-r sm:border-border/40">
                   <span className="text-[11px] font-medium text-tertiary">탐색 단지 평균 평단가</span>
-                  <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+                  <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                     {pyeongSummary.avgPyeongPrice.toLocaleString()}만원/평
                   </p>
-                  <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+                  <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
                     34평(84㎡) 기준 평균 {formatPrice(Math.round(pyeongSummary.avgPyeongPrice * 34))}
                   </span>
                 </div>
 
                 <div className="flex flex-col justify-between min-w-0">
                   <span className="text-[11px] font-medium text-tertiary">실거래 분석 대상</span>
-                  <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+                  <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                     총 {pyeongSummary.validCount.toLocaleString()}개 단지
                   </p>
                   <span className="text-[11px] text-secondary truncate mt-0.5">

@@ -115,13 +115,8 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       </SettingsProvider>
     );
 
-    // 1. Signature Hero components (Quick finance bar, Donut section & Price trend chart)
-    const quickFinanceBar = screen.getByTestId('hero-finance-quick-bar');
-    expect(quickFinanceBar).toBeInTheDocument();
-    expect(screen.getByTestId('hero-quick-mortgage')).toBeInTheDocument();
-    expect(screen.getByTestId('hero-quick-jeonse')).toBeInTheDocument();
-    expect(screen.getByTestId('hero-quick-tax')).toBeInTheDocument();
-    expect(screen.getByTestId('hero-quick-sell')).toBeInTheDocument();
+    // 1. Signature Hero components (Donut section & Price trend chart, no top quick finance bar clutter)
+    expect(screen.queryByTestId('hero-finance-quick-bar')).not.toBeInTheDocument();
     const donutContainer = container.querySelector('#apt-market-energy-donut');
     expect(donutContainer).toBeInTheDocument();
     const trendChartTitles = screen.getAllByText(/시세 추이/);

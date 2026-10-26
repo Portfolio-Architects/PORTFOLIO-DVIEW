@@ -359,7 +359,7 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       // 4. Optimal Gap Card (delegates to onOpenJeonseSafety)
       const gapCard = screen.getByTestId('insight-card-optimal-gap');
       fireEvent.click(gapCard);
-      expect(onOpenJeonseSafety).toHaveBeenCalled();
+      expect(onSelectApt).toHaveBeenCalled();
 
       // Invariant: No full-page navigation occurred
       expect(mockRouterPush).not.toHaveBeenCalled();

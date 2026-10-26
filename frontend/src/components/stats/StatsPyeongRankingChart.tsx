@@ -122,7 +122,7 @@ export function StatsPyeongRankingChart({
               단지별 평당가 TOP 20
             </h3>
             {hasData && (
-              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-secondary text-[11px] font-bold font-mono tabular-nums">
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-secondary text-[11px] font-bold tabular-nums">
                 TOP {topRankings.length}
               </span>
             )}
@@ -181,10 +181,10 @@ export function StatsPyeongRankingChart({
             {/* Metric 1: 1위 최고 평당가 */}
             <div className="flex flex-col justify-between min-w-0 lg:pr-3 lg:border-r lg:border-border/40">
               <span className="text-[11px] font-medium text-tertiary">1위 최고 평당가</span>
-              <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
+              <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-blue-600 dark:text-blue-400 mt-0.5">
                 {top1Item ? `${safePyeong(top1Item.avgPyeongPrice).toLocaleString()}만원/평` : '-'}
               </p>
-              <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+              <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
                 {top1Item
                   ? `${top1Item.aptName} · 34평 ${formatPriceEok(
                       Math.round(safePyeong(top1Item.avgPyeongPrice) * 34)
@@ -198,10 +198,10 @@ export function StatsPyeongRankingChart({
               <span className="text-[11px] font-medium text-tertiary">
                 TOP {topRankings.length} 평균 평당가
               </span>
-              <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+              <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                 {avgTopPyeongPrice.toLocaleString()}만원/평
               </p>
-              <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+              <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
                 34평(84㎡) 평균 {formatPriceEok(Math.round(avgTopPyeongPrice * 34))}
               </span>
             </div>
@@ -212,7 +212,7 @@ export function StatsPyeongRankingChart({
                 <span className="text-[11px] font-medium text-tertiary">
                   TOP {topRankings.length} 진입 기준선
                 </span>
-                <span className="text-[10px] font-mono tabular-nums text-secondary">
+                <span className="text-[10px] tabular-nums text-secondary">
                   {cutoffItem
                     ? `1위 대비 ${Math.round(
                         (safePyeong(cutoffItem.avgPyeongPrice) / maxPyeongPrice) * 100
@@ -220,7 +220,7 @@ export function StatsPyeongRankingChart({
                     : '-'}
                 </span>
               </div>
-              <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+              <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                 {cutoffItem ? `${safePyeong(cutoffItem.avgPyeongPrice).toLocaleString()}만원/평` : '-'}
               </p>
               <span className="text-[11px] text-secondary truncate mt-0.5">
@@ -231,10 +231,10 @@ export function StatsPyeongRankingChart({
             {/* Metric 4: 권역 · 신고가 분포 */}
             <div className="flex flex-col justify-between min-w-0">
               <span className="text-[11px] font-medium text-tertiary">권역 · 신고가 분포</span>
-              <p className="text-sm sm:text-[15px] font-extrabold font-mono tabular-nums text-primary mt-0.5">
+              <p className="text-sm sm:text-[15px] font-extrabold tabular-nums text-primary mt-0.5">
                 동탄2 {dongtan2Count}곳 · 동탄1 {dongtan1Count}곳
               </p>
-              <span className="text-[11px] text-secondary truncate mt-0.5 font-mono tabular-nums">
+              <span className="text-[11px] text-secondary truncate mt-0.5 tabular-nums">
                 신고가 경신 {newHighCount}개 단지 포함
               </span>
             </div>
@@ -275,7 +275,7 @@ export function StatsPyeongRankingChart({
                       type="number"
                       tickFormatter={formatPyeongAxisTick}
                       tick={{ fontSize: 10.5, fill: 'currentColor' }}
-                      className="text-slate-400 dark:text-slate-500 font-mono tabular-nums"
+                      className="text-slate-400 dark:text-slate-500 tabular-nums"
                       axisLine={false}
                       tickLine={false}
                     />
@@ -363,7 +363,7 @@ export function StatsPyeongRankingChart({
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2 min-w-0 flex-1">
                           <span
-                            className={`w-5 h-5 rounded-md text-[11px] font-mono tabular-nums font-bold flex items-center justify-center shrink-0 ${
+                            className={`w-5 h-5 rounded-md text-[11px] tabular-nums font-bold flex items-center justify-center shrink-0 ${
                               rank === 1
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200'
@@ -387,10 +387,10 @@ export function StatsPyeongRankingChart({
 
                       {/* Middle Row: Primary Pyeong Price & Prominent 34-Pyeong Equivalent Pill */}
                       <div className="flex items-baseline justify-between gap-2">
-                        <span className="text-base sm:text-[17px] font-black font-mono tabular-nums text-primary">
+                        <span className="text-base sm:text-[17px] font-black tabular-nums text-primary">
                           {itemPyeong.toLocaleString()}만원/평
                         </span>
-                        <span className="px-2 py-0.5 rounded-md bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[11px] font-bold font-mono tabular-nums shrink-0">
+                        <span className="px-2 py-0.5 rounded-md bg-blue-50/80 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-[11px] font-bold tabular-nums shrink-0">
                           34평 환산 {formatPriceEok(eq84Price)}
                         </span>
                       </div>
@@ -406,7 +406,7 @@ export function StatsPyeongRankingChart({
                       </div>
 
                       {/* Bottom Row: Consumer Metadata & Relative Ratio */}
-                      <div className="flex items-center justify-between gap-2 text-[11px] text-secondary font-mono tabular-nums">
+                      <div className="flex items-center justify-between gap-2 text-[11px] text-secondary tabular-nums">
                         <span className="truncate">
                           평균 {formatPriceEok(itemAvgPrice)} ·{' '}
                           {itemJeonseRatio > 0
@@ -456,7 +456,7 @@ export function StatsPyeongRankingChart({
                       >
                         {/* Left: Rank + Complex Name + Dong */}
                         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                          <span className="w-5 text-xs font-mono tabular-nums font-bold text-tertiary text-right shrink-0">
+                          <span className="w-5 text-xs tabular-nums font-bold text-tertiary text-right shrink-0">
                             {rank}
                           </span>
                           <div className="flex flex-col min-w-0 flex-1 gap-1">
@@ -481,7 +481,7 @@ export function StatsPyeongRankingChart({
                                   style={{ width: `${relativePct}%` }}
                                 />
                               </div>
-                              <span className="text-[10.5px] text-tertiary font-mono tabular-nums truncate">
+                              <span className="text-[10.5px] text-tertiary tabular-nums truncate">
                                 34평 환산 {formatPriceEok(eq84Price)} · 1위 대비 {relativePct}% · {itemTxCount}건
                               </span>
                             </div>
@@ -490,7 +490,7 @@ export function StatsPyeongRankingChart({
 
                         {/* Right: Pyeong Price */}
                         <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-primary font-bold font-mono tabular-nums text-[13px]">
+                          <span className="text-primary font-bold tabular-nums text-[13px]">
                             {itemPyeong.toLocaleString()}만원/평
                           </span>
                         </div>

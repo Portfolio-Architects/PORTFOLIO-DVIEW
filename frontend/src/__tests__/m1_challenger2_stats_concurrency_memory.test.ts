@@ -340,8 +340,9 @@ describe('Challenger 2: Concurrency, Memory & Cancellation Evasion Stress Harnes
       // isNewHigh must be false (none of the cancelled fake new highs leaked)
       expect(complexStat.isNewHigh).toBe(false);
 
-      // Insight cards must NOT highlight the complex as a fake new high
-      expect(res.insights.newHighComplex).toBeNull();
+      // Insight card (최고 거래가) must reflect only legitimate 82,000 price and never fake cancelled spikes
+      expect(res.insights.newHighComplex?.highestPrice).toBe(82000);
+      expect(res.insights.newHighComplex?.isNewHigh).toBe(false);
     });
 
     it('1.4: should verify pyeong rankings limit and order are not distorted by cancellations', () => {

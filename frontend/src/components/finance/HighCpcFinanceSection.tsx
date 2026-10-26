@@ -9,6 +9,8 @@ export interface HighCpcFinanceSectionProps {
   onOpenMortgage?: (aptName?: string) => void;
   onOpenJeonseSafetyModal?: (aptName?: string) => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
+  onOpenTaxCalculator?: (aptName?: string) => void;
+  onOpenSellTiming?: (aptName?: string) => void;
 }
 
 export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
@@ -16,9 +18,13 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
   onOpenMortgage,
   onOpenJeonseSafetyModal,
   onOpenJeonseSafety,
+  onOpenTaxCalculator,
+  onOpenSellTiming,
 }: HighCpcFinanceSectionProps) {
   const handleMortgage = () => (onOpenMortgageModal || onOpenMortgage)?.();
   const handleJeonse = () => (onOpenJeonseSafetyModal || onOpenJeonseSafety)?.();
+  const handleTax = () => onOpenTaxCalculator?.();
+  const handleSellTiming = () => onOpenSellTiming?.();
   return (
     <section
       data-testid="high-cpc-finance-section"
@@ -42,7 +48,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
         </div>
 
         {/* Quick Modal Trigger Buttons */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center flex-wrap gap-2 shrink-0">
           <button
             type="button"
             data-testid="open-mortgage-modal-btn"
@@ -60,6 +66,28 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
           >
             <span>전세 안전진단</span>
           </button>
+
+          {onOpenTaxCalculator && (
+            <button
+              type="button"
+              data-testid="open-tax-modal-btn"
+              onClick={handleTax}
+              className="flex items-center px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+            >
+              <span>취득세·중개보수</span>
+            </button>
+          )}
+
+          {onOpenSellTiming && (
+            <button
+              type="button"
+              data-testid="open-sell-timing-modal-btn"
+              onClick={handleSellTiming}
+              className="flex items-center px-3.5 py-2 rounded-xl bg-white dark:bg-slate-900 hover:bg-blue-50/50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 border border-slate-200/80 dark:border-slate-700 text-[12px] font-bold shadow-xs transition-all cursor-pointer active:scale-[0.98]"
+            >
+              <span>양도세·매도타이밍</span>
+            </button>
+          )}
         </div>
       </div>
 

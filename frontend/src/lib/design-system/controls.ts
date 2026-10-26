@@ -19,8 +19,8 @@ export const DVIEW_CONTROL_CLASSES = {
   btnBase:
     'dview-toggle-btn inline-flex items-center justify-center gap-1.5 rounded-[7px] font-extrabold transition-all cursor-pointer whitespace-nowrap',
   btnSize: {
-    sm: 'dview-toggle-btn-sm min-h-[26px] sm:min-h-[28px] px-2.5 sm:px-3 py-0.5 text-[11.5px] sm:text-[12px]',
-    md: 'min-h-[28px] sm:min-h-[30px] px-3 sm:px-3.5 py-1 text-[12px] sm:text-[13px]',
+    sm: 'dview-toggle-btn-sm min-h-[26px] sm:min-h-[28px] px-2 sm:px-2.5 py-0.5 text-[11px] sm:text-[12px]',
+    md: 'min-h-[28px] sm:min-h-[30px] px-2.5 sm:px-3.5 py-1 text-[12px] sm:text-[13px]',
   },
   btnActive: {
     blue: 'dview-toggle-btn-active bg-surface dark:bg-[#2c2c35] text-blue-600 dark:text-blue-400 shadow-xs font-black',

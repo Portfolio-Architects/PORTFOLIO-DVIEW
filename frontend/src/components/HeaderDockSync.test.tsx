@@ -49,9 +49,10 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     { id: 'imjang', label: '아파트 탐색', href: '/explore' },
     { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
     { id: 'guide', label: '부동산 가이드', href: '/guide' },
+    { id: 'stats', label: '아파트 통계', href: '/stats' },
   ];
 
-  it('renders all 4 main navigation links with identical labels and hrefs in LoungeHeader', () => {
+  it('renders all 5 main navigation links with identical labels and hrefs in LoungeHeader', () => {
     const { container } = render(<LoungeHeader activeTab="overview" />);
 
     expectedRoutes.forEach((route) => {
@@ -61,7 +62,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     });
   });
 
-  it('renders all 4 main navigation links with identical labels and hrefs in MobileDock', () => {
+  it('renders all 5 main navigation links with identical labels and hrefs in MobileDock', () => {
     const { container } = render(<MobileDock activeTab="overview" />);
 
     expectedRoutes.forEach((route) => {
@@ -76,6 +77,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     ['imjang', '아파트 탐색', 'bg-white', 'text-blue-600'],
     ['mbti', '단지 MBTI', 'bg-white', 'text-blue-600'],
     ['guide', '부동산 가이드', 'bg-white', 'text-blue-600'],
+    ['stats', '아파트 통계', 'bg-white', 'text-blue-600'],
   ])('highlights activeTab "%s" correctly with expected visual feedback in LoungeHeader and MobileDock', (activeTab, label, expectedBg, expectedText) => {
     const { container: headerContainer } = render(
       <LoungeHeader activeTab={activeTab as any} />

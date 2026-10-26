@@ -200,6 +200,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     : internalActiveCategory;
 
   const setActiveCategory = useCallback((cat: string | null) => {
+    setHoveredCategory(null);
     if (!isControlledCategory) {
       setInternalActiveCategory(cat);
     }
@@ -591,7 +592,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       className={`bg-surface border-b border-border pb-4 sm:pb-5 flex flex-col justify-between h-auto sm:min-h-[350px] lg:h-[400px] shrink-0 ${className}`}
     >
       {/* Header with Mode Toggle & Period Switcher */}
-      <div className="flex flex-wrap items-center justify-between gap-y-2.5 gap-x-2 sm:gap-x-3 mb-3 sm:mb-4">
+      <div className="flex flex-wrap xl:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-2.5 mb-3 sm:mb-4">
         {/* Element 1: Title Group (Indicator dot + Section Title + Count Badge) */}
         <div className="flex items-center gap-1.5 sm:gap-2 order-1 shrink-0">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
@@ -599,21 +600,21 @@ export const AptDonutSection = React.memo(function AptDonutSection({
             실거래 비중
           </h3>
           {totalCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[11px] sm:text-[11.5px] font-extrabold text-secondary shrink-0">
+            <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11.5px] font-extrabold text-secondary shrink-0 tabular-nums whitespace-nowrap">
               총 {totalCount}건
             </span>
           )}
         </div>
 
         {/* Element 2: Divider & Mode Switch Toggle (Desktop inline order-2, Mobile full-width order-3) */}
-        <div className="w-full sm:w-auto order-3 sm:order-2 flex items-center gap-2 sm:gap-2.5">
-          <div className="hidden sm:block h-3.5 w-px bg-border/60" />
-          <div className={getToggleTrackClass('grid grid-cols-2 sm:inline-flex w-full sm:w-auto')}>
+        <div className="w-full sm:w-auto lg:w-full xl:w-auto order-3 sm:order-2 lg:order-3 xl:order-2 flex items-center gap-1.5 sm:gap-2">
+          <div className="hidden sm:block lg:hidden xl:block h-3.5 w-px bg-border/60" />
+          <div className={getToggleTrackClass('grid grid-cols-2 sm:inline-flex lg:grid lg:grid-cols-2 xl:inline-flex w-full sm:w-auto lg:w-full xl:w-auto')}>
             <button
               type="button"
               onClick={() => handleModeChange('pyeong')}
               aria-pressed={mode === 'pyeong'}
-              className={getToggleBtnClass({ active: mode === 'pyeong' })}
+              className={getToggleBtnClass({ active: mode === 'pyeong', size: 'sm' })}
             >
               평형대별
             </button>
@@ -621,7 +622,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               type="button"
               onClick={() => handleModeChange('price')}
               aria-pressed={mode === 'price' || mode === 'policy'}
-              className={getToggleBtnClass({ active: mode === 'price' || mode === 'policy' })}
+              className={getToggleBtnClass({ active: mode === 'price' || mode === 'policy', size: 'sm' })}
             >
               가격대별
             </button>
@@ -629,12 +630,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         </div>
 
         {/* Element 3: Period Selector & Reset Button (Mobile order-2, Desktop order-3 ml-auto) */}
-        <div className="flex items-center gap-1.5 sm:gap-2.5 ml-auto order-2 sm:order-3 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 ml-auto order-2 sm:order-3 lg:order-2 xl:order-3 shrink-0">
           {activeCategory && (
             <button
               type="button"
               onClick={() => setActiveCategory(null)}
-              className="text-[10.5px] sm:text-[11px] font-bold text-tertiary hover:text-primary cursor-pointer transition-colors mr-0.5 sm:mr-1"
+              className="hidden xl:inline-block text-[10.5px] sm:text-[11px] font-bold text-tertiary hover:text-primary cursor-pointer transition-colors mr-0.5 whitespace-nowrap"
             >
               선택 초기화
             </button>
@@ -647,7 +648,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 key={btn.key}
                 type="button"
                 onClick={() => handlePeriodChange(btn.key)}
-                className={getToggleBtnClass({ active: period === btn.key })}
+                className={getToggleBtnClass({ active: period === btn.key, size: 'sm', extraClass: 'tabular-nums' })}
                 aria-label={btn.ariaLabel}
               >
                 {btn.label}
@@ -693,6 +694,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       paddingAngle={2.5}
                       dataKey="value"
                       onMouseEnter={(data: any, index: number) => {
+                        if (activeCategory !== null) return;
                         const entry = donutData[index] || (data && (donutData.find((d) => d.name === data.name || d.category === data.category)));
                         if (entry) {
                           setHoveredCategory(entry.name);
@@ -701,6 +703,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       onMouseLeave={() => setHoveredCategory(null)}
                       onClick={(entry: any) => {
                         const entryName = entry?.name || null;
+                        setHoveredCategory(null);
                         if (activeCategory === entryName || (entry?.category && activeCategory === entry.category)) {
                           setActiveCategory(null);
                         } else {
@@ -712,16 +715,20 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     >
                       {donutData.map((entry) => {
                         const isSelected = activeCategory === entry.name || activeCategory === entry.category;
-                        const isHovered = hoveredCategory === entry.name || hoveredCategory === entry.category;
-                        const isHighlighted = (activeCategory === null && hoveredCategory === null) || isSelected || isHovered;
+                        const isEffectiveHover = activeCategory === null && (hoveredCategory === entry.name || hoveredCategory === entry.category);
+                        const isHighlighted = (activeCategory === null && hoveredCategory === null) || isSelected || isEffectiveHover;
                         return (
                           <Cell
                             key={entry.name}
                             fill={entry.color}
                             opacity={isHighlighted ? 1 : 0.4}
-                            stroke={isSelected || isHovered ? '#ffffff' : 'transparent'}
-                            strokeWidth={isSelected || isHovered ? 2.5 : 0}
-                            onMouseEnter={() => setHoveredCategory(entry.name)}
+                            stroke={isSelected || isEffectiveHover ? '#ffffff' : 'transparent'}
+                            strokeWidth={isSelected || isEffectiveHover ? 2.5 : 0}
+                            onMouseEnter={() => {
+                              if (activeCategory === null) {
+                                setHoveredCategory(entry.name);
+                              }
+                            }}
                             onMouseLeave={() => setHoveredCategory(null)}
                             className="transition-all duration-200 outline-none cursor-pointer"
                           />
@@ -785,17 +792,19 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         <div className="w-full sm:flex-1 min-w-0 flex flex-col justify-center gap-1 sm:gap-1.5 my-auto py-0.5 pl-0 sm:pl-2">
           {donutData.map((sector) => {
             const isSelected = activeCategory === sector.name || activeCategory === sector.category;
-            const isHovered = hoveredCategory === sector.name || hoveredCategory === sector.category;
-            const hasActiveOrHover = activeCategory !== null || hoveredCategory !== null;
-            const isDimmed = hasActiveOrHover && !isSelected && !isHovered;
+            const isEffectiveHover = activeCategory === null && (hoveredCategory === sector.name || hoveredCategory === sector.category);
+            const isDimmed = activeCategory !== null ? !isSelected : (hoveredCategory !== null && !isEffectiveHover);
             return (
               <div
                 key={sector.name}
                 onClick={() => {
+                  setHoveredCategory(null);
                   setActiveCategory(isSelected ? null : sector.name);
                 }}
                 onMouseEnter={() => {
-                  setHoveredCategory(sector.name);
+                  if (activeCategory === null) {
+                    setHoveredCategory(sector.name);
+                  }
                 }}
                 onMouseLeave={() => setHoveredCategory(null)}
                 role="button"
@@ -809,15 +818,16 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
+                    setHoveredCategory(null);
                     setActiveCategory(isSelected ? null : sector.name);
                   }
                 }}
                 className={`group px-2.5 py-2 sm:px-3 sm:py-2.5 rounded-xl transition-all duration-200 cursor-pointer flex flex-col justify-between gap-1.5 ${
                   isSelected
                     ? 'bg-elevated dark:bg-slate-800/80'
-                    : isHovered
+                    : isEffectiveHover
                       ? 'bg-elevated/70 dark:bg-slate-800/40'
-                      : 'bg-transparent hover:bg-elevated/70 dark:hover:bg-slate-800/40'
+                      : 'bg-transparent'
                 } ${isDimmed ? 'opacity-45' : 'opacity-100'}`}
               >
                 {/* Top Row: Indicator Dot + Category Name (Left) | Ratio & Count + Chevron (Right) */}
@@ -825,13 +835,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   <div className="flex items-center gap-2 min-w-0">
                     <span
                       className={`w-2 h-2 rounded-full shrink-0 transition-transform duration-200 ${
-                        isSelected || isHovered ? 'scale-110' : ''
+                        isSelected || isEffectiveHover ? 'scale-110' : ''
                       }`}
                       style={{ backgroundColor: sector.color }}
                     />
                     <span
                       className={`text-[12.5px] sm:text-[13px] tracking-tight whitespace-nowrap transition-colors duration-200 ${
-                        isSelected || isHovered
+                        isSelected || isEffectiveHover
                           ? 'font-bold text-slate-900 dark:text-white'
                           : 'font-medium text-slate-700 dark:text-slate-300'
                       }`}

@@ -15,6 +15,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
     router.prefetch('/explore');
     router.prefetch('/mbti');
     router.prefetch('/guide');
+    router.prefetch('/stats');
 
     const handlePopState = () => {
       if (!onTabChange || typeof window === 'undefined') return;
@@ -23,6 +24,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
       else if (path === '/explore') onTabChange('imjang');
       else if (path === '/mbti') onTabChange('mbti');
       else if (path === '/guide') onTabChange('guide');
+      else if (path === '/stats') onTabChange('stats');
       else onTabChange('overview');
     };
 
@@ -122,6 +124,21 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   }`}
                 >
                   <span>부동산 가이드</span>
+                </Link>
+
+                {/* 5. 아파트 통계 */}
+                <Link
+                  href="/stats"
+                  prefetch={true}
+                  onMouseEnter={() => router.prefetch('/stats')}
+                  onClick={(e) => handleNavClick(e, '/stats', 'stats')}
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
+                    activeTab === 'stats'
+                      ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
+                      : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
+                  }`}
+                >
+                  <span>아파트 통계</span>
                 </Link>
               </nav>
             </div>

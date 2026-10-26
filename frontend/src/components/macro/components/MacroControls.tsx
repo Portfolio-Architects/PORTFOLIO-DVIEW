@@ -355,7 +355,7 @@ export const TimeframeSelector = React.memo(function TimeframeSelector({
   setTimeframe,
 }: TimeframeSelectorProps) {
   return (
-    <div className={getToggleTrackClass('self-start sm:self-auto mt-1 sm:mt-0')}>
+    <div className={getToggleTrackClass('self-start sm:self-auto')}>
       {(["3M", "6M", "1Y", "3Y", "5Y", "ALL"] as const).map((tf) => (
         <button
           key={tf}

@@ -238,7 +238,9 @@ describe('statsEngine Unit Test Suite', () => {
       );
       expect(res.totalVolume).toBe(1);
       expect(res.avgSalePrice).toBe(80000);
-      expect(res.insights.newHighComplex).toBeNull();
+      expect(res.insights.newHighComplex?.aptName).toBe('정상단지');
+      expect(res.insights.newHighComplex?.highestPrice).toBe(80000);
+      expect(res.insights.newHighComplex?.isNewHigh).toBe(false);
     });
   });
 
@@ -557,7 +559,7 @@ describe('statsEngine Unit Test Suite', () => {
       expect(res.insights.optimalGapComplex?.highestPyeongPrice).toBeGreaterThan(7000);
     });
 
-    it('8.2: should return null for insight cards when criteria are unmet', () => {
+    it('8.2: should populate highest price complex even when isNewHigh is false, and return null for urgentBargainComplex when discount threshold is unmet', () => {
       const mockTxs: any[] = [
         {
           aptName: '평범단지',
@@ -576,7 +578,8 @@ describe('statsEngine Unit Test Suite', () => {
         { referenceDate: REF_DATE }
       );
 
-      expect(res.insights.newHighComplex).toBeNull();
+      expect(res.insights.newHighComplex?.aptName).toBe('평범단지');
+      expect(res.insights.newHighComplex?.highestPrice).toBe(70000);
       expect(res.insights.urgentBargainComplex).toBeNull();
     });
 
@@ -704,6 +707,27 @@ describe('statsEngine Unit Test Suite', () => {
       expect(res.insights.newHighComplex?.highestFloor).toBe(22);
       expect(res.insights.optimalGapComplex?.highestContractDate).toBe('20260919');
       expect(res.insights.optimalGapComplex?.highestFloor).toBe(22);
+    });
+
+    it('8.6: should guarantee 최고 거래가 (newHighComplex) is >= 최고 평당가 (optimalGapComplex) transaction price and exclude out-of-window summaryMap complexes', () => {
+      const dataDir = path.resolve(__dirname, '../../../public/data');
+      const recentTxs = JSON.parse(fs.readFileSync(path.join(dataDir, 'recent-transactions.json'), 'utf8'));
+      const txSummaryRaw = JSON.parse(fs.readFileSync(path.join(dataDir, 'tx-summary.json'), 'utf8'));
+      const summaryMap = txSummaryRaw.summary || txSummaryRaw;
+
+      const res3M = aggregateStatistics(
+        { transactions: recentTxs, summaryMap },
+        { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
+      );
+
+      expect(res3M.insights.newHighComplex?.aptName).toBe('동탄역롯데캐슬');
+      expect(res3M.insights.newHighComplex?.highestPrice).toBe(262000);
+      expect(res3M.insights.newHighComplex?.highestContractDate).toBe('20260828');
+      expect(res3M.insights.optimalGapComplex?.aptName).toBe('동탄역롯데캐슬');
+      expect(res3M.insights.optimalGapComplex?.highestPyeongPrice).toBe(6276);
+      expect(res3M.insights.newHighComplex!.highestPrice).toBeGreaterThanOrEqual(
+        res3M.insights.optimalGapComplex!.highestPrice
+      );
     });
   });
 

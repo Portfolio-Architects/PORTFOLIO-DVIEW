@@ -447,7 +447,7 @@ describe('StatsOverviewSection Modular Integration & Interaction Suite', () => {
       if (screen.getByTestId('insight-card-optimal-gap').textContent?.includes('해당 없음')) {
         expect(onOpenJeonseSafety).not.toHaveBeenCalled();
       } else {
-        expect(onOpenJeonseSafety).toHaveBeenCalled();
+        expect(onSelectApt).toHaveBeenCalled();
       }
     });
   });

@@ -255,7 +255,7 @@ export function StatsDashboardClient({
   };
 
   const handleSelectComplex = (aptKey: string, aptName: string) => {
-    router.push(`/explore?apt=${encodeURIComponent(aptName)}`);
+    router.push(`/apartment/${encodeURIComponent(aptName)}`);
   };
 
   // High-performance In-Memory Master Analytics Aggregation (<10ms)

@@ -398,6 +398,9 @@ const DashboardClient = React.memo(function DashboardClient({
       if (window.location.hash.startsWith('#imjang')) {
         router.replace('/explore');
         return;
+      } else if (window.location.hash.startsWith('#stats') || tabParam === 'stats') {
+        router.replace('/stats');
+        return;
       } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap') || tabParam === 'office' || tabParam === 'gap' || hasCurationParams) {
         setActiveTab('overview');
       } else if (window.location.hash.startsWith('#mbti') || tabParam === 'mbti') {
@@ -686,7 +689,7 @@ const DashboardClient = React.memo(function DashboardClient({
         .then(data => {
           if (data && data.byDong) {
             const allApts = Object.values(data.byDong).flat() as DongApartment[];
-            const targetApt = allApts.find(a => isSameApartment(a.name, apt.name, nameMapping, a.dong, apt.dong));
+            const targetApt = allApts.find(a => isSameApartment(a.name, apt.name, nameMapping, a.dong, apt.dong) || (a.txKey ? isSameApartment(a.txKey, apt.name, nameMapping, a.dong, apt.dong) : false));
             if (targetApt && targetApt.householdCount) {
               setSelectedReport(prev => {
                 if (!prev || prev.apartmentName !== apt.name) return prev;
@@ -724,7 +727,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
-    const targetApt = allApts.find(a => isSameApartment(a.name, name, nameMapping, a.dong, dong));
+    const targetApt = allApts.find(a => isSameApartment(a.name, name, nameMapping, a.dong, dong) || (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false));
     if (targetApt) {
       handleAptClick(targetApt);
     } else {
@@ -905,12 +908,13 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
   const handleTabChange = useCallback((tab: string) => {
-    const targetTab = tab as 'overview' | 'imjang' | 'mbti' | 'guide';
-    if (targetTab !== 'guide') setActiveTab(targetTab);
+    const targetTab = tab as 'overview' | 'imjang' | 'mbti' | 'guide' | 'stats';
+    if (targetTab !== 'guide' && targetTab !== 'stats') setActiveTab(targetTab as 'overview' | 'imjang' | 'mbti');
     let href = '/';
     if (targetTab === 'imjang') href = '/explore';
     else if (targetTab === 'mbti') href = '/mbti';
     else if (targetTab === 'guide') href = '/guide';
+    else if (targetTab === 'stats') href = '/stats';
     else if (targetTab === 'overview') href = '/';
     window.history.pushState(null, '', href);
     try { router.replace(href, { scroll: false }); } catch (err) {}

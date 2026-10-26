@@ -20,7 +20,7 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 
 1. **Zero-Jank & Zero-CLS ($\text{CLS} < 0.001$)**: 광고 슬롯별 최소 높이(`min-h-[140px]`, `min-h-[250px]`, `min-h-[90px]`) 사전 예약 및 매크로 히어로 2열 대칭(`lg:h-[566px]`)을 유지합니다.
 2. **Type & Compile 무결성**: `npx tsc --noEmit` 에러 0건을 유지하며 `any` 타입 남용을 금지합니다.
-3. **Ad Money 디자인 시스템 준수**: Slate 무채색 베이스와 Trust Blue(`#2563eb`) / Value Emerald(`#059669`) / Alert Red(`#f04452`) 시맨틱 토큰만 사용하며, 유니코드 이모티콘 대신 `lucide-react` 아이콘만 사용합니다.
+3. **Ad Money 디자인 시스템 및 폰트 수칙 준수**: Slate 무채색 베이스와 Trust Blue(`#2563eb`) / Value Emerald(`#059669`) / Alert Red(`#f04452`) 시맨틱 토큰만 사용하며, 유니코드 이모티콘 대신 `lucide-react` 아이콘만 사용합니다. **굴림체(`GulimChe`), `Consolas`, `Courier New` 등 시스템 고정폭(`monospace`) 폴백 폰트 사용을 전면 금지**하고 모든 텍스트·숫자·단위는 **Pretendard Variable (`var(--font-pretendard)`) + `tabular-nums`**로 통일합니다.
 4. **Strict Real-Data Only**: 추정치, 샘플, Mock 데이터 사용을 엄격히 금지하며, 국토교통부·화성시 등 100% 실제 검증된 공공 데이터만 표시합니다.
 5. **AdSense 정책 준수**: 강제 클릭 유도, 광고 가림, 무효 트래픽 유발 행위를 엄격히 금지합니다.
 

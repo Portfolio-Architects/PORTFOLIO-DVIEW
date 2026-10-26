@@ -62,21 +62,17 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
       expect(statusCode).toBe(308);
     });
 
-    it('empirically proves StatsPage() invokes permanentRedirect("/") throwing HTTP 308 digest', () => {
+    it('empirically proves StatsPage() renders active Server Component without throwing redirect error', () => {
       let thrownError: any;
+      let result: any;
       try {
-        StatsPage();
+        result = StatsPage();
       } catch (err: any) {
         thrownError = err;
       }
 
-      expect(thrownError).toBeDefined();
-      expect(thrownError.message).toBe('NEXT_REDIRECT');
-      expect(thrownError.digest).toBe('NEXT_REDIRECT;replace;/;308;');
-
-      const parts = thrownError.digest.split(';');
-      expect(Number(parts[3])).toBe(308);
-      expect(parts[2]).toBe('/');
+      expect(thrownError).toBeUndefined();
+      expect(result).toBeDefined();
     });
 
     it('empirically proves native RedirectType exports ONLY { push, replace } and lacks permanent', () => {
@@ -114,24 +110,17 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
       redirects = fn();
     });
 
-    it('contains exact /stats and wildcard /stats/:path* rules with permanent: true', () => {
+    it('verifies exact /stats and wildcard /stats/:path* redirect rules are removed from next.config.ts', () => {
       const exactStats = redirects.find((r) => r.source === '/stats');
-      expect(exactStats).toBeDefined();
-      expect(exactStats?.destination).toBe('/');
-      expect(exactStats?.permanent).toBe(true);
+      expect(exactStats).toBeUndefined();
 
       const wildcardStats = redirects.find((r) => r.source === '/stats/:path*');
-      expect(wildcardStats).toBeDefined();
-      expect(wildcardStats?.destination).toBe('/');
-      expect(wildcardStats?.permanent).toBe(true);
+      expect(wildcardStats).toBeUndefined();
     });
 
     it('accurately matches diverse adversarial and nested paths via Next.js match engine', () => {
-      const exactRule = redirects.find((r) => r.source === '/stats')!;
-      const wildcardRule = redirects.find((r) => r.source === '/stats/:path*')!;
-
-      const matchExact = match(exactRule.source);
-      const matchWildcard = match(wildcardRule.source);
+      const matchExact = match('/stats');
+      const matchWildcard = match('/stats/:path*');
 
       // Exact matches
       expect(Boolean(matchExact('/stats'))).toBe(true);
@@ -155,24 +144,20 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
   });
 
   // =========================================================================
-  // Dimension 3: LoungeHeader and MobileDock Synchronized 3-Tab Architecture
+  // Dimension 3: LoungeHeader and MobileDock Synchronized 5-Tab Architecture
   // =========================================================================
-  describe('Dimension 3: LoungeHeader (4-Tab) and MobileDock (3-Tab) Architecture', () => {
+  describe('Dimension 3: LoungeHeader (5-Tab) and MobileDock (5-Tab) Architecture', () => {
     const canonicalHeaderOrder = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
       { id: 'guide', label: '부동산 가이드', href: '/guide' },
+      { id: 'stats', label: '아파트 통계', href: '/stats' },
     ];
     const canonicalDockOrder = canonicalHeaderOrder;
-    const _unusedDockOrder = [
-      { id: 'overview', label: '아파트 랩', href: '/' },
-      { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-      { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-    ];
 
     it('confirms MobileDock exported TABS matches canonical spec in exact order', () => {
-      expect(TABS).toHaveLength(4);
+      expect(TABS).toHaveLength(5);
       canonicalDockOrder.forEach((expected, i) => {
         expect(TABS[i].id).toBe(expected.id);
         expect(TABS[i].label).toBe(expected.label);
@@ -187,28 +172,28 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
       const headerLinks = within(headerContainer).getAllByRole('link');
       const dockLinks = within(dockContainer).getAllByRole('link');
 
-      expect(headerLinks).toHaveLength(4);
-      expect(dockLinks).toHaveLength(4);
+      expect(headerLinks).toHaveLength(5);
+      expect(dockLinks).toHaveLength(5);
 
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         expect(headerLinks[i]).toHaveAttribute('href', canonicalHeaderOrder[i].href);
         expect(headerLinks[i]).toHaveTextContent(canonicalHeaderOrder[i].label);
       }
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 5; i++) {
         expect(dockLinks[i]).toHaveAttribute('href', canonicalDockOrder[i].href);
         expect(dockLinks[i]).toHaveTextContent(canonicalDockOrder[i].label);
       }
 
       // Ensure obsolete routes are absent
-      const obsoleteRoutes = ['/stats', '/technovalley', '/techno', '/lounge', '/admin'];
+      const obsoleteRoutes = ['/technovalley', '/techno', '/lounge', '/admin'];
       obsoleteRoutes.forEach((route) => {
         expect(within(headerContainer).queryByRole('link', { name: new RegExp(route) })).toBeNull();
         expect(within(dockContainer).queryByRole('link', { name: new RegExp(route) })).toBeNull();
       });
     });
 
-    it('confirms active tab styling transitions cleanly across all 3 tabs without layout breaks', () => {
-      const tabIds = ['overview', 'imjang', 'mbti'];
+    it('confirms active tab styling transitions cleanly across all 5 tabs without layout breaks', () => {
+      const tabIds = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
       tabIds.forEach((tabId) => {
         const { unmount: unmountHeader, container: headerContainer } = render(
           <LoungeHeader activeTab={tabId} />
@@ -238,10 +223,10 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
   // Dimension 4: Next.js Redirect Helper Oracle Verification
   // =========================================================================
   describe('Dimension 4: Next.js Redirect Helper Oracle Verification', () => {
-    it('verifies Next.js isRedirectError identifies StatsPage() thrown redirect', () => {
+    it('verifies Next.js isRedirectError identifies permanentRedirect("/") thrown redirect', () => {
       let thrown: any;
       try {
-        StatsPage();
+        permanentRedirect('/');
       } catch (e: any) {
         thrown = e;
       }
@@ -292,8 +277,8 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
         const headerLinks = within(headerContainer).getAllByRole('link');
         const dockLinks = within(dockContainer).getAllByRole('link');
 
-        expect(headerLinks).toHaveLength(4);
-        expect(dockLinks).toHaveLength(4);
+        expect(headerLinks).toHaveLength(5);
+        expect(dockLinks).toHaveLength(5);
 
         unmountH();
         unmountD();
@@ -301,4 +286,3 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
     );
   });
 });
-

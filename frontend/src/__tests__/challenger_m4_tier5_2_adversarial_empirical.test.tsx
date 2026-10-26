@@ -356,16 +356,9 @@ describe('Challenger M4 Tier 5-2: Empirical Adversarial Stress Suite', () => {
       statsWildcardRule = redirects.find((r: any) => r.source === '/stats/:path*');
     });
 
-    it('verifies next.config.ts configuration has permanent: true for both /stats and /stats/:path*', () => {
-      expect(statsRule).toBeDefined();
-      expect(statsRule.source).toBe('/stats');
-      expect(statsRule.destination).toBe('/');
-      expect(statsRule.permanent).toBe(true);
-
-      expect(statsWildcardRule).toBeDefined();
-      expect(statsWildcardRule.source).toBe('/stats/:path*');
-      expect(statsWildcardRule.destination).toBe('/');
-      expect(statsWildcardRule.permanent).toBe(true);
+    it('verifies next.config.ts configuration removes permanent redirect for both /stats and /stats/:path*', () => {
+      expect(statsRule).toBeUndefined();
+      expect(statsWildcardRule).toBeUndefined();
     });
 
     it('matches /stats, /stats/, /stats/report with full query parameter preservation oracle', () => {
@@ -442,22 +435,17 @@ describe('Challenger M4 Tier 5-2: Empirical Adversarial Stress Suite', () => {
       });
     });
 
-    it('verifies StatsPage component throws HTTP 308 permanent redirect error targeting "/"', () => {
+    it('verifies StatsPage component renders active Server Component without throwing HTTP 308 permanent redirect error', () => {
       let thrownError: any;
+      let result: any;
       try {
-        StatsPage();
+        result = StatsPage();
       } catch (err: any) {
         thrownError = err;
       }
 
-      expect(thrownError).toBeDefined();
-      expect(isRedirectError(thrownError)).toBe(true);
-      expect(getURLFromRedirectError(thrownError)).toBe('/');
-
-      const statusCode = getRedirectStatusCodeFromError(thrownError);
-      expect(statusCode).toBe(308); // HTTP 308 Permanent Redirect
-      expect(thrownError.digest).toContain('NEXT_REDIRECT');
-      expect(thrownError.digest).toContain('/');
+      expect(thrownError).toBeUndefined();
+      expect(result).toBeDefined();
     });
   });
 

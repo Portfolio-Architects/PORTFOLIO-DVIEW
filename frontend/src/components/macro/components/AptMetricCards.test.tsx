@@ -373,5 +373,39 @@ describe('AptMetricCards Test Suite', () => {
       const emptySlots = screen.getAllByText('추가 거래 내역 없음');
       expect(emptySlots.length).toBe(2);
     });
+
+    it('maintains identical locked container height and 2x2 row tracks between default and activeSector modes to prevent narrow-view box expansion', () => {
+      const { container, rerender } = render(
+        <AptMetricCards
+          recentTransactions={mockRecentTransactions}
+          macroTrendData={mockMacroTrend as any}
+        />
+      );
+
+      const defaultGrid = container.firstElementChild as HTMLElement;
+      expect(defaultGrid.className).toContain('grid-cols-2');
+      expect(defaultGrid.className).toContain('grid-rows-2');
+      expect(defaultGrid.className).toContain('h-[148px]');
+      expect(defaultGrid.className).toContain('sm:h-[152px]');
+      expect(defaultGrid.className).toContain('lg:h-[152px]');
+
+      rerender(
+        <AptMetricCards
+          activeSector={mockActiveSector as any}
+        />
+      );
+
+      const activeGrid = container.firstElementChild as HTMLElement;
+      expect(activeGrid.className).toContain('grid-cols-2');
+      expect(activeGrid.className).toContain('grid-rows-2');
+      expect(activeGrid.className).toContain('h-[148px]');
+      expect(activeGrid.className).toContain('sm:h-[152px]');
+      expect(activeGrid.className).toContain('lg:h-[152px]');
+
+      // Verify price element enforces whitespace-nowrap so multi-part prices (e.g. "16억 5,000만") never wrap onto 2 lines
+      const priceEl = screen.getByText('16억 5,000만');
+      expect(priceEl.className).toContain('whitespace-nowrap');
+      expect(priceEl.className).toContain('shrink-0');
+    });
   });
 });

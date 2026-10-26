@@ -1531,79 +1531,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       <MacroHeader macroTrendJsonLd={macroTrendJsonLd} />
 
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
-        {/* Responsive Above-the-Fold Financial Quick Action Bar (4-Column Full-Width Balanced Grid) */}
-        <div
-          data-testid="hero-finance-quick-bar"
-          className="w-full pb-3.5 mb-4 border-b border-border bg-surface min-w-0 box-border"
-        >
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5 w-full">
-            <button
-              type="button"
-              data-testid="hero-quick-mortgage"
-              onClick={() => { trackEvent('hero_quick_click', { button: 'mortgage', apt_name: selectedTimelineApt || undefined }); handleOpenMortgage(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-            >
-              <span className="flex items-center gap-1.5 min-w-0 truncate">
-
-                <span className="truncate">주담대 최저금리·한도</span>
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
-                <span>DSR·LTV</span>
-
-              </span>
-            </button>
-            <button
-              type="button"
-              data-testid="hero-quick-jeonse"
-              onClick={() => { trackEvent('hero_quick_click', { button: 'jeonse_safety', apt_name: selectedTimelineApt || undefined }); handleOpenJeonseSafety(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-            >
-              <span className="flex items-center gap-1.5 min-w-0 truncate">
-
-                <span className="truncate">전세보증 안전진단</span>
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
-                <span>HUG 126%</span>
-
-              </span>
-            </button>
-            <button
-              type="button"
-              data-testid="hero-quick-tax"
-              onClick={() => { trackEvent('hero_quick_click', { button: 'property_tax', apt_name: selectedTimelineApt || undefined }); handleOpenTaxCalculator(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-            >
-              <span className="flex items-center gap-1.5 min-w-0 truncate">
-
-                <span className="truncate">취득세·중개보수</span>
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
-                <span>부대비용</span>
-
-              </span>
-            </button>
-            <button
-              type="button"
-              data-testid="hero-quick-sell"
-              onClick={() => { trackEvent('hero_quick_click', { button: 'sell_timing', apt_name: selectedTimelineApt || undefined }); handleOpenSellTiming(selectedTimelineApt || undefined); }}
-              className="w-full px-3 sm:px-3.5 py-2.5 rounded-xl bg-elevated hover:bg-slate-100/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary hover:text-primary text-[11px] sm:text-[12px] font-semibold transition-colors cursor-pointer flex items-center justify-between gap-2 group"
-            >
-              <span className="flex items-center gap-1.5 min-w-0 truncate">
-
-                <span className="truncate">양도세·매도타이밍</span>
-              </span>
-              <span className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-1.5 py-0.5 rounded-md shrink-0">
-                <span>갈아타기</span>
-
-              </span>
-            </button>
-          </div>
-        </div>
-
         {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
         <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-6 mb-6 border-b border-border items-stretch box-border">
           {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] lg:border-r lg:border-border lg:pr-6 justify-between box-border">
+          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] min-w-0 lg:border-r lg:border-border lg:pr-6 justify-between box-border">
             <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 mounted={mounted}
@@ -1639,7 +1570,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[566px]">
+          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[566px] min-w-0">
             <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
               <MacroChartSection
                 isDefaultAptSettingUp={isDefaultAptSettingUp}
@@ -1737,6 +1668,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             onOpenMortgage={handleOpenMortgage}
             onOpenJeonseSafetyModal={handleOpenJeonseSafety}
             onOpenJeonseSafety={handleOpenJeonseSafety}
+            onOpenTaxCalculator={handleOpenTaxCalculator}
+            onOpenSellTiming={handleOpenSellTiming}
           />
         </ErrorBoundary>
 

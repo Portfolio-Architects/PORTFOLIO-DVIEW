@@ -1,17 +1,17 @@
 'use client';
 
 import React from 'react';
-import { Home, Sparkles, Building2, BookOpen } from 'lucide-react';
+import { Home, Sparkles, Building2, BookOpen, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface MobileDockProps {
-  activeTab?: 'imjang' | 'overview' | 'mbti' | 'guide' | string;
-  onTabClick?: (tab: 'imjang' | 'overview' | 'mbti' | 'guide' | any) => void;
+  activeTab?: 'imjang' | 'overview' | 'mbti' | 'guide' | 'stats' | string;
+  onTabClick?: (tab: 'imjang' | 'overview' | 'mbti' | 'guide' | 'stats' | any) => void;
 }
 
 export const TABS: Array<{
-  id: 'overview' | 'imjang' | 'mbti' | 'guide';
+  id: 'overview' | 'imjang' | 'mbti' | 'guide' | 'stats';
   label: string;
   icon: React.ComponentType<any>;
   href: string;
@@ -20,6 +20,7 @@ export const TABS: Array<{
   { id: 'imjang', label: '아파트 탐색', icon: Home, href: '/explore' },
   { id: 'mbti', label: '단지 MBTI', icon: Sparkles, href: '/mbti' },
   { id: 'guide', label: '부동산 가이드', icon: BookOpen, href: '/guide' },
+  { id: 'stats', label: '아파트 통계', icon: BarChart3, href: '/stats' },
 ];
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
@@ -33,6 +34,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
     router.prefetch('/explore');
     router.prefetch('/mbti');
     router.prefetch('/guide');
+    router.prefetch('/stats');
   }, [router]);
 
   React.useEffect(() => {

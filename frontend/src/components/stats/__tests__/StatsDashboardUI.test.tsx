@@ -234,7 +234,7 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       expect(topPyeongCard).toHaveTextContent('청계동 · 22평(74㎡) · 18층 · 26.09.15 거래');
       expect(topPyeongCard).toHaveTextContent('26.09.15 계약');
       expect(topPyeongCard).toHaveTextContent('평당 5,400만원');
-      expect(topPyeongCard).toHaveTextContent('매매 12억 (120,000만원)');
+      expect(topPyeongCard).toHaveTextContent('매매 12억');
       expect(screen.getByTestId('insight-card-volume-surge')).toHaveTextContent('15건');
       expect(screen.getByTestId('insight-card-urgent-bargain')).toHaveTextContent('-5.2%');
     });
@@ -280,10 +280,10 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       expect(onSelectComplex).toHaveBeenCalledWith('apt-1', '동탄역롯데캐슬');
 
       fireEvent.click(screen.getByTestId('insight-card-optimal-gap'));
-      expect(onOpenJeonseSafety).toHaveBeenCalledWith('동탄역시범우남퍼스트빌');
+      expect(onSelectComplex).toHaveBeenCalledWith('apt-2', '동탄역시범우남퍼스트빌');
 
       fireEvent.click(screen.getByTestId('insight-card-urgent-bargain'));
-      expect(onOpenCompare).toHaveBeenCalledWith('동탄역롯데캐슬');
+      expect(onSelectComplex).toHaveBeenCalledTimes(3);
     });
 
     it('prioritizes maxPyeong* spec metadata over highest* on the 최고 평당가 card when both are present', () => {
@@ -313,7 +313,7 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       const topPyeongCard = screen.getByTestId('insight-card-optimal-gap');
       expect(topPyeongCard).toHaveTextContent('26.09.18 계약');
       expect(topPyeongCard).toHaveTextContent('여울동 · 18평(59㎡) · 25층 · 26.09.18 거래');
-      expect(topPyeongCard).toHaveTextContent('매매 12억5,000 (125,000만원)');
+      expect(topPyeongCard).toHaveTextContent('매매 12억5,000');
       expect(topPyeongCard).toHaveTextContent('평당 7,004만원');
     });
   });

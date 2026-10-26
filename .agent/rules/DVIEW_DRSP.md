@@ -26,3 +26,4 @@ description: DVIEW Response Standard Protocol (DRSP) - 디뷰 답변 출력 표�
 - 임의 유니코드 이모티콘 사용을 금지하고 `lucide-react` SVG 아이콘 체계로 일원화합니다.
 - Slate 무채색 베이스(`slate-50`~`slate-950`) 및 Emerald/Blue 시맨틱 컬러 토큰 외 비표준 난색·과채도 배경 및 보더 적용을 배제합니다.
 - Zero-CLS 기하학($CLS < 0.001$) 유지 및 핵심 탐색 흐름과 결합된 네이티브 수익화 카드 아키텍처를 준수합니다.
+- **굴림체·Consolas 등 레거시 시스템 고정폭 폰트 사용 전면 금지**: 서비스 전역에서 **굴림체(`Gulim`, `GulimChe`), 돋움체(`DotumChe`), 바탕체(`BatangChe`), `Consolas`, `Courier New` 및 브라우저 기본 `ui-monospace` / `monospace` 폴백 폰트는 절대로 사용하지 않습니다.** 모든 텍스트와 가격·단위 표기는 **Pretendard Variable (`var(--font-pretendard)`)** 웹폰트로 통일하며, 숫자 정렬이 필요한 경우 `font-mono` 대신 **`tabular-nums` (`font-variant-numeric: tabular-nums`)**만 사용합니다.

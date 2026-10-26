@@ -1422,12 +1422,16 @@ export function computeHyperlocalInsights(
     };
   }
 
-  // 1. newHighComplex: Highest price amongst isNewHigh === true complexes
-  const newHighCandidates = complexStats.filter((c) => c.isNewHigh === true);
+  // 1. newHighComplex: Highest transaction price complex (최고 거래가 단지)
+  const priceCandidates = complexStats.filter((c) => c.highestPrice > 0);
   let newHighComplex: ComplexStatItem | null = null;
-  if (newHighCandidates.length > 0) {
-    newHighComplex = [...newHighCandidates].sort(
-      (a, b) => b.highestPrice - a.highestPrice || b.latestPrice - a.latestPrice
+  if (priceCandidates.length > 0) {
+    newHighComplex = [...priceCandidates].sort(
+      (a, b) =>
+        b.highestPrice - a.highestPrice ||
+        (b.highestPyeongPrice || b.avgPyeongPrice) - (a.highestPyeongPrice || a.avgPyeongPrice) ||
+        b.latestPrice - a.latestPrice ||
+        b.txCount - a.txCount
     )[0];
   }
 
@@ -1902,6 +1906,151 @@ export function singlePassAggregate(
     }
   }
 
+  const minTx = 1;
+
+  const buildComplexStatItem = (entry: {
+    aptKey: string;
+    aptName: string;
+    dong: string;
+    count: number;
+    sumPrice: number;
+    sumPyeongPrice: number;
+    maxPrice: number;
+    minPrice: number;
+    hasNewHigh: boolean;
+    maxDiscountRate: number;
+    latestContractDate: string;
+    latestPrice: number;
+    highestPyeongPrice?: number;
+    highestContractDate?: string;
+    highestFloor?: number | string;
+    highestArea?: number;
+    highestAreaPyeong?: number;
+    maxPyeongPrice?: number;
+    maxPyeongTxPrice?: number;
+    maxPyeongContractDate?: string;
+    maxPyeongFloor?: number | string;
+    maxPyeongArea?: number;
+    maxPyeongAreaPyeong?: number;
+  }): ComplexStatItem => {
+    const count = entry.count;
+    const avgPrice = Math.round(entry.sumPrice / count);
+    const avgPyeong = Math.round(entry.sumPyeongPrice / count);
+    const highestPrice = entry.maxPrice > -Infinity ? entry.maxPrice : avgPrice;
+    const lowestPrice = entry.minPrice < Infinity ? entry.minPrice : avgPrice;
+    const latestPrice = entry.latestPrice;
+
+    let maxDiscountRate = entry.maxDiscountRate;
+    if (maxDiscountRate === 0 && highestPrice > latestPrice && highestPrice > 0) {
+      maxDiscountRate = parseFloat((((highestPrice - latestPrice) / highestPrice) * 100).toFixed(1));
+    }
+
+    let hasNewHigh = entry.hasNewHigh;
+    const summary = resolveSummaryEntry(summaryMap, entry.aptKey, entry.aptName);
+    if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
+      hasNewHigh = true;
+    }
+
+    let jeonseRatio = 0;
+    const rentAgg = rentAptMap.get(entry.aptName);
+    if (rentAgg && rentAgg.count > 0 && avgPrice > 0) {
+      const avgRentDeposit = rentAgg.sumDeposit / rentAgg.count;
+      jeonseRatio = parseFloat(((avgRentDeposit / avgPrice) * 100).toFixed(1));
+    }
+
+    if (jeonseRatio === 0 && summary && avgPrice > 0) {
+      if (summary.avg3MRentDeposit && summary.avg3MRentDeposit > 0) {
+        const basePrice = summary.avg3MPrice || avgPrice;
+        jeonseRatio = parseFloat(((summary.avg3MRentDeposit / basePrice) * 100).toFixed(1));
+      } else if (summary.latestRentDeposit && summary.latestRentDeposit > 0) {
+        jeonseRatio = parseFloat(((summary.latestRentDeposit / avgPrice) * 100).toFixed(1));
+      }
+    }
+
+    if (jeonseRatio < 0) jeonseRatio = 0;
+    if (jeonseRatio > 120) jeonseRatio = 120;
+
+    const dong = entry.dong || '여울동';
+    const itemRegion = getRegionFromDong(dong);
+    const hasTxHighestArea = Boolean(
+      (entry.highestArea && entry.highestArea > 0) ||
+        (entry.highestAreaPyeong && entry.highestAreaPyeong > 0)
+    );
+    const resolvedHighestArea =
+      (entry.highestArea && entry.highestArea > 0
+        ? entry.highestArea
+        : !hasTxHighestArea && summary?.maxPriceByArea
+        ? (() => {
+            for (const [ak, av] of Object.entries(summary.maxPriceByArea)) {
+              if (parsePriceToManWon({ price: av }) === highestPrice) return parseFloat(ak) || 0;
+            }
+            return 0;
+          })()
+        : 0) || undefined;
+    const resolvedHighestAreaPyeong =
+      (entry.highestAreaPyeong && entry.highestAreaPyeong > 0
+        ? entry.highestAreaPyeong
+        : !hasTxHighestArea && !resolvedHighestArea
+        ? summary?.latestArea
+        : 0) || undefined;
+
+    const hasMaxPyeongTx = Boolean(entry.maxPyeongPrice && entry.maxPyeongPrice > 0);
+    const hasTxMaxPyeongArea = Boolean(
+      (entry.maxPyeongArea && entry.maxPyeongArea > 0) ||
+        (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0)
+    );
+    const resolvedMaxPyeongArea = hasMaxPyeongTx
+      ? (entry.maxPyeongArea && entry.maxPyeongArea > 0
+          ? entry.maxPyeongArea
+          : !hasTxMaxPyeongArea
+          ? resolvedHighestArea
+          : 0) || undefined
+      : resolvedHighestArea;
+    const resolvedMaxPyeongAreaPyeong = hasMaxPyeongTx
+      ? (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0
+          ? entry.maxPyeongAreaPyeong
+          : !hasTxMaxPyeongArea
+          ? resolvedHighestAreaPyeong
+          : 0) || undefined
+      : resolvedHighestAreaPyeong;
+
+    return {
+      aptKey: entry.aptKey,
+      aptName: entry.aptName,
+      dong,
+      region: itemRegion,
+      txCount: count,
+      avgPrice,
+      avgPyeongPrice: avgPyeong,
+      jeonseRatio,
+      latestPrice,
+      highestPrice,
+      lowestPrice,
+      urgentSaleDiscountRate: maxDiscountRate > 0 ? maxDiscountRate : undefined,
+      isNewHigh: hasNewHigh,
+      highestPyeongPrice: entry.highestPyeongPrice || avgPyeong,
+      highestContractDate: entry.highestContractDate || summary?.latestDate,
+      highestFloor: entry.highestFloor ?? summary?.latestFloor,
+      highestArea: resolvedHighestArea,
+      highestAreaPyeong: resolvedHighestAreaPyeong,
+      maxPyeongPrice: entry.maxPyeongPrice || entry.highestPyeongPrice || avgPyeong,
+      maxPyeongTxPrice: entry.maxPyeongTxPrice || highestPrice,
+      maxPyeongContractDate: hasMaxPyeongTx
+        ? entry.maxPyeongContractDate || summary?.latestDate
+        : entry.highestContractDate || summary?.latestDate,
+      maxPyeongFloor: hasMaxPyeongTx
+        ? entry.maxPyeongFloor
+        : entry.highestFloor ?? summary?.latestFloor,
+      maxPyeongArea: resolvedMaxPyeongArea,
+      maxPyeongAreaPyeong: resolvedMaxPyeongAreaPyeong,
+    };
+  };
+
+  // Build insight candidates strictly from in-period transactions before 6M summaryMap supplementation
+  const insightComplexStats: ComplexStatItem[] = Array.from(complexMap.values())
+    .filter((entry) => entry.count >= minTx)
+    .map(buildComplexStatItem);
+
   // Supplement complexMap from summaryMap for 3M/6M timeframes when complexes have recent transactions outside the 90-day initial slice
   if ((timeframeFilter === '3M' || timeframeFilter === '6M') && totalVolume > 0 && summaryMap) {
     const seenComplexKeys = new Set<string>();
@@ -2043,123 +2192,9 @@ export function singlePassAggregate(
   }
 
   // Finalize Complex Rankings
-  const minTx = 1;
-
   const complexStats: ComplexStatItem[] = Array.from(complexMap.values())
     .filter((entry) => entry.count >= minTx)
-    .map((entry) => {
-      const count = entry.count;
-      const avgPrice = Math.round(entry.sumPrice / count);
-      const avgPyeong = Math.round(entry.sumPyeongPrice / count);
-      const highestPrice = entry.maxPrice > -Infinity ? entry.maxPrice : avgPrice;
-      const lowestPrice = entry.minPrice < Infinity ? entry.minPrice : avgPrice;
-      const latestPrice = entry.latestPrice;
-
-      let maxDiscountRate = entry.maxDiscountRate;
-      if (maxDiscountRate === 0 && highestPrice > latestPrice && highestPrice > 0) {
-        maxDiscountRate = parseFloat((((highestPrice - latestPrice) / highestPrice) * 100).toFixed(1));
-      }
-
-      let hasNewHigh = entry.hasNewHigh;
-      const summary = resolveSummaryEntry(summaryMap, entry.aptKey, entry.aptName);
-      if (!hasNewHigh && summary?.allTimeHigh && latestPrice >= summary.allTimeHigh) {
-        hasNewHigh = true;
-      }
-
-      let jeonseRatio = 0;
-      const rentAgg = rentAptMap.get(entry.aptName);
-      if (rentAgg && rentAgg.count > 0 && avgPrice > 0) {
-        const avgRentDeposit = rentAgg.sumDeposit / rentAgg.count;
-        jeonseRatio = parseFloat(((avgRentDeposit / avgPrice) * 100).toFixed(1));
-      }
-
-      if (jeonseRatio === 0 && summary && avgPrice > 0) {
-        if (summary.avg3MRentDeposit && summary.avg3MRentDeposit > 0) {
-          const basePrice = summary.avg3MPrice || avgPrice;
-          jeonseRatio = parseFloat(((summary.avg3MRentDeposit / basePrice) * 100).toFixed(1));
-        } else if (summary.latestRentDeposit && summary.latestRentDeposit > 0) {
-          jeonseRatio = parseFloat(((summary.latestRentDeposit / avgPrice) * 100).toFixed(1));
-        }
-      }
-
-      if (jeonseRatio < 0) jeonseRatio = 0;
-      if (jeonseRatio > 120) jeonseRatio = 120;
-
-      const dong = entry.dong || '여울동';
-      const itemRegion = getRegionFromDong(dong);
-      const hasTxHighestArea = Boolean(
-        (entry.highestArea && entry.highestArea > 0) ||
-          (entry.highestAreaPyeong && entry.highestAreaPyeong > 0)
-      );
-      const resolvedHighestArea =
-        (entry.highestArea && entry.highestArea > 0
-          ? entry.highestArea
-          : !hasTxHighestArea && summary?.maxPriceByArea
-          ? (() => {
-              for (const [ak, av] of Object.entries(summary.maxPriceByArea)) {
-                if (parsePriceToManWon({ price: av }) === highestPrice) return parseFloat(ak) || 0;
-              }
-              return 0;
-            })()
-          : 0) || undefined;
-      const resolvedHighestAreaPyeong =
-        (entry.highestAreaPyeong && entry.highestAreaPyeong > 0
-          ? entry.highestAreaPyeong
-          : !hasTxHighestArea && !resolvedHighestArea
-          ? summary?.latestArea
-          : 0) || undefined;
-
-      const hasMaxPyeongTx = Boolean(entry.maxPyeongPrice && entry.maxPyeongPrice > 0);
-      const hasTxMaxPyeongArea = Boolean(
-        (entry.maxPyeongArea && entry.maxPyeongArea > 0) ||
-          (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0)
-      );
-      const resolvedMaxPyeongArea = hasMaxPyeongTx
-        ? (entry.maxPyeongArea && entry.maxPyeongArea > 0
-            ? entry.maxPyeongArea
-            : !hasTxMaxPyeongArea
-            ? resolvedHighestArea
-            : 0) || undefined
-        : resolvedHighestArea;
-      const resolvedMaxPyeongAreaPyeong = hasMaxPyeongTx
-        ? (entry.maxPyeongAreaPyeong && entry.maxPyeongAreaPyeong > 0
-            ? entry.maxPyeongAreaPyeong
-            : !hasTxMaxPyeongArea
-            ? resolvedHighestAreaPyeong
-            : 0) || undefined
-        : resolvedHighestAreaPyeong;
-
-      return {
-        aptKey: entry.aptKey,
-        aptName: entry.aptName,
-        dong,
-        region: itemRegion,
-        txCount: count,
-        avgPrice,
-        avgPyeongPrice: avgPyeong,
-        jeonseRatio,
-        latestPrice,
-        highestPrice,
-        lowestPrice,
-        urgentSaleDiscountRate: maxDiscountRate > 0 ? maxDiscountRate : undefined,
-        isNewHigh: hasNewHigh,
-        highestPyeongPrice: entry.highestPyeongPrice || avgPyeong,
-        highestContractDate: entry.highestContractDate || summary?.latestDate,
-        highestFloor: entry.highestFloor ?? summary?.latestFloor,
-        highestArea: resolvedHighestArea,
-        highestAreaPyeong: resolvedHighestAreaPyeong,
-        maxPyeongPrice: entry.maxPyeongPrice || entry.highestPyeongPrice || avgPyeong,
-        maxPyeongTxPrice: entry.maxPyeongTxPrice || highestPrice,
-        maxPyeongContractDate: hasMaxPyeongTx
-          ? entry.maxPyeongContractDate || summary?.latestDate
-          : entry.highestContractDate || summary?.latestDate,
-        maxPyeongFloor: hasMaxPyeongTx
-          ? entry.maxPyeongFloor
-          : entry.highestFloor ?? summary?.latestFloor,
-        maxPyeongArea: resolvedMaxPyeongArea,
-        maxPyeongAreaPyeong: resolvedMaxPyeongAreaPyeong,
-      };
-    });
+    .map(buildComplexStatItem);
 
   const sortBy = options?.sortBy || filters.sort || 'PYEONG_DESC';
   complexStats.sort((a, b) => {
@@ -2255,7 +2290,7 @@ export function singlePassAggregate(
     },
   ];
 
-  const insights = computeHyperlocalInsights(complexStats, transactions, summaryMap);
+  const insights = computeHyperlocalInsights(insightComplexStats, transactions, summaryMap);
 
   return {
     totalVolume,
