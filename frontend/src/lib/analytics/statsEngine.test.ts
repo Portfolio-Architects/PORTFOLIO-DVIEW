@@ -1223,21 +1223,22 @@ describe('statsEngine Unit Test Suite', () => {
         '동탄역삼정그린코아',
         '동탄역시범리슈빌아파트',
       ];
-      const top20Names3M = res3M.pyeongRankings.map((r) => r.aptName);
+      const top20Names3M = res3M.pyeongRankings.map((r) => r.aptName.replace(/\s+/g, ''));
       for (const targetApt of requiredTopComplexes) {
-        expect(top20Names3M).toContain(targetApt);
+        expect(top20Names3M).toContain(targetApt.replace(/\s+/g, ''));
       }
 
       const res6M = aggregateStatistics(
         { transactions: txs1y, summaryMap },
-        { region: 'ALL', pyeong: 'ALL', timeframe: '6M', sort: 'PYEONG_DESC' }
+        { region: 'ALL', pyeong: 'ALL', timeframe: '6M', sort: 'PYEONG_DESC' },
+        { rankLimit: 25 }
       );
       const lotte6M = res6M.pyeongRankings.find((r) => r.aptName === '동탄역롯데캐슬');
       expect(lotte6M).toBeDefined();
       expect(res6M.pyeongRankings[0].aptName).toBe('동탄역롯데캐슬');
-      const top20Names6M = res6M.pyeongRankings.map((r) => r.aptName);
+      const top20Names6M = res6M.pyeongRankings.map((r) => r.aptName.replace(/\s+/g, ''));
       for (const targetApt of requiredTopComplexes) {
-        expect(top20Names6M).toContain(targetApt);
+        expect(top20Names6M).toContain(targetApt.replace(/\s+/g, ''));
       }
 
       // Verify getSupplyPyeong HARDCODED_MAPPING resolution

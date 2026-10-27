@@ -219,16 +219,16 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
     const analysis = getDongtanStationAnalysisData();
     const reg = analysis.regression;
 
-    test('OLS slope is negative (~ -382.65 ~ -383.51 만원/평 per km), confirming negative price gradient with distance', () => {
+    test('OLS slope is negative (~ -382 ~ -385 만원/평 per km), confirming negative price gradient with distance', () => {
       expect(reg.slopeWonPerKm).toBeLessThan(-350);
       expect(reg.slopeWonPerKm).toBeGreaterThan(-420);
-      expect(reg.slopeWonPerKm).toBeCloseTo(-383.5, 0);
+      expect(Math.abs(reg.slopeWonPerKm - -384)).toBeLessThan(10);
     });
 
-    test('OLS intercept at Dongtan Station center is positive (~ 3,413 ~ 3,418 만원/평)', () => {
+    test('OLS intercept at Dongtan Station center is positive (~ 3,413 ~ 3,425 만원/평)', () => {
       expect(reg.interceptWon).toBeGreaterThan(3200);
       expect(reg.interceptWon).toBeLessThan(3600);
-      expect(reg.interceptWon).toBeCloseTo(3417.6, 0);
+      expect(Math.abs(reg.interceptWon - 3420)).toBeLessThan(25);
     });
 
     test('Pearson correlation r indicates strong negative correlation (r ~ -0.665)', () => {

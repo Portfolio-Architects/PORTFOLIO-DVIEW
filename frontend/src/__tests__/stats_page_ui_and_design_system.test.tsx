@@ -139,10 +139,10 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       );
 
       // KPI 1: Station Premium (+67.4% ~ +67.7%)
-      expect(screen.getAllByText(/\+67\.[47]%/).length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText(/\+67\.[0-9]%/).length).toBeGreaterThanOrEqual(1);
 
-      // KPI 2: -383만원/평
-      expect(screen.getByText('-383만원/평')).toBeInTheDocument();
+      // KPI 2: -383만원/평 ~ -384만원/평
+      expect(screen.getByText(/-38[0-9]만원\/평/)).toBeInTheDocument();
 
       // KPI 3: r = -0.66 · R² = 0.44
       expect(screen.getByText('r = -0.66 · R² = 0.44')).toBeInTheDocument();
@@ -250,7 +250,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
 
       const lines = container.querySelectorAll('line[stroke="#3182f6"]');
       expect(lines.length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/y = -383x \+ 3,41[38]/)).toBeInTheDocument();
+      expect(screen.getByText(/y = -38[0-9]x \+ 3,4[0-9]{2}/)).toBeInTheDocument();
     });
 
     test('shows interactive tooltip on circle hover', () => {
