@@ -59,9 +59,10 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
             {/* Mobile: Top Bar */}
             <div className="md:hidden flex items-center justify-end w-full" />
 
-            {/* Center: Nav Tabs (Segmented Control Style) */}
-            <div className="hidden md:flex shrink-0 items-center gap-3" aria-label="메인 메뉴">
-              <nav aria-label="메인 메뉴" className="hidden md:flex items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
+            {/* Desktop Wide View: 4 (Left) ---------------------- 1 (Right) */}
+            <nav aria-label="메인 메뉴" className="hidden md:flex w-full items-center justify-between gap-3">
+              {/* Left Group: 4 Core Nav Tabs (Segmented Control Style) */}
+              <div data-testid="nav-left-group" className="flex shrink-0 items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
                 {/* 1. 아파트 랩 */}
                 <Link
                   href="/"
@@ -125,8 +126,10 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 >
                   <span>부동산 가이드</span>
                 </Link>
+              </div>
 
-                {/* 5. 아파트 통계 */}
+              {/* Right Group: 5. 아파트 통계 (Separated to far right) */}
+              <div data-testid="nav-right-group" className="flex shrink-0 items-center bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
                 <Link
                   href="/stats"
                   prefetch={true}
@@ -140,11 +143,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 >
                   <span>아파트 통계</span>
                 </Link>
-              </nav>
-            </div>
-
-            {/* Right: Desktop Spacer */}
-            <div className="hidden md:flex items-center justify-end" />
+              </div>
+            </nav>
             
           </div>
         </div>
