@@ -27,7 +27,7 @@ interface TxSummaryItem {
   avg1MRentDeposit?: number;
 }
 
-export const revalidate = 3600;
+export const revalidate = 300;
 
 export const metadata: Metadata = {
   title: 'D-VIEW 동탄 아파트 랩 | 동탄 아파트 실거래가·시세·AI 밸류에이션 분석 허브',

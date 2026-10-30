@@ -1517,6 +1517,102 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       expect(jsonParsed.items[0].aptNm).toBe('동탄역롯데캐슬');
     }, 20000);
   });
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // R6: Schedule Optimization, Vercel Config & Strict Real-Data Invariants
+  // ──────────────────────────────────────────────────────────────────────────
+  describe('R6: Schedule Optimization, Vercel Config & Strict Real-Data Invariants', () => {
+    it('should configure only 1 morning schedule cron (KST 06:12 / UTC 21:12) in GitHub Actions workflow', () => {
+      const ghaPath = path.resolve(__dirname, '../../../.github/workflows/sync-transactions.yml');
+      expect(fs.existsSync(ghaPath)).toBe(true);
+
+      const workflowContent = fs.readFileSync(ghaPath, 'utf8');
+      const cronMatches = workflowContent.match(/- cron:\s*['"][^'"]+['"]/g) || [];
+
+      // Exactly 1 cron schedule must be defined
+      expect(cronMatches.length).toBe(1);
+      expect(cronMatches[0]).toContain('12 21 * * *');
+
+      // Afternoon cron (12 9 * * * / KST 18:12) must be removed
+      expect(workflowContent).not.toContain('12 9 * * *');
+    });
+
+    it('should remove crons block from vercel.json and maintain valid configuration syntax', () => {
+      const vercelJsonPath = path.resolve(__dirname, '../../vercel.json');
+      expect(fs.existsSync(vercelJsonPath)).toBe(true);
+
+      const vercelRaw = fs.readFileSync(vercelJsonPath, 'utf8');
+      const vercelConfig = JSON.parse(vercelRaw);
+
+      // crons block must be completely removed
+      expect(vercelConfig.crons).toBeUndefined();
+
+      // Core deployment settings must remain intact
+      expect(vercelConfig.regions).toEqual(['icn1']);
+      expect(vercelConfig.buildCommand).toContain('next build');
+      expect(vercelConfig.buildCommand).toContain('sync-transactions.js');
+    });
+
+    it('should verify production datasets contain strictly real data with zero mock/sample indicators', () => {
+      const recentTxPath = path.resolve(__dirname, '../../public/data/recent-transactions.json');
+      expect(fs.existsSync(recentTxPath)).toBe(true);
+
+      const raw = fs.readFileSync(recentTxPath, 'utf8');
+      const recentTransactions = JSON.parse(raw);
+
+      expect(Array.isArray(recentTransactions)).toBe(true);
+      expect(recentTransactions.length).toBeGreaterThan(500);
+
+      const forbiddenTokens = ['mock', 'dummy', 'sample', 'fake', '테스트', '임의', '추정'];
+
+      for (const tx of recentTransactions) {
+        // Assert no mock/dummy flags
+        expect(tx.isMock).toBeUndefined();
+        expect(tx.isDummy).toBeUndefined();
+        expect(tx.isSample).toBeUndefined();
+
+        // Check apartment name
+        const aptNameLower = (tx.aptName || '').toLowerCase();
+        for (const token of forbiddenTokens) {
+          expect(aptNameLower).not.toContain(token);
+        }
+
+        // Validate 8-digit contractDate format (YYYYMMDD)
+        expect(typeof tx.contractDate).toBe('string');
+        expect(tx.contractDate).toMatch(/^\d{8}$/);
+
+        const year = parseInt(tx.contractDate.substring(0, 4), 10);
+        const month = parseInt(tx.contractDate.substring(4, 6), 10);
+        const day = parseInt(tx.contractDate.substring(6, 8), 10);
+
+        expect(year).toBeGreaterThanOrEqual(2006);
+        expect(year).toBeLessThanOrEqual(2027);
+        expect(month).toBeGreaterThanOrEqual(1);
+        expect(month).toBeLessThanOrEqual(12);
+        expect(day).toBeGreaterThanOrEqual(1);
+        expect(day).toBeLessThanOrEqual(31);
+
+        // Price must be positive genuine transaction amount (priceVal in Eok or price in ten-thousand won)
+        const price = typeof tx.priceVal === 'number' ? tx.priceVal : tx.price;
+        expect(typeof price).toBe('number');
+        expect(price).toBeGreaterThan(0);
+      }
+    });
+
+    it('should ensure officeTx.repository has no dead MOCK_XML_RESPONSE and exports genuine function', () => {
+      const officeRepoPath = path.resolve(__dirname, '../lib/repositories/officeTx.repository.ts');
+      expect(fs.existsSync(officeRepoPath)).toBe(true);
+
+      const content = fs.readFileSync(officeRepoPath, 'utf8');
+      expect(content).not.toContain('MOCK_XML_RESPONSE');
+      expect(content).toContain('fetchOfficeXmlFromPublicPortal');
+
+      const officeRepo = require('../lib/repositories/officeTx.repository');
+      expect(typeof officeRepo.fetchOfficeXmlFromPublicPortal).toBe('function');
+      expect(officeRepo.MOCK_XML_RESPONSE).toBeUndefined();
+    });
+  });
 });
+
 
 

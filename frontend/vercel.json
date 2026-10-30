@@ -1,12 +1,6 @@
 {
   "buildCommand": "node scripts/sync-transactions.js && node scripts/update-sw-version.js && next build",
   "ignoreCommand": "git log -1 --format=%B | grep -qE '\\[(skip ci|vercel skip)\\]' || { B=$VERCEL_GIT_PREVIOUS_SHA; [ \"$B\" = \"$(git rev-parse HEAD)\" ] && exit 1; git cat-file -e \"$B^{commit}\" 2>/dev/null || B=HEAD^; git diff --quiet \"$B\" HEAD ./ 2>/dev/null || exit 1; }",
-  "regions": ["icn1"],
-  "crons": [
-    {
-      "path": "/api/cron/sync-transactions",
-      "schedule": "0 18 * * *"
-    }
-  ]
+  "regions": ["icn1"]
 }
 

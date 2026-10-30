@@ -2,9 +2,8 @@ name: Sync Transactions
 
 on:
   schedule:
-    # 매일 KST 06:12 (UTC 21:12) 및 KST 18:12 (UTC 09:12) 2회 실행
+    # 매일 아침 KST 06:12 (UTC 21:12) 1회 최적화 실행 (국토부 일일 배치 연동)
     - cron: '12 21 * * *'
-    - cron: '12 9 * * *'
   workflow_dispatch: # 수동 실행 지원
   push:
     branches:

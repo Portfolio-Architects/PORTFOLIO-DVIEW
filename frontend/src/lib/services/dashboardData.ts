@@ -18,7 +18,7 @@ import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import * as ReportRepo from '@/lib/repositories/report.repository';
 import { z } from 'zod';
 
-const PAGE_DATA_CACHE_TTL = 3600; // 1 hour in-memory cache for Firestore + Sheets merge
+const PAGE_DATA_CACHE_TTL = 300; // 5 minutes in-memory cache for fresh real-time propagation
 
 let isRefreshingPageData = false;
 
