@@ -24,10 +24,10 @@ export function AdSlotPlaceholderView({
         [광고 슬롯 미리보기 - 개발/테스트 모드]
       </div>
       <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-        포맷: <span className="font-mono text-blue-600 dark:text-blue-400">{format}</span>
-        {' '}| 크기 규격: <span className="font-mono text-slate-600 dark:text-slate-400">{getFormatDimensions(format)}</span>
+        포맷: <span className="tabular-nums text-blue-600 dark:text-blue-400">{format}</span>
+        {' '}| 크기 규격: <span className="tabular-nums text-slate-600 dark:text-slate-400">{getFormatDimensions(format)}</span>
         {slotId && (
-          <> | 슬롯 ID: <span className="font-mono text-slate-600 dark:text-slate-400">{slotId}</span></>
+          <> | 슬롯 ID: <span className="tabular-nums text-slate-600 dark:text-slate-400">{slotId}</span></>
         )}
       </p>
       <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 max-w-sm">

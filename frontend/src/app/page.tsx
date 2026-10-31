@@ -29,11 +29,40 @@ interface TxSummaryItem {
 
 export const revalidate = 300;
 
+const HOME_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 아파트 시세·실거래가·집값 추이 그래프')}&subtitle=${encodeURIComponent('동탄 1·2신도시 184개 단지 국토부 실거래가·전세가율·학군 비교 | D-VIEW')}`;
+
 export const metadata: Metadata = {
-  title: 'D-VIEW 동탄 아파트 랩 | 동탄 아파트 실거래가·시세·AI 밸류에이션 분석 허브',
-  description: '동탄 179개 단지 아파트 실거래가, AI 밸류에이션, 주담대·갈아타기 적정가 진단부터 안심 전세 자산 리포트를 제공합니다.',
+  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+  description:
+    '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단, 스트레스 DSR 40% 한도 및 권역 1:1 비교 리포트를 제공합니다.',
+  keywords:
+    '동탄 아파트 시세, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄 전세가율, 동탄 학군지, 동탄역 롯데캐슬, D-VIEW, 디뷰, 동뷰, 동탄뷰',
   alternates: {
     canonical: 'https://dongtanview.com',
+  },
+  openGraph: {
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    description:
+      '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단, 스트레스 DSR 40% 한도 및 권역 1:1 비교 리포트를 제공합니다.',
+    url: 'https://dongtanview.com',
+    siteName: 'D-VIEW',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: HOME_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 동탄 아파트 시세·실거래가·집값 추이 그래프',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    description:
+      '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단 및 권역 1:1 비교 리포트를 제공합니다.',
+    images: [HOME_OG_IMAGE_URL],
   },
 };
 
@@ -102,9 +131,9 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
         className="sr-only"
       >
         <header>
-          <h2>동탄 부동산 실거래 대시보드 - D-VIEW</h2>
+          <h2>동탄 아파트 시세·실거래가·집값 추이 그래프 대시보드 - D-VIEW</h2>
           <p>
-            국토교통부 실거래가 공개시스템 공식 데이터 기반 동탄 1·2신도시 아파트 실거래가 추이, 전세가율 및 주거 가치 분석 리포트 플랫폼
+            국토교통부 실거래가 공개시스템 공식 데이터 기반 동탄 1·2신도시 184개 아파트 시세, 평형별 집값 추이 그래프, 전세가율 및 주거 가치 분석 리포트 플랫폼
           </p>
         </header>
         {top10Leaderboard.length > 0 && (
@@ -197,10 +226,10 @@ export default async function HomePage() {
                 <span>D-VIEW 부동산 데이터 랩스 공식 분석 브리핑</span>
               </div>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-slate-50 tracking-tight">
-                동탄 1·2신도시 실거래 밸류에이션 방법론 및 권역별 심층 리포트
+                동탄 아파트 시세·집값 추이 그래프 밸류에이션 방법론 및 권역별 심층 리포트
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                D-VIEW는 국토교통부 실거래가 공개시스템의 100% 검증된 매매·전월세 신고 데이터와 화성시 도시 인프라 지표를 결합하여, 동탄 전역 179개 아파트 단지와 56개 동탄테크노밸리 지식산업센터의 내재 가치를 정량 분석합니다.
+                D-VIEW(디뷰 · 동뷰 · 동탄뷰)는 국토교통부 실거래가 공개시스템의 100% 검증된 매매·전월세 신고 데이터를 매일 동기화하여, 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프·전세가율과 56개 동탄테크노밸리 지식산업센터의 내재 가치를 정량 분석합니다.
               </p>
             </div>
             <Link
@@ -299,7 +328,7 @@ export default async function HomePage() {
                     className="group bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 rounded-xl p-3.5 flex flex-col justify-between gap-1.5 transition-colors"
                   >
                     <div className="flex items-center justify-between gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                      <span className="font-mono tabular-nums text-emerald-700 dark:text-emerald-400">
+                      <span className="tabular-nums text-emerald-700 dark:text-emerald-400">
                         TOP {idx + 1}
                       </span>
                       <span>{apt.dong}</span>
@@ -307,7 +336,7 @@ export default async function HomePage() {
                     <div className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 truncate transition-colors">
                       {apt.name}
                     </div>
-                    <div className="text-xs font-mono tabular-nums font-bold text-emerald-700 dark:text-emerald-400">
+                    <div className="text-xs tabular-nums font-bold text-emerald-700 dark:text-emerald-400">
                       {formatPrice(apt.latestPrice)}
                     </div>
                   </Link>
@@ -332,7 +361,7 @@ export default async function HomePage() {
                   <div className="space-y-2">
                     <div className="flex items-center justify-between gap-2 text-xs text-slate-600 dark:text-slate-400">
                       <span className="font-bold text-emerald-700 dark:text-emerald-400">{article.category}</span>
-                      <span className="inline-flex items-center gap-1 font-mono">
+                      <span className="inline-flex items-center gap-1 tabular-nums">
                         {article.readingTime}
                       </span>
                     </div>
@@ -358,7 +387,7 @@ export default async function HomePage() {
           >
             <div className="flex flex-wrap items-center gap-4">
               <Link href="/explore" prefetch={false} className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                동탄 179개 아파트 탐색 카탈로그
+                동탄 184개 아파트 탐색 카탈로그
               </Link>
               <Link href="/technovalley" prefetch={false} className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
                 동탄테크노밸리 지식산업센터 56곳 시세 분석

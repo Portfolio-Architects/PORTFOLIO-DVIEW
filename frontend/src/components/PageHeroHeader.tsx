@@ -22,8 +22,10 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
   rightSideContent,
   compactTitle,
   bottomContent,
+  isTitleDiv = false,
 }: PageHeroHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
+  const TitleTag = isTitleDiv ? "div" : "h1";
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -78,9 +80,9 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
                     className="object-contain p-0.5 sm:p-1"
                   />
                 </div>
-                <h1 className="font-extrabold text-primary tracking-tight leading-none text-[20px] sm:text-[30px] lg:text-[36px] min-h-[20px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px] truncate min-w-0 flex-1">
+                <TitleTag className="font-extrabold text-primary tracking-tight leading-none text-[20px] sm:text-[30px] lg:text-[36px] min-h-[20px] sm:min-h-[30px] lg:min-h-[36px] -translate-y-[1px] sm:-translate-y-[1.5px] truncate min-w-0 flex-1">
                   {title}
-                </h1>
+                </TitleTag>
               </div>
               {rightContent}
             </div>

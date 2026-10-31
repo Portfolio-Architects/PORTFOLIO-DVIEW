@@ -177,12 +177,18 @@ export function calculatePriceAnalytics(
 
   const salesVal = aptSummary ? (aptSummary.avg1MPrice || aptSummary.avg3MPrice || aptSummary.latestPrice || 0) : 0;
   const jeonseVal = aptSummary ? (aptSummary.avg1MRentDeposit || aptSummary.avg3MRentDeposit || aptSummary.latestRentDeposit || 0) : 0;
-  const ratioPercent = salesVal > 0 && jeonseVal > 0 ? Math.round((jeonseVal / salesVal) * 100) : 0;
+  const rawRatioPercent = salesVal > 0 && jeonseVal > 0 ? Math.round((jeonseVal / salesVal) * 100) : 0;
+  const fallbackPyeongRatio =
+    [...pyeongSummaries]
+      .sort((a, b) => b.salesCount + b.rentCount - (a.salesCount + a.rentCount))
+      .find((p) => p.jeonseRatio > 0 && p.jeonseRatio <= 100)?.jeonseRatio || 0;
+  const ratioPercent =
+    rawRatioPercent > 0 && rawRatioPercent <= 100 ? rawRatioPercent : fallbackPyeongRatio;
 
   const maxPriceVal = aptSummary?.maxPrice || 0;
   const latestPriceVal = aptSummary?.latestPrice || 0;
   const isHigh = latestPriceVal > 0 && maxPriceVal > 0 && latestPriceVal >= maxPriceVal - 500;
-  const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 ? '실수요안심' : '인기단지');
+  const statusStr = isHigh ? '신고가' : (ratioPercent >= 75 && ratioPercent <= 100 ? '실수요안심' : '인기단지');
 
   const offers = salePrices.length > 0 ? {
     '@type': 'AggregateOffer',
@@ -217,20 +223,32 @@ export function generateAiBriefing(
 
   let brief = '';
   const pyeongListStr = pyeongSummaries.map((p) => `${p.pyeong}평`).join(', ');
+  const dongPrefix = aptSummary?.dong ? ` ${aptSummary.dong}` : '';
+  const aptDisplay = aptName.endsWith('아파트') ? aptName : `${aptName} 아파트`;
 
   if (pyeongSummaries.length === 0) {
     if (!aptSummary) return defaultBrief;
-    const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
-    brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+    if (aptSummary.latestPrice && aptSummary.latestPrice > 0) {
+      const latestStr = formatPriceEok(aptSummary.latestPrice);
+      const txBadge = aptSummary.txCount && aptSummary.txCount > 0 ? ` (누적 ${aptSummary.txCount.toLocaleString()}건)` : '';
+      brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 실거래 매매가 ${latestStr}${txBadge} — 전세가율, 스트레스 DSR 대출 한도, 배정 학군 및 교통 인프라 분석 리포트를 D-VIEW에서 확인하세요.`;
+    } else {
+      const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
+      brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+    }
   } else {
     const majorDetails = pyeongSummaries.slice(0, 2).map((p) => {
       const saleStr = p.latestPriceStr !== '정보 없음' ? `최근 매매가 ${p.latestPriceStr}` : '';
       const jeonseStr = p.latestDepositStr !== '정보 없음' ? `전세가 ${p.latestDepositStr}` : '';
-      const ratioStr = p.jeonseRatio > 0 ? `전세가율 ${p.jeonseRatio}%` : '';
+      const ratioStr = p.jeonseRatio > 0 && p.jeonseRatio <= 100 ? `전세가율 ${p.jeonseRatio}%` : '';
       const parts = [saleStr, jeonseStr, ratioStr].filter(Boolean);
       return `${p.pyeong}평형(${parts.join(', ')})`;
     }).join(' 및 ');
-    brief = `동탄 ${aptName} 아파트는 ${pyeongListStr} 다양한 평형대를 형성하고 있습니다. ${majorDetails} 등 평형별 정확한 실거래가 시세와 전세가율 변동 추이, 학군 정보, 대중교통 인프라 요약을 D-VIEW에서 제공합니다.`;
+    const txBadge =
+      aptSummary?.txCount && aptSummary.txCount > 0
+        ? ` (누적 실거래 ${aptSummary.txCount.toLocaleString()}건)`
+        : '';
+    brief = `동탄${dongPrefix} ${aptDisplay}(${pyeongListStr}) 국토교통부 실거래가 요약${txBadge}: ${majorDetails}. 평형별 매매·전세 시세 추이, 스트레스 DSR 40% 대출 한도와 학군·대중교통 인프라 분석을 D-VIEW에서 제공합니다.`;
   }
 
   if (locationScore) {

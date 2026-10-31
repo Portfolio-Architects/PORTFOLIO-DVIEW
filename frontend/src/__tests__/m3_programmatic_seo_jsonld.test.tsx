@@ -19,12 +19,13 @@ import {
   getTxSummaryData,
   getApartmentPageData,
   buildApartmentJsonLd,
+  buildTechnoValleyJsonLd,
 } from '@/lib/services/apartmentPageService';
 import ApartmentPage, {
   generateStaticParams as generateAptStaticParams,
   generateMetadata as generateAptMetadata,
 } from '@/app/apartment/[aptName]/page';
-import TechnoValleyPage, { buildTechnoValleyJsonLd } from '@/app/technovalley/page';
+import TechnoValleyPage from '@/app/technovalley/page';
 import GuideIndexPage from '@/app/guide/page';
 import GuideArticlePage, {
   generateStaticParams as generateGuideStaticParams,
@@ -272,7 +273,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
   describe('4. /guide, /mbti, and /zone/[id] SSR Semantic & Accessibility Invariants', () => {
     it('renders Zero-CLS AdSlots and recirculation links in /guide and /guide/[slug]', async () => {
       const guideParams = await generateGuideStaticParams();
-      expect(guideParams).toHaveLength(6);
+      expect(guideParams).toHaveLength(8);
 
       const indexRender = render(GuideIndexPage());
       expect(indexRender.getByTestId('guide-index-adslot-top').className).toContain('min-h-[250px]');
@@ -334,32 +335,47 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (277 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [277, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (280 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
+    it('registers exact [280, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(277);
+      expect(entries).toHaveLength(280);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(277);
+      expect(asyncEntries).toHaveLength(280);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(277);
+      expect(defaultEntries).toHaveLength(280);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
-      const jisanUrls = entries.filter((e) => e.url.includes('/technovalley'));
+      const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley?jisan='));
       const mbtiUrls = entries.filter((e) => e.url.includes('/mbti/'));
       const zoneUrls = entries.filter((e) => e.url.includes('/zone/'));
       const guideUrls = entries.filter((e) => e.url.includes('/guide/'));
       const coreStaticUrls = entries.filter((e) =>
-        ['https://dongtanview.com', 'https://dongtanview.com/guide', 'https://dongtanview.com/explore', 'https://dongtanview.com/news', 'https://dongtanview.com/about', 'https://dongtanview.com/contact', 'https://dongtanview.com/terms', 'https://dongtanview.com/privacy'].includes(e.url)
+        [
+          'https://dongtanview.com',
+          'https://dongtanview.com/guide',
+          'https://dongtanview.com/technovalley',
+          'https://dongtanview.com/explore',
+          'https://dongtanview.com/news',
+          'https://dongtanview.com/about',
+          'https://dongtanview.com/contact',
+          'https://dongtanview.com/terms',
+          'https://dongtanview.com/privacy',
+        ].includes(e.url)
       );
 
       expect(aptUrls).toHaveLength(184);
-      expect(jisanUrls).toHaveLength(56);
+      expect(jisanDetailUrls).toHaveLength(56);
+      expect(
+        jisanDetailUrls.some(
+          (e) => e.url === `https://dongtanview.com/technovalley?jisan=${encodeURIComponent('(주)유앤미개발')}`
+        )
+      ).toBe(true);
       expect(mbtiUrls).toHaveLength(16);
       expect(zoneUrls).toHaveLength(7);
-      expect(guideUrls).toHaveLength(6);
-      expect(coreStaticUrls).toHaveLength(8);
+      expect(guideUrls).toHaveLength(8);
+      expect(coreStaticUrls).toHaveLength(9);
 
       const emptyChunk = await sitemap({ id: 99 });
       expect(emptyChunk).toEqual([]);

@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { PieChart, LayoutDashboard, Building2, Newspaper, MessageSquare, Search, Bell } from 'lucide-react';
 import localFont from 'next/font/local';
-import { Inter, Cormorant_Garamond, Outfit, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 
 const pretendard = localFont({
@@ -10,40 +9,6 @@ const pretendard = localFont({
   weight: '45 920',
   variable: '--font-pretendard',
   preload: false,
-});
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-  preload: false,
-});
-
-const cormorant = Cormorant_Garamond({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-cormorant',
-  preload: false,
-  fallback: ['Georgia', 'serif'],
-  weight: ['400', '600', '700'],
-});
-
-const outfit = Outfit({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-outfit',
-  preload: false,
-  fallback: ['sans-serif'],
-  weight: ['400', '500', '600', '700'],
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-jetbrains-mono',
-  preload: false,
-  fallback: ['monospace'],
-  weight: ['400', '500', '700'],
 });
 import OfflineBanner from '@/components/ui/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
@@ -67,12 +32,14 @@ const CustomA2HSModal = dynamic(() => import('@/components/pwa/CustomA2HSModal')
 const WelcomeModal = dynamic(() => import('@/components/ui/WelcomeModal'));
 
 
+const ROOT_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('D-VIEW (디뷰 · 동뷰 · 동탄뷰)')}&subtitle=${encodeURIComponent('동탄 184개 아파트 시세·실거래가·집값 추이 그래프 및 입지 비교')}`;
+
 export const metadata: Metadata = {
   referrer: 'strict-origin-when-cross-origin',
   metadataBase: new URL('https://dongtanview.com'),
-  title: 'D-VIEW | 동탄 아파트 가치분석',
-  description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
-  keywords: '동탄, 아파트, 실거래가, 동탄역, 롯데캐슬, 가치분석, 임장기, 부동산, 전세가율',
+  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+  description: '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·전세가율·학군지 비교와 56개 지식산업센터 세제 혜택 데이터를 한눈에 확인하세요.',
+  keywords: '동탄 아파트 시세, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄1신도시 동탄2신도시 비교, 동탄역 롯데캐슬, 동탄 전세가율, 동탄 학군지, 동탄 호수공원 아파트, 스트레스 DSR, 동탄테크노밸리 지식산업센터, D-VIEW, 디뷰, 동뷰, 동탄뷰',
   alternates: {
     canonical: '/',
   },
@@ -92,26 +59,26 @@ export const metadata: Metadata = {
     'ai-search-crawling': 'allowed', 'naver-site-verification': 'e0240efa3f3f36785b2ca54faa765e9058f3707a',
   },
   openGraph: {
-    title: 'D-VIEW | 동탄 아파트 가치분석',
-    description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    description: '국토교통부 공식 실거래가 기반 동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·전세가율 비교, 실거주 PER 진단 및 권역별 심층 리포트.',
     url: 'https://dongtanview.com',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
     type: 'website',
     images: [
       {
-        url: 'https://dongtanview.com/api/og?title=D-VIEW&subtitle=동탄 아파트 가치분석 및 임장 리포트',
+        url: ROOT_OG_IMAGE_URL,
         width: 1200,
         height: 630,
-        alt: 'D-VIEW 대표 이미지',
+        alt: 'D-VIEW 동탄 아파트 시세·실거래가·집값 추이 그래프',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'D-VIEW | 동탄 아파트 가치분석',
-    description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
-    images: ['https://dongtanview.com/api/og?title=D-VIEW&subtitle=동탄 아파트 가치분석 및 임장 리포트'],
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    description: '국토교통부 공식 실거래가 기반 동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·전세가율 비교 및 권역별 심층 리포트.',
+    images: [ROOT_OG_IMAGE_URL],
   },
   icons: {
     icon: [
@@ -152,7 +119,7 @@ export default function RootLayout({
   const nonce = undefined;
 
   return (
-    <html lang="ko" suppressHydrationWarning className={`${pretendard.variable} ${inter.variable} ${cormorant.variable} ${outfit.variable} ${jetbrainsMono.variable}`}>
+    <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head>
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />

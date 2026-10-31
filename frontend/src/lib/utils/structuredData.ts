@@ -24,8 +24,9 @@ export function getMainPageSchema(baseUrl: string) {
         "@type": "WebSite",
         "@id": `${baseUrl}/#website`,
         "url": baseUrl,
-        "name": "D-VIEW | 동탄 아파트 가치분석",
-        "description": "동탄 179개 아파트의 실거래가·인프라·학군·현장 사진 가치 분석 플랫폼",
+        "name": "D-VIEW | 동탄 아파트 시세·실거래가·집값 추이 그래프",
+        "alternateName": ["디뷰", "동뷰", "동탄뷰", "D-VIEW 동탄 아파트 랩"],
+        "description": "동탄 184개 아파트의 국토교통부 실거래가 시세·집값 추이 그래프·전세가율·초품아 학군지·입지 비교 분석 플랫폼",
         "publisher": {
           "@id": `${baseUrl}/#organization`
         },
@@ -43,6 +44,7 @@ export function getMainPageSchema(baseUrl: string) {
         "@type": "Organization",
         "@id": `${baseUrl}/#organization`,
         "name": "D-VIEW 부동산 데이터 랩스",
+        "alternateName": ["디뷰", "동뷰", "동탄뷰"],
         "url": baseUrl,
         "logo": {
           "@type": "ImageObject",
@@ -50,7 +52,7 @@ export function getMainPageSchema(baseUrl: string) {
           "width": 192,
           "height": 192
         },
-        "description": "동탄 전역 아파트 실거래가 추이, 전세가율 및 깡통전세 리스크, 안심 보육 학군 지도 시각화 전문 기관"
+        "description": "동탄 전역 184개 아파트 실거래 시세·집값 추이 그래프, 전세가율 하방 안전성 및 학군지·테크노밸리 입지 데이터 분석 전문 기관"
       }
     ]
   };
@@ -184,7 +186,7 @@ export function getExploreSchema(baseUrl: string) {
     "@id": `${baseUrl}/explore#webpage`,
     "url": `${baseUrl}/explore`,
     "name": "동탄 단지 탐색 | D-VIEW 아파트 비교 분석",
-    "description": "동탄 1, 2신도시 전체 179개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵",
+    "description": "동탄 1, 2신도시 전체 184개 단지의 국토교통부 실거래가, 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵",
     "breadcrumb": {
       "@type": "BreadcrumbList",
       "itemListElement": [

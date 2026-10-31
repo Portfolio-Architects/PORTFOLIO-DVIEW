@@ -11,11 +11,35 @@ import { ZONES } from '@/lib/zones';
 
 export const revalidate = 600; // Revalidate every 10 minutes (ISR)
 
+const EXPLORE_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 184개 아파트 실거래가 비교표')}&subtitle=${encodeURIComponent('평당가 랭킹 · 전세가율 · 학군 · 동탄역 거리 조건 탐색')}`;
+
 export const metadata: Metadata = {
-  title: 'D-VIEW 아파트 탐색 | 동탄 전역 아파트 실거래가 및 입지 가치 비교',
-  description: '동탄 179개 아파트 단지의 실거래가 변동 추이, 평단가 순위, 전세가율 및 전세 사기 안심 진단, 입지 가치 분석 표 제공.',
+  title: '동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색',
+  description: '동탄 1·2신도시 184개 아파트 단지의 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진, 초품아 학군·동탄역 거리 조건 필터링 및 단지 비교표를 제공합니다.',
   alternates: {
     canonical: 'https://dongtanview.com/explore',
+  },
+  openGraph: {
+    title: '동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색',
+    description: '동탄 1·2신도시 184개 아파트 단지의 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진, 초품아 학군·동탄역 거리 조건 필터링 및 단지 비교표를 제공합니다.',
+    url: 'https://dongtanview.com/explore',
+    siteName: 'D-VIEW',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: EXPLORE_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 동탄 184개 아파트 실거래가 비교표',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색',
+    description: '동탄 1·2신도시 184개 아파트 단지의 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진 및 단지 비교표를 제공합니다.',
+    images: [EXPLORE_OG_IMAGE_URL],
   },
 };
 
@@ -179,7 +203,7 @@ async function ExploreDataLoader() {
       >
         <header>
           <h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>
-          <p>동탄 1, 2신도시 전체 179개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
+          <p>동탄 1, 2신도시 전체 184개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
         </header>
         <table>
           <thead>

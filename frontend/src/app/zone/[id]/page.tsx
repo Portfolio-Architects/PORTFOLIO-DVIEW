@@ -1,13 +1,16 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { Building2, MapPin } from 'lucide-react';
+import { Building2, MapPin, BookOpen, ArrowRight } from 'lucide-react';
 import { ZONES, getZoneById, getDongsForZone } from '@/lib/zones';
+import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ZoneDetailClient from './ZoneDetailClient';
 import { DongApartment } from '@/lib/dong-apartments';
+
+import { getTxSummaryData, formatPriceEok } from '@/lib/services/apartmentPageService';
 
 export async function generateStaticParams() {
   return ZONES.map((zone) => ({
@@ -29,12 +32,35 @@ export async function generateMetadata(props: {
     };
   }
 
-  const title = `동탄 ${zone.name} 실거래가, 학군, 입지 가치 분석 - D-VIEW`;
-  const description = `${zone.name}(${zone.dongLabel}) 아파트 단지 상세 분석. ${zone.description} 실시간 임장 후기, 평점 및 투자 분석 리포트를 확인해보세요.`;
+  const dongs = getDongsForZone(zone.id);
+  const txSummary = await getTxSummaryData();
+  const zoneEntries = Object.entries(txSummary || {})
+    .filter(([, s]) => s && s.dong && dongs.includes(s.dong) && (s.latestPrice || 0) > 0)
+    .sort((a, b) => (b[1].latestPrice || 0) - (a[1].latestPrice || 0));
+
+  const zoneAptCount = zoneEntries.length;
+  const topApt = zoneEntries[0];
+  const leaderPriceBadge = topApt
+    ? ` (대장 ${topApt[0]} 최근 ${formatPriceEok(topApt[1].latestPrice || 0)})`
+    : '';
+  const countBadge = zoneAptCount > 0 ? `${zoneAptCount}개 단지 ` : '';
+
+  const legalDongsStr = dongs.filter((d) => !zone.dongLabel.includes(d)).join('·');
+  const combinedDongBadge = legalDongsStr
+    ? `${legalDongsStr} · ${zone.dongLabel}`
+    : zone.dongLabel;
+
+  const title = `동탄 ${zone.name}(${combinedDongBadge}) 아파트 실거래가·전세가율·학군 비교 - D-VIEW`;
+  const description = `동탄 ${zone.name}(${combinedDongBadge}) ${countBadge}국토교통부 실거래가 비교${leaderPriceBadge}. ${zone.description} 단지별 매매가·전세가율·입지 가치 리포트를 D-VIEW에서 확인하세요.`;
+
+  const ogUrl = new URL(`${baseUrl}/api/og`);
+  ogUrl.searchParams.set('title', `동탄 ${zone.name}`);
+  ogUrl.searchParams.set('subtitle', `${combinedDongBadge} · ${countBadge}국토부 실거래 분석`);
 
   return {
     title,
     description,
+    keywords: `동탄 ${zone.name}, ${zone.dongLabel} 아파트, ${dongs.map((d) => `동탄 ${d} 실거래가`).join(', ')}, 동탄 학군, 전세가율, D-VIEW`,
     alternates: {
       canonical: `https://dongtanview.com/zone/${params.id}`,
     },
@@ -45,11 +71,20 @@ export async function generateMetadata(props: {
       siteName: 'D-VIEW',
       locale: 'ko_KR',
       type: 'website',
+      images: [
+        {
+          url: ogUrl.toString(),
+          width: 1200,
+          height: 630,
+          alt: `동탄 ${zone.name} 아파트 실거래 분석`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
+      images: [ogUrl.toString()],
     },
   };
 }
@@ -244,6 +279,56 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
               </table>
             </div>
           </div>
+
+          {GUIDE_ARTICLES.some((a) => (a.featuredZones || []).includes(zone.id)) && (
+            <div
+              id="zone-related-guides-ssr"
+              className="space-y-3 pt-4 border-t border-border/60"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="text-base sm:text-lg font-extrabold text-primary tracking-tight flex items-center gap-2">
+                  <BookOpen size={17} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>{zone.name} 권역 1:1 비교 가이드 및 심층 리포트</span>
+                </h2>
+                <Link
+                  href="/guide"
+                  prefetch={false}
+                  className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 shrink-0"
+                >
+                  <span>전체 비교 가이드</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[...GUIDE_ARTICLES]
+                  .filter((a) => (a.featuredZones || []).includes(zone.id))
+                  .sort((a, b) =>
+                    (b.updatedDate || b.date || '').localeCompare(a.updatedDate || a.date || '')
+                  )
+                  .map((article) => (
+                    <Link
+                      key={article.slug}
+                      href={`/guide/${article.slug}`}
+                      prefetch={false}
+                      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 hover:border-emerald-300 dark:hover:border-emerald-700 p-4 flex flex-col justify-between gap-2 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                          {article.category}
+                        </span>
+                        <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                          {article.title}
+                        </h3>
+                      </div>
+                      <span className="text-xs font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
+                        <span>1:1 실거래 비교 읽기</span>
+                        <ArrowRight size={12} />
+                      </span>
+                    </Link>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {/* Zone Zero-CLS AdSlot */}
           <div

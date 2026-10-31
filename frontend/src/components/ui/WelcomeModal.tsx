@@ -185,7 +185,7 @@ const WelcomeModal = React.memo(function WelcomeModal() {
 
         {/* Description */}
         <p id="welcome-modal-desc" className="text-[13px] sm:text-[14px] text-secondary leading-relaxed break-keep mb-6">
-          D-VIEW는 동탄역 179개 아파트 단지의 실거래 및 안심 학군 분석은 물론, 테크노밸리 지식산업센터 입주 매칭과 직주근접 세제 혜택 시뮬레이션을 원스톱으로 지원하는 데이터 플랫폼입니다.
+          D-VIEW는 동탄역 184개 아파트 단지의 실거래 및 안심 학군 분석은 물론, 테크노밸리 지식산업센터 입주 매칭과 직주근접 세제 혜택 시뮬레이션을 원스톱으로 지원하는 데이터 플랫폼입니다.
         </p>
 
         {/* Feature List */}

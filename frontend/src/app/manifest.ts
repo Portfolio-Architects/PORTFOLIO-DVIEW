@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: 'D-VIEW | 동탄 아파트 가치분석',
     short_name: 'D-VIEW',
-    description: 'D-VIEW — 동탄 179개 아파트의 실거래가·인프라·현장 검증 사진을 한눈에.',
+    description: 'D-VIEW — 동탄 184개 아파트의 국토부 실거래가·전세가율·학군 분석을 한눈에.',
     start_url: '/',
     display: 'standalone',
     background_color: '#fcfbfa',
@@ -43,7 +43,7 @@ export default function manifest(): MetadataRoute.Manifest {
       {
         name: '동탄 아파트 랩',
         short_name: '아파트 랩',
-        description: '동탄 179개 단지 밸류에이션 및 실거래가 분석',
+        description: '동탄 184개 단지 밸류에이션 및 실거래가 분석',
         url: '/',
         icons: [{ src: '/icon-192x192.png?v=11', sizes: '192x192' }]
       }

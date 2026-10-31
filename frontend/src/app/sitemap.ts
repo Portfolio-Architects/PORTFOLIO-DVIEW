@@ -12,8 +12,8 @@ import {
 export const revalidate = 3600; // Revalidate sitemap every hour
 
 /**
- * Generates unified programmatic sitemap for D-VIEW (266 URLs).
- * @complexity Time: O(N), Space: O(N) where N = 266 programmatic entities
+ * Generates unified programmatic sitemap for D-VIEW (280 URLs).
+ * @complexity Time: O(N), Space: O(N) where N = 280 programmatic entities
  * @sideEffects Read-only file cache and optional Firestore metadata read
  */
 export default async function sitemap(
@@ -31,10 +31,11 @@ export default async function sitemap(
   const nowDate = new Date();
   const routes: MetadataRoute.Sitemap = [];
 
-  // 0. Core Hub & Trust Compliance Static Routes (8 routes for AdSense & Search Crawler verification)
+  // 0. Core Hub & Trust Compliance Static Routes (9 routes for AdSense & Search Crawler verification)
   const coreStaticRoutes: Array<{ path: string; changeFrequency: 'daily' | 'weekly' | 'monthly'; priority: number }> = [
     { path: '', changeFrequency: 'daily', priority: 1.0 },
     { path: '/guide', changeFrequency: 'weekly', priority: 0.95 },
+    { path: '/technovalley', changeFrequency: 'weekly', priority: 0.95 },
     { path: '/explore', changeFrequency: 'daily', priority: 0.9 },
     { path: '/news', changeFrequency: 'daily', priority: 0.85 },
     { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
@@ -51,7 +52,7 @@ export default async function sitemap(
     });
   });
 
-  // 1. Guide Articles (3 programmatic long-form articles)
+  // 1. Guide Articles (8 programmatic long-form comparison & valuation articles)
   GUIDE_ARTICLES.forEach((article) => {
     routes.push({
       url: `${baseUrl}/guide/${article.slug}`,
@@ -81,18 +82,15 @@ export default async function sitemap(
     });
   });
 
-  // 4. TechnoValley Knowledge Industry Center Routes (56 B2B centers)
+  // 4. TechnoValley Knowledge Industry Center Detail Routes (all 56 B2B centers)
   try {
     const jisanList = await getTechnoValleyJisanList();
-    jisanList.forEach((item, idx) => {
+    jisanList.forEach((item) => {
       routes.push({
-        url:
-          idx === 0
-            ? `${baseUrl}/technovalley`
-            : `${baseUrl}/technovalley?jisan=${encodeURIComponent(item.name)}`,
+        url: `${baseUrl}/technovalley?jisan=${encodeURIComponent(item.name)}`,
         lastModified: staticFixedDate,
         changeFrequency: 'weekly',
-        priority: idx === 0 ? 0.95 : 0.85,
+        priority: 0.85,
       });
     });
   } catch (err) {

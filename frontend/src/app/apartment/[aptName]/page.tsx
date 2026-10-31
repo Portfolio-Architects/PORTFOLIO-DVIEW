@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight } from 'lucide-react';
+import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
@@ -8,6 +8,7 @@ import type { DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { dongToZoneId, getZoneById } from '@/lib/zones';
+import { getRelatedGuidesForApartment } from '@/lib/data/guides';
 import {
   decodeAptName,
   formatPriceEok,
@@ -157,6 +158,17 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     }))
     .sort((a, b) => b.latestPrice - a.latestPrice)
     .slice(0, 8);
+
+  const {
+    relatedGuides,
+    hasDirectMatch: hasDirectGuideMatch,
+    zone: matchedGuideZone,
+  } = getRelatedGuidesForApartment({
+    aptName: decodedName,
+    resolvedTxKey,
+    dong: aptDong,
+    minPadCount: 3,
+  });
 
   return (
     <>
@@ -564,7 +576,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                           <span>{peer.dong}</span>
                         </span>
                         {peer.txCount > 0 && (
-                          <span className="font-mono tabular-nums">누적 {peer.txCount}건</span>
+                          <span className="tabular-nums">누적 {peer.txCount}건</span>
                         )}
                       </div>
                       <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 truncate transition-colors">
@@ -575,12 +587,61 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                       <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                         최근 실거래가
                       </span>
-                      <span className="text-xs sm:text-[13px] font-mono tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400">
+                      <span className="text-xs sm:text-[13px] tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400">
                         {peer.latestPriceStr}
                       </span>
                     </div>
                   </Link>
                 ))}
+              </div>
+            )}
+
+            {relatedGuides.length > 0 && (
+              <div
+                id="apt-related-guides-ssr"
+                className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                    <BookOpen size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span>
+                      {hasDirectGuideMatch
+                        ? `${decodedName} 포함 1:1 실거래 맞대결 비교 가이드`
+                        : `${matchedGuideZone?.name || parentZone?.name || aptDong} 권역 1:1 실거래 비교 가이드`}
+                    </span>
+                  </h3>
+                  <Link
+                    href="/guide"
+                    prefetch={false}
+                    className="text-xs font-extrabold text-emerald-700 dark:text-emerald-400 hover:underline inline-flex items-center gap-1 shrink-0"
+                  >
+                    <span>비교 가이드 전체보기</span>
+                    <ArrowRight size={12} />
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {relatedGuides.map((guide) => (
+                    <Link
+                      key={guide.slug}
+                      href={`/guide/${guide.slug}`}
+                      prefetch={false}
+                      className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                    >
+                      <div className="space-y-1">
+                        <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                          {guide.category}
+                        </span>
+                        <h4 className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                          {guide.title}
+                        </h4>
+                      </div>
+                      <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
+                        <span>1:1 비교 리포트 열람</span>
+                        <ArrowRight size={11} />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
           </section>

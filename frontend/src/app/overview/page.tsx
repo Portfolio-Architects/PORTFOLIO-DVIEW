@@ -26,11 +26,38 @@ interface TxSummaryItem {
 
 export const revalidate = 3600;
 
+const OVERVIEW_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 아파트 시세·실거래가·집값 추이 그래프')}&subtitle=${encodeURIComponent('동탄 1·2신도시 184개 단지 국토부 실거래가·전세가율·학군 비교 | D-VIEW')}`;
+
 export const metadata: Metadata = {
-  title: 'D-VIEW 아파트 데이터 랩스 | 동탄 아파트 실거래 시세 분석',
-  description: '동탄 신도시 아파트 실거래 시세 분석, 상승/하락 트렌드, 전세 안전진단부터 실거래가 데이터 분석을 제공합니다.',
+  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+  description:
+    '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단 및 권역별 실거래가 데이터 분석을 제공합니다.',
   alternates: {
     canonical: 'https://dongtanview.com/overview',
+  },
+  openGraph: {
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    description:
+      '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단 및 권역별 실거래가 데이터 분석을 제공합니다.',
+    url: 'https://dongtanview.com/overview',
+    siteName: 'D-VIEW',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: OVERVIEW_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 동탄 아파트 시세·실거래가·집값 추이 그래프',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    description:
+      '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프 및 전세가율 분석.',
+    images: [OVERVIEW_OG_IMAGE_URL],
   },
 };
 
@@ -112,11 +139,11 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
         className="sr-only"
       >
         <header>
-          <h1>동탄 부동산 실거래 대시보드 - D-VIEW</h1>
-          <p>동탄 신도시 전체 아파트 실거래가 추이, 최고가 상승/하락 트렌드, 전세가율 및 전세 사기 안심 진단 전문 분석 리포트 플랫폼</p>
+          <h2>동탄 아파트 시세·실거래가·집값 추이 그래프 대시보드 - D-VIEW</h2>
+          <p>국토교통부 실거래가 공개시스템 공식 데이터 기반 동탄 1·2신도시 184개 아파트 시세, 평형별 집값 추이 그래프, 전세가율 및 전세 안전 진단 리포트 플랫폼</p>
         </header>
         <section>
-          <h2>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h2>
+          <h3>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h3>
           <ol>
             {top10Leaderboard.map((apt, index) => (
               <li key={apt.name}>
@@ -129,7 +156,7 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
         </section>
         {recentTxs.length > 0 && (
           <section style={{ marginTop: '20px' }}>
-            <h2>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h2>
+            <h3>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h3>
             <ul>
               {(recentTxs as HomeTransactionRecord[]).slice(0, 15).map((tx, idx: number) => {
                 const txPrice = tx.price || 0;

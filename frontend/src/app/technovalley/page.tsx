@@ -1,112 +1,58 @@
 import React from 'react';
 import { Metadata } from 'next';
+import Link from 'next/link';
 import { Building2, Landmark, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
 import TechnoValleyClient from './TechnoValleyClient';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import {
   getTechnoValleyJisanList,
-  type TechnoValleyJisan,
+  resolveTechnoValleyJisan,
+  buildTechnoValleySeoMetadata,
+  buildTechnoValleyJsonLd,
+  formatTechnoValleyAreaM2 as formatAreaM2,
+  formatTechnoValleyUnits as formatUnits,
+  formatJisanTitleLabel,
 } from '@/lib/services/apartmentPageService';
 
 export const revalidate = 3600;
 
-export const metadata: Metadata = {
-  title: '동탄테크노밸리 56개 지식산업센터 전수 카탈로그 및 법인 세제 혜택 분석 | D-VIEW',
-  description:
-    '경기도 화성시 동탄테크노밸리 56개 지식산업센터 분양·입주 현황, 연면적·호실수 스펙 비교, 중소기업 취득세 35% 감면·재산세 35% 감면·과밀억제권역 법인세 감면 및 정책자금 대출 데이터를 제공합니다.',
-  keywords:
-    '동탄테크노밸리, 지식산업센터, 동탄 지식산업센터, 취득세 감면, 재산세 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 분양, 사옥 이전',
-  alternates: {
-    canonical: 'https://dongtanview.com/technovalley',
-  },
-  openGraph: {
-    title: '동탄테크노밸리 56개 지식산업센터 전수 카탈로그 및 세제 혜택 | D-VIEW',
-    description:
-      '동탄테크노밸리 56개 지식산업센터 스펙 비교 및 법인 사옥 이전 취득세·재산세·법인세 감면 분석 리포트.',
-    url: 'https://dongtanview.com/technovalley',
-    siteName: 'D-VIEW',
-    locale: 'ko_KR',
-    type: 'website',
-  },
-};
-
-function formatAreaM2(val?: number | string): string {
-  if (val === undefined || val === null || val === '') return '정보 없음';
-  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
-  if (!Number.isFinite(num) || num <= 0) return String(val);
-  return `${num.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}㎡`;
+export interface TechnoValleyPageProps {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }
 
-function formatUnits(val?: number | string): string {
-  if (val === undefined || val === null || val === '') return '미정';
-  const num = typeof val === 'number' ? val : parseInt(String(val).replace(/,/g, ''), 10);
-  if (!Number.isFinite(num) || num <= 0) return '미정';
-  return `${num.toLocaleString('ko-KR')}실`;
-}
-
-/**
- * Builds Schema.org JSON-LD graph for TechnoValley 56 Knowledge Industry Centers.
- * @complexity Time: O(N), Space: O(N) where N = 56 centers
- * @sideEffects None (Pure deterministic transformation)
- */
-export function buildTechnoValleyJsonLd(
-  jisanList: TechnoValleyJisan[],
-  baseUrl: string = 'https://dongtanview.com'
-): Record<string, unknown> {
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
-      {
-        '@type': 'CollectionPage',
-        '@id': `${baseUrl}/technovalley#webpage`,
-        url: `${baseUrl}/technovalley`,
-        name: '동탄테크노밸리 56개 지식산업센터 전수 카탈로그 및 법인 세제 혜택 분석',
-        description:
-          '화성시 동탄테크노밸리 권역 내 56개 지식산업센터 건축 면적·호실수·분양 현황 및 취득세·재산세·법인세 감면 혜택 종합 데이터',
-        mainEntity: {
-          '@type': 'ItemList',
-          numberOfItems: jisanList.length,
-          itemListElement: jisanList.map((item, idx) => ({
-            '@type': 'ListItem',
-            position: idx + 1,
-            item: {
-              '@type': 'Place',
-              name: item.name,
-              address: {
-                '@type': 'PostalAddress',
-                addressCountry: 'KR',
-                addressRegion: '경기도',
-                addressLocality: '화성시',
-                streetAddress: item.roadAddress || item.jibunAddress || '동탄테크노밸리',
-              },
-              description: `${item.name} (${item.status || item.buildingStatus || '승인'}, 연면적 ${formatAreaM2(item.totalFloorArea)}, 호실수 ${formatUnits(item.unitCount)})`,
-            },
-          })),
-        },
-      },
-      {
-        '@type': ['FinancialProduct', 'LoanOrCredit'],
-        '@id': `${baseUrl}/technovalley#b2b-policy-loan`,
-        name: '동탄테크노밸리 지식산업센터 입주 기업 정책자금 및 시설자금 대출',
-        description:
-          '지식산업센터 최초 분양 및 법인 사옥 이전 기업 대상 취득세 35% 감면, 재산세 35% 감면, 분양가 최대 80% 정책자금 시설대출 안내',
-        category: '법인 사옥 이전 / 지식산업센터 시설자금 대출 / 중소기업 정책자금',
-        currency: 'KRW',
-        provider: {
-          '@type': 'FinancialService',
-          name: 'D-VIEW 부동산 데이터 랩스',
-          url: baseUrl,
-        },
-      },
-    ],
-  };
-}
-
-export default async function TechnoValleyPage() {
+export async function generateMetadata(): Promise<Metadata>;
+export async function generateMetadata(props: TechnoValleyPageProps): Promise<Metadata>;
+export async function generateMetadata(props?: TechnoValleyPageProps): Promise<Metadata> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+  try {
+    const resolvedSearchParams = props?.searchParams ? await props.searchParams : undefined;
+    const jisanList = await getTechnoValleyJisanList();
+    return buildTechnoValleySeoMetadata(jisanList, resolvedSearchParams?.jisan, baseUrl);
+  } catch (err) {
+    if (
+      err &&
+      typeof err === 'object' &&
+      ('digest' in err || (err as Error).message?.includes('Dynamic server usage'))
+    ) {
+      throw err;
+    }
+    return buildTechnoValleySeoMetadata([], undefined, baseUrl);
+  }
+}
+
+export default async function TechnoValleyPage(): Promise<React.JSX.Element>;
+export default async function TechnoValleyPage(
+  props: TechnoValleyPageProps
+): Promise<React.JSX.Element>;
+export default async function TechnoValleyPage(
+  props?: TechnoValleyPageProps
+): Promise<React.JSX.Element> {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+  const resolvedSearchParams = props?.searchParams ? await props.searchParams : undefined;
   const jisanList = await getTechnoValleyJisanList();
-  const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl);
+  const selectedJisan = resolveTechnoValleyJisan(jisanList, resolvedSearchParams?.jisan);
+  const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl, selectedJisan);
 
   const completedCount = jisanList.filter(
     (item) =>
@@ -127,7 +73,7 @@ export default async function TechnoValleyPage() {
       />
 
       {/* Interactive TechnoValley Client Dashboard */}
-      <TechnoValleyClient />
+      <TechnoValleyClient selectedJisan={selectedJisan} />
 
       {/* SSR B2B High-CPC Semantic Catalog & Corporate Tax Benefit Section */}
       <section
@@ -142,12 +88,70 @@ export default async function TechnoValleyPage() {
               <span>D-VIEW B2B 기업이전·지식산업센터 데이터 랩</span>
             </span>
             <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
-              동탄테크노밸리 {jisanList.length}개 지식산업센터 전수 카탈로그 및 세제 혜택 분석
+              {selectedJisan
+                ? `${formatJisanTitleLabel(selectedJisan.name)} 건축 스펙·입주 업종 및 세제 감면 분석`
+                : `동탄테크노밸리 ${jisanList.length}개 지식산업센터 전수 카탈로그 및 세제 혜택 분석`}
             </h1>
             <p className="mt-3 text-secondary text-[14px] sm:text-[15.5px] leading-relaxed max-w-[960px] font-medium">
               수도권 남부 최대 첨단 클러스터인 동탄테크노밸리 내 {jisanList.length}개 지식산업센터(준공·완료 {completedCount}개소, 총 집계 호실 {totalUnitsSum.toLocaleString('ko-KR')}실)의 건축 스펙과 법인 사옥 이전 시 적용되는 취득세·재산세·법인세 감면 및 중소기업 정책자금 금융 조건을 실증 분석합니다.
             </p>
           </div>
+
+          {/* Focused SSR Building Spec Card when ?jisan=... matches a verified center */}
+          {selectedJisan && (
+            <div
+              id="technovalley-selected-jisan-ssr"
+              className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-5 sm:p-6 space-y-4"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="space-y-1">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    선택 센터 정밀 스펙 · {selectedJisan.buildingStatus || selectedJisan.status || '승인'}
+                  </span>
+                  <h2 className="text-lg sm:text-xl font-black text-primary tracking-tight">
+                    {formatJisanTitleLabel(selectedJisan.name)}
+                  </h2>
+                  <p className="text-[13px] text-secondary font-medium">
+                    소재지: {selectedJisan.roadAddress || selectedJisan.jibunAddress || '경기도 화성시 동탄테크노밸리'}
+                  </p>
+                </div>
+                <Link
+                  href="/technovalley"
+                  prefetch={false}
+                  className="text-[12px] font-bold text-emerald-700 dark:text-emerald-300 hover:underline"
+                >
+                  전체 {jisanList.length}개 센터 전수 보기
+                </Link>
+              </div>
+
+              <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px] tabular-nums">
+                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
+                  <dt className="text-tertiary text-[11.5px] font-semibold">연면적</dt>
+                  <dd className="mt-1 font-extrabold text-primary text-[15px]">
+                    {formatAreaM2(selectedJisan.totalFloorArea)}
+                  </dd>
+                </div>
+                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
+                  <dt className="text-tertiary text-[11.5px] font-semibold">산업시설 / 지원시설</dt>
+                  <dd className="mt-1 font-bold text-primary">
+                    {formatAreaM2(selectedJisan.factoryArea)} / {formatAreaM2(selectedJisan.auxiliaryArea)}
+                  </dd>
+                </div>
+                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
+                  <dt className="text-tertiary text-[11.5px] font-semibold">집계 호실수 / 분양유형</dt>
+                  <dd className="mt-1 font-bold text-primary">
+                    {formatUnits(selectedJisan.unitCount)} · {selectedJisan.saleType || '분양'}
+                  </dd>
+                </div>
+                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
+                  <dt className="text-tertiary text-[11.5px] font-semibold">입주 가능 업종 · 세제 혜택</dt>
+                  <dd className="mt-1 font-bold text-emerald-700 dark:text-emerald-300">
+                    {selectedJisan.representativeBusiness?.trim() || '제조·지식·정보통신(IT)'} · 취득세 35% 감면
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          )}
 
           {/* Section 1: Corporate Tax Benefits & Policy Finance Table */}
           <div className="space-y-4">
@@ -268,37 +272,56 @@ export default async function TechnoValleyPage() {
                     <th scope="col" className="p-3 whitespace-nowrap">소재지 주소</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-border/40 font-medium">
-                  {jisanList.map((item) => (
-                    <tr
-                      key={`${item.seq}-${item.name}`}
-                      id={`jisan-${item.seq}`}
-                      className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors"
-                    >
-                      <td className="p-3 text-tertiary whitespace-nowrap">{item.seq}</td>
-                      <th scope="row" className="p-3 font-bold text-primary whitespace-nowrap">
-                        {item.name}
-                      </th>
-                      <td className="p-3 whitespace-nowrap">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                          {item.status || item.regType || '승인'}
-                        </span>
-                      </td>
-                      <td className="p-3 whitespace-nowrap">{item.buildingStatus || '진행중'}</td>
-                      <td className="p-3 whitespace-nowrap">{item.saleType || '분양'}</td>
-                      <td className="p-3 whitespace-nowrap">{formatAreaM2(item.landArea)}</td>
-                      <td className="p-3 font-bold text-primary whitespace-nowrap">
-                        {formatAreaM2(item.totalFloorArea)}
-                      </td>
-                      <td className="p-3 whitespace-nowrap">{formatUnits(item.unitCount)}</td>
-                      <td className="p-3 whitespace-nowrap">
-                        {item.developer || item.companyName || '-'} / {item.builder || '-'}
-                      </td>
-                      <td className="p-3 text-tertiary whitespace-nowrap">
-                        {item.roadAddress || item.jibunAddress || '경기도 화성시'}
-                      </td>
-                    </tr>
-                  ))}
+                <tbody className="divide-y divide-border/40 font-medium tabular-nums">
+                  {jisanList.map((item) => {
+                    const isSelected =
+                      selectedJisan?.seq === item.seq && selectedJisan?.name === item.name;
+                    return (
+                      <tr
+                        key={`${item.seq}-${item.name}`}
+                        id={`jisan-${item.seq}`}
+                        aria-current={isSelected ? 'true' : undefined}
+                        className={
+                          isSelected
+                            ? 'bg-emerald-500/[0.06] dark:bg-emerald-950/30 transition-colors'
+                            : 'hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors'
+                        }
+                      >
+                        <td className="p-3 text-tertiary whitespace-nowrap">{item.seq}</td>
+                        <th scope="row" className="p-3 font-bold text-primary whitespace-nowrap">
+                          <Link
+                            href={`/technovalley?jisan=${encodeURIComponent(item.name)}`}
+                            prefetch={false}
+                            className={
+                              isSelected
+                                ? 'text-emerald-700 dark:text-emerald-300 underline font-extrabold'
+                                : 'hover:text-blue-600 dark:hover:text-blue-400 hover:underline transition-colors'
+                            }
+                          >
+                            {item.name}
+                          </Link>
+                        </th>
+                        <td className="p-3 whitespace-nowrap">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                            {item.status || item.regType || '승인'}
+                          </span>
+                        </td>
+                        <td className="p-3 whitespace-nowrap">{item.buildingStatus || '진행중'}</td>
+                        <td className="p-3 whitespace-nowrap">{item.saleType || '분양'}</td>
+                        <td className="p-3 whitespace-nowrap">{formatAreaM2(item.landArea)}</td>
+                        <td className="p-3 font-bold text-primary whitespace-nowrap">
+                          {formatAreaM2(item.totalFloorArea)}
+                        </td>
+                        <td className="p-3 whitespace-nowrap">{formatUnits(item.unitCount)}</td>
+                        <td className="p-3 whitespace-nowrap">
+                          {item.developer || item.companyName || '-'} / {item.builder || '-'}
+                        </td>
+                        <td className="p-3 text-tertiary whitespace-nowrap">
+                          {item.roadAddress || item.jibunAddress || '경기도 화성시'}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

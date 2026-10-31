@@ -1,14 +1,17 @@
 'use client';
 
 import React, { useMemo } from 'react';
+import Link from 'next/link';
 import {
   Building2,
   ArrowUpRight,
   ArrowRightLeft,
+  BookOpen,
   Calculator,
   MapPin,
   TrendingUp,
 } from 'lucide-react';
+import { getRelatedGuidesForApartment } from '@/lib/data/guides';
 import {
   RecirculationTargetAptSchema,
   TerminalRecirculationHubPropsSchema,
@@ -83,6 +86,20 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
   }, [props]);
 
   const primaryTarget = validated.targets[0];
+  const {
+    relatedGuides,
+    hasDirectMatch: hasDirectGuideMatch,
+    zone: matchedZone,
+  } = useMemo(
+    () =>
+      getRelatedGuidesForApartment({
+        aptName: validated.currentAptName,
+        dong: validated.currentDong,
+        minPadCount: 2,
+        maxTotal: 2,
+      }),
+    [validated.currentAptName, validated.currentDong]
+  );
 
   return (
     <section
@@ -253,6 +270,56 @@ export function TerminalRecirculationHub(props: TerminalRecirculationHubProps) {
           <ArrowUpRight size={16} className="shrink-0 text-blue-600 ml-2" />
         </button>
       </div>
+
+      {/* Node 4: Related 1:1 Comparison Guide Deep-Read Links */}
+      {relatedGuides.length > 0 && (
+        <div
+          data-testid="recirc-related-guides"
+          className="mt-4 pt-3.5 border-t border-slate-200/80 space-y-2.5"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <h5 className="text-[12px] font-extrabold text-slate-900 flex items-center gap-1.5">
+              <BookOpen size={14} className="text-blue-600 shrink-0" />
+              <span>
+                {hasDirectGuideMatch
+                  ? `${validated.currentAptName} 포함 1:1 실거래 비교 가이드`
+                  : `${matchedZone?.name || validated.currentDong} 권역 실거래 비교 가이드`}
+              </span>
+            </h5>
+            <Link
+              href="/guide"
+              prefetch={false}
+              className="text-[11px] font-bold text-emerald-700 hover:underline inline-flex items-center gap-0.5 shrink-0"
+            >
+              <span>전체 가이드</span>
+              <ArrowUpRight size={12} />
+            </Link>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+            {relatedGuides.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/guide/${guide.slug}`}
+                prefetch={false}
+                className="group flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 transition-colors hover:border-emerald-300"
+              >
+                <div className="min-w-0">
+                  <span className="text-[10px] font-extrabold text-emerald-700 block">
+                    {guide.category}
+                  </span>
+                  <span className="text-[12px] font-extrabold text-slate-900 group-hover:text-emerald-700 truncate block transition-colors">
+                    {guide.title}
+                  </span>
+                </div>
+                <ArrowUpRight
+                  size={15}
+                  className="shrink-0 text-slate-400 group-hover:text-emerald-600 transition-colors"
+                />
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </section>
   );
 }

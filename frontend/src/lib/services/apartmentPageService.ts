@@ -997,26 +997,72 @@ export async function buildApartmentSeoMetadata(
       ogUrl.searchParams.set('price', formatPriceEok(aptSummary.latestPrice));
     }
 
-    if (analytics.ratioPercent > 0) {
-      ogUrl.searchParams.set('ratio', analytics.ratioPercent.toString());
+    const effectiveRatioPercent =
+      analytics.ratioPercent > 0 && analytics.ratioPercent <= 100 ? analytics.ratioPercent : 0;
+
+    if (effectiveRatioPercent > 0) {
+      ogUrl.searchParams.set('ratio', effectiveRatioPercent.toString());
     }
 
     ogUrl.searchParams.set('status', analytics.statusStr);
 
-    let seoTitle = '';
+    let titlePyeong = '';
     if (pyeongSummaries.length > 0) {
-      const pyeongListStr = pyeongSummaries.map((p) => `${p.pyeong}평`).join('/');
-      seoTitle = `${decodedName} ${pyeongListStr} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
-    } else {
-      const pyeongStr = aptSummary?.latestArea ? `${Math.round(aptSummary.latestArea)}평` : '';
-      const titlePyeong = pyeongStr ? ` ${pyeongStr}` : '';
-      seoTitle = `${decodedName}${titlePyeong} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
+      const representativePyeongs = [...pyeongSummaries]
+        .sort((a, b) => (b.salesCount + b.rentCount) - (a.salesCount + a.rentCount))
+        .slice(0, 3)
+        .sort((a, b) => a.pyeong - b.pyeong);
+      const pyeongListStr = representativePyeongs.map((p) => `${p.pyeong}평`).join('/');
+      const extraSuffix = pyeongSummaries.length > 3 ? ' 외' : '';
+      titlePyeong = ` ${pyeongListStr}${extraSuffix}`;
+    } else if (aptSummary?.latestArea && aptSummary.latestArea > 0) {
+      titlePyeong = ` ${Math.round(aptSummary.latestArea)}평`;
     }
 
-    const seoDescription = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
-    const pyeongKeywordsList = pyeongSummaries.map((p) => `${decodedName} ${p.pyeong}평, ${decodedName} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`).join(', ');
+    const latestSaleVal = aptSummary?.latestPrice || analytics.maxSalePrice || 0;
+    const latestRentVal = aptSummary?.latestRentDeposit || 0;
+    const realPriceHook =
+      latestSaleVal > 0
+        ? ` (최근 ${formatPriceEok(latestSaleVal)})`
+        : latestRentVal > 0
+          ? ` (전세 ${formatPriceEok(latestRentVal)})`
+          : '';
+    const realRatioHook =
+      effectiveRatioPercent > 0 ? `·전세가율 ${effectiveRatioPercent}%` : '·전세가율';
+
+    const seoTitle = `${decodedName}${titlePyeong} 실거래가${realPriceHook}${realRatioHook}·학군 분석 - D-VIEW`;
+
+    const baseBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
+    const shortAlias = decodedName.replace(/아파트$/g, '').trim();
+    const spacedDisplayAlias =
+      matchedDongApt?.name && matchedDongApt.name !== decodedName ? matchedDongApt.name.trim() : '';
+    const unspacedMolitAlias =
+      resolvedTxKey && resolvedTxKey !== decodedName && resolvedTxKey !== spacedDisplayAlias
+        ? resolvedTxKey.trim()
+        : '';
+    const unspacedShortAlias = unspacedMolitAlias.replace(/아파트$/g, '').trim();
+    const primaryAlternateAlias = spacedDisplayAlias || unspacedMolitAlias;
+    const seoDescription =
+      primaryAlternateAlias && !baseBriefing.includes(primaryAlternateAlias)
+        ? `${baseBriefing} (${primaryAlternateAlias} 실거래·시세 리포트)`
+        : baseBriefing;
+
+    const pyeongKeywordsList = pyeongSummaries
+      .map((p) => `${decodedName} ${p.pyeong}평, ${shortAlias} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`)
+      .join(', ');
+    const aliasKeywords = [
+      shortAlias !== decodedName ? `${shortAlias}, ${shortAlias} 실거래가, ${shortAlias} 전세가율` : '',
+      spacedDisplayAlias ? `${spacedDisplayAlias}, ${spacedDisplayAlias} 실거래가, ${spacedDisplayAlias} 시세` : '',
+      unspacedMolitAlias ? `${unspacedMolitAlias}, ${unspacedMolitAlias} 실거래가, ${unspacedMolitAlias} 시세` : '',
+      unspacedShortAlias && unspacedShortAlias !== unspacedMolitAlias && unspacedShortAlias !== shortAlias
+        ? `${unspacedShortAlias}, ${unspacedShortAlias} 실거래가`
+        : '',
+      resolvedDong ? `동탄 ${resolvedDong} 아파트, ${resolvedDong} ${shortAlias}` : '',
+    ]
+      .filter(Boolean)
+      .join(', ');
     const highValueMortgageKeywords = '주택담보대출 갈아타기, DSR 40% 한도, 스트레스 DSR, 전세보증금 반환대출, 역전세 대출, 금리 충격 계산기';
-    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
+    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${aliasKeywords ? `, ${aliasKeywords}` : ''}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
 
     return {
       title: seoTitle,
@@ -1055,4 +1101,352 @@ export async function buildApartmentSeoMetadata(
     logger.warn('ApartmentPageService.buildApartmentSeoMetadata', '[SEO] Failed to generate metadata, returning default', {}, err as Error);
     return getDefaultApartmentMetadata(baseUrl, decodedName);
   }
+}
+
+function parseJisanPositiveNumber(val?: number | string): number {
+  if (val === undefined || val === null || val === '') return 0;
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
+  return Number.isFinite(num) && num > 0 ? num : 0;
+}
+
+export function formatTechnoValleyAreaM2(val?: number | string): string {
+  if (val === undefined || val === null || val === '') return '정보 없음';
+  const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/,/g, ''));
+  if (!Number.isFinite(num) || num <= 0) return String(val);
+  return `${num.toLocaleString('ko-KR', { maximumFractionDigits: 1 })}㎡`;
+}
+
+export function formatTechnoValleyUnits(val?: number | string): string {
+  if (val === undefined || val === null || val === '') return '미정';
+  const num = typeof val === 'number' ? val : parseInt(String(val).replace(/,/g, ''), 10);
+  if (!Number.isFinite(num) || num <= 0) return '미정';
+  return `${num.toLocaleString('ko-KR')}실`;
+}
+
+export function formatJisanTitleLabel(name: string): string {
+  const trimmed = name.trim();
+  return trimmed.includes('지식산업센터') ? trimmed : `${trimmed} 지식산업센터`;
+}
+
+function decodeJisanParamSafely(raw: string): string {
+  let current = raw.trim();
+  for (let i = 0; i < 3; i++) {
+    try {
+      const next = decodeURIComponent(current);
+      if (next === current) break;
+      current = next;
+    } catch {
+      break;
+    }
+  }
+  return current.trim();
+}
+
+function normalizeUnicodeRomanNumerals(input: string): string {
+  return input
+    .replace(/[\u2162\u2172]/g, '3')
+    .replace(/[\u2161\u2171]/g, '2')
+    .replace(/[\u2160\u2170]/g, '1');
+}
+
+function normalizeJisanLookupKey(input: string): string {
+  return normalizeUnicodeRomanNumerals(input).normalize('NFKC').toLowerCase().replace(/\s+/g, '');
+}
+
+function normalizeJisanPhoneticKey(input: string): string {
+  return normalizeUnicodeRomanNumerals(input)
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/지식산업센터/g, '')
+    .replace(/주식회사|\(주\)/g, '')
+    .replace(/타임스퀘어/g, 'timesquare')
+    .replace(/스퀘어/g, 'square')
+    .replace(/타워/g, 'tower')
+    .replace(/센터/g, 'center')
+    .replace(/아이티/g, 'it')
+    .replace(/쓰리/g, '3')
+    .replace(/투$/g, '2')
+    .replace(/[^a-z0-9가-힣]/g, '')
+    .replace(/iii$/g, '3')
+    .replace(/ii$/g, '2')
+    .replace(/(square|tower|center)i$/g, '$11');
+}
+
+/**
+ * Resolves a `?jisan=` query parameter strictly against the 56 verified FactoryOn Knowledge Industry Centers.
+ * Returns `null` for empty, unrecognized, or untrusted inputs so arbitrary strings are never reflected into SERP metadata.
+ */
+export function resolveTechnoValleyJisan(
+  jisanList: TechnoValleyJisan[],
+  rawQuery?: string | string[] | null
+): TechnoValleyJisan | null {
+  if (!Array.isArray(jisanList) || jisanList.length === 0 || !rawQuery) return null;
+
+  const firstParam = Array.isArray(rawQuery)
+    ? rawQuery.find((v) => typeof v === 'string' && v.trim().length > 0)
+    : typeof rawQuery === 'string'
+      ? rawQuery
+      : undefined;
+
+  if (!firstParam) return null;
+  const trimmed = firstParam.trim();
+  if (!trimmed || trimmed.length > 200) return null;
+
+  const decoded = decodeJisanParamSafely(trimmed);
+  if (!decoded) return null;
+
+  const exact = jisanList.find((item) => item.name === decoded);
+  if (exact) return exact;
+
+  const qCompact = normalizeJisanLookupKey(decoded);
+  if (!qCompact) return null;
+
+  const compactMatch = jisanList.find((item) => normalizeJisanLookupKey(item.name) === qCompact);
+  if (compactMatch) return compactMatch;
+
+  const stripSuffix = (s: string) => s.replace(/지식산업센터$/g, '');
+  const qStripped = stripSuffix(qCompact);
+  if (qStripped.length >= 2) {
+    const strippedMatches = jisanList.filter(
+      (item) => stripSuffix(normalizeJisanLookupKey(item.name)) === qStripped
+    );
+    if (strippedMatches.length === 1) return strippedMatches[0];
+
+    const qPhonetic = normalizeJisanPhoneticKey(decoded);
+    if (qPhonetic.length >= 2) {
+      const phoneticMatches = jisanList.filter(
+        (item) => normalizeJisanPhoneticKey(item.name) === qPhonetic
+      );
+      if (phoneticMatches.length === 1) return phoneticMatches[0];
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Pure deterministic builder for `/technovalley` and `/technovalley?jisan=...` SERP metadata.
+ */
+export function buildTechnoValleySeoMetadata(
+  jisanList: TechnoValleyJisan[],
+  rawJisanParam?: string | string[] | null,
+  baseUrl: string = 'https://dongtanview.com'
+): Metadata {
+  const matched = resolveTechnoValleyJisan(jisanList, rawJisanParam);
+
+  if (!matched) {
+    const countLabel = jisanList.length > 0 ? `${jisanList.length}개` : '56개';
+    const defaultOgImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`동탄테크노밸리 ${countLabel} 지식산업센터 카탈로그`)}&subtitle=${encodeURIComponent('연면적·호실수·제조·IT 입주 업종 및 취득세·재산세 35% 세제 감면 분석 | D-VIEW')}`;
+    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그 및 법인 세제 혜택 분석 | D-VIEW`;
+    const defaultDescription = `경기도 화성시 동탄테크노밸리 ${countLabel} 지식산업센터 분양·입주 현황, 연면적·호실수·제조·IT 입주 업종 스펙 비교, 중소기업 취득세 35% 감면·재산세 35% 감면·과밀억제권역 법인세 감면 및 정책자금 대출 데이터를 제공합니다.`;
+
+    return {
+      title: defaultTitle,
+      description: defaultDescription,
+      keywords:
+        '동탄테크노밸리, 지식산업센터, 동탄 지식산업센터, 입주 업종, 취득세 35% 감면, 재산세 35% 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 분양, 사옥 이전',
+      alternates: {
+        canonical: `${baseUrl}/technovalley`,
+      },
+      openGraph: {
+        title: defaultTitle,
+        description: defaultDescription,
+        url: `${baseUrl}/technovalley`,
+        siteName: 'D-VIEW',
+        locale: 'ko_KR',
+        type: 'website',
+        images: [
+          {
+            url: defaultOgImageUrl,
+            width: 1200,
+            height: 630,
+            alt: `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그 | D-VIEW`,
+          },
+        ],
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: defaultTitle,
+        description: defaultDescription,
+        images: [defaultOgImageUrl],
+      },
+    };
+  }
+
+  const centerTitleLabel = formatJisanTitleLabel(matched.name);
+  const totalAreaNum = parseJisanPositiveNumber(matched.totalFloorArea);
+  const factoryAreaNum = parseJisanPositiveNumber(matched.factoryArea);
+  const auxAreaNum = parseJisanPositiveNumber(matched.auxiliaryArea);
+  const unitNum = Math.floor(parseJisanPositiveNumber(matched.unitCount));
+
+  const specBadges: string[] = [];
+  if (totalAreaNum > 0) {
+    specBadges.push(`연면적 ${formatTechnoValleyAreaM2(totalAreaNum)}`);
+  }
+  if (unitNum > 0) {
+    specBadges.push(`${unitNum.toLocaleString('ko-KR')}실`);
+  }
+  const specParen = specBadges.length > 0 ? ` (${specBadges.join('·')})` : '';
+
+  const customBiz = matched.representativeBusiness?.trim();
+  const industryHook = customBiz ? `${customBiz} 입주 업종` : '제조·IT 입주 업종';
+
+  const title = `${centerTitleLabel}${specParen} — ${industryHook}·취득세 35% 감면 | D-VIEW`;
+  const address =
+    matched.roadAddress?.trim() || matched.jibunAddress?.trim() || '경기도 화성시 동탄테크노밸리';
+
+  const detailParts: string[] = [];
+  if (totalAreaNum > 0) {
+    if (factoryAreaNum > 0 && auxAreaNum > 0) {
+      detailParts.push(
+        `연면적 ${formatTechnoValleyAreaM2(totalAreaNum)}(산업시설 ${formatTechnoValleyAreaM2(factoryAreaNum)}·지원시설 ${formatTechnoValleyAreaM2(auxAreaNum)})`
+      );
+    } else {
+      detailParts.push(`연면적 ${formatTechnoValleyAreaM2(totalAreaNum)}`);
+    }
+  }
+  if (unitNum > 0) {
+    detailParts.push(`총 ${unitNum.toLocaleString('ko-KR')}실`);
+  }
+  const statusText = matched.buildingStatus?.trim() || matched.status?.trim();
+  if (statusText) {
+    detailParts.push(`건축현황 ${statusText}`);
+  }
+  if (matched.complexName?.trim()) {
+    detailParts.push(matched.complexName.trim());
+  }
+
+  const detailSummary = detailParts.length > 0 ? `${detailParts.join(', ')}. ` : '';
+  const eligibleDesc = customBiz
+    ? `${customBiz} 및 제조·지식·정보통신(IT) 입주 가능 업종`
+    : '제조·지식·정보통신(IT) 입주 가능 업종';
+
+  const description = `${centerTitleLabel}(${address}) 공식 인허가 스펙 — ${detailSummary}${eligibleDesc} 요건과 중소기업 취득세 35%·재산세 35% 세제 감면, 과밀억제권역 이전 법인세 감면 및 정책자금 최대 80% 대출 한도를 확인하세요.`;
+  const canonicalUrl = `${baseUrl}/technovalley?jisan=${encodeURIComponent(matched.name)}`;
+  const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`${centerTitleLabel}${specParen}`)}&subtitle=${encodeURIComponent(`${address} · ${industryHook} · 취득세·재산세 35% 감면 | D-VIEW`)}`;
+
+  const keywords = Array.from(
+    new Set([
+      matched.name,
+      centerTitleLabel,
+      `${matched.name} 입주 업종`,
+      `${matched.name} 연면적`,
+      '동탄테크노밸리 지식산업센터',
+      '지식산업센터 입주 업종',
+      '취득세 35% 감면',
+      '재산세 35% 감면',
+      '과밀억제권역 법인세 감면',
+      '중소기업 정책자금 대출',
+    ])
+  ).join(', ');
+
+  return {
+    title,
+    description,
+    keywords,
+    alternates: {
+      canonical: canonicalUrl,
+    },
+    openGraph: {
+      title,
+      description,
+      url: canonicalUrl,
+      siteName: 'D-VIEW',
+      locale: 'ko_KR',
+      type: 'website',
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${centerTitleLabel} 스펙 및 세제 감면 분석 | D-VIEW`,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [ogImageUrl],
+    },
+  };
+}
+
+/**
+ * Builds Schema.org JSON-LD graph for TechnoValley 56 Knowledge Industry Centers.
+ */
+export function buildTechnoValleyJsonLd(
+  jisanList: TechnoValleyJisan[],
+  baseUrl: string = 'https://dongtanview.com',
+  selectedJisan?: TechnoValleyJisan | null
+): Record<string, unknown> {
+  const graph: Array<Record<string, unknown>> = [
+    {
+      '@type': 'CollectionPage',
+      '@id': `${baseUrl}/technovalley#webpage`,
+      url: `${baseUrl}/technovalley`,
+      name: '동탄테크노밸리 56개 지식산업센터 전수 카탈로그 및 법인 세제 혜택 분석',
+      description:
+        '화성시 동탄테크노밸리 권역 내 56개 지식산업센터 건축 면적·호실수·분양 현황 및 취득세·재산세·법인세 감면 혜택 종합 데이터',
+      mainEntity: {
+        '@type': 'ItemList',
+        numberOfItems: jisanList.length,
+        itemListElement: jisanList.map((item, idx) => ({
+          '@type': 'ListItem',
+          position: idx + 1,
+          item: {
+            '@type': 'Place',
+            name: item.name,
+            address: {
+              '@type': 'PostalAddress',
+              addressCountry: 'KR',
+              addressRegion: '경기도',
+              addressLocality: '화성시',
+              streetAddress: item.roadAddress || item.jibunAddress || '동탄테크노밸리',
+            },
+            description: `${item.name} (${item.status || item.buildingStatus || '승인'}, 연면적 ${formatTechnoValleyAreaM2(item.totalFloorArea)}, 호실수 ${formatTechnoValleyUnits(item.unitCount)})`,
+          },
+        })),
+      },
+    },
+    {
+      '@type': ['FinancialProduct', 'LoanOrCredit'],
+      '@id': `${baseUrl}/technovalley#b2b-policy-loan`,
+      name: '동탄테크노밸리 지식산업센터 입주 기업 정책자금 및 시설자금 대출',
+      description:
+        '지식산업센터 최초 분양 및 법인 사옥 이전 기업 대상 취득세 35% 감면, 재산세 35% 감면, 분양가 최대 80% 정책자금 시설대출 안내',
+      category: '법인 사옥 이전 / 지식산업센터 시설자금 대출 / 중소기업 정책자금',
+      currency: 'KRW',
+      provider: {
+        '@type': 'FinancialService',
+        name: 'D-VIEW 부동산 데이터 랩스',
+        url: baseUrl,
+      },
+    },
+  ];
+
+  if (selectedJisan) {
+    const selectedUrl = `${baseUrl}/technovalley?jisan=${encodeURIComponent(selectedJisan.name)}`;
+    const selectedLabel = formatJisanTitleLabel(selectedJisan.name);
+    graph.push({
+      '@type': 'Place',
+      '@id': `${selectedUrl}#selected-center`,
+      url: selectedUrl,
+      name: selectedLabel,
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'KR',
+        addressRegion: '경기도',
+        addressLocality: '화성시',
+        streetAddress:
+          selectedJisan.roadAddress || selectedJisan.jibunAddress || '동탄테크노밸리',
+      },
+      description: `${selectedLabel} — 연면적 ${formatTechnoValleyAreaM2(selectedJisan.totalFloorArea)}, 호실수 ${formatTechnoValleyUnits(selectedJisan.unitCount)}, 제조·지식·정보통신(IT) 입주 업종 및 취득세·재산세 35% 세제 감면 대상`,
+    });
+  }
+
+  return {
+    '@context': 'https://schema.org',
+    '@graph': graph,
+  };
 }

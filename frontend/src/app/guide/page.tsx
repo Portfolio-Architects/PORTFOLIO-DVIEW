@@ -9,19 +9,59 @@ import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 
+const GUIDE_HUB_OG_IMAGE =
+  'https://dongtanview.com/api/og?title=' +
+  encodeURIComponent('동탄 부동산 비교 가이드 & 실거래 분석 리포트') +
+  '&subtitle=' +
+  encodeURIComponent('동탄1 vs 동탄2 · 동탄역 vs 호수공원 · 6억·9억·12억 예산별 랭킹');
+
 export const metadata: Metadata = {
-  title: '동탄 부동산 가이드 & 시장 심층 분석 리포트 | D-VIEW 인사이트',
-  description: '동탄 1·2신도시 입지 격차, GTX-A 및 동탄 트램 1·2호선 수혜 단지, 2026년 스트레스 DSR 40% 규제 환경에서의 실거주 PER 가치평가 및 갈아타기 전략 리포트를 제공합니다.',
+  title: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
+  description:
+    '동탄1 vs 동탄2 입지·학군 비교, 동탄역 광비콤 주상복합 vs 청계동 시범단지 4대장, 동탄역 vs 호수공원 1:1 실거래가 맞대결, 북동탄(영천동) vs 중동탄(목동) vs 석우·능동 직주근접 비교, 6억·9억·12억 예산별 랭킹 및 스트레스 DSR 40% 리포트를 확인하세요.',
+  keywords: [
+    '1동탄 2동탄 차이',
+    '1동탄 vs 2동탄',
+    '동탄1 vs 동탄2',
+    '동탄역 vs 호수공원',
+    '광비콤 vs 시범단지',
+    '동탄역 시범단지 4대장',
+    '북동탄 vs 중동탄',
+    '동탄 직주근접 아파트',
+    '동탄 아파트 추천',
+    '동탄 학군지',
+    '동탄 학군 아파트',
+    '동탄 6억대 아파트',
+    '동탄 9억대 아파트',
+    '동탄 트램 노선도',
+    '스트레스 DSR 주담대 한도',
+  ],
   alternates: {
     canonical: 'https://dongtanview.com/guide',
   },
   openGraph: {
-    title: '동탄 부동산 가이드 & 시장 심층 분석 리포트 | D-VIEW 인사이트',
-    description: '동탄 1·2신도시 입지 격차, GTX-A 및 동탄 트램 1·2호선 수혜 단지, 2026년 스트레스 DSR 40% 규제 환경에서의 실거주 PER 가치평가 및 갈아타기 전략 리포트를 제공합니다.',
+    title: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
+    description:
+      '동탄1 vs 동탄2, 광비콤 주상복합 vs 청계동 시범 4대장, 동탄역 vs 호수공원, 북동탄 vs 중동탄 직주근접, 6억·9억·12억 예산별 실거래 랭킹을 국토교통부 실데이터로 1:1 비교합니다.',
     url: 'https://dongtanview.com/guide',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
     type: 'website',
+    images: [
+      {
+        url: GUIDE_HUB_OG_IMAGE,
+        width: 1200,
+        height: 630,
+        alt: '동탄 부동산 비교 가이드 | D-VIEW',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
+    description:
+      '동탄1 vs 동탄2, 광비콤 vs 시범 4대장, 동탄역 vs 호수공원, 북동탄 vs 중동탄 직주근접, 예산별 실거래 랭킹 및 스트레스 DSR 리포트',
+    images: [GUIDE_HUB_OG_IMAGE],
   },
 };
 
@@ -34,15 +74,17 @@ export default function GuideIndexPage() {
     '@type': 'CollectionPage',
     '@id': `${baseUrl}/guide#webpage`,
     url: `${baseUrl}/guide`,
-    name: '동탄 부동산 가이드 & 시장 심층 분석 리포트 | D-VIEW 인사이트',
-    description: '동탄 1·2신도시 입지 격차, GTX-A 및 동탄 트램 수혜 단지, 스트레스 DSR 40% 규제 환경의 실거주 PER 가치평가 리포트 모음',
+    name: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
+    description:
+      '동탄 1·2신도시 입지·학군 맞대결, 광비콤 주상복합 vs 시범단지 4대장, 동탄역 vs 호수공원, 북동탄 vs 중동탄 직주근접 비교, 예산별(6억·9억·12억) 랭킹, GTX-A·트램 수혜 단지, 스트레스 DSR 40% 실거주 PER 리포트 모음',
     hasPart: GUIDE_ARTICLES.map((article, idx) => ({
       '@type': 'Article',
       position: idx + 1,
       headline: article.title,
-      description: article.description,
+      description: article.seoDescription || article.description,
       url: `${baseUrl}/guide/${article.slug}`,
       datePublished: article.date,
+      dateModified: article.updatedDate || article.date,
       author: {
         '@type': 'Organization',
         name: article.author,

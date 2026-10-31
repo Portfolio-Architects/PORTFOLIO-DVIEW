@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import React from 'react';
-import { getZoneById } from '@/lib/zones';
+import { getZoneById, getDongsForZone } from '@/lib/zones';
 
 interface Props {
   children: React.ReactNode;
@@ -20,9 +20,15 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     };
   }
 
+  const dongs = getDongsForZone(zone.id);
+  const legalDongsStr = dongs.filter((d) => !zone.dongLabel.includes(d)).join('·');
+  const combinedDongBadge = legalDongsStr
+    ? `${legalDongsStr} · ${zone.dongLabel}`
+    : zone.dongLabel;
+
   return {
-    title: `D-VIEW | ${zone.name} (${zone.dongLabel}) 아파트 투자 가치분석`,
-    description: `${zone.name} (${zone.dongLabel}): ${zone.description} 해당 권역에 속한 아파트의 실거래 시세, 전세가율, 현장 임장 보고서를 D-VIEW에서 확인해 보세요.`,
+    title: `동탄 ${zone.name}(${combinedDongBadge}) 아파트 실거래가·전세가율·학군 비교 - D-VIEW`,
+    description: `동탄 ${zone.name}(${combinedDongBadge}) 국토교통부 실거래 시세, 전세가율, 초·중·고 학군 및 입지 분석 리포트를 D-VIEW에서 확인하세요. ${zone.description}`,
     alternates: {
       canonical: `https://dongtanview.com/zone/${params.id}`,
     },

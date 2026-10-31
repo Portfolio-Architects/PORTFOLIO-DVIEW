@@ -2,12 +2,12 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Scale, HelpCircle, ArrowUpRight } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
-import { GUIDE_ARTICLES } from '@/lib/data/guides';
+import { GUIDE_ARTICLES, buildGuideArticleJsonLd } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
@@ -29,30 +29,249 @@ export async function generateMetadata(props: {
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const url = `${baseUrl}/guide/${article.slug}`;
+  const metaTitle = article.seoTitle || `${article.title} | D-VIEW 인사이트`;
+  const metaDescription = article.seoDescription || article.description;
+  const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(article.title)}&subtitle=${encodeURIComponent(`${article.category} · 국토부 실거래 실증 비교`)}`;
 
   return {
-    title: `${article.title} | D-VIEW 인사이트`,
-    description: article.description,
+    title: metaTitle,
+    description: metaDescription,
     keywords: article.tags.join(', '),
     alternates: {
       canonical: url,
     },
     openGraph: {
-      title: `${article.title} | D-VIEW 인사이트`,
-      description: article.description,
+      title: metaTitle,
+      description: metaDescription,
       url,
       siteName: 'D-VIEW',
       locale: 'ko_KR',
       type: 'article',
       publishedTime: article.date,
+      modifiedTime: article.updatedDate || article.date,
       authors: [article.author],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: metaTitle,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
-      title: article.title,
-      description: article.description,
+      title: metaTitle,
+      description: metaDescription,
+      images: [ogImageUrl],
     },
   };
+}
+
+function renderInlineBold(text: string): React.ReactNode {
+  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  return parts.map((part, idx) => {
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={idx} className="font-extrabold text-primary">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
+    return part.replace(/\*\*/g, '');
+  });
+}
+
+function isMarkdownTableSeparator(line: string): boolean {
+  const cells = line
+    .split('|')
+    .map((c) => c.trim())
+    .filter(Boolean);
+  return cells.length > 0 && cells.every((c) => /^:?-{2,}:?$/.test(c));
+}
+
+function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
+  const withoutCodeFences = rawContent.replace(/```[\s\S]*?```/g, '');
+  const lines = withoutCodeFences.split(/\r?\n/);
+  const elements: React.ReactNode[] = [];
+  let i = 0;
+
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+    if (!trimmed) {
+      i += 1;
+      continue;
+    }
+
+    if (trimmed === '---') {
+      elements.push(<hr key={`hr-${i}`} className="my-8 border-border/60" />);
+      i += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith('### ')) {
+      elements.push(
+        <h3
+          key={`h3-${i}`}
+          className="text-xl sm:text-2xl font-black text-primary tracking-tight mt-10 mb-4 pb-2 border-b border-border/40"
+        >
+          {renderInlineBold(trimmed.slice(4).trim())}
+        </h3>
+      );
+      i += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith('#### ')) {
+      elements.push(
+        <h4
+          key={`h4-${i}`}
+          className="text-base sm:text-lg font-extrabold text-primary tracking-tight mt-6 mb-2"
+        >
+          {renderInlineBold(trimmed.slice(5).trim())}
+        </h4>
+      );
+      i += 1;
+      continue;
+    }
+
+    if (trimmed.startsWith('|')) {
+      const startIdx = i;
+      const tableLines: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith('|')) {
+        tableLines.push(lines[i].trim());
+        i += 1;
+      }
+
+      const contentRows = tableLines.filter((row) => !isMarkdownTableSeparator(row));
+      const headers =
+        contentRows[0]
+          ?.split('|')
+          .map((c) => c.trim())
+          .filter(Boolean) || [];
+      const dataRows = contentRows.slice(1);
+
+      elements.push(
+        <div key={`table-${startIdx}`} className="overflow-x-auto my-6 rounded-xl border border-border/60">
+          <table className="w-full text-left text-[12.5px] text-secondary">
+            <thead className="bg-body text-primary font-bold border-b border-border/60">
+              <tr>
+                {headers.map((h, hIdx) => (
+                  <th key={hIdx} className="p-3.5 whitespace-nowrap">
+                    {renderInlineBold(h)}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border/40 font-medium">
+              {dataRows.map((r, rIdx) => {
+                const cells = r
+                  .split('|')
+                  .map((c) => c.trim())
+                  .filter(Boolean);
+                return (
+                  <tr key={rIdx} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
+                    {cells.map((cell, cIdx) => (
+                      <td key={cIdx} className="p-3.5 whitespace-nowrap tabular-nums">
+                        {renderInlineBold(cell)}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+      continue;
+    }
+
+    if (trimmed.startsWith('- ')) {
+      const startIdx = i;
+      const items: string[] = [];
+      while (i < lines.length && lines[i].trim().startsWith('- ')) {
+        items.push(lines[i].trim().slice(2).trim());
+        i += 1;
+      }
+      elements.push(
+        <ul
+          key={`ul-${startIdx}`}
+          className="space-y-2 pl-5 list-disc text-[14px] sm:text-[15.5px] leading-relaxed"
+        >
+          {items.map((item, idx) => (
+            <li key={idx} className="break-keep">
+              {renderInlineBold(item)}
+            </li>
+          ))}
+        </ul>
+      );
+      continue;
+    }
+
+    if (/^\d+\.\s+/.test(trimmed)) {
+      const startIdx = i;
+      const orderedItems: Array<{ mainText: string; subBullets: string[] }> = [];
+      while (i < lines.length && /^\d+\.\s+/.test(lines[i].trim())) {
+        const mainText = lines[i].trim().replace(/^\d+\.\s+/, '').trim();
+        i += 1;
+        const subBullets: string[] = [];
+        while (i < lines.length && /^\s{2,}-\s+/.test(lines[i])) {
+          subBullets.push(lines[i].trim().replace(/^-\s+/, '').trim());
+          i += 1;
+        }
+        orderedItems.push({ mainText, subBullets });
+      }
+      elements.push(
+        <ol
+          key={`ol-${startIdx}`}
+          className="space-y-2.5 pl-5 list-decimal text-[14px] sm:text-[15.5px] leading-relaxed"
+        >
+          {orderedItems.map((item, idx) => (
+            <li key={idx} className="break-keep">
+              <span>{renderInlineBold(item.mainText)}</span>
+              {item.subBullets.length > 0 && (
+                <ul className="mt-1.5 space-y-1 pl-4 list-disc text-[13.5px] sm:text-[14.5px] text-secondary">
+                  {item.subBullets.map((sub, subIdx) => (
+                    <li key={subIdx} className="break-keep">
+                      {renderInlineBold(sub)}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
+        </ol>
+      );
+      continue;
+    }
+
+    const startIdx = i;
+    const paraLines: string[] = [];
+    while (i < lines.length) {
+      const cur = lines[i].trim();
+      if (
+        !cur ||
+        cur === '---' ||
+        cur.startsWith('### ') ||
+        cur.startsWith('#### ') ||
+        cur.startsWith('|') ||
+        cur.startsWith('- ') ||
+        /^\d+\.\s+/.test(cur)
+      ) {
+        break;
+      }
+      paraLines.push(cur);
+      i += 1;
+    }
+
+    elements.push(
+      <p key={`p-${startIdx}`} className="text-[14px] sm:text-[15.5px] leading-relaxed break-keep">
+        {renderInlineBold(paraLines.join(' '))}
+      </p>
+    );
+  }
+
+  return elements;
 }
 
 export default async function GuideArticlePage(props: {
@@ -66,52 +285,47 @@ export default async function GuideArticlePage(props: {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-  const currentUrl = `${baseUrl}/guide/${article.slug}`;
   const nonce = undefined;
-
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Article',
-    '@id': `${currentUrl}#article`,
-    headline: article.title,
-    description: article.description,
-    datePublished: article.date,
-    dateModified: article.updatedDate || article.date,
-    author: {
-      '@type': 'Organization',
-      name: article.author,
-      url: baseUrl,
-    },
-    publisher: {
-      '@type': 'Organization',
-      name: 'D-VIEW 부동산 데이터 랩스',
-      url: baseUrl,
-    },
-    mainEntityOfPage: {
-      '@type': 'WebPage',
-      '@id': currentUrl,
-    },
-    keywords: article.tags.join(','),
-  };
+  const jsonLd = buildGuideArticleJsonLd(article, baseUrl);
 
   const otherArticles = GUIDE_ARTICLES.filter((a) => a.slug !== article.slug);
   const txSummary = await getTxSummaryData();
 
+  const mapAptMetric = (aptName: string) => {
+    const s = txSummary[aptName];
+    if (!s) return null;
+    const latestPrice = s.latestPrice || 0;
+    const latestRent = s.latestRentDeposit || 0;
+    const salesBase = s.avg1MPrice || s.avg3MPrice || latestPrice;
+    const rentBase = s.avg1MRentDeposit || s.avg3MRentDeposit || latestRent;
+    const rawRatio =
+      salesBase > 0 && rentBase > 0 ? Math.round((rentBase / salesBase) * 100) : 0;
+    const jeonseRatio = rawRatio > 0 && rawRatio <= 100 ? rawRatio : 0;
+    return {
+      name: aptName,
+      dong: s.dong || '동탄',
+      latestPriceStr:
+        s.latestPriceEok || (latestPrice > 0 ? formatPriceEok(latestPrice) : '정보 없음'),
+      latestRentStr:
+        s.latestRentDepositEok || (latestRent > 0 ? formatPriceEok(latestRent) : '정보 없음'),
+      jeonseRatio,
+      txCount: s.txCount || 0,
+    };
+  };
+
   const featuredAptRows = (article.featuredApartments || [])
-    .map((aptName) => {
-      const s = txSummary[aptName];
-      if (!s) return null;
-      const latestPrice = s.latestPrice || 0;
-      const latestRent = s.latestRentDeposit || 0;
-      const jeonseRatio =
-        latestPrice > 0 && latestRent > 0 ? Math.round((latestRent / latestPrice) * 100) : 0;
+    .map(mapAptMetric)
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+
+  const headToHeadRows = (article.headToHeadComparisons || [])
+    .map((matchup) => {
+      const left = mapAptMetric(matchup.leftApt);
+      const right = mapAptMetric(matchup.rightApt);
+      if (!left || !right) return null;
       return {
-        name: aptName,
-        dong: s.dong || '동탄',
-        latestPriceStr: s.latestPriceEok || formatPriceEok(latestPrice),
-        latestRentStr: s.latestRentDepositEok || (latestRent > 0 ? formatPriceEok(latestRent) : '정보 없음'),
-        jeonseRatio,
-        txCount: s.txCount || 0,
+        ...matchup,
+        left,
+        right,
       };
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
@@ -132,6 +346,7 @@ export default async function GuideArticlePage(props: {
 
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto min-w-0">
         <PageHeroHeader
+          isTitleDiv
           title="D-VIEW 부동산 가이드"
           compactTitle={article.title}
           subtitleStrong={<MarketStatsStrong />}
@@ -219,72 +434,120 @@ export default async function GuideArticlePage(props: {
             </div>
 
             {/* Body Content */}
-            <div className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-secondary leading-relaxed space-y-6 pt-2 font-medium">
-              {article.content.split('\n\n').map((paragraph, pIdx) => {
-                const trimmed = paragraph.trim();
-                if (!trimmed) return null;
-
-                if (trimmed.startsWith('### ')) {
-                  return (
-                    <h3 key={pIdx} className="text-xl sm:text-2xl font-black text-primary tracking-tight mt-10 mb-4 pb-2 border-b border-border/40">
-                      {trimmed.replace('### ', '')}
-                    </h3>
-                  );
-                }
-                if (trimmed.startsWith('#### ')) {
-                  return (
-                    <h4 key={pIdx} className="text-base sm:text-lg font-extrabold text-primary tracking-tight mt-6 mb-2">
-                      {trimmed.replace('#### ', '')}
-                    </h4>
-                  );
-                }
-                if (trimmed.startsWith('---')) {
-                  return <hr key={pIdx} className="my-8 border-border/60" />;
-                }
-                if (trimmed.startsWith('|')) {
-                  const rows = trimmed.split('\n').filter(r => !r.includes('---'));
-                  const headers = rows[0]?.split('|').map(c => c.trim()).filter(Boolean) || [];
-                  const dataRows = rows.slice(1);
-
-                  return (
-                    <div key={pIdx} className="overflow-x-auto my-6 rounded-xl border border-border/60">
-                      <table className="w-full text-left text-[12.5px] text-secondary">
-                        <thead className="bg-body text-primary font-bold border-b border-border/60">
-                          <tr>
-                            {headers.map((h, hIdx) => (
-                              <th key={hIdx} className="p-3.5 whitespace-nowrap">{h}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-border/40 font-medium">
-                          {dataRows.map((r, rIdx) => {
-                            const cells = r.split('|').map(c => c.trim()).filter(Boolean);
-                            return (
-                              <tr key={rIdx} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
-                                {cells.map((cell, cIdx) => (
-                                  <td key={cIdx} className="p-3.5 whitespace-nowrap">
-                                    {cell.replace(/\*\*/g, '')}
-                                  </td>
-                                ))}
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-                  );
-                }
-                if (trimmed.startsWith('```')) {
-                  return null;
-                }
-
-                return (
-                  <p key={pIdx} className="text-[14px] sm:text-[15.5px] leading-relaxed break-keep">
-                    {trimmed}
-                  </p>
-                );
-              })}
+            <div
+              id="guide-article-body"
+              className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-secondary leading-relaxed space-y-5 pt-2 font-medium"
+            >
+              {renderGuideBodyContent(article.content)}
             </div>
+
+            {/* Live 1:1 Head-to-Head Real-Data Matchups */}
+            {headToHeadRows.length > 0 && (
+              <section
+                id="guide-head-to-head-comparison"
+                aria-label="핵심 단지 1:1 국토교통부 실거래 맞대결 비교"
+                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
+              >
+                <div>
+                  <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                    <Scale size={19} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>핵심 대표 단지 1:1 실거래 맞대결 (국토교통부 실데이터)</span>
+                  </h3>
+                  <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                    실수요자가 가장 많이 함께 비교하는 양대 대표 단지의 최근 매매 실거래가·전세가·전세가율·누적 거래량을 직접 대조합니다.
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  {headToHeadRows.map((matchup) => (
+                    <div
+                      key={`${matchup.left.name}-vs-${matchup.right.name}`}
+                      className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/60 p-4 sm:p-5 space-y-4"
+                    >
+                      <div>
+                        <h4 className="text-[15px] sm:text-base font-extrabold text-slate-900 dark:text-slate-50">
+                          {matchup.title}
+                        </h4>
+                        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 font-medium">
+                          {matchup.subtitle}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                        {[
+                          { side: 'LEFT', label: matchup.leftLabel, apt: matchup.left, accent: 'emerald' as const },
+                          { side: 'RIGHT', label: matchup.rightLabel, apt: matchup.right, accent: 'blue' as const },
+                        ].map((card) => (
+                          <div
+                            key={card.apt.name}
+                            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 space-y-3"
+                          >
+                            <div className="flex items-start justify-between gap-2">
+                              <div>
+                                <span
+                                  className={
+                                    card.accent === 'emerald'
+                                      ? 'inline-block text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md'
+                                      : 'inline-block text-[11px] font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md'
+                                  }
+                                >
+                                  {card.label}
+                                </span>
+                                <Link
+                                  href={`/apartment/${encodeURIComponent(card.apt.name)}`}
+                                  prefetch={false}
+                                  className="mt-1.5 flex items-center gap-1 text-[15px] font-black text-slate-900 dark:text-slate-50 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                                >
+                                  <span>{card.apt.name}</span>
+                                  <ArrowUpRight size={14} className="shrink-0 text-slate-400" />
+                                </Link>
+                              </div>
+                              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                                {card.apt.dong}
+                              </span>
+                            </div>
+
+                            <dl className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                              <div>
+                                <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 매매 실거래</dt>
+                                <dd className="mt-0.5 text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-400">
+                                  {card.apt.latestPriceStr}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 전세 실거래</dt>
+                                <dd className="mt-0.5 text-sm font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                                  {card.apt.latestRentStr}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt className="text-slate-500 dark:text-slate-400 font-medium">전세가율 (하방지지)</dt>
+                                <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+                                  {card.apt.jeonseRatio > 0 ? `${card.apt.jeonseRatio}%` : '정보 없음'}
+                                </dd>
+                              </div>
+                              <div>
+                                <dt className="text-slate-500 dark:text-slate-400 font-medium">누적 실거래량</dt>
+                                <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+                                  {card.apt.txCount > 0 ? `${card.apt.txCount.toLocaleString()}건` : '정보 없음'}
+                                </dd>
+                              </div>
+                            </dl>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/70 dark:border-emerald-800/50 px-3.5 py-2.5 text-xs sm:text-[13px] text-slate-700 dark:text-slate-300 font-semibold leading-relaxed">
+                        <strong className="text-emerald-700 dark:text-emerald-400 font-extrabold mr-1.5">
+                          데이터 판정:
+                        </strong>
+                        {matchup.verdict}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
 
             {/* Live Real-Data Comparison Table & Zone Links */}
             {(featuredAptRows.length > 0 || featuredZoneItems.length > 0) && (
@@ -347,14 +610,14 @@ export default async function GuideArticlePage(props: {
                               </Link>
                             </th>
                             <td className="p-3.5 whitespace-nowrap">{apt.dong}</td>
-                            <td className="p-3.5 font-mono tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            <td className="p-3.5 tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
                               {apt.latestPriceStr}
                             </td>
-                            <td className="p-3.5 font-mono tabular-nums whitespace-nowrap">{apt.latestRentStr}</td>
-                            <td className="p-3.5 font-mono tabular-nums whitespace-nowrap">
+                            <td className="p-3.5 tabular-nums whitespace-nowrap">{apt.latestRentStr}</td>
+                            <td className="p-3.5 tabular-nums whitespace-nowrap">
                               {apt.jeonseRatio > 0 ? `${apt.jeonseRatio}%` : '정보 없음'}
                             </td>
-                            <td className="p-3.5 font-mono tabular-nums whitespace-nowrap">
+                            <td className="p-3.5 tabular-nums whitespace-nowrap">
                               {apt.txCount > 0 ? `${apt.txCount.toLocaleString()}건` : '정보 없음'}
                             </td>
                           </tr>
@@ -363,6 +626,35 @@ export default async function GuideArticlePage(props: {
                     </table>
                   </div>
                 )}
+              </section>
+            )}
+
+            {/* Visible FAQ Section (Synchronized 1:1 with FAQPage Schema.org Rich Snippet) */}
+            {article.faqs && article.faqs.length > 0 && (
+              <section
+                id="guide-faq-section"
+                aria-label="리포트 자주 묻는 핵심 질문 FAQ"
+                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4"
+              >
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                  <HelpCircle size={19} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>자주 묻는 핵심 질문 (FAQ)</span>
+                </h3>
+                <dl className="space-y-3">
+                  {article.faqs.map((faq) => (
+                    <div
+                      key={faq.question}
+                      className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-900/50 p-4 space-y-1.5"
+                    >
+                      <dt className="text-[13.5px] sm:text-[14.5px] font-extrabold text-slate-900 dark:text-slate-100">
+                        Q. {faq.question}
+                      </dt>
+                      <dd className="text-xs sm:text-[13.5px] text-slate-600 dark:text-slate-300 font-medium leading-relaxed">
+                        {faq.answer}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
               </section>
             )}
 
