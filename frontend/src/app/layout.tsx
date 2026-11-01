@@ -147,6 +147,9 @@ export default function RootLayout({
           crossOrigin="anonymous"
           nonce={nonce}
         />
+        {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production' && (
+          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} nonce={nonce} />
+        )}
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <SWRProvider>
             <SettingsProvider>
@@ -180,14 +183,6 @@ export default function RootLayout({
                   <ScrollToTop />
                 </PWAProvider>
                 <div id="modal-root" />
-
-                
-                {/* Google Analytics 4 (Only renders in production if NEXT_PUBLIC_GA_ID exists to prevent local dev/test data contamination) */}
-                {process.env.NEXT_PUBLIC_GA_ID && process.env.NODE_ENV === 'production' && (
-                  <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} nonce={nonce} />
-                )}
-                
-
               </AuthProvider>
             </SettingsProvider>
           </SWRProvider>

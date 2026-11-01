@@ -1,4 +1,9 @@
-import { trackEvent } from './analytics';
+import {
+  trackEvent,
+  trackVirtualPageView,
+  getVirtualPageViewCount,
+  resetVirtualPageViewLedger,
+} from './analytics';
 import { sendGAEvent } from '@next/third-parties/google';
 import { logger } from '@/lib/services/logger';
 
@@ -14,25 +19,29 @@ jest.mock('@/lib/services/logger', () => ({
   },
 }));
 
-describe('analytics.trackEvent Utility', () => {
+describe('analytics.trackEvent & trackVirtualPageView Utility', () => {
   let originalEnv: NodeJS.ProcessEnv;
   let consoleSpy: jest.SpyInstance;
-  let originalWindow: any;
 
   beforeEach(() => {
     originalEnv = { ...process.env };
     consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
     localStorage.clear();
+    resetVirtualPageViewLedger();
+    delete window.dataLayer;
+    delete window.gtag;
     jest.clearAllMocks();
   });
 
   afterEach(() => {
     process.env = originalEnv;
     consoleSpy.mockRestore();
+    delete window.dataLayer;
+    delete window.gtag;
   });
 
   it('should log to console in development mode', () => {
-    (process.env as any).NODE_ENV = 'development';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     trackEvent('test_event', { key: 'value' });
 
     expect(consoleSpy).toHaveBeenCalledWith(
@@ -44,7 +53,7 @@ describe('analytics.trackEvent Utility', () => {
   });
 
   it('should not track anything if the user is an admin', () => {
-    (process.env as any).NODE_ENV = 'development';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'development';
     localStorage.setItem('dview_is_admin', 'true');
 
     trackEvent('test_event', { key: 'value' });
@@ -53,21 +62,21 @@ describe('analytics.trackEvent Utility', () => {
     expect(sendGAEvent).not.toHaveBeenCalled();
   });
 
-  it('should call sendGAEvent in production if NEXT_PUBLIC_GA_ID is set', () => {
-    (process.env as any).NODE_ENV = 'production';
+  it('should call sendGAEvent with gtag.js 3-arg tuple in production if NEXT_PUBLIC_GA_ID is set', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
 
     trackEvent('prod_event', { foo: 'bar' });
 
     expect(consoleSpy).not.toHaveBeenCalled();
-    expect(sendGAEvent).toHaveBeenCalledWith({
-      event: 'prod_event',
+    expect(sendGAEvent).toHaveBeenCalledTimes(1);
+    expect(sendGAEvent).toHaveBeenCalledWith('event', 'prod_event', {
       foo: 'bar',
     });
   });
 
   it('should not call sendGAEvent in production if NEXT_PUBLIC_GA_ID is missing', () => {
-    (process.env as any).NODE_ENV = 'production';
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     delete process.env.NEXT_PUBLIC_GA_ID;
 
     trackEvent('prod_event', { foo: 'bar' });
@@ -76,9 +85,11 @@ describe('analytics.trackEvent Utility', () => {
     expect(sendGAEvent).not.toHaveBeenCalled();
   });
 
-  it('should log an error if sendGAEvent throws an exception', () => {
-    (process.env as any).NODE_ENV = 'production';
+  it('should log an error if sendGAEvent throws an exception and restore dataLayer.push', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
     process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+    window.dataLayer = [];
+    const initialPush = window.dataLayer.push;
 
     const testError = new Error('GA Network Error');
     (sendGAEvent as jest.Mock).mockImplementationOnce(() => {
@@ -87,6 +98,7 @@ describe('analytics.trackEvent Utility', () => {
 
     trackEvent('error_event', { data: 123 });
 
+    expect(window.dataLayer.push).toBe(initialPush);
     expect(logger.error).toHaveBeenCalledWith(
       'analytics.trackEvent',
       'Failed to send GA event',
@@ -94,4 +106,181 @@ describe('analytics.trackEvent Utility', () => {
       testError
     );
   });
+
+  it('should default omitted params to empty object {} and strip undefined property values without mutating frozen input', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+
+    trackEvent('no_params_event');
+    expect(sendGAEvent).toHaveBeenLastCalledWith('event', 'no_params_event', {});
+
+    const frozenParams = Object.freeze({
+      calculator_type: 'mortgage',
+      apt_name: undefined,
+      surface: 'dashboard',
+      zero_val: 0,
+      false_val: false,
+      empty_str: '',
+    });
+
+    trackEvent('open_calculator', frozenParams);
+    expect(sendGAEvent).toHaveBeenLastCalledWith('event', 'open_calculator', {
+      calculator_type: 'mortgage',
+      surface: 'dashboard',
+      zero_val: 0,
+      false_val: false,
+      empty_str: '',
+    });
+  });
+
+  it('should ignore empty or whitespace-only event names', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+
+    trackEvent('');
+    trackEvent('   ');
+
+    expect(sendGAEvent).not.toHaveBeenCalled();
+  });
+
+  it('should fall back to window.gtag when sendGAEvent does not push to dataLayer, and avoid duplicate call when sendGAEvent pushes', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+
+    const gtagMock = jest.fn();
+    window.gtag = gtagMock;
+
+    // Case 1: sendGAEvent is uninitialized (no push to window.dataLayer) -> fallback to window.gtag fires once
+    (sendGAEvent as jest.Mock).mockImplementationOnce(() => {
+      // Simulates ga.js returning early when currDataLayerName === undefined
+    });
+    trackEvent('view_apartment', { apt_name: '동탄역 롯데캐슬' });
+    expect(sendGAEvent).toHaveBeenCalledTimes(1);
+    expect(gtagMock).toHaveBeenCalledTimes(1);
+    expect(gtagMock).toHaveBeenCalledWith('event', 'view_apartment', {
+      apt_name: '동탄역 롯데캐슬',
+    });
+
+    // Case 2: sendGAEvent pushes to window.dataLayer -> window.gtag fallback MUST NOT fire (no duplicate event)
+    gtagMock.mockClear();
+    (sendGAEvent as jest.Mock).mockImplementationOnce((...args: unknown[]) => {
+      window.dataLayer?.push(args);
+    });
+    trackEvent('search_apartment', { query: '롯데캐슬' });
+    expect(gtagMock).not.toHaveBeenCalled();
+    expect(window.dataLayer).toHaveLength(1);
+  });
+
+  it('should continue tracking if localStorage throws SecurityError and handle frozen dataLayer gracefully', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+
+    const getItemSpy = jest.spyOn(Storage.prototype, 'getItem').mockImplementationOnce(() => {
+      throw new Error('SecurityError: storage disabled');
+    });
+    window.dataLayer = Object.freeze([]) as unknown as NonNullable<Window['dataLayer']>;
+
+    trackEvent('tab_view', { tab_name: 'macro' });
+
+    expect(sendGAEvent).toHaveBeenCalledWith('event', 'tab_view', { tab_name: 'macro' });
+    expect(logger.error).not.toHaveBeenCalled();
+    getItemSpy.mockRestore();
+  });
+
+  it('should queue genuine [object Arguments] into window.dataLayer when both sendGAEvent is uninitialized and window.gtag is undefined', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+    delete window.dataLayer;
+    delete window.gtag;
+
+    (sendGAEvent as jest.Mock).mockImplementationOnce(() => {
+      // Simulates ga.js returning early when currDataLayerName === undefined before _next-ga-init runs
+    });
+
+    trackEvent('view_apartment', { apt_name: '동탄역 롯데캐슬', dong: undefined });
+
+    expect(sendGAEvent).toHaveBeenCalledTimes(1);
+    expect(Array.isArray(window.dataLayer)).toBe(true);
+    expect(window.dataLayer).toHaveLength(1);
+    const queued = (window.dataLayer as unknown[])[0] as ArrayLike<unknown>;
+    expect(Object.prototype.toString.call(queued)).toBe('[object Arguments]');
+    expect(Array.from(queued)).toEqual([
+      'event',
+      'view_apartment',
+      { apt_name: '동탄역 롯데캐슬' },
+    ]);
+    // Temporary push wrapper must not leave an own 'push' property on a pristine Array
+    expect(Object.prototype.hasOwnProperty.call(window.dataLayer, 'push')).toBe(false);
+  });
+
+  it('should handle sealed, non-extensible, and getter-only dataLayer.push descriptors without throwing or clobbering reassigned push handlers', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+
+    // 1. Sealed array (Object.isFrozen is false on empty sealed array, but Object.isExtensible is false)
+    window.dataLayer = Object.seal([]) as unknown as NonNullable<Window['dataLayer']>;
+    trackEvent('tab_view', { tab_name: 'overview' });
+    expect(logger.error).not.toHaveBeenCalled();
+    expect(sendGAEvent).toHaveBeenLastCalledWith('event', 'tab_view', { tab_name: 'overview' });
+
+    // 2. Getter-only accessor descriptor on push
+    const backing: unknown[] = [];
+    const customLayer = [] as unknown as NonNullable<Window['dataLayer']>;
+    Object.defineProperty(customLayer, 'push', {
+      get: () => (...items: unknown[]) => backing.push(...items),
+      configurable: true,
+    });
+    window.dataLayer = customLayer;
+    (sendGAEvent as jest.Mock).mockImplementationOnce((...args: unknown[]) => {
+      window.dataLayer?.push(args);
+    });
+    trackEvent('search_apartment', { query: '동탄역' });
+    expect(logger.error).not.toHaveBeenCalled();
+    expect(backing).toHaveLength(1);
+
+    // 3. Reassigned dataLayer.push during execution (e.g. gtag.js upgrading queue processor) must NOT be clobbered
+    const nextGtagPush = jest.fn(() => 1);
+    const dynamicLayer = [] as unknown as NonNullable<Window['dataLayer']>;
+    dynamicLayer.push = function () {
+      dynamicLayer.push = nextGtagPush;
+      return 1;
+    };
+    window.dataLayer = dynamicLayer;
+    (sendGAEvent as jest.Mock).mockImplementationOnce((...args: unknown[]) => {
+      window.dataLayer?.push(args);
+    });
+    trackEvent('share_apartment', { apt_name: '동탄역 롯데캐슬', method: 'kakao' });
+    expect(window.dataLayer.push).toBe(nextGtagPush);
+  });
+
+  it('should dispatch GA4 page_view via trackVirtualPageView with resolved page_location and protected core parameters', () => {
+    (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+    process.env.NEXT_PUBLIC_GA_ID = 'G-TEST';
+    window.history.replaceState(null, '', '/');
+
+    const entry = trackVirtualPageView('apartment/%EB%8F%99%ED%83%84%EC%97%AD', {
+      apt_name: '동탄역 롯데캐슬',
+      dong: undefined,
+      page_path: '/corrupted-override',
+      virtual_pv: 0,
+    });
+
+    expect(entry.path).toBe('/apartment/%EB%8F%99%ED%83%84%EC%97%AD');
+    expect(getVirtualPageViewCount()).toBe(1);
+    expect(sendGAEvent).toHaveBeenCalledWith(
+      'event',
+      'page_view',
+      expect.objectContaining({
+        page_path: '/apartment/%EB%8F%99%ED%83%84%EC%97%AD',
+        page_location: `${window.location.origin}/apartment/%EB%8F%99%ED%83%84%EC%97%AD`,
+        virtual_pv: 1,
+        adsense_virtual_pv: 1,
+        apt_name: '동탄역 롯데캐슬',
+      })
+    );
+    const dispatchedParams = (sendGAEvent as jest.Mock).mock.calls[0][2] as Record<string, unknown>;
+    expect('dong' in dispatchedParams).toBe(false);
+  });
 });
+
+

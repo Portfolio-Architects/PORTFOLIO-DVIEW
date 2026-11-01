@@ -3,12 +3,46 @@
 import React, { useState } from 'react';
 import { Copy, Check, Share2, MessageSquare } from 'lucide-react';
 import { copyTextToClipboardDirect } from '@/lib/utils/kakaoShare';
+import { trackEvent } from '@/lib/utils/analytics';
 
 export interface ReportShareBarProps {
   title: string;
   summaryLines: string[];
   canonicalPath: string;
   campaign?: string;
+}
+
+function dispatchReportShareAnalytics(
+  canonicalPath: string,
+  title: string,
+  method: 'copy_summary' | 'webshare',
+  campaign: string
+): void {
+  const normalizedPath = canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`;
+  if (normalizedPath.startsWith('/apartment/')) {
+    const rawSegment = normalizedPath.slice('/apartment/'.length).split(/[?#]/)[0] || '';
+    let aptName = rawSegment;
+    try {
+      aptName = decodeURIComponent(rawSegment).trim();
+    } catch {
+      aptName = rawSegment.trim();
+    }
+    if (aptName) {
+      trackEvent('share_apartment', {
+        apt_name: aptName,
+        method,
+        campaign,
+        surface: 'report_share_bar',
+      });
+      return;
+    }
+  }
+  trackEvent('share_report', {
+    report_title: title,
+    canonical_path: normalizedPath,
+    method,
+    campaign,
+  });
 }
 
 export default function ReportShareBar({
@@ -47,6 +81,7 @@ export default function ReportShareBar({
     const { fullText } = buildSharePayload('clipboard');
     const ok = await copyTextToClipboardDirect(fullText);
     if (ok) {
+      dispatchReportShareAnalytics(canonicalPath, title, 'copy_summary', campaign);
       setCopied(true);
       setStatusText('핵심 3줄 요약과 리포트 링크가 복사되었습니다. 단톡방이나 카페에 바로 붙여넣으세요.');
       setTimeout(() => {
@@ -67,6 +102,7 @@ export default function ReportShareBar({
           text: fullText,
           url: shareUrl,
         });
+        dispatchReportShareAnalytics(canonicalPath, title, 'webshare', campaign);
         return;
       } catch {
         // Fallback to clipboard copy when user cancels or browser blocks Web Share

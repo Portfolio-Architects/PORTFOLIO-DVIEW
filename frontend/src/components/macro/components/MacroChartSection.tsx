@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { getDisplayAptName, normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { TimeframeSelector } from './MacroControls';
 import { DongApartment, buildInitialApartments } from '@/lib/dong-apartments';
 import { getControlSelectClass, getControlInputClass } from '@/lib/design-system/controls';
+import { useDebounce } from '@/hooks/useDebounce';
+import { trackEvent } from '@/lib/utils/analytics';
 
 export interface MacroChartSectionProps {
   isDefaultAptSettingUp: boolean;
@@ -49,6 +51,14 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 }: MacroChartSectionProps) {
   const [selectedDong, setSelectedDong] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const debouncedChartSearch = useDebounce(searchQuery, 1000);
+
+  useEffect(() => {
+    const query = debouncedChartSearch.trim();
+    if (mounted && query) {
+      trackEvent('search_apartment', { query, surface: 'dashboard_chart' });
+    }
+  }, [debouncedChartSearch, mounted]);
 
   // Extract all dongs and unique apartments
   const dongsData = useMemo(() => {

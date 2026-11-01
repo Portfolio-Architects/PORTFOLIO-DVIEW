@@ -22,6 +22,7 @@ import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
 import { trackEvent } from '@/lib/utils/analytics';
+import { useDebounce } from '@/hooks/useDebounce';
 import { AptMetricCards } from "./macro/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
@@ -156,7 +157,7 @@ interface MacroDashboardProps {
   fieldReportsMap: Map<string, FieldReportData>;
   onSelectApt?: (name: string, dong?: string) => void;
   onOpenAdModal?: () => void;
-  onOpenCompare?: () => void;
+  onOpenCompare?: (aptName?: string) => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenMortgage?: (aptName?: string) => void;
   onOpenTaxCalculator?: (aptName?: string) => void;
@@ -740,6 +741,28 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       }
     }
   }, []);
+
+  const debouncedTimelineSearch = useDebounce(searchQuery, 1000);
+
+  useEffect(() => {
+    const query = debouncedTimelineSearch.trim();
+    if (mounted && query) {
+      trackEvent('search_apartment', { query, surface: 'dashboard_timeline' });
+    }
+  }, [debouncedTimelineSearch, mounted]);
+
+  const handleOpenCompare = useCallback((aptName?: string) => {
+    trackEvent('open_calculator', {
+      calculator_type: 'compare',
+      apt_name: typeof aptName === 'string' ? aptName : undefined,
+      surface: 'dashboard',
+    });
+    if (_onOpenCompare) {
+      _onOpenCompare(aptName);
+    } else {
+      scrollToHighCpcFinanceSection();
+    }
+  }, [_onOpenCompare, scrollToHighCpcFinanceSection]);
 
   const handleOpenJeonseSafety = useCallback((aptName?: string) => {
     trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
@@ -1654,7 +1677,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               pyeongRankings={unifiedStatsData.pyeongRankings}
               onSelectComplex={handleSelectComplex}
               onOpenJeonseSafety={handleOpenJeonseSafety}
-              onOpenCompare={_onOpenCompare}
+              onOpenCompare={handleOpenCompare}
               renderTimelineItemCard={renderTimelineItemCardNode}
               renderTimelineItemRow={renderTimelineItemRowNode}
             />
