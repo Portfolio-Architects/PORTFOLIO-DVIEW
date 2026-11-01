@@ -4,13 +4,16 @@ import Link from 'next/link';
 import { Metadata } from 'next';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
-import { getTxSummaryData } from '@/lib/services/apartmentPageService';
+import { getTxSummaryData, resolveCanonicalAptSlug } from '@/lib/services/apartmentPageService';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { ZONES } from '@/lib/zones';
 
 interface HomeTransactionRecord {
   apartmentName?: string;
+  aptName?: string;
+  txKey?: string;
+  dong?: string;
   price?: number;
   areaPyeong?: number;
   floor?: number | string;
@@ -159,24 +162,35 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
           <section>
             <h3>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h3>
             <ul>
-              {recentTxs.slice(0, 15).map((tx, idx) => (
-                <li key={idx}>
-                  <strong>
-                    {tx.apartmentName ? (
-                      <Link href={`/apartment/${encodeURIComponent(tx.apartmentName)}`} prefetch={false}>
-                        {tx.apartmentName}
-                      </Link>
-                    ) : (
-                      '아파트'
-                    )}
-                  </strong>{' '}
-                  (
-                  {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) -{' '}
-                  {tx.dealType || '매매'} {formatPrice(tx.price || 0)}
-                  {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
-                  {tx.registeredDate ? ` [등록일: ${tx.registeredDate}]` : ''}
-                </li>
-              ))}
+              {recentTxs.slice(0, 15).map((tx, idx) => {
+                const displayTxAptName = tx.apartmentName || tx.aptName || '';
+                const canonicalTxSlug = displayTxAptName
+                  ? resolveCanonicalAptSlug(displayTxAptName, {
+                      txKey: tx.txKey,
+                      dong: tx.dong,
+                      txMap: txSummary,
+                      sheetApartments: initialData.sheetApartments,
+                    }) || displayTxAptName
+                  : '';
+                return (
+                  <li key={idx}>
+                    <strong>
+                      {displayTxAptName ? (
+                        <Link href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`} prefetch={false}>
+                          {displayTxAptName}
+                        </Link>
+                      ) : (
+                        '아파트'
+                      )}
+                    </strong>{' '}
+                    (
+                    {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) -{' '}
+                    {tx.dealType || '매매'} {formatPrice(tx.price || 0)}
+                    {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
+                    {tx.registeredDate ? ` [등록일: ${tx.registeredDate}]` : ''}
+                  </li>
+                );
+              })}
             </ul>
           </section>
         )}

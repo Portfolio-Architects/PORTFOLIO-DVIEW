@@ -12,6 +12,7 @@ import { getZoneById, dongToZoneId } from '@/lib/zones';
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
 import { useAuth } from '@/hooks/useAuth';
+import { syncShallowModalCloseToDashboard } from '@/lib/ads/recirculationEngine';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
@@ -86,10 +87,27 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
   };
 
   const handleCloseModal = () => {
+    const returnZonePath = `/zone/${encodeURIComponent(zoneId)}${typeof window !== 'undefined' ? window.location.search || '' : ''}`;
+    syncShallowModalCloseToDashboard(returnZonePath);
     setSelectedReport(null);
     setFullReportData(null);
     setIsLoadingDetail(false);
   };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const expectedZonePrefix = `/zone/${encodeURIComponent(zoneId)}`;
+    const handlePopState = () => {
+      if (window.location.pathname === expectedZonePrefix || window.location.pathname.startsWith('/zone/')) {
+        syncShallowModalCloseToDashboard(`${window.location.pathname}${window.location.search || ''}`);
+        setSelectedReport(null);
+        setFullReportData(null);
+        setIsLoadingDetail(false);
+      }
+    };
+    window.addEventListener('popstate', handlePopState, { passive: true });
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [zoneId]);
 
   // Fetch full report detail data when modal opens (lazy loading)
   useEffect(() => {

@@ -6,6 +6,7 @@ import fs from 'fs';
 import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -25,6 +26,8 @@ try {
 
 interface Transaction {
   aptName: string;
+  txKey?: string;
+  dong?: string;
   contractDate: string;
   priceEok: string;
   areaPyeong: number;
@@ -132,10 +135,12 @@ export async function GET(req: NextRequest) {
         }
 
         for (const tx of aptTransactions) {
+          const canonicalTxSlug =
+            resolveCanonicalAptSlug(tx.aptName, { txKey: tx.txKey, dong: tx.dong }) || tx.aptName;
           const payload = JSON.stringify({
             title: '[D-VIEW] 실거래가 알림',
             body: `${tx.aptName} ${Math.round(tx.areaPyeong)}평형 ${tx.floor}층이 ${tx.priceEok}에 실거래 등록되었습니다!`,
-            url: `/apartment/${encodeURIComponent(tx.aptName)}`,
+            url: `/apartment/${encodeURIComponent(canonicalTxSlug)}`,
           });
 
           try {

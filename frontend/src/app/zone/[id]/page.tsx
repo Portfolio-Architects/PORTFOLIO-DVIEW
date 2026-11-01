@@ -10,7 +10,11 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import ZoneDetailClient from './ZoneDetailClient';
 import { DongApartment } from '@/lib/dong-apartments';
 
-import { getTxSummaryData, formatPriceEok } from '@/lib/services/apartmentPageService';
+import {
+  getTxSummaryData,
+  formatPriceEok,
+  resolveCanonicalAptSlug,
+} from '@/lib/services/apartmentPageService';
 
 export async function generateStaticParams() {
   return ZONES.map((zone) => ({
@@ -114,6 +118,7 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
             apartmentsList.push({
               name: apt.name,
               dong: dong,
+              txKey: apt.txKey,
               householdCount: apt.householdCount,
               yearBuilt: apt.yearBuilt,
               brand: apt.brand,
@@ -170,12 +175,21 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
         mainEntity: {
           '@type': 'ItemList',
           numberOfItems: apartmentsList.length,
-          itemListElement: apartmentsList.map((apt, idx) => ({
-            '@type': 'ListItem',
-            position: idx + 1,
-            url: `${baseUrl}/apartment/${encodeURIComponent(apt.name)}`,
-            name: apt.name,
-          })),
+          itemListElement: apartmentsList.map((apt, idx) => {
+            const canonicalSlug =
+              resolveCanonicalAptSlug(apt.name, {
+                txKey: apt.txKey,
+                txMap: txSummary,
+                sheetApartments,
+                dong: apt.dong,
+              }) || apt.name;
+            return {
+              '@type': 'ListItem',
+              position: idx + 1,
+              url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
+              name: apt.name,
+            };
+          }),
         },
       },
       {
@@ -251,7 +265,14 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
                 </thead>
                 <tbody className="divide-y divide-border/40 font-medium">
                   {apartmentsList.map((apt) => {
-                    const summary = txSummary[apt.name] || {};
+                    const canonicalSlug =
+                      resolveCanonicalAptSlug(apt.name, {
+                        txKey: apt.txKey,
+                        txMap: txSummary,
+                        sheetApartments,
+                        dong: apt.dong,
+                      }) || apt.name;
+                    const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
                     const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
                     const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
                     const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
@@ -260,7 +281,7 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
                       <tr key={apt.name} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
                         <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">
                           <Link
-                            href={`/apartment/${encodeURIComponent(apt.name)}`}
+                            href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
                             className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                           >
                             {apt.name}

@@ -9,7 +9,13 @@ import {
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { normalize84Price } from '@/lib/utils/valuation';
-import { normalizeAptName, getDisplayAptName, findTypeMapEntry, isSameApartment } from '@/lib/utils/apartmentMapping';
+import {
+  normalizeAptName,
+  getDisplayAptName,
+  findTypeMapEntry,
+  isSameApartment,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
@@ -34,6 +40,7 @@ import { ApartmentChapterNavBar, APARTMENT_CHAPTERS } from './ApartmentChapterNa
 import { TerminalRecirculationHub } from './TerminalRecirculationHub';
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
 import {
+  decodeSafeAptParam,
   selectRecirculationTargets,
   syncShallowApartmentOpen,
   syncShallowModalCloseToDashboard,
@@ -680,13 +687,32 @@ const ApartmentModal = React.memo(function ApartmentModal({
     return num < 10_000_000 ? Math.round(num * 10_000) : Math.round(num);
   }, [jeonseSafetyData, txSummary]);
 
+  const effectiveTxSummaryMap = useMemo(
+    () =>
+      _txSummaryData && Object.keys(_txSummaryData).length > 0
+        ? _txSummaryData
+        : txSummaryData || {},
+    [_txSummaryData, txSummaryData]
+  );
+
+  const canonicalAptSlug = useMemo(
+    () =>
+      resolveCanonicalAptSlug(report.apartmentName, {
+        txMap: effectiveTxSummaryMap,
+        sheetApartments,
+        manualMapping: nameMapping,
+        dong: report.dong,
+      }) || report.apartmentName,
+    [report.apartmentName, report.dong, effectiveTxSummaryMap, sheetApartments, nameMapping]
+  );
+
   const recirculationTargets = useMemo(() => {
     return selectRecirculationTargets({
       currentAptName: report.apartmentName,
       currentDong: report.dong || '동탄',
       currentPriceWon,
       sheetApartments: sheetApartments || {},
-      txSummaryData: _txSummaryData || txSummaryData || {},
+      txSummaryData: effectiveTxSummaryMap,
       nameMapping: nameMapping || {},
     });
   }, [
@@ -694,16 +720,54 @@ const ApartmentModal = React.memo(function ApartmentModal({
     report.dong,
     currentPriceWon,
     sheetApartments,
-    _txSummaryData,
-    txSummaryData,
+    effectiveTxSummaryMap,
     nameMapping,
   ]);
 
   useEffect(() => {
     if (!inline && report.apartmentName) {
-      syncShallowApartmentOpen(report.apartmentName, { dong: report.dong });
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/apartment/')) {
+        const currentUrlApt = decodeSafeAptParam(
+          window.location.pathname.slice('/apartment/'.length)
+        );
+        const isCurrentSameApt =
+          Boolean(currentUrlApt) &&
+          (currentUrlApt === canonicalAptSlug ||
+            currentUrlApt === report.apartmentName ||
+            isSameApartment(
+              currentUrlApt,
+              report.apartmentName,
+              nameMapping,
+              undefined,
+              report.dong || undefined
+            ) ||
+            isSameApartment(
+              currentUrlApt,
+              canonicalAptSlug,
+              nameMapping,
+              undefined,
+              report.dong || undefined
+            ));
+        if (isCurrentSameApt) {
+          const canonicalPath = `/apartment/${encodeURIComponent(canonicalAptSlug)}`;
+          if (
+            window.location.pathname !== canonicalPath &&
+            typeof window.history?.replaceState === 'function'
+          ) {
+            window.history.replaceState(
+              null,
+              '',
+              `${canonicalPath}${window.location.search || ''}${window.location.hash || ''}`
+            );
+          }
+        }
+      }
+      syncShallowApartmentOpen(report.apartmentName, {
+        dong: report.dong,
+        canonicalSlug: canonicalAptSlug,
+      });
     }
-  }, [inline, report.apartmentName, report.dong]);
+  }, [inline, report.apartmentName, report.dong, canonicalAptSlug, nameMapping]);
 
   useEffect(() => {
     if (inline || typeof document === 'undefined') return;
@@ -719,15 +783,22 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   const handleRecircSelectApartment = useCallback(
     (targetAptName: string) => {
+      const targetCandidate = recirculationTargets.find((t) => t.aptName === targetAptName);
       if (onSelectApartment) {
-        const targetCandidate = recirculationTargets.find((t) => t.aptName === targetAptName);
         onSelectApartment(targetAptName, targetCandidate?.dong);
       } else {
-        syncShallowApartmentOpen(targetAptName, { force: true });
+        const targetSlug =
+          resolveCanonicalAptSlug(targetAptName, {
+            txMap: effectiveTxSummaryMap,
+            sheetApartments,
+            manualMapping: nameMapping,
+            dong: targetCandidate?.dong,
+          }) || targetAptName;
+        syncShallowApartmentOpen(targetAptName, { force: true, canonicalSlug: targetSlug });
       }
       modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
     },
-    [onSelectApartment, recirculationTargets]
+    [onSelectApartment, recirculationTargets, effectiveTxSummaryMap, sheetApartments, nameMapping]
   );
 
   const handleRecircOpenCompare = useCallback(
@@ -735,13 +806,26 @@ const ApartmentModal = React.memo(function ApartmentModal({
       if (onOpenCompare) {
         onOpenCompare(apt1, apt2);
       } else {
+        const slug1 =
+          resolveCanonicalAptSlug(apt1, {
+            txMap: effectiveTxSummaryMap,
+            sheetApartments,
+            manualMapping: nameMapping,
+            dong: report.dong,
+          }) || apt1;
+        const slug2 =
+          resolveCanonicalAptSlug(apt2, {
+            txMap: effectiveTxSummaryMap,
+            sheetApartments,
+            manualMapping: nameMapping,
+          }) || apt2;
         transitionRecirculationState(
-          { status: 'CHAPTER_EXPLORE', apt: apt1 },
-          { type: 'CLICK_RECIRC_COMPARE', baseApt: apt1, targetApt: apt2 }
+          { status: 'CHAPTER_EXPLORE', apt: slug1 },
+          { type: 'CLICK_RECIRC_COMPARE', baseApt: slug1, targetApt: slug2 }
         );
       }
     },
-    [onOpenCompare]
+    [onOpenCompare, effectiveTxSummaryMap, sheetApartments, nameMapping, report.dong]
   );
 
   const handleRecircOpenMortgage = useCallback(
@@ -749,13 +833,20 @@ const ApartmentModal = React.memo(function ApartmentModal({
       if (onOpenMortgage) {
         onOpenMortgage(aptName, priceWon);
       } else {
+        const slug =
+          resolveCanonicalAptSlug(aptName, {
+            txMap: effectiveTxSummaryMap,
+            sheetApartments,
+            manualMapping: nameMapping,
+            dong: report.dong,
+          }) || aptName;
         transitionRecirculationState(
-          { status: 'CHAPTER_EXPLORE', apt: aptName },
-          { type: 'CLICK_RECIRC_MORTGAGE', apt: aptName, priceWon }
+          { status: 'CHAPTER_EXPLORE', apt: slug },
+          { type: 'CLICK_RECIRC_MORTGAGE', apt: slug, priceWon }
         );
       }
     },
-    [onOpenMortgage]
+    [onOpenMortgage, effectiveTxSummaryMap, sheetApartments, nameMapping, report.dong]
   );
 
   const eduScoreInfo = useMemo(() => {
@@ -901,6 +992,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
       await shareAptToKakao({
         aptName: displayAptName,
+        canonicalSlug: canonicalAptSlug,
         priceEok,
         priceMan,
         ratio,
@@ -920,7 +1012,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         setIsSharing(false);
       }
     }
-  }, [isSharing, report.apartmentName, transactions, valuation.status, valuation.amount, displayAptName, showToast, setIsSharing, mountedRef]);
+  }, [isSharing, report.apartmentName, canonicalAptSlug, transactions, valuation.status, valuation.amount, displayAptName, showToast, setIsSharing, mountedRef]);
 
   const handleDownloadShareCard = useCallback(async () => {
     if (isSharing) return;
@@ -958,6 +1050,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         link.download = `DVIEW_${normalizeAptName(report.apartmentName)}_요약카드.png`;
         link.href = dataUrl;
         link.click();
+        trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'download_card' });
         
         showToast("인포그래픽 요약 카드가 이미지 파일로 저장되었습니다.");
       } else {
@@ -1006,6 +1099,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
     const success = await copyAptSummaryToClipboard({
       aptName: displayAptName,
+      canonicalSlug: canonicalAptSlug,
       priceEok,
       priceMan,
       ratio,
@@ -1032,11 +1126,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
     } else {
       showToast("요약본 복사에 실패했습니다.");
     }
-  }, [report.apartmentName, transactions, eduScoreInfo, infraScoreInfo, displayAptName, valuation.status, valuation.amount, showToast, setCopiedStatus, copiedTimeoutRef, mountedRef]);
+  }, [report.apartmentName, canonicalAptSlug, transactions, eduScoreInfo, infraScoreInfo, displayAptName, valuation.status, valuation.amount, showToast, setCopiedStatus, copiedTimeoutRef, mountedRef]);
 
   const handleNativeShare = useCallback(async () => {
     const baseUrl = window.location.origin;
-    const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}`;
+    const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(canonicalAptSlug)}`;
     const title = `${displayAptName} 가치분석 리포트`;
     let desc = '';
 
@@ -1070,7 +1164,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
     } else {
       handleKakaoShare();
     }
-  }, [report.apartmentName, displayAptName, transactions, handleKakaoShare]);
+  }, [canonicalAptSlug, displayAptName, transactions, handleKakaoShare]);
 
   const handleShareSection = useCallback(async (type: 'childcare' | 'infra') => {
     if (!report.metrics) return;
@@ -1079,19 +1173,19 @@ const ApartmentModal = React.memo(function ApartmentModal({
     if (type === 'childcare' && eduScoreInfo) {
       const grade = eduScoreInfo.grade;
       const score = eduScoreInfo.score;
-      const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=childcare&grade=${grade}&score=${score}`;
+      const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(canonicalAptSlug)}?shareType=childcare&grade=${grade}&score=${score}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         showToast("학군·육아 분석 링크가 복사되었습니다!");
       });
     } else if (type === 'infra' && infraScoreInfo) {
       const grade = infraScoreInfo.grade;
       const score = infraScoreInfo.score;
-      const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(report.apartmentName)}?shareType=infra&grade=${grade}&score=${score}`;
+      const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(canonicalAptSlug)}?shareType=infra&grade=${grade}&score=${score}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         showToast("입지·인프라 분석 링크가 복사되었습니다!");
       });
     }
-  }, [report.metrics, report.apartmentName, eduScoreInfo, infraScoreInfo, showToast]);
+  }, [report.metrics, canonicalAptSlug, eduScoreInfo, infraScoreInfo, showToast]);
 
   const renderTransactionTableNode = useCallback(() => (
     <TransactionTable 

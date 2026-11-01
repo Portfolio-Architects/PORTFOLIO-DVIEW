@@ -18,6 +18,7 @@ import {
   buildApartmentSeoMetadata,
   getDefaultApartmentMetadata,
   buildMortgageSsrData,
+  resolveCanonicalAptSlug,
 } from '@/lib/services/apartmentPageService';
 
 function formatWon(val: number): string {
@@ -89,7 +90,18 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   } = pageData;
 
   const aptDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || '';
-  const resolvedTxKey = pageResolvedTxKey || matchedDongApt?.txKey || (aptSummary ? decodedName : undefined);
+  const allTxSummary = await getTxSummaryData();
+  const canonicalSlug =
+    pageResolvedTxKey ||
+    resolveCanonicalAptSlug(decodedName, {
+      txKey: matchedDongApt?.txKey,
+      txMap: allTxSummary,
+      dong: aptDong,
+    }) ||
+    decodedName;
+  const resolvedTxKey =
+    pageResolvedTxKey ||
+    (canonicalSlug !== decodedName ? canonicalSlug : matchedDongApt?.txKey || (aptSummary ? decodedName : undefined));
   const sanitizedReport = matchedReportData
     ? JSON.parse(
         JSON.stringify({
@@ -103,8 +115,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     ...(aptSummary
       ? {
           txSummary: {
-            [decodedName]: aptSummary,
-            ...(resolvedTxKey && resolvedTxKey !== decodedName ? { [resolvedTxKey]: aptSummary } : {}),
+            [canonicalSlug]: aptSummary,
           },
         }
       : {}),
@@ -116,14 +127,14 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             [decodedName]: {
               ...(matchedDongApt || {}),
               dong: aptDong,
-              txKey: resolvedTxKey || decodedName,
+              txKey: canonicalSlug,
             },
             ...(matchedDongApt?.name && matchedDongApt.name !== decodedName
               ? {
                   [matchedDongApt.name]: {
                     ...matchedDongApt,
                     dong: aptDong,
-                    txKey: resolvedTxKey || decodedName,
+                    txKey: canonicalSlug,
                   },
                 }
               : {}),
@@ -142,10 +153,9 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   const parentZoneId = dongToZoneId(aptDong || undefined);
   const parentZone = getZoneById(parentZoneId);
-  const allTxSummary = await getTxSummaryData();
   const peerApartments = Object.entries(allTxSummary || {})
     .filter(([name, s]) => {
-      if (!s || name === decodedName || name === resolvedTxKey) return false;
+      if (!s || name === decodedName || name === resolvedTxKey || name === canonicalSlug) return false;
       if ((s.latestPrice || 0) <= 0) return false;
       return aptDong ? s.dong === aptDong : true;
     })
@@ -170,8 +180,13 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     minPadCount: 3,
   });
 
+  const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+  const safeCanonicalPathJson = JSON.stringify(canonicalPath).replace(/</g, '\\u003c');
+  const preGaCanonicalSyncScript = `(function(){try{var p=${safeCanonicalPathJson};if(typeof window!=='undefined'&&window.location&&window.history&&typeof window.history.replaceState==='function'&&window.location.pathname!==p){window.history.replaceState(window.history.state,'',p+(window.location.search||'')+(window.location.hash||''));}}catch(_){}})();`;
+
   return (
     <>
+      <script dangerouslySetInnerHTML={{ __html: preGaCanonicalSyncScript }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
@@ -211,7 +226,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                     : `평형별 실거래가 및 전세가율 정밀 분석`,
                   `30년 만기 원리금균등 월 납부액(LTV 70% 기준): ${formatWon(mortgageSsr.amortization.equalPi.monthlyPaymentWon)}`,
                 ]}
-                canonicalPath={`/apartment/${encodeURIComponent(decodedName)}`}
+                canonicalPath={`/apartment/${encodeURIComponent(canonicalSlug)}`}
                 campaign="apt_ssr_report"
               />
             </div>

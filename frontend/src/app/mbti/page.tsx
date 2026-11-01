@@ -8,6 +8,7 @@ import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketS
 import { MBTIContainer } from '@/components/mbti/MBTIContainer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { ALL_MBTI_TYPES, MBTI_PROFILES, TEMPERAMENTS } from '@/lib/data/mbtiData';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 
 export const metadata: Metadata = {
@@ -157,7 +158,11 @@ export default function MBTIHubPage() {
                   <tbody className="divide-y divide-border/40 font-medium">
                     {ALL_MBTI_TYPES.map((type) => {
                       const p = MBTI_PROFILES[type];
-                      const aptSlug = encodeURIComponent(p.txKey || p.aptName);
+                      const aptSlug = encodeURIComponent(
+                        resolveCanonicalAptSlug(p.aptName, { txKey: p.txKey, dong: p.dong }) ||
+                          p.txKey ||
+                          p.aptName
+                      );
                       return (
                         <tr key={type} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
                           <th scope="row" className="p-3 font-black text-emerald-600 dark:text-emerald-400 whitespace-nowrap">

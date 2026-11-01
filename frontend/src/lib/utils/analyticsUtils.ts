@@ -60,17 +60,19 @@ export interface PriceAnalytics {
  * URL 디코딩 방어 헬퍼 (반복 인코딩된 문자열 해제)
  */
 export function decodeAptName(name: string): string {
-  try {
-    let decoded = name;
-    while (decoded.includes('%')) {
+  if (typeof name !== 'string') return '';
+  let decoded = name;
+  for (let i = 0; i < 3; i++) {
+    if (!/%[0-9A-Fa-f]{2}/.test(decoded)) break;
+    try {
       const next = decodeURIComponent(decoded);
       if (next === decoded) break;
       decoded = next;
+    } catch {
+      break;
     }
-    return decoded;
-  } catch {
-    return name;
   }
+  return decoded.normalize('NFC');
 }
 
 /**

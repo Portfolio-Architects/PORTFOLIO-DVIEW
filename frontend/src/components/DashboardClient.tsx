@@ -155,7 +155,14 @@ const SellTimingCalculator = dynamic(() => import('@/components/consumer/SellTim
 });
 
 interface StaticApartment { name: string; dong: string; householdCount?: number; yearBuilt?: string; brand?: string; }
-import { isSameApartment, normalizeAptName, sanitizeAptKey, HARDCODED_MAPPING, findTxKey } from '@/lib/utils/apartmentMapping';
+import {
+  isSameApartment,
+  normalizeAptName,
+  sanitizeAptKey,
+  HARDCODED_MAPPING,
+  findTxKey,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/utils/userUtils';
@@ -533,6 +540,23 @@ const DashboardClient = React.memo(function DashboardClient({
     }
   }, [activeTab, mounted]);
 
+  const getCanonicalAptSlug = useCallback(
+    (aptName?: string, dongHint?: string, txKeyHint?: string): string => {
+      if (!aptName) return '';
+      const metaEntry = initialDashboardData?.apartmentMeta?.[aptName] as Partial<DongApartment> | undefined;
+      return (
+        resolveCanonicalAptSlug(aptName, {
+          txKey: txKeyHint || metaEntry?.txKey,
+          txMap: txSummary,
+          sheetApartments,
+          manualMapping: nameMapping,
+          dong: dongHint || metaEntry?.dong,
+        }) || aptName
+      );
+    },
+    [initialDashboardData?.apartmentMeta, txSummary, sheetApartments, nameMapping]
+  );
+
   const userHasSelected = useRef(false);
 
   useEffect(() => {
@@ -552,6 +576,9 @@ const DashboardClient = React.memo(function DashboardClient({
       const targetApt = allApts.find(
         a =>
           isSameApartment(a.name, preselectedAptName, nameMapping, a.dong, fallbackDong || undefined) ||
+          (a.txKey
+            ? isSameApartment(a.txKey, preselectedAptName, nameMapping, a.dong, fallbackDong || undefined)
+            : false) ||
           (metaEntry?.name
             ? isSameApartment(a.name, metaEntry.name, nameMapping, a.dong, fallbackDong || undefined)
             : false)
@@ -571,6 +598,28 @@ const DashboardClient = React.memo(function DashboardClient({
           }
         : { name: preselectedAptName, dong: fallbackDong };
       if (resolvedApt) {
+        const canonicalSlug = getCanonicalAptSlug(
+          resolvedApt.name,
+          resolvedApt.dong,
+          (targetApt as DongApartment | undefined)?.txKey || metaEntry?.txKey
+        );
+        if (
+          typeof window !== 'undefined' &&
+          canonicalSlug &&
+          window.location.pathname.startsWith('/apartment/')
+        ) {
+          const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+          if (
+            window.location.pathname !== canonicalPath &&
+            typeof window.history?.replaceState === 'function'
+          ) {
+            window.history.replaceState(
+              null,
+              '',
+              `${canonicalPath}${window.location.search || ''}${window.location.hash || ''}`
+            );
+          }
+        }
         const report =
           (targetApt && fieldReportsMap.get(targetApt.name)) ||
           fieldReports.find(r => isSameApartment(r.apartmentName, preselectedAptName, nameMapping));
@@ -593,7 +642,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
     if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     // Auto-select is disabled so that the Ad slot placeholder remains visible on desktop until a user actively clicks an apartment.
-  }, [fieldReports, preselectedAptName, triggerFetch]);
+  }, [fieldReports, preselectedAptName, triggerFetch, getCanonicalAptSlug]);
 
   useEffect(() => {
     if (!selectedReport || selectedReport.metrics?.householdCount) return;
@@ -628,7 +677,11 @@ const DashboardClient = React.memo(function DashboardClient({
         if (aptParam) {
           const { sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
           const allApts = apartments ? Object.values(apartments).flat() : [];
-          const targetApt = allApts.find(a => isSameApartment(a.name, aptParam, mapping));
+          const targetApt = allApts.find(
+            a =>
+              isSameApartment(a.name, aptParam, mapping) ||
+              (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false)
+          );
           const report = (targetApt && reportsMap?.get(targetApt.name)) || {
             id: `stub-${normalizeAptName(targetApt?.name || aptParam)}`,
             apartmentName: targetApt?.name || aptParam,
@@ -720,10 +773,12 @@ const DashboardClient = React.memo(function DashboardClient({
       }
     }
 
-    // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV
-    syncShallowApartmentOpen(apt.name, { dong: apt.dong });
+    // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV + funnel view_apartment
+    trackEvent('view_apartment', { apt_name: apt.name, dong: apt.dong || undefined, surface: 'dashboard' });
+    const canonicalSlug = getCanonicalAptSlug(apt.name, apt.dong, (apt as DongApartment).txKey);
+    syncShallowApartmentOpen(apt.name, { dong: apt.dong, canonicalSlug });
     setMobileModalOpen(true);
-  }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore, triggerFetch]);
+  }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore, triggerFetch, getCanonicalAptSlug]);
 
   const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
@@ -745,14 +800,16 @@ const DashboardClient = React.memo(function DashboardClient({
       setCompareSecondApt(targetAptName);
       if ((mobileModalOpen && selectedReport) || returnToAptRef.current) {
         const baseApt = aptName || returnToAptRef.current || selectedReport?.apartmentName || '';
-        returnToAptRef.current = baseApt;
+        const canonicalBaseApt = getCanonicalAptSlug(baseApt, selectedReport?.dong);
+        const canonicalTargetApt = targetAptName ? getCanonicalAptSlug(targetAptName) : '';
+        returnToAptRef.current = canonicalBaseApt;
         setMobileModalOpen(false);
         transitionRecirculationState(
-          { status: 'CHAPTER_EXPLORE', apt: baseApt },
+          { status: 'CHAPTER_EXPLORE', apt: canonicalBaseApt },
           {
             type: 'CLICK_RECIRC_COMPARE',
-            baseApt,
-            targetApt: targetAptName || '',
+            baseApt: canonicalBaseApt,
+            targetApt: canonicalTargetApt,
           }
         );
       } else if (aptName && targetAptName) {
@@ -760,14 +817,14 @@ const DashboardClient = React.memo(function DashboardClient({
           { status: 'DASHBOARD_IDLE' },
           {
             type: 'CLICK_RECIRC_COMPARE',
-            baseApt: aptName,
-            targetApt: targetAptName,
+            baseApt: getCanonicalAptSlug(aptName),
+            targetApt: getCanonicalAptSlug(targetAptName),
           }
         );
       }
       setIsCompareOpen(true);
     },
-    [mobileModalOpen, selectedReport]
+    [mobileModalOpen, selectedReport, getCanonicalAptSlug]
   );
 
   const handleCloseCompare = useCallback(() => {
@@ -797,13 +854,14 @@ const DashboardClient = React.memo(function DashboardClient({
       setMortgageInitialApt(aptName);
       if ((mobileModalOpen && selectedReport) || returnToAptRef.current) {
         const baseApt = aptName || returnToAptRef.current || selectedReport?.apartmentName || '';
-        returnToAptRef.current = baseApt;
+        const canonicalBaseApt = getCanonicalAptSlug(baseApt, selectedReport?.dong);
+        returnToAptRef.current = canonicalBaseApt;
         setMobileModalOpen(false);
         transitionRecirculationState(
-          { status: 'CHAPTER_EXPLORE', apt: baseApt },
+          { status: 'CHAPTER_EXPLORE', apt: canonicalBaseApt },
           {
             type: 'CLICK_RECIRC_MORTGAGE',
-            apt: baseApt,
+            apt: canonicalBaseApt,
             priceWon,
             calcType: 'mortgage',
           }
@@ -813,7 +871,7 @@ const DashboardClient = React.memo(function DashboardClient({
           { status: 'DASHBOARD_IDLE' },
           {
             type: 'CLICK_RECIRC_MORTGAGE',
-            apt: aptName,
+            apt: getCanonicalAptSlug(aptName),
             priceWon,
             calcType: 'mortgage',
           }
@@ -821,7 +879,7 @@ const DashboardClient = React.memo(function DashboardClient({
       }
       setIsMortgageOpen(true);
     },
-    [mobileModalOpen, selectedReport]
+    [mobileModalOpen, selectedReport, getCanonicalAptSlug]
   );
 
   const handleCloseMortgage = useCallback(() => {
@@ -844,13 +902,14 @@ const DashboardClient = React.memo(function DashboardClient({
       setTaxCalcInitialApt(aptName);
       if ((mobileModalOpen && selectedReport) || returnToAptRef.current) {
         const baseApt = aptName || returnToAptRef.current || selectedReport?.apartmentName || '';
-        returnToAptRef.current = baseApt;
+        const canonicalBaseApt = getCanonicalAptSlug(baseApt, selectedReport?.dong);
+        returnToAptRef.current = canonicalBaseApt;
         setMobileModalOpen(false);
         transitionRecirculationState(
-          { status: 'CHAPTER_EXPLORE', apt: baseApt },
+          { status: 'CHAPTER_EXPLORE', apt: canonicalBaseApt },
           {
             type: 'CLICK_RECIRC_MORTGAGE',
-            apt: baseApt,
+            apt: canonicalBaseApt,
             calcType: 'tax',
           }
         );
@@ -859,14 +918,14 @@ const DashboardClient = React.memo(function DashboardClient({
           { status: 'DASHBOARD_IDLE' },
           {
             type: 'CLICK_RECIRC_MORTGAGE',
-            apt: aptName,
+            apt: getCanonicalAptSlug(aptName),
             calcType: 'tax',
           }
         );
       }
       setIsTaxCalcOpen(true);
     },
-    [mobileModalOpen, selectedReport]
+    [mobileModalOpen, selectedReport, getCanonicalAptSlug]
   );
 
   const handleCloseTaxCalculator = useCallback(() => {
@@ -909,7 +968,11 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleTabChange = useCallback((tab: string) => {
     const targetTab = tab as 'overview' | 'imjang' | 'mbti' | 'guide' | 'stats';
-    if (targetTab !== 'guide' && targetTab !== 'stats') setActiveTab(targetTab as 'overview' | 'imjang' | 'mbti');
+    if (targetTab !== 'guide' && targetTab !== 'stats') {
+      setActiveTab(targetTab as 'overview' | 'imjang' | 'mbti');
+    } else {
+      trackEvent('tab_view', { tab_name: targetTab });
+    }
     let href = '/';
     if (targetTab === 'imjang') href = '/explore';
     else if (targetTab === 'mbti') href = '/mbti';
@@ -1027,11 +1090,47 @@ const DashboardClient = React.memo(function DashboardClient({
               txSummaryData={txSummary}
               locationScores={locationScores}
               onSelectApartment={handleAptClickByName}
-              onOpenCompare={handleOpenCompare}
-              onOpenJeonseSafety={handleOpenJeonseSafety}
-              onOpenMortgage={handleOpenMortgage}
-              onOpenTaxCalculator={handleOpenTaxCalculator}
-              onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+              onOpenCompare={(aptName, targetAptName) => {
+                trackEvent('open_calculator', {
+                  calculator_type: 'compare',
+                  apt_name: aptName,
+                  target_apt_name: targetAptName,
+                  surface: 'apartment_modal',
+                });
+                handleOpenCompare(aptName, targetAptName);
+              }}
+              onOpenJeonseSafety={(aptName) => {
+                trackEvent('open_calculator', {
+                  calculator_type: 'jeonse_safety',
+                  apt_name: aptName,
+                  surface: 'apartment_modal',
+                });
+                handleOpenJeonseSafety(aptName);
+              }}
+              onOpenMortgage={(aptName, priceWon) => {
+                trackEvent('open_calculator', {
+                  calculator_type: 'mortgage',
+                  apt_name: aptName,
+                  surface: 'apartment_modal',
+                });
+                handleOpenMortgage(aptName, priceWon);
+              }}
+              onOpenTaxCalculator={(aptName) => {
+                trackEvent('open_calculator', {
+                  calculator_type: 'property_tax',
+                  apt_name: aptName,
+                  surface: 'apartment_modal',
+                });
+                handleOpenTaxCalculator(aptName);
+              }}
+              onOpenSellTimingCalculator={(aptName) => {
+                trackEvent('open_calculator', {
+                  calculator_type: 'sell_timing',
+                  apt_name: aptName,
+                  surface: 'apartment_modal',
+                });
+                handleOpenSellTimingCalculator(aptName);
+              }}
             />
           </ErrorBoundary>
         )}

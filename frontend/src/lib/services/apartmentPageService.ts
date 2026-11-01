@@ -14,7 +14,13 @@ import type { AptTxSummary } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
 import type { LocationScore } from '@/types/apartment';
 import type { DongApartment } from '@/lib/dong-apartments';
-import { findTxKey, isSameApartment, normalizeAptName, sanitizeAptKey } from '@/lib/utils/apartmentMapping';
+import {
+  findTxKey,
+  isSameApartment,
+  normalizeAptName,
+  resolveCanonicalAptSlug,
+  sanitizeAptKey,
+} from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
 import {
   decodeAptName,
@@ -45,6 +51,7 @@ export {
   getPyeongSummaries,
   calculatePriceAnalytics,
   generateAiBriefing,
+  resolveCanonicalAptSlug,
   type PyeongSummary,
   type TransactionRecord,
   type PriceAnalytics,
@@ -456,17 +463,24 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
   const sanitizedDongTxKey = matchedDongApt?.txKey
     ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
     : null;
+  const canonicalSlug = resolveCanonicalAptSlug(aptName, {
+    txKey: matchedDongApt?.txKey,
+    txMap: txSummary,
+    sheetApartments: byDong,
+    manualMapping,
+    dong: matchedDongApt?.dong || matchedReportData?.dong || txSummary[aptName]?.dong,
+  });
   const resolvedTxKey =
+    (canonicalSlug && txSummary[canonicalSlug] ? canonicalSlug : null) ||
     (txSummary[aptName] ? aptName : null) ||
     (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
-    (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null) ||
-    findTxKey(aptName, txSummary, manualMapping, false, matchedDongApt?.dong || matchedReportData?.dong);
+    (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null);
 
-  const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : txSummary[aptName];
+  const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : undefined;
   const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || null;
 
   const [txs, locationScore] = await Promise.all([
-    getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || aptName),
+    getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || canonicalSlug || aptName),
     getLocationScore(aptName, resolvedDong, manualMapping, matchedDongApt?.name),
   ]);
 
@@ -487,7 +501,10 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
 
   return {
     aptName,
-    resolvedTxKey: resolvedTxKey || sanitizedDongTxKey || undefined,
+    resolvedTxKey:
+      resolvedTxKey ||
+      sanitizedDongTxKey ||
+      (canonicalSlug && canonicalSlug !== aptName ? canonicalSlug : undefined),
     aptSummary,
     txs,
     pyeongSummaries,
@@ -713,12 +730,20 @@ export function buildApartmentJsonLd(
 
   const safeAptName = aptName && aptName.trim().length > 0 ? aptName : '동탄 아파트';
   const safeBaseUrl = baseUrl && /^https?:\/\//i.test(baseUrl) ? baseUrl : 'https://dongtanview.com';
+  const canonicalSlug =
+    (data.resolvedTxKey && data.resolvedTxKey.trim()) ||
+    resolveCanonicalAptSlug(safeAptName, {
+      txKey: matchedDongApt?.txKey,
+      dong: aptSummary?.dong || matchedDongApt?.dong,
+    }) ||
+    safeAptName;
+  const encodedCanonicalSlug = encodeURIComponent(canonicalSlug);
   const listingCandidate = {
     '@context': 'https://schema.org' as const,
     '@type': 'RealEstateListing' as const,
     name: `${safeAptName} 실거래 매물 및 시세 리스팅`,
     description: aiBriefing && aiBriefing.trim().length > 0 ? aiBriefing : `동탄 ${safeAptName} 아파트 실거래가 및 전세가율 분석`,
-    url: `${safeBaseUrl}/apartment/${encodeURIComponent(safeAptName)}`,
+    url: `${safeBaseUrl}/apartment/${encodedCanonicalSlug}`,
     offers: {
       '@type': 'AggregateOffer' as const,
       priceCurrency: 'KRW' as const,
@@ -736,8 +761,8 @@ export function buildApartmentJsonLd(
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#webpage`,
-        url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+        '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#webpage`,
+        url: `${baseUrl}/apartment/${encodedCanonicalSlug}`,
         name: `${aptName} 실거래가 및 가치 분석 리포트`,
         description: aiBriefing,
         breadcrumb: {
@@ -759,7 +784,7 @@ export function buildApartmentJsonLd(
               '@type': 'ListItem',
               position: 3,
               name: aptName,
-              item: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+              item: `${baseUrl}/apartment/${encodedCanonicalSlug}`,
             },
           ],
         },
@@ -768,16 +793,16 @@ export function buildApartmentJsonLd(
         ? [
             {
               ...realEstateListingNode,
-              '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#listing`,
+              '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#listing`,
             },
           ]
         : []),
       {
         '@type': 'ApartmentComplex',
-        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#complex`,
+        '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#complex`,
         name: `${aptName}`,
         description: `동탄 ${aptName} 아파트 실거래가 및 임장 리포트`,
-        url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+        url: `${baseUrl}/apartment/${encodedCanonicalSlug}`,
         ...(structuredImages.length > 0 ? { image: structuredImages } : {}),
         ...(analytics.offers
           ? { offers: analytics.offers }
@@ -802,14 +827,14 @@ export function buildApartmentJsonLd(
       },
       {
         '@type': 'SingleFamilyResidence',
-        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#residence`,
+        '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#residence`,
         name: `${aptName} 주거 단지`,
         description: `동탄 ${aptName} 아파트 단지 내 주거용 부동산`,
         address,
         ...(geo ? { geo } : {}),
         containedInPlace: {
           '@type': 'ApartmentComplex',
-          '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#complex`,
+          '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#complex`,
         },
       },
       {
@@ -828,7 +853,7 @@ export function buildApartmentJsonLd(
       },
       {
         '@type': ['FinancialProduct', 'LoanOrCredit'],
-        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#mortgage-ldi`,
+        '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#mortgage-ldi`,
         name: `동탄 ${aptName} 주택담보대출 갈아타기 및 LDI 한도 시뮬레이션`,
         description: `동탄 ${aptName} 최근 실거래가 기반 원리금균등·원금균등 상환액, 스트레스 DSR 40% 한도 및 금리 민감도 분석 금융 데이터`,
         provider: {
@@ -864,7 +889,7 @@ export function buildApartmentJsonLd(
       },
       {
         '@type': 'FAQPage',
-        '@id': `${baseUrl}/apartment/${encodeURIComponent(aptName)}#faq`,
+        '@id': `${baseUrl}/apartment/${encodedCanonicalSlug}#faq`,
         mainEntity: mortgageSsr.faqList.map((faq) => ({
           '@type': 'Question',
           name: faq.question,
@@ -882,18 +907,19 @@ export function buildApartmentJsonLd(
  * 기본 Fallback SEO 메타데이터 생성
  */
 export function getDefaultApartmentMetadata(baseUrl: string, aptName: string = '아파트'): Metadata {
+  const canonicalSlug = resolveCanonicalAptSlug(aptName) || aptName;
   const title = `동탄 ${aptName} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
   const description = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
   return {
     title,
     description,
     alternates: {
-      canonical: `https://dongtanview.com/apartment/${encodeURIComponent(aptName)}`,
+      canonical: `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
     },
     openGraph: {
       title,
       description,
-      url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+      url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
       siteName: 'D-VIEW',
       locale: 'ko_KR',
       type: 'website',
@@ -949,17 +975,27 @@ export async function buildApartmentSeoMetadata(
     const sanitizedDongTxKey = matchedDongApt?.txKey
       ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
       : null;
+    const canonicalSlug =
+      resolveCanonicalAptSlug(decodedName, {
+        txKey: matchedDongApt?.txKey,
+        txMap: txSummary,
+        sheetApartments: byDong,
+        manualMapping,
+        dong: matchedDongApt?.dong || reportData?.dong || txSummary[decodedName]?.dong,
+      }) ||
+      sanitizedDongTxKey ||
+      decodedName;
     const resolvedTxKey =
+      (canonicalSlug && txSummary[canonicalSlug] ? canonicalSlug : null) ||
       (txSummary[decodedName] ? decodedName : null) ||
       (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
-      (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null) ||
-      findTxKey(decodedName, txSummary, manualMapping, false, matchedDongApt?.dong || reportData?.dong);
+      (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null);
 
-    const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : txSummary[decodedName];
+    const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : undefined;
     const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || reportData?.dong || null;
 
     const [txs, locationScore] = await Promise.all([
-      getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || decodedName),
+      getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || canonicalSlug || decodedName),
       getLocationScore(decodedName, resolvedDong, manualMapping, matchedDongApt?.name),
     ]);
 
@@ -1069,12 +1105,12 @@ export async function buildApartmentSeoMetadata(
       description: seoDescription,
       keywords: dynamicKeywords,
       alternates: {
-        canonical: `https://dongtanview.com/apartment/${encodeURIComponent(decodedName)}`,
+        canonical: `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
       },
       openGraph: {
         title: seoTitle,
         description: seoDescription,
-        url: `${baseUrl}/apartment/${encodeURIComponent(decodedName)}`,
+        url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
         siteName: 'D-VIEW',
         locale: 'ko_KR',
         type: 'website',

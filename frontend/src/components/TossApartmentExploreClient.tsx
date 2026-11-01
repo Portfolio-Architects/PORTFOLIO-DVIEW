@@ -6,7 +6,7 @@ import { Search, ArrowUp, ArrowDown, ChevronDown, X } from 'lucide-react';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { DONGS } from '@/lib/dongs';
-import { findTxKey } from '@/lib/utils/apartmentMapping';
+import { findTxKey, resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
@@ -519,10 +519,18 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     if (!sortedApts || sortedApts.length === 0) return null;
 
     const listItems = sortedApts.slice(0, 50).map((item, idx) => {
+      const canonicalSlug =
+        resolveCanonicalAptSlug(item.apt.name, {
+          txKey: item.apt.txKey,
+          txMap: txSummaryData,
+          sheetApartments,
+          manualMapping: nameMapping,
+          dong: item.apt.dong,
+        }) || item.apt.name;
       return {
         "@type": "ListItem",
         "position": idx + 1,
-        "url": `https://dongtanview.com/apartment/${encodeURIComponent(item.apt.name)}`,
+        "url": `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
         "name": item.apt.name,
         "item": {
           "@type": "Place",

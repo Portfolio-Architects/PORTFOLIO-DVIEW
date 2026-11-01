@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export const initKakao = () => {
   if (typeof window !== "undefined" && window.Kakao) {
@@ -157,6 +158,7 @@ const IsomorphicFileSchema = z.custom<unknown>((val) => {
 // Zod schemas for all sharing domains
 export const ShareAptParamsSchema = z.object({
   aptName: z.string().min(1),
+  canonicalSlug: z.string().min(1).optional(),
   priceEok: z.number().nonnegative(),
   priceMan: z.number().nonnegative(),
   ratio: z.number().nonnegative(),
@@ -265,6 +267,7 @@ export type ShareMbtiResultParams = z.infer<typeof ShareMbtiResultParamsSchema>;
 
 export interface ShareAptParams {
   aptName: string;
+  canonicalSlug?: string;
   priceEok: number;
   priceMan: number;
   ratio: number;
@@ -289,7 +292,8 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
     else alert(msg);
     return;
   }
-  const { aptName, priceEok, priceMan, ratio, imageUrl, imageFile, customTitle, customDesc, valStatus, valAmount } = validation.data;
+  const { aptName, canonicalSlug, priceEok, priceMan, ratio, imageUrl, imageFile, customTitle, customDesc, valStatus, valAmount } = validation.data;
+  const targetSlug = canonicalSlug || resolveCanonicalAptSlug(aptName) || aptName;
 
   const priceStr =
     priceMan > 0
@@ -297,7 +301,7 @@ export const shareAptToKakao = async (params: ShareAptParams, toastFn?: (msg: st
       : `${priceEok}억원`;
 
   const description = customDesc || `최근 실거래 ${priceStr}, 전세가율 ${ratio.toFixed(1)}%\n적정 가치 평가(DCF) 엔진이 계산한 적정 매수가를 지금 D-VIEW에서 확인해보세요.`;
-  const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(aptName)}?utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
+  const shareUrl = `${window.location.origin}/apartment/${encodeURIComponent(targetSlug)}?utm_source=kakaotalk&utm_medium=share&utm_campaign=apt_detail`;
   const titleText = customTitle || `지금 사면 호구될까? ${aptName} 가치분석 리포트`;
 
   try {
@@ -1033,7 +1037,8 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
     });
     return false;
   }
-  const { aptName, priceEok, priceMan, ratio, valStatus, valAmount, customDesc, maxPrice } = validation.data;
+  const { aptName, canonicalSlug, priceEok, priceMan, ratio, valStatus, valAmount, customDesc, maxPrice } = validation.data;
+  const targetSlug = canonicalSlug || resolveCanonicalAptSlug(aptName) || aptName;
 
   const priceStr =
     priceMan > 0
@@ -1041,8 +1046,8 @@ export const copyAptSummaryToClipboard = async (params: ShareAptParams): Promise
       : `${priceEok}억원`;
 
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-  // Utilizes client side hash routing exactly same as shareAptToKakao
-  const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(aptName)}?utm_source=clipboard&utm_medium=share&utm_campaign=apt_detail`;
+  // Utilizes canonical /apartment/[slug] URL aligned with shareAptToKakao and sitemap.xml
+  const shareUrl = `${baseUrl}/apartment/${encodeURIComponent(targetSlug)}?utm_source=clipboard&utm_medium=share&utm_campaign=apt_detail`;
 
   let valuationLabel = '적정 수준 (시세와 적정 가치 균형 상태)';
   if (valStatus === 'undervalued') {

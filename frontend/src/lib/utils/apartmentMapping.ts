@@ -9,6 +9,12 @@
 
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import {
+  CANONICAL_DONG_APT_LIST,
+  CANONICAL_TX_SUMMARY_MAP,
+  lookupCanonicalTxKeyForDongApt,
+  type CanonicalCatalogAptEntry,
+} from './canonicalAptCatalog';
 
 // Zod validation schemas
 export const ManualMappingSchema = z.record(z.string(), z.string());
@@ -644,18 +650,27 @@ export function findTxKey<T>(
   }
 
   // 1.5단계: 단어 순서 반전 매칭 (예: "동탄역 힐스테이트" <-> "힐스테이트동탄역")
+  // 모든 토큰을 보존하는 회전 조합만 검사하여 "동탄 파라곤 3차"가 '3차'를 유실한 채 "동탄파라곤"으로 오매칭되는 현상 방지
   const tokens = vAptName.trim().split(/\s+/);
-  if (tokens.length >= 2) {
-    for (let i = 0; i < tokens.length; i++) {
-      for (let j = 0; j < tokens.length; j++) {
-        if (i !== j) {
-          const revNorm = normalizeAptName(`${tokens[i]}${tokens[j]}`);
-          if (revNorm && revNorm in normalizedTxMap) {
-            const res = normalizedTxMap[revNorm];
-            resolvedMap.set(cacheKey, res);
-            return res;
-          }
-        }
+  if (tokens.length === 2) {
+    const revNorm = normalizeAptName(`${tokens[1]}${tokens[0]}`);
+    if (revNorm && revNorm in normalizedTxMap) {
+      const res = normalizedTxMap[revNorm];
+      resolvedMap.set(cacheKey, res);
+      return res;
+    }
+  } else if (tokens.length === 3) {
+    const rotations = [
+      `${tokens[1]}${tokens[2]}${tokens[0]}`,
+      `${tokens[2]}${tokens[0]}${tokens[1]}`,
+      `${tokens[2]}${tokens[1]}${tokens[0]}`,
+    ];
+    for (const candidate of rotations) {
+      const revNorm = normalizeAptName(candidate);
+      if (revNorm && revNorm in normalizedTxMap) {
+        const res = normalizedTxMap[revNorm];
+        resolvedMap.set(cacheKey, res);
+        return res;
       }
     }
   }
@@ -839,3 +854,389 @@ export function findTypeMapEntry(
 
   return null;
 }
+
+export interface CanonicalAptSlugItem {
+  name: string;
+  dong?: string;
+  txKey?: string;
+  rawTxKey?: string;
+}
+
+export interface ResolveCanonicalAptSlugOptions {
+  txKey?: string | null;
+  txMap?: Record<string, unknown> | null;
+  sheetApartments?: Record<string, CanonicalAptSlugItem[]> | null;
+  manualMapping?: Record<string, string> | null;
+  dong?: string | null;
+}
+
+function decodeCanonicalAptInput(raw: string | undefined | null): string {
+  if (typeof raw !== 'string') return '';
+  let current = raw.trim();
+  if (!current) return '';
+  for (let i = 0; i < 3; i++) {
+    if (!/%[0-9A-Fa-f]{2}/.test(current)) break;
+    try {
+      const next = decodeURIComponent(current).trim();
+      if (next === current) break;
+      current = next;
+    } catch {
+      break;
+    }
+  }
+  return current.normalize('NFC');
+}
+
+function canonDongSlugHint(d?: string | null): string {
+  return String(d || '')
+    .normalize('NFC')
+    .replace(/[0-9동\s]/g, '')
+    .replace(/^오산$/, '여울');
+}
+
+function isDongHintCompatible(itemDong?: string | null, hintDong?: string | null): boolean {
+  if (!hintDong || !itemDong) return true;
+  if (itemDong === hintDong) return true;
+  const normItem = canonDongSlugHint(itemDong);
+  const normHint = canonDongSlugHint(hintDong);
+  if (!normItem || !normHint) return true;
+  return normItem === normHint;
+}
+
+/**
+ * Resolves any display apartment name, percent-encoded path segment, NFD Hangul input, or raw txKey
+ * into the single canonical `/apartment/[aptName]` URL slug (matching `tx-summary.json` / `sitemap.ts`).
+ *
+ * Preserves unrecognized / non-existent inputs verbatim (in NFC) so fallback pages and synthetic unit fixtures
+ * never suffer destructive string mangling or cross-complex hijacking.
+ */
+export function resolveCanonicalAptSlug(
+  aptName: string | undefined | null,
+  options?: ResolveCanonicalAptSlugOptions
+): string {
+  const decoded = decodeCanonicalAptInput(aptName);
+  if (!decoded) return '';
+
+  const callerTxMap = options?.txMap && typeof options.txMap === 'object' ? options.txMap : null;
+  const hasCallerTxEntries = Boolean(callerTxMap && Object.keys(callerTxMap).length > 0);
+  const effectiveTxMap: Record<string, unknown> =
+    hasCallerTxEntries && callerTxMap
+      ? callerTxMap
+      : (CANONICAL_TX_SUMMARY_MAP as Record<string, unknown>);
+
+  const manualMapping =
+    options?.manualMapping && typeof options.manualMapping === 'object'
+      ? options.manualMapping
+      : undefined;
+
+  const sanDecoded = sanitizeAptKey(decoded);
+  const normDecoded = normalizeAptName(decoded);
+
+  // 0. Explicit manualMapping override takes absolute precedence
+  if (manualMapping) {
+    const directManual =
+      manualMapping[decoded] ||
+      (normDecoded ? manualMapping[normDecoded] : undefined) ||
+      (sanDecoded ? manualMapping[sanDecoded] : undefined);
+    if (directManual) {
+      const sanManual = sanitizeAptKey(directManual) || directManual;
+      if (Object.prototype.hasOwnProperty.call(effectiveTxMap, directManual)) {
+        return directManual;
+      }
+      if (Object.prototype.hasOwnProperty.call(effectiveTxMap, sanManual)) {
+        return sanManual;
+      }
+      return sanManual;
+    }
+  }
+
+  // 1. Fast path: already an exact whitespace-free key in effectiveTxMap (respecting dong hint when provided)
+  if (
+    !/\s/.test(decoded) &&
+    Object.prototype.hasOwnProperty.call(effectiveTxMap, decoded)
+  ) {
+    const fastEntry = effectiveTxMap[decoded] as { dong?: string } | undefined;
+    if (!options?.dong || !fastEntry?.dong || isDongHintCompatible(fastEntry.dong, options.dong)) {
+      return decoded;
+    }
+  }
+
+  // 2. Assemble unified DongApartment catalog (caller sheetApartments prioritized, enriched with static catalog)
+  const allDongApts: CanonicalAptSlugItem[] = [];
+  const seenDongAptKeys = new Set<string>();
+
+  if (options?.sheetApartments && typeof options.sheetApartments === 'object') {
+    const callerList = Object.values(options.sheetApartments)
+      .flat()
+      .filter((a): a is CanonicalAptSlugItem => Boolean(a && typeof a.name === 'string'));
+    for (const item of callerList) {
+      const normName = item.name.normalize('NFC');
+      const normDong = item.dong ? item.dong.normalize('NFC') : undefined;
+      const catalogTxKey =
+        !item.txKey && normDong ? lookupCanonicalTxKeyForDongApt(normDong, normName) : undefined;
+      const enriched: CanonicalAptSlugItem = {
+        ...item,
+        name: normName,
+        dong: normDong,
+        txKey: item.txKey ? item.txKey.normalize('NFC') : catalogTxKey,
+      };
+      allDongApts.push(enriched);
+      seenDongAptKeys.add(`${normDong || ''}::${normName}`);
+    }
+  }
+
+  for (const staticEntry of CANONICAL_DONG_APT_LIST as ReadonlyArray<CanonicalCatalogAptEntry>) {
+    const key = `${staticEntry.dong}::${staticEntry.name}`;
+    if (!seenDongAptKeys.has(key)) {
+      allDongApts.push(staticEntry);
+      seenDongAptKeys.add(key);
+    }
+  }
+
+  // Build derived name -> canonical txKey lookup (static catalog -> caller sheetApartments -> caller manualMapping)
+  const derived: Record<string, string> = {};
+  for (const entry of CANONICAL_DONG_APT_LIST) {
+    derived[normalizeAptName(entry.name)] = entry.txKey;
+    derived[entry.name] = entry.txKey;
+  }
+  for (const a of allDongApts) {
+    if (a.name && a.txKey) {
+      const catalogKey = a.dong ? lookupCanonicalTxKeyForDongApt(a.dong, a.name) : undefined;
+      const sanKey = sanitizeAptKey(a.txKey) || a.txKey;
+      const normKey = normalizeAptName(a.txKey);
+      const mappedKey =
+        (catalogKey && Object.prototype.hasOwnProperty.call(effectiveTxMap, catalogKey)
+          ? catalogKey
+          : '') ||
+        HARDCODED_MAPPING[sanKey] ||
+        HARDCODED_MAPPING[normKey] ||
+        (Object.prototype.hasOwnProperty.call(effectiveTxMap, sanKey) ? sanKey : '') ||
+        (normKey && Object.prototype.hasOwnProperty.call(effectiveTxMap, normKey) ? normKey : '') ||
+        catalogKey ||
+        sanKey;
+      derived[normalizeAptName(a.name)] = mappedKey;
+      derived[a.name] = mappedKey;
+    }
+  }
+  if (manualMapping) {
+    Object.assign(derived, manualMapping);
+  }
+  const effectiveMapping: Record<string, string> = derived;
+
+  // Strictly ordered 4-tier matching prevents fuzzy prefix-stripping (e.g. '나루마을 신도브래뉴')
+  // from hijacking exact/sanitized matches for distinct villages (e.g. '솔빛마을 신도브래뉴')
+  const hardcodedTarget =
+    (sanDecoded && HARDCODED_MAPPING[sanDecoded]) ||
+    (normDecoded && HARDCODED_MAPPING[normDecoded]) ||
+    HARDCODED_MAPPING[decoded] ||
+    '';
+  const deepFullDecoded = normDecoded ? stripLocationSuffix(deepNormalize(normDecoded)) : '';
+
+  const findAcrossTiers = (dongHint?: string): CanonicalAptSlugItem | undefined => {
+    const candidates = dongHint
+      ? allDongApts.filter((a) => isDongHintCompatible(a.dong, dongHint))
+      : allDongApts;
+    if (candidates.length === 0) return undefined;
+
+    // Tier 1: Exact string match on display name, canonical txKey, or raw sheet txKey
+    const tier1 = candidates.find(
+      (a) =>
+        a.name === decoded ||
+        a.txKey === decoded ||
+        (a.rawTxKey !== undefined && a.rawTxKey === decoded)
+    );
+    if (tier1) return tier1;
+
+    // Tier 2: Whitespace/punctuation sanitized or normalized exact match (no village/location stripping)
+    const tier2 = candidates.find((a) => {
+      const sanName = sanitizeAptKey(a.name);
+      const sanTx = a.txKey ? sanitizeAptKey(a.txKey) : '';
+      const sanRaw = a.rawTxKey ? sanitizeAptKey(a.rawTxKey) : '';
+      if (sanDecoded && (sanName === sanDecoded || sanTx === sanDecoded || sanRaw === sanDecoded)) {
+        return true;
+      }
+      const normName = normalizeAptName(a.name);
+      const normTx = a.txKey ? normalizeAptName(a.txKey) : '';
+      const normRaw = a.rawTxKey ? normalizeAptName(a.rawTxKey) : '';
+      if (
+        normDecoded &&
+        (normName === normDecoded || normTx === normDecoded || normRaw === normDecoded)
+      ) {
+        return true;
+      }
+      if (
+        hardcodedTarget &&
+        (a.txKey === hardcodedTarget ||
+          sanTx === hardcodedTarget ||
+          normTx === hardcodedTarget ||
+          sanName === hardcodedTarget)
+      ) {
+        return true;
+      }
+      return false;
+    });
+    if (tier2) return tier2;
+
+    // Tier 3: Deep-normalized full name (Roman numerals / trailing '아파트') without stripping location prefixes
+    if (deepFullDecoded && deepFullDecoded.length > 2) {
+      const tier3 = candidates.find((a) => {
+        const deepName = stripLocationSuffix(deepNormalize(normalizeAptName(a.name)));
+        if (deepName === deepFullDecoded) return true;
+        if (a.txKey) {
+          const deepTx = stripLocationSuffix(deepNormalize(normalizeAptName(a.txKey)));
+          if (deepTx === deepFullDecoded) return true;
+        }
+        return false;
+      });
+      if (tier3) return tier3;
+    }
+
+    // Tier 4: Fuzzy location-stripped isSameApartment — accepted ONLY when unambiguous (unique canonical target)
+    const tier4Matches = candidates.filter(
+      (a) =>
+        isSameApartment(a.name, decoded, derived, a.dong, dongHint) ||
+        Boolean(a.txKey && isSameApartment(a.txKey, decoded, derived, a.dong, dongHint))
+    );
+    if (tier4Matches.length === 1) {
+      return tier4Matches[0];
+    }
+    if (tier4Matches.length > 1) {
+      const distinctCanonical = new Set(
+        tier4Matches.map((m) => sanitizeAptKey(m.txKey || m.name) || m.name)
+      );
+      if (distinctCanonical.size === 1) {
+        return tier4Matches[0];
+      }
+    }
+
+    return undefined;
+  };
+
+  let matchedDongApt: CanonicalAptSlugItem | undefined;
+  if (options?.dong) {
+    matchedDongApt = findAcrossTiers(options.dong);
+  }
+  if (!matchedDongApt) {
+    matchedDongApt = findAcrossTiers();
+  }
+
+  // 3. Explicit options.txKey or matched DongApartment canonical txKey
+  const matchedCatalogTxKey =
+    matchedDongApt?.dong && matchedDongApt?.name
+      ? lookupCanonicalTxKeyForDongApt(matchedDongApt.dong, matchedDongApt.name)
+      : undefined;
+  const candidateRawTxKey =
+    decodeCanonicalAptInput(options?.txKey) ||
+    decodeCanonicalAptInput(matchedCatalogTxKey) ||
+    decodeCanonicalAptInput(matchedDongApt?.txKey);
+  let candidateSanitizedTxKey = '';
+
+  if (candidateRawTxKey) {
+    const san =
+      sanitizeAptKey(candidateRawTxKey) ||
+      normalizeAptName(candidateRawTxKey) ||
+      candidateRawTxKey;
+    const normCandidate = normalizeAptName(candidateRawTxKey);
+    candidateSanitizedTxKey =
+      HARDCODED_MAPPING[san] ||
+      HARDCODED_MAPPING[normCandidate] ||
+      (normCandidate && Object.prototype.hasOwnProperty.call(effectiveTxMap, normCandidate)
+        ? normCandidate
+        : san);
+
+    if (Object.prototype.hasOwnProperty.call(effectiveTxMap, candidateSanitizedTxKey)) {
+      return candidateSanitizedTxKey;
+    }
+    if (Object.prototype.hasOwnProperty.call(effectiveTxMap, san)) {
+      return san;
+    }
+    if (normCandidate && Object.prototype.hasOwnProperty.call(effectiveTxMap, normCandidate)) {
+      return normCandidate;
+    }
+    if (Object.prototype.hasOwnProperty.call(effectiveTxMap, candidateRawTxKey)) {
+      return candidateRawTxKey;
+    }
+  }
+
+  // 3b. Exact key hit in effectiveTxMap when no canonical txKey override exists
+  if (Object.prototype.hasOwnProperty.call(effectiveTxMap, decoded)) {
+    return decoded;
+  }
+
+  // 4. Cascade findTxKey against effectiveTxMap (guarded against cross-complex hijacking)
+  const effectiveDong = options?.dong || matchedDongApt?.dong || undefined;
+  const claimedByOtherApts = new Set<string>();
+  if (candidateSanitizedTxKey && allDongApts.length > 0) {
+    for (const other of allDongApts) {
+      if (other === matchedDongApt || !other.txKey) continue;
+      const sanOther = sanitizeAptKey(other.txKey) || other.txKey;
+      const normOther = normalizeAptName(other.txKey);
+      const mappedOther = HARDCODED_MAPPING[sanOther] || HARDCODED_MAPPING[normOther] || sanOther;
+      if (
+        sanOther !== candidateSanitizedTxKey &&
+        normOther !== candidateSanitizedTxKey &&
+        mappedOther !== candidateSanitizedTxKey
+      ) {
+        claimedByOtherApts.add(sanOther);
+        if (normOther) claimedByOtherApts.add(normOther);
+        claimedByOtherApts.add(mappedOther);
+      }
+    }
+  }
+
+  const isValidFuzzyTxHit = (foundKey: string | null | undefined): foundKey is string => {
+    if (!foundKey) return false;
+    if (candidateSanitizedTxKey && claimedByOtherApts.has(foundKey)) {
+      return false;
+    }
+    if (effectiveDong) {
+      const txEntry = effectiveTxMap[foundKey] as { dong?: string } | undefined;
+      if (txEntry?.dong && !isDongHintCompatible(txEntry.dong, effectiveDong)) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  if (candidateRawTxKey) {
+    const foundFromTxKey = findTxKey(
+      candidateRawTxKey,
+      effectiveTxMap,
+      effectiveMapping,
+      false,
+      effectiveDong
+    );
+    if (isValidFuzzyTxHit(foundFromTxKey)) return foundFromTxKey;
+  }
+
+  // Only attempt fuzzy name search against effectiveTxMap when not already matched to a known 0-tx DongApartment
+  if (!candidateSanitizedTxKey) {
+    const foundFromName = findTxKey(
+      decoded,
+      effectiveTxMap,
+      effectiveMapping,
+      false,
+      effectiveDong
+    );
+    if (isValidFuzzyTxHit(foundFromName)) return foundFromName;
+  }
+
+  // 5. Pre-sale / 0-transaction complex with known txKey, or static HARDCODED_MAPPING alias
+  if (candidateSanitizedTxKey) {
+    return candidateSanitizedTxKey;
+  }
+
+  if (sanDecoded && HARDCODED_MAPPING[sanDecoded]) {
+    return HARDCODED_MAPPING[sanDecoded];
+  }
+  if (normDecoded && HARDCODED_MAPPING[normDecoded]) {
+    return HARDCODED_MAPPING[normDecoded];
+  }
+  if (HARDCODED_MAPPING[decoded]) {
+    return HARDCODED_MAPPING[decoded];
+  }
+
+  return decoded;
+}
+
+

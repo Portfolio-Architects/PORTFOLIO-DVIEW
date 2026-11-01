@@ -8,6 +8,7 @@ import type { AptTxSummary, LocationScoreItem } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { syncShallowApartmentOpen } from '@/lib/ads/recirculationEngine';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import {
   CompareHeaderSearch,
   CompareInsightCard,
@@ -108,11 +109,17 @@ const AptCompareModal = React.memo(function AptCompareModal(props: AptCompareMod
       if (onSelectApartment) {
         onSelectApartment(targetAptName);
       } else {
-        syncShallowApartmentOpen(targetAptName, { force: true });
+        const canonicalSlug =
+          resolveCanonicalAptSlug(targetAptName, {
+            txMap: txSummaryData,
+            sheetApartments,
+            manualMapping: nameMapping,
+          }) || targetAptName;
+        syncShallowApartmentOpen(targetAptName, { force: true, canonicalSlug });
         onClose();
       }
     },
-    [onSelectApartment, onClose]
+    [onSelectApartment, onClose, txSummaryData, sheetApartments, nameMapping]
   );
 
 

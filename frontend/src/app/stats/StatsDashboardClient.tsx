@@ -15,6 +15,7 @@ import type {
 import { parsePeriodTransactions } from '@/lib/services/staticDataService';
 import type { AptTxSummary, DongtanMacroTrendPoint } from '@/types/transaction';
 import { aggregateStats } from '@/lib/analytics/statsEngine';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { StatsFilterBar } from '@/components/stats/StatsFilterBar';
 import { HyperlocalInsightCards } from '@/components/stats/HyperlocalInsightCards';
 import { StatsTimeTrendChart } from '@/components/stats/StatsTimeTrendChart';
@@ -255,7 +256,11 @@ export function StatsDashboardClient({
   };
 
   const handleSelectComplex = (aptKey: string, aptName: string) => {
-    router.push(`/apartment/${encodeURIComponent(aptName)}`);
+    const canonicalSlug =
+      resolveCanonicalAptSlug(aptName, { txKey: aptKey, txMap: summaryMap }) ||
+      aptKey ||
+      aptName;
+    router.push(`/apartment/${encodeURIComponent(canonicalSlug)}`);
   };
 
   // High-performance In-Memory Master Analytics Aggregation (<10ms)

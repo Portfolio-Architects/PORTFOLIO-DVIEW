@@ -110,11 +110,17 @@ export interface DongApartment {
   distanceToOliveYoung?: number;
 }
 
+import { lookupCanonicalTxKeyForDongApt } from './utils/canonicalAptCatalog';
+
 /** 데이터를 byDong 형식으로 변환 */
 export function buildInitialApartments(): Record<string, DongApartment[]> {
   const byDong: Record<string, DongApartment[]> = {};
   for (const [dong, apts] of Object.entries(FULL_DONG_DATA)) {
-    byDong[dong] = apts.map(name => ({ name, dong }));
+    byDong[dong] = apts.map(name => {
+      const txKey = lookupCanonicalTxKeyForDongApt(dong, name);
+      return txKey ? { name, dong, txKey } : { name, dong };
+    });
   }
   return byDong;
 }
+

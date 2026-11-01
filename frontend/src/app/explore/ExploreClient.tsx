@@ -24,6 +24,7 @@ import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent } from '@/lib/utils/analytics';
 import { logger } from '@/lib/services/logger';
+import { syncShallowModalCloseToDashboard } from '@/lib/ads/recirculationEngine';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const ExploreListSkeleton = () => (
@@ -259,11 +260,11 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   );
   const { locationScores = EMPTY_OBJECT } = useLocationScores();
 
-  const getLocScore = (aptName: string) => {
+  const getLocScore = useCallback((aptName: string) => {
     if (!aptName || !locationScores) return {};
     const matchKey = findTxKey(aptName, locationScores, nameMapping);
     return matchKey ? locationScores[matchKey] : {};
-  };
+  }, [locationScores, nameMapping]);
 
   const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummary);
 
@@ -373,6 +374,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
       if (!window.location.hash && (window.location.pathname === '/explore')) {
+        syncShallowModalCloseToDashboard(`/explore${window.location.search || ''}`);
         setSelectedReport(null);
         setMobileModalOpen(false);
       }
@@ -410,9 +412,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       }
     }
 
-    History.prototype.pushState.call(window.history, null, '', window.location.pathname + window.location.search + `#apt=${encodeURIComponent(apt.name)}`);
     setMobileModalOpen(true);
-  }, [fieldReportsMap]);
+  }, [fieldReportsMap, getLocScore]);
 
   const handleAptClickByName = useCallback((name: string) => {
     const allApts = Object.values(sheetApartments).flat();
@@ -500,9 +501,9 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                 <FieldReportModal
                   report={selectedReport}
                   onClose={() => {
+                    syncShallowModalCloseToDashboard(`/explore${typeof window !== 'undefined' ? window.location.search || '' : ''}`);
                     setSelectedReport(null);
                     setMobileModalOpen(false);
-                    window.history.replaceState(null, '', window.location.pathname + window.location.search);
                   }}
                   user={user}
                   typeMap={typeMap}

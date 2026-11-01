@@ -10,7 +10,11 @@ import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketS
 import { MBTIContainer } from '@/components/mbti/MBTIContainer';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { ALL_MBTI_TYPES, getProfileByType, TEMPERAMENTS } from '@/lib/data/mbtiData';
-import { getTxSummaryData, formatPriceEok } from '@/lib/services/apartmentPageService';
+import {
+  getTxSummaryData,
+  formatPriceEok,
+  resolveCanonicalAptSlug,
+} from '@/lib/services/apartmentPageService';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 
 interface PageProps {
@@ -80,7 +84,14 @@ export default async function MBTIDirectResultPage({ params }: PageProps) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const temperament = TEMPERAMENTS[profile.group];
   const txSummaryMap = await getTxSummaryData();
-  const aptLookupKey = profile.txKey || profile.aptName.replace(/\s+/g, '');
+  const aptLookupKey =
+    resolveCanonicalAptSlug(profile.aptName, {
+      txKey: profile.txKey,
+      txMap: txSummaryMap,
+      dong: profile.dong,
+    }) ||
+    profile.txKey ||
+    profile.aptName.replace(/\s+/g, '');
   const matchedSummary = txSummaryMap[aptLookupKey] || txSummaryMap[profile.aptName];
 
   const latestSaleStr = matchedSummary?.latestPrice

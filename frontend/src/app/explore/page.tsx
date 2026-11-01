@@ -6,6 +6,7 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { DongApartment } from '@/lib/dong-apartments';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import Link from 'next/link';
 import { ZONES } from '@/lib/zones';
 
@@ -172,6 +173,7 @@ async function ExploreDataLoader() {
             apartmentsList.push({
               name: apt.name,
               dong: dong,
+              txKey: apt.txKey,
               householdCount: apt.householdCount,
               yearBuilt: apt.yearBuilt,
               brand: apt.brand
@@ -219,7 +221,14 @@ async function ExploreDataLoader() {
           </thead>
           <tbody>
             {apartmentsList.map((apt) => {
-              const summary = txSummary[apt.name] || {};
+              const canonicalSlug =
+                resolveCanonicalAptSlug(apt.name, {
+                  txKey: apt.txKey,
+                  txMap: txSummary,
+                  sheetApartments: initialData.sheetApartments,
+                  dong: apt.dong,
+                }) || apt.name;
+              const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
               const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
               const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
               const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
@@ -227,7 +236,7 @@ async function ExploreDataLoader() {
               return (
                 <tr key={apt.name}>
                   <td>
-                    <Link href={`/apartment/${encodeURIComponent(apt.name)}`} prefetch={false}>
+                    <Link href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}>
                       {apt.name}
                     </Link>
                   </td>

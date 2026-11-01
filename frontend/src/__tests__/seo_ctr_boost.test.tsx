@@ -894,7 +894,10 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(String(spacedRicheMeta.description)).toContain('동탄역시범리슈빌아파트');
       expect(String(spacedRicheMeta.keywords)).toContain('동탄역시범리슈빌아파트');
       expect(spacedRicheMeta.alternates?.canonical).toBe(
-        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역 시범 리슈빌')}`
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+      expect(spacedRicheMeta.openGraph?.url).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
       );
 
       // Cross-pyeong anomaly guard: mixed unit sizes (센트럴S타운 268%, 엔터프라임빌딩 115%) must NEVER emit >100% ratios

@@ -13,6 +13,7 @@ import {
   type RawGscQueryRow,
 } from '@/lib/repositories/searchConsole.repository';
 import { GUIDE_ARTICLES, normalizeGuideAptName } from '@/lib/data/guides';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export const GscQueryMetricSchema = z.object({
   query: z.string().trim().min(1),
@@ -832,8 +833,12 @@ export function recommendDviewSeoAction(
       if (parsedUrl.pathname && parsedUrl.pathname !== '/') {
         const decodedPath = decodeUriPathSafely(parsedUrl.pathname).replace(/\/+$/, '') || '/';
         if (decodedPath.startsWith('/apartment/')) {
+          const rawAptSegment = decodedPath.slice('/apartment/'.length).replace(/\/+$/, '');
+          const canonicalApt = rawAptSegment
+            ? resolveCanonicalAptSlug(rawAptSegment) || rawAptSegment
+            : '';
           return {
-            targetRoute: decodedPath,
+            targetRoute: canonicalApt ? `/apartment/${canonicalApt}` : decodedPath,
             recommendedAction:
               row.clicks === 0
                 ? '단지 상세 타이틀에 최신 실거래가(억)·평형·전세가율 수치를 전면 배치하고 자연어 띄어쓰기 별칭을 디스크립션에 보강'

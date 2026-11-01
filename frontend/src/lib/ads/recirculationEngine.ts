@@ -85,7 +85,7 @@ export function decodeSafeAptParam(raw: string): string {
       break;
     }
   }
-  return current;
+  return current.normalize('NFC');
 }
 
 /**
@@ -94,11 +94,14 @@ export function decodeSafeAptParam(raw: string): string {
  */
 export function syncShallowApartmentOpen(
   aptName: string,
-  options?: { force?: boolean; dong?: string }
+  options?: { force?: boolean; dong?: string; canonicalSlug?: string }
 ): VirtualPageViewEntry | null {
   const decoded = decodeSafeAptParam(aptName);
   if (!decoded) return null;
-  const targetPath = `/apartment/${encodeURIComponent(decoded)}`;
+  const resolvedSlug = options?.canonicalSlug
+    ? decodeSafeAptParam(options.canonicalSlug) || decoded
+    : decoded;
+  const targetPath = `/apartment/${encodeURIComponent(resolvedSlug)}`;
   const now = Date.now();
   const currentPathname = typeof window !== 'undefined' ? window.location.pathname : '';
 
@@ -108,6 +111,12 @@ export function syncShallowApartmentOpen(
     lastShallowRouteSignature.path === targetPath &&
     (currentPathname === targetPath || currentPathname === '')
   ) {
+    const ledger = getVirtualPageViewLedger();
+    return ledger[ledger.length - 1] || null;
+  }
+
+  if (!options?.force && !lastShallowRouteSignature && currentPathname === targetPath) {
+    lastShallowRouteSignature = { path: targetPath, timestamp: now };
     const ledger = getVirtualPageViewLedger();
     return ledger[ledger.length - 1] || null;
   }
@@ -126,12 +135,12 @@ export function syncShallowApartmentOpen(
 }
 
 /**
- * Restores browser history to `/` on modal close and unregisters modal ad slots.
+ * Restores browser history to `returnPath` (defaults to `/`) on modal close and unregisters modal ad slots.
  */
-export function syncShallowModalCloseToDashboard(): void {
+export function syncShallowModalCloseToDashboard(returnPath: string = '/'): void {
   lastShallowRouteSignature = null;
   if (typeof window !== 'undefined' && window.history && typeof window.history.replaceState === 'function') {
-    window.history.replaceState(null, '', '/');
+    window.history.replaceState(null, '', returnPath || '/');
   }
   adRefreshManager.unregisterSlot('1000000002_ch02');
   adRefreshManager.unregisterSlot('1000000002_ch05');

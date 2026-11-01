@@ -4,6 +4,7 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { redis } from "@/lib/redis";
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 // Upstash 글로벌 Rate Limiter (Edge 호환)
 const RATE_LIMIT_POINTS = 60; // 분당 60회 허용
@@ -58,6 +59,22 @@ export async function proxy(request: NextRequest) {
       const search = request.nextUrl.searchParams.get('search');
       const query = search ? `?search=${encodeURIComponent(search)}` : '';
       return NextResponse.redirect(new URL(`/explore${query}`, request.url));
+    }
+  }
+
+  // 0.6. 아파트 상세 비정규 URL 슬러그(공백·별칭·NFD·이중인코딩) → 단일 정규 슬러그 HTTP 308 영구 리다이렉트
+  if (pathname.startsWith('/apartment/')) {
+    const rawSegment = pathname.slice('/apartment/'.length).replace(/\/+$/, '');
+    if (rawSegment && !rawSegment.includes('/')) {
+      const canonicalSlug = resolveCanonicalAptSlug(rawSegment);
+      if (canonicalSlug) {
+        const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+        if (pathname !== canonicalPath) {
+          const redirectUrl = request.nextUrl.clone();
+          redirectUrl.pathname = canonicalPath;
+          return NextResponse.redirect(redirectUrl, 308);
+        }
+      }
     }
   }
 

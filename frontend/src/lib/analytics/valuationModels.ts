@@ -7,6 +7,7 @@ import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { ObjectiveMetrics } from '@/types/report';
 import { getBrandMultiplier, calculatePremiumScores } from '@/lib/utils/scoring';
 import { filterOutliersIQR } from '@/lib/utils/outlierFilter';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export type UtilityMetricIconKey =
   | 'award'
@@ -564,7 +565,7 @@ export function generateValuationJsonLd(params: {
       streetAddress: dong,
       addressCountry: 'KR',
     },
-    url: `https://dongtanview.com/apartment/${encodeURIComponent(aptName)}`,
+    url: `https://dongtanview.com/apartment/${encodeURIComponent(resolveCanonicalAptSlug(aptName, { dong }) || aptName)}`,
     additionalProperty: [
       {
         '@type': 'PropertyValue',
