@@ -6,6 +6,7 @@ import { MbtiApartmentProfile, MbtiGroup } from '@/types/mbti';
 import { ALL_MBTI_TYPES, MBTI_PROFILES, TEMPERAMENTS } from '@/lib/data/mbtiData';
 import { TX_SUMMARY } from '@/lib/transaction-summary';
 import { findTxKey } from '@/lib/utils/apartmentMapping';
+import { matchesApartmentSearch } from '@/lib/utils/apartmentSearch';
 import {
   getToggleTrackClass,
   getToggleBtnClass,
@@ -42,13 +43,13 @@ export function MBTIEncyclopedia({
       if (!matchesTab) return false;
 
       if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        profile.type.toLowerCase().includes(q) ||
-        profile.alias.toLowerCase().includes(q) ||
-        profile.aptName.toLowerCase().includes(q) ||
-        profile.dong.toLowerCase().includes(q) ||
-        profile.tags.some((t) => t.toLowerCase().includes(q))
+      return matchesApartmentSearch(
+        {
+          name: profile.aptName,
+          dong: profile.dong,
+          extraTerms: [profile.type, profile.alias, ...profile.tags],
+        },
+        searchQuery
       );
     });
   }, [activeTab, searchQuery]);

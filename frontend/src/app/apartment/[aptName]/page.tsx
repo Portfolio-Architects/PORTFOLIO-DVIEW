@@ -4,6 +4,7 @@ import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen } from '
 import DashboardClient from '@/components/DashboardClient';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
+import PreGaCanonicalSync from '@/components/common/PreGaCanonicalSync';
 import type { DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
@@ -181,12 +182,12 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   });
 
   const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
-  const safeCanonicalPathJson = JSON.stringify(canonicalPath).replace(/</g, '\\u003c');
-  const preGaCanonicalSyncScript = `(function(){try{var p=${safeCanonicalPathJson};if(typeof window!=='undefined'&&window.location&&window.history&&typeof window.history.replaceState==='function'&&window.location.pathname!==p){window.history.replaceState(window.history.state,'',p+(window.location.search||'')+(window.location.hash||''));}}catch(_){}})();`;
+
+
 
   return (
     <>
-      <script dangerouslySetInnerHTML={{ __html: preGaCanonicalSyncScript }} />
+      <PreGaCanonicalSync canonicalPath={canonicalPath} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}

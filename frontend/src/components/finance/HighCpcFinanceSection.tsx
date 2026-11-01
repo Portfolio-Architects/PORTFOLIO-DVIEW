@@ -11,6 +11,8 @@ export interface HighCpcFinanceSectionProps {
   onOpenJeonseSafety?: (aptName?: string) => void;
   onOpenTaxCalculator?: (aptName?: string) => void;
   onOpenSellTiming?: (aptName?: string) => void;
+  apartmentName?: string | null;
+  defaultPriceWon?: number;
 }
 
 export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
@@ -20,6 +22,8 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
   onOpenJeonseSafety,
   onOpenTaxCalculator,
   onOpenSellTiming,
+  apartmentName,
+  defaultPriceWon,
 }: HighCpcFinanceSectionProps) {
   const handleMortgage = () => (onOpenMortgageModal || onOpenMortgage)?.();
   const handleJeonse = () => (onOpenJeonseSafetyModal || onOpenJeonseSafety)?.();
@@ -41,6 +45,16 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
             <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/50 text-[10px] font-extrabold">
               2026 스트레스 DSR 3단계 · HUG 126% 반영
             </span>
+            {apartmentName && defaultPriceWon && defaultPriceWon > 0 && (
+              <span
+                data-testid="finance-benchmark-target-badge"
+                className="px-2.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 border border-emerald-200/70 dark:border-emerald-800/50 text-[10.5px] font-extrabold flex items-center gap-1 tabular-nums"
+              >
+                <span>선택 기준:</span>
+                <span className="underline underline-offset-2">{apartmentName}</span>
+                <span>({(defaultPriceWon / 100_000_000).toFixed(1)}억)</span>
+              </span>
+            )}
           </div>
           <p className="text-[11.5px] sm:text-[12.5px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
             매수 자금 계획(주담대·신생아특례·디딤돌)과 전세보증금 반환보증 가입 가능 여부를 실시간으로 시뮬레이션하세요.
@@ -93,8 +107,16 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
 
       {/* 2-Column Interactive Quick Widgets */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <PolicyLoanQuickWidget onOpenMortgageModal={handleMortgage} />
-        <JeonseGuaranteeQuickPreview onOpenJeonseSafetyModal={handleJeonse} />
+        <PolicyLoanQuickWidget
+          onOpenMortgageModal={handleMortgage}
+          initialHomePriceWon={defaultPriceWon}
+          apartmentName={apartmentName}
+        />
+        <JeonseGuaranteeQuickPreview
+          onOpenJeonseSafetyModal={handleJeonse}
+          initialEstimatedPriceWon={defaultPriceWon}
+          apartmentName={apartmentName}
+        />
       </div>
     </section>
   );

@@ -59,9 +59,9 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
             {/* Mobile: Top Bar */}
             <div className="md:hidden flex items-center justify-end w-full" />
 
-            {/* Desktop Wide View: 4 (Left) ---------------------- 1 (Right) */}
-            <nav aria-label="메인 메뉴" className="hidden md:flex w-full items-center justify-between gap-3">
-              {/* Left Group: 4 Core Nav Tabs (Segmented Control Style) */}
+            {/* Desktop Wide View: 5 Core Nav Tabs (Left-Aligned Unified Segmented Control) */}
+            <nav aria-label="메인 메뉴" className="hidden md:flex w-full items-center justify-start gap-3">
+              {/* Left Group: 5 Core Nav Tabs (Segmented Control Style) */}
               <div data-testid="nav-left-group" className="flex shrink-0 items-center space-x-1 bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
                 {/* 1. 아파트 랩 */}
                 <Link
@@ -126,10 +126,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 >
                   <span>부동산 가이드</span>
                 </Link>
-              </div>
 
-              {/* Right Group: 5. 아파트 통계 (Separated to far right) */}
-              <div data-testid="nav-right-group" className="flex shrink-0 items-center bg-slate-100/90 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/60">
+                {/* 5. 아파트 통계 */}
                 <Link
                   href="/stats"
                   prefetch={true}

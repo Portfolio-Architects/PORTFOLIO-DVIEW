@@ -6,7 +6,9 @@ import { logger } from "@/lib/services/logger";
 import { preloadApartmentModal } from "@/components/common/ComponentPreloader";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint, FieldReportData } from "@/types";
-import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING } from "@/lib/utils/apartmentMapping";
+import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING, resolveCanonicalAptSlug } from "@/lib/utils/apartmentMapping";
+import { matchesApartmentSearch } from "@/lib/utils/apartmentSearch";
+import { addRecentApartment } from "@/lib/utils/recentApartments";
 import { aggregateStats, resolveSummaryEntry } from "@/lib/analytics/statsEngine";
 import type { RegionFilter, PyeongFilter, TimeframeFilter, SortOption, RawTransactionRecord } from "@/types/stats";
 import { useSettingsValues } from "@/contexts/SettingsContext";
@@ -20,14 +22,22 @@ import { MacroHeader } from "./macro/components/MacroHeader";
 import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
+import { RetentionActionCard } from "./macro/components/RetentionActionCard";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
+import { AptMetricCards } from "./macro/AptMetricCards";
+import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
+import { usePWA } from "@/components/pwa/PWAProvider";
 import { trackEvent } from '@/lib/utils/analytics';
 import { useDebounce } from '@/hooks/useDebounce';
-import { AptMetricCards } from "./macro/AptMetricCards";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
 import { AdSlot } from "@/components/ads/AdSlot";
+import Link from "next/link";
+import { Star, MessageSquare, Clock, ArrowRight } from "lucide-react";
+import { useFavorites, isApartmentInFavorites } from "@/hooks/useFavorites";
+import { TrafficNoticeBoard, type LocalNoticeItem } from "./macro/TrafficNoticeBoard";
+import { GUIDE_ARTICLES } from "@/lib/data/guides";
 
 
 
@@ -74,6 +84,13 @@ const AptFitFinder = dynamic(() => import("@/components/consumer/AptFitFinder").
 }), {
   ssr: false,
   loading: () => <InlineLoader text="맞춤 단지 매칭 엔진 준비 중" />
+});
+
+const PushSubscriptionModal = dynamic(() => import("@/components/pwa/PushSubscriptionModal").catch(err => {
+  logger.warn('MacroDashboardClient.dynamic', 'PushSubscriptionModal Chunk Load failure, initiating fallback reload', undefined, err);
+  return { default: () => null };
+}), {
+  ssr: false,
 });
 
 const EMPTY_OBJECT = Object.freeze({});
@@ -156,6 +173,7 @@ interface MacroDashboardProps {
   publicRentalSet: Set<string>;
   fieldReportsMap: Map<string, FieldReportData>;
   onSelectApt?: (name: string, dong?: string) => void;
+  onNavigateApartmentPage?: (name: string, dong?: string) => void;
   onOpenAdModal?: () => void;
   onOpenCompare?: (aptName?: string) => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
@@ -173,9 +191,20 @@ interface MacroDashboardProps {
   typeMap?: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   initialLocationScores?: Record<string, import("@/types/transaction").LocationScoreItem>;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
+  favoriteCounts?: Record<string, number>;
 }
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status} (${url})`);
+  }
+  const contentType = res.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Expected JSON response from ${url}, received ${contentType || 'non-JSON'}`);
+  }
+  return res.json();
+};
 
 export const formatEokWithUnit = (priceMan: number) => {
   const roundedPriceMan = Math.round(priceMan / 100) * 100;
@@ -259,6 +288,8 @@ export interface TimelineItemCardProps {
   item: TimelineItem;
   isSelected: boolean;
   areaUnit: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: (aptName: string) => void;
   onCardHover: (aptName: string, dong: string) => void;
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
@@ -269,6 +300,8 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   item,
   isSelected,
   areaUnit,
+  isFavorite,
+  onToggleFavorite,
   onCardHover,
   onCardClick,
   onDetailsClick,
@@ -282,78 +315,119 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      className={`flex items-center justify-between p-3 xs:p-3.5 sm:p-4 rounded-2xl transition-[background-color,transform] duration-150 ease-out w-full max-w-full box-border ${
+      className={`relative flex flex-col justify-between gap-2 p-3 xs:p-3.5 sm:p-4 rounded-2xl transition-[background-color,transform] duration-150 ease-out w-full max-w-full box-border ${
         isSelected
           ? "ring-2 ring-blue-600/30 bg-blue-50/70 dark:bg-blue-950/30"
           : "bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80"
-      } group gap-2 sm:gap-3`}
+      } group`}
     >
+      {/* Top Row: [신고가 + 동 · 평형 · 층수 · 계약일 · 평당가] + [찜 & 상세 버튼] */}
+      <div className="flex items-start justify-between gap-2 w-full min-w-0">
+        <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0 flex-1 pt-0.5 text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight tabular-nums">
+          {item.type === 'high' && (
+            <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 mr-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+              신고가
+            </span>
+          )}
+          <span className="shrink-0 font-extrabold text-secondary max-w-[110px] sm:max-w-[180px] truncate min-w-0" title={item.dong}>
+            {item.dong}
+          </span>
+          <span className="opacity-35 font-normal shrink-0">·</span>
+          <span className="shrink-0 whitespace-nowrap">
+            {areaUnit === 'm2'
+              ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+              : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+          </span>
+          <span className="opacity-35 font-normal shrink-0">·</span>
+          <span className="shrink-0 whitespace-nowrap">{item.floor}층</span>
+          {item.contractDate && (
+            <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+              <span className="opacity-35 font-normal">·</span>
+              <span className="text-secondary font-medium">
+                계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
+              </span>
+            </span>
+          )}
+          {pyeongPriceMan > 0 && (
+            <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+              <span className="opacity-35 font-normal">·</span>
+              <span className="text-slate-500 dark:text-slate-400 font-medium">
+                평당 {pyeongPriceMan.toLocaleString()}만
+              </span>
+            </span>
+          )}
+        </div>
 
-      {/* Clickable Card Body Button */}
+        {/* Top-Right Actions: Favorite Star + Detail Action Button (z-10 above stretched card button) */}
+        <div className="relative z-10 flex items-center justify-center gap-1 shrink-0">
+          {onToggleFavorite && (
+            <button
+              type="button"
+              data-testid={`timeline-fav-toggle-${item.aptName}`}
+              aria-label={`${item.aptName} ${isFavorite ? '찜 해제' : '찜하기'}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                const willBeFav = !isFavorite;
+                trackEvent('watchlist_toggle_favorite', {
+                  apt_name: item.aptName,
+                  is_favorite: willBeFav,
+                  source: 'timeline',
+                });
+                onToggleFavorite(item.aptName);
+              }}
+              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
+            >
+              <Star
+                size={13}
+                className={
+                  isFavorite
+                    ? 'fill-blue-500 text-blue-600'
+                    : 'text-tertiary hover:text-blue-500'
+                }
+              />
+            </button>
+          )}
+          <button
+            type="button"
+            aria-label={`${item.aptName} 상세 정보 보기`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onDetailsClick(item.aptName);
+            }}
+            onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
+            className="px-2.5 py-1 min-h-[26px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
+          >
+            상세
+          </button>
+        </div>
+      </div>
+
+      {/* Bottom Row: Clickable Card Body Button (stretched overlay covers full card) */}
       <button
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="flex-1 flex items-center justify-between text-left outline-none focus:ring-2 focus:ring-blue-500/50 rounded-lg p-0.5 bg-transparent border-none min-w-0 cursor-pointer overflow-hidden gap-2"
+        className="w-full flex items-end justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-lg p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
       >
-        {/* Left Column: 2-Row Layout */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
-          {/* Row 1: [신고가 Badge] + [동 / 평형 / 층수 / 평당가] */}
-          <div className="flex items-center gap-1.5 min-w-0 w-full overflow-hidden text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight whitespace-nowrap">
-            {item.type === 'high' && (
-              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-                신고가
-              </span>
-            )}
-            <span className="shrink-0 font-extrabold text-secondary max-w-[80px] xs:max-w-[110px] sm:max-w-none truncate min-w-0" title={item.dong}>
-              {item.dong}
-            </span>
-            <span className="opacity-30 font-normal shrink-0">•</span>
-            <span className="shrink-0">
-              {areaUnit === 'm2'
-                ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-                : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
-            </span>
-            <span className="opacity-30 font-normal shrink-0">•</span>
-            <span className="shrink-0">{item.floor}층</span>
-            {item.contractDate && (
-              <>
-                <span className="opacity-30 font-normal shrink-0">•</span>
-                <span className="shrink-0 text-secondary font-medium">
-                  계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
-                </span>
-              </>
-            )}
-            {pyeongPriceMan > 0 && (
-              <>
-                <span className="opacity-30 font-normal shrink-0 hidden sm:inline">•</span>
-                <span className="shrink-0 text-slate-400 dark:text-slate-500 font-medium hidden sm:inline">
-                  평당 {pyeongPriceMan.toLocaleString()}만
-                </span>
-              </>
-            )}
-          </div>
-
-          {/* Row 2: [아파트 Full Name] */}
-          <div className="flex items-center min-w-0 w-full overflow-hidden">
-            <span
-              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0 flex-1"
-              title={item.displayAptName || item.aptName}
-            >
-              {item.displayAptName || item.aptName}
-            </span>
-          </div>
+        {/* Left: Apartment Full Name */}
+        <div className="flex items-center min-w-0 flex-1 overflow-hidden pb-0.5">
+          <span
+            className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0 flex-1"
+            title={item.displayAptName || item.aptName}
+          >
+            {item.displayAptName || item.aptName}
+          </span>
         </div>
 
-        {/* Right Section Column 1: Price & Delta Badges */}
-        <div className="flex flex-col items-end justify-center gap-0.5 shrink-0 ml-1.5 sm:ml-2 min-w-0">
+        {/* Right: Price & Delta Badges */}
+        <div className="flex flex-col items-end justify-center gap-0.5 shrink-0 ml-1.5 sm:ml-2 min-w-0 tabular-nums">
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
               <>
                 <span className="text-[10px] sm:text-[11px] text-tertiary font-bold line-through opacity-50 hidden sm:inline">
                   {formatEokWithUnit(item.prevPriceVal * 10000).value}
                 </span>
-                <span className="text-[9px] text-tertiary opacity-45 hidden sm:inline">{'->'}</span>
+                <span className="text-[10px] text-tertiary opacity-45 hidden sm:inline">→</span>
               </>
             )}
             <span
@@ -415,22 +489,6 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           </span>
         </div>
       </button>
-
-      {/* Right Section Column 2: Detail Action Button */}
-      <div className="flex items-center justify-center gap-1 shrink-0 pl-1 sm:pl-2 border-l border-border/20 dark:border-slate-800/50 my-0.5">
-        <button
-          type="button"
-          aria-label={`${item.aptName} 상세 정보 보기`}
-          onClick={(e) => {
-            e.stopPropagation();
-            onDetailsClick(item.aptName);
-          }}
-          onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-          className="px-2.5 py-1.5 min-h-[32px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
-        >
-          상세
-        </button>
-      </div>
     </div>
   );
 });
@@ -439,6 +497,8 @@ export interface TimelineItemRowProps {
   item: TimelineItem;
   isSelected: boolean;
   areaUnit?: string;
+  isFavorite?: boolean;
+  onToggleFavorite?: (aptName: string) => void;
   onCardHover?: (aptName: string, dong: string) => void;
   onCardClick: (aptName: string) => void;
   onDetailsClick: (aptName: string) => void;
@@ -449,6 +509,8 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   item,
   isSelected,
   areaUnit = 'p',
+  isFavorite,
+  onToggleFavorite,
   onCardHover,
   onCardClick,
   onDetailsClick,
@@ -519,6 +581,33 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
           )}
         </div>
 
+        {onToggleFavorite && (
+          <button
+            type="button"
+            data-testid={`timeline-fav-toggle-${item.aptName}`}
+            aria-label={`${item.aptName} ${isFavorite ? '찜 해제' : '찜하기'}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              const willBeFav = !isFavorite;
+              trackEvent('watchlist_toggle_favorite', {
+                apt_name: item.aptName,
+                is_favorite: willBeFav,
+                source: 'timeline',
+              });
+              onToggleFavorite(item.aptName);
+            }}
+            className="p-1 rounded hover:bg-slate-200 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
+          >
+            <Star
+              size={12}
+              className={
+                isFavorite
+                  ? 'fill-blue-500 text-blue-600'
+                  : 'text-tertiary hover:text-blue-500'
+              }
+            />
+          </button>
+        )}
         <button
           type="button"
           aria-label={`${item.aptName} 상세 정보 보기`}
@@ -544,6 +633,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   publicRentalSet,
   fieldReportsMap,
   onSelectApt,
+  onNavigateApartmentPage,
   onOpenAdModal: _onOpenAdModal,
   onOpenCompare: _onOpenCompare,
   onOpenJeonseSafety,
@@ -555,10 +645,44 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   typeMap = {},
   initialLocationScores,
   preloadApartmentTx,
+  favoriteCounts,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
+  const { userFavorites, toggleFavorite } = useFavorites();
   const [mounted, setMounted] = useState(false);
+
+  // Zone 4: Local Notices fetch (Hydration-safe: defer localStorage SWR cache read until mounted)
+  const { data: localNoticesRes } = useSWR<any>(
+    mounted ? '/api/local-notices?dongtan=true' : null,
+    fetcher,
+    { revalidateOnFocus: false, dedupingInterval: 300000 }
+  );
+
+  const localNotices: LocalNoticeItem[] = useMemo(() => {
+    if (!mounted) return [];
+    const raw = (localNoticesRes as any)?.data?.notices || (localNoticesRes as any)?.notices || (Array.isArray(localNoticesRes) ? localNoticesRes : []);
+    return Array.isArray(raw) ? raw : [];
+  }, [mounted, localNoticesRes]);
+
+  const { railStrategyNotices, tramNotices } = useMemo(() => {
+    const rail: LocalNoticeItem[] = [];
+    const tram: LocalNoticeItem[] = [];
+    localNotices.forEach((item) => {
+      const t = (item.title || '') + (item.dept || '');
+      if (t.includes('트램') || item.source === 'culture') {
+        tram.push(item);
+      } else {
+        rail.push(item);
+      }
+    });
+    return { railStrategyNotices: rail, tramNotices: tram };
+  }, [localNotices]);
+
+  // Zone 4: Top 3 Curated Comparison Guides
+  const topGuides = useMemo(() => {
+    return GUIDE_ARTICLES.slice(0, 3);
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -658,8 +782,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const { locationScores } = useLocationScores(initialLocationScores);
 
+  const { triggerCustomA2HSModal } = usePWA();
   const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
+  const [isPushModalOpen, setIsPushModalOpen] = useState(false);
+  const [pushTargetApt, setPushTargetApt] = useState<string>('');
   const [activeDonutCategory, setActiveDonutCategory] = useState<string | null>(null);
   const [activeDonutSector, setActiveDonutSector] = useState<AptDonutDataItem | null>(null);
 
@@ -707,18 +834,69 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     import('@/components/apartment-modal/TransactionChartSection').catch(() => {});
   }, [preloadApartmentTx]);
 
+  const resolveAptDong = useCallback((aptName: string, explicitDong?: string): string => {
+    if (explicitDong) return explicitDong;
+    if (sheetApartments) {
+      const matched = Object.values(sheetApartments)
+        .flat()
+        .find((a) => isSameApartment(a.name, aptName, nameMapping, a.dong));
+      if (matched?.dong) return matched.dong;
+    }
+    if (txSummaryData) {
+      const summaryMap =
+        (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary ||
+        (txSummaryData as Record<string, AptTxSummary>);
+      const resolvedKey = findTxKey(aptName, summaryMap, nameMapping);
+      if (resolvedKey && summaryMap[resolvedKey]?.dong) {
+        return summaryMap[resolvedKey].dong || '';
+      }
+    }
+    return '';
+  }, [sheetApartments, txSummaryData, nameMapping]);
+
+  const handleNavigateDetailPage = useCallback((aptName: string, dong?: string, surface: string = 'dashboard') => {
+    if (!aptName) return;
+    const resolvedDong = resolveAptDong(aptName, dong);
+    addRecentApartment({ name: aptName, dong: resolvedDong });
+
+    const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || (txSummaryData as Record<string, AptTxSummary>) || {};
+    const canonicalSlug =
+      resolveCanonicalAptSlug(aptName, {
+        txMap: summaryMap,
+        sheetApartments,
+        manualMapping: nameMapping,
+        dong: resolvedDong || dong,
+      }) || aptName;
+    const canonicalHref = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+
+    trackEvent('hybrid_detail_navigate', {
+      apt_name: aptName,
+      canonical_slug: canonicalSlug,
+      surface,
+    });
+
+    if (onNavigateApartmentPage) {
+      onNavigateApartmentPage(aptName, resolvedDong || dong);
+    } else if (onSelectApt) {
+      onSelectApt(aptName, resolvedDong || dong);
+    } else if (typeof window !== 'undefined') {
+      window.location.assign(canonicalHref);
+    }
+  }, [resolveAptDong, txSummaryData, sheetApartments, nameMapping, onNavigateApartmentPage, onSelectApt]);
+
   const handleCardClick = useCallback((aptName: string) => {
     setSelectedTimelineApt(aptName);
+    if (aptName) {
+      addRecentApartment({ name: aptName, dong: resolveAptDong(aptName) });
+    }
     if (typeof window !== 'undefined' && window.innerWidth < 1024) {
       setIsBottomSheetOpen(true);
     }
-  }, [setSelectedTimelineApt, setIsBottomSheetOpen]);
+  }, [setSelectedTimelineApt, setIsBottomSheetOpen, resolveAptDong]);
 
   const handleDetailsClick = useCallback((aptName: string) => {
-    if (onSelectApt) {
-      onSelectApt(aptName);
-    }
-  }, [onSelectApt]);
+    handleNavigateDetailPage(aptName, undefined, 'timeline_detail');
+  }, [handleNavigateDetailPage]);
 
   const handleDetailsHover = useCallback((aptName: string, dong: string) => {
     preloadApartmentTx?.(aptName, dong);
@@ -1296,10 +1474,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
           // 6. Search Query match
           if (trimmedSearch) {
-            const nameMatch = item.aptName && item.aptName.toLowerCase().includes(trimmedSearch);
-            const displayNameMatch = item.displayAptName && item.displayAptName.toLowerCase().includes(trimmedSearch);
-            const dongMatch = item.dong && item.dong.toLowerCase().includes(trimmedSearch);
-            if (!nameMatch && !displayNameMatch && !dongMatch) return false;
+            if (
+              !matchesApartmentSearch(
+                {
+                  name: item.aptName || '',
+                  displayName: item.displayAptName,
+                  dong: item.dong,
+                },
+                trimmedSearch
+              )
+            ) {
+              return false;
+            }
           }
 
           return true;
@@ -1410,10 +1596,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         if (!matchesApt) return false;
       }
       if (trimmedSearch) {
-        const nameMatch = tx.aptName && tx.aptName.toLowerCase().includes(trimmedSearch);
-        const displayName = getDisplayAptName(tx.aptName);
-        const displayMatch = displayName && displayName.toLowerCase().includes(trimmedSearch);
-        if (!nameMatch && !displayMatch) return false;
+        const txKeyStr = typeof tx.txKey === 'string' ? tx.txKey : undefined;
+        const txDong =
+          (txKeyStr ? summaryMap[txKeyStr]?.dong : undefined) ||
+          (typeof tx.dong === 'string' ? tx.dong : undefined);
+        if (
+          !matchesApartmentSearch(
+            {
+              name: tx.aptName || '',
+              displayName: getDisplayAptName(tx.aptName),
+              dong: txDong,
+              txKey: txKeyStr,
+            },
+            trimmedSearch
+          )
+        ) {
+          return false;
+        }
       }
       return true;
     });
@@ -1467,8 +1666,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       (sanName ? rawSummary?.[sanName] : undefined) ||
       (normName ? rawSummary?.[normName] : undefined);
     const dongVal = summary?.dong;
+    handleCardClick(aptName);
     handleSelectApt(aptName, dongVal);
-  }, [txSummaryData, handleSelectApt]);
+  }, [txSummaryData, handleCardClick, handleSelectApt]);
 
   const displayedTimelineData = useMemo(() => {
     let count = 0;
@@ -1485,35 +1685,101 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return result;
   }, [filteredTimelineData, visibleTimelineCount]);
 
+  // Zone 4: Dynamic price auto-binding for finance section
+  const financeBinding = useMemo(() => {
+    let targetApt = selectedTimelineApt;
+    if (!targetApt && activeDonutSector?.repApt?.rawName) {
+      targetApt = activeDonutSector.repApt.rawName;
+    }
+    if (!targetApt && userFavorites && userFavorites.size > 0) {
+      targetApt = Array.from(userFavorites)[0];
+    }
+    if (!targetApt && DEFAULT_TIMELINE_APTS.length > 0) {
+      targetApt = DEFAULT_TIMELINE_APTS[0];
+    }
+
+    if (!targetApt) return { aptName: null, priceWon: undefined };
+
+    let priceWon: number | undefined = undefined;
+    if (txSummaryData) {
+      const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || (txSummaryData as Record<string, AptTxSummary>);
+      const summaryEntry = resolveSummaryEntry(summaryMap, targetApt, targetApt);
+      if (summaryEntry?.latestPrice && summaryEntry.latestPrice > 0) {
+        priceWon = summaryEntry.latestPrice * 10_000;
+      }
+    }
+
+    if (!priceWon && recentTransactions && recentTransactions.length > 0) {
+      const matchingTx = recentTransactions.find(
+        (t) => isSameApartment(t.aptName, targetApt, nameMapping)
+      );
+      if (matchingTx?.priceVal && matchingTx.priceVal > 0) {
+        priceWon = Math.round(matchingTx.priceVal * 100_000_000);
+      }
+    }
+
+    const displayName = getDisplayAptName(targetApt);
+
+    return {
+      aptName: displayName || targetApt,
+      priceWon,
+    };
+  }, [selectedTimelineApt, activeDonutSector, userFavorites, txSummaryData, recentTransactions, nameMapping]);
+
+  const liveRankingBoardNode = useMemo(() => (
+    <ErrorBoundary name="실시간 랭킹 보드">
+      <RealtimeRankingBoard
+        recentTransactions={recentTransactions}
+        txSummaryData={txSummaryData}
+        sheetApartments={sheetApartments}
+        className="mb-0 h-full"
+        onSelectComplex={(complexName) => {
+          setSelectedTimelineApt(complexName);
+          handleCardClick(complexName);
+        }}
+        onSelectApt={(aptName) => {
+          setSelectedTimelineApt(aptName);
+          handleCardClick(aptName);
+        }}
+      />
+    </ErrorBoundary>
+  ), [recentTransactions, txSummaryData, sheetApartments, handleCardClick]);
+
   const renderTimelineItemCardNode = useCallback((item: TimelineItem, isSelected: boolean) => {
+    const isFav = isApartmentInFavorites(userFavorites, item.aptName, nameMapping);
     return (
       <TimelineItemCard
         key={`${item.aptName}-${item.floor}-${item.priceVal}`}
         item={item}
         isSelected={isSelected}
         areaUnit={areaUnit}
+        isFavorite={isFav}
+        onToggleFavorite={toggleFavorite}
         onCardHover={handleCardHover}
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
       />
     );
-  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  }, [areaUnit, userFavorites, nameMapping, toggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderTimelineItemRowNode = useCallback((item: TimelineItem, isSelected: boolean) => {
+    const isFav = isApartmentInFavorites(userFavorites, item.aptName, nameMapping);
     return (
       <TimelineItemRow
         key={`${item.aptName}-${item.floor}-${item.priceVal}`}
         item={item}
         isSelected={isSelected}
         areaUnit={areaUnit}
+        isFavorite={isFav}
+        onToggleFavorite={toggleFavorite}
         onCardHover={handleCardHover}
         onCardClick={handleCardClick}
         onDetailsClick={handleDetailsClick}
         onDetailsHover={handleDetailsHover}
       />
     );
-  }, [areaUnit, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
+  }, [areaUnit, userFavorites, nameMapping, toggleFavorite, handleCardHover, handleCardClick, handleDetailsClick, handleDetailsHover]);
 
   const renderChart = useCallback(() => {
     if (!trendChartReady) {
@@ -1554,46 +1820,66 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       <MacroHeader macroTrendJsonLd={macroTrendJsonLd} />
 
       <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
-        {/* Top 2-Column Hero Section: Left (Donut Section + Metric Cards), Right (Apartment Price Trend Chart) */}
-        <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 pb-6 mb-6 border-b border-border items-stretch box-border">
-          {/* Left Column: Donut Section + Metric Cards (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] min-w-0 lg:border-r lg:border-border lg:pr-6 justify-between box-border">
-            <ChartErrorBoundary fallbackText="거래 현황 차트를 불러올 수 없습니다.">
+        {/* ═══ Zone 2A: 메인 히어로 (좌측 원형 도넛 네비게이터 + 연동 4칸 카드 | 우측 단지·매크로 시세 추이) ═══ */}
+        <div
+          data-testid="hero-donut-trend-grid"
+          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 pb-5 mb-4 border-b border-border items-stretch box-border"
+        >
+          {/* Left 6 Columns (lg:col-span-6, 시그니처 도넛 차트 자리): Circular Donut Navigator + Connected 4-Card Drilldown */}
+          <div
+            data-testid="hero-left-donut-col"
+            className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] min-w-0 justify-between box-border pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border"
+          >
+            <ChartErrorBoundary fallbackText="권역별 거래·평균가 차트를 불러올 수 없습니다.">
               <AptDonutSection
+                variant="navigator"
+                initialMode="zone"
+                initialPeriod="90d"
                 mounted={mounted}
                 recentTransactions={recentTransactions}
                 txSummaryData={txSummaryData}
-                nameMapping={nameMapping || EMPTY_OBJECT}
+                sheetApartments={sheetApartments}
+                nameMapping={nameMapping}
                 publicRentalSet={publicRentalSet}
-                onSelectApt={handleSelectApt}
-                preloadApartmentTx={preloadApartmentTx}
-                initialMode="pyeong"
                 activeCategory={activeDonutCategory}
                 onActiveCategoryChange={setActiveDonutCategory}
                 onActiveSectorChange={setActiveDonutSector}
+                onSelectApt={(aptName) => {
+                  setSelectedTimelineApt(aptName);
+                  handleCardClick(aptName);
+                }}
+                onOpenAptDetail={(aptName, dong) => {
+                  setSelectedTimelineApt(aptName);
+                  handleNavigateDetailPage(aptName, dong, 'donut_fullscreen');
+                }}
+                preloadApartmentTx={preloadApartmentTx}
+                onOpenMortgageModal={() => handleOpenMortgage(selectedTimelineApt || undefined)}
               />
             </ChartErrorBoundary>
-            <ErrorBoundary name="핵심 지표 카드">
+            <ErrorBoundary name="핵심 실거래 지표 카드">
               <AptMetricCards
                 recentTransactions={recentTransactions}
                 txSummaryData={txSummaryData}
-                macroTrendData={deferredMacroTrendData}
+                macroTrendData={macroTrendData}
+                activeSector={activeDonutSector}
+                onResetSector={() => setActiveDonutCategory(null)}
                 onOpenSellTimingCalculator={handleOpenSellTiming}
                 onOpenMortgageModal={handleOpenMortgage}
                 onOpenJeonseSafetyModal={handleOpenJeonseSafety}
-                activeSector={activeDonutSector}
-                onResetSector={() => {
-                  setActiveDonutCategory(null);
-                  setActiveDonutSector(null);
+                onSelectApt={(aptName) => {
+                  setSelectedTimelineApt(aptName);
+                  handleCardClick(aptName);
                 }}
-                onSelectApt={handleSelectApt}
                 preloadApartmentTx={preloadApartmentTx}
               />
             </ErrorBoundary>
           </div>
 
-          {/* Right Column: Trend Line Chart Section (lg:col-span-6) */}
-          <div className="lg:col-span-6 flex flex-col gap-6 lg:h-[566px] min-w-0">
+          {/* Right 6 Columns (lg:col-span-6): MacroChartSection (단지·매크로 시세 추이) */}
+          <div
+            data-testid="hero-right-chart-col"
+            className="lg:col-span-6 flex flex-col gap-6 lg:h-[526px] min-w-0 lg:pl-6 xl:pl-8 box-border"
+          >
             <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
               <MacroChartSection
                 isDefaultAptSettingUp={isDefaultAptSettingUp}
@@ -1603,7 +1889,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 preloadApartmentModal={preloadApartmentModal}
                 defaultTimelineApts={DEFAULT_TIMELINE_APTS}
                 sheetApartments={sheetApartments}
-                onSelectApt={handleSelectApt}
+                txSummaryData={txSummaryData}
+                nameMapping={nameMapping}
+                userFavorites={userFavorites}
+                onToggleFavorite={toggleFavorite}
+                onOpenMortgageModal={handleOpenMortgage}
+                onSelectApt={(aptName, dong) => handleNavigateDetailPage(aptName, dong, 'chart_header')}
                 onHoverApt={handleHoverApt}
                 timeframe={timeframe}
                 setTimeframe={setTimeframe}
@@ -1618,17 +1909,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         </div>
 
-        {/* Top Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (High-Viewability Transition) */}
+        {/* Prime Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (Directly Below Donut & Trend Hero) */}
         <div className="w-full mb-6" data-testid="hero-ad-slot-1">
           <AdSlot
             slotId="1000000001"
             format="in-feed"
-            apartmentName={selectedTimelineApt || undefined}
+            apartmentName={selectedTimelineApt || activeDonutSector?.repApt?.rawName || undefined}
             className="w-full"
           />
         </div>
 
-        {/* ═══ Daily Real Transactions Section (Wide Layout) Immediately Below Top Hero ═══ */}
+        {/* ═══ Zone 3: 통합 실거래 타임라인 + 실시간 시장 랭킹 탭 + 네이티브 In-Feed AdSlot ═══ */}
         <div className="w-full flex flex-col gap-4 mb-6 box-border">
           <ErrorBoundary name="실거래 타임라인">
             <MacroTimelineView
@@ -1675,6 +1966,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               showQuickFilters={false}
               insights={unifiedStatsData.insights}
               pyeongRankings={unifiedStatsData.pyeongRankings}
+              liveRankingBoardNode={liveRankingBoardNode}
+              enableInFeedAd={true}
+              inFeedAdSlotId="1000000003"
+              userFavorites={userFavorites}
+              onToggleFavorite={toggleFavorite}
+              sheetApartments={sheetApartments}
               onSelectComplex={handleSelectComplex}
               onOpenJeonseSafety={handleOpenJeonseSafety}
               onOpenCompare={handleOpenCompare}
@@ -1684,7 +1981,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </ErrorBoundary>
         </div>
 
-        {/* AdSense High-CPC Finance Section */}
+        {/* ═══ Zone 4A: AdSense High-CPC Finance Hub & Zero-CLS AdSlot 2 (Immediately Below Timeline) ═══ */}
         <ErrorBoundary name="정책자금 및 전세안전진단">
           <HighCpcFinanceSection
             onOpenMortgageModal={handleOpenMortgage}
@@ -1693,16 +1990,171 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             onOpenJeonseSafety={handleOpenJeonseSafety}
             onOpenTaxCalculator={handleOpenTaxCalculator}
             onOpenSellTiming={handleOpenSellTiming}
+            apartmentName={financeBinding.aptName}
+            defaultPriceWon={financeBinding.priceWon}
           />
         </ErrorBoundary>
 
-        {/* In-Feed Responsive AdSlot 2 (Zero-CLS) */}
-        <div className="w-full my-6">
+        <div className="w-full my-6" data-testid="finance-ad-slot-2">
           <AdSlot
             slotId="1000000002"
             format="in-feed"
+            apartmentName={financeBinding.aptName || undefined}
             className="w-full"
           />
+        </div>
+
+        {/* ═══ Zone 4B: 심층 비교 리포트 순환(Recirculation) & 7:5 리텐션·커뮤니티 허브 ═══ */}
+        <div className="w-full flex flex-col gap-3 mb-6">
+          <div className="flex items-center justify-between px-1">
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-[15px] sm:text-[17px] font-black text-primary tracking-tight">
+                  동탄 신도시 심층 입지·단지 비교 리포트
+                </h3>
+                <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold border border-blue-200/60 dark:border-blue-800/50">
+                  D-VIEW LABS
+                </span>
+              </div>
+              <p className="text-[11.5px] sm:text-[12px] text-tertiary font-medium mt-0.5">
+                실거래가 통계와 도시계획 데이터를 바탕으로 검증한 추천 비교 분석 리포트
+              </p>
+            </div>
+            <Link
+              href="/guide"
+              className="text-[11.5px] font-bold text-secondary hover:text-primary inline-flex items-center gap-1 transition-colors shrink-0"
+            >
+              <span>전체 리포트</span>
+              <ArrowRight size={12} />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-testid="curated-guides-grid">
+            {topGuides.map((guide) => (
+              <Link
+                key={guide.slug}
+                href={`/guide/${guide.slug}`}
+                data-testid={`guide-card-${guide.slug}`}
+                onClick={() => {
+                  trackEvent('guide_card_click', {
+                    guide_slug: guide.slug,
+                    guide_title: guide.title,
+                  });
+                }}
+                className="bg-elevated hover:bg-slate-100/80 dark:hover:bg-slate-800/60 rounded-2xl p-4 sm:p-5 flex flex-col justify-between border border-border/50 transition-all duration-150 group shadow-2xs cursor-pointer"
+              >
+                <div className="flex flex-col gap-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold truncate">
+                      {guide.category}
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] text-tertiary font-bold tabular-nums">
+                      <Clock size={11} />
+                      {guide.readingTime}
+                    </span>
+                  </div>
+
+                  <h4 className="text-[13.5px] font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2 leading-snug tracking-tight">
+                    {guide.title}
+                  </h4>
+
+                  <p className="text-[11.5px] text-secondary/80 line-clamp-2 leading-relaxed">
+                    {guide.description}
+                  </p>
+                </div>
+
+                <div className="pt-3 mt-3 border-t border-border/30 flex items-center justify-between text-secondary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                  <span className="text-[11px] font-extrabold">심층 리포트 보기</span>
+                  <ArrowRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Lower 7:5 Asymmetric Retention & Community Hub */}
+        <div
+          data-testid="zone4-retention-community-grid"
+          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch box-border"
+        >
+          {/* Left 7 Columns (lg:col-span-7): TrafficNoticeBoard + Community Lounge */}
+          <div className="lg:col-span-7 flex flex-col gap-4 min-w-0">
+            <ErrorBoundary name="철도·교통 게시판">
+              <TrafficNoticeBoard
+                railStrategyNotices={railStrategyNotices}
+                tramNotices={tramNotices}
+              />
+            </ErrorBoundary>
+
+            <div
+              data-testid="lounge-entry-card"
+              className="w-full bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between border border-border/50 relative overflow-hidden shadow-2xs group"
+            >
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center border-b border-border/40 pb-3">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span className="bg-blue-600/10 dark:bg-blue-600/25 text-blue-700 dark:text-blue-400 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+                      입주민 커뮤니티
+                    </span>
+                    <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
+                      동탄 실시간 입주민 라운지
+                    </h4>
+                  </div>
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    실시간 토론 중
+                  </span>
+                </div>
+
+                <p className="text-[12.5px] text-secondary leading-relaxed font-medium">
+                  동탄1·2 신도시 단지별 실제 거주 후기, 학군 및 상권 평가, 급매물 정보와 갈아타기 전략을 이웃들과 자유롭게 공유하세요.
+                </p>
+
+                <div className="flex flex-col gap-2 pt-1">
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-body/60 dark:bg-slate-900/30 border border-border/30 text-[12px] text-tertiary">
+                    <MessageSquare size={14} className="text-blue-500 shrink-0" />
+                    <span className="font-semibold text-primary truncate">“동탄역 대장단지 vs 1동탄 대형평수 실거주 비교”</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-body/60 dark:bg-slate-900/30 border border-border/30 text-[12px] text-tertiary">
+                    <MessageSquare size={14} className="text-emerald-500 shrink-0" />
+                    <span className="font-semibold text-primary truncate">“인동선 및 트램 착공 구간별 실질 수혜 단지 정리”</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-4 mt-2 border-t border-border/30 flex items-center justify-between">
+                <span className="text-[11px] text-tertiary font-medium">
+                  D-VIEW 인증 입주민 & 실투자자 전용
+                </span>
+                <Link
+                  href="/lounge"
+                  data-testid="lounge-link-btn"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
+                >
+                  <span>라운지 입장하기</span>
+                  <ArrowRight size={13} />
+                </Link>
+              </div>
+            </div>
+          </div>
+
+          {/* Right 5 Columns (lg:col-span-5): RetentionActionCard */}
+          <div className="lg:col-span-5 flex flex-col gap-4 min-w-0">
+            <ErrorBoundary name="리텐션 액션 허브">
+              <RetentionActionCard
+                selectedAptName={selectedTimelineApt}
+                className="h-full justify-between"
+                onOpenPushModal={(apt) => {
+                  setPushTargetApt(apt);
+                  setIsPushModalOpen(true);
+                }}
+                onOpenA2HSModal={() => {
+                  triggerCustomA2HSModal();
+                }}
+                onOpenAptFitFinder={handleOpenAptFitFinder}
+              />
+            </ErrorBoundary>
+          </div>
         </div>
       </div>
 
@@ -1713,7 +2165,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           nameMapping={nameMapping || EMPTY_OBJECT}
           publicRentalSet={publicRentalSet}
           fieldReportsMap={fieldReportsMap}
-          onSelectApt={onSelectApt || NOOP_FN}
+          onSelectApt={(aptName, dong) => handleNavigateDetailPage(aptName, dong, 'apt_fit_finder')}
           isOpen={isQuizOpen}
           onClose={handleCloseQuiz}
           locationScores={locationScores || EMPTY_OBJECT}
@@ -1729,7 +2181,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         timeframe={timeframe}
         setTimeframe={setTimeframe}
         renderBottomSheetChart={renderBottomSheetChart}
+        onOpenMortgageModal={handleOpenMortgage}
+        onNavigateDetail={(aptName) => handleNavigateDetailPage(aptName, undefined, 'mobile_drawer')}
       />
+
+      {/* Push Subscription Modal */}
+      {isPushModalOpen && (
+        <PushSubscriptionModal
+          isOpen={isPushModalOpen}
+          onClose={() => setIsPushModalOpen(false)}
+          aptName={pushTargetApt || selectedTimelineApt || '동탄 전체'}
+        />
+      )}
     </div>
   );
 });

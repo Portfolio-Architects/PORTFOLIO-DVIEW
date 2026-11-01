@@ -58,8 +58,18 @@ export function StatsPageClient({
   }, []);
 
   const currentTopic = useMemo(() => {
-    return getStatsTopicById(activeTopicId) || STATS_TOPICS[0];
-  }, [activeTopicId]);
+    if (activeTopicId === 'dongtan-station-distance') {
+      return payload.topic;
+    }
+    return getStatsTopicById(activeTopicId) || payload.topic;
+  }, [activeTopicId, payload.topic]);
+
+  const topicOverrides = useMemo(
+    () => ({
+      'dongtan-station-distance': payload.topic,
+    }),
+    [payload.topic]
+  );
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -67,6 +77,7 @@ export function StatsPageClient({
       <StatsTopicSelector
         currentTopicId={activeTopicId}
         onSelectTopic={handleTopicChange}
+        topicOverrides={topicOverrides}
       />
 
       {/* Conditional Rendering: Issue #1 Report vs. Upcoming Topic Placeholder */}
@@ -88,6 +99,7 @@ export function StatsPageClient({
             distanceTiers={payload.distanceTiers}
             totalComplexCount={payload.allRecords.length}
             totalTxCount={payload.allRecords.reduce((acc, r) => acc + r.txCount, 0)}
+            latestContractDate={payload.datasetMeta?.latestContractDate}
           />
 
           {/* Section 2: 5-Tier Distance Comparison Bar Chart */}

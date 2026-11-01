@@ -12,6 +12,9 @@ import {
   computeOLSLinearRegression,
   filterAndSortApartmentRecords,
   getDongtanStationAnalysisData,
+  getIssue1DatasetMeta,
+  formatPriceEokCompact,
+  formatShortContractDate,
 } from './dongtanStationDistanceEngine';
 import { STATS_TOPICS, getActiveStatsTopic, getStatsTopicById } from '@/types/statsTopic';
 import type { ApartmentStatRecord, StatsFilterOptions } from './types';
@@ -527,6 +530,34 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
       expect(result.regression.sampleSize).toBe(0);
       expect(result.regression.slopeWonPerKm).toBe(0);
       expect(Number.isNaN(result.regression.slopeWonPerKm)).toBe(false);
+    });
+
+    test('Live dataset metadata and latest transaction price/date helpers sync accurately', () => {
+      const meta = getIssue1DatasetMeta();
+      const analysis = getDongtanStationAnalysisData({ sortBy: 'latestPriceDesc' });
+      const totalTx = analysis.allRecords.reduce((acc, r) => acc + r.txCount, 0);
+
+      expect(meta.totalComplexCount).toBe(127);
+      expect(meta.totalTxCount).toBe(totalTx);
+      expect(meta.latestContractDate).toMatch(/^\d{8}$/);
+      expect(meta.referenceMonthLabel).toMatch(/^\d{4}\.\d{2} 기준$/);
+      expect(meta.sampleCountLabel).toBe(`127개 단지 · ${totalTx.toLocaleString('ko-KR')}건 실거래 전수`);
+      expect(analysis.topic.publishedAt).toBe(meta.referenceMonthLabel);
+      expect(analysis.topic.sampleCount).toBe(meta.sampleCountLabel);
+
+      // Verify latestPriceDesc sorting order and record latestContractDate presence
+      for (let i = 0; i < analysis.filteredRecords.length - 1; i++) {
+        expect(analysis.filteredRecords[i].latestPriceWon).toBeGreaterThanOrEqual(
+          analysis.filteredRecords[i + 1].latestPriceWon
+        );
+      }
+      analysis.allRecords.forEach((r) => {
+        expect(r.latestContractDate).toMatch(/^\d{8}$/);
+      });
+
+      expect(formatPriceEokCompact(710_000_000, '억원')).toBe('7.1억원');
+      expect(formatPriceEokCompact(585_000_000, '억')).toBe('5.85억');
+      expect(formatShortContractDate('20261013')).toBe('26.10.13');
     });
   });
 });

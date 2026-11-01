@@ -449,10 +449,24 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const { data: jisanStatusRes } = useSWR('/api/technovalley/jisan-status', (url: string) => fetch(url).then(res => res.json()), {
-    revalidateOnFocus: false,
-    dedupingInterval: 60000,
-  });
+  const { data: jisanStatusRes } = useSWR(
+    '/api/technovalley/jisan-status',
+    async (url: string) => {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} (${url})`);
+      }
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) {
+        throw new Error(`Expected JSON response from ${url}, received ${contentType || 'non-JSON'}`);
+      }
+      return res.json();
+    },
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 60000,
+    }
+  );
 
   const allBuildings = useMemo<OfficeBuilding[]>(() => {
     const centers: JisanStatusItem[] = Array.isArray(jisanStatusRes?.centers) ? jisanStatusRes.centers : [];

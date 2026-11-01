@@ -2,11 +2,18 @@
 
 import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
 import { useDebounce } from '@/hooks/useDebounce';
-import { Search, ArrowUp, ArrowDown, ChevronDown, X } from 'lucide-react';
+import { Search, ArrowUp, ArrowDown, ChevronDown, Star, X } from 'lucide-react';
+import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { DONGS } from '@/lib/dongs';
 import { findTxKey, resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import {
+  filterAndRankApartments,
+  findTokenMatchIndex,
+  foldSearchText,
+  matchesApartmentSearch,
+} from '@/lib/utils/apartmentSearch';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
@@ -273,16 +280,20 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     }
   }, [sheetApartments, txSummaryData, nameMapping, typeMap]);
 
+  const { userFavorites, toggleFavorite } = useFavorites();
+
   const topRankingTabs = useMemo(() => [
     { id: 'rank-price', label: '단지별 평단가', badge: 'TOP' },
+    { id: 'favorites', label: '내 관심단지', badge: String(userFavorites.size) },
     { id: 'rank-abs-price', label: '실거래 총액순' },
     { id: 'rank-jeonse', label: '전세가율 높은 순' },
     { id: 'rank-turnover', label: '거래 회전율순' },
     { id: 'rank-views', label: '인기 조회순' },
-  ], []);
+  ], [userFavorites.size]);
 
   const categories = useMemo(() => [
     { id: 'rank-price', label: '단지별 평단가' },
+    { id: 'favorites', label: `내 관심단지 (${userFavorites.size})` },
     { id: 'rank-abs-price', label: '매매가순' },
     { id: 'rank-jeonse', label: '전세율순' },
     { id: 'rank-turnover', label: '회전율순' },
@@ -430,7 +441,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const sortedApts = useMemo(() => {
     let filtered = [...enrichedApts];
 
-    if (currentCategory.startsWith('dong-')) {
+    if (currentCategory === 'favorites') {
+      filtered = filtered.filter((a) =>
+        isApartmentInFavorites(userFavorites, a.apt.name, nameMapping)
+      );
+    } else if (currentCategory.startsWith('dong-')) {
       const dongName = currentCategory.replace('dong-', '');
       filtered = filtered.filter(a => a.apt.dong === dongName);
     } else if (currentCategory === 'theme-over-12') {
@@ -487,12 +502,20 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     });
 
     if (deferredSearchQuery.trim()) {
-      const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
-      filtered = filtered.filter(a => a.apt.name.toLowerCase().replace(/\s+/g, '').includes(q));
+      filtered = filtered.filter((a) =>
+        matchesApartmentSearch(
+          {
+            name: a.apt.name,
+            dong: a.apt.dong,
+            txKey: a.apt.txKey,
+          },
+          deferredSearchQuery
+        )
+      );
     }
 
     return filtered;
-  }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, fieldReportsMap]);
+  }, [enrichedApts, currentCategory, deferredSearchQuery, sortKey, sortDirection, fieldReportsMap, userFavorites, nameMapping]);
 
   const pyeongSummary = useMemo(() => {
     const valid = sortedApts.filter((a) => a.pyeongPrice > 0 && Number.isFinite(a.pyeongPrice));
@@ -590,23 +613,38 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, [sortedApts]);
 
   const { suggestionsApts, suggestionsDongs, suggestionsBrands } = useMemo(() => {
-    const q = deferredSearchQuery.toLowerCase().replace(/\s+/g, '');
-    if (!q) {
+    const trimmed = deferredSearchQuery.trim();
+    const foldedQ = foldSearchText(trimmed);
+    if (!foldedQ) {
       return { suggestionsApts: [], suggestionsDongs: [], suggestionsBrands: [] };
     }
 
-    const matchingApts = enrichedApts.filter(item => 
-      item.apt.name.toLowerCase().replace(/\s+/g, '').includes(q)
+    const matchingApts = filterAndRankApartments(
+      enrichedApts,
+      trimmed,
+      (item) => ({
+        name: item.apt.name,
+        dong: item.apt.dong,
+        txKey: item.apt.txKey,
+      })
     ).slice(0, 5);
 
-    const matchingDongs = DONGS.filter(dong => 
-      dong.name.toLowerCase().includes(q) || q.includes(dong.name.toLowerCase())
-    );
+    const matchingDongs = DONGS.filter((dong) => {
+      const foldedDong = foldSearchText(dong.name);
+      return (
+        findTokenMatchIndex(foldedDong, foldedQ) >= 0 ||
+        foldedQ.includes(foldedDong)
+      );
+    });
 
     const BRANDS = ["롯데캐슬", "포스코", "더샵", "자이", "푸르지오", "힐스테이트", "반도유보라", "금강펜테리움", "우남퍼스트빌", "호반베르디움", "신안인스빌", "KCC", "스위첸", "e편한세상", "아이파크", "데시앙", "하우스디", "중흥"];
-    const matchingBrands = BRANDS.filter(brand => 
-      brand.toLowerCase().includes(q) && brand.toLowerCase() !== q
-    ).slice(0, 3);
+    const matchingBrands = BRANDS.filter((brand) => {
+      const foldedBrand = foldSearchText(brand);
+      return (
+        foldedBrand !== foldedQ &&
+        findTokenMatchIndex(foldedBrand, foldedQ) >= 0
+      );
+    }).slice(0, 3);
 
     return {
       suggestionsApts: matchingApts,
@@ -620,7 +658,9 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const categoryTitle =
     currentCategory === 'rank-price'
       ? '단지별 평단가 랭킹'
-      : currentCategory === 'rank-abs-price'
+      : currentCategory === 'favorites'
+        ? '내 관심단지 모아보기'
+        : currentCategory === 'rank-abs-price'
         ? '실거래 총액 높은 순'
         : currentCategory === 'rank-jeonse'
           ? '전세가율 높은 순'
@@ -652,6 +692,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               label="단지별 평단가 높은 순" 
               active={currentCategory === 'rank-price'} 
               onClick={() => setCurrentCategory('rank-price')} 
+            />
+            <SidebarItem 
+              label={`내 관심단지 (${userFavorites.size})`} 
+              active={currentCategory === 'favorites'} 
+              onClick={() => setCurrentCategory('favorites')} 
             />
             <SidebarItem 
               label="실거래 총액 높은 순" 
@@ -847,6 +892,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
               onFocus={() => {
                 setIsSearchFocused(true);
                 if (onSearchFocus) onSearchFocus();
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Escape' || e.key === 'Enter') {
+                  setIsSearchFocused(false);
+                }
               }}
               onBlur={() => {
                 if (searchFocusTimeoutRef.current) {
@@ -1108,15 +1158,37 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
 
           {/* Table Body */}
           {sortedApts.length === 0 ? (
-            <div 
-              className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-20 transition-all duration-300 min-h-[300px]"
-            >
-              <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-tertiary mb-3">
-                <Search size={24} />
+            currentCategory === 'favorites' && !deferredSearchQuery.trim() ? (
+              <div
+                data-testid="explore-favorites-empty-prompt"
+                className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-16 transition-all duration-300 min-h-[260px] gap-3"
+              >
+                <div className="w-11 h-11 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center text-blue-600 dark:text-blue-400">
+                  <Star size={22} className="fill-blue-500 text-blue-600" />
+                </div>
+                <span className="text-[15px] font-extrabold text-primary">등록된 관심 단지가 없습니다</span>
+                <span className="text-[13px] font-medium text-tertiary text-center max-w-[360px]">
+                  단지 목록 우측의 별표 아이콘을 눌러 관심 단지를 저장해 보세요.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentCategory('rank-price')}
+                  className="mt-1 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-colors cursor-pointer"
+                >
+                  전체 단지 보기
+                </button>
               </div>
-              <span className="text-[15px] font-extrabold text-primary">검색 결과가 없습니다</span>
-              <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
-            </div>
+            ) : (
+              <div 
+                className="flex flex-col items-center justify-center text-tertiary w-full border border-dashed border-border/85 rounded-2xl bg-body/10 px-4 py-20 transition-all duration-300 min-h-[300px]"
+              >
+                <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-tertiary mb-3">
+                  <Search size={24} />
+                </div>
+                <span className="text-[15px] font-extrabold text-primary">검색 결과가 없습니다</span>
+                <span className="text-[13px] font-medium mt-2 text-tertiary text-center">단지명을 다시 확인하거나 카테고리 필터를 변경해 보세요</span>
+              </div>
+            )
           ) : (
             <div id="explore-list-container" className="w-full flex-1 pt-0">
               <div className="flex flex-col gap-3 w-full">
@@ -1131,6 +1203,8 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
                       maxPyeongPrice={pyeongSummary.maxPyeongPrice}
                       preloadApartmentTx={preloadApartmentTx}
+                      isFavorite={isApartmentInFavorites(userFavorites, item.apt.name, nameMapping)}
+                      onToggleFavorite={toggleFavorite}
                     />
                   </React.Fragment>
                 ))}
@@ -1189,6 +1263,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                     label="단지별 평단가 높은 순" 
                     active={currentCategory === 'rank-price'} 
                     onClick={() => { setCurrentCategory('rank-price'); setIsMobileMenuOpen(false); }} 
+                  />
+                  <MobileSidebarItem 
+                    label={`내 관심단지 (${userFavorites.size})`} 
+                    active={currentCategory === 'favorites'} 
+                    onClick={() => { setCurrentCategory('favorites'); setIsMobileMenuOpen(false); }} 
                   />
                   <MobileSidebarItem 
                     label="실거래 총액 높은 순" 

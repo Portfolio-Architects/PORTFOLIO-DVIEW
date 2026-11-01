@@ -1,5 +1,5 @@
-import React from 'react';
-import { Settings, Search, X, LayoutGrid, List, GripVertical } from 'lucide-react';
+import React, { useState } from 'react';
+import { Settings, Search, X, LayoutGrid, List, GripVertical, SlidersHorizontal } from 'lucide-react';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import {
   getToggleTrackClass,
@@ -111,6 +111,8 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
     }
   };
 
+  const [isMobileFiltersExpanded, setIsMobileFiltersExpanded] = useState(false);
+
   const isFiltersActive =
     (showQuickFilters && quickFilter !== 'all') ||
     (searchQuery && searchQuery.trim().length > 0) ||
@@ -118,6 +120,14 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
     timelineAptFilter !== '전체' ||
     pyeongFilter !== 'all' ||
     tradeTypeFilter !== 'all';
+
+  const detailedFiltersActiveCount = [
+    currentRegion !== 'all',
+    pyeongFilter !== 'all',
+    tradeTypeFilter !== 'all',
+    timelineAptFilter !== '전체',
+    sortOrder !== 'latest',
+  ].filter(Boolean).length;
 
   return (
     <div className="w-full flex flex-col gap-2.5">
@@ -156,8 +166,8 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
 
       {/* 2. Action Toolbar: Search + Sort + Dropdowns + View Mode Toggle */}
       <div className="flex flex-wrap items-center justify-between gap-2 w-full">
-        {/* Left: Real-Time Inline Search Input & Reset Button */}
-        <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1 sm:min-w-[160px] sm:max-w-[300px]">
+        {/* Left: Real-Time Inline Search Input & Mobile Filter Toggle */}
+        <div className="flex items-center gap-2 w-full sm:w-auto sm:flex-1 sm:min-w-[160px] sm:max-w-[340px]">
           {setSearchQuery && (
             <div className="relative flex items-center w-full">
               <Search size={14} className="absolute left-3 text-tertiary pointer-events-none" />
@@ -182,6 +192,26 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             </div>
           )}
 
+          {/* Mobile Filter Toggle (< 640px) */}
+          <button
+            type="button"
+            data-testid="timeline-mobile-filter-toggle"
+            aria-expanded={isMobileFiltersExpanded}
+            onClick={() => setIsMobileFiltersExpanded((prev) => !prev)}
+            className={getControlPillClass({
+              active: isMobileFiltersExpanded,
+              extraClass: 'sm:hidden flex items-center gap-1.5 shrink-0 px-2.5 py-2 text-[11.5px] font-bold whitespace-nowrap active:scale-95',
+            })}
+          >
+            <SlidersHorizontal size={13} className="text-secondary" />
+            <span>{isMobileFiltersExpanded ? '상세조건 접기' : '상세조건 펼치기'}</span>
+            {detailedFiltersActiveCount > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full bg-blue-600 text-white text-[9.5px] font-black tabular-nums">
+                {detailedFiltersActiveCount}
+              </span>
+            )}
+          </button>
+
           {!showQuickFilters && isFiltersActive && onResetFilters && (
             <button
               type="button"
@@ -196,7 +226,12 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
         </div>
 
         {/* Right: Dropdowns + Sort + View Mode Toggle */}
-        <div className="flex flex-wrap items-center justify-start sm:justify-end gap-1.5 sm:gap-2 w-full sm:w-auto min-w-0 sm:ml-auto">
+        <div
+          data-testid="timeline-dropdown-filters-wrapper"
+          className={`flex-wrap items-center justify-start sm:justify-end gap-1.5 sm:gap-2 w-full sm:w-auto min-w-0 sm:ml-auto ${
+            isMobileFiltersExpanded ? 'flex' : 'hidden sm:flex'
+          }`}
+        >
           {/* Multi-Sort Selector */}
           {setSortOrder && (
             <select

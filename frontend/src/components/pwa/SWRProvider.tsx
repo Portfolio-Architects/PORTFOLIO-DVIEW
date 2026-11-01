@@ -48,9 +48,10 @@ function SWRReconnectSyncManager({ children }: { children: ReactNode }) {
 const safePreloadTarget = async (url: string): Promise<void> => {
   try {
     const res = await fetch(url);
-    if (!res.ok) {
+    const contentType = res.headers.get('content-type') || '';
+    if (!res.ok || !contentType.includes('application/json')) {
       logger.warn('SWRProvider.preload', `Failed to background preload target: ${url}`, {
-        error: `HTTP ${res.status}`
+        error: !res.ok ? `HTTP ${res.status}` : `Invalid content-type: ${contentType || 'unknown'}`
       });
       return;
     }
@@ -232,25 +233,29 @@ const SWRProvider = React.memo(function SWRProvider({ children }: { children: Re
           if (typeof document === 'undefined') return true;
           return document.visibilityState !== 'hidden';
         },
-        onError: (err) => {
+        onError: (err, key) => {
           if (!isOnline) {
             // Mute errors in console when offline to avoid spamming
             return;
           }
           
           const errMsg = err?.message || String(err);
-          const isNetworkError = errMsg.includes('Failed to fetch') || 
-                                 errMsg.includes('fetch failed') || 
-                                 errMsg.includes('NetworkError') ||
-                                 errMsg.includes('AbortError') ||
-                                 (err?.name === 'AbortError');
+          const isTransientHttpOrNetworkError =
+            errMsg.includes('Failed to fetch') ||
+            errMsg.includes('fetch failed') ||
+            errMsg.includes('NetworkError') ||
+            errMsg.includes('AbortError') ||
+            errMsg.startsWith('HTTP ') ||
+            errMsg.includes('Expected JSON response') ||
+            errMsg.includes('Unexpected token') ||
+            (err?.name === 'AbortError');
 
-          if (isNetworkError) {
-            logger.warn('SWRProvider.onError', 'SWR Transient Network Error', { error: errMsg });
+          if (isTransientHttpOrNetworkError) {
+            logger.warn('SWRProvider.onError', 'SWR Transient Network/HTTP Warning', { key, error: errMsg });
             return;
           }
 
-          logger.error('SWRProvider.onError', 'SWR Global Error', undefined, err);
+          logger.error('SWRProvider.onError', 'SWR Global Error', { key }, err);
         }
       }}
     >

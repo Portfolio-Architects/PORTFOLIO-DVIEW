@@ -1140,13 +1140,13 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
       const sumCompTx = dataset.reduce((sum, c) => sum + c.txCount, 0);
       expect(sumTierTx).toBe(sumCompTx);
 
-      // 3. Overall weighted pyeong price matches
+      // 3. Overall weighted pyeong price matches within <= 1 만원 tier-rounding tolerance
       const overallWeightedPyeong =
         dataset.reduce((sum, c) => sum + c.avgPyeongPriceMan * c.txCount, 0) / sumCompTx;
       const tierWeightedPyeong =
         baseTiers.reduce((sum, t) => sum + t.avgPyeongPriceMan * t.txVolume, 0) / sumTierTx;
 
-      expect(Math.round(overallWeightedPyeong)).toBe(Math.round(tierWeightedPyeong));
+      expect(Math.abs(overallWeightedPyeong - tierWeightedPyeong)).toBeLessThanOrEqual(1);
     });
   });
 });

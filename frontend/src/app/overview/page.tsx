@@ -61,39 +61,166 @@ export const metadata: Metadata = {
   },
 };
 
-function DashboardSkeleton() {
+export function DashboardSkeleton() {
   return (
-    <div className="min-h-screen bg-body">
+    <div className="min-h-screen bg-body animate-pulse select-none" data-testid="overview-5zone-skeleton">
+      {/* Top Header */}
       <header className="bg-surface/90 border-b border-border sticky top-0 z-40">
         <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 h-14 sm:h-16 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-32 h-8 bg-body rounded-full animate-pulse" />
-            <div className="w-16 h-8 bg-body rounded-full animate-pulse" />
+          <div className="flex items-center gap-3">
+            <div className="w-28 sm:w-36 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
+            <div className="w-16 h-6 bg-black/5 dark:bg-surface/5 rounded-lg hidden sm:block" />
           </div>
-          <div className="w-8 h-8 bg-body rounded-full animate-pulse" />
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-black/5 dark:bg-surface/5 rounded-full" />
+            <div className="w-8 h-8 bg-black/5 dark:bg-surface/5 rounded-full" />
+          </div>
         </div>
       </header>
-      <main className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 py-3 sm:py-5 md:py-8">
-        <div className="mb-6 flex gap-3 items-center">
-           <div className="w-10 h-10 sm:w-12 sm:h-12 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
-           <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-lg animate-pulse" />
+
+      {/* PageHeroHeader Skeleton */}
+      <div className="h-[144px] flex flex-col gap-3 sm:gap-4 px-4 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-[2000px] mx-auto border-b border-border/60 shrink-0">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
+          <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
         </div>
-        <div className="flex flex-col md:flex-row md:bg-surface md:rounded-2xl md:border md:border-border md:shadow-sm gap-4 md:gap-0">
-           <div className="w-full md:w-[380px] h-[600px] bg-surface rounded-2xl md:bg-transparent md:border-r md:border-border flex flex-col">
-             <div className="p-4 border-b border-border">
-               <div className="w-full h-10 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
-             </div>
-             <div className="p-4 flex flex-col gap-4">
-               {[1, 2, 3, 4, 5, 6].map(i => (
-                 <div key={i} className="w-full h-[72px] bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse" />
-               ))}
-             </div>
-           </div>
-           <div className="hidden md:block flex-1 h-[600px] bg-body rounded-tr-2xl rounded-br-2xl p-8">
-             <div className="w-48 h-10 bg-black/5 dark:bg-surface/5 rounded-xl animate-pulse mb-8" />
-             <div className="w-full h-64 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse mb-4" />
-             <div className="w-full h-32 bg-black/5 dark:bg-surface/5 rounded-2xl animate-pulse" />
-           </div>
+        <div className="w-72 sm:w-96 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
+      </div>
+
+      {/* Main Content Area matching MacroDashboardClient 5 Zones */}
+      <main className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 flex flex-col">
+        {/* ═══ Zone 2A: 6:6 Circular Donut Navigator + Connected 4-Card | Trend Chart Hero Skeleton ═══ */}
+        <div
+          data-testid="skeleton-zone2a-hero"
+          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 pb-5 mb-4 border-b border-border items-stretch min-h-[526px]"
+        >
+          {/* Left 6 Columns (h-[526px]): AptDonutSection (360px) + AptMetricCards (152px) */}
+          <div className="lg:col-span-6 flex flex-col gap-3.5 min-w-0 min-h-[526px] pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border box-border">
+            <div className="h-[360px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between border border-border/30">
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-44 h-7 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                <div className="w-32 h-7 bg-black/10 dark:bg-surface/10 rounded-lg" />
+              </div>
+              <div className="flex items-center gap-4 flex-1 py-2">
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px] rounded-full border-[20px] border-black/10 dark:border-surface/10 shrink-0" />
+                </div>
+                <div className="hidden sm:flex flex-col gap-2 sm:w-[268px] md:w-[296px] lg:w-[212px] xl:w-[280px] 2xl:w-[324px] shrink-0">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={i} className="h-6 w-full rounded-xl bg-black/10 dark:bg-surface/10" />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2.5 h-[152px]">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="rounded-2xl bg-black/5 dark:bg-surface/5 p-3 flex flex-col justify-between border border-border/30">
+                  <div className="w-20 h-3.5 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-24 h-5 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Right 6 Columns (h-[526px]): MacroChartSection */}
+          <div className="lg:col-span-6 flex flex-col gap-6 min-w-0 min-h-[526px] lg:pl-6 xl:pl-8 box-border">
+            <div className="h-[526px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between border border-border/30">
+              <div className="flex items-center justify-between gap-2">
+                <div className="w-40 h-6 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                <div className="w-28 h-7 bg-black/10 dark:bg-surface/10 rounded-lg" />
+              </div>
+              <div className="w-full h-80 bg-black/10 dark:bg-surface/10 rounded-xl" />
+            </div>
+          </div>
+        </div>
+
+        {/* ═══ Prime In-Feed AdSlot 1 Skeleton ═══ */}
+        <div
+          data-testid="skeleton-hero-ad-slot-1"
+          className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
+        />
+
+        {/* ═══ Zone 3: Unified Timeline + Live Ranking Tabs Skeleton ═══ */}
+        <div className="w-full min-h-[420px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-6 flex flex-col gap-4 border border-border/30 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="w-48 h-8 rounded-xl bg-black/10 dark:bg-surface/10" />
+            <div className="w-32 h-8 rounded-xl bg-black/10 dark:bg-surface/10" />
+          </div>
+          <div className="flex flex-col gap-3 pt-2">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-20 sm:h-22 w-full rounded-xl bg-black/10 dark:bg-surface/10" />
+            ))}
+          </div>
+        </div>
+
+        {/* ═══ Zone 4A: HighCpcFinanceSection + AdSlot 2 Skeleton ═══ */}
+        <div className="w-full flex flex-col gap-6 mb-6">
+          <div className="h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 p-5 flex flex-col justify-between border border-border/30">
+            <div className="w-48 h-6 bg-black/10 dark:bg-surface/10 rounded-lg" />
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="h-10 rounded-xl bg-black/10 dark:bg-surface/10" />
+              ))}
+            </div>
+          </div>
+          <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+        </div>
+
+        {/* ═══ Zone 4B: Curated Guides 3-Pack + 7:5 Retention & Community Hub Skeleton ═══ */}
+        <div className="w-full flex flex-col gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-36 sm:h-40 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
+                <div className="w-24 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-3/4 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-20 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+              </div>
+            ))}
+          </div>
+          <div
+            data-testid="skeleton-zone4b-retention"
+            className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+          >
+            <div className="lg:col-span-7 flex flex-col gap-4 min-w-0">
+              <div className="h-44 sm:h-52 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
+                <div className="w-40 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="space-y-2">
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                </div>
+              </div>
+              <div className="h-44 sm:h-52 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
+                <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="space-y-2">
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                  <div className="w-32 h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-5 flex flex-col gap-4 min-w-0">
+              <div className="h-[360px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between border border-border/30">
+                <div className="flex items-center justify-between">
+                  <div className="w-32 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-20 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                </div>
+                <div className="flex flex-col gap-2.5">
+                  <div className="w-full h-11 rounded-xl bg-black/10 dark:bg-surface/10" />
+                  <div className="w-full h-11 rounded-xl bg-black/10 dark:bg-surface/10" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ═══ Zone 5: Compact Soft Editorial Container Skeleton ═══ */}
+        <div className="w-full h-[180px] sm:h-[220px] rounded-2xl bg-black/5 dark:bg-surface/5 p-5 flex flex-col justify-between border border-border/30">
+          <div className="w-64 h-6 bg-black/10 dark:bg-surface/10 rounded-lg" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            {[1, 2, 3, 4].map((i) => (
+              <div key={i} className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+            ))}
+          </div>
+          <div className="w-full h-4 bg-black/10 dark:bg-surface/10 rounded" />
         </div>
       </main>
     </div>

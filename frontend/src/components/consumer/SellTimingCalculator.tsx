@@ -9,6 +9,7 @@ import { throttle } from '@/lib/utils/firestoreThrottle';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { calculateVerdictScore, calculateCapitalGainsTax, VerdictResult, TaxResult } from '@/lib/utils/sellTimingEngine';
 import { shareSellTimingToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
@@ -222,6 +223,7 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
     setSearchQuery(getDisplayAptName(apt.name));
     setIsFocused(false);
     setShowResult(false);
+    setRecentApts(addRecentApartment({ name: apt.name, dong: apt.dong }));
 
     const estCurrent = getEstimatedMarketPrice(apt, txSummaryData, nameMapping);
     setTransferPrice(estCurrent);
@@ -361,8 +363,11 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
     const isShowingSelectedName =
       selectedApt && normalizeAptName(trimmed) === normalizeAptName(getDisplayAptName(selectedApt.name));
     if (!trimmed || isShowingSelectedName) return allApartments;
-    const query = normalizeAptName(trimmed);
-    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(trimmed));
+    return filterAndRankApartments(allApartments, trimmed, (a) => ({
+      name: a.name,
+      dong: a.dong,
+      txKey: a.txKey,
+    }));
   }, [searchQuery, allApartments, selectedApt]);
 
   // Run Calculations

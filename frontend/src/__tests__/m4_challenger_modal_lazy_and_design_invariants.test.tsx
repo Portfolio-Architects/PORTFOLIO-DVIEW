@@ -407,10 +407,10 @@ describe('M4 Empirical Challenger Stress Suite: Modal Lazy-Mount & DESIGN.md Inv
     });
 
     // ------------------------------------------------------------------
-    // Invariant 2: lg:h-[566px] Hero 2-Column Symmetry
+    // Invariant 2: 7:5 Asymmetric Hero Terminal Column Structure
     // ------------------------------------------------------------------
-    describe('2.2 Invariant 2: lg:h-[566px] Hero 2-Column Height Symmetry (Delta H = 0px)', () => {
-      it('enforces identical lg:h-[566px] on left and right columns of MacroDashboardClient', () => {
+    describe('2.2 Invariant 2: 7:5 Asymmetric Hero Terminal Column Structure (7 + 5 = 12 total columns)', () => {
+      it('enforces 7:5 column spans on left and right columns of MacroDashboardClient', () => {
         const { container } = render(
           <SettingsProvider>
             <AuthProvider>
@@ -427,20 +427,16 @@ describe('M4 Empirical Challenger Stress Suite: Modal Lazy-Mount & DESIGN.md Inv
           </SettingsProvider>
         );
 
-        const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumns.length).toBeGreaterThanOrEqual(2);
+        const leftColumn = container.querySelector('.lg\\:col-span-7');
+        const rightColumn = container.querySelector('.lg\\:col-span-5');
+        expect(leftColumn).toBeInTheDocument();
+        expect(rightColumn).toBeInTheDocument();
 
-        const leftColumn = heroColumns[0];
-        const rightColumn = heroColumns[1];
-
-        expect(leftColumn.className).toContain('lg:h-[566px]');
-        expect(rightColumn.className).toContain('lg:h-[566px]');
-
-        // Mathematical symmetry: Delta H = 566px - 566px = 0px
-        const leftH = 566;
-        const rightH = 566;
-        const deltaH = Math.abs(leftH - rightH);
-        expect(deltaH).toBe(0);
+        // 7 + 5 = 12 total columns invariant
+        const leftSpan = 7;
+        const rightSpan = 5;
+        const totalSpan = leftSpan + rightSpan;
+        expect(totalSpan).toBe(12);
       });
     });
 

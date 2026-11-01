@@ -20,6 +20,7 @@ import type {
   StatsFilterOptions,
   Issue1AnalysisPayload,
   DistanceTierId,
+  StatsDatasetMeta,
 } from './types';
 
 // Real Public Datasets (100% Real Data Parity)
@@ -82,7 +83,10 @@ function cleanApartmentName(str: string): string {
  * Compile the canonical 127 geocoded apartment records from verified repository datasets.
  * Executed once and cached in-memory for deterministic performance (<1ms).
  */
-function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
+function buildMasterApartmentStatRecords(): {
+  records: ApartmentStatRecord[];
+  datasetMeta: StatsDatasetMeta;
+} {
   const locMap = locScoresStatic as Record<
     string,
     { distanceToSubway: number; nearestStationName: string; nearestStationCoords: string }
@@ -158,9 +162,17 @@ function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
     area?: number;
     areaPyeong?: number;
     contractDate?: string;
+    registeredDate?: string;
   }>;
 
+  let maxMatchedContractDate = '';
+  let maxRegisteredDate = '';
+
   for (const t of rawTransactions) {
+    if (t.registeredDate && /^\d{8}$/.test(t.registeredDate) && t.registeredDate > maxRegisteredDate) {
+      maxRegisteredDate = t.registeredDate;
+    }
+
     const cName = cleanApartmentName(t.aptName);
     let matched = cleanIndex.get(cName);
     if (!matched && t.txKey) {
@@ -177,10 +189,14 @@ function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
 
     if (matched) {
       txByComplex.get(matched.name)!.push(t);
+      if (t.contractDate && /^\d{8}$/.test(t.contractDate) && t.contractDate > maxMatchedContractDate) {
+        maxMatchedContractDate = t.contractDate;
+      }
     }
   }
 
   const records: ApartmentStatRecord[] = [];
+  let totalMappedTxCount = 0;
 
   for (const c of baseComplexes) {
     const txs = txByComplex.get(c.name) || [];
@@ -189,10 +205,23 @@ function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
     let totalAreaM2 = 0;
     let validPyeongCount = 0;
 
-    // Sort transactions by contractDate descending for latest price
-    const sortedTxs = [...txs].sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || ''));
+    // Sort transactions by contractDate descending (tie-break by registeredDate descending) for latest price
+    const sortedTxs = [...txs].sort(
+      (a, b) =>
+        (b.contractDate || '').localeCompare(a.contractDate || '') ||
+        (b.registeredDate || '').localeCompare(a.registeredDate || '')
+    );
     const latestTx = sortedTxs[0];
     const latestPriceWon = latestTx ? Math.round(latestTx.priceVal * 100_000_000) : 0;
+    const latestPyeong = latestTx
+      ? latestTx.areaPyeong || (latestTx.area ? latestTx.area / 3.30578 : 0)
+      : 0;
+    const latestPricePerPyeongWon =
+      latestTx && latestPyeong > 0 ? Math.round(latestPriceWon / latestPyeong) : 0;
+    const latestContractDate =
+      latestTx?.contractDate && /^\d{8}$/.test(latestTx.contractDate)
+        ? latestTx.contractDate
+        : undefined;
 
     for (const t of txs) {
       const priceWon = Math.round(t.priceVal * 100_000_000);
@@ -206,6 +235,7 @@ function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
     }
 
     const txCount = txs.length;
+    totalMappedTxCount += txCount;
     const avgPriceWon = txCount > 0 ? Math.round(totalPriceWon / txCount) : 0;
     const avgPricePerPyeongWon =
       validPyeongCount > 0 ? Math.round(totalPyeongPriceWon / validPyeongCount) : 0;
@@ -220,6 +250,8 @@ function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
       avgPriceWon,
       avgPricePerPyeongWon,
       latestPriceWon,
+      latestPricePerPyeongWon,
+      latestContractDate,
       txCount,
       builtYear: c.yearBuilt,
       householdCount: c.householdCount,
@@ -227,11 +259,56 @@ function buildMasterApartmentStatRecords(): ApartmentStatRecord[] {
     });
   }
 
-  return records;
+  const refDate = maxRegisteredDate || maxMatchedContractDate;
+  const referenceMonthLabel =
+    refDate && /^\d{6,8}$/.test(refDate)
+      ? `${refDate.slice(0, 4)}.${refDate.slice(4, 6)} 기준`
+      : STATS_TOPICS[0].publishedAt;
+
+  const datasetMeta: StatsDatasetMeta = {
+    totalComplexCount: records.length,
+    totalTxCount: totalMappedTxCount,
+    latestContractDate: maxMatchedContractDate || null,
+    latestRegisteredDate: maxRegisteredDate || null,
+    referenceMonthLabel,
+    sampleCountLabel: `${records.length.toLocaleString('ko-KR')}개 단지 · ${totalMappedTxCount.toLocaleString('ko-KR')}건 실거래 전수`,
+  };
+
+  return { records, datasetMeta };
 }
 
 // Master in-memory static cache
-const MASTER_RECORDS: ApartmentStatRecord[] = buildMasterApartmentStatRecords();
+const MASTER_BUNDLE = buildMasterApartmentStatRecords();
+const MASTER_RECORDS: ApartmentStatRecord[] = MASTER_BUNDLE.records;
+const MASTER_DATASET_META: StatsDatasetMeta = MASTER_BUNDLE.datasetMeta;
+
+/**
+ * Returns live dataset metadata for Issue #1 (complex count, mapped 1Y transaction count, and latest reference month/date).
+ */
+export function getIssue1DatasetMeta(): StatsDatasetMeta {
+  return MASTER_DATASET_META;
+}
+
+/**
+ * Formats KRW (원) price in compact 억 notation without losing 500만/100만 precision (e.g. 7.1억원, 5.85억원).
+ */
+export function formatPriceEokCompact(priceWon: number, unit = '억원'): string {
+  if (!Number.isFinite(priceWon) || priceWon <= 0) return '-';
+  const eok = priceWon / 100_000_000;
+  const rounded2 = Math.round(eok * 100) / 100;
+  const formatted = Number.isInteger(Math.round(rounded2 * 100) % 10 === 0 ? 1 : 0.5)
+    ? rounded2.toFixed(1)
+    : rounded2.toFixed(2);
+  return `${formatted}${unit}`;
+}
+
+/**
+ * Formats an 8-digit YYYYMMDD contract/registered date into compact YY.MM.DD (e.g. '20261013' -> '26.10.13').
+ */
+export function formatShortContractDate(yyyymmdd?: string | null): string | null {
+  if (!yyyymmdd || !/^\d{8}$/.test(yyyymmdd)) return null;
+  return `${yyyymmdd.slice(2, 4)}.${yyyymmdd.slice(4, 6)}.${yyyymmdd.slice(6, 8)}`;
+}
 
 /**
  * 5 Standard Distance Tiers configuration
@@ -511,6 +588,8 @@ export function filterAndSortApartmentRecords(
         return b.avgPricePerPyeongWon - a.avgPricePerPyeongWon;
       case 'priceDesc':
         return b.avgPriceWon - a.avgPriceWon;
+      case 'latestPriceDesc':
+        return b.latestPriceWon - a.latestPriceWon || b.avgPriceWon - a.avgPriceWon;
       case 'volumeDesc':
         return b.txCount - a.txCount;
       case 'latestYear':
@@ -525,7 +604,7 @@ export function filterAndSortApartmentRecords(
 
 /**
  * Main analytical entrypoint for Issue #1 Report
- * Computes all records, filtered records, distance tiers, and regression metrics.
+ * Computes all records, filtered records, distance tiers, regression metrics, and live dataset metadata.
  */
 export function getDongtanStationAnalysisData(
   filters?: Partial<StatsFilterOptions>
@@ -541,13 +620,19 @@ export function getDongtanStationAnalysisData(
   const filteredRecords = filterAndSortApartmentRecords(allRecords, resolvedFilters);
   const distanceTiers = computeDistanceTiers(filteredRecords);
   const regression = computeOLSLinearRegression(filteredRecords);
+  const dynamicIssue1Topic = {
+    ...STATS_TOPICS[0],
+    publishedAt: MASTER_DATASET_META.referenceMonthLabel,
+    sampleCount: MASTER_DATASET_META.sampleCountLabel,
+  };
 
   return {
-    topic: STATS_TOPICS[0],
+    topic: dynamicIssue1Topic,
     allRecords,
     filteredRecords,
     distanceTiers,
     regression,
     filters: resolvedFilters,
+    datasetMeta: MASTER_DATASET_META,
   };
 }

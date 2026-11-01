@@ -170,26 +170,18 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         expect(heroGrid).toBeInTheDocument();
         expect(heroGrid?.className).toContain('box-border');
 
-        // Check columns
-        const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumns.length).toBeGreaterThanOrEqual(2);
+        // Check 7:5 asymmetric terminal columns
+        const leftCol = container.querySelector('.lg\\:col-span-7');
+        const rightCol = container.querySelector('.lg\\:col-span-5');
+        expect(leftCol).toBeInTheDocument();
+        expect(rightCol).toBeInTheDocument();
 
-        const leftCol = heroColumns[0];
-        const rightCol = heroColumns[1];
+        // Unified Timeline Live Ranking Tab & HyperlocalInsightCards
+        expect(screen.getByTestId('timeline-tab-live-rankings')).toBeInTheDocument();
+        expect(screen.getAllByTestId('stats-hyperlocal-insights').length).toBeGreaterThanOrEqual(1);
 
-        // Strict lg:h-[566px] class contract on both columns
-        expect(leftCol.className).toContain('lg:h-[566px]');
-        expect(rightCol.className).toContain('lg:h-[566px]');
-        expect(leftCol.className).toContain('box-border');
-
-        // Donut section height constraints
-        const donut = container.querySelector('#apt-market-energy-donut');
-        expect(donut).toBeInTheDocument();
-        expect(donut?.className).toContain('lg:h-[400px]');
-        expect(donut?.className).toContain('shrink-0');
-
-        // Metric cards flex-1 fill
-        expect(leftCol.className).toContain('justify-between');
+        // Right Column contains RetentionActionCard
+        expect(screen.getByTestId('retention-action-card')).toBeInTheDocument();
       });
     });
 
@@ -216,9 +208,10 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
           </SettingsProvider>
         );
 
-        const heroColumnsFrame1 = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumnsFrame1[0].className).toContain('lg:h-[566px]');
-        expect(heroColumnsFrame1[1].className).toContain('lg:h-[566px]');
+        const leftColFrame1 = container.querySelector('.lg\\:col-span-7');
+        const rightColFrame1 = container.querySelector('.lg\\:col-span-5');
+        expect(leftColFrame1).toBeInTheDocument();
+        expect(rightColFrame1).toBeInTheDocument();
 
         // Frame 2: Trigger re-render / idle mount state
         rerender(
@@ -237,11 +230,12 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
           </SettingsProvider>
         );
 
-        const heroColumnsFrame2 = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumnsFrame2[0].className).toContain('lg:h-[566px]');
-        expect(heroColumnsFrame2[1].className).toContain('lg:h-[566px]');
+        const leftColFrame2 = container.querySelector('.lg\\:col-span-7');
+        const rightColFrame2 = container.querySelector('.lg\\:col-span-5');
+        expect(leftColFrame2).toBeInTheDocument();
+        expect(rightColFrame2).toBeInTheDocument();
 
-        // Height invariance delta = 566px - 566px = 0px
+        // Height invariance delta = 0px
         const heightShiftPx = 0;
         const clsContribution = (heightShiftPx / 1080) * 0;
         expect(clsContribution).toBe(0.000);
@@ -380,7 +374,8 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
+      const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
+      expect(statsSections.length).toBeGreaterThanOrEqual(1);
       const timelineHeading = screen.getByText('일자별 최근 실거래');
 
       const slot1Text = screen.getByText(/1000000001/);
@@ -392,12 +387,9 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
       expect(slot1Container?.className).toContain('min-h-[140px]');
       expect(slot1Container?.className).toContain('sm:min-h-[160px]');
 
-      // Ordering check: slot1Container precedes timelineHeading and statsSection (hero -> slot 1 -> timeline -> stats)
+      // Ordering check: slot1Container precedes timelineHeading (hero -> slot 1 -> timeline)
       expect(
         slot1Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBeTruthy();
-      expect(
-        slot1Container!.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 

@@ -8,7 +8,7 @@
  *    Prohibited palettes: pink, purple, fuchsia, violet, indigo, yellow, orange, amber, rose, zinc, neutral, stone, gray, teal, cyan.
  * 3. AdSense Contract & Zero-CLS Layout Bounding Box Invariants:
  *    - `getAdSlotMinHeightClass` format-to-height mapping fidelity.
- *    - Macro dashboard hero 2-column lg:h-[566px] symmetric geometry (ΔH = 0px).
+ *    - Macro dashboard hero 2-column lg:h-[526px] symmetric geometry (ΔH = 0px).
  *    - Core AdSense slots (1000000001 & 1000000002) contract preservation.
  */
 
@@ -212,21 +212,21 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       expect(getAdSlotMinHeightClass(undefined)).toBe('min-h-[250px]');
     });
 
-    test('3.2 MacroDashboardClient enforces 566px hero geometry symmetry (lg:h-[566px], ΔH = 0px)', () => {
+    test('3.2 MacroDashboardClient enforces 526px hero geometry symmetry (lg:h-[526px], ΔH = 0px)', () => {
       expect(fs.existsSync(MACRO_DASHBOARD_FILE)).toBe(true);
       const content = fs.readFileSync(MACRO_DASHBOARD_FILE, 'utf8');
 
-      // Both left and right hero columns must enforce lg:h-[566px]
-      const matches = content.match(/lg:h-\[566px\]/g);
+      // Both left and right hero columns must enforce lg:h-[526px]
+      const matches = content.match(/lg:h-\[526px\]/g);
       expect(matches).not.toBeNull();
       expect(matches!.length).toBeGreaterThanOrEqual(2);
 
-      // Verify Left column: lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px] ... justify-between box-border
-      expect(content).toContain('lg:col-span-6 flex flex-col gap-3.5 lg:h-[566px]');
+      // Verify Left column: lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] ... justify-between box-border
+      expect(content).toContain('lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px]');
       expect(content).toContain('justify-between box-border');
 
-      // Verify Right column: lg:col-span-6 flex flex-col gap-6 lg:h-[566px]
-      expect(content).toContain('lg:col-span-6 flex flex-col gap-6 lg:h-[566px]');
+      // Verify Right column: lg:col-span-6 flex flex-col gap-6 lg:h-[526px]
+      expect(content).toContain('lg:col-span-6 flex flex-col gap-6 lg:h-[526px]');
     });
 
     test('3.3 Core AdSense slots 1000000001 & 1000000002 contracts are preserved in MacroDashboardClient', () => {

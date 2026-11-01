@@ -115,47 +115,113 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       </SettingsProvider>
     );
 
-    // 1. Signature Hero components (Donut section & Price trend chart, no top quick finance bar clutter)
+    // 1. Signature Donut Hero + Wide-View Center Hairline + Prime AdSlot 1 Directly Below Hero (No Duplicate Bridge Bar)
     expect(screen.queryByTestId('hero-finance-quick-bar')).not.toBeInTheDocument();
-    const donutContainer = container.querySelector('#apt-market-energy-donut');
-    expect(donutContainer).toBeInTheDocument();
+    expect(screen.queryByTestId('donut-finance-bridge')).not.toBeInTheDocument();
+    const donutSection = container.querySelector('#apt-market-energy-donut');
+    expect(donutSection).toBeInTheDocument();
+    const heroLeftCol = screen.getByTestId('hero-left-donut-col');
+    const heroRightCol = screen.getByTestId('hero-right-chart-col');
+    expect(heroLeftCol.className).toContain('lg:border-r');
+    expect(heroLeftCol.className).toContain('lg:border-border');
+    expect(heroLeftCol.className).toContain('lg:pr-6');
+    expect(heroRightCol.className).toContain('lg:pl-6');
+    expect(screen.queryByTestId('personal-watchlist-bar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('zone2-live-pulse-grid')).not.toBeInTheDocument();
+
     const trendChartTitles = screen.getAllByText(/시세 추이/);
     expect(trendChartTitles.length).toBeGreaterThanOrEqual(1);
 
-    // 2. Unified Timeline + Hyperlocal Insights + Tab Switcher (No duplicate standalone StatsOverviewSection)
+    // 2. Unified Timeline + Hyperlocal Insights + 3-Way Tab Switcher (Transactions | Live Market Ranking | Pyeong Ranking)
     expect(screen.queryByTestId('stats-overview-section')).not.toBeInTheDocument();
     expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
-    expect(screen.getByTestId('stats-hyperlocal-insights')).toBeInTheDocument();
+    expect(screen.getAllByTestId('stats-hyperlocal-insights').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByTestId('timeline-view-tab-switcher')).toBeInTheDocument();
     expect(screen.getByTestId('timeline-tab-transactions')).toBeInTheDocument();
+    expect(screen.getByTestId('timeline-tab-live-rankings')).toBeInTheDocument();
     expect(screen.getByTestId('timeline-tab-rankings')).toBeInTheDocument();
 
-    // 3. AdSlots rendered with zero-CLS containers
+    // 3. AdSlots rendered with zero-CLS containers (Prime AdSlot 1 + Timeline In-Feed AdSlot 3 + Finance AdSlot 2)
     const adContainers = screen.getAllByTestId('ad-slot-container');
-    expect(adContainers.length).toBeGreaterThanOrEqual(2);
+    expect(adContainers.length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByTestId('timeline-infeed-ad-slot')).toBeInTheDocument();
 
-    // 4. Timeline View & Hero-to-Timeline AdSlot 1
+    // 4. Prime Hero-to-Timeline AdSlot 1 directly after Donut Hero and before Timeline
     const heroAdSlot1 = screen.getByTestId('hero-ad-slot-1');
     expect(heroAdSlot1).toBeInTheDocument();
+    expect(
+      donutSection!.compareDocumentPosition(heroAdSlot1) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+
     const timelineHeading = screen.getByText('일자별 최근 실거래');
     expect(timelineHeading).toBeInTheDocument();
     expect(
       heroAdSlot1.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
-    // 5. Finance Section
+    // 5. High-CPC Finance Section + AdSlot 2 immediately below Timeline, followed by Guides & Lower 7:5 Retention Hub
     const financeSection = screen.getByTestId('high-cpc-finance-section');
     expect(financeSection).toBeInTheDocument();
-    expect(screen.queryByTestId('realtime-ranking-board')).not.toBeInTheDocument();
-
-    // DOM Document Position Verification (Authoritative Vertical Flow)
-    expect(
-      donutContainer!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
+    const financeAdSlot2 = screen.getByTestId('finance-ad-slot-2');
+    expect(financeAdSlot2).toBeInTheDocument();
+    const guidesGrid = screen.getByTestId('curated-guides-grid');
+    expect(guidesGrid).toBeInTheDocument();
+    const retentionGrid = screen.getByTestId('zone4-retention-community-grid');
+    expect(retentionGrid).toBeInTheDocument();
 
     expect(
       timelineHeading.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
+    expect(
+      financeSection.compareDocumentPosition(financeAdSlot2) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      financeAdSlot2.compareDocumentPosition(guidesGrid) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(
+      guidesGrid.compareDocumentPosition(retentionGrid) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+
+    // 6. Switching to Live Market Ranking tab mounts RealtimeRankingBoard in place
+    fireEvent.click(screen.getByTestId('timeline-tab-live-rankings'));
+    expect(screen.getByTestId('realtime-ranking-board')).toBeInTheDocument();
+  });
+
+  it('enforces 2-A Hybrid Navigation: 1st click previews chart inline, explicit detail CTA navigates to canonical apartment page', () => {
+    const onNavigateApartmentPage = jest.fn();
+
+    render(
+      <SettingsProvider>
+        <AuthProvider>
+          <MacroDashboardClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            macroTrendData={mockMacroTrendData}
+            publicRentalSet={new Set()}
+            fieldReportsMap={new Map()}
+            favoriteCounts={{}}
+            recentTransactions={mockRecentTransactions}
+            onNavigateApartmentPage={onNavigateApartmentPage}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    // 1st click on a timeline card body updates chart preview without navigating away
+    const previewBtn = screen.getByRole('button', {
+      name: /실거래 분석 아파트 선택: 동탄역시범우남퍼스트빌/,
+    });
+    fireEvent.click(previewBtn);
+    expect(onNavigateApartmentPage).not.toHaveBeenCalled();
+
+    // Explicit click on Chart Header detail CTA triggers canonical page navigation
+    const chartDetailCta = screen.getByTestId('chart-header-detail-cta');
+    fireEvent.click(chartDetailCta);
+    expect(onNavigateApartmentPage).toHaveBeenCalledTimes(1);
+    expect(onNavigateApartmentPage).toHaveBeenCalledWith(
+      '동탄역시범우남퍼스트빌',
+      expect.any(String)
+    );
   });
 
   it('switches to Complex Pyeong Ranking tab and wires ranking item click up to MacroDashboardClient onSelectApt', () => {
@@ -182,8 +248,9 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     const rankingTabBtn = screen.getByTestId('timeline-tab-rankings');
     fireEvent.click(rankingTabBtn);
 
-    const rank1Item = screen.getByTestId('ranking-item-1');
-    expect(rank1Item).toBeInTheDocument();
+    const rank1Items = screen.getAllByTestId('ranking-item-1');
+    expect(rank1Items.length).toBeGreaterThanOrEqual(1);
+    const rank1Item = rank1Items[rank1Items.length - 1];
     fireEvent.click(rank1Item);
 
     // Verify onSelectApt was called
@@ -192,5 +259,18 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       expect.stringContaining('동탄역 롯데캐슬'),
       expect.anything()
     );
+  });
+
+  it('verifies apt-market-energy-donut is preserved and accessible for /stats', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const AptDonutSection = require('@/components/macro/AptDonutSection').default;
+    const { container } = render(
+      <AptDonutSection
+        recentTransactions={mockRecentTransactions}
+        txSummaryData={mockTxSummaryData}
+        sheetApartments={mockSheetApartments}
+      />
+    );
+    expect(container.querySelector('#apt-market-energy-donut')).toBeInTheDocument();
   });
 });

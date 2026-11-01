@@ -73,7 +73,7 @@ export function useTxData(
 
   const isBrowser = typeof window !== 'undefined';
 
-  // 1. Static summary data fetching (tx-summary.json)
+  // 1. Static summary data fetching (tx-summary.json) — gated behind hasHydrated for SSR hydration parity
   const hasTxSummaryFallback = !!(initialTxSummary && Object.keys(initialTxSummary).length > 0);
   const { data: summaryData, error: summaryError, isLoading: isSummaryLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
@@ -84,7 +84,7 @@ export function useTxData(
       trendColor: string;
       badge: string;
     };
-  }>(isBrowser ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, staticJsonFetcher, {
+  }>(hasHydrated ? `/data/tx-summary.json?v=${BUILD_VERSION}` : null, staticJsonFetcher, {
     fallbackData:
       hasTxSummaryFallback
         ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume }
@@ -99,7 +99,7 @@ export function useTxData(
   // 1-2. Recent transactions list fetching (recent-transactions.json)
   const hasRecentTxFallback = !!(initialRecentTransactions && initialRecentTransactions.length > 0);
   const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<RecentTransaction[]>(
-    isBrowser ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
+    hasHydrated ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
     staticJsonFetcher,
     {
       fallbackData: hasRecentTxFallback ? initialRecentTransactions : undefined,
@@ -126,31 +126,31 @@ export function useTxData(
 
   // 3. Static data + real-time Firestore data merged summary
   const mergedSummary = useMemo(() => {
-    const activeSummary = (!hasHydrated && hasTxSummaryFallback ? initialTxSummary : summaryData?.summary) || initialTxSummary;
+    const activeSummary = (!hasHydrated ? initialTxSummary : summaryData?.summary) || initialTxSummary;
     if (!activeSummary) return undefined;
     if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeSummary;
     return mergeTransactions(activeSummary, recentFirestoreTxs);
-  }, [hasHydrated, hasTxSummaryFallback, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
+  }, [hasHydrated, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   // 3-2. Static recent transactions + real-time Firestore data merged list
   const mergedRecentTxs = useMemo(() => {
-    const activeRecent = (!hasHydrated && hasRecentTxFallback ? initialRecentTransactions : recentTxData) || initialRecentTransactions || [];
+    const activeRecent = (!hasHydrated ? initialRecentTransactions : recentTxData) || initialRecentTransactions || [];
     if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeRecent;
     const targetAptKeys = new Set(Object.keys(summaryData?.summary || initialTxSummary || {}));
     return mergeRecentTransactions(activeRecent, recentFirestoreTxs, targetAptKeys);
-  }, [hasHydrated, hasRecentTxFallback, recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary]);
+  }, [hasHydrated, recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary]);
 
   // 4. 7-day transaction volume metric calculation
   const mergedRecent7DaysVolume = useMemo(() => {
-    const activeVolume = summaryData?.recent7DaysVolume || initialRecent7DaysVolume;
-    const activeSummary = summaryData?.summary || initialTxSummary;
+    const activeVolume = (!hasHydrated ? initialRecent7DaysVolume : summaryData?.recent7DaysVolume) || initialRecent7DaysVolume;
+    const activeSummary = (!hasHydrated ? initialTxSummary : summaryData?.summary) || initialTxSummary;
     return computeRecent7DaysVolume(activeVolume, activeSummary, recentFirestoreTxs);
-  }, [summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
+  }, [hasHydrated, summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
 
   // 5. Macro trend data fetching (macro-trend.json)
   const hasMacroTrendFallback = !!(initialMacroTrend && initialMacroTrend.length > 0);
   const { data: trendData, error: trendError, isLoading: isTrendLoading } = useSWR<DongtanMacroTrendPoint[]>(
-    isBrowser ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
+    hasHydrated ? `/data/macro-trend.json?v=${BUILD_VERSION}` : null,
     staticJsonFetcher,
     {
       fallbackData: initialMacroTrend,
@@ -183,20 +183,25 @@ export function useTxData(
     txSummary: mergedSummary,
     recentTransactions: mergedRecentTxs,
     recent7DaysVolume: mergedRecent7DaysVolume,
-    macroTrend: trendData || initialMacroTrend,
+    macroTrend: (!hasHydrated ? initialMacroTrend : trendData) || initialMacroTrend,
     isLoading:
       (!shouldFetch && !initialMacroTrend) ||
-      isSummaryLoading ||
-      isRecentTxLoading ||
-      (isTrendLoading && !initialMacroTrend),
+      (hasHydrated && isSummaryLoading) ||
+      (hasHydrated && isRecentTxLoading) ||
+      (hasHydrated && isTrendLoading && !initialMacroTrend),
     error: summaryError || trendError || recentTxError || firestoreError,
   };
 }
 
 export function useLocationScores(fallbackData?: Record<string, LocationScoreItem>) {
+  const [hasHydrated, setHasHydrated] = useState(false);
+  useEffect(() => {
+    setHasHydrated(true);
+  }, []);
+
   const hasFallback = !!(fallbackData && Object.keys(fallbackData).length > 0);
   const { data, error, isLoading } = useSWR<Record<string, LocationScoreItem>>(
-    `/data/location-scores.json?v=${BUILD_VERSION}`,
+    hasHydrated ? `/data/location-scores.json?v=${BUILD_VERSION}` : null,
     staticJsonFetcher,
     {
       fallbackData: hasFallback ? fallbackData : undefined,
@@ -208,9 +213,11 @@ export function useLocationScores(fallbackData?: Record<string, LocationScoreIte
     }
   );
 
+  const activeScores = (!hasHydrated ? fallbackData : data) || fallbackData;
+
   return {
-    locationScores: data,
-    isLoading: isLoading || !data,
+    locationScores: activeScores,
+    isLoading: (!hasHydrated ? !hasFallback : isLoading) || !activeScores,
     error,
   };
 }
@@ -251,7 +258,6 @@ export function usePeriodTransactions(
     setHasHydrated(true);
   }, []);
 
-  const isBrowser = typeof window !== 'undefined';
   const isRecentBased = period === '90d' || period === '7d' || period === '30d';
   const hasRecentFallback = !!(isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0);
 
@@ -264,7 +270,8 @@ export function usePeriodTransactions(
     'all': `/data/transactions-all.json?v=${BUILD_VERSION}`,
   };
 
-  const url = isBrowser ? periodPathMap[period] : null;
+  // Defer browser SWR key until after initial hydration so SSR and client initial render match 100%
+  const url = hasHydrated ? periodPathMap[period] : null;
 
   const { data: rawData, error, isLoading } = useSWR<unknown>(
     url,
@@ -281,8 +288,12 @@ export function usePeriodTransactions(
 
   const transactions = useMemo(() => {
     let list: RecentTransaction[] = [];
-    if (!hasHydrated && hasRecentFallback && fallbackRecentTransactions) {
-      list = fallbackRecentTransactions;
+    if (!hasHydrated) {
+      if (isRecentBased && fallbackRecentTransactions) {
+        list = fallbackRecentTransactions;
+      } else {
+        return [];
+      }
     } else if (!rawData) {
       if (isRecentBased && fallbackRecentTransactions) {
         list = fallbackRecentTransactions;
@@ -300,12 +311,11 @@ export function usePeriodTransactions(
       return filterTransactionsByDays(list, 30);
     }
     return list;
-  }, [hasHydrated, hasRecentFallback, rawData, isRecentBased, fallbackRecentTransactions, period]);
+  }, [hasHydrated, rawData, isRecentBased, fallbackRecentTransactions, period]);
 
   return {
     transactions,
-    isLoading: isLoading && (!transactions || transactions.length === 0),
+    isLoading: hasHydrated && isLoading && (!transactions || transactions.length === 0),
     error,
   };
 }
-

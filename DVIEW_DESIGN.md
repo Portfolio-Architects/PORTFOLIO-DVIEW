@@ -31,7 +31,7 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 
 ### 1.4 Zero-CLS Bounding Box Contract ($\text{CLS} < 0.001$ — 정책 준수 및 유효 수익 보호)
 - 비동기 광고 로드 과정에서 발생하는 레이아웃 시프트(Layout Shift)는 사용자의 오클릭(Accidental Click)을 유발하여 구글 애드센스 무효 트래픽 감점 및 단가 하락(Smart Pricing)의 원인이 됩니다.
-- 모든 차트, 히어로 2열 대칭 레이아웃(`lg:h-[566px]`, $\Delta H = 0\text{px}$), 광고 슬롯(`AdSlot`)은 마운트 전부터 포맷별 물리적 최소 높이를 사전 예약하고 GPU 가속 Shimmer 스켈레톤을 렌더링하여 **$\text{CLS} < 0.001$을 보장하고 광고 계정의 품질 점수와 유효 CPC를 보호**합니다.
+- 모든 차트, 히어로 2열 대칭 레이아웃(`lg:h-[526px]`, $\Delta H = 0\text{px}$), 광고 슬롯(`AdSlot`)은 마운트 전부터 포맷별 물리적 최소 높이를 사전 예약하고 GPU 가속 Shimmer 스켈레톤을 렌더링하여 **$\text{CLS} < 0.001$을 보장하고 광고 계정의 품질 점수와 유효 CPC를 보호**합니다.
 
 ### 1.5 Zero-Leakage Fallback Continuity (수익 누수 0% 폴백 연속성)
 - 애드블록(`isAdBlockActive`) 환경이나 애드센스 입찰 미채결(Unfilled) 발생 시에도 빈 공간이나 깨진 박스를 노출하지 않고, 동일한 `#f9fafb` 소프트 서피스 규격의 **1st-Party 고단가 CPA 네이티브 카드**를 즉시 렌더링하여 모든 방문 트래픽을 빈틈없이 수익으로 전환합니다.
@@ -120,7 +120,7 @@ $$\text{Max } \mathcal{Y}_{\text{AdSense}} = \sum_{s \in \text{Slots}} \Big[ \te
 | `auto` / `undefined` | `min-h-[250px]` | 반응형 기본 슬롯 |
 
 ### 5.2 Hero 2-Column Symmetry & 120fps Scroll Invariant
-- **Hero Symmetry**: 매크로 대시보드 좌·우 히어로 컬럼은 `lg:h-[566px]`로 대칭 정렬되어 높이 편차($\Delta H = 0\text{px}$)를 엄격히 유지합니다.
+- **Hero Symmetry**: 매크로 대시보드 좌·우 히어로 컬럼은 `lg:h-[526px]`(`AptDonutSection` `360px` + `gap-3.5` `14px` + `AptMetricCards` `152px`)로 대칭 정렬되어 높이 편차($\Delta H = 0\text{px}$)를 엄격히 유지합니다.
 - **120fps Scroll Optimization**: 스크롤 진행 중(`body.is-scrolling`)에는 불필요한 `backdrop-filter`와 포인터 이벤트를 일시 억제하여 모바일에서도 끊김 없는 120fps 스크롤과 쾌적한 광고 탐색 경험을 보장합니다.
 
 ---

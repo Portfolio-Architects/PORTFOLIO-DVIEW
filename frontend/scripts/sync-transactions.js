@@ -1147,6 +1147,7 @@ async function main() {
       })(),
       saleTxCount: Object.values(summaries).reduce((n, s) => n + (Number(s && s.txCount) || 0), 0),
       latestContractDate: recentTransactions.map((t) => String((t && t.contractDate) || '')).filter(Boolean).sort().pop() || null,
+      latestRegisteredDate: recentTransactions.map((t) => String((t && (t.registeredDate || t.contractDate)) || '')).filter((d) => /^\d{8}$/.test(d)).sort().pop() || null,
     };
     fs.writeFileSync(MARKET_STATS_OUTPUT_PATH, JSON.stringify(marketStats, null, 2));
   } catch (statsErr) {

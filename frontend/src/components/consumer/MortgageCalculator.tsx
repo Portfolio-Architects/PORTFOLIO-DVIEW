@@ -8,6 +8,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { shareMortgageToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { usePWA } from '@/components/pwa/PWAProvider';
@@ -429,8 +430,11 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
     if (!trimmed || isShowingSelectedName) {
       return regionPool;
     }
-    const query = normalizeAptName(trimmed);
-    return regionPool.filter((a) => a.normalizedName.includes(query) || a.dong.includes(trimmed));
+    return filterAndRankApartments(regionPool, trimmed, (a) => ({
+      name: a.name,
+      dong: a.dong,
+      txKey: a.txKey,
+    }));
   }, [searchQuery, allApartments, selectedRegion, selectedApt]);
 
   // Retrieve market price

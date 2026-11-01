@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { MacroChartSection } from './MacroChartSection';
+import { clearRecentApartments, addRecentApartment, getRecentApartments } from '@/lib/utils/recentApartments';
 
 describe('MacroChartSection Test Suite', () => {
   const mockDefaultApts = [
@@ -23,7 +24,23 @@ describe('MacroChartSection Test Suite', () => {
     ],
     '영천동': [
       { name: '동탄역 푸르지오', dong: '영천동' },
+      { name: '힐스테이트 동탄역', dong: '영천동', txKey: '힐스테이트동탄역' },
     ],
+  };
+
+  const mockTxSummaryData = {
+    동탄역롯데캐슬: {
+      dong: '오산동',
+      latestPrice: 162000,
+    },
+    힐스테이트동탄역: {
+      dong: '영천동',
+      latestPrice: 98000,
+    },
+    동탄역린스트라우스: {
+      dong: '오산동',
+      latestPrice: 115000,
+    },
   };
 
   const defaultProps = {
@@ -32,9 +49,9 @@ describe('MacroChartSection Test Suite', () => {
     selectedTimelineApt: '동탄역 롯데캐슬',
     setSelectedTimelineApt: jest.fn(),
     preloadApartmentModal: jest.fn(),
-    favoritesArray: [],
     defaultTimelineApts: mockDefaultApts,
     sheetApartments: mockSheetApartments as any,
+    txSummaryData: mockTxSummaryData as any,
     onSelectApt: jest.fn(),
     onHoverApt: jest.fn(),
     timeframe: '3Y' as const,
@@ -45,63 +62,55 @@ describe('MacroChartSection Test Suite', () => {
     mainXTicks: ['26.03'],
     mainYTicks: [10, 15, 20],
     renderChart: () => <div data-testid="mock-chart">차트 렌더링 영역</div>,
-    showOrderEditor: false,
-    setShowOrderEditor: jest.fn(),
-    orderEditorRef: { current: null },
-    draggedIndex: null,
-    handleDragStart: jest.fn(),
-    handleDragOver: jest.fn(),
-    handleDragEnd: jest.fn(),
   };
 
   beforeEach(() => {
     jest.clearAllMocks();
+    clearRecentApartments();
+    localStorage.removeItem('dview_guest_favorites');
   });
 
   it('renders title, detail button, timeframe, and chart properly', () => {
     render(<MacroChartSection {...defaultProps} />);
 
-    // Title reflects current selected apartment
     expect(screen.getByText('동탄역 롯데캐슬 시세 추이')).toBeInTheDocument();
-
-    // Detail button
-    expect(screen.getByText('상세 리포트 보기 ->')).toBeInTheDocument();
-
-    // Chart rendered
+    expect(screen.getByTestId('chart-header-detail-cta')).toHaveTextContent('상세 리포트 보기');
     expect(screen.getByTestId('mock-chart')).toBeInTheDocument();
-
-    // Timeframe selector
     expect(screen.getByText('3Y')).toBeInTheDocument();
   });
 
-  it('filters apartments by dong when dong select is changed', () => {
-    render(<MacroChartSection {...defaultProps} />);
+  it('shows recent apartments and representative recommendations when search input is focused', () => {
+    addRecentApartment({ name: '동탄역 린스트라우스', dong: '오산동' });
 
-    const dongSelect = screen.getByLabelText('아파트 지역 필터 선택');
-    expect(dongSelect).toBeInTheDocument();
-
-    // Check that dong options are present
-    expect(screen.getByRole('option', { name: /청계동/i })).toBeInTheDocument();
-    expect(screen.getByRole('option', { name: /오산동/i })).toBeInTheDocument();
-
-    // Switch to 청계동
-    fireEvent.change(dongSelect, { target: { value: '청계동' } });
-
-    const aptSelect = screen.getByLabelText('시세 그래프 조회 아파트 선택');
-    expect(aptSelect).toBeInTheDocument();
-
-    // Options under 청계동 should be present
-    expect(screen.getByRole('option', { name: '동탄역 시범 더샵 센트럴시티' })).toBeInTheDocument();
-  });
-
-  it('filters apartments in real-time when searching in the search input', () => {
     render(<MacroChartSection {...defaultProps} />);
 
     const searchInput = screen.getByLabelText('단지명 실시간 검색');
-    fireEvent.change(searchInput, { target: { value: '린스트라우스' } });
+    fireEvent.focus(searchInput);
 
-    // Option matching 린스트라우스 should be present
-    expect(screen.getByRole('option', { name: /린스트라우스/i })).toBeInTheDocument();
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(screen.getByText('최근 조회한 단지')).toBeInTheDocument();
+    expect(screen.getByText('동탄 대표 단지')).toBeInTheDocument();
+    expect(screen.getAllByText('동탄역 린스트라우스').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('11억 5,000만').length).toBeGreaterThan(0);
+  });
+
+  it('opens autocomplete results immediately on typing, supporting reversed word order, chosung, dong tags, and real prices', () => {
+    render(<MacroChartSection {...defaultProps} />);
+
+    const searchInput = screen.getByLabelText('단지명 실시간 검색');
+
+    // Reversed word order: "동탄역 힐스테이트" -> matches "힐스테이트 동탄역"
+    fireEvent.change(searchInput, { target: { value: '동탄역 힐스테이트' } });
+
+    const listbox = screen.getByRole('listbox');
+    expect(listbox).toBeInTheDocument();
+    expect(listbox).toHaveTextContent('힐스테이트 동탄역');
+    expect(listbox).toHaveTextContent('영천동');
+    expect(listbox).toHaveTextContent('9억 8,000만');
+
+    // Chosung query: "ㅎㅅㅌㅇㅌ"
+    fireEvent.change(searchInput, { target: { value: 'ㅎㅅㅌㅇㅌ' } });
+    expect(screen.getByRole('listbox')).toHaveTextContent('힐스테이트 동탄역');
 
     // Clear search button
     const clearBtn = screen.getByLabelText('검색어 지우기');
@@ -109,28 +118,61 @@ describe('MacroChartSection Test Suite', () => {
     expect(searchInput).toHaveValue('');
   });
 
-  it('invokes setSelectedTimelineApt when a new apartment is selected', () => {
+  it('selects the top matching apartment immediately on pressing Enter after typing', () => {
     render(<MacroChartSection {...defaultProps} />);
 
-    const aptSelect = screen.getByLabelText('시세 그래프 조회 아파트 선택');
-    fireEvent.change(aptSelect, { target: { value: '동탄역 린스트라우스' } });
+    const searchInput = screen.getByLabelText('단지명 실시간 검색');
+    fireEvent.change(searchInput, { target: { value: '힐스테이트 동탄역' } });
+    fireEvent.keyDown(searchInput, { key: 'Enter' });
+
+    expect(defaultProps.setSelectedTimelineApt).toHaveBeenCalledWith('힐스테이트 동탄역');
+    expect(getRecentApartments()[0]?.name).toBe('힐스테이트 동탄역');
+  });
+
+  it('invokes setSelectedTimelineApt when an apartment option is clicked in the combobox dropdown', () => {
+    render(<MacroChartSection {...defaultProps} />);
+
+    const searchInput = screen.getByLabelText('단지명 실시간 검색');
+    fireEvent.change(searchInput, { target: { value: '린스트라우스' } });
+
+    const option = screen.getByRole('option', { name: /동탄역 린스트라우스/i });
+    fireEvent.click(option);
 
     expect(defaultProps.setSelectedTimelineApt).toHaveBeenCalledWith('동탄역 린스트라우스');
   });
 
-  it('invokes setSelectedTimelineApt(null) when "전체 추이 보기" is selected', () => {
+  it('invokes setSelectedTimelineApt(null) when "전체 추이 보기" option is selected', () => {
     render(<MacroChartSection {...defaultProps} />);
 
-    const aptSelect = screen.getByLabelText('시세 그래프 조회 아파트 선택');
-    fireEvent.change(aptSelect, { target: { value: '' } });
+    const searchInput = screen.getByLabelText('단지명 실시간 검색');
+    fireEvent.focus(searchInput);
+
+    const macroAllOption = screen.getByTestId('combobox-option-macro-all');
+    fireEvent.click(macroAllOption);
 
     expect(defaultProps.setSelectedTimelineApt).toHaveBeenCalledWith(null);
+  });
+
+  it('filters browsing list by dong when dong select is changed, while still finding cross-dong apartments when searched', () => {
+    render(<MacroChartSection {...defaultProps} />);
+
+    const dongSelect = screen.getByLabelText('아파트 지역 필터 선택');
+    fireEvent.change(dongSelect, { target: { value: '청계동' } });
+
+    const searchInput = screen.getByLabelText('단지명 실시간 검색');
+    fireEvent.focus(searchInput);
+
+    expect(screen.getByRole('listbox')).toHaveTextContent('동탄역 시범 더샵 센트럴시티');
+
+    // Even when 청계동 is selected, typing "힐스테이트 동탄역" (영천동) still finds it instead of dead-ending
+    fireEvent.change(searchInput, { target: { value: '힐스테이트 동탄역' } });
+    expect(screen.getByRole('listbox')).toHaveTextContent('힐스테이트 동탄역');
   });
 
   it('invokes onSelectApt with apartment name and dong when detail button is clicked', () => {
     render(<MacroChartSection {...defaultProps} />);
 
-    const detailBtn = screen.getByText('상세 리포트 보기 ->');
+    const detailBtn = screen.getByTestId('chart-header-detail-cta');
     fireEvent.click(detailBtn);
 
     expect(defaultProps.onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
@@ -145,13 +187,49 @@ describe('MacroChartSection Test Suite', () => {
     expect(defaultProps.setTimeframe).toHaveBeenCalledWith('1Y');
   });
 
-  it('does not render user favorites option after favorites feature removal', () => {
-    render(<MacroChartSection {...defaultProps} />);
-    expect(screen.queryByRole('option', { name: /내 관심 단지/i })).not.toBeInTheDocument();
-  });
-
-  it('does not render duplicate mortgage CTA button in chart header (unified in top hero bar)', () => {
+  it('does not render duplicate mortgage CTA button in chart header when onOpenMortgageModal is omitted', () => {
     render(<MacroChartSection {...defaultProps} />);
     expect(screen.queryByTestId('chart-header-mortgage-cta')).not.toBeInTheDocument();
+  });
+
+  it('toggles favorite state from chart header button and persists to localStorage', () => {
+    render(<MacroChartSection {...defaultProps} />);
+
+    const favCta = screen.getByTestId('chart-header-favorite-cta');
+    expect(favCta).toHaveTextContent('관심단지');
+    expect(favCta).toHaveAttribute('aria-pressed', 'false');
+
+    fireEvent.click(favCta);
+
+    expect(favCta).toHaveTextContent('관심단지 저장됨');
+    expect(favCta).toHaveAttribute('aria-pressed', 'true');
+    expect(JSON.parse(localStorage.getItem('dview_guest_favorites') || '[]')).toContain(
+      '동탄역 롯데캐슬'
+    );
+
+    // Clicking again removes it
+    fireEvent.click(favCta);
+    expect(favCta).toHaveTextContent('관심단지');
+    expect(favCta).toHaveAttribute('aria-pressed', 'false');
+  });
+
+  it('allows starring an apartment directly inside the search combobox and surfaces 내 관심단지 section', () => {
+    render(<MacroChartSection {...defaultProps} />);
+
+    const searchInput = screen.getByLabelText('단지명 실시간 검색');
+    fireEvent.change(searchInput, { target: { value: '힐스테이트' } });
+
+    const comboboxStarBtn = screen.getByTestId('combobox-fav-toggle-힐스테이트 동탄역');
+    fireEvent.click(comboboxStarBtn);
+
+    // Dropdown stays open and localStorage saves the apartment
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(JSON.parse(localStorage.getItem('dview_guest_favorites') || '[]')).toContain(
+      '힐스테이트 동탄역'
+    );
+
+    // Clearing search query reveals "내 관심단지 (1)" group at the top of the combobox
+    fireEvent.change(searchInput, { target: { value: '' } });
+    expect(screen.getByText('내 관심단지 (1)')).toBeInTheDocument();
   });
 });

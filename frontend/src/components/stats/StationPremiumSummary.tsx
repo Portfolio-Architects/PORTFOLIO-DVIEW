@@ -10,12 +10,14 @@ import {
   TrendingUp,
 } from 'lucide-react';
 import type { RegressionAnalysisResult, DistanceTierSummary } from '@/lib/stats/types';
+import { formatShortContractDate } from '@/lib/stats/dongtanStationDistanceEngine';
 
 export interface StationPremiumSummaryProps {
   regression?: Partial<RegressionAnalysisResult>;
   distanceTiers?: DistanceTierSummary[];
   totalComplexCount?: number;
   totalTxCount?: number;
+  latestContractDate?: string | null;
   className?: string;
 }
 
@@ -23,26 +25,29 @@ export function StationPremiumSummary({
   regression,
   distanceTiers = [],
   totalComplexCount = 127,
-  totalTxCount = 8288,
+  totalTxCount = 8055,
+  latestContractDate,
   className = '',
 }: StationPremiumSummaryProps) {
   // Extract or compute standard metrics safely
   const stationPremiumRate = regression?.stationPremiumRatePercent ?? 67.4;
-  const slopeVal = regression?.slopeManwonPerKm ?? regression?.slopeWonPerKm ?? -383;
+  const slopeVal = regression?.slopeManwonPerKm ?? regression?.slopeWonPerKm ?? -386;
+  const absSlopeMan = Math.abs(Math.round(slopeVal));
   const pearsonR = regression?.pearsonR ?? -0.6645;
   const rSquared = regression?.rSquared ?? 0.4416;
+  const latestContractShort = formatShortContractDate(latestContractDate);
 
   // Tier 1 (<500m) and Outer Tier (>=2km) averages if available
   const tier1 = distanceTiers.find((t) => t.tierId === '<500m');
   const tier1Pyeong = tier1 && tier1.avgPricePerPyeongWon > 0
     ? Math.round(tier1.avgPricePerPyeongWon / (tier1.avgPricePerPyeongWon > 100000 ? 10000 : 1))
-    : 4420;
+    : 4106;
 
   const outerTiers = distanceTiers.filter((t) => t.tierId === '2km-3km' || t.tierId === '3km+');
   const outerTx = outerTiers.reduce((acc, t) => acc + t.txVolume, 0);
   const outerPyeong = outerTx > 0
     ? Math.round(outerTiers.reduce((acc, t) => acc + t.avgPricePerPyeongWon * t.txVolume, 0) / outerTx / 10000)
-    : 2640;
+    : 2219;
 
   return (
     <section aria-label="역세권 프리미엄 및 핵심 지표 요약" className={`w-full flex flex-col gap-4 ${className}`}>
@@ -91,7 +96,7 @@ export function StationPremiumSummary({
             </div>
           </div>
           <p className="text-[11px] font-semibold text-tertiary tabular-nums truncate">
-            동탄역 1km 멀어질 때마다 평당 약 {Math.abs(Math.round(slopeVal)).toLocaleString()}만원 감가
+            동탄역 1km 멀어질 때마다 평당 약 {absSlopeMan.toLocaleString()}만원 감가
           </p>
         </div>
 
@@ -140,7 +145,8 @@ export function StationPremiumSummary({
             </div>
           </div>
           <p className="text-[11px] font-semibold text-tertiary tabular-nums truncate">
-            {totalTxCount.toLocaleString()}건 국토교통부 1년 실거래 100% 매핑
+            {totalTxCount.toLocaleString()}건 국토교통부 1년 실거래 매핑
+            {latestContractShort ? ` (${latestContractShort} 반영)` : ''}
           </p>
         </div>
       </div>
@@ -166,7 +172,7 @@ export function StationPremiumSummary({
             <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <span>
               <strong className="text-primary font-bold">압도적인 초역세권 프리미엄:</strong>{' '}
-              동탄역 도보 500m 이내 초역세권 단지는 평균 평당가 약 4,420만원으로, 2km 이상 외곽권역(약 2,640만원) 대비{' '}
+              동탄역 도보 500m 이내 초역세권 단지는 1년 평균 평당가 약 {tier1Pyeong.toLocaleString()}만원으로, 2km 이상 외곽권역(약 {outerPyeong.toLocaleString()}만원) 대비{' '}
               <span className="text-emerald-600 dark:text-emerald-400 font-extrabold tabular-nums">+{stationPremiumRate.toFixed(1)}%</span>의
               실질 시세 격차를 기록하고 있습니다.
             </span>
@@ -174,9 +180,9 @@ export function StationPremiumSummary({
           <li className="flex items-start gap-2.5 p-3.5 rounded-xl bg-white dark:bg-[#111115] border border-[#f2f4f6] dark:border-[#22222a]">
             <CheckCircle2 className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
             <span>
-              <strong className="text-primary font-bold">1km당 383만원 감가 감응도:</strong>{' '}
+              <strong className="text-primary font-bold">1km당 {absSlopeMan.toLocaleString()}만원 감가 감응도:</strong>{' '}
               OLS 선형회귀 분석 결과 동탄역에서 1km 멀어질 때마다 평당 약{' '}
-              <span className="text-blue-600 dark:text-blue-400 font-extrabold tabular-nums">383만원</span>의
+              <span className="text-blue-600 dark:text-blue-400 font-extrabold tabular-nums">{absSlopeMan.toLocaleString()}만원</span>의
               일관된 가격 하락이 관측되며, 역세권 접근성이 매매가 형성에 결정적인 기준점으로 작용합니다.
             </span>
           </li>
@@ -187,7 +193,7 @@ export function StationPremiumSummary({
               역과의 직선거리와 평당가 사이의 피어슨 상관계수는{' '}
               <span className="text-primary font-extrabold tabular-nums">r = {pearsonR.toFixed(2)}</span>,
               결정계수는 <span className="text-primary font-extrabold tabular-nums">R² = {rSquared.toFixed(2)}</span>로,
-              단일 물리적 입지 변수가 동탄 전체 아파트 시세 분산의 약 44.2%를 설명합니다.
+              단일 물리적 입지 변수가 동탄 전체 아파트 시세 분산의 약 {(rSquared * 100).toFixed(1)}%를 설명합니다.
             </span>
           </li>
         </ul>

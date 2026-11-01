@@ -5,6 +5,8 @@ import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary, LocationScoreItem } from '@/types/transaction';
 import type { FieldReportData, ObjectiveMetrics } from '@/types/report';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
+import { addRecentApartment } from '@/lib/utils/recentApartments';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema, QuizAnswerSchema } from '@/lib/validation/facade.schemas';
 import { BUILD_VERSION } from '@/lib/build-version';
@@ -381,6 +383,12 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     const apts = Array.isArray(input) ? input : [input];
     if (apts.length === 0) return;
 
+    apts.forEach((a) => {
+      if (a?.name) {
+        addRecentApartment({ name: a.name, dong: a.dong || '' });
+      }
+    });
+
     setRecentApts(prev => {
       const allPresent = apts.every(a => prev.some(p => p.name === a.name));
       if (allPresent) {
@@ -496,8 +504,11 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       const remaining = allApartments.filter(a => !recentNames.has(a.name));
       return [...recentApts, ...remaining];
     }
-    const query = normalizeAptName(deferredQuery1);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(deferredQuery1));
+    return filterAndRankApartments(allApartments, deferredQuery1, (a) => ({
+      name: a.name,
+      dong: a.dong,
+      txKey: a.txKey,
+    }));
   }, [deferredQuery1, allApartments, recentApts]);
 
   const dropdownOptions2 = useMemo(() => {
@@ -506,8 +517,11 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       const remaining = allApartments.filter(a => !recentNames.has(a.name));
       return [...recentApts, ...remaining];
     }
-    const query = normalizeAptName(deferredQuery2);
-    return allApartments.filter(a => normalizeAptName(a.name).includes(query) || a.dong.includes(deferredQuery2));
+    return filterAndRankApartments(allApartments, deferredQuery2, (a) => ({
+      name: a.name,
+      dong: a.dong,
+      txKey: a.txKey,
+    }));
   }, [deferredQuery2, allApartments, recentApts]);
 
   // Keyboard navigation
@@ -530,8 +544,14 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       setActiveIndex1(prev => (prev - 1 + dropdownOptions1.length) % dropdownOptions1.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (activeIndex1 >= 0 && activeIndex1 < dropdownOptions1.length) {
-        const selected = dropdownOptions1[activeIndex1];
+      const targetIdx =
+        activeIndex1 >= 0 && activeIndex1 < dropdownOptions1.length
+          ? activeIndex1
+          : searchQuery1.trim() !== ''
+            ? 0
+            : -1;
+      if (targetIdx >= 0 && targetIdx < dropdownOptions1.length) {
+        const selected = dropdownOptions1[targetIdx];
         setApt1(selected);
         setSearchQuery1(getDisplayAptName(selected.name));
         setIsFocused1(false);
@@ -541,7 +561,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       setIsFocused1(false);
       (e.target as HTMLInputElement).blur();
     }
-  }, [isFocused1, dropdownOptions1, activeIndex1, saveToRecent]);
+  }, [isFocused1, dropdownOptions1, activeIndex1, searchQuery1, saveToRecent]);
 
   const handleKeyDown2 = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!isFocused2 || dropdownOptions2.length === 0) return;
@@ -554,8 +574,14 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       setActiveIndex2(prev => (prev - 1 + dropdownOptions2.length) % dropdownOptions2.length);
     } else if (e.key === 'Enter') {
       e.preventDefault();
-      if (activeIndex2 >= 0 && activeIndex2 < dropdownOptions2.length) {
-        const selected = dropdownOptions2[activeIndex2];
+      const targetIdx =
+        activeIndex2 >= 0 && activeIndex2 < dropdownOptions2.length
+          ? activeIndex2
+          : searchQuery2.trim() !== ''
+            ? 0
+            : -1;
+      if (targetIdx >= 0 && targetIdx < dropdownOptions2.length) {
+        const selected = dropdownOptions2[targetIdx];
         setApt2(selected);
         setSearchQuery2(getDisplayAptName(selected.name));
         setIsFocused2(false);
@@ -565,7 +591,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       setIsFocused2(false);
       (e.target as HTMLInputElement).blur();
     }
-  }, [isFocused2, dropdownOptions2, activeIndex2, saveToRecent]);
+  }, [isFocused2, dropdownOptions2, activeIndex2, searchQuery2, saveToRecent]);
 
   // Transaction Fetching 1
   useEffect(() => {

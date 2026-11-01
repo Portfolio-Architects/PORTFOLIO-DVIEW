@@ -1,14 +1,18 @@
 import React from 'react';
 import {
   MapPin, Share, Check, MessageSquare, Camera, Bell,
-  Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert
+  Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert, Star
 } from 'lucide-react';
 import type { FieldReportData } from '@/types/report';
+import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
+import { trackEvent } from '@/lib/utils/analytics';
 
 export interface ApartmentModalHeaderProps {
   report: FieldReportData;
   displayAptName: string;
   inline?: boolean;
+  isFavorite?: boolean;
+  onToggleFavorite?: (aptName: string) => void;
   handleNativeShare: () => void;
   handleCopySummary: () => void;
   handleDownloadShareCard: () => void;
@@ -29,6 +33,8 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   report,
   displayAptName,
   inline,
+  isFavorite: propIsFavorite,
+  onToggleFavorite: propToggleFavorite,
   handleNativeShare,
   handleCopySummary,
   handleDownloadShareCard,
@@ -44,6 +50,15 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   onOpenTaxCalculator,
   onOpenSellTimingCalculator,
 }: ApartmentModalHeaderProps) {
+  const { userFavorites, handleToggleFavorite } = useFavorites();
+  const targetAptName = report.apartmentName || displayAptName;
+  const effectiveIsFavorite =
+    propIsFavorite !== undefined
+      ? propIsFavorite
+      : isApartmentInFavorites(userFavorites, targetAptName) ||
+        isApartmentInFavorites(userFavorites, displayAptName);
+  const effectiveToggleFavorite = propToggleFavorite || handleToggleFavorite;
+
   return (
     <div className={`w-full ${inline ? 'bg-surface' : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md'} pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20`}>
       <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -71,6 +86,35 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
           className="flex items-center gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 py-1.5 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0 select-none"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
+          {/* Favorite Watchlist Toggle Button (Visible on Mobile & Desktop) */}
+          <button
+            type="button"
+            data-testid="apt-detail-favorite-btn"
+            aria-pressed={effectiveIsFavorite}
+            aria-label={`${displayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
+            onClick={() => {
+              trackEvent('watchlist_toggle_favorite', {
+                apt_name: targetAptName,
+                is_favorite: !effectiveIsFavorite,
+                source: 'apartment_detail',
+              });
+              effectiveToggleFavorite(targetAptName);
+            }}
+            className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
+              effectiveIsFavorite
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
+                : 'bg-[#f2f4f6] hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400'
+            }`}
+            title={effectiveIsFavorite ? '내 관심단지에서 해제' : '내 관심단지에 저장'}
+          >
+            <Star
+              size={14}
+              strokeWidth={2.3}
+              className={effectiveIsFavorite ? 'fill-current text-white' : 'text-current'}
+            />
+            <span>{effectiveIsFavorite ? '관심단지 저장됨' : '관심단지 저장'}</span>
+          </button>
+
           {/* Share Link Button */}
           <button
             onClick={handleNativeShare}

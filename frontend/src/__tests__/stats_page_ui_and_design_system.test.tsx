@@ -122,6 +122,14 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       render(<StatsTopicSelector currentTopicId="dongtan-station-distance" />);
       expect(screen.getByText('열람 중')).toBeInTheDocument();
     });
+
+    test('automatically syncs Issue #1 sample count and reference month from live dataset', () => {
+      render(<StatsTopicSelector currentTopicId="dongtan-station-distance" />);
+      const expectedMeta = analysisData.datasetMeta!;
+      expect(screen.getByText(expectedMeta.sampleCountLabel)).toBeInTheDocument();
+      expect(screen.getByText(expectedMeta.referenceMonthLabel)).toBeInTheDocument();
+      expect(screen.getByText(/최신 실거래 \d{2}\.\d{2}\.\d{2} 계약 반영/)).toBeInTheDocument();
+    });
   });
 
   // =========================================================================
@@ -141,7 +149,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       // KPI 1: Station Premium (+67.4% ~ +67.7%)
       expect(screen.getAllByText(/\+67\.[0-9]%/).length).toBeGreaterThanOrEqual(1);
 
-      // KPI 2: -383만원/평 ~ -384만원/평
+      // KPI 2: -383만원/평 ~ -389만원/평
       expect(screen.getByText(/-38[0-9]만원\/평/)).toBeInTheDocument();
 
       // KPI 3: r = -0.66 · R² = 0.44
@@ -164,7 +172,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       );
 
       expect(screen.getByText(/압도적인 초역세권 프리미엄/)).toBeInTheDocument();
-      expect(screen.getByText(/1km당 383만원 감가 감응도/)).toBeInTheDocument();
+      expect(screen.getByText(/1km당 38[0-9]만원 감가 감응도/)).toBeInTheDocument();
       expect(screen.getByText(/높은 설명력과 음\(-\)의 상관관계/)).toBeInTheDocument();
     });
   });
@@ -253,7 +261,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       expect(screen.getByText(/y = -38[0-9]x \+ 3,4[0-9]{2}/)).toBeInTheDocument();
     });
 
-    test('shows interactive tooltip on circle hover', () => {
+    test('shows interactive tooltip on circle hover with both 1-year average and latest transaction prices', () => {
       const { container } = render(
         <DistanceRegressionScatterPlot
           records={analysisData.filteredRecords}
@@ -266,6 +274,101 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
 
       fireEvent.mouseEnter(firstCircle!);
       expect(screen.getByText(analysisData.filteredRecords[0].name)).toBeInTheDocument();
+      expect(screen.getByText('1년 평균 매매가')).toBeInTheDocument();
+      expect(screen.getByText('최근 실거래가')).toBeInTheDocument();
+    });
+
+    test('prevents any overlap between axis titles, tick labels, zone headers, and landmark data texts', () => {
+      const { container } = render(
+        <DistanceRegressionScatterPlot
+          records={analysisData.filteredRecords}
+          regression={analysisData.regression}
+        />
+      );
+
+      const svg = container.querySelector('svg[viewBox="0 0 800 480"]');
+      expect(svg).not.toBeNull();
+
+      // Verify highest-priced complex (동탄역 롯데캐슬, >5,200만/평) is never clamped onto top margin
+      const circles = Array.from(svg!.querySelectorAll('circle'));
+      expect(circles.length).toBe(analysisData.filteredRecords.length);
+      const minCy = Math.min(...circles.map((c) => Number(c.getAttribute('cy'))));
+      expect(minCy).toBeGreaterThan(80);
+
+      const estimateWidth = (str: string) => {
+        let w = 0;
+        for (const ch of str) {
+          w += /[가-힣…]/.test(ch) ? 10 : 6.2;
+        }
+        return w;
+      };
+
+      const textBoxes = Array.from(svg!.querySelectorAll('text')).map((el) => {
+        const text = (el.textContent || '').trim();
+        const x = Number(el.getAttribute('x'));
+        const y = Number(el.getAttribute('y'));
+        const anchor = el.getAttribute('text-anchor') || 'start';
+        const w = estimateWidth(text);
+        const x1 = anchor === 'end' ? x - w : anchor === 'middle' ? x - w / 2 : x;
+        const x2 = anchor === 'end' ? x : anchor === 'middle' ? x + w / 2 : x + w;
+        const y1 = y - 10;
+        const y2 = y + 2;
+        return { text, x1, y1, x2, y2 };
+      });
+
+      expect(textBoxes.length).toBeGreaterThanOrEqual(12);
+
+      // Every SVG text must remain within the 800x480 viewBox without edge clipping
+      textBoxes.forEach((b) => {
+        expect(b.x1).toBeGreaterThanOrEqual(0);
+        expect(b.x2).toBeLessThanOrEqual(800);
+        expect(b.y1).toBeGreaterThanOrEqual(0);
+        expect(b.y2).toBeLessThanOrEqual(480);
+      });
+
+      // Pairwise check: zero bounding-box collisions across all SVG texts
+      for (let i = 0; i < textBoxes.length; i++) {
+        for (let j = i + 1; j < textBoxes.length; j++) {
+          const a = textBoxes[i];
+          const b = textBoxes[j];
+          const overlaps = a.x1 < b.x2 && a.x2 > b.x1 && a.y1 < b.y2 && a.y2 > b.y1;
+          expect(overlaps ? `Overlap detected: "${a.text}" vs "${b.text}"` : null).toBeNull();
+        }
+      }
+    });
+
+    test('maximizes vertical amplitude (~90%+ Y utilization), renders steep semi-log decay curve, and supports trendline toggles', () => {
+      const { container } = render(
+        <DistanceRegressionScatterPlot
+          records={analysisData.filteredRecords}
+          regression={analysisData.regression}
+        />
+      );
+
+      const svg = container.querySelector('svg[viewBox="0 0 800 480"]')!;
+      expect(svg).not.toBeNull();
+      const circles = Array.from(svg.querySelectorAll('circle'));
+      const cys = circles.map((c) => Number(c.getAttribute('cy')));
+      const minCy = Math.min(...cys);
+      const maxCy = Math.max(...cys);
+
+      // dataHeight in 800x480 is 328px (dataTop=84, dataBottom=412); vertical data span must use >88% of dataHeight
+      expect(maxCy - minCy).toBeGreaterThan(290);
+
+      // Both semi-log decay curve (#059669) and linear OLS (#3182f6) render by default
+      expect(svg.querySelectorAll('path[stroke="#059669"]').length).toBeGreaterThanOrEqual(1);
+      expect(svg.querySelectorAll('line[stroke="#3182f6"]').length).toBeGreaterThanOrEqual(1);
+      expect(screen.getByText('구간별 실제 감가 기울기 비교')).toBeInTheDocument();
+
+      // Switch to log-only mode
+      fireEvent.click(screen.getByText('로그 감가 곡선'));
+      expect(svg.querySelectorAll('path[stroke="#059669"]').length).toBeGreaterThanOrEqual(1);
+      expect(svg.querySelectorAll('line[stroke="#3182f6"]').length).toBe(0);
+
+      // Switch to linear-only mode
+      fireEvent.click(screen.getByText('선형 OLS'));
+      expect(svg.querySelectorAll('path[stroke="#059669"]').length).toBe(0);
+      expect(svg.querySelectorAll('line[stroke="#3182f6"]').length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -273,7 +376,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
   // 5. ComplexDrillDownTable
   // =========================================================================
   describe('5. ComplexDrillDownTable Component', () => {
-    test('renders multi-dimensional filter controls and quick sort buttons', () => {
+    test('renders multi-dimensional filter controls, quick sort buttons, and dual price columns', () => {
       render(
         <ComplexDrillDownTable
           records={analysisData.filteredRecords}
@@ -287,6 +390,9 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       expect(screen.getByText('신축 (≤5년)')).toBeInTheDocument();
       expect(screen.getByText('동탄역 거리순')).toBeInTheDocument();
       expect(screen.getByText('평당가 높은순')).toBeInTheDocument();
+      expect(screen.getByText('최근 실거래가순')).toBeInTheDocument();
+      expect(screen.getByText('1년 평균 매매가')).toBeInTheDocument();
+      expect(screen.getByText('최근 실거래가')).toBeInTheDocument();
     });
 
     test('dispatches filter updates when toggling area band or sort', () => {
@@ -304,6 +410,9 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
 
       fireEvent.click(screen.getByText('평당가 높은순'));
       expect(onFilterChange).toHaveBeenCalledWith({ sortBy: 'pyeongPriceDesc' });
+
+      fireEvent.click(screen.getByText('최근 실거래가순'));
+      expect(onFilterChange).toHaveBeenCalledWith({ sortBy: 'latestPriceDesc' });
     });
 
     test('renders table rows with fixed height h-[52px] for Zero-CLS stability', () => {

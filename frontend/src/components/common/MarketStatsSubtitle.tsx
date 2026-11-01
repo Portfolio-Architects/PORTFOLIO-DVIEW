@@ -6,7 +6,7 @@ import { staticDataService } from '@/lib/services/staticDataService';
 import { BUILD_VERSION } from '@/lib/build-version';
 
 /**
- * 서브타이틀 실시간 지표 (등록 단지 수 / 국토부 매매 실거래 누적 건수 / 최신 계약일).
+ * 서브타이틀 실시간 지표 (등록 단지 수 / 국토부 매매 실거래 누적 건수 / 최신 국토부 등록일·계약일).
  * - 데이터 출처: /data/market-stats.json (sync-transactions.js 가 실제 집계값으로만 생성, 약 100B)
  * - 단지 수는 차트 드롭다운("동탄 전체 (N개 단지)")과 동일한 apartments-by-dong.json 기준입니다.
  * - 값이 없으면 숫자를 지어내지 않고 폭만 확보한 스켈레톤(Zero-CLS)을 노출합니다.
@@ -15,6 +15,7 @@ export interface MarketStats {
   apartmentCount?: number;
   saleTxCount: number;
   latestContractDate: string | null;
+  latestRegisteredDate?: string | null;
 }
 
 function useMarketStats(): MarketStats | null {
@@ -70,16 +71,22 @@ export function MarketStatsStrong() {
   );
 }
 
-/** subtitleLight 용: 구분선 + 행동 유도 문구 + (넓은 화면) 최신 거래 반영일 */
+/** subtitleLight 용: 구분선 + 행동 유도 문구 + (넓은 화면) 최신 국토부 등록 반영일 */
 export function MarketStatsLight({ text }: { text: string }) {
   const stats = useMarketStats();
-  const dateLabel = formatContractDate(stats?.latestContractDate ?? null);
+  const registeredLabel = formatContractDate(stats?.latestRegisteredDate ?? null);
+  const contractFallbackLabel = formatContractDate(stats?.latestContractDate ?? null);
+  const suffixText = registeredLabel
+    ? ` · ${registeredLabel} 국토부 등록 반영`
+    : contractFallbackLabel
+      ? ` · ${contractFallbackLabel} 거래 반영`
+      : '';
   return (
     <>
       <span className="hidden sm:inline text-slate-300 dark:text-slate-600 mr-1.5">—</span>
       {text}
-      <span className="hidden lg:inline-block min-w-[9.5rem] text-slate-500 dark:text-slate-400 tabular-nums">
-        {dateLabel ? ` · ${dateLabel} 거래 반영` : ''}
+      <span className="hidden lg:inline-block min-w-[11.5rem] text-slate-500 dark:text-slate-400 tabular-nums">
+        {suffixText}
       </span>
     </>
   );

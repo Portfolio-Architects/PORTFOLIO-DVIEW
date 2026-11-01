@@ -438,42 +438,45 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
         </SettingsProvider>
       );
 
-      // Top signature 2-column hero elements
+      // Top signature Donut Hero + Prime AdSlot 1 (duplicate Donut-Finance Bridge removed)
       const donutSection = container.querySelector('#apt-market-energy-donut');
       expect(donutSection).toBeInTheDocument();
+      expect(screen.queryByTestId('personal-watchlist-bar')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('donut-finance-bridge')).not.toBeInTheDocument();
+      const heroAdSlot1 = screen.getByTestId('hero-ad-slot-1');
+      expect(heroAdSlot1).toBeInTheDocument();
+      expect(
+        donutSection!.compareDocumentPosition(heroAdSlot1) & Node.DOCUMENT_POSITION_FOLLOWING
+      ).toBeTruthy();
 
-      // StatsOverviewSection immediately below
-      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
-      expect(statsSection).toBeInTheDocument();
+      // StatsOverviewSection / Hyperlocal Insights
+      const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
+      expect(statsSections.length).toBeGreaterThanOrEqual(1);
 
       // Timeline section below
       const timelineHeading = screen.getByText('일자별 최근 실거래');
       expect(timelineHeading).toBeInTheDocument();
 
-      // High CPC Finance section below
+      // High CPC Finance section immediately below Timeline
       const financeSection = screen.getByTestId('high-cpc-finance-section');
       expect(financeSection).toBeInTheDocument();
-      expect(screen.queryByTestId('realtime-ranking-board')).not.toBeInTheDocument();
 
       // AdSlots
       const adContainers = screen.getAllByTestId('ad-slot-container');
       expect(adContainers.length).toBeGreaterThanOrEqual(2);
 
-      // Strict DOM Hierarchy Order Verification
-      // Donut Section is preceding Timeline Heading (Immediately below hero)
+      // Strict DOM Hierarchy Order Verification: Donut Hero -> Prime AdSlot 1 -> Timeline -> Finance
       expect(
-        donutSection!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+        heroAdSlot1.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
-      // Timeline Heading is preceding StatsOverviewSection
       expect(
-        timelineHeading.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
+        timelineHeading.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
-      // StatsOverviewSection is preceding Finance Section
-      expect(
-        statsSection.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBeTruthy();
+      // Live Market Ranking tab mounts RealtimeRankingBoard
+      fireEvent.click(screen.getByTestId('timeline-tab-live-rankings'));
+      expect(screen.getByTestId('realtime-ranking-board')).toBeInTheDocument();
     });
 
     it('wires ranking item click from StatsOverviewSection up to MacroDashboardClient onSelectApt', () => {
@@ -511,9 +514,11 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
+      const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
+      expect(statsSections.length).toBeGreaterThanOrEqual(1);
       fireEvent.click(screen.getByTestId('timeline-tab-rankings'));
-      const rank1 = screen.getByTestId('ranking-item-1');
+      const rankItems = screen.getAllByTestId('ranking-item-1');
+      const rank1 = rankItems[rankItems.length - 1];
       expect(rank1).toBeInTheDocument();
 
       fireEvent.click(rank1);
@@ -729,9 +734,11 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
+      const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
+      expect(statsSections.length).toBeGreaterThanOrEqual(1);
       fireEvent.click(screen.getByTestId('timeline-tab-rankings'));
-      const rankItem = screen.getByTestId('ranking-item-1');
+      const rankItems = screen.getAllByTestId('ranking-item-1');
+      const rankItem = rankItems[rankItems.length - 1];
       fireEvent.click(rankItem);
 
       expect(onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', expect.anything());

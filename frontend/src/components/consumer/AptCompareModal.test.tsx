@@ -205,4 +205,40 @@ describe('AptCompareModal', () => {
     const parkRow = screen.getByText('공원 도보 거리').closest('.grid');
     expect(parkRow).toHaveClass('bg-emerald-500/10');
   }, 15000);
+
+  it('supports multi-token / chosung search and immediate Enter key selection', async () => {
+    render(
+      <AptCompareModal
+        isOpen={true}
+        onClose={mockOnClose}
+        sheetApartments={mockSheetApartments as any}
+        txSummaryData={mockTxSummaryData as any}
+        nameMapping={mockNameMapping}
+        fieldReportsMap={mockFieldReportsMap}
+        typeMap={mockTypeMap}
+        locationScores={mockLocationScores}
+      />
+    );
+
+    const input1 = screen.getByPlaceholderText('1번 단지 검색...');
+    await act(async () => {
+      fireEvent.focus(input1);
+      fireEvent.change(input1, { target: { value: '센트럴 더샵' } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(input1, { key: 'Enter' });
+    });
+    expect((input1 as HTMLInputElement).value).toBe('동탄역더샵센트럴시티');
+
+    const input2 = screen.getByPlaceholderText('2번 단지 검색...');
+    await act(async () => {
+      fireEvent.focus(input2);
+      fireEvent.change(input2, { target: { value: 'ㄷㅇ ㄹㅁㅇ' } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(input2, { key: 'Enter' });
+    });
+    expect((input2 as HTMLInputElement).value).toBe('시범다은삼성래미안');
+    expect(screen.getByText('1:1 지표 매트릭스 비교')).toBeInTheDocument();
+  });
 });

@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react';
-import { useFavorites } from './useFavorites';
+import { useFavorites, isApartmentInFavorites } from './useFavorites';
 import type { User } from 'firebase/auth';
 
 const originalFetch = global.fetch;
@@ -106,5 +106,12 @@ describe('useFavorites Hook & Decoupled Local Storage Operation', () => {
     expect(result.current.favoritesCount).toBe(2);
     expect(result.current.isFavorite('동탄역 린스트라우스')).toBe(true);
     expect(result.current.favorites).toContain('동탄역 린스트라우스');
+  });
+
+  it('isApartmentInFavorites matches across whitespace differences and raw-vs-display names', () => {
+    const favs = new Set(['동탄역 시범 우남퍼스트빌']);
+    expect(isApartmentInFavorites(favs, '동탄역시범우남퍼스트빌')).toBe(true);
+    expect(isApartmentInFavorites(favs, '동탄역 시범 우남퍼스트빌')).toBe(true);
+    expect(isApartmentInFavorites(favs, '동탄역 롯데캐슬')).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   evaluateJeonseSafety,
 } from '@/lib/utils/jeonseSafetyCalculators';
@@ -8,15 +8,28 @@ import {
 export interface JeonseGuaranteeQuickPreviewProps {
   onOpenJeonseSafetyModal?: () => void;
   onOpenJeonseSafety?: () => void;
+  initialEstimatedPriceWon?: number;
+  apartmentName?: string | null;
 }
 
 export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQuickPreview({
   onOpenJeonseSafetyModal,
   onOpenJeonseSafety,
+  initialEstimatedPriceWon,
+  apartmentName: _apartmentName,
 }: JeonseGuaranteeQuickPreviewProps) {
-  const [estimatedPriceWon, setEstimatedPriceWon] = useState<number>(600_000_000); // 6억
-  const [jeonseDepositWon, setJeonseDepositWon] = useState<number>(400_000_000); // 4억
+  const [estimatedPriceWon, setEstimatedPriceWon] = useState<number>(initialEstimatedPriceWon || 600_000_000); // 6억 기본
+  const [jeonseDepositWon, setJeonseDepositWon] = useState<number>(
+    initialEstimatedPriceWon ? Math.round((initialEstimatedPriceWon * 0.6) / 10_000_000) * 10_000_000 : 400_000_000 // 통상 전세가율 60% 추정
+  );
   const [seniorMortgageWon, setSeniorMortgageWon] = useState<number>(0); // 무융자 기본
+
+  useEffect(() => {
+    if (initialEstimatedPriceWon && initialEstimatedPriceWon > 0) {
+      setEstimatedPriceWon(initialEstimatedPriceWon);
+      setJeonseDepositWon(Math.round((initialEstimatedPriceWon * 0.6) / 10_000_000) * 10_000_000);
+    }
+  }, [initialEstimatedPriceWon]);
 
   const handleOpen = onOpenJeonseSafetyModal || onOpenJeonseSafety;
 

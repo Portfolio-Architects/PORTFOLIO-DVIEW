@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   calculatePolicyLoan,
   PolicyLoanType,
@@ -10,15 +10,25 @@ import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/cont
 export interface PolicyLoanQuickWidgetProps {
   onOpenMortgageModal?: () => void;
   onOpenMortgage?: () => void;
+  initialHomePriceWon?: number;
+  apartmentName?: string | null;
 }
 
 export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
   onOpenMortgageModal,
   onOpenMortgage,
+  initialHomePriceWon,
+  apartmentName: _apartmentName,
 }: PolicyLoanQuickWidgetProps) {
   const [loanType, setLoanType] = useState<PolicyLoanType>('NEWBORN');
-  const [homePriceWon, setHomePriceWon] = useState<number>(700_000_000); // 7억
+  const [homePriceWon, setHomePriceWon] = useState<number>(initialHomePriceWon || 700_000_000); // 7억 기본
   const [annualIncomeWon, setAnnualIncomeWon] = useState<number>(80_000_000); // 8,000만
+
+  useEffect(() => {
+    if (initialHomePriceWon && initialHomePriceWon > 0) {
+      setHomePriceWon(initialHomePriceWon);
+    }
+  }, [initialHomePriceWon]);
 
   const handleOpen = onOpenMortgageModal || onOpenMortgage;
 

@@ -73,12 +73,15 @@ export function StatsSkeleton() {
       <div className="w-full min-h-[140px] sm:min-h-[160px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]" />
 
       {/* DistanceRegressionScatterPlot Skeleton */}
-      <div className="w-full h-[400px] sm:h-[480px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-6 border border-[#f2f4f6] dark:border-[#202027] flex flex-col justify-between">
-        <div className="flex justify-between items-center mb-3">
+      <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-6 border border-[#f2f4f6] dark:border-[#202027] flex flex-col justify-between gap-4">
+        <div className="flex justify-between items-center">
           <div className="h-5 w-56 bg-slate-200/70 dark:bg-slate-800 rounded" />
           <div className="h-4 w-44 bg-slate-200/50 dark:bg-slate-800/50 rounded" />
         </div>
-        <div className="w-full flex-1 rounded-xl bg-slate-200/40 dark:bg-slate-800/40" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-8 w-full h-[400px] sm:h-[500px] lg:h-[540px] rounded-xl bg-slate-200/40 dark:bg-slate-800/40" />
+          <div className="lg:col-span-4 w-full min-h-[260px] lg:h-[540px] rounded-xl bg-slate-200/40 dark:bg-slate-800/40" />
+        </div>
       </div>
 
       {/* AdSlot #3 (Rectangle) Skeleton */}

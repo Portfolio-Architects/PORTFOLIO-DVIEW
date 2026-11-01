@@ -7,6 +7,7 @@ import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
 import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { shareJeonseSafetyToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
 import { QuizAnswerSchema } from '@/lib/validation/facade.schemas';
@@ -216,6 +217,7 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
     setSearchQuery(getDisplayAptName(apt.name));
     setIsFocused(false);
     setShowResult(false);
+    setRecentApts(addRecentApartment({ name: apt.name, dong: apt.dong }));
 
     // Auto-populate default Jeonse from transaction data
     const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
@@ -337,8 +339,11 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
     const isShowingSelectedName =
       selectedApt && normalizeAptName(trimmed) === normalizeAptName(getDisplayAptName(selectedApt.name));
     if (!trimmed || isShowingSelectedName) return allApartments;
-    const query = normalizeAptName(trimmed);
-    return allApartments.filter(a => a.normalizedName.includes(query) || a.dong.includes(trimmed));
+    return filterAndRankApartments(allApartments, trimmed, (a) => ({
+      name: a.name,
+      dong: a.dong,
+      txKey: a.txKey,
+    }));
   }, [searchQuery, allApartments, selectedApt]);
 
   // Retrieve market price and calculate debt ratio

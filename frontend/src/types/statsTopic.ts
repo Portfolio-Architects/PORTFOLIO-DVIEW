@@ -4,6 +4,8 @@
  * Supports extensible research issues starting with Issue #1.
  */
 
+import marketStatsStatic from '../../public/data/market-stats.json';
+
 export interface StatsTopic {
   id: string;
   issueNumber: number;
@@ -15,6 +17,18 @@ export interface StatsTopic {
   status: 'active' | 'upcoming';
 }
 
+function resolveReferenceMonthLabel(): string {
+  const raw =
+    (marketStatsStatic as { latestRegisteredDate?: string | null; latestContractDate?: string | null })
+      ?.latestRegisteredDate ||
+    (marketStatsStatic as { latestContractDate?: string | null })?.latestContractDate ||
+    '';
+  if (/^\d{6,8}$/.test(raw)) {
+    return `${raw.slice(0, 4)}.${raw.slice(4, 6)} 기준`;
+  }
+  return '최신 기준';
+}
+
 export const STATS_TOPICS: StatsTopic[] = [
   {
     id: 'dongtan-station-distance',
@@ -22,8 +36,8 @@ export const STATS_TOPICS: StatsTopic[] = [
     badge: 'Issue #1',
     title: '동탄역과의 거리가 아파트 가격에 미치는 영향',
     subtitle: 'GTX-A 동탄역 접근성에 따른 127개 단지 실거래가 및 평당가 OLS 회귀분석 리포트',
-    publishedAt: '2026.10',
-    sampleCount: '127개 단지 · 8,288건 실거래 전수',
+    publishedAt: resolveReferenceMonthLabel(),
+    sampleCount: '127개 단지 · 최근 1년 실거래 전수',
     status: 'active',
   },
   {

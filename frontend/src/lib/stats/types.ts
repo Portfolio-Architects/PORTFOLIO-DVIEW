@@ -13,9 +13,11 @@ export interface ApartmentStatRecord {
   name: string;
   dong: string;
   distanceToStationMeters: number;
-  avgPriceWon: number; // in KRW (원)
-  avgPricePerPyeongWon: number; // in KRW (원/평)
-  latestPriceWon: number;
+  avgPriceWon: number; // 1-year average price in KRW (원)
+  avgPricePerPyeongWon: number; // 1-year average price per pyeong in KRW (원/평)
+  latestPriceWon: number; // Most recent transaction price in KRW (원)
+  latestPricePerPyeongWon?: number; // Most recent transaction price per pyeong in KRW (원/평)
+  latestContractDate?: string; // Most recent contract date in YYYYMMDD
   txCount: number;
   builtYear: number;
   householdCount: number;
@@ -50,7 +52,16 @@ export interface StatsFilterOptions {
   areaBand: 'all' | 'small' | 'medium' | 'large'; // small: <60m2, medium: 60-85m2, large: >85m2
   buildingAge: 'all' | 'under5' | '5to10' | 'over10';
   dong: string; // 'all' or legal dong name
-  sortBy: 'distance' | 'pyeongPriceDesc' | 'priceDesc' | 'volumeDesc' | 'latestYear';
+  sortBy: 'distance' | 'pyeongPriceDesc' | 'priceDesc' | 'latestPriceDesc' | 'volumeDesc' | 'latestYear';
+}
+
+export interface StatsDatasetMeta {
+  totalComplexCount: number;
+  totalTxCount: number;
+  latestContractDate: string | null;
+  latestRegisteredDate: string | null;
+  referenceMonthLabel: string;
+  sampleCountLabel: string;
 }
 
 export interface Issue1AnalysisPayload {
@@ -60,4 +71,5 @@ export interface Issue1AnalysisPayload {
   distanceTiers: DistanceTierSummary[];
   regression: RegressionAnalysisResult;
   filters: StatsFilterOptions;
+  datasetMeta?: StatsDatasetMeta;
 }

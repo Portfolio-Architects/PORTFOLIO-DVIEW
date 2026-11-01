@@ -62,28 +62,26 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     });
   });
 
-  it('splits LoungeHeader in wide view into 4 left tabs and 1 right-aligned stats tab (4 --- 1 layout)', () => {
+  it('groups all 5 tabs together in the left-aligned segmented nav bar in wide view', () => {
     const { container } = render(<LoungeHeader activeTab="overview" />);
     const nav = within(container).getByRole('navigation', { name: '메인 메뉴' });
-    expect(nav).toHaveClass('justify-between');
+    expect(nav).toHaveClass('justify-start');
+    expect(nav).not.toHaveClass('justify-between');
     expect(nav).toHaveClass('w-full');
 
     const leftGroup = within(nav).getByTestId('nav-left-group');
-    const rightGroup = within(nav).getByTestId('nav-right-group');
+    expect(within(nav).queryByTestId('nav-right-group')).toBeNull();
 
     const leftLinks = within(leftGroup).getAllByRole('link');
-    expect(leftLinks).toHaveLength(4);
+    expect(leftLinks).toHaveLength(5);
     expect(leftLinks.map((l) => l.textContent?.trim())).toEqual([
       '아파트 랩',
       '아파트 탐색',
       '단지 MBTI',
       '부동산 가이드',
+      '아파트 통계',
     ]);
-
-    const rightLinks = within(rightGroup).getAllByRole('link');
-    expect(rightLinks).toHaveLength(1);
-    expect(rightLinks[0]).toHaveTextContent('아파트 통계');
-    expect(rightLinks[0]).toHaveAttribute('href', '/stats');
+    expect(leftLinks[4]).toHaveAttribute('href', '/stats');
   });
 
   it('renders all 5 main navigation links with identical labels and hrefs in MobileDock', () => {

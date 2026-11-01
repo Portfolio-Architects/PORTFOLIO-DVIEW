@@ -16,6 +16,30 @@ const FavoriteCountsResponseSchema = z.object({
   counts: z.record(z.string(), z.number()).optional().catch(undefined),
 }).passthrough();
 
+/**
+ * Checks whether an apartment name matches any saved favorite entry,
+ * accounting for whitespace differences and canonical RTMS/display name aliases.
+ */
+export function isApartmentInFavorites(
+  favorites: Set<string> | Iterable<string> | undefined | null,
+  aptName: string | undefined | null,
+  nameMapping?: Record<string, string>
+): boolean {
+  if (!favorites || !aptName) return false;
+  if (favorites instanceof Set && favorites.has(aptName)) return true;
+  const targetNorm = normalizeAptName(aptName);
+  for (const item of favorites) {
+    if (
+      item === aptName ||
+      normalizeAptName(item) === targetNorm ||
+      isSameApartment(item, aptName, nameMapping)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export function useFavorites(
   _user?: User | null,
   initialFavoriteCounts: Record<string, number> = {}
@@ -116,13 +140,8 @@ export function useFavorites(
   }, []);
 
   const isFavorited = useCallback(
-    (aptName: string): boolean => {
-      if (!aptName) return false;
-      if (userFavorites.has(aptName)) return true;
-      const targetNorm = normalizeAptName(aptName);
-      return Array.from(userFavorites).some(
-        (item) => normalizeAptName(item) === targetNorm || isSameApartment(item, aptName)
-      );
+    (aptName: string, nameMapping?: Record<string, string>): boolean => {
+      return isApartmentInFavorites(userFavorites, aptName, nameMapping);
     },
     [userFavorites]
   );

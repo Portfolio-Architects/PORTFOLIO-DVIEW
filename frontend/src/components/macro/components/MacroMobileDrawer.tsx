@@ -12,6 +12,8 @@ export interface MacroMobileDrawerProps {
   timeframe: "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL";
   setTimeframe: (tf: "3M" | "6M" | "1Y" | "3Y" | "5Y" | "ALL") => void;
   renderBottomSheetChart: () => React.ReactNode;
+  onOpenMortgageModal?: (aptName?: string) => void;
+  onNavigateDetail?: (aptName: string) => void;
 }
 
 export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
@@ -22,6 +24,8 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
   timeframe,
   setTimeframe,
   renderBottomSheetChart,
+  onOpenMortgageModal,
+  onNavigateDetail,
 }: MacroMobileDrawerProps) {
   if (!isBottomSheetOpen || typeof window === 'undefined') return null;
 
@@ -148,6 +152,41 @@ export const MacroMobileDrawer = React.memo(function MacroMobileDrawer({
             );
           })()}
         </div>
+
+        {/* Sticky Bottom Conversion Footer (High-CPC Mortgage + Canonical SSR Detail Page) */}
+        {selectedTimelineApt && (onOpenMortgageModal || onNavigateDetail) && (
+          <footer
+            data-testid="mobile-drawer-action-footer"
+            className="shrink-0 px-5 py-3.5 border-t border-border/60 bg-surface flex items-center gap-2.5"
+          >
+            {onOpenMortgageModal && (
+              <button
+                type="button"
+                data-testid="mobile-drawer-mortgage-cta"
+                onClick={() => {
+                  setIsBottomSheetOpen(false);
+                  onOpenMortgageModal(selectedTimelineApt);
+                }}
+                className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:hover:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold transition-colors cursor-pointer border-none"
+              >
+                대출·한도 조회
+              </button>
+            )}
+            {onNavigateDetail && (
+              <button
+                type="button"
+                data-testid="mobile-drawer-detail-cta"
+                onClick={() => {
+                  setIsBottomSheetOpen(false);
+                  onNavigateDetail(selectedTimelineApt);
+                }}
+                className="flex-[1.35] py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-extrabold shadow-2xs transition-colors cursor-pointer border-none"
+              >
+                상세 리포트 전체보기 -&gt;
+              </button>
+            )}
+          </footer>
+        )}
       </div>
     </div>,
     document.body

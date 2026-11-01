@@ -1,7 +1,9 @@
 import React, { memo } from 'react';
+import { Star } from 'lucide-react';
 import { EnrichedApt } from './types';
 import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
 import { formatEokWithUnit } from '@/components/MacroDashboardClient';
+import { trackEvent } from '@/lib/utils/analytics';
 
 interface AptRowProps {
   item: EnrichedApt;
@@ -12,6 +14,8 @@ interface AptRowProps {
   views: number;
   maxPyeongPrice?: number;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
+  isFavorite?: boolean;
+  onToggleFavorite?: (aptName: string) => void;
 }
 
 const formatEqPrice = (priceMan: number) => {
@@ -28,7 +32,9 @@ export const AptRow = memo(({
   photoCount,
   views,
   maxPyeongPrice = 0,
-  preloadApartmentTx
+  preloadApartmentTx,
+  isFavorite = false,
+  onToggleFavorite,
 }: AptRowProps) => {
 
   const getRankBadgeStyle = (idx: number) => {
@@ -194,11 +200,41 @@ export const AptRow = memo(({
         </div>
 
         {/* Right Side Metric and Action Button */}
-        <div className="flex md:flex-col items-end justify-between md:justify-center gap-2.5 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 border-dashed shrink-0 pl-0 md:pl-6 md:w-40">
+        <div className="flex md:flex-col items-end justify-between md:justify-center gap-2.5 mt-4 md:mt-0 pt-3 md:pt-0 border-t md:border-t-0 border-border/40 border-dashed shrink-0 pl-0 md:pl-6 md:w-44">
           {renderRightMetric()}
-          <span className="text-[12px] font-extrabold text-secondary bg-surface px-3 py-1.5 rounded-xl group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-            상세 분석
-          </span>
+          <div className="flex items-center gap-1.5">
+            {onToggleFavorite && (
+              <button
+                type="button"
+                data-testid={`explore-fav-toggle-${item.apt.name}`}
+                aria-pressed={isFavorite}
+                aria-label={`${item.apt.name} ${isFavorite ? '관심단지 해제' : '관심단지 저장'}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  trackEvent('watchlist_toggle_favorite', {
+                    apt_name: item.apt.name,
+                    is_favorite: !isFavorite,
+                    source: 'explore_list',
+                  });
+                  onToggleFavorite(item.apt.name);
+                }}
+                className={`p-1.5 rounded-xl transition-colors cursor-pointer border ${
+                  isFavorite
+                    ? 'bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 border-blue-200 dark:border-blue-800/60'
+                    : 'bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-tertiary hover:text-blue-600 dark:hover:text-blue-400 border-transparent'
+                }`}
+                title={isFavorite ? '내 관심단지 해제' : '내 관심단지 저장'}
+              >
+                <Star
+                  size={14}
+                  className={isFavorite ? 'fill-blue-500 text-blue-600 dark:text-blue-400' : ''}
+                />
+              </button>
+            )}
+            <span className="text-[12px] font-extrabold text-secondary bg-surface px-3 py-1.5 rounded-xl group-hover:bg-blue-50 dark:group-hover:bg-blue-950/40 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              상세 분석
+            </span>
+          </div>
         </div>
       </div>
     </div>

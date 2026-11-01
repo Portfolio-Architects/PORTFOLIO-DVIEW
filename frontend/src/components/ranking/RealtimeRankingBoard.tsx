@@ -7,6 +7,7 @@ import {
   RealtimeRankingData,
 } from '@/lib/utils/rankingCalculations';
 import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
+import { trackEvent } from '@/lib/utils/analytics';
 
 export interface RealtimeRankingBoardProps {
   recentTransactions?: any[] | null;
@@ -14,6 +15,7 @@ export interface RealtimeRankingBoardProps {
   sheetApartments?: any[] | Record<string, any> | null;
   onSelectComplex?: (complexName: string) => void;
   onSelectApt?: (aptName: string) => void;
+  className?: string;
 }
 
 type RankingTabType = 'high' | 'gap' | 'surge';
@@ -24,6 +26,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
   sheetApartments,
   onSelectComplex,
   onSelectApt,
+  className,
 }: RealtimeRankingBoardProps) {
   const [activeTab, setActiveTab] = useState<RankingTabType>('high');
 
@@ -49,7 +52,7 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
   return (
     <div
       data-testid="realtime-ranking-board"
-      className="w-full bg-surface border border-border/80 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 lg:p-7 flex flex-col gap-4.5 shadow-sm mb-6"
+      className={`w-full bg-surface border border-border/80 rounded-[22px] sm:rounded-[26px] p-5 sm:p-6 lg:p-7 flex flex-col gap-4.5 shadow-sm ${className ?? 'mb-6'}`}
     >
       {/* Header with 3 Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-border/50">
@@ -70,7 +73,10 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
           <button
             type="button"
             data-testid="ranking-tab-high"
-            onClick={() => setActiveTab('high')}
+            onClick={() => {
+              trackEvent('ranking_tab_click', { tab_id: 'high' });
+              setActiveTab('high');
+            }}
             className={getToggleBtnClass({ active: activeTab === 'high', size: 'sm' })}
           >
             <span>실시간 신고가 TOP 10</span>
@@ -78,7 +84,10 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
           <button
             type="button"
             data-testid="ranking-tab-gap"
-            onClick={() => setActiveTab('gap')}
+            onClick={() => {
+              trackEvent('ranking_tab_click', { tab_id: 'gap' });
+              setActiveTab('gap');
+            }}
             className={getToggleBtnClass({ active: activeTab === 'gap', size: 'sm' })}
           >
             <span>전세가율·갭 최적</span>
@@ -86,7 +95,10 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
           <button
             type="button"
             data-testid="ranking-tab-surge"
-            onClick={() => setActiveTab('surge')}
+            onClick={() => {
+              trackEvent('ranking_tab_click', { tab_id: 'surge' });
+              setActiveTab('surge');
+            }}
             className={getToggleBtnClass({ active: activeTab === 'surge', size: 'sm' })}
           >
             <span>주간 거래량 급증</span>
@@ -100,7 +112,14 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
           <div
             key={`${item.rank}-${item.apartmentName}`}
             data-testid={`ranking-item-${item.rank}`}
-            onClick={() => handleSelect?.(item.apartmentName)}
+            onClick={() => {
+              trackEvent('ranking_item_click', {
+                apt_name: item.apartmentName,
+                rank: item.rank,
+                tab_id: activeTab,
+              });
+              handleSelect?.(item.apartmentName);
+            }}
             className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-blue-600/40 dark:hover:border-blue-400/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3 min-w-0">

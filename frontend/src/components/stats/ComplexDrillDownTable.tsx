@@ -3,15 +3,13 @@
 import React, { useState, useMemo } from 'react';
 import {
   TrainFront,
-  SlidersHorizontal,
   Building2,
   Search,
   ArrowUpDown,
-  Filter,
-  Calendar,
-  Layers,
 } from 'lucide-react';
 import type { ApartmentStatRecord, StatsFilterOptions } from '@/lib/stats/types';
+import { formatPriceEokCompact, formatShortContractDate } from '@/lib/stats/dongtanStationDistanceEngine';
+import { matchesApartmentSearch } from '@/lib/utils/apartmentSearch';
 import {
   getToggleTrackClass,
   getToggleBtnClass,
@@ -57,8 +55,9 @@ export function ComplexDrillDownTable({
   const displayedRecords = useMemo(() => {
     let list = records;
     if (searchQuery.trim()) {
-      const q = searchQuery.trim().toLowerCase();
-      list = list.filter((r) => r.name.toLowerCase().includes(q) || r.dong.toLowerCase().includes(q));
+      list = list.filter((r) =>
+        matchesApartmentSearch({ name: r.name, dong: r.dong }, searchQuery)
+      );
     }
     return list;
   }, [records, searchQuery]);
@@ -80,7 +79,7 @@ export function ComplexDrillDownTable({
             </h3>
           </div>
           <p className="text-[11px] sm:text-[12px] font-medium text-secondary mt-0.5">
-            평형대, 연식, 권역별 필터링 및 동탄역 거리 기준 순위 탐색
+            평형대, 연식, 권역별 필터링 및 1년 평균 매매가 · 최근 실거래가 비교 탐색
           </p>
         </div>
 
@@ -229,7 +228,18 @@ export function ComplexDrillDownTable({
                 : 'bg-white dark:bg-[#202027] hover:text-primary'
             }`}
           >
-            매매가 높은순
+            1년 평균가순
+          </button>
+          <button
+            type="button"
+            onClick={() => onFilterChange({ sortBy: 'latestPriceDesc' })}
+            className={`px-2 py-1 rounded-md transition-colors ${
+              filters.sortBy === 'latestPriceDesc'
+                ? 'bg-blue-600 text-white font-black'
+                : 'bg-white dark:bg-[#202027] hover:text-primary'
+            }`}
+          >
+            최근 실거래가순
           </button>
           <button
             type="button"
@@ -258,17 +268,18 @@ export function ComplexDrillDownTable({
 
       {/* Sortable Table with Fixed Row Height (h-[52px]) to eliminate CLS */}
       <div className="w-full overflow-x-auto rounded-xl border border-[#f2f4f6] dark:border-[#202027] bg-white dark:bg-[#151519]">
-        <table className="w-full text-left border-collapse min-w-[720px]">
+        <table className="w-full text-left border-collapse min-w-[840px]">
           <thead>
             <tr className="border-b border-[#f2f4f6] dark:border-[#202027] bg-[#f9fafb] dark:bg-[#1c1c22] text-[11px] font-extrabold text-secondary h-[40px]">
               <th className="px-3 text-center w-[50px]">순위</th>
               <th className="px-3">단지명</th>
               <th className="px-3 w-[75px]">법정동</th>
               <th className="px-3 w-[115px] text-right">동탄역 거리</th>
-              <th className="px-3 w-[115px] text-right">평균 평당가</th>
-              <th className="px-3 w-[105px] text-right">평균 매매가</th>
-              <th className="px-3 w-[75px] text-center">연식</th>
-              <th className="px-3 w-[85px] text-right">거래량</th>
+              <th className="px-3 w-[115px] text-right">1년 평균 평당가</th>
+              <th className="px-3 w-[110px] text-right">1년 평균 매매가</th>
+              <th className="px-3 w-[145px] text-right">최근 실거래가</th>
+              <th className="px-3 w-[70px] text-center">연식</th>
+              <th className="px-3 w-[85px] text-right">1년 거래량</th>
             </tr>
           </thead>
           <tbody>
@@ -280,6 +291,7 @@ export function ComplexDrillDownTable({
                     : Math.round(apt.avgPricePerPyeongWon);
 
                 const priceEok = (apt.avgPriceWon / 100000000).toFixed(1);
+                const latestDateShort = formatShortContractDate(apt.latestContractDate);
 
                 return (
                   <tr
@@ -312,16 +324,24 @@ export function ComplexDrillDownTable({
                         {apt.distanceToStationMeters.toLocaleString()}m
                       </span>
                     </td>
-                    <td className="px-3 text-right font-black text-primary tabular-nums">
+                    <td className="px-3 text-right font-black text-primary tabular-nums whitespace-nowrap">
                       {pyeongMan.toLocaleString()}만
                     </td>
-                    <td className="px-3 text-right font-extrabold text-primary tabular-nums">
+                    <td className="px-3 text-right font-extrabold text-primary tabular-nums whitespace-nowrap">
                       {priceEok}억
+                    </td>
+                    <td className="px-3 text-right font-black text-emerald-600 dark:text-emerald-400 tabular-nums whitespace-nowrap">
+                      <span>{formatPriceEokCompact(apt.latestPriceWon, '억')}</span>
+                      {latestDateShort && (
+                        <span className="text-[10px] font-semibold text-tertiary ml-1">
+                          ({latestDateShort})
+                        </span>
+                      )}
                     </td>
                     <td className="px-3 text-center font-medium text-secondary tabular-nums">
                       {apt.builtYear}
                     </td>
-                    <td className="px-3 text-right font-bold text-tertiary tabular-nums">
+                    <td className="px-3 text-right font-bold text-tertiary tabular-nums whitespace-nowrap">
                       {apt.txCount}건
                     </td>
                   </tr>
@@ -329,7 +349,7 @@ export function ComplexDrillDownTable({
               })
             ) : (
               <tr>
-                <td colSpan={8} className="h-[120px] text-center text-secondary font-medium">
+                <td colSpan={9} className="h-[120px] text-center text-secondary font-medium">
                   선택한 필터 조건에 부합하는 단지가 없습니다.
                 </td>
               </tr>

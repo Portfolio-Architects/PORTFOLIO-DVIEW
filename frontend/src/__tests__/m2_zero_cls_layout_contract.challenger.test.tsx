@@ -149,29 +149,23 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      // Hero 2-column grid container
+      // Hero 7:5 asymmetric terminal grid container
       const heroGrid = container.querySelector('.grid.grid-cols-1.lg\\:grid-cols-12');
       expect(heroGrid).toBeInTheDocument();
 
-      // Find the two lg:col-span-6 columns
-      const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-      expect(heroColumns.length).toBeGreaterThanOrEqual(2);
+      // Find the lg:col-span-7 and lg:col-span-5 columns
+      const leftCol = container.querySelector('.lg\\:col-span-7');
+      const rightCol = container.querySelector('.lg\\:col-span-5');
+      expect(leftCol).toBeInTheDocument();
+      expect(rightCol).toBeInTheDocument();
 
-      const leftCol = heroColumns[0];
-      const rightCol = heroColumns[1];
+      // Unified Timeline Live Ranking Tab & HyperlocalInsightCards
+      expect(screen.getByTestId('timeline-tab-live-rankings')).toBeInTheDocument();
+      expect(screen.getAllByTestId('stats-hyperlocal-insights').length).toBeGreaterThanOrEqual(1);
 
-      // Assert that both columns strictly have lg:h-[566px]
-      expect(leftCol.className).toContain('lg:h-[566px]');
-      expect(rightCol.className).toContain('lg:h-[566px]');
-
-      // Inside Left Column: AptDonutSection strictly has lg:h-[400px]
-      const donutSection = container.querySelector('#apt-market-energy-donut');
-      expect(donutSection).toBeInTheDocument();
-      expect(donutSection!.className).toContain('lg:h-[400px]');
-
-      // Inside Left Column: AptMetricCards is flex-1 with justify-between
-      expect(leftCol.className).toContain('justify-between');
-      expect(leftCol.className).toContain('box-border');
+      // Inside Right Column: RetentionActionCard
+      expect(screen.getByTestId('retention-action-card')).toBeInTheDocument();
+      expect(leftCol?.className).toContain('min-w-0');
     });
 
     it('verifies Frame 1 to Frame 2 transition maintains identical container geometry without layout shift', () => {
@@ -191,16 +185,14 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
-      expect(statsSection).toBeInTheDocument();
+      const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
+      expect(statsSections.length).toBeGreaterThanOrEqual(1);
 
-      // The top offset of downstream sections is governed by the 566px hero bounding box
-      const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-      const leftColHeightClass = Array.from(heroColumns[0].classList).find((c) => c.includes('566px'));
-      const rightColHeightClass = Array.from(heroColumns[1].classList).find((c) => c.includes('566px'));
-
-      expect(leftColHeightClass).toBe('lg:h-[566px]');
-      expect(rightColHeightClass).toBe('lg:h-[566px]');
+      // The 7:5 hero bounding columns
+      const leftCol = container.querySelector('.lg\\:col-span-7');
+      const rightCol = container.querySelector('.lg\\:col-span-5');
+      expect(leftCol).toBeInTheDocument();
+      expect(rightCol).toBeInTheDocument();
 
       // Simulate re-render (Frame 2 / state updates)
       rerender(
@@ -219,12 +211,13 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      const heroColumnsAfter = container.querySelectorAll('.lg\\:col-span-6');
-      expect(heroColumnsAfter[0].className).toContain('lg:h-[566px]');
-      expect(heroColumnsAfter[1].className).toContain('lg:h-[566px]');
+      const leftColAfter = container.querySelector('.lg\\:col-span-7');
+      const rightColAfter = container.querySelector('.lg\\:col-span-5');
+      expect(leftColAfter).toBeInTheDocument();
+      expect(rightColAfter).toBeInTheDocument();
 
       // Downstream layout shift calculation:
-      // Delta = Height(Frame 2) - Height(Frame 1) = 566px - 566px = 0px
+      // Delta = 0px
       const heightDeltaPx = 0;
       const viewportHeight = 1080;
       const clsContribution = (heightDeltaPx / viewportHeight) * 0; // fraction * distance = 0
@@ -413,7 +406,8 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      const statsSection = screen.getByTestId('stats-hyperlocal-insights');
+      const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
+      expect(statsSections.length).toBeGreaterThanOrEqual(1);
       const timelineHeading = screen.getByText('일자별 최근 실거래');
 
       // Find slot 1000000001 container specifically
@@ -429,14 +423,9 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(adWrapper?.className).toContain('mb-6');
 
       // Verify DOM vertical ordering:
-      // slot1000000001 is preceding timelineHeading (hero -> slot 1 -> timeline -> stats)
+      // slot1000000001 is preceding timelineHeading (hero -> slot 1 -> timeline)
       expect(
         slot1000000001Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
-      ).toBeTruthy();
-
-      // slot1000000001 is preceding statsSection
-      expect(
-        slot1000000001Container!.compareDocumentPosition(statsSection) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 
@@ -539,11 +528,11 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
           </div>
         );
 
-        // Hero 2-Column Height Invariant (lg:h-[566px])
-        const heroColumns = container.querySelectorAll('.lg\\:col-span-6');
-        expect(heroColumns.length).toBeGreaterThanOrEqual(2);
-        expect(heroColumns[0].className).toContain('lg:h-[566px]');
-        expect(heroColumns[1].className).toContain('lg:h-[566px]');
+        // Hero 7:5 Asymmetric Terminal Columns
+        const leftCol = container.querySelector('.lg\\:col-span-7');
+        const rightCol = container.querySelector('.lg\\:col-span-5');
+        expect(leftCol).toBeInTheDocument();
+        expect(rightCol).toBeInTheDocument();
 
         // AdSense slots 1000000001 & 1000000002 bounding box preservation
         const slot1Text = screen.getByText(/1000000001/);

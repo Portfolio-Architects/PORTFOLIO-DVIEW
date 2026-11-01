@@ -1,6 +1,15 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Clock, X } from 'lucide-react';
 import { DONGS } from '@/lib/dongs';
 import { trackEvent } from '@/lib/utils/analytics';
+import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { getHighlightSegments } from '@/lib/utils/apartmentSearch';
+import {
+  addRecentApartment,
+  getRecentApartments,
+  removeRecentApartment,
+  type RecentApartmentItem,
+} from '@/lib/utils/recentApartments';
 import { EnrichedApt } from './types';
 
 interface SearchSuggestionDropdownProps {
@@ -28,6 +37,12 @@ export function SearchSuggestionDropdown({
   handleSelectApt,
   preloadApartmentTx,
 }: SearchSuggestionDropdownProps) {
+  const [recentApts, setRecentApts] = useState<RecentApartmentItem[]>([]);
+
+  useEffect(() => {
+    setRecentApts(getRecentApartments());
+  }, []);
+
   return (
     <div 
       id="search-suggestions-listbox"
@@ -37,8 +52,61 @@ export function SearchSuggestionDropdown({
     >
       {!searchQuery.trim() ? (
         <>
+          {/* Recent Viewed Apartments */}
+          {recentApts.length > 0 && (
+            <div role="group" aria-label="최근 조회한 단지">
+              <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <Clock size={12} className="text-tertiary" />
+                <span>최근 조회한 단지</span>
+              </h4>
+              <div className="flex flex-col gap-1">
+                {recentApts.slice(0, 4).map((recent) => (
+                  <div
+                    key={recent.name}
+                    className="flex items-center justify-between px-2.5 py-2 hover:bg-slate-50 dark:hover:bg-slate-900/60 rounded-xl transition-colors group"
+                  >
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected="false"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => {
+                        addRecentApartment({ name: recent.name, dong: recent.dong });
+                        handleSelectApt(recent.name);
+                        setIsSearchFocused(false);
+                        trackEvent('view_apartment', { apt_name: recent.name, trigger: 'recent_shortcut' });
+                      }}
+                      className="flex items-center justify-between flex-1 min-w-0 text-left pr-2 cursor-pointer"
+                    >
+                      <span className="text-primary text-[12.5px] font-bold truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {getDisplayAptName(recent.name)}
+                      </span>
+                      {recent.dong && (
+                        <span className="text-[10.5px] font-semibold text-tertiary bg-slate-100 dark:bg-slate-800/80 px-1.5 py-0.5 rounded shrink-0 ml-2">
+                          {recent.dong}
+                        </span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`${getDisplayAptName(recent.name)} 최근 기록 삭제`}
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRecentApts(removeRecentApartment(recent.name));
+                      }}
+                      className="p-1 rounded-md text-tertiary hover:text-secondary hover:bg-slate-200/60 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Recommended Keywords */}
-          <div role="group" aria-label="추천 검색어">
+          <div role="group" aria-label="추천 검색어" className={recentApts.length > 0 ? 'border-t border-border/40 pt-3.5' : ''}>
             <h4 className="text-[11px] font-extrabold text-tertiary uppercase tracking-wider mb-2">
               추천 검색어
             </h4>
@@ -109,6 +177,7 @@ export function SearchSuggestionDropdown({
                     tabIndex={0}
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
+                      addRecentApartment({ name: item.apt.name, dong: item.apt.dong });
                       handleSelectApt(item.apt.name);
                       setIsSearchFocused(false);
                       trackEvent('view_apartment', { apt_name: item.apt.name, trigger: 'search_shortcut' });
@@ -127,13 +196,21 @@ export function SearchSuggestionDropdown({
                   >
                     <div className="flex flex-col min-w-0 pr-2">
                       <span className="text-primary text-[13px] font-bold group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors truncate">
-                        {item.apt.name}
+                        {getHighlightSegments(item.apt.name, searchQuery).map((seg, idx) =>
+                          seg.highlighted ? (
+                            <span key={idx} className="text-blue-600 dark:text-blue-400 font-extrabold">
+                              {seg.text}
+                            </span>
+                          ) : (
+                            <React.Fragment key={idx}>{seg.text}</React.Fragment>
+                          )
+                        )}
                       </span>
-                      <span className="text-tertiary text-[11px] mt-0.5">
+                      <span className="text-tertiary text-[11px] mt-0.5 tabular-nums">
                         {item.apt.dong} · {item.formattedHousehold} · {item.formattedYearBuilt}
                       </span>
                     </div>
-                    <div className="text-right shrink-0">
+                    <div className="text-right shrink-0 tabular-nums">
                       {item.totalPrice > 0 ? (
                         <span className="text-emerald-600 dark:text-emerald-400 text-[13px] font-extrabold">{item.formattedPrice}</span>
                       ) : (
