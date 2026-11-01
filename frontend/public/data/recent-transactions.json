@@ -1,5 +1,24 @@
 [
   {
+    "aptName": "동탄2아이파크1단지",
+    "txKey": "동탄2아이파크1단지",
+    "date": "10.30",
+    "contractDate": "20261030",
+    "registeredDate": "20261101",
+    "registeredDateLabel": "11.01",
+    "priceVal": 5.85,
+    "priceEok": "5억8,500",
+    "area": 96.9548,
+    "areaPyeong": 38.115,
+    "floor": 1,
+    "dealType": "중개거래",
+    "isNewHigh": false,
+    "prevPriceVal": 6.9,
+    "delta": -1.05,
+    "deltaPercent": -15.2,
+    "dateLabel": "10월 30일"
+  },
+  {
     "aptName": "동탄2하우스디더레이크",
     "txKey": "동탄2하우스디더레이크",
     "date": "10.30",
