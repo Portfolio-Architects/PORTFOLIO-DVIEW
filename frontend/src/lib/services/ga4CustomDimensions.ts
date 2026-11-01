@@ -8,7 +8,8 @@ import { z } from 'zod';
 
 export const DEFAULT_DVIEW_GA4_PROPERTY_ID = '527874632';
 export const DEFAULT_DVIEW_GA4_MEASUREMENT_ID = 'G-Y17BHJ77W6';
-export const MAX_GA4_REPORT_DIMENSIONS = 9;
+// GA4 caps total distinct dimensions across `dimensions` + `dimensionFilter` (`eventName`) at 9
+export const MAX_GA4_REPORT_DIMENSIONS = 8;
 const MAX_PAGINATION_PAGES = 20;
 
 export interface Ga4CustomDimensionSpec {
@@ -98,7 +99,7 @@ export const DVIEW_GA4_CUSTOM_METRICS: ReadonlyArray<Ga4CustomMetricSpec> = [
   {
     parameterName: 'dwell_time_ms',
     apiName: 'customEvent:dwell_time_ms',
-    displayName: 'Ad Slot Dwell Time (ms)',
+    displayName: 'Ad Slot Dwell Time ms',
     description: 'Accumulated active-view dwell duration in milliseconds at telemetry emission',
     scope: 'EVENT',
     measurementUnit: 'MILLISECONDS',

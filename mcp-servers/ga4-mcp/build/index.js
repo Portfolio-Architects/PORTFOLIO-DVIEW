@@ -176,7 +176,7 @@ exports.DVIEW_AD_TELEMETRY_CUSTOM_METRICS = [
     {
         parameterName: "dwell_time_ms",
         apiName: "customEvent:dwell_time_ms",
-        displayName: "Ad Slot Dwell Time (ms)",
+        displayName: "Ad Slot Dwell Time ms",
         description: "Accumulated active-view dwell duration in milliseconds at telemetry emission",
         scope: "EVENT",
         measurementUnit: "MILLISECONDS",
@@ -1243,7 +1243,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 .filter((s) => s.length > 0));
             const dimensionsQueried = ["pagePath", "deviceCategory"];
             for (const spec of exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS) {
-                if (dimensionsQueried.length >= 9)
+                if (dimensionsQueried.length >= 8)
                     break;
                 if (registeredDimNames.has(spec.apiName)) {
                     dimensionsQueried.push(spec.apiName);
