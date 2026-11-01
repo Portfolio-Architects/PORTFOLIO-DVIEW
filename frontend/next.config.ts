@@ -62,13 +62,13 @@ const nextConfig: NextConfig = {
         permanent: true,
       },
       {
-        source: '/lounge',
-        destination: '/',
+        source: '/board',
+        destination: '/lounge',
         permanent: true,
       },
       {
-        source: '/lounge/:path*',
-        destination: '/',
+        source: '/board/:path*',
+        destination: '/lounge/:path*',
         permanent: true,
       },
       {
@@ -180,7 +180,7 @@ const nextConfig: NextConfig = {
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
+            value: 'camera=(), microphone=(), geolocation=(self)',
           },
         ],
       },
