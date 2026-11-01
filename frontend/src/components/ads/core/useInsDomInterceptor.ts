@@ -23,6 +23,8 @@ export interface UseInsDomInterceptorParams {
     transitionEvent: 'STATUS_UNFILLED' | 'TIMEOUT_3S'
   ) => void;
   clearCascadeTimeout: () => void;
+  clearViewableImpressionTimer: () => void;
+  onSlotFilled: () => void;
   discardLateFilledResponse: () => void;
   startCascadeTimeout: (customDelayMs?: number) => void;
 }
@@ -43,6 +45,8 @@ export function useInsDomInterceptor({
   setLateFillDiscarded,
   activateCascadeFallback,
   clearCascadeTimeout,
+  clearViewableImpressionTimer,
+  onSlotFilled,
   discardLateFilledResponse,
   startCascadeTimeout,
 }: UseInsDomInterceptorParams) {
@@ -52,6 +56,7 @@ export function useInsDomInterceptor({
     const initialInsEl = insRef.current;
     const parentEl = initialInsEl.parentElement;
     const patchedInsElements = new Set<HTMLElement>();
+    let activeReplacementIns: HTMLElement | null = null;
     let observer: MutationObserver | null = null;
     let isInternalGuardActive = false;
 
@@ -85,13 +90,17 @@ export function useInsDomInterceptor({
       }
 
       // Invariant 1: f(REQUESTED, STATUS_UNFILLED) = UNFILLED_DETECTED -> FALLBACK_ACTIVE (<= 50ms)
+      // Real adsbygoogle.js injects <div id="aswift_N_host"> wrapper children at push time while
+      // data-ad-status is null, then sets data-ad-status="unfilled" on no-fill. Because
+      // explicitlyFilledRef is only latched on explicit fill, unfilled transitions cleanly.
       if (adStatus === 'unfilled' && !explicitlyFilledRef.current) {
+        clearViewableImpressionTimer();
         activateCascadeFallback('UNFILLED_ATTRIBUTE', 'STATUS_UNFILLED');
         return;
       }
 
-      // Genuine Fill: f(REQUESTED, STATUS_FILLED) = FILLED
-      if (adStatus === 'filled' || (hasInjectedChildren && adStatus !== 'unfilled')) {
+      // Explicit Auction Fill: f(REQUESTED, STATUS_FILLED) = FILLED
+      if (adStatus === 'filled') {
         clearCascadeTimeout();
         explicitlyFilledRef.current = true;
         const transition = transitionCascadeStateWithPath(
@@ -101,28 +110,50 @@ export function useInsDomInterceptor({
         cascadeStatusRef.current = transition.nextState;
         setCascadeStatus(transition.nextState);
         setIsAdLoaded((prev) => (prev ? prev : true));
+        onSlotFilled();
         return;
       }
 
-      // If adsbygoogle.js claimed the slot with data-adsbygoogle-status="done" prior to auction completion,
-      // dismiss skeleton shimmer while keeping the 3,000ms cascade timeout active until filled/unfilled resolves.
-      if (status === 'done' && adStatus !== 'unfilled') {
+      // If adsbygoogle.js claimed the slot with data-adsbygoogle-status="done" or injected its
+      // pre-auction host container prior to data-ad-status resolving, dismiss skeleton shimmer
+      // while keeping the 3,000ms cascade timeout active until filled/unfilled resolves.
+      if ((status === 'done' || hasInjectedChildren) && adStatus !== 'unfilled') {
         setIsAdLoaded((prev) => (prev ? prev : true));
       }
     };
 
     const syncFromReplacementIns = (replacementEl: HTMLElement) => {
       if (!insRef.current || replacementEl === insRef.current) return;
+      activeReplacementIns = replacementEl;
       const adStatus = replacementEl.getAttribute('data-ad-status');
       const adsbygoogleStatus = replacementEl.getAttribute('data-adsbygoogle-status');
+
       if (adStatus !== null) {
         nativeSetAttribute.call(insRef.current, 'data-ad-status', adStatus);
+      } else {
+        nativeRemoveAttribute.call(insRef.current, 'data-ad-status');
       }
+
       if (adsbygoogleStatus !== null) {
         nativeSetAttribute.call(insRef.current, 'data-adsbygoogle-status', adsbygoogleStatus);
+      } else {
+        nativeRemoveAttribute.call(insRef.current, 'data-adsbygoogle-status');
       }
-      if (replacementEl.childNodes.length > 0 && nativeInnerHTMLDescriptor?.set) {
+
+      if (nativeInnerHTMLDescriptor?.set) {
         nativeInnerHTMLDescriptor.set.call(insRef.current, replacementEl.innerHTML);
+      }
+
+      if (adStatus !== 'filled') {
+        clearViewableImpressionTimer();
+        explicitlyFilledRef.current = false;
+        if (cascadeStatusRef.current === 'FILLED') {
+          cascadeStatusRef.current = 'REQUESTED';
+          setCascadeStatus('REQUESTED');
+          if (adStatus === null && adsbygoogleStatus === null && replacementEl.childNodes.length === 0) {
+            setIsAdLoaded(false);
+          }
+        }
       }
     };
 
@@ -171,6 +202,7 @@ export function useInsDomInterceptor({
             !this.getAttribute('data-ad-status') &&
             !this.getAttribute('data-adsbygoogle-status')
           ) {
+            clearViewableImpressionTimer();
             cascadeStatusRef.current = 'REQUESTED';
             explicitlyFilledRef.current = false;
             setCascadeStatus('REQUESTED');
@@ -414,7 +446,12 @@ export function useInsDomInterceptor({
     }
 
     if (typeof MutationObserver !== 'undefined') {
-      observer = new MutationObserver(evaluateInsStatus);
+      observer = new MutationObserver(() => {
+        if (activeReplacementIns) {
+          syncFromReplacementIns(activeReplacementIns);
+        }
+        evaluateInsStatus();
+      });
       observer.observe(initialInsEl, {
         attributes: true,
         attributeFilter: ['data-adsbygoogle-status', 'data-ad-status'],
@@ -456,6 +493,8 @@ export function useInsDomInterceptor({
     setLateFillDiscarded,
     activateCascadeFallback,
     clearCascadeTimeout,
+    clearViewableImpressionTimer,
+    onSlotFilled,
     discardLateFilledResponse,
     startCascadeTimeout,
   ]);

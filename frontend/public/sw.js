@@ -83,6 +83,23 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   const url = new URL(req.url);
 
+  const isExternalTelemetryOrAdsHost =
+    url.hostname === 'google-analytics.com' ||
+    url.hostname.endsWith('.google-analytics.com') ||
+    url.hostname === 'analytics.google.com' ||
+    url.hostname.endsWith('.analytics.google.com') ||
+    url.hostname === 'googletagmanager.com' ||
+    url.hostname.endsWith('.googletagmanager.com') ||
+    url.hostname === 'googlesyndication.com' ||
+    url.hostname.endsWith('.googlesyndication.com') ||
+    url.hostname === 'doubleclick.net' ||
+    url.hostname.endsWith('.doubleclick.net') ||
+    url.hostname === 'adtrafficquality.google' ||
+    url.hostname.endsWith('.adtrafficquality.google');
+
+  const isCrossOriginNonGet =
+    url.origin !== self.location.origin && req.method !== 'GET';
+
   // Read-only API endpoints for offline defense & fast caching
   const isReadOnlyApi = req.method === 'GET' && (
     url.pathname.startsWith('/api/dashboard-init') ||
@@ -93,8 +110,10 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/api/technovalley')
   );
 
-  // 🔧 Explicitly bypass auth APIs, push/action APIs, non-GET API requests, and local development requests
+  // 🔧 Explicitly bypass GA4/AdSense telemetry beacons, auth APIs, push/action APIs, non-GET API requests, and local development requests
   if (
+    isExternalTelemetryOrAdsHost ||
+    isCrossOriginNonGet ||
     url.pathname.startsWith('/api/auth') ||
     url.pathname.startsWith('/api/push') ||
     (url.pathname.startsWith('/api/') && !isReadOnlyApi) ||

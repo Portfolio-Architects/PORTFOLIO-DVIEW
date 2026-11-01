@@ -412,6 +412,43 @@ export function createCascadeFallbackStateMachine(): CascadeFallbackStateMachine
   return new CascadeFallbackStateMachine();
 }
 
+export const VIEWABLE_IMPRESSION_DWELL_MS = 1000;
+
+function isAdminTrackingExcluded(): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage.getItem('dview_is_admin') === 'true';
+  } catch {
+    return false;
+  }
+}
+
+function enqueueDataLayerGtagEvent(
+  eventName: string,
+  params: Record<string, unknown>
+): boolean {
+  if (typeof window === 'undefined') return false;
+  const win = window as unknown as { dataLayer?: unknown[] };
+  if (!win.dataLayer) {
+    win.dataLayer = [];
+  }
+  const dl = win.dataLayer;
+  if (
+    typeof dl !== 'object' ||
+    dl === null ||
+    typeof (dl as { push?: unknown }).push !== 'function' ||
+    Object.isFrozen(dl)
+  ) {
+    return false;
+  }
+  // gtag.js requires genuine [object Arguments] entries in window.dataLayer, not plain Arrays/Objects
+  (function pushArgumentsTuple(..._unused: unknown[]) {
+    void _unused;
+    // eslint-disable-next-line prefer-rest-params
+    (dl as { push: (...items: unknown[]) => number }).push(arguments);
+  })('event', eventName, params);
+  return true;
+}
+
 /**
  * Dispatches an AdTelemetryBeacon to `/api/ads/click` via non-blocking `navigator.sendBeacon`
  * with an automatic non-blocking `fetch(..., { keepalive: true })` fallback.
@@ -428,28 +465,14 @@ export function sendAdTelemetryBeacon(
 
   const serialized = JSON.stringify(parsed.data);
 
-  try {
-    if (
-      typeof window !== 'undefined' &&
-      typeof (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag === 'function'
-    ) {
-      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
-        'event',
-        'ad_telemetry',
-        {
-          event_category: parsed.data.eventType,
-          event_label: parsed.data.slotId,
-          slot_id: parsed.data.slotId,
-          event_type: parsed.data.eventType,
-          apartment_name: parsed.data.apartmentName,
-          campaign_id: parsed.data.campaignId,
-          timestamp: parsed.data.timestamp,
-        }
-      );
-    }
-  } catch {
-    // Swallow synchronous GA4 exception (Delta Jank = 0ms)
-  }
+  dispatchGa4AdTelemetry({
+    eventType: parsed.data.eventType,
+    slotId: parsed.data.slotId,
+    apartmentName: parsed.data.apartmentName,
+    campaignId: parsed.data.campaignId,
+    userAgentCategory: detectUserAgentCategory(),
+    timestamp: parsed.data.timestamp,
+  });
 
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
@@ -558,7 +581,98 @@ export type ClosedLoopTelemetryInput = Omit<
 > & {
   userAgentCategory?: UserAgentCategory;
   timestamp?: string;
+  placementSlotId?: string;
 };
+
+export const GA4_MAX_PARAM_VALUE_LENGTH = 100;
+
+function normalizeGa4ParamString(
+  rawValue: string | undefined,
+  fallbackValue: string = '',
+  maxLength: number = GA4_MAX_PARAM_VALUE_LENGTH
+): string {
+  const trimmed = typeof rawValue === 'string' ? rawValue.trim() : '';
+  const effective = trimmed.length > 0 ? trimmed : fallbackValue;
+  return effective.length > maxLength ? effective.slice(0, maxLength) : effective;
+}
+
+/**
+ * Dispatches GA4 custom event (`ad_telemetry`) with guaranteed custom dimensions
+ * (`slot_id`, `event_type`, `apartment_name`, `user_agent_category`, plus optional
+ * `placement_slot_id` and `campaign_id`). Falls back to queuing genuine `[object Arguments]`
+ * into `window.dataLayer` when invoked prior to `_next-ga-init` defining `window.gtag`.
+ */
+export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): boolean {
+  if (typeof window === 'undefined' || isAdminTrackingExcluded()) {
+    return false;
+  }
+
+  const candidate = {
+    ...eventInput,
+    userAgentCategory: eventInput.userAgentCategory ?? detectUserAgentCategory(),
+    timestamp: eventInput.timestamp ?? new Date().toISOString(),
+  };
+
+  const parsed = AdTelemetryClosedLoopEventSchema.safeParse(candidate);
+  if (!parsed.success) {
+    return false;
+  }
+
+  const safeSlotId = normalizeGa4ParamString(parsed.data.slotId);
+  if (!safeSlotId) {
+    return false;
+  }
+
+  const safeApartmentName = normalizeGa4ParamString(parsed.data.apartmentName, 'GLOBAL');
+  const safeDong = normalizeGa4ParamString(parsed.data.dong, '');
+
+  const gaParams: Record<string, unknown> = {
+    event_category: parsed.data.eventType,
+    event_label: safeSlotId,
+    slot_id: safeSlotId,
+    event_type: parsed.data.eventType,
+    apartment_name: safeApartmentName,
+    dong: safeDong,
+    dwell_time_ms: parsed.data.dwellTimeMs,
+    intersection_ratio: parsed.data.intersectionRatio,
+    user_agent_category: parsed.data.userAgentCategory,
+    timestamp: parsed.data.timestamp,
+  };
+
+  const safeCampaignId = normalizeGa4ParamString(parsed.data.campaignId, '');
+  if (safeCampaignId) {
+    gaParams.campaign_id = safeCampaignId;
+  }
+  const safePlacementSlotId = normalizeGa4ParamString(eventInput.placementSlotId, '');
+  if (safePlacementSlotId) {
+    gaParams.placement_slot_id = safePlacementSlotId;
+  }
+
+  try {
+    const gtagFn = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    if (typeof gtagFn === 'function') {
+      gtagFn('event', 'ad_telemetry', gaParams);
+      return true;
+    }
+
+    const hasNextGaScript =
+      typeof document !== 'undefined' &&
+      Boolean(document.getElementById('_next-ga-init') || document.getElementById('_next-ga'));
+
+    if (
+      (process.env.NODE_ENV === 'production' &&
+        (Boolean(process.env.NEXT_PUBLIC_GA_ID) ||
+          Array.isArray((window as unknown as { dataLayer?: unknown[] }).dataLayer))) ||
+      hasNextGaScript
+    ) {
+      return enqueueDataLayerGtagEvent('ad_telemetry', gaParams);
+    }
+  } catch {
+    // Swallow synchronous GA4 exception (Delta Jank = 0ms)
+  }
+
+  return false;
+}
 
 /**
  * Dispatches a Phase 5 AdTelemetryClosedLoopEvent to both GA4 custom event (`ad_telemetry`)
@@ -583,31 +697,10 @@ export function sendTelemetry(
 
   const serialized = JSON.stringify(parsed.data);
 
-  try {
-    if (
-      typeof window !== 'undefined' &&
-      typeof (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag === 'function'
-    ) {
-      (window as unknown as { gtag: (...args: unknown[]) => void }).gtag(
-        'event',
-        'ad_telemetry',
-        {
-          event_category: parsed.data.eventType,
-          event_label: parsed.data.slotId,
-          slot_id: parsed.data.slotId,
-          event_type: parsed.data.eventType,
-          apartment_name: parsed.data.apartmentName,
-          dong: parsed.data.dong,
-          dwell_time_ms: parsed.data.dwellTimeMs,
-          intersection_ratio: parsed.data.intersectionRatio,
-          user_agent_category: parsed.data.userAgentCategory,
-          timestamp: parsed.data.timestamp,
-        }
-      );
-    }
-  } catch {
-    // Swallow synchronous GA4 exception (Delta Jank = 0ms)
-  }
+  dispatchGa4AdTelemetry({
+    ...parsed.data,
+    placementSlotId: eventInput.placementSlotId,
+  });
 
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {

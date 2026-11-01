@@ -33,8 +33,11 @@ export interface UseAdSlotViewabilityParams {
   lastRefreshAtRef: React.MutableRefObject<number | null>;
   registeredKeyRef: React.MutableRefObject<string | null>;
   registeredBaseSlotRef: React.MutableRefObject<string | null>;
+  registeredEffectiveSlotRef: React.MutableRefObject<string | null>;
+  impressionSentCycleRef: React.MutableRefObject<number>;
   unfilledBeaconSentCycleRef: React.MutableRefObject<number>;
   clickBeaconSentCycleRef: React.MutableRefObject<number>;
+  viewableImpressionSentCycleRef: React.MutableRefObject<number>;
   latestTelemetryContextRef: React.MutableRefObject<{
     apartmentName: string;
     dong: string;
@@ -50,6 +53,8 @@ export interface UseAdSlotViewabilityParams {
     intersectionRatio: number;
   };
   clearCascadeTimeout: () => void;
+  clearViewableImpressionTimer: () => void;
+  syncViewableImpressionTimer: () => void;
 }
 
 export function useAdSlotViewability({
@@ -77,8 +82,11 @@ export function useAdSlotViewability({
   lastRefreshAtRef,
   registeredKeyRef,
   registeredBaseSlotRef,
+  registeredEffectiveSlotRef,
+  impressionSentCycleRef,
   unfilledBeaconSentCycleRef,
   clickBeaconSentCycleRef,
+  viewableImpressionSentCycleRef,
   latestTelemetryContextRef,
   executeAdPush,
   resetInsDomForRefresh,
@@ -86,6 +94,8 @@ export function useAdSlotViewability({
   setTotalRefreshCount,
   getSlotTelemetryMetrics,
   clearCascadeTimeout,
+  clearViewableImpressionTimer,
+  syncViewableImpressionTimer,
 }: UseAdSlotViewabilityParams) {
   // Track external refreshKey prop transitions with maxRefreshes cap & dwell-window deduplication
   const prevRefreshKeyRef = useRef(refreshKey);
@@ -123,9 +133,11 @@ export function useAdSlotViewability({
       }
 
       const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+      clearViewableImpressionTimer();
       totalRefreshCountRef.current = targetRefreshCount;
       lastRefreshAtRef.current = now;
       currentCycleRef.current += 1;
+      impressionSentCycleRef.current = currentCycleRef.current;
       isPushedRef.current = false;
       setIsAdLoaded(false);
       resetInsDomForRefresh();
@@ -133,6 +145,7 @@ export function useAdSlotViewability({
       executeAdPush();
       sendTelemetry({
         slotId: effectiveSlotId,
+        placementSlotId: activeKey,
         eventType: 'IMPRESSION',
         campaignId: effectiveCampaignId,
         apartmentName,
@@ -149,6 +162,7 @@ export function useAdSlotViewability({
     effectiveMaxRefreshes,
     effectiveDwellThresholdMs,
     baseObserverSlotId,
+    clearViewableImpressionTimer,
     resetInsDomForRefresh,
     executeAdPush,
     effectiveSlotId,
@@ -162,6 +176,7 @@ export function useAdSlotViewability({
     lastRefreshAtRef,
     registeredKeyRef,
     currentCycleRef,
+    impressionSentCycleRef,
     isPushedRef,
   ]);
 
@@ -173,16 +188,28 @@ export function useAdSlotViewability({
     const targetEl = containerRef.current ?? insRef.current;
     if (!targetEl) return;
 
-    // Assign a stable observer key per component instance lifecycle; reset state if base slot identity changed
+    // Assign a stable observer key per component instance lifecycle; reset state if base OR effective slot identity changed
+    const baseChanged =
+      registeredBaseSlotRef.current !== null &&
+      registeredBaseSlotRef.current !== baseObserverSlotId;
+    const effectiveSlotChanged =
+      registeredEffectiveSlotRef.current !== null &&
+      registeredEffectiveSlotRef.current !== effectiveSlotId;
+    const isSlotIdentityTransition = baseChanged || effectiveSlotChanged;
+
     if (
       !registeredKeyRef.current ||
-      registeredBaseSlotRef.current !== baseObserverSlotId
+      registeredBaseSlotRef.current !== baseObserverSlotId ||
+      registeredEffectiveSlotRef.current !== effectiveSlotId
     ) {
-      const isSlotIdentityTransition =
-        registeredBaseSlotRef.current !== null &&
-        registeredBaseSlotRef.current !== baseObserverSlotId;
-
+      const previousKey = registeredKeyRef.current;
       registeredBaseSlotRef.current = baseObserverSlotId;
+      registeredEffectiveSlotRef.current = effectiveSlotId;
+
+      if (isSlotIdentityTransition && previousKey) {
+        adRefreshManager.resetSlot(previousKey);
+      }
+
       if (refreshSlotId) {
         registeredKeyRef.current = refreshSlotId;
       } else {
@@ -201,8 +228,11 @@ export function useAdSlotViewability({
         currentCycleRef.current = 0;
         totalRefreshCountRef.current = 0;
         lastRefreshAtRef.current = null;
+        impressionSentCycleRef.current = -1;
         unfilledBeaconSentCycleRef.current = -1;
         clickBeaconSentCycleRef.current = -1;
+        viewableImpressionSentCycleRef.current = -1;
+        clearViewableImpressionTimer();
         resetInsDomForRefresh();
         setIsAdLoaded(false);
         setTotalRefreshCount(0);
@@ -218,6 +248,7 @@ export function useAdSlotViewability({
         lastRefreshAtRef.current = Date.now();
       }
       executeAdPush();
+      syncViewableImpressionTimer();
     };
 
     const handleDwellRefresh = () => {
@@ -237,9 +268,11 @@ export function useAdSlotViewability({
       );
       const ctx = latestTelemetryContextRef.current;
 
+      clearViewableImpressionTimer();
       totalRefreshCountRef.current += 1;
       lastRefreshAtRef.current = now;
       currentCycleRef.current += 1;
+      impressionSentCycleRef.current = currentCycleRef.current;
       isPushedRef.current = false;
       resetInsDomForRefresh();
       executeAdPush();
@@ -247,6 +280,7 @@ export function useAdSlotViewability({
       setTotalRefreshCount(totalRefreshCountRef.current);
       sendTelemetry({
         slotId: ctx.effectiveSlotId,
+        placementSlotId: registeredKey,
         eventType: 'IMPRESSION',
         campaignId: ctx.campaignId,
         apartmentName: ctx.apartmentName,
@@ -262,6 +296,10 @@ export function useAdSlotViewability({
       dwellThresholdMs: effectiveDwellThresholdMs,
       maxRefreshes: effectiveMaxRefreshes,
       onInitialPush: handleInitialPush,
+      onViewabilityChange: (isViewable) => {
+        isViewableRef.current = isViewable;
+        syncViewableImpressionTimer();
+      },
       skipDefaultAdSensePush: true,
     });
 
@@ -291,6 +329,7 @@ export function useAdSlotViewability({
 
     return () => {
       isViewableRef.current = false;
+      clearViewableImpressionTimer();
       clearCascadeTimeout();
       localManager.unobserve(registeredKey, targetEl);
     };
@@ -300,6 +339,7 @@ export function useAdSlotViewability({
     isPlaceholder,
     baseObserverSlotId,
     refreshSlotId,
+    effectiveSlotId,
     instanceId,
     viewabilityThreshold,
     effectiveDwellThresholdMs,
@@ -314,12 +354,17 @@ export function useAdSlotViewability({
     lastRefreshAtRef,
     registeredKeyRef,
     registeredBaseSlotRef,
+    registeredEffectiveSlotRef,
+    impressionSentCycleRef,
     unfilledBeaconSentCycleRef,
     clickBeaconSentCycleRef,
+    viewableImpressionSentCycleRef,
     latestTelemetryContextRef,
     resetInsDomForRefresh,
     executeAdPush,
     clearCascadeTimeout,
+    clearViewableImpressionTimer,
+    syncViewableImpressionTimer,
     setIsAdLoaded,
     setTotalRefreshCount,
     getSlotTelemetryMetrics,

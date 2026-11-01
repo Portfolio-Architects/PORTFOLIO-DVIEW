@@ -20,6 +20,7 @@ export interface UseAdSlotCascadeParams {
   currentCycleRef: React.MutableRefObject<number>;
   effectiveCascadeTimeoutMs: number;
   effectiveSlotId: string;
+  baseObserverSlotId: string;
   effectiveCampaignId: CpaCampaignId;
   customCpaPayload?: Partial<NativeCpaFallbackPayload>;
   apartmentName: string;
@@ -29,6 +30,8 @@ export interface UseAdSlotCascadeParams {
     intersectionRatio: number;
   };
   setIsAdLoaded: React.Dispatch<React.SetStateAction<boolean>>;
+  clearViewableImpressionTimer: () => void;
+  onSlotFilled: () => void;
 }
 
 export interface UseAdSlotCascadeReturn {
@@ -68,12 +71,15 @@ export function useAdSlotCascade({
   currentCycleRef,
   effectiveCascadeTimeoutMs,
   effectiveSlotId,
+  baseObserverSlotId,
   effectiveCampaignId,
   customCpaPayload,
   apartmentName,
   dong,
   getSlotTelemetryMetrics,
   setIsAdLoaded,
+  clearViewableImpressionTimer,
+  onSlotFilled,
 }: UseAdSlotCascadeParams): UseAdSlotCascadeReturn {
   const [cascadeStatus, setCascadeStatus] = useState<CascadeSlotStatus>('REQUESTED');
   const [cascadeTrigger, setCascadeTrigger] = useState<CpaSourceTrigger>('UNFILLED_ATTRIBUTE');
@@ -103,6 +109,7 @@ export function useAdSlotCascade({
       transitionEvent: 'STATUS_UNFILLED' | 'TIMEOUT_3S'
     ) => {
       clearCascadeTimeout();
+      clearViewableImpressionTimer();
 
       const transition = transitionCascadeStateWithPath('REQUESTED', transitionEvent);
       cascadeStatusRef.current = transition.nextState;
@@ -127,6 +134,7 @@ export function useAdSlotCascade({
         const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
         sendTelemetry({
           slotId: effectiveSlotId,
+          placementSlotId: baseObserverSlotId,
           eventType: 'UNFILLED',
           campaignId: payload.cpaCampaignId,
           apartmentName,
@@ -139,8 +147,10 @@ export function useAdSlotCascade({
     },
     [
       clearCascadeTimeout,
+      clearViewableImpressionTimer,
       insRef,
       effectiveSlotId,
+      baseObserverSlotId,
       effectiveCampaignId,
       customCpaPayload,
       apartmentName,
@@ -230,6 +240,7 @@ export function useAdSlotCascade({
           cascadeStatusRef.current = transition.nextState;
           setCascadeStatus(transition.nextState);
           setIsAdLoaded((prev) => (prev ? prev : true));
+          onSlotFilled();
           return;
         }
 
@@ -245,11 +256,13 @@ export function useAdSlotCascade({
       activateCascadeFallback,
       insRef,
       setIsAdLoaded,
+      onSlotFilled,
     ]
   );
 
   const resetInsDomForRefresh = useCallback(() => {
     clearCascadeTimeout();
+    clearViewableImpressionTimer();
     cascadeRemainingMsRef.current = effectiveCascadeTimeoutMs;
     cascadeStatusRef.current = 'REQUESTED';
     cascadeTriggerRef.current = 'UNFILLED_ATTRIBUTE';
@@ -263,7 +276,7 @@ export function useAdSlotCascade({
       Element.prototype.removeAttribute.call(insRef.current, 'data-cascade-late-fill-discarded');
       insRef.current.innerHTML = '';
     }
-  }, [clearCascadeTimeout, effectiveCascadeTimeoutMs, insRef]);
+  }, [clearCascadeTimeout, clearViewableImpressionTimer, effectiveCascadeTimeoutMs, insRef]);
 
   const handleCascadeCtaClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -287,6 +300,7 @@ export function useAdSlotCascade({
         const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
         sendTelemetry({
           slotId: effectiveSlotId,
+          placementSlotId: baseObserverSlotId,
           eventType: 'FALLBACK_CLICK',
           campaignId: effectiveCampaignId,
           apartmentName,
@@ -299,6 +313,7 @@ export function useAdSlotCascade({
     },
     [
       effectiveSlotId,
+      baseObserverSlotId,
       effectiveCampaignId,
       apartmentName,
       dong,
@@ -319,31 +334,35 @@ export function useAdSlotCascade({
       }
 
       const transition = transitionCascadeStateWithPath('FALLBACK_ACTIVE', 'USER_CLICK');
-    cascadeStatusRef.current = transition.nextState;
-    setCascadeStatus(transition.nextState);
+      cascadeStatusRef.current = transition.nextState;
+      setCascadeStatus(transition.nextState);
 
-    if (clickBeaconSentCycleRef.current !== currentCycleRef.current) {
-      clickBeaconSentCycleRef.current = currentCycleRef.current;
-      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
-      sendTelemetry({
-        slotId: effectiveSlotId,
-        eventType: 'FALLBACK_CLICK',
-        campaignId: effectiveCampaignId,
-        apartmentName,
-        dong,
-        dwellTimeMs,
-        intersectionRatio,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [
-    effectiveSlotId,
-    effectiveCampaignId,
-    apartmentName,
-    dong,
-    getSlotTelemetryMetrics,
-    currentCycleRef,
-  ]);
+      if (clickBeaconSentCycleRef.current !== currentCycleRef.current) {
+        clickBeaconSentCycleRef.current = currentCycleRef.current;
+        const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+        sendTelemetry({
+          slotId: effectiveSlotId,
+          placementSlotId: baseObserverSlotId,
+          eventType: 'FALLBACK_CLICK',
+          campaignId: effectiveCampaignId,
+          apartmentName,
+          dong,
+          dwellTimeMs,
+          intersectionRatio,
+          timestamp: new Date().toISOString(),
+        });
+      }
+    },
+    [
+      effectiveSlotId,
+      baseObserverSlotId,
+      effectiveCampaignId,
+      apartmentName,
+      dong,
+      getSlotTelemetryMetrics,
+      currentCycleRef,
+    ]
+  );
 
   const isCascadeFallbackActive =
     cascadeStatus === 'FALLBACK_ACTIVE' || cascadeStatus === 'CLICKED';

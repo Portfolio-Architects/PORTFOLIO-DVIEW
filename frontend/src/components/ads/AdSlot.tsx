@@ -45,6 +45,9 @@ import {
   type TelemetryApiResponse,
   detectUserAgentCategory,
   type ClosedLoopTelemetryInput,
+  GA4_MAX_PARAM_VALUE_LENGTH,
+  VIEWABLE_IMPRESSION_DWELL_MS,
+  dispatchGa4AdTelemetry,
   sendTelemetry,
   ClosedLoopSlotStatusSchema,
   type ClosedLoopSlotStatus,
@@ -103,6 +106,9 @@ export {
   type TelemetryApiResponse,
   detectUserAgentCategory,
   type ClosedLoopTelemetryInput,
+  GA4_MAX_PARAM_VALUE_LENGTH,
+  VIEWABLE_IMPRESSION_DWELL_MS,
+  dispatchGa4AdTelemetry,
   sendTelemetry,
   ClosedLoopSlotStatusSchema,
   type ClosedLoopSlotStatus,
@@ -169,7 +175,12 @@ export function AdSlot({
   const lastRefreshAtRef = useRef<number | null>(null);
   const registeredKeyRef = useRef<string | null>(null);
   const registeredBaseSlotRef = useRef<string | null>(null);
+  const registeredEffectiveSlotRef = useRef<string | null>(null);
   const adblockBeaconSentRef = useRef<boolean>(false);
+  const impressionSentCycleRef = useRef<number>(-1);
+  const viewableImpressionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const viewableImpressionSentCycleRef = useRef<number>(-1);
+  const syncViewableImpressionTimerRef = useRef<() => void>(() => {});
 
   const [initialNumericRefreshKey] = useState<number | null>(() =>
     typeof refreshKey === 'number' && Number.isFinite(refreshKey) ? refreshKey : null
@@ -247,6 +258,45 @@ export function AdSlot({
     return cappedRefreshCount > 0 ? cappedRefreshCount : undefined;
   })();
 
+  const latestTelemetryContextRef = useRef({
+    apartmentName,
+    dong,
+    campaignId: effectiveCampaignId,
+    effectiveSlotId,
+  });
+
+  const clearViewableImpressionTimer = useCallback(() => {
+    if (viewableImpressionTimerRef.current !== null) {
+      clearTimeout(viewableImpressionTimerRef.current);
+      viewableImpressionTimerRef.current = null;
+    }
+  }, []);
+
+  const onSlotFilled = useCallback(() => {
+    if (
+      !isPlaceholder &&
+      !isAdBlockActive &&
+      impressionSentCycleRef.current !== currentCycleRef.current
+    ) {
+      impressionSentCycleRef.current = currentCycleRef.current;
+      const activeKey = registeredKeyRef.current || baseObserverSlotId;
+      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
+      const ctx = latestTelemetryContextRef.current;
+      dispatchGa4AdTelemetry({
+        eventType: 'IMPRESSION',
+        slotId: ctx.effectiveSlotId,
+        placementSlotId: activeKey,
+        campaignId: ctx.campaignId,
+        apartmentName: ctx.apartmentName,
+        dong: ctx.dong,
+        dwellTimeMs,
+        intersectionRatio,
+        timestamp: new Date().toISOString(),
+      });
+    }
+    syncViewableImpressionTimerRef.current();
+  }, [baseObserverSlotId, getSlotTelemetryMetrics, isAdBlockActive, isPlaceholder]);
+
   const {
     cascadeStatus,
     setCascadeStatus,
@@ -276,12 +326,15 @@ export function AdSlot({
     currentCycleRef,
     effectiveCascadeTimeoutMs,
     effectiveSlotId,
+    baseObserverSlotId,
     effectiveCampaignId,
     customCpaPayload,
     apartmentName,
     dong,
     getSlotTelemetryMetrics,
     setIsAdLoaded,
+    clearViewableImpressionTimer,
+    onSlotFilled,
   });
 
   const executeAdPush = useCallback(() => {
@@ -335,11 +388,114 @@ export function AdSlot({
     [apartmentName, dong, cpaPayload.cpaCampaignId, effectiveSlotId]
   );
 
-  const latestTelemetryContextRef = useRef(telemetryContext);
-
   useEffect(() => {
     latestTelemetryContextRef.current = telemetryContext;
   }, [telemetryContext]);
+
+  const syncViewableImpressionTimer = useCallback(() => {
+    const isHidden = typeof document !== 'undefined' && Boolean(document.hidden);
+    const activeKey = registeredKeyRef.current || baseObserverSlotId;
+    const managerState = adRefreshManager.getState(activeKey);
+    const isActivelyViewable = managerState
+      ? (managerState.status === 'VIEWABLE' || managerState.status === 'REFRESHING') &&
+        managerState.isIntersecting &&
+        managerState.intersectionRatio >= viewabilityThreshold
+      : isViewableRef.current;
+
+    const shouldRun =
+      !isPlaceholder &&
+      !isAdBlockActive &&
+      !isHidden &&
+      explicitlyFilledRef.current &&
+      cascadeStatusRef.current === 'FILLED' &&
+      insRef.current?.getAttribute('data-ad-status') !== 'unfilled' &&
+      isActivelyViewable &&
+      viewableImpressionSentCycleRef.current !== currentCycleRef.current;
+
+    if (!shouldRun) {
+      clearViewableImpressionTimer();
+      return;
+    }
+
+    if (viewableImpressionTimerRef.current !== null) {
+      return;
+    }
+
+    const scheduledCycle = currentCycleRef.current;
+    const scheduledSlotId = latestTelemetryContextRef.current.effectiveSlotId;
+    viewableImpressionTimerRef.current = setTimeout(() => {
+      viewableImpressionTimerRef.current = null;
+      const hiddenNow = typeof document !== 'undefined' && Boolean(document.hidden);
+      const currentKey = registeredKeyRef.current || baseObserverSlotId;
+      const currentState = adRefreshManager.getState(currentKey);
+      const viewableNow = currentState
+        ? (currentState.status === 'VIEWABLE' || currentState.status === 'REFRESHING') &&
+          currentState.isIntersecting &&
+          currentState.intersectionRatio >= viewabilityThreshold
+        : isViewableRef.current;
+      const ctx = latestTelemetryContextRef.current;
+
+      if (
+        isPlaceholder ||
+        isAdBlockActive ||
+        hiddenNow ||
+        !explicitlyFilledRef.current ||
+        cascadeStatusRef.current !== 'FILLED' ||
+        insRef.current?.getAttribute('data-ad-status') === 'unfilled' ||
+        !viewableNow ||
+        ctx.effectiveSlotId !== scheduledSlotId ||
+        currentCycleRef.current !== scheduledCycle ||
+        viewableImpressionSentCycleRef.current === scheduledCycle
+      ) {
+        return;
+      }
+
+      viewableImpressionSentCycleRef.current = scheduledCycle;
+      const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(
+        VIEWABLE_IMPRESSION_DWELL_MS
+      );
+      dispatchGa4AdTelemetry({
+        eventType: 'VIEWABLE_IMPRESSION',
+        slotId: ctx.effectiveSlotId,
+        placementSlotId: currentKey,
+        campaignId: ctx.campaignId,
+        apartmentName: ctx.apartmentName,
+        dong: ctx.dong,
+        dwellTimeMs,
+        intersectionRatio,
+        timestamp: new Date().toISOString(),
+      });
+    }, VIEWABLE_IMPRESSION_DWELL_MS);
+  }, [
+    baseObserverSlotId,
+    clearViewableImpressionTimer,
+    cascadeStatusRef,
+    explicitlyFilledRef,
+    getSlotTelemetryMetrics,
+    isAdBlockActive,
+    isPlaceholder,
+    viewabilityThreshold,
+  ]);
+
+  useEffect(() => {
+    syncViewableImpressionTimerRef.current = syncViewableImpressionTimer;
+  }, [syncViewableImpressionTimer]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') {
+      return () => {
+        clearViewableImpressionTimer();
+      };
+    }
+    const onVisibilityChange = () => {
+      syncViewableImpressionTimerRef.current();
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      clearViewableImpressionTimer();
+    };
+  }, [clearViewableImpressionTimer]);
 
   // Dispatch ADBLOCK_FALLBACK beacon when adblock fallback is active
   useEffect(() => {
@@ -352,6 +508,7 @@ export function AdSlot({
       const { dwellTimeMs, intersectionRatio } = getSlotTelemetryMetrics(0);
       sendTelemetry({
         slotId: effectiveSlotId,
+        placementSlotId: baseObserverSlotId,
         eventType: 'ADBLOCK_FALLBACK',
         campaignId: cpaPayload.cpaCampaignId,
         apartmentName,
@@ -364,6 +521,7 @@ export function AdSlot({
   }, [
     isAdBlockActive,
     effectiveSlotId,
+    baseObserverSlotId,
     cpaPayload.cpaCampaignId,
     apartmentName,
     dong,
@@ -395,8 +553,11 @@ export function AdSlot({
     lastRefreshAtRef,
     registeredKeyRef,
     registeredBaseSlotRef,
+    registeredEffectiveSlotRef,
+    impressionSentCycleRef,
     unfilledBeaconSentCycleRef,
     clickBeaconSentCycleRef,
+    viewableImpressionSentCycleRef,
     latestTelemetryContextRef,
     executeAdPush,
     resetInsDomForRefresh,
@@ -404,6 +565,8 @@ export function AdSlot({
     setTotalRefreshCount,
     getSlotTelemetryMetrics,
     clearCascadeTimeout,
+    clearViewableImpressionTimer,
+    syncViewableImpressionTimer,
   });
 
   useInsDomInterceptor({
@@ -422,6 +585,8 @@ export function AdSlot({
     setLateFillDiscarded,
     activateCascadeFallback,
     clearCascadeTimeout,
+    clearViewableImpressionTimer,
+    onSlotFilled,
     discardLateFilledResponse,
     startCascadeTimeout,
   });

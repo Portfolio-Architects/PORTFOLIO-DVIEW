@@ -45,6 +45,7 @@ export interface SmartViewabilityObserver {
 
 export interface ObserveSlotOptions extends Partial<SmartViewabilityConfig> {
   onInitialPush?: () => void;
+  onViewabilityChange?: (isViewable: boolean, intersectionRatio: number) => void;
   skipDefaultAdSensePush?: boolean;
 }
 
@@ -89,6 +90,7 @@ interface InternalViewabilityEntry {
   observer: IntersectionObserver | null;
   onRefresh: (() => void) | null;
   onInitialPush: (() => void) | null;
+  onViewabilityChange: ((isViewable: boolean, intersectionRatio: number) => void) | null;
   skipDefaultAdSensePush: boolean;
 }
 
@@ -327,6 +329,7 @@ export class AdRefreshManager implements SmartViewabilityObserver {
       observer: io,
       onRefresh,
       onInitialPush: options?.onInitialPush ?? null,
+      onViewabilityChange: options?.onViewabilityChange ?? null,
       skipDefaultAdSensePush: Boolean(options?.skipDefaultAdSensePush),
     };
 
@@ -379,6 +382,7 @@ export class AdRefreshManager implements SmartViewabilityObserver {
 
     entry.onRefresh = null;
     entry.onInitialPush = null;
+    entry.onViewabilityChange = null;
     entry.state.status = 'IDLE';
     entry.state.isIntersecting = false;
     entry.state.intersectionRatio = 0;
@@ -414,6 +418,7 @@ export class AdRefreshManager implements SmartViewabilityObserver {
         }
         entry.state.lastVisibleTimestamp = null;
         entry.state.status = 'PAUSED';
+        this.invokeViewabilityChange(entry, false, entry.state.intersectionRatio);
       }
     } else {
       if (this.hiddenAtTimestamp !== null) {
@@ -438,10 +443,12 @@ export class AdRefreshManager implements SmartViewabilityObserver {
             entry.state.isPushed = true;
             this.invokeInitialPush(entry);
           }
+          this.invokeViewabilityChange(entry, true, entry.state.intersectionRatio);
         } else {
           entry.state.status = 'OBSERVING';
           entry.state.isIntersecting = false;
           entry.state.lastVisibleTimestamp = null;
+          this.invokeViewabilityChange(entry, false, entry.state.intersectionRatio);
         }
       }
 
@@ -562,6 +569,24 @@ export class AdRefreshManager implements SmartViewabilityObserver {
     }
   }
 
+  private invokeViewabilityChange(
+    entry: InternalViewabilityEntry,
+    isViewable: boolean,
+    intersectionRatio: number
+  ): void {
+    if (!entry.onViewabilityChange) return;
+    try {
+      entry.onViewabilityChange(isViewable, intersectionRatio);
+    } catch (err) {
+      logger.warn(
+        'AdRefreshManager',
+        `onViewabilityChange callback error for ${entry.config.slotId}`,
+        undefined,
+        err as Error
+      );
+    }
+  }
+
   private handleSlotIntersection(
     slotId: string,
     rawRatio: number,
@@ -590,6 +615,7 @@ export class AdRefreshManager implements SmartViewabilityObserver {
     if (this.isDocumentHidden() || entry.state.status === 'PAUSED') {
       entry.state.status = 'PAUSED';
       entry.state.lastVisibleTimestamp = null;
+      this.invokeViewabilityChange(entry, false, clampedRatio);
       return;
     }
 
@@ -606,6 +632,7 @@ export class AdRefreshManager implements SmartViewabilityObserver {
         entry.state.isPushed = true;
         this.invokeInitialPush(entry);
       }
+      this.invokeViewabilityChange(entry, true, clampedRatio);
     } else {
       // f(VIEWABLE, RATIO_LT_50) = OBSERVING (pause dwell timer accumulation)
       if (entry.state.status === 'VIEWABLE' && entry.state.lastVisibleTimestamp !== null) {
@@ -613,6 +640,7 @@ export class AdRefreshManager implements SmartViewabilityObserver {
       }
       entry.state.lastVisibleTimestamp = null;
       entry.state.status = 'OBSERVING';
+      this.invokeViewabilityChange(entry, false, clampedRatio);
     }
   }
 
@@ -1041,6 +1069,22 @@ export class AdRefreshManager implements SmartViewabilityObserver {
   }
 
   /**
+   * Resets a single slot's viewability push/refresh counters for dynamic slot identity transitions
+   * on the same DOM container while preserving IDLE state visibility.
+   */
+  public resetSlot(slotId: string): void {
+    if (!slotId || typeof slotId !== 'string') return;
+    this.unobserve(slotId);
+    const entry = this.viewabilitySlots.get(slotId);
+    if (entry) {
+      entry.state.isPushed = false;
+      entry.state.refreshCount = 0;
+      entry.state.dwellTimeMs = 0;
+      entry.state.lastVisibleTimestamp = null;
+    }
+  }
+
+  /**
    * Clears all registered slots, viewability observers, and timers.
    */
   public reset(): void {
@@ -1101,6 +1145,9 @@ export {
   type TelemetryApiResponse,
   detectUserAgentCategory,
   type ClosedLoopTelemetryInput,
+  GA4_MAX_PARAM_VALUE_LENGTH,
+  VIEWABLE_IMPRESSION_DWELL_MS,
+  dispatchGa4AdTelemetry,
   sendTelemetry,
   ClosedLoopSlotStatusSchema,
   type ClosedLoopSlotStatus,
