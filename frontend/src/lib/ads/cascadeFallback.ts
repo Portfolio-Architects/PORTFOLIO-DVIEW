@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
 
 export const CASCADE_TIMEOUT_MS = 3000;
 export const MAX_FALLBACK_TRANSITION_MS = 50;
@@ -416,7 +417,7 @@ export const VIEWABLE_IMPRESSION_DWELL_MS = 1000;
 
 function isAdminTrackingExcluded(): boolean {
   try {
-    return typeof localStorage !== 'undefined' && localStorage.getItem('dview_is_admin') === 'true';
+    return isAdminTrackingExcludedClient();
   } catch {
     return false;
   }
@@ -458,6 +459,9 @@ export function sendAdTelemetryBeacon(
   beaconInput: z.input<typeof AdTelemetryBeaconSchema>,
   endpoint: string = '/api/ads/click'
 ): boolean {
+  if (isAdminTrackingExcluded()) {
+    return false;
+  }
   const parsed = AdTelemetryBeaconSchema.safeParse(beaconInput);
   if (!parsed.success) {
     return false;
@@ -613,6 +617,9 @@ export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): bo
     timestamp: eventInput.timestamp ?? new Date().toISOString(),
   };
 
+  if (isAdminTrackingExcluded()) {
+    return false;
+  }
   const parsed = AdTelemetryClosedLoopEventSchema.safeParse(candidate);
   if (!parsed.success) {
     return false;
@@ -690,6 +697,9 @@ export function sendTelemetry(
     timestamp: eventInput.timestamp ?? new Date().toISOString(),
   };
 
+  if (isAdminTrackingExcluded()) {
+    return false;
+  }
   const parsed = AdTelemetryClosedLoopEventSchema.safeParse(candidate);
   if (!parsed.success) {
     return false;

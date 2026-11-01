@@ -4,6 +4,7 @@ import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { isRequestFromExcludedAdmin } from '@/lib/utils/adminExclusion';
 import {
   AdTelemetryBeaconSchema,
   AdTelemetryEventTypeSchema,
@@ -95,6 +96,19 @@ export async function POST(request: NextRequest) {
     const intersectionRatio = isBeaconPayload ? data.intersectionRatio : 0;
     const userAgentCategory = isBeaconPayload ? data.userAgentCategory : 'DESKTOP';
     const persistedId = `telemetry_${slotId}_${Date.now()}`;
+
+    if (isRequestFromExcludedAdmin(request)) {
+      return apiSuccess(
+        {
+          message: 'Admin telemetry excluded',
+          slotId,
+          eventType,
+          persistedId: 'admin_excluded',
+          ...(campaignId ? { campaignId } : {}),
+        },
+        { message: 'Admin telemetry excluded', persistedId: 'admin_excluded' }
+      );
+    }
 
     logger.info('AdClick.POST', `Ad telemetry [${eventType}]: ${adId} at ${apartmentName}`, {
       adId,

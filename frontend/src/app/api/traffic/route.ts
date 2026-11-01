@@ -5,6 +5,7 @@ import { logger } from '@/lib/services/logger';
 import { getKSTDateString } from '@/lib/utils/date';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { isRequestFromExcludedAdmin } from '@/lib/utils/adminExclusion';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -47,6 +48,10 @@ export async function POST(request: NextRequest) {
     }
 
     const { action, contentId, title, type } = parsed.data;
+
+    if (isRequestFromExcludedAdmin(request)) {
+      return apiSuccess({ message: 'Admin traffic excluded', skipped: true });
+    }
 
     const today = getKSTDateString();
 

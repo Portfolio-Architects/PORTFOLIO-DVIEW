@@ -24,6 +24,7 @@ import Footer from '@/components/Footer';
 
 import dynamic from 'next/dynamic';
 import { safeReload } from '@/lib/utils/safeReload';
+import { buildPreHydrationAdminGuardScript } from '@/lib/utils/adminExclusion';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
 import { logger } from '@/lib/services/logger';
@@ -121,6 +122,7 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head>
+        <script id="dview-ga-admin-guard" nonce={nonce} dangerouslySetInnerHTML={{ __html: buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID) }} />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />

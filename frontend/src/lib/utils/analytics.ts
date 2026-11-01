@@ -2,6 +2,7 @@
 
 import { sendGAEvent } from '@next/third-parties/google';
 import { logger } from '@/lib/services/logger';
+import { applyGaDisableFlag, isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
 
 function sanitizeEventParams(params?: Record<string, unknown>): Record<string, unknown> {
   if (!params || typeof params !== 'object' || Array.isArray(params)) {
@@ -68,12 +69,13 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
   if (!normalizedEventName) return;
 
   try {
-    // Exclude Admin from tracking
-    if (localStorage.getItem('dview_is_admin') === 'true') {
+    // Exclude Admin from tracking (both localStorage and dview_is_admin cookie)
+    if (isAdminTrackingExcludedClient()) {
+      applyGaDisableFlag(true);
       return;
     }
   } catch {
-    // Ignore localStorage errors
+    // Ignore storage access errors
   }
 
   // In development, log to developer console
@@ -201,38 +203,45 @@ export function trackVirtualPageView(
   const safePath = trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`;
   const now = Date.now();
   const cleanExtraParams = sanitizeEventParams(params);
+  const excluded = isAdminTrackingExcludedClient();
 
-  trackEvent('page_view', {
-    ...cleanExtraParams,
-    page_path: safePath,
-    page_location: resolveVirtualPageLocation(safePath),
-    virtual_pv: 1,
-    adsense_virtual_pv: 1,
-  });
+  if (!excluded) {
+    trackEvent('page_view', {
+      ...cleanExtraParams,
+      page_path: safePath,
+      page_location: resolveVirtualPageLocation(safePath),
+      virtual_pv: 1,
+      adsense_virtual_pv: 1,
+    });
+  } else {
+    applyGaDisableFlag(true);
+  }
 
   const entry: VirtualPageViewEntry = {
     path: safePath,
-    gaEventDispatched: true,
-    adsenseVirtualPvDispatched: 1,
+    gaEventDispatched: !excluded,
+    adsenseVirtualPvDispatched: excluded ? 0 : 1,
     timestamp: now,
     params,
   };
 
-  virtualPageViewLedger.push(entry);
+  if (!excluded) {
+    virtualPageViewLedger.push(entry);
 
-  if (typeof window !== 'undefined') {
-    window.__dviewVirtualPvCount = (window.__dviewVirtualPvCount || 0) + 1;
-    window.__dviewVirtualPvLedger = virtualPageViewLedger;
+    if (typeof window !== 'undefined') {
+      window.__dviewVirtualPvCount = (window.__dviewVirtualPvCount || 0) + 1;
+      window.__dviewVirtualPvLedger = virtualPageViewLedger;
 
-    if (typeof CustomEvent === 'function' && typeof window.dispatchEvent === 'function') {
-      try {
-        window.dispatchEvent(
-          new CustomEvent('dview:virtual_pageview', {
-            detail: entry,
-          })
-        );
-      } catch {
-        // Ignore DOM dispatch errors in constrained environments
+      if (typeof CustomEvent === 'function' && typeof window.dispatchEvent === 'function') {
+        try {
+          window.dispatchEvent(
+            new CustomEvent('dview:virtual_pageview', {
+              detail: entry,
+            })
+          );
+        } catch {
+          // Ignore DOM dispatch errors in constrained environments
+        }
       }
     }
   }
@@ -255,5 +264,3 @@ export function resetVirtualPageViewLedger(): void {
     window.__dviewVirtualPvLedger = virtualPageViewLedger;
   }
 }
-
-

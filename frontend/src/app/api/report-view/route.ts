@@ -18,6 +18,7 @@ import { logger } from '@/lib/services/logger';
 import { getKSTDateString } from '@/lib/utils/date';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { isRequestFromExcludedAdmin } from '@/lib/utils/adminExclusion';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -56,6 +57,13 @@ export async function POST(request: NextRequest) {
       return apiError('INVALID_PAYLOAD', 'Bad Request: Invalid Payload', 400, parsed.error.issues);
     }
     const { reportId } = parsed.data;
+
+    if (isRequestFromExcludedAdmin(request)) {
+      return apiSuccess(
+        { counted: false, reason: 'admin_excluded' },
+        { counted: false, reason: 'admin_excluded' }
+      );
+    }
 
     // ── Extract & hash client IP ──
     const forwarded = request.headers.get('x-forwarded-for');

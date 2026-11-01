@@ -9,6 +9,7 @@ import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 import { getKSTDateString } from '@/lib/utils/date';
+import { isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
 
 export interface RawTrafficDoc {
   id: string;
@@ -87,6 +88,9 @@ export async function incrementContentViewDirect(contentId: string, title: strin
 }
 
 export async function incrementWebsiteVisit(): Promise<void> {
+  if (typeof window !== 'undefined' && isAdminTrackingExcludedClient()) {
+    return;
+  }
   if (typeof window === 'undefined') {
     try {
       await incrementWebsiteVisitDirect();
@@ -107,6 +111,9 @@ export async function incrementWebsiteVisit(): Promise<void> {
 }
 
 export async function incrementContentView(contentId: string, title: string, type: 'lounge' | 'report'): Promise<void> {
+  if (typeof window !== 'undefined' && isAdminTrackingExcludedClient()) {
+    return;
+  }
   if (typeof window === 'undefined') {
     try {
       await incrementContentViewDirect(contentId, title, type);
