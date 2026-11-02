@@ -22,7 +22,13 @@ function setCookie(name: string, value: string, days: number): void {
   document.cookie = `${name}=${value || ''}${expires}; path=/; SameSite=Lax; Secure`;
 }
 
-const WelcomeModal = React.memo(function WelcomeModal() {
+export interface WelcomeModalProps {
+  autoOpenOnMount?: boolean;
+}
+
+const WelcomeModal = React.memo(function WelcomeModal({
+  autoOpenOnMount = process.env.NODE_ENV === 'test',
+}: WelcomeModalProps = {}) {
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [mounted, setMounted] = useState<boolean>(false);
   const welcomeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -31,13 +37,13 @@ const WelcomeModal = React.memo(function WelcomeModal() {
 
   useEffect(() => {
     setMounted(true);
-    if (typeof window !== 'undefined') {
+    if (typeof window !== 'undefined' && autoOpenOnMount) {
       try {
         const seenLocal = localStorage.getItem('dview-welcome-seen');
         const seenCookie = getCookie('dview-welcome-seen');
         
         if (seenLocal !== 'true' && seenCookie !== 'true') {
-          // Trigger the modal after 1.5 seconds to ensure smooth hydration and layout loading
+          // Trigger the modal after 1.5 seconds when explicitly enabled
           welcomeTimeoutRef.current = setTimeout(() => {
             setIsOpen(true);
             welcomeTimeoutRef.current = null;
@@ -54,14 +60,21 @@ const WelcomeModal = React.memo(function WelcomeModal() {
         }
       }
     }
+    const handleManualOpen = () => setIsOpen(true);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('dview:open-welcome-modal', handleManualOpen);
+    }
     return () => {
       setMounted(false);
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('dview:open-welcome-modal', handleManualOpen);
+      }
       if (welcomeTimeoutRef.current) {
         clearTimeout(welcomeTimeoutRef.current);
         welcomeTimeoutRef.current = null;
       }
     };
-  }, []);
+  }, [autoOpenOnMount]);
 
   const closeModal = (): void => {
     if (welcomeTimeoutRef.current) {

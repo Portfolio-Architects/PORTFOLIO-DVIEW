@@ -66,11 +66,6 @@ export default async function ContactPage() {
         nonce={nonce}
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
-      <div className="sr-only" aria-hidden="true">
-        <h1>D-VIEW 문의 및 온라인 피드백 접수</h1>
-        <p>D-VIEW 부동산 분석 플랫폼에 대한 건의사항, 오류 제보, 광고 및 제휴 제안을 위한 고객 지원 채널입니다.</p>
-      </div>
-
       {/* 상단 네비게이션 헤더 */}
       <div className="bg-surface/90 backdrop-blur-md border-b border-border sticky top-0 z-50 transition-colors duration-200">
         <div className="max-w-[880px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
@@ -82,7 +77,7 @@ export default async function ContactPage() {
             >
               <ArrowLeft size={20} />
             </Link>
-            <span className="font-extrabold text-primary text-[17px] sm:text-lg tracking-tight">문의하기</span>
+            <h1 className="font-extrabold text-primary text-[17px] sm:text-lg tracking-tight">문의하기</h1>
           </div>
           <Link href="/" className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px] sm:text-sm hover:underline">
             대시보드로 돌아가기

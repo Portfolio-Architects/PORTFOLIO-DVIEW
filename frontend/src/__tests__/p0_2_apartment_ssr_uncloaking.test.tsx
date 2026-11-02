@@ -4,15 +4,25 @@ import path from 'path';
 import { render, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import ApartmentPage from '../app/apartment/[aptName]/page';
+import WelcomeModal from '../components/ui/WelcomeModal';
 
 jest.mock('../components/DashboardClient', () => {
   return function MockDashboardClient({
     preselectedAptName,
+    autoOpenPreselectedModal,
+    hideHeader,
   }: {
     preselectedAptName?: string;
+    autoOpenPreselectedModal?: boolean;
+    hideHeader?: boolean;
   }) {
     return (
-      <div data-testid="mock-dashboard-client" data-apt={preselectedAptName}>
+      <div
+        data-testid="mock-dashboard-client"
+        data-apt={preselectedAptName}
+        data-auto-open-modal={String(Boolean(autoOpenPreselectedModal))}
+        data-hide-header={String(Boolean(hideHeader))}
+      >
         Dashboard Client
       </div>
     );
@@ -293,6 +303,82 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
 
       unmount();
     }
+  });
+
+  it('7. renders LoungeHeader(activeTab="explore") and #apt-ssr-comprehensive-report ABOVE DashboardClient without auto-opening modal, and synthesizes complex-specific narrative in #chapter-01-dynamic-narrative-ssr', async () => {
+    const jsx = await ApartmentPage({
+      params: Promise.resolve({ aptName: encodeURIComponent('동탄역롯데캐슬') }),
+    });
+    const { container, getByTestId, unmount } = render(jsx);
+
+    const headerBanner = container.querySelector('header[role="banner"]') as HTMLElement;
+    const reportSection = container.querySelector('#apt-ssr-comprehensive-report') as HTMLElement;
+    const dashboardClient = getByTestId('mock-dashboard-client');
+    expect(headerBanner).not.toBeNull();
+    expect(reportSection).not.toBeNull();
+    expect(dashboardClient).not.toBeNull();
+
+    // Verify LoungeHeader has "아파트 탐색" highlighted (activeTab="explore")
+    const exploreNavLink = headerBanner.querySelector('a[href="/explore"]');
+    expect(exploreNavLink).not.toBeNull();
+    expect(exploreNavLink?.className).toContain('text-blue-600');
+
+    // Content-First invariant: headerBanner -> reportSection -> dashboardClient in DOM document order
+    expect(headerBanner.compareDocumentPosition(reportSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const positionMask = reportSection.compareDocumentPosition(dashboardClient);
+    expect(positionMask & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    // Verify DashboardClient does NOT auto-open full-screen modal over #apt-ssr-comprehensive-report
+    expect(dashboardClient.getAttribute('data-auto-open-modal')).toBe('false');
+    expect(dashboardClient.getAttribute('data-hide-header')).toBe('true');
+
+    // Dynamic complex-specific commentary block
+    const narrativeSection = reportSection.querySelector('#chapter-01-dynamic-narrative-ssr');
+    expect(narrativeSection).not.toBeNull();
+    expect(narrativeSection?.textContent).toContain('동탄역롯데캐슬 입지 포지셔닝 및 실거래 밸류에이션 심층 해설');
+    expect(narrativeSection?.textContent).toContain('입지 포지셔닝');
+    expect(narrativeSection?.textContent).toContain('연식·세대 규모 및 주력 평형 수급 구조');
+    expect(narrativeSection?.textContent).toContain('실거주 PER 및 전세 안전 마진 진단');
+    expect(narrativeSection?.textContent).not.toContain('undefined');
+    expect(narrativeSection?.textContent).not.toContain('NaN');
+    expect(narrativeSection?.textContent).not.toContain('(0만)');
+    expect(narrativeSection?.querySelectorAll('article').length).toBe(3);
+
+    unmount();
+
+    // Edge-case narrative verification on rent-only / missing-meta complex
+    const edgeJsx = await ApartmentPage({
+      params: Promise.resolve({ aptName: encodeURIComponent('동탄숨마데시앙') }),
+    });
+    const { container: edgeContainer, unmount: unmountEdge } = render(edgeJsx);
+    const edgeNarrative = edgeContainer.querySelector('#chapter-01-dynamic-narrative-ssr');
+    expect(edgeNarrative).not.toBeNull();
+    expect(edgeNarrative?.textContent).not.toContain('undefined');
+    expect(edgeNarrative?.textContent).not.toContain('NaN');
+    expect(edgeNarrative?.textContent).not.toContain('(0만)');
+    expect(edgeNarrative?.querySelectorAll('article').length).toBe(3);
+    unmountEdge();
+  });
+
+  it('8. suppresses WelcomeModal auto-popup when autoOpenOnMount={false} and opens on dview:open-welcome-modal event', () => {
+    jest.useFakeTimers();
+    localStorage.clear();
+
+    const { unmount } = render(<WelcomeModal autoOpenOnMount={false} />);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+    });
+    // Must NOT auto-popup in production (autoOpenOnMount={false})
+    expect(document.body.textContent).not.toContain('D-VIEW에 오신 것을 환영합니다');
+
+    // Must open when explicitly requested via custom event
+    act(() => {
+      window.dispatchEvent(new Event('dview:open-welcome-modal'));
+    });
+    expect(document.body.textContent).toContain('D-VIEW에 오신 것을 환영합니다');
+
+    unmount();
+    jest.useRealTimers();
   });
 });
 

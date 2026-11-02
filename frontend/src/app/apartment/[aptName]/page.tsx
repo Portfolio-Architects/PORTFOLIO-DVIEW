@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
+import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import PreGaCanonicalSync from '@/components/common/PreGaCanonicalSync';
@@ -202,7 +203,56 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
   const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
 
+  const currentYear = 2026;
+  const yearBuiltNum = matchedDongApt?.yearBuilt ? Number(matchedDongApt.yearBuilt) : 0;
+  const buildingAge = yearBuiltNum > 1980 && yearBuiltNum <= currentYear + 3 ? Math.max(0, currentYear - yearBuiltNum) : null;
+  const householdCountNum = matchedDongApt?.householdCount ? Number(matchedDongApt.householdCount) : 0;
+  const ratioPercent = pageData.analytics?.ratioPercent || 0;
+  const realPer =
+    ratioPercent > 0 ? (100 / ratioPercent).toFixed(2) : null;
+  const dominantPyeong =
+    pyeongSummaries.length > 0
+      ? [...pyeongSummaries].sort((a, b) => b.salesCount + b.rentCount - (a.salesCount + a.rentCount))[0]
+      : null;
+  const totalSalesTxCount =
+    pyeongSummaries.reduce((acc, p) => acc + (p.salesCount || 0), 0) || aptSummary?.txCount || 0;
+  const totalRentTxCount = pyeongSummaries.reduce((acc, p) => acc + (p.rentCount || 0), 0);
 
+  const ageLifecycleComment =
+    buildingAge === null
+      ? `${decodedName} 단지는 동탄 ${aptDong || '핵심'} 생활권의 기반 시설과 커뮤니티 동선을 공유하며, 실거주 수요층의 꾸준한 거래가 이어지는 단지입니다.`
+      : buildingAge <= 5
+      ? `${yearBuiltNum}년 준공(연식 약 ${buildingAge}년 차)된 신축급 단지로, 최신 지하주차장 특화 설계와 커뮤니티 시설·조경 프리미엄이 시세 상방 탄력성을 견인하고 있습니다.`
+      : buildingAge <= 11
+      ? `${yearBuiltNum}년 준공(연식 약 ${buildingAge}년 차)된 준신축 단지로, 단지 내 조경과 인근 상권·학군 인프라가 완전히 정착되어 실거주 만족도와 환금성이 균형을 이루는 시기입니다.`
+      : `${yearBuiltNum}년 준공(연식 약 ${buildingAge}년 차)된 성숙기 단지로, 대지지분 가치와 완성된 중심 상권·학군 접근성을 바탕으로 탄탄한 전세 수요와 하방 경직성을 확보하고 있습니다.`;
+
+  const scaleLiquidityComment =
+    householdCountNum >= 1000
+      ? `총 ${householdCountNum.toLocaleString('ko-KR')}세대 규모의 메가 대단지로, 관리비 절감 효과와 단지 내 커뮤니티 규모 경제는 물론 하락장에서도 거래 절벽 위험이 낮은 대표적 고유동성 단지입니다.`
+      : householdCountNum >= 500
+      ? `총 ${householdCountNum.toLocaleString('ko-KR')}세대 규모의 중대형 단지로, 안정적인 매물 회전율과 쾌적한 동간 거리를 확보하여 실수요 갈아타기 수요가 두텁게 형성되어 있습니다.`
+      : householdCountNum > 0
+      ? `총 ${householdCountNum.toLocaleString('ko-KR')}세대 규모의 실속형 단지로, 인근 대단지 생활권의 학군·상업 인프라를 동일하게 누리면서도 합리적인 진입 가격대를 형성하는 것이 강점입니다.`
+      : `누적 매매 ${totalSalesTxCount.toLocaleString('ko-KR')}건·전월세 ${totalRentTxCount.toLocaleString('ko-KR')}건의 실거래 데이터가 축적되어 있어 평형별 시세 밴드와 실수요 지지선을 명확히 확인할 수 있습니다.`;
+
+  const safetyMarginManwon = Math.max(
+    0,
+    (pageData.analytics?.salesVal || aptSummary?.latestPrice || 0) -
+      (pageData.analytics?.jeonseVal || aptSummary?.latestRentDeposit || 0)
+  );
+  const hugEstimatedLimitManwon = Math.round(
+    (pageData.analytics?.salesVal || aptSummary?.latestPrice || 0) * 0.68 * 1.26
+  );
+
+  const jeonsePerComment =
+    ratioPercent >= 70
+      ? `현재 전세가율은 ${ratioPercent.toFixed(1)}%(실거주 PER ${realPer}배)로 동탄 평균 대비 높은 실사용 가치를 반영하고 있습니다. 매매가 대비 전세보증금 비율이 높아 자기자본 진입 장벽은 낮으나, 임대차 계약 시에는 HUG 전세보증금 반환보증 한도(추정 ${formatPriceEok(hugEstimatedLimitManwon)})와 등기부 선순위 채권 여부를 반드시 대조해야 합니다.`
+      : ratioPercent >= 55
+      ? `현재 전세가율은 ${ratioPercent.toFixed(1)}%(실거주 PER ${realPer}배)로 매매가와 전세가 간 안전 마진(${formatPriceEok(safetyMarginManwon)})이 균형 잡힌 표준 안정 구간입니다. 깡통전세 및 역전세 리스크가 낮고 실수요 하방 지지력이 견고하게 작동하는 밸류에이션 영역으로 평가됩니다.`
+      : ratioPercent > 0
+      ? `현재 전세가율은 ${ratioPercent.toFixed(1)}%(실거주 PER ${realPer}배)로 GTX-A 역세권·호수공원 조망 또는 신축 기대감 등 미래 가치 프리미엄이 매매가에 선반영된 구조입니다. 전세 보증금 안전 마진(${formatPriceEok(safetyMarginManwon)})이 매우 넓어 임차인 보증금 미반환 위험이 극히 낮습니다.`
+      : `최근 실거래 매매가(${formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok)})와 평형별 전월세 계약을 종합할 때, 자기자본 대비 대출 원리금 상환 비율(DSR 40%)을 중심으로 매수 타당성을 점검하는 것이 유효합니다.`;
 
   return (
     <>
@@ -212,9 +262,9 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
 
-      <DashboardClient initialDashboardData={scopedInitialData} preselectedAptName={decodedName} />
+      <LoungeHeader activeTab="explore" />
 
-      {/* High-Value Comprehensive Apartment Analysis Report (Visible SSR Content for Users & AdSense Reviewers) */}
+      {/* High-Value Comprehensive Apartment Analysis Report (Content-First Visible SSR Report for Users & Search Crawlers) */}
       <section
         id="apt-ssr-comprehensive-report"
         data-testid="apt-ssr-comprehensive-report"
@@ -249,6 +299,51 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
               />
             </div>
           </div>
+
+          {/* Chapter 01 Dynamic Complex-Specific Valuation & Structural Narrative */}
+          <section
+            id="chapter-01-dynamic-narrative-ssr"
+            aria-label={`${decodedName} 단지별 입지·수급·밸류에이션 3대 핵심 해설`}
+            className="space-y-4"
+          >
+            <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
+              <span className="w-2 h-5 bg-emerald-500 rounded-full" />
+              {decodedName} 입지 포지셔닝 및 실거래 밸류에이션 심층 해설
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-[13px] text-secondary">
+              <article className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl space-y-2">
+                <h3 className="text-sm font-extrabold text-primary">
+                  1. {parentZone ? `${parentZone.name}(${aptDong || parentZone.dongLabel})` : `동탄 ${aptDong || '핵심 권역'}`} 입지 포지셔닝
+                </h3>
+                <p className="leading-relaxed">
+                  {parentZone
+                    ? `${decodedName} 단지는 ${parentZone.name}(${parentZone.dongLabel}) 권역에 속하며, ${parentZone.description}`
+                    : `${decodedName} 단지는 화성시 동탄 ${aptDong || '신도시'} 생활권 내에 위치하여 광역 교통망과 중심 상업·교육 인프라를 공유합니다.`}
+                </p>
+              </article>
+
+              <article className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl space-y-2">
+                <h3 className="text-sm font-extrabold text-primary">
+                  2. 연식·세대 규모 및 주력 평형 수급 구조
+                </h3>
+                <p className="leading-relaxed tabular-nums">
+                  {ageLifecycleComment} {scaleLiquidityComment}{' '}
+                  {dominantPyeong
+                    ? `단지 내 최다 거래 주력 평형은 ${dominantPyeong.pyeong}평형(전용 ${dominantPyeong.areaM2}㎡, 매매 ${dominantPyeong.salesCount}건·전세 ${dominantPyeong.rentCount}건)으로 최근 실거래가 ${dominantPyeong.latestPriceStr}, 평균가 ${dominantPyeong.avgPriceStr}를 기록 중입니다.`
+                    : ''}
+                </p>
+              </article>
+
+              <article className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl space-y-2">
+                <h3 className="text-sm font-extrabold text-primary">
+                  3. 실거주 PER 및 전세 안전 마진 진단
+                </h3>
+                <p className="leading-relaxed tabular-nums">
+                  {jeonsePerComment}
+                </p>
+              </article>
+            </div>
+          </section>
 
           {/* School & Infrastructure Location Analytics */}
           {locationScore && (
@@ -684,6 +779,13 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
         </div>
       </section>
+
+      <DashboardClient
+        initialDashboardData={scopedInitialData}
+        preselectedAptName={decodedName}
+        autoOpenPreselectedModal={false}
+        hideHeader={true}
+      />
     </>
   );
 }

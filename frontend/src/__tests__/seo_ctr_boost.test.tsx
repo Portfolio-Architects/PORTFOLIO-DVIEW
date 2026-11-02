@@ -1002,11 +1002,11 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
     });
   });
 
-  describe('5. Comparison Guide Rich Snippets: Full 8-Guide SSR Rendering, 1:1 Real-Data Matchups, Internal Link Mesh, FAQPage JSON-LD & CLI Quiet Guardrails', () => {
+  describe('5. Comparison Guide Rich Snippets: Full 20-Guide SSR Rendering, 1:1 Real-Data Matchups, Internal Link Mesh, FAQPage JSON-LD & CLI Quiet Guardrails', () => {
     const EMOJI_REGEX = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
 
-    it('verifies all 8 guides resolve 100% of headToHeadComparisons, featuredApartments & featuredZones against real data with zero unicode emojis', async () => {
-      expect(GUIDE_ARTICLES).toHaveLength(8);
+    it('verifies all 20 guides resolve 100% of headToHeadComparisons, featuredApartments & featuredZones against real data with zero unicode emojis', async () => {
+      expect(GUIDE_ARTICLES).toHaveLength(20);
       const txSummary = await getTxSummaryData();
 
       for (const article of GUIDE_ARTICLES) {
@@ -1038,7 +1038,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       }
     });
 
-    it('renders all 8 guides cleanly with zero leaked Mermaid code, zero literal ** markdown markers, proper HTML tables, aligned jeonseRatio, and zero font-mono', async () => {
+    it('renders all 20 guides cleanly with zero leaked Mermaid code, zero literal ** markdown markers, proper HTML tables, aligned jeonseRatio, and zero font-mono', async () => {
       for (const article of GUIDE_ARTICLES) {
         const jsonLd = buildGuideArticleJsonLd(article, 'https://dongtanview.com');
         const graph = jsonLd['@graph'] as Array<Record<string, unknown>>;
@@ -1192,10 +1192,10 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       }
     });
 
-    it('renders GuideIndexPage (/guide) with all 8 comparison guides, CollectionPage JSON-LD hasPart=8, and zero font-mono in guide cards', () => {
+    it('renders GuideIndexPage (/guide) with all 20 comparison guides, CollectionPage JSON-LD hasPart=20, and zero font-mono in guide cards', () => {
       const { container, unmount } = render(<GuideIndexPage />);
       const cards = container.querySelectorAll('article');
-      expect(cards).toHaveLength(8);
+      expect(cards).toHaveLength(20);
       cards.forEach((card) => {
         expect(card.querySelectorAll('.font-mono').length).toBe(0);
       });
@@ -1204,7 +1204,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(ldScript).not.toBeNull();
       const parsedLd = JSON.parse(ldScript?.innerHTML || '{}');
       expect(parsedLd['@type']).toBe('CollectionPage');
-      expect(parsedLd.hasPart).toHaveLength(8);
+      expect(parsedLd.hasPart).toHaveLength(20);
       expect(
         parsedLd.hasPart.some(
           (item: { url: string }) =>

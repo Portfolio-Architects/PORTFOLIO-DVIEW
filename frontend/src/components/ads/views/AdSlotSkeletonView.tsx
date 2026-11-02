@@ -22,10 +22,7 @@ export function AdSlotSkeletonView({ isVisible = true }: AdSlotSkeletonViewProps
       aria-hidden="true"
     >
       <div className="w-16 h-3 bg-slate-300/80 dark:bg-slate-700/80 rounded mb-2" />
-      <div className="w-48 sm:w-64 h-3.5 bg-slate-200/80 dark:bg-slate-700/50 rounded mb-1.5" />
-      <span className="text-[11px] text-slate-400 dark:text-slate-500 font-medium tabular-nums">
-        스폰서드 광고를 불러오는 중입니다...
-      </span>
+      <div className="w-48 sm:w-64 h-3.5 bg-slate-200/80 dark:bg-slate-700/50 rounded" />
     </div>
   );
 }

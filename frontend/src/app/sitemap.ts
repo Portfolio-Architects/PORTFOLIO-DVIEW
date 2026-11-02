@@ -7,14 +7,15 @@ import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import {
   getTxSummaryData,
   getTechnoValleyJisanList,
+  formatTechnoValleyJisanSlug,
 } from '@/lib/services/apartmentPageService';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
 /**
- * Generates unified programmatic sitemap for D-VIEW (280 URLs).
- * @complexity Time: O(N), Space: O(N) where N = 280 programmatic entities
+ * Generates unified programmatic sitemap for D-VIEW (292 URLs).
+ * @complexity Time: O(N), Space: O(N) where N = 292 programmatic entities
  * @sideEffects Read-only file cache and optional Firestore metadata read
  */
 export default async function sitemap(
@@ -38,7 +39,7 @@ export default async function sitemap(
     { path: '/guide', changeFrequency: 'weekly', priority: 0.95 },
     { path: '/technovalley', changeFrequency: 'weekly', priority: 0.95 },
     { path: '/explore', changeFrequency: 'daily', priority: 0.9 },
-    { path: '/news', changeFrequency: 'daily', priority: 0.85 },
+    { path: '/stats', changeFrequency: 'daily', priority: 0.85 },
     { path: '/about', changeFrequency: 'monthly', priority: 0.8 },
     { path: '/contact', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/terms', changeFrequency: 'monthly', priority: 0.6 },
@@ -53,7 +54,7 @@ export default async function sitemap(
     });
   });
 
-  // 1. Guide Articles (8 programmatic long-form comparison & valuation articles)
+  // 1. Guide Articles (20 programmatic long-form comparison & valuation articles)
   GUIDE_ARTICLES.forEach((article) => {
     routes.push({
       url: `${baseUrl}/guide/${article.slug}`,
@@ -83,12 +84,13 @@ export default async function sitemap(
     });
   });
 
-  // 4. TechnoValley Knowledge Industry Center Detail Routes (all 56 B2B centers)
+  // 4. TechnoValley Knowledge Industry Center Detail Routes (all 56 B2B centers via clean static paths)
   try {
     const jisanList = await getTechnoValleyJisanList();
     jisanList.forEach((item) => {
+      const slug = formatTechnoValleyJisanSlug(item.name);
       routes.push({
-        url: `${baseUrl}/technovalley?jisan=${encodeURIComponent(item.name)}`,
+        url: `${baseUrl}/technovalley/${encodeURIComponent(slug)}`,
         lastModified: staticFixedDate,
         changeFrequency: 'weekly',
         priority: 0.85,

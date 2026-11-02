@@ -11,6 +11,10 @@ export const metadata: Metadata = {
   title: '동탄 입주민 익명 라운지 | D-VIEW',
   description:
     '동탄 183개 아파트 단지 입주민 익명 커뮤니티 라운지. 실제 단지 타이틀과 GPS 300m 공인 인증으로 소통하는 자유게시판.',
+  robots: {
+    index: false,
+    follow: true,
+  },
   alternates: {
     canonical: 'https://dongtanview.com/lounge',
   },

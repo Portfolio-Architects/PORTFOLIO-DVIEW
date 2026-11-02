@@ -268,7 +268,7 @@ describe('Empirical Challenger M3: AdBlock Fallback & Route Inventory Adversaria
       expect(content).toContain('<header>');
     });
 
-    it('verifies overview/page.tsx has exactly 0 occurrences of aria-hidden="true"', () => {
+    it('verifies overview/page.tsx has exactly 0 occurrences of aria-hidden="true" and uncloaks #overview-ssr-semantic-catalog', () => {
       const overviewPagePath = path.resolve(__dirname, '../app/overview/page.tsx');
       const content = fs.readFileSync(overviewPagePath, 'utf8');
 
@@ -276,8 +276,8 @@ describe('Empirical Challenger M3: AdBlock Fallback & Route Inventory Adversaria
       expect(matches).toBeNull();
 
       expect(content).toContain('id="overview-ssr-semantic-catalog"');
-      expect(content).toContain('className="sr-only"');
-      expect(content).toContain('<header>');
+      expect(content).not.toContain('className="sr-only"');
+      expect(content).toContain('<header');
     });
 
     it('verifies entire SSR page catalogs preserve standard semantic DOM indexing for search bots', () => {
@@ -295,8 +295,8 @@ describe('Empirical Challenger M3: AdBlock Fallback & Route Inventory Adversaria
       expect(exploreContent).toContain('<thead>');
       expect(exploreContent).toContain('<tbody>');
 
-      expect(overviewContent).toContain('<ol>');
-      expect(overviewContent).toContain('<ul>');
+      expect(overviewContent).toContain('<ol');
+      expect(overviewContent).toContain('<ul');
     });
   });
 });

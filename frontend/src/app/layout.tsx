@@ -181,7 +181,7 @@ export default function RootLayout({
                   </div>
                   <Footer />
                   <CustomA2HSModal />
-                  <WelcomeModal />
+                  <WelcomeModal autoOpenOnMount={false} />
                   <ScrollOptimizer />
                   <ScrollToTop />
                   <MobileStickyAnchorAd />

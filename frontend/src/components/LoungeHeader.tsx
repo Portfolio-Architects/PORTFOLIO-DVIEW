@@ -5,17 +5,25 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 
+function useSafeRouter() {
+  try {
+    return useRouter();
+  } catch {
+    return null;
+  }
+}
+
 const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
-  const router = useRouter();
+  const router = useSafeRouter();
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Proactively prefetch core routes on mount
-    router.prefetch('/');
-    router.prefetch('/explore');
-    router.prefetch('/mbti');
-    router.prefetch('/guide');
-    router.prefetch('/stats');
+    router?.prefetch('/');
+    router?.prefetch('/explore');
+    router?.prefetch('/mbti');
+    router?.prefetch('/guide');
+    router?.prefetch('/stats');
 
     const handlePopState = () => {
       if (!onTabChange || typeof window === 'undefined') return;
@@ -44,7 +52,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
       window.history.pushState(null, '', href);
       onTabChange(tab);
       try {
-        router.replace(href, { scroll: false });
+        router?.replace(href, { scroll: false });
       } catch (err) {}
     }
   };
@@ -67,7 +75,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 <Link
                   href="/"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/')}
+                  onMouseEnter={() => router?.prefetch('/')}
                   onClick={(e) => {
                     handleNavClick(e, '/', 'overview');
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
@@ -86,10 +94,10 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 <Link
                   href="/explore"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/explore')}
+                  onMouseEnter={() => router?.prefetch('/explore')}
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
-                    activeTab === 'imjang'
+                    activeTab === 'imjang' || activeTab === 'explore'
                       ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'
                   }`}
@@ -101,7 +109,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 <Link
                   href="/mbti"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/mbti')}
+                  onMouseEnter={() => router?.prefetch('/mbti')}
                   onClick={(e) => handleNavClick(e, '/mbti', 'mbti')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'mbti'
@@ -116,7 +124,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 <Link
                   href="/guide"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/guide')}
+                  onMouseEnter={() => router?.prefetch('/guide')}
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
@@ -131,7 +139,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 <Link
                   href="/stats"
                   prefetch={true}
-                  onMouseEnter={() => router.prefetch('/stats')}
+                  onMouseEnter={() => router?.prefetch('/stats')}
                   onClick={(e) => handleNavClick(e, '/stats', 'stats')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'stats'

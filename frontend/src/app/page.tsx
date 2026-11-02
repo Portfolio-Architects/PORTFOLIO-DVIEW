@@ -270,74 +270,92 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
 
   return (
     <>
+      <DashboardClient initialDashboardData={initialData} initialTab={initialTab} />
       <section
         id="home-ssr-semantic-catalog"
         aria-label="동탄 대장 아파트 랭킹 및 최신 실거래 내역"
-        className="sr-only"
+        className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-2"
       >
-        <header>
-          <h2>동탄 아파트 시세·실거래가·집값 추이 그래프 대시보드 - D-VIEW</h2>
-          <p>
-            국토교통부 실거래가 공개시스템 공식 데이터 기반 동탄 1·2신도시 184개 아파트 시세, 평형별 집값 추이 그래프, 전세가율 및 주거 가치 분석 리포트 플랫폼
-          </p>
-        </header>
-        {top10Leaderboard.length > 0 && (
-          <section>
-            <h3>동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)</h3>
-            <ol>
-              {top10Leaderboard.map((apt, index) => (
-                <li key={apt.name}>
-                  <strong>
-                    {index + 1}위:{' '}
-                    <Link href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`} prefetch={false}>
-                      {apt.name}
-                    </Link>
-                  </strong>{' '}
-                  ({apt.dong}) - 최근 실거래가: {formatPrice(apt.latestPrice)}
-                  {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
-                </li>
-              ))}
-            </ol>
-          </section>
-        )}
-        {recentTxs.length > 0 && (
-          <section>
-            <h3>최근 동탄 아파트 실거래 등록 내역 (최신 15건)</h3>
-            <ul>
-              {recentTxs.slice(0, 15).map((tx, idx) => {
-                const displayTxAptName = tx.apartmentName || tx.aptName || '';
-                const canonicalTxSlug = displayTxAptName
-                  ? resolveCanonicalAptSlug(displayTxAptName, {
-                      txKey: tx.txKey,
-                      dong: tx.dong,
-                      txMap: txSummary,
-                      sheetApartments: initialData.sheetApartments,
-                    }) || displayTxAptName
-                  : '';
-                return (
-                  <li key={idx}>
-                    <strong>
-                      {displayTxAptName ? (
-                        <Link href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`} prefetch={false}>
-                          {displayTxAptName}
+        <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-5 sm:p-7 space-y-5">
+          <header className="space-y-1.5 border-b border-slate-200/60 dark:border-slate-800/60 pb-4">
+            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
+              동탄 아파트 시세·실거래가·집값 추이 그래프 대시보드 - D-VIEW
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+              국토교통부 실거래가 공개시스템 공식 데이터 기반 동탄 1·2신도시 184개 아파트 시세, 평형별 집값 추이 그래프, 전세가율 및 주거 가치 분석 리포트 플랫폼
+            </p>
+          </header>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {top10Leaderboard.length > 0 && (
+              <section className="rounded-xl bg-white dark:bg-[#1e1e24] p-4 sm:p-5 space-y-3">
+                <h3 className="text-xs sm:text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
+                  동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)
+                </h3>
+                <ol className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 tabular-nums">
+                  {top10Leaderboard.map((apt, index) => (
+                    <li key={apt.name} className="leading-relaxed">
+                      <strong className="font-bold text-slate-900 dark:text-slate-100">
+                        {index + 1}위:{' '}
+                        <Link
+                          href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
+                          prefetch={false}
+                          className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                        >
+                          {apt.name}
                         </Link>
-                      ) : (
-                        '아파트'
-                      )}
-                    </strong>{' '}
-                    (
-                    {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) -{' '}
-                    {tx.dealType || '매매'} {formatPrice(tx.price || 0)}
-                    {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
-                    {tx.registeredDate ? ` [등록일: ${tx.registeredDate}]` : ''}
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        )}
+                      </strong>{' '}
+                      ({apt.dong}) - 최근 실거래가: {formatPrice(apt.latestPrice)}
+                      {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
+            {recentTxs.length > 0 && (
+              <section className="rounded-xl bg-white dark:bg-[#1e1e24] p-4 sm:p-5 space-y-3">
+                <h3 className="text-xs sm:text-sm font-extrabold text-blue-700 dark:text-blue-400">
+                  최근 동탄 아파트 실거래 등록 내역 (최신 15건)
+                </h3>
+                <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 tabular-nums">
+                  {recentTxs.slice(0, 15).map((tx, idx) => {
+                    const displayTxAptName = tx.apartmentName || tx.aptName || '';
+                    const canonicalTxSlug = displayTxAptName
+                      ? resolveCanonicalAptSlug(displayTxAptName, {
+                          txKey: tx.txKey,
+                          dong: tx.dong,
+                          txMap: txSummary,
+                          sheetApartments: initialData.sheetApartments,
+                        }) || displayTxAptName
+                      : '';
+                    return (
+                      <li key={idx} className="leading-relaxed">
+                        <strong className="font-bold text-slate-900 dark:text-slate-100">
+                          {displayTxAptName ? (
+                            <Link
+                              href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`}
+                              prefetch={false}
+                              className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                            >
+                              {displayTxAptName}
+                            </Link>
+                          ) : (
+                            '아파트'
+                          )}
+                        </strong>{' '}
+                        (
+                        {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) -{' '}
+                        {tx.dealType || '매매'} {formatPrice(tx.price || 0)}
+                        {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
+                        {tx.registeredDate ? ` [등록일: ${tx.registeredDate}]` : ''}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+          </div>
+        </div>
       </section>
-      <DashboardClient initialDashboardData={initialData} initialTab={initialTab} />
     </>
   );
 }

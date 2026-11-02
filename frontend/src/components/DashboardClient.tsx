@@ -343,11 +343,15 @@ function buildStubObjectiveMetrics(
 const DashboardClient = React.memo(function DashboardClient({ 
   initialDashboardData, 
   preselectedAptName,
-  initialTab = 'overview'
+  initialTab = 'overview',
+  autoOpenPreselectedModal = false,
+  hideHeader = false,
 }: { 
   initialDashboardData?: DashboardInitialDataLocal, 
   preselectedAptName?: string,
-  initialTab?: 'overview' | 'imjang' | 'mbti'
+  initialTab?: 'overview' | 'imjang' | 'mbti',
+  autoOpenPreselectedModal?: boolean,
+  hideHeader?: boolean,
 }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
@@ -760,38 +764,40 @@ const DashboardClient = React.memo(function DashboardClient({
             );
           }
         }
-        const report =
-          (targetApt && fieldReportsMap.get(targetApt.name)) ||
-          fieldReports.find(r => isSameApartment(r.apartmentName, preselectedAptName, nameMapping));
-        const locScore = getLocScore(resolvedApt.name) || getLocScore(preselectedAptName);
-        setSelectedReport(report || {
-          id: `stub-${normalizeAptName(resolvedApt.name)}`,
-          apartmentName: resolvedApt.name,
-          dong: resolvedApt.dong,
-          author: '',
-          likes: 0,
-          commentCount: 0,
-          createdAt: null,
-          metrics: buildStubObjectiveMetrics(resolvedApt, locScore),
-        });
-        triggerFetch();
-        setMobileModalOpen(true);
-        trackEvent('apartment_view', {
-          apartment_name: resolvedApt.name,
-          apt_name: resolvedApt.name,
-          canonical_slug: canonicalSlug || resolvedApt.name,
-          dong: resolvedApt.dong || undefined,
-          surface: 'dashboard_preselected_modal',
-          view_type: 'modal',
-          trigger: 'preselected_apt',
-        });
+        if (autoOpenPreselectedModal) {
+          const report =
+            (targetApt && fieldReportsMap.get(targetApt.name)) ||
+            fieldReports.find(r => isSameApartment(r.apartmentName, preselectedAptName, nameMapping));
+          const locScore = getLocScore(resolvedApt.name) || getLocScore(preselectedAptName);
+          setSelectedReport(report || {
+            id: `stub-${normalizeAptName(resolvedApt.name)}`,
+            apartmentName: resolvedApt.name,
+            dong: resolvedApt.dong,
+            author: '',
+            likes: 0,
+            commentCount: 0,
+            createdAt: null,
+            metrics: buildStubObjectiveMetrics(resolvedApt, locScore),
+          });
+          triggerFetch();
+          setMobileModalOpen(true);
+          trackEvent('apartment_view', {
+            apartment_name: resolvedApt.name,
+            apt_name: resolvedApt.name,
+            canonical_slug: canonicalSlug || resolvedApt.name,
+            dong: resolvedApt.dong || undefined,
+            surface: 'dashboard_preselected_modal',
+            view_type: 'modal',
+            trigger: 'preselected_apt',
+          });
+        }
       }
       return; 
     }
 
     if (typeof window !== 'undefined' && window.innerWidth < 768) return;
     // Auto-select is disabled so that the Ad slot placeholder remains visible on desktop until a user actively clicks an apartment.
-  }, [fieldReports, preselectedAptName, triggerFetch, getCanonicalAptSlug]);
+  }, [fieldReports, preselectedAptName, autoOpenPreselectedModal, triggerFetch, getCanonicalAptSlug]);
 
   useEffect(() => {
     if (!selectedReport || selectedReport.metrics?.householdCount) return;
@@ -1258,10 +1264,12 @@ const DashboardClient = React.memo(function DashboardClient({
 
       
       {/* Main Header — Reused LoungeHeader component */}
-      <LoungeHeader 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-      />
+      {!hideHeader && (
+        <LoungeHeader 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+        />
+      )}
 
       {/* Main Container */}
       <main 

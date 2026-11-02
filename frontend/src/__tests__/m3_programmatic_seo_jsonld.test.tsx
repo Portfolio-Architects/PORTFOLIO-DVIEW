@@ -30,6 +30,7 @@ import GuideIndexPage from '@/app/guide/page';
 import GuideArticlePage, {
   generateStaticParams as generateGuideStaticParams,
 } from '@/app/guide/[slug]/page';
+import { GUIDE_ARTICLES, buildGuideAptMiniPreview } from '@/lib/data/guides';
 import MBTIHubPage from '@/app/mbti/page';
 import MBTIDirectResultPage, {
   generateStaticParams as generateMbtiStaticParams,
@@ -271,20 +272,59 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
   });
 
   describe('4. /guide, /mbti, and /zone/[id] SSR Semantic & Accessibility Invariants', () => {
-    it('renders Zero-CLS AdSlots and recirculation links in /guide and /guide/[slug]', async () => {
+    it('renders Zero-CLS AdSlots, 20 original long-form guides with 100% real-data apartment bindings, and recirculation links in /guide and /guide/[slug]', async () => {
       const guideParams = await generateGuideStaticParams();
-      expect(guideParams).toHaveLength(8);
+      expect(guideParams).toHaveLength(20);
+      expect(GUIDE_ARTICLES).toHaveLength(20);
+
+      const emojiRegex = /[\u{1F300}-\u{1FAFF}]/u;
+
+      for (const article of GUIDE_ARTICLES) {
+        expect(article.headToHeadComparisons.length).toBeGreaterThanOrEqual(2);
+        expect(article.zoneSectionPreviews.length).toBeGreaterThanOrEqual(2);
+        expect(article.faqs.length).toBeGreaterThanOrEqual(3);
+        expect(article.content).toContain('| :---');
+        expect(emojiRegex.test(article.content)).toBe(false);
+        expect(emojiRegex.test(article.title)).toBe(false);
+
+        for (const aptKey of article.featuredApartments) {
+          const preview = buildGuideAptMiniPreview(aptKey);
+          expect(preview).not.toBeNull();
+          expect(preview?.latestPrice).toBeGreaterThan(0);
+        }
+        for (const h2h of article.headToHeadComparisons) {
+          expect(buildGuideAptMiniPreview(h2h.leftApt)?.latestPrice).toBeGreaterThan(0);
+          expect(buildGuideAptMiniPreview(h2h.rightApt)?.latestPrice).toBeGreaterThan(0);
+        }
+        for (const zsp of article.zoneSectionPreviews) {
+          expect(article.content).toContain(zsp.sectionHeadingMatch);
+          for (const aptKey of zsp.apartments) {
+            expect(buildGuideAptMiniPreview(aptKey)?.latestPrice).toBeGreaterThan(0);
+          }
+        }
+      }
 
       const indexRender = render(GuideIndexPage());
       expect(indexRender.getByTestId('guide-index-adslot-top').className).toContain('min-h-[250px]');
       expect(indexRender.getByTestId('guide-index-adslot-bottom').className).toContain('min-h-[250px]');
+      indexRender.unmount();
 
-      const ArticleJsx = await GuideArticlePage({
-        params: Promise.resolve({ slug: guideParams[0].slug }),
-      });
-      const articleRender = render(ArticleJsx);
-      expect(articleRender.getByTestId('guide-article-adslot-top').className).toContain('min-h-[250px]');
-      expect(articleRender.getByTestId('guide-article-adslot-bottom').className).toContain('min-h-[250px]');
+      for (const slug of [
+        guideParams[0].slug,
+        'dongtan-jeonse-hug-126-safety-manual',
+        'dongtan-apartments-per-valuation-methodology',
+        'dongtan-reconstruction-remodeling-1st-new-town-outlook',
+      ]) {
+        const ArticleJsx = await GuideArticlePage({
+          params: Promise.resolve({ slug }),
+        });
+        const articleRender = render(ArticleJsx);
+        expect(articleRender.getByTestId('guide-article-adslot-top').className).toContain('min-h-[250px]');
+        expect(articleRender.getByTestId('guide-article-adslot-bottom').className).toContain('min-h-[250px]');
+        expect(articleRender.container.querySelector('#guide-head-to-head-comparison')).not.toBeNull();
+        expect(articleRender.getAllByTestId('guide-zone-section-preview').length).toBeGreaterThanOrEqual(2);
+        articleRender.unmount();
+      }
     });
 
     it('renders Quiz/Place JSON-LD and visible SSR semantic analysis in /mbti and /mbti/[type]', async () => {
@@ -335,19 +375,19 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (280 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [280, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (292 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
+    it('registers exact [292, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(280);
+      expect(entries).toHaveLength(292);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(280);
+      expect(asyncEntries).toHaveLength(292);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(280);
+      expect(defaultEntries).toHaveLength(292);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
-      const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley?jisan='));
+      const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley/'));
       const mbtiUrls = entries.filter((e) => e.url.includes('/mbti/'));
       const zoneUrls = entries.filter((e) => e.url.includes('/zone/'));
       const guideUrls = entries.filter((e) => e.url.includes('/guide/'));
@@ -357,7 +397,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
           'https://dongtanview.com/guide',
           'https://dongtanview.com/technovalley',
           'https://dongtanview.com/explore',
-          'https://dongtanview.com/news',
+          'https://dongtanview.com/stats',
           'https://dongtanview.com/about',
           'https://dongtanview.com/contact',
           'https://dongtanview.com/terms',
@@ -369,12 +409,12 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
       expect(jisanDetailUrls).toHaveLength(56);
       expect(
         jisanDetailUrls.some(
-          (e) => e.url === `https://dongtanview.com/technovalley?jisan=${encodeURIComponent('(주)유앤미개발')}`
+          (e) => e.url === `https://dongtanview.com/technovalley/${encodeURIComponent('(주)유앤미개발')}`
         )
       ).toBe(true);
       expect(mbtiUrls).toHaveLength(16);
       expect(zoneUrls).toHaveLength(7);
-      expect(guideUrls).toHaveLength(8);
+      expect(guideUrls).toHaveLength(20);
       expect(coreStaticUrls).toHaveLength(9);
 
       const emptyChunk = await sitemap({ id: 99 });
