@@ -62,9 +62,11 @@ describe('ApartmentPage Pre-GA4 Canonical Sync React 19 Script Safety (Client & 
 
   it('hydrates executable SSR <script> HTML cleanly without hydration mismatch or script warnings', async () => {
     const PreGaCanonicalSync = (await import('@/components/common/PreGaCanonicalSync')).default;
+    const { NOISE_APARTMENT_QUERY_PARAMS } = await import('@/lib/utils/apartmentMapping');
     const canonicalPath = `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`;
     const safeCanonicalPathJson = JSON.stringify(canonicalPath).replace(/</g, '\\u003c');
-    const expectedInlineCode = `(function(){try{var p=${safeCanonicalPathJson};if(typeof window!=='undefined'&&window.location&&window.history&&typeof window.history.replaceState==='function'&&window.location.pathname!==p){window.history.replaceState(window.history.state,'',p+(window.location.search||'')+(window.location.hash||''));}}catch(_){}})();`;
+    const safeNoiseParamsJson = JSON.stringify(NOISE_APARTMENT_QUERY_PARAMS);
+    const expectedInlineCode = `(function(){try{var p=${safeCanonicalPathJson},np=${safeNoiseParamsJson};if(typeof window!=='undefined'&&window.location&&window.history&&typeof window.history.replaceState==='function'){var s=window.location.search||'';var sp=new URLSearchParams(s);var dirty=false;var keys=Array.from(sp.keys());for(var i=0;i<keys.length;i++){var k=keys[i].toLowerCase();if(np.indexOf(k)!==-1){sp.delete(keys[i]);dirty=true;}}var ns=dirty?(sp.toString()?'?'+sp.toString():''):s;if(window.location.pathname!==p||dirty){window.history.replaceState(window.history.state,'',p+ns+(window.location.hash||''));}}}catch(_){}})();`;
     const ssrHtml = `<script id="dview-pre-ga-canonical-sync">${expectedInlineCode}</script>`;
 
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});

@@ -141,6 +141,40 @@ export interface AdSlotProps {
   customCpaPayload?: Partial<NativeCpaFallbackPayload>;
 }
 
+function trimNonEmptySlotId(value?: string): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : undefined;
+}
+
+export function resolveDefaultAdSenseSlotId(format: AdSlotFormat = 'auto'): string {
+  const loungeDetail = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL);
+  const aptModal = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL);
+  const gapExplorer = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_GAP_EXPLORER);
+  const anchor = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR);
+  const dashboardBottom = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM);
+
+  const formatSpecificSlotId =
+    format === 'in-feed'
+      ? loungeDetail
+      : format === 'banner'
+      ? aptModal
+      : format === 'rectangle'
+      ? gapExplorer || aptModal
+      : format === 'horizontal-strip'
+      ? anchor || dashboardBottom
+      : dashboardBottom;
+
+  return (
+    formatSpecificSlotId ||
+    dashboardBottom ||
+    aptModal ||
+    loungeDetail ||
+    gapExplorer ||
+    anchor ||
+    '6782594447'
+  );
+}
+
 export function AdSlot({
   slotId,
   refreshSlotId,
@@ -207,17 +241,10 @@ export function AdSlot({
 
   const minHeightClass = propMinHeightClass || getAdSlotMinHeightClass(format);
 
-  const defaultSlotId =
-    (format === 'in-feed'
-      ? process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL
-      : format === 'banner'
-      ? process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL
-      : process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM) ||
-    process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM ||
-    '6782594447';
-
-  const effectiveSlotId = slotId || defaultSlotId;
-  const baseObserverSlotId = refreshSlotId || effectiveSlotId;
+  const defaultSlotId = resolveDefaultAdSenseSlotId(format);
+  const effectiveSlotId = trimNonEmptySlotId(slotId) || defaultSlotId;
+  const normalizedRefreshSlotId = trimNonEmptySlotId(refreshSlotId);
+  const baseObserverSlotId = normalizedRefreshSlotId || effectiveSlotId;
   const effectiveCampaignId =
     cpaCampaignId ?? selectDeterministicCampaignId(baseObserverSlotId);
 
@@ -536,7 +563,7 @@ export function AdSlot({
     isAdBlockActive,
     refreshKey,
     baseObserverSlotId,
-    refreshSlotId,
+    refreshSlotId: normalizedRefreshSlotId,
     effectiveSlotId,
     instanceId,
     viewabilityThreshold,
@@ -616,7 +643,7 @@ export function AdSlot({
       ) : isPlaceholder ? (
         <AdSlotPlaceholderView
           format={format}
-          slotId={slotId}
+          slotId={effectiveSlotId}
           minHeightClass={minHeightClass}
         />
       ) : (

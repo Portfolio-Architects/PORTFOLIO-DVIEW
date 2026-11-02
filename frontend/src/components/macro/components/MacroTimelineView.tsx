@@ -587,7 +587,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   setTimelineSegment,
   liveRankingBoardNode,
   enableInFeedAd = false,
-  inFeedAdSlotId = '1000000003',
+  inFeedAdSlotId,
   className,
 }: MacroTimelineViewProps) {
   const fallbackFavoritesHook = useFavorites();
@@ -731,10 +731,19 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
       });
       effectiveToggleFavorite(aptName);
       if (willBeFav) {
+        if (trimmedFavAddQuery) {
+          trackEvent('search_query', {
+            search_term: trimmedFavAddQuery,
+            query: trimmedFavAddQuery,
+            selected_apt: aptName,
+            surface: 'timeline_favorites_add',
+            trigger: source,
+          });
+        }
         setFavAddQuery('');
       }
     },
-    [effectiveUserFavorites, nameMapping, effectiveToggleFavorite]
+    [effectiveUserFavorites, nameMapping, effectiveToggleFavorite, trimmedFavAddQuery]
   );
 
   const filterItemBySegment = useCallback((item: TimelineItem) => {
@@ -954,7 +963,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             data-testid="timeline-segment-tabs"
             className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border/60 w-full"
           >
-            <div role="tablist" aria-label="실거래 세그먼트 필터" className={getToggleTrackClass('flex-wrap sm:inline-flex w-full sm:w-auto')}>
+            <div role="group" aria-label="실거래 세그먼트 필터" className={getToggleTrackClass('flex-wrap sm:inline-flex w-full sm:w-auto')}>
               <button
                 type="button"
                 role="tab"
@@ -972,7 +981,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
-                role="tab"
+                data-segment-btn="true"
                 data-testid="timeline-segment-favorites"
                 aria-selected={activeSegment === 'favorites'}
                 onClick={() => setActiveSegment('favorites')}
@@ -990,7 +999,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
-                role="tab"
+                role={activeSegment === 'favorites' ? undefined : 'tab'}
                 data-testid="timeline-segment-new-high"
                 aria-selected={activeSegment === 'new_high'}
                 onClick={() => setActiveSegment('new_high')}
@@ -1782,7 +1791,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     className="w-full py-1 box-border"
                   >
                     <AdSlot
-                      slotId={inFeedAdSlotId}
+                      refreshSlotId={inFeedAdSlotId || 'dashboard_timeline_infeed_3'}
                       format="in-feed"
                       apartmentName={effectiveSelectedApt || undefined}
                       className="w-full"

@@ -4,7 +4,10 @@ import { Ratelimit } from "@upstash/ratelimit";
 import { redis } from "@/lib/redis";
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
-import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import {
+  NOISE_APARTMENT_QUERY_PARAMS,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
 
 // Upstash 글로벌 Rate Limiter (Edge 호환)
 const RATE_LIMIT_POINTS = 60; // 분당 60회 허용
@@ -62,18 +65,29 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // 0.6. 아파트 상세 비정규 URL 슬러그(공백·별칭·NFD·이중인코딩) → 단일 정규 슬러그 HTTP 308 영구 리다이렉트
+  // 0.6. 아파트 상세 비정규 URL 슬러그(공백·별칭·NFD·이중인코딩) 및 크롤러/번역 노이즈 쿼리(?hl=ko-KR 등) → 단일 정규 슬러그 HTTP 308 영구 리다이렉트
   if (pathname.startsWith('/apartment/')) {
     const rawSegment = pathname.slice('/apartment/'.length).replace(/\/+$/, '');
     if (rawSegment && !rawSegment.includes('/')) {
       const canonicalSlug = resolveCanonicalAptSlug(rawSegment);
-      if (canonicalSlug) {
-        const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
-        if (pathname !== canonicalPath) {
-          const redirectUrl = request.nextUrl.clone();
-          redirectUrl.pathname = canonicalPath;
-          return NextResponse.redirect(redirectUrl, 308);
+      const canonicalPath = canonicalSlug
+        ? `/apartment/${encodeURIComponent(canonicalSlug)}`
+        : pathname;
+
+      const noiseKeysToDelete: string[] = [];
+      for (const key of Array.from(request.nextUrl.searchParams.keys())) {
+        if ((NOISE_APARTMENT_QUERY_PARAMS as readonly string[]).includes(key.toLowerCase())) {
+          noiseKeysToDelete.push(key);
         }
+      }
+
+      if (pathname !== canonicalPath || noiseKeysToDelete.length > 0) {
+        const redirectUrl = request.nextUrl.clone();
+        redirectUrl.pathname = canonicalPath;
+        for (const key of noiseKeysToDelete) {
+          redirectUrl.searchParams.delete(key);
+        }
+        return NextResponse.redirect(redirectUrl, 308);
       }
     }
   }

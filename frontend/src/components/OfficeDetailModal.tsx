@@ -169,26 +169,39 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
   }, [priceInput]);
 
   useEffect(() => {
-    if (!building) return;
+    if (!building) {
+      setApiTxs([]);
+      return;
+    }
     let isMounted = true;
     setIsLoadingTxs(true);
+    setApiTxs([]);
 
     fetch('/api/technovalley/transactions?lawdCd=41591&dealYmd=all')
-      .then(res => res.ok ? res.json() : [])
-      .then((data: OfficeTransaction[]) => {
-        if (!isMounted || !Array.isArray(data)) return;
-        const norm = (s: string) => s.replace(/동탄|\s+/g, '').toLowerCase();
+      .then(res => (res.ok ? res.json() : null))
+      .then((payload: OfficeTransaction[] | { data?: OfficeTransaction[] } | null) => {
+        if (!isMounted || !payload) return;
+        const txList: OfficeTransaction[] = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload.data)
+            ? payload.data
+            : [];
+
+        const norm = (s: string) =>
+          s.replace(/동탄|펜테리움|현대|center|센터|\s+/gi, '').toLowerCase();
         const targetKey = norm(building.name);
-        
-        const matched = data.filter(tx => {
+        if (!targetKey) {
+          setApiTxs([]);
+          return;
+        }
+
+        const matched = txList.filter(tx => {
           const bKey = norm(tx.buildingName || '');
           if (!bKey) return false;
           return bKey.includes(targetKey) || targetKey.includes(bKey);
         });
 
-        if (matched.length > 0) {
-          setApiTxs(matched);
-        }
+        setApiTxs(matched);
       })
       .catch(err => {
         console.error('Failed to fetch dynamic office transactions:', err);

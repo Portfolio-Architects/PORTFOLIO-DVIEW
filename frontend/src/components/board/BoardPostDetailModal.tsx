@@ -245,7 +245,7 @@ export function BoardPostDetailModal({
             className="w-full my-4 rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
           >
             <AdSlot
-              slotId="1000000003"
+              refreshSlotId="board_detail_infeed"
               format="in-feed"
               minHeightClass="min-h-[140px]"
             />

@@ -1219,6 +1219,31 @@ export function resolveCanonicalAptSlug(
       effectiveDong
     );
     if (isValidFuzzyTxHit(foundFromName)) return foundFromName;
+
+    // Fallback to static CANONICAL_TX_SUMMARY_MAP when caller passed a partial/scoped txMap
+    // (e.g. 1-key scopedInitialData.txSummary on /apartment/[aptName] before full tx-summary.json loads)
+    if (hasCallerTxEntries) {
+      const staticTxMap = CANONICAL_TX_SUMMARY_MAP as Record<string, { dong?: string }>;
+      if (!/\s/.test(decoded) && Object.prototype.hasOwnProperty.call(staticTxMap, decoded)) {
+        const staticEntry = staticTxMap[decoded];
+        if (!effectiveDong || !staticEntry?.dong || isDongHintCompatible(staticEntry.dong, effectiveDong)) {
+          return decoded;
+        }
+      }
+      const foundFromStaticCatalog = findTxKey(
+        decoded,
+        staticTxMap,
+        effectiveMapping,
+        false,
+        effectiveDong
+      );
+      if (foundFromStaticCatalog) {
+        const staticEntry = staticTxMap[foundFromStaticCatalog];
+        if (!effectiveDong || !staticEntry?.dong || isDongHintCompatible(staticEntry.dong, effectiveDong)) {
+          return foundFromStaticCatalog;
+        }
+      }
+    }
   }
 
   // 5. Pre-sale / 0-transaction complex with known txKey, or static HARDCODED_MAPPING alias
@@ -1239,4 +1264,47 @@ export function resolveCanonicalAptSlug(
   return decoded;
 }
 
+/**
+ * Crawler / translator locale noise query parameters (e.g. `?hl=ko-KR`, `?gl=KR`, `?_x_tr_hl=...`)
+ * that fragment GA4 page_location / page_path metrics and search engine indexing
+ * on `/apartment/[aptName]` URLs without affecting page content.
+ */
+export const NOISE_APARTMENT_QUERY_PARAMS = [
+  'hl',
+  'gl',
+  '_x_tr_sl',
+  '_x_tr_tl',
+  '_x_tr_hl',
+  '_x_tr_pto',
+  '_x_tr_hist',
+] as const;
 
+/**
+ * Strips crawler/translator noise query parameters (`hl`, `gl`, `_x_tr_*`) from a query string
+ * while preserving legitimate campaign and share parameters (`utm_*`, `shareType`, `grade`, `score`, `dview_admin`, etc.).
+ * Returns a leading-`?` query string if parameters remain, or `''` if empty.
+ */
+export function stripApartmentNoiseQueryParams(search: string | null | undefined): string {
+  if (!search || typeof search !== 'string') return '';
+  const trimmed = search.trim();
+  if (!trimmed || trimmed === '?') return '';
+
+  const rawQuery = trimmed.startsWith('?') ? trimmed.slice(1) : trimmed;
+  const params = new URLSearchParams(rawQuery);
+  let mutated = false;
+
+  for (const key of Array.from(params.keys())) {
+    const lower = key.toLowerCase();
+    if ((NOISE_APARTMENT_QUERY_PARAMS as readonly string[]).includes(lower)) {
+      params.delete(key);
+      mutated = true;
+    }
+  }
+
+  if (!mutated) {
+    return trimmed.startsWith('?') ? trimmed : `?${trimmed}`;
+  }
+
+  const nextQuery = params.toString();
+  return nextQuery ? `?${nextQuery}` : '';
+}

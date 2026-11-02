@@ -4,11 +4,11 @@ import localFont from 'next/font/local';
 import './globals.css';
 
 const pretendard = localFont({
-  src: '../../public/fonts/PretendardVariable.woff2',
+  src: '../../public/fonts/Pretendard-subset.woff2',
   display: 'swap',
   weight: '45 920',
   variable: '--font-pretendard',
-  preload: false,
+  preload: true,
 });
 import OfflineBanner from '@/components/ui/OfflineBanner';
 import SWRProvider from '@/components/pwa/SWRProvider';
@@ -27,6 +27,7 @@ import { safeReload } from '@/lib/utils/safeReload';
 import { buildPreHydrationAdminGuardScript } from '@/lib/utils/adminExclusion';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
+import MobileStickyAnchorAd from '@/components/layout/MobileStickyAnchorAd';
 import { logger } from '@/lib/services/logger';
 
 const CustomA2HSModal = dynamic(() => import('@/components/pwa/CustomA2HSModal'));
@@ -183,6 +184,7 @@ export default function RootLayout({
                   <WelcomeModal />
                   <ScrollOptimizer />
                   <ScrollToTop />
+                  <MobileStickyAnchorAd />
                 </PWAProvider>
                 <div id="modal-root" />
               </AuthProvider>

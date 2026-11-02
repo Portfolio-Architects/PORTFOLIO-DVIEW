@@ -311,6 +311,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   useEffect(() => {
     if (mounted && debouncedSearchQueryForAnalytics.trim()) {
       trackEvent('search_apartment', { query: debouncedSearchQueryForAnalytics });
+      trackEvent('search_query', {
+        search_term: debouncedSearchQueryForAnalytics.trim(),
+        query: debouncedSearchQueryForAnalytics.trim(),
+        surface: 'explore_catalog',
+      });
     }
   }, [debouncedSearchQueryForAnalytics, mounted]);
 
@@ -378,7 +383,17 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   const allApts = useMemo(() => {
     return Object.values(sheetApartments)
       .flat()
-      .filter((a: DongApartment) => !publicRentalSet.has(a.name) && a.lat !== 0 && a.lng !== 0);
+      .filter(
+        (a: DongApartment) =>
+          !publicRentalSet.has(a.name) &&
+          ((a.lat !== 0 && a.lng !== 0) ||
+            Boolean(a.seoLat && a.seoLng && a.seoLat > 0 && a.seoLng > 0))
+      )
+      .map((a: DongApartment) =>
+        a.lat !== 0 && a.lng !== 0
+          ? a
+          : { ...a, lat: a.seoLat || 0, lng: a.seoLng || 0 }
+      );
   }, [sheetApartments, publicRentalSet]);
 
   const enrichedApts = useMemo(() => {

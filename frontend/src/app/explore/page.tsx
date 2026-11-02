@@ -197,62 +197,66 @@ async function ExploreDataLoader() {
 
   return (
     <>
-      {/* SSR SEO Semantic HTML Block */}
+      <ExploreClient initialDashboardData={initialData} />
+      {/* SSR SEO Semantic HTML Block (Visible Directory Section — B9 Anti-Cloaking) */}
       <section
         id="explore-ssr-semantic-catalog"
         aria-label="동탄 전역 아파트 실거래가 및 입지 가치 비교 카탈로그"
-        className="sr-only"
+        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl text-xs text-slate-600 dark:text-slate-400 tabular-nums"
       >
         <header>
           <h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>
           <p>동탄 1, 2신도시 전체 184개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
         </header>
-        <table>
-          <thead>
-            <tr>
-              <th>단지명</th>
-              <th>행정동</th>
-              <th>연식</th>
-              <th>세대수</th>
-              <th>평균 매매가</th>
-              <th>평균 전세가</th>
-              <th>전세가율</th>
-            </tr>
-          </thead>
-          <tbody>
-            {apartmentsList.map((apt) => {
-              const canonicalSlug =
-                resolveCanonicalAptSlug(apt.name, {
-                  txKey: apt.txKey,
-                  txMap: txSummary,
-                  sheetApartments: initialData.sheetApartments,
-                  dong: apt.dong,
-                }) || apt.name;
-              const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
-              const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
-              const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
-              const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
+        <div className="mt-3 max-h-64 overflow-y-auto">
+          <table>
+            <caption className="sr-only">동탄 전역 184개 아파트 실거래가 및 전세가율 비교 표</caption>
+            <thead>
+              <tr>
+                <th>단지명</th>
+                <th>행정동</th>
+                <th>연식</th>
+                <th>세대수</th>
+                <th>평균 매매가</th>
+                <th>평균 전세가</th>
+                <th>전세가율</th>
+              </tr>
+            </thead>
+            <tbody>
+              {apartmentsList.map((apt) => {
+                const canonicalSlug =
+                  resolveCanonicalAptSlug(apt.name, {
+                    txKey: apt.txKey,
+                    txMap: txSummary,
+                    sheetApartments: initialData.sheetApartments,
+                    dong: apt.dong,
+                  }) || apt.name;
+                const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
+                const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
+                const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
+                const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
 
-              return (
-                <tr key={apt.name}>
-                  <td>
-                    <Link href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}>
-                      {apt.name}
-                    </Link>
-                  </td>
-                  <td>{apt.dong}</td>
-                  <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
-                  <td>{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
-                  <td>{formatPrice(salesPrice)}</td>
-                  <td>{formatPrice(rentPrice)}</td>
-                  <td>{ratio > 0 ? `${ratio}%` : '정보 없음'}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-        <nav aria-label="동탄 7대 핵심 권역별 아파트 시세 분석">
-          <ul>
+                return (
+                  <tr key={apt.name}>
+                    <td>
+                      <Link href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}>
+                        {apt.name}
+                      </Link>
+                    </td>
+                    <td>{apt.dong}</td>
+                    <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
+                    <td>{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
+                    <td>{formatPrice(salesPrice)}</td>
+                    <td>{formatPrice(rentPrice)}</td>
+                    <td>{ratio > 0 ? `${ratio}%` : '정보 없음'}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="동탄 7대 핵심 권역별 아파트 시세 분석" className="mt-4">
+          <ul className="flex flex-wrap gap-2">
             {ZONES.map((zone) => (
               <li key={zone.id}>
                 <Link href={`/zone/${zone.id}`} prefetch={false}>
@@ -263,7 +267,6 @@ async function ExploreDataLoader() {
           </ul>
         </nav>
       </section>
-      <ExploreClient initialDashboardData={initialData} />
     </>
   );
 }

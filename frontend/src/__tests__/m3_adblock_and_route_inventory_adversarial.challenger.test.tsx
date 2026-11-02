@@ -223,11 +223,12 @@ describe('Empirical Challenger M3: AdBlock Fallback & Route Inventory Adversaria
   });
 
   describe('3. Route Inventory Expansion (/explore and /news) Zero-CLS Contract', () => {
-    it('verifies /explore source enforces Zero-CLS AdSlot with slotId="1000000001" and min-h-[140px] sm:min-h-[160px]', () => {
+    it('verifies /explore source enforces Zero-CLS AdSlot bound to Vercel env var with min-h-[140px] sm:min-h-[160px]', () => {
       const explorePath = path.resolve(__dirname, '../app/explore/ExploreClient.tsx');
       const content = fs.readFileSync(explorePath, 'utf8');
 
-      expect(content).toMatch(/<AdSlot[\s\S]*?slotId="1000000001"/);
+      expect(content).not.toContain('slotId="100000000');
+      expect(content).toMatch(/<AdSlot[\s\S]*?refreshSlotId="explore_top_infeed"/);
       expect(content).toMatch(/<AdSlot[\s\S]*?format="in-feed"/);
       expect(content).toMatch(/<AdSlot[\s\S]*?minHeightClass="min-h-\[140px\] sm:min-h-\[160px\]"/);
       expect(content).toMatch(/<AdSlot[\s\S]*?cpaCampaignId="jeonse-sentinel"/);
@@ -237,9 +238,11 @@ describe('Empirical Challenger M3: AdBlock Fallback & Route Inventory Adversaria
       const newsPath = path.resolve(__dirname, '../app/news/NewsClient.tsx');
       const content = fs.readFileSync(newsPath, 'utf8');
 
+      expect(content).not.toContain('slotId="100000000');
+
       // Real estate tab
-      expect(content).toMatch(/idx === 3[\s\S]*?<AdSlot[\s\S]*?slotId="1000000001"/);
-      expect(content).toMatch(/filteredNewsList\.length <= 3[\s\S]*?<AdSlot[\s\S]*?slotId="1000000001"/);
+      expect(content).toMatch(/idx === 3[\s\S]*?<AdSlot[\s\S]*?refreshSlotId="news_feed_infeed"/);
+      expect(content).toMatch(/filteredNewsList\.length <= 3[\s\S]*?<AdSlot[\s\S]*?refreshSlotId="news_feed_trailing_infeed"/);
 
       // Admin notice tab
       expect(content).toMatch(/idx === 3[\s\S]*?<AdSlot[\s\S]*?cpaCampaignId="interior-quote"/);

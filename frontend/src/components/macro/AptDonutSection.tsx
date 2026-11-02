@@ -349,7 +349,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   const timelinePeriodForFetch: TimelinePeriod = period === '1y' ? '1y' : '90d';
   const { transactions: periodTransactions, isLoading: isPeriodLoading } = usePeriodTransactions(
     timelinePeriodForFetch,
-    recentTransactions
+    recentTransactions,
+    { chunked: true }
   );
 
   const activeTransactions = useMemo(() => {

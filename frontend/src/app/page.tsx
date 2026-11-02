@@ -250,10 +250,12 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
   const allApts = Object.entries(txSummary)
     .map(([name, sum]) => {
       const s = sum as TxSummaryItem;
+      const dong = s.dong || '';
       return {
         name,
+        canonicalSlug: resolveCanonicalAptSlug(name, { txMap: txSummary, dong }) || name,
         latestPrice: s.latestPrice || 0,
-        dong: s.dong || '',
+        dong,
         avg1MPrice: s.avg1MPrice || 0,
         jeonseRatio:
           s.avg1MPrice && s.avg1MPrice > 0 && s.avg1MRentDeposit && s.avg1MRentDeposit > 0
@@ -287,7 +289,7 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
                 <li key={apt.name}>
                   <strong>
                     {index + 1}위:{' '}
-                    <Link href={`/apartment/${encodeURIComponent(apt.name)}`} prefetch={false}>
+                    <Link href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`} prefetch={false}>
                       {apt.name}
                     </Link>
                   </strong>{' '}
@@ -346,11 +348,15 @@ export default async function HomePage() {
   const jsonLd = getMainPageSchema(baseUrl);
   const txSummary = await getTxSummaryData();
   const top10LeaderApts = Object.entries(txSummary || {})
-    .map(([name, sum]) => ({
-      name,
-      latestPrice: sum?.latestPrice || 0,
-      dong: sum?.dong || '',
-    }))
+    .map(([name, sum]) => {
+      const dong = sum?.dong || '';
+      return {
+        name,
+        canonicalSlug: resolveCanonicalAptSlug(name, { txMap: txSummary, dong }) || name,
+        latestPrice: sum?.latestPrice || 0,
+        dong,
+      };
+    })
     .filter((a) => a.latestPrice > 0)
     .sort((a, b) => b.latestPrice - a.latestPrice)
     .slice(0, 10);
@@ -473,7 +479,7 @@ export default async function HomePage() {
                 {top10LeaderApts.map((apt, idx) => (
                   <Link
                     key={apt.name}
-                    href={`/apartment/${encodeURIComponent(apt.name)}`}
+                    href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
                     prefetch={false}
                     className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 border border-border/30 hover:border-blue-500/40 p-2.5 flex flex-col justify-between gap-1 transition-all"
                   >

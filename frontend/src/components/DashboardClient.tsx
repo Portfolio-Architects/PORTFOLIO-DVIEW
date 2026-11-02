@@ -14,7 +14,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView } from '@/lib/utils/analytics';
 import {
   decodeSafeAptParam,
   syncShallowApartmentOpen,
@@ -281,6 +281,7 @@ import {
   HARDCODED_MAPPING,
   findTxKey,
   resolveCanonicalAptSlug,
+  stripApartmentNoiseQueryParams,
 } from '@/lib/utils/apartmentMapping';
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
@@ -644,7 +645,15 @@ const DashboardClient = React.memo(function DashboardClient({
               metrics: buildStubObjectiveMetrics(targetApt, getLocScore(targetApt.name)),
             });
           }
-        setMobileModalOpen(true);
+          setMobileModalOpen(true);
+          trackEvent('apartment_view', {
+            apartment_name: targetApt.name,
+            apt_name: targetApt.name,
+            dong: targetApt.dong || undefined,
+            surface: 'dashboard_hash_modal',
+            view_type: 'modal',
+            trigger: 'hash_link',
+          });
         }
       }
     };
@@ -738,14 +747,16 @@ const DashboardClient = React.memo(function DashboardClient({
           window.location.pathname.startsWith('/apartment/')
         ) {
           const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+          const currentSearch = window.location.search || '';
+          const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
           if (
-            window.location.pathname !== canonicalPath &&
+            (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) &&
             typeof window.history?.replaceState === 'function'
           ) {
             window.history.replaceState(
-              null,
+              window.history.state,
               '',
-              `${canonicalPath}${window.location.search || ''}${window.location.hash || ''}`
+              `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
             );
           }
         }
@@ -765,6 +776,15 @@ const DashboardClient = React.memo(function DashboardClient({
         });
         triggerFetch();
         setMobileModalOpen(true);
+        trackEvent('apartment_view', {
+          apartment_name: resolvedApt.name,
+          apt_name: resolvedApt.name,
+          canonical_slug: canonicalSlug || resolvedApt.name,
+          dong: resolvedApt.dong || undefined,
+          surface: 'dashboard_preselected_modal',
+          view_type: 'modal',
+          trigger: 'preselected_apt',
+        });
       }
       return; 
     }
@@ -811,21 +831,36 @@ const DashboardClient = React.memo(function DashboardClient({
               isSameApartment(a.name, aptParam, mapping) ||
               (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false)
           );
+          const resolvedName = targetApt?.name || aptParam;
+          const resolvedDong = targetApt?.dong || '';
+          const canonicalSlug = getCanonicalAptSlug(resolvedName, resolvedDong, targetApt?.txKey);
+          if (canonicalSlug && typeof window.history?.replaceState === 'function') {
+            const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+            const currentSearch = window.location.search || '';
+            const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
+            if (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) {
+              window.history.replaceState(
+                window.history.state,
+                '',
+                `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
+              );
+            }
+          }
           const report = (targetApt && reportsMap?.get(targetApt.name)) || {
-            id: `stub-${normalizeAptName(targetApt?.name || aptParam)}`,
-            apartmentName: targetApt?.name || aptParam,
-            dong: targetApt?.dong || '',
+            id: `stub-${normalizeAptName(resolvedName)}`,
+            apartmentName: resolvedName,
+            dong: resolvedDong,
             author: '',
             likes: 0,
             commentCount: 0,
             createdAt: null,
             metrics: buildStubObjectiveMetrics(
               targetApt || { name: aptParam, dong: '' },
-              getLocScore(targetApt?.name || aptParam)
+              getLocScore(resolvedName)
             ),
           };
           setSelectedReport(report);
-        setMobileModalOpen(true);
+          setMobileModalOpen(true);
           userHasSelected.current = true;
         }
         return;
@@ -845,7 +880,7 @@ const DashboardClient = React.memo(function DashboardClient({
     };
     window.addEventListener('popstate', handlePopState, { passive: true });
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [setSelectedReport, getLocScore]);
+  }, [setSelectedReport, getLocScore, getCanonicalAptSlug]);
 
   const handleAptClick = useCallback((apt: StaticApartment) => {
     userHasSelected.current = true;
@@ -903,8 +938,16 @@ const DashboardClient = React.memo(function DashboardClient({
     }
 
     // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV + funnel view_apartment
-    trackEvent('view_apartment', { apt_name: apt.name, dong: apt.dong || undefined, surface: 'dashboard' });
     const canonicalSlug = getCanonicalAptSlug(apt.name, apt.dong, (apt as DongApartment).txKey);
+    trackEvent('view_apartment', { apt_name: apt.name, dong: apt.dong || undefined, surface: 'dashboard' });
+    trackEvent('apartment_view', {
+      apartment_name: apt.name,
+      apt_name: apt.name,
+      canonical_slug: canonicalSlug,
+      dong: apt.dong || undefined,
+      surface: 'dashboard',
+      view_type: 'modal',
+    });
     syncShallowApartmentOpen(apt.name, { dong: apt.dong, canonicalSlug });
     setMobileModalOpen(true);
   }, [fieldReportsMap, setSelectedReport, nameMapping, getLocScore, triggerFetch, getCanonicalAptSlug]);

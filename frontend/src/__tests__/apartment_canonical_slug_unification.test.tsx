@@ -28,6 +28,7 @@ import { NextRequest } from 'next/server';
 import {
   resolveCanonicalAptSlug,
   sanitizeAptKey,
+  stripApartmentNoiseQueryParams,
   type CanonicalAptSlugItem,
 } from '@/lib/utils/apartmentMapping';
 import {
@@ -1062,5 +1063,219 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       syncShallowModalCloseToDashboard();
       expect(window.location.pathname).toBe('/');
     });
+
+    it('strips crawler/translator noise query parameters (?hl=ko-KR, ?gl=KR) across Edge 308 proxy, PreGaCanonicalSync, and ApartmentModal while preserving legitimate UTM parameters', async () => {
+      // 1) Unit verification of stripApartmentNoiseQueryParams
+      expect(stripApartmentNoiseQueryParams('')).toBe('');
+      expect(stripApartmentNoiseQueryParams('?')).toBe('');
+      expect(stripApartmentNoiseQueryParams('?hl=ko-KR')).toBe('');
+      expect(stripApartmentNoiseQueryParams('?hl=ko-KR&gl=KR')).toBe('');
+      expect(stripApartmentNoiseQueryParams('?HL=en-US&utm_source=google&gl=KR')).toBe(
+        '?utm_source=google'
+      );
+      expect(stripApartmentNoiseQueryParams('?utm_source=naver&shareType=rent')).toBe(
+        '?utm_source=naver&shareType=rent'
+      );
+
+      // 2) Edge proxy.ts: canonical pathname WITH ?hl=ko-KR -> 308 redirect stripping ?hl=ko-KR
+      const canonicalWithHlReq = new NextRequest(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역푸르지오')}?hl=ko-KR`
+      );
+      const canonicalWithHlRes = await proxy(canonicalWithHlReq);
+      expect(canonicalWithHlRes.status).toBe(308);
+      expect(canonicalWithHlRes.headers.get('location')).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역푸르지오')}`
+      );
+
+      // 3) Edge proxy.ts: spaced pathname WITH ?hl=ko-KR -> single-hop 308 redirect to canonical slug without ?hl=ko-KR
+      const spacedWithHlReq = new NextRequest(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역 푸르지오')}?hl=ko-KR`
+      );
+      const spacedWithHlRes = await proxy(spacedWithHlReq);
+      expect(spacedWithHlRes.status).toBe(308);
+      expect(spacedWithHlRes.headers.get('location')).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역푸르지오')}`
+      );
+
+      // 4) Edge proxy.ts: spaced pathname WITH ?hl=ko-KR&gl=KR&utm_source=google -> single-hop 308 preserving utm_source
+      const mixedQueryReq = new NextRequest(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역 푸르지오')}?hl=ko-KR&gl=KR&utm_source=google`
+      );
+      const mixedQueryRes = await proxy(mixedQueryReq);
+      expect(mixedQueryRes.status).toBe(308);
+      expect(mixedQueryRes.headers.get('location')).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역푸르지오')}?utm_source=google`
+      );
+
+      // 5) PreGaCanonicalSync inline script + useEffect strips ?hl=ko-KR even when pathname is already canonical
+      const PreGaCanonicalSync = (await import('@/components/common/PreGaCanonicalSync')).default;
+      const canonicalPrugioPath = `/apartment/${encodeURIComponent('동탄역푸르지오')}`;
+      window.history.replaceState(
+        { idx: 9 },
+        '',
+        `${canonicalPrugioPath}?hl=ko-KR&utm_source=google#chapter-01`
+      );
+      const { container: syncContainer, unmount: unmountSync } = render(
+        <PreGaCanonicalSync canonicalPath={canonicalPrugioPath} />
+      );
+      expect(window.location.pathname).toBe(canonicalPrugioPath);
+      expect(window.location.search).toBe('?utm_source=google');
+      expect(window.location.hash).toBe('#chapter-01');
+
+      // Also verify inline script execution directly on ?hl=ko-KR only
+      window.history.replaceState({ idx: 10 }, '', `${canonicalPrugioPath}?hl=ko-KR`);
+      const scriptEl = syncContainer.querySelector('#dview-pre-ga-canonical-sync');
+      expect(scriptEl).not.toBeNull();
+      new Function(scriptEl!.innerHTML)();
+      expect(window.location.pathname).toBe(canonicalPrugioPath);
+      expect(window.location.search).toBe('');
+      unmountSync();
+
+      // 6) ApartmentModal in-place replaceState strips ?hl=ko-KR with zero duplicate virtual pageviews
+      window.history.replaceState(
+        { __na: 'state-token-1' },
+        '',
+        `/apartment/${encodeURIComponent('동탄역 푸르지오')}?hl=ko-KR`
+      );
+      resetVirtualPageViewLedger();
+      const { unmount: unmountModal } = render(
+        <ApartmentModal
+          report={{
+            id: 'rep-prugio-hl',
+            apartmentName: '동탄역 푸르지오',
+            dong: '영천동',
+            author: 'D-VIEW',
+            likes: 0,
+            commentCount: 0,
+          }}
+          onClose={jest.fn()}
+          user={null}
+          onAddComment={jest.fn()}
+          txSummaryMap={REAL_TX_SUMMARY}
+          sheetApartments={REAL_BY_DONG}
+        />
+      );
+      expect(window.location.pathname).toBe(canonicalPrugioPath);
+      expect(window.location.search).toBe('');
+      expect(window.history.state).toEqual({ __na: 'state-token-1' });
+      expect(getVirtualPageViewCount()).toBe(0);
+      unmountModal();
+    });
+
+    it('preserves query, hash, and history.state without firing a duplicate virtual PV when navigating to a second /apartment/ page after a prior shallow open in the same session', () => {
+      resetVirtualPageViewLedger();
+      window.history.replaceState(null, '', '/');
+
+      // Step 1: User opens Apartment A from dashboard -> sets lastShallowRouteSignature in recirculationEngine
+      syncShallowApartmentOpen('동탄역 푸르지오', {
+        dong: '영천동',
+        canonicalSlug: '동탄역푸르지오',
+      });
+      expect(getVirtualPageViewCount()).toBe(1);
+
+      // Step 2: Without resetting the ledger, user is now on /apartment/동탄역 시범 리슈빌?hl=ko-KR&utm_source=google#chapter-02
+      const navState = { __na: 'next-router-state-b' };
+      window.history.replaceState(
+        navState,
+        '',
+        `/apartment/${encodeURIComponent('동탄역 시범 리슈빌')}?hl=ko-KR&utm_source=google#chapter-02`
+      );
+
+      const { unmount } = render(
+        <ApartmentModal
+          report={{
+            id: 'rep-richeville-second',
+            apartmentName: '동탄역 시범 리슈빌',
+            dong: '청계동',
+            author: 'D-VIEW',
+            likes: 0,
+            commentCount: 0,
+          }}
+          onClose={jest.fn()}
+          user={null}
+          onAddComment={jest.fn()}
+          txSummaryMap={REAL_TX_SUMMARY}
+          sheetApartments={REAL_BY_DONG}
+        />
+      );
+
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+      expect(window.location.search).toBe('?utm_source=google');
+      expect(window.location.hash).toBe('#chapter-02');
+      expect(window.history.state).toEqual(navState);
+      // Must NOT fire an extra virtual PV on top of the 1 from Step 1
+      expect(getVirtualPageViewCount()).toBe(1);
+      unmount();
+    });
+
+    it('resolves tx-summary.json-only complexes to canonical slugs even when caller passes a partial 1-entry scoped txMap', () => {
+      const partialScopedTxMap: Record<string, AptTxSummary> = {
+        동탄역푸르지오: REAL_TX_SUMMARY['동탄역푸르지오'],
+      };
+
+      expect(
+        resolveCanonicalAptSlug('더레이크시티 부영 1단지', {
+          txMap: partialScopedTxMap,
+          dong: '산척동',
+        })
+      ).toBe('더레이크시티부영1단지');
+
+      expect(
+        resolveCanonicalAptSlug('동탄2신도시 동탄역 디에트르 퍼스티지', {
+          txMap: partialScopedTxMap,
+          dong: '오산동',
+        })
+      ).toBe('동탄2신도시동탄역디에트르퍼스티지');
+
+      expect(
+        resolveCanonicalAptSlug('동탄 시범다은마을 월드메르디앙 반도유보라', {
+          txMap: partialScopedTxMap,
+          dong: '반송동',
+        })
+      ).toBe('동탄시범다은마을월드메르디앙반도유보라');
+    });
+
+    it('strips duplicate, mixed-case, and Google Translate (_x_tr_*) noise query parameters across stripApartmentNoiseQueryParams, Edge proxy, PreGaCanonicalSync, and ReportShareBar', async () => {
+      const noisyQuery =
+        '?hl=ko-KR&hl=en-US&HL=ja&Gl=KR&_x_tr_sl=auto&_x_tr_tl=en&_x_tr_hl=en&_x_tr_pto=wapp&_x_tr_hist=true&utm_source=naver';
+      expect(stripApartmentNoiseQueryParams(noisyQuery)).toBe('?utm_source=naver');
+
+      const proxyReq = new NextRequest(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역 푸르지오')}${noisyQuery}`
+      );
+      const proxyRes = await proxy(proxyReq);
+      expect(proxyRes.status).toBe(308);
+      expect(proxyRes.headers.get('location')).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역푸르지오')}?utm_source=naver`
+      );
+
+      const PreGaCanonicalSync = (await import('@/components/common/PreGaCanonicalSync')).default;
+      const canonicalPrugioPath = `/apartment/${encodeURIComponent('동탄역푸르지오')}`;
+      window.history.replaceState(
+        { idx: 42 },
+        '',
+        `${canonicalPrugioPath}${noisyQuery}#section-tx`
+      );
+      const { container, unmount } = render(
+        <PreGaCanonicalSync canonicalPath={canonicalPrugioPath} />
+      );
+      const scriptEl = container.querySelector('#dview-pre-ga-canonical-sync');
+      expect(scriptEl).not.toBeNull();
+      // Reset URL to noisy state and test the inline script directly
+      window.history.replaceState(
+        { idx: 42 },
+        '',
+        `${canonicalPrugioPath}${noisyQuery}#section-tx`
+      );
+      new Function(scriptEl!.innerHTML)();
+      expect(window.location.pathname).toBe(canonicalPrugioPath);
+      expect(window.location.search).toBe('?utm_source=naver');
+      expect(window.location.hash).toBe('#section-tx');
+      unmount();
+    });
   });
 });
+
+

@@ -378,7 +378,7 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
       expect(statsSections.length).toBeGreaterThanOrEqual(1);
       const timelineHeading = screen.getByText('일자별 최근 실거래');
 
-      const slot1Text = screen.getByText(/1000000001/);
+      const slot1Text = screen.getByTestId('hero-ad-slot-1').querySelector('[data-testid="ad-slot-container"]')!;
       expect(slot1Text).toBeInTheDocument();
 
       const slot1Container = slot1Text.closest('[data-testid="ad-slot-container"]');
@@ -410,7 +410,7 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         </SettingsProvider>
       );
 
-      const slot2Text = screen.getByText(/1000000002/);
+      const slot2Text = screen.getByTestId('finance-ad-slot-2').querySelector('[data-testid="ad-slot-container"]')!;
       expect(slot2Text).toBeInTheDocument();
 
       const slot2Container = slot2Text.closest('[data-testid="ad-slot-container"]');

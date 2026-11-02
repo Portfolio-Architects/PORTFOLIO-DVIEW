@@ -246,18 +246,26 @@ function filterTransactionsByDays(txs: RecentTransaction[], days: number): Recen
   });
 }
 
+export interface UsePeriodTransactionsOptions {
+  chunked?: boolean;
+}
+
 /**
  * On-demand SWR static fetcher for period chunks (7d, 30d, 90d, 1y, 3y, all) with CDN caching and zero Firestore reads.
+ * When `options.chunked` is true, uses progressive yearly chunk files (`tx-2026.json`, `tx-2025.json`, `tx-2024.json`, `tx-historical.json`)
+ * so expanding `1y -> 3y -> all` reuses already-downloaded yearly chunks in memory (P2-2 / B12).
  */
 export function usePeriodTransactions(
   period: TimelinePeriod = '90d',
-  fallbackRecentTransactions?: RecentTransaction[]
+  fallbackRecentTransactions?: RecentTransaction[],
+  options?: UsePeriodTransactionsOptions
 ) {
   const [hasHydrated, setHasHydrated] = useState(false);
   useEffect(() => {
     setHasHydrated(true);
   }, []);
 
+  const useChunked = Boolean(options?.chunked);
   const isRecentBased = period === '90d' || period === '7d' || period === '30d';
   const hasRecentFallback = !!(isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0);
 
@@ -270,12 +278,20 @@ export function usePeriodTransactions(
     'all': `/data/transactions-all.json?v=${BUILD_VERSION}`,
   };
 
+  const chunkFiles = staticDataService.resolveYearlyChunkFiles(period);
   // Defer browser SWR key until after initial hydration so SSR and client initial render match 100%
-  const url = hasHydrated ? periodPathMap[period] : null;
+  const swrKey = !hasHydrated
+    ? null
+    : useChunked && !isRecentBased
+      ? `tx-chunks:${period}:${BUILD_VERSION}:${chunkFiles.join(',')}`
+      : periodPathMap[period];
 
   const { data: rawData, error, isLoading } = useSWR<unknown>(
-    url,
-    staticJsonFetcher,
+    swrKey,
+    (key: string) =>
+      key.startsWith('tx-chunks:')
+        ? staticDataService.fetchPeriodTransactionsChunked(period, BUILD_VERSION)
+        : staticJsonFetcher(key),
     {
       fallbackData: isRecentBased ? fallbackRecentTransactions : undefined,
       revalidateOnFocus: false,
@@ -310,12 +326,31 @@ export function usePeriodTransactions(
     if (period === '30d') {
       return filterTransactionsByDays(list, 30);
     }
+    if (useChunked && period === '1y') {
+      return filterTransactionsByDays(list, 365);
+    }
+    if (useChunked && period === '3y') {
+      return filterTransactionsByDays(list, 365 * 3);
+    }
     return list;
-  }, [hasHydrated, rawData, isRecentBased, fallbackRecentTransactions, period]);
+  }, [hasHydrated, rawData, isRecentBased, fallbackRecentTransactions, period, useChunked]);
 
   return {
     transactions,
+    chunkFiles,
     isLoading: hasHydrated && isLoading && (!transactions || transactions.length === 0),
     error,
   };
+}
+
+/**
+ * Progressive yearly chunked period transactions hook (P2-2).
+ * Fetches and deduplicates yearly chunks (`tx-2026.json`, `tx-2025.json`, `tx-2024.json`, `tx-historical.json`)
+ * so expanding from 1y -> 3y -> all only downloads incremental yearly chunks instead of monolithic 9.4MB payloads.
+ */
+export function useChunkedPeriodTransactions(
+  period: TimelinePeriod = '90d',
+  fallbackRecentTransactions?: RecentTransaction[]
+) {
+  return usePeriodTransactions(period, fallbackRecentTransactions, { chunked: true });
 }

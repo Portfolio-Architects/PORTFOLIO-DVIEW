@@ -1,6 +1,47 @@
 import * as cheerio from 'cheerio';
 import { logger } from './logger';
+import { redis, rawRedis } from '@/lib/redis';
 import * as OfficeTxRepo from '@/lib/repositories/officeTx.repository';
+
+export const OFFICE_TX_CACHE_TTL_SECONDS = 24 * 60 * 60; // 24 hours (86,400s)
+export const RECENT_OFFICE_MONTHS_COUNT = 6;
+
+function shouldUseRedisCache(): boolean {
+  if (!redis) return false;
+  if (process.env.NODE_ENV === 'test') {
+    const isMocked = Boolean(
+      (redis.get as unknown as { _isMockFunction?: boolean })?._isMockFunction ||
+      (redis.set as unknown as { _isMockFunction?: boolean })?._isMockFunction
+    );
+    return isMocked || rawRedis !== null;
+  }
+  return true;
+}
+
+/**
+ * Generates an array of recent YYYYMM strings (default: last 6 months from baseDate, descending).
+ * Uses day=1 to prevent month-end overflow bugs (e.g., March 31 -> Feb 1).
+ */
+export function getRecentMonths(
+  count: number = RECENT_OFFICE_MONTHS_COUNT,
+  baseDate: Date = new Date()
+): string[] {
+  if (!Number.isFinite(count)) return [];
+  const safeCount = Math.floor(count);
+  if (safeCount <= 0) return [];
+  const validBase =
+    baseDate instanceof Date && !Number.isNaN(baseDate.getTime())
+      ? baseDate
+      : new Date();
+  const months: string[] = [];
+  for (let i = 0; i < safeCount; i++) {
+    const d = new Date(validBase.getFullYear(), validBase.getMonth() - i, 1);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    months.push(`${yyyy}${mm}`);
+  }
+  return months;
+}
 
 export interface OfficeTransaction {
   readonly date: string;
@@ -100,21 +141,62 @@ export function parseOfficeXml(xml: string): OfficeTransaction[] {
 
 /**
  * Fetches office transaction data from public portal API.
- * Supports multi-month fetching when dealYmd is 'all' or omitted.
+ * Supports multi-month fetching (recent 6 months) when dealYmd is 'all' or omitted,
+ * backed by Upstash Redis 24-hour caching.
  */
 export async function getOfficeTransactions(lawdCd: string = '41591', dealYmd: string = 'all'): Promise<OfficeTransaction[]> {
   try {
     const targetLawdCd = lawdCd === '41590' ? '41591' : lawdCd;
+    const useCache = shouldUseRedisCache();
 
     if (dealYmd !== 'all') {
+      const singleCacheKey = `DTDLS:cache:officeTx:${targetLawdCd}:${dealYmd}`;
+      if (useCache) {
+        try {
+          const cached = await redis.get<OfficeTransaction[]>(singleCacheKey);
+          if (Array.isArray(cached)) {
+            return cached;
+          }
+        } catch (cacheErr) {
+          logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache read failed, falling back to public portal API', {
+            cacheKey: singleCacheKey,
+            error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+          });
+        }
+      }
+
       const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, dealYmd);
-      return parseOfficeXml(xml);
+      const parsed = parseOfficeXml(xml);
+
+      if (useCache && parsed.length > 0) {
+        try {
+          await redis.set(singleCacheKey, parsed, { ex: OFFICE_TX_CACHE_TTL_SECONDS });
+        } catch (cacheErr) {
+          logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache write failed', {
+            cacheKey: singleCacheKey,
+            error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+          });
+        }
+      }
+      return parsed;
     }
 
-    const recentMonths = [
-      '202406', '202405', '202404', '202403', '202402', '202401',
-      '202312', '202311', '202310', '202309', '202308', '202307'
-    ];
+    const recentMonths = getRecentMonths(RECENT_OFFICE_MONTHS_COUNT);
+    const allCacheKey = `DTDLS:cache:officeTx:${targetLawdCd}:all:${recentMonths[0] || 'latest'}`;
+
+    if (useCache) {
+      try {
+        const cached = await redis.get<OfficeTransaction[]>(allCacheKey);
+        if (Array.isArray(cached)) {
+          return cached;
+        }
+      } catch (cacheErr) {
+        logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache read failed, falling back to public portal API', {
+          cacheKey: allCacheKey,
+          error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+        });
+      }
+    }
 
     const results = await Promise.all(
       recentMonths.map(async (ym) => {
@@ -128,10 +210,24 @@ export async function getOfficeTransactions(lawdCd: string = '41591', dealYmd: s
     );
 
     const flattened = results.flat();
-    return flattened.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    const sorted = flattened.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+    if (useCache && sorted.length > 0) {
+      try {
+        await redis.set(allCacheKey, sorted, { ex: OFFICE_TX_CACHE_TTL_SECONDS });
+      } catch (cacheErr) {
+        logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache write failed', {
+          cacheKey: allCacheKey,
+          error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+        });
+      }
+    }
+
+    return sorted;
   } catch (err) {
     logger.error('OfficeTxService.getOfficeTransactions', 'Error fetching or parsing office transactions.', { error: err instanceof Error ? err.message : String(err) });
     return [];
   }
 }
+
 

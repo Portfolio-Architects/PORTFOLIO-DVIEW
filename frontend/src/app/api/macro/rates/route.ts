@@ -5,9 +5,14 @@ import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 import { resilientFetchJson } from '@/lib/api/resilientFetch';
+import { redis } from '@/lib/redis';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+export const MACRO_RATES_REDIS_KEY = 'DTDLS:cache:macroRates';
+export const MACRO_RATES_REDIS_TTL_SEC = 21600; // 6 hours
+export const MACRO_RATES_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=21600';
 
 // ECOS API: 시장금리(일일) - 817Y002 (국고채 3년: 010200000)
 // ECOS API: 예금은행 대출금리(신규취급액 기준, 월별) - 121Y006 (주택담보대출: BECBLA0302)
@@ -26,6 +31,14 @@ const ecosResponseSchema = z.object({
     row: z.array(ecosRowSchema),
   }),
 });
+
+export interface MacroRatesPayload {
+  riskFreeRate: number;
+  fundingCost: number;
+  fundingCostRate?: number;
+  source: string;
+  date: string;
+}
 
 export async function GET(request: NextRequest) {
   const ECOS_API_KEY = process.env.ECOS_API_KEY;
@@ -54,14 +67,55 @@ export async function GET(request: NextRequest) {
     return apiError('BAD_REQUEST', 'Bad Request', 400);
   }
 
-  // 2. API 키가 없으면 바로 Fallback 반환
+  const bypassCache = parsedQuery.data.refresh;
+
+  // 2. Check 6-hour Upstash Redis cache first unless refresh=1 (P2-4 & B15)
+  if (!bypassCache && redis) {
+    try {
+      const cached = await redis.get<MacroRatesPayload>(MACRO_RATES_REDIS_KEY);
+      if (
+        cached &&
+        typeof cached === 'object' &&
+        typeof cached.riskFreeRate === 'number' &&
+        typeof cached.fundingCost === 'number'
+      ) {
+        return apiSuccess(
+          {
+            ...cached,
+            source: 'BOK_ECOS_REDIS_CACHE',
+          },
+          { cached: true },
+          {
+            headers: {
+              'Cache-Control': MACRO_RATES_CACHE_CONTROL,
+            },
+          }
+        );
+      }
+    } catch (cacheErr) {
+      logger.warn('MacroRatesAPI.GET', 'Redis cache read failed; falling back to ECOS API', {
+        error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+      });
+    }
+  }
+
+  // 3. API 키가 없으면 바로 Fallback 반환
   if (!ECOS_API_KEY || ECOS_API_KEY === 'pending') {
-    return apiSuccess({
-      riskFreeRate: FALLBACK_RISK_FREE_RATE,
-      fundingCost: FALLBACK_FUNDING_COST,
-      source: 'fallback_no_key',
-      date: MACRO_CONFIG.macroEnvironment.baseDate,
-    });
+    return apiSuccess(
+      {
+        riskFreeRate: FALLBACK_RISK_FREE_RATE,
+        fundingCost: FALLBACK_FUNDING_COST,
+        fundingCostRate: FALLBACK_FUNDING_COST,
+        source: 'fallback_no_key',
+        date: MACRO_CONFIG.macroEnvironment.baseDate,
+      },
+      undefined,
+      {
+        headers: {
+          'Cache-Control': MACRO_RATES_CACHE_CONTROL,
+        },
+      }
+    );
   }
 
   try {
@@ -102,9 +156,19 @@ export async function GET(request: NextRequest) {
     let isLiveRiskFree = false;
     let isLiveFundingCost = false;
 
-    // 국고채 금리 개별 fetch (예외 격리)
-    try {
-      const riskData = await resilientFetchJson<unknown>(riskFreeUrl, { timeoutMs: 3000, retries: 1 });
+    // P2-4 & B15: Parallelize both ECOS fetches via Promise.all with individual exception isolation
+    const [riskData, fundingData] = await Promise.all([
+      resilientFetchJson<unknown>(riskFreeUrl, { timeoutMs: 3000, retries: 1 }).catch((err) => {
+        logger.warn('MacroRatesAPI.GET', 'Failed to fetch risk-free rate from ECOS', {}, err as Error);
+        return null;
+      }),
+      resilientFetchJson<unknown>(fundingCostUrl, { timeoutMs: 3000, retries: 1 }).catch((err) => {
+        logger.warn('MacroRatesAPI.GET', 'Failed to fetch funding cost from ECOS', {}, err as Error);
+        return null;
+      }),
+    ]);
+
+    if (riskData !== null) {
       const parsedRisk = ecosResponseSchema.safeParse(riskData);
       if (parsedRisk.success) {
         const rows = parsedRisk.data.StatisticSearch.row;
@@ -122,13 +186,9 @@ export async function GET(request: NextRequest) {
           errors: parsedRisk.error.format(),
         });
       }
-    } catch (err) {
-      logger.warn('MacroRatesAPI.GET', 'Failed to fetch risk-free rate from ECOS', {}, err as Error);
     }
 
-    // 주택담보대출 금리 개별 fetch (예외 격리)
-    try {
-      const fundingData = await resilientFetchJson<unknown>(fundingCostUrl, { timeoutMs: 3000, retries: 1 });
+    if (fundingData !== null) {
       const parsedFunding = ecosResponseSchema.safeParse(fundingData);
       if (parsedFunding.success) {
         const rows = parsedFunding.data.StatisticSearch.row;
@@ -145,31 +205,58 @@ export async function GET(request: NextRequest) {
           errors: parsedFunding.error.format(),
         });
       }
-    } catch (err) {
-      logger.warn('MacroRatesAPI.GET', 'Failed to fetch funding cost from ECOS', {}, err as Error);
     }
 
     const isLive = isLiveRiskFree || isLiveFundingCost;
-    const source = isLiveRiskFree && isLiveFundingCost
-      ? 'ecos_live'
-      : isLive ? 'ecos_partial_live' : 'fallback_error';
+    const source =
+      isLiveRiskFree && isLiveFundingCost
+        ? 'ecos_live'
+        : isLive
+          ? 'ecos_partial_live'
+          : 'fallback_error';
 
-    return apiSuccess({
+    const payload: MacroRatesPayload = {
       riskFreeRate,
       fundingCost,
+      fundingCostRate: fundingCost,
       source,
-      date: riskFreeDateStr.length >= 8
-        ? `${riskFreeDateStr.substring(0, 4)}-${riskFreeDateStr.substring(4, 6)}-${riskFreeDateStr.substring(6, 8)}`
-        : MACRO_CONFIG.macroEnvironment.baseDate,
-    });
+      date:
+        riskFreeDateStr.length >= 8
+          ? `${riskFreeDateStr.substring(0, 4)}-${riskFreeDateStr.substring(4, 6)}-${riskFreeDateStr.substring(6, 8)}`
+          : MACRO_CONFIG.macroEnvironment.baseDate,
+    };
 
+    if (isLive && redis) {
+      try {
+        await redis.set(MACRO_RATES_REDIS_KEY, payload, { ex: MACRO_RATES_REDIS_TTL_SEC });
+      } catch (setErr) {
+        logger.warn('MacroRatesAPI.GET', 'Redis cache write failed', {
+          error: setErr instanceof Error ? setErr.message : String(setErr),
+        });
+      }
+    }
+
+    return apiSuccess(payload, undefined, {
+      headers: {
+        'Cache-Control': MACRO_RATES_CACHE_CONTROL,
+      },
+    });
   } catch (error) {
     logger.error('MacroRatesAPI.GET', 'Failed to execute macro rates API process', {}, error as Error);
-    return apiSuccess({
-      riskFreeRate: FALLBACK_RISK_FREE_RATE,
-      fundingCost: FALLBACK_FUNDING_COST,
-      source: 'fallback_error',
-      date: MACRO_CONFIG.macroEnvironment.baseDate,
-    });
+    return apiSuccess(
+      {
+        riskFreeRate: FALLBACK_RISK_FREE_RATE,
+        fundingCost: FALLBACK_FUNDING_COST,
+        fundingCostRate: FALLBACK_FUNDING_COST,
+        source: 'fallback_error',
+        date: MACRO_CONFIG.macroEnvironment.baseDate,
+      },
+      undefined,
+      {
+        headers: {
+          'Cache-Control': MACRO_RATES_CACHE_CONTROL,
+        },
+      }
+    );
   }
 }

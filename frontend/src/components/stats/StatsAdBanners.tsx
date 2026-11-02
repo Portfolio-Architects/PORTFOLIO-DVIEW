@@ -21,7 +21,7 @@ export function FilterBottomAdBanner({ testMode = false, className = '' }: Stats
       className={`my-6 w-full ${className}`}
     >
       <AdSlot
-        slotId="stat-slot-filter-bottom"
+        refreshSlotId="stat-slot-filter-bottom"
         format="horizontal-strip"
         testMode={testMode}
         fallbackType="minimal"
@@ -44,7 +44,7 @@ export function MidFeedAdBanner({ testMode = false, className = '' }: StatsAdBan
       className={`my-6 w-full ${className}`}
     >
       <AdSlot
-        slotId="stat-slot-mid-feed"
+        refreshSlotId="stat-slot-mid-feed"
         format="in-feed"
         testMode={testMode}
         fallbackType="minimal"
@@ -67,7 +67,7 @@ export function RankingBreakAdBanner({ testMode = false, className = '' }: Stats
       className={`py-2 w-full ${className}`}
     >
       <AdSlot
-        slotId="stat-slot-ranking-break"
+        refreshSlotId="stat-slot-ranking-break"
         format="in-feed"
         testMode={testMode}
         fallbackType="minimal"
@@ -90,7 +90,7 @@ export function BottomAnchorAdBanner({ testMode = false, className = '' }: Stats
       className={`my-8 w-full ${className}`}
     >
       <AdSlot
-        slotId="stat-slot-bottom-anchor"
+        refreshSlotId="stat-slot-bottom-anchor"
         format="banner"
         testMode={testMode}
         fallbackType="minimal"

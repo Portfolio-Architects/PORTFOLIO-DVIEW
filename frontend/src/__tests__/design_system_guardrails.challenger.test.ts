@@ -229,23 +229,29 @@ describe('Design System Static Verification Guardrails (Challenger Suite)', () =
       expect(content).toContain('lg:col-span-6 flex flex-col gap-6 lg:h-[526px]');
     });
 
-    test('3.3 Core AdSense slots 1000000001 & 1000000002 contracts are preserved in MacroDashboardClient', () => {
+    test('3.3 Core AdSense slots in MacroDashboardClient bind directly to Vercel env vars without hardcoded dummy slotId', () => {
       const content = fs.readFileSync(MACRO_DASHBOARD_FILE, 'utf8');
 
-      // Slot 1000000001 must be configured with in-feed format and bounded wrapper
-      expect(content).toContain('slotId="1000000001"');
-      expect(content).toContain('format="in-feed"');
+      // Hardcoded dummy slotId="100000000*" must be completely eliminated
+      expect(content).not.toContain('slotId="100000000');
+      expect(content).not.toContain('inFeedAdSlotId="100000000');
 
-      // Slot 1000000002 must be placed in lower feed
-      expect(content).toContain('slotId="1000000002"');
+      // Hero & Finance in-feed placements must preserve distinct refreshSlotId and wrapper contracts
+      expect(content).toContain('data-testid="hero-ad-slot-1"');
+      expect(content).toContain('refreshSlotId="dashboard_hero_infeed_1"');
+      expect(content).toContain('data-testid="finance-ad-slot-2"');
+      expect(content).toContain('refreshSlotId="dashboard_finance_infeed_2"');
+      expect(content).toContain('format="in-feed"');
     });
 
-    test('3.4 Core AdSense slot 1000000002 contracts are preserved across chapters in ApartmentModal', () => {
+    test('3.4 Core AdSense chapter slots in ApartmentModal bind to Vercel env vars while preserving refreshSlotId contracts', () => {
       expect(fs.existsSync(APT_MODAL_FILE)).toBe(true);
       const content = fs.readFileSync(APT_MODAL_FILE, 'utf8');
 
-      // Slot 1000000002 in Chapter 02 and Chapter 05
-      expect(content).toContain('slotId="1000000002"');
+      // Hardcoded dummy slotId="1000000002" must be eliminated while preserving Chapter 02 & 05 refreshSlotId keys
+      expect(content).not.toContain('slotId="100000000');
+      expect(content).toContain('refreshSlotId="1000000002_ch02"');
+      expect(content).toContain('refreshSlotId="1000000002_ch05"');
       expect(content).toContain('min-h-[180px] sm:min-h-[220px] md:min-h-[250px]');
       expect(content).toContain('bg-elevated dark:bg-slate-900');
     });

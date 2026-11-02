@@ -15,63 +15,9 @@ export interface CoLeasePost {
   inclusions: string[];
   status: 'available' | 'applied' | 'matched';
   description: string;
-  isMock?: boolean;
 }
 
-export const INITIAL_POSTS: CoLeasePost[] = [
-  {
-    id: 1,
-    title: '금강 IX타워 실평 20평 분할 쉐어 메이트 구합니다.',
-    buildingName: '금강 IX타워',
-    sector: 'IT 서비스 (웹디자인 에이전시)',
-    spaceType: '실평수 20평 전용 분할',
-    deposit: 500,
-    rent: 45,
-    inclusions: ['회의실 공유', '인터넷 무상제공', '무료 주차 1대 지원'],
-    status: 'available',
-    description: '전체 40평 오피스 중 창가 쪽 20평 구역을 독립적으로 사용하실 파트너사를 찾습니다. 디자인이나 개발 관련 업종이면 서로 협업 시너지도 기대할 수 있습니다. 탕비실과 대회의실은 공동 사용 조건입니다.',
-    isMock: true
-  },
-  {
-    id: 2,
-    title: '실리콘앨리 소형 섹션오피스 쉐어할 1인 작가님 계신가요?',
-    buildingName: '현대 실리콘앨리',
-    sector: '디자인/미디어 (독립 출판 크리에이터)',
-    spaceType: '책상 1개 개인 구역',
-    deposit: 100,
-    rent: 18,
-    inclusions: ['조용한 업무 환경', '커피 머신 무상 제공', '1개월 단기 가능'],
-    status: 'available',
-    description: '조용히 글을 쓰거나 개인 그래픽 작업을 하시는 프리랜서 작가분을 모집합니다. 공간이 예쁘고 조용합니다. 기본 사무집기(모니터 거치대 등)는 세팅되어 있으니 노트북만 들고 오시면 됩니다.',
-    isMock: true
-  },
-  {
-    id: 3,
-    title: '제조형 SH타임스퀘어 반 공간 쉐어 임차 구함',
-    buildingName: 'SH타임스퀘어',
-    sector: '정밀 제조/3D 프린팅 ((주)하이테크 정밀)',
-    spaceType: '창고 및 적재 구역 25평',
-    deposit: 800,
-    rent: 65,
-    inclusions: ['드라이브인 직통 하역 가능', '지게차 공동 사용', '하중 평당 4톤 설계'],
-    status: 'available',
-    description: '도어투도어가 가능한 드라이브인 호실입니다. 저희가 기계설비 구역을 사용하고 있어, 남는 적재 공간 25평가량을 물류창고나 하역 작업장으로 쉐어해서 사용하실 하드웨어 제조업체를 찾습니다.',
-    isMock: true
-  },
-  {
-    id: 4,
-    title: '동탄 SK V1 10평 섹션 쉐어하실 쇼핑몰 사장님',
-    buildingName: '동탄 SK V1',
-    sector: '전자상거래 (의류 쇼핑몰)',
-    spaceType: '공동 패킹대 + 데스크 1개',
-    deposit: 300,
-    rent: 30,
-    inclusions: ['계약 택배 수거 연계', '촬영 스튜디오 쉐어', '냉난방 완비'],
-    status: 'available',
-    description: '쇼핑몰 하시는 분 환영합니다. 택배 수거 계약이 되어 있어 저렴하게 물류 처리가 가능하고, 호실 내에 촬영 스튜디오 스크린과 조명 장비가 있어 예약제로 무료 쉐어해서 사용할 수 있습니다.',
-    isMock: true
-  }
-];
+export const INITIAL_POSTS: CoLeasePost[] = [];
 
 const AVAILABLE_BUILDING_OPTIONS = [
   '전체 빌딩',
@@ -246,7 +192,7 @@ export default function CoLeasingBoard() {
           {/* Max Rent Range */}
           <div className="flex items-center gap-1.5 flex-wrap min-w-0 max-w-full">
             <span className="text-[10px] sm:text-[11px] text-tertiary font-bold shrink-0">월세 상한선:</span>
-            <span className="text-[10px] sm:text-[11.5px] font-extrabold text-emerald-700 shrink-0">{maxRent === 100 ? '전체' : `${maxRent}만 원`}</span>
+            <span className="text-[10px] sm:text-[11.5px] font-extrabold text-emerald-700 tabular-nums shrink-0">{maxRent === 100 ? '전체' : `${maxRent}만 원`}</span>
             <input
               type="range"
               min="20"
@@ -254,7 +200,7 @@ export default function CoLeasingBoard() {
               step="5"
               value={maxRent}
               onChange={(e) => setMaxRent(Number(e.target.value))}
-              className="w-14 sm:w-28 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-hs-orange"
+              className="w-14 sm:w-28 h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
           </div>
 
@@ -274,7 +220,11 @@ export default function CoLeasingBoard() {
       {/* ═══ BOTTOM: Feed Grid ═══ */}
       {filteredPosts.length === 0 ? (
         <div className="bg-surface border border-border/80 rounded-[24px] py-16 px-4 text-center">
-          <p className="text-[13px] font-bold text-tertiary">조건에 일치하는 공동임차 구인 건이 없습니다.</p>
+          <p className="text-[13px] font-bold text-tertiary">
+            {posts.length === 0
+              ? '등록된 공동 임차 모집글이 없습니다.'
+              : '조건에 일치하는 공동임차 구인 건이 없습니다.'}
+          </p>
         </div>
       ) : (
         <div className="flex flex-col gap-6">
@@ -294,11 +244,6 @@ export default function CoLeasingBoard() {
                         <span className="inline-block px-2.5 py-0.5 bg-body text-tertiary text-[9.5px] font-black rounded-full border border-border/40">
                           {post.buildingName}
                         </span>
-                        {post.isMock && (
-                          <span className="inline-block px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 text-[9.5px] font-black border border-blue-500/20">
-                            가상 데이터
-                          </span>
-                        )}
                       </div>
                       
                       {isApplied ? (
@@ -335,7 +280,7 @@ export default function CoLeasingBoard() {
                   <div className="flex justify-between items-center pt-3 border-t border-border/30 mt-1">
                     <div className="flex items-baseline gap-1">
                       <span className="text-[10px] text-tertiary font-extrabold">분담:</span>
-                      <span className="text-[13px] font-black text-primary">
+                      <span className="text-[13px] font-black text-primary tabular-nums">
                         {post.deposit} / {post.rent}만 원
                       </span>
                     </div>
@@ -354,7 +299,7 @@ export default function CoLeasingBoard() {
           {/* ═══ PAGINATION CONTROLS ═══ */}
           {totalPages > 1 && (
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-surface/50 border border-border/60 p-4 rounded-[22px] shadow-sm">
-              <span className="text-[11px] text-tertiary font-bold">
+              <span className="text-[11px] text-tertiary font-bold tabular-nums">
                 총 <span className="text-primary font-black">{filteredPosts.length}</span>개 중 {(currentPage - 1) * POSTS_PER_PAGE + 1}-{Math.min(currentPage * POSTS_PER_PAGE, filteredPosts.length)} 표시
               </span>
 
@@ -428,7 +373,7 @@ export default function CoLeasingBoard() {
                   <div className="grid grid-cols-2 gap-4 bg-body/60 p-3 rounded-2xl border border-border/40">
                     <div className="flex flex-col gap-0.5">
                       <span className="text-[10px] text-tertiary font-bold">임대조건 (보증금 / 월세)</span>
-                      <span className="text-[13.5px] font-black text-primary">
+                      <span className="text-[13.5px] font-black text-primary tabular-nums">
                         {activeDetailPost.deposit}만 원 / {activeDetailPost.rent}만 원
                       </span>
                     </div>

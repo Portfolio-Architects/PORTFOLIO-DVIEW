@@ -94,6 +94,8 @@ export interface CpaCampaignTemplate {
   targetUrl: string;
   estimatedCpaValueWon: number;
   accentTone: 'emerald' | 'blue';
+  partnerCode: string;
+  envOverrideKey: string;
 }
 
 export const CPA_CAMPAIGN_CATALOG: Record<CpaCampaignId, CpaCampaignTemplate> = {
@@ -103,9 +105,12 @@ export const CPA_CAMPAIGN_CATALOG: Record<CpaCampaignId, CpaCampaignTemplate> = 
     title: '주담대 갈아타기 최저금리 및 스트레스 DSR 한도 정밀 진단',
     subtitle: '동탄 실거래가 연동 정책모기지·시중은행 대환대출 금리 비교',
     ctaText: '최저금리 한도 조회',
-    targetUrl: 'https://dongtanview.com/guide/stress-dsr-valuation-guide',
+    targetUrl:
+      'https://dongtanview.com/guide/stress-dsr-valuation-guide?utm_source=dview_cpa&utm_medium=affiliate&utm_campaign=mortgage-refinance&partner=fintech_dsr_compare',
     estimatedCpaValueWon: 35000,
     accentTone: 'emerald',
+    partnerCode: 'fintech_dsr_compare',
+    envOverrideKey: 'NEXT_PUBLIC_CPA_URL_MORTGAGE',
   },
   'corporate-relocation': {
     cpaCampaignId: 'corporate-relocation',
@@ -113,9 +118,12 @@ export const CPA_CAMPAIGN_CATALOG: Record<CpaCampaignId, CpaCampaignTemplate> = 
     title: '동탄테크노밸리 지식산업센터 법인 이전 세제 혜택 분석',
     subtitle: '취득세·재산세 감면 요건 및 중소기업 정책자금 융자 한도 확인',
     ctaText: '법인 이전 혜택 확인',
-    targetUrl: 'https://dongtanview.com/guide/gtx-a-tram-rail-network',
+    targetUrl:
+      'https://dongtanview.com/technovalley?utm_source=dview_cpa&utm_medium=b2b_affiliate&utm_campaign=corporate-relocation&partner=b2b_factoryon_tax',
     estimatedCpaValueWon: 50000,
     accentTone: 'blue',
+    partnerCode: 'b2b_factoryon_tax',
+    envOverrideKey: 'NEXT_PUBLIC_CPA_URL_CORPORATE',
   },
   'interior-quote': {
     cpaCampaignId: 'interior-quote',
@@ -123,9 +131,12 @@ export const CPA_CAMPAIGN_CATALOG: Record<CpaCampaignId, CpaCampaignTemplate> = 
     title: '동탄 주요 단지 평형별 입주·리모델링 표준 시공 명세',
     subtitle: '84㎡·59㎡ 타입별 자재 단가표 및 시공 견적 비교 분석',
     ctaText: '표준 시공 단가 확인',
-    targetUrl: 'https://dongtanview.com/guide/dongtan-1-vs-2-comparison',
+    targetUrl:
+      'https://dongtanview.com/guide/dongtan-1-vs-2-comparison?utm_source=dview_cpa&utm_medium=affiliate&utm_campaign=interior-quote&partner=proptech_move_quote',
     estimatedCpaValueWon: 30000,
     accentTone: 'emerald',
+    partnerCode: 'proptech_move_quote',
+    envOverrideKey: 'NEXT_PUBLIC_CPA_URL_INTERIOR',
   },
   'jeonse-sentinel': {
     cpaCampaignId: 'jeonse-sentinel',
@@ -133,11 +144,76 @@ export const CPA_CAMPAIGN_CATALOG: Record<CpaCampaignId, CpaCampaignTemplate> = 
     title: 'HUG 전세보증금 반환보증 126% 룰 및 선순위 안전도 진단',
     subtitle: '단지별 실거래가 대비 전세가율 기반 역전세 위험도 즉시 판별',
     ctaText: '전세 안전도 정밀 진단',
-    targetUrl: 'https://dongtanview.com/overview',
+    targetUrl:
+      'https://dongtanview.com/overview?utm_source=dview_cpa&utm_medium=affiliate&utm_campaign=jeonse-sentinel&partner=hug_guarantee_ins',
     estimatedCpaValueWon: 30000,
     accentTone: 'blue',
+    partnerCode: 'hug_guarantee_ins',
+    envOverrideKey: 'NEXT_PUBLIC_CPA_URL_JEONSE',
   },
 };
+
+/**
+ * Builds an attributed CPA conversion URL supporting environment partner overrides (`NEXT_PUBLIC_CPA_URL_*`)
+ * and optional contextual UTM/lead parameters (`slot_id`, `apt`, `dong`, `trigger`).
+ */
+export function buildCpaAttributedTargetUrl(
+  campaignIdOrTemplate: CpaCampaignId | CpaCampaignTemplate,
+  context?: {
+    slotId?: string;
+    apartmentName?: string;
+    dong?: string;
+    sourceTrigger?: CpaSourceTrigger;
+    includeContextParams?: boolean;
+  }
+): string {
+  const template =
+    typeof campaignIdOrTemplate === 'string'
+      ? CPA_CAMPAIGN_CATALOG[campaignIdOrTemplate] || CPA_CAMPAIGN_CATALOG['mortgage-refinance']
+      : campaignIdOrTemplate;
+
+  const envUrl =
+    typeof process !== 'undefined' && process.env && template.envOverrideKey
+      ? process.env[template.envOverrideKey]?.trim()
+      : undefined;
+
+  const hasValidEnvOverride = Boolean(
+    envUrl && /^https?:\/\//i.test(envUrl) && !/^(javascript|data|vbscript):/i.test(envUrl)
+  );
+  const baseUrlStr = hasValidEnvOverride ? envUrl! : template.targetUrl;
+
+  if (!hasValidEnvOverride && !context?.includeContextParams) {
+    return baseUrlStr;
+  }
+
+  try {
+    const parsed = new URL(baseUrlStr);
+    if (!parsed.searchParams.has('utm_source')) {
+      parsed.searchParams.set('utm_source', 'dview_cpa');
+    }
+    if (!parsed.searchParams.has('utm_campaign')) {
+      parsed.searchParams.set('utm_campaign', template.cpaCampaignId);
+    }
+    if (!parsed.searchParams.has('partner')) {
+      parsed.searchParams.set('partner', template.partnerCode);
+    }
+    if (context?.slotId) {
+      parsed.searchParams.set('slot_id', context.slotId);
+    }
+    if (context?.apartmentName) {
+      parsed.searchParams.set('apt', context.apartmentName);
+    }
+    if (context?.dong) {
+      parsed.searchParams.set('dong', context.dong);
+    }
+    if (context?.sourceTrigger) {
+      parsed.searchParams.set('trigger', context.sourceTrigger.toLowerCase());
+    }
+    return parsed.toString();
+  } catch {
+    return template.targetUrl;
+  }
+}
 
 /**
  * Deterministically selects a CPA campaign ID from slotId in O(1) time.
@@ -206,13 +282,18 @@ export function resolveNativeCpaFallbackPayload(options: {
     ? parsedTrigger.data
     : 'UNFILLED_ATTRIBUTE';
 
+  const resolvedUrl = buildCpaAttributedTargetUrl(template, {
+    slotId: safeSlotId,
+    sourceTrigger: safeTrigger,
+  });
+
   const baseCandidate: NativeCpaFallbackPayload = {
     slotId: safeSlotId,
     cpaCampaignId: campaignId,
     title: template.title,
     subtitle: template.subtitle,
     ctaText: template.ctaText,
-    targetUrl: template.targetUrl,
+    targetUrl: resolvedUrl,
     estimatedCpaValueWon: template.estimatedCpaValueWon,
     sourceTrigger: safeTrigger,
   };

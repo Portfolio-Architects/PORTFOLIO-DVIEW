@@ -27,7 +27,7 @@ import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection"
 import { AptMetricCards } from "./macro/AptMetricCards";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
 import { usePWA } from "@/components/pwa/PWAProvider";
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 import { useDebounce } from '@/hooks/useDebounce';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
@@ -777,7 +777,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const { transactions: timelinePeriodTransactions, isLoading: isTimelinePeriodLoading } = usePeriodTransactions(
     periodFilter,
-    recentTransactions
+    recentTransactions,
+    { chunked: true }
   );
 
   const { locationScores } = useLocationScores(initialLocationScores);
@@ -874,6 +875,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       canonical_slug: canonicalSlug,
       surface,
     });
+    trackApartmentView({
+      apartment_name: aptName,
+      apt_name: aptName,
+      canonical_slug: canonicalSlug,
+      dong: resolvedDong || dong || undefined,
+      surface,
+      view_type: 'detail_page',
+    });
 
     if (onNavigateApartmentPage) {
       onNavigateApartmentPage(aptName, resolvedDong || dong);
@@ -886,10 +895,21 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const handleCardClick = useCallback((aptName: string) => {
     setSelectedTimelineApt(aptName);
+    const resolvedDong = aptName ? resolveAptDong(aptName) : '';
     if (aptName) {
-      addRecentApartment({ name: aptName, dong: resolveAptDong(aptName) });
+      addRecentApartment({ name: aptName, dong: resolvedDong });
     }
-    if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+    const isMob = typeof window !== 'undefined' && window.innerWidth < 1024;
+    if (aptName) {
+      trackApartmentView({
+        apartment_name: aptName,
+        apt_name: aptName,
+        dong: resolvedDong || undefined,
+        surface: isMob ? 'dashboard_mobile_drawer' : 'dashboard_timeline_preview',
+        view_type: isMob ? 'mobile_drawer' : 'chart_preview',
+      });
+    }
+    if (isMob) {
       setIsBottomSheetOpen(true);
     }
   }, [setSelectedTimelineApt, setIsBottomSheetOpen, resolveAptDong]);
@@ -926,6 +946,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const query = debouncedTimelineSearch.trim();
     if (mounted && query) {
       trackEvent('search_apartment', { query, surface: 'dashboard_timeline' });
+      trackSearchQuery({
+        search_term: query,
+        query,
+        surface: 'dashboard_timeline',
+      });
     }
   }, [debouncedTimelineSearch, mounted]);
 
@@ -1912,8 +1937,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Prime Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (Directly Below Donut & Trend Hero) */}
         <div className="w-full mb-6" data-testid="hero-ad-slot-1">
           <AdSlot
-            slotId="1000000001"
+            refreshSlotId="dashboard_hero_infeed_1"
             format="in-feed"
+            cpaCampaignId="jeonse-sentinel"
             apartmentName={selectedTimelineApt || activeDonutSector?.repApt?.rawName || undefined}
             className="w-full"
           />
@@ -1968,7 +1994,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               pyeongRankings={unifiedStatsData.pyeongRankings}
               liveRankingBoardNode={liveRankingBoardNode}
               enableInFeedAd={true}
-              inFeedAdSlotId="1000000003"
               userFavorites={userFavorites}
               onToggleFavorite={toggleFavorite}
               sheetApartments={sheetApartments}
@@ -1997,8 +2022,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
         <div className="w-full my-6" data-testid="finance-ad-slot-2">
           <AdSlot
-            slotId="1000000002"
+            refreshSlotId="dashboard_finance_infeed_2"
             format="in-feed"
+            cpaCampaignId="mortgage-refinance"
             apartmentName={financeBinding.aptName || undefined}
             className="w-full"
           />

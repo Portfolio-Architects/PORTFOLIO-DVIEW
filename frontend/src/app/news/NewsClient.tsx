@@ -452,7 +452,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                           {idx === 3 && (
                             <div className="w-full my-4">
                               <AdSlot
-                                slotId="1000000001"
+                                refreshSlotId="news_feed_infeed"
                                 format="in-feed"
                                 minHeightClass="min-h-[140px] sm:min-h-[160px]"
                                 cpaCampaignId={activeNewsSubTab === 'industry' ? 'corporate-relocation' : 'mortgage-refinance'}
@@ -465,7 +465,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                       {filteredNewsList.length <= 3 && (
                         <div className="w-full my-4">
                           <AdSlot
-                            slotId="1000000001"
+                            refreshSlotId="news_feed_trailing_infeed"
                             format="in-feed"
                             minHeightClass="min-h-[140px] sm:min-h-[160px]"
                             cpaCampaignId={activeNewsSubTab === 'industry' ? 'corporate-relocation' : 'mortgage-refinance'}
@@ -520,7 +520,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                       {idx === 3 && (
                         <div className="w-full my-4">
                           <AdSlot
-                            slotId="1000000001"
+                            refreshSlotId="news_notices_infeed"
                             format="in-feed"
                             minHeightClass="min-h-[140px] sm:min-h-[160px]"
                             cpaCampaignId="interior-quote"
@@ -533,7 +533,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                   {noticesList.length <= 3 && (
                     <div className="w-full my-4">
                       <AdSlot
-                        slotId="1000000001"
+                        refreshSlotId="news_notices_trailing_infeed"
                         format="in-feed"
                         minHeightClass="min-h-[140px] sm:min-h-[160px]"
                         cpaCampaignId="interior-quote"

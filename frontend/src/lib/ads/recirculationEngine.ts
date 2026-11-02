@@ -4,6 +4,7 @@ import {
   getVirtualPageViewLedger as baseGetVirtualPageViewLedger,
   getVirtualPageViewCount as baseGetVirtualPageViewCount,
   resetVirtualPageViewLedger as baseResetVirtualPageViewLedger,
+  resetAnalyticsInteractionState,
   type VirtualPageViewEntry,
 } from '@/lib/utils/analytics';
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
@@ -115,7 +116,7 @@ export function syncShallowApartmentOpen(
     return ledger[ledger.length - 1] || null;
   }
 
-  if (!options?.force && !lastShallowRouteSignature && currentPathname === targetPath) {
+  if (!options?.force && currentPathname === targetPath) {
     lastShallowRouteSignature = { path: targetPath, timestamp: now };
     const ledger = getVirtualPageViewLedger();
     return ledger[ledger.length - 1] || null;
@@ -139,6 +140,7 @@ export function syncShallowApartmentOpen(
  */
 export function syncShallowModalCloseToDashboard(returnPath: string = '/'): void {
   lastShallowRouteSignature = null;
+  resetAnalyticsInteractionState();
   if (typeof window !== 'undefined' && window.history && typeof window.history.replaceState === 'function') {
     window.history.replaceState(null, '', returnPath || '/');
   }

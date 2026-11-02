@@ -89,7 +89,6 @@ export default async function AboutPage() {
         "alternateName": ["디뷰", "동뷰", "동탄뷰", "D-VIEW"],
         "description": "동탄 1·2신도시 184개 아파트 실거래 시세·집값 추이 그래프·전세가율 분석 및 동탄테크노밸리 56개 지식산업센터 데이터 플랫폼",
         "url": baseUrl,
-        "telephone": "+82-2-000-0000",
         "address": {
           "@type": "PostalAddress",
           "addressCountry": "KR",

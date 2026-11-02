@@ -4,6 +4,10 @@ import React, { useState } from 'react';
 import { Copy, Check, Share2, MessageSquare } from 'lucide-react';
 import { copyTextToClipboardDirect } from '@/lib/utils/kakaoShare';
 import { trackEvent } from '@/lib/utils/analytics';
+import {
+  resolveCanonicalAptSlug,
+  stripApartmentNoiseQueryParams,
+} from '@/lib/utils/apartmentMapping';
 
 export interface ReportShareBarProps {
   title: string;
@@ -12,30 +16,52 @@ export interface ReportShareBarProps {
   campaign?: string;
 }
 
+function normalizeReportCanonicalPath(rawPath: string): {
+  normalizedPath: string;
+  canonicalAptSlug: string | null;
+  decodedAptName: string | null;
+} {
+  const withLeadingSlash = rawPath.startsWith('/') ? rawPath : `/${rawPath}`;
+  if (!withLeadingSlash.startsWith('/apartment/')) {
+    return { normalizedPath: withLeadingSlash, canonicalAptSlug: null, decodedAptName: null };
+  }
+  const [pathAndQuery, hashFragment = ''] = withLeadingSlash.split('#');
+  const [pathnameOnly, rawSearch = ''] = pathAndQuery.split('?');
+  const rawSegment = pathnameOnly.slice('/apartment/'.length).split('/')[0] || '';
+  let decodedName = rawSegment;
+  try {
+    decodedName = decodeURIComponent(rawSegment).trim();
+  } catch {
+    decodedName = rawSegment.trim();
+  }
+  const canonicalSlug = resolveCanonicalAptSlug(decodedName) || decodedName;
+  const cleanSearch = stripApartmentNoiseQueryParams(rawSearch ? `?${rawSearch}` : '');
+  const hashSuffix = hashFragment ? `#${hashFragment}` : '';
+  const canonicalPathname = canonicalSlug
+    ? `/apartment/${encodeURIComponent(canonicalSlug)}`
+    : pathnameOnly;
+  return {
+    normalizedPath: `${canonicalPathname}${cleanSearch}${hashSuffix}`,
+    canonicalAptSlug: canonicalSlug || null,
+    decodedAptName: decodedName || canonicalSlug || null,
+  };
+}
+
 function dispatchReportShareAnalytics(
   canonicalPath: string,
   title: string,
   method: 'copy_summary' | 'webshare',
   campaign: string
 ): void {
-  const normalizedPath = canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`;
-  if (normalizedPath.startsWith('/apartment/')) {
-    const rawSegment = normalizedPath.slice('/apartment/'.length).split(/[?#]/)[0] || '';
-    let aptName = rawSegment;
-    try {
-      aptName = decodeURIComponent(rawSegment).trim();
-    } catch {
-      aptName = rawSegment.trim();
-    }
-    if (aptName) {
-      trackEvent('share_apartment', {
-        apt_name: aptName,
-        method,
-        campaign,
-        surface: 'report_share_bar',
-      });
-      return;
-    }
+  const { normalizedPath, canonicalAptSlug, decodedAptName } = normalizeReportCanonicalPath(canonicalPath);
+  if (canonicalAptSlug) {
+    trackEvent('share_apartment', {
+      apt_name: decodedAptName || canonicalAptSlug,
+      method,
+      campaign,
+      surface: 'report_share_bar',
+    });
+    return;
   }
   trackEvent('share_report', {
     report_title: title,
@@ -59,7 +85,7 @@ export default function ReportShareBar({
       typeof window !== 'undefined' && window.location.origin
         ? window.location.origin
         : 'https://dongtanview.com';
-    const normalizedPath = canonicalPath.startsWith('/') ? canonicalPath : `/${canonicalPath}`;
+    const { normalizedPath } = normalizeReportCanonicalPath(canonicalPath);
     const separator = normalizedPath.includes('?') ? '&' : '?';
     const shareUrl = `${origin}${normalizedPath}${separator}utm_source=${source}&utm_medium=viral&utm_campaign=${encodeURIComponent(campaign)}`;
 

@@ -198,7 +198,6 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
         name: 'D-VIEW 부동산 데이터 랩스',
         description: '동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼',
         url: baseUrl,
-        telephone: '+82-2-000-0000',
         address: {
           '@type': 'PostalAddress',
           addressCountry: 'KR',
@@ -357,7 +356,6 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
             className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
           >
             <AdSlot
-              slotId="1000000002"
               refreshSlotId={`1000000002_zone_${zone.id}`}
               format="rectangle"
               minHeightClass="min-h-[250px]"

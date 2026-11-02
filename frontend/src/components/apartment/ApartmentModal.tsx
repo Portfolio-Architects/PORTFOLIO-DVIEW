@@ -15,6 +15,7 @@ import {
   findTypeMapEntry,
   isSameApartment,
   resolveCanonicalAptSlug,
+  stripApartmentNoiseQueryParams,
 } from '@/lib/utils/apartmentMapping';
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
@@ -27,7 +28,7 @@ import { useApartmentDetails } from '@/hooks/useApartmentDetails';
 import { useSwipeNavigation } from '@/hooks/useSwipeNavigation';
 import { useSettingsValues } from '@/contexts/SettingsContext';
 import { shareAptToKakao, copyAptSummaryToClipboard } from '@/lib/utils/kakaoShare';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView } from '@/lib/utils/analytics';
 import { safeHtml2canvasPro } from '@/lib/utils/html2canvasPatch';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { getBrandMultiplier, calculatePremiumScores, calculateEducationScore, calculateInfraScore } from '@/lib/utils/scoring';
@@ -476,8 +477,17 @@ const ApartmentModal = React.memo(function ApartmentModal({
     if (targetElement) {
       targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+    if (report?.apartmentName) {
+      trackEvent('apartment_modal_chapter_view', {
+        apartment_name: report.apartmentName,
+        apt_name: report.apartmentName,
+        chapter_id: chapterId,
+        dong: report.dong || undefined,
+        surface: inline ? 'apartment_ssr_page' : 'apartment_modal',
+      });
+    }
     adRefreshManager.onTabSwitch();
-  }, []);
+  }, [inline, report?.apartmentName, report?.dong]);
 
   // Synchronize activeChapter into mountedChapters set
   useEffect(() => {
@@ -750,14 +760,16 @@ const ApartmentModal = React.memo(function ApartmentModal({
             ));
         if (isCurrentSameApt) {
           const canonicalPath = `/apartment/${encodeURIComponent(canonicalAptSlug)}`;
+          const currentSearch = window.location.search || '';
+          const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
           if (
-            window.location.pathname !== canonicalPath &&
+            (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) &&
             typeof window.history?.replaceState === 'function'
           ) {
             window.history.replaceState(
-              null,
+              window.history.state,
               '',
-              `${canonicalPath}${window.location.search || ''}${window.location.hash || ''}`
+              `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
             );
           }
         }
@@ -768,6 +780,23 @@ const ApartmentModal = React.memo(function ApartmentModal({
       });
     }
   }, [inline, report.apartmentName, report.dong, canonicalAptSlug, nameMapping]);
+
+  const lastTrackedAptViewRef = useRef<string>('');
+  useEffect(() => {
+    const aptName = report?.apartmentName?.trim();
+    if (!aptName) return;
+    const viewKey = `${inline ? 'inline' : 'modal'}:${aptName}`;
+    if (lastTrackedAptViewRef.current === viewKey) return;
+    lastTrackedAptViewRef.current = viewKey;
+    trackEvent('apartment_view', {
+      apartment_name: aptName,
+      apt_name: aptName,
+      canonical_slug: canonicalAptSlug || aptName,
+      dong: report.dong || undefined,
+      surface: inline ? 'apartment_ssr_page' : 'apartment_modal',
+      view_type: inline ? 'inline_report' : 'modal',
+    });
+  }, [inline, report?.apartmentName, report?.dong, canonicalAptSlug]);
 
   useEffect(() => {
     if (inline || typeof document === 'undefined') return;
@@ -1193,8 +1222,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
       typeMap={typeMap} 
       chartType={chartType} 
       normalizeAptName={normalizeAptName} 
+      loadAllTransactions={loadAllTransactions}
     />
-  ), [filteredTransactions, typeMap, chartType]);
+  ), [filteredTransactions, typeMap, chartType, loadAllTransactions]);
 
   const renderTransactionChartNode = useCallback(() => (
     <TransactionChartSection 
@@ -1322,10 +1352,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <div 
           data-testid="apartment-ad-slot-ch02"
           ref={ch02AdContainerRef}
-          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl p-4 sm:p-5 flex flex-col justify-center items-center overflow-hidden"
+          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl flex flex-col justify-center items-center overflow-hidden"
         >
           <AdSlot 
-            slotId="1000000002"
             refreshSlotId="1000000002_ch02"
             format="in-feed"
             minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
@@ -1538,10 +1567,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <div 
           data-testid="apartment-ad-slot-ch05"
           ref={ch05AdContainerRef}
-          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl p-4 sm:p-5 flex flex-col justify-center items-center overflow-hidden"
+          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl flex flex-col justify-center items-center overflow-hidden"
         >
           <AdSlot 
-            slotId="1000000002"
             refreshSlotId="1000000002_ch05"
             format="in-feed"
             minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"

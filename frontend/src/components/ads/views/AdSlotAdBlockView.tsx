@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Building2 } from 'lucide-react';
 import {
   type NativeCpaFallbackPayload,
@@ -34,7 +35,7 @@ export function AdSlotAdBlockView({
       data-cpa-campaign-id={cpaPayload.cpaCampaignId}
       data-source-trigger="ADBLOCK_ACTIVE"
       data-estimated-cpa-won={cpaPayload.estimatedCpaValueWon}
-      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-elevated dark:bg-slate-900 text-center z-10 ${minHeightClass}`}
+      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] bg-elevated text-center z-10 tabular-nums ${minHeightClass}`}
     >
       {fallbackType === 'minimal' ? (
         <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs">
@@ -42,10 +43,9 @@ export function AdSlotAdBlockView({
           <span>D-VIEW 스폰서십 | 쾌적한 주거 데이터 분석 경험을 제공합니다.</span>
         </div>
       ) : (
-        <a
+        <Link
           href={cpaPayload.targetUrl}
-          target="_blank"
-          rel="noopener noreferrer"
+          prefetch={false}
           data-testid="ad-slot-adblock-cta"
           onClick={onAdBlockFallbackClick}
           className="group flex flex-col items-center justify-center gap-1.5 max-w-lg w-full hover:opacity-95 transition-opacity"
@@ -87,7 +87,7 @@ export function AdSlotAdBlockView({
             <span>{cpaPayload.ctaText}</span>
             <ArrowRight size={14} />
           </span>
-        </a>
+        </Link>
       )}
     </div>
   );

@@ -2,17 +2,34 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
-import { ChevronRight, Scale, HelpCircle, ArrowUpRight } from 'lucide-react';
+import {
+  ChevronRight,
+  Scale,
+  HelpCircle,
+  ArrowUpRight,
+  Building2,
+  MapPin,
+} from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
-import { GUIDE_ARTICLES, buildGuideArticleJsonLd } from '@/lib/data/guides';
+import {
+  GUIDE_ARTICLES,
+  buildGuideArticleJsonLd,
+  buildGuideAptMiniPreview,
+  resolveGuideZoneSectionPreviews,
+  normalizeGuideAptName,
+  type GuideAptMiniPreviewItem,
+  type ResolvedGuideZoneSectionPreview,
+} from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
-import { getTxSummaryData, formatPriceEok } from '@/lib/services/apartmentPageService';
+import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
+import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
 
 export async function generateStaticParams() {
   return GUIDE_ARTICLES.map((article) => ({
@@ -68,13 +85,41 @@ export async function generateMetadata(props: {
   };
 }
 
-function renderInlineBold(text: string): React.ReactNode {
+export function renderInlineBold(
+  text: string,
+  inlineSlugLookup?: Map<string, string>
+): React.ReactNode {
   const parts = text.split(/(\*\*[^*]+\*\*)/g);
   return parts.map((part, idx) => {
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      const innerText = part.slice(2, -2);
+      const normKey = normalizeGuideAptName(innerText);
+      const strippedParenBase = innerText.replace(/\s*\([^)]*\)\s*$/, '').trim();
+      const fallbackNormKey =
+        strippedParenBase && strippedParenBase !== innerText
+          ? normalizeGuideAptName(strippedParenBase)
+          : '';
+      const matchedSlug =
+        inlineSlugLookup && normKey.length >= 2
+          ? inlineSlugLookup.get(normKey) ||
+            (fallbackNormKey.length >= 2 ? inlineSlugLookup.get(fallbackNormKey) : undefined)
+          : undefined;
+      if (matchedSlug) {
+        return (
+          <Link
+            key={idx}
+            href={`/apartment/${encodeURIComponent(matchedSlug)}`}
+            prefetch={false}
+            data-testid="guide-inline-apt-link"
+            className="font-extrabold text-emerald-700 dark:text-emerald-400 underline decoration-emerald-500/40 underline-offset-4 hover:text-emerald-600 transition-colors"
+          >
+            {innerText}
+          </Link>
+        );
+      }
       return (
         <strong key={idx} className="font-extrabold text-primary">
-          {part.slice(2, -2)}
+          {innerText}
         </strong>
       );
     }
@@ -90,10 +135,89 @@ function isMarkdownTableSeparator(line: string): boolean {
   return cells.length > 0 && cells.every((c) => /^:?-{2,}:?$/.test(c));
 }
 
-function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
+export function renderGuideBodyContent(
+  rawContent: string,
+  options?: {
+    guideSlug: string;
+    zoneSectionPreviews: ResolvedGuideZoneSectionPreview[];
+    inlineSlugLookup: Map<string, string>;
+  }
+): React.ReactNode[] {
   const withoutCodeFences = rawContent.replace(/```[\s\S]*?```/g, '');
   const lines = withoutCodeFences.split(/\r?\n/);
   const elements: React.ReactNode[] = [];
+  const guideSlug = options?.guideSlug || 'guide';
+  const zoneSectionPreviews = options?.zoneSectionPreviews || [];
+  const inlineSlugLookup = options?.inlineSlugLookup;
+
+  let activeZonePreview: ResolvedGuideZoneSectionPreview | null = null;
+  let activeZonePreviewLevel: 3 | 4 | null = null;
+  const emittedHeadings = new Set<string>();
+
+  const flushActiveZonePreview = (keySuffix: string | number) => {
+    if (!activeZonePreview || emittedHeadings.has(activeZonePreview.sectionHeadingMatch)) {
+      activeZonePreview = null;
+      activeZonePreviewLevel = null;
+      return;
+    }
+    const currentPreview = activeZonePreview;
+    emittedHeadings.add(currentPreview.sectionHeadingMatch);
+    activeZonePreview = null;
+    activeZonePreviewLevel = null;
+
+    elements.push(
+      <section
+        key={`zone-preview-${keySuffix}`}
+        data-testid="guide-zone-section-preview"
+        data-zone-id={currentPreview.zoneId || 'guide'}
+        aria-label={currentPreview.sectionTitle}
+        className="not-prose my-6 rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/15 p-4 sm:p-5 space-y-3.5"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <div className="inline-flex items-center gap-1.5 text-xs sm:text-[13px] font-extrabold text-emerald-700 dark:text-emerald-300">
+              <MapPin size={15} className="shrink-0" />
+              <span>{currentPreview.sectionTitle}</span>
+            </div>
+            <p className="mt-0.5 text-[11.5px] sm:text-xs text-slate-600 dark:text-slate-400 font-medium">
+              본 권역 설명에 언급된 대표 단지의 국토교통부 실시간 실거래가 미니 프리뷰입니다. 카드를 클릭하면 단지 상세 시세·전세가율·DSR 리포트로 이동합니다.
+            </p>
+          </div>
+
+          {currentPreview.zoneId && currentPreview.zoneName && (
+            <Link
+              href={`/zone/${currentPreview.zoneId}`}
+              prefetch={false}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-[11px] font-extrabold hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-colors w-fit shrink-0"
+            >
+              <span>{currentPreview.zoneName} 전체 시세</span>
+              <ArrowUpRight size={12} />
+            </Link>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          {currentPreview.items.map((item) => (
+            <GuideAptPreviewCard
+              key={`${currentPreview.sectionHeadingMatch}-${item.canonicalSlug}`}
+              item={item}
+              guideSlug={guideSlug}
+              placement="zone_section"
+              sectionTitle={currentPreview.sectionTitle}
+            />
+          ))}
+        </div>
+      </section>
+    );
+  };
+
+  const findHeadingPreview = (headingText: string): ResolvedGuideZoneSectionPreview | undefined =>
+    zoneSectionPreviews.find(
+      (cfg) =>
+        !emittedHeadings.has(cfg.sectionHeadingMatch) &&
+        headingText.includes(cfg.sectionHeadingMatch)
+    );
+
   let i = 0;
 
   while (i < lines.length) {
@@ -104,18 +228,26 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
     }
 
     if (trimmed === '---') {
+      flushActiveZonePreview(`before-hr-${i}`);
       elements.push(<hr key={`hr-${i}`} className="my-8 border-border/60" />);
       i += 1;
       continue;
     }
 
     if (trimmed.startsWith('### ')) {
+      flushActiveZonePreview(`before-h3-${i}`);
+      const headingText = trimmed.slice(4).trim();
+      const matchedH3 = findHeadingPreview(headingText);
+      if (matchedH3) {
+        activeZonePreview = matchedH3;
+        activeZonePreviewLevel = 3;
+      }
       elements.push(
         <h3
           key={`h3-${i}`}
           className="text-xl sm:text-2xl font-black text-primary tracking-tight mt-10 mb-4 pb-2 border-b border-border/40"
         >
-          {renderInlineBold(trimmed.slice(4).trim())}
+          {renderInlineBold(headingText, inlineSlugLookup)}
         </h3>
       );
       i += 1;
@@ -123,12 +255,21 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
     }
 
     if (trimmed.startsWith('#### ')) {
+      const headingText = trimmed.slice(5).trim();
+      const matchedH4 = findHeadingPreview(headingText);
+      if (activeZonePreviewLevel === 4 || matchedH4) {
+        flushActiveZonePreview(`before-h4-${i}`);
+      }
+      if (matchedH4) {
+        activeZonePreview = matchedH4;
+        activeZonePreviewLevel = 4;
+      }
       elements.push(
         <h4
           key={`h4-${i}`}
           className="text-base sm:text-lg font-extrabold text-primary tracking-tight mt-6 mb-2"
         >
-          {renderInlineBold(trimmed.slice(5).trim())}
+          {renderInlineBold(headingText, inlineSlugLookup)}
         </h4>
       );
       i += 1;
@@ -158,7 +299,7 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
               <tr>
                 {headers.map((h, hIdx) => (
                   <th key={hIdx} className="p-3.5 whitespace-nowrap">
-                    {renderInlineBold(h)}
+                    {renderInlineBold(h, inlineSlugLookup)}
                   </th>
                 ))}
               </tr>
@@ -173,7 +314,7 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
                   <tr key={rIdx} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
                     {cells.map((cell, cIdx) => (
                       <td key={cIdx} className="p-3.5 whitespace-nowrap tabular-nums">
-                        {renderInlineBold(cell)}
+                        {renderInlineBold(cell, inlineSlugLookup)}
                       </td>
                     ))}
                   </tr>
@@ -200,7 +341,7 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
         >
           {items.map((item, idx) => (
             <li key={idx} className="break-keep">
-              {renderInlineBold(item)}
+              {renderInlineBold(item, inlineSlugLookup)}
             </li>
           ))}
         </ul>
@@ -228,12 +369,12 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
         >
           {orderedItems.map((item, idx) => (
             <li key={idx} className="break-keep">
-              <span>{renderInlineBold(item.mainText)}</span>
+              <span>{renderInlineBold(item.mainText, inlineSlugLookup)}</span>
               {item.subBullets.length > 0 && (
                 <ul className="mt-1.5 space-y-1 pl-4 list-disc text-[13.5px] sm:text-[14.5px] text-secondary">
                   {item.subBullets.map((sub, subIdx) => (
                     <li key={subIdx} className="break-keep">
-                      {renderInlineBold(sub)}
+                      {renderInlineBold(sub, inlineSlugLookup)}
                     </li>
                   ))}
                 </ul>
@@ -266,10 +407,12 @@ function renderGuideBodyContent(rawContent: string): React.ReactNode[] {
 
     elements.push(
       <p key={`p-${startIdx}`} className="text-[14px] sm:text-[15.5px] leading-relaxed break-keep">
-        {renderInlineBold(paraLines.join(' '))}
+        {renderInlineBold(paraLines.join(' '), inlineSlugLookup)}
       </p>
     );
   }
+
+  flushActiveZonePreview('end-of-body');
 
   return elements;
 }
@@ -291,31 +434,14 @@ export default async function GuideArticlePage(props: {
   const otherArticles = GUIDE_ARTICLES.filter((a) => a.slug !== article.slug);
   const txSummary = await getTxSummaryData();
 
-  const mapAptMetric = (aptName: string) => {
-    const s = txSummary[aptName];
-    if (!s) return null;
-    const latestPrice = s.latestPrice || 0;
-    const latestRent = s.latestRentDeposit || 0;
-    const salesBase = s.avg1MPrice || s.avg3MPrice || latestPrice;
-    const rentBase = s.avg1MRentDeposit || s.avg3MRentDeposit || latestRent;
-    const rawRatio =
-      salesBase > 0 && rentBase > 0 ? Math.round((rentBase / salesBase) * 100) : 0;
-    const jeonseRatio = rawRatio > 0 && rawRatio <= 100 ? rawRatio : 0;
-    return {
-      name: aptName,
-      dong: s.dong || '동탄',
-      latestPriceStr:
-        s.latestPriceEok || (latestPrice > 0 ? formatPriceEok(latestPrice) : '정보 없음'),
-      latestRentStr:
-        s.latestRentDepositEok || (latestRent > 0 ? formatPriceEok(latestRent) : '정보 없음'),
-      jeonseRatio,
-      txCount: s.txCount || 0,
-    };
-  };
+  const mapAptMetric = (aptName: string): GuideAptMiniPreviewItem | null =>
+    buildGuideAptMiniPreview(aptName, txSummary);
 
   const featuredAptRows = (article.featuredApartments || [])
     .map(mapAptMetric)
-    .filter((item): item is NonNullable<typeof item> => item !== null);
+    .filter((item): item is GuideAptMiniPreviewItem => item !== null);
+
+  const zoneSectionPreviews = resolveGuideZoneSectionPreviews(article, txSummary);
 
   const headToHeadRows = (article.headToHeadComparisons || [])
     .map((matchup) => {
@@ -330,9 +456,37 @@ export default async function GuideArticlePage(props: {
     })
     .filter((item): item is NonNullable<typeof item> => item !== null);
 
+  const inlineSlugLookup = new Map<string, string>();
+  const registerLookupItem = (item: GuideAptMiniPreviewItem | null | undefined) => {
+    if (!item) return;
+    for (const alias of [item.name, item.displayName, item.canonicalSlug]) {
+      const norm = normalizeGuideAptName(alias);
+      if (norm.length >= 2 && !inlineSlugLookup.has(norm)) {
+        inlineSlugLookup.set(norm, item.canonicalSlug);
+      }
+    }
+  };
+  featuredAptRows.forEach(registerLookupItem);
+  zoneSectionPreviews.forEach((sec) => sec.items.forEach(registerLookupItem));
+  headToHeadRows.forEach((m) => {
+    registerLookupItem(m.left);
+    registerLookupItem(m.right);
+  });
+  CANONICAL_DONG_APT_LIST.forEach((entry) => {
+    for (const alias of [entry.txKey, entry.name]) {
+      const norm = normalizeGuideAptName(alias);
+      if (norm.length >= 2 && !inlineSlugLookup.has(norm)) {
+        inlineSlugLookup.set(norm, entry.txKey);
+      }
+    }
+  });
+
   const featuredZoneItems = (article.featuredZones || [])
     .map((zId) => getZoneById(zId))
     .filter((z): z is NonNullable<typeof z> => z !== undefined);
+
+  const primaryPreviewApt =
+    featuredAptRows[0] || zoneSectionPreviews[0]?.items[0] || headToHeadRows[0]?.left;
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
@@ -424,22 +578,97 @@ export default async function GuideArticlePage(props: {
               className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
             >
               <AdSlot
-                slotId="1000000002"
                 refreshSlotId={`1000000002_guide_${article.slug}_top`}
                 format="rectangle"
                 minHeightClass="min-h-[250px]"
                 cpaCampaignId="mortgage-refinance"
                 apartmentName={article.title}
+                dong={primaryPreviewApt?.dong}
               />
             </div>
 
-            {/* Body Content */}
+            {/* Body Content with In-Section Zone Real-Time Mini Preview Cards */}
             <div
               id="guide-article-body"
               className="prose prose-sm sm:prose-base dark:prose-invert max-w-none text-secondary leading-relaxed space-y-5 pt-2 font-medium"
             >
-              {renderGuideBodyContent(article.content)}
+              {renderGuideBodyContent(article.content, {
+                guideSlug: article.slug,
+                zoneSectionPreviews,
+                inlineSlugLookup,
+              })}
             </div>
+
+            {/* Bottom-of-Body Representative Apartment Real-Time Transaction Mini Preview Cards + Contextual AdSlot */}
+            {featuredAptRows.length > 0 && (
+              <section
+                id="guide-bottom-apt-preview-cards"
+                data-testid="guide-bottom-apt-preview-cards"
+                aria-label="가이드 본문 하단 대표 단지 실시간 실거래가 미니 프리뷰"
+                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                      <Building2
+                        size={19}
+                        className="text-emerald-600 dark:text-emerald-400 shrink-0"
+                      />
+                      <span>가이드 본문 언급 대표 단지 실시간 실거래가 미니 프리뷰</span>
+                    </h3>
+                    <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                      본 가이드에서 다룬 핵심 아파트 단지(
+                      {featuredAptRows
+                        .slice(0, 3)
+                        .map((item) => item.displayName)
+                        .join(', ')}{' '}
+                      등)의 국토교통부 최신 매매·전세 실거래가 요약 카드입니다. 카드를 클릭하면 단지 상세 시세·전세가율·DSR 대출 한도 리포트로 즉시 이동합니다.
+                    </p>
+                  </div>
+
+                  {featuredZoneItems.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                      {featuredZoneItems.map((zone) => (
+                        <Link
+                          key={zone.id}
+                          href={`/zone/${zone.id}`}
+                          prefetch={false}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/50 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-colors"
+                        >
+                          <span>{zone.name}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {featuredAptRows.map((item) => (
+                    <GuideAptPreviewCard
+                      key={`bottom-${item.canonicalSlug}`}
+                      item={item}
+                      guideSlug={article.slug}
+                      placement="article_bottom"
+                      sectionTitle="가이드 본문 하단 대표 단지 미니 프리뷰"
+                    />
+                  ))}
+                </div>
+
+                <div
+                  data-testid="guide-article-adslot-mid"
+                  className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+                >
+                  <AdSlot
+                    refreshSlotId={`1000000002_guide_${article.slug}_mid_conversion`}
+                    format="rectangle"
+                    minHeightClass="min-h-[250px]"
+                    cpaCampaignId="mortgage-refinance"
+                    apartmentName={primaryPreviewApt?.canonicalSlug || article.title}
+                    dong={primaryPreviewApt?.dong}
+                  />
+                </div>
+              </section>
+            )}
 
             {/* Live 1:1 Head-to-Head Real-Data Matchups */}
             {headToHeadRows.length > 0 && (
@@ -494,7 +723,7 @@ export default async function GuideArticlePage(props: {
                                   {card.label}
                                 </span>
                                 <Link
-                                  href={`/apartment/${encodeURIComponent(card.apt.name)}`}
+                                  href={`/apartment/${encodeURIComponent(card.apt.canonicalSlug)}`}
                                   prefetch={false}
                                   className="mt-1.5 flex items-center gap-1 text-[15px] font-black text-slate-900 dark:text-slate-50 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                                 >
@@ -602,7 +831,7 @@ export default async function GuideArticlePage(props: {
                           <tr key={apt.name} className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors">
                             <th scope="row" className="p-3.5 font-extrabold text-slate-900 dark:text-slate-50 whitespace-nowrap">
                               <Link
-                                href={`/apartment/${encodeURIComponent(apt.name)}`}
+                                href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
                                 prefetch={false}
                                 className="text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
                               >
@@ -684,12 +913,12 @@ export default async function GuideArticlePage(props: {
               className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
             >
               <AdSlot
-                slotId="1000000002"
                 refreshSlotId={`1000000002_guide_${article.slug}_bottom`}
                 format="rectangle"
                 minHeightClass="min-h-[250px]"
                 cpaCampaignId="jeonse-sentinel"
                 apartmentName={article.title}
+                dong={primaryPreviewApt?.dong}
               />
             </div>
 

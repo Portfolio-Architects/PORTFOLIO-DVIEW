@@ -555,6 +555,7 @@ export function buildApartmentJsonLd(
     rawReport?.latitude ||
     rawMetrics?.lat ||
     matchedDongApt?.lat ||
+    matchedDongApt?.seoLat ||
     locationScore?.nearestStationCoords?.split(',')[0]?.trim() ||
     37.2005;
 
@@ -563,6 +564,7 @@ export function buildApartmentJsonLd(
     rawReport?.longitude ||
     rawMetrics?.lng ||
     matchedDongApt?.lng ||
+    matchedDongApt?.seoLng ||
     locationScore?.nearestStationCoords?.split(',')[1]?.trim() ||
     127.0985;
 
@@ -843,7 +845,6 @@ export function buildApartmentJsonLd(
         name: 'D-VIEW 부동산 데이터 랩스',
         description: '동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼',
         url: baseUrl,
-        telephone: '+82-2-000-0000',
         address: {
           '@type': 'PostalAddress',
           addressCountry: 'KR',
@@ -1186,7 +1187,7 @@ function normalizeUnicodeRomanNumerals(input: string): string {
 }
 
 function normalizeJisanLookupKey(input: string): string {
-  return normalizeUnicodeRomanNumerals(input).normalize('NFKC').toLowerCase().replace(/\s+/g, '');
+  return normalizeUnicodeRomanNumerals(input).normalize('NFKC').toLowerCase().replace(/[-_\s]+/g, '');
 }
 
 function normalizeJisanPhoneticKey(input: string): string {
@@ -1486,3 +1487,27 @@ export function buildTechnoValleyJsonLd(
     '@graph': graph,
   };
 }
+
+/**
+ * Resolves verified WGS84 coordinates (`lat` or `seoLat`, `lng` or `seoLng`) for any Dongtan complex (183/183 coverage).
+ */
+export function resolveComplexGeoCoordinates(
+  apt?: DongApartment | null
+): { lat: number; lng: number } | null {
+  if (!apt) return null;
+  const lat = apt.lat && apt.lat > 0 ? apt.lat : apt.seoLat && apt.seoLat > 0 ? apt.seoLat : 0;
+  const lng = apt.lng && apt.lng > 0 ? apt.lng : apt.seoLng && apt.seoLng > 0 ? apt.seoLng : 0;
+  if (lat > 0 && lng > 0) {
+    return { lat, lng };
+  }
+  return null;
+}
+
+/**
+ * Formats a Knowledge Industry Center name into a clean URL path slug for `/technovalley/[slug]`.
+ */
+export function formatTechnoValleyJisanSlug(name: string): string {
+  if (!name || typeof name !== 'string') return '';
+  return name.trim().replace(/\s+/g, '-');
+}
+

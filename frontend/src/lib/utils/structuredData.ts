@@ -34,7 +34,7 @@ export function getMainPageSchema(baseUrl: string) {
           "@type": "SearchAction",
           "target": {
             "@type": "EntryPoint",
-            "urlTemplate": `${baseUrl}/?tab=imjang&search={search_term_string}`
+            "urlTemplate": `${baseUrl}/explore?search={search_term_string}`
           },
           "query-input": "required name=search_term_string"
         },
@@ -137,7 +137,6 @@ export function getApartmentSchema(params: ApartmentSchemaParams, baseUrl: strin
         "name": "D-VIEW 부동산 데이터 랩스",
         "description": "동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼",
         "url": baseUrl,
-        "telephone": "+82-2-000-0000",
         "address": {
           "@type": "PostalAddress",
           "addressCountry": "KR",

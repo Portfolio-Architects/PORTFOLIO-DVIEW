@@ -150,25 +150,27 @@ describe('Milestone M3: Unified High-CPC CPA Fallback & Route Inventory Contract
   });
 
   describe('3. Route Inventory Expansion Contract (/explore and /news)', () => {
-    it('verifies /explore route source includes Zero-CLS in-feed AdSlot with slotId 1000000001 and jeonse-sentinel campaign', () => {
+    it('verifies /explore route source includes Zero-CLS in-feed AdSlot bound to Vercel env var with jeonse-sentinel campaign', () => {
       const exploreContent = fs.readFileSync(
         path.resolve(__dirname, '../app/explore/ExploreClient.tsx'),
         'utf8'
       );
 
-      expect(exploreContent).toContain('slotId="1000000001"');
+      expect(exploreContent).not.toContain('slotId="100000000');
+      expect(exploreContent).toContain('refreshSlotId="explore_top_infeed"');
       expect(exploreContent).toContain('format="in-feed"');
       expect(exploreContent).toContain('cpaCampaignId="jeonse-sentinel"');
       expect(exploreContent).toContain('min-h-[140px] sm:min-h-[160px]');
     });
 
-    it('verifies /news route source includes Zero-CLS in-feed AdSlot with slotId 1000000001 in feed', () => {
+    it('verifies /news route source includes Zero-CLS in-feed AdSlot bound to Vercel env var in feed', () => {
       const newsContent = fs.readFileSync(
         path.resolve(__dirname, '../app/news/NewsClient.tsx'),
         'utf8'
       );
 
-      expect(newsContent).toContain('slotId="1000000001"');
+      expect(newsContent).not.toContain('slotId="100000000');
+      expect(newsContent).toContain('refreshSlotId="news_feed_infeed"');
       expect(newsContent).toContain('format="in-feed"');
       expect(newsContent).toContain('min-h-[140px] sm:min-h-[160px]');
     });

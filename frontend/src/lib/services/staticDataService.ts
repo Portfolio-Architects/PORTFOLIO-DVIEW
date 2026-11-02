@@ -520,6 +520,73 @@ export const staticDataService = {
   },
 
   /**
+   * Resolve yearly chunk filenames required for a given timeline period (P2-2)
+   */
+  resolveYearlyChunkFiles(period: TimelinePeriod = '90d'): string[] {
+    switch (period) {
+      case '1y':
+        return ['tx-2026.json', 'tx-2025.json'];
+      case '3y':
+        return ['tx-2026.json', 'tx-2025.json', 'tx-2024.json'];
+      case 'all':
+        return ['tx-2026.json', 'tx-2025.json', 'tx-2024.json', 'tx-historical.json'];
+      case '7d':
+      case '30d':
+      case '90d':
+      default:
+        return ['recent-transactions.json'];
+    }
+  },
+
+  /**
+   * Fetch a single yearly transaction chunk (`tx-2026.json`, `tx-2025.json`, `tx-2024.json`, `tx-historical.json`)
+   * with in-memory deduplication so progressive period expansion (`1y` -> `3y` -> `all`) only downloads delta chunks.
+   */
+  async fetchYearlyChunk(
+    chunkFile: string,
+    buildVersion: string = BUILD_VERSION,
+    signal?: AbortSignal
+  ): Promise<RecentTransaction[]> {
+    const cacheKey = `tx_chunk:${chunkFile}:${buildVersion}`;
+    const cached = memoryCache.get(cacheKey) as CacheEntry<RecentTransaction[]> | undefined;
+    if (cached && Array.isArray(cached.data)) {
+      return cached.data;
+    }
+    const url = `/data/${chunkFile}?v=${buildVersion}`;
+    const raw = await this.fetchJson<unknown>(url, signal);
+    const parsed = parsePeriodTransactions(raw);
+    memoryCache.set(cacheKey, { data: parsed, timestamp: Date.now() });
+    return parsed;
+  },
+
+  /**
+   * Fetch period transactions using yearly chunk files (`tx-2026.json`, `tx-2025.json`, `tx-2024.json`, `tx-historical.json`),
+   * reusing cached yearly slices when expanding from 1y -> 3y -> all (P2-2).
+   */
+  async fetchPeriodTransactionsChunked(
+    period: TimelinePeriod = '90d',
+    buildVersion: string = BUILD_VERSION,
+    signal?: AbortSignal
+  ): Promise<RecentTransaction[]> {
+    if (period === '7d' || period === '30d' || period === '90d') {
+      return this.fetchPeriodTransactions(period, buildVersion, signal);
+    }
+    const chunkFiles = this.resolveYearlyChunkFiles(period);
+    try {
+      const chunkArrays = await Promise.all(
+        chunkFiles.map((file) => this.fetchYearlyChunk(file, buildVersion, signal))
+      );
+      const merged = chunkArrays.flat();
+      if (merged.length > 0) {
+        return merged;
+      }
+    } catch {
+      // Fallback to monolithic period file if chunk files are not mocked in legacy test environments
+    }
+    return this.fetchPeriodTransactions(period, buildVersion, signal);
+  },
+
+  /**
    * Fetch macro trend data (macro-trend.json)
    */
   async fetchMacroTrend(buildVersion: string = BUILD_VERSION, signal?: AbortSignal): Promise<DongtanMacroTrendPoint[]> {

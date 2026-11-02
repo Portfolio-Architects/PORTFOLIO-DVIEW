@@ -1,46 +1,79 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Building2 } from 'lucide-react';
-import type {
-  NativeCpaFallbackPayload,
-  CascadeSlotStatus,
-  CpaCampaignTemplate,
+import {
+  CPA_CAMPAIGN_CATALOG,
+  type NativeCpaFallbackPayload,
+  type CascadeSlotStatus,
+  type CpaCampaignTemplate,
 } from '@/lib/ads/cascadeFallback';
 
 export interface AdSlotCascadeFallbackViewProps {
-  cpaPayload: NativeCpaFallbackPayload;
-  cpaTemplate: CpaCampaignTemplate;
-  cascadeStatus: CascadeSlotStatus;
-  lateFillDiscarded: boolean;
+  cpaPayload?: NativeCpaFallbackPayload;
+  payload?: NativeCpaFallbackPayload;
+  cpaTemplate?: CpaCampaignTemplate;
+  cascadeStatus?: CascadeSlotStatus;
+  lateFillDiscarded?: boolean;
   minHeightClass: string;
-  onCascadeCtaClick: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  onCascadeCtaClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
+  onCtaClick?: (e: React.MouseEvent<HTMLAnchorElement>) => void;
 }
 
+/**
+ * Pure Presentational View for 1st-Party Native High-CPC Financial/Real-Estate CPA Fallback Card.
+ * Enforces Zero-CLS geometry, Ad Money v5.0 soft-surface tokens (`bg-[#f9fafb] dark:bg-[#17171c] bg-elevated`), and 0 unicode emojis.
+ */
 export function AdSlotCascadeFallbackView({
   cpaPayload,
-  cpaTemplate,
-  cascadeStatus,
-  lateFillDiscarded,
+  payload,
+  cpaTemplate: propTemplate,
+  cascadeStatus = 'FALLBACK_ACTIVE',
+  lateFillDiscarded = false,
   minHeightClass,
   onCascadeCtaClick,
+  onCtaClick,
 }: AdSlotCascadeFallbackViewProps) {
+  const resolvedPayload =
+    cpaPayload ||
+    payload || {
+      slotId: 'default-slot',
+      cpaCampaignId: 'mortgage-refinance',
+      title: CPA_CAMPAIGN_CATALOG['mortgage-refinance'].title,
+      subtitle: CPA_CAMPAIGN_CATALOG['mortgage-refinance'].subtitle,
+      ctaText: CPA_CAMPAIGN_CATALOG['mortgage-refinance'].ctaText,
+      targetUrl: CPA_CAMPAIGN_CATALOG['mortgage-refinance'].targetUrl,
+      estimatedCpaValueWon: CPA_CAMPAIGN_CATALOG['mortgage-refinance'].estimatedCpaValueWon,
+      sourceTrigger: 'UNFILLED_ATTRIBUTE',
+    };
+
+  const cpaTemplate =
+    propTemplate ||
+    CPA_CAMPAIGN_CATALOG[resolvedPayload.cpaCampaignId] ||
+    CPA_CAMPAIGN_CATALOG['mortgage-refinance'];
+
+  const handleClick = onCascadeCtaClick || onCtaClick;
+  const isExternalPartnerUrl =
+    /^https?:\/\//i.test(resolvedPayload.targetUrl) &&
+    !resolvedPayload.targetUrl.startsWith('https://dongtanview.com');
+
   return (
     <div
       data-testid="ad-slot-cascade-fallback"
-      data-cpa-campaign-id={cpaPayload.cpaCampaignId}
-      data-source-trigger={cpaPayload.sourceTrigger}
+      data-cpa-campaign-id={resolvedPayload.cpaCampaignId}
+      data-source-trigger={resolvedPayload.sourceTrigger}
       data-cascade-status={cascadeStatus}
-      data-estimated-cpa-won={cpaPayload.estimatedCpaValueWon}
+      data-estimated-cpa-won={resolvedPayload.estimatedCpaValueWon}
       data-late-fill-discarded={lateFillDiscarded ? 'true' : 'false'}
-      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-elevated dark:bg-slate-900 text-center z-10 ${minHeightClass}`}
+      className={`w-full h-full flex flex-col items-center justify-center p-5 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] bg-elevated text-center z-10 tabular-nums ${minHeightClass}`}
     >
-      <a
-        href={cpaPayload.targetUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+      <Link
+        href={resolvedPayload.targetUrl}
+        prefetch={false}
+        {...(isExternalPartnerUrl ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
         data-testid="ad-slot-cascade-cta"
-        onClick={onCascadeCtaClick}
+        onClick={handleClick}
         className="group flex flex-col items-center justify-center gap-1.5 max-w-lg w-full hover:opacity-95 transition-opacity"
       >
         <span
@@ -64,11 +97,11 @@ export function AdSlotCascadeFallbackView({
               : 'text-xs sm:text-sm font-black text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors inline-flex items-center gap-1'
           }
         >
-          <span>{cpaPayload.title}</span>
+          <span>{resolvedPayload.title}</span>
           <ArrowRight size={14} />
         </h4>
         <p className="text-[11px] text-slate-600 dark:text-slate-400">
-          {cpaPayload.subtitle}
+          {resolvedPayload.subtitle}
         </p>
         <span
           className={
@@ -77,10 +110,10 @@ export function AdSlotCascadeFallbackView({
               : 'mt-1 inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400 text-slate-50 text-[11px] font-bold transition-colors'
           }
         >
-          <span>{cpaPayload.ctaText}</span>
+          <span>{resolvedPayload.ctaText}</span>
           <ArrowRight size={14} />
         </span>
-      </a>
+      </Link>
     </div>
   );
 }

@@ -1,0 +1,60 @@
+{
+  "version": 1,
+  "totalCount": 65500,
+  "chunks": [
+    {
+      "key": "2026",
+      "file": "tx-2026.json",
+      "years": [
+        2026
+      ],
+      "count": 6693,
+      "sizeBytes": 985859
+    },
+    {
+      "key": "2025",
+      "file": "tx-2025.json",
+      "years": [
+        2025
+      ],
+      "count": 6590,
+      "sizeBytes": 1005057
+    },
+    {
+      "key": "2024",
+      "file": "tx-2024.json",
+      "years": [
+        2024
+      ],
+      "count": 4349,
+      "sizeBytes": 659868
+    },
+    {
+      "key": "historical",
+      "file": "tx-historical.json",
+      "years": [
+        2006,
+        2023
+      ],
+      "count": 47868,
+      "sizeBytes": 6770067
+    }
+  ],
+  "periodMap": {
+    "1y": [
+      "tx-2026.json",
+      "tx-2025.json"
+    ],
+    "3y": [
+      "tx-2026.json",
+      "tx-2025.json",
+      "tx-2024.json"
+    ],
+    "all": [
+      "tx-2026.json",
+      "tx-2025.json",
+      "tx-2024.json",
+      "tx-historical.json"
+    ]
+  }
+}

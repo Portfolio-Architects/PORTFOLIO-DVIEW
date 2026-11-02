@@ -384,6 +384,61 @@ describe('Milestone 2 Challenger 1 Comprehensive Empirical Verification Suite', 
         fireEvent.click(closeBtn);
         expect(handleClose).toHaveBeenCalled();
       });
+
+      it('unwraps /api/technovalley/transactions { success, data } envelope, matches building aliases, and resets on building switch', async () => {
+        const originalFetch = global.fetch;
+        global.fetch = jest.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            success: true,
+            data: [
+              {
+                date: '2026-10-15',
+                type: '매매',
+                sizeSqM: 48.5,
+                floor: 15,
+                price: '4억 5,000만원',
+                buildingName: '금강IX타워',
+              },
+            ],
+          }),
+        }) as unknown as typeof fetch;
+
+        try {
+          const buildingWithEmptyStatic: OfficeBuilding = {
+            ...mockBuilding,
+            name: '금강펜테리움 IX타워',
+            recentTransactions: [],
+          };
+          const otherBuilding: OfficeBuilding = {
+            ...mockBuilding,
+            name: '동탄 비즈타워',
+            recentTransactions: [],
+          };
+
+          const { rerender } = render(
+            <OfficeDetailModal building={buildingWithEmptyStatic} onClose={jest.fn()} />
+          );
+
+          fireEvent.click(screen.getByText('국토부 매매 실거래가'));
+
+          await waitFor(() => {
+            expect(screen.getByText('4억 5,000만원')).toBeInTheDocument();
+          });
+
+          // Switch to another building with 0 matching transactions -> must not leak previous building's transactions
+          rerender(<OfficeDetailModal building={otherBuilding} onClose={jest.fn()} />);
+
+          await waitFor(() => {
+            expect(screen.queryByText('4억 5,000만원')).not.toBeInTheDocument();
+            expect(
+              screen.getByText('국토교통부에 신고 등록된 매매 실거래 내역이 없습니다.')
+            ).toBeInTheDocument();
+          });
+        } finally {
+          global.fetch = originalFetch;
+        }
+      });
     });
 
     describe('1.5 PushSubscriptionModal', () => {

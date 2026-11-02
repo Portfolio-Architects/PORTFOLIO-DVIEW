@@ -8,6 +8,7 @@ import {
   getTxSummaryData,
   getTechnoValleyJisanList,
 } from '@/lib/services/apartmentPageService';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
@@ -130,9 +131,20 @@ export default async function sitemap(
       }
     }
 
+    const seenCanonicalSlugs = new Set<string>();
     aptNames.forEach((aptName) => {
-      const images = reportsMap.get(aptName);
       const aptSummary = txSummary[aptName];
+      const canonicalSlug =
+        resolveCanonicalAptSlug(aptName, {
+          txMap: txSummary,
+          dong: aptSummary?.dong,
+        }) || aptName;
+      if (seenCanonicalSlugs.has(canonicalSlug)) {
+        return;
+      }
+      seenCanonicalSlugs.add(canonicalSlug);
+
+      const images = reportsMap.get(canonicalSlug) || reportsMap.get(aptName);
 
       let lastModified = nowDate;
       if (aptSummary && aptSummary.latestDate) {
@@ -148,7 +160,7 @@ export default async function sitemap(
       }
 
       const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
-        url: `${baseUrl}/apartment/${encodeURIComponent(aptName)}`,
+        url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
         lastModified,
         changeFrequency: 'weekly',
         priority: 0.95,

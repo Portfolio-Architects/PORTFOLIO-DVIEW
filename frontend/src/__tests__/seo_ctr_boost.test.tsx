@@ -10,7 +10,7 @@ import crypto from 'crypto';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { render } from '@testing-library/react';
+import { render, fireEvent } from '@testing-library/react';
 import {
   expectedCtrForPosition,
   parseGscQueriesInput,
@@ -31,12 +31,27 @@ import {
   resolveTechnoValleyJisan,
   buildTechnoValleySeoMetadata,
 } from '@/lib/services/apartmentPageService';
-import { GUIDE_ARTICLES, buildGuideArticleJsonLd } from '@/lib/data/guides';
+import {
+  GUIDE_ARTICLES,
+  buildGuideArticleJsonLd,
+  getGuideAptDisplayName,
+  formatGuideTxDate,
+  buildGuideAptMiniPreview,
+  resolveGuideZoneSectionPreviews,
+  normalizeGuideAptName,
+} from '@/lib/data/guides';
+import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import {
+  getVirtualPageViewLedger,
+  resetVirtualPageViewLedger,
+} from '@/lib/utils/analytics';
 import { ZONES, getZoneById } from '@/lib/zones';
 import { TerminalRecirculationHub } from '@/components/apartment/TerminalRecirculationHub';
 import { selectRecirculationTargets } from '@/lib/ads/recirculationEngine';
 import GuideArticlePage, {
   generateMetadata as generateGuideMetadata,
+  renderInlineBold,
+  renderGuideBodyContent,
 } from '@/app/guide/[slug]/page';
 import GuideIndexPage, { metadata as guideHubMetadata } from '@/app/guide/page';
 import ZoneDetailPage, { generateMetadata as generateZoneMetadata } from '@/app/zone/[id]/page';
@@ -1814,7 +1829,413 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       ).toBe('/technovalley?jisan=SH SQUAREⅡ');
     });
   });
+
+  describe('8. Guide Article -> Apartment Detail Conversion & Real-Time Mini Preview Cards (/boost)', () => {
+    it('builds 100% real-data mini preview models for representative complexes and guards edge cases', async () => {
+      const txSummary = await getTxSummaryData();
+
+      // 1. Representative complexes: 동탄역 시범 리슈빌 & 동탄역 롯데캐슬
+      const richeville = buildGuideAptMiniPreview('동탄역시범리슈빌아파트', txSummary);
+      expect(richeville).not.toBeNull();
+      expect(richeville?.displayName).toBe('동탄역 시범 리슈빌');
+      expect(richeville?.canonicalSlug).toBe('동탄역시범리슈빌아파트');
+      expect(richeville?.dong).toBe('청계동');
+      expect(richeville?.zoneId).toBe('community');
+      expect(richeville?.latestPrice).toBeGreaterThan(0);
+      expect(richeville?.latestPriceStr).toBe('16억8,000');
+      expect(richeville?.latestRentStr).toBe('3억9,900');
+      expect(richeville?.jeonseRatio).toBe(42);
+      expect(richeville?.perValue).toBe('2.37');
+      expect(richeville?.txCount).toBeGreaterThanOrEqual(350);
+      expect(richeville?.href).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+
+      const lotteCastle = buildGuideAptMiniPreview('동탄역롯데캐슬', txSummary);
+      expect(lotteCastle).not.toBeNull();
+      expect(lotteCastle?.displayName).toBe('동탄역 롯데캐슬');
+      expect(lotteCastle?.canonicalSlug).toBe('동탄역롯데캐슬');
+      expect(lotteCastle?.dong).toBe('여울동');
+      expect(lotteCastle?.zoneId).toBe('gbcx');
+      expect(lotteCastle?.latestPriceStr).toBe('26억2,000');
+      expect(lotteCastle?.txCount).toBeGreaterThan(0);
+
+      // Spaced alias resolution works identically
+      const spacedRicheville = buildGuideAptMiniPreview('동탄역 시범 리슈빌', txSummary);
+      expect(spacedRicheville?.canonicalSlug).toBe('동탄역시범리슈빌아파트');
+      expect(spacedRicheville?.displayName).toBe('동탄역 시범 리슈빌');
+
+      // Disambiguates 석우동 롯데캐슬 -> 예당마을 롯데캐슬
+      expect(getGuideAptDisplayName('롯데캐슬', '석우동')).toBe('예당마을 롯데캐슬');
+      expect(getGuideAptDisplayName('')).toBe('');
+      expect(getGuideAptDisplayName('   ')).toBe('');
+
+      // 2. Date formatting edge cases
+      expect(formatGuideTxDate('2026-03-31')).toBe('2026.03.31');
+      expect(formatGuideTxDate('20260704')).toBe('2026.07.04');
+      expect(formatGuideTxDate('2026.03.31')).toBe('2026.03.31');
+      expect(formatGuideTxDate('202603')).toBe('2026.03');
+      expect(formatGuideTxDate('')).toBe('정보 없음');
+      expect(formatGuideTxDate(null)).toBe('정보 없음');
+      expect(formatGuideTxDate(undefined)).toBe('정보 없음');
+
+      // 3. Edge cases: empty, unknown, rent-only (0 sale price), and cross-pyeong ratio > 100%
+      expect(buildGuideAptMiniPreview('', txSummary)).toBeNull();
+      expect(buildGuideAptMiniPreview('   ', txSummary)).toBeNull();
+      expect(buildGuideAptMiniPreview('존재하지않는유령단지_999', txSummary)).toBeNull();
+
+      const customEdgeMap = {
+        전세전용테스트단지: {
+          dong: '청계동',
+          txCount: 12,
+          latestPrice: 0,
+          latestPriceEok: '0만',
+          latestDate: '',
+          latestArea: 84.99,
+          latestFloor: 15,
+          latestRentDeposit: 45000,
+          latestRentDepositEok: '4억 5,000만',
+        },
+        평형역전테스트단지: {
+          dong: '여울동',
+          txCount: 8,
+          latestPrice: 50000,
+          latestPriceEok: '5억',
+          latestDate: '2026-02-15',
+          latestArea: 59.9,
+          latestFloor: 10,
+          latestRentDeposit: 65000,
+          latestRentDepositEok: '6억 5,000만',
+        },
+      };
+
+      const rentOnlyPreview = buildGuideAptMiniPreview('전세전용테스트단지', customEdgeMap);
+      expect(rentOnlyPreview).not.toBeNull();
+      expect(rentOnlyPreview?.latestPriceStr).toBe('정보 없음');
+      expect(rentOnlyPreview?.latestRentStr).toBe('4억 5,000만');
+      expect(rentOnlyPreview?.jeonseRatio).toBe(0);
+      expect(rentOnlyPreview?.perValue).toBeNull();
+      expect(rentOnlyPreview?.latestDate).toBe('정보 없음');
+
+      const invertedRatioPreview = buildGuideAptMiniPreview('평형역전테스트단지', customEdgeMap);
+      expect(invertedRatioPreview).not.toBeNull();
+      expect(invertedRatioPreview?.latestPriceStr).toBe('5억');
+      expect(invertedRatioPreview?.jeonseRatio).toBe(0);
+      expect(invertedRatioPreview?.perValue).toBeNull();
+
+      // 4. Default txMap argument (without explicit txSummary) resolves 100% real metrics & GuideIndexPage renders live price badges
+      const defaultArgRicheville = buildGuideAptMiniPreview('동탄역시범리슈빌아파트');
+      expect(defaultArgRicheville).not.toBeNull();
+      expect(defaultArgRicheville?.latestPrice).toBe(168000);
+      expect(defaultArgRicheville?.latestPriceStr).toBe('16억8,000');
+      expect(defaultArgRicheville?.latestRentStr).toBe('3억9,900');
+      expect(defaultArgRicheville?.jeonseRatio).toBe(42);
+      expect(defaultArgRicheville?.perValue).toBe('2.37');
+      expect(defaultArgRicheville?.txCount).toBe(356);
+
+      const defaultArgSections = resolveGuideZoneSectionPreviews(GUIDE_ARTICLES[0]);
+      expect(defaultArgSections.length).toBe(2);
+      expect(defaultArgSections[1].items[0].latestPriceStr).toBe('16억8,000');
+
+      const hubRender = render(<GuideIndexPage />);
+      expect(hubRender.container.textContent).toContain('· 26억2,000');
+      expect(hubRender.container.textContent).toContain('· 16억8,000');
+      hubRender.unmount();
+
+      // 5. Zero-transaction entry guard returns null instead of emitting a ghost '정보 없음' card
+      const zeroTxMap = {
+        동탄역시범리슈빌아파트: {
+          dong: '청계동',
+          latestPrice: 0,
+          latestRentDeposit: 0,
+          txCount: 0,
+        },
+      };
+      expect(buildGuideAptMiniPreview('동탄역시범리슈빌아파트', zeroTxMap)).toBeNull();
+      const emptyResolvedSections = resolveGuideZoneSectionPreviews(
+        {
+          ...GUIDE_ARTICLES[0],
+          zoneSectionPreviews: [
+            {
+              sectionHeadingMatch: '(1) 동탄1신도시',
+              sectionTitle: '무거래 테스트 섹션',
+              zoneId: 'community',
+              apartments: ['동탄역시범리슈빌아파트'],
+            },
+          ],
+        },
+        zeroTxMap
+      );
+      expect(emptyResolvedSections).toEqual([]);
+    });
+
+    it('renders real-time transaction mini preview cards in both zone description sections and guide body bottom across all 8 guides', async () => {
+      const txSummary = await getTxSummaryData();
+
+      for (const article of GUIDE_ARTICLES) {
+        const resolvedSections = resolveGuideZoneSectionPreviews(article, txSummary);
+        expect(resolvedSections.length).toBeGreaterThanOrEqual(2);
+
+        const ui = await GuideArticlePage({
+          params: Promise.resolve({ slug: article.slug }),
+        });
+        const { container, unmount } = render(ui);
+
+        const bodyEl = container.querySelector('#guide-article-body');
+        expect(bodyEl).not.toBeNull();
+
+        // 1. In-body zone description section preview blocks
+        const zonePreviewSections = bodyEl!.querySelectorAll(
+          '[data-testid="guide-zone-section-preview"]'
+        );
+        expect(zonePreviewSections.length).toBe(resolvedSections.length);
+
+        const zoneCards = bodyEl!.querySelectorAll(
+          '[data-testid="guide-apt-preview-card-zone_section"]'
+        );
+        expect(zoneCards.length).toBeGreaterThanOrEqual(4);
+        expect(bodyEl!.querySelectorAll('.font-mono').length).toBe(0);
+
+        // Every GuideAptPreviewCard enforces Zero-CLS min-h-[158px] sm:min-h-[168px] & standard Slate tokens
+        zoneCards.forEach((card) => {
+          expect(card.className).toContain('min-h-[158px]');
+          expect(card.className).toContain('sm:min-h-[168px]');
+          expect(card.className).toContain('bg-slate-50/90');
+        });
+
+        // Inline apartment deep-links (`data-testid="guide-inline-apt-link"`) render in all 8 guides
+        const inlineAptLinks = bodyEl!.querySelectorAll('[data-testid="guide-inline-apt-link"]');
+        expect(inlineAptLinks.length).toBeGreaterThanOrEqual(2);
+
+        // 2. Bottom-of-guide-body representative apartment mini preview cards
+        const bottomSection = container.querySelector('#guide-bottom-apt-preview-cards');
+        expect(bottomSection).not.toBeNull();
+        expect(bottomSection?.getAttribute('data-testid')).toBe(
+          'guide-bottom-apt-preview-cards'
+        );
+        expect(bottomSection!.querySelectorAll('.font-mono').length).toBe(0);
+
+        const bottomCards = bottomSection!.querySelectorAll(
+          '[data-testid="guide-apt-preview-card-article_bottom"]'
+        );
+        expect(bottomCards.length).toBe((article.featuredApartments || []).length);
+
+        // 3. Contextual mid-article conversion AdSlot is rendered inside bottom preview section
+        const midAdSlot = bottomSection!.querySelector(
+          '[data-testid="guide-article-adslot-mid"]'
+        );
+        expect(midAdSlot).not.toBeNull();
+
+        // 4. Specific assertions on flagship comparison guide (dongtan-1-vs-2-comparison)
+        if (article.slug === 'dongtan-1-vs-2-comparison') {
+          expect(bodyEl!.textContent).toContain('동탄역 시범 리슈빌');
+          expect(bodyEl!.textContent).toContain('동탄역 롯데캐슬');
+          expect(bodyEl!.textContent).toContain('16억8,000');
+          expect(bodyEl!.textContent).toContain('26억2,000');
+
+          expect(bottomSection!.textContent).toContain('동탄역 시범 리슈빌');
+          expect(bottomSection!.textContent).toContain('동탄역 롯데캐슬');
+          expect(bottomSection!.textContent).toContain('솔빛마을 서해그랑블');
+        }
+
+        // 5. JSON-LD Article schema includes mentions of featured ApartmentComplexes
+        const jsonLd = buildGuideArticleJsonLd(article);
+        const articleSchema = jsonLd['@graph'].find((n) => n['@type'] === 'Article') as
+          | Record<string, unknown>
+          | undefined;
+        expect(articleSchema).toBeDefined();
+        const mentions = articleSchema?.mentions as Array<Record<string, unknown>> | undefined;
+        expect(Array.isArray(mentions)).toBe(true);
+        expect(mentions!.length).toBe((article.featuredApartments || []).length);
+        expect(mentions![0]['@type']).toBe('ApartmentComplex');
+        expect(String(mentions![0].url)).toContain('/apartment/');
+
+        unmount();
+      }
+    });
+
+    it('resolves parenthetical dong suffixes & shorthand aliases in renderInlineBold and preserves H3 zone preview placement across non-matching H4 subheadings', () => {
+      expect(normalizeGuideAptName('동탄역 시범 리슈빌(청계동)')).toBe('동탄역시범리슈빌');
+      expect(normalizeGuideAptName('시범우남')).toBe('동탄역시범우남퍼스트빌');
+      expect(normalizeGuideAptName('시범한화꿈에그린')).toBe(
+        '동탄역시범한화꿈에그린프레스티지'
+      );
+
+      const lookup = new Map<string, string>([
+        [normalizeGuideAptName('동탄역시범리슈빌아파트'), '동탄역시범리슈빌아파트'],
+        [normalizeGuideAptName('동탄역시범우남퍼스트빌아파트'), '동탄역시범우남퍼스트빌아파트'],
+      ]);
+      const inlineRender = render(
+        <div>
+          {renderInlineBold(
+            '청계동 **동탄역 시범 리슈빌(청계동)** 및 **시범우남** 비교',
+            lookup
+          )}
+        </div>
+      );
+      const links = inlineRender.container.querySelectorAll(
+        '[data-testid="guide-inline-apt-link"]'
+      );
+      expect(links).toHaveLength(2);
+      expect(links[0].getAttribute('href')).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+      expect(links[1].getAttribute('href')).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범우남퍼스트빌아파트')}`
+      );
+      inlineRender.unmount();
+
+      // H3-matched preview with internal non-matching H4 subheadings flushes AFTER the H4 paragraphs (before ---), not before the first H4
+      const previewItem = buildGuideAptMiniPreview('동탄역시범리슈빌아파트')!;
+      const bodyNodes = renderGuideBodyContent(
+        [
+          '### 1. 청계동 시범단지 분석',
+          '도입부 설명 문단입니다.',
+          '#### (a) 세부 통학 동선',
+          '아인초 도보 통학 설명 문단입니다.',
+          '---',
+          '### 2. 결론',
+        ].join('\n'),
+        {
+          guideSlug: 'dongtan-1-vs-2-comparison',
+          zoneSectionPreviews: [
+            {
+              sectionHeadingMatch: '1. 청계동 시범단지 분석',
+              sectionTitle: '시범단지 프리뷰',
+              zoneId: 'community',
+              zoneName: '커뮤니티시범단지',
+              items: [previewItem],
+            },
+          ],
+          inlineSlugLookup: lookup,
+        }
+      );
+      const sectionRender = render(<div>{bodyNodes}</div>);
+      const h4El = sectionRender.container.querySelector('h4')!;
+      const previewEl = sectionRender.container.querySelector(
+        '[data-testid="guide-zone-section-preview"]'
+      )!;
+      expect(h4El).not.toBeNull();
+      expect(previewEl).not.toBeNull();
+      // DOCUMENT_POSITION_FOLLOWING (4): previewEl appears AFTER h4El in DOM order
+      expect(Boolean(h4El.compareDocumentPosition(previewEl) & Node.DOCUMENT_POSITION_FOLLOWING)).toBe(
+        true
+      );
+      sectionRender.unmount();
+    });
+
+    it('emits virtual pageview and ad_telemetry CLICK with apartment_name and dong when a GuideAptPreviewCard is clicked, and suppresses virtual pageview on modified/new-tab clicks', async () => {
+      const txSummary = await getTxSummaryData();
+      const richeville = buildGuideAptMiniPreview('동탄역시범리슈빌아파트', txSummary)!;
+      expect(richeville).not.toBeNull();
+
+      resetVirtualPageViewLedger();
+      const gtagMock = jest.fn();
+      window.gtag = gtagMock;
+      window.dataLayer = [];
+
+      const prevNodeEnv = process.env.NODE_ENV;
+      const prevGaId = process.env.NEXT_PUBLIC_GA_ID;
+      Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true });
+      process.env.NEXT_PUBLIC_GA_ID = 'G-TEST123';
+
+      try {
+        const { getByTestId, unmount } = render(
+          <GuideAptPreviewCard
+            item={richeville}
+            guideSlug="dongtan-1-vs-2-comparison"
+            placement="zone_section"
+            sectionTitle="동탄2신도시 시범단지·동탄역권 대표 단지 실시간 실거래 프리뷰"
+          />
+        );
+
+        const cardEl = getByTestId('guide-apt-preview-card-zone_section');
+        expect(cardEl.getAttribute('href')).toBe(
+          `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+        );
+        expect(cardEl.textContent).toContain('동탄역 시범 리슈빌');
+        expect(cardEl.textContent).toContain('16억8,000');
+        expect(cardEl.textContent).toContain('청계동');
+
+        // Prevent jsdom navigation warning on anchor click while allowing React onClick handler to run
+        cardEl.addEventListener('click', (e) => e.preventDefault());
+        fireEvent.click(cardEl);
+
+        // 1. Session pageviews ledger incremented with target apartment detail path
+        const pageviews = getVirtualPageViewLedger();
+        expect(pageviews).toHaveLength(1);
+        expect(pageviews[0].path).toBe(
+          `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+        );
+        expect(pageviews[0].params?.page_title).toContain('동탄역 시범 리슈빌');
+
+        // 2. GA4 page_view & guide_apt_preview_click events fired
+        expect(gtagMock).toHaveBeenCalledWith(
+          'event',
+          'page_view',
+          expect.objectContaining({
+            page_path: `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`,
+            virtual_pv: 1,
+            adsense_virtual_pv: 1,
+          })
+        );
+        expect(gtagMock).toHaveBeenCalledWith(
+          'event',
+          'guide_apt_preview_click',
+          expect.objectContaining({
+            guide_slug: 'dongtan-1-vs-2-comparison',
+            placement: 'zone_section',
+            apartment_name: '동탄역시범리슈빌아파트',
+            display_name: '동탄역 시범 리슈빌',
+            dong: '청계동',
+          })
+        );
+
+        // 3. ad_telemetry CLICK event dispatched with apartment_name & dong
+        expect(gtagMock).toHaveBeenCalledWith(
+          'event',
+          'ad_telemetry',
+          expect.objectContaining({
+            slot_id:
+              'guide_dongtan-1-vs-2-comparison_zone_section_동탄역시범리슈빌아파트',
+            event_type: 'CLICK',
+            placement_slot_id: 'guide_zone_section',
+            apartment_name: '동탄역시범리슈빌아파트',
+            dong: '청계동',
+          })
+        );
+
+        // 4. Modified clicks (Ctrl+Click, Meta+Click) do NOT double-count virtual pageview, while still recording click telemetry
+        gtagMock.mockClear();
+        fireEvent.click(cardEl, { ctrlKey: true });
+        fireEvent.click(cardEl, { metaKey: true });
+        expect(getVirtualPageViewLedger()).toHaveLength(1);
+        expect(gtagMock).not.toHaveBeenCalledWith('event', 'page_view', expect.anything());
+        expect(gtagMock).toHaveBeenCalledWith(
+          'event',
+          'guide_apt_preview_click',
+          expect.objectContaining({
+            apartment_name: '동탄역시범리슈빌아파트',
+          })
+        );
+        expect(gtagMock).toHaveBeenCalledWith(
+          'event',
+          'ad_telemetry',
+          expect.objectContaining({
+            event_type: 'CLICK',
+            apartment_name: '동탄역시범리슈빌아파트',
+          })
+        );
+
+        unmount();
+      } finally {
+        Object.defineProperty(process.env, 'NODE_ENV', { value: prevNodeEnv, configurable: true });
+        process.env.NEXT_PUBLIC_GA_ID = prevGaId;
+      }
+    });
+  });
 });
+
 
 
 

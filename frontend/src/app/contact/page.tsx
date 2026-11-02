@@ -49,7 +49,6 @@ export default async function ContactPage() {
         "name": "D-VIEW 부동산 데이터 랩스",
         "description": "동탄 전역 아파트 비교 분석 및 AI 매도/전세 안전성 진단 전문 부동산 테크 플랫폼",
         "url": baseUrl,
-        "telephone": "+82-2-000-0000",
         "address": {
           "@type": "PostalAddress",
           "addressCountry": "KR",

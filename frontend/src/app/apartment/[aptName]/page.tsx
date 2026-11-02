@@ -27,6 +27,21 @@ function formatWon(val: number): string {
   return `${Math.round(val).toLocaleString('ko-KR')}원`;
 }
 
+function formatSummaryPriceField(numManwon?: number, eokStr?: string): string {
+  if (typeof numManwon === 'number' && Number.isFinite(numManwon) && numManwon > 0) {
+    const trimmed = eokStr?.trim();
+    if (trimmed && trimmed !== '0' && trimmed !== '0만' && trimmed !== '0억' && trimmed !== '정보 없음') {
+      return /[억만]/.test(trimmed) ? trimmed : `${trimmed}억`;
+    }
+    return formatPriceEok(numManwon);
+  }
+  const trimmed = eokStr?.trim();
+  if (!trimmed || trimmed === '0' || trimmed === '0만' || trimmed === '0억' || trimmed === '정보 없음') {
+    return '정보 없음';
+  }
+  return /[억만]/.test(trimmed) ? trimmed : `${trimmed}억`;
+}
+
 export const dynamic = 'force-static';
 export const revalidate = 300;
 export const dynamicParams = true;
@@ -160,13 +175,17 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       if ((s.latestPrice || 0) <= 0) return false;
       return aptDong ? s.dong === aptDong : true;
     })
-    .map(([name, s]) => ({
-      name,
-      dong: s.dong || aptDong || '동탄',
-      latestPrice: s.latestPrice || 0,
-      latestPriceStr: s.latestPriceEok || formatPriceEok(s.latestPrice || 0),
-      txCount: s.txCount || 0,
-    }))
+    .map(([name, s]) => {
+      const dong = s.dong || aptDong || '동탄';
+      return {
+        name,
+        canonicalSlug: resolveCanonicalAptSlug(name, { txMap: allTxSummary, dong }) || name,
+        dong,
+        latestPrice: s.latestPrice || 0,
+        latestPriceStr: s.latestPriceEok || formatPriceEok(s.latestPrice || 0),
+        txCount: s.txCount || 0,
+      };
+    })
     .sort((a, b) => b.latestPrice - a.latestPrice)
     .slice(0, 8);
 
@@ -193,17 +212,15 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
 
-      {/* Search Engine Optimization & Screen Reader SSR Fallback Block */}
-      <div className="sr-only">
-        <h1>{decodedName} 아파트 실거래가 및 입지 가치 분석 리포트</h1>
-        <p>{aiBriefing}</p>
-      </div>
-
       <DashboardClient initialDashboardData={scopedInitialData} preselectedAptName={decodedName} />
 
       {/* High-Value Comprehensive Apartment Analysis Report (Visible SSR Content for Users & AdSense Reviewers) */}
-      <section className="sr-only">
-        <div className="bg-surface border border-border/80 rounded-3xl p-6 sm:p-10 shadow-sm space-y-10">
+      <section
+        id="apt-ssr-comprehensive-report"
+        data-testid="apt-ssr-comprehensive-report"
+        className="w-full max-w-[2000px] mx-auto px-2 sm:px-6 md:px-10 lg:px-16 py-8 my-6 overflow-x-clip"
+      >
+        <div className="bg-surface border border-border/80 rounded-3xl p-2 sm:p-10 shadow-sm space-y-10 min-w-0">
           
           {/* Header Summary */}
           <div className="border-b border-border/60 pb-6">
@@ -245,7 +262,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                   <div className="bg-body p-4 rounded-2xl border border-border/50">
                     <span className="text-[11px] font-bold text-tertiary block mb-1">배정 초등학교</span>
                     <strong className="text-primary text-[14px]">{locationScore.nearestSchoolNames.elementary}</strong>
-                    <p className="mt-1 text-tertiary">단지 기준 약 {locationScore.distanceToElementary || 0}m (도보 {Math.round((locationScore.distanceToElementary || 0) / 70) || 1}분)</p>
+                    <p className="mt-1 text-tertiary tabular-nums">단지 기준 약 {locationScore.distanceToElementary || 0}m (도보 {Math.round((locationScore.distanceToElementary || 0) / 70) || 1}분)</p>
                   </div>
                 )}
                 {locationScore.nearestSchoolNames?.middle && (
@@ -266,7 +283,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                   <div className="bg-body p-4 rounded-2xl border border-border/50">
                     <span className="text-[11px] font-bold text-tertiary block mb-1">대중교통 / 지하철</span>
                     <strong className="text-primary text-[14px]">{locationScore.nearestStationLine || '지하철'} {locationScore.nearestStationName}역</strong>
-                    <p className="mt-1 text-tertiary">단지 기준 약 {locationScore.distanceToSubway || 0}m (도보 {Math.round((locationScore.distanceToSubway || 0) / 70) || 1}분)</p>
+                    <p className="mt-1 text-tertiary tabular-nums">단지 기준 약 {locationScore.distanceToSubway || 0}m (도보 {Math.round((locationScore.distanceToSubway || 0) / 70) || 1}분)</p>
                   </div>
                 )}
               </div>
@@ -310,7 +327,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           )}
 
           {/* Pyeong-specific Transaction Summary Table (Chapter 02 SSR) */}
-          <div id="chapter-02-pyeong-ssr" className="space-y-4">
+          <div id="chapter-02-pyeong-ssr" className="space-y-4 min-w-0">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
               <span className="w-2 h-5 bg-emerald-500 rounded-full" />
               {decodedName} 평형별 실거래가 및 전세가율 현황표
@@ -318,6 +335,9 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
             {pyeongSummaries.length > 0 ? (
               <div className="overflow-x-auto rounded-2xl border border-border/60">
                 <table className="w-full text-left text-[13px] text-secondary">
+                  <caption className="sr-only">
+                    {decodedName} 평형별 전용면적, 최근 실거래가, 평균 매매가, 최고가, 최근 전세가, 전세가율 및 거래량 현황표
+                  </caption>
                   <thead className="bg-body text-primary font-bold border-b border-border/60">
                     <tr>
                       <th scope="col" className="p-3.5 whitespace-nowrap">평형</th>
@@ -330,7 +350,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                       <th scope="col" className="p-3.5 whitespace-nowrap">거래량</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-border/40 font-medium">
+                  <tbody className="divide-y divide-border/40 font-medium tabular-nums">
                     {pyeongSummaries.map((p) => (
                       <tr key={p.pyeong} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
                         <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">{p.pyeong}평형</th>
@@ -347,10 +367,10 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                 </table>
               </div>
             ) : (
-              <div className="bg-body p-4 rounded-2xl border border-border/50 text-[13px] text-secondary">
-                최근 매매가: {aptSummary?.latestPriceEok ? `${aptSummary.latestPriceEok}억` : '정보 없음'} | 
-                최근 1개월 평균가: {aptSummary?.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음'} | 
-                최근 전세가: {aptSummary?.latestRentDepositEok ? `${aptSummary.latestRentDepositEok}억` : '정보 없음'}
+              <div className="bg-body p-4 rounded-2xl border border-border/50 text-[13px] text-secondary tabular-nums">
+                최근 매매가: {formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok)} | 
+                최근 1개월 평균가: {formatSummaryPriceField(aptSummary?.avg1MPrice, aptSummary?.avg1MPriceEok)} | 
+                최근 전세가: {formatSummaryPriceField(aptSummary?.latestRentDeposit, aptSummary?.latestRentDepositEok)}
               </div>
             )}
           </div>
@@ -358,37 +378,37 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           {/* Chapter 02 Post-Table Zero-CLS AdSlot (High-CPC Real Estate Valuation Context) */}
           <div
             data-testid="ssr-adslot-ch02"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+            className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden"
           >
             <AdSlot
-              slotId="1000000002"
               refreshSlotId="1000000002_ssr_ch02"
               format="rectangle"
               minHeightClass="min-h-[250px]"
               cpaCampaignId="mortgage-refinance"
               apartmentName={decodedName}
+              dong={aptDong || undefined}
             />
           </div>
 
           {/* Mortgage & Stress DSR Analysis Section (Chapter 05 SSR) */}
-          <section id="chapter-05-mortgage-ssr" className="space-y-6 pt-4 border-t border-border/60">
+          <section id="chapter-05-mortgage-ssr" className="space-y-6 pt-4 border-t border-border/60 min-w-0">
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
                 <span className="w-2 h-5 bg-emerald-500 rounded-full" />
                 {decodedName} 주택담보대출 상환 시뮬레이션 및 스트레스 DSR 진단
               </h2>
-              <p className="mt-2 text-[13px] text-tertiary font-medium">
+              <p className="mt-2 text-[13px] text-tertiary font-medium tabular-nums">
                 대출원금 {formatWon(mortgageSsr.principalWon)}, 30년 만기, 기준금리 4.0%를 가정한 상환방식별 원리금 및 스트레스 DSR 40% 규제 분석표입니다.
               </p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Amortization Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50">
+              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">1. 상환 방식별 월 납부액 비교</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">원리금균등 분할상환 및 원금균등 분할상환 상환 방식별 월 납부액 비교표</caption>
+                    <caption className="sr-only">{decodedName} 원리금균등 분할상환 및 원금균등 분할상환 상환 방식별 월 납부액 비교표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">방식</th>
@@ -397,7 +417,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                         <th className="pb-2">총 이자</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/40 font-medium">
+                    <tbody className="divide-y divide-border/40 font-medium tabular-nums">
                       <tr>
                         <th className="py-2.5 font-bold text-primary">원리금균등 분할상환</th>
                         <td className="py-2.5">{formatWon(mortgageSsr.amortization.equalPi.monthlyPaymentWon)}</td>
@@ -416,11 +436,11 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
               </div>
 
               {/* DSR Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50">
+              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">2. 연소득별 스트레스 DSR 40% 한도표</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">차주 연소득별 스트레스 DSR 40% 규제 대출한도표</caption>
+                    <caption className="sr-only">{decodedName} 차주 연소득별 스트레스 DSR 40% 규제 대출한도표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">차주 연소득</th>
@@ -428,7 +448,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                         <th className="pb-2">최대 가용 대출액</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/40 font-medium">
+                    <tbody className="divide-y divide-border/40 font-medium tabular-nums">
                       {mortgageSsr.dsrScenarios.map((dsr) => (
                         <tr key={dsr.annualIncomeWon}>
                           <th className="py-2 font-bold text-primary">{formatWon(dsr.annualIncomeWon)}</th>
@@ -444,11 +464,11 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Rate Shock Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50">
+              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">3. 금리 변동 시나리오별 상환 부담표</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">금리 변동 시나리오별 월 원리금 상환액 및 추가 이자 부담표</caption>
+                    <caption className="sr-only">{decodedName} 금리 변동 시나리오별 월 원리금 상환액 및 추가 이자 부담표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">금리 변동 시나리오</th>
@@ -457,7 +477,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                         <th className="pb-2">추가 월부담</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/40 font-medium">
+                    <tbody className="divide-y divide-border/40 font-medium tabular-nums">
                       {mortgageSsr.rateShock.scenarios.map((sc) => (
                         <tr key={sc.spreadPercent}>
                           <th className="py-2 font-bold text-primary">+{sc.spreadPercent.toFixed(1)}%p 인상</th>
@@ -472,11 +492,11 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
               </div>
 
               {/* Reverse Jeonse Shortfall Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50">
+              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">4. 전세보증금 반환대출(역전세) 결손액 진단표</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">전세보증금 반환대출(역전세) 결손액 진단표</caption>
+                    <caption className="sr-only">{decodedName} 전세보증금 반환대출(역전세) 결손액 진단표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">전세가 하락률</th>
@@ -484,7 +504,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                         <th className="pb-2">반환 필요 결손액</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-border/40 font-medium">
+                    <tbody className="divide-y divide-border/40 font-medium tabular-nums">
                       {mortgageSsr.jeonseShortfalls.map((sf) => (
                         <tr key={sf.declineRate}>
                           <th className="py-2 font-bold text-primary">-{Math.round(sf.declineRate * 100)}% 하락</th>
@@ -524,15 +544,15 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           {/* Chapter 05 Post-Mortgage Zero-CLS AdSlot (High-CPC Mortgage & DSR Context) */}
           <div
             data-testid="ssr-adslot-ch05"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
+            className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden"
           >
             <AdSlot
-              slotId="1000000002"
               refreshSlotId="1000000002_ssr_ch05"
               format="rectangle"
               minHeightClass="min-h-[250px]"
               cpaCampaignId="jeonse-sentinel"
               apartmentName={decodedName}
+              dong={aptDong || undefined}
             />
           </div>
 
@@ -581,7 +601,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                 {peerApartments.map((peer) => (
                   <Link
                     key={peer.name}
-                    href={`/apartment/${encodeURIComponent(peer.name)}`}
+                    href={`/apartment/${encodeURIComponent(peer.canonicalSlug)}`}
                     prefetch={false}
                     className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
                   >

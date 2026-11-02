@@ -1,4 +1,11 @@
 import { dongToZoneId, getZoneById, type ZoneInfo } from '@/lib/zones';
+import {
+  CANONICAL_DONG_APT_LIST,
+  CANONICAL_TX_SUMMARY_MAP,
+} from '@/lib/utils/canonicalAptCatalog';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import { formatPriceEok } from '@/lib/utils/analyticsUtils';
+import type { AptTxSummary } from '@/types/transaction';
 
 export interface GuideHeadToHeadMatchup {
   title: string;
@@ -13,6 +20,33 @@ export interface GuideHeadToHeadMatchup {
 export interface GuideFaqItem {
   question: string;
   answer: string;
+}
+
+export interface GuideZoneSectionPreview {
+  sectionHeadingMatch: string;
+  sectionTitle: string;
+  zoneId?: string;
+  apartments: string[];
+}
+
+export interface GuideAptMiniPreviewItem {
+  name: string;
+  displayName: string;
+  canonicalSlug: string;
+  href: string;
+  dong: string;
+  zoneId: string;
+  zoneName: string;
+  latestPrice: number;
+  latestPriceStr: string;
+  latestRent: number;
+  latestRentStr: string;
+  jeonseRatio: number;
+  perValue: string | null;
+  latestDate: string;
+  latestArea: number;
+  latestFloor: number;
+  txCount: number;
 }
 
 export interface GuideArticle {
@@ -31,6 +65,7 @@ export interface GuideArticle {
   keyTakeaways: string[];
   featuredApartments?: string[];
   featuredZones?: string[];
+  zoneSectionPreviews?: GuideZoneSectionPreview[];
   headToHeadComparisons?: GuideHeadToHeadMatchup[];
   faqs?: GuideFaqItem[];
   content: string; // Markdown or rich HTML-friendly text
@@ -64,6 +99,25 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
       '시범한빛마을동탄아이파크',
       'METAPOLIS',
       '솔빛마을서해그랑블',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(1) 동탄1신도시',
+        sectionTitle: '동탄1신도시 핵심 학군·중심상권 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'metropolis',
+        apartments: ['솔빛마을서해그랑블', '시범한빛마을동탄아이파크', 'METAPOLIS'],
+      },
+      {
+        sectionHeadingMatch: '(2) 동탄2신도시',
+        sectionTitle: '동탄2신도시 시범단지·동탄역권 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '동탄역시범리슈빌아파트',
+          '동탄역롯데캐슬',
+          '더샵센트럴시티',
+          '동탄역시범우남퍼스트빌아파트',
+        ],
+      },
     ],
     headToHeadComparisons: [
       {
@@ -115,12 +169,12 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
 학군과 보육 인프라는 실거주 만족도와 전세가 하방 경직성을 결정짓는 핵심 펀더멘털입니다.
 
 #### (1) 동탄1신도시: 균질한 평지 통학로 및 집중형 학원가
-동탄1의 핵심 학군은 솔빛마을(솔빛초·솔빛중)과 나루마을(반송초·반송중) 일대입니다.
+동탄1의 핵심 학군은 솔빛마을(솔빛초·솔빛중, **솔빛마을서해그랑블**)과 나루마을(반송초·반송중), 한빛마을(**시범한빛마을동탄아이파크**, **METAPOLIS**) 일대입니다.
 - **학원가 집적도**: 남광장 및 솔빛마을 사거리를 중심으로 입시·어학·보습 학원이 150개 이상 밀집하여 도보 5~10분 내 원스톱 라이딩 없는 사교육 동선이 확립되어 있습니다.
 - **통학 안전성**: 보행자 전용 도로망(그린웨이)이 단지 사이를 유기적으로 연결하여 차도를 건너지 않고 초·중학교를 통학할 수 있는 이른바 '초품아' 비율이 82%에 달합니다.
 
 #### (2) 동탄2신도시: 명문고 진학률 및 신흥 명문 학군 형성
-동탄2의 학군은 커뮤니티시범단지(청계동)와 남동탄 호수공원(산척동)을 양대 축으로 형성되어 있습니다.
+동탄2의 학군은 커뮤니티시범단지(청계동 **동탄역 시범 리슈빌**, **더샵센트럴시티**, **동탄역 시범 우남퍼스트빌**)와 광역비즈니스콤플렉스(**동탄역 롯데캐슬**), 남동탄 호수공원(산척동)을 양대 축으로 형성되어 있습니다.
 - **시범단지 학군**: 아인초, 청계초, 청계중, 동탄중앙고 등이 위치하며, 청계동 카림애비뉴 상권 및 항아리 상권에 약 200여 개의 대형 프랜차이즈 학원이 집결하여 1신도시에 필적하는 사교육 클러스터를 조성했습니다.
 - **특성화 고교 실적**: 화성시 고교 평준화 논의와 맞물려 동탄국제고(1신도시 반송동)와 세마고(오산 연계) 외에도, 동탄중앙고와 이산고 등 2신도시 내 신설 일반계 고교의 수시 및 정시 의약학 계열 진학 실적이 가파르게 상승하고 있습니다.
 
@@ -188,6 +242,26 @@ D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세�
       '동탄린스트라우스더레이크',
       '동탄역푸르지오',
     ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(2) 서울 핵심 업무지구 인구 유입',
+        sectionTitle: 'GTX-A 동탄역 도보 직수혜 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'gbcx',
+        apartments: ['동탄역롯데캐슬', '동탄역예미지시그너스', '동탄역푸르지오'],
+      },
+      {
+        sectionHeadingMatch: '3. 노선별 수혜 아파트 단지 정밀 분류표',
+        sectionTitle: '트램 1·2호선 정거장 인접 수혜 단지 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '동탄역시범리슈빌아파트',
+          '동탄역시범우남퍼스트빌아파트',
+          '동탄역시범한화꿈에그린프레스티지',
+          '동탄린스트라우스더레이크',
+          '동탄역센트럴푸르지오',
+        ],
+      },
+    ],
     headToHeadComparisons: [
       {
         title: '동탄역 도보권 vs 간접 역세권 맞대결: 동탄역예미지시그너스 vs 동탄역센트럴푸르지오',
@@ -233,7 +307,7 @@ D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세�
 - 향후 삼성역 복합환승센터 및 서울역 완전 직결 시 GBD(강남) 및 CBD(도심) 30분대 진입 완료
 
 #### (2) 서울 핵심 업무지구 인구 유입
-수서역 연계를 통해 SRT와의 환승 시너지뿐만 아니라 3호선·수인분당선 환승 체계가 결합되면서, 판교 테크노밸리 및 양재·서초·강남 일대 IT/금융 고소득 직장인의 거주 배후지로 동탄2신도시 역세권이 확고히 안착했습니다.
+수서역 연계를 통해 SRT와의 환승 시너지뿐만 아니라 3호선·수인분당선 환승 체계가 결합되면서, 판교 테크노밸리 및 양재·서초·강남 일대 IT/금융 고소득 직장인의 거주 배후지로 **동탄역 롯데캐슬**, **동탄역 예미지 시그너스** 등 동탄2신도시 역세권이 확고히 안착했습니다.
 
 ---
 
@@ -274,11 +348,11 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 | 권역 | 대표 수혜 아파트 단지 | 배정 정거장 및 교통 편익 |
 | :--- | :--- | :--- |
-| **광역비즈니스 콤플렉스** | 동탄역 롯데캐슬, 동탄역 유림노르웨이숲, 동탄역 파라곤, 예미지 시그너스 | 동탄역 도보 3~7분, GTX-A 및 트램 1·2호선 트리플 역세권 |
-| **커뮤니티 시범단지** | 시범우남퍼스트빌, 시범포스코더샵, 시범한화꿈에그린, 시범반도유보라1.0 | 트램 105·106 정거장 인접, 동탄역 1정거장 셔틀 이동 가능 |
-| **동탄테크노밸리** | 동탄역 대방디엠시티, 힐스테이트 동탄역 멀티플라이어, 센트럴자이 | 트램 203 정거장 도보권, 테크노밸리 직주근접 배후 주거 |
+| **광역비즈니스 콤플렉스** | **동탄역 롯데캐슬**, 동탄역 유림노르웨이숲, 동탄역 파라곤, **동탄역 예미지 시그너스** | 동탄역 도보 3~7분, GTX-A 및 트램 1·2호선 트리플 역세권 |
+| **커뮤니티 시범단지** | **동탄역 시범 우남퍼스트빌**, **더샵센트럴시티**, **동탄역 시범 한화꿈에그린 프레스티지**, **동탄역 시범 리슈빌** | 트램 105·106 정거장 인접, 동탄역 1정거장 셔틀 이동 가능 |
+| **동탄테크노밸리** | 동탄역 대방디엠시티, 힐스테이트 동탄역 멀티플라이어, **동탄역 센트럴자이** | 트램 203 정거장 도보권, 테크노밸리 직주근접 배후 주거 |
 | **동탄1 북·남광장** | 시동마을 롯데캐슬, 한빛마을 금호어울림, 다은마을 포스코더샵 | 트램 103·104 정거장 도보 5분, 메타폴리스 및 학원가 연계 |
-| **워터프론트 (남동탄)** | 더레이크시티 부영(1~6단지), 호수공원 금호어울림레이크, 우미린더레이크 | 트램 110·111 정거장 인접, 호수공원 조망 + 동탄역 10분 연결 |
+| **워터프론트 (남동탄)** | **동탄 린스트라우스 더레이크**, 더레이크시티 부영(1~6단지), 호수공원 **금호어울림레이크**, 우미린더레이크 | 트램 110·111 정거장 인접, 호수공원 조망 + 동탄역 10분 연결 |
 
 ---
 
@@ -318,6 +392,24 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
       '호반베르디움센트럴포레',
       '더레이크시티부영5단지',
       '시범반도유보라아이비파크4.0',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '[실거주 PER 해석 기준표]',
+        sectionTitle: '동탄1 저PER 안심 학군 단지 실시간 실거래 프리뷰',
+        zoneId: 'metropolis',
+        apartments: ['솔빛마을서해그랑블', '나루마을신도브래뉴', '나루마을한화꿈에그린'],
+      },
+      {
+        sectionHeadingMatch: '4단계: 역전세 결손액(Shortfall) 안전마진 확보',
+        sectionTitle: '동탄2 시범·호수·목동 갈아타기 단지 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '시범반도유보라아이비파크4.0',
+          '호반베르디움센트럴포레',
+          '더레이크시티부영5단지',
+        ],
+      },
     ],
     headToHeadComparisons: [
       {
@@ -385,9 +477,9 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 #### [실거주 PER 해석 기준표]
 1. **PER 1.3 ~ 1.5 (전세가율 67% ~ 77%) - "안심 저평가 구간"**
-   - 주거 편익 대비 매매가가 저렴하며 하방 지지력이 매우 단단함. 하락장에서도 매매가가 전세가 밑으로 하락하기 어려워 원금 보존성이 높음.
+   - 주거 편익 대비 매매가가 저렴하며 하방 지지력이 매우 단단함(**솔빛마을서해그랑블**, **나루마을신도브래뉴**, **나루마을한화꿈에그린** 등). 하락장에서도 매매가가 전세가 밑으로 하락하기 어려워 원금 보존성이 높음.
 2. **PER 1.6 ~ 2.0 (전세가율 50% ~ 62%) - "적정 가치 구간"**
-   - 신도시 중심부 신축 아파트의 표준적인 가치 범위. 입지 인프라와 주거 쾌적성이 균형을 이룸.
+   - 신도시 중심부 신축 아파트(**시범반도유보라아이비파크4.0**, **호반베르디움센트럴포레**, **더레이크시티부영5단지** 등)의 표준적인 가치 범위. 입지 인프라와 주거 쾌적성이 균형을 이룸.
 3. **PER 2.2 초과 (전세가율 45% 미만) - "미래 가치 선반영 고평가 구간"**
    - 미래 개발 호재(GTX, 역세권 개발 등)가 매매가에 과도하게 반영된 상태. 거시 유동성 축소 및 대출 규제 강화 시 가격 조정에 가장 취약함.
 
@@ -442,6 +534,31 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
       '능동마을이지더원',
       'e편한세상동탄파크아너스',
     ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '[Tier 1] 6억 ~ 7억대 실속 진입 구간',
+        sectionTitle: 'Tier 1 (6억~7억대) 능동·목동·신동 실속 진입 단지 실거래 프리뷰',
+        zoneId: 'newtown',
+        apartments: ['능동마을이지더원', '호반베르디움센트럴포레', 'e편한세상동탄파크아너스'],
+      },
+      {
+        sectionHeadingMatch: '[Tier 2] 8억 ~ 11억대 핵심 갈아타기 구간',
+        sectionTitle: 'Tier 2 (8억~11억대) 호수공원·목동·반송동 갈아타기 단지 실거래 프리뷰',
+        zoneId: 'waterfront',
+        apartments: ['동탄더샵레이크에듀타운', '힐스테이트동탄', '솔빛마을서해그랑블'],
+      },
+      {
+        sectionHeadingMatch: '[Tier 3] 12억 이상 하이엔드 대장주 구간',
+        sectionTitle: 'Tier 3 (12억 이상) 동탄역·시범단지 대장주 실거래 프리뷰',
+        zoneId: 'gbcx',
+        apartments: [
+          '동탄역롯데캐슬',
+          '더샵센트럴시티',
+          '동탄역시범리슈빌아파트',
+          '동탄역시범우남퍼스트빌아파트',
+        ],
+      },
+    ],
     headToHeadComparisons: [
       {
         title: '7억대 실속 진입 Tier 1 맞대결: 능동마을이지더원 vs 호반베르디움센트럴포레',
@@ -493,8 +610,8 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 가용 예산 6억~7억 원 후반 구간은 부부 합산 연소득 7,000만~8,000만 원대 가구가 자기자본 2억~3억 원과 주택담보대출을 결합하여 무리 없이 진입할 수 있는 핵심 실수요 구간입니다.
 
-- **동탄1신도시 능동·반송동 축**: 능동마을이지더원, 동탄숲속마을광명메이루즈, 동탄나루마을동탄역U.BORA여울숲1.0 등은 동탄인덕원선(동인선) 역세권 수혜와 완성된 초·중 통학 인프라를 동시에 갖추고 있으며 누적 거래량이 400~600건 이상으로 환금성이 뛰어납니다.
-- **동탄2신도시 목동·여울동·신동 실속 신축**: 호반베르디움센트럴포레, 동탄2신도시호반베르디움22단지, 동탄2신도시금강펜테리움센트럴파크1, e편한세상동탄파크아너스 등은 쾌적한 신축 커뮤니티와 공원 인프라를 누리면서도 7억 원대에 실거래가 형성되어 있습니다.
+- **동탄1신도시 능동·반송동 축**: **능동마을이지더원**, **동탄숲속마을광명메이루즈**, **동탄나루마을동탄역U.BORA여울숲1.0** 등은 동탄인덕원선(동인선) 역세권 수혜와 완성된 초·중 통학 인프라를 동시에 갖추고 있으며 누적 거래량이 400~600건 이상으로 환금성이 뛰어납니다.
+- **동탄2신도시 목동·여울동·신동 실속 신축**: **호반베르디움센트럴포레**, **동탄2신도시호반베르디움22단지**, **동탄2신도시금강펜테리움센트럴파크1**, **e편한세상동탄파크아너스** 등은 쾌적한 신축 커뮤니티와 공원 인프라를 누리면서도 7억 원대에 실거래가 형성되어 있습니다.
 
 ---
 
@@ -502,15 +619,15 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 동탄 내에서 가장 두터운 실수요 층이 포진한 허리 구간으로, 초등학교·중학교 학업성취도와 대형 상권 접근성이 단지 가치를 좌우합니다.
 
-- **남동탄 호수공원 에듀타운 축(산척동·장지동)**: 동탄더샵레이크에듀타운, 동탄레이크자연앤푸르지오 등은 호수공원 산책로와 초·중·고 밀집 학군을 도보로 누릴 수 있어 학령기 자녀 가구의 갈아타기 선호도가 높습니다.
-- **북동탄 직주근접 및 1신도시 중심 축(영천동·목동·반송동)**: 동탄역푸르지오, 동탄역경남아너스빌, 힐스테이트동탄, 솔빛마을서해그랑블, 시범한빛마을한화꿈에그린 등은 탄탄한 전세 수요(전세가 5억~6억 원대)가 매매가 하방을 지지합니다.
+- **남동탄 호수공원 에듀타운 축(산척동·장지동)**: **동탄더샵레이크에듀타운**, **동탄레이크자연앤푸르지오** 등은 호수공원 산책로와 초·중·고 밀집 학군을 도보로 누릴 수 있어 학령기 자녀 가구의 갈아타기 선호도가 높습니다.
+- **북동탄 직주근접 및 1신도시 중심 축(영천동·목동·반송동)**: **동탄역푸르지오**, **동탄역경남아너스빌**, **힐스테이트동탄**, **솔빛마을서해그랑블**, **시범한빛마을한화꿈에그린** 등은 탄탄한 전세 수요(전세가 5억~6억 원대)가 매매가 하방을 지지합니다.
 
 ---
 
 ### 4. [Tier 3] 12억 이상 하이엔드 대장주 구간: GTX-A 초역세권 희소 가치
 
 동탄 전체 시세의 상단(Ceiling)을 열어주는 리딩 단지군입니다.
-- **광역비즈니스콤플렉스 및 커뮤니티시범단지(여울동·청계동)**: 동탄역롯데캐슬, 더샵센트럴시티, 동탄역시범한화꿈에그린프레스티지, 동탄역시범우남퍼스트빌아파트, 동탄역시범리슈빌아파트, 시범반도유보라아이비파크4.0 등이 대표적입니다.
+- **광역비즈니스콤플렉스 및 커뮤니티시범단지(여울동·청계동)**: **동탄역롯데캐슬**, **더샵센트럴시티**, **동탄역시범한화꿈에그린프레스티지**, **동탄역시범우남퍼스트빌아파트**, **동탄역시범리슈빌아파트**, **시범반도유보라아이비파크4.0** 등이 대표적입니다.
 - GTX-A 수서역 20분 주파와 롯데백화점·청계동 학원가를 도보로 이용할 수 있는 대체 불가능한 입지 희소성 덕분에, 시장 상승기마다 가장 먼저 신고가를 경신하는 대장주 포트폴리오를 구성합니다.
 `
   },
@@ -543,6 +660,30 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
       '호수공원역센트럴시티',
       '동탄더샵레이크에듀타운',
       '더레이크시티부영5단지',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '1. 동탄2신도시를 양분하는 두 개의 심장',
+        sectionTitle: '동탄역 권역 (여울동·청계동) 핵심 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'gbcx',
+        apartments: [
+          '동탄역롯데캐슬',
+          '더샵센트럴시티',
+          '동탄역시범리슈빌아파트',
+          '동탄역시범한화꿈에그린프레스티지',
+        ],
+      },
+      {
+        sectionHeadingMatch: '2. 국토교통부 실거래가 및 거래 회전율 비교',
+        sectionTitle: '동탄호수공원 권역 (송동·산척동) 핵심 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'waterfront',
+        apartments: [
+          '동탄린스트라우스더레이크',
+          '동탄더레이크팰리스',
+          '동탄더샵레이크에듀타운',
+          '더레이크시티부영5단지',
+        ],
+      },
     ],
     headToHeadComparisons: [
       {
@@ -586,7 +727,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 | 비교 항목 | 동탄역 권역 (여울동 · 청계동) | 동탄호수공원 권역 (송동 · 산척동) |
 | :--- | :--- | :--- |
 | **핵심 성장 동력** | GTX-A·SRT 복합환승센터, 롯데백화점, 청계동 학원가 | 동탄호수공원 수변 영구 조망, 레이크꼬모·그랑파사쥬 상권 |
-| **대표 리딩 단지** | 동탄역롯데캐슬, 더샵센트럴시티, 시범우남퍼스트빌 | 동탄린스트라우스더레이크, 동탄더레이크팰리스, 더샵레이크에듀타운 |
+| **대표 리딩 단지** | **동탄역롯데캐슬**, **더샵센트럴시티**, **동탄역시범우남퍼스트빌아파트** | **동탄린스트라우스더레이크**, **동탄더레이크팰리스**, **동탄더샵레이크에듀타운** |
 | **서울 통근 편의성** | 도보로 GTX-A·SRT 즉시 탑승 (수서 20분) | 광역버스(M버스) 도보 이용 또는 동탄역 버스·트램 연계 |
 | **주거 환경 특성** | 고밀도 도심형 역세권 + 평지 시범단지 공원 축 | 호수 산책로 직결 리조트형 수변 주거 단지 |
 
@@ -596,8 +737,8 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권역의 가격 형성 구조를 비교하면 뚜렷한 특징이 나타납니다.
 
-1. **동탄역 권역(청계동·여울동)**: 동탄역롯데캐슬(최근 실거래 26.2억), 더샵센트럴시티(21.6억), 동탄역시범한화꿈에그린프레스티지(18.4억), 동탄역시범리슈빌아파트(16.8억), 동탄역시범우남퍼스트빌아파트(15.85억, 누적 1,007건 거래) 등 동탄 전체 최고가 단지가 밀집해 있습니다. 특히 시범단지는 누적 거래량이 수백~천 건에 달해 시장 유동성이 가장 풍부합니다.
-2. **동탄호수공원 권역(송동·산척동)**: 호수 1선 대장주인 동탄린스트라우스더레이크(최근 실거래 14.0억)와 동탄더레이크팰리스(13.2억), 호수공원역센트럴시티(12.0억), 동탄더샵레이크에듀타운(11.7억), 더레이크시티부영5단지(9억 6,700만) 등이 탄탄한 시세를 형성하고 있습니다. 동탄역 초역세권 대비 합리적인 진입 가격에 수변 조망 프리미엄을 누릴 수 있어 3040 실거주 층의 매수세가 꾸준합니다.
+1. **동탄역 권역(청계동·여울동)**: **동탄역롯데캐슬**(최근 실거래 26.2억), **더샵센트럴시티**(21.6억), **동탄역시범한화꿈에그린프레스티지**(18.4억), **동탄역시범리슈빌아파트**(16.8억), **동탄역시범우남퍼스트빌아파트**(15.85억, 누적 1,007건 거래) 등 동탄 전체 최고가 단지가 밀집해 있습니다. 특히 시범단지는 누적 거래량이 수백~천 건에 달해 시장 유동성이 가장 풍부합니다.
+2. **동탄호수공원 권역(송동·산척동)**: 호수 1선 대장주인 **동탄린스트라우스더레이크**(최근 실거래 14.0억)와 **동탄더레이크팰리스**(13.2억), **호수공원역센트럴시티**(12.0억), **동탄더샵레이크에듀타운**(11.7억), **더레이크시티부영5단지**(9억 6,700만) 등이 탄탄한 시세를 형성하고 있습니다. 동탄역 초역세권 대비 합리적인 진입 가격에 수변 조망 프리미엄을 누릴 수 있어 3040 실거주 층의 매수세가 꾸준합니다.
 
 ---
 
@@ -636,6 +777,31 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
       '시범한빛마을동탄아이파크',
       '나루마을신도브래뉴',
       '동탄더샵레이크에듀타운',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(1) 청계동 커뮤니티시범단지',
+        sectionTitle: '청계동 커뮤니티시범단지 초품아·학원가 대장 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '더샵센트럴시티',
+          '동탄역시범리슈빌아파트',
+          '동탄역시범우남퍼스트빌아파트',
+          '동탄역시범한화꿈에그린프레스티지',
+        ],
+      },
+      {
+        sectionHeadingMatch: '(2) 반송동 솔빛·한빛·나루마을',
+        sectionTitle: '반송동 솔빛·한빛·나루마을 그린웨이 학군 단지 실시간 실거래 프리뷰',
+        zoneId: 'metropolis',
+        apartments: ['솔빛마을서해그랑블', '시범한빛마을동탄아이파크', '나루마을신도브래뉴'],
+      },
+      {
+        sectionHeadingMatch: '(3) 산척동 레이크 에듀타운',
+        sectionTitle: '산척동 레이크 에듀타운·시범4.0 원스톱 학군 단지 실시간 실거래 프리뷰',
+        zoneId: 'waterfront',
+        apartments: ['동탄더샵레이크에듀타운', '시범반도유보라아이비파크4.0'],
+      },
     ],
     headToHeadComparisons: [
       {
@@ -678,23 +844,23 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
 
 | 4대 학군 권역 | 중심 행정동 | 주요 초·중·고 학군 | 대표 학군 대장 아파트 |
 | :--- | :--- | :--- | :--- |
-| **1. 커뮤니티시범단지** | 청계동 | 청계초, 아인초, 청계중, 동탄중앙고 | 더샵센트럴시티, 시범우남퍼스트빌, 시범한화꿈에그린 |
-| **2. 솔빛 · 한빛마을** | 반송동 | 솔빛초·중, 한빛초·중, 석우중 | 솔빛마을서해그랑블, 시범한빛마을동탄아이파크 |
-| **3. 나루마을 · 국제고 축** | 반송동 | 반송초·중, 나루고, 동탄국제고 | 나루마을신도브래뉴, 나루마을한화꿈에그린 |
-| **4. 호수공원 에듀타운** | 산척동 · 송동 | 이산초·중·고, 정현초·중·고 | 동탄더샵레이크에듀타운, 더레이크시티부영5단지 |
+| **1. 커뮤니티시범단지** | 청계동 | 청계초, 아인초, 청계중, 동탄중앙고 | **더샵센트럴시티**, **동탄역시범우남퍼스트빌아파트**, **동탄역시범한화꿈에그린프레스티지** |
+| **2. 솔빛 · 한빛마을** | 반송동 | 솔빛초·중, 한빛초·중, 석우중 | **솔빛마을서해그랑블**, **시범한빛마을동탄아이파크** |
+| **3. 나루마을 · 국제고 축** | 반송동 | 반송초·중, 나루고, 동탄국제고 | **나루마을신도브래뉴**, **나루마을한화꿈에그린** |
+| **4. 호수공원 에듀타운** | 산척동 · 송동 | 이산초·중·고, 정현초·중·고 | **동탄더샵레이크에듀타운**, **더레이크시티부영5단지** |
 
 ---
 
 ### 2. 권역별 학군 인프라 및 실거래가 상세 진단
 
 #### (1) 청계동 커뮤니티시범단지: 동탄2 부동의 1위 학군 클러스터
-더샵센트럴시티, 동탄역시범우남퍼스트빌아파트, 동탄역시범한화꿈에그린프레스티지, 시범반도유보라아이비파크4.0 등이 중앙 공원과 초·중학교를 둘러싸고 배치되어 있습니다. 카림애비뉴 상권 내 대형 입시·어학 학원가와 도보로 직결되어 초등 저학년부터 고등 입시까지 이사할 필요가 없는 완결성을 자랑합니다.
+**더샵센트럴시티**, **동탄역시범우남퍼스트빌아파트**, **동탄역시범한화꿈에그린프레스티지**, **동탄역시범리슈빌아파트**, **시범반도유보라아이비파크4.0** 등이 중앙 공원과 초·중학교를 둘러싸고 배치되어 있습니다. 카림애비뉴 상권 내 대형 입시·어학 학원가와 도보로 직결되어 초등 저학년부터 고등 입시까지 이사할 필요가 없는 완결성을 자랑합니다.
 
 #### (2) 반송동 솔빛·한빛·나루마을: 평지 그린웨이 통학망과 고밀도 학원가
-동탄1신도시의 솔빛마을서해그랑블, 시범한빛마을동탄아이파크, 나루마을신도브래뉴, 나루마을한화꿈에그린 등은 보행자 전용 녹지축(그린웨이)을 통해 차도를 건너지 않고 초·중학교로 통학할 수 있습니다. 남광장·솔빛마을 사거리 학원가의 면학 분위기가 탄탄하며, 10억~12억 원대 실거래가로 동탄2 역세권 대비 높은 가성비를 제공합니다.
+동탄1신도시의 **솔빛마을서해그랑블**, **시범한빛마을동탄아이파크**, **나루마을신도브래뉴**, **나루마을한화꿈에그린** 등은 보행자 전용 녹지축(그린웨이)을 통해 차도를 건너지 않고 초·중학교로 통학할 수 있습니다. 남광장·솔빛마을 사거리 학원가의 면학 분위기가 탄탄하며, 10억~12억 원대 실거래가로 동탄2 역세권 대비 높은 가성비를 제공합니다.
 
 #### (3) 산척동 레이크 에듀타운: 신축 대단지와 초·중·고 일체형 캠퍼스
-동탄더샵레이크에듀타운을 필두로 한 산척동 학군지는 단지 바로 앞에 초·중·고교가 나란히 배치되어 도보 3~5분 내 통학이 가능하며, 호수공원 상권 내 학원 인프라가 빠르게 확충되어 남동탄 최고의 교육 거점으로 자리잡았습니다.
+**동탄더샵레이크에듀타운**을 필두로 한 산척동 학군지는 단지 바로 앞에 초·중·고교가 나란히 배치되어 도보 3~5분 내 통학이 가능하며, 호수공원 상권 내 학원 인프라가 빠르게 확충되어 남동탄 최고의 교육 거점으로 자리잡았습니다.
 `
   },
   {
@@ -734,6 +900,30 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
       '시범반도유보라아이비파크4.0',
       '동탄역린스트라우스',
       '동탄역반도유보라아이비파크7.0',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '2. 건축물대장 밀도(용적률·건폐율) 및 주거 쾌적성 실증 비교',
+        sectionTitle: '여울동 광역비즈니스콤플렉스 주상복합 대장 실시간 실거래 프리뷰',
+        zoneId: 'gbcx',
+        apartments: [
+          '동탄역롯데캐슬',
+          '동탄역예미지시그너스',
+          '동탄역린스트라우스',
+          '동탄역반도유보라아이비파크7.0',
+        ],
+      },
+      {
+        sectionHeadingMatch: '3. 청계동 시범단지 4대장 세부 포지셔닝 및 거래 회전율 분석',
+        sectionTitle: '청계동 커뮤니티시범단지 4대장 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '더샵센트럴시티',
+          '동탄역시범한화꿈에그린프레스티지',
+          '동탄역시범리슈빌아파트',
+          '동탄역시범우남퍼스트빌아파트',
+        ],
+      },
     ],
     headToHeadComparisons: [
       {
@@ -866,6 +1056,31 @@ D-VIEW에 등록된 화성시 건축물대장 및 GIS 입지 데이터를 대조
       '한신더휴',
       '푸른마을두산위브',
     ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(1) 북동탄 영천동',
+        sectionTitle: '북동탄 영천동 (테크노밸리·11자상가) 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'techno',
+        apartments: [
+          '동탄역센트럴자이A-10',
+          '동탄역센트럴예미지',
+          '동탄역푸르지오',
+          '동탄역포레너스',
+        ],
+      },
+      {
+        sectionHeadingMatch: '(2) 중동탄 목동',
+        sectionTitle: '중동탄 목동 신축 브랜드 대단지 실시간 실거래 프리뷰',
+        zoneId: 'culture',
+        apartments: ['힐스테이트동탄', '한신더휴', '호반베르디움센트럴포레'],
+      },
+      {
+        sectionHeadingMatch: '(3) 서북측 석우동 · 능동',
+        sectionTitle: '석우동·능동 (삼성전자 캠퍼스·동인선 축) 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'metropolis',
+        apartments: ['롯데캐슬', '우미린제일풍경채', '푸른마을두산위브'],
+      },
+    ],
     headToHeadComparisons: [
       {
         title: '북동탄 vs 중동탄 대표 브랜드 맞대결: 동탄역푸르지오 vs 힐스테이트동탄',
@@ -968,6 +1183,852 @@ const KNOWN_DONGTAN_DONGS = new Set([
 ]);
 
 /**
+ * Resolves the human-friendly spaced display name for an apartment complex
+ * (e.g., '동탄역시범리슈빌아파트' -> '동탄역 시범 리슈빌', '동탄역롯데캐슬' -> '동탄역 롯데캐슬')
+ * using CANONICAL_DONG_APT_LIST while falling back gracefully to the canonical key.
+ */
+export function getGuideAptDisplayName(rawName: string, dongHint?: string): string {
+  const trimmed = (rawName || '').trim();
+  if (!trimmed) return '';
+
+  const exactByTxKey = CANONICAL_DONG_APT_LIST.find(
+    (entry) =>
+      entry.txKey === trimmed &&
+      (!dongHint || !entry.dong || entry.dong === dongHint)
+  );
+  if (exactByTxKey?.name) return exactByTxKey.name;
+
+  const fallbackByTxKey = CANONICAL_DONG_APT_LIST.find((entry) => entry.txKey === trimmed);
+  if (fallbackByTxKey?.name) return fallbackByTxKey.name;
+
+  const targetNorm = normalizeGuideAptName(trimmed);
+  if (targetNorm.length >= 2) {
+    const byNorm = CANONICAL_DONG_APT_LIST.find((entry) => {
+      if (dongHint && entry.dong && entry.dong !== dongHint) return false;
+      return (
+        normalizeGuideAptName(entry.txKey) === targetNorm ||
+        normalizeGuideAptName(entry.name) === targetNorm
+      );
+    });
+    if (byNorm?.name) return byNorm.name;
+  }
+
+  return trimmed;
+}
+
+/**
+ * Formats a raw MOLIT date string ('YYYY-MM-DD', 'YYYYMMDD', or 'YYYYMM') into a compact 'YYYY.MM.DD' display string.
+ */
+export function formatGuideTxDate(rawDate?: string | null): string {
+  const cleaned = (rawDate || '').trim();
+  if (!cleaned) return '정보 없음';
+  if (/^\d{4}-\d{2}-\d{2}$/.test(cleaned)) {
+    return cleaned.replace(/-/g, '.');
+  }
+  if (/^\d{8}$/.test(cleaned)) {
+    return `${cleaned.slice(0, 4)}.${cleaned.slice(4, 6)}.${cleaned.slice(6, 8)}`;
+  }
+  if (/^\d{4}\.\d{2}\.\d{2}$/.test(cleaned)) {
+    return cleaned;
+  }
+  if (/^\d{6}$/.test(cleaned)) {
+    return `${cleaned.slice(0, 4)}.${cleaned.slice(4, 6)}`;
+  }
+  return cleaned;
+}
+
+/**
+ * Verified real MOLIT transaction summary snapshot (`public/data/tx-summary.json`)
+ * for guide complexes so synchronous callers (e.g. `/guide` hub page and default-arg
+ * `buildGuideAptMiniPreview` / `resolveGuideZoneSectionPreviews`) render 100% real
+ * prices, jeonse ratios, PER, and contract counts without bundling the 348KB full JSON.
+ */
+export const GUIDE_APT_TX_SUMMARY_SNAPSHOT: Record<string, Partial<AptTxSummary>> = {
+  능동마을이지더원: {
+    dong: '능동',
+    latestPrice: 74500,
+    latestPriceEok: '7억4,500',
+    latestArea: 31.7625,
+    latestFloor: 14,
+    latestDate: '20261015',
+    txCount: 663,
+    avg1MPrice: 75700,
+    avg3MPrice: 74300,
+    latestRentDeposit: 36455,
+    latestRentDepositEok: '3억6,455',
+    avg1MRentDeposit: 36100,
+    avg3MRentDeposit: 35800,
+  },
+  동탄숲속마을광명메이루즈: {
+    dong: '능동',
+    latestPrice: 75000,
+    latestPriceEok: '7억5,000',
+    latestArea: 31.7625,
+    latestFloor: 10,
+    latestDate: '20260903',
+    txCount: 410,
+    avg1MPrice: 66000,
+    avg3MPrice: 65800,
+    latestRentDeposit: 42000,
+    latestRentDepositEok: '4억2,000',
+    avg1MRentDeposit: 42000,
+    avg3MRentDeposit: 42000,
+  },
+  푸른마을두산위브: {
+    dong: '능동',
+    latestPrice: 82500,
+    latestPriceEok: '8억2,500',
+    latestArea: 50.82,
+    latestFloor: 1,
+    latestDate: '20261009',
+    txCount: 1030,
+    avg1MPrice: 68700,
+    avg3MPrice: 64300,
+    latestRentDeposit: 39364,
+    latestRentDepositEok: '3억9,364',
+    avg1MRentDeposit: 36200,
+    avg3MRentDeposit: 35100,
+  },
+  동탄역센트럴푸르지오: {
+    dong: '청계동',
+    latestPrice: 108000,
+    latestPriceEok: '10억8,000',
+    latestArea: 24.805,
+    latestFloor: 12,
+    latestDate: '20261027',
+    txCount: 1233,
+    avg1MPrice: 110300,
+    avg3MPrice: 106700,
+    latestRentDeposit: 45000,
+    latestRentDepositEok: '4억5,000',
+    avg1MRentDeposit: 39700,
+    avg3MRentDeposit: 42100,
+  },
+  더샵센트럴시티: {
+    dong: '청계동',
+    latestPrice: 216000,
+    latestPriceEok: '21억6,000',
+    latestArea: 38.115,
+    latestFloor: 32,
+    latestDate: '20260704',
+    txCount: 393,
+    avg1MPrice: 189200,
+    avg3MPrice: 177400,
+    latestRentDeposit: 63000,
+    latestRentDepositEok: '6억3,000',
+    avg1MRentDeposit: 74500,
+    avg3MRentDeposit: 72900,
+  },
+  동탄역시범리슈빌아파트: {
+    dong: '청계동',
+    latestPrice: 168000,
+    latestPriceEok: '16억8,000',
+    latestArea: 40.2325,
+    latestFloor: 3,
+    latestDate: '20260630',
+    txCount: 356,
+    avg1MPrice: 149100,
+    avg3MPrice: 134200,
+    latestRentDeposit: 39900,
+    latestRentDepositEok: '3억9,900',
+    avg1MRentDeposit: 63000,
+    avg3MRentDeposit: 62600,
+  },
+  '시범반도유보라아이비파크4.0': {
+    dong: '청계동',
+    latestPrice: 157500,
+    latestPriceEok: '15억7,500',
+    latestArea: 34.485,
+    latestFloor: 31,
+    latestDate: '20261017',
+    txCount: 335,
+    avg1MPrice: 157500,
+    avg3MPrice: 154800,
+    latestRentDeposit: 70000,
+    latestRentDepositEok: '7억',
+    avg1MRentDeposit: 66400,
+    avg3MRentDeposit: 66400,
+  },
+  동탄역시범우남퍼스트빌아파트: {
+    dong: '청계동',
+    latestPrice: 158500,
+    latestPriceEok: '15억8,500',
+    latestArea: 29.645,
+    latestFloor: 23,
+    latestDate: '20261017',
+    txCount: 1007,
+    avg1MPrice: 157300,
+    avg3MPrice: 159800,
+    latestRentDeposit: 51673,
+    latestRentDepositEok: '5억1,673',
+    avg1MRentDeposit: 52400,
+    avg3MRentDeposit: 56100,
+  },
+  동탄역시범한화꿈에그린프레스티지: {
+    dong: '청계동',
+    latestPrice: 184000,
+    latestPriceEok: '18억4,000',
+    latestArea: 33.275,
+    latestFloor: 16,
+    latestDate: '20260630',
+    txCount: 761,
+    avg1MPrice: 185800,
+    avg3MPrice: 185800,
+    latestRentDeposit: 64545,
+    latestRentDepositEok: '6억4,545',
+    avg1MRentDeposit: 72800,
+    avg3MRentDeposit: 70300,
+  },
+  동탄린스트라우스더레이크: {
+    dong: '송동',
+    latestPrice: 140000,
+    latestPriceEok: '14억',
+    latestArea: 39.6275,
+    latestFloor: 16,
+    latestDate: '20261026',
+    txCount: 174,
+    avg1MPrice: 140000,
+    avg3MPrice: 147300,
+    latestRentDeposit: 84000,
+    latestRentDepositEok: '8억4,000',
+    avg1MRentDeposit: 76600,
+    avg3MRentDeposit: 75400,
+  },
+  동탄2신도시금강펜테리움센트럴파크1: {
+    dong: '여울동',
+    latestPrice: 79500,
+    latestPriceEok: '7억9,500',
+    latestArea: 33.275,
+    latestFloor: 3,
+    latestDate: '20261026',
+    txCount: 491,
+    avg1MPrice: 73800,
+    avg3MPrice: 74700,
+    latestRentDeposit: 38000,
+    latestRentDepositEok: '3억8,000',
+    avg1MRentDeposit: 40400,
+    avg3MRentDeposit: 41000,
+  },
+  동탄역롯데캐슬: {
+    dong: '여울동',
+    latestPrice: 262000,
+    latestPriceEok: '26억2,000',
+    latestArea: 41.745,
+    latestFloor: 37,
+    latestDate: '20260828',
+    txCount: 179,
+    avg1MPrice: 262000,
+    avg3MPrice: 229900,
+    latestRentDeposit: 71400,
+    latestRentDepositEok: '7억1,400',
+    avg1MRentDeposit: 76000,
+    avg3MRentDeposit: 72700,
+  },
+  동탄역린스트라우스: {
+    dong: '여울동',
+    latestPrice: 152500,
+    latestPriceEok: '15억2,500',
+    latestArea: 30.855,
+    latestFloor: 17,
+    latestDate: '20261008',
+    txCount: 152,
+    avg1MPrice: 152300,
+    avg3MPrice: 152300,
+    latestRentDeposit: 71182,
+    latestRentDepositEok: '7억1,182',
+    avg1MRentDeposit: 68100,
+    avg3MRentDeposit: 56800,
+  },
+  '동탄역반도유보라아이비파크7.0': {
+    dong: '여울동',
+    latestPrice: 149000,
+    latestPriceEok: '14억9,000',
+    latestArea: 33.275,
+    latestFloor: 7,
+    latestDate: '20261015',
+    txCount: 189,
+    avg1MPrice: 150800,
+    avg3MPrice: 150800,
+    latestRentDeposit: 57500,
+    latestRentDepositEok: '5억7,500',
+    avg1MRentDeposit: 53000,
+    avg3MRentDeposit: 51000,
+  },
+  동탄역예미지시그너스: {
+    dong: '여울동',
+    latestPrice: 160000,
+    latestPriceEok: '16억',
+    latestArea: 33.275,
+    latestFloor: 9,
+    latestDate: '20261019',
+    txCount: 74,
+    avg1MPrice: 160000,
+    avg3MPrice: 160000,
+    latestRentDeposit: 82000,
+    latestRentDepositEok: '8억2,000',
+    avg1MRentDeposit: 66300,
+    avg3MRentDeposit: 65700,
+  },
+  금호어울림레이크: {
+    dong: '장지동',
+    latestPrice: 98700,
+    latestPriceEok: '9억8,700',
+    latestArea: 30.5525,
+    latestFloor: 14,
+    latestDate: '20261023',
+    txCount: 434,
+    avg1MPrice: 90300,
+    avg3MPrice: 88900,
+    latestRentDeposit: 38000,
+    latestRentDepositEok: '3억8,000',
+    avg1MRentDeposit: 40000,
+    avg3MRentDeposit: 39600,
+  },
+  동탄레이크자연앤푸르지오: {
+    dong: '장지동',
+    latestPrice: 113000,
+    latestPriceEok: '11억3,000',
+    latestArea: 32.3675,
+    latestFloor: 16,
+    latestDate: '20261021',
+    txCount: 172,
+    avg1MPrice: 111500,
+    avg3MPrice: 110800,
+    latestRentDeposit: 47250,
+    latestRentDepositEok: '4억7,250',
+    avg1MRentDeposit: 53400,
+    avg3MRentDeposit: 56000,
+  },
+  e편한세상동탄파크아너스: {
+    dong: '신동',
+    latestPrice: 71000,
+    latestPriceEok: '7억1,000',
+    latestArea: 40.2,
+    latestFloor: 4,
+    latestDate: '20250628',
+    txCount: 1,
+    avg1MPrice: 71000,
+    avg3MPrice: 71000,
+    latestRentDeposit: 40091,
+    latestRentDepositEok: '4억91',
+    avg1MRentDeposit: 38900,
+    avg3MRentDeposit: 38900,
+  },
+  동탄2신도시호반베르디움22단지: {
+    dong: '목동',
+    latestPrice: 69000,
+    latestPriceEok: '6억9,000',
+    latestArea: 23.2925,
+    latestFloor: 5,
+    latestDate: '20261017',
+    txCount: 556,
+    avg1MPrice: 75200,
+    avg3MPrice: 75300,
+    latestRentDeposit: 38273,
+    latestRentDepositEok: '3억8,273',
+    avg1MRentDeposit: 33600,
+    avg3MRentDeposit: 34500,
+  },
+  한신더휴: {
+    dong: '목동',
+    latestPrice: 89000,
+    latestPriceEok: '8억9,000',
+    latestArea: 33.275,
+    latestFloor: 7,
+    latestDate: '20261028',
+    txCount: 340,
+    avg1MPrice: 91800,
+    avg3MPrice: 91500,
+    latestRentDeposit: 55000,
+    latestRentDepositEok: '5억5,000',
+    avg1MRentDeposit: 48900,
+    avg3MRentDeposit: 45100,
+  },
+  호반베르디움센트럴포레: {
+    dong: '목동',
+    latestPrice: 79000,
+    latestPriceEok: '7억9,000',
+    latestArea: 33.275,
+    latestFloor: 10,
+    latestDate: '20261010',
+    txCount: 713,
+    avg1MPrice: 80600,
+    avg3MPrice: 78400,
+    latestRentDeposit: 37000,
+    latestRentDepositEok: '3억7,000',
+    avg1MRentDeposit: 45600,
+    avg3MRentDeposit: 45200,
+  },
+  힐스테이트동탄: {
+    dong: '목동',
+    latestPrice: 89000,
+    latestPriceEok: '8억9,000',
+    latestArea: 26.62,
+    latestFloor: 12,
+    latestDate: '20261023',
+    txCount: 482,
+    avg1MPrice: 93500,
+    avg3MPrice: 97600,
+    latestRentDeposit: 44600,
+    latestRentDepositEok: '4억4,600',
+    avg1MRentDeposit: 53900,
+    avg3MRentDeposit: 48200,
+  },
+  이편한세상동탄: {
+    dong: '목동',
+    latestPrice: 82000,
+    latestPriceEok: '8억2,000',
+    latestArea: 46.585,
+    latestFloor: 1,
+    latestDate: '20261019',
+    txCount: 615,
+    avg1MPrice: 73200,
+    avg3MPrice: 75700,
+    latestRentDeposit: 50000,
+    latestRentDepositEok: '5억',
+    avg1MRentDeposit: 41800,
+    avg3MRentDeposit: 42500,
+  },
+  동탄더레이크팰리스: {
+    dong: '산척동',
+    latestPrice: 132000,
+    latestPriceEok: '13억2,000',
+    latestArea: 33.275,
+    latestFloor: 27,
+    latestDate: '20261009',
+    txCount: 176,
+    avg1MPrice: 128300,
+    avg3MPrice: 128300,
+    latestRentDeposit: 52300,
+    latestRentDepositEok: '5억2,300',
+    avg1MRentDeposit: 53100,
+    avg3MRentDeposit: 56300,
+  },
+  동탄더샵레이크에듀타운: {
+    dong: '산척동',
+    latestPrice: 117000,
+    latestPriceEok: '11억7,000',
+    latestArea: 32.67,
+    latestFloor: 11,
+    latestDate: '20261014',
+    txCount: 412,
+    avg1MPrice: 116400,
+    avg3MPrice: 116600,
+    latestRentDeposit: 50000,
+    latestRentDepositEok: '5억',
+    avg1MRentDeposit: 54500,
+    avg3MRentDeposit: 51800,
+  },
+  호수공원역센트럴시티: {
+    dong: '산척동',
+    latestPrice: 120000,
+    latestPriceEok: '12억',
+    latestArea: 33.275,
+    latestFloor: 13,
+    latestDate: '20260919',
+    txCount: 278,
+    avg1MPrice: 101500,
+    avg3MPrice: 111900,
+    latestRentDeposit: 44100,
+    latestRentDepositEok: '4억4,100',
+    avg1MRentDeposit: 50500,
+    avg3MRentDeposit: 48300,
+  },
+  더레이크시티부영5단지: {
+    dong: '산척동',
+    latestPrice: 96700,
+    latestPriceEok: '9억6,700',
+    latestArea: 33.275,
+    latestFloor: 11,
+    latestDate: '20261023',
+    txCount: 306,
+    avg1MPrice: 96600,
+    avg3MPrice: 92900,
+    latestRentDeposit: 42000,
+    latestRentDepositEok: '4억2,000',
+    avg1MRentDeposit: 49900,
+    avg3MRentDeposit: 48500,
+  },
+  동탄역경남아너스빌: {
+    dong: '영천동',
+    latestPrice: 108500,
+    latestPriceEok: '10억8,500',
+    latestArea: 32.67,
+    latestFloor: 17,
+    latestDate: '20260919',
+    txCount: 216,
+    avg1MPrice: 106500,
+    avg3MPrice: 105000,
+    latestRentDeposit: 61455,
+    latestRentDepositEok: '6억1,455',
+    avg1MRentDeposit: 61500,
+    avg3MRentDeposit: 51500,
+  },
+  동탄역센트럴예미지: {
+    dong: '영천동',
+    latestPrice: 136000,
+    latestPriceEok: '13억6,000',
+    latestArea: 38.115,
+    latestFloor: 21,
+    latestDate: '20260704',
+    txCount: 156,
+    avg1MPrice: 123900,
+    avg3MPrice: 114500,
+    latestRentDeposit: 61273,
+    latestRentDepositEok: '6억1,273',
+    avg1MRentDeposit: 59400,
+    avg3MRentDeposit: 57400,
+  },
+  '동탄역센트럴자이A-10': {
+    dong: '영천동',
+    latestPrice: 153000,
+    latestPriceEok: '15억3,000',
+    latestArea: 34.7875,
+    latestFloor: 4,
+    latestDate: '20260921',
+    txCount: 355,
+    avg1MPrice: 153000,
+    avg3MPrice: 138700,
+    latestRentDeposit: 41618,
+    latestRentDepositEok: '4억1,618',
+    avg1MRentDeposit: 57800,
+    avg3MRentDeposit: 58700,
+  },
+  동탄역포레너스: {
+    dong: '영천동',
+    latestPrice: 100000,
+    latestPriceEok: '10억',
+    latestArea: 33.275,
+    latestFloor: 15,
+    latestDate: '20261028',
+    txCount: 975,
+    avg1MPrice: 91100,
+    avg3MPrice: 86400,
+    latestRentDeposit: 42091,
+    latestRentDepositEok: '4억2,091',
+    avg1MRentDeposit: 46000,
+    avg3MRentDeposit: 43600,
+  },
+  동탄역푸르지오: {
+    dong: '영천동',
+    latestPrice: 121000,
+    latestPriceEok: '12억1,000',
+    latestArea: 33.5775,
+    latestFloor: 5,
+    latestDate: '20261028',
+    txCount: 333,
+    avg1MPrice: 121000,
+    avg3MPrice: 110400,
+    latestRentDeposit: 51400,
+    latestRentDepositEok: '5억1,400',
+    avg1MRentDeposit: 52600,
+    avg3MRentDeposit: 51000,
+  },
+  '동탄나루마을동탄역U.BORA여울숲1.0': {
+    dong: '반송동',
+    latestPrice: 77500,
+    latestPriceEok: '7억7,500',
+    latestArea: 30.25,
+    latestFloor: 14,
+    latestDate: '20261009',
+    txCount: 633,
+    avg1MPrice: 77500,
+    avg3MPrice: 77500,
+    latestRentDeposit: 65000,
+    latestRentDepositEok: '6억5,000',
+    avg1MRentDeposit: 47500,
+    avg3MRentDeposit: 42000,
+  },
+  나루마을신도브래뉴: {
+    dong: '반송동',
+    latestPrice: 100000,
+    latestPriceEok: '10억',
+    latestArea: 41.4425,
+    latestFloor: 13,
+    latestDate: '20260704',
+    txCount: 800,
+    avg1MPrice: 92300,
+    avg3MPrice: 91500,
+    latestRentDeposit: 47000,
+    latestRentDepositEok: '4억7,000',
+    avg1MRentDeposit: 62100,
+    avg3MRentDeposit: 60800,
+  },
+  나루마을한화꿈에그린: {
+    dong: '반송동',
+    latestPrice: 94500,
+    latestPriceEok: '9억4,500',
+    latestArea: 36.905,
+    latestFloor: 18,
+    latestDate: '20261026',
+    txCount: 709,
+    avg1MPrice: 94500,
+    avg3MPrice: 94500,
+    latestRentDeposit: 60500,
+    latestRentDepositEok: '6억500',
+    avg1MRentDeposit: 62800,
+    avg3MRentDeposit: 55300,
+  },
+  METAPOLIS: {
+    dong: '반송동',
+    latestPrice: 115000,
+    latestPriceEok: '11억5,000',
+    latestArea: 40.8375,
+    latestFloor: 36,
+    latestDate: '20260919',
+    txCount: 902,
+    avg1MPrice: 115000,
+    avg3MPrice: 120100,
+    latestRentDeposit: 69273,
+    latestRentDepositEok: '6억9,273',
+    avg1MRentDeposit: 69400,
+    avg3MRentDeposit: 68900,
+  },
+  솔빛마을서해그랑블: {
+    dong: '반송동',
+    latestPrice: 128000,
+    latestPriceEok: '12억8,000',
+    latestArea: 45.0725,
+    latestFloor: 14,
+    latestDate: '20261019',
+    txCount: 718,
+    avg1MPrice: 118800,
+    avg3MPrice: 118800,
+    latestRentDeposit: 63000,
+    latestRentDepositEok: '6억3,000',
+    avg1MRentDeposit: 61800,
+    avg3MRentDeposit: 64200,
+  },
+  시범한빛마을동탄아이파크: {
+    dong: '반송동',
+    latestPrice: 122000,
+    latestPriceEok: '12억2,000',
+    latestArea: 34.1825,
+    latestFloor: 14,
+    latestDate: '20261001',
+    txCount: 887,
+    avg1MPrice: 124900,
+    avg3MPrice: 124900,
+    latestRentDeposit: 47000,
+    latestRentDepositEok: '4억7,000',
+    avg1MRentDeposit: 49100,
+    avg3MRentDeposit: 48300,
+  },
+  시범한빛마을한화꿈에그린: {
+    dong: '반송동',
+    latestPrice: 112000,
+    latestPriceEok: '11억2,000',
+    latestArea: 32.9725,
+    latestFloor: 18,
+    latestDate: '20261022',
+    txCount: 618,
+    avg1MPrice: 107300,
+    avg3MPrice: 102000,
+    latestRentDeposit: 55000,
+    latestRentDepositEok: '5억5,000',
+    avg1MRentDeposit: 47400,
+    avg3MRentDeposit: 49100,
+  },
+  롯데캐슬: {
+    dong: '석우동',
+    latestPrice: 95000,
+    latestPriceEok: '9억5,000',
+    latestArea: 37.51,
+    latestFloor: 23,
+    latestDate: '20261022',
+    txCount: 1128,
+    avg1MPrice: 97300,
+    avg3MPrice: 96700,
+    latestRentDeposit: 50000,
+    latestRentDepositEok: '5억',
+    avg1MRentDeposit: 51900,
+    avg3MRentDeposit: 51400,
+  },
+  우미린제일풍경채: {
+    dong: '석우동',
+    latestPrice: 93000,
+    latestPriceEok: '9억3,000',
+    latestArea: 39.0225,
+    latestFloor: 12,
+    latestDate: '20261027',
+    txCount: 1404,
+    avg1MPrice: 84400,
+    avg3MPrice: 83200,
+    latestRentDeposit: 50000,
+    latestRentDepositEok: '5억',
+    avg1MRentDeposit: 48900,
+    avg3MRentDeposit: 50300,
+  },
+  푸르지오: {
+    dong: '석우동',
+    latestPrice: 73500,
+    latestPriceEok: '7억3,500',
+    latestArea: 24.2,
+    latestFloor: 24,
+    latestDate: '20261014',
+    txCount: 1374,
+    avg1MPrice: 72700,
+    avg3MPrice: 73200,
+    latestRentDeposit: 36500,
+    latestRentDepositEok: '3억6,500',
+    avg1MRentDeposit: 39200,
+    avg3MRentDeposit: 38500,
+  },
+};
+
+export const GUIDE_DEFAULT_TX_SUMMARY_MAP: Record<string, Partial<AptTxSummary> | undefined> = {
+  ...CANONICAL_TX_SUMMARY_MAP,
+  ...GUIDE_APT_TX_SUMMARY_SNAPSHOT,
+};
+
+/**
+ * Builds a 100% real-data mini preview card item for a guide apartment complex
+ * from the verified MOLIT `tx-summary.json` dataset.
+ */
+export function buildGuideAptMiniPreview(
+  aptName: string,
+  txMap: Record<string, Partial<AptTxSummary> | undefined> = GUIDE_DEFAULT_TX_SUMMARY_MAP
+): GuideAptMiniPreviewItem | null {
+  const trimmed = (aptName || '').trim();
+  if (!trimmed) return null;
+
+  const canonicalSlug =
+    resolveCanonicalAptSlug(trimmed, {
+      txMap: txMap as Record<string, unknown>,
+    }) || trimmed;
+
+  const s = txMap[canonicalSlug] || txMap[trimmed];
+  if (!s) return null;
+
+  const dong = (s.dong || '동탄').trim() || '동탄';
+  const displayName =
+    getGuideAptDisplayName(canonicalSlug, dong) || getGuideAptDisplayName(trimmed, dong);
+  const zoneId = dongToZoneId(dong);
+  const zoneInfo = getZoneById(zoneId);
+  const zoneName = zoneInfo?.name || '동탄 권역';
+
+  const latestPrice =
+    typeof s.latestPrice === 'number' && Number.isFinite(s.latestPrice) && s.latestPrice > 0
+      ? s.latestPrice
+      : 0;
+  const latestRent =
+    typeof s.latestRentDeposit === 'number' &&
+    Number.isFinite(s.latestRentDeposit) &&
+    s.latestRentDeposit > 0
+      ? s.latestRentDeposit
+      : 0;
+  const txCount =
+    typeof s.txCount === 'number' && Number.isFinite(s.txCount) && s.txCount > 0
+      ? Math.round(s.txCount)
+      : 0;
+
+  if (latestPrice <= 0 && latestRent <= 0 && txCount <= 0) {
+    return null;
+  }
+
+  const rawPriceEok = typeof s.latestPriceEok === 'string' ? s.latestPriceEok.trim() : '';
+  const latestPriceStr =
+    latestPrice > 0
+      ? rawPriceEok && rawPriceEok !== '0' && rawPriceEok !== '0만'
+        ? rawPriceEok
+        : formatPriceEok(latestPrice)
+      : '정보 없음';
+
+  const rawRentEok =
+    typeof s.latestRentDepositEok === 'string' ? s.latestRentDepositEok.trim() : '';
+  const latestRentStr =
+    latestRent > 0
+      ? rawRentEok && rawRentEok !== '0' && rawRentEok !== '0만'
+        ? rawRentEok
+        : formatPriceEok(latestRent)
+      : '정보 없음';
+
+  const salesBase =
+    (typeof s.avg1MPrice === 'number' && s.avg1MPrice > 0 ? s.avg1MPrice : 0) ||
+    (typeof s.avg3MPrice === 'number' && s.avg3MPrice > 0 ? s.avg3MPrice : 0) ||
+    latestPrice;
+  const rentBase =
+    (typeof s.avg1MRentDeposit === 'number' && s.avg1MRentDeposit > 0
+      ? s.avg1MRentDeposit
+      : 0) ||
+    (typeof s.avg3MRentDeposit === 'number' && s.avg3MRentDeposit > 0
+      ? s.avg3MRentDeposit
+      : 0) ||
+    latestRent;
+
+  const rawRatio =
+    salesBase > 0 && rentBase > 0 ? Math.round((rentBase / salesBase) * 100) : 0;
+  const jeonseRatio = rawRatio > 0 && rawRatio <= 100 ? rawRatio : 0;
+
+  const rawPer = salesBase > 0 && rentBase > 0 ? salesBase / rentBase : 0;
+  const perValue =
+    jeonseRatio > 0 && rawPer >= 1 && rawPer <= 10 ? rawPer.toFixed(2) : null;
+
+  const latestDate = formatGuideTxDate(s.latestDate);
+  const latestArea =
+    typeof s.latestArea === 'number' && Number.isFinite(s.latestArea) && s.latestArea > 0
+      ? Math.round(s.latestArea * 10) / 10
+      : 0;
+  const latestFloor =
+    typeof s.latestFloor === 'number' && Number.isFinite(s.latestFloor) && s.latestFloor > 0
+      ? Math.round(s.latestFloor)
+      : 0;
+
+  return {
+    name: trimmed,
+    displayName,
+    canonicalSlug,
+    href: `/apartment/${encodeURIComponent(canonicalSlug)}`,
+    dong,
+    zoneId,
+    zoneName,
+    latestPrice,
+    latestPriceStr,
+    latestRent,
+    latestRentStr,
+    jeonseRatio,
+    perValue,
+    latestDate,
+    latestArea,
+    latestFloor,
+    txCount,
+  };
+}
+
+export interface ResolvedGuideZoneSectionPreview {
+  sectionHeadingMatch: string;
+  sectionTitle: string;
+  zoneId?: string;
+  zoneName?: string;
+  items: GuideAptMiniPreviewItem[];
+}
+
+/**
+ * Resolves all configured `zoneSectionPreviews` for a guide article into real-data mini preview card lists.
+ */
+export function resolveGuideZoneSectionPreviews(
+  article: GuideArticle,
+  txMap: Record<string, Partial<AptTxSummary> | undefined> = GUIDE_DEFAULT_TX_SUMMARY_MAP
+): ResolvedGuideZoneSectionPreview[] {
+  const configs = article.zoneSectionPreviews || [];
+  return configs
+    .map((cfg) => {
+      const items = cfg.apartments
+        .map((aptName) => buildGuideAptMiniPreview(aptName, txMap))
+        .filter((item): item is GuideAptMiniPreviewItem => item !== null);
+      const zoneInfo = cfg.zoneId ? getZoneById(cfg.zoneId) : undefined;
+      return {
+        sectionHeadingMatch: cfg.sectionHeadingMatch,
+        sectionTitle: cfg.sectionTitle,
+        zoneId: cfg.zoneId,
+        zoneName: zoneInfo?.name,
+        items,
+      };
+    })
+    .filter((section) => section.items.length > 0);
+}
+
+/**
  * Normalizes apartment complex display names and tx-summary keys into a canonical lookup token
  * so spaced UI aliases (e.g. '동탄역 시범 리슈빌', '예당마을 우미린 제일풍경채') resolve deterministically
  * to their exact guide entries without false substring collisions.
@@ -977,14 +2038,25 @@ export function normalizeGuideAptName(rawName: string | undefined): string {
   let norm = rawName
     .toLowerCase()
     .replace(/\s+/g, '')
+    .replace(/\((?:목동|능동|반송동|청계동|여울동|오산동|영천동|석우동|장지동|송동|산척동|신동)\)$/g, '')
     .replace(/[()]/g, '')
     .replace(/아파트$/g, '')
     .replace(/^e편한세상/, '이편한세상');
 
-  if (norm === '동탄역시범더샵센트럴시티') norm = '더샵센트럴시티';
+  if (norm === '동탄역시범더샵센트럴시티' || norm === '시범포스코더샵') norm = '더샵센트럴시티';
   else if (norm === '동탄역시범반도유보라아이비파크4.0') norm = '시범반도유보라아이비파크4.0';
   else if (norm === '동탄역센트럴자이') norm = '동탄역센트럴자이a-10';
   else if (norm === '능동역이지더원') norm = '능동마을이지더원';
+  else if (norm === '시범리슈빌') norm = '동탄역시범리슈빌';
+  else if (norm === '시범우남' || norm === '시범우남퍼스트빌') norm = '동탄역시범우남퍼스트빌';
+  else if (
+    norm === '시범한화' ||
+    norm === '시범한화꿈에그린' ||
+    norm === '시범한화꿈에그린프레스티지'
+  ) {
+    norm = '동탄역시범한화꿈에그린프레스티지';
+  } else if (norm === '예미지시그너스') norm = '동탄역예미지시그너스';
+  else if (norm === '석우롯데캐슬' || norm === '석우동롯데캐슬') norm = '롯데캐슬';
   else if (norm.startsWith('예당마을') && norm.length > 4) norm = norm.slice(4);
   else if (norm.startsWith('동탄푸른마을')) norm = norm.slice(2);
 
@@ -1098,31 +2170,48 @@ export function buildGuideArticleJsonLd(
   baseUrl = 'https://dongtanview.com'
 ) {
   const currentUrl = `${baseUrl}/guide/${article.slug}`;
-  const graph: Array<Record<string, unknown>> = [
-    {
-      '@type': 'Article',
-      '@id': `${currentUrl}#article`,
-      headline: article.title,
-      alternativeHeadline: article.seoTitle || article.subtitle,
-      description: article.seoDescription || article.description,
-      datePublished: article.date,
-      dateModified: article.updatedDate || article.date,
-      author: {
-        '@type': 'Organization',
-        name: article.author,
-        url: baseUrl,
-      },
-      publisher: {
-        '@type': 'Organization',
-        name: 'D-VIEW 부동산 데이터 랩스',
-        url: baseUrl,
-      },
-      mainEntityOfPage: {
-        '@type': 'WebPage',
-        '@id': currentUrl,
-      },
-      keywords: article.tags.join(','),
+  const mentions = (article.featuredApartments || []).map((aptName) => {
+    const canonicalSlug = resolveCanonicalAptSlug(aptName) || aptName;
+    const displayName = getGuideAptDisplayName(canonicalSlug);
+    return {
+      '@type': 'ApartmentComplex',
+      name: displayName,
+      alternateName: displayName !== canonicalSlug ? canonicalSlug : undefined,
+      url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
+    };
+  });
+
+  const articleNode: Record<string, unknown> = {
+    '@type': 'Article',
+    '@id': `${currentUrl}#article`,
+    headline: article.title,
+    alternativeHeadline: article.seoTitle || article.subtitle,
+    description: article.seoDescription || article.description,
+    datePublished: article.date,
+    dateModified: article.updatedDate || article.date,
+    author: {
+      '@type': 'Organization',
+      name: article.author,
+      url: baseUrl,
     },
+    publisher: {
+      '@type': 'Organization',
+      name: 'D-VIEW 부동산 데이터 랩스',
+      url: baseUrl,
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': currentUrl,
+    },
+    keywords: article.tags.join(','),
+  };
+
+  if (mentions.length > 0) {
+    articleNode.mentions = mentions;
+  }
+
+  const graph: Array<Record<string, unknown>> = [
+    articleNode,
     {
       '@type': 'BreadcrumbList',
       '@id': `${currentUrl}#breadcrumb`,
@@ -1169,5 +2258,3 @@ export function buildGuideArticleJsonLd(
     '@graph': graph,
   };
 }
-
-

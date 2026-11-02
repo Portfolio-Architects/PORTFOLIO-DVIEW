@@ -98,6 +98,8 @@ export interface DongApartment {
   brand?: string;
   lat?: number;
   lng?: number;
+  seoLat?: number;
+  seoLng?: number;
   txKey?: string;
   isPublicRental?: boolean;
   far?: number;

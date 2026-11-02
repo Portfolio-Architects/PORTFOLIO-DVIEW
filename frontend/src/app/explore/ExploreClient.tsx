@@ -385,6 +385,13 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const handleAptClick = useCallback((apt: { name: string; dong: string }) => {
     trackEvent('view_apartment', { apt_name: apt.name });
+    trackEvent('apartment_view', {
+      apartment_name: apt.name,
+      apt_name: apt.name,
+      dong: apt.dong || undefined,
+      surface: 'explore_catalog',
+      view_type: 'modal',
+    });
     const report = fieldReportsMap.get(apt.name);
     if (report) {
       setSelectedReport(report);
@@ -467,7 +474,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                 />
                 <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5">
                   <AdSlot
-                    slotId="1000000001"
+                    refreshSlotId="explore_top_infeed"
                     format="in-feed"
                     minHeightClass="min-h-[140px] sm:min-h-[160px]"
                     cpaCampaignId="jeonse-sentinel"

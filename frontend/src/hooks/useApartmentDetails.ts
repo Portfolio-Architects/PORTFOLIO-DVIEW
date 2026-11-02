@@ -129,17 +129,7 @@ export function useApartmentDetails(
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
 
   useEffect(() => {
-    if (!selectedReport) {
-      setShouldFetchFull(false);
-      return;
-    }
-    setShouldFetchFull(false); // Reset on new report selection
-
-    const timer = setTimeout(() => {
-      setShouldFetchFull(true);
-    }, 250); // 250ms delay to balance transition performance and fast initial rendering
-
-    return () => clearTimeout(timer);
+    setShouldFetchFull(false); // Reset on new report selection; full records load on demand via loadAllTransactions()
   }, [selectedReport]);
 
   const loadAllTransactions = useCallback(() => {

@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Clock, Sparkles, AlertCircle, TrainFront } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { getDongtanStationAnalysisData } from '@/lib/stats/dongtanStationDistanceEngine';
-import type { StatsFilterOptions, ApartmentStatRecord } from '@/lib/stats/types';
-import { STATS_TOPICS, getStatsTopicById } from '@/types/statsTopic';
+import type { StatsFilterOptions, Issue1AnalysisPayload } from '@/lib/stats/types';
+import { getStatsTopicById } from '@/types/statsTopic';
 import { StatsTopicSelector } from '@/components/stats/StatsTopicSelector';
 import { StationPremiumSummary } from '@/components/stats/StationPremiumSummary';
 import { DistanceBandComparisonChart } from '@/components/stats/DistanceBandComparisonChart';
@@ -16,18 +16,33 @@ import { AdSlot } from '@/components/ads/AdSlot';
 export interface StatsPageClientProps {
   initialTopicId?: string;
   initialFilters?: Partial<StatsFilterOptions>;
+  initialPayload?: Issue1AnalysisPayload;
+}
+
+function StatsTopicUrlSync({
+  onQueryTopicChange,
+}: {
+  onQueryTopicChange: (topicId: string) => void;
+}) {
+  const searchParams = useSearchParams();
+  const queryTopic = searchParams?.get('topic');
+
+  useEffect(() => {
+    if (queryTopic) {
+      onQueryTopicChange(queryTopic);
+    }
+  }, [queryTopic, onQueryTopicChange]);
+
+  return null;
 }
 
 export function StatsPageClient({
   initialTopicId = 'dongtan-station-distance',
   initialFilters,
+  initialPayload,
 }: StatsPageClientProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-
-  // Active topic ID from props or URL query
-  const queryTopic = searchParams?.get('topic') || initialTopicId;
-  const [activeTopicId, setActiveTopicId] = useState<string>(queryTopic);
+  const [activeTopicId, setActiveTopicId] = useState<string>(initialTopicId);
 
   // Filters state
   const [filters, setFilters] = useState<StatsFilterOptions>({
@@ -37,10 +52,18 @@ export function StatsPageClient({
     sortBy: initialFilters?.sortBy ?? 'distance',
   });
 
-  // Calculate analysis payload deterministically from 100% real repository data
+  // Calculate analysis payload deterministically from pre-computed station cache (or reuse SSR initialPayload for default filter state)
   const payload = useMemo(() => {
+    const isDefaultFilter =
+      filters.areaBand === 'all' &&
+      filters.buildingAge === 'all' &&
+      filters.dong === 'all' &&
+      filters.sortBy === 'distance';
+    if (isDefaultFilter && initialPayload) {
+      return initialPayload;
+    }
     return getDongtanStationAnalysisData(filters);
-  }, [filters]);
+  }, [filters, initialPayload]);
 
   const handleTopicChange = useCallback((topicId: string) => {
     setActiveTopicId(topicId);
@@ -73,6 +96,10 @@ export function StatsPageClient({
 
   return (
     <div className="w-full flex flex-col gap-6">
+      <Suspense fallback={null}>
+        <StatsTopicUrlSync onQueryTopicChange={setActiveTopicId} />
+      </Suspense>
+
       {/* Extensible Topic Research Selector */}
       <StatsTopicSelector
         currentTopicId={activeTopicId}
@@ -86,7 +113,6 @@ export function StatsPageClient({
           {/* AdSlot 1: Top Horizontal-Strip */}
           <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden">
             <AdSlot
-              slotId="1000000001_stats_top"
               refreshSlotId="1000000001_stats_top"
               format="horizontal-strip"
               className="w-full"
@@ -110,7 +136,6 @@ export function StatsPageClient({
           {/* AdSlot 2: Mid In-Feed Slot */}
           <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden">
             <AdSlot
-              slotId="1000000002_stats_mid"
               refreshSlotId="1000000002_stats_mid"
               format="in-feed"
               className="w-full"
@@ -126,7 +151,6 @@ export function StatsPageClient({
           {/* AdSlot 3: Pre-Table Rectangle Slot */}
           <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden">
             <AdSlot
-              slotId="1000000003_stats_table"
               refreshSlotId="1000000003_stats_table"
               format="rectangle"
               className="w-full"
@@ -143,7 +167,6 @@ export function StatsPageClient({
           {/* AdSlot 4: Bottom Banner Slot */}
           <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden">
             <AdSlot
-              slotId="1000000004_stats_bottom"
               refreshSlotId="1000000004_stats_bottom"
               format="banner"
               className="w-full"

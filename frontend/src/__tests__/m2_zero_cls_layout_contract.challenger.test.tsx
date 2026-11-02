@@ -411,7 +411,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const timelineHeading = screen.getByText('일자별 최근 실거래');
 
       // Find slot 1000000001 container specifically
-      const slot1000000001Text = screen.getByText(/1000000001/);
+      const slot1000000001Text = screen.getByTestId('hero-ad-slot-1').querySelector('[data-testid="ad-slot-container"]')!;
       expect(slot1000000001Text).toBeInTheDocument();
 
       const slot1000000001Container = slot1000000001Text.closest('[data-testid="ad-slot-container"]');
@@ -465,7 +465,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         </SettingsProvider>
       );
 
-      const slot1000000002Text = screen.getByText(/1000000002/);
+      const slot1000000002Text = screen.getByTestId('finance-ad-slot-2').querySelector('[data-testid="ad-slot-container"]')!;
       expect(slot1000000002Text).toBeInTheDocument();
 
       const slot1000000002Container = slot1000000002Text.closest('[data-testid="ad-slot-container"]');
@@ -535,8 +535,8 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
         expect(rightCol).toBeInTheDocument();
 
         // AdSense slots 1000000001 & 1000000002 bounding box preservation
-        const slot1Text = screen.getByText(/1000000001/);
-        const slot2Text = screen.getByText(/1000000002/);
+        const slot1Text = screen.getByTestId('hero-ad-slot-1').querySelector('[data-testid="ad-slot-container"]')!;
+        const slot2Text = screen.getByTestId('finance-ad-slot-2').querySelector('[data-testid="ad-slot-container"]')!;
         const slot1Container = slot1Text.closest('[data-testid="ad-slot-container"]');
         const slot2Container = slot2Text.closest('[data-testid="ad-slot-container"]');
 

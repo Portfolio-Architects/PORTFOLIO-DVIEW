@@ -306,7 +306,6 @@ export default async function MBTIDirectResultPage({ params }: PageProps) {
                 className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
               >
                 <AdSlot
-                  slotId="1000000002"
                   refreshSlotId={`1000000002_mbti_${profile.type}`}
                   format="rectangle"
                   minHeightClass="min-h-[250px]"

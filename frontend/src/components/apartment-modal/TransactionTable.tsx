@@ -12,13 +12,15 @@ interface TransactionTableProps {
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
   chartType: 'sale' | 'jeonse';
   normalizeAptName: (name: string) => string;
+  loadAllTransactions?: () => void;
 }
 
 export const TransactionTable = React.memo(function TransactionTable({
   transactions,
   typeMap,
   chartType,
-  normalizeAptName
+  normalizeAptName,
+  loadAllTransactions
 }: TransactionTableProps) {
   const { areaUnit } = useSettingsValues();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
@@ -48,6 +50,12 @@ export const TransactionTable = React.memo(function TransactionTable({
   const batchSize = isDesktop ? 8 : 6;
 
   const [visibleCount, setVisibleCount] = useState(6);
+  const [hasRequestedAll, setHasRequestedAll] = useState(false);
+  const currentAptKey = transactions[0]?.aptName || '';
+
+  useEffect(() => {
+    setHasRequestedAll(false);
+  }, [currentAptKey]);
   
   // defaultCount가 변하거나 필터 조건이 바뀔 때 visibleCount 초기화
   useEffect(() => {
@@ -250,7 +258,7 @@ export const TransactionTable = React.memo(function TransactionTable({
                 { label: '낮은가격순', value: 'price_asc' },
               ].map(opt => (
                 <button key={opt.value} className={`w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body transition-colors ${txSort === opt.value ? 'text-toss-blue bg-body/50' : 'text-secondary'} border-none bg-transparent`}
-                  onClick={(e) => { e.stopPropagation(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
+                  onClick={(e) => { e.stopPropagation(); loadAllTransactions?.(); setTxSort(opt.value as 'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'); setActiveDropdown(null); }}>
                   {opt.label}
                 </button>
               ))}
@@ -292,14 +300,23 @@ export const TransactionTable = React.memo(function TransactionTable({
         )}
       </div>
 
-      {sortedFilteredTransactions.length > defaultCount && (
+      {(sortedFilteredTransactions.length > defaultCount || (Boolean(loadAllTransactions) && !hasRequestedAll && transactions.length >= 15)) && (
         <div className="border-t border-border/40 bg-surface flex shrink-0">
-          {sortedFilteredTransactions.length > visibleCount ? (
+          {(sortedFilteredTransactions.length > visibleCount || (Boolean(loadAllTransactions) && !hasRequestedAll && transactions.length >= 15)) ? (
             <button
-              onClick={() => setVisibleCount(prev => Math.min(prev + batchSize, sortedFilteredTransactions.length))}
+              onClick={() => {
+                const shouldExpandForServer = Boolean(loadAllTransactions) && !hasRequestedAll;
+                setHasRequestedAll(true);
+                loadAllTransactions?.();
+                setVisibleCount(prev =>
+                  shouldExpandForServer
+                    ? Math.min(prev, sortedFilteredTransactions.length) + batchSize
+                    : Math.min(prev + batchSize, sortedFilteredTransactions.length)
+                );
+              }}
               className="flex-1 py-3.5 text-center text-[13px] font-bold text-toss-blue hover:bg-toss-blue/5 active:bg-toss-blue/10 transition-colors flex items-center justify-center gap-1 focus:outline-none cursor-pointer border-none bg-transparent"
             >
-              실거래가 더보기 ({Math.min(batchSize, sortedFilteredTransactions.length - visibleCount)}개 더보기, {visibleCount}/{sortedFilteredTransactions.length})
+              실거래가 더보기 ({sortedFilteredTransactions.length > visibleCount ? Math.min(batchSize, sortedFilteredTransactions.length - visibleCount) : batchSize}개 더보기, {Math.min(visibleCount, sortedFilteredTransactions.length)}/{sortedFilteredTransactions.length})
             </button>
           ) : (
             <button

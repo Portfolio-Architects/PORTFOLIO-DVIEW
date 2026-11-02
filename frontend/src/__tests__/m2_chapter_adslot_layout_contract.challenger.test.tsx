@@ -444,7 +444,12 @@ describe('Milestone M2 Empirical Adversarial Challenge: 8-Chapter & AdSlot Invar
         expect(innerAd.className).toContain('min-h-[180px]');
         expect(innerAd.className).toContain('sm:min-h-[220px]');
         expect(innerAd.className).toContain('md:min-h-[250px]');
-        expect(innerAd.textContent).toContain('1000000002');
+        expect(innerAd.textContent).not.toContain('1000000002');
+        expect(innerAd.textContent).toContain(
+          process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL ||
+            process.env.NEXT_PUBLIC_ADSENSE_SLOT_DASHBOARD_BOTTOM ||
+            '6782594447'
+        );
       });
     });
 

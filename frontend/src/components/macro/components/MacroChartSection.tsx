@@ -17,7 +17,7 @@ import { DongApartment, buildInitialApartments } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import { getControlSelectClass, getControlInputClass } from '@/lib/design-system/controls';
 import { useDebounce } from '@/hooks/useDebounce';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 
 export interface MacroChartSectionProps {
   isDefaultAptSettingUp: boolean;
@@ -114,15 +114,36 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   const comboboxRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listboxRef = useRef<HTMLDivElement>(null);
+  const lastTrackedSearchQueryRef = useRef<string>('');
+  const searchMatchCountRef = useRef<number>(0);
+  const isImeComposingRef = useRef<boolean>(false);
 
   const debouncedChartSearch = useDebounce(searchQuery, 1000);
 
   useEffect(() => {
+    if (!searchQuery.trim()) {
+      lastTrackedSearchQueryRef.current = '';
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
     const query = debouncedChartSearch.trim();
     if (mounted && query) {
-      trackEvent('search_apartment', { query, surface: 'dashboard_chart' });
+      if (lastTrackedSearchQueryRef.current !== query) {
+        lastTrackedSearchQueryRef.current = query;
+        trackEvent('search_apartment', { query, surface: 'dashboard_chart' });
+      }
+      if (onSelectApt) {
+        trackSearchQuery({
+          search_term: query,
+          query,
+          surface: 'dashboard_chart',
+          trigger: 'debounce',
+          results_count: searchMatchCountRef.current,
+        });
+      }
     }
-  }, [debouncedChartSearch, mounted]);
+  }, [debouncedChartSearch, mounted, onSelectApt]);
 
   useEffect(() => {
     if (mounted) {
@@ -395,6 +416,29 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 
   const handleSelectApartment = useCallback(
     (apt: EnrichedCatalogApt, isCrossDong = false) => {
+      const activeSearch = searchQuery.trim();
+      if (activeSearch) {
+        if (lastTrackedSearchQueryRef.current !== activeSearch) {
+          lastTrackedSearchQueryRef.current = activeSearch;
+          trackEvent('search_apartment', { query: activeSearch, surface: 'dashboard_chart' });
+        }
+        trackSearchQuery({
+          search_term: activeSearch,
+          query: activeSearch,
+          selected_apt: apt.name,
+          surface: 'dashboard_chart',
+          trigger: 'combobox_select',
+          results_count: searchMatchCountRef.current,
+        });
+      }
+      trackApartmentView({
+        apartment_name: apt.name,
+        apt_name: apt.name,
+        dong: apt.dong || undefined,
+        surface: 'dashboard_chart',
+        trigger: activeSearch ? 'search_select' : 'combobox_select',
+        view_type: 'chart_preview',
+      });
       setSelectedTimelineApt(apt.name);
       if (isCrossDong) {
         setSelectedDong('all');
@@ -405,7 +449,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
       setSearchQuery('');
       setIsDropdownOpen(false);
     },
-    [setSelectedTimelineApt, onHoverApt, preloadApartmentModal]
+    [searchQuery, setSelectedTimelineApt, onHoverApt, preloadApartmentModal]
   );
 
   const handleRemoveRecent = useCallback(
@@ -419,6 +463,18 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 
   const handleInputKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
+      const nativeEvt = e.nativeEvent as KeyboardEvent & { isComposing?: boolean; keyCode?: number };
+      const isComposing =
+        isImeComposingRef.current ||
+        Boolean(nativeEvt?.isComposing) ||
+        Boolean((e as unknown as { isComposing?: boolean }).isComposing) ||
+        e.keyCode === 229 ||
+        nativeEvt?.keyCode === 229;
+
+      if (isComposing && (e.key === 'Enter' || e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+        return;
+      }
+
       if (e.key === 'Escape') {
         setIsDropdownOpen(false);
         return;
@@ -452,7 +508,19 @@ export const MacroChartSection = React.memo(function MacroChartSection({
 
       if (e.key === 'Enter') {
         e.preventDefault();
-        if (navigableItems.length === 0) return;
+        if (navigableItems.length === 0) {
+          const activeSearch = searchQuery.trim();
+          if (activeSearch) {
+            trackSearchQuery({
+              search_term: activeSearch,
+              query: activeSearch,
+              surface: 'dashboard_chart',
+              trigger: 'enter_no_match',
+              results_count: 0,
+            });
+          }
+          return;
+        }
         const safeIndex =
           activeIndex >= 0 && activeIndex < navigableItems.length ? activeIndex : 0;
         const targetItem = navigableItems[safeIndex];
@@ -468,6 +536,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
       isDropdownOpen,
       navigableItems,
       activeIndex,
+      searchQuery,
       handleSelectMacroAll,
       handleSelectApartment,
     ]
@@ -603,6 +672,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   };
 
   const totalSearchCount = primarySearchMatches.length + crossDongSearchMatches.length;
+  searchMatchCountRef.current = totalSearchCount;
 
   const idlePlaceholder = selectedTimelineApt
     ? `${getDisplayAptName(selectedTimelineApt)} · 단지명/초성 검색`
@@ -759,6 +829,12 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                           if (!isDropdownOpen) {
                             setIsDropdownOpen(true);
                           }
+                        }}
+                        onCompositionStart={() => {
+                          isImeComposingRef.current = true;
+                        }}
+                        onCompositionEnd={() => {
+                          isImeComposingRef.current = false;
                         }}
                         onKeyDown={handleInputKeyDown}
                         className={getControlInputClass(

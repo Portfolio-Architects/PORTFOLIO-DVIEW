@@ -875,7 +875,8 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                 {/* Zero-CLS High-CPC Financial AdSlot on Jeonse Safety Result */}
                 <div className="w-full pt-1" data-testid="jeonse-result-ad-slot">
                   <AdSlot
-                    slotId="1000000002"
+                    refreshSlotId="calc_jeonse_result"
+                    cpaCampaignId="jeonse-sentinel"
                     format="in-feed"
                     apartmentName={selectedApt?.name}
                     dong={selectedApt?.dong}

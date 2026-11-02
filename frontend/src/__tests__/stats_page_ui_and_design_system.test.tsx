@@ -75,14 +75,16 @@ jest.mock('@/contexts/SettingsContext', () => ({
 
 // Mock AdSlot to inspect slotId & format without triggering real AdSense network calls
 jest.mock('@/components/ads/AdSlot', () => ({
-  AdSlot: ({ slotId, format, className }: any) => (
+  AdSlot: ({ slotId, refreshSlotId, format, className }: any) => (
     <div
       data-testid="ad-slot"
-      data-slot-id={slotId}
+      data-slot-id={slotId ?? refreshSlotId}
+      data-raw-slot-id={slotId ?? ''}
+      data-refresh-slot-id={refreshSlotId ?? ''}
       data-format={format}
       className={`adslot-mock ${className || ''}`}
     >
-      AdSlot: {slotId} ({format})
+      AdSlot: {slotId ?? refreshSlotId} ({format})
     </div>
   ),
 }));
@@ -492,6 +494,9 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
         '1000000003_stats_table',
         '1000000004_stats_bottom',
       ]);
+
+      const rawSlotIds = adSlots.map((slot) => slot.getAttribute('data-raw-slot-id'));
+      expect(rawSlotIds).toEqual(['', '', '', '']);
     });
 
     test('switches between active report and upcoming placeholder when selecting topic', () => {

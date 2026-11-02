@@ -94,7 +94,7 @@ export function BoardPostList({
                 className="my-3 w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
               >
                 <AdSlot
-                  slotId="1000000003"
+                  refreshSlotId="board_list_infeed"
                   format="in-feed"
                   minHeightClass="min-h-[140px]"
                 />
@@ -116,7 +116,7 @@ export function BoardPostList({
           className="mt-4 w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
         >
           <AdSlot
-            slotId="1000000003"
+            refreshSlotId="board_list_trailing_infeed"
             format="in-feed"
             minHeightClass="min-h-[140px]"
           />

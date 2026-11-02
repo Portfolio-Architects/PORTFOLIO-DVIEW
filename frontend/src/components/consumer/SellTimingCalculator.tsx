@@ -960,7 +960,8 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 {/* Zero-CLS High-CPC Financial AdSlot on Sell Timing Result */}
                 <div className="w-full pt-1" data-testid="sell-timing-result-ad-slot">
                   <AdSlot
-                    slotId="1000000002"
+                    refreshSlotId="calc_sell_timing_result"
+                    cpaCampaignId="mortgage-refinance"
                     format="in-feed"
                     apartmentName={selectedApt?.name}
                     dong={selectedApt?.dong}

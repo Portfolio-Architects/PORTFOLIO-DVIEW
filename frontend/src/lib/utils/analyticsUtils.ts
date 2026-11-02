@@ -235,8 +235,23 @@ export function generateAiBriefing(
       const txBadge = aptSummary.txCount && aptSummary.txCount > 0 ? ` (누적 ${aptSummary.txCount.toLocaleString()}건)` : '';
       brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 실거래 매매가 ${latestStr}${txBadge} — 전세가율, 스트레스 DSR 대출 한도, 배정 학군 및 교통 인프라 분석 리포트를 D-VIEW에서 확인하세요.`;
     } else {
-      const avg1MPrice = aptSummary.avg1MPriceEok ? `${aptSummary.avg1MPriceEok}억` : '정보 없음';
-      brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+      const rawAvgEok = aptSummary.avg1MPriceEok?.trim();
+      const hasValidAvgEok = Boolean(
+        rawAvgEok && rawAvgEok !== '0' && rawAvgEok !== '0만' && rawAvgEok !== '0억' && rawAvgEok !== '정보 없음'
+      );
+      if (aptSummary.avg1MPrice && aptSummary.avg1MPrice > 0) {
+        const avg1MPrice = formatPriceEok(aptSummary.avg1MPrice);
+        brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+      } else if (hasValidAvgEok && rawAvgEok) {
+        const avg1MPrice = /[억만]/.test(rawAvgEok) ? rawAvgEok : `${rawAvgEok}억`;
+        brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+      } else if (aptSummary.latestRentDeposit && aptSummary.latestRentDeposit > 0) {
+        const rentStr = formatPriceEok(aptSummary.latestRentDeposit);
+        const txBadge = aptSummary.txCount && aptSummary.txCount > 0 ? ` (누적 ${aptSummary.txCount.toLocaleString()}건)` : '';
+        brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 전월세 보증금 실거래가 ${rentStr}${txBadge} — 전세가율, 스트레스 DSR 대출 한도, 배정 학군 및 교통 인프라 분석 리포트를 D-VIEW에서 확인하세요.`;
+      } else {
+        brief = `${aptName}의 최근 1개월 평균 매매가는 정보 없음이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+      }
     }
   } else {
     const majorDetails = pyeongSummaries.slice(0, 2).map((p) => {

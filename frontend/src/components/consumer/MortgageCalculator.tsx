@@ -1614,7 +1614,8 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 {/* Zero-CLS High-CPC Financial AdSlot on Diagnosis Result */}
                 <div className="w-full" data-testid="mortgage-result-ad-slot">
                   <AdSlot
-                    slotId="1000000002"
+                    refreshSlotId="calc_mortgage_result"
+                    cpaCampaignId="mortgage-refinance"
                     format="in-feed"
                     apartmentName={selectedApt?.name}
                     dong={selectedApt?.dong}

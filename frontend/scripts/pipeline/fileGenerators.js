@@ -12,6 +12,7 @@ const path = require('path');
 const { applyIqrOutlierDetection } = require('./outlierFilters');
 const { formatPriceEok, normalizeAptName, normalizeRegisteredDate } = require('./apartmentSummarizer');
 const { sanitizeAptChunkFileName, sanitizeAptKey, isCancelledTransaction } = require('../../pipeline/core/normalizer');
+const { writeStatsStationCache, buildStatsStationCachePayload } = require('./statsStationCacheGenerator');
 
 /**
  * Synchronous file writer with zero-spin OS thread backoff
@@ -49,6 +50,103 @@ async function safeWriteFile(filepath, content) {
       await new Promise(r => setTimeout(r, 50));
     }
   }
+}
+
+/**
+ * Splits compact `transactionsAll` ({ fields, data }) into yearly chunk files (`tx-2026.json`, `tx-2025.json`, `tx-2024.json`, `tx-historical.json`)
+ * and writes `tx-chunks-manifest.json` (P2-2).
+ */
+function writeYearlyTransactionChunks(outDirData, transactionsAll) {
+  if (!outDirData || !transactionsAll || !Array.isArray(transactionsAll.data)) {
+    return null;
+  }
+  if (!fs.existsSync(outDirData)) {
+    fs.mkdirSync(outDirData, { recursive: true });
+  }
+
+  const fields = Array.isArray(transactionsAll.fields) ? transactionsAll.fields : [];
+  const rows = transactionsAll.data;
+  const contractDateIdx = fields.indexOf('contractDate') >= 0 ? fields.indexOf('contractDate') : 3;
+
+  const futureBuckets = new Map();
+  const buckets = {
+    '2026': [],
+    '2025': [],
+    '2024': [],
+    historical: [],
+  };
+
+  for (let i = 0; i < rows.length; i++) {
+    const r = rows[i];
+    if (!Array.isArray(r)) continue;
+    const dateStr = String(r[contractDateIdx] || '');
+    const year = parseInt(dateStr.slice(0, 4), 10);
+    if (year > 2026) {
+      const yKey = String(year);
+      if (!futureBuckets.has(yKey)) futureBuckets.set(yKey, []);
+      futureBuckets.get(yKey).push(r);
+    } else if (year === 2026) {
+      buckets['2026'].push(r);
+    } else if (year === 2025) {
+      buckets['2025'].push(r);
+    } else if (year === 2024) {
+      buckets['2024'].push(r);
+    } else {
+      buckets.historical.push(r);
+    }
+  }
+
+  const sortedFutureYears = Array.from(futureBuckets.keys())
+    .map((k) => parseInt(k, 10))
+    .sort((a, b) => b - a);
+
+  const chunkDefs = [
+    ...sortedFutureYears.map((y) => ({
+      key: String(y),
+      file: `tx-${y}.json`,
+      years: [y],
+      rows: futureBuckets.get(String(y)),
+    })),
+    { key: '2026', file: 'tx-2026.json', years: [2026], rows: buckets['2026'] },
+    { key: '2025', file: 'tx-2025.json', years: [2025], rows: buckets['2025'] },
+    { key: '2024', file: 'tx-2024.json', years: [2024], rows: buckets['2024'] },
+    { key: 'historical', file: 'tx-historical.json', years: [2006, 2023], rows: buckets.historical },
+  ];
+
+  const manifestChunks = [];
+  for (const def of chunkDefs) {
+    const chunkPath = path.join(outDirData, def.file);
+    const json = JSON.stringify({ fields, data: def.rows });
+    safeWriteFileSync(chunkPath, json);
+    manifestChunks.push({
+      key: def.key,
+      file: def.file,
+      years: def.years,
+      count: def.rows.length,
+      sizeBytes: Buffer.byteLength(json, 'utf8'),
+    });
+  }
+
+  const recentYearFiles = chunkDefs
+    .filter((d) => d.key !== 'historical')
+    .map((d) => d.file);
+
+  const manifest = {
+    version: 1,
+    totalCount: rows.length,
+    chunks: manifestChunks,
+    periodMap: {
+      '1y': recentYearFiles.slice(0, 2),
+      '3y': recentYearFiles.slice(0, 3),
+      all: chunkDefs.map((d) => d.file),
+    },
+  };
+
+  safeWriteFileSync(
+    path.join(outDirData, 'tx-chunks-manifest.json'),
+    JSON.stringify(manifest, null, 2)
+  );
+  return manifest;
 }
 
 /**
@@ -99,6 +197,17 @@ function writeSummaryFiles(paths, data) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     safeWriteFileSync(period1yPath, JSON.stringify(transactions1y));
     console.log(`📁 파일 생성: ${period1yPath}`);
+
+    // Guardrail D & P2-1: Atomically update stats-station-cache.json whenever transactions-1y.json is written
+    try {
+      const cachePayload = writeStatsStationCache({
+        outDirData: dir,
+        tx1yPayload: transactions1y,
+      });
+      console.log(`📁 파일 생성: ${path.join(dir, 'stats-station-cache.json')} (${cachePayload.records.length} complexes)`);
+    } catch (err) {
+      console.warn('⚠️ stats-station-cache.json 생성 중 경고:', err && err.message ? err.message : err);
+    }
   }
 
   if (period3yPath && transactions3y) {
@@ -113,6 +222,16 @@ function writeSummaryFiles(paths, data) {
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     safeWriteFileSync(periodAllPath, JSON.stringify(transactionsAll));
     console.log(`📁 파일 생성: ${periodAllPath}`);
+
+    // P2-2: Atomically generate yearly transaction chunk files (tx-2026.json, tx-2025.json, tx-2024.json, tx-historical.json)
+    try {
+      const manifest = writeYearlyTransactionChunks(dir, transactionsAll);
+      if (manifest) {
+        console.log(`📁 연도별 트랜잭션 청크 생성 완료: ${manifest.chunks.map(c => c.file).join(', ')}`);
+      }
+    } catch (err) {
+      console.warn('⚠️ 연도별 트랜잭션 청크 생성 중 경고:', err && err.message ? err.message : err);
+    }
   }
 }
 
@@ -422,6 +541,9 @@ module.exports = {
   safeWriteFileSync,
   safeWriteFile,
   writeSummaryFiles,
+  writeYearlyTransactionChunks,
+  writeStatsStationCache,
+  buildStatsStationCachePayload,
   writeApartmentChunks,
   migrateLegacyPathologicalFiles,
   migrateLegacySpaceFiles

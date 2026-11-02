@@ -34,7 +34,8 @@ import {
 import { matchesApartmentSearch } from '@/lib/utils/apartmentSearch';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
+import { useDebounce } from '@/hooks/useDebounce';
 
 export type ZoneChronoSortOrder = 'latest' | 'oldest' | 'price_desc';
 export type ZoneAllGroupingMode = 'by_zone' | 'unified_time';
@@ -348,6 +349,14 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
           dong: item.dong || '',
           zone: zoneKey,
         });
+        trackEvent('apartment_view', {
+          apartment_name: item.aptName,
+          apt_name: item.aptName,
+          dong: item.dong || undefined,
+          zone: zoneKey,
+          surface: 'donut_fullscreen_modal',
+          view_type: 'modal_tx_click',
+        });
         onSelectApt?.(item.aptName, item.dong);
       }}
       onMouseEnter={() => {
@@ -494,6 +503,20 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
   const [zoneLimits, setZoneLimits] = useState<Record<string, number>>({});
   const [streamLimit, setStreamLimit] = useState<number>(DEFAULT_SINGLE_STREAM_LIMIT);
   const rightScrollRef = useRef<HTMLDivElement | null>(null);
+
+  const debouncedFullscreenSearch = useDebounce(searchQuery, 1000);
+
+  useEffect(() => {
+    const query = debouncedFullscreenSearch.trim();
+    if (isOpen && query) {
+      trackEvent('search_query', {
+        search_term: query,
+        query,
+        surface: 'donut_fullscreen_modal',
+        zone: selectedZoneKey,
+      });
+    }
+  }, [debouncedFullscreenSearch, isOpen, selectedZoneKey]);
 
   // Sync initial selection when modal opens
   useEffect(() => {

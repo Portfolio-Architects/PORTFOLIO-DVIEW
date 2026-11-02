@@ -5,9 +5,10 @@ import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
-import { GUIDE_ARTICLES } from '@/lib/data/guides';
+import { GUIDE_ARTICLES, buildGuideAptMiniPreview } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 const GUIDE_HUB_OG_IMAGE =
   'https://dongtanview.com/api/og?title=' +
@@ -144,7 +145,6 @@ export default function GuideIndexPage() {
             className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
           >
             <AdSlot
-              slotId="1000000001"
               refreshSlotId="1000000001_guide_index_top"
               format="rectangle"
               minHeightClass="min-h-[250px]"
@@ -207,22 +207,33 @@ export default function GuideIndexPage() {
                     </ul>
                   </div>
 
-                  {/* Featured Apartments Quick Links */}
+                  {/* Featured Apartments Quick Links with Real-Time Price Preview */}
                   {article.featuredApartments && article.featuredApartments.length > 0 && (
                     <div className="mt-4 flex flex-wrap items-center gap-1.5">
                       <span className="text-[11px] font-extrabold text-slate-600 dark:text-slate-400 mr-1">
-                        관련 주요 단지:
+                        대표 단지 실거래 바로가기:
                       </span>
-                      {article.featuredApartments.slice(0, 5).map((aptName) => (
-                        <Link
-                          key={aptName}
-                          href={`/apartment/${encodeURIComponent(aptName)}`}
-                          prefetch={false}
-                          className="text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 px-2.5 py-1 rounded-lg hover:underline transition-colors"
-                        >
-                          {aptName}
-                        </Link>
-                      ))}
+                      {article.featuredApartments.slice(0, 5).map((aptName) => {
+                        const preview = buildGuideAptMiniPreview(aptName);
+                        const canonicalSlug =
+                          preview?.canonicalSlug || resolveCanonicalAptSlug(aptName) || aptName;
+                        const labelText = preview?.displayName || aptName;
+                        return (
+                          <Link
+                            key={aptName}
+                            href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
+                            prefetch={false}
+                            className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 px-2.5 py-1 rounded-lg hover:underline transition-colors tabular-nums"
+                          >
+                            <span>{labelText}</span>
+                            {preview && preview.latestPrice > 0 && (
+                              <span className="text-emerald-700 dark:text-emerald-400 font-extrabold">
+                                · {preview.latestPriceStr}
+                              </span>
+                            )}
+                          </Link>
+                        );
+                      })}
                     </div>
                   )}
 
@@ -285,7 +296,6 @@ export default function GuideIndexPage() {
             className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
           >
             <AdSlot
-              slotId="1000000002"
               refreshSlotId="1000000002_guide_index_bottom"
               format="rectangle"
               minHeightClass="min-h-[250px]"

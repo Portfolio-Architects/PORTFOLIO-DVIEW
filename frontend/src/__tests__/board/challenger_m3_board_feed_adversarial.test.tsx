@@ -21,14 +21,16 @@ jest.mock('next/navigation', () => ({
 
 // Mock AdSlot for Zero-CLS container layout verification
 jest.mock('@/components/ads/AdSlot', () => ({
-  AdSlot: ({ slotId, format, minHeightClass }: any) => (
+  AdSlot: ({ slotId, refreshSlotId, format, minHeightClass }: any) => (
     <div
       data-testid="mock-ad-slot"
-      data-slot-id={slotId}
+      data-slot-id={slotId ?? refreshSlotId}
+      data-raw-slot-id={slotId ?? ''}
+      data-refresh-slot-id={refreshSlotId ?? ''}
       data-slot-format={format}
       className={minHeightClass || 'min-h-[140px]'}
     >
-      [Mock AdSlot {slotId}]
+      [Mock AdSlot {slotId ?? refreshSlotId}]
     </div>
   ),
 }));
@@ -732,7 +734,8 @@ describe('Empirical Adversarial Test Suite: Milestone 3 Board Feed & Permitted A
       // Mock AdSlot inside has min-h-[140px] and in-feed format
       const mockSlot = within(inFeedAd).getByTestId('mock-ad-slot');
       expect(mockSlot).toHaveAttribute('data-slot-format', 'in-feed');
-      expect(mockSlot).toHaveAttribute('data-slot-id', '1000000003');
+      expect(mockSlot).toHaveAttribute('data-slot-id', 'board_list_infeed');
+      expect(mockSlot).toHaveAttribute('data-raw-slot-id', '');
     });
 
     it('verifies trailing AdSlot has min-h-[140px] when < 3 posts', () => {

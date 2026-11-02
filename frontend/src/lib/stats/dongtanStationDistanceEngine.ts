@@ -23,10 +23,8 @@ import type {
   StatsDatasetMeta,
 } from './types';
 
-// Real Public Datasets (100% Real Data Parity)
-import aptsByDongStatic from '../../../public/data/apartments-by-dong.json';
-import locScoresStatic from '../location-scores.json';
-import tx1yStatic from '../../../public/data/transactions-1y.json';
+// Pre-computed Compact Station Analysis Cache (~45KB, decoupled from 3.29MB transactions-1y.json - P2-1 & Guardrail D)
+import statsStationCacheStatic from '../../../public/data/stats-station-cache.json';
 
 /**
  * GTX-A / SRT Dongtan Station WGS84 Reference Coordinates
@@ -69,7 +67,7 @@ export function calculateHaversineDistanceMeters(
 /**
  * String normalizer for matching transaction records to apartment complexes
  */
-function cleanApartmentName(str: string): string {
+export function cleanApartmentName(str: string): string {
   if (!str) return '';
   return str
     .replace(/\s+/g, '')
@@ -80,31 +78,35 @@ function cleanApartmentName(str: string): string {
 }
 
 /**
- * Compile the canonical 127 geocoded apartment records from verified repository datasets.
- * Executed once and cached in-memory for deterministic performance (<1ms).
+ * Pure builder for compiling the 127 geocoded apartment records from raw repository datasets
+ * (used by pipeline cache generation and empirical parity verification).
  */
-function buildMasterApartmentStatRecords(): {
+export function buildMasterApartmentStatRecordsFromRaw(
+  aptsByDongInput: unknown,
+  locScoresInput: unknown,
+  tx1yInput: unknown
+): {
   records: ApartmentStatRecord[];
   datasetMeta: StatsDatasetMeta;
 } {
-  const locMap = locScoresStatic as Record<
+  const locMap = (locScoresInput || {}) as Record<
     string,
     { distanceToSubway: number; nearestStationName: string; nearestStationCoords: string }
   >;
-  const rawByDong = (aptsByDongStatic as unknown as {
-    byDong: Record<
-      string,
-      Array<{
-        name: string;
-        txKey?: string;
-        dong?: string;
-        lat: number;
-        lng: number;
-        yearBuilt?: string | number;
-        householdCount?: number;
-      }>
-    >;
-  }).byDong;
+  const rawByDong = ((aptsByDongInput as { byDong?: Record<string, unknown[]> })?.byDong ||
+    aptsByDongInput ||
+    {}) as Record<
+    string,
+    Array<{
+      name: string;
+      txKey?: string;
+      dong?: string;
+      lat: number;
+      lng: number;
+      yearBuilt?: string | number;
+      householdCount?: number;
+    }>
+  >;
 
   interface BaseComplex {
     name: string;
@@ -120,6 +122,7 @@ function buildMasterApartmentStatRecords(): {
   const baseComplexes: BaseComplex[] = [];
 
   for (const [dongName, list] of Object.entries(rawByDong)) {
+    if (!Array.isArray(list)) continue;
     for (const apt of list) {
       if (apt.lat && apt.lat > 0 && locMap[apt.name]) {
         const computedDist = calculateHaversineDistanceMeters(apt.lat, apt.lng);
@@ -142,20 +145,13 @@ function buildMasterApartmentStatRecords(): {
     }
   }
 
-  // Fast normalizer index
   const cleanIndex = new Map<string, BaseComplex>();
   for (const c of baseComplexes) {
     cleanIndex.set(cleanApartmentName(c.name), c);
     if (c.txKey) cleanIndex.set(cleanApartmentName(c.txKey), c);
   }
 
-  // Group real transactions from transactions-1y.json
-  const txByComplex = new Map<string, any[]>();
-  for (const c of baseComplexes) {
-    txByComplex.set(c.name, []);
-  }
-
-  const rawTransactions = tx1yStatic as unknown as Array<{
+  type RawTxItem = {
     aptName: string;
     txKey?: string;
     priceVal: number;
@@ -163,7 +159,14 @@ function buildMasterApartmentStatRecords(): {
     areaPyeong?: number;
     contractDate?: string;
     registeredDate?: string;
-  }>;
+  };
+
+  const txByComplex = new Map<string, RawTxItem[]>();
+  for (const c of baseComplexes) {
+    txByComplex.set(c.name, []);
+  }
+
+  const rawTransactions = (Array.isArray(tx1yInput) ? tx1yInput : []) as RawTxItem[];
 
   let maxMatchedContractDate = '';
   let maxRegisteredDate = '';
@@ -205,7 +208,6 @@ function buildMasterApartmentStatRecords(): {
     let totalAreaM2 = 0;
     let validPyeongCount = 0;
 
-    // Sort transactions by contractDate descending (tie-break by registeredDate descending) for latest price
     const sortedTxs = [...txs].sort(
       (a, b) =>
         (b.contractDate || '').localeCompare(a.contractDate || '') ||
@@ -277,8 +279,11 @@ function buildMasterApartmentStatRecords(): {
   return { records, datasetMeta };
 }
 
-// Master in-memory static cache
-const MASTER_BUNDLE = buildMasterApartmentStatRecords();
+// Master in-memory static cache loaded from precomputed stats-station-cache.json (~45KB)
+const MASTER_BUNDLE = statsStationCacheStatic as unknown as {
+  records: ApartmentStatRecord[];
+  datasetMeta: StatsDatasetMeta;
+};
 const MASTER_RECORDS: ApartmentStatRecord[] = MASTER_BUNDLE.records;
 const MASTER_DATASET_META: StatsDatasetMeta = MASTER_BUNDLE.datasetMeta;
 
