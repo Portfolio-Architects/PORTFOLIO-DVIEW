@@ -3957,15 +3957,15 @@
       "avg3MPriceEok": "8억2,500",
       "avg3MPerPyeong": 2474,
       "avg3MTxCount": 4,
-      "rentTxCount": 862,
-      "latestRentDeposit": 53000,
-      "latestRentDepositEok": "5억3,000",
+      "rentTxCount": 863,
+      "latestRentDeposit": 50000,
+      "latestRentDepositEok": "5억",
       "latestRentMonthly": 0,
-      "latestRentDate": "20261017",
-      "avg1MRentDeposit": 56500,
-      "avg1MRentDepositEok": "5억6,500",
-      "avg3MRentDeposit": 47400,
-      "avg3MRentDepositEok": "4억7,400"
+      "latestRentDate": "20261029",
+      "avg1MRentDeposit": 51500,
+      "avg1MRentDepositEok": "5억1,500",
+      "avg3MRentDeposit": 47300,
+      "avg3MRentDepositEok": "4억7,300"
     },
     "롯데캐슬알바트로스": {
       "dong": "청계동",
