@@ -132,21 +132,18 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     const trendChartTitles = screen.getAllByText(/시세 추이/);
     expect(trendChartTitles.length).toBeGreaterThanOrEqual(1);
 
-    // 2. Unified Timeline + Hyperlocal Insights + 3-Way Tab Switcher (Transactions | Live Market Ranking | Pyeong Ranking)
+    // 2. Unified Timeline in Hero (compactHeroMode) + Hyperlocal Insights in Zone 3
     expect(screen.queryByTestId('stats-overview-section')).not.toBeInTheDocument();
     expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
     expect(screen.getAllByTestId('stats-hyperlocal-insights').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByTestId('timeline-view-tab-switcher')).toBeInTheDocument();
-    expect(screen.getByTestId('timeline-tab-transactions')).toBeInTheDocument();
-    expect(screen.getByTestId('timeline-tab-live-rankings')).toBeInTheDocument();
-    expect(screen.getByTestId('timeline-tab-rankings')).toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-view-tab-switcher')).not.toBeInTheDocument();
 
     // 3. AdSlots rendered with zero-CLS containers (Prime AdSlot 1 + Timeline In-Feed AdSlot 3 + Finance AdSlot 2)
     const adContainers = screen.getAllByTestId('ad-slot-container');
     expect(adContainers.length).toBeGreaterThanOrEqual(3);
     expect(screen.getByTestId('timeline-infeed-ad-slot')).toBeInTheDocument();
 
-    // 4. Prime Hero-to-Timeline AdSlot 1 directly after Donut Hero and before Timeline
+    // 4. Prime Hero-to-Timeline AdSlot 1 directly after Donut & Timeline Hero
     const heroAdSlot1 = screen.getByTestId('hero-ad-slot-1');
     expect(heroAdSlot1).toBeInTheDocument();
     expect(
@@ -156,10 +153,10 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     const timelineHeading = screen.getByText('일자별 최근 실거래');
     expect(timelineHeading).toBeInTheDocument();
     expect(
-      heroAdSlot1.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+      timelineHeading.compareDocumentPosition(heroAdSlot1) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
-    // 5. High-CPC Finance Section + AdSlot 2 immediately below Timeline, followed by Guides & Lower 7:5 Retention Hub
+    // 5. High-CPC Finance Section + AdSlot 2 below Zone 3, followed by Guides & Lower 7:5 Retention Hub
     const financeSection = screen.getByTestId('high-cpc-finance-section');
     expect(financeSection).toBeInTheDocument();
     const financeAdSlot2 = screen.getByTestId('finance-ad-slot-2');
@@ -181,10 +178,6 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(
       guidesGrid.compareDocumentPosition(retentionGrid) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
-
-    // 6. Switching to Live Market Ranking tab mounts RealtimeRankingBoard in place
-    fireEvent.click(screen.getByTestId('timeline-tab-live-rankings'));
-    expect(screen.getByTestId('realtime-ranking-board')).toBeInTheDocument();
   });
 
   it('enforces 2-A Hybrid Navigation: 1st click previews chart inline, explicit detail CTA navigates to canonical apartment page', () => {
@@ -224,7 +217,7 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     );
   });
 
-  it('switches to Complex Pyeong Ranking tab and wires ranking item click up to MacroDashboardClient onSelectApt', () => {
+  it('wires complex item click from HyperlocalInsightCards up to MacroDashboardClient onSelectApt', () => {
     const onSelectApt = jest.fn();
 
     render(
@@ -244,14 +237,9 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       </SettingsProvider>
     );
 
-    // Switch to the Ranking tab inside the unified section
-    const rankingTabBtn = screen.getByTestId('timeline-tab-rankings');
-    fireEvent.click(rankingTabBtn);
-
-    const rank1Items = screen.getAllByTestId('ranking-item-1');
-    expect(rank1Items.length).toBeGreaterThanOrEqual(1);
-    const rank1Item = rank1Items[rank1Items.length - 1];
-    fireEvent.click(rank1Item);
+    const newHighCard = screen.getByTestId('insight-card-new-high');
+    expect(newHighCard).toBeInTheDocument();
+    fireEvent.click(newHighCard);
 
     // Verify onSelectApt was called
     expect(onSelectApt).toHaveBeenCalledTimes(1);
