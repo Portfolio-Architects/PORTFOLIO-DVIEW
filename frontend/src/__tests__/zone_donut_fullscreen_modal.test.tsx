@@ -175,8 +175,8 @@ describe('Fullscreen Zone Donut Explorer & Chronological Real-Transaction Analyt
     // Initially fullscreen modal is not mounted
     expect(screen.queryByTestId('zone-donut-fullscreen-modal')).not.toBeInTheDocument();
 
-    // Click directly on the donut chart box
-    fireEvent.click(screen.getByTestId('donut-chart-box'));
+    // Click on the dedicated 크게 보기 button
+    fireEvent.click(screen.getByTestId('donut-fullscreen-open-btn'));
 
     const modal = screen.getByTestId('zone-donut-fullscreen-modal');
     expect(modal).toBeInTheDocument();
@@ -306,13 +306,12 @@ describe('Fullscreen Zone Donut Explorer & Chronological Real-Transaction Analyt
     ).toBeInTheDocument();
   });
 
-  it('opens fullscreen reliably when clicking anywhere on donut-chart-pane (even before mounted=true) and renders visible 크게 보기 pill', () => {
+  it('opens fullscreen only when clicking donut-fullscreen-open-btn (not donut-chart-pane) and displays the 4 energy temperature slices in default navigator mode', () => {
     render(
       <AptDonutSection
         variant="navigator"
-        initialMode="zone"
         initialPeriod="90d"
-        mounted={false}
+        mounted={true}
         recentTransactions={REAL_TRANSACTIONS}
       />
     );
@@ -320,8 +319,18 @@ describe('Fullscreen Zone Donut Explorer & Chronological Real-Transaction Analyt
     const openBtn = screen.getByTestId('donut-fullscreen-open-btn');
     expect(openBtn).toHaveTextContent('크게 보기');
 
+    // Clicking donut-chart-pane must NOT open fullscreen
     fireEvent.click(screen.getByTestId('donut-chart-pane'));
-    expect(screen.getByTestId('zone-donut-fullscreen-modal')).toBeInTheDocument();
+    expect(screen.queryByTestId('zone-donut-fullscreen-modal')).not.toBeInTheDocument();
+
+    // Clicking 크게 보기 opens fullscreen with the 4 energy slices
+    fireEvent.click(openBtn);
+    const modal = screen.getByTestId('zone-donut-fullscreen-modal');
+    expect(modal).toBeInTheDocument();
+    expect(within(modal).getByTestId('fullscreen-zone-section-high')).toHaveTextContent('신고가 돌파');
+    expect(within(modal).getByTestId('fullscreen-zone-section-rising')).toHaveTextContent('직전가 대비 상승');
+    expect(within(modal).getByTestId('fullscreen-zone-section-flat')).toHaveTextContent('보합권 체결');
+    expect(within(modal).getByTestId('fullscreen-zone-section-falling')).toHaveTextContent('직전가 대비 하락·급매');
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
 

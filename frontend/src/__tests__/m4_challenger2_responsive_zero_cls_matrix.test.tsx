@@ -176,8 +176,8 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
         expect(leftCol).toBeInTheDocument();
         expect(rightCol).toBeInTheDocument();
 
-        // Unified Timeline Live Ranking Tab & HyperlocalInsightCards
-        expect(screen.getByTestId('timeline-tab-live-rankings')).toBeInTheDocument();
+        // Hero Timeline & HyperlocalInsightCards
+        expect(screen.getByText('일자별 최근 실거래')).toBeInTheDocument();
         expect(screen.getAllByTestId('stats-hyperlocal-insights').length).toBeGreaterThanOrEqual(1);
 
         // Right Column contains RetentionActionCard
@@ -387,9 +387,9 @@ describe('Milestone 4 Challenger #2: Responsive Breakpoint Matrix & Zero-CLS Lay
       expect(slot1Container?.className).toContain('min-h-[140px]');
       expect(slot1Container?.className).toContain('sm:min-h-[160px]');
 
-      // Ordering check: slot1Container precedes timelineHeading (hero -> slot 1 -> timeline)
+      // Ordering check: timelineHeading in hero precedes slot1Container (hero timeline -> slot 1 -> zone3 chart)
       expect(
-        slot1Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+        timelineHeading.compareDocumentPosition(slot1Container!) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 

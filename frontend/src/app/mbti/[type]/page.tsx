@@ -21,6 +21,8 @@ interface PageProps {
   params: Promise<{ type: string }>;
 }
 
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   return ALL_MBTI_TYPES.map((type) => ({
     type,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   ResponsiveContainer,
   PieChart,
@@ -95,6 +95,8 @@ export interface AptEnergyItem {
   deltaPercent?: number;
   prevPriceVal?: number;
   contractDate?: string;
+  registeredDate?: string;
+  registeredDateLabel?: string;
   dateLabel?: string;
   isNewHigh?: boolean;
 }
@@ -249,6 +251,8 @@ export interface AptDonutSectionProps {
   budget?: BudgetFilterKey;
   onBudgetChange?: (budget: BudgetFilterKey) => void;
   chartSize?: number;
+  selectedDateLabel?: string | null;
+  onClearSelectedDate?: () => void;
   className?: string;
 }
 
@@ -303,14 +307,16 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   budget: controlledBudget,
   onBudgetChange,
   chartSize = 270,
+  selectedDateLabel = null,
+  onClearSelectedDate,
   className = '',
 }: AptDonutSectionProps) {
   const isNavigator = variant === 'navigator';
-  const resolvedInitialMode: AptDonutMode = initialMode ?? (isNavigator ? 'zone' : 'pyeong');
+  const resolvedInitialMode: AptDonutMode = initialMode ?? (isNavigator ? 'energy' : 'pyeong');
 
   const [internalMode, setInternalMode] = useState<AptDonutMode>(resolvedInitialMode);
   const isControlledMode = controlledMode !== undefined;
-  const mode: AptDonutMode = isNavigator ? 'zone' : (isControlledMode ? controlledMode : internalMode);
+  const mode: AptDonutMode = isControlledMode ? controlledMode : internalMode;
 
   const budget: BudgetFilterKey = isNavigator ? 'all' : (controlledBudget ?? initialBudget);
   void onBudgetChange;
@@ -341,10 +347,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     if (!isControlledPeriod) {
       setInternalPeriod(newPeriod);
     }
-    setActiveCategory(null);
+    if (!isControlledCategory) {
+      setInternalActiveCategory(null);
+    }
     setHoveredCategory(null);
     onPeriodChange?.(newPeriod);
-  }, [isControlledPeriod, setActiveCategory, onPeriodChange]);
+  }, [isControlledPeriod, isControlledCategory, onPeriodChange]);
 
   const timelinePeriodForFetch: TimelinePeriod = period === '1y' ? '1y' : '90d';
   const { transactions: periodTransactions, isLoading: isPeriodLoading } = usePeriodTransactions(
@@ -354,6 +362,33 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   );
 
   const activeTransactions = useMemo(() => {
+    if (selectedDateLabel) {
+      const src = Array.isArray(recentTransactions) ? recentTransactions : [];
+      const targetDigits = selectedDateLabel.replace(/[^0-9]/g, '').slice(0, 8);
+      if (targetDigits.length === 8) {
+        const hasComparableDate = src.some(
+          (tx) =>
+            String(tx?.registeredDate || tx?.contractDate || tx?.date || '')
+              .replace(/[^0-9]/g, '')
+              .length >= 8 || Boolean(tx?.registeredDateLabel)
+        );
+        if (hasComparableDate) {
+          return src.filter((tx) => {
+            const raw = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+            const clean = raw.replace(/[^0-9]/g, '').slice(0, 8);
+            return clean === targetDigits || tx?.registeredDateLabel === selectedDateLabel;
+          });
+        }
+      }
+      const matchedByLabel = src.filter(
+        (tx) =>
+          tx?.registeredDateLabel === selectedDateLabel ||
+          tx?.dateLabel === selectedDateLabel ||
+          tx?.date === selectedDateLabel
+      );
+      return matchedByLabel.length > 0 ? matchedByLabel : src;
+    }
+
     const baseTxs = period === '1y'
       ? (Array.isArray(periodTransactions) && periodTransactions.length > 0 ? periodTransactions : recentTransactions || [])
       : (Array.isArray(recentTransactions) && recentTransactions.length > 0 ? recentTransactions : periodTransactions || []);
@@ -365,7 +400,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
 
     let maxDateStr = '';
     for (let i = 0; i < baseTxs.length; i++) {
-      const cd = String(baseTxs[i]?.contractDate || baseTxs[i]?.date || '');
+      const cd = String(baseTxs[i]?.registeredDate || baseTxs[i]?.contractDate || baseTxs[i]?.date || '');
       const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
       if (clean > maxDateStr) maxDateStr = clean;
     }
@@ -378,12 +413,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     const cutoffNum = cutoffD.getFullYear() * 10000 + (cutoffD.getMonth() + 1) * 100 + cutoffD.getDate();
 
     return baseTxs.filter((tx) => {
-      const cd = String(tx?.contractDate || tx?.date || '');
+      const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
       const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
       if (clean.length < 8) return true;
       return parseInt(clean, 10) >= cutoffNum;
     });
-  }, [period, periodTransactions, recentTransactions]);
+  }, [period, periodTransactions, recentTransactions, selectedDateLabel]);
 
   const handleModeChange = useCallback((newMode: AptDonutMode) => {
     if (!isControlledMode) {
@@ -524,7 +559,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           deltaPercent,
           prevPriceVal,
           contractDate: tx.contractDate,
-          dateLabel: tx.dateLabel || tx.date,
+          registeredDate: tx.registeredDate,
+          registeredDateLabel: tx.registeredDateLabel,
+          dateLabel: tx.registeredDateLabel || tx.dateLabel || tx.date,
           isNewHigh: isHigh,
         };
 
@@ -596,9 +633,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       total
     );
 
-    // Sort items by contractDate desc, then priceVal desc
+    // Sort items by registeredDate (fallback contractDate) desc, then priceVal desc
     const sortItems = (items: AptEnergyItem[]) =>
-      items.sort((a, b) => (b.contractDate || '').localeCompare(a.contractDate || '') || b.priceVal - a.priceVal);
+      items.sort(
+        (a, b) =>
+          (b.registeredDate || b.contractDate || '').localeCompare(a.registeredDate || a.contractDate || '') ||
+          b.priceVal - a.priceVal
+      );
 
     sortItems(smallItems);
     sortItems(mediumItems);
@@ -751,19 +792,23 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     ];
 
     // Energy / Momentum items sorting:
-    // - high & rising & flat: latest contractDate desc, then priceVal desc
+    // - high & rising & flat: latest registeredDate (fallback contractDate) desc, then priceVal desc
     // - falling (하락·급매): steepest discount first (delta ascending, e.g. -1.5 before -0.2)
     sortItems(highItems);
     sortItems(risingItems);
     sortItems(flatItems);
-    fallingItems.sort((a, b) => (a.delta - b.delta) || (b.contractDate || '').localeCompare(a.contractDate || ''));
+    fallingItems.sort(
+      (a, b) =>
+        a.delta - b.delta ||
+        (b.registeredDate || b.contractDate || '').localeCompare(a.registeredDate || a.contractDate || '')
+    );
 
-    const [pHigh, pFalling, pRising, pFlat] = calcPercentages(
-      [highItems.length, fallingItems.length, risingItems.length, flatItems.length],
+    const [pHigh, pRising, pFlat, pFalling] = calcPercentages(
+      [highItems.length, risingItems.length, flatItems.length, fallingItems.length],
       total
     );
 
-    const energyCounts = [highItems.length, fallingItems.length, risingItems.length, flatItems.length];
+    const energyCounts = [highItems.length, risingItems.length, flatItems.length, fallingItems.length];
     const maxEnergyCount = Math.max(...energyCounts);
     const hasSingleEnergyMax = total > 0 && maxEnergyCount > 0 && energyCounts.filter((c) => c === maxEnergyCount).length === 1;
 
@@ -779,18 +824,6 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         avgPriceLabel: formatSectorAvgPrice(highItems),
         isTop: hasSingleEnergyMax && highItems.length === maxEnergyCount,
         repApt: getRepresentativeApt(highItems),
-      },
-      {
-        name: '직전가 대비 하락·급매',
-        subName: '할인 폭 큰 순서',
-        category: 'falling',
-        value: pFalling,
-        count: fallingItems.length,
-        color: ENERGY_COLORS.falling,
-        items: fallingItems,
-        avgPriceLabel: formatSectorAvgPrice(fallingItems),
-        isTop: hasSingleEnergyMax && fallingItems.length === maxEnergyCount,
-        repApt: getRepresentativeApt(fallingItems),
       },
       {
         name: '직전가 대비 상승',
@@ -815,6 +848,18 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         avgPriceLabel: formatSectorAvgPrice(flatItems),
         isTop: hasSingleEnergyMax && flatItems.length === maxEnergyCount,
         repApt: getRepresentativeApt(flatItems),
+      },
+      {
+        name: '직전가 대비 하락·급매',
+        subName: '할인 폭 큰 순서',
+        category: 'falling',
+        value: pFalling,
+        count: fallingItems.length,
+        color: ENERGY_COLORS.falling,
+        items: fallingItems,
+        avgPriceLabel: formatSectorAvgPrice(fallingItems),
+        isTop: hasSingleEnergyMax && fallingItems.length === maxEnergyCount,
+        repApt: getRepresentativeApt(fallingItems),
       },
     ];
 
@@ -970,7 +1015,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     return null;
   }, [activeSector, hoveredCategory, donutData]);
 
+  const prevActiveSectorSigRef = useRef<string | null>(null);
   useEffect(() => {
+    const sig = activeSector
+      ? `${activeSector.category}:${activeSector.name}:${activeSector.count}:${activeSector.value}:${activeSector.avgPriceLabel || ''}:${activeSector.items.slice(0, 4).map((i) => `${i.aptName}-${i.priceEok}-${i.registeredDate || i.contractDate}`).join('|')}`
+      : '__null__';
+    if (prevActiveSectorSigRef.current === sig) return;
+    prevActiveSectorSigRef.current = sig;
     onActiveSectorChange?.(activeSector);
   }, [activeSector, onActiveSectorChange]);
 
@@ -1005,27 +1056,77 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     setIsFullscreenOpen(false);
   }, []);
 
+  const handleEmptySpaceReset = useCallback((target: EventTarget | null) => {
+    if (!activeCategory) return;
+    if (target instanceof Element) {
+      const isInsideDonut = Boolean(target.closest('#apt-market-energy-donut'));
+      const isDirectDocumentRoot =
+        typeof document !== 'undefined' &&
+        (target === document.body || target === document.documentElement);
+      if (!isInsideDonut && !isDirectDocumentRoot) {
+        return;
+      }
+      if (
+        target.closest('[data-testid^="donut-legend-"]') ||
+        target.closest('.recharts-sector') ||
+        target.closest('.recharts-pie-sector') ||
+        target.closest('[data-testid="pie"]') ||
+        target.closest('[data-testid="pie-cell"]') ||
+        target.closest('button, a, select, input, textarea, [role="button"], [role="dialog"]')
+      ) {
+        return;
+      }
+    }
+    setHoveredCategory(null);
+    setActiveCategory(null);
+  }, [activeCategory, setActiveCategory]);
+
+  useEffect(() => {
+    if (!activeCategory || typeof document === 'undefined') return;
+    const onDocClick = (e: MouseEvent) => {
+      handleEmptySpaceReset(e.target);
+    };
+    document.addEventListener('click', onDocClick);
+    return () => {
+      document.removeEventListener('click', onDocClick);
+    };
+  }, [activeCategory, handleEmptySpaceReset]);
+
   return (
     <div
       id="apt-market-energy-donut"
+      onClick={(e) => handleEmptySpaceReset(e.target)}
       className={`bg-surface border-b border-border pb-3.5 sm:pb-4 flex flex-col justify-between h-auto sm:min-h-[315px] lg:h-[360px] shrink-0 ${className}`}
     >
       {/* Header with Period Switcher (and Mode Toggle in classic variant only) */}
       <div className={`flex flex-wrap xl:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-2.5 ${isNavigator ? 'mb-2 sm:mb-2.5' : 'mb-2.5 sm:mb-3'}`}>
         {/* Element 1: Title Group (Indicator dot + Section Title + Count Badge) */}
-        <div className="flex items-center gap-1.5 sm:gap-2 order-1 shrink-0">
+        <div className="flex items-center gap-1.5 sm:gap-2 order-1 shrink-0 flex-wrap">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-600 shrink-0" />
           <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight whitespace-nowrap">
-            {isNavigator ? '권역별 거래·평균가' : '실거래 비중'}
+            {isNavigator ? (mode === 'zone' ? '권역별 거래·평균가' : '실거래 체결 온도') : '실거래 비중'}
           </h3>
           {effectiveTotalCount > 0 && (
             <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11.5px] font-extrabold text-secondary shrink-0 tabular-nums whitespace-nowrap">
               총 {effectiveTotalCount.toLocaleString()}건
             </span>
           )}
+          {selectedDateLabel && (
+            <button
+              type="button"
+              data-testid="donut-selected-date-badge"
+              onClick={() => onClearSelectedDate?.()}
+              title="선택된 등재일 필터 해제"
+              aria-label={`${selectedDateLabel} 등재일 필터 해제`}
+              className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 text-[10.5px] sm:text-[11px] font-extrabold shrink-0 tabular-nums whitespace-nowrap inline-flex items-center gap-1 transition-colors cursor-pointer"
+            >
+              <span>{selectedDateLabel} 등재</span>
+              {onClearSelectedDate && <span aria-hidden="true">×</span>}
+            </button>
+          )}
         </div>
 
-        {/* Element 2: Divider & Mode Switch Toggle (Classic variant only; Navigator is locked to single '권역별 거래·평균가' view) */}
+        {/* Element 2: Divider & Mode Switch Toggle (Classic variant only; Navigator is locked to single '실거래 체결 온도' view) */}
         {!isNavigator && (
           <div className="w-full sm:w-auto lg:w-full xl:w-auto order-3 sm:order-2 lg:order-3 xl:order-2 flex items-center gap-1.5 sm:gap-2">
             <div className="hidden sm:block lg:hidden xl:block h-3.5 w-px bg-border/60" />
@@ -1085,13 +1186,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         {/* Left: Donut Chart Container (dominant flex-1 width) */}
         <div
           data-testid="donut-chart-pane"
-          onClick={() => {
-            if (enableFullscreen) {
-              handleOpenFullscreen(mode === 'zone' && activeSector ? activeSector.category : null);
-            }
-          }}
           className={`w-full sm:flex-1 min-w-0 flex items-center justify-center relative sm:h-full sm:border-r border-border/60 dark:border-border/30 py-0.5 ${
-            enableFullscreen ? 'cursor-pointer group/donut' : ''
+            enableFullscreen ? 'group/donut' : ''
           } ${
             isNavigator ? 'pr-0 sm:pr-2.5 xl:pr-4' : 'pr-0 sm:pr-3'
           }`}
@@ -1102,7 +1198,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               data-testid="donut-fullscreen-open-btn"
               onClick={(e) => {
                 e.stopPropagation();
-                handleOpenFullscreen(mode === 'zone' && activeSector ? activeSector.category : null);
+                handleOpenFullscreen(activeSector ? activeSector.category : null);
               }}
               aria-label="도넛차트 크게 보기"
               title="도넛차트 크게 보기"
@@ -1115,16 +1211,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           {mounted ? (
             <div
               data-testid="donut-chart-box"
-              onClick={(e) => {
-                if (enableFullscreen) {
-                  e.stopPropagation();
-                  handleOpenFullscreen(mode === 'zone' && activeSector ? activeSector.category : null);
-                }
-              }}
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
               className={`relative flex items-center justify-center transition-opacity duration-200 ${
-                enableFullscreen ? 'cursor-pointer' : ''
-              } ${
                 isNavigator
                   ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
                   : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
@@ -1165,11 +1253,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       }}
                       onMouseLeave={() => setHoveredCategory((prev) => (prev === null ? prev : null))}
                       onClick={(entry: any, _idx?: number, e?: React.MouseEvent) => {
-                        if (enableFullscreen) {
-                          e?.stopPropagation?.();
-                          handleOpenFullscreen(mode === 'zone' && activeSector ? activeSector.category : null);
-                          return;
-                        }
+                        e?.stopPropagation?.();
                         const matched = donutData.find(
                           (d) => d.name === entry?.name || (entry?.category && d.category === entry.category)
                         );
@@ -1290,7 +1374,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         <div
           data-testid="donut-legend-pane"
           className={`w-full max-w-[340px] mx-auto sm:mx-0 sm:max-w-none shrink-0 flex flex-col justify-center ${
-            isNavigator ? 'gap-0.5 sm:gap-1' : 'gap-1 sm:gap-1.5'
+            isNavigator ? 'gap-2 sm:gap-2.5 xl:gap-3' : 'gap-1.5 sm:gap-2'
           } my-auto py-0.5 ${
             isNavigator
               ? 'sm:w-[268px] md:w-[296px] lg:w-[212px] xl:w-[280px] 2xl:w-[324px] pl-0 sm:pl-1 xl:pl-1.5'
@@ -1309,7 +1393,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               <div
                 key={sector.name}
                 data-testid={`donut-legend-${sector.category}`}
-                onClick={() => handleToggleSlice(sector)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleToggleSlice(sector);
+                }}
                 onMouseEnter={() => {
                   if (activeCategory === null) {
                     setHoveredCategory(sector.name);
@@ -1331,7 +1418,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   }
                 }}
                 className={`group ${
-                  isNavigator ? 'px-2 py-1 xl:px-3 xl:py-1 gap-1' : 'px-2.5 py-1.5 sm:px-3 sm:py-2 gap-1.5'
+                  isNavigator ? 'px-2.5 py-2 xl:px-3 xl:py-2.5 gap-1.5' : 'px-2.5 py-1.5 sm:px-3 sm:py-2 gap-1.5'
                 } rounded-xl transition-all duration-200 cursor-pointer flex flex-col justify-between ${
                   isSelected
                     ? 'bg-elevated dark:bg-slate-800/80 ring-1 ring-blue-500/25'
@@ -1426,8 +1513,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         <ZoneDonutFullscreenModal
           isOpen={isFullscreenOpen}
           onClose={handleCloseFullscreen}
-          zoneSlices={zoneDonut}
-          totalCount={zoneTotalCount}
+          zoneSlices={donutData}
+          totalCount={effectiveTotalCount}
           period={period}
           onPeriodChange={handlePeriodChange}
           isPeriodLoading={isPeriodLoading}

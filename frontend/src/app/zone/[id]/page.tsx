@@ -16,6 +16,8 @@ import {
   resolveCanonicalAptSlug,
 } from '@/lib/services/apartmentPageService';
 
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   return ZONES.map((zone) => ({
     id: zone.id,

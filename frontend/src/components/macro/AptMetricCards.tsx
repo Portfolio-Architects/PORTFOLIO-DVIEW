@@ -207,7 +207,10 @@ export const AptMetricCards = React.memo(function AptMetricCards({
             ? Math.round((item.priceVal * 10000) / pyeongVal)
             : 0;
           const pyeongPriceStr = pyeongPriceMan > 0 ? `평당 ${pyeongPriceMan.toLocaleString()}만` : '';
-          const cleanDate = formatCleanDate(item.dateLabel, item.contractDate);
+          const cleanDate = formatCleanDate(
+            item.registeredDateLabel || item.dateLabel,
+            item.registeredDate || item.contractDate
+          );
 
           return (
             <div

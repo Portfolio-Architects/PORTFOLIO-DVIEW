@@ -226,7 +226,7 @@ function filterTransactionsByDays(txs: RecentTransaction[], days: number): Recen
   if (!Array.isArray(txs) || txs.length === 0) return [];
   let maxDateStr = '';
   for (let i = 0; i < txs.length; i++) {
-    const cd = String(txs[i]?.contractDate || txs[i]?.date || '');
+    const cd = String(txs[i]?.registeredDate || txs[i]?.contractDate || txs[i]?.date || '');
     const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
     if (clean > maxDateStr) maxDateStr = clean;
   }
@@ -239,7 +239,7 @@ function filterTransactionsByDays(txs: RecentTransaction[], days: number): Recen
   const cutoffNum = cutoffD.getFullYear() * 10000 + (cutoffD.getMonth() + 1) * 100 + cutoffD.getDate();
 
   return txs.filter((tx) => {
-    const cd = String(tx?.contractDate || tx?.date || '');
+    const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
     const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
     if (clean.length < 8) return true;
     return parseInt(clean, 10) >= cutoffNum;

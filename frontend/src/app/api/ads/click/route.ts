@@ -124,9 +124,8 @@ export async function POST(request: NextRequest) {
     });
 
     if (adminDb) {
-      adminDb
-        .collection('ad_clicks')
-        .add({
+      try {
+        await adminDb.collection('ad_clicks').add({
           adId,
           slotId,
           eventType,
@@ -138,17 +137,15 @@ export async function POST(request: NextRequest) {
           userAgentCategory,
           clickedAt: new Date(clickedAt),
           serverTimestamp: new Date(),
-        })
-        .then(() => {
-          logger.info(
-            'AdClick.POST',
-            `Persisted ad telemetry [${eventType}] successfully to Firestore: ${adId}`
-          );
-        })
-        .catch((writeErr: unknown) => {
-          const err = writeErr instanceof Error ? writeErr : new Error(String(writeErr));
-          logger.error('AdClick.POST', 'Failed to persist ad click to Firestore', { adId }, err);
         });
+        logger.info(
+          'AdClick.POST',
+          `Persisted ad telemetry [${eventType}] successfully to Firestore: ${adId}`
+        );
+      } catch (writeErr: unknown) {
+        const err = writeErr instanceof Error ? writeErr : new Error(String(writeErr));
+        logger.error('AdClick.POST', 'Failed to persist ad click to Firestore', { adId }, err);
+      }
     } else {
       logger.warn('AdClick.POST', 'adminDb is not configured. Click logged only to console.', {
         adId,

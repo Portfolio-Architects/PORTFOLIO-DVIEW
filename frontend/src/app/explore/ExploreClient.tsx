@@ -22,7 +22,7 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView } from '@/lib/utils/analytics';
 import { logger } from '@/lib/services/logger';
 import { syncShallowModalCloseToDashboard } from '@/lib/ads/recirculationEngine';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
@@ -356,6 +356,14 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
             });
           }
           setMobileModalOpen(true);
+          trackApartmentView({
+            apartment_name: targetApt.name,
+            apt_name: targetApt.name,
+            dong: targetApt.dong || undefined,
+            surface: 'explore_hash_modal',
+            view_type: 'modal',
+            trigger: 'hash_link',
+          });
         }
       }
     };
@@ -385,7 +393,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const handleAptClick = useCallback((apt: { name: string; dong: string }) => {
     trackEvent('view_apartment', { apt_name: apt.name });
-    trackEvent('apartment_view', {
+    trackApartmentView({
       apartment_name: apt.name,
       apt_name: apt.name,
       dong: apt.dong || undefined,

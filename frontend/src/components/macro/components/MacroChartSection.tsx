@@ -16,7 +16,6 @@ import { TimeframeSelector } from './MacroControls';
 import { DongApartment, buildInitialApartments } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import { getControlSelectClass, getControlInputClass } from '@/lib/design-system/controls';
-import { useDebounce } from '@/hooks/useDebounce';
 import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 
 export interface MacroChartSectionProps {
@@ -116,34 +115,12 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   const listboxRef = useRef<HTMLDivElement>(null);
   const lastTrackedSearchQueryRef = useRef<string>('');
   const searchMatchCountRef = useRef<number>(0);
+  const onSelectAptRef = useRef(onSelectApt);
   const isImeComposingRef = useRef<boolean>(false);
 
-  const debouncedChartSearch = useDebounce(searchQuery, 1000);
-
   useEffect(() => {
-    if (!searchQuery.trim()) {
-      lastTrackedSearchQueryRef.current = '';
-    }
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const query = debouncedChartSearch.trim();
-    if (mounted && query) {
-      if (lastTrackedSearchQueryRef.current !== query) {
-        lastTrackedSearchQueryRef.current = query;
-        trackEvent('search_apartment', { query, surface: 'dashboard_chart' });
-      }
-      if (onSelectApt) {
-        trackSearchQuery({
-          search_term: query,
-          query,
-          surface: 'dashboard_chart',
-          trigger: 'debounce',
-          results_count: searchMatchCountRef.current,
-        });
-      }
-    }
-  }, [debouncedChartSearch, mounted, onSelectApt]);
+    onSelectAptRef.current = onSelectApt;
+  }, [onSelectApt]);
 
   useEffect(() => {
     if (mounted) {
@@ -287,6 +264,40 @@ export const MacroChartSection = React.memo(function MacroChartSection({
     return { primarySearchMatches: primary, crossDongSearchMatches: crossDong };
   }, [trimmedSearch, scopedPool, selectedDong, dongsData.allApts]);
 
+  const totalSearchCount = primarySearchMatches.length + crossDongSearchMatches.length;
+
+  useEffect(() => {
+    searchMatchCountRef.current = totalSearchCount;
+  }, [totalSearchCount]);
+
+  useEffect(() => {
+    if (!trimmedSearch) {
+      lastTrackedSearchQueryRef.current = '';
+      return;
+    }
+    if (!mounted) return;
+
+    const timer = setTimeout(() => {
+      if (lastTrackedSearchQueryRef.current !== trimmedSearch) {
+        lastTrackedSearchQueryRef.current = trimmedSearch;
+        trackEvent('search_apartment', { query: trimmedSearch, surface: 'dashboard_chart' });
+        if (onSelectAptRef.current) {
+          trackSearchQuery({
+            search_term: trimmedSearch,
+            query: trimmedSearch,
+            surface: 'dashboard_chart',
+            trigger: 'debounce',
+            results_count: searchMatchCountRef.current,
+          });
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [trimmedSearch, mounted]);
+
   // Empty-query recommendation groups
   const favoriteResolvedApts = useMemo(() => {
     const resolved: EnrichedCatalogApt[] = [];
@@ -428,7 +439,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
           selected_apt: apt.name,
           surface: 'dashboard_chart',
           trigger: 'combobox_select',
-          results_count: searchMatchCountRef.current,
+          results_count: totalSearchCount,
         });
       }
       trackApartmentView({
@@ -449,7 +460,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
       setSearchQuery('');
       setIsDropdownOpen(false);
     },
-    [searchQuery, setSelectedTimelineApt, onHoverApt, preloadApartmentModal]
+    [searchQuery, totalSearchCount, setSelectedTimelineApt, onHoverApt, preloadApartmentModal]
   );
 
   const handleRemoveRecent = useCallback(
@@ -670,9 +681,6 @@ export const MacroChartSection = React.memo(function MacroChartSection({
       </div>
     );
   };
-
-  const totalSearchCount = primarySearchMatches.length + crossDongSearchMatches.length;
-  searchMatchCountRef.current = totalSearchCount;
 
   const idlePlaceholder = selectedTimelineApt
     ? `${getDisplayAptName(selectedTimelineApt)} · 단지명/초성 검색`

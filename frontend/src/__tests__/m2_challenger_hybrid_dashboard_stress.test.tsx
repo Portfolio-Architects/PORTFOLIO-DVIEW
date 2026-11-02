@@ -465,21 +465,20 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       const adContainers = screen.getAllByTestId('ad-slot-container');
       expect(adContainers.length).toBeGreaterThanOrEqual(2);
 
-      // Strict DOM Hierarchy Order Verification: Donut Hero -> Prime AdSlot 1 -> Timeline -> Finance
+      // Strict DOM Hierarchy Order Verification: Donut & Timeline Hero -> Prime AdSlot 1 -> Chart Section -> Finance
       expect(
-        heroAdSlot1.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+        timelineHeading.compareDocumentPosition(heroAdSlot1) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
       expect(
-        timelineHeading.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
+        heroAdSlot1.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
-      // Live Market Ranking tab mounts RealtimeRankingBoard
-      fireEvent.click(screen.getByTestId('timeline-tab-live-rankings'));
-      expect(screen.getByTestId('realtime-ranking-board')).toBeInTheDocument();
+      // View tab switcher is hidden in compactHeroMode
+      expect(screen.queryByTestId('timeline-view-tab-switcher')).not.toBeInTheDocument();
     });
 
-    it('wires ranking item click from StatsOverviewSection up to MacroDashboardClient onSelectApt', () => {
+    it('wires complex item click from HyperlocalInsightCards up to MacroDashboardClient onSelectApt', () => {
       const onSelectApt = jest.fn();
       const recentTxs = [
         {
@@ -516,12 +515,10 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
 
       const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
       expect(statsSections.length).toBeGreaterThanOrEqual(1);
-      fireEvent.click(screen.getByTestId('timeline-tab-rankings'));
-      const rankItems = screen.getAllByTestId('ranking-item-1');
-      const rank1 = rankItems[rankItems.length - 1];
-      expect(rank1).toBeInTheDocument();
+      const newHighCard = screen.getByTestId('insight-card-new-high');
+      expect(newHighCard).toBeInTheDocument();
 
-      fireEvent.click(rank1);
+      fireEvent.click(newHighCard);
 
       expect(onSelectApt).toHaveBeenCalledTimes(1);
       expect(onSelectApt).toHaveBeenCalledWith(
@@ -736,10 +733,8 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
 
       const statsSections = screen.getAllByTestId('stats-hyperlocal-insights');
       expect(statsSections.length).toBeGreaterThanOrEqual(1);
-      fireEvent.click(screen.getByTestId('timeline-tab-rankings'));
-      const rankItems = screen.getAllByTestId('ranking-item-1');
-      const rankItem = rankItems[rankItems.length - 1];
-      fireEvent.click(rankItem);
+      const newHighCard = screen.getByTestId('insight-card-new-high');
+      fireEvent.click(newHighCard);
 
       expect(onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', expect.anything());
       expect(mockRouterPush).not.toHaveBeenCalled();

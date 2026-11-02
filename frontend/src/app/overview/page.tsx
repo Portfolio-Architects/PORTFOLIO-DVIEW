@@ -24,6 +24,7 @@ interface TxSummaryItem {
   avg1MRentDeposit?: number;
 }
 
+export const dynamic = 'force-static';
 export const revalidate = 3600;
 
 const OVERVIEW_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 아파트 시세·실거래가·집값 추이 그래프')}&subtitle=${encodeURIComponent('동탄 1·2신도시 184개 단지 국토부 실거래가·전세가율·학군 비교 | D-VIEW')}`;
@@ -322,10 +323,10 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
   );
 }
 
-export default async function OverviewPage(props: {
+export default async function OverviewPage(props?: {
   searchParams?: Promise<{ tab?: string }>;
 }) {
-  const searchParams = await props.searchParams;
+  const searchParams = props?.searchParams ? await props.searchParams : undefined;
   const tab = searchParams?.tab;
 
   let initialTab: 'overview' | 'imjang' | 'mbti' = 'overview';

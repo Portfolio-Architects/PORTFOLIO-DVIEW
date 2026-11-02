@@ -4,7 +4,7 @@ import type { TimelinePeriod } from '@/types/transaction';
 
 export type RegionFilterType = 'all' | 'dongtan1' | 'dongtan2' | string;
 export type PyeongFilterType = 'all' | 'under20' | '20s' | '30s' | '40plus';
-export type TradeTypeFilterType = 'all' | 'high' | 'rising' | 'falling';
+export type TradeTypeFilterType = 'all' | 'high' | 'rising' | 'flat' | 'falling';
 
 /**
  * 7 One-Touch Quick Filter Chips:

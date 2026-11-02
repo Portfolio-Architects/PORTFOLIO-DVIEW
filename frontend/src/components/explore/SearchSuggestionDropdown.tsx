@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Clock, X } from 'lucide-react';
 import { DONGS } from '@/lib/dongs';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 import { getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { getHighlightSegments } from '@/lib/utils/apartmentSearch';
 import {
@@ -72,10 +72,8 @@ export function SearchSuggestionDropdown({
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         addRecentApartment({ name: recent.name, dong: recent.dong });
-                        handleSelectApt(recent.name);
-                        setIsSearchFocused(false);
                         trackEvent('view_apartment', { apt_name: recent.name, trigger: 'recent_shortcut' });
-                        trackEvent('apartment_view', {
+                        trackApartmentView({
                           apartment_name: recent.name,
                           apt_name: recent.name,
                           dong: recent.dong || undefined,
@@ -83,6 +81,8 @@ export function SearchSuggestionDropdown({
                           trigger: 'recent_shortcut',
                           view_type: 'shortcut',
                         });
+                        handleSelectApt(recent.name);
+                        setIsSearchFocused(false);
                       }}
                       className="flex items-center justify-between flex-1 min-w-0 text-left pr-2 cursor-pointer"
                     >
@@ -127,14 +127,14 @@ export function SearchSuggestionDropdown({
                   tabIndex={0}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
-                    setSearchQuery(kw);
                     trackEvent('search_tag_click', { tag: kw });
-                    trackEvent('search_query', {
+                    trackSearchQuery({
                       search_term: kw,
                       query: kw,
                       surface: 'search_suggestion_dropdown',
                       trigger: 'recommended_keyword',
                     });
+                    setSearchQuery(kw);
                   }}
                   className="bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-secondary text-[12px] font-bold px-3.5 py-1.5 rounded-full transition-all active:scale-95 border border-slate-200/50 dark:border-slate-800/50 outline-none focus:ring-1 focus:ring-emerald-500/50"
                 >
@@ -192,11 +192,9 @@ export function SearchSuggestionDropdown({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       addRecentApartment({ name: item.apt.name, dong: item.apt.dong });
-                      handleSelectApt(item.apt.name);
-                      setIsSearchFocused(false);
                       trackEvent('view_apartment', { apt_name: item.apt.name, trigger: 'search_shortcut' });
                       if (searchQuery.trim()) {
-                        trackEvent('search_query', {
+                        trackSearchQuery({
                           search_term: searchQuery.trim(),
                           query: searchQuery.trim(),
                           selected_apt: item.apt.name,
@@ -204,7 +202,7 @@ export function SearchSuggestionDropdown({
                           trigger: 'search_shortcut',
                         });
                       }
-                      trackEvent('apartment_view', {
+                      trackApartmentView({
                         apartment_name: item.apt.name,
                         apt_name: item.apt.name,
                         dong: item.apt.dong || undefined,
@@ -212,6 +210,8 @@ export function SearchSuggestionDropdown({
                         trigger: 'search_shortcut',
                         view_type: 'shortcut',
                       });
+                      handleSelectApt(item.apt.name);
+                      setIsSearchFocused(false);
                     }}
                     onMouseEnter={() => {
                       preloadApartmentTx?.(item.apt.name, item.apt.dong);
@@ -300,8 +300,14 @@ export function SearchSuggestionDropdown({
                         tabIndex={0}
                         onMouseDown={(e) => e.preventDefault()}
                         onClick={() => {
-                          setSearchQuery(brand);
                           trackEvent('search_tag_click', { tag: brand });
+                          trackSearchQuery({
+                            search_term: brand,
+                            query: brand,
+                            surface: 'search_suggestion_dropdown',
+                            trigger: 'brand_suggestion',
+                          });
+                          setSearchQuery(brand);
                         }}
                         className="bg-slate-50 dark:bg-slate-900/60 hover:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 text-primary text-[12px] font-bold px-3.5 py-1.5 rounded-full border border-slate-200/50 dark:border-slate-800/50 transition-all active:scale-95 outline-none focus:ring-1 focus:ring-emerald-500/50"
                       >

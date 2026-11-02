@@ -650,7 +650,7 @@ const DashboardClient = React.memo(function DashboardClient({
             });
           }
           setMobileModalOpen(true);
-          trackEvent('apartment_view', {
+          trackApartmentView({
             apartment_name: targetApt.name,
             apt_name: targetApt.name,
             dong: targetApt.dong || undefined,
@@ -781,7 +781,7 @@ const DashboardClient = React.memo(function DashboardClient({
           });
           triggerFetch();
           setMobileModalOpen(true);
-          trackEvent('apartment_view', {
+          trackApartmentView({
             apartment_name: resolvedApt.name,
             apt_name: resolvedApt.name,
             canonical_slug: canonicalSlug || resolvedApt.name,
@@ -946,7 +946,7 @@ const DashboardClient = React.memo(function DashboardClient({
     // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV + funnel view_apartment
     const canonicalSlug = getCanonicalAptSlug(apt.name, apt.dong, (apt as DongApartment).txKey);
     trackEvent('view_apartment', { apt_name: apt.name, dong: apt.dong || undefined, surface: 'dashboard' });
-    trackEvent('apartment_view', {
+    trackApartmentView({
       apartment_name: apt.name,
       apt_name: apt.name,
       canonical_slug: canonicalSlug,

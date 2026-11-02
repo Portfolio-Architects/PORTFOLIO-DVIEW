@@ -86,10 +86,6 @@ describe('Milestone 2: Zone 3 & Zone 4 Retention-First Layout Overhaul Suite', (
       expect(screen.getByTestId('timeline-segment-favorites')).toBeInTheDocument();
       expect(screen.getByTestId('timeline-segment-new-high')).toBeInTheDocument();
       expect(screen.getByTestId('timeline-segment-ranking')).toBeInTheDocument();
-
-      const statsLink = screen.getByTestId('timeline-stats-link-btn');
-      expect(statsLink).toBeInTheDocument();
-      expect(statsLink).toHaveAttribute('href', '/stats');
     });
 
     it('filters transactions when switching to favorites segment and renders matching items', () => {

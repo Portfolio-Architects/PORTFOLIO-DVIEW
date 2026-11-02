@@ -26,6 +26,7 @@ import { RetentionActionCard } from "./macro/components/RetentionActionCard";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
 import { AptMetricCards } from "./macro/AptMetricCards";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
+import { HyperlocalInsightCards } from "@/components/stats/HyperlocalInsightCards";
 import { usePWA } from "@/components/pwa/PWAProvider";
 import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -315,112 +316,66 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   return (
     <div
       onMouseEnter={() => onCardHover(item.aptName, item.dong)}
-      className={`relative flex flex-col justify-between gap-2 p-3 xs:p-3.5 sm:p-4 rounded-2xl transition-[background-color,transform] duration-150 ease-out w-full max-w-full box-border ${
+      className={`relative flex items-center justify-between gap-2 sm:gap-2.5 p-3 xs:p-3.5 sm:px-4 sm:py-2.5 rounded-2xl transition-[background-color,transform] duration-150 ease-out w-full max-w-full box-border ${
         isSelected
           ? "ring-2 ring-blue-600/30 bg-blue-50/70 dark:bg-blue-950/30"
           : "bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80"
       } group`}
     >
-      {/* Top Row: [신고가 + 동 · 평형 · 층수 · 계약일 · 평당가] + [찜 & 상세 버튼] */}
-      <div className="flex items-start justify-between gap-2 w-full min-w-0">
-        <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0 flex-1 pt-0.5 text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight tabular-nums">
-          {item.type === 'high' && (
-            <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 mr-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
-              신고가
-            </span>
-          )}
-          <span className="shrink-0 font-extrabold text-secondary max-w-[110px] sm:max-w-[180px] truncate min-w-0" title={item.dong}>
-            {item.dong}
-          </span>
-          <span className="opacity-35 font-normal shrink-0">·</span>
-          <span className="shrink-0 whitespace-nowrap">
-            {areaUnit === 'm2'
-              ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
-              : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
-          </span>
-          <span className="opacity-35 font-normal shrink-0">·</span>
-          <span className="shrink-0 whitespace-nowrap">{item.floor}층</span>
-          {item.contractDate && (
-            <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
-              <span className="opacity-35 font-normal">·</span>
-              <span className="text-secondary font-medium">
-                계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
-              </span>
-            </span>
-          )}
-          {pyeongPriceMan > 0 && (
-            <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
-              <span className="opacity-35 font-normal">·</span>
-              <span className="text-slate-500 dark:text-slate-400 font-medium">
-                평당 {pyeongPriceMan.toLocaleString()}만
-              </span>
-            </span>
-          )}
-        </div>
-
-        {/* Top-Right Actions: Favorite Star + Detail Action Button (z-10 above stretched card button) */}
-        <div className="relative z-10 flex items-center justify-center gap-1 shrink-0">
-          {onToggleFavorite && (
-            <button
-              type="button"
-              data-testid={`timeline-fav-toggle-${item.aptName}`}
-              aria-label={`${item.aptName} ${isFavorite ? '찜 해제' : '찜하기'}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                const willBeFav = !isFavorite;
-                trackEvent('watchlist_toggle_favorite', {
-                  apt_name: item.aptName,
-                  is_favorite: willBeFav,
-                  source: 'timeline',
-                });
-                onToggleFavorite(item.aptName);
-              }}
-              className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
-            >
-              <Star
-                size={13}
-                className={
-                  isFavorite
-                    ? 'fill-blue-500 text-blue-600'
-                    : 'text-tertiary hover:text-blue-500'
-                }
-              />
-            </button>
-          )}
-          <button
-            type="button"
-            aria-label={`${item.aptName} 상세 정보 보기`}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDetailsClick(item.aptName);
-            }}
-            onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
-            className="px-2.5 py-1 min-h-[26px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
-          >
-            상세
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Row: Clickable Card Body Button (stretched overlay covers full card) */}
+      {/* Clickable Card Body Button (stretched overlay covers full card; single horizontal row on wide view) */}
       <button
         type="button"
         onClick={() => onCardClick(item.aptName)}
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
-        className="w-full flex items-end justify-between gap-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-lg p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
+        className="flex-1 flex items-center justify-between gap-2 sm:gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-lg p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
       >
-        {/* Left: Apartment Full Name */}
-        <div className="flex items-center min-w-0 flex-1 overflow-hidden pb-0.5">
+        {/* Left: Apartment Full Name + Metadata (stacked on mobile, single row on sm+) */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2.5 min-w-0 flex-1 overflow-hidden">
           <span
-            className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0 flex-1"
+            className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0 sm:max-w-[180px] xl:max-w-[230px] shrink-0"
             title={item.displayAptName || item.aptName}
           >
             {item.displayAptName || item.aptName}
           </span>
+
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-1 gap-y-0.5 min-w-0 flex-1 text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight tabular-nums overflow-hidden">
+            {item.type === 'high' && (
+              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 mr-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+                신고가
+              </span>
+            )}
+            <span className="shrink-0 font-extrabold text-secondary max-w-[110px] sm:max-w-[140px] truncate min-w-0" title={item.dong}>
+              {item.dong}
+            </span>
+            <span className="opacity-35 font-normal shrink-0">·</span>
+            <span className="shrink-0 whitespace-nowrap">
+              {areaUnit === 'm2'
+                ? (item.areaLabelM2 || `${Math.round(item.area)}㎡`)
+                : (item.areaLabelPyeong || `${Math.round(item.areaPyeong)}평`)}
+            </span>
+            <span className="opacity-35 font-normal shrink-0">·</span>
+            <span className="shrink-0 whitespace-nowrap">{item.floor}층</span>
+            {item.contractDate && (
+              <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+                <span className="opacity-35 font-normal">·</span>
+                <span className="text-secondary font-medium">
+                  계약일 {item.contractDate.length >= 8 ? `${item.contractDate.slice(4, 6)}.${item.contractDate.slice(6, 8)}` : item.contractDate}
+                </span>
+              </span>
+            )}
+            {pyeongPriceMan > 0 && (
+              <span className="inline-flex items-center gap-1 shrink-0 whitespace-nowrap">
+                <span className="opacity-35 font-normal">·</span>
+                <span className="text-slate-500 dark:text-slate-400 font-medium">
+                  평당 {pyeongPriceMan.toLocaleString()}만
+                </span>
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Right: Price & Delta Badges */}
-        <div className="flex flex-col items-end justify-center gap-0.5 shrink-0 ml-1.5 sm:ml-2 min-w-0 tabular-nums">
+        {/* Right of Button: Price & Delta Badges (stacked on mobile, inline single row on sm+) */}
+        <div className="flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-end gap-0.5 sm:gap-2 shrink-0 ml-1 sm:ml-2 min-w-0 tabular-nums">
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
               <>
@@ -489,6 +444,49 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           </span>
         </div>
       </button>
+
+      {/* Far-Right Actions: Favorite Star + Detail Action Button (z-10 above stretched card button) */}
+      <div className="relative z-10 flex items-center justify-center gap-1 shrink-0">
+        {onToggleFavorite && (
+          <button
+            type="button"
+            data-testid={`timeline-fav-toggle-${item.aptName}`}
+            aria-label={`${item.aptName} ${isFavorite ? '찜 해제' : '찜하기'}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              const willBeFav = !isFavorite;
+              trackEvent('watchlist_toggle_favorite', {
+                apt_name: item.aptName,
+                is_favorite: willBeFav,
+                source: 'timeline',
+              });
+              onToggleFavorite(item.aptName);
+            }}
+            className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-tertiary transition-colors cursor-pointer"
+          >
+            <Star
+              size={13}
+              className={
+                isFavorite
+                  ? 'fill-blue-500 text-blue-600'
+                  : 'text-tertiary hover:text-blue-500'
+              }
+            />
+          </button>
+        )}
+        <button
+          type="button"
+          aria-label={`${item.aptName} 상세 정보 보기`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDetailsClick(item.aptName);
+          }}
+          onMouseEnter={() => onDetailsHover(item.aptName, item.dong)}
+          className="px-2.5 py-1 min-h-[26px] rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 text-[10px] sm:text-[10.5px] font-extrabold text-secondary hover:text-blue-600 dark:hover:text-blue-400 transition-colors duration-150 ease-out active:scale-95 cursor-pointer shrink-0 outline-none focus:ring-2 focus:ring-blue-500/50 whitespace-nowrap"
+        >
+          상세
+        </button>
+      </div>
     </div>
   );
 });
@@ -790,6 +788,53 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [pushTargetApt, setPushTargetApt] = useState<string>('');
   const [activeDonutCategory, setActiveDonutCategory] = useState<string | null>(null);
   const [activeDonutSector, setActiveDonutSector] = useState<AptDonutDataItem | null>(null);
+  const [selectedTimelineDateJump, setSelectedTimelineDateJump] = useState<string | null>(null);
+
+  const donutPeriod: '7d' | '30d' | '90d' | '1y' =
+    periodFilter === '7d' || periodFilter === '30d' || periodFilter === '90d' || periodFilter === '1y'
+      ? periodFilter
+      : '90d';
+
+  const handleDonutCategoryChange = useCallback(
+    (cat: string | null) => {
+      if (!cat) {
+        setActiveDonutCategory(null);
+        setTradeTypeFilter('all');
+        return;
+      }
+      const catToTradeType: Record<string, 'high' | 'rising' | 'flat' | 'falling'> = {
+        high: 'high',
+        '신고가 돌파': 'high',
+        rising: 'rising',
+        '직전가 대비 상승': 'rising',
+        flat: 'flat',
+        '보합권 체결': 'flat',
+        falling: 'falling',
+        '직전가 대비 하락·급매': 'falling',
+      };
+      const mapped = catToTradeType[cat];
+      if (mapped) {
+        setActiveDonutCategory(mapped);
+        setTradeTypeFilter(mapped);
+      } else {
+        setActiveDonutCategory(cat);
+      }
+    },
+    [setTradeTypeFilter]
+  );
+
+  useEffect(() => {
+    if (tradeTypeFilter === 'all') {
+      setActiveDonutCategory(null);
+    } else {
+      setActiveDonutCategory(tradeTypeFilter);
+    }
+  }, [tradeTypeFilter]);
+
+  const handleResetAllFilters = useCallback(() => {
+    setSelectedTimelineDateJump(null);
+    resetFilters();
+  }, [resetFilters]);
 
   const [isMobileViewport, setIsMobileViewport] = useState(false);
   const [visibleTimelineCount, setVisibleTimelineCount] = useState(8);
@@ -875,14 +920,19 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       canonical_slug: canonicalSlug,
       surface,
     });
-    trackApartmentView({
+    const detailViewPayload = {
       apartment_name: aptName,
       apt_name: aptName,
       canonical_slug: canonicalSlug,
       dong: resolvedDong || dong || undefined,
       surface,
-      view_type: 'detail_page',
-    });
+      view_type: 'detail_page' as const,
+    };
+    if (typeof trackApartmentView === 'function') {
+      trackApartmentView(detailViewPayload);
+    } else {
+      trackEvent('apartment_view', detailViewPayload);
+    }
 
     if (onNavigateApartmentPage) {
       onNavigateApartmentPage(aptName, resolvedDong || dong);
@@ -893,6 +943,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
   }, [resolveAptDong, txSummaryData, sheetApartments, nameMapping, onNavigateApartmentPage, onSelectApt]);
 
+  const handleChartHeaderSelectApt = useCallback(
+    (aptName: string, dong?: string) => handleNavigateDetailPage(aptName, dong, 'chart_header'),
+    [handleNavigateDetailPage]
+  );
+
   const handleCardClick = useCallback((aptName: string) => {
     setSelectedTimelineApt(aptName);
     const resolvedDong = aptName ? resolveAptDong(aptName) : '';
@@ -901,13 +956,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
     const isMob = typeof window !== 'undefined' && window.innerWidth < 1024;
     if (aptName) {
-      trackApartmentView({
+      const cardViewPayload = {
         apartment_name: aptName,
         apt_name: aptName,
         dong: resolvedDong || undefined,
         surface: isMob ? 'dashboard_mobile_drawer' : 'dashboard_timeline_preview',
-        view_type: isMob ? 'mobile_drawer' : 'chart_preview',
-      });
+        view_type: (isMob ? 'mobile_drawer' : 'chart_preview') as 'mobile_drawer' | 'chart_preview',
+      };
+      if (typeof trackApartmentView === 'function') {
+        trackApartmentView(cardViewPayload);
+      } else {
+        trackEvent('apartment_view', cardViewPayload);
+      }
     }
     if (isMob) {
       setIsBottomSheetOpen(true);
@@ -946,11 +1006,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     const query = debouncedTimelineSearch.trim();
     if (mounted && query) {
       trackEvent('search_apartment', { query, surface: 'dashboard_timeline' });
-      trackSearchQuery({
+      const searchPayload = {
         search_term: query,
         query,
         surface: 'dashboard_timeline',
-      });
+      };
+      if (typeof trackSearchQuery === 'function') {
+        trackSearchQuery(searchPayload);
+      } else {
+        trackEvent('search_query', searchPayload);
+      }
     }
   }, [debouncedTimelineSearch, mounted]);
 
@@ -1488,13 +1553,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             if (pyeong < 40) return false;
           }
 
-          // 5. Trade Type match
+          // 5. Trade Type match (1:1 aligned with 4 energy donut slices: high / rising / flat / falling)
+          const isItemHigh = item.type === 'high' || Boolean(item.isNewHigh);
           if (tradeTypeFilter === 'high') {
-            if (item.type !== 'high' && !item.isNewHigh) return false;
+            if (!isItemHigh) return false;
           } else if (tradeTypeFilter === 'rising') {
-            if (item.delta <= 0) return false;
+            if (isItemHigh || (item.delta || 0) <= 0.0001) return false;
+          } else if (tradeTypeFilter === 'flat') {
+            if (isItemHigh || Math.abs(item.delta || 0) > 0.0001) return false;
           } else if (tradeTypeFilter === 'falling') {
-            if (item.delta >= 0) return false;
+            if (isItemHigh || (item.delta || 0) >= -0.0001) return false;
           }
 
           // 6. Search Query match
@@ -1574,6 +1642,55 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const totalTimelineCardsCount = useMemo(() => {
     return filteredTimelineData.reduce((acc, group) => acc + group.items.length, 0);
   }, [filteredTimelineData]);
+
+  const donutTransactions = useMemo(() => {
+    const rawBase =
+      periodFilter === '1y' && timelinePeriodTransactions && timelinePeriodTransactions.length > 0
+        ? timelinePeriodTransactions
+        : recentTransactions && recentTransactions.length > 0
+          ? recentTransactions
+          : timelinePeriodTransactions || [];
+
+    let baseSource = rawBase;
+    if ((periodFilter === '7d' || periodFilter === '30d') && rawBase.length > 0) {
+      const days = periodFilter === '7d' ? 7 : 30;
+      let maxDateStr = '';
+      for (let i = 0; i < rawBase.length; i++) {
+        const cd = String(rawBase[i]?.registeredDate || rawBase[i]?.contractDate || rawBase[i]?.date || '');
+        const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+        if (clean > maxDateStr) maxDateStr = clean;
+      }
+      if (maxDateStr.length === 8) {
+        const y = parseInt(maxDateStr.slice(0, 4), 10);
+        const m = parseInt(maxDateStr.slice(4, 6), 10) - 1;
+        const d = parseInt(maxDateStr.slice(6, 8), 10);
+        const cutoffD = new Date(y, m, d - days);
+        const cutoffNum = cutoffD.getFullYear() * 10000 + (cutoffD.getMonth() + 1) * 100 + cutoffD.getDate();
+        baseSource = rawBase.filter((tx) => {
+          const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+          const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+          if (clean.length < 8) return true;
+          return parseInt(clean, 10) >= cutoffNum;
+        });
+      }
+    }
+
+    if (!selectedTimelineDateJump) {
+      return baseSource;
+    }
+    const targetDigits = selectedTimelineDateJump.replace(/[^0-9]/g, '').slice(0, 8);
+    if (targetDigits.length === 8) {
+      return baseSource.filter((tx) => {
+        const raw = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+        const clean = raw.replace(/[^0-9]/g, '').slice(0, 8);
+        return clean === targetDigits || tx?.registeredDateLabel === selectedTimelineDateJump;
+      });
+    }
+    const matchedGroup = dailyTimelineData.find(
+      (g) => (g.dateStr || g.dateKey) === selectedTimelineDateJump
+    );
+    return matchedGroup ? (matchedGroup.items as unknown as RecentTransaction[]) : baseSource;
+  }, [periodFilter, timelinePeriodTransactions, recentTransactions, selectedTimelineDateJump, dailyTimelineData]);
 
   const unifiedStatsData = useMemo(() => {
     const rawTxSource = (timelinePeriodTransactions && timelinePeriodTransactions.length > 0)
@@ -1855,19 +1972,23 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             data-testid="hero-left-donut-col"
             className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] min-w-0 justify-between box-border pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border"
           >
-            <ChartErrorBoundary fallbackText="권역별 거래·평균가 차트를 불러올 수 없습니다.">
+            <ChartErrorBoundary fallbackText="실거래 체결 온도 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 variant="navigator"
-                initialMode="zone"
+                initialMode="energy"
                 initialPeriod="90d"
+                period={donutPeriod}
+                onPeriodChange={setPeriodFilter}
                 mounted={mounted}
-                recentTransactions={recentTransactions}
+                recentTransactions={donutTransactions}
+                selectedDateLabel={selectedTimelineDateJump}
+                onClearSelectedDate={() => setSelectedTimelineDateJump(null)}
                 txSummaryData={txSummaryData}
                 sheetApartments={sheetApartments}
                 nameMapping={nameMapping}
                 publicRentalSet={publicRentalSet}
                 activeCategory={activeDonutCategory}
-                onActiveCategoryChange={setActiveDonutCategory}
+                onActiveCategoryChange={handleDonutCategoryChange}
                 onActiveSectorChange={setActiveDonutSector}
                 onSelectApt={(aptName) => {
                   setSelectedTimelineApt(aptName);
@@ -1883,11 +2004,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </ChartErrorBoundary>
             <ErrorBoundary name="핵심 실거래 지표 카드">
               <AptMetricCards
-                recentTransactions={recentTransactions}
+                recentTransactions={donutTransactions}
                 txSummaryData={txSummaryData}
                 macroTrendData={macroTrendData}
                 activeSector={activeDonutSector}
-                onResetSector={() => setActiveDonutCategory(null)}
+                onResetSector={() => handleDonutCategoryChange(null)}
                 onOpenSellTimingCalculator={handleOpenSellTiming}
                 onOpenMortgageModal={handleOpenMortgage}
                 onOpenJeonseSafetyModal={handleOpenJeonseSafety}
@@ -1900,41 +2021,74 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </ErrorBoundary>
           </div>
 
-          {/* Right 6 Columns (lg:col-span-6): MacroChartSection (단지·매크로 시세 추이) */}
+          {/* Right 6 Columns (lg:col-span-6): MacroTimelineView (통합 실거래 타임라인 + 실시간 시장 랭킹 탭) */}
           <div
             data-testid="hero-right-chart-col"
             className="lg:col-span-6 flex flex-col gap-6 lg:h-[526px] min-w-0 lg:pl-6 xl:pl-8 box-border"
           >
-            <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
-              <MacroChartSection
-                isDefaultAptSettingUp={isDefaultAptSettingUp}
-                mounted={mounted}
+            <ErrorBoundary name="실거래 타임라인">
+              <MacroTimelineView
+                compactHeroMode={true}
+                displayedTimelineData={displayedTimelineData}
+                fullTimelineData={filteredTimelineData}
                 selectedTimelineApt={selectedTimelineApt}
-                setSelectedTimelineApt={setSelectedTimelineApt}
-                preloadApartmentModal={preloadApartmentModal}
-                defaultTimelineApts={DEFAULT_TIMELINE_APTS}
-                sheetApartments={sheetApartments}
-                txSummaryData={txSummaryData}
+                selectedApt={selectedTimelineApt}
                 nameMapping={nameMapping}
+                areaUnit={areaUnit}
+                isMobileViewport={isMobileViewport}
+                totalTimelineCardsCount={totalTimelineCardsCount}
+                visibleTimelineCount={visibleTimelineCount}
+                setVisibleTimelineCount={setVisibleTimelineCount}
+                enableInfiniteScroll={false}
+                periodFilter={periodFilter}
+                setPeriodFilter={setPeriodFilter}
+                selectedDateJump={selectedTimelineDateJump}
+                onSelectedDateJumpChange={setSelectedTimelineDateJump}
+                isLoading={isTimelinePeriodLoading}
+                onCardHover={handleCardHover}
+                onCardClick={handleCardClick}
+                onSelectApt={handleCardClick}
+                onDetailsClick={handleDetailsClick}
+                onDetailsHover={handleDetailsHover}
+                timelineDongFilter={timelineDongFilter}
+                setTimelineDongFilter={setTimelineDongFilter}
+                timelineAptFilter={timelineAptFilter}
+                setTimelineAptFilter={setTimelineAptFilter}
+                availableDongs={availableDongs}
+                availableApts={availableApts}
+                regionFilter={regionFilter}
+                setRegionFilter={setRegionFilter}
+                pyeongFilter={pyeongFilter}
+                setPyeongFilter={setPyeongFilter}
+                tradeTypeFilter={tradeTypeFilter}
+                setTradeTypeFilter={setTradeTypeFilter}
+                quickFilter={quickFilter}
+                setQuickFilter={setQuickFilter}
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortOrder={sortOrder}
+                setSortOrder={setSortOrder}
+                viewMode={viewMode}
+                setViewMode={setViewMode}
+                onResetFilters={handleResetAllFilters}
+                showQuickFilters={false}
+                pyeongRankings={unifiedStatsData.pyeongRankings}
+                liveRankingBoardNode={liveRankingBoardNode}
+                enableInFeedAd={true}
                 userFavorites={userFavorites}
                 onToggleFavorite={toggleFavorite}
-                onOpenMortgageModal={handleOpenMortgage}
-                onSelectApt={(aptName, dong) => handleNavigateDetailPage(aptName, dong, 'chart_header')}
-                onHoverApt={handleHoverApt}
-                timeframe={timeframe}
-                setTimeframe={setTimeframe}
-                isAptTxLoading={isAptTxLoading}
-                aptRealTxData={aptRealTxData}
-                mainLineData={lineData}
-                mainXTicks={xTicks}
-                mainYTicks={yTicks}
-                renderChart={renderChart}
+                sheetApartments={sheetApartments}
+                onSelectComplex={handleSelectComplex}
+                onOpenJeonseSafety={handleOpenJeonseSafety}
+                onOpenCompare={handleOpenCompare}
+                renderTimelineItemCard={renderTimelineItemCardNode}
+                renderTimelineItemRow={renderTimelineItemRowNode}
               />
-            </ChartErrorBoundary>
+            </ErrorBoundary>
           </div>
         </div>
 
-        {/* Prime Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (Directly Below Donut & Trend Hero) */}
+        {/* Prime Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (Directly Below Donut & Timeline Hero) */}
         <div className="w-full mb-6" data-testid="hero-ad-slot-1">
           <AdSlot
             refreshSlotId="dashboard_hero_infeed_1"
@@ -1945,65 +2099,45 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           />
         </div>
 
-        {/* ═══ Zone 3: 통합 실거래 타임라인 + 실시간 시장 랭킹 탭 + 네이티브 In-Feed AdSlot ═══ */}
-        <div className="w-full flex flex-col gap-4 mb-6 box-border">
-          <ErrorBoundary name="실거래 타임라인">
-            <MacroTimelineView
-              displayedTimelineData={displayedTimelineData}
-              fullTimelineData={filteredTimelineData}
+        {/* ═══ Zone 3: 하이퍼로컬 핵심 실거래 인사이트 + 단지·매크로 시세 추이 그래프 ═══ */}
+        <div className="w-full flex flex-col gap-5 pb-5 mb-6 border-b border-border box-border" data-testid="zone3-chart-section">
+          {unifiedStatsData.insights && (
+            <ErrorBoundary name="핵심 실거래 인사이트">
+              <HyperlocalInsightCards
+                insights={unifiedStatsData.insights}
+                onSelectComplex={handleSelectComplex}
+                onOpenJeonseSafety={handleOpenJeonseSafety}
+                onOpenCompare={handleOpenCompare}
+                className="mb-0"
+              />
+            </ErrorBoundary>
+          )}
+          <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
+            <MacroChartSection
+              isDefaultAptSettingUp={isDefaultAptSettingUp}
+              mounted={mounted}
               selectedTimelineApt={selectedTimelineApt}
-              selectedApt={selectedTimelineApt}
+              setSelectedTimelineApt={setSelectedTimelineApt}
+              preloadApartmentModal={preloadApartmentModal}
+              defaultTimelineApts={DEFAULT_TIMELINE_APTS}
+              sheetApartments={sheetApartments}
+              txSummaryData={txSummaryData}
               nameMapping={nameMapping}
-              areaUnit={areaUnit}
-              isMobileViewport={isMobileViewport}
-              totalTimelineCardsCount={totalTimelineCardsCount}
-              visibleTimelineCount={visibleTimelineCount}
-              setVisibleTimelineCount={setVisibleTimelineCount}
-              enableInfiniteScroll={false}
-              periodFilter={periodFilter}
-              setPeriodFilter={setPeriodFilter}
-              isLoading={isTimelinePeriodLoading}
-              onCardHover={handleCardHover}
-              onCardClick={handleCardClick}
-              onSelectApt={handleCardClick}
-              onDetailsClick={handleDetailsClick}
-              onDetailsHover={handleDetailsHover}
-              timelineDongFilter={timelineDongFilter}
-              setTimelineDongFilter={setTimelineDongFilter}
-              timelineAptFilter={timelineAptFilter}
-              setTimelineAptFilter={setTimelineAptFilter}
-              availableDongs={availableDongs}
-              availableApts={availableApts}
-              regionFilter={regionFilter}
-              setRegionFilter={setRegionFilter}
-              pyeongFilter={pyeongFilter}
-              setPyeongFilter={setPyeongFilter}
-              tradeTypeFilter={tradeTypeFilter}
-              setTradeTypeFilter={setTradeTypeFilter}
-              quickFilter={quickFilter}
-              setQuickFilter={setQuickFilter}
-              searchQuery={searchQuery}
-              setSearchQuery={setSearchQuery}
-              sortOrder={sortOrder}
-              setSortOrder={setSortOrder}
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              onResetFilters={resetFilters}
-              showQuickFilters={false}
-              insights={unifiedStatsData.insights}
-              pyeongRankings={unifiedStatsData.pyeongRankings}
-              liveRankingBoardNode={liveRankingBoardNode}
-              enableInFeedAd={true}
               userFavorites={userFavorites}
               onToggleFavorite={toggleFavorite}
-              sheetApartments={sheetApartments}
-              onSelectComplex={handleSelectComplex}
-              onOpenJeonseSafety={handleOpenJeonseSafety}
-              onOpenCompare={handleOpenCompare}
-              renderTimelineItemCard={renderTimelineItemCardNode}
-              renderTimelineItemRow={renderTimelineItemRowNode}
+              onOpenMortgageModal={handleOpenMortgage}
+              onSelectApt={handleChartHeaderSelectApt}
+              onHoverApt={handleHoverApt}
+              timeframe={timeframe}
+              setTimeframe={setTimeframe}
+              isAptTxLoading={isAptTxLoading}
+              aptRealTxData={aptRealTxData}
+              mainLineData={lineData}
+              mainXTicks={xTicks}
+              mainYTicks={yTicks}
+              renderChart={renderChart}
             />
-          </ErrorBoundary>
+          </ChartErrorBoundary>
         </div>
 
         {/* ═══ Zone 4A: AdSense High-CPC Finance Hub & Zero-CLS AdSlot 2 (Immediately Below Timeline) ═══ */}

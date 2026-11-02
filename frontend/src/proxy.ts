@@ -52,6 +52,32 @@ try {
   logger.warn("proxy.init", "Failed to initialize Upstash Ratelimit", {}, error);
 }
 
+// 모듈 초기화 시점에 고정 CSP 헤더를 1회만 정규화하여 매 요청마다 정규식 치환·문자열 할당이 발생하는 CPU 오버헤드 제거
+const STATIC_CSP_HEADER = `
+  default-src 'self';
+  script-src 'self' 'unsafe-eval' 'unsafe-inline' https: http: https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://*.googletagmanager.com https://apis.google.com https://www.recaptcha.net https://cdn.jsdelivr.net https://t1.kakaocdn.net https://developers.kakao.com https://pagead2.googlesyndication.com;
+  worker-src 'self' blob:;
+  style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
+  img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.google.com https://*.google.com https://*.google.co.kr https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://t1.kakaocdn.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://*.googlesyndication.com https://ad.doubleclick.net https://*.adtrafficquality.google;
+  font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
+  connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com wss://*.firestore.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net https://www.google.com https://*.google.com https://*.google.co.kr https://content-firebaseappcheck.googleapis.com https://apis.google.com https://www.recaptcha.net https://lh3.googleusercontent.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://t1.kakaocdn.net https://*.kakao.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://www.gstatic.com https://*.gstatic.com https://*.adtrafficquality.google https://*.firebaseapp.com;
+  frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com https://apis.google.com https://www.recaptcha.net https://*.kakao.com https://googleads.g.doubleclick.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google;
+  object-src 'none';
+  base-uri 'self';
+  form-action 'self' https://sharer.kakao.com https://*.kakao.com;
+  frame-ancestors 'none';
+  upgrade-insecure-requests;
+`.replace(/\s+/g, ' ').trim();
+
+// 자체적으로 Rate Limit를 수행하거나 CDN 캐시로 서빙되는 읽기 전용 API 경로는 프록시 단 중복 Redis 호출 생략
+const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
+  '/api/og',
+  '/api/dashboard-init',
+  '/api/macro/rates',
+  '/api/local-notices',
+  '/api/ads/click',
+]);
+
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
@@ -111,19 +137,18 @@ export async function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Safe parse request headers using Zod
-  const headersValidation = RequestMetadataSchema.safeParse({
-    ip: request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1',
-    origin: request.headers.get('origin') || '',
-    referer: request.headers.get('referer') || '',
-  });
-
-  const { ip, origin, referer } = headersValidation.success
-    ? headersValidation.data
-    : { ip: '127.0.0.1', origin: '', referer: '' };
-
-  // 1. Rate Limiting & CORS (API 라우트에 국한)
+  // 1. Rate Limiting & CORS (API 라우트에 국한 - 일반 페이지 요청에서는 Zod 파싱 및 Redis 호출 생략)
   if (pathname.startsWith('/api/')) {
+    const headersValidation = RequestMetadataSchema.safeParse({
+      ip: request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1',
+      origin: request.headers.get('origin') || '',
+      referer: request.headers.get('referer') || '',
+    });
+
+    const { ip, origin, referer } = headersValidation.success
+      ? headersValidation.data
+      : { ip: '127.0.0.1', origin: '', referer: '' };
+
     // Origin / Referer validation (Prevent unauthorized external scraping)
     const hasAllowedOrigin = proxyConfig.allowedOrigins.some(allowed => 
       origin.includes(allowed) || referer.includes(allowed)
@@ -137,7 +162,7 @@ export async function proxy(request: NextRequest) {
       );
     }
 
-    if (ratelimit) {
+    if (ratelimit && !PROXY_RATELIMIT_EXEMPT_API_PATHS.has(pathname)) {
       try {
         const { success, limit, reset, remaining } = await ratelimit.limit(ip);
         if (!success) {
@@ -165,46 +190,32 @@ export async function proxy(request: NextRequest) {
     }
   }
 
-  // 2. HTTP Security 헤더 주입 파이프라인 (Nonce 기반 Strict CSP)
-  // Generate a cryptographically secure random nonce
-  const nonceArray = new Uint8Array(16);
-  crypto.getRandomValues(nonceArray);
-  let nonce = '';
-  if (typeof btoa !== 'undefined') {
-    nonce = btoa(String.fromCharCode.apply(null, Array.from(nonceArray)));
+  // 2. HTTP Security 헤더 주입 파이프라인
+  // /api/bypass-notice 외 일반 페이지·API 요청은 request.headers 변조를 생략하여 ISR/CDN 캐시 적중률 및 CPU 효율 보장
+  let response: NextResponse;
+  if (pathname === '/api/bypass-notice') {
+    const nonceArray = new Uint8Array(16);
+    crypto.getRandomValues(nonceArray);
+    const nonce =
+      typeof btoa !== 'undefined'
+        ? btoa(String.fromCharCode.apply(null, Array.from(nonceArray)))
+        : Buffer.from(nonceArray).toString('base64');
+
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('Content-Security-Policy', STATIC_CSP_HEADER);
+    requestHeaders.set('x-nonce', nonce);
+    response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
+    response.headers.set('x-nonce', nonce);
   } else {
-    nonce = Buffer.from(nonceArray).toString('base64');
+    response = NextResponse.next();
   }
 
-  const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline' https: http: https://www.google.com https://www.gstatic.com https://www.googletagmanager.com https://*.googletagmanager.com https://apis.google.com https://www.recaptcha.net https://cdn.jsdelivr.net https://t1.kakaocdn.net https://developers.kakao.com https://pagead2.googlesyndication.com;
-    worker-src 'self' blob:;
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net;
-    img-src 'self' blob: data: https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://maps.gstatic.com https://maps.googleapis.com https://www.google.com https://*.google.com https://*.google.co.kr https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://t1.kakaocdn.net https://pagead2.googlesyndication.com https://*.doubleclick.net https://*.googlesyndication.com https://ad.doubleclick.net https://*.adtrafficquality.google;
-    font-src 'self' data: https://fonts.gstatic.com https://cdn.jsdelivr.net;
-    connect-src 'self' https://securetoken.googleapis.com https://identitytoolkit.googleapis.com https://firestore.googleapis.com wss://*.firestore.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firebasestorage.googleapis.com https://maps.googleapis.com https://vitals.vercel-insights.com https://cdn.jsdelivr.net https://www.google.com https://*.google.com https://*.google.co.kr https://content-firebaseappcheck.googleapis.com https://apis.google.com https://www.recaptcha.net https://lh3.googleusercontent.com https://www.googletagmanager.com https://*.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://analytics.google.com https://*.analytics.google.com https://t1.kakaocdn.net https://*.kakao.com https://pagead2.googlesyndication.com https://*.googlesyndication.com https://*.doubleclick.net https://www.gstatic.com https://*.gstatic.com https://*.adtrafficquality.google https://*.firebaseapp.com;
-    frame-src 'self' https://www.google.com https://www.youtube.com https://portfolio-dtdls.firebaseapp.com https://apis.google.com https://www.recaptcha.net https://*.kakao.com https://googleads.g.doubleclick.net https://*.googlesyndication.com https://*.doubleclick.net https://*.adtrafficquality.google;
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self' https://sharer.kakao.com https://*.kakao.com;
-    frame-ancestors 'none';
-    upgrade-insecure-requests;
-  `.replace(/\s+/g, ' ').trim();
-
-  const requestHeaders = new Headers(request.headers);
-  requestHeaders.set('Content-Security-Policy', cspHeader);
-  requestHeaders.set('x-nonce', nonce);
-
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
-
-  // 공통 보안 헤더 (A 레벨 및 Nonce 전송)
-  response.headers.set('Content-Security-Policy', cspHeader);
-  response.headers.set('x-nonce', nonce);
+  // 공통 보안 헤더
+  response.headers.set('Content-Security-Policy', STATIC_CSP_HEADER);
   response.headers.set('X-Frame-Options', 'DENY'); // Clickjacking 원천 차단
   response.headers.set('X-Content-Type-Options', 'nosniff'); // MIME 타입 변조 방지 
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); // 리퍼러 보호

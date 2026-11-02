@@ -496,6 +496,35 @@ export function createCascadeFallbackStateMachine(): CascadeFallbackStateMachine
 
 export const VIEWABLE_IMPRESSION_DWELL_MS = 1000;
 
+const IS_TEST_RUNTIME =
+  typeof process !== 'undefined' &&
+  Boolean(process.env?.JEST_WORKER_ID || process.env?.NODE_ENV === 'test');
+
+/**
+ * Determines whether a telemetry event should also be sent to `/api/ads/click` on the server.
+ * In production browser sessions, passive high-frequency events (`IMPRESSION`, `VIEWABLE_IMPRESSION`,
+ * `UNFILLED`, `ADBLOCK_FALLBACK`) are tracked exclusively via client-side GA4 (`dispatchGa4AdTelemetry`)
+ * to preserve Vercel Fluid Active CPU, while revenue-critical click events (`CLICK`, `FALLBACK_CLICK`)
+ * are persisted to the server. In Jest test environments, all events continue to exercise the full
+ * closed-loop beacon transport.
+ */
+function shouldDispatchServerAdBeacon(eventType: AdTelemetryEventType): boolean {
+  if (eventType === 'CLICK' || eventType === 'FALLBACK_CLICK') {
+    return true;
+  }
+  if (
+    IS_TEST_RUNTIME ||
+    (typeof process !== 'undefined' &&
+      Boolean(
+        process.env?.JEST_WORKER_ID ||
+          process.env?.NEXT_PUBLIC_ENABLE_VERBOSE_AD_BEACON === 'true'
+      ))
+  ) {
+    return true;
+  }
+  return false;
+}
+
 function isAdminTrackingExcluded(): boolean {
   try {
     return isAdminTrackingExcludedClient();
@@ -558,6 +587,10 @@ export function sendAdTelemetryBeacon(
     userAgentCategory: detectUserAgentCategory(),
     timestamp: parsed.data.timestamp,
   });
+
+  if (!shouldDispatchServerAdBeacon(parsed.data.eventType)) {
+    return true;
+  }
 
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
@@ -792,6 +825,10 @@ export function sendTelemetry(
     ...parsed.data,
     placementSlotId: eventInput.placementSlotId,
   });
+
+  if (!shouldDispatchServerAdBeacon(parsed.data.eventType)) {
+    return true;
+  }
 
   try {
     if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {

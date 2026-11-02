@@ -159,8 +159,8 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(leftCol).toBeInTheDocument();
       expect(rightCol).toBeInTheDocument();
 
-      // Unified Timeline Live Ranking Tab & HyperlocalInsightCards
-      expect(screen.getByTestId('timeline-tab-live-rankings')).toBeInTheDocument();
+      // Hero Timeline & HyperlocalInsightCards
+      expect(screen.getByText('일자별 최근 실거래')).toBeInTheDocument();
       expect(screen.getAllByTestId('stats-hyperlocal-insights').length).toBeGreaterThanOrEqual(1);
 
       // Inside Right Column: RetentionActionCard
@@ -423,9 +423,9 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(adWrapper?.className).toContain('mb-6');
 
       // Verify DOM vertical ordering:
-      // slot1000000001 is preceding timelineHeading (hero -> slot 1 -> timeline)
+      // timelineHeading is in top right hero preceding slot1000000001 (hero timeline -> slot 1 -> zone3 chart)
       expect(
-        slot1000000001Container!.compareDocumentPosition(timelineHeading) & Node.DOCUMENT_POSITION_FOLLOWING
+        timelineHeading.compareDocumentPosition(slot1000000001Container!) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
     });
 

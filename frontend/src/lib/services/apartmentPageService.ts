@@ -115,14 +115,32 @@ export const RealEstateListingSchema = z.object({
 
 export type RealEstateListing = z.infer<typeof RealEstateListingSchema>;
 
+const jisanValidatedListCache = new WeakMap<object, TechnoValleyJisan[]>();
+const pyeongSummariesByTxsCache = new WeakMap<object, PyeongSummary[]>();
+
+function getPyeongSummariesCached(txs: TransactionRecord[]): PyeongSummary[] {
+  if (!Array.isArray(txs) || txs.length === 0) {
+    return getPyeongSummaries(txs);
+  }
+  const cached = pyeongSummariesByTxsCache.get(txs);
+  if (cached) {
+    return cached;
+  }
+  const computed = getPyeongSummaries(txs);
+  pyeongSummariesByTxsCache.set(txs, computed);
+  return computed;
+}
+
 /**
  * 동탄테크노밸리 56개 지식산업센터 현황 데이터 (jisan-status-list.json) 조회 및 런타임 스키마 검증
- * @complexity Time: O(N), Space: O(N) where N = 56 knowledge industry centers
+ * @complexity Time: O(1) after initial validation via WeakMap cache (O(N) cold), Space: O(N) where N = 56
  * @sideEffects None (Read-only cached file I/O)
  */
 export async function getTechnoValleyJisanList(): Promise<TechnoValleyJisan[]> {
   const rawList = await readJsonFileCached<unknown[]>('public/data/jisan-status-list.json', []);
   if (!Array.isArray(rawList)) return [];
+  const cached = jisanValidatedListCache.get(rawList);
+  if (cached) return cached;
   const validated: TechnoValleyJisan[] = [];
   for (const item of rawList) {
     const parsed = TechnoValleyJisanSchema.safeParse(item);
@@ -130,6 +148,7 @@ export async function getTechnoValleyJisanList(): Promise<TechnoValleyJisan[]> {
       validated.push(parsed.data);
     }
   }
+  jisanValidatedListCache.set(rawList, validated);
   return validated;
 }
 
@@ -187,40 +206,99 @@ export async function getApartmentsByDongData(): Promise<Record<string, DongApar
   return raw as Record<string, DongApartment[]>;
 }
 
-function resolveDongApartment(
-  aptName: string,
-  byDong: Record<string, DongApartment[]>,
-  hintDong?: string | null
-): { matchedDongApt: DongApartment | null; manualMapping: Record<string, string> } {
+interface IndexedDongApartmentCatalog {
+  allApts: DongApartment[];
+  manualMapping: Record<string, string>;
+  exactMap: Map<string, DongApartment>;
+  normMap: Map<string, DongApartment>;
+  sanMap: Map<string, DongApartment>;
+}
+
+const byDongCatalogIndexCache = new WeakMap<object, IndexedDongApartmentCatalog>();
+
+function getIndexedDongApartmentCatalog(
+  byDong: Record<string, DongApartment[]>
+): IndexedDongApartmentCatalog {
+  const cached = byDongCatalogIndexCache.get(byDong);
+  if (cached) return cached;
+
   const manualMapping: Record<string, string> = {};
   const allApts: DongApartment[] = [];
+  const exactMap = new Map<string, DongApartment>();
+  const normMap = new Map<string, DongApartment>();
+  const sanMap = new Map<string, DongApartment>();
+
   for (const [dong, apts] of Object.entries(byDong)) {
     if (!Array.isArray(apts)) continue;
     for (const apt of apts) {
       if (!apt || !apt.name) continue;
       const enriched = apt.dong ? apt : { ...apt, dong };
       allApts.push(enriched);
+
+      if (!exactMap.has(enriched.name)) {
+        exactMap.set(enriched.name, enriched);
+      }
+      const normName = normalizeAptName(enriched.name);
+      if (normName && !normMap.has(normName)) {
+        normMap.set(normName, enriched);
+      }
+      const sanName = sanitizeAptKey(enriched.name);
+      if (sanName && !sanMap.has(sanName)) {
+        sanMap.set(sanName, enriched);
+      }
+
       if (apt.txKey) {
-        manualMapping[apt.name] = sanitizeAptKey(apt.txKey) || normalizeAptName(apt.txKey);
+        const sanTx = sanitizeAptKey(apt.txKey);
+        const normTx = normalizeAptName(apt.txKey);
+        manualMapping[apt.name] = sanTx || normTx;
+        if (!exactMap.has(apt.txKey)) {
+          exactMap.set(apt.txKey, enriched);
+        }
+        if (normTx && !normMap.has(normTx)) {
+          normMap.set(normTx, enriched);
+        }
+        if (sanTx && !sanMap.has(sanTx)) {
+          sanMap.set(sanTx, enriched);
+        }
       }
     }
   }
+
+  const indexed: IndexedDongApartmentCatalog = {
+    allApts,
+    manualMapping,
+    exactMap,
+    normMap,
+    sanMap,
+  };
+  byDongCatalogIndexCache.set(byDong, indexed);
+  return indexed;
+}
+
+function resolveDongApartment(
+  aptName: string,
+  byDong: Record<string, DongApartment[]>,
+  hintDong?: string | null
+): { matchedDongApt: DongApartment | null; manualMapping: Record<string, string> } {
+  if (!byDong || typeof byDong !== 'object') {
+    return { matchedDongApt: null, manualMapping: {} };
+  }
+  const { allApts, manualMapping, exactMap, normMap, sanMap } =
+    getIndexedDongApartmentCatalog(byDong);
+
   if (!aptName || !aptName.trim()) {
     return { matchedDongApt: null, manualMapping };
   }
-  const exactMatch = allApts.find((a) => a.name === aptName || a.txKey === aptName);
+  const exactMatch = exactMap.get(aptName);
   if (exactMatch) {
     return { matchedDongApt: exactMatch, manualMapping };
   }
   const normTarget = normalizeAptName(aptName);
   const sanitizedTarget = sanitizeAptKey(aptName);
   if (normTarget || sanitizedTarget) {
-    const normMatch = allApts.find(
-      (a) =>
-        normalizeAptName(a.name) === normTarget ||
-        sanitizeAptKey(a.name) === sanitizedTarget ||
-        (a.txKey && (normalizeAptName(a.txKey) === normTarget || sanitizeAptKey(a.txKey) === sanitizedTarget))
-    );
+    const normMatch =
+      (normTarget ? normMap.get(normTarget) : undefined) ||
+      (sanitizedTarget ? sanMap.get(sanitizedTarget) : undefined);
     if (normMatch) {
       return { matchedDongApt: normMatch, manualMapping };
     }
@@ -484,7 +562,7 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
     getLocationScore(aptName, resolvedDong, manualMapping, matchedDongApt?.name),
   ]);
 
-  const pyeongSummaries = getPyeongSummaries(txs);
+  const pyeongSummaries = getPyeongSummariesCached(txs);
   const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
   const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore);
 
@@ -1000,7 +1078,7 @@ export async function buildApartmentSeoMetadata(
       getLocationScore(decodedName, resolvedDong, manualMapping, matchedDongApt?.name),
     ]);
 
-    const pyeongSummaries = getPyeongSummaries(txs);
+    const pyeongSummaries = getPyeongSummariesCached(txs);
     const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
 
     const ogUrl = new URL(`${baseUrl}/api/og`);

@@ -18,7 +18,7 @@ import { formatEokWithUnit } from '@/components/MacroDashboardClient';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackSearchQuery } from '@/lib/utils/analytics';
 
 // subcomponents
 import { SearchSuggestionDropdown } from './explore/SearchSuggestionDropdown';
@@ -311,7 +311,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   useEffect(() => {
     if (mounted && debouncedSearchQueryForAnalytics.trim()) {
       trackEvent('search_apartment', { query: debouncedSearchQueryForAnalytics });
-      trackEvent('search_query', {
+      trackSearchQuery({
         search_term: debouncedSearchQueryForAnalytics.trim(),
         query: debouncedSearchQueryForAnalytics.trim(),
         surface: 'explore_catalog',

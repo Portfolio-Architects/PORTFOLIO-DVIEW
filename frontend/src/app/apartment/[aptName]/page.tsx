@@ -44,7 +44,7 @@ function formatSummaryPriceField(numManwon?: number, eokStr?: string): string {
 }
 
 export const dynamic = 'force-static';
-export const revalidate = 300;
+export const revalidate = 21600;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {

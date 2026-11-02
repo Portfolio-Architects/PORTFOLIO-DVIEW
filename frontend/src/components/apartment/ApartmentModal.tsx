@@ -788,7 +788,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
     const viewKey = `${inline ? 'inline' : 'modal'}:${aptName}`;
     if (lastTrackedAptViewRef.current === viewKey) return;
     lastTrackedAptViewRef.current = viewKey;
-    trackEvent('apartment_view', {
+    trackApartmentView({
       apartment_name: aptName,
       apt_name: aptName,
       canonical_slug: canonicalAptSlug || aptName,

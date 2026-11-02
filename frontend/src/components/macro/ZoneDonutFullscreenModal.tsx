@@ -35,7 +35,6 @@ import { matchesApartmentSearch } from '@/lib/utils/apartmentSearch';
 import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { preloadApartmentModal } from '@/components/common/ComponentPreloader';
 import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
-import { useDebounce } from '@/hooks/useDebounce';
 
 export type ZoneChronoSortOrder = 'latest' | 'oldest' | 'price_desc';
 export type ZoneAllGroupingMode = 'by_zone' | 'unified_time';
@@ -127,7 +126,10 @@ export function sortItemsChronologically<T extends AptEnergyItem>(
   const decorated = items.map((item, idx) => ({
     item,
     idx,
-    sortKey: extractChronoDateInfo(item.contractDate, item.dateLabel).sortKey,
+    sortKey: extractChronoDateInfo(
+      item.registeredDate || item.contractDate,
+      item.registeredDateLabel || item.dateLabel
+    ).sortKey,
   }));
 
   decorated.sort((a, b) => {
@@ -311,7 +313,10 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
   onSelectApt,
   preloadApartmentTx,
 }: TransactionRowProps) {
-  const dateInfo = extractChronoDateInfo(item.contractDate, item.dateLabel);
+  const dateInfo = extractChronoDateInfo(
+    item.registeredDate || item.contractDate,
+    item.registeredDateLabel || item.dateLabel
+  );
   const displayName = item.displayAptName || item.aptName;
   const areaPyeong =
     item.areaPyeong && item.areaPyeong > 0
@@ -349,14 +354,19 @@ const ChronologicalTransactionRow = React.memo(function ChronologicalTransaction
           dong: item.dong || '',
           zone: zoneKey,
         });
-        trackEvent('apartment_view', {
+        const viewPayload = {
           apartment_name: item.aptName,
           apt_name: item.aptName,
           dong: item.dong || undefined,
           zone: zoneKey,
           surface: 'donut_fullscreen_modal',
-          view_type: 'modal_tx_click',
-        });
+          view_type: 'modal_tx_click' as const,
+        };
+        if (typeof trackApartmentView === 'function') {
+          trackApartmentView(viewPayload);
+        } else {
+          trackEvent('apartment_view', viewPayload);
+        }
         onSelectApt?.(item.aptName, item.dong);
       }}
       onMouseEnter={() => {
@@ -503,20 +513,35 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
   const [zoneLimits, setZoneLimits] = useState<Record<string, number>>({});
   const [streamLimit, setStreamLimit] = useState<number>(DEFAULT_SINGLE_STREAM_LIMIT);
   const rightScrollRef = useRef<HTMLDivElement | null>(null);
-
-  const debouncedFullscreenSearch = useDebounce(searchQuery, 1000);
+  const selectedZoneKeyRef = useRef<string>(selectedZoneKey);
 
   useEffect(() => {
-    const query = debouncedFullscreenSearch.trim();
-    if (isOpen && query) {
-      trackEvent('search_query', {
-        search_term: query,
-        query,
+    selectedZoneKeyRef.current = selectedZoneKey;
+  }, [selectedZoneKey]);
+
+  const trimmedFullscreenSearch = searchQuery.trim();
+
+  useEffect(() => {
+    if (!isOpen || !trimmedFullscreenSearch) return;
+
+    const timer = setTimeout(() => {
+      const searchPayload = {
+        search_term: trimmedFullscreenSearch,
+        query: trimmedFullscreenSearch,
         surface: 'donut_fullscreen_modal',
-        zone: selectedZoneKey,
-      });
-    }
-  }, [debouncedFullscreenSearch, isOpen, selectedZoneKey]);
+        zone: selectedZoneKeyRef.current,
+      };
+      if (typeof trackSearchQuery === 'function') {
+        trackSearchQuery(searchPayload);
+      } else {
+        trackEvent('search_query', searchPayload);
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [trimmedFullscreenSearch, isOpen]);
 
   // Sync initial selection when modal opens
   useEffect(() => {

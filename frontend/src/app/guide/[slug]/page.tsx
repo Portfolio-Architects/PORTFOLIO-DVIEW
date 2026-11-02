@@ -31,6 +31,8 @@ import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
 import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
 
+export const revalidate = 86400;
+
 export async function generateStaticParams() {
   return GUIDE_ARTICLES.map((article) => ({
     slug: article.slug,

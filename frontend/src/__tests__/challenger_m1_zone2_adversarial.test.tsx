@@ -338,8 +338,8 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
       expect(matches5!.length).toBeGreaterThanOrEqual(1);
     });
 
-    it('Oracle 3.5: AptDonutSection is restored in Zone 2A with variant="navigator" and initialMode="zone"', () => {
-      expect(source).toMatch(/<AptDonutSection[\s\S]*?variant="navigator"[\s\S]*?initialMode="zone"/);
+    it('Oracle 3.5: AptDonutSection is restored in Zone 2A with variant="navigator" and initialMode="energy"', () => {
+      expect(source).toMatch(/<AptDonutSection[\s\S]*?variant="navigator"[\s\S]*?initialMode="energy"/);
       expect(source).toMatch(/import\s+\{\s*AptDonutSection/);
     });
 

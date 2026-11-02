@@ -1,8 +1,7 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink, Plus, Search, Star, X } from 'lucide-react';
-import Link from 'next/link';
 import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
-import { trackEvent } from '@/lib/utils/analytics';
+import { trackEvent, trackSearchQuery } from '@/lib/utils/analytics';
 import { useInView } from 'react-intersection-observer';
 import { normalizeAptName, isSameApartment, getDisplayAptName } from '@/lib/utils/apartmentMapping';
 import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
@@ -280,6 +279,9 @@ export interface MacroTimelineViewProps {
   liveRankingBoardNode?: React.ReactNode;
   enableInFeedAd?: boolean;
   inFeedAdSlotId?: string;
+  compactHeroMode?: boolean;
+  selectedDateJump?: string | null;
+  onSelectedDateJumpChange?: (dateStr: string | null) => void;
   className?: string;
 }
 
@@ -588,6 +590,9 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   liveRankingBoardNode,
   enableInFeedAd = false,
   inFeedAdSlotId,
+  compactHeroMode = false,
+  selectedDateJump: controlledSelectedDateJump,
+  onSelectedDateJumpChange,
   className,
 }: MacroTimelineViewProps) {
   const fallbackFavoritesHook = useFavorites();
@@ -677,6 +682,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   }, [sheetApartments, availableApts, fullSourceData]);
 
   const trimmedFavAddQuery = favAddQuery.trim();
+  const isFavImeComposingRef = useRef(false);
 
   const favSearchMatches = useMemo(() => {
     if (!trimmedFavAddQuery) return [];
@@ -732,13 +738,18 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
       effectiveToggleFavorite(aptName);
       if (willBeFav) {
         if (trimmedFavAddQuery) {
-          trackEvent('search_query', {
+          const searchPayload = {
             search_term: trimmedFavAddQuery,
             query: trimmedFavAddQuery,
             selected_apt: aptName,
             surface: 'timeline_favorites_add',
             trigger: source,
-          });
+          };
+          if (typeof trackSearchQuery === 'function') {
+            trackSearchQuery(searchPayload);
+          } else {
+            trackEvent('search_query', searchPayload);
+          }
         }
         setFavAddQuery('');
       }
@@ -800,11 +811,28 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   const effectiveVisibleCount = visibleTimelineCount ?? effectiveTotalCount;
 
   // Quick Date Jump Filter State (null = show all dates)
-  const [selectedDateJump, setSelectedDateJump] = useState<string | null>(null);
+  const [internalSelectedDateJump, setInternalSelectedDateJump] = useState<string | null>(null);
+  const selectedDateJump = controlledSelectedDateJump !== undefined ? controlledSelectedDateJump : internalSelectedDateJump;
+  const setSelectedDateJump = useCallback(
+    (next: string | null | ((prev: string | null) => string | null)) => {
+      const resolvedNext = typeof next === 'function' ? next(selectedDateJump) : next;
+      if (controlledSelectedDateJump === undefined) {
+        setInternalSelectedDateJump(resolvedNext);
+      }
+      onSelectedDateJumpChange?.(resolvedNext);
+    },
+    [controlledSelectedDateJump, selectedDateJump, onSelectedDateJumpChange]
+  );
+  const hasMountedDateJumpRef = useRef(false);
 
   // Reset date jump selection when upstream filters change
   useEffect(() => {
-    setSelectedDateJump(null);
+    if (!hasMountedDateJumpRef.current) {
+      hasMountedDateJumpRef.current = true;
+      return;
+    }
+    setInternalSelectedDateJump(null);
+    onSelectedDateJumpChange?.(null);
   }, [
     quickFilter,
     searchQuery,
@@ -812,7 +840,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
     timelineDongFilter,
     timelineAptFilter,
     pyeongFilter,
-    tradeTypeFilter,
     periodFilter,
     activeSegment,
   ]);
@@ -883,7 +910,34 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
       next.delete(dateStr);
       return next;
     });
-  }, []);
+  }, [setSelectedDateJump]);
+
+  const availableDateOptions = useMemo(() => {
+    return fullSourceData
+      .map((group) => {
+        const dateKey = group.dateStr || group.date || '';
+        const shortLabel = formatShortDateLabel(dateKey);
+        const count = group.totalCount ?? group.items.length;
+        return {
+          dateKey,
+          label: shortLabel || dateKey,
+          count,
+        };
+      })
+      .filter((d) => d.dateKey.length > 0);
+  }, [fullSourceData]);
+
+  const handleSelectDate = useCallback((dateStr: string | null) => {
+    setSelectedDateJump(dateStr);
+    if (dateStr) {
+      setCollapsedDates((prev) => {
+        if (!prev.has(dateStr)) return prev;
+        const next = new Set(prev);
+        next.delete(dateStr);
+        return next;
+      });
+    }
+  }, [setSelectedDateJump]);
 
   const handleFinanceAction = useCallback(
     (type: 'mortgage' | 'jeonse' | 'tax') => {
@@ -953,12 +1007,13 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   }
 
   return (
-    <div className={`w-full flex flex-col gap-4 min-w-0 max-w-full box-border ${className || ''}`}>
+    <div className={`w-full flex flex-col gap-4 min-w-0 max-w-full ${compactHeroMode ? 'lg:h-[526px]' : ''} box-border ${className || ''}`}>
       {/* Daily Timeline Card Container */}
-      <div className="flex flex-col bg-surface py-4 sm:py-5 border-b border-border min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border">
+      <div className={`flex flex-col bg-surface ${compactHeroMode ? 'py-0 lg:h-[526px]' : 'py-4 sm:py-5 border-b border-border'} min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border`}>
         {/* Header & Filter Controls Bar */}
-        <div className="flex flex-col gap-3.5 mb-4 sm:mb-5 w-full">
-          {/* Top 4-Segment Tabs & /stats Navigation Bar */}
+        <div className={`flex flex-col ${compactHeroMode ? 'gap-2.5 mb-2.5 shrink-0' : 'gap-3.5 mb-4 sm:mb-5'} w-full`}>
+          {/* Top 4-Segment Tabs (hidden in compactHeroMode) */}
+          {!compactHeroMode && (
           <div
             data-testid="timeline-segment-tabs"
             className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border/60 w-full"
@@ -1030,17 +1085,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 </button>
               )}
             </div>
-
-            {/* /stats Link Button */}
-            <Link
-              href="/stats"
-              data-testid="timeline-stats-link-btn"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-secondary hover:text-primary text-[11.5px] font-extrabold transition-colors cursor-pointer border border-border/50 shrink-0 shadow-2xs"
-            >
-              <span>심층 통계</span>
-              <ExternalLink size={12} className="text-tertiary" />
-            </Link>
           </div>
+          )}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 flex-wrap">
@@ -1126,7 +1172,17 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             setSortOrder={setSortOrder}
             viewMode={viewMode}
             setViewMode={setViewMode}
-            onResetFilters={onResetFilters}
+            onResetFilters={
+              onResetFilters
+                ? () => {
+                    setSelectedDateJump(null);
+                    onResetFilters();
+                  }
+                : undefined
+            }
+            availableDates={availableDateOptions}
+            selectedDate={selectedDateJump}
+            onSelectDate={handleSelectDate}
           />
 
           {/* Hyperlocal Insight Summary Cards (4 Engagement Anchors) */}
@@ -1141,7 +1197,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           )}
 
           {/* Bottom View Switcher Tabs: [일자별 실거래 내역] vs [실시간 시장 랭킹] vs [단지별 평당가 랭킹] */}
-          {(pyeongRankings !== undefined || liveRankingBoardNode !== undefined) && (
+          {!compactHeroMode && (pyeongRankings !== undefined || liveRankingBoardNode !== undefined) && (
             <div
               data-testid="timeline-view-tab-switcher"
               className="flex items-center justify-between gap-2 pt-1 border-t border-border/60"
@@ -1149,8 +1205,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               <div
                 className={getToggleTrackClass(
                   pyeongRankings !== undefined && liveRankingBoardNode !== undefined
-                    ? 'grid grid-cols-3 sm:inline-flex w-full sm:w-auto'
-                    : 'grid grid-cols-2 sm:inline-flex w-full sm:w-auto'
+                    ? 'grid grid-cols-3 w-full'
+                    : 'grid grid-cols-2 w-full'
                 )}
               >
                 <button
@@ -1219,7 +1275,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           )}
 
           {/* Quick Date Jump Navigator Bar (Rendered when multiple dates exist across full filtered dataset) */}
-          {activeSectionTab === 'timeline' && fullSourceData.length > 1 && (
+          {activeSectionTab === 'timeline' && (fullSourceData.length > 1 || selectedDateJump !== null) && (
             <div
               data-testid="timeline-date-jump-bar"
               className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 w-full"
@@ -1268,11 +1324,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
         {/* Bottom Switched Content Area: [일자별 실거래 내역] vs [실시간 시장 랭킹] vs [단지별 평당가 랭킹] */}
         {activeSectionTab === 'live_ranking' && liveRankingBoardNode !== undefined ? (
-          <div className="w-full mt-1" data-testid="timeline-live-ranking-panel">
+          <div className={`w-full mt-1 ${compactHeroMode ? 'flex-1 min-h-0 overflow-y-auto pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}`} data-testid="timeline-live-ranking-panel">
             {liveRankingBoardNode}
           </div>
         ) : activeSectionTab === 'ranking' && pyeongRankings !== undefined ? (
-          <div className="w-full mt-1">
+          <div className={`w-full mt-1 ${compactHeroMode ? 'flex-1 min-h-0 overflow-y-auto pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}`}>
             <StatsPyeongRankingChart
               rankings={pyeongRankings}
               onSelectComplex={handleComplexSelect}
@@ -1280,7 +1336,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             />
           </div>
         ) : (
-        <div className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : "max-h-[520px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-5 mt-1 min-h-0 w-full box-border`}>
+        <div className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : compactHeroMode ? "overflow-y-auto" : "max-h-[520px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-1 min-h-0 w-full box-border`}>
           {/* Active Favorites Watchlist Chip Bar + Quick Search-and-Add (Rendered when user has >= 1 favorite) */}
           {activeSegment === 'favorites' && effectiveUserFavorites.size > 0 && (
             <div
@@ -1351,7 +1407,18 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     type="text"
                     value={favAddQuery}
                     onChange={(e) => setFavAddQuery(e.target.value)}
+                    onCompositionStart={() => {
+                      isFavImeComposingRef.current = true;
+                    }}
+                    onCompositionEnd={() => {
+                      isFavImeComposingRef.current = false;
+                    }}
                     onKeyDown={(e) => {
+                      const isComposing =
+                        isFavImeComposingRef.current ||
+                        e.nativeEvent.isComposing ||
+                        (e as unknown as { keyCode?: number }).keyCode === 229;
+                      if (isComposing && e.key !== 'Escape') return;
                       if (e.key === 'Enter' && favSearchMatches.length > 0) {
                         e.preventDefault();
                         const topMatch = favSearchMatches.find(
@@ -1454,7 +1521,18 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                           type="text"
                           value={favAddQuery}
                           onChange={(e) => setFavAddQuery(e.target.value)}
+                          onCompositionStart={() => {
+                            isFavImeComposingRef.current = true;
+                          }}
+                          onCompositionEnd={() => {
+                            isFavImeComposingRef.current = false;
+                          }}
                           onKeyDown={(e) => {
+                            const isComposing =
+                              isFavImeComposingRef.current ||
+                              e.nativeEvent.isComposing ||
+                              (e as unknown as { keyCode?: number }).keyCode === 229;
+                            if (isComposing && e.key !== 'Escape') return;
                             if (e.key === 'Enter' && favSearchMatches.length > 0) {
                               e.preventDefault();
                               handleQuickToggleFavorite(
@@ -1756,7 +1834,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         })}
                       </div>
                     ) : (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full box-border">
+                      <div className={`grid grid-cols-1 ${compactHeroMode ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-2 w-full box-border`}>
                         {group.items.map((item, idx) => {
                           const isSelected = !!effectiveSelectedApt && (
                             effectiveSelectedApt === item.aptName ||

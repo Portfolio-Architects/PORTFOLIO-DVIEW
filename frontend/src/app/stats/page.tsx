@@ -9,6 +9,8 @@ import { getDongtanStationAnalysisData } from '@/lib/stats/dongtanStationDistanc
 import { StatsPageClient } from './StatsPageClient';
 import { StatsSkeleton } from '@/components/stats/StatsSkeleton';
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: '동탄 아파트 통계 & 실거래가 분석 리포트 | D-VIEW 통계 랩',
   description: '100% 국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 아파트 통계 분석 리포트. 동탄역 거리별 가격 상관관계 및 역세권 프리미엄 OLS 회귀분석 리포트를 제공합니다.',

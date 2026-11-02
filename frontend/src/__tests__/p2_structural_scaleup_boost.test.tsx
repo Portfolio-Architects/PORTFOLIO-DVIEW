@@ -148,7 +148,7 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       const engineMeta = getIssue1DatasetMeta();
 
       expect(engineMeta.totalComplexCount).toBe(127);
-      expect(engineMeta.totalTxCount).toBe(8055);
+      expect(engineMeta.totalTxCount).toBe(fromRaw.datasetMeta.totalTxCount);
       expect(engineMeta).toEqual(fromRaw.datasetMeta);
       expect(cacheContent.records).toHaveLength(fromRaw.records.length);
       expect(cacheContent.records[0]).toEqual(fromRaw.records[0]);
@@ -183,7 +183,7 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       const clientNode = getByTestId('mock-stats-page-client');
       expect(clientNode.getAttribute('data-has-initial-payload')).toBe('true');
       expect(clientNode.getAttribute('data-total-apartments')).toBe('127');
-      expect(clientNode.getAttribute('data-total-tx')).toBe('8055');
+      expect(clientNode.getAttribute('data-total-tx')).toBe(String(payload.datasetMeta.totalTxCount));
 
       // Schema.org Dataset + AnalysisNewsArticle JSON-LD
       const ldScript = container.querySelector('script[type="application/ld+json"]');
@@ -194,7 +194,7 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       const datasetNode = graph.find((n) => n['@type'] === 'Dataset');
       expect(datasetNode).toBeDefined();
       expect(String(datasetNode?.name)).toContain('동탄역');
-      expect(String(datasetNode?.description)).toContain('기울기 -386만원/km');
+      expect(String(datasetNode?.description)).toContain(`기울기 ${Math.round(payload.regression.slopeWonPerKm).toLocaleString('ko-KR')}만원/km`);
       expect(String(datasetNode?.description)).not.toContain('기울기 0만원/km');
 
       // SSR Regression Summary Section for search crawlers (visible without sr-only cloaking)
@@ -204,8 +204,8 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       expect(ssrSummary?.className).toContain('bg-[#f9fafb]');
       expect(ssrSummary?.className).toContain('dark:bg-[#17171c]');
       expect(ssrSummary?.textContent).toContain('동탄역 거리별 아파트 실거래가 OLS 선형회귀 요약');
-      expect(ssrSummary?.textContent).toContain('3,438만원');
-      expect(ssrSummary?.textContent).toContain('-386만원');
+      expect(ssrSummary?.textContent).toContain(`${Math.round(payload.regression.interceptWon).toLocaleString('ko-KR')}만원`);
+      expect(ssrSummary?.textContent).toContain(`${Math.round(payload.regression.slopeWonPerKm).toLocaleString('ko-KR')}만원`);
       expect(ssrSummary?.querySelectorAll('li').length).toBe(5);
 
       // Verify StatsPageClient isolates useSearchParams inside an inner Suspense child so SSR does not bail out

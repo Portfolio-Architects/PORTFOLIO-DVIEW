@@ -95,6 +95,68 @@ export const DVIEW_GA4_CUSTOM_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionSpec> 
   },
 ] as const;
 
+/**
+ * Event-scoped custom dimensions for `apartment_view` and `search_query` interaction analytics.
+ */
+export const DVIEW_GA4_INTERACTION_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionSpec> = [
+  {
+    parameterName: 'search_term',
+    apiName: 'customEvent:search_term',
+    displayName: 'Search Term',
+    description: 'Normalized user search term (<=100 chars) for search_query and view_search_results',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'surface',
+    apiName: 'customEvent:surface',
+    displayName: 'Interaction Surface',
+    description: 'Originating UI surface for apartment_view or search_query',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'view_type',
+    apiName: 'customEvent:view_type',
+    displayName: 'Apartment View Type',
+    description: 'Presentation mode for apartment_view (modal, detail_page, chart_preview, mobile_drawer, shortcut)',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'trigger',
+    apiName: 'customEvent:trigger',
+    displayName: 'Interaction Trigger',
+    description: 'Specific user gesture or entry trigger for apartment_view or search_query',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'chapter_id',
+    apiName: 'customEvent:chapter_id',
+    displayName: 'Modal Chapter ID',
+    description: 'Selected chapter/tab identifier inside ApartmentModal',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'selected_apt',
+    apiName: 'customEvent:selected_apt',
+    displayName: 'Search Selected Apartment',
+    description: 'Apartment complex selected directly from a search suggestion or autocomplete match',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'zone',
+    apiName: 'customEvent:zone',
+    displayName: 'Living Zone Key',
+    description: 'Dongtan living zone identifier for donut fullscreen modal interactions',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+] as const;
+
 export const DVIEW_GA4_CUSTOM_METRICS: ReadonlyArray<Ga4CustomMetricSpec> = [
   {
     parameterName: 'dwell_time_ms',
@@ -422,6 +484,7 @@ export interface SyncGa4CustomDefinitionsOptions {
   privateKey?: string;
   dryRun?: boolean;
   includeExtendedDimensions?: boolean;
+  includeInteractionDimensions?: boolean;
   includeMetrics?: boolean;
   fetchFn?: typeof fetch;
   getAccessTokenFn?: (clientEmail: string, privateKey: string, scope: string) => Promise<string>;
@@ -691,6 +754,7 @@ export async function syncGa4CustomDefinitions(
 
   const dryRun = Boolean(options.dryRun);
   const includeExtendedDimensions = options.includeExtendedDimensions ?? true;
+  const includeInteractionDimensions = options.includeInteractionDimensions ?? false;
   const includeMetrics = options.includeMetrics ?? true;
   const fetchFn = options.fetchFn ?? fetch;
 
@@ -713,9 +777,10 @@ export async function syncGa4CustomDefinitions(
     };
   }
 
-  const targetDimensions = DVIEW_GA4_CUSTOM_DIMENSIONS.filter(
-    (d) => d.requiredCore || includeExtendedDimensions
-  );
+  const targetDimensions = [
+    ...DVIEW_GA4_CUSTOM_DIMENSIONS.filter((d) => d.requiredCore || includeExtendedDimensions),
+    ...(includeInteractionDimensions ? DVIEW_GA4_INTERACTION_DIMENSIONS : []),
+  ];
   const targetMetrics = includeMetrics ? DVIEW_GA4_CUSTOM_METRICS : [];
 
   const buildFailureFromParsedError = (
