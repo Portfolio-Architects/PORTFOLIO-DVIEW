@@ -954,9 +954,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             data-testid="timeline-segment-tabs"
             className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border/60 w-full"
           >
-            <div className={getToggleTrackClass('flex-wrap sm:inline-flex w-full sm:w-auto')}>
+            <div role="tablist" aria-label="실거래 세그먼트 필터" className={getToggleTrackClass('flex-wrap sm:inline-flex w-full sm:w-auto')}>
               <button
                 type="button"
+                role="tab"
                 data-testid="timeline-segment-all"
                 aria-selected={activeSegment === 'all'}
                 onClick={() => setActiveSegment('all')}
@@ -971,6 +972,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
+                role="tab"
                 data-testid="timeline-segment-favorites"
                 aria-selected={activeSegment === 'favorites'}
                 onClick={() => setActiveSegment('favorites')}
@@ -988,6 +990,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
+                role="tab"
                 data-testid="timeline-segment-new-high"
                 aria-selected={activeSegment === 'new_high'}
                 onClick={() => setActiveSegment('new_high')}
@@ -1003,6 +1006,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               {pyeongRankings !== undefined && (
                 <button
                   type="button"
+                  role="tab"
                   data-testid="timeline-segment-ranking"
                   aria-selected={activeSegment === 'ranking'}
                   onClick={() => setActiveSegment('ranking')}

@@ -114,17 +114,17 @@ export function ApartmentTitleSelectorModal({
         {isLocked && (
           <div
             data-testid="title-locked-banner"
-            className="px-5 py-3 bg-amber-500/10 border-b border-amber-500/20 text-amber-800 dark:text-amber-200 flex items-start gap-2 text-xs sm:text-sm font-semibold"
+            className="px-5 py-3 bg-blue-50/80 dark:bg-blue-950/40 border-b border-blue-200/60 dark:border-blue-900/60 text-blue-900 dark:text-blue-200 flex items-start gap-2 text-xs sm:text-sm font-semibold"
           >
-            <Lock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+            <Lock className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
             <div>
               <div className="flex items-center gap-1.5 font-bold">
                 <span>단지 타이틀 30일 고정 기간</span>
-                <span className="px-1.5 py-0.5 rounded-full text-[11px] font-black bg-amber-200/60 dark:bg-amber-900/60 text-amber-900 dark:text-amber-100 tabular-nums">
+                <span className="px-1.5 py-0.5 rounded-full text-[11px] font-black bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-200 tabular-nums">
                   D-{daysRemaining}
                 </span>
               </div>
-              <p className="text-[12px] text-amber-700 dark:text-amber-300/90 mt-0.5">
+              <p className="text-[12px] text-slate-600 dark:text-slate-300 mt-0.5">
                 입주민 사칭 방지 규정에 따라 현재 설정된 [{currentTitle}] 타이틀은 30일간 변경할 수 없습니다.
               </p>
             </div>
@@ -223,7 +223,7 @@ export function ApartmentTitleSelectorModal({
             className="absolute inset-0 z-20 bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-100"
           >
             <div className="w-full max-w-sm bg-surface dark:bg-slate-900 rounded-2xl p-5 border border-slate-200 dark:border-slate-800 shadow-2xl text-primary space-y-4">
-              <div className="w-10 h-10 rounded-full bg-amber-500/10 text-amber-600 flex items-center justify-center mx-auto">
+              <div className="w-10 h-10 rounded-full bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 flex items-center justify-center mx-auto">
                 <AlertTriangle className="w-5 h-5" />
               </div>
 
@@ -232,7 +232,7 @@ export function ApartmentTitleSelectorModal({
                 <p className="text-xs sm:text-sm text-secondary font-medium leading-relaxed">
                   선택하신 <span className="font-extrabold text-blue-600 dark:text-blue-400">[{pendingTitle}]</span>(으)로 단지 타이틀을 설정하시겠습니까?
                 </p>
-                <div className="p-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 text-xs font-bold leading-normal border border-amber-200/60 dark:border-amber-900/60">
+                <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 text-xs font-bold leading-normal border border-slate-200/80 dark:border-slate-700/80">
                   단지 타이틀은 설정 후 30일간 변경할 수 없습니다. 확정하시겠습니까?
                 </div>
               </div>

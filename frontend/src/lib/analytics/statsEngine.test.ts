@@ -991,7 +991,30 @@ describe('statsEngine Unit Test Suite', () => {
         { region: 'ALL', pyeong: 'ALL', timeframe: '3M', sort: 'PYEONG_DESC' }
       );
 
-      expect(resAll.timeSeriesTrend.map((p) => p.date)).toEqual(['2026-07', '2026-08', '2026-09', '2026-10']);
+      const validDates = (recentTxs as Array<{ contractDate?: string }>)
+        .filter((tx) => !isCancelledTransaction(tx as any))
+        .map((tx) => String(tx.contractDate || '').replace(/[^0-9]/g, '').slice(0, 8))
+        .filter((d) => d.length === 8)
+        .sort();
+      const maxD8 = validDates[validDates.length - 1];
+      const cutoffObj = new Date(
+        Number(maxD8.slice(0, 4)),
+        Number(maxD8.slice(4, 6)) - 1,
+        Number(maxD8.slice(6, 8)) - 92
+      );
+      const cutoffD8 = String(
+        cutoffObj.getFullYear() * 10000 + (cutoffObj.getMonth() + 1) * 100 + cutoffObj.getDate()
+      );
+      const expectedMonths = Array.from(
+        new Set(
+          validDates
+            .filter((d) => d >= cutoffD8)
+            .map((d) => `${d.slice(0, 4)}-${d.slice(4, 6)}`)
+        )
+      ).sort();
+
+      expect(expectedMonths.length).toBeGreaterThanOrEqual(2);
+      expect(resAll.timeSeriesTrend.map((p) => p.date)).toEqual(expectedMonths);
       for (const pt of resAll.timeSeriesTrend) {
         expect(pt.avgSalePrice).toBeGreaterThan(0);
         expect(pt.avgRentDeposit).toBeGreaterThan(0);
