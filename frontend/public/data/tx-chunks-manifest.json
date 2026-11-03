@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "totalCount": 65500,
+  "totalCount": 65532,
   "chunks": [
     {
       "key": "2026",
@@ -8,8 +8,8 @@
       "years": [
         2026
       ],
-      "count": 6693,
-      "sizeBytes": 985859
+      "count": 6725,
+      "sizeBytes": 990539
     },
     {
       "key": "2025",
