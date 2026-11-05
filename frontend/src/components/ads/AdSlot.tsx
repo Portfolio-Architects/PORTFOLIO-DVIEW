@@ -365,6 +365,7 @@ export function AdSlot({
   });
 
   const executeAdPush = useCallback(() => {
+    if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) return;
     if (isPushedRef.current) return;
     if (typeof window === 'undefined' || !clientId) return;
     if (isAdBlockActive || isPlaceholder) return;
@@ -394,7 +395,7 @@ export function AdSlot({
     } catch (err) {
       logger.warn('AdSlot', 'AdSense push warning', undefined, err as Error);
     }
-  }, [clientId, isAdBlockActive, isPlaceholder, effectiveCascadeTimeoutMs, startCascadeTimeout, currentCycleRef, insRef, isPushedRef, cascadeRemainingMsRef]);
+  }, [clientId, isAdBlockActive, isPlaceholder, testMode, effectiveCascadeTimeoutMs, startCascadeTimeout, currentCycleRef, insRef, isPushedRef, cascadeRemainingMsRef]);
 
   const cpaPayload = resolveNativeCpaFallbackPayload({
     slotId: effectiveSlotId,
@@ -526,6 +527,9 @@ export function AdSlot({
 
   // Dispatch ADBLOCK_FALLBACK beacon when adblock fallback is active
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) {
+      return;
+    }
     if (!isAdBlockActive) {
       adblockBeaconSentRef.current = false;
       return;
@@ -547,6 +551,7 @@ export function AdSlot({
     }
   }, [
     isAdBlockActive,
+    testMode,
     effectiveSlotId,
     baseObserverSlotId,
     cpaPayload.cpaCampaignId,
@@ -632,6 +637,12 @@ export function AdSlot({
       data-cascade-status={cascadeStatus}
       className={`w-full relative overflow-hidden flex flex-col justify-center items-center transition-all ${minHeightClass} ${className}`}
     >
+      <span
+        data-testid="ad-slot-label"
+        className="absolute top-1.5 left-2.5 z-10 pointer-events-none text-[10px] text-tertiary font-bold tracking-wider select-none"
+      >
+        광고
+      </span>
       {isAdBlockActive ? (
         <AdSlotAdBlockView
           fallbackType={fallbackType}

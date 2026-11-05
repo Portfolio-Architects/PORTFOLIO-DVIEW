@@ -1863,10 +1863,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                     )
                   )}
                 </div>
-                {enableInFeedAd && index === 0 && (
+                {enableInFeedAd && index === 0 && process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
                   <div
                     data-testid="timeline-infeed-ad-slot"
-                    className="w-full py-1 box-border"
+                    className="w-full py-1 box-border empty:hidden"
                   >
                     <AdSlot
                       refreshSlotId={inFeedAdSlotId || 'dashboard_timeline_infeed_3'}

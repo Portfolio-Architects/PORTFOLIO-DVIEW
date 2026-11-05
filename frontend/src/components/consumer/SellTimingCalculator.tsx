@@ -958,16 +958,18 @@ const SellTimingCalculator = React.memo(function SellTimingCalculator({
                 </div>
 
                 {/* Zero-CLS High-CPC Financial AdSlot on Sell Timing Result */}
-                <div className="w-full pt-1" data-testid="sell-timing-result-ad-slot">
-                  <AdSlot
-                    refreshSlotId="calc_sell_timing_result"
-                    cpaCampaignId="mortgage-refinance"
-                    format="in-feed"
-                    apartmentName={selectedApt?.name}
-                    dong={selectedApt?.dong}
-                    className="w-full"
-                  />
-                </div>
+                {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                  <div className="w-full pt-1 empty:hidden" data-testid="sell-timing-result-ad-slot">
+                    <AdSlot
+                      refreshSlotId="calc_sell_timing_result"
+                      cpaCampaignId="mortgage-refinance"
+                      format="in-feed"
+                      apartmentName={selectedApt?.name}
+                      dong={selectedApt?.dong}
+                      className="w-full"
+                    />
+                  </div>
+                )}
 
                 {/* Footer Buttons */}
                 </div>

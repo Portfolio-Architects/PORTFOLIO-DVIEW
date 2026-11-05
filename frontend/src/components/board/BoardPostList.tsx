@@ -81,17 +81,19 @@ export function BoardPostList({
   // Regular Feed with in-feed AdSlot inserted after 3rd post (or end)
   const AD_INSERT_INDEX = 3;
 
+  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+
   return (
     <div className="space-y-3.5" data-testid="board-post-list">
       {posts.map((post, idx) => {
-        const showInFeedAd = idx === AD_INSERT_INDEX;
+        const showInFeedAd = idx === AD_INSERT_INDEX && !isApprovalMode;
 
         return (
           <React.Fragment key={post.id}>
             {showInFeedAd && (
               <div
                 data-testid="in-feed-ad-slot-container"
-                className="my-3 w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
+                className="my-3 w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px] empty:hidden"
               >
                 <AdSlot
                   refreshSlotId="board_list_infeed"
@@ -110,10 +112,10 @@ export function BoardPostList({
       })}
 
       {/* If fewer than AD_INSERT_INDEX posts, render ad slot at the end */}
-      {posts.length < AD_INSERT_INDEX && (
+      {posts.length < AD_INSERT_INDEX && !isApprovalMode && (
         <div
           data-testid="in-feed-ad-slot-container-trailing"
-          className="mt-4 w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
+          className="mt-4 w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px] empty:hidden"
         >
           <AdSlot
             refreshSlotId="board_list_trailing_infeed"

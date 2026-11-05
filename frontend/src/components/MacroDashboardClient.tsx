@@ -2089,15 +2089,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         </div>
 
         {/* Prime Hero-to-Timeline Zero-CLS In-Feed AdSlot 1 (Directly Below Donut & Timeline Hero) */}
-        <div className="w-full mb-6" data-testid="hero-ad-slot-1">
-          <AdSlot
-            refreshSlotId="dashboard_hero_infeed_1"
-            format="in-feed"
-            cpaCampaignId="jeonse-sentinel"
-            apartmentName={selectedTimelineApt || activeDonutSector?.repApt?.rawName || undefined}
-            className="w-full"
-          />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full mb-6 empty:hidden" data-testid="hero-ad-slot-1">
+            <AdSlot
+              refreshSlotId="dashboard_hero_infeed_1"
+              format="in-feed"
+              cpaCampaignId="jeonse-sentinel"
+              apartmentName={selectedTimelineApt || activeDonutSector?.repApt?.rawName || undefined}
+              className="w-full"
+            />
+          </div>
+        )}
 
         {/* ═══ Zone 3: 하이퍼로컬 핵심 실거래 인사이트 + 단지·매크로 시세 추이 그래프 ═══ */}
         <div className="w-full flex flex-col gap-5 pb-5 mb-6 border-b border-border box-border" data-testid="zone3-chart-section">
@@ -2154,15 +2156,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           />
         </ErrorBoundary>
 
-        <div className="w-full my-6" data-testid="finance-ad-slot-2">
-          <AdSlot
-            refreshSlotId="dashboard_finance_infeed_2"
-            format="in-feed"
-            cpaCampaignId="mortgage-refinance"
-            apartmentName={financeBinding.aptName || undefined}
-            className="w-full"
-          />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full my-6 empty:hidden" data-testid="finance-ad-slot-2">
+            <AdSlot
+              refreshSlotId="dashboard_finance_infeed_2"
+              format="in-feed"
+              cpaCampaignId="mortgage-refinance"
+              apartmentName={financeBinding.aptName || undefined}
+              className="w-full"
+            />
+          </div>
+        )}
 
         {/* ═══ Zone 4B: 심층 비교 리포트 순환(Recirculation) & 7:5 리텐션·커뮤니티 허브 ═══ */}
         <div className="w-full flex flex-col gap-3 mb-6">

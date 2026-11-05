@@ -140,18 +140,20 @@ export default function GuideIndexPage() {
           </div>
 
           {/* Top In-Feed Zero-CLS AdSlot */}
-          <div
-            data-testid="guide-index-adslot-top"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000001_guide_index_top"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="mortgage-refinance"
-              apartmentName="동탄 가이드"
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="guide-index-adslot-top"
+              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000001_guide_index_top"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="mortgage-refinance"
+                apartmentName="동탄 가이드"
+              />
+            </div>
+          )}
 
           {/* Articles Grid — Synchronized 2-Column Dashboard Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -291,18 +293,20 @@ export default function GuideIndexPage() {
           </section>
 
           {/* Bottom Zero-CLS AdSlot */}
-          <div
-            data-testid="guide-index-adslot-bottom"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000002_guide_index_bottom"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="jeonse-sentinel"
-              apartmentName="동탄 가이드"
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="guide-index-adslot-bottom"
+              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000002_guide_index_bottom"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="jeonse-sentinel"
+                apartmentName="동탄 가이드"
+              />
+            </div>
+          )}
         </div>
       </main>
 

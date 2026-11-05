@@ -921,9 +921,9 @@ describe('동탄 아파트 통계 리포트 & 애드센스 대시보드 종합 E
       const EXPECTED_5_TABS = [
         { id: 'overview', label: '아파트 랩', href: '/' },
         { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-        { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-        { id: 'guide', label: '부동산 가이드', href: '/guide' },
         { id: 'stats', label: '아파트 통계', href: '/stats' },
+        { id: 'guide', label: '부동산 가이드', href: '/guide' },
+        { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
       ];
 
       it('F7.1: Verifies specification contract defines 5 canonical routes including stats', () => {

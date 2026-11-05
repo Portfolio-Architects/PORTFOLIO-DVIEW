@@ -29,6 +29,7 @@ function getProxyAgent() {
 const axios = require('axios');
 const { z } = require('zod');
 const { getSupplyPyeong } = require('../pipeline/core/normalizer');
+const { parseGovApiEnvelope } = require('./fetch-transactions');
 
 // Zod schema for validation of Rent Transaction Record before DB upload
 const RentTransactionSchema = z.object({
@@ -146,6 +147,10 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
         relayPreferred = false;
         throw new Error('Invalid non-MOLIT relay response payload');
       }
+      const envelope = parseGovApiEnvelope(response.data);
+      if (envelope.isError) {
+        throw new Error(`Gov API Gateway Error Envelope [${envelope.resultCode || 'ERR'}]: ${envelope.resultMsg || 'Unknown Gov API Gateway Error'}`);
+      }
       if (usingRelay && !isJest) {
         relayPreferred = true;
       }
@@ -162,7 +167,14 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
       console.warn(`   ⚠️ [Rent API] 호출 시도 ${i + 1}/${retries} 실패: ${errorLabel} (HTTP status/Code: ${status})`);
       if (isLastActive) throw err;
       
-      const backoffDelay = delay * Math.pow(2, i);
+      if (err.response && err.response.status === 429) {
+        const retryAfterSec = Math.min(10, Math.max(1, Number(err.response.headers?.['retry-after']) || 3));
+        const waitMs = isJest ? delay : retryAfterSec * 1000;
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        continue;
+      }
+      const jitter = isJest ? 0 : Math.floor(Math.random() * 500);
+      const backoffDelay = Math.min(10000, delay * Math.pow(2, i)) + jitter;
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }
   }
@@ -221,13 +233,16 @@ async function main() {
 
   // 1. 최신 전월세 데이터 연월 스캔 (기본 3개월, --full 옵션 시 17개월)
   const isFullSync = process.argv.includes('--full');
-  const monthCount = isFullSync ? 17 : 3;
+  const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const isSundayKst = kstNow.getUTCDay() === 0;
+  const monthCount = isFullSync ? 17 : (Number(process.env.SYNC_MONTH_COUNT) || (isSundayKst ? 4 : 2));
   const now = new Date();
   const monthsToSync = new Set();
   
   for (let i = 0; i < monthCount; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+    const d = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth() - i, 1));
+    monthsToSync.add(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+
   }
 
   const sortedMonths = Array.from(monthsToSync).sort((a, b) => b.localeCompare(a));

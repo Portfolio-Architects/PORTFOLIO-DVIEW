@@ -143,10 +143,12 @@ export function DashboardSkeleton() {
         </div>
 
         {/* ═══ Prime In-Feed AdSlot 1 Skeleton ═══ */}
-        <div
-          data-testid="skeleton-hero-ad-slot-1"
-          className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
-        />
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div
+            data-testid="skeleton-hero-ad-slot-1"
+            className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
+          />
+        )}
 
         {/* ═══ Zone 3: Unified Timeline + Live Ranking Tabs Skeleton ═══ */}
         <div className="w-full min-h-[420px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-6 flex flex-col gap-4 border border-border/30 mb-6">
@@ -171,7 +173,9 @@ export function DashboardSkeleton() {
               ))}
             </div>
           </div>
-          <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+          )}
         </div>
 
         {/* ═══ Zone 4B: Curated Guides 3-Pack + 7:5 Retention & Community Hub Skeleton ═══ */}
@@ -244,7 +248,7 @@ const formatPrice = (val: number) => {
   return `${eok}억 ${remainder.toLocaleString()}만원`;
 };
 
-async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: 'overview' | 'imjang' | 'mbti' }) {
+async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: 'overview' | 'imjang' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
   const allApts = Object.entries(txSummary)
@@ -398,6 +402,40 @@ export default async function HomePage() {
         className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pb-12 pt-4"
       >
         <div className="rounded-2xl bg-elevated/50 dark:bg-elevated/30 border border-border/30 p-5 sm:p-7 space-y-6 transition-colors">
+          {/* Visual & Contextual Interlinking Bridge from Upper Lab to 20 Comparison Guides */}
+          <div
+            id="home-lab-to-guide-interlink"
+            data-testid="home-lab-to-guide-interlink"
+            className="rounded-xl bg-body/80 dark:bg-body/40 border border-emerald-500/25 dark:border-emerald-500/30 p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5"
+          >
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                <span>E-E-A-T 전문가 심층 비교 리포트 연동</span>
+              </div>
+              <h3 className="text-xs sm:text-sm font-black text-primary">
+                상단 실거래 랭킹 단지의 1:1 맞대결 입지·학군·전세가율 심층 비교 가이드 (총 20편)
+              </h3>
+              <p className="text-[11.5px] sm:text-xs text-secondary leading-relaxed">
+                단순 실거래 수치 나열을 넘어, 동탄역·호수공원·광비콤·신주거문화타운 핵심 대장 단지 간 평당가 격차 원인과 스트레스 DSR 대출 한도를 애널리스트 시각으로 비교 해설합니다.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <a
+                href="#home-guide-4col-grid"
+                className="inline-flex items-center px-3 py-1.5 rounded-lg bg-surface hover:bg-elevated border border-border/60 text-primary text-[11px] font-extrabold transition-colors"
+              >
+                하단 20편 가이드 그리드 바로가기
+              </a>
+              <Link
+                href="/guide"
+                prefetch={false}
+                className="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
+              >
+                20편 심층 비교 가이드 전체 열람
+              </Link>
+            </div>
+          </div>
+
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border/40 pb-5">
             <div className="space-y-1.5 max-w-3xl">
               <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold">
@@ -444,7 +482,7 @@ export default async function HomePage() {
                 <h3>광역 교통망(GTX-A·트램·동인선) 입지 점수</h3>
               </div>
               <p className="text-xs text-secondary leading-relaxed">
-                동탄역 복합환승센터(GTX-A·SRT), 동탄 도시철도 트램 1·2호선 정거장, 동탄인덕원선 역세권 도보 실거리와 초·중·고 학군 및 학원가 밀집도를 종합한 5대 입지 스코어링 모델을 적용합니다. 각 단지의 실거래 시계열 추이와 입지 점수 대비 저평가 여부를 탐색 메뉴와 주거 성향(MBTI) 도감에서 비교할 수 있습니다.
+                동탄역 복합환승센터(GTX-A·SRT), 동탄 도시철도 트램 1·2호선 정거장, 동탄인덕원선 역세권 도보 실거리와 초·중·고 학군 및 학원가 밀집도를 종합한 5대 입지 스코어링 모델을 적용합니다. 각 단지의 실거래 시계열 추이와 입지 점수 대비 저평가 여부를 탐색 메뉴와 아파트 통계 리포트에서 비교할 수 있습니다.
               </p>
             </article>
           </div>
@@ -520,10 +558,27 @@ export default async function HomePage() {
           )}
 
           {/* Editorial Guide Cards */}
-          <div className="space-y-2.5">
-            <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-              필독 동탄 부동산 분석 칼럼 및 밸류에이션 가이드
-            </h3>
+          <div id="home-guide-4col-grid" className="space-y-2.5 scroll-mt-20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h3 className="text-xs sm:text-sm font-extrabold text-primary">
+                필독 동탄 부동산 분석 칼럼 및 밸류에이션 가이드 (20편 전수 수록)
+              </h3>
+              <div className="flex flex-wrap items-center gap-3 text-[11px] font-extrabold">
+                <a
+                  href="#home-ssr-semantic-catalog"
+                  className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                >
+                  상단 실거래 분석 랩으로 이동
+                </a>
+                <Link
+                  href="/guide"
+                  prefetch={false}
+                  className="text-emerald-700 dark:text-emerald-400 hover:underline"
+                >
+                  가이드 허브 전체보기
+                </Link>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {GUIDE_ARTICLES.map((article) => (
                 <Link
@@ -554,6 +609,38 @@ export default async function HomePage() {
             </div>
           </div>
 
+          {/* Real-Time Transaction Notification Anchor Section */}
+          <section
+            id="notification"
+            aria-label="동탄 아파트 실거래가 동기화 및 알림 구독 안내"
+            className="scroll-mt-20 rounded-xl bg-body/60 dark:bg-body/25 border border-border/30 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+          >
+            <div className="space-y-1">
+              <h3 className="text-xs sm:text-sm font-extrabold text-primary">
+                국토교통부 실거래가 동기화 및 관심 단지 알림 안내
+              </h3>
+              <p className="text-[11px] sm:text-xs text-secondary leading-relaxed">
+                동탄 1·2신도시 184개 아파트 단지의 국토교통부 매매·전월세 실거래 내역은 매일 자동 동기화되며, 단지 탐색 및 상세 리포트에서 관심 단지를 등록해 최신 거래 변동을 확인할 수 있습니다.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <Link
+                href="/explore"
+                prefetch={false}
+                className="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
+              >
+                관심 단지 탐색하기
+              </Link>
+              <Link
+                href="/contact"
+                prefetch={false}
+                className="inline-flex items-center px-3 py-1.5 rounded-lg bg-surface hover:bg-elevated border border-border/50 text-primary text-[11px] font-bold transition-colors"
+              >
+                데이터·알림 문의
+              </Link>
+            </div>
+          </section>
+
           {/* Core Hub Quick Links */}
           <nav
             aria-label="D-VIEW 핵심 분석 허브 바로가기"
@@ -561,16 +648,16 @@ export default async function HomePage() {
           >
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <span className="text-[11px] font-black text-tertiary uppercase tracking-wider">주요 서비스:</span>
-              <Link href="/map" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Link href="/explore" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 단지 지도
               </Link>
-              <Link href="/compare" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Link href="/guide" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 단지 1:1 비교
               </Link>
-              <Link href="/calculator" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Link href="/guide/stress-dsr-valuation-guide" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 대출·세금 계산기
               </Link>
-              <Link href="/complex-ranking" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Link href="/explore" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 실거래 랭킹
               </Link>
               <Link href="/stats" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
@@ -579,7 +666,7 @@ export default async function HomePage() {
               <Link href="/lounge" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 입주민 라운지
               </Link>
-              <Link href="/subscription" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+              <Link href="/#notification" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                 실거래 알림 구독
               </Link>
             </div>
@@ -590,9 +677,6 @@ export default async function HomePage() {
                 </Link>
                 <Link href="/technovalley" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   동탄테크노밸리 지식산업센터 56곳 시세 분석
-                </Link>
-                <Link href="/mbti" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                  16개 주거 성향(MBTI)별 추천 단지 도감
                 </Link>
                 <Link href="/news" prefetch={false} className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   동탄 부동산·교통 정책 브리핑

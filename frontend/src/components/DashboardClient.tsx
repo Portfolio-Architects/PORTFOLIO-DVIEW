@@ -89,10 +89,12 @@ export const MacroDashboardSkeleton = () => (
       </div>
 
       {/* ═══ Prime In-Feed AdSlot 1 Skeleton ═══ */}
-      <div
-        data-testid="skeleton-hero-ad-slot-1"
-        className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
-      />
+      {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        <div
+          data-testid="skeleton-hero-ad-slot-1"
+          className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
+        />
+      )}
 
       {/* ═══ Zone 3: Unified Timeline + Live Ranking Tabs Skeleton ═══ */}
       <div className="w-full min-h-[420px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-6 flex flex-col gap-4 border border-border/30 mb-6">
@@ -117,7 +119,9 @@ export const MacroDashboardSkeleton = () => (
             ))}
           </div>
         </div>
-        <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+        )}
       </div>
 
       {/* ═══ Zone 4B: Curated Guides 3-Pack + 7:5 Retention & Community Hub Skeleton ═══ */}
@@ -470,9 +474,10 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const { triggerCustomA2HSModal } = usePWA();
 
-  const [activeTab, setActiveTab] = useState<'overview' | 'imjang' | 'mbti'>(initialTab);
+  const resolvedInitialTab: 'overview' | 'imjang' = initialTab === 'imjang' ? 'imjang' : 'overview';
+  const [activeTab, setActiveTab] = useState<'overview' | 'imjang'>(resolvedInitialTab);
   const [isPending, startTransition] = useTransition();
-  const [hasOpenedOverview, setHasOpenedOverview] = useState(initialTab === 'overview');
+  const [hasOpenedOverview, setHasOpenedOverview] = useState(resolvedInitialTab === 'overview');
 
   useEffect(() => {
     if (activeTab === 'overview') setHasOpenedOverview(true);
@@ -542,10 +547,14 @@ const DashboardClient = React.memo(function DashboardClient({
       } else if (window.location.hash.startsWith('#stats') || tabParam === 'stats') {
         router.replace('/stats');
         return;
-      } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap') || tabParam === 'office' || tabParam === 'gap' || hasCurationParams) {
+      } else if (window.location.hash.startsWith('#guide') || tabParam === 'guide') {
+        router.replace('/guide');
+        return;
+      } else if (window.location.hash.startsWith('#technovalley') || tabParam === 'technovalley') {
+        router.replace('/technovalley');
+        return;
+      } else if (window.location.hash.startsWith('#office') || window.location.hash.startsWith('#gap') || window.location.hash.startsWith('#mbti') || tabParam === 'office' || tabParam === 'gap' || tabParam === 'mbti' || hasCurationParams) {
         setActiveTab('overview');
-      } else if (window.location.hash.startsWith('#mbti') || tabParam === 'mbti') {
-        setActiveTab('mbti');
       } else if (window.location.hash.startsWith('#notice=') || tabParam === 'news' || tabParam === 'notices') {
         router.replace('/news');
         return;
@@ -584,14 +593,10 @@ const DashboardClient = React.memo(function DashboardClient({
         startTransition(() => {
           if (window.location.hash.startsWith('#imjang')) {
             setActiveTab('imjang');
-          } else if (window.location.hash.startsWith('#mbti')) {
-            setActiveTab('mbti');
-          } else if (window.location.hash.startsWith('#overview') || window.location.hash.startsWith('#technovalley') || window.location.hash.startsWith('#techno') || window.location.hash.startsWith('#office')) {
+          } else if (window.location.hash.startsWith('#overview') || window.location.hash.startsWith('#technovalley') || window.location.hash.startsWith('#techno') || window.location.hash.startsWith('#office') || window.location.hash.startsWith('#mbti')) {
             setActiveTab('overview');
           } else if (queryTab === 'imjang') {
             setActiveTab('imjang');
-          } else if (queryTab === 'mbti') {
-            setActiveTab('mbti');
           } else if (queryTab === 'overview' || window.location.hash === '' || window.location.pathname === '/') {
             setActiveTab('overview');
           } else {
@@ -1170,17 +1175,17 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
   const handleTabChange = useCallback((tab: string) => {
-    const targetTab = tab as 'overview' | 'imjang' | 'mbti' | 'guide' | 'stats';
-    if (targetTab !== 'guide' && targetTab !== 'stats') {
-      setActiveTab(targetTab as 'overview' | 'imjang' | 'mbti');
+    const targetTab = tab as 'overview' | 'imjang' | 'stats' | 'guide' | 'technovalley';
+    if (targetTab === 'overview' || targetTab === 'imjang') {
+      setActiveTab(targetTab);
     } else {
       trackEvent('tab_view', { tab_name: targetTab });
     }
     let href = '/';
     if (targetTab === 'imjang') href = '/explore';
-    else if (targetTab === 'mbti') href = '/mbti';
-    else if (targetTab === 'guide') href = '/guide';
     else if (targetTab === 'stats') href = '/stats';
+    else if (targetTab === 'guide') href = '/guide';
+    else if (targetTab === 'technovalley') href = '/technovalley';
     else if (targetTab === 'overview') href = '/';
     window.history.pushState(null, '', href);
     try { router.replace(href, { scroll: false }); } catch (err) {}

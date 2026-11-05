@@ -58,8 +58,33 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/report',
-        destination: '/#report',
+        destination: '/guide',
         permanent: true,
+      },
+      {
+        source: '/map',
+        destination: '/explore',
+        permanent: false,
+      },
+      {
+        source: '/compare',
+        destination: '/guide',
+        permanent: false,
+      },
+      {
+        source: '/calculator',
+        destination: '/guide/stress-dsr-valuation-guide',
+        permanent: false,
+      },
+      {
+        source: '/complex-ranking',
+        destination: '/explore',
+        permanent: false,
+      },
+      {
+        source: '/subscription',
+        destination: '/',
+        permanent: false,
       },
       {
         source: '/board',
@@ -77,6 +102,16 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
+        source: '/mbti',
+        destination: '/',
+        permanent: false,
+      },
+      {
+        source: '/mbti/:path*',
+        destination: '/',
+        permanent: false,
+      },
+      {
         source: '/overview',
         has: [
           {
@@ -87,6 +122,11 @@ const nextConfig: NextConfig = {
         ],
         destination: '/',
         permanent: false,
+      },
+      {
+        source: '/overview',
+        destination: '/',
+        permanent: true,
       },
     ];
   },

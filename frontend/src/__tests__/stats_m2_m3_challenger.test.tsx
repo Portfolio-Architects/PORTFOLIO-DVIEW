@@ -439,9 +439,9 @@ describe('Milestone 2 & 3 Adversarial Challenge Suite', () => {
       const expectedTabs = [
         { id: 'overview', label: '아파트 랩', href: '/' },
         { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-        { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-        { id: 'guide', label: '부동산 가이드', href: '/guide' },
         { id: 'stats', label: '아파트 통계', href: '/stats' },
+        { id: 'guide', label: '부동산 가이드', href: '/guide' },
+        { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
       ];
 
       expectedTabs.forEach((tab) => {

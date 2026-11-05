@@ -1349,21 +1349,23 @@ const ApartmentModal = React.memo(function ApartmentModal({
         </section>
 
         {/* Chapter 02 Native In-Feed AdSense Slot */}
-        <div 
-          data-testid="apartment-ad-slot-ch02"
-          ref={ch02AdContainerRef}
-          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl flex flex-col justify-center items-center overflow-hidden"
-        >
-          <AdSlot 
-            refreshSlotId="1000000002_ch02"
-            format="in-feed"
-            minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
-            fallbackType="dashboard-promo"
-            refreshKey={ch02AdRefreshKey}
-            apartmentName={report.apartmentName}
-            dong={report.dong || '동탄'}
-          />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div 
+            data-testid="apartment-ad-slot-ch02"
+            ref={ch02AdContainerRef}
+            className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl flex flex-col justify-center items-center overflow-hidden empty:hidden"
+          >
+            <AdSlot 
+              refreshSlotId="1000000002_ch02"
+              format="in-feed"
+              minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
+              fallbackType="dashboard-promo"
+              refreshKey={ch02AdRefreshKey}
+              apartmentName={report.apartmentName}
+              dong={report.dong || '동탄'}
+            />
+          </div>
+        )}
 
         {/* Chapter 03: 전세가율 갭투자 매트릭스 (Jeonse Gap) */}
         <section
@@ -1564,21 +1566,23 @@ const ApartmentModal = React.memo(function ApartmentModal({
         </section>
 
         {/* Chapter 05 Native In-Feed AdSense Slot */}
-        <div 
-          data-testid="apartment-ad-slot-ch05"
-          ref={ch05AdContainerRef}
-          className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl flex flex-col justify-center items-center overflow-hidden"
-        >
-          <AdSlot 
-            refreshSlotId="1000000002_ch05"
-            format="in-feed"
-            minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
-            fallbackType="mbti-promo"
-            refreshKey={ch05AdRefreshKey}
-            apartmentName={report.apartmentName}
-            dong={report.dong || '동탄'}
-          />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div 
+            data-testid="apartment-ad-slot-ch05"
+            ref={ch05AdContainerRef}
+            className="w-full my-6 min-h-[180px] sm:min-h-[220px] md:min-h-[250px] bg-elevated dark:bg-slate-900 rounded-2xl flex flex-col justify-center items-center overflow-hidden empty:hidden"
+          >
+            <AdSlot 
+              refreshSlotId="1000000002_ch05"
+              format="in-feed"
+              minHeightClass="min-h-[180px] sm:min-h-[220px] md:min-h-[250px]"
+              fallbackType="mbti-promo"
+              refreshKey={ch05AdRefreshKey}
+              apartmentName={report.apartmentName}
+              dong={report.dong || '동탄'}
+            />
+          </div>
+        )}
 
         {/* Chapter 06: 세대수 및 평형별 거래 대장 (Pyeong Ledger) */}
         <section
@@ -1721,9 +1725,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
         </section>
 
         {/* AdSense Responsive Slot */}
-        <div className="w-full my-6" data-testid="apartment-modal-ad-slot">
-          <AdSlot format="banner" className="w-full" />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full my-6 empty:hidden" data-testid="apartment-modal-ad-slot">
+            <AdSlot format="banner" className="w-full" />
+          </div>
+        )}
 
         {/* Kakao Share CTA */}
         <div className="flex flex-col gap-6 mt-8 mb-4">

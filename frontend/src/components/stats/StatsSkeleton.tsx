@@ -19,7 +19,12 @@ export function StatsSkeleton() {
       </div>
 
       {/* AdSlot #1 (Horizontal-Strip) Skeleton */}
-      <div className="w-full min-h-[90px] sm:min-h-[100px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]" />
+      {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        <div
+          data-testid="stats-skeleton-adslot-1"
+          className="w-full min-h-[90px] sm:min-h-[100px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]"
+        />
+      )}
 
       {/* 4 KPI Soft Cards Skeleton */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -70,7 +75,12 @@ export function StatsSkeleton() {
       </div>
 
       {/* AdSlot #2 (In-Feed) Skeleton */}
-      <div className="w-full min-h-[140px] sm:min-h-[160px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]" />
+      {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        <div
+          data-testid="stats-skeleton-adslot-2"
+          className="w-full min-h-[140px] sm:min-h-[160px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]"
+        />
+      )}
 
       {/* DistanceRegressionScatterPlot Skeleton */}
       <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-6 border border-[#f2f4f6] dark:border-[#202027] flex flex-col justify-between gap-4">
@@ -85,7 +95,12 @@ export function StatsSkeleton() {
       </div>
 
       {/* AdSlot #3 (Rectangle) Skeleton */}
-      <div className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]" />
+      {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        <div
+          data-testid="stats-skeleton-adslot-3"
+          className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]"
+        />
+      )}
 
       {/* ComplexDrillDownTable Skeleton */}
       <div className="w-full min-h-[400px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-6 border border-[#f2f4f6] dark:border-[#202027] flex flex-col gap-4">
@@ -102,7 +117,12 @@ export function StatsSkeleton() {
       </div>
 
       {/* AdSlot #4 (Banner) Skeleton */}
-      <div className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]" />
+      {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        <div
+          data-testid="stats-skeleton-adslot-4"
+          className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027]"
+        />
+      )}
     </div>
   );
 }

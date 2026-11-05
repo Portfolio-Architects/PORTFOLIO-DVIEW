@@ -163,6 +163,10 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
         relayPreferred = false;
         throw new Error('Invalid non-MOLIT relay response payload');
       }
+      const envelope = parseGovApiEnvelope(response.data);
+      if (envelope.isError) {
+        throw new Error(`Gov API Gateway Error Envelope [${envelope.resultCode || 'ERR'}]: ${envelope.resultMsg || 'Unknown Gov API Gateway Error'}`);
+      }
       if (usingRelay && !isJest) {
         relayPreferred = true;
       }
@@ -179,7 +183,14 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
       console.warn(`   ⚠️ [Trade API] 호출 시도 ${i + 1}/${retries} 실패: ${errorLabel} (Status/Code: ${status})`);
       if (isLastActive) throw err;
       
-      const backoffDelay = delay * Math.pow(2, i);
+      if (err.response && err.response.status === 429) {
+        const retryAfterSec = Math.min(10, Math.max(1, Number(err.response.headers?.['retry-after']) || 3));
+        const waitMs = isJest ? delay : retryAfterSec * 1000;
+        await new Promise(resolve => setTimeout(resolve, waitMs));
+        continue;
+      }
+      const jitter = isJest ? 0 : Math.floor(Math.random() * 500);
+      const backoffDelay = Math.min(10000, delay * Math.pow(2, i)) + jitter;
       await new Promise(resolve => setTimeout(resolve, backoffDelay));
     }
   }
@@ -276,11 +287,16 @@ async function main() {
 
   // 2. 동기화할 월 결정 (당월, 전월, 전전월 총 3개월을 항상 동기화하여 실거래 신고 지연 대응)
   const now = new Date();
+  const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+  const isSundayKst = kstNow.getUTCDay() === 0;
+  const isFullSync = process.argv.includes('--full');
+  const monthCount = isFullSync ? 17 : (Number(process.env.SYNC_MONTH_COUNT) || (isSundayKst ? 4 : 2));
   const monthsToSync = new Set();
 
-  for (let i = 0; i < 3; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+  for (let i = 0; i < monthCount; i++) {
+    const d = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth() - i, 1));
+    monthsToSync.add(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+
   }
 
   console.log(`   동기화 대상: ${Array.from(monthsToSync).sort().join(', ')}`);

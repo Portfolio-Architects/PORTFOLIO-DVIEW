@@ -15,10 +15,13 @@ interface StatsAdBannerProps {
  * Maintained 24px vertical margin to prevent accidental clicks on filter buttons.
  */
 export function FilterBottomAdBanner({ testMode = false, className = '' }: StatsAdBannerProps) {
+  if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) {
+    return null;
+  }
   return (
     <div
       data-testid="ad-placement-filter-bottom"
-      className={`my-6 w-full ${className}`}
+      className={`my-6 w-full empty:hidden ${className}`}
     >
       <AdSlot
         refreshSlotId="stat-slot-filter-bottom"
@@ -38,10 +41,13 @@ export function FilterBottomAdBanner({ testMode = false, className = '' }: Stats
  * Natural reading break for users transitioning from macro trends to micro rankings.
  */
 export function MidFeedAdBanner({ testMode = false, className = '' }: StatsAdBannerProps) {
+  if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) {
+    return null;
+  }
   return (
     <div
       data-testid="ad-placement-mid-feed"
-      className={`my-6 w-full ${className}`}
+      className={`my-6 w-full empty:hidden ${className}`}
     >
       <AdSlot
         refreshSlotId="stat-slot-mid-feed"
@@ -61,10 +67,13 @@ export function MidFeedAdBanner({ testMode = false, className = '' }: StatsAdBan
  * Highly engaging native placement within list browsing flow.
  */
 export function RankingBreakAdBanner({ testMode = false, className = '' }: StatsAdBannerProps) {
+  if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) {
+    return null;
+  }
   return (
     <div
       data-testid="ad-placement-ranking-break"
-      className={`py-2 w-full ${className}`}
+      className={`py-2 w-full empty:hidden ${className}`}
     >
       <AdSlot
         refreshSlotId="stat-slot-ranking-break"
@@ -84,10 +93,13 @@ export function RankingBreakAdBanner({ testMode = false, className = '' }: Stats
  * Captures high-dwell-time engaged users who finished the full report.
  */
 export function BottomAnchorAdBanner({ testMode = false, className = '' }: StatsAdBannerProps) {
+  if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) {
+    return null;
+  }
   return (
     <div
       data-testid="ad-placement-bottom-anchor"
-      className={`my-8 w-full ${className}`}
+      className={`my-8 w-full empty:hidden ${className}`}
     >
       <AdSlot
         refreshSlotId="stat-slot-bottom-anchor"

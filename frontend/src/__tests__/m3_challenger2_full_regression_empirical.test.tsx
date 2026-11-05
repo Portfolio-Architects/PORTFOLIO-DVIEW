@@ -13,8 +13,6 @@ import fs from 'fs';
 import path from 'path';
 import { render, screen } from '@testing-library/react';
 import TechnoValleyPage from '@/app/technovalley/page';
-import { generateStaticParams, generateMetadata } from '@/app/mbti/[type]/page';
-import MBTIDirectResultPage from '@/app/mbti/[type]/page';
 import { ALL_MBTI_TYPES, MBTI_PROFILES } from '@/lib/data/mbtiData';
 import { APARTMENTS_BY_DONG } from '@/lib/apartment-data';
 import { FULL_DONG_DATA } from '@/lib/dong-apartments';
@@ -28,7 +26,7 @@ jest.mock('next/navigation', () => ({
   notFound: jest.fn(() => {
     throw new Error('NEXT_NOT_FOUND');
   }),
-  usePathname: jest.fn(() => '/mbti'),
+  usePathname: jest.fn(() => '/technovalley'),
 }));
 
 // Mock LoungeHeader and MobileDock to isolate container rendering
@@ -57,7 +55,7 @@ describe('Empirical Challenger 2: App Router, Build & Full Regression Suite', ()
   // SECTION 1: Next.js Routing & Redirect Invariants
   // =========================================================================
   describe('1. Next.js Routing & Server Redirect Invariants', () => {
-    it('1.1 next.config.ts declares 307 redirects for /techno and office query while keeping /technovalley as 200 OK SSR route', () => {
+    it('1.1 next.config.ts declares 307 redirects for /techno, /mbti, and office query while keeping /technovalley as 200 OK SSR route', () => {
       const configPath = path.resolve(__dirname, '../../next.config.ts');
       expect(fs.existsSync(configPath)).toBe(true);
       const content = fs.readFileSync(configPath, 'utf8');
@@ -66,8 +64,10 @@ describe('Empirical Challenger 2: App Router, Build & Full Regression Suite', ()
       expect(content).not.toContain("source: '/technovalley'");
       expect(content).toContain("destination: '/'");
 
-      // Check /techno redirect rule
+      // Check /techno and /mbti redirect rules
       expect(content).toContain("source: '/techno'");
+      expect(content).toContain("source: '/mbti'");
+      expect(content).toContain("source: '/mbti/:path*'");
 
       // Check tab=office redirect rule
       expect(content).toContain("value: 'office'");
@@ -81,38 +81,31 @@ describe('Empirical Challenger 2: App Router, Build & Full Regression Suite', ()
   });
 
   // =========================================================================
-  // SECTION 2: MBTI Route Generation, Metadata & Edge Case Robustness
+  // SECTION 2: MBTI Route Removal & Redirect Defense
   // =========================================================================
-  describe('2. MBTI Dynamic Routing, SSG Params & Metadata Generation', () => {
-    it('2.1 generateStaticParams produces exactly all 16 MBTI types for static generation', async () => {
-      const params = await generateStaticParams();
-      expect(params.length).toBe(16);
-      const types = params.map((p) => p.type);
-      ALL_MBTI_TYPES.forEach((expectedType) => {
-        expect(types).toContain(expectedType);
-      });
+  describe('2. MBTI Route Removal & Redirect Defense', () => {
+    it('2.1 verifies /mbti and /mbti/[type] route files are physically removed', () => {
+      const mbtiPagePath = path.resolve(__dirname, '../app/mbti/page.tsx');
+      const mbtiTypePagePath = path.resolve(__dirname, '../app/mbti/[type]/page.tsx');
+      expect(fs.existsSync(mbtiPagePath)).toBe(false);
+      expect(fs.existsSync(mbtiTypePagePath)).toBe(false);
     });
 
-    it('2.2 generateMetadata constructs valid OpenGraph and canonical tags for all 16 types', async () => {
-      for (const mbti of ALL_MBTI_TYPES) {
-        const metadata = await generateMetadata({ params: Promise.resolve({ type: mbti }) });
-        expect(metadata.title).toContain(mbti);
-        expect(metadata.alternates?.canonical).toBe(`https://dongtanview.com/mbti/${mbti}`);
-        expect(metadata.openGraph?.images).toBeDefined();
-      }
+    it('2.2 verifies overview/page.tsx and page.tsx do not set initialTab="mbti" or reference MBTI encyclopedia', () => {
+      const overviewPageSource = fs.readFileSync(path.resolve(__dirname, '../app/overview/page.tsx'), 'utf-8');
+      const homePageSource = fs.readFileSync(path.resolve(__dirname, '../app/page.tsx'), 'utf-8');
+
+      expect(overviewPageSource).not.toContain("initialTab = 'mbti'");
+      expect(homePageSource).not.toContain('주거 성향(MBTI) 도감');
+      expect(homePageSource).not.toContain('href="/mbti"');
     });
 
-    it('2.3 handles lowercase mbti type params gracefully via case normalization', async () => {
-      const metadata = await generateMetadata({ params: Promise.resolve({ type: 'entj' }) });
-      expect(metadata.title).toContain('ENTJ');
-      expect(metadata.title).toContain('동탄역 롯데캐슬');
-    });
+    it('2.3 verifies DashboardClient normalizes initialTab="mbti" to overview and routes #guide/?tab=guide to /guide', () => {
+      const dashboardClientSource = fs.readFileSync(path.resolve(__dirname, '../components/DashboardClient.tsx'), 'utf-8');
 
-    it('2.4 invokes notFound() for unrecognized MBTI route parameter', async () => {
-      await expect(
-        MBTIDirectResultPage({ params: Promise.resolve({ type: 'INVALID_MBTI' }) })
-      ).rejects.toThrow('NEXT_NOT_FOUND');
-      expect(notFound).toHaveBeenCalled();
+      expect(dashboardClientSource).toContain("const resolvedInitialTab: 'overview' | 'imjang' = initialTab === 'imjang' ? 'imjang' : 'overview'");
+      expect(dashboardClientSource).toContain("router.replace('/guide')");
+      expect(dashboardClientSource).toContain("router.replace('/technovalley')");
     });
   });
 

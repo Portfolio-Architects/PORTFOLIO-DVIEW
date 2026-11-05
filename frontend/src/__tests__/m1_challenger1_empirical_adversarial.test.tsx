@@ -371,20 +371,20 @@ describe('Milestone 1 Challenger 1 Empirical & Adversarial Stress Suite', () => 
       // Re-render with same handler
       rerender(
         <>
-          <LoungeHeader activeTab="mbti" onTabChange={handleTabChangeSpy} />
-          <MobileDock activeTab="mbti" onTabClick={handleTabChangeSpy} />
+          <LoungeHeader activeTab="technovalley" onTabChange={handleTabChangeSpy} />
+          <MobileDock activeTab="technovalley" onTabClick={handleTabChangeSpy} />
         </>
       );
 
       // Click on both
-      const mbtiLinks = screen.getAllByRole('link', { name: /단지 MBTI/i });
-      expect(mbtiLinks.length).toBe(2);
+      const technovalleyLinks = screen.getAllByRole('link', { name: /테크노밸리 랩/i });
+      expect(technovalleyLinks.length).toBe(2);
 
-      fireEvent.click(mbtiLinks[0]);
-      expect(handleTabChangeSpy).toHaveBeenCalledWith('mbti');
+      fireEvent.click(technovalleyLinks[0]);
+      expect(handleTabChangeSpy).toHaveBeenCalledWith('technovalley');
 
-      fireEvent.click(mbtiLinks[1]);
-      expect(handleTabChangeSpy).toHaveBeenCalledWith('mbti');
+      fireEvent.click(technovalleyLinks[1]);
+      expect(handleTabChangeSpy).toHaveBeenCalledWith('technovalley');
     });
 
     it('stress tests rapid tab clicks across all 3 main navigation tabs (30 iterations)', () => {
@@ -393,11 +393,11 @@ describe('Milestone 1 Challenger 1 Empirical & Adversarial Stress Suite', () => 
         <LoungeHeader activeTab="overview" onTabChange={tabSpy} />
       );
 
-      const tabs = ['overview', 'imjang', 'mbti'];
+      const tabs = ['overview', 'imjang', 'technovalley'];
       const links = [
         screen.getByRole('link', { name: /아파트 랩/i }),
         screen.getByRole('link', { name: /아파트 탐색/i }),
-        screen.getByRole('link', { name: /단지 MBTI/i }),
+        screen.getByRole('link', { name: /테크노밸리 랩/i }),
       ];
 
       act(() => {

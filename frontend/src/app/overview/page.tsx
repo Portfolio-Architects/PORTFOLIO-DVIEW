@@ -136,10 +136,12 @@ export function DashboardSkeleton() {
         </div>
 
         {/* ═══ Prime In-Feed AdSlot 1 Skeleton ═══ */}
-        <div
-          data-testid="skeleton-hero-ad-slot-1"
-          className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
-        />
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div
+            data-testid="skeleton-hero-ad-slot-1"
+            className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30 mb-6"
+          />
+        )}
 
         {/* ═══ Zone 3: Unified Timeline + Live Ranking Tabs Skeleton ═══ */}
         <div className="w-full min-h-[420px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-6 flex flex-col gap-4 border border-border/30 mb-6">
@@ -164,7 +166,9 @@ export function DashboardSkeleton() {
               ))}
             </div>
           </div>
-          <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+          )}
         </div>
 
         {/* ═══ Zone 4B: Curated Guides 3-Pack + 7:5 Retention & Community Hub Skeleton ═══ */}
@@ -228,7 +232,7 @@ export function DashboardSkeleton() {
   );
 }
 
-async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' | 'mbti' }) {
+async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
   const allApts = Object.entries(txSummary).map(([name, sum]) => {
@@ -329,10 +333,9 @@ export default async function OverviewPage(props?: {
   const searchParams = props?.searchParams ? await props.searchParams : undefined;
   const tab = searchParams?.tab;
 
-  let initialTab: 'overview' | 'imjang' | 'mbti' = 'overview';
+  let initialTab: 'overview' | 'imjang' = 'overview';
   if (tab === 'imjang') initialTab = 'imjang';
-  else if (tab === 'mbti') initialTab = 'mbti';
-  // legacy lounge, office & technovalley fall back cleanly to overview
+  // legacy lounge, office, technovalley & mbti fall back cleanly to overview
 
   const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';

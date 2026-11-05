@@ -227,18 +227,20 @@ export default async function TechnoValleyPage(
           </div>
 
           {/* B2B Corporate Relocation Zero-CLS AdSlot */}
-          <div
-            data-testid="technovalley-b2b-adslot-top"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000002_technovalley_b2b"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="corporate-relocation"
-              apartmentName="동탄테크노밸리"
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="technovalley-b2b-adslot-top"
+              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000002_technovalley_b2b"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="corporate-relocation"
+                apartmentName="동탄테크노밸리"
+              />
+            </div>
+          )}
 
           {/* Section 2: Full 56 Knowledge Industry Centers Catalog Table */}
           <div className="space-y-4">
@@ -327,18 +329,20 @@ export default async function TechnoValleyPage(
           </div>
 
           {/* Bottom B2B Zero-CLS AdSlot */}
-          <div
-            data-testid="technovalley-b2b-adslot-bottom"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000001_technovalley_b2b_bottom"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="corporate-relocation"
-              apartmentName="동탄테크노밸리"
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="technovalley-b2b-adslot-bottom"
+              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000001_technovalley_b2b_bottom"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="corporate-relocation"
+                apartmentName="동탄테크노밸리"
+              />
+            </div>
+          )}
         </div>
       </section>
     </div>

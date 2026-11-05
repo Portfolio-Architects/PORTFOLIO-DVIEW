@@ -116,24 +116,22 @@ describe('Milestone 3 — Zone 5 Implementation (SSR Market Editorial & Zero-CLS
       }
     });
 
-    it('preserves core hub navigation links (/map, /compare, /calculator, /complex-ranking, /stats, /lounge, /subscription)', async () => {
+    it('preserves core hub navigation links (/explore, /guide, /guide/stress-dsr-valuation-guide, /stats, /lounge, /#notification) without 404 dead links', async () => {
       const HomeJsx = await HomePage();
       const { container } = render(HomeJsx);
 
       const editorial = container.querySelector('#home-ssr-market-editorial');
       expect(editorial).not.toBeNull();
+      expect(editorial?.querySelector('#notification')).not.toBeNull();
 
       const requiredHubLinks = [
-        '/map',
-        '/compare',
-        '/calculator',
-        '/complex-ranking',
+        '/explore',
+        '/guide',
+        '/guide/stress-dsr-valuation-guide',
         '/stats',
         '/lounge',
-        '/subscription',
-        '/explore',
+        '/#notification',
         '/technovalley',
-        '/mbti',
         '/news',
         '/about',
         '/privacy',
@@ -143,6 +141,11 @@ describe('Milestone 3 — Zone 5 Implementation (SSR Market Editorial & Zero-CLS
       for (const href of requiredHubLinks) {
         const link = editorial?.querySelector(`a[href="${href}"]`);
         expect(link).not.toBeNull();
+      }
+
+      const deadLinks = ['/map', '/compare', '/calculator', '/complex-ranking', '/subscription', '/mbti'];
+      for (const deadHref of deadLinks) {
+        expect(editorial?.querySelector(`a[href="${deadHref}"]`)).toBeNull();
       }
     });
 

@@ -240,16 +240,18 @@ export function BoardPostDetailModal({
           </div>
 
           {/* In-feed AdSlot with Zero-CLS */}
-          <div
-            data-testid="detail-ad-slot-container"
-            className="w-full my-4 rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
-          >
-            <AdSlot
-              refreshSlotId="board_detail_infeed"
-              format="in-feed"
-              minHeightClass="min-h-[140px]"
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="detail-ad-slot-container"
+              className="w-full my-4 rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px] empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="board_detail_infeed"
+                format="in-feed"
+                minHeightClass="min-h-[140px]"
+              />
+            </div>
+          )}
 
           {/* Comments Section */}
           <div className="space-y-4 pt-4 border-t border-slate-200/80 dark:border-slate-800">

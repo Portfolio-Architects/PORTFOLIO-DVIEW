@@ -47,9 +47,9 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   const expectedRoutes = [
     { id: 'overview', label: '아파트 랩', href: '/' },
     { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-    { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-    { id: 'guide', label: '부동산 가이드', href: '/guide' },
     { id: 'stats', label: '아파트 통계', href: '/stats' },
+    { id: 'guide', label: '부동산 가이드', href: '/guide' },
+    { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
   ];
 
   it('renders all 5 main navigation links with identical labels and hrefs in LoungeHeader', () => {
@@ -77,11 +77,12 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     expect(leftLinks.map((l) => l.textContent?.trim())).toEqual([
       '아파트 랩',
       '아파트 탐색',
-      '단지 MBTI',
-      '부동산 가이드',
       '아파트 통계',
+      '부동산 가이드',
+      '테크노밸리 랩',
     ]);
-    expect(leftLinks[4]).toHaveAttribute('href', '/stats');
+    expect(leftLinks[2]).toHaveAttribute('href', '/stats');
+    expect(leftLinks[4]).toHaveAttribute('href', '/technovalley');
   });
 
   it('renders all 5 main navigation links with identical labels and hrefs in MobileDock', () => {
@@ -97,9 +98,10 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
   it.each([
     ['overview', '아파트 랩', 'bg-white', 'text-blue-600'],
     ['imjang', '아파트 탐색', 'bg-white', 'text-blue-600'],
-    ['mbti', '단지 MBTI', 'bg-white', 'text-blue-600'],
-    ['guide', '부동산 가이드', 'bg-white', 'text-blue-600'],
+    ['explore', '아파트 탐색', 'bg-white', 'text-blue-600'],
     ['stats', '아파트 통계', 'bg-white', 'text-blue-600'],
+    ['guide', '부동산 가이드', 'bg-white', 'text-blue-600'],
+    ['technovalley', '테크노밸리 랩', 'bg-white', 'text-blue-600'],
   ])('highlights activeTab "%s" correctly with expected visual feedback in LoungeHeader and MobileDock', (activeTab, label, expectedBg, expectedText) => {
     const { container: headerContainer } = render(
       <LoungeHeader activeTab={activeTab as any} />

@@ -36,6 +36,8 @@ export const metadata: Metadata = {
 };
 
 export default function LoungePage() {
+  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-surface dark:bg-slate-950 text-primary">
       {/* 5 Canonical Header Tabs Preserved */}
@@ -60,18 +62,20 @@ export default function LoungePage() {
         <LoungeBoardView />
 
         {/* Pre-reserved Zero-CLS AdSlot Container */}
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-12">
-          <div
-            data-testid="lounge-footer-ad-slot-container"
-            className="w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px]"
-          >
-            <AdSlot
-              refreshSlotId="lounge_footer_infeed"
-              format="in-feed"
-              minHeightClass="min-h-[140px]"
-            />
+        {!isApprovalMode && (
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 pb-12 empty:hidden">
+            <div
+              data-testid="lounge-footer-ad-slot-container"
+              className="w-full rounded-2xl overflow-hidden bg-elevated dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800/60 min-h-[140px] empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="lounge_footer_infeed"
+                format="in-feed"
+                minHeightClass="min-h-[140px]"
+              />
+            </div>
           </div>
-        </div>
+        )}
       </main>
     </div>
   );

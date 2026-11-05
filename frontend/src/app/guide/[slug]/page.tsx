@@ -575,19 +575,21 @@ export default async function GuideArticlePage(props: {
             </div>
 
             {/* Mid-Article Zero-CLS AdSlot */}
-            <div
-              data-testid="guide-article-adslot-top"
-              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-            >
-              <AdSlot
-                refreshSlotId={`1000000002_guide_${article.slug}_top`}
-                format="rectangle"
-                minHeightClass="min-h-[250px]"
-                cpaCampaignId="mortgage-refinance"
-                apartmentName={article.title}
-                dong={primaryPreviewApt?.dong}
-              />
-            </div>
+            {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+              <div
+                data-testid="guide-article-adslot-top"
+                className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+              >
+                <AdSlot
+                  refreshSlotId={`1000000002_guide_${article.slug}_top`}
+                  format="rectangle"
+                  minHeightClass="min-h-[250px]"
+                  cpaCampaignId="mortgage-refinance"
+                  apartmentName={article.title}
+                  dong={primaryPreviewApt?.dong}
+                />
+              </div>
+            )}
 
             {/* Body Content with In-Section Zone Real-Time Mini Preview Cards */}
             <div
@@ -656,19 +658,21 @@ export default async function GuideArticlePage(props: {
                   ))}
                 </div>
 
-                <div
-                  data-testid="guide-article-adslot-mid"
-                  className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-                >
-                  <AdSlot
-                    refreshSlotId={`1000000002_guide_${article.slug}_mid_conversion`}
-                    format="rectangle"
-                    minHeightClass="min-h-[250px]"
-                    cpaCampaignId="mortgage-refinance"
-                    apartmentName={primaryPreviewApt?.canonicalSlug || article.title}
-                    dong={primaryPreviewApt?.dong}
-                  />
-                </div>
+                {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                  <div
+                    data-testid="guide-article-adslot-mid"
+                    className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+                  >
+                    <AdSlot
+                      refreshSlotId={`1000000002_guide_${article.slug}_mid_conversion`}
+                      format="rectangle"
+                      minHeightClass="min-h-[250px]"
+                      cpaCampaignId="mortgage-refinance"
+                      apartmentName={primaryPreviewApt?.canonicalSlug || article.title}
+                      dong={primaryPreviewApt?.dong}
+                    />
+                  </div>
+                )}
               </section>
             )}
 
@@ -910,19 +914,21 @@ export default async function GuideArticlePage(props: {
             />
 
             {/* Footer Article Zero-CLS AdSlot */}
-            <div
-              data-testid="guide-article-adslot-bottom"
-              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-            >
-              <AdSlot
-                refreshSlotId={`1000000002_guide_${article.slug}_bottom`}
-                format="rectangle"
-                minHeightClass="min-h-[250px]"
-                cpaCampaignId="jeonse-sentinel"
-                apartmentName={article.title}
-                dong={primaryPreviewApt?.dong}
-              />
-            </div>
+            {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+              <div
+                data-testid="guide-article-adslot-bottom"
+                className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+              >
+                <AdSlot
+                  refreshSlotId={`1000000002_guide_${article.slug}_bottom`}
+                  format="rectangle"
+                  minHeightClass="min-h-[250px]"
+                  cpaCampaignId="jeonse-sentinel"
+                  apartmentName={article.title}
+                  dong={primaryPreviewApt?.dong}
+                />
+              </div>
+            )}
 
             {/* Footer Author & Recirculation Box */}
             <div className="bg-body p-5 sm:p-6 rounded-2xl border border-border/60 flex items-center justify-between flex-wrap gap-4">

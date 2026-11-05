@@ -1612,16 +1612,18 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 </div>
 
                 {/* Zero-CLS High-CPC Financial AdSlot on Diagnosis Result */}
-                <div className="w-full" data-testid="mortgage-result-ad-slot">
-                  <AdSlot
-                    refreshSlotId="calc_mortgage_result"
-                    cpaCampaignId="mortgage-refinance"
-                    format="in-feed"
-                    apartmentName={selectedApt?.name}
-                    dong={selectedApt?.dong}
-                    className="w-full"
-                  />
-                </div>
+                {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                  <div className="w-full empty:hidden" data-testid="mortgage-result-ad-slot">
+                    <AdSlot
+                      refreshSlotId="calc_mortgage_result"
+                      cpaCampaignId="mortgage-refinance"
+                      format="in-feed"
+                      apartmentName={selectedApt?.name}
+                      dong={selectedApt?.dong}
+                      className="w-full"
+                    />
+                  </div>
+                )}
               </div>
             </div>
           )}

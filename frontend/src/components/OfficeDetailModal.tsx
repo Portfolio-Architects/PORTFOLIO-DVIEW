@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import Link from 'next/link';
 import { createPortal } from 'react-dom';
 import {
   Building2,
@@ -146,7 +147,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
 
   const handleShare = async () => {
     if (!building) return;
-    const shareUrl = `${window.location.origin}/overview?tab=office#building=${encodeURIComponent(building.name)}`;
+    const shareUrl = `${window.location.origin}/technovalley#building=${encodeURIComponent(building.name)}`;
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(shareUrl);
       showToast('빌딩 상세 리포트 링크가 클립보드에 복사되었습니다.');
@@ -751,14 +752,14 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                     </p>
                   </div>
 
-                  <a
-                    href="tel:031-000-0000"
-                    onClick={() => showToast('공동임차 신청 상담 센터로 연결됩니다.')}
+                  <Link
+                    href="/contact"
+                    onClick={() => showToast('공동임차 매칭 고객지원 페이지로 이동합니다.')}
                     className="w-full py-3.5 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
                   >
-                    <span>공동임차 오피스 메이트 매칭 신청하기</span>
+                    <span>공동임차 오피스 메이트 매칭 문의하기</span>
                     <ArrowRight size={16} />
-                  </a>
+                  </Link>
                 </div>
 
                 {/* Right: Recommended Business Types */}
@@ -812,14 +813,14 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
             </button>
           </div>
 
-          <a
-            href="tel:031-000-0000"
-            onClick={() => showToast('공실 매칭 전담 센터로 연결됩니다.')}
+          <Link
+            href="/contact"
+            onClick={() => showToast('공식 고객지원 문의 페이지로 이동합니다.')}
             className="py-3.5 px-6 sm:px-8 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
           >
             <PhoneCall size={18} />
-            <span>맞춤 공실 / 임대 매칭 상담 신청</span>
-          </a>
+            <span>맞춤 공실 / 임대 매칭 문의하기</span>
+          </Link>
         </div>
 
       </div>

@@ -353,18 +353,20 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
           )}
 
           {/* Zone Zero-CLS AdSlot */}
-          <div
-            data-testid="zone-ssr-adslot"
-            className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId={`1000000002_zone_${zone.id}`}
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="mortgage-refinance"
-              apartmentName={zone.name}
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="zone-ssr-adslot"
+              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId={`1000000002_zone_${zone.id}`}
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="mortgage-refinance"
+                apartmentName={zone.name}
+              />
+            </div>
+          )}
         </div>
       </section>
     </>

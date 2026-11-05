@@ -384,7 +384,7 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
     // Feature 1 & 2: Navigation & Header-Dock Synchronization
     // ------------------------------------------------------------------------
     describe('F1 & F2: Navigation & Header-Dock Synchronization', () => {
-      test('T1.1.1: LoungeHeader renders all 5 canonical tabs in exact order with /stats as 5th tab', () => {
+      test('T1.1.1: LoungeHeader renders all 5 canonical tabs in exact order with /stats as 3rd tab and /technovalley as 5th tab', () => {
         const { container } = render(<LoungeHeader activeTab="stats" />);
         const nav = container.querySelector('nav[aria-label="메인 메뉴"]');
         expect(nav).not.toBeNull();
@@ -395,9 +395,9 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
         const expectedTabs = [
           { label: '아파트 랩', href: '/' },
           { label: '아파트 탐색', href: '/explore' },
-          { label: '단지 MBTI', href: '/mbti' },
-          { label: '부동산 가이드', href: '/guide' },
           { label: '아파트 통계', href: '/stats' },
+          { label: '부동산 가이드', href: '/guide' },
+          { label: '테크노밸리 랩', href: '/technovalley' },
         ];
 
         links.forEach((link, idx) => {
@@ -406,14 +406,19 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
         });
       });
 
-      test('T1.1.2: MobileDock.TABS export contains exactly 5 canonical tabs including stats at index 4', () => {
+      test('T1.1.2: MobileDock.TABS export contains exactly 5 canonical tabs including stats at index 2 and technovalley at index 4', () => {
         expect(TABS).toHaveLength(5);
-        expect(TABS[4]).toMatchObject({
+        expect(TABS[2]).toMatchObject({
           id: 'stats',
           label: '아파트 통계',
           href: '/stats',
         });
-        expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide', 'stats']);
+        expect(TABS[4]).toMatchObject({
+          id: 'technovalley',
+          label: '테크노밸리 랩',
+          href: '/technovalley',
+        });
+        expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'stats', 'guide', 'technovalley']);
       });
 
       test('T1.1.3: LoungeHeader highlights activeTab="stats" with primary text token and elevated style', () => {

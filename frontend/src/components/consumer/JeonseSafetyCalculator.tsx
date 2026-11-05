@@ -873,16 +873,18 @@ const JeonseSafetyCalculator = React.memo(function JeonseSafetyCalculator({
                 </div>
 
                 {/* Zero-CLS High-CPC Financial AdSlot on Jeonse Safety Result */}
-                <div className="w-full pt-1" data-testid="jeonse-result-ad-slot">
-                  <AdSlot
-                    refreshSlotId="calc_jeonse_result"
-                    cpaCampaignId="jeonse-sentinel"
-                    format="in-feed"
-                    apartmentName={selectedApt?.name}
-                    dong={selectedApt?.dong}
-                    className="w-full"
-                  />
-                </div>
+                {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                  <div className="w-full pt-1 empty:hidden" data-testid="jeonse-result-ad-slot">
+                    <AdSlot
+                      refreshSlotId="calc_jeonse_result"
+                      cpaCampaignId="jeonse-sentinel"
+                      format="in-feed"
+                      apartmentName={selectedApt?.name}
+                      dong={selectedApt?.dong}
+                      className="w-full"
+                    />
+                  </div>
+                )}
 
                 {/* Footer Buttons */}
                 </div>

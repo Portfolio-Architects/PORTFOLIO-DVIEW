@@ -2,19 +2,29 @@ name: Sync Transactions
 
 on:
   schedule:
-    # 매일 아침 KST 06:12 (UTC 21:12) 1회 최적화 실행 (국토부 일일 배치 연동)
-    - cron: '12 21 * * *'
-  workflow_dispatch: # 수동 실행 지원
+    # [1차 티어] 매일 아침 KST 05:38 (UTC 20:38) — 조기 수집 (국토부 배치 안착 직후, 비정각 분산)
+    - cron: '38 20 * * *'
+    # [2차 티어] 매일 아침 KST 06:18 (UTC 21:18) — 추가 배치 반영 및 1차 누락 시 캐치업
+    - cron: '18 21 * * *'
+    # [3차 티어] 매일 아침 KST 06:38 (UTC 21:38) — 07:00 KST 이전 최종 비상 안전망 (~22분 완충 버퍼)
+    - cron: '38 21 * * *'
+  workflow_dispatch: # 긴급 수동 동기화 지원
   push:
     branches:
       - master
       - main
 
+concurrency:
+  group: sync-transactions-production
+  cancel-in-progress: false # 데이터 무결성을 위해 진행 중인 배치는 끝까지 완료 보장
+
 jobs:
   sync:
-    name: 국토부 API → Firestore → Static Files
+    name: 국토부 API → Firestore → Static Data Files
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
+    env:
+      TZ: 'Asia/Seoul' # [중요] 한국 표준시 고정으로 매월 1일 및 요일 경계선 버그 원천 방지
     permissions:
       contents: write
     defaults:
@@ -26,6 +36,8 @@ jobs:
         uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          ref: master # 큐 대기로 지연된 2차 티어가 1차 푸시 커밋을 최신화하여 가져오도록 보장
+          fetch-depth: 2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -41,23 +53,32 @@ jobs:
         if: github.event_name == 'push'
         run: echo "Skipped data synchronization during standard push events. This job safely exists to satisfy branch protection rules without duplicate api calls."
 
-      # Step 1: 국토부 API → Firestore (Vercel icn1 릴레이 + 매매 + 전월세)
+      # Step 1: 국토부 API → Firestore (평일 2개월 증분, 일요일 4개월 딥 싱크)
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
         run: |
           API_KEY_RESOLVED="${BUILDING_API_KEY:-4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff}"
           CRON_SECRET_RESOLVED="${CRON_SECRET:-dview-default-cron-secret-2026}"
-          for OFFSET in 0 1 2; do
-            YM=$(date -u -d "$(date -u +%Y-%m-01) -${OFFSET} month" +%Y%m 2>/dev/null || date -u +%Y%m)
-            echo "📡 Triggering Vercel icn1 cron sync for ${YM}..."
+
+          # [버그 수정] date -u 사용 금지: Asia/Seoul 기준 요일 및 월 계산
+          DAY_OF_WEEK=$(date +%u)
+          OFFSETS="0 1"
+          if [ "$DAY_OF_WEEK" -eq "7" ]; then
+            OFFSETS="0 1 2 3" # 주간 4개월 심층 동기화 (M, M-1, M-2, M-3)
+          fi
+
+          for OFFSET in $OFFSETS; do
+            YM=$(date -d "$(date +%Y-%m-01) -${OFFSET} month" +%Y%m 2>/dev/null || date +%Y%m)
+            echo "📡 Vercel icn1 크론 릴레이 동기화 트리거 (${YM})..."
             curl -sS -m 55 \
               -H "Authorization: Bearer ${CRON_SECRET_RESOLVED}" \
               -H "x-building-api-key: ${API_KEY_RESOLVED}" \
-              "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}&skipDeploy=1" || echo "⚠️ Vercel cron trigger for ${YM} returned non-zero; continuing"
+              "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}&skipDeploy=1" || echo "⚠️ Vercel 크론 호출 실패, Node 스크립트로 계속 진행"
             echo ""
           done
-          node scripts/fetch-transactions.js || echo "⚠️ fetch-transactions.js encountered an error; continuing to rent & sync"
-          node scripts/fetch-rent.js || echo "⚠️ fetch-rent.js encountered an error; continuing to sync"
+
+          node scripts/fetch-transactions.js || echo "⚠️ fetch-transactions.js 경고 발생; 후속 작업 지속"
+          node scripts/fetch-rent.js || echo "⚠️ fetch-rent.js 경고 발생; 후속 작업 지속"
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -71,7 +92,7 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
 
-      # Step 2: Firestore + Direct/Relay MOLIT → Static files (tx-summary.json + tx-data/*.json)
+      # Step 2: Firestore → 정적 파일 생성 (실데이터 기준 이중 서킷 브레이커 내장)
       - name: Generate static transaction files
         if: github.event_name != 'push'
         run: node scripts/sync-transactions.js
@@ -88,7 +109,17 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
 
-      # Step 3: Commit & Push if changes exist
+      # Step 2.5: 제로 데이터 무결성 2차 파일 크기 방어
+      - name: Verify data integrity before commit
+        if: github.event_name != 'push'
+        run: |
+          SIZE=$(wc -c < public/data/tx-summary.json || echo 0)
+          if [ "$SIZE" -lt 50000 ]; then
+            echo "🚨 치명적 무결성 오류: tx-summary.json 크기가 50KB 미만(${SIZE} bytes)입니다. Git 커밋을 중단합니다!"
+            exit 1
+          fi
+
+      # Step 3: 변경사항 Git 커밋 & 푸시 (Asia/Seoul 기준 날짜 태깅)
       - name: Commit and push changes
         id: commit_push
         if: github.event_name != 'push'
@@ -105,26 +136,34 @@ jobs:
             git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
             git push
             echo "pushed_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-            echo "🚀 Changes pushed — Vercel will auto-deploy"
+            echo "🚀 Changes pushed — Vercel auto-deployment triggered"
           fi
 
-      # Step 4: Prune Vercel deployments (Retain top N=2 READY production deployments)
+      # Step 4: Vercel 배포 정리 (최신 배포 2개 유지)
       - name: Prune Vercel deployments
-        if: always()
+        if: always() && github.event_name != 'push'
         run: node scripts/prune-vercel-deployments.js
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_EXPECTED_COMMIT_SHA: ${{ steps.commit_push.outputs.pushed_sha || (github.event_name == 'push' && github.sha) || '' }}
+          VERCEL_EXPECTED_COMMIT_SHA: ${{ steps.commit_push.outputs.pushed_sha || '' }}
 
-      # Step 5: Notify on failure (Optional, requires SLACK_WEBHOOK_URL secret)
+      # Step 5: 실패 시 다채널 장애 통지 (Discord & Slack 듀얼 호환)
       - name: Send notification on failure
         if: failure()
         run: |
-          if [ -n "${SLACK_WEBHOOK_URL}" ]; then
-            curl -X POST -H 'Content-type: application/json' --data '{"text":"🚨 PORTFOLIO DVIEW: 자동 실거래가 동기화 워크플로우 실행 실패! GitHub Actions 로그를 확인하세요."}' ${SLACK_WEBHOOK_URL}
+          WEBHOOK_URL="${DISCORD_WEBHOOK_URL:-$SLACK_WEBHOOK_URL}"
+          if [ -n "${WEBHOOK_URL}" ]; then
+            # Discord 웹훅 URL인 경우 /slack 접미사 부착으로 슬랙 포맷 완벽 호환
+            if [[ "$WEBHOOK_URL" == *"discord.com/api/webhooks"* && "$WEBHOOK_URL" != *"/slack" ]]; then
+              WEBHOOK_URL="${WEBHOOK_URL}/slack"
+            fi
+            RUN_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            curl -sS -X POST -H 'Content-type: application/json' \
+              --data "{\"content\":\"🚨 [D-VIEW] 실거래가 자동 수집 실패! 확인: ${RUN_URL}\",\"text\":\"🚨 [D-VIEW] 실거래가 자동 수집 실패! 점검 필요: ${RUN_URL}\"}" \
+              "${WEBHOOK_URL}"
           else
-            echo "SLACK_WEBHOOK_URL is not set. Skipping error notification."
+            echo "DISCORD_WEBHOOK_URL / SLACK_WEBHOOK_URL is not set. Skipping error notification."
           fi
         env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-

@@ -150,9 +150,9 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
     const canonicalHeaderOrder = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-      { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-      { id: 'guide', label: '부동산 가이드', href: '/guide' },
       { id: 'stats', label: '아파트 통계', href: '/stats' },
+      { id: 'guide', label: '부동산 가이드', href: '/guide' },
+      { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
     ];
     const canonicalDockOrder = canonicalHeaderOrder;
 
@@ -185,7 +185,7 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
       }
 
       // Ensure obsolete routes are absent
-      const obsoleteRoutes = ['/technovalley', '/techno', '/lounge', '/admin'];
+      const obsoleteRoutes = ['/mbti', '/techno', '/lounge', '/admin'];
       obsoleteRoutes.forEach((route) => {
         expect(within(headerContainer).queryByRole('link', { name: new RegExp(route) })).toBeNull();
         expect(within(dockContainer).queryByRole('link', { name: new RegExp(route) })).toBeNull();
@@ -193,7 +193,7 @@ describe('Milestone 1 Challenger 3: Empirical Post-Remediation Stress & Adversar
     });
 
     it('confirms active tab styling transitions cleanly across all 5 tabs without layout breaks', () => {
-      const tabIds = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
+      const tabIds = ['overview', 'imjang', 'stats', 'guide', 'technovalley'];
       tabIds.forEach((tabId) => {
         const { unmount: unmountHeader, container: headerContainer } = render(
           <LoungeHeader activeTab={tabId} />

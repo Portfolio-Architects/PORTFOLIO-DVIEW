@@ -31,10 +31,6 @@ import GuideArticlePage, {
   generateStaticParams as generateGuideStaticParams,
 } from '@/app/guide/[slug]/page';
 import { GUIDE_ARTICLES, buildGuideAptMiniPreview } from '@/lib/data/guides';
-import MBTIHubPage from '@/app/mbti/page';
-import MBTIDirectResultPage, {
-  generateStaticParams as generateMbtiStaticParams,
-} from '@/app/mbti/[type]/page';
 import ZoneDetailPage, {
   generateStaticParams as generateZoneStaticParams,
 } from '@/app/zone/[id]/page';
@@ -327,31 +323,6 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
       }
     });
 
-    it('renders Quiz/Place JSON-LD and visible SSR semantic analysis in /mbti and /mbti/[type]', async () => {
-      const mbtiParams = await generateMbtiStaticParams();
-      expect(mbtiParams).toHaveLength(16);
-
-      const hubRender = render(MBTIHubPage());
-      const hubSummary = hubRender.container.querySelector('#mbti-hub-ssr-summary');
-      expect(hubSummary).not.toBeNull();
-      expect(hubSummary?.querySelectorAll('tbody tr').length).toBe(16);
-      expect(hubRender.getByTestId('mbti-hub-adslot').className).toContain('min-h-[250px]');
-
-      const TypeJsx = await MBTIDirectResultPage({
-        params: Promise.resolve({ type: 'ENTJ' }),
-      });
-      const typeRender = render(TypeJsx);
-      const typeSection = typeRender.container.querySelector('#mbti-type-ssr-analysis');
-      expect(typeSection).not.toBeNull();
-      expect(typeSection?.textContent).toContain('동탄역 롯데캐슬');
-      expect(typeRender.getByTestId('mbti-type-ssr-adslot').className).toContain('min-h-[250px]');
-
-      const jsonLdScript = typeRender.container.querySelector('script[type="application/ld+json"]');
-      expect(jsonLdScript).not.toBeNull();
-      expect(jsonLdScript?.innerHTML).toContain('Quiz');
-      expect(jsonLdScript?.innerHTML).toContain('ApartmentComplex');
-    });
-
     it('eliminates aria-hidden="true" from /zone/[id] data table and exposes accessible SSR table', async () => {
       const zoneParams = await generateZoneStaticParams();
       expect(zoneParams).toHaveLength(7);
@@ -375,16 +346,16 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (292 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [292, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (276 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
+    it('registers exact [276, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(292);
+      expect(entries).toHaveLength(276);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(292);
+      expect(asyncEntries).toHaveLength(276);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(292);
+      expect(defaultEntries).toHaveLength(276);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
       const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley/'));
@@ -412,7 +383,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
           (e) => e.url === `https://dongtanview.com/technovalley/${encodeURIComponent('(주)유앤미개발')}`
         )
       ).toBe(true);
-      expect(mbtiUrls).toHaveLength(16);
+      expect(mbtiUrls).toHaveLength(0);
       expect(zoneUrls).toHaveLength(7);
       expect(guideUrls).toHaveLength(20);
       expect(coreStaticUrls).toHaveLength(9);

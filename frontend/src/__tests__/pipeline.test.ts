@@ -1522,7 +1522,7 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
   // R6: Schedule Optimization, Vercel Config & Strict Real-Data Invariants
   // ──────────────────────────────────────────────────────────────────────────
   describe('R6: Schedule Optimization, Vercel Config & Strict Real-Data Invariants', () => {
-    it('should configure only 1 morning schedule cron (KST 06:12 / UTC 21:12) in GitHub Actions workflow', () => {
+    it('should configure 3-tier early morning schedule crons (KST 05:38, 06:18, 06:38) and TZ Asia/Seoul in GitHub Actions workflow', () => {
       const ghaPath = path.resolve(__dirname, '../../../.github/workflows/sync-transactions.yml');
       expect(fs.existsSync(ghaPath)).toBe(true);
 
@@ -1530,8 +1530,12 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       const cronMatches = workflowContent.match(/- cron:\s*['"][^'"]+['"]/g) || [];
 
       // Exactly 1 cron schedule must be defined
-      expect(cronMatches.length).toBe(1);
-      expect(cronMatches[0]).toContain('12 21 * * *');
+      expect(cronMatches.length).toBe(3);
+      expect(cronMatches[0]).toContain('38 20 * * *');
+      expect(cronMatches[1]).toContain('18 21 * * *');
+      expect(cronMatches[2]).toContain('38 21 * * *');
+      expect(workflowContent).toContain("TZ: 'Asia/Seoul'");
+
 
       // Afternoon cron (12 9 * * * / KST 18:12) must be removed
       expect(workflowContent).not.toContain('12 9 * * *');

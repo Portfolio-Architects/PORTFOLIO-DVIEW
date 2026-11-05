@@ -86,6 +86,7 @@ interface TossApartmentExploreClientProps {
   onOpenSellTimingCalculator?: (aptName?: string) => void;
   onSearchFocus?: () => void;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
+  inFeedAdSlot?: React.ReactNode;
 }
 
 const globalAptsCache = {
@@ -115,6 +116,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onOpenSellTimingCalculator,
   onSearchFocus,
   preloadApartmentTx,
+  inFeedAdSlot,
 }: TossApartmentExploreClientProps) {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [mounted, setMounted] = useState(false);
@@ -1221,6 +1223,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       isFavorite={isApartmentInFavorites(userFavorites, item.apt.name, nameMapping)}
                       onToggleFavorite={toggleFavorite}
                     />
+                    {(index === 1 || (index === 0 && sortedApts.length === 1)) && inFeedAdSlot}
                   </React.Fragment>
                 ))}
               </div>

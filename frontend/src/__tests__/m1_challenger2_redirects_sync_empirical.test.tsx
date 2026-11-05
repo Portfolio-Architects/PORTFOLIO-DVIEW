@@ -197,9 +197,9 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
     const canonicalHeaderTabs = [
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
-      { id: 'mbti', label: '단지 MBTI', href: '/mbti' },
-      { id: 'guide', label: '부동산 가이드', href: '/guide' },
       { id: 'stats', label: '아파트 통계', href: '/stats' },
+      { id: 'guide', label: '부동산 가이드', href: '/guide' },
+      { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
     ];
     const canonicalDockTabs = canonicalHeaderTabs;
 
@@ -234,7 +234,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       });
     });
 
-    it('verifies obsolete routes (/technovalley, /techno, /lounge, /admin) are 100% absent from navigation', () => {
+    it('verifies obsolete routes (/mbti, /techno, /lounge, /admin) are 100% absent from navigation', () => {
       const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
       const { container: dockContainer } = render(<MobileDock activeTab="overview" />);
 
@@ -242,11 +242,11 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
         const links = within(container).getAllByRole('link');
         const hrefs = links.map((l) => l.getAttribute('href') || '');
 
-        expect(hrefs.some((h) => h.includes('techno'))).toBe(false);
+        expect(hrefs.some((h) => h.includes('mbti'))).toBe(false);
         expect(hrefs.some((h) => h.includes('lounge'))).toBe(false);
         expect(hrefs.some((h) => h.includes('admin'))).toBe(false);
 
-        expect(within(container).queryByText(/테크노/)).toBeNull();
+        expect(within(container).queryByText(/MBTI/i)).toBeNull();
         expect(within(container).queryByText(/라운지/)).toBeNull();
         expect(within(container).queryByText(/관리자/)).toBeNull();
       });
@@ -278,7 +278,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
     });
 
     it('verifies dynamic active tab visual indication across all states', () => {
-      const tabs: Array<'overview' | 'imjang' | 'mbti' | 'guide' | 'stats'> = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
+      const tabs: Array<'overview' | 'imjang' | 'stats' | 'guide' | 'technovalley'> = ['overview', 'imjang', 'stats', 'guide', 'technovalley'];
 
       tabs.forEach((tab) => {
         const { unmount, container } = render(<LoungeHeader activeTab={tab} />);

@@ -247,7 +247,8 @@ function calculateApartmentSummary(aptName, saleTxs, rentTxs = [], dongMap = {},
 
   // 18개년(2006~2026) 연도별 거래량 집계
   const annualVolumes = {};
-  for (let yr = 2006; yr <= 2026; yr++) {
+  const currentMaxYear = Math.max(2026, targetNow instanceof Date ? targetNow.getFullYear() : new Date().getFullYear());
+  for (let yr = 2006; yr <= currentMaxYear; yr++) {
     annualVolumes[String(yr)] = 0;
   }
   validSaleTxs.forEach(t => {

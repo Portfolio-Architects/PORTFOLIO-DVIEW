@@ -480,14 +480,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   subtitleStrong={<MarketStatsStrong />}
                   subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
                 />
-                <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5">
-                  <AdSlot
-                    refreshSlotId="explore_top_infeed"
-                    format="in-feed"
-                    minHeightClass="min-h-[140px] sm:min-h-[160px]"
-                    cpaCampaignId="jeonse-sentinel"
-                  />
-                </div>
                 <ErrorBoundary name="아파트 맞춤 탐색">
                   <TossApartmentExploreClient
                     sheetApartments={sheetApartments}
@@ -504,6 +496,21 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                     onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
                     onSearchFocus={triggerFetch}
                     preloadApartmentTx={preloadApartmentTx}
+                    inFeedAdSlot={
+                      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' ? (
+                        <div
+                          data-testid="explore-infeed-ad-wrapper"
+                          className="w-full py-1 empty:hidden"
+                        >
+                          <AdSlot
+                            refreshSlotId="explore_top_infeed"
+                            format="in-feed"
+                            minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                            cpaCampaignId="jeonse-sentinel"
+                          />
+                        </div>
+                      ) : null
+                    }
                   />
                 </ErrorBoundary>
               </section>

@@ -307,11 +307,11 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
             {/* Center: Nav Tabs (Segmented Control Style) */}
             <nav className="hidden md:flex shrink-0 items-center gap-1 sm:gap-1.5 bg-body/80 p-2 rounded-[18px] overflow-x-auto no-scrollbar" aria-label="메인 메뉴">
               <button
-                onClick={() => router.push('/overview?tab=overview')}
+                onClick={() => router.push('/')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <LayoutDashboard size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>데이터 랩</span>
+                <span>아파트 랩</span>
               </button>
 
               <button
@@ -325,11 +325,11 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               </button>
 
               <button
-                onClick={() => router.push('/overview?tab=lounge')}
+                onClick={() => router.push('/guide')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <MessageSquare size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>커뮤니티</span>
+                <span>부동산 가이드</span>
               </button>
               
               <button
@@ -341,11 +341,11 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
               </button>
               
               <button
-                onClick={() => router.push('/overview?tab=office')}
+                onClick={() => router.push('/technovalley')}
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <Coins size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>큐레이션</span>
+                <span>테크노밸리 랩</span>
               </button>
               
             </nav>
@@ -362,6 +362,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
           title="D-VIEW 동탄 소식"
           subtitleStrong="동탄 시정·부동산·교통 뉴스"
           subtitleLight="화성시 고시공고와 GTX·트램 소식을 한곳에 모아보기"
+          isTitleDiv={true}
         />
 
         <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 mt-6 w-full max-w-[1400px] mx-auto">
@@ -449,8 +450,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                             getNewsCategoryDetails={getNewsCategoryDetails}
                             formatDate={formatDate}
                           />
-                          {idx === 3 && (
-                            <div className="w-full my-4">
+                          {idx === 3 && process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                            <div className="w-full my-4 empty:hidden" data-testid="news-feed-infeed-wrapper">
                               <AdSlot
                                 refreshSlotId="news_feed_infeed"
                                 format="in-feed"
@@ -462,8 +463,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                         </React.Fragment>
                       ))}
 
-                      {filteredNewsList.length <= 3 && (
-                        <div className="w-full my-4">
+                      {filteredNewsList.length <= 3 && process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                        <div className="w-full my-4 empty:hidden" data-testid="news-feed-trailing-infeed-wrapper">
                           <AdSlot
                             refreshSlotId="news_feed_trailing_infeed"
                             format="in-feed"
@@ -517,8 +518,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                           }
                         }}
                       />
-                      {idx === 3 && (
-                        <div className="w-full my-4">
+                      {idx === 3 && process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                        <div className="w-full my-4 empty:hidden" data-testid="news-notices-infeed-wrapper">
                           <AdSlot
                             refreshSlotId="news_notices_infeed"
                             format="in-feed"
@@ -530,8 +531,8 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                     </React.Fragment>
                   ))}
 
-                  {noticesList.length <= 3 && (
-                    <div className="w-full my-4">
+                  {noticesList.length <= 3 && process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                    <div className="w-full my-4 empty:hidden" data-testid="news-notices-trailing-infeed-wrapper">
                       <AdSlot
                         refreshSlotId="news_notices_trailing_infeed"
                         format="in-feed"

@@ -2,7 +2,6 @@ import { MetadataRoute } from 'next';
 import { adminDb } from '@/lib/firebaseAdmin';
 import { logger } from '@/lib/services/logger';
 import { ZONES } from '@/lib/zones';
-import { ALL_MBTI_TYPES } from '@/lib/data/mbtiData';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import {
   getTxSummaryData,
@@ -14,8 +13,8 @@ import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 export const revalidate = 3600; // Revalidate sitemap every hour
 
 /**
- * Generates unified programmatic sitemap for D-VIEW (292 URLs).
- * @complexity Time: O(N), Space: O(N) where N = 292 programmatic entities
+ * Generates unified programmatic sitemap for D-VIEW (276 URLs).
+ * @complexity Time: O(N), Space: O(N) where N = 276 programmatic entities
  * @sideEffects Read-only file cache and optional Firestore metadata read
  */
 export default async function sitemap(
@@ -74,17 +73,7 @@ export default async function sitemap(
     });
   });
 
-  // 3. MBTI Routes (16 housing personality profiles)
-  ALL_MBTI_TYPES.forEach((type) => {
-    routes.push({
-      url: `${baseUrl}/mbti/${type}`,
-      lastModified: staticFixedDate,
-      changeFrequency: 'weekly',
-      priority: 0.85,
-    });
-  });
-
-  // 4. TechnoValley Knowledge Industry Center Detail Routes (all 56 B2B centers via clean static paths)
+  // 3. TechnoValley Knowledge Industry Center Detail Routes (all 56 B2B centers via clean static paths)
   try {
     const jisanList = await getTechnoValleyJisanList();
     jisanList.forEach((item) => {

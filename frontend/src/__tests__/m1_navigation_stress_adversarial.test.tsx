@@ -81,13 +81,13 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         expect(links).toHaveLength(5);
 
         const hrefs = links.map((l) => l.getAttribute('href'));
-        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
+        expect(hrefs).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
 
         const labels = links.map((l) => l.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
 
-        // Zero trace of obsolete /techno, /office, /admin, /lounge
-        expect(within(container).queryByText(/테크노/)).toBeNull();
+        // Zero trace of obsolete /mbti, /office, /admin, /lounge
+        expect(within(container).queryByText(/MBTI/i)).toBeNull();
         expect(within(container).queryByText(/사무실/)).toBeNull();
         expect(within(container).queryByText(/관리자/)).toBeNull();
         expect(within(container).queryByText(/라운지/)).toBeNull();
@@ -105,22 +105,22 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         expect(links).toHaveLength(5);
 
         const hrefs = links.map((l) => l.getAttribute('href'));
-        expect(hrefs).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
+        expect(hrefs).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
 
         const labels = links.map((l) => l.querySelector('span')?.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
 
         // Zero trace of obsolete tabs
-        expect(within(container).queryByText(/테크노/)).toBeNull();
+        expect(within(container).queryByText(/MBTI/i)).toBeNull();
         expect(within(container).queryByText(/사무실/)).toBeNull();
       }
     );
 
     it('confirms TABS constant in MobileDock is strictly frozen to 5 canonical tabs', () => {
       expect(TABS).toHaveLength(5);
-      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'mbti', 'guide', 'stats']);
-      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/mbti', '/guide', '/stats']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '단지 MBTI', '부동산 가이드', '아파트 통계']);
+      expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'stats', 'guide', 'technovalley']);
+      expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
     });
   });
 
@@ -136,12 +136,12 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
 
       const tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
-      const tab3 = screen.getByRole('link', { name: /단지 MBTI/i });
+      const tab3 = screen.getByRole('link', { name: /아파트 통계/i });
       const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
-      const tab5 = screen.getByRole('link', { name: /아파트 통계/i });
+      const tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
       const tabs = [tab1, tab2, tab3, tab4, tab5];
-      const expectedIds = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
-      const expectedHrefs = ['/', '/explore', '/mbti', '/guide', '/stats'];
+      const expectedIds = ['overview', 'imjang', 'stats', 'guide', 'technovalley'];
+      const expectedHrefs = ['/', '/explore', '/stats', '/guide', '/technovalley'];
 
       act(() => {
         for (let i = 0; i < 100; i++) {
@@ -165,8 +165,8 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       const links = screen.getAllByRole('link');
       expect(links).toHaveLength(5);
 
-      const expectedIds = ['overview', 'imjang', 'mbti', 'guide', 'stats'];
-      const expectedHrefs = ['/', '/explore', '/mbti', '/guide', '/stats'];
+      const expectedIds = ['overview', 'imjang', 'stats', 'guide', 'technovalley'];
+      const expectedHrefs = ['/', '/explore', '/stats', '/guide', '/technovalley'];
 
       act(() => {
         for (let i = 0; i < 100; i++) {
@@ -212,12 +212,12 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       const scenarios = [
         { path: '/', hash: '#apt=동탄역시범우남퍼스트빌', expected: 'overview' },
         { path: '/explore', hash: '#apt=동탄역린스트라우스', expected: 'imjang' },
-        { path: '/mbti', hash: '#result=ENFJ', expected: 'mbti' },
+        { path: '/stats', hash: '', expected: 'stats' },
         { path: '/guide', hash: '', expected: 'guide' },
         { path: '/', hash: '#report', expected: 'overview' },
         { path: '/explore', hash: '', expected: 'imjang' },
-        { path: '/stats', hash: '', expected: 'stats' },
-        { path: '/technovalley', hash: '', expected: 'overview' },
+        { path: '/technovalley', hash: '', expected: 'technovalley' },
+        { path: '/mbti', hash: '#result=ENFJ', expected: 'overview' },
         { path: '/unknown-route', hash: '#something', expected: 'overview' },
       ];
 

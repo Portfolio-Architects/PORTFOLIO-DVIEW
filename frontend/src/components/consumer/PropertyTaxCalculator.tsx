@@ -896,16 +896,18 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                 </div>
 
                 {/* Zero-CLS High-CPC Financial AdSlot on Property Tax Result */}
-                <div className="w-full pt-1" data-testid="tax-result-ad-slot">
-                  <AdSlot
-                    refreshSlotId="calc_tax_result"
-                    cpaCampaignId="mortgage-refinance"
-                    format="in-feed"
-                    apartmentName={selectedApt?.name}
-                    dong={selectedApt?.dong}
-                    className="w-full"
-                  />
-                </div>
+                {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                  <div className="w-full pt-1 empty:hidden" data-testid="tax-result-ad-slot">
+                    <AdSlot
+                      refreshSlotId="calc_tax_result"
+                      cpaCampaignId="mortgage-refinance"
+                      format="in-feed"
+                      apartmentName={selectedApt?.name}
+                      dong={selectedApt?.dong}
+                      className="w-full"
+                    />
+                  </div>
+                )}
 
                 {/* Bottom Buttons */}
                 </div>

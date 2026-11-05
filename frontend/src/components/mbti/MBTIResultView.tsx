@@ -189,13 +189,16 @@ export function MBTIResultView({
           </div>
 
           {/* AdSense Responsive Slot Container (CLS Guard) */}
-          <div
-            id="mbti-result-ad-container"
-            aria-label="스폰서 영역"
-            className="w-full my-1"
-          >
-            <AdSlot format="banner" fallbackType="minimal" className="w-full" />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              id="mbti-result-ad-container"
+              data-testid="mbti-result-ad-container"
+              aria-label="스폰서 영역"
+              className="w-full my-1 empty:hidden"
+            >
+              <AdSlot format="banner" fallbackType="minimal" className="w-full" />
+            </div>
+          )}
 
           {/* Share Toolbar & Bottom Nav Actions */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border/60">

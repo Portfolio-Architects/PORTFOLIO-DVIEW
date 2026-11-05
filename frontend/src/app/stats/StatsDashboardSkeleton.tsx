@@ -55,9 +55,11 @@ export function StatsDashboardSkeleton() {
         </div>
 
         {/* 4. Filter Bottom AdSlot Skeleton (min-h-[90px] sm:min-h-[100px]) */}
-        <div className="w-full min-h-[90px] sm:min-h-[100px] rounded-2xl bg-surface border border-dashed border-border/60 flex items-center justify-center">
-          <div className="w-40 h-4 rounded bg-slate-200 dark:bg-slate-800" />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full min-h-[90px] sm:min-h-[100px] rounded-2xl bg-surface border border-dashed border-border/60 flex items-center justify-center">
+            <div className="w-40 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+          </div>
+        )}
 
         {/* 5. Hyperlocal Insight Cards Skeleton (4 cards) */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
@@ -86,9 +88,11 @@ export function StatsDashboardSkeleton() {
         </div>
 
         {/* 7. Mid-Feed AdSlot Skeleton (min-h-[140px] sm:min-h-[160px]) */}
-        <div className="w-full min-h-[140px] sm:min-h-[160px] rounded-2xl bg-surface border border-dashed border-border/60 flex items-center justify-center">
-          <div className="w-48 h-4 rounded bg-slate-200 dark:bg-slate-800" />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full min-h-[140px] sm:min-h-[160px] rounded-2xl bg-surface border border-dashed border-border/60 flex items-center justify-center">
+            <div className="w-48 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+          </div>
+        )}
 
         {/* 8. Full-Width Pyeong Ranking Board Skeleton */}
         <div className="w-full min-h-[480px] rounded-2xl bg-surface border border-border/60 p-5 sm:p-6 flex flex-col gap-4">
@@ -106,9 +110,11 @@ export function StatsDashboardSkeleton() {
         </div>
 
         {/* 9. Bottom Anchor AdSlot Skeleton (min-h-[250px]) */}
-        <div className="w-full min-h-[250px] rounded-2xl bg-surface border border-dashed border-border/60 flex items-center justify-center">
-          <div className="w-52 h-4 rounded bg-slate-200 dark:bg-slate-800" />
-        </div>
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full min-h-[250px] rounded-2xl bg-surface border border-dashed border-border/60 flex items-center justify-center">
+            <div className="w-52 h-4 rounded bg-slate-200 dark:bg-slate-800" />
+          </div>
+        )}
       </main>
     </div>
   );

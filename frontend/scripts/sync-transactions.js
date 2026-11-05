@@ -71,6 +71,77 @@ const MACRO_TREND_OUTPUT_PATH = path.resolve(__dirname, '../public/data/macro-tr
 const MARKET_STATS_OUTPUT_PATH = path.resolve(__dirname, '../public/data/market-stats.json');
 const TX_DATA_DIR = path.resolve(__dirname, '../public/tx-data');
 
+const MIN_APARTMENTS_THRESHOLD = 120; // 실제 184개 단지 기준 안전 하한선
+const MIN_SALE_TX_THRESHOLD = 40000;  // 실제 65,552건 기준 안전 하한선
+const MIN_RENT_TX_THRESHOLD = 60000;  // 실제 99,903건 기준 안전 하한선
+
+function verifySummaryIntegrity(summaries, aptCount, summaryPath = OUTPUT_PATH) {
+  const totalSaleTxCount = Object.values(summaries || {}).reduce((sum, s) => sum + (Number(s?.txCount) || 0), 0);
+  const totalRentTxCount = Object.values(summaries || {}).reduce((sum, s) => sum + (Number(s?.rentTxCount) || 0), 0);
+
+  // [가드 1] 절대 임계치 검증
+  if (
+    aptCount < MIN_APARTMENTS_THRESHOLD ||
+    totalSaleTxCount < MIN_SALE_TX_THRESHOLD ||
+    totalRentTxCount < MIN_RENT_TX_THRESHOLD
+  ) {
+    console.error('🚨 [CRITICAL CIRCUIT BREAKER] 데이터 무결성 절대 기준 미달!');
+    console.error(`   - 감지 단지 수: ${aptCount}개 (최소 기준: ${MIN_APARTMENTS_THRESHOLD}개 / 실제: 184개)`);
+    console.error(`   - 매매 거래 수: ${totalSaleTxCount}건 (최소 기준: ${MIN_SALE_TX_THRESHOLD}건 / 실제: 65,552건)`);
+    console.error(`   - 전월세 거래 수: ${totalRentTxCount}건 (최소 기준: ${MIN_RENT_TX_THRESHOLD}건 / 실제: 99,903건)`);
+    console.error('   기존 프로덕션 데이터를 보호하기 위해 파일 생성을 차단합니다.');
+    return {
+      ok: false,
+      reason: 'ABSOLUTE_THRESHOLD_BREACH',
+      aptCount,
+      totalSaleTxCount,
+      totalRentTxCount,
+    };
+  }
+
+  // [가드 2] 이전 프로덕션 스냅샷 대비 2% 급감 방어 (상대 비교형 가드)
+  if (summaryPath && fs.existsSync(summaryPath)) {
+    try {
+      const prevData = JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+      const prevSummaries = prevData.summary || {};
+      const prevSales = Object.values(prevSummaries).reduce((sum, s) => sum + (Number(s?.txCount) || 0), 0);
+      const prevRents = Object.values(prevSummaries).reduce((sum, s) => sum + (Number(s?.rentTxCount) || 0), 0);
+
+      if (prevSales > 0 && totalSaleTxCount < prevSales * 0.98) {
+        console.error(`🚨 [CIRCUIT BREAKER] 매매 거래량 급감 감지! 이전: ${prevSales}건 -> 현재: ${totalSaleTxCount}건 (>2% 급감)`);
+        return {
+          ok: false,
+          reason: 'RELATIVE_SALE_DROP_BREACH',
+          aptCount,
+          totalSaleTxCount,
+          totalRentTxCount,
+          prevSales,
+        };
+      }
+      if (prevRents > 0 && totalRentTxCount < prevRents * 0.98) {
+        console.error(`🚨 [CIRCUIT BREAKER] 전월세 거래량 급감 감지! 이전: ${prevRents}건 -> 현재: ${totalRentTxCount}건 (>2% 급감)`);
+        return {
+          ok: false,
+          reason: 'RELATIVE_RENT_DROP_BREACH',
+          aptCount,
+          totalSaleTxCount,
+          totalRentTxCount,
+          prevRents,
+        };
+      }
+    } catch (err) {
+      console.warn('   ⚠️ 이전 tx-summary.json 읽기 실패; 절대 기준치 가드로만 계속 진행합니다:', err.message);
+    }
+  }
+
+  return {
+    ok: true,
+    aptCount,
+    totalSaleTxCount,
+    totalRentTxCount,
+  };
+}
+
 const serviceAccountPath = path.resolve(__dirname, '../serviceAccountKey.json');
 let serviceAccount;
 let isOffline = process.env.OFFLINE_MODE === 'true';
@@ -460,9 +531,13 @@ async function fetchRecentMolitDirect(byApt, now = new Date()) {
   if (!apiKey) return { tradeAdded: 0, rentAdded: 0 };
 
   const targetMonths = [];
-  for (let i = 0; i < 4; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    targetMonths.push(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+  const kstBase = new Date((now instanceof Date ? now.getTime() : Date.now()) + 9 * 60 * 60 * 1000);
+  const monthCount = Number(process.env.SYNC_MONTH_COUNT) || (kstBase.getUTCDay() === 0 ? 4 : 2);
+  for (let i = 0; i < monthCount; i++) {
+    const d = new Date(Date.UTC(kstBase.getUTCFullYear(), kstBase.getUTCMonth() - i, 1));
+    targetMonths.push(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
+
+
   }
   targetMonths.sort();
 
@@ -1101,6 +1176,12 @@ async function main() {
 
   console.log(`\n✅ 요약 완료: ${aptCount}개 아파트 (매매+전월세 통합)`);
 
+  // 제로 데이터 소실 방지 이중 서킷 브레이커 검증
+  const integrityResult = verifySummaryIntegrity(summaries, aptCount, OUTPUT_PATH);
+  if (!integrityResult.ok) {
+    process.exit(1);
+  }
+
   // 최근 7일 거래량 및 WoW 추세 계산
   const recent7DaysVolume = calculateRecent7DaysVolume(allSaleTxs, parseYYYYMMDD);
 
@@ -1184,6 +1265,10 @@ module.exports = {
   extractMolitItems,
   isCancelledTransaction,
   getCanonicalAptKey,
+  verifySummaryIntegrity,
+  MIN_APARTMENTS_THRESHOLD,
+  MIN_SALE_TX_THRESHOLD,
+  MIN_RENT_TX_THRESHOLD,
 };
 
 if (require.main === module) {

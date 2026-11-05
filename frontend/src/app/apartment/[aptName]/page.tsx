@@ -343,6 +343,46 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                 </p>
               </article>
             </div>
+
+            {relatedGuides.length > 0 && (
+              <div
+                data-testid="apt-top-guide-anchor-card"
+                className="rounded-2xl bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/25 dark:border-emerald-500/30 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3"
+              >
+                <div className="space-y-1">
+                  <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                    <BookOpen size={13} className="shrink-0" />
+                    <span>
+                      {hasDirectGuideMatch
+                        ? `${decodedName} 직접 수록 심층 비교 가이드 연결`
+                        : `${matchedGuideZone?.name || parentZone?.name || aptDong} 권역 맞춤 비교 가이드 연결`}
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-[13px] font-extrabold text-primary">
+                    {relatedGuides[0].title}
+                  </p>
+                  <p className="text-[11.5px] text-secondary leading-relaxed">
+                    본 단지가 속한 생활권의 경쟁 단지 1:1 실거래가·평당가·전세가율·학군 비교 분석 리포트와 양방향으로 연동되어 있습니다.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <Link
+                    href={`/guide/${relatedGuides[0].slug}`}
+                    prefetch={false}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors"
+                  >
+                    <span>심층 비교 리포트 읽기</span>
+                    <ArrowRight size={13} />
+                  </Link>
+                  <a
+                    href="#apt-related-guides-ssr"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-surface border border-border/70 text-secondary hover:text-primary text-xs font-bold transition-colors"
+                  >
+                    <span>연관 가이드 {relatedGuides.length}편 보기</span>
+                  </a>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* School & Infrastructure Location Analytics */}
@@ -471,19 +511,21 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           </div>
 
           {/* Chapter 02 Post-Table Zero-CLS AdSlot (High-CPC Real Estate Valuation Context) */}
-          <div
-            data-testid="ssr-adslot-ch02"
-            className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000002_ssr_ch02"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="mortgage-refinance"
-              apartmentName={decodedName}
-              dong={aptDong || undefined}
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="ssr-adslot-ch02"
+              className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000002_ssr_ch02"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="mortgage-refinance"
+                apartmentName={decodedName}
+                dong={aptDong || undefined}
+              />
+            </div>
+          )}
 
           {/* Mortgage & Stress DSR Analysis Section (Chapter 05 SSR) */}
           <section id="chapter-05-mortgage-ssr" className="space-y-6 pt-4 border-t border-border/60 min-w-0">
@@ -637,19 +679,21 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           </section>
 
           {/* Chapter 05 Post-Mortgage Zero-CLS AdSlot (High-CPC Mortgage & DSR Context) */}
-          <div
-            data-testid="ssr-adslot-ch05"
-            className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000002_ssr_ch05"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="jeonse-sentinel"
-              apartmentName={decodedName}
-              dong={aptDong || undefined}
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="ssr-adslot-ch05"
+              className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000002_ssr_ch05"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="jeonse-sentinel"
+                apartmentName={decodedName}
+                dong={aptDong || undefined}
+              />
+            </div>
+          )}
 
           {/* Chapter 06 Neighborhood & Zone Internal Link Mesh (SSR Crawl & User Recirculation) */}
           <section

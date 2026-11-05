@@ -140,18 +140,20 @@ export default async function TechnoValleyDetailPage(
             </dl>
           </div>
 
-          <div
-            data-testid="technovalley-detail-b2b-adslot"
-            className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden"
-          >
-            <AdSlot
-              refreshSlotId="1000000002_technovalley_detail_b2b"
-              format="rectangle"
-              minHeightClass="min-h-[250px]"
-              cpaCampaignId="corporate-relocation"
-              apartmentName={selectedJisan.name}
-            />
-          </div>
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+            <div
+              data-testid="technovalley-detail-b2b-adslot"
+              className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
+            >
+              <AdSlot
+                refreshSlotId="1000000002_technovalley_detail_b2b"
+                format="rectangle"
+                minHeightClass="min-h-[250px]"
+                cpaCampaignId="corporate-relocation"
+                apartmentName={selectedJisan.name}
+              />
+            </div>
+          )}
 
           <div className="space-y-4">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
