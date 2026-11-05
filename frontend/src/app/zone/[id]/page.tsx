@@ -132,6 +132,16 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
   }
 
   const txSummary = initialData.txSummary || {};
+  const linkedApartmentsList = apartmentsList.filter((apt) => {
+    const canonicalSlug =
+      resolveCanonicalAptSlug(apt.name, {
+        txKey: apt.txKey,
+        txMap: txSummary,
+        sheetApartments,
+        dong: apt.dong,
+      }) || apt.name;
+    return Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
+  });
 
   const formatPrice = (val: number) => {
     if (!val || val === 0) return '정보 없음';
@@ -176,8 +186,8 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
         },
         mainEntity: {
           '@type': 'ItemList',
-          numberOfItems: apartmentsList.length,
-          itemListElement: apartmentsList.map((apt, idx) => {
+          numberOfItems: linkedApartmentsList.length,
+          itemListElement: linkedApartmentsList.map((apt, idx) => {
             const canonicalSlug =
               resolveCanonicalAptSlug(apt.name, {
                 txKey: apt.txKey,
@@ -273,6 +283,7 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
                         sheetApartments,
                         dong: apt.dong,
                       }) || apt.name;
+                    const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
                     const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
                     const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
                     const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
@@ -281,12 +292,16 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
                     return (
                       <tr key={apt.name} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
                         <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">
-                          <Link
-                            href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
-                            className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                          >
-                            {apt.name}
-                          </Link>
+                          {hasDetailPage ? (
+                            <Link
+                              href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
+                              className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                            >
+                              {apt.name}
+                            </Link>
+                          ) : (
+                            <span>{apt.name}</span>
+                          )}
                         </th>
                         <td className="p-3.5 whitespace-nowrap">{apt.dong}</td>
                         <td className="p-3.5 whitespace-nowrap">{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>

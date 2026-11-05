@@ -431,6 +431,8 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       expect(tvHrefs).toContain(`/apartment/${encodeURIComponent('동탄역푸르지오')}`);
       for (const href of tvHrefs) {
         expect(href).not.toContain('%20');
+        const decodedSlug = decodeURIComponent(href.replace(/^\/apartment\//, ''));
+        expect(REAL_TX_SUMMARY[decodedSlug]).toBeDefined();
       }
       unmountTv();
 
@@ -449,15 +451,18 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       const exploreAnchors = Array.from(
         ssrCatalog!.querySelectorAll('a[href^="/apartment/"]')
       ) as HTMLAnchorElement[];
-      expect(exploreAnchors.length).toBeGreaterThanOrEqual(180);
+      expect(exploreAnchors.length).toBe(Object.keys(REAL_TX_SUMMARY).length);
 
       const exploreHrefs = exploreAnchors.map((a) => a.getAttribute('href') || '');
       expect(exploreHrefs).toContain(
         `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
       );
       expect(exploreHrefs).toContain(`/apartment/${encodeURIComponent('동탄역푸르지오')}`);
+      expect(exploreHrefs).not.toContain(`/apartment/${encodeURIComponent('동탄파라곤3차')}`);
       for (const href of exploreHrefs) {
         expect(href).not.toContain('%20');
+        const decodedSlug = decodeURIComponent(href.replace(/^\/apartment\//, ''));
+        expect(REAL_TX_SUMMARY[decodedSlug]).toBeDefined();
       }
       unmountExplore();
     });
@@ -919,6 +924,14 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       const canonicalRes = await proxy(canonicalReq);
       expect(canonicalRes.status).not.toBe(308);
       expect(canonicalRes.headers.get('location')).toBeNull();
+
+      // 3.5) 0-tx complex not in tx-summary.json -> HTTP 307 redirect to /explore (prevents Vercel ISR 500 on un-prerendered Korean slugs)
+      const zeroTxReq = new NextRequest(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄파라곤3차')}`
+      );
+      const zeroTxRes = await proxy(zeroTxReq);
+      expect(zeroTxRes.status).toBe(307);
+      expect(zeroTxRes.headers.get('location')).toBe('https://dongtanview.com/explore');
 
       // 4) SSR ApartmentPage pre-GA4 inline <script> normalizes window.location synchronously before hydration
       const ApartmentPage = (await import('@/app/apartment/[aptName]/page')).default;

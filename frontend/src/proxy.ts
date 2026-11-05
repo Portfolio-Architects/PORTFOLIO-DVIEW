@@ -8,6 +8,7 @@ import {
   NOISE_APARTMENT_QUERY_PARAMS,
   resolveCanonicalAptSlug,
 } from '@/lib/utils/apartmentMapping';
+import { CANONICAL_TX_SUMMARY_MAP } from '@/lib/utils/canonicalAptCatalog';
 
 // Upstash 글로벌 Rate Limiter (Edge 호환)
 const RATE_LIMIT_POINTS = 60; // 분당 60회 허용
@@ -96,9 +97,11 @@ export async function proxy(request: NextRequest) {
     const rawSegment = pathname.slice('/apartment/'.length).replace(/\/+$/, '');
     if (rawSegment && !rawSegment.includes('/')) {
       const canonicalSlug = resolveCanonicalAptSlug(rawSegment);
-      const canonicalPath = canonicalSlug
-        ? `/apartment/${encodeURIComponent(canonicalSlug)}`
-        : pathname;
+      if (!canonicalSlug || !CANONICAL_TX_SUMMARY_MAP[canonicalSlug]) {
+        return NextResponse.redirect(new URL('/explore', request.url), 307);
+      }
+
+      const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
 
       const noiseKeysToDelete: string[] = [];
       for (const key of Array.from(request.nextUrl.searchParams.keys())) {

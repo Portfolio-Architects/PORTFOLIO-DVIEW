@@ -163,13 +163,24 @@ function ExploreSkeleton() {
 async function ExploreDataLoader() {
   const initialData = await getInitialData();
   
+  const txSummary = initialData.txSummary || {};
+
   // Extract all apartments for SEO injection
   const apartmentsList: DongApartment[] = [];
+  const seenCanonicalSlugs = new Set<string>();
   if (initialData.sheetApartments) {
     Object.entries(initialData.sheetApartments).forEach(([dong, apts]) => {
       if (Array.isArray(apts)) {
         apts.forEach((apt: DongApartment) => {
           if (apt && apt.name) {
+            const canonicalSlug =
+              resolveCanonicalAptSlug(apt.name, {
+                txKey: apt.txKey,
+                txMap: txSummary,
+                sheetApartments: initialData.sheetApartments,
+                dong,
+              }) || apt.name;
+            seenCanonicalSlugs.add(canonicalSlug);
             apartmentsList.push({
               name: apt.name,
               dong: dong,
@@ -184,7 +195,18 @@ async function ExploreDataLoader() {
     });
   }
 
-  const txSummary = initialData.txSummary || {};
+  Object.entries(txSummary).forEach(([txKey, summary]) => {
+    if (!seenCanonicalSlugs.has(txKey)) {
+      seenCanonicalSlugs.add(txKey);
+      apartmentsList.push({
+        name: txKey,
+        dong: typeof summary?.dong === 'string' && summary.dong ? summary.dong : '동탄권역',
+        txKey,
+        householdCount: typeof summary?.householdCount === 'number' ? summary.householdCount : undefined,
+        yearBuilt: summary?.yearBuilt !== undefined && summary?.yearBuilt !== null ? String(summary.yearBuilt) : undefined,
+      });
+    }
+  });
 
   const formatPrice = (val: number) => {
     if (!val || val === 0) return '정보 없음';
@@ -231,17 +253,22 @@ async function ExploreDataLoader() {
                     sheetApartments: initialData.sheetApartments,
                     dong: apt.dong,
                   }) || apt.name;
+                const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
                 const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
                 const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
                 const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
                 const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
 
                 return (
-                  <tr key={apt.name}>
+                  <tr key={`${apt.dong}-${apt.name}`}>
                     <td>
-                      <Link href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}>
-                        {apt.name}
-                      </Link>
+                      {hasDetailPage ? (
+                        <Link href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}>
+                          {apt.name}
+                        </Link>
+                      ) : (
+                        <span>{apt.name}</span>
+                      )}
                     </td>
                     <td>{apt.dong}</td>
                     <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
