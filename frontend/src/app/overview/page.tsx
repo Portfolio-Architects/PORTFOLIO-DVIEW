@@ -235,22 +235,23 @@ export function DashboardSkeleton() {
 async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | 'imjang' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
-  const allApts = Object.entries(txSummary).map(([name, sum]) => {
-    const s = sum as TxSummaryItem;
-    return {
-      name,
-      latestPrice: s.latestPrice || 0,
-      dong: s.dong || '',
-      avg1MPrice: s.avg1MPrice || 0,
-      jeonseRatio: s.avg1MPrice && s.avg1MPrice > 0 && s.avg1MRentDeposit && s.avg1MRentDeposit > 0 
-        ? Math.round((s.avg1MRentDeposit / s.avg1MPrice) * 100) 
-        : 0
-    };
-  }).filter(a => a.latestPrice > 0);
-
-  const top10Leaderboard = [...allApts]
-    .sort((a, b) => b.latestPrice - a.latestPrice)
-    .slice(0, 10);
+  const top10Leaderboard = Object.entries(txSummary)
+    .filter(([, sum]) => ((sum as TxSummaryItem)?.latestPrice || 0) > 0)
+    .sort((a, b) => ((b[1] as TxSummaryItem).latestPrice || 0) - ((a[1] as TxSummaryItem).latestPrice || 0))
+    .slice(0, 10)
+    .map(([name, sum]) => {
+      const s = sum as TxSummaryItem;
+      return {
+        name,
+        latestPrice: s.latestPrice || 0,
+        dong: s.dong || '',
+        avg1MPrice: s.avg1MPrice || 0,
+        jeonseRatio:
+          s.avg1MPrice && s.avg1MPrice > 0 && s.avg1MRentDeposit && s.avg1MRentDeposit > 0
+            ? Math.round((s.avg1MRentDeposit / s.avg1MPrice) * 100)
+            : 0,
+      };
+    });
 
   const recentTxs = initialData.recentTransactions || [];
 

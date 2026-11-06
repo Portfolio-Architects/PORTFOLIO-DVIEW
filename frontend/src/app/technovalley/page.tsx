@@ -15,7 +15,7 @@ import {
   formatJisanTitleLabel,
 } from '@/lib/services/apartmentPageService';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export interface TechnoValleyPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

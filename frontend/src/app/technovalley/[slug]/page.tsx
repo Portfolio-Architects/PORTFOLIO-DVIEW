@@ -17,7 +17,7 @@ import {
   formatTechnoValleyJisanSlug,
 } from '@/lib/services/apartmentPageService';
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 export interface TechnoValleyDetailPageProps {
   params: Promise<{ slug: string }>;

@@ -139,95 +139,138 @@ export function parseOfficeXml(xml: string): OfficeTransaction[] {
   return list;
 }
 
+const officeTxL1Cache = new Map<string, { value: OfficeTransaction[]; expiresAt: number }>();
+const officeTxInFlight = new Map<string, Promise<OfficeTransaction[]>>();
+const OFFICE_TX_L1_TTL_MS = 600_000; // 10 minutes
+
 /**
  * Fetches office transaction data from public portal API.
  * Supports multi-month fetching (recent 6 months) when dealYmd is 'all' or omitted,
  * backed by Upstash Redis 24-hour caching.
  */
 export async function getOfficeTransactions(lawdCd: string = '41591', dealYmd: string = 'all'): Promise<OfficeTransaction[]> {
-  try {
-    const targetLawdCd = lawdCd === '41590' ? '41591' : lawdCd;
-    const useCache = shouldUseRedisCache();
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const targetLawdCd = lawdCd === '41590' ? '41591' : lawdCd;
+  const l1Key = `${targetLawdCd}:${dealYmd}`;
 
-    if (dealYmd !== 'all') {
-      const singleCacheKey = `DTDLS:cache:officeTx:${targetLawdCd}:${dealYmd}`;
+  if (!isTestEnv) {
+    const cachedL1 = officeTxL1Cache.get(l1Key);
+    if (cachedL1 && Date.now() < cachedL1.expiresAt) {
+      return cachedL1.value;
+    }
+    const inflight = officeTxInFlight.get(l1Key);
+    if (inflight) {
+      return inflight;
+    }
+  }
+
+  const executeLookup = async (): Promise<OfficeTransaction[]> => {
+    try {
+      const useCache = shouldUseRedisCache();
+
+      if (dealYmd !== 'all') {
+        const singleCacheKey = `DTDLS:cache:officeTx:${targetLawdCd}:${dealYmd}`;
+        if (useCache) {
+          try {
+            const cached = await redis.get<OfficeTransaction[]>(singleCacheKey);
+            if (Array.isArray(cached)) {
+              if (!isTestEnv) {
+                officeTxL1Cache.set(l1Key, { value: cached, expiresAt: Date.now() + OFFICE_TX_L1_TTL_MS });
+              }
+              return cached;
+            }
+          } catch (cacheErr) {
+            logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache read failed, falling back to public portal API', {
+              cacheKey: singleCacheKey,
+              error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+            });
+          }
+        }
+
+        const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, dealYmd);
+        const parsed = parseOfficeXml(xml);
+
+        if (useCache && parsed.length > 0) {
+          try {
+            await redis.set(singleCacheKey, parsed, { ex: OFFICE_TX_CACHE_TTL_SECONDS });
+          } catch (cacheErr) {
+            logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache write failed', {
+              cacheKey: singleCacheKey,
+              error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+            });
+          }
+        }
+        if (!isTestEnv && parsed.length > 0) {
+          officeTxL1Cache.set(l1Key, { value: parsed, expiresAt: Date.now() + OFFICE_TX_L1_TTL_MS });
+        }
+        return parsed;
+      }
+
+      const recentMonths = getRecentMonths(RECENT_OFFICE_MONTHS_COUNT);
+      const allCacheKey = `DTDLS:cache:officeTx:${targetLawdCd}:all:${recentMonths[0] || 'latest'}`;
+
       if (useCache) {
         try {
-          const cached = await redis.get<OfficeTransaction[]>(singleCacheKey);
+          const cached = await redis.get<OfficeTransaction[]>(allCacheKey);
           if (Array.isArray(cached)) {
+            if (!isTestEnv) {
+              officeTxL1Cache.set(l1Key, { value: cached, expiresAt: Date.now() + OFFICE_TX_L1_TTL_MS });
+            }
             return cached;
           }
         } catch (cacheErr) {
           logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache read failed, falling back to public portal API', {
-            cacheKey: singleCacheKey,
+            cacheKey: allCacheKey,
             error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
           });
         }
       }
 
-      const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, dealYmd);
-      const parsed = parseOfficeXml(xml);
+      const results = await Promise.all(
+        recentMonths.map(async (ym) => {
+          try {
+            const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, ym);
+            return parseOfficeXml(xml);
+          } catch {
+            return [];
+          }
+        })
+      );
 
-      if (useCache && parsed.length > 0) {
+      const flattened = results.flat();
+      const sorted = flattened.sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
+
+      if (useCache && sorted.length > 0) {
         try {
-          await redis.set(singleCacheKey, parsed, { ex: OFFICE_TX_CACHE_TTL_SECONDS });
+          await redis.set(allCacheKey, sorted, { ex: OFFICE_TX_CACHE_TTL_SECONDS });
         } catch (cacheErr) {
           logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache write failed', {
-            cacheKey: singleCacheKey,
+            cacheKey: allCacheKey,
             error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
           });
         }
       }
-      return parsed;
-    }
 
-    const recentMonths = getRecentMonths(RECENT_OFFICE_MONTHS_COUNT);
-    const allCacheKey = `DTDLS:cache:officeTx:${targetLawdCd}:all:${recentMonths[0] || 'latest'}`;
-
-    if (useCache) {
-      try {
-        const cached = await redis.get<OfficeTransaction[]>(allCacheKey);
-        if (Array.isArray(cached)) {
-          return cached;
-        }
-      } catch (cacheErr) {
-        logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache read failed, falling back to public portal API', {
-          cacheKey: allCacheKey,
-          error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
-        });
+      if (!isTestEnv && sorted.length > 0) {
+        officeTxL1Cache.set(l1Key, { value: sorted, expiresAt: Date.now() + OFFICE_TX_L1_TTL_MS });
       }
+
+      return sorted;
+    } catch (err) {
+      logger.error('OfficeTxService.getOfficeTransactions', 'Error fetching or parsing office transactions.', { error: err instanceof Error ? err.message : String(err) });
+      return [];
     }
+  };
 
-    const results = await Promise.all(
-      recentMonths.map(async (ym) => {
-        try {
-          const xml = await OfficeTxRepo.fetchOfficeXmlFromPublicPortal(targetLawdCd, ym);
-          return parseOfficeXml(xml);
-        } catch {
-          return [];
-        }
-      })
-    );
-
-    const flattened = results.flat();
-    const sorted = flattened.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-
-    if (useCache && sorted.length > 0) {
-      try {
-        await redis.set(allCacheKey, sorted, { ex: OFFICE_TX_CACHE_TTL_SECONDS });
-      } catch (cacheErr) {
-        logger.warn('OfficeTxService.getOfficeTransactions', 'Redis cache write failed', {
-          cacheKey: allCacheKey,
-          error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
-        });
-      }
-    }
-
-    return sorted;
-  } catch (err) {
-    logger.error('OfficeTxService.getOfficeTransactions', 'Error fetching or parsing office transactions.', { error: err instanceof Error ? err.message : String(err) });
-    return [];
+  if (isTestEnv) {
+    return executeLookup();
   }
+
+  const promise = executeLookup().finally(() => {
+    officeTxInFlight.delete(l1Key);
+  });
+  officeTxInFlight.set(l1Key, promise);
+  return promise;
 }
 
 

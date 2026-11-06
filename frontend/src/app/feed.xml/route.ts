@@ -1,5 +1,5 @@
 export const runtime = 'nodejs';
-export const revalidate = 1800; // Cache for 30 minutes
+export const revalidate = 86400; // Cache for 24 hours
 
 export async function GET() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
@@ -18,7 +18,7 @@ export async function GET() {
   return new Response(rssXml, {
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
-      'Cache-Control': 'public, s-maxage=1800, stale-while-revalidate=600',
+      'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=3600',
     },
   });
 }

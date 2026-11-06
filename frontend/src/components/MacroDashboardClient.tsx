@@ -2133,7 +2133,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 sortOrder={sortOrder}
                 setSortOrder={setSortOrder}
                 viewMode={viewMode}
-                setViewMode={setViewMode}
+
                 onResetFilters={handleResetAllFilters}
                 showQuickFilters={false}
                 pyeongRankings={unifiedStatsData.pyeongRankings}

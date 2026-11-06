@@ -607,6 +607,15 @@ export function filterAndSortApartmentRecords(
   return sorted;
 }
 
+interface CachedFilterSlice {
+  baseFiltered: ApartmentStatRecord[];
+  distanceTiers: DistanceTierSummary[];
+  regression: RegressionAnalysisResult;
+  sortedByKey: Map<string, ApartmentStatRecord[]>;
+}
+
+const stationFilterSliceCache = new Map<string, CachedFilterSlice>();
+
 /**
  * Main analytical entrypoint for Issue #1 Report
  * Computes all records, filtered records, distance tiers, regression metrics, and live dataset metadata.
@@ -622,9 +631,46 @@ export function getDongtanStationAnalysisData(
   };
 
   const allRecords = MASTER_RECORDS;
-  const filteredRecords = filterAndSortApartmentRecords(allRecords, resolvedFilters);
-  const distanceTiers = computeDistanceTiers(filteredRecords);
-  const regression = computeOLSLinearRegression(filteredRecords);
+  const sliceKey = `${resolvedFilters.areaBand}|${resolvedFilters.buildingAge}|${resolvedFilters.dong}`;
+  let slice = stationFilterSliceCache.get(sliceKey);
+
+  if (!slice) {
+    const baseFiltered = filterAndSortApartmentRecords(allRecords, {
+      ...resolvedFilters,
+      sortBy: 'distance',
+    });
+    const distanceTiers = computeDistanceTiers(baseFiltered);
+    const regression = computeOLSLinearRegression(baseFiltered);
+    const sortedByKey = new Map<string, ApartmentStatRecord[]>();
+    sortedByKey.set('distance', baseFiltered);
+
+    slice = {
+      baseFiltered,
+      distanceTiers,
+      regression,
+      sortedByKey,
+    };
+
+    if (stationFilterSliceCache.size >= 64) {
+      const oldestKey = stationFilterSliceCache.keys().next().value;
+      if (oldestKey !== undefined) {
+        stationFilterSliceCache.delete(oldestKey);
+      }
+    }
+    stationFilterSliceCache.set(sliceKey, slice);
+  }
+
+  let sortedRecords = slice.sortedByKey.get(resolvedFilters.sortBy);
+  if (!sortedRecords) {
+    sortedRecords = filterAndSortApartmentRecords(slice.baseFiltered, {
+      areaBand: 'all',
+      buildingAge: 'all',
+      dong: 'all',
+      sortBy: resolvedFilters.sortBy,
+    });
+    slice.sortedByKey.set(resolvedFilters.sortBy, sortedRecords);
+  }
+
   const dynamicIssue1Topic = {
     ...STATS_TOPICS[0],
     publishedAt: MASTER_DATASET_META.referenceMonthLabel,
@@ -634,10 +680,10 @@ export function getDongtanStationAnalysisData(
   return {
     topic: dynamicIssue1Topic,
     allRecords,
-    filteredRecords,
-    distanceTiers,
-    regression,
-    filters: resolvedFilters,
+    filteredRecords: [...sortedRecords],
+    distanceTiers: [...slice.distanceTiers],
+    regression: { ...slice.regression },
+    filters: { ...resolvedFilters },
     datasetMeta: MASTER_DATASET_META,
   };
 }

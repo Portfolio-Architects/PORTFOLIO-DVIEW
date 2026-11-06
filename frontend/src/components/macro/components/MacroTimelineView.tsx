@@ -1095,46 +1095,46 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="text-[14px] xs:text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">
-                일자별 최근 실거래
-              </h2>
-              <span className="px-2.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-[11.5px] sm:text-[12.5px] font-extrabold text-secondary tabular-nums">
-                {effectiveTotalCount}건
-              </span>
-
-              {/* Quick Period Selector (7d / 30d / 90d / 1y) */}
-              {setPeriodFilter && (
-                <div className={getToggleTrackClass('sm:ml-1')}>
-                  {(['7d', '30d', '90d', '1y'] as const).map((p) => {
-                    const labelMap = { '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
-                    const isSelected = periodFilter === p;
-                    return (
-                      <button
-                        key={p}
-                        type="button"
-                        onClick={() => {
-                          if (setPeriodFilter) {
-                            React.startTransition(() => {
-                              setPeriodFilter(p);
-                            });
-                          }
-                        }}
-                        aria-label={`실거래 기간 ${labelMap[p]}`}
-                        data-testid={`timeline-period-tab-${p}`}
-                        className={getToggleBtnClass({ active: isSelected, size: 'sm', extraClass: 'tabular-nums' })}
-                      >
-                        {labelMap[p]}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-
           <TimelineFilterControls
+            headerLeftNode={
+              <div className="flex items-center gap-2 shrink-0">
+                <h2 className="text-[14px] xs:text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">
+                  일자별 최근 실거래
+                </h2>
+
+                {/* Quick Period Selector (7d / 30d / 90d / 1y) */}
+                {setPeriodFilter && (
+                  <div className={getToggleTrackClass('sm:ml-1')}>
+                    {(['7d', '30d', '90d', '1y'] as const).map((p) => {
+                      const labelMap = { '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
+                      const isSelected = periodFilter === p;
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => {
+                            if (setPeriodFilter) {
+                              React.startTransition(() => {
+                                setPeriodFilter(p);
+                              });
+                            }
+                          }}
+                          aria-label={`실거래 기간 ${labelMap[p]}`}
+                          data-testid={`timeline-period-tab-${p}`}
+                          className={getToggleBtnClass({
+                            active: isSelected,
+                            size: 'sm',
+                            extraClass: 'tabular-nums min-h-[28px] sm:min-h-[30px]',
+                          })}
+                        >
+                          {labelMap[p]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            }
             timelineDongFilter={timelineDongFilter}
             setTimelineDongFilter={setTimelineDongFilter}
             timelineAptFilter={timelineAptFilter}
@@ -1155,7 +1155,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
             viewMode={viewMode}
-            setViewMode={setViewMode}
+            setViewMode={compactHeroMode ? undefined : setViewMode}
             onResetFilters={
               onResetFilters
                 ? () => {

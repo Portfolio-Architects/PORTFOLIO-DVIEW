@@ -419,6 +419,23 @@ export function renderGuideBodyContent(
   return elements;
 }
 
+let baseInlineSlugLookupEntriesCache: Array<[string, string]> | null = null;
+
+function getBaseInlineSlugLookupEntries(): Array<[string, string]> {
+  if (baseInlineSlugLookupEntriesCache) return baseInlineSlugLookupEntriesCache;
+  const map = new Map<string, string>();
+  for (const entry of CANONICAL_DONG_APT_LIST) {
+    for (const alias of [entry.txKey, entry.name]) {
+      const norm = normalizeGuideAptName(alias);
+      if (norm.length >= 2 && !map.has(norm)) {
+        map.set(norm, entry.txKey);
+      }
+    }
+  }
+  baseInlineSlugLookupEntriesCache = Array.from(map.entries());
+  return baseInlineSlugLookupEntriesCache;
+}
+
 export default async function GuideArticlePage(props: {
   params: Promise<{ slug: string }>;
 }) {
@@ -474,14 +491,11 @@ export default async function GuideArticlePage(props: {
     registerLookupItem(m.left);
     registerLookupItem(m.right);
   });
-  CANONICAL_DONG_APT_LIST.forEach((entry) => {
-    for (const alias of [entry.txKey, entry.name]) {
-      const norm = normalizeGuideAptName(alias);
-      if (norm.length >= 2 && !inlineSlugLookup.has(norm)) {
-        inlineSlugLookup.set(norm, entry.txKey);
-      }
+  for (const [norm, txKey] of getBaseInlineSlugLookupEntries()) {
+    if (!inlineSlugLookup.has(norm)) {
+      inlineSlugLookup.set(norm, txKey);
     }
-  });
+  }
 
   const featuredZoneItems = (article.featuredZones || [])
     .map((zId) => getZoneById(zId))

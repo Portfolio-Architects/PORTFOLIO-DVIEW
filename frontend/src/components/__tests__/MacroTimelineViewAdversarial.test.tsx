@@ -486,8 +486,8 @@ describe('MacroTimelineView Adversarial & Stress Test Suite (M4 Challenger)', ()
       // Verify container renders cleanly
       expect(container.querySelectorAll('[data-testid^="highest-price-badge-"]').length).toBe(30);
       expect(screen.getByText('일자별 최근 실거래')).toBeInTheDocument();
-      // Total count across 30 dates * 35 items = 1050
-      expect(screen.getByText('1050건')).toBeInTheDocument();
+      // Total count per date header is 35건
+      expect(screen.getAllByText('총 35건 거래')).toHaveLength(30);
     });
 
     test('handles empty dataset gracefully with clean fallback UI', () => {

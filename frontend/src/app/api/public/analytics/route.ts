@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
     const data = await getPublicAnalyticsLKG();
     return apiSuccess(
       data,
-      typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : undefined
+      typeof data === 'object' && data !== null ? (data as Record<string, unknown>) : undefined,
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=1800',
+        },
+      }
     );
   } catch (error: unknown) {
     logger.error('PublicAnalyticsAPI.GET', 'Failed to load analytics data', {}, error as Error);

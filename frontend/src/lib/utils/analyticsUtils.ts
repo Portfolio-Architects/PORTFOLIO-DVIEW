@@ -87,6 +87,15 @@ export function formatPriceEok(priceMan: number): string {
   return `${eok}억 ${remainder.toLocaleString()}`;
 }
 
+function toSortableContractDateNum(tx: TransactionRecord): number {
+  const ym = parseInt(String(tx.contractYm || 0), 10);
+  const day = typeof tx.contractDay === 'number' ? tx.contractDay : parseInt(String(tx.contractDay || 0), 10);
+  if (Number.isFinite(ym) && ym > 0) {
+    return ym * 100 + (Number.isFinite(day) && day > 0 ? day : 0);
+  }
+  return 0;
+}
+
 /**
  * 실거래가 레코드 목록을 평형별로 그룹화 및 통계 요약
  */
@@ -95,46 +104,76 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
 
   const groups: Record<number, TransactionRecord[]> = {};
 
-  txs.forEach((t) => {
+  for (let i = 0; i < txs.length; i++) {
+    const t = txs[i];
     const pyeong = Math.round(t.areaPyeong);
-    if (!pyeong || pyeong <= 0) return;
-    if (!groups[pyeong]) groups[pyeong] = [];
-    groups[pyeong].push(t);
-  });
+    if (!pyeong || pyeong <= 0) continue;
+    let bucket = groups[pyeong];
+    if (!bucket) {
+      bucket = [];
+      groups[pyeong] = bucket;
+    }
+    bucket.push(t);
+  }
 
   const summaries: PyeongSummary[] = [];
 
-  Object.entries(groups).forEach(([pyeongKey, groupTxs]) => {
+  for (const [pyeongKey, groupTxs] of Object.entries(groups)) {
     const pyeong = parseInt(pyeongKey, 10);
     const sortedTxs = [...groupTxs].sort((a, b) => {
+      const numDiff = toSortableContractDateNum(b) - toSortableContractDateNum(a);
+      if (numDiff !== 0) return numDiff;
       const dateA = String(a.contractYm) + String(a.contractDay).padStart(2, '0');
       const dateB = String(b.contractYm) + String(b.contractDay).padStart(2, '0');
       return dateB.localeCompare(dateA);
     });
 
-    const avgArea = sortedTxs.reduce((sum, t) => sum + (t.area || 0), 0) / sortedTxs.length;
-    const sales = sortedTxs.filter((t) => t.dealType !== '전세' && t.dealType !== '월세');
-    const jeonse = sortedTxs.filter((t) => t.dealType === '전세' && (t.deposit || 0) > 0);
+    let areaSum = 0;
+    let salesCount = 0;
+    let rentCount = 0;
+    let latestSale: TransactionRecord | undefined;
+    let latestJeonse: TransactionRecord | undefined;
+    let maxPrice = 0;
+    let salePriceSum = 0;
+    let salePriceValidCount = 0;
+    let jeonseDepositSum = 0;
+    let jeonseDepositValidCount = 0;
 
-    if (sales.length === 0 && jeonse.length === 0) return;
+    for (let i = 0; i < sortedTxs.length; i++) {
+      const t = sortedTxs[i];
+      areaSum += t.area || 0;
+      if (t.dealType !== '전세' && t.dealType !== '월세') {
+        salesCount++;
+        if (!latestSale) latestSale = t;
+        const p = t.price || 0;
+        if (p > 0) {
+          if (p > maxPrice) maxPrice = p;
+          salePriceSum += p;
+          salePriceValidCount++;
+        }
+      } else if (t.dealType === '전세' && (t.deposit || 0) > 0) {
+        rentCount++;
+        if (!latestJeonse) latestJeonse = t;
+        const d = t.deposit || 0;
+        if (d > 0) {
+          jeonseDepositSum += d;
+          jeonseDepositValidCount++;
+        }
+      }
+    }
 
-    const latestSale = sales[0];
+    if (salesCount === 0 && rentCount === 0) continue;
+
+    const avgArea = areaSum / sortedTxs.length;
     const latestPrice = latestSale ? (latestSale.price || 0) : 0;
     const latestPriceStr = latestSale ? (latestSale.priceEok || formatPriceEok(latestPrice)) : '정보 없음';
-
-    const salePrices = sales.map((s) => s.price).filter((p) => p > 0);
-    const maxPrice = salePrices.length > 0 ? Math.max(...salePrices) : 0;
     const maxPriceStr = maxPrice > 0 ? formatPriceEok(maxPrice) : '정보 없음';
-
-    const avgPrice = salePrices.length > 0 ? Math.round(salePrices.reduce((sum, p) => sum + p, 0) / salePrices.length) : 0;
+    const avgPrice = salePriceValidCount > 0 ? Math.round(salePriceSum / salePriceValidCount) : 0;
     const avgPriceStr = avgPrice > 0 ? formatPriceEok(avgPrice) : '정보 없음';
 
-    const latestJeonse = jeonse[0];
     const latestDeposit = latestJeonse ? (latestJeonse.deposit || 0) : 0;
     const latestDepositStr = latestJeonse ? (latestJeonse.priceEok || formatPriceEok(latestDeposit)) : '정보 없음';
-
-    const jeonseDeposits = jeonse.map((j) => j.deposit || 0).filter((d) => d > 0);
-    const avgDeposit = jeonseDeposits.length > 0 ? Math.round(jeonseDeposits.reduce((sum, d) => sum + d, 0) / jeonseDeposits.length) : 0;
+    const avgDeposit = jeonseDepositValidCount > 0 ? Math.round(jeonseDepositSum / jeonseDepositValidCount) : 0;
     const avgDepositStr = avgDeposit > 0 ? formatPriceEok(avgDeposit) : '정보 없음';
 
     let jeonseRatio = 0;
@@ -147,8 +186,8 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
     summaries.push({
       pyeong,
       areaM2: Math.round(avgArea * 100) / 100,
-      salesCount: sales.length,
-      rentCount: jeonse.length,
+      salesCount,
+      rentCount,
       latestPrice,
       latestPriceStr,
       maxPrice,
@@ -161,7 +200,7 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
       avgDepositStr,
       jeonseRatio,
     });
-  });
+  }
 
   return summaries.sort((a, b) => a.pyeong - b.pyeong);
 }

@@ -462,7 +462,8 @@ describe('Milestone M2 Empirical Challenger Stress Test Suite', () => {
       );
 
       expect(screen.getByText('선택하신 필터 조건에 부합하는 최근 실거래가 없습니다.')).toBeInTheDocument();
-      expect(screen.getByText('0건')).toBeInTheDocument();
+      expect(screen.getByText('일자별 최근 실거래')).toBeInTheDocument();
+      expect(screen.getByText('모든 날짜 (0일)')).toBeInTheDocument();
     });
 
     it('handles multi-filter intersection yielding exactly 1 match (Dongtan 2 + 40평+ + High)', () => {

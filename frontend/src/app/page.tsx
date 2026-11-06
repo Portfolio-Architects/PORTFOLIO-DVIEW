@@ -251,7 +251,10 @@ const formatPrice = (val: number) => {
 async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: 'overview' | 'imjang' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
-  const allApts = Object.entries(txSummary)
+  const top10Leaderboard = Object.entries(txSummary)
+    .filter(([, sum]) => ((sum as TxSummaryItem)?.latestPrice || 0) > 0)
+    .sort((a, b) => ((b[1] as TxSummaryItem).latestPrice || 0) - ((a[1] as TxSummaryItem).latestPrice || 0))
+    .slice(0, 10)
     .map(([name, sum]) => {
       const s = sum as TxSummaryItem;
       const dong = s.dong || '';
@@ -266,10 +269,7 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
             ? Math.round((s.avg1MRentDeposit / s.avg1MPrice) * 100)
             : 0,
       };
-    })
-    .filter((a) => a.latestPrice > 0);
-
-  const top10Leaderboard = [...allApts].sort((a, b) => b.latestPrice - a.latestPrice).slice(0, 10);
+    });
   const recentTxs = (initialData.recentTransactions || []) as HomeTransactionRecord[];
 
   return (

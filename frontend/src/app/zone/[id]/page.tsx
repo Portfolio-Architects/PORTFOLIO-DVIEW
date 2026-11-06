@@ -109,7 +109,8 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
   const initialData = await getInitialData();
   const dongs = getDongsForZone(zone.id);
 
-  const apartmentsList: DongApartment[] = [];
+  const txSummary = initialData.txSummary || {};
+  const apartmentsList: Array<DongApartment & { canonicalSlug: string }> = [];
   const sheetApartments = initialData.sheetApartments;
   if (sheetApartments) {
     dongs.forEach((dong) => {
@@ -117,10 +118,18 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
       if (Array.isArray(apts)) {
         apts.forEach((apt: DongApartment) => {
           if (apt && apt.name) {
+            const canonicalSlug =
+              resolveCanonicalAptSlug(apt.name, {
+                txKey: apt.txKey,
+                txMap: txSummary,
+                sheetApartments,
+                dong,
+              }) || apt.name;
             apartmentsList.push({
               name: apt.name,
               dong: dong,
               txKey: apt.txKey,
+              canonicalSlug,
               householdCount: apt.householdCount,
               yearBuilt: apt.yearBuilt,
               brand: apt.brand,
@@ -131,17 +140,9 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
     });
   }
 
-  const txSummary = initialData.txSummary || {};
-  const linkedApartmentsList = apartmentsList.filter((apt) => {
-    const canonicalSlug =
-      resolveCanonicalAptSlug(apt.name, {
-        txKey: apt.txKey,
-        txMap: txSummary,
-        sheetApartments,
-        dong: apt.dong,
-      }) || apt.name;
-    return Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
-  });
+  const linkedApartmentsList = apartmentsList.filter((apt) =>
+    Boolean(txSummary[apt.canonicalSlug] || txSummary[apt.name])
+  );
 
   const formatPrice = (val: number) => {
     if (!val || val === 0) return '정보 없음';
@@ -187,21 +188,12 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
         mainEntity: {
           '@type': 'ItemList',
           numberOfItems: linkedApartmentsList.length,
-          itemListElement: linkedApartmentsList.map((apt, idx) => {
-            const canonicalSlug =
-              resolveCanonicalAptSlug(apt.name, {
-                txKey: apt.txKey,
-                txMap: txSummary,
-                sheetApartments,
-                dong: apt.dong,
-              }) || apt.name;
-            return {
-              '@type': 'ListItem',
-              position: idx + 1,
-              url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,
-              name: apt.name,
-            };
-          }),
+          itemListElement: linkedApartmentsList.map((apt, idx) => ({
+            '@type': 'ListItem',
+            position: idx + 1,
+            url: `${baseUrl}/apartment/${encodeURIComponent(apt.canonicalSlug)}`,
+            name: apt.name,
+          })),
         },
       },
       {
@@ -276,13 +268,7 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
                 </thead>
                 <tbody className="divide-y divide-border/40 font-medium">
                   {apartmentsList.map((apt) => {
-                    const canonicalSlug =
-                      resolveCanonicalAptSlug(apt.name, {
-                        txKey: apt.txKey,
-                        txMap: txSummary,
-                        sheetApartments,
-                        dong: apt.dong,
-                      }) || apt.name;
+                    const { canonicalSlug } = apt;
                     const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
                     const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
                     const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;

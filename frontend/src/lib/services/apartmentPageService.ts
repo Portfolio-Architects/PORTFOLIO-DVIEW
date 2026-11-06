@@ -169,6 +169,7 @@ export interface MortgageSsrData {
 
 export interface ApartmentPageData {
   aptName: string;
+  canonicalSlug?: string;
   resolvedTxKey?: string;
   aptSummary?: AptTxSummary;
   txs: TransactionRecord[];
@@ -364,51 +365,116 @@ export async function getLocationScore(
   }
 }
 
+const scoutingReportL1Cache = new Map<string, { value: FieldReportData | null; expiresAt: number }>();
+const scoutingReportInFlight = new Map<string, Promise<FieldReportData | null>>();
+const SCOUTING_REPORT_L1_TTL_MS = 300_000; // 5 minutes
+
 /**
- * 단지별 임장/스카우팅 리포트 데이터 캐시 조회 (Redis -> Firestore)
+ * 단지별 임장/스카우팅 리포트 데이터 캐시 조회 (L1 Memory -> L2 Redis -> Firestore)
  */
 export async function fetchScoutingReportCached(aptName: string): Promise<FieldReportData | null> {
-  const cacheKey = `DTDLS:cache:reportByApt:${encodeURIComponent(aptName)}`;
-  if (redis) {
-    try {
-      const cached = await redis.get(cacheKey);
-      if (cached !== null) {
-        if (cached === 'null') return null;
-        return cached as FieldReportData;
-      }
-    } catch (e) {
-      logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Redis scouting report read error', { aptName }, e as Error);
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const now = Date.now();
+
+  if (!isTestEnv) {
+    const l1Hit = scoutingReportL1Cache.get(aptName);
+    if (l1Hit && now < l1Hit.expiresAt) {
+      return l1Hit.value;
+    }
+    const inflight = scoutingReportInFlight.get(aptName);
+    if (inflight) {
+      return inflight;
     }
   }
 
-  if (adminDb) {
-    try {
-      const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', aptName).limit(1).get();
-      if (!snap.empty) {
-        const docSnap = snap.docs[0];
-        const data = JSON.parse(
-          JSON.stringify({
-            id: docSnap.id,
-            ...docSnap.data(),
-          })
-        ) as FieldReportData;
-        if (redis) {
-          await redis.set(cacheKey, data, { ex: 3600 }).catch((err) =>
-            logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Redis write error', { aptName }, err as Error)
-          );
+  const executeLookup = async (): Promise<FieldReportData | null> => {
+    const cacheKey = `DTDLS:cache:reportByApt:${encodeURIComponent(aptName)}`;
+    if (redis) {
+      try {
+        const cached = await redis.get(cacheKey);
+        if (cached !== null) {
+          const resolved = cached === 'null' ? null : (cached as FieldReportData);
+          if (!isTestEnv) {
+            scoutingReportL1Cache.set(aptName, {
+              value: resolved,
+              expiresAt: Date.now() + SCOUTING_REPORT_L1_TTL_MS,
+            });
+          }
+          return resolved;
         }
-        return data;
-      } else {
-        if (redis) {
-          await redis.set(cacheKey, 'null', { ex: 300 }).catch(() => {});
-        }
+      } catch (e) {
+        logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Redis scouting report read error', { aptName }, e as Error);
       }
-    } catch (e) {
-      logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Firestore read error', { aptName }, e as Error);
     }
+
+    if (adminDb) {
+      try {
+        const snap = await adminDb.collection('scoutingReports').where('apartmentName', '==', aptName).limit(1).get();
+        if (!snap.empty && Array.isArray(snap.docs) && snap.docs.length > 0) {
+          const docSnap = snap.docs[0];
+          const data = JSON.parse(
+            JSON.stringify({
+              id: docSnap.id,
+              ...docSnap.data(),
+            })
+          ) as FieldReportData;
+          if (redis) {
+            await redis.set(cacheKey, data, { ex: 3600 }).catch((err) =>
+              logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Redis write error', { aptName }, err as Error)
+            );
+          }
+          if (!isTestEnv) {
+            scoutingReportL1Cache.set(aptName, {
+              value: data,
+              expiresAt: Date.now() + SCOUTING_REPORT_L1_TTL_MS,
+            });
+          }
+          return data;
+        } else {
+          if (redis) {
+            await redis.set(cacheKey, 'null', { ex: 300 }).catch(() => {});
+          }
+        }
+      } catch (e) {
+        logger.warn('ApartmentPageService.fetchScoutingReportCached', 'Firestore read error', { aptName }, e as Error);
+      }
+    }
+
+    if (!isTestEnv) {
+      scoutingReportL1Cache.set(aptName, {
+        value: null,
+        expiresAt: Date.now() + SCOUTING_REPORT_L1_TTL_MS,
+      });
+    }
+    return null;
+  };
+
+  if (isTestEnv) {
+    return executeLookup();
   }
-  return null;
+
+  const promise = executeLookup().finally(() => {
+    scoutingReportInFlight.delete(aptName);
+  });
+  scoutingReportInFlight.set(aptName, promise);
+  return promise;
 }
+
+const STATIC_INCOME_LEVELS = [50000000, 80000000, 100000000];
+const STATIC_DSR_SCENARIOS = STATIC_INCOME_LEVELS.map((income) =>
+  calculateDsrMaxLoan({
+    annualIncomeWon: income,
+    baseRatePercent: 4.0,
+    loanPeriodYears: 30,
+    repaymentType: 'EQUAL_PRINCIPAL_AND_INTEREST',
+    stressSpreadPercent: 1.2,
+    dsrLimitRatio: 0.40,
+  })
+);
+const STATIC_DSR_50_EOK_STR = (Math.round((STATIC_DSR_SCENARIOS[0].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+const STATIC_DSR_80_EOK_STR = (Math.round((STATIC_DSR_SCENARIOS[1].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+const STATIC_DSR_100_EOK_STR = (Math.round((STATIC_DSR_SCENARIOS[2].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+const STATIC_SHORTFALL_RATES = [0.05, 0.10, 0.15];
 
 /**
  * 4대 SSR 수리 테이블 및 FAQ 시맨틱 데이터를 생성하는 도메인 헬퍼
@@ -449,18 +515,8 @@ export function buildMortgageSsrData(
     repaymentType: 'EQUAL_PRINCIPAL',
   });
 
-  // 2. DSR 40% 한도 (스트레스 금리 5.2% = 4.0% + 1.2%p)
-  const incomeLevels = [50000000, 80000000, 100000000];
-  const dsrScenarios = incomeLevels.map((income) =>
-    calculateDsrMaxLoan({
-      annualIncomeWon: income,
-      baseRatePercent: 4.0,
-      loanPeriodYears: 30,
-      repaymentType: 'EQUAL_PRINCIPAL_AND_INTEREST',
-      stressSpreadPercent: 1.2,
-      dsrLimitRatio: 0.40,
-    })
-  );
+  // 2. DSR 40% 한도 (스트레스 금리 5.2% = 4.0% + 1.2%p) - 고정 소득 구간 사전 연산값 재사용
+  const dsrScenarios = STATIC_DSR_SCENARIOS;
 
   // 3. 금리 충격 민감도 (+1.0%p, +1.5%p, +2.0%p, +3.0%p)
   const rateShock = calculateInterestRateShock({
@@ -472,8 +528,7 @@ export function buildMortgageSsrData(
   });
 
   // 4. 역전세 결손액 (5%, 10%, 15% 하락)
-  const shortfallRates = [0.05, 0.10, 0.15];
-  const jeonseShortfalls = shortfallRates.map((rate) =>
+  const jeonseShortfalls = STATIC_SHORTFALL_RATES.map((rate) =>
     calculateJeonseShortfall({
       depositWon: jeonseDepositWon,
       declineRate: rate,
@@ -483,9 +538,6 @@ export function buildMortgageSsrData(
 
   // FAQ 리스트
   const ltvAmountEokStr = (Math.round((principalWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
-  const dsr50EokStr = (Math.round((dsrScenarios[0].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
-  const dsr80EokStr = (Math.round((dsrScenarios[1].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
-  const dsr100EokStr = (Math.round((dsrScenarios[2].maxLoanWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
 
   const faqList = [
     {
@@ -494,7 +546,7 @@ export function buildMortgageSsrData(
     },
     {
       question: 'DSR 40% 한도 규제 적용 시 연소득별 최대 대출 가능 금액은 어떻게 되나요?',
-      answer: `30년 만기 및 스트레스 금리 5.2% 기준, 연소득 5,000만원 차주는 약 ${dsr50EokStr}억원, 연소득 8,000만원 차주는 약 ${dsr80EokStr}억원, 연소득 1억원 차주는 약 ${dsr100EokStr}억원이 최대 한도로 도출됩니다.`,
+      answer: `30년 만기 및 스트레스 금리 5.2% 기준, 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원이 최대 한도로 도출됩니다.`,
     },
     {
       question: `동탄 ${aptName} 전세보증금 반환대출(역전세 대출) 신청 요건은 무엇인가요?`,
@@ -520,80 +572,129 @@ export function buildMortgageSsrData(
   };
 }
 
+const apartmentPageDataL1Cache = new Map<string, { value: ApartmentPageData; expiresAt: number }>();
+const apartmentPageDataInFlight = new Map<string, Promise<ApartmentPageData>>();
+const APARTMENT_PAGE_DATA_L1_TTL_MS = 300_000; // 5 minutes
+
 /**
  * 아파트 상세 페이지에 필요한 전체 도메인 데이터를 합성하여 반환
  */
 export async function getApartmentPageData(rawAptName: string): Promise<ApartmentPageData> {
   const aptName = decodeAptName(rawAptName);
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const now = Date.now();
 
-  const [txSummary, byDong, matchedReportData] = await Promise.all([
-    getTxSummaryData(),
-    getApartmentsByDongData(),
-    fetchScoutingReportCached(aptName),
-  ]);
-
-  const { matchedDongApt, manualMapping } = resolveDongApartment(
-    aptName,
-    byDong,
-    txSummary[aptName]?.dong || matchedReportData?.dong
-  );
-
-  const sanitizedDongTxKey = matchedDongApt?.txKey
-    ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
-    : null;
-  const canonicalSlug = resolveCanonicalAptSlug(aptName, {
-    txKey: matchedDongApt?.txKey,
-    txMap: txSummary,
-    sheetApartments: byDong,
-    manualMapping,
-    dong: matchedDongApt?.dong || matchedReportData?.dong || txSummary[aptName]?.dong,
-  });
-  const resolvedTxKey =
-    (canonicalSlug && txSummary[canonicalSlug] ? canonicalSlug : null) ||
-    (txSummary[aptName] ? aptName : null) ||
-    (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
-    (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null);
-
-  const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : undefined;
-  const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || null;
-
-  const [txs, locationScore] = await Promise.all([
-    getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || canonicalSlug || aptName),
-    getLocationScore(aptName, resolvedDong, manualMapping, matchedDongApt?.name),
-  ]);
-
-  const pyeongSummaries = getPyeongSummariesCached(txs);
-  const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
-  const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore);
-
-  const latestPriceManwon = aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0);
-  const latestDepositManwon = aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0);
-  const mortgageSsr = buildMortgageSsrData(aptName, latestPriceManwon, latestDepositManwon);
-
-  let structuredImages: string[] = [];
-  if (matchedReportData?.images && Array.isArray(matchedReportData.images)) {
-    structuredImages = matchedReportData.images
-      .map((img: { url?: string }) => img.url)
-      .filter((url): url is string => Boolean(url));
+  if (!isTestEnv) {
+    const cached = apartmentPageDataL1Cache.get(aptName);
+    if (cached && now < cached.expiresAt) {
+      return cached.value;
+    }
+    const inflight = apartmentPageDataInFlight.get(aptName);
+    if (inflight) {
+      return inflight;
+    }
   }
 
-  return {
-    aptName,
-    resolvedTxKey:
-      resolvedTxKey ||
+  const computePageData = async (): Promise<ApartmentPageData> => {
+    const [txSummary, byDong, matchedReportData] = await Promise.all([
+      getTxSummaryData(),
+      getApartmentsByDongData(),
+      fetchScoutingReportCached(aptName),
+    ]);
+
+    const { matchedDongApt, manualMapping } = resolveDongApartment(
+      aptName,
+      byDong,
+      txSummary[aptName]?.dong || matchedReportData?.dong
+    );
+
+    const sanitizedDongTxKey = matchedDongApt?.txKey
+      ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
+      : null;
+    const canonicalSlug =
+      resolveCanonicalAptSlug(aptName, {
+        txKey: matchedDongApt?.txKey,
+        txMap: txSummary,
+        sheetApartments: byDong,
+        manualMapping,
+        dong: matchedDongApt?.dong || matchedReportData?.dong || txSummary[aptName]?.dong,
+      }) ||
       sanitizedDongTxKey ||
-      (canonicalSlug && canonicalSlug !== aptName ? canonicalSlug : undefined),
-    aptSummary,
-    txs,
-    pyeongSummaries,
-    locationScore,
-    matchedReportData,
-    matchedDongApt,
-    structuredImages,
-    analytics,
-    aiBriefing,
-    mortgageSsr,
+      aptName;
+    const resolvedTxKey =
+      (canonicalSlug && txSummary[canonicalSlug] ? canonicalSlug : null) ||
+      (txSummary[aptName] ? aptName : null) ||
+      (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
+      (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null);
+
+    const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : undefined;
+    const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || null;
+
+    const [txs, locationScore] = await Promise.all([
+      getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || canonicalSlug || aptName),
+      getLocationScore(aptName, resolvedDong, manualMapping, matchedDongApt?.name),
+    ]);
+
+    const pyeongSummaries = getPyeongSummariesCached(txs);
+    const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
+    const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore);
+
+    const latestPriceManwon = aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0);
+    const latestDepositManwon = aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0);
+    const mortgageSsr = buildMortgageSsrData(aptName, latestPriceManwon, latestDepositManwon);
+
+    let structuredImages: string[] = [];
+    if (matchedReportData?.images && Array.isArray(matchedReportData.images)) {
+      structuredImages = matchedReportData.images
+        .map((img: { url?: string }) => img.url)
+        .filter((url): url is string => Boolean(url));
+    }
+
+    const result: ApartmentPageData = {
+      aptName,
+      canonicalSlug,
+      resolvedTxKey:
+        resolvedTxKey ||
+        (canonicalSlug && canonicalSlug !== aptName ? canonicalSlug : undefined) ||
+        sanitizedDongTxKey ||
+        undefined,
+      aptSummary,
+      txs,
+      pyeongSummaries,
+      locationScore,
+      matchedReportData,
+      matchedDongApt,
+      structuredImages,
+      analytics,
+      aiBriefing,
+      mortgageSsr,
+    };
+
+    if (!isTestEnv) {
+      if (apartmentPageDataL1Cache.size >= 250) {
+        const oldestKey = apartmentPageDataL1Cache.keys().next().value;
+        if (oldestKey !== undefined) {
+          apartmentPageDataL1Cache.delete(oldestKey);
+        }
+      }
+      apartmentPageDataL1Cache.set(aptName, {
+        value: result,
+        expiresAt: Date.now() + APARTMENT_PAGE_DATA_L1_TTL_MS,
+      });
+    }
+
+    return result;
   };
+
+  if (isTestEnv) {
+    return computePageData();
+  }
+
+  const promise = computePageData().finally(() => {
+    apartmentPageDataInFlight.delete(aptName);
+  });
+  apartmentPageDataInFlight.set(aptName, promise);
+  return promise;
 }
 
 /**
@@ -811,6 +912,7 @@ export function buildApartmentJsonLd(
   const safeAptName = aptName && aptName.trim().length > 0 ? aptName : '동탄 아파트';
   const safeBaseUrl = baseUrl && /^https?:\/\//i.test(baseUrl) ? baseUrl : 'https://dongtanview.com';
   const canonicalSlug =
+    (data.canonicalSlug && data.canonicalSlug.trim()) ||
     (data.resolvedTxKey && data.resolvedTxKey.trim()) ||
     resolveCanonicalAptSlug(safeAptName, {
       txKey: matchedDongApt?.txKey,
@@ -1023,63 +1125,36 @@ export async function buildApartmentSeoMetadata(
   const decodedName = decodeAptName(rawAptName);
 
   try {
+    const pageData = await getApartmentPageData(decodedName);
+    const {
+      matchedReportData: reportData,
+      matchedDongApt,
+      aptSummary,
+      pyeongSummaries,
+      analytics,
+      aiBriefing: baseBriefing,
+    } = pageData;
+
     let imageUrl = '';
-    let reportData: FieldReportData | null = null;
-    try {
-      reportData = await fetchScoutingReportCached(decodedName);
-      if (reportData) {
-        if (reportData.images && reportData.images.length > 0) {
-          imageUrl = reportData.images[0].url;
-        } else if (reportData.thumbnailUrl) {
-          imageUrl = reportData.thumbnailUrl;
-        } else if (reportData.thumbnail) {
-          imageUrl = reportData.thumbnail;
-        }
+    if (reportData) {
+      if (reportData.images && reportData.images.length > 0) {
+        imageUrl = reportData.images[0].url;
+      } else if (reportData.thumbnailUrl) {
+        imageUrl = reportData.thumbnailUrl;
+      } else if (reportData.thumbnail) {
+        imageUrl = reportData.thumbnail;
       }
-    } catch (e) {
-      logger.warn('ApartmentPageService.buildApartmentSeoMetadata', '[SEO] Failed to fetch report image for metadata', {}, e as Error);
     }
 
-    const [txSummary, byDong] = await Promise.all([
-      getTxSummaryData(),
-      getApartmentsByDongData(),
-    ]);
-
-    const { matchedDongApt, manualMapping } = resolveDongApartment(
-      decodedName,
-      byDong,
-      txSummary[decodedName]?.dong || reportData?.dong
-    );
-
-    const sanitizedDongTxKey = matchedDongApt?.txKey
-      ? sanitizeAptKey(matchedDongApt.txKey) || normalizeAptName(matchedDongApt.txKey)
-      : null;
     const canonicalSlug =
-      resolveCanonicalAptSlug(decodedName, {
-        txKey: matchedDongApt?.txKey,
-        txMap: txSummary,
-        sheetApartments: byDong,
-        manualMapping,
-        dong: matchedDongApt?.dong || reportData?.dong || txSummary[decodedName]?.dong,
-      }) ||
-      sanitizedDongTxKey ||
+      pageData.canonicalSlug ||
+      pageData.resolvedTxKey ||
+      resolveCanonicalAptSlug(decodedName) ||
       decodedName;
-    const resolvedTxKey =
-      (canonicalSlug && txSummary[canonicalSlug] ? canonicalSlug : null) ||
-      (txSummary[decodedName] ? decodedName : null) ||
-      (matchedDongApt?.txKey && txSummary[matchedDongApt.txKey] ? matchedDongApt.txKey : null) ||
-      (sanitizedDongTxKey && txSummary[sanitizedDongTxKey] ? sanitizedDongTxKey : null);
-
-    const aptSummary = resolvedTxKey ? txSummary[resolvedTxKey] : undefined;
+    const resolvedTxKey = pageData.aptSummary
+      ? pageData.resolvedTxKey || canonicalSlug
+      : null;
     const resolvedDong = aptSummary?.dong || matchedDongApt?.dong || reportData?.dong || null;
-
-    const [txs, locationScore] = await Promise.all([
-      getApartmentTransactions(resolvedTxKey || sanitizedDongTxKey || canonicalSlug || decodedName),
-      getLocationScore(decodedName, resolvedDong, manualMapping, matchedDongApt?.name),
-    ]);
-
-    const pyeongSummaries = getPyeongSummariesCached(txs);
-    const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
 
     const ogUrl = new URL(`${baseUrl}/api/og`);
     ogUrl.searchParams.set('title', decodedName);
@@ -1147,7 +1222,6 @@ export async function buildApartmentSeoMetadata(
 
     const seoTitle = `${decodedName}${titlePyeong} 실거래가${realPriceHook}${realRatioHook}·학군 분석 - D-VIEW`;
 
-    const baseBriefing = generateAiBriefing(decodedName, aptSummary, pyeongSummaries, locationScore);
     const shortAlias = decodedName.replace(/아파트$/g, '').trim();
     const spacedDisplayAlias =
       matchedDongApt?.name && matchedDongApt.name !== decodedName ? matchedDongApt.name.trim() : '';
@@ -1287,6 +1361,57 @@ function normalizeJisanPhoneticKey(input: string): string {
     .replace(/(square|tower|center)i$/g, '$11');
 }
 
+interface PrecomputedJisanLookupIndex {
+  exactMap: Map<string, TechnoValleyJisan>;
+  compactMap: Map<string, TechnoValleyJisan>;
+  strippedMap: Map<string, TechnoValleyJisan[]>;
+  phoneticMap: Map<string, TechnoValleyJisan[]>;
+}
+
+const jisanLookupIndexCache = new WeakMap<object, PrecomputedJisanLookupIndex>();
+
+function getJisanLookupIndex(jisanList: TechnoValleyJisan[]): PrecomputedJisanLookupIndex {
+  const cached = jisanLookupIndexCache.get(jisanList);
+  if (cached) return cached;
+
+  const exactMap = new Map<string, TechnoValleyJisan>();
+  const compactMap = new Map<string, TechnoValleyJisan>();
+  const strippedMap = new Map<string, TechnoValleyJisan[]>();
+  const phoneticMap = new Map<string, TechnoValleyJisan[]>();
+
+  for (const item of jisanList) {
+    if (!item || !item.name) continue;
+    if (!exactMap.has(item.name)) {
+      exactMap.set(item.name, item);
+    }
+    const compact = normalizeJisanLookupKey(item.name);
+    if (compact && !compactMap.has(compact)) {
+      compactMap.set(compact, item);
+    }
+    const stripped = compact.replace(/지식산업센터$/g, '');
+    if (stripped) {
+      const arr = strippedMap.get(stripped);
+      if (arr) arr.push(item);
+      else strippedMap.set(stripped, [item]);
+    }
+    const phonetic = normalizeJisanPhoneticKey(item.name);
+    if (phonetic) {
+      const arr = phoneticMap.get(phonetic);
+      if (arr) arr.push(item);
+      else phoneticMap.set(phonetic, [item]);
+    }
+  }
+
+  const index: PrecomputedJisanLookupIndex = {
+    exactMap,
+    compactMap,
+    strippedMap,
+    phoneticMap,
+  };
+  jisanLookupIndexCache.set(jisanList, index);
+  return index;
+}
+
 /**
  * Resolves a `?jisan=` query parameter strictly against the 56 verified FactoryOn Knowledge Industry Centers.
  * Returns `null` for empty, unrecognized, or untrusted inputs so arbitrary strings are never reflected into SERP metadata.
@@ -1310,29 +1435,26 @@ export function resolveTechnoValleyJisan(
   const decoded = decodeJisanParamSafely(trimmed);
   if (!decoded) return null;
 
-  const exact = jisanList.find((item) => item.name === decoded);
+  const { exactMap, compactMap, strippedMap, phoneticMap } = getJisanLookupIndex(jisanList);
+
+  const exact = exactMap.get(decoded);
   if (exact) return exact;
 
   const qCompact = normalizeJisanLookupKey(decoded);
   if (!qCompact) return null;
 
-  const compactMatch = jisanList.find((item) => normalizeJisanLookupKey(item.name) === qCompact);
+  const compactMatch = compactMap.get(qCompact);
   if (compactMatch) return compactMatch;
 
-  const stripSuffix = (s: string) => s.replace(/지식산업센터$/g, '');
-  const qStripped = stripSuffix(qCompact);
+  const qStripped = qCompact.replace(/지식산업센터$/g, '');
   if (qStripped.length >= 2) {
-    const strippedMatches = jisanList.filter(
-      (item) => stripSuffix(normalizeJisanLookupKey(item.name)) === qStripped
-    );
-    if (strippedMatches.length === 1) return strippedMatches[0];
+    const strippedMatches = strippedMap.get(qStripped);
+    if (strippedMatches && strippedMatches.length === 1) return strippedMatches[0];
 
     const qPhonetic = normalizeJisanPhoneticKey(decoded);
     if (qPhonetic.length >= 2) {
-      const phoneticMatches = jisanList.filter(
-        (item) => normalizeJisanPhoneticKey(item.name) === qPhonetic
-      );
-      if (phoneticMatches.length === 1) return phoneticMatches[0];
+      const phoneticMatches = phoneticMap.get(qPhonetic);
+      if (phoneticMatches && phoneticMatches.length === 1) return phoneticMatches[0];
     }
   }
 

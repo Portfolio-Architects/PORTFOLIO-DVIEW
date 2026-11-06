@@ -284,6 +284,54 @@ describe('Milestone 4 — API Routes & Envelope Empirical Challenger Suite', () 
       expect(json.success).toBe(true);
       expect(json.data).toBeDefined();
     });
+
+    it('GET /api/favorite-counts and GET /api/public/analytics set Edge CDN Cache-Control headers and serve L1 cache in production', async () => {
+      const { GET: getFavCounts } = await import('@/app/api/favorite-counts/route');
+      const { adminDb } = await import('@/lib/firebaseAdmin');
+      const favReq = new NextRequest('http://localhost/api/favorite-counts');
+      const favRes = await getFavCounts(favReq);
+
+      expect(favRes.status).toBe(200);
+      expect(favRes.headers.get('Cache-Control')).toBe('public, s-maxage=600, stale-while-revalidate=1800');
+      const favJson = await favRes.json();
+      expect(favJson.success).toBe(true);
+      expect(favJson.counts).toBeDefined();
+
+      // Verify L1 cache and in-flight coalescing under NODE_ENV = 'production'
+      const prevEnv = process.env.NODE_ENV;
+      try {
+        (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+        (adminDb!.collection as jest.Mock).mockClear();
+
+        const prodRes1 = await getFavCounts(new NextRequest('http://localhost/api/favorite-counts'));
+        expect(prodRes1.status).toBe(200);
+        expect(adminDb!.collection).toHaveBeenCalledTimes(1);
+
+        // Second call in production hits L1 cache with zero Firestore calls
+        const prodRes2 = await getFavCounts(new NextRequest('http://localhost/api/favorite-counts'));
+        expect(prodRes2.status).toBe(200);
+        expect(adminDb!.collection).toHaveBeenCalledTimes(1);
+      } finally {
+        (process.env as Record<string, string | undefined>).NODE_ENV = prevEnv;
+      }
+
+      const { GET: getPublicAnalytics } = await import('@/app/api/public/analytics/route');
+      const analyticsReq = new NextRequest('http://localhost/api/public/analytics');
+      const analyticsRes = await getPublicAnalytics(analyticsReq);
+
+      expect(analyticsRes.status).toBe(200);
+      expect(analyticsRes.headers.get('Cache-Control')).toBe('public, s-maxage=600, stale-while-revalidate=1800');
+      const analyticsJson = await analyticsRes.json();
+      expect(analyticsJson.success).toBe(true);
+
+      const fs = await import('fs');
+      const path = await import('path');
+      const newsPageContent = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/app/news/page.tsx'),
+        'utf8'
+      );
+      expect(newsPageContent).toContain('export const revalidate = 3600;');
+    });
   });
 
   // =========================================================================

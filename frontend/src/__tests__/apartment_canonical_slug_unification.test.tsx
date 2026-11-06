@@ -1288,6 +1288,43 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       expect(window.location.hash).toBe('#section-tx');
       unmount();
     });
+
+    it('invalidates WeakMap slug cache when a caller mutates custom txMap or sheetApartments in-place and preserves canonicalSlug over sanitizedDongTxKey in buildApartmentSeoMetadata', async () => {
+      const mutableTxMap: Record<string, { dong?: string }> = {
+        동탄커스텀단지1차: { dong: '영천동' },
+      };
+      const mutableSheetApts: Record<string, CanonicalAptSlugItem[]> = {
+        영천동: [{ name: '동탄 커스텀 단지', dong: '영천동', txKey: '동탄커스텀단지1차' }],
+      };
+
+      expect(
+        resolveCanonicalAptSlug('동탄 커스텀 단지', {
+          txMap: mutableTxMap,
+          sheetApartments: mutableSheetApts,
+          dong: '영천동',
+        })
+      ).toBe('동탄커스텀단지1차');
+
+      // Mutate the same object references in-place
+      delete mutableTxMap['동탄커스텀단지1차'];
+      mutableTxMap['동탄커스텀단지2차'] = { dong: '영천동' };
+      mutableSheetApts['영천동'][0].txKey = '동탄커스텀단지2차';
+
+      expect(
+        resolveCanonicalAptSlug('동탄 커스텀 단지', {
+          txMap: mutableTxMap,
+          sheetApartments: mutableSheetApts,
+          dong: '영천동',
+        })
+      ).toBe('동탄커스텀단지2차');
+
+      // Verify buildApartmentSeoMetadata resolves HARDCODED_MAPPING canonicalSlug ('동탄2아이파크1단지')
+      // rather than raw sanitizedDongTxKey ('화성동탄2아이파크1단지(A99블록)')
+      const iparkMeta = await buildApartmentSeoMetadata('동탄2 아이파크 1단지');
+      expect(iparkMeta.alternates?.canonical).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄2아이파크1단지')}`
+      );
+    });
   });
 });
 

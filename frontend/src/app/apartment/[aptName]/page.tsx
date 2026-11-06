@@ -97,6 +97,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const jsonLd = buildApartmentJsonLd(pageData, baseUrl);
 
   const {
+    canonicalSlug: pageCanonicalSlug,
     resolvedTxKey: pageResolvedTxKey,
     aptSummary,
     pyeongSummaries,
@@ -109,6 +110,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   const aptDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || '';
   const allTxSummary = await getTxSummaryData();
   const canonicalSlug =
+    pageCanonicalSlug ||
     pageResolvedTxKey ||
     resolveCanonicalAptSlug(decodedName, {
       txKey: matchedDongApt?.txKey,
@@ -138,26 +140,22 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       : {}),
     ...(locationScore ? { locationScores: { [decodedName]: locationScore as LocationScoreItem } } : {}),
     ...(sanitizedReport ? { fieldReports: [sanitizedReport] } : {}),
-    ...(aptDong || matchedDongApt
-      ? {
-          apartmentMeta: {
-            [decodedName]: {
-              ...(matchedDongApt || {}),
+    apartmentMeta: {
+      [decodedName]: {
+        ...(matchedDongApt || {}),
+        dong: aptDong,
+        txKey: canonicalSlug,
+      },
+      ...(matchedDongApt?.name && matchedDongApt.name !== decodedName
+        ? {
+            [matchedDongApt.name]: {
+              ...matchedDongApt,
               dong: aptDong,
               txKey: canonicalSlug,
             },
-            ...(matchedDongApt?.name && matchedDongApt.name !== decodedName
-              ? {
-                  [matchedDongApt.name]: {
-                    ...matchedDongApt,
-                    dong: aptDong,
-                    txKey: canonicalSlug,
-                  },
-                }
-              : {}),
-          },
-        }
-      : {}),
+          }
+        : {}),
+    },
   };
 
   const mortgageSsr =
@@ -176,6 +174,8 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       if ((s.latestPrice || 0) <= 0) return false;
       return aptDong ? s.dong === aptDong : true;
     })
+    .sort((a, b) => (b[1]?.latestPrice || 0) - (a[1]?.latestPrice || 0))
+    .slice(0, 8)
     .map(([name, s]) => {
       const dong = s.dong || aptDong || '동탄';
       return {
@@ -186,9 +186,7 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
         latestPriceStr: s.latestPriceEok || formatPriceEok(s.latestPrice || 0),
         txCount: s.txCount || 0,
       };
-    })
-    .sort((a, b) => b.latestPrice - a.latestPrice)
-    .slice(0, 8);
+    });
 
   const {
     relatedGuides,

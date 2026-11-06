@@ -40,135 +40,172 @@ export interface NewsItem {
   pubDate: string;
 }
 
+const macroNewsL1Cache = new Map<number, { value: NewsItem[]; expiresAt: number }>();
+const macroNewsInFlight = new Map<number, Promise<NewsItem[]>>();
+const NEWS_L1_TTL_MS = 300_000; // 5 minutes
+
 export async function getMacroNews(limit: number = 40): Promise<NewsItem[]> {
-  const cacheKey = `DTDLS:cache:macroNews:${limit}`;
-  if (redis) {
-    try {
-      const cached = await redis.get<NewsItem[]>(cacheKey);
-      if (cached) {
-        return cached;
-      }
-    } catch (cacheErr) {
-      logger.warn('newsData.getMacroNews', 'Redis read error, falling back to network', {}, cacheErr as Error);
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const now = Date.now();
+
+  if (!isTestEnv) {
+    const l1 = macroNewsL1Cache.get(limit);
+    if (l1 && now < l1.expiresAt) {
+      return l1.value;
+    }
+    const inflight = macroNewsInFlight.get(limit);
+    if (inflight) {
+      return inflight;
     }
   }
 
-  try {
-    // Google News RSS Search Query for "동탄 부동산"
-    const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
-    
-    let rawItems: unknown[] = [];
+  const executeFetch = async (): Promise<NewsItem[]> => {
+    const cacheKey = `DTDLS:cache:macroNews:${limit}`;
+    if (redis) {
+      try {
+        const cached = await redis.get<NewsItem[]>(cacheKey);
+        if (cached) {
+          if (!isTestEnv) {
+            macroNewsL1Cache.set(limit, { value: cached, expiresAt: Date.now() + NEWS_L1_TTL_MS });
+          }
+          return cached;
+        }
+      } catch (cacheErr) {
+        logger.warn('newsData.getMacroNews', 'Redis read error, falling back to network', {}, cacheErr as Error);
+      }
+    }
+
     try {
-      const response = await fetchWithTimeout(feedUrl, 3000);
-      if (response.ok) {
-        const xmlText = await response.text();
-        
-        try {
-          const feed = await parser.parseString(xmlText);
-          rawItems = feed.items || [];
-        } catch (parseErr) {
-          logger.warn('newsData.getMacroNews', 'Primary RSS parser failed, falling back to Cheerio', {}, parseErr as Error);
+      // Google News RSS Search Query for "동탄 부동산"
+      const feedUrl = 'https://news.google.com/rss/search?q=%EB%8F%99%ED%83%84+%EB%B6%80%EB%8F%99%EC%82%B0&hl=ko&gl=KR&ceid=KR:ko';
+      
+      let rawItems: unknown[] = [];
+      try {
+        const response = await fetchWithTimeout(feedUrl, 3000);
+        if (response.ok) {
+          const xmlText = await response.text();
           
           try {
-            const $ = cheerio.load(xmlText, { xmlMode: true });
-            const items: { title: string; link: string; pubDate: string }[] = [];
-            $('item').each((_, el) => {
-              const $el = $(el);
-              items.push({
-                title: $el.find('title').text() || '',
-                link: $el.find('link').text() || '',
-                pubDate: $el.find('pubDate').text() || '',
+            const feed = await parser.parseString(xmlText);
+            rawItems = feed.items || [];
+          } catch (parseErr) {
+            logger.warn('newsData.getMacroNews', 'Primary RSS parser failed, falling back to Cheerio', {}, parseErr as Error);
+            
+            try {
+              const $ = cheerio.load(xmlText, { xmlMode: true });
+              const items: { title: string; link: string; pubDate: string }[] = [];
+              $('item').each((_, el) => {
+                const $el = $(el);
+                items.push({
+                  title: $el.find('title').text() || '',
+                  link: $el.find('link').text() || '',
+                  pubDate: $el.find('pubDate').text() || '',
+                });
               });
-            });
-            rawItems = items;
-          } catch (cheerioErr) {
-            logger.error('newsData.getMacroNews', 'Cheerio XML parser fallback failed', {}, cheerioErr as Error);
-            rawItems = [];
+              rawItems = items;
+            } catch (cheerioErr) {
+              logger.error('newsData.getMacroNews', 'Cheerio XML parser fallback failed', {}, cheerioErr as Error);
+              rawItems = [];
+            }
           }
+        } else {
+          logger.warn('newsData.getMacroNews', `Failed to fetch RSS feed, status: ${response.status}`);
+          rawItems = [];
         }
-      } else {
-        logger.warn('newsData.getMacroNews', `Failed to fetch RSS feed, status: ${response.status}`);
+      } catch (fetchErr) {
+        logger.error('newsData.getMacroNews', 'Fetch RSS feed timed out or failed', {}, fetchErr as Error);
         rawItems = [];
       }
-    } catch (fetchErr) {
-      logger.error('newsData.getMacroNews', 'Fetch RSS feed timed out or failed', {}, fetchErr as Error);
-      rawItems = [];
+
+      const slicedItems = rawItems.slice(0, limit);
+
+      const newsItems = slicedItems.map((item, index) => {
+        const parsedItem = googleNewsItemSchema.safeParse(item);
+        let title = '';
+        let link = '';
+        let pubDate = '';
+
+        if (parsedItem.success) {
+          title = parsedItem.data.title;
+          link = parsedItem.data.link;
+          pubDate = parsedItem.data.pubDate;
+        } else {
+          const fallbackItem = (item && typeof item === 'object') ? (item as Record<string, unknown>) : {};
+          title = String(fallbackItem.title || '');
+          link = String(fallbackItem.link || '');
+          pubDate = String(fallbackItem.pubDate || '');
+        }
+
+        let publisher = 'NEWS';
+        const lastDashIndex = title.lastIndexOf(' - ');
+        if (lastDashIndex !== -1) {
+          publisher = title.substring(lastDashIndex + 3).trim();
+          title = title.substring(0, lastDashIndex).trim();
+        }
+
+        let category = 'MARKET';
+        const textToAnalyze = `${title} ${publisher}`;
+
+        const hasMacroKeywords = /(?:^|[^가-힣])(?:금리|한국은행|인플레|유동성|특례|보금자리|대출|경제|파이낸셜)(?:$|[^가-힣])/.test(textToAnalyze);
+        const isMacroPublisher = /(매일경제|매경|한국경제|한경|조선비즈|비즈니스|비즈)/.test(publisher) || 
+                                 /(?:^|[^가-힣])(?:매경|한경|비즈)(?:$|[^가-힣])/.test(title);
+
+        if (hasMacroKeywords || isMacroPublisher) {
+          category = 'MACRO';
+        }
+        if (/상가|상권|백화점|이마트|트레이더스|쇼핑|업무지구|테크노밸리|기업/.test(title)) {
+          category = 'COMMERCIAL';
+        }
+        if (/학군|학교|교육|유치원|병원|호수공원|커뮤니티|주거환경/.test(title)) {
+          category = 'COMMUNITY';
+        }
+        if (/정책|규제|세금|취득세|종부세|양도세|국토부|정부|법|DSR|LTV|조정지역|투기/.test(title)) {
+          category = 'POLICY';
+        }
+        if (/교통|GTX|트램|동인선|지하철|철도|고속도로|경부|인프라|착공|개통/.test(title)) {
+          category = 'INFRASTRUCTURE';
+        }
+
+        if (/전세|매매|실거래|급매|신고가|하락|상승|반등|입주|청약|미분양/.test(title) && category === 'MACRO') {
+          category = 'MARKET';
+        }
+
+        return {
+          id: index + 1,
+          category: category,
+          sub: publisher,
+          title: title,
+          link: link,
+          pubDate: pubDate,
+        };
+      });
+
+      if (redis && newsItems.length > 0) {
+        redis.set(cacheKey, newsItems, { ex: 600 }).catch(e =>
+          logger.warn('newsData.getMacroNews', 'Redis write error', {}, e as Error)
+        );
+      }
+
+      if (!isTestEnv && newsItems.length > 0) {
+        macroNewsL1Cache.set(limit, { value: newsItems, expiresAt: Date.now() + NEWS_L1_TTL_MS });
+      }
+
+      return newsItems;
+    } catch (error) {
+      logger.error('newsData.getMacroNews', 'Error during getMacroNews', {}, error as Error);
+      return [];
     }
+  };
 
-    const slicedItems = rawItems.slice(0, limit);
-
-    const newsItems = slicedItems.map((item, index) => {
-      const parsedItem = googleNewsItemSchema.safeParse(item);
-      let title = '';
-      let link = '';
-      let pubDate = '';
-
-      if (parsedItem.success) {
-        title = parsedItem.data.title;
-        link = parsedItem.data.link;
-        pubDate = parsedItem.data.pubDate;
-      } else {
-        const fallbackItem = (item && typeof item === 'object') ? (item as Record<string, unknown>) : {};
-        title = String(fallbackItem.title || '');
-        link = String(fallbackItem.link || '');
-        pubDate = String(fallbackItem.pubDate || '');
-      }
-
-      let publisher = 'NEWS';
-      const lastDashIndex = title.lastIndexOf(' - ');
-      if (lastDashIndex !== -1) {
-        publisher = title.substring(lastDashIndex + 3).trim();
-        title = title.substring(0, lastDashIndex).trim();
-      }
-
-      let category = 'MARKET';
-      const textToAnalyze = `${title} ${publisher}`;
-
-      const hasMacroKeywords = /(?:^|[^가-힣])(?:금리|한국은행|인플레|유동성|특례|보금자리|대출|경제|파이낸셜)(?:$|[^가-힣])/.test(textToAnalyze);
-      const isMacroPublisher = /(매일경제|매경|한국경제|한경|조선비즈|비즈니스|비즈)/.test(publisher) || 
-                               /(?:^|[^가-힣])(?:매경|한경|비즈)(?:$|[^가-힣])/.test(title);
-
-      if (hasMacroKeywords || isMacroPublisher) {
-        category = 'MACRO';
-      }
-      if (/상가|상권|백화점|이마트|트레이더스|쇼핑|업무지구|테크노밸리|기업/.test(title)) {
-        category = 'COMMERCIAL';
-      }
-      if (/학군|학교|교육|유치원|병원|호수공원|커뮤니티|주거환경/.test(title)) {
-        category = 'COMMUNITY';
-      }
-      if (/정책|규제|세금|취득세|종부세|양도세|국토부|정부|법|DSR|LTV|조정지역|투기/.test(title)) {
-        category = 'POLICY';
-      }
-      if (/교통|GTX|트램|동인선|지하철|철도|고속도로|경부|인프라|착공|개통/.test(title)) {
-        category = 'INFRASTRUCTURE';
-      }
-
-      if (/전세|매매|실거래|급매|신고가|하락|상승|반등|입주|청약|미분양/.test(title) && category === 'MACRO') {
-        category = 'MARKET';
-      }
-
-      return {
-        id: index + 1,
-        category: category,
-        sub: publisher,
-        title: title,
-        link: link,
-        pubDate: pubDate,
-      };
-    });
-
-    if (redis && newsItems.length > 0) {
-      redis.set(cacheKey, newsItems, { ex: 600 }).catch(e =>
-        logger.warn('newsData.getMacroNews', 'Redis write error', {}, e as Error)
-      );
-    }
-
-    return newsItems;
-  } catch (error) {
-    logger.error('newsData.getMacroNews', 'Error during getMacroNews', {}, error as Error);
-    return [];
+  if (isTestEnv) {
+    return executeFetch();
   }
+
+  const promise = executeFetch().finally(() => {
+    macroNewsInFlight.delete(limit);
+  });
+  macroNewsInFlight.set(limit, promise);
+  return promise;
 }
 
 export type { NoticeData } from '@/types/notice';
@@ -179,7 +216,12 @@ export interface LocalNoticesResult {
   fromFallback?: boolean;
 }
 
+let cachedFallbackNotices: NoticeData[] | null = null;
+
 export function loadFallbackNotices(): NoticeData[] {
+  if (cachedFallbackNotices && process.env.NODE_ENV !== 'test') {
+    return cachedFallbackNotices;
+  }
   try {
     const backupPath = path.resolve(process.cwd(), 'public/data/local-notices-backup.json');
     if (fs.existsSync(backupPath)) {
@@ -192,7 +234,12 @@ export function loadFallbackNotices(): NoticeData[] {
             validList.push(parsed.data);
           }
         }
-        if (validList.length > 0) return validList;
+        if (validList.length > 0) {
+          if (process.env.NODE_ENV !== 'test') {
+            cachedFallbackNotices = validList;
+          }
+          return validList;
+        }
       }
     }
   } catch (err) {
@@ -201,26 +248,148 @@ export function loadFallbackNotices(): NoticeData[] {
   return [];
 }
 
+const localNoticesL1Cache = new Map<boolean, { value: LocalNoticesResult; expiresAt: number }>();
+const localNoticesInFlight = new Map<boolean, Promise<LocalNoticesResult>>();
+
 export async function getLocalNotices(filterDongtan: boolean = true): Promise<LocalNoticesResult> {
-  try {
-    const cacheKey = `DTDLS:cache:localNotices:filterDongtan:${filterDongtan}`;
-    
-    // Attempt cache load via Repo with safe error boundary
-    let cached: LocalNoticesResult | null = null;
+  const isTestEnv = process.env.NODE_ENV === 'test';
+  const now = Date.now();
+
+  if (!isTestEnv) {
+    const l1 = localNoticesL1Cache.get(filterDongtan);
+    if (l1 && now < l1.expiresAt) {
+      return l1.value;
+    }
+    const inflight = localNoticesInFlight.get(filterDongtan);
+    if (inflight) {
+      return inflight;
+    }
+  }
+
+  const executeLookup = async (): Promise<LocalNoticesResult> => {
     try {
-      cached = await NewsRepo.getCachedNotices(cacheKey);
-    } catch {
-      cached = null;
-    }
-    if (cached && Array.isArray(cached.notices) && cached.notices.length > 0) {
-      return cached;
-    }
+      const cacheKey = `DTDLS:cache:localNotices:filterDongtan:${filterDongtan}`;
+      
+      // Attempt cache load via Repo with safe error boundary
+      let cached: LocalNoticesResult | null = null;
+      try {
+        cached = await NewsRepo.getCachedNotices(cacheKey);
+      } catch {
+        cached = null;
+      }
+      if (cached && Array.isArray(cached.notices) && cached.notices.length > 0) {
+        if (!isTestEnv) {
+          localNoticesL1Cache.set(filterDongtan, { value: cached, expiresAt: Date.now() + NEWS_L1_TTL_MS });
+        }
+        return cached;
+      }
 
-    // Load raw lists from Firestore via Repo
-    const { cityItems, railItems, cultureItems, dongItems } = await NewsRepo.fetchRawLocalNotices(filterDongtan);
-    const allItems = [...cityItems, ...railItems, ...cultureItems, ...dongItems];
+      // Load raw lists from Firestore via Repo
+      const { cityItems, railItems, cultureItems, dongItems } = await NewsRepo.fetchRawLocalNotices(filterDongtan);
+      const allItems = [...cityItems, ...railItems, ...cultureItems, ...dongItems];
 
-    if (allItems.length === 0) {
+      if (allItems.length === 0) {
+        const fallbackNotices = loadFallbackNotices();
+        const filtered = filterDongtan ? fallbackNotices.filter((n) => n.isDongtan) : fallbackNotices;
+        const fallbackResult: LocalNoticesResult = {
+          notices: filtered.length > 0 ? filtered : fallbackNotices,
+          lastUpdated: new Date().toISOString(),
+          fromFallback: true,
+        };
+        if (!isTestEnv && fallbackResult.notices.length > 0) {
+          localNoticesL1Cache.set(filterDongtan, { value: fallbackResult, expiresAt: Date.now() + NEWS_L1_TTL_MS });
+        }
+        return fallbackResult;
+      }
+
+      const uniqueMap = new Map<string, NoticeData>();
+      const urlToKey = new Map<string, string>();
+
+      // Helper: Identify generic / root URLs that should NOT collapse distinct events
+      const isGenericUrl = (url: string): boolean => {
+        if (!url) return true;
+        try {
+          const parsed = new URL(url);
+          if (parsed.pathname === '/' || parsed.pathname === '') return true;
+          const hasArticleParam = parsed.searchParams.has('q_notAncmtMgtNo') || 
+                                  parsed.searchParams.has('q_bbscttSn') || 
+                                  parsed.searchParams.has('articleId') ||
+                                  parsed.searchParams.has('id');
+          return !hasArticleParam && !parsed.hash;
+        } catch {
+          return true;
+        }
+      };
+
+      allItems.forEach(item => {
+        const titleKey = `${(item.title || '').trim()}_${(item.date || '').trim()}`;
+        const urlKey = item.url ? item.url.trim() : '';
+
+        let duplicateKey = uniqueMap.has(titleKey) ? titleKey : null;
+        if (!duplicateKey && urlKey && !isGenericUrl(urlKey) && urlToKey.has(urlKey)) {
+          duplicateKey = urlToKey.get(urlKey) || null;
+        }
+
+        if (duplicateKey) {
+          const existing = uniqueMap.get(duplicateKey);
+          if (existing) {
+            const currentIsPrefixed = item.id.includes('_');
+            const existingIsPrefixed = existing.id.includes('_');
+            if (currentIsPrefixed && !existingIsPrefixed) {
+              uniqueMap.set(duplicateKey, item);
+              if (urlKey && !isGenericUrl(urlKey)) urlToKey.set(urlKey, duplicateKey);
+            }
+          }
+        } else {
+          uniqueMap.set(titleKey, item);
+          if (urlKey && !isGenericUrl(urlKey)) urlToKey.set(urlKey, titleKey);
+        }
+      });
+
+      let notices = Array.from(uniqueMap.values());
+
+      if (filterDongtan) {
+        notices = notices.filter((n: NoticeData) => n.isDongtan);
+        notices.sort((a: NoticeData, b: NoticeData) => {
+          const dateCompare = b.date.localeCompare(a.date);
+          if (dateCompare !== 0) return dateCompare;
+          return b.id.localeCompare(a.id, undefined, { numeric: true });
+        });
+      } else {
+        notices.sort((a: NoticeData, b: NoticeData) => {
+          if (a.isDongtan && !b.isDongtan) return -1;
+          if (!a.isDongtan && b.isDongtan) return 1;
+          const dateCompare = b.date.localeCompare(a.date);
+          if (dateCompare !== 0) return dateCompare;
+          return b.id.localeCompare(a.id, undefined, { numeric: true });
+        });
+      }
+
+      let lastUpdated: string | null = null;
+      allItems.forEach(item => {
+        if (item.createdAt) {
+          if (!lastUpdated || item.createdAt > lastUpdated) {
+            lastUpdated = item.createdAt;
+          }
+        }
+      });
+
+      const responseData: LocalNoticesResult = { notices, lastUpdated };
+      
+      // Save cache via Repo with defensive try/catch
+      try {
+        await NewsRepo.setCachedNotices(cacheKey, responseData);
+      } catch (cacheWriteErr) {
+        logger.warn('newsData.getLocalNotices', 'Failed to write notices to cache', {}, cacheWriteErr as Error);
+      }
+
+      if (!isTestEnv) {
+        localNoticesL1Cache.set(filterDongtan, { value: responseData, expiresAt: Date.now() + NEWS_L1_TTL_MS });
+      }
+
+      return responseData;
+    } catch (error) {
+      logger.error('newsData.getLocalNotices', 'Error fetching local notices', {}, error as Error);
       const fallbackNotices = loadFallbackNotices();
       const filtered = filterDongtan ? fallbackNotices.filter((n) => n.isDongtan) : fallbackNotices;
       return {
@@ -229,98 +398,16 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
         fromFallback: true,
       };
     }
+  };
 
-    const uniqueMap = new Map<string, NoticeData>();
-    const urlToKey = new Map<string, string>();
-
-    // Helper: Identify generic / root URLs that should NOT collapse distinct events
-    const isGenericUrl = (url: string): boolean => {
-      if (!url) return true;
-      try {
-        const parsed = new URL(url);
-        if (parsed.pathname === '/' || parsed.pathname === '') return true;
-        const hasArticleParam = parsed.searchParams.has('q_notAncmtMgtNo') || 
-                                parsed.searchParams.has('q_bbscttSn') || 
-                                parsed.searchParams.has('articleId') ||
-                                parsed.searchParams.has('id');
-        return !hasArticleParam && !parsed.hash;
-      } catch {
-        return true;
-      }
-    };
-
-    allItems.forEach(item => {
-      const titleKey = `${(item.title || '').trim()}_${(item.date || '').trim()}`;
-      const urlKey = item.url ? item.url.trim() : '';
-
-      let duplicateKey = uniqueMap.has(titleKey) ? titleKey : null;
-      if (!duplicateKey && urlKey && !isGenericUrl(urlKey) && urlToKey.has(urlKey)) {
-        duplicateKey = urlToKey.get(urlKey) || null;
-      }
-
-      if (duplicateKey) {
-        const existing = uniqueMap.get(duplicateKey);
-        if (existing) {
-          const currentIsPrefixed = item.id.includes('_');
-          const existingIsPrefixed = existing.id.includes('_');
-          if (currentIsPrefixed && !existingIsPrefixed) {
-            uniqueMap.set(duplicateKey, item);
-            if (urlKey && !isGenericUrl(urlKey)) urlToKey.set(urlKey, duplicateKey);
-          }
-        }
-      } else {
-        uniqueMap.set(titleKey, item);
-        if (urlKey && !isGenericUrl(urlKey)) urlToKey.set(urlKey, titleKey);
-      }
-    });
-
-    let notices = Array.from(uniqueMap.values());
-
-    if (filterDongtan) {
-      notices = notices.filter((n: NoticeData) => n.isDongtan);
-      notices.sort((a: NoticeData, b: NoticeData) => {
-        const dateCompare = b.date.localeCompare(a.date);
-        if (dateCompare !== 0) return dateCompare;
-        return b.id.localeCompare(a.id, undefined, { numeric: true });
-      });
-    } else {
-      notices.sort((a: NoticeData, b: NoticeData) => {
-        if (a.isDongtan && !b.isDongtan) return -1;
-        if (!a.isDongtan && b.isDongtan) return 1;
-        const dateCompare = b.date.localeCompare(a.date);
-        if (dateCompare !== 0) return dateCompare;
-        return b.id.localeCompare(a.id, undefined, { numeric: true });
-      });
-    }
-
-    let lastUpdated: string | null = null;
-    allItems.forEach(item => {
-      if (item.createdAt) {
-        if (!lastUpdated || item.createdAt > lastUpdated) {
-          lastUpdated = item.createdAt;
-        }
-      }
-    });
-
-    const responseData: LocalNoticesResult = { notices, lastUpdated };
-    
-    // Save cache via Repo with defensive try/catch
-    try {
-      await NewsRepo.setCachedNotices(cacheKey, responseData);
-    } catch (cacheWriteErr) {
-      logger.warn('newsData.getLocalNotices', 'Failed to write notices to cache', {}, cacheWriteErr as Error);
-    }
-
-    return responseData;
-  } catch (error) {
-    logger.error('newsData.getLocalNotices', 'Error fetching local notices', {}, error as Error);
-    const fallbackNotices = loadFallbackNotices();
-    const filtered = filterDongtan ? fallbackNotices.filter((n) => n.isDongtan) : fallbackNotices;
-    return {
-      notices: filtered.length > 0 ? filtered : fallbackNotices,
-      lastUpdated: new Date().toISOString(),
-      fromFallback: true,
-    };
+  if (isTestEnv) {
+    return executeLookup();
   }
+
+  const promise = executeLookup().finally(() => {
+    localNoticesInFlight.delete(filterDongtan);
+  });
+  localNoticesInFlight.set(filterDongtan, promise);
+  return promise;
 }
 

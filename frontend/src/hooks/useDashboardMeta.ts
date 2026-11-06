@@ -99,8 +99,10 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     if (initialDashboardData?.apartmentMeta) {
       const mapping: Record<string, string> = {};
       for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
-        if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
-        if ((meta as Record<string, string>).txKey) mapping[name] = (meta as Record<string, string>).txKey;
+        if (!meta || typeof meta !== 'object') continue;
+        const rec = meta as Record<string, unknown>;
+        if (!rec.dong && !rec.txKey) continue;
+        if (typeof rec.txKey === 'string' && rec.txKey) mapping[name] = rec.txKey;
       }
       return mapping;
     }
@@ -111,8 +113,10 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     if (initialDashboardData?.apartmentMeta) {
       const rentals = new Set<string>();
       for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
-        if (!meta || typeof meta !== 'object' || !(meta as Record<string, unknown>).dong) continue;
-        if ((meta as Record<string, unknown>).isPublicRental) rentals.add(name);
+        if (!meta || typeof meta !== 'object') continue;
+        const rec = meta as Record<string, unknown>;
+        if (!rec.dong && !rec.txKey && !rec.isPublicRental) continue;
+        if (rec.isPublicRental) rentals.add(name);
       }
       return rentals;
     }
@@ -141,6 +145,8 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
         if (!isMountedRef.current || controller.signal.aborted) return;
 
         if (data.sheetApartments && Object.keys(data.sheetApartments).length > 0) {
+          const mapping: Record<string, string> = {};
+          const rentals = new Set<string>();
           const updatedByDong = Object.fromEntries(
             Object.entries(data.sheetApartments).map(([dong, apts]) => {
               const mappedApts = (apts as DongApartment[]).map((a) => ({ ...a, name: getDisplayAptName(a?.name || '') }));
@@ -152,10 +158,21 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
                   dedupedMap.set(a.name, a);
                 }
               }
-              return [dong, Array.from(dedupedMap.values())];
+              const dedupedList = Array.from(dedupedMap.values());
+              for (const a of dedupedList) {
+                if (a.txKey) mapping[a.name] = a.txKey;
+                if (a.isPublicRental) rentals.add(a.name);
+              }
+              return [dong, dedupedList];
             })
           );
           setSheetApartments(updatedByDong);
+          if (Object.keys(mapping).length > 0) {
+            setNameMapping((prev) => ({ ...mapping, ...(prev || {}) }));
+          }
+          if (rentals.size > 0) {
+            setPublicRentalSet((prev) => new Set([...Array.from(prev), ...Array.from(rentals)]));
+          }
         }
 
         if (data.typeMap) {
@@ -185,7 +202,10 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
   }, [hasSheetData, startFetch]);
 
   const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);
-  const shouldFetchInit = !hasInitialTypeMap && !startFetch;
+  const hasInitialApartmentMeta = !!(
+    initialDashboardData?.apartmentMeta && Object.keys(initialDashboardData.apartmentMeta).length > 0
+  );
+  const shouldFetchInit = !hasInitialTypeMap && !hasInitialApartmentMeta && !startFetch;
 
   const { data: initData, error: initError } = useSWR(
     shouldFetchInit ? '/api/dashboard-init' : null,

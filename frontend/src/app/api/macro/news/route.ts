@@ -42,7 +42,15 @@ export async function GET(request: NextRequest) {
     const { limit } = parsedQuery.data;
     const newsItems = await getMacroNews(limit);
 
-    return apiSuccess(newsItems, { status: 'success' });
+    return apiSuccess(
+      newsItems,
+      { status: 'success' },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=300',
+        },
+      }
+    );
   } catch (error) {
     logger.error('MacroNewsAPI.GET', 'Error during GET request', {}, error as Error);
     return apiError('INTERNAL_ERROR', 'Failed to fetch news data', 500);

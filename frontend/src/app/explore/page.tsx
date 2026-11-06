@@ -166,7 +166,7 @@ async function ExploreDataLoader() {
   const txSummary = initialData.txSummary || {};
 
   // Extract all apartments for SEO injection
-  const apartmentsList: DongApartment[] = [];
+  const apartmentsList: Array<DongApartment & { canonicalSlug: string }> = [];
   const seenCanonicalSlugs = new Set<string>();
   if (initialData.sheetApartments) {
     Object.entries(initialData.sheetApartments).forEach(([dong, apts]) => {
@@ -185,6 +185,7 @@ async function ExploreDataLoader() {
               name: apt.name,
               dong: dong,
               txKey: apt.txKey,
+              canonicalSlug,
               householdCount: apt.householdCount,
               yearBuilt: apt.yearBuilt,
               brand: apt.brand
@@ -202,6 +203,7 @@ async function ExploreDataLoader() {
         name: txKey,
         dong: typeof summary?.dong === 'string' && summary.dong ? summary.dong : '동탄권역',
         txKey,
+        canonicalSlug: txKey,
         householdCount: typeof summary?.householdCount === 'number' ? summary.householdCount : undefined,
         yearBuilt: summary?.yearBuilt !== undefined && summary?.yearBuilt !== null ? String(summary.yearBuilt) : undefined,
       });
@@ -246,13 +248,7 @@ async function ExploreDataLoader() {
             </thead>
             <tbody>
               {apartmentsList.map((apt) => {
-                const canonicalSlug =
-                  resolveCanonicalAptSlug(apt.name, {
-                    txKey: apt.txKey,
-                    txMap: txSummary,
-                    sheetApartments: initialData.sheetApartments,
-                    dong: apt.dong,
-                  }) || apt.name;
+                const { canonicalSlug } = apt;
                 const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
                 const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
                 const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;

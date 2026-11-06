@@ -16,6 +16,8 @@ const GUIDE_HUB_OG_IMAGE =
   '&subtitle=' +
   encodeURIComponent('동탄1 vs 동탄2 · 동탄역 vs 호수공원 · 6억·9억·12억 예산별 랭킹');
 
+export const revalidate = 86400;
+
 export const metadata: Metadata = {
   title: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
   description:

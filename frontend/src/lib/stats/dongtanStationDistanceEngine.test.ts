@@ -559,5 +559,25 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
       expect(formatPriceEokCompact(585_000_000, '억')).toBe('5.85억');
       expect(formatShortContractDate('20261013')).toBe('26.10.13');
     });
+
+    test('Cached analysis payload isolates caller in-place mutations on filteredRecords, distanceTiers, and filters', () => {
+      const first = getDongtanStationAnalysisData({ areaBand: 'medium', dong: '영천동', sortBy: 'distance' });
+      const originalLength = first.filteredRecords.length;
+      const originalTiersLength = first.distanceTiers.length;
+      expect(originalLength).toBeGreaterThan(0);
+
+      first.filteredRecords.pop();
+      first.distanceTiers.pop();
+      first.filters.dong = '청계동';
+
+      const second = getDongtanStationAnalysisData({ areaBand: 'medium', dong: '영천동', sortBy: 'distance' });
+      expect(second.filteredRecords).toHaveLength(originalLength);
+      expect(second.distanceTiers).toHaveLength(originalTiersLength);
+      expect(second.filters.dong).toBe('영천동');
+
+      const sortedByVolume = getDongtanStationAnalysisData({ areaBand: 'medium', dong: '영천동', sortBy: 'volumeDesc' });
+      expect(sortedByVolume.regression).toEqual(second.regression);
+      expect(sortedByVolume.distanceTiers).toEqual(second.distanceTiers);
+    });
   });
 });

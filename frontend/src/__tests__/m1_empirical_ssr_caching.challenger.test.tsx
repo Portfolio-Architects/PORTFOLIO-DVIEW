@@ -307,6 +307,88 @@ describe('M1 Empirical Challenger: SSR Payload, Hydration & Caching Verification
       );
       expect(initCalls.length).toBeGreaterThan(0);
     });
+
+    it('2.3 should skip /api/dashboard-init on ApartmentPage when scopedInitialData has non-empty apartmentMeta without typeMap, and populate full metadata on triggerFetch()', async () => {
+      const mockFetch = jest.fn().mockImplementation((url: string) => {
+        if (typeof url === 'string' && url.includes('/api/explore/search-data')) {
+          return Promise.resolve(
+            new Response(
+              JSON.stringify({
+                sheetApartments: {
+                  청계동: [
+                    {
+                      name: '동탄역 시범 우남퍼스트빌',
+                      dong: '청계동',
+                      txKey: '동탄역시범우남퍼스트빌아파트',
+                      householdCount: 1442,
+                      lat: 37.2,
+                      lng: 127.1,
+                      isPublicRental: false,
+                    },
+                  ],
+                  송동: [
+                    {
+                      name: '동탄2 LH 26단지',
+                      dong: '송동',
+                      txKey: '동탄2LH26단지',
+                      householdCount: 650,
+                      lat: 37.17,
+                      lng: 127.1,
+                      isPublicRental: true,
+                    },
+                  ],
+                },
+                typeMap: [
+                  { aptName: '동탄역 롯데캐슬', area: 84, typeM2: '84A', typePyeong: '34평형' },
+                ],
+              }),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            )
+          );
+        }
+        return Promise.resolve(
+          new Response(JSON.stringify({}), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          })
+        );
+      });
+      global.fetch = mockFetch;
+
+      const scopedAptData = {
+        apartmentMeta: {
+          동탄역롯데캐슬: { dong: '여울동', txKey: '동탄역롯데캐슬', householdCount: 940 },
+        },
+        txSummary: {
+          동탄역롯데캐슬: { latestPrice: 150000 } as any,
+        },
+      };
+
+      const { result } = renderHook(() => useDashboardMeta(scopedAptData));
+      expect(result.current.nameMapping).toEqual({ 동탄역롯데캐슬: '동탄역롯데캐슬' });
+
+      const initCalls = mockFetch.mock.calls.filter((call) =>
+        typeof call[0] === 'string' && call[0].includes('/api/dashboard-init')
+      );
+      expect(initCalls.length).toBe(0);
+
+      // Now invoke triggerFetch() (simulating search/modal interaction on ApartmentPage)
+      await act(async () => {
+        result.current.triggerFetch();
+        await new Promise((r) => setTimeout(r, 30));
+      });
+
+      const searchDataCalls = mockFetch.mock.calls.filter((call) =>
+        typeof call[0] === 'string' && call[0].includes('/api/explore/search-data')
+      );
+      expect(searchDataCalls.length).toBe(1);
+      expect(result.current.typeMap['동탄역롯데캐슬']?.['84']).toEqual({
+        typeM2: '84A',
+        typePyeong: '34평형',
+      });
+      expect(result.current.nameMapping?.['동탄역 시범 우남퍼스트빌']).toBe('동탄역시범우남퍼스트빌아파트');
+      expect(result.current.publicRentalSet.has('동탄2 LH 26단지')).toBe(true);
+    });
   });
 
   // =========================================================================

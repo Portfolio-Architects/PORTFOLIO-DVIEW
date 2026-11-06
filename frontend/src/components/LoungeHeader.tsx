@@ -125,10 +125,10 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   href="/guide"
                   prefetch={true}
                   title="동탄 부동산 20개 심층 비교 분석 가이드"
-                  data-guide-badge="20개 심층 분석"
+
                   onMouseEnter={() => router?.prefetch('/guide')}
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
-                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] after:content-[attr(data-guide-badge)] after:ml-1.5 after:px-1.5 after:py-0.5 after:text-[10px] after:font-extrabold after:rounded-full after:bg-emerald-500/10 after:text-emerald-700 dark:after:text-emerald-400 after:border after:border-emerald-500/20 ${
+                  className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
                       ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 font-extrabold shadow-xs border border-slate-200/60 dark:border-slate-700/60'
                       : 'text-tertiary hover:text-secondary hover:bg-black/5 dark:bg-surface/5'

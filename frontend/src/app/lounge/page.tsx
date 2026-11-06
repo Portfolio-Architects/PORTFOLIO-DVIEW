@@ -5,7 +5,7 @@ import LoungeHeader from '@/components/LoungeHeader';
 import LoungeBoardView from '@/components/board/LoungeBoardView';
 import { AdSlot } from '@/components/ads/AdSlot';
 
-export const revalidate = 60; // 1 minute ISR
+export const revalidate = 3600; // 1 hour ISR
 
 export const metadata: Metadata = {
   title: '동탄 입주민 익명 라운지 | D-VIEW',

@@ -360,7 +360,7 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       const headerLinks = headerContainer.querySelectorAll('a');
       expect(headerLinks.length).toBe(5);
       const guideLink = headerContainer.querySelector('a[href="/guide"]');
-      expect(guideLink?.getAttribute('data-guide-badge')).toBe('20개 심층 분석');
+      expect(guideLink?.getAttribute('data-guide-badge')).toBeNull();
       const policyGroup = headerContainer.querySelector('[data-testid="nav-right-policy-group"]');
       expect(policyGroup?.className).toContain('ml-auto');
       expect(headerContainer.querySelector('[data-testid="header-about-link"]')?.getAttribute('data-href')).toBe('/about');

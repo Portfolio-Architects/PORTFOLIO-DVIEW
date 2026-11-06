@@ -4,7 +4,7 @@ import NewsClient from './NewsClient';
 import { getNewsMainSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { getMacroNews, getLocalNotices } from '@/lib/services/newsData';
 
-export const revalidate = 300; // Revalidate every 5 minutes (ISR)
+export const revalidate = 3600; // Revalidate every 1 hour (ISR)
 
 export const metadata: Metadata = {
   title: 'D-VIEW 동탄 소식 | 실시간 부동산 뉴스 & 구정 행정 공지',

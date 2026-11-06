@@ -185,6 +185,13 @@ function formatCompanyWithCenter(name: string, address: string): string {
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
+const INDUSTRY_DIST_L1_TTL_MS = 3600_000; // 1 hour
+let industryDistributionL1Cache: {
+  data: typeof FALLBACK_DATA;
+  totalCount: number;
+  expiresAt: number;
+} | null = null;
+
 export async function GET(request: NextRequest) {
   const rateLimit = await checkRateLimit(request, {
     prefix: 'ratelimit_technovalley_industry_distribution',
@@ -196,6 +203,29 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const refresh = searchParams.get('refresh') === 'true';
+
+  if (
+    !refresh &&
+    process.env.NODE_ENV !== 'test' &&
+    industryDistributionL1Cache &&
+    Date.now() < industryDistributionL1Cache.expiresAt
+  ) {
+    return apiSuccess(
+      industryDistributionL1Cache.data,
+      {
+        source: 'google-sheet-ssot',
+        data: industryDistributionL1Cache.data,
+        message: '구글 스프레드시트 싱글소스(SSOT) 동기화 성공',
+        googleSheetSync: 'active',
+        totalCount: industryDistributionL1Cache.totalCount,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
+        },
+      }
+    );
+  }
 
   // Initialize dynamic anchors with code hardcoded constants first
   let dynamicAnchors: Record<string, string[]> = { ...ANCHOR_COMPANIES };
@@ -452,21 +482,45 @@ export async function GET(request: NextRequest) {
 
     logger.info('GET /api/technovalley/industry-distribution', 'Fetched and parsed successfully from Google Sheets (SSOT)', { total });
 
-    return apiSuccess(calculatedData, {
-      source: 'google-sheet-ssot',
-      data: calculatedData,
-      message: '구글 스프레드시트 싱글소스(SSOT) 동기화 성공',
-      googleSheetSync: 'active',
-      totalCount: total,
-    });
+    if (process.env.NODE_ENV !== 'test') {
+      industryDistributionL1Cache = {
+        data: calculatedData,
+        totalCount: total,
+        expiresAt: Date.now() + INDUSTRY_DIST_L1_TTL_MS,
+      };
+    }
+
+    return apiSuccess(
+      calculatedData,
+      {
+        source: 'google-sheet-ssot',
+        data: calculatedData,
+        message: '구글 스프레드시트 싱글소스(SSOT) 동기화 성공',
+        googleSheetSync: 'active',
+        totalCount: total,
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=600',
+        },
+      }
+    );
 
   } catch (err) {
     logger.error('GET /api/technovalley/industry-distribution', 'Failed to fetch live APIs, using fallback data', {}, err);
-    return apiSuccess(FALLBACK_DATA, {
-      source: 'curated-cache',
-      data: FALLBACK_DATA,
-      message: '실시간 API 호출 실패로 로컬 고증 캐시 데이터를 반환했습니다.',
-      error: err instanceof Error ? err.message : String(err),
-    });
+    return apiSuccess(
+      FALLBACK_DATA,
+      {
+        source: 'curated-cache',
+        data: FALLBACK_DATA,
+        message: '실시간 API 호출 실패로 로컬 고증 캐시 데이터를 반환했습니다.',
+        error: err instanceof Error ? err.message : String(err),
+      },
+      {
+        headers: {
+          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',
+        },
+      }
+    );
   }
 }

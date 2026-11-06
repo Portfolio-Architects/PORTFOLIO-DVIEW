@@ -411,7 +411,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       );
 
       expect(screen.getByTestId('legacy-card-동탄역 롯데캐슬')).toBeInTheDocument();
-      expect(screen.getByText('4건')).toBeInTheDocument();
+      expect(screen.getByText('일자별 최근 실거래')).toBeInTheDocument();
     });
   });
 

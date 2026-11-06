@@ -114,4 +114,49 @@ describe('useFavorites Hook & Decoupled Local Storage Operation', () => {
     expect(isApartmentInFavorites(favs, '동탄역 시범 우남퍼스트빌')).toBe(true);
     expect(isApartmentInFavorites(favs, '동탄역 롯데캐슬')).toBe(false);
   });
+
+  it('coalesces concurrent /api/favorite-counts requests and serves L1 cache across multiple hook instances in production', async () => {
+    const prevEnv = process.env.NODE_ENV;
+    try {
+      (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
+      const favCountsCalls: string[] = [];
+      global.fetch = jest.fn().mockImplementation((url: string) => {
+        if (url.includes('/api/favorite-counts')) {
+          favCountsCalls.push(url);
+          return Promise.resolve(
+            new Response(JSON.stringify({ counts: { 동탄역롯데캐슬: 42 } }), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' },
+            })
+          );
+        }
+        return Promise.resolve(new Response(JSON.stringify({}), { status: 200 }));
+      });
+
+      let hook1: any;
+      let hook2: any;
+      let hook3: any;
+      await act(async () => {
+        hook1 = renderHook(() => useFavorites());
+        hook2 = renderHook(() => useFavorites());
+        hook3 = renderHook(() => useFavorites());
+        await new Promise((r) => setTimeout(r, 30));
+      });
+
+      expect(favCountsCalls.length).toBe(1);
+      expect(hook1.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);
+      expect(hook2.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);
+      expect(hook3.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);
+
+      // Subsequent mount hits client L1 cache with zero additional network calls
+      let hook4: any;
+      await act(async () => {
+        hook4 = renderHook(() => useFavorites());
+      });
+      expect(favCountsCalls.length).toBe(1);
+      expect(hook4.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);
+    } finally {
+      (process.env as Record<string, string | undefined>).NODE_ENV = prevEnv;
+    }
+  });
 });

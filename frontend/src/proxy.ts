@@ -75,9 +75,46 @@ const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
   '/api/og',
   '/api/dashboard-init',
   '/api/macro/rates',
+  '/api/macro/news',
   '/api/local-notices',
   '/api/ads/click',
+  '/api/explore/search-data',
+  '/api/apartments-by-dong',
+  '/api/transaction-summary',
+  '/api/location-scores',
+  '/api/type-map',
+  '/api/favorite-counts',
+  '/api/favorite',
+  '/api/public/analytics',
+  '/api/stats/dongtan-station',
+  '/api/technovalley/jisan-status',
+  '/api/technovalley/transactions',
+  '/api/technovalley/trend',
+  '/api/technovalley/industry-distribution',
+  '/api/technovalley/center-specs',
+  '/api/apartments/vote',
+  '/api/board/posts',
+  '/api/board/comments',
+  '/api/board/likes',
+  '/api/board/verify-gps',
+  '/api/board/verify-location',
+  '/api/board/profile',
+  '/api/comments',
+  '/api/report-view',
+  '/api/traffic',
+  '/api/subscribe',
+  '/api/unsubscribe',
+  '/api/push/subscribe',
+  '/api/push/unsubscribe',
+  '/api/push/notify-new-high',
+  '/api/indexing/apartment',
 ]);
+
+function isProxyRateLimitExemptApiPath(pathname: string): boolean {
+  if (PROXY_RATELIMIT_EXEMPT_API_PATHS.has(pathname)) return true;
+  if (pathname.startsWith('/api/board/posts/')) return true;
+  return false;
+}
 
 export async function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
@@ -142,15 +179,9 @@ export async function proxy(request: NextRequest) {
 
   // 1. Rate Limiting & CORS (API 라우트에 국한 - 일반 페이지 요청에서는 Zod 파싱 및 Redis 호출 생략)
   if (pathname.startsWith('/api/')) {
-    const headersValidation = RequestMetadataSchema.safeParse({
-      ip: request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1',
-      origin: request.headers.get('origin') || '',
-      referer: request.headers.get('referer') || '',
-    });
-
-    const { ip, origin, referer } = headersValidation.success
-      ? headersValidation.data
-      : { ip: '127.0.0.1', origin: '', referer: '' };
+    const ip = request.headers.get('x-real-ip') || request.headers.get('x-forwarded-for') || '127.0.0.1';
+    const origin = request.headers.get('origin') || '';
+    const referer = request.headers.get('referer') || '';
 
     // Origin / Referer validation (Prevent unauthorized external scraping)
     const hasAllowedOrigin = proxyConfig.allowedOrigins.some(allowed => 
@@ -165,7 +196,7 @@ export async function proxy(request: NextRequest) {
       );
     }
 
-    if (ratelimit && !PROXY_RATELIMIT_EXEMPT_API_PATHS.has(pathname)) {
+    if (ratelimit && !isProxyRateLimitExemptApiPath(pathname)) {
       try {
         const { success, limit, reset, remaining } = await ratelimit.limit(ip);
         if (!success) {

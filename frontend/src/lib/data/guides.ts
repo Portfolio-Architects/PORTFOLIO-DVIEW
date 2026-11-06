@@ -3417,6 +3417,39 @@ export interface RelatedGuidesResult {
   zone?: ZoneInfo;
 }
 
+interface PreindexedGuideArticle {
+  article: GuideArticle;
+  headToHeadNormKeys: Set<string>;
+  featuredAptNormKeys: Set<string>;
+}
+
+let preindexedGuidesCache: PreindexedGuideArticle[] | null = null;
+const relatedGuidesMemoCache = new Map<string, RelatedGuidesResult>();
+
+function getPreindexedGuides(): PreindexedGuideArticle[] {
+  if (preindexedGuidesCache) return preindexedGuidesCache;
+  preindexedGuidesCache = GUIDE_ARTICLES.map((article) => {
+    const headToHeadNormKeys = new Set<string>();
+    for (const m of article.headToHeadComparisons || []) {
+      const leftNorm = normalizeGuideAptName(m.leftApt);
+      const rightNorm = normalizeGuideAptName(m.rightApt);
+      if (leftNorm) headToHeadNormKeys.add(leftNorm);
+      if (rightNorm) headToHeadNormKeys.add(rightNorm);
+    }
+    const featuredAptNormKeys = new Set<string>();
+    for (const k of article.featuredApartments || []) {
+      const kNorm = normalizeGuideAptName(k);
+      if (kNorm) featuredAptNormKeys.add(kNorm);
+    }
+    return {
+      article,
+      headToHeadNormKeys,
+      featuredAptNormKeys,
+    };
+  });
+  return preindexedGuidesCache;
+}
+
 /**
  * Resolves comparison guides directly featuring an apartment (1:1 headToHeadComparisons prioritized first,
  * followed by featuredApartments), padding up to `minPadCount` with zone-level guides only when `dong` is
@@ -3430,6 +3463,10 @@ export function getRelatedGuidesForApartment(params: {
   maxTotal?: number;
 }): RelatedGuidesResult {
   const { aptName, resolvedTxKey, dong, minPadCount = 3, maxTotal } = params;
+  const cacheKey = `${aptName || ''}|${resolvedTxKey || ''}|${dong || ''}|${minPadCount}|${maxTotal ?? ''}`;
+  const cachedResult = relatedGuidesMemoCache.get(cacheKey);
+  if (cachedResult) return cachedResult;
+
   const trimmedDong = (dong || '').trim();
   const hasValidDong = KNOWN_DONGTAN_DONGS.has(trimmedDong);
   const normalizedDong = trimmedDong === '오산동' ? '여울동' : trimmedDong;
@@ -3442,26 +3479,35 @@ export function getRelatedGuidesForApartment(params: {
     )
   );
 
-  const matchesGuideAptKey = (guideAptKey: string): boolean => {
-    const keyNorm = normalizeGuideAptName(guideAptKey);
-    if (!keyNorm || !candidateNorms.has(keyNorm)) return false;
-    if (keyNorm === '롯데캐슬' && hasValidDong && normalizedDong !== '석우동') {
-      return false;
+  const matchesPreindexedSet = (normSet: Set<string>): boolean => {
+    for (const cand of candidateNorms) {
+      if (!normSet.has(cand)) continue;
+      if (cand === '롯데캐슬' && hasValidDong && normalizedDong !== '석우동') {
+        continue;
+      }
+      return true;
     }
-    return true;
+    return false;
   };
 
-  const isHeadToHeadMatch = (article: GuideArticle) =>
-    (article.headToHeadComparisons || []).some(
-      (m) => matchesGuideAptKey(m.leftApt) || matchesGuideAptKey(m.rightApt)
-    );
-  const isFeaturedAptMatch = (article: GuideArticle) =>
-    (article.featuredApartments || []).some((k) => matchesGuideAptKey(k));
+  const preindexed = getPreindexedGuides();
+  const headToHeadMatchedSlugs = new Set<string>();
+  const directArticles: GuideArticle[] = [];
 
-  const directGuides = GUIDE_ARTICLES.filter(
-    (a) => isHeadToHeadMatch(a) || isFeaturedAptMatch(a)
-  ).sort((a, b) => {
-    const scoreDiff = Number(isHeadToHeadMatch(b)) - Number(isHeadToHeadMatch(a));
+  for (const entry of preindexed) {
+    const isH2H = matchesPreindexedSet(entry.headToHeadNormKeys);
+    const isFeatured = isH2H || matchesPreindexedSet(entry.featuredAptNormKeys);
+    if (isH2H) {
+      headToHeadMatchedSlugs.add(entry.article.slug);
+    }
+    if (isFeatured) {
+      directArticles.push(entry.article);
+    }
+  }
+
+  const directGuides = directArticles.sort((a, b) => {
+    const scoreDiff =
+      Number(headToHeadMatchedSlugs.has(b.slug)) - Number(headToHeadMatchedSlugs.has(a.slug));
     if (scoreDiff !== 0) return scoreDiff;
     if (zoneId) {
       const zoneMatchDiff =
@@ -3479,11 +3525,12 @@ export function getRelatedGuidesForApartment(params: {
     return (b.date || '').localeCompare(a.date || '');
   });
 
+  const directSlugSet = new Set(directGuides.map((d) => d.slug));
   const zoneGuides = zoneId
     ? GUIDE_ARTICLES.filter(
         (a) =>
           (a.featuredZones || []).includes(zoneId) &&
-          !directGuides.some((d) => d.slug === a.slug)
+          !directSlugSet.has(a.slug)
       ).sort((a, b) => {
         const specificityDiff =
           (a.featuredZones?.length || 99) - (b.featuredZones?.length || 99);
@@ -3504,12 +3551,20 @@ export function getRelatedGuidesForApartment(params: {
   const relatedGuides =
     typeof maxTotal === 'number' && maxTotal > 0 ? combined.slice(0, maxTotal) : combined;
 
-  return {
+  const result: RelatedGuidesResult = {
     relatedGuides,
     directGuides,
     hasDirectMatch: directGuides.length > 0,
     zone,
   };
+  if (relatedGuidesMemoCache.size >= 500) {
+    const oldestKey = relatedGuidesMemoCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      relatedGuidesMemoCache.delete(oldestKey);
+    }
+  }
+  relatedGuidesMemoCache.set(cacheKey, result);
+  return result;
 }
 
 export function buildGuideArticleJsonLd(

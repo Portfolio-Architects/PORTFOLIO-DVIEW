@@ -59,6 +59,7 @@ export interface TimelineFilterControlsProps {
   setTradeTypeFilter?: (type: TradeTypeFilterType) => void;
 
   // New M1 Props
+  headerLeftNode?: React.ReactNode;
   quickFilter?: QuickFilterChipType;
   setQuickFilter?: (chip: QuickFilterChipType) => void;
   showQuickFilters?: boolean;
@@ -89,6 +90,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
   setPyeongFilter,
   tradeTypeFilter = "all",
   setTradeTypeFilter,
+  headerLeftNode,
   quickFilter = "all",
   setQuickFilter,
   showQuickFilters = true,
@@ -172,12 +174,13 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
         </div>
       )}
 
-      {/* 2. Action Toolbar: Row 1 (Search + View Mode Toggle) & Row 2 (Aligned Filter Dropdowns) */}
+      {/* 2. Action Toolbar: Row 1 (Title + Period + Search) & Row 2 (Aligned Filter Dropdowns) */}
       <div className="flex flex-col gap-2 w-full">
-        {/* Row 1: Real-Time Inline Search Input + Right Action Toggles (Reset / Period / View Mode) */}
-        <div className="flex items-center justify-between gap-2 w-full">
+        {/* Row 1: Header Left Node (Title + Period Selector) + Real-Time Inline Search Input + Right Action Toggles */}
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 w-full">
+          {headerLeftNode}
           {setSearchQuery && (
-            <div className="relative flex items-center flex-1 min-w-0">
+            <div className="relative flex items-center flex-1 min-w-[140px]">
               <Search size={14} className="absolute left-3 text-tertiary pointer-events-none" />
               <input
                 type="text"
@@ -200,7 +203,13 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             </div>
           )}
 
-          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+          <div
+            className={`flex items-center gap-1.5 shrink-0 ml-auto ${
+              !(!showQuickFilters && isFiltersActive && onResetFilters) && !setPeriodFilter && !setViewMode
+                ? 'sm:hidden'
+                : ''
+            }`}
+          >
             {/* Mobile Filter Toggle (< 640px) */}
             <button
               type="button"

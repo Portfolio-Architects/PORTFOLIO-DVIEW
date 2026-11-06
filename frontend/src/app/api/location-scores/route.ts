@@ -4,7 +4,16 @@ import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
 import { Coord, haversineDistance, findNearest } from '@/lib/utils/haversine';
-import { loadAllCached, resolveApartment, filterByBBox, clearCache, StationPOI } from '@/lib/services/locationService';
+import {
+  loadAllCached,
+  resolveApartment,
+  filterByBBox,
+  clearCache,
+  type CachedData,
+  type SchoolPOI,
+  type StationPOI,
+  type RestaurantPOI,
+} from '@/lib/services/locationService';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +22,50 @@ const locationScoresQuerySchema = z.object({
   apartment: z.string().min(1, 'apartment parameter is required'),
   refresh: z.string().optional().transform((v) => v === '1'),
 });
+
+interface PreindexedLocationPools {
+  elementary: SchoolPOI[];
+  middle: SchoolPOI[];
+  high: SchoolPOI[];
+  gtxSrtLine: StationPOI[];
+  indeokwonLine: StationPOI[];
+  tramLine: StationPOI[];
+  starbucksPool: RestaurantPOI[];
+  mcdonaldsPool: RestaurantPOI[];
+  oliveYoungPool: RestaurantPOI[];
+  daisoPool: RestaurantPOI[];
+  supermarketPool: RestaurantPOI[];
+}
+
+const preindexedPoolsCache = new WeakMap<CachedData, PreindexedLocationPools>();
+
+function getPreindexedLocationPools(data: CachedData): PreindexedLocationPools {
+  const cached = preindexedPoolsCache.get(data);
+  if (cached) return cached;
+
+  const { schools, stations, restaurants, sboyds } = data;
+  const buildAnchorPool = (keywords: string[]) => [
+    ...sboyds.filter((r) => keywords.some((k) => r.name.includes(k))),
+    ...restaurants.filter((r) => keywords.some((k) => r.name.includes(k))),
+  ];
+
+  const pools: PreindexedLocationPools = {
+    elementary: schools.filter((s) => s.type.includes('초')),
+    middle: schools.filter((s) => s.type.includes('중')),
+    high: schools.filter((s) => s.type.includes('고')),
+    gtxSrtLine: stations.filter((s) => s.line.includes('GTX') || s.line.includes('SRT')),
+    indeokwonLine: stations.filter((s) => s.line.includes('인덕원') || s.line.includes('동탄인덕원')),
+    tramLine: stations.filter((s) => s.line.includes('트램') || s.line.includes('동탄트램') || s.line.includes('도시철도')),
+    starbucksPool: buildAnchorPool(['스타벅스']),
+    mcdonaldsPool: restaurants.filter((r) => ['배스킨라빈스', '베스킨라빈스'].some((k) => r.name.includes(k))),
+    oliveYoungPool: buildAnchorPool(['올리브영']),
+    daisoPool: buildAnchorPool(['다이소']),
+    supermarketPool: buildAnchorPool(['이마트', '홈플러스', '롯데마트', '노브랜드']),
+  };
+
+  preindexedPoolsCache.set(data, pools);
+  return pools;
+}
 
 export async function GET(request: NextRequest) {
   const rateLimit = await checkRateLimit(request, {
@@ -44,7 +97,8 @@ export async function GET(request: NextRequest) {
       clearCache();
     }
 
-    const { apartments, schools, stations, academies, restaurants, sboyds } = await loadAllCached(forceRefresh);
+    const cachedData = await loadAllCached(forceRefresh);
+    const { apartments, schools, stations, academies, restaurants } = cachedData;
 
     const apt = resolveApartment(apartment, apartments);
     if (!apt) {
@@ -59,18 +113,24 @@ export async function GET(request: NextRequest) {
     }
 
     const aptCoord: Coord = { lat: apt.lat, lng: apt.lng };
-
-    const elementary = schools.filter((s) => s.type.includes('초'));
-    const middle = schools.filter((s) => s.type.includes('중'));
-    const high = schools.filter((s) => s.type.includes('고'));
+    const {
+      elementary,
+      middle,
+      high,
+      gtxSrtLine,
+      indeokwonLine,
+      tramLine,
+      starbucksPool,
+      mcdonaldsPool,
+      oliveYoungPool,
+      daisoPool,
+      supermarketPool,
+    } = getPreindexedLocationPools(cachedData);
 
     const nearestElementary = findNearest(aptCoord, elementary);
     const nearestMiddle = findNearest(aptCoord, middle);
     const nearestHigh = findNearest(aptCoord, high);
 
-    const gtxSrtLine = stations.filter((s) => s.line.includes('GTX') || s.line.includes('SRT'));
-    const indeokwonLine = stations.filter((s) => s.line.includes('인덕원') || s.line.includes('동탄인덕원'));
-    const tramLine = stations.filter((s) => s.line.includes('트램') || s.line.includes('동탄트램') || s.line.includes('도시철도'));
     logger.info('LocationScoresAPI.GET', 'Filter tram lines status', { count: tramLine.length });
     const nearestStationBase = gtxSrtLine.length > 0 ? findNearest(aptCoord, gtxSrtLine) : findNearest(aptCoord, stations);
     const nearestIndeokwonBase = indeokwonLine.length > 0 ? findNearest(aptCoord, indeokwonLine) : null;
@@ -98,18 +158,11 @@ export async function GET(request: NextRequest) {
       restaurantCategories[r.category] = (restaurantCategories[r.category] || 0) + 1;
     }
 
-    const findAnchor = (keywords: string[]) => {
-      const sboydsMatches = sboyds.filter((r) => keywords.some((k) => r.name.includes(k)));
-      const restMatches = restaurants.filter((r) => keywords.some((k) => r.name.includes(k)));
-      const combined = [...sboydsMatches, ...restMatches];
-      return combined.length > 0 ? findNearest(aptCoord, combined) : null;
-    };
-
-    const nearestStarbucks = findAnchor(['스타벅스']);
-    const nearestMcDonalds = findNearest(aptCoord, restaurants.filter((r) => ['배스킨라빈스', '베스킨라빈스'].some((k) => r.name.includes(k))));
-    const nearestOliveYoung = findAnchor(['올리브영']);
-    const nearestDaiso = findAnchor(['다이소']);
-    const nearestSupermarket = findAnchor(['이마트', '홈플러스', '롯데마트', '노브랜드']);
+    const nearestStarbucks = starbucksPool.length > 0 ? findNearest(aptCoord, starbucksPool) : null;
+    const nearestMcDonalds = mcdonaldsPool.length > 0 ? findNearest(aptCoord, mcdonaldsPool) : null;
+    const nearestOliveYoung = oliveYoungPool.length > 0 ? findNearest(aptCoord, oliveYoungPool) : null;
+    const nearestDaiso = daisoPool.length > 0 ? findNearest(aptCoord, daisoPool) : null;
+    const nearestSupermarket = supermarketPool.length > 0 ? findNearest(aptCoord, supermarketPool) : null;
 
     const parkingPerHousehold = (
       apt.householdCount !== undefined &&

@@ -53,6 +53,32 @@ export function getClientIp(request: NextRequest): string {
   return realIp || forwarded?.split(',')[0]?.trim() || '127.0.0.1';
 }
 
+const rateLimiterInstanceCache = new WeakMap<object, Map<string, Ratelimit>>();
+
+function getOrCreateRateLimiter(
+  redisClient: NonNullable<typeof rawRedis>,
+  requestsPerLimit: number,
+  window: Duration,
+  analytics: boolean
+): Ratelimit {
+  let byConfig = rateLimiterInstanceCache.get(redisClient);
+  if (!byConfig) {
+    byConfig = new Map<string, Ratelimit>();
+    rateLimiterInstanceCache.set(redisClient, byConfig);
+  }
+  const configKey = `${requestsPerLimit}:${window}:${analytics}`;
+  let limiter = byConfig.get(configKey);
+  if (!limiter) {
+    limiter = new Ratelimit({
+      redis: redisClient,
+      limiter: Ratelimit.slidingWindow(requestsPerLimit, window),
+      analytics,
+    });
+    byConfig.set(configKey, limiter);
+  }
+  return limiter;
+}
+
 /**
  * Standardized rate limit checker for Next.js Route Handlers
  */
@@ -72,11 +98,7 @@ export async function checkRateLimit(
 
   if (rawRedis) {
     try {
-      const limiter = new Ratelimit({
-        redis: rawRedis,
-        limiter: Ratelimit.slidingWindow(requestsPerLimit, window),
-        analytics,
-      });
+      const limiter = getOrCreateRateLimiter(rawRedis, requestsPerLimit, window, analytics);
 
       const result = await limiter.limit(identifier);
 
