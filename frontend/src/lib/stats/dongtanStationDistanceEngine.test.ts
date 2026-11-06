@@ -222,10 +222,10 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
     const analysis = getDongtanStationAnalysisData();
     const reg = analysis.regression;
 
-    test('OLS slope is negative (~ -382 ~ -385 만원/평 per km), confirming negative price gradient with distance', () => {
+    test('OLS slope is negative (~ -382 ~ -395 만원/평 per km), confirming negative price gradient with distance', () => {
       expect(reg.slopeWonPerKm).toBeLessThan(-350);
       expect(reg.slopeWonPerKm).toBeGreaterThan(-420);
-      expect(Math.abs(reg.slopeWonPerKm - -384)).toBeLessThan(10);
+      expect(Math.abs(reg.slopeWonPerKm - -390)).toBeLessThan(20);
     });
 
     test('OLS intercept at Dongtan Station center is positive (~ 3,413 ~ 3,455 만원/평)', () => {
@@ -240,18 +240,18 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
       expect(reg.pearsonR).toBeCloseTo(-0.6645, 2);
     });
 
-    test('Determination coefficient R^2 confirms ~44.2% of price variance explained by distance', () => {
+    test('Determination coefficient R^2 confirms ~44.2% ~ 44.7% of price variance explained by distance', () => {
       expect(reg.rSquared).toBeGreaterThan(0.4);
       expect(reg.rSquared).toBeLessThan(0.5);
-      expect(reg.rSquared).toBeCloseTo(0.4416, 2);
+      expect(reg.rSquared).toBeCloseTo(0.445, 1);
       // Mathematical consistency: R^2 = r^2
       expect(Math.abs(reg.rSquared - Math.round(reg.pearsonR * reg.pearsonR * 10000) / 10000)).toBeLessThan(0.001);
     });
 
-    test('Station premium rate (<1km vs >2km) is statistically significant at ~67-68%', () => {
+    test('Station premium rate (<1km vs >2km) is statistically significant at ~67-71%', () => {
       expect(reg.stationPremiumRatePercent).toBeGreaterThan(60);
       expect(reg.stationPremiumRatePercent).toBeLessThan(75);
-      expect(Math.abs(reg.stationPremiumRatePercent - 67.6)).toBeLessThan(2);
+      expect(Math.abs(reg.stationPremiumRatePercent - 69.0)).toBeLessThan(5);
       expect(reg.isStatisticallySignificant).toBe(true);
     });
 

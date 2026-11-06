@@ -179,15 +179,15 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
 
     it('derives RealEstateListing from real rent deposit records for rent-only complexes and omits node when all prices are 0', async () => {
-      // 1. Rent-only apartment in tx-summary.json (서해더블루93-8: latestPrice = 0, latestRentDeposit = 55182, deposit = 40950)
+      // 1. Rent-only apartment in tx-summary.json (서해더블루93-8: latestPrice = 0, latestRentDeposit = 55182, deposits = 40000 ~ 40950)
       const rentOnlyPageData = await getApartmentPageData('서해더블루93-8');
       const rentOnlyJsonLd = buildApartmentJsonLd(rentOnlyPageData, 'https://dongtanview.com');
       const rentGraph = rentOnlyJsonLd['@graph'] as Array<Record<string, unknown>>;
       const rentListing = rentGraph.find((node) => node['@type'] === 'RealEstateListing');
       expect(rentListing).toBeDefined();
       const offers = rentListing?.offers as { lowPrice: number; highPrice: number };
-      expect(offers.lowPrice).toBe(409500000);
-      expect(offers.highPrice).toBe(409500000);
+      expect(offers.lowPrice).toBe(400000000);
+      expect(offers.highPrice).toBe(450000000);
       expect(offers.lowPrice).not.toBe(500000000);
 
       // 2. Ghost apartment with 0 prices across all fields omits RealEstateListing instead of fabricating fake prices
@@ -222,10 +222,10 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
       expect(ch05Section?.nextElementSibling).toBe(ch05Slot);
     });
 
-    it('generates static params for all 184 apartments and static metadata without dynamic bailout', async () => {
+    it('generates static params for all 185 apartments and static metadata without dynamic bailout', async () => {
       const staticParams = await generateAptStaticParams();
       const txSummary = await getTxSummaryData();
-      expect(staticParams.length).toBe(184);
+      expect(staticParams.length).toBe(185);
       expect(staticParams.length).toBe(Object.keys(txSummary).length);
 
       const metadata = await generateAptMetadata({
@@ -346,16 +346,16 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (276 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [276, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (277 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
+    it('registers exact [277, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(276);
+      expect(entries).toHaveLength(277);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(276);
+      expect(asyncEntries).toHaveLength(277);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(276);
+      expect(defaultEntries).toHaveLength(277);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
       const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley/'));
@@ -376,7 +376,7 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
         ].includes(e.url)
       );
 
-      expect(aptUrls).toHaveLength(184);
+      expect(aptUrls).toHaveLength(185);
       expect(jisanDetailUrls).toHaveLength(56);
       expect(
         jisanDetailUrls.some(

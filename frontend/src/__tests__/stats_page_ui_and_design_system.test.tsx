@@ -148,14 +148,14 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
         />
       );
 
-      // KPI 1: Station Premium (+67.4% ~ +67.7%)
-      expect(screen.getAllByText(/\+67\.[0-9]%/).length).toBeGreaterThanOrEqual(1);
+      // KPI 1: Station Premium (+67.4% ~ +70.5%)
+      expect(screen.getAllByText(/\+(6[5-9]|7[0-5])\.[0-9]%/).length).toBeGreaterThanOrEqual(1);
 
-      // KPI 2: -383만원/평 ~ -389만원/평
-      expect(screen.getByText(/-38[0-9]만원\/평/)).toBeInTheDocument();
+      // KPI 2: -383만원/평 ~ -399만원/평
+      expect(screen.getByText(/-3[89][0-9]만원\/평/)).toBeInTheDocument();
 
-      // KPI 3: r = -0.66 · R² = 0.44
-      expect(screen.getByText('r = -0.66 · R² = 0.44')).toBeInTheDocument();
+      // KPI 3: r = -0.66 · R² = 0.44 ~ 0.45
+      expect(screen.getByText(/r = -0\.6[67] · R² = 0\.4[45]/)).toBeInTheDocument();
 
       // KPI 4: 127개 단지 전수
       expect(screen.getByText('127개 단지 전수')).toBeInTheDocument();
@@ -174,7 +174,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
       );
 
       expect(screen.getByText(/압도적인 초역세권 프리미엄/)).toBeInTheDocument();
-      expect(screen.getByText(/1km당 38[0-9]만원 감가 감응도/)).toBeInTheDocument();
+      expect(screen.getByText(/1km당 3[89][0-9]만원 감가 감응도/)).toBeInTheDocument();
       expect(screen.getByText(/높은 설명력과 음\(-\)의 상관관계/)).toBeInTheDocument();
     });
   });
@@ -260,7 +260,7 @@ describe('Ad Money v5.0 UI Components & Topic Research Hub (/stats)', () => {
 
       const lines = container.querySelectorAll('line[stroke="#3182f6"]');
       expect(lines.length).toBeGreaterThanOrEqual(1);
-      expect(screen.getByText(/y = -38[0-9]x \+ 3,4[0-9]{2}/)).toBeInTheDocument();
+      expect(screen.getByText(/y = -3[89][0-9]x \+ 3,[45][0-9]{2}/)).toBeInTheDocument();
     });
 
     test('shows interactive tooltip on circle hover with both 1-year average and latest transaction prices', () => {

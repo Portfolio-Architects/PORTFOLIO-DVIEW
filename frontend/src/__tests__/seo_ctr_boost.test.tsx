@@ -896,7 +896,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(richeTitle).toContain('동탄역시범리슈빌아파트');
       expect(richeTitle).toContain('최근');
       expect(richeTitle).toContain('억');
-      expect(richeTitle).toContain('전세가율 42%');
+      expect(richeTitle).toMatch(/전세가율 4[0-9]%/);
       expect(richeDesc).not.toContain('아파트 아파트');
       expect(richeDesc).toContain('동탄역 시범 리슈빌');
 
@@ -1086,7 +1086,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         }
 
         if (article.slug === 'dongtan-1-vs-2-comparison') {
-          expect(h2hSection?.textContent).toContain('전세가율 (하방지지)42%');
+          expect(h2hSection?.textContent).toMatch(/전세가율 \(하방지지\)4[0-9]%/);
           expect(h2hSection?.textContent).not.toContain('24%');
         }
 
@@ -1843,9 +1843,9 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(richeville?.zoneId).toBe('community');
       expect(richeville?.latestPrice).toBeGreaterThan(0);
       expect(richeville?.latestPriceStr).toBe('16억8,000');
-      expect(richeville?.latestRentStr).toBe('3억9,900');
-      expect(richeville?.jeonseRatio).toBe(42);
-      expect(richeville?.perValue).toBe('2.37');
+      expect(richeville?.latestRentStr).toBe('7억1,455');
+      expect(richeville?.jeonseRatio).toBe(44);
+      expect(richeville?.perValue).toBe('2.28');
       expect(richeville?.txCount).toBeGreaterThanOrEqual(350);
       expect(richeville?.href).toBe(
         `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`

@@ -597,7 +597,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   }, []);
 
   useEffect(() => {
-    if (rawTransactionsProp === undefined && report?.apartmentName) {
+    if (rawTransactionsProp === undefined && report?.apartmentName && typeof hookLoadAllTransactions === 'function') {
       hookLoadAllTransactions();
     }
   }, [rawTransactionsProp, report?.apartmentName, hookLoadAllTransactions]);
