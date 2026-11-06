@@ -369,7 +369,24 @@ const TransactionRow = React.memo(function TransactionRow({
     return label;
   }, [tx.areaLabelM2, tx.areaLabelPyeong, tx.aptName, tx.area, areaUnit, typeMap]);
 
-  const isCancelled = !!(tx.cancelDate && /^\d{6,}$/.test(tx.cancelDate.trim()));
+  const isCancelled = useMemo(() => {
+    if ((tx as { isCanceled?: boolean }).isCanceled === true) return true;
+    const raw = String(tx.cancelDate || '').trim();
+    if (!raw || raw === '-' || raw === 'null' || raw === 'undefined' || raw === 'nan' || raw === 'none') return false;
+    return /\d{2}[.\-/]?\d{2}[.\-/]?\d{2}/.test(raw) || raw === '취소' || raw === 'O' || raw === '해제';
+  }, [tx]);
+
+  const cancelDateLabel = useMemo(() => {
+    const raw = String(tx.cancelDate || '').trim();
+    if (!raw || raw === '취소' || raw === 'O' || raw === '해제') return '';
+    if (/^\d{8}$/.test(raw)) {
+      return `${raw.slice(2, 4)}.${raw.slice(4, 6)}.${raw.slice(6, 8)}`;
+    }
+    if (/^\d{6}$/.test(raw)) {
+      return `${raw.slice(0, 2)}.${raw.slice(2, 4)}.${raw.slice(4, 6)}`;
+    }
+    return raw;
+  }, [tx.cancelDate]);
 
   // 가격 포맷 연산 메모이제이션
   const priceText = useMemo(() => {
@@ -407,7 +424,7 @@ const TransactionRow = React.memo(function TransactionRow({
         </div>
         {isCancelled && (
           <div className="text-[10px] font-bold text-red-500 dark:text-red-400 mt-0.5 leading-tight break-keep">
-            취소 {(tx.cancelDate || '').substring(2).replace(/(\d{2})(\d{2})(\d{2})/, '$1.$2.$3')}
+            취소{cancelDateLabel ? ` ${cancelDateLabel}` : ''}
           </div>
         )}
       </div>

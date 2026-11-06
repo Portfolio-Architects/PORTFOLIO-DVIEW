@@ -71,12 +71,36 @@ export async function fetchRawLocalNotices(filterDongtan: boolean = true): Promi
     withTimeout(dongQuery.get(), timeoutMs)
   ]);
 
+  const NON_DONGTAN_RAIL_KEYWORDS = [
+    '신안산선', '인천발', '봉담', '향남', '어천', '송산', '서해선', '남양'
+  ];
+
   const getTopN = (snapshot: admin.firestore.QuerySnapshot, limitVal = 100) => {
     const validItems: NoticeData[] = [];
     snapshot.docs.forEach((doc: admin.firestore.QueryDocumentSnapshot) => {
       try {
         const data = doc.data();
         if (data && typeof data === 'object') {
+          const docId = doc.id || '';
+          const title = typeof data.title === 'string' ? data.title : '';
+          // Exclude synthetic AI reports and generated culture items
+          if (
+            docId.startsWith('ai_report_') ||
+            docId.startsWith('culture_') ||
+            data.source === 'culture' ||
+            title.startsWith('[AI')
+          ) {
+            return;
+          }
+          // Exclude western Hwaseong rail notices when filtering for Dongtan
+          if (
+            filterDongtan &&
+            data.source === 'rail' &&
+            !title.includes('동탄') &&
+            NON_DONGTAN_RAIL_KEYWORDS.some((kw) => title.includes(kw))
+          ) {
+            return;
+          }
           if (data.url) {
             data.url = data.url.trim();
           }
@@ -94,7 +118,7 @@ export async function fetchRawLocalNotices(filterDongtan: boolean = true): Promi
       .sort((a: NoticeData, b: NoticeData) => {
         const dateCompare = b.date.localeCompare(a.date);
         if (dateCompare !== 0) return dateCompare;
-        return b.id.localeCompare(a.id);
+        return b.id.localeCompare(a.id, undefined, { numeric: true });
       })
       .slice(0, limitVal);
   };

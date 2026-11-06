@@ -281,6 +281,79 @@ export const PYEONG_TIER_COLORS: Record<'small' | 'medium' | 'large' | 'xlarge',
 
 export const PYEONG_COLORS = PYEONG_TIER_COLORS;
 
+interface DonutPieCanvasProps {
+  effectiveTotalCount: number;
+  pieRenderData: AptDonutDataItem[];
+  onSliceMouseEnter: (data: any, index: number) => void;
+  onSliceMouseLeave: () => void;
+  onSliceClick: (entry: any, idx?: number, e?: React.MouseEvent) => void;
+}
+
+const DonutPieCanvas = React.memo(function DonutPieCanvas({
+  effectiveTotalCount,
+  pieRenderData,
+  onSliceMouseEnter,
+  onSliceMouseLeave,
+  onSliceClick,
+}: DonutPieCanvasProps) {
+  return (
+    <ResponsiveContainer
+      width="100%"
+      height="100%"
+      minWidth={0}
+      minHeight={0}
+      initialDimension={{ width: 208, height: 208 }}
+    >
+      <PieChart>
+        {effectiveTotalCount === 0 ? (
+          <Pie
+            data={[{ value: 1 }]}
+            cx="50%"
+            cy="50%"
+            innerRadius="68%"
+            outerRadius="97%"
+            dataKey="value"
+            stroke="transparent"
+            rootTabIndex={-1}
+            isAnimationActive={false}
+          >
+            <Cell className="fill-slate-200 dark:fill-slate-800" fill="currentColor" />
+          </Pie>
+        ) : (
+          <Pie
+            data={pieRenderData}
+            cx="50%"
+            cy="50%"
+            innerRadius="68%"
+            outerRadius="97%"
+            paddingAngle={2.5}
+            dataKey="value"
+            rootTabIndex={-1}
+            onMouseEnter={onSliceMouseEnter}
+            onMouseLeave={onSliceMouseLeave}
+            onClick={onSliceClick}
+            cursor="pointer"
+            isAnimationActive={false}
+          >
+            {pieRenderData.map((entry) => (
+              <Cell
+                key={entry.name}
+                fill={entry.color}
+                opacity={1}
+                stroke="transparent"
+                strokeWidth={0}
+                className="transition-all duration-200 outline-none cursor-pointer"
+              />
+            ))}
+          </Pie>
+        )}
+        {/* Floating tooltip disabled in favor of Center HUD to prevent z-index text collision */}
+        <Tooltip content={() => null} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+});
+
 export const AptDonutSection = React.memo(function AptDonutSection({
   variant = 'classic',
   mounted = true,
@@ -1056,8 +1129,96 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     setIsFullscreenOpen(false);
   }, []);
 
+  const chartBoxRef = useRef<HTMLDivElement | null>(null);
+  const lastTouchTimeRef = useRef<number>(0);
+
+  const canUseHoverPreview = useCallback(() => {
+    if (Date.now() - lastTouchTimeRef.current < 600) return false;
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      try {
+        if (window.matchMedia('(hover: none)').matches) return false;
+      } catch {
+        // Ignore matchMedia errors in non-standard environments
+      }
+    }
+    return true;
+  }, []);
+
+  const sliceHandlersRef = useRef({
+    activeCategory,
+    pieRenderData,
+    donutData,
+    handleToggleSlice,
+    canUseHoverPreview,
+  });
+  sliceHandlersRef.current = {
+    activeCategory,
+    pieRenderData,
+    donutData,
+    handleToggleSlice,
+    canUseHoverPreview,
+  };
+
+  const handleSliceMouseEnter = useCallback((data: any, index: number) => {
+    const {
+      activeCategory: curActive,
+      pieRenderData: curPieData,
+      donutData: curDonutData,
+      canUseHoverPreview: checkHover,
+    } = sliceHandlersRef.current;
+    if (curActive !== null || !checkHover()) return;
+    const entry =
+      curPieData[index] ||
+      (data && curDonutData.find((d) => d.name === data.name || d.category === data.category));
+    if (entry) {
+      setHoveredCategory((prev) => (prev === entry.name ? prev : entry.name));
+    }
+  }, []);
+
+  const handleSliceMouseLeave = useCallback(() => {
+    setHoveredCategory((prev) => (prev === null ? prev : null));
+  }, []);
+
+  const handleSliceClick = useCallback((entry: any, _idx?: number, e?: React.MouseEvent) => {
+    e?.stopPropagation?.();
+    const { donutData: curDonutData, handleToggleSlice: toggle } = sliceHandlersRef.current;
+    const matched = curDonutData.find(
+      (d) => d.name === entry?.name || (entry?.category && d.category === entry.category)
+    );
+    if (matched) {
+      toggle(matched);
+    }
+  }, []);
+
+  // Synchronize sector opacity/stroke directly on SVG DOM nodes so Recharts <Pie>
+  // never re-renders or unmounts sector DOM nodes during hover/click transitions.
+  useEffect(() => {
+    const box = chartBoxRef.current;
+    if (!box) return;
+    const paths = box.querySelectorAll<SVGElement>('.recharts-sector, [data-testid="pie-cell"]');
+    paths.forEach((pathEl, idx) => {
+      const entry = pieRenderData[idx];
+      if (!entry) return;
+      const isSelected = activeCategory === entry.name || activeCategory === entry.category;
+      const isEffectiveHover =
+        activeCategory === null &&
+        (hoveredCategory === entry.name || hoveredCategory === entry.category);
+      const isHighlighted =
+        (activeCategory === null && hoveredCategory === null) ||
+        isSelected ||
+        isEffectiveHover;
+      const targetOpacity = isHighlighted ? '1' : '0.35';
+      const targetStroke = isSelected || isEffectiveHover ? '#ffffff' : 'transparent';
+      const targetStrokeWidth = isSelected || isEffectiveHover ? '2.5' : '0';
+      pathEl.setAttribute('opacity', targetOpacity);
+      pathEl.style.opacity = targetOpacity;
+      pathEl.setAttribute('stroke', targetStroke);
+      pathEl.setAttribute('stroke-width', targetStrokeWidth);
+    });
+  }, [activeCategory, hoveredCategory, pieRenderData, effectiveTotalCount, mounted]);
+
   const handleEmptySpaceReset = useCallback((target: EventTarget | null) => {
-    if (!activeCategory) return;
+    if (!activeCategory && !hoveredCategory) return;
     if (target instanceof Element) {
       const isInsideDonut = Boolean(target.closest('#apt-market-energy-donut'));
       const isDirectDocumentRoot =
@@ -1078,11 +1239,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       }
     }
     setHoveredCategory(null);
-    setActiveCategory(null);
-  }, [activeCategory, setActiveCategory]);
+    if (activeCategory) {
+      setActiveCategory(null);
+    }
+  }, [activeCategory, hoveredCategory, setActiveCategory]);
 
   useEffect(() => {
-    if (!activeCategory || typeof document === 'undefined') return;
+    if ((!activeCategory && !hoveredCategory) || typeof document === 'undefined') return;
     const onDocClick = (e: MouseEvent) => {
       handleEmptySpaceReset(e.target);
     };
@@ -1090,11 +1253,14 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     return () => {
       document.removeEventListener('click', onDocClick);
     };
-  }, [activeCategory, handleEmptySpaceReset]);
+  }, [activeCategory, hoveredCategory, handleEmptySpaceReset]);
 
   return (
     <div
       id="apt-market-energy-donut"
+      onTouchStartCapture={() => {
+        lastTouchTimeRef.current = Date.now();
+      }}
       onClick={(e) => handleEmptySpaceReset(e.target)}
       className={`bg-surface border-b border-border pb-3.5 sm:pb-4 flex flex-col justify-between h-auto sm:min-h-[315px] lg:h-[360px] shrink-0 ${className}`}
     >
@@ -1210,7 +1376,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           )}
           {mounted ? (
             <div
+              ref={chartBoxRef}
               data-testid="donut-chart-box"
+              onMouseLeave={handleSliceMouseLeave}
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
               className={`relative flex items-center justify-center transition-opacity duration-200 ${
                 isNavigator
@@ -1218,73 +1386,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
               } ${isPeriodLoading ? 'opacity-50' : 'opacity-100'}`}
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  {effectiveTotalCount === 0 ? (
-                    <Pie
-                      data={[{ value: 1 }]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="68%"
-                      outerRadius="97%"
-                      dataKey="value"
-                      stroke="transparent"
-                      rootTabIndex={-1}
-                      isAnimationActive={false}
-                    >
-                      <Cell className="fill-slate-200 dark:fill-slate-800" fill="currentColor" />
-                    </Pie>
-                  ) : (
-                    <Pie
-                      data={pieRenderData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="68%"
-                      outerRadius="97%"
-                      paddingAngle={2.5}
-                      dataKey="value"
-                      rootTabIndex={-1}
-                      onMouseEnter={(data: any, index: number) => {
-                        if (activeCategory !== null) return;
-                        const entry = pieRenderData[index] || (data && (donutData.find((d) => d.name === data.name || d.category === data.category)));
-                        if (entry) {
-                          setHoveredCategory((prev) => (prev === entry.name ? prev : entry.name));
-                        }
-                      }}
-                      onMouseLeave={() => setHoveredCategory((prev) => (prev === null ? prev : null))}
-                      onClick={(entry: any, _idx?: number, e?: React.MouseEvent) => {
-                        e?.stopPropagation?.();
-                        const matched = donutData.find(
-                          (d) => d.name === entry?.name || (entry?.category && d.category === entry.category)
-                        );
-                        if (matched) {
-                          handleToggleSlice(matched);
-                        }
-                      }}
-                      cursor="pointer"
-                      isAnimationActive={false}
-                    >
-                      {pieRenderData.map((entry) => {
-                        const isSelected = activeCategory === entry.name || activeCategory === entry.category;
-                        const isEffectiveHover = activeCategory === null && (hoveredCategory === entry.name || hoveredCategory === entry.category);
-                        const isHighlighted = (activeCategory === null && hoveredCategory === null) || isSelected || isEffectiveHover;
-                        return (
-                          <Cell
-                            key={entry.name}
-                            fill={entry.color}
-                            opacity={isHighlighted ? 1 : 0.35}
-                            stroke={isSelected || isEffectiveHover ? '#ffffff' : 'transparent'}
-                            strokeWidth={isSelected || isEffectiveHover ? 2.5 : 0}
-                            className="transition-all duration-200 outline-none cursor-pointer"
-                          />
-                        );
-                      })}
-                    </Pie>
-                  )}
-                  {/* Floating tooltip disabled in favor of Center HUD to prevent z-index text collision */}
-                  <Tooltip content={() => null} />
-                </PieChart>
-              </ResponsiveContainer>
+              <DonutPieCanvas
+                effectiveTotalCount={effectiveTotalCount}
+                pieRenderData={pieRenderData}
+                onSliceMouseEnter={handleSliceMouseEnter}
+                onSliceMouseLeave={handleSliceMouseLeave}
+                onSliceClick={handleSliceClick}
+              />
 
               {/* Center Info Overlay */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
@@ -1373,6 +1481,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         {/* Right: Compact Category Breakdown Legend (narrowed fixed/constrained width so rows stay tight & readable) */}
         <div
           data-testid="donut-legend-pane"
+          onMouseLeave={handleSliceMouseLeave}
           className={`w-full max-w-[340px] mx-auto sm:mx-0 sm:max-w-none shrink-0 flex flex-col justify-center ${
             isNavigator ? 'gap-2 sm:gap-2.5 xl:gap-3' : 'gap-1.5 sm:gap-2'
           } my-auto py-0.5 ${
@@ -1398,11 +1507,11 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   handleToggleSlice(sector);
                 }}
                 onMouseEnter={() => {
-                  if (activeCategory === null) {
+                  if (activeCategory === null && canUseHoverPreview()) {
                     setHoveredCategory(sector.name);
                   }
                 }}
-                onMouseLeave={() => setHoveredCategory(null)}
+                onMouseLeave={handleSliceMouseLeave}
                 role="button"
                 tabIndex={0}
                 aria-pressed={isSelected}

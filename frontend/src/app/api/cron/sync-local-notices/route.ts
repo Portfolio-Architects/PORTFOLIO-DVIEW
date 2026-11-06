@@ -44,6 +44,15 @@ const DONGTAN_KEYWORDS = [
   'GTX', '인덕원', '트램', '동인선'
 ];
 
+const DONGTAN_RAIL_KEYWORDS = [
+  '동탄', '솔빛나루', '분당선', '인덕원', '동인선', 'GTX', '트램',
+  'SRT', '수서', '삼성', '기흥', '오산', '병점', '환승센터', '철도망도'
+];
+
+const NON_DONGTAN_RAIL_KEYWORDS = [
+  '신안산선', '인천발', '봉담', '향남', '어천', '송산', '서해선', '남양'
+];
+
 interface NoticeItem {
   id: string; // Document ID (bbs_xxx, gosi_xxx, dong_xxx)
   originalId: string; // 원래 글번호
@@ -303,6 +312,14 @@ function checkIfDongtan(title: string, dept: string): boolean {
   return DONGTAN_KEYWORDS.some(k => t.includes(k) || d.includes(k));
 }
 
+function checkIfDongtanRail(title: string, dept: string): boolean {
+  const t = title || '';
+  const d = dept || '';
+  if (t.includes('동탄') || d.includes('동탄')) return true;
+  if (NON_DONGTAN_RAIL_KEYWORDS.some(k => t.includes(k))) return false;
+  return DONGTAN_RAIL_KEYWORDS.some(k => t.includes(k) || d.includes(k));
+}
+
 const syncLocalNoticesQuerySchema = z.object({
   full: z.string().optional().transform(v => v === 'true'),
 });
@@ -507,18 +524,34 @@ export async function GET(request: NextRequest) {
         const $ = cheerio.load(decodedHtml);
         const rows = $('table').first().find('tr');
 
+        const headers: string[] = [];
+        rows.first().find('th, td').each((_, el) => {
+          headers.push($(el).text().trim().replace(/\s+/g, ''));
+        });
+        const titleIdx = headers.findIndex(h => h.includes('제목'));
+        const deptIdx = headers.findIndex(h => h.includes('부서') || h.includes('작성자') || h.includes('기관'));
+        const dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('작성일') || h.includes('일자'));
+
         rows.each((idx, tr) => {
           if (idx === 0) return;
 
           const tds = $(tr).find('td');
-          if (tds.length < 5) return;
+          const effectiveTitleIdx = titleIdx !== -1 ? titleIdx : 2;
+          const effectiveDeptIdx = deptIdx !== -1 ? deptIdx : 3;
+          const effectiveDateIdx = dateIdx !== -1 ? dateIdx : 4;
+          if (tds.length <= Math.max(effectiveTitleIdx, effectiveDeptIdx, effectiveDateIdx)) return;
 
           const originalId = $(tds[0]).text().trim();
-          const titleEl = $(tds[2]);
+          const titleEl = $(tds[effectiveTitleIdx]);
           const title = titleEl.text().trim().replace(/\s+/g, ' ');
           const link = (titleEl.find('a').attr('href') || '').trim();
-          const dept = $(tds[3]).text().trim();
-          const date = $(tds[4]).text().trim();
+          const rawDept = $(tds[effectiveDeptIdx]).text().trim();
+          const dept = (!rawDept || rawDept === '화성시' || rawDept === '화성시청' || rawDept === '관리자')
+            ? '철도전략과'
+            : rawDept;
+          const rawDate = $(tds[effectiveDateIdx]).text().trim();
+          const dateMatch = rawDate.match(/\d{4}-\d{2}-\d{2}/);
+          const date = dateMatch ? dateMatch[0] : rawDate;
 
           if (originalId && title && link) {
             const absoluteUrl = link.startsWith('http') 
@@ -530,9 +563,9 @@ export async function GET(request: NextRequest) {
               originalId,
               title,
               url: absoluteUrl,
-              dept: dept || '철도전략과',
+              dept,
               date,
-              isDongtan: true,
+              isDongtan: checkIfDongtanRail(title, dept),
               source: 'rail' as const,
               createdAt: new Date().toISOString()
             };
@@ -576,18 +609,31 @@ export async function GET(request: NextRequest) {
         const $ = cheerio.load(decodedHtml);
         const rows = $('table').first().find('tr');
 
+        const headers: string[] = [];
+        rows.first().find('th, td').each((_, el) => {
+          headers.push($(el).text().trim().replace(/\s+/g, ''));
+        });
+        const titleIdx = headers.findIndex(h => h.includes('제목'));
+        const deptIdx = headers.findIndex(h => h.includes('부서') || h.includes('작성자') || h.includes('기관'));
+        const dateIdx = headers.findIndex(h => h.includes('등록') || h.includes('작성일') || h.includes('일자'));
+
         rows.each((idx, tr) => {
           if (idx === 0) return;
 
           const tds = $(tr).find('td');
           if (tds.length < 4) return;
 
+          const effectiveTitleIdx = titleIdx !== -1 ? titleIdx : 2;
+          const effectiveDeptIdx = deptIdx !== -1 ? deptIdx : (tds.length >= 6 ? 4 : 3);
+          const effectiveDateIdx = dateIdx !== -1 ? dateIdx : (tds.length >= 6 ? 5 : 4);
+          if (tds.length <= Math.max(effectiveTitleIdx, effectiveDeptIdx, effectiveDateIdx)) return;
+
           const originalId = $(tds[0]).text().trim();
-          const titleEl = $(tds[2]);
+          const titleEl = $(tds[effectiveTitleIdx]);
           const title = titleEl.text().trim().replace(/\s+/g, ' ');
           const link = (titleEl.find('a').attr('href') || '').trim();
-          const dept = (tds.length >= 6 ? $(tds[4]).text().trim() : $(tds[3]).text().trim()) || '트램건설추진단';
-          const rawDate = tds.length >= 6 ? $(tds[5]).text().trim() : $(tds[4]).text().trim();
+          const dept = $(tds[effectiveDeptIdx]).text().trim() || '트램건설추진단';
+          const rawDate = $(tds[effectiveDateIdx]).text().trim();
           const dateMatch = rawDate.match(/\d{4}-\d{2}-\d{2}/);
           const date = dateMatch ? dateMatch[0] : rawDate;
 
@@ -754,15 +800,16 @@ export async function GET(request: NextRequest) {
 
           if (originalId && title) {
             const absoluteUrl = `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`;
+            const normalizedDept = dept || '화성시청';
 
             const item = {
               id: `gosi_${originalId}`,
               originalId,
               title,
               url: absoluteUrl,
-              dept: dept || '화성시청',
+              dept: normalizedDept,
               date,
-              isDongtan: true,
+              isDongtan: checkIfDongtan(title, normalizedDept),
               source: 'gosi' as const,
               createdAt: new Date().toISOString()
             };
@@ -782,27 +829,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // --- Source 6: 동탄 하이퍼로컬 문화/행사/축제 생성 및 적재 ---
-    const cultureEvents = generateCultureEvents();
-    cultureEvents.forEach((item) => {
-      const parsedItem = noticeItemSchema.safeParse(item);
-      if (parsedItem.success) {
-        notices.push(parsedItem.data);
-      } else {
-        logger.warn('SyncLocalNoticesAPI.GET', 'Invalid culture event notice item', { errors: parsedItem.error.format() });
-      }
-    });
-
-    // --- Source 7: AI 부동산 시황 & 주거 안심 리포트 생성 및 적재 ---
-    const aiReports = generateAIReports(TX_SUMMARY);
-    aiReports.forEach((item) => {
-      const parsedItem = noticeItemSchema.safeParse(item);
-      if (parsedItem.success) {
-        notices.push(parsedItem.data);
-      } else {
-        logger.warn('SyncLocalNoticesAPI.GET', 'Invalid AI report notice item', { errors: parsedItem.error.format() });
-      }
-    });
+    // (임의 가공 문화/AI 리포트 생성 비활성화 — 화성시·동탄구청 공식 공공 데이터만 수집)
 
     if (notices.length === 0) {
       return apiSuccess({ count: 0, message: 'No notices scraped' }, { count: 0, message: 'No notices scraped' });

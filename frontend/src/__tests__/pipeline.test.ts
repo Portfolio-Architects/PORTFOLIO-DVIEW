@@ -1615,6 +1615,44 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       expect(typeof officeRepo.fetchOfficeXmlFromPublicPortal).toBe('function');
       expect(officeRepo.MOCK_XML_RESPONSE).toBeUndefined();
     });
+
+    it('should enforce dual circuit breaker (verifySummaryIntegrity) and retry on HTTP 200 XML error envelopes', async () => {
+      const { verifySummaryIntegrity } = require('../../scripts/sync-transactions');
+
+      const emptyCheck = verifySummaryIntegrity({}, 0, '');
+      expect(emptyCheck.ok).toBe(false);
+      expect(emptyCheck.reason).toBe('ABSOLUTE_THRESHOLD_BREACH');
+
+      const validSummary = {
+        단지1: { txCount: 45000, rentTxCount: 65000 },
+      };
+      const passCheck = verifySummaryIntegrity(validSummary, 150, '');
+      expect(passCheck.ok).toBe(true);
+
+      const axiosGetSpy = jest.spyOn(axios, 'get');
+      try {
+        let calls = 0;
+        axiosGetSpy.mockImplementation(async () => {
+          calls++;
+          if (calls === 1) {
+            return {
+              status: 200,
+              data: '<response><header><resultCode>99</resultCode><resultMsg>SYSTEM_ERROR</resultMsg></header></response>',
+            };
+          }
+          return {
+            status: 200,
+            data: '<response><header><resultCode>000</resultCode></header><body><totalCount>0</totalCount></body></response>',
+          };
+        });
+
+        const res = await fetchTradeWithRetry('https://apis.data.go.kr/test-xml-retry', {}, 2, 5);
+        expect(res.status).toBe(200);
+        expect(calls).toBe(2);
+      } finally {
+        axiosGetSpy.mockRestore();
+      }
+    });
   });
 });
 

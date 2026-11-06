@@ -318,7 +318,7 @@ function migrateLegacyPathologicalFiles(txDataDir) {
               const getVal = (x) => (x.dealType === '전세' || x.dealType === '월세') ? (x.deposit || 0) : (x.price || 0);
               return getVal(b) - getVal(a);
             });
-            const finalRecords = targetFileName.endsWith('-recent.json') ? merged.slice(0, 15) : merged;
+            const finalRecords = targetFileName.endsWith('-recent.json') ? selectRecentChunkRecords(merged, 15) : merged;
             safeWriteFileSync(newPath, JSON.stringify(finalRecords));
           }
         } catch (e) {
@@ -335,6 +335,31 @@ function migrateLegacyPathologicalFiles(txDataDir) {
 }
 
 const migrateLegacySpaceFiles = migrateLegacyPathologicalFiles;
+
+function selectRecentChunkRecords(sortedRecords, perTypeLimit = 15) {
+  if (!Array.isArray(sortedRecords) || sortedRecords.length <= perTypeLimit) {
+    return Array.isArray(sortedRecords) ? sortedRecords.slice(0, perTypeLimit) : [];
+  }
+  const result = [];
+  let saleCount = 0;
+  let rentCount = 0;
+  for (const r of sortedRecords) {
+    const isRent = r.dealType === '전세' || r.dealType === '월세';
+    if (!isRent) {
+      if (saleCount < perTypeLimit) {
+        result.push(r);
+        saleCount++;
+      }
+    } else {
+      if (rentCount < perTypeLimit) {
+        result.push(r);
+        rentCount++;
+      }
+    }
+    if (saleCount >= perTypeLimit && rentCount >= perTypeLimit) break;
+  }
+  return result;
+}
 
 /**
  * 아파트별 개별 JSON 청크 파일들 및 인덱스 파일 저장
@@ -391,6 +416,8 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
       const canceled = isCancelledTransaction(t);
       const cancelDateStr = (t.cancelDate && String(t.cancelDate).trim()) || (t.cdealDay && String(t.cdealDay).trim()) || (canceled ? '취소' : '');
       const isDirect = t.isDirectDeal === true || t.dealType === '직거래' || t.dealingGbn === '직거래';
+      const rawDt = t.dealType ? String(t.dealType).trim() : '';
+      const cleanDt = (rawDt && rawDt !== 'O' && rawDt !== '해제') ? rawDt : '매매';
       const contractDate = t.contractDate || `${t.contractYm || ''}${String(t.contractDay || '').padStart(2, '0')}`;
       const registeredDate = normalizeRegisteredDate(t.registeredDate || t.registrationDate, contractDate);
       const registeredDateLabel = registeredDate && /^\d{8}$/.test(registeredDate) ? `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}` : '';
@@ -401,7 +428,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
         registeredDate,
         registeredDateLabel,
         price: t.price,
-        priceEok: (t.dealType === '전세' || t.dealType === '월세') 
+        priceEok: (cleanDt === '전세' || cleanDt === '월세') 
           ? formatPriceEok(t.deposit || 0) + (t.monthlyRent ? ` / ${t.monthlyRent}만` : '')
           : formatPriceEok(t.price || 0),
         deposit: t.deposit || 0,
@@ -411,7 +438,7 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
         area: t.area,
         areaPyeong: t.areaPyeong,
         floor: t.floor,
-        dealType: isDirect ? '직거래' : ((t.dealType && t.dealType.trim()) || '매매'),
+        dealType: isDirect ? '직거래' : cleanDt,
         cancelDate: cancelDateStr,
       };
     });
@@ -517,10 +544,10 @@ function writeApartmentChunks(txDataDir, targetApts, byApt, isFullSync = false) 
     
     safeWriteFileSync(filepath, json);
 
-    // 최근 거래 내역만 포함하는 경량 JSON 파일 생성 (최근 15건)
+    // 최근 거래 내역만 포함하는 경량 JSON 파일 생성 (매매 최대 15건 + 전월세 최대 15건)
     const filenameRecent = sanitizeAptChunkFileName(`${aptKey}-recent.json`);
     const filepathRecent = path.join(txDataDir, filenameRecent);
-    const jsonRecent = JSON.stringify(uniqueRecords.slice(0, 15));
+    const jsonRecent = JSON.stringify(selectRecentChunkRecords(uniqueRecords, 15));
     safeWriteFileSync(filepathRecent, jsonRecent);
     
     totalRecords += uniqueRecords.length;

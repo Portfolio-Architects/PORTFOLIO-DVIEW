@@ -596,6 +596,12 @@ const ApartmentModal = React.memo(function ApartmentModal({
     setMounted(true);
   }, []);
 
+  useEffect(() => {
+    if (rawTransactionsProp === undefined && report?.apartmentName) {
+      hookLoadAllTransactions();
+    }
+  }, [rawTransactionsProp, report?.apartmentName, hookLoadAllTransactions]);
+
   const displayAptName = useMemo(() => {
     return getDisplayAptName(report.apartmentName);
   }, [report.apartmentName]);
@@ -619,15 +625,22 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   const areaFilterChips = useMemo(() => {
     const types = new Set<string>();
-    types.add('전체');
     transactions.forEach(t => {
       if (areaUnit === 'm2') {
-        types.add(t.areaLabelM2);
+        if (t.areaLabelM2) types.add(t.areaLabelM2);
       } else {
-        types.add(t.areaLabelPyeong);
+        if (t.areaLabelPyeong) types.add(t.areaLabelPyeong);
       }
     });
-    return Array.from(types);
+    const sortedTypes = Array.from(types).sort((a, b) => {
+      const numA = parseFloat(a);
+      const numB = parseFloat(b);
+      if (!isNaN(numA) && !isNaN(numB) && numA !== numB) {
+        return numA - numB;
+      }
+      return a.localeCompare(b, 'ko');
+    });
+    return ['전체', ...sortedTypes];
   }, [transactions, areaUnit]);
 
   const filteredTransactions = useMemo(() => {
@@ -641,9 +654,16 @@ const ApartmentModal = React.memo(function ApartmentModal({
     });
   }, [transactions, filterOutliers, selectedAreaFilter, areaUnit]);
 
+  const isActiveTransaction = useCallback((t: { cancelDate?: string; isCanceled?: boolean }) => {
+    if (t.isCanceled === true) return false;
+    const raw = String(t.cancelDate || '').trim();
+    if (!raw || raw === '-' || raw === 'null' || raw === 'undefined' || raw === 'nan' || raw === 'none') return true;
+    return !(/\d{2}[.\-/]?\d{2}[.\-/]?\d{2}/.test(raw) || raw === '취소' || raw === 'O' || raw === '해제');
+  }, []);
+
   const valuation: CalculatedValuation = useMemo(() => {
-    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const saleTxs = transactions.filter(t => isActiveTransaction(t) && (!t.dealType || (t.dealType !== '전세' && t.dealType !== '월세')));
+    const jeonseTxs = transactions.filter(t => isActiveTransaction(t) && t.dealType === '전세');
     const latestSale = saleTxs[0];
     const latestJeonse = jeonseTxs[0];
 
@@ -671,11 +691,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
       return { status: 'overvalued', amount: `${Math.round(diffPercent)}% 고평가`, ratio: diffPercent, priceStr: `${Math.round(fairPrice / 10000)}억` };
     }
     return { status: 'fair', amount: '적정 가치 형성', ratio: diffPercent, priceStr: `${Math.round(fairPrice / 10000)}억` };
-  }, [transactions]);
+  }, [transactions, isActiveTransaction]);
 
   const jeonseSafetyData: CalculatedJeonseSafety | null = useMemo(() => {
-    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const saleTxs = transactions.filter(t => isActiveTransaction(t) && (!t.dealType || (t.dealType !== '전세' && t.dealType !== '월세')));
+    const jeonseTxs = transactions.filter(t => isActiveTransaction(t) && t.dealType === '전세');
     const latestSale = saleTxs[0];
     const latestJeonse = jeonseTxs[0];
 
@@ -685,7 +705,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
     if (salePrice === 0 && jeonsePrice === 0) return null;
     const ratio = salePrice > 0 ? (jeonsePrice / salePrice) * 100 : 0;
     return { latestPrice: salePrice, latestDeposit: jeonsePrice, ratio };
-  }, [transactions]);
+  }, [transactions, isActiveTransaction]);
 
   const currentPriceWon = useMemo(() => {
     const rawMan =
@@ -1003,8 +1023,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
     const baseUrl = window.location.origin;
 
     try {
-      const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-      const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+      const saleTxs = transactions.filter(t => isActiveTransaction(t) && (!t.dealType || (t.dealType !== '전세' && t.dealType !== '월세')));
+      const jeonseTxs = transactions.filter(t => isActiveTransaction(t) && t.dealType === '전세');
       const latestSale = saleTxs[0];
       const latestJeonse = jeonseTxs[0];
 
@@ -1099,8 +1119,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   const handleCopySummary = useCallback(async () => {
     trackEvent('share_apartment', { apt_name: report.apartmentName, method: 'copy_summary' });
-    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const saleTxs = transactions.filter(t => isActiveTransaction(t) && (!t.dealType || (t.dealType !== '전세' && t.dealType !== '월세')));
+    const jeonseTxs = transactions.filter(t => isActiveTransaction(t) && t.dealType === '전세');
     const latestSale = saleTxs[0];
     const latestJeonse = jeonseTxs[0];
     const price = latestSale ? latestSale.price : 0;
@@ -1163,8 +1183,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
     const title = `${displayAptName} 가치분석 리포트`;
     let desc = '';
 
-    const saleTxs = transactions.filter(t => !t.dealType || (t.dealType !== '전세' && t.dealType !== '월세'));
-    const jeonseTxs = transactions.filter(t => t.dealType === '전세');
+    const saleTxs = transactions.filter(t => isActiveTransaction(t) && (!t.dealType || (t.dealType !== '전세' && t.dealType !== '월세')));
+    const jeonseTxs = transactions.filter(t => isActiveTransaction(t) && t.dealType === '전세');
     const latestSale = saleTxs[0];
     const latestJeonse = jeonseTxs[0];
 

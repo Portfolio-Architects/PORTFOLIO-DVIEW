@@ -23,7 +23,7 @@ function normalizeAptName(name) {
 function isCancelledTransaction(t) {
   if (!t || typeof t !== 'object') return false;
   if (t.isCanceled === true) return true;
-  if (t.cdealType === 'O' || t.cdealType === '해제') return true;
+  if (t.cdealType === 'O' || t.cdealType === '해제' || t.dealType === 'O' || t.dealType === '해제') return true;
 
   const isInvalidDate = (v) => {
     if (v === null || v === undefined) return true;

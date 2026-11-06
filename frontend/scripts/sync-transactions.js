@@ -741,11 +741,13 @@ async function main() {
   const processedDocIds = new Set();
   let isFullSync = process.argv.includes('--full');
   const now = new Date();
-  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, now.getDate());
-  const cutoffYm = `${threeMonthsAgo.getFullYear()}${String(threeMonthsAgo.getMonth() + 1).padStart(2, '0')}`;
+  const lookbackMonths = Number(process.env.SYNC_LOOKBACK_MONTHS) || Math.max(3, now.getMonth());
+  const cutoffTarget = new Date(now.getFullYear(), now.getMonth() - lookbackMonths, 1);
+  const cutoffYm = `${cutoffTarget.getFullYear()}${String(cutoffTarget.getMonth() + 1).padStart(2, '0')}`;
   const cutoffDate = `${cutoffYm}01`;
 
   const byApt = {};
+  const localCacheKeys = new Set();
 
   if (!isFullSync && fs.existsSync(TX_DATA_DIR)) {
     console.log('📥 [Incremental] 로컬 JSON 캐시(기존 실거래가)를 로드합니다...');
@@ -805,6 +807,7 @@ async function main() {
         }
       }
     }
+    Object.keys(byApt).forEach(k => localCacheKeys.add(k));
     console.log(`✅ ${Object.keys(byApt).length}개 아파트의 기존 데이터 로드 완료 (모든 키 정규화 완료)`);
   } else if (isFullSync) {
     if (!process.env.ALLOW_EXPENSIVE_FULL_SYNC) {
@@ -828,12 +831,13 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.aptName || '';
 
+    const cleanDealType = d.dealType && d.dealType.trim() !== 'O' && d.dealType.trim() !== '해제' ? d.dealType.trim() : '';
     const rawDealType =
-      d.dealingGbn === '직거래' || d.dealType === '직거래' || d.isDirectDeal === true
+      d.dealingGbn === '직거래' || cleanDealType === '직거래' || d.isDirectDeal === true
         ? '직거래'
-        : d.dealingGbn === '중개거래' && (!d.dealType || d.dealType.trim() === '매매')
+        : d.dealingGbn === '중개거래' && (!cleanDealType || cleanDealType === '매매')
           ? '중개거래'
-          : (d.dealType && d.dealType.trim()) || '매매';
+          : cleanDealType || '매매';
 
     const rawRecord = {
       aptName,
@@ -924,12 +928,13 @@ async function main() {
     const d = docSnap.data();
     const aptName = d.apartmentName || d.aptName || '';
 
+    const cleanSyncDealType = d.dealType && d.dealType.trim() !== 'O' && d.dealType.trim() !== '해제' ? d.dealType.trim() : '';
     const rawSyncDealType =
-      d.dealingGbn === '직거래' || d.dealType === '직거래' || d.isDirectDeal === true
+      d.dealingGbn === '직거래' || cleanSyncDealType === '직거래' || d.isDirectDeal === true
         ? '직거래'
-        : d.dealingGbn === '중개거래' && (!d.dealType || d.dealType.trim() === '매매')
+        : d.dealingGbn === '중개거래' && (!cleanSyncDealType || cleanSyncDealType === '매매')
           ? '중개거래'
-          : (d.dealType && d.dealType.trim()) || '매매';
+          : cleanSyncDealType || '매매';
 
     const rawRecord = {
       aptName,
@@ -1125,8 +1130,8 @@ async function main() {
   const { dongMap, validTxKeys, allAptTxKeys } = dongMapResult;
   console.log(`   ${Object.keys(dongMap).length}개 아파트-동 매핑 로드 완료. 유효 아파트: ${validTxKeys.size}개. 원본 txKey: ${allAptTxKeys.size}개`);
 
-  // Guarantee all complexes in byApt / TX_DATA_DIR are preserved in validTxKeys and allAptTxKeys
-  Object.keys(byApt).forEach(k => {
+  // Guarantee all Dongtan complexes in TX_DATA_DIR (localCacheKeys) are preserved in validTxKeys and allAptTxKeys
+  localCacheKeys.forEach(k => {
     const canonK = getCanonicalAptKey(k);
     validTxKeys.add(k);
     validTxKeys.add(canonK);

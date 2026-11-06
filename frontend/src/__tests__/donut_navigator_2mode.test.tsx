@@ -499,9 +499,10 @@ describe('Single-View "실거래 체결 온도" Circular Donut Navigator + 3-Way
     fireEvent.click(screen.getByTestId('donut-reset-selection'));
     expect(tradeTypeSelect.value).toBe('all');
 
-    // Link 3: Click registered date pill "2026.10.31 (토)" on right timeline (even in compactHeroMode) -> left donut and 4 metric cards recalculate to only the 2 transactions registered on 2026.10.31
-    expect(screen.getByTestId('timeline-date-jump-bar')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('timeline-date-jump-pill-2026.10.31 (토)'));
+    // Link 3: Select registered date "2026.10.31 (토)" on right timeline dropdown (even in compactHeroMode) -> left donut and 4 metric cards recalculate to only the 2 transactions registered on 2026.10.31
+    expect(screen.queryByTestId('timeline-date-jump-bar')).not.toBeInTheDocument();
+    const dateSelect = screen.getByTestId('timeline-date-select') as HTMLSelectElement;
+    fireEvent.change(dateSelect, { target: { value: '2026.10.31 (토)' } });
     expect(screen.getByText('총 2건')).toBeInTheDocument();
     expect(screen.getByTestId('donut-selected-date-badge')).toHaveTextContent('2026.10.31 (토) 등재');
 

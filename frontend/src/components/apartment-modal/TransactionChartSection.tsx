@@ -352,11 +352,18 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
   };
 
   const relevantTxs = React.useMemo(() => {
-    return safeTransactions.filter(tx => 
-      chartType === 'sale' 
+    return safeTransactions.filter(tx => {
+      if ((tx as { isCanceled?: boolean }).isCanceled === true) return false;
+      const rawCancel = String(tx.cancelDate || '').trim();
+      if (rawCancel && rawCancel !== '-' && rawCancel !== 'null' && rawCancel !== 'undefined' && rawCancel !== 'nan' && rawCancel !== 'none') {
+        if (/\d{2}[.\-/]?\d{2}[.\-/]?\d{2}/.test(rawCancel) || rawCancel === '취소' || rawCancel === 'O' || rawCancel === '해제') {
+          return false;
+        }
+      }
+      return chartType === 'sale' 
         ? (tx.dealType !== '전세' && tx.dealType !== '월세') 
-        : (tx.dealType === '전세' || tx.dealType === '월세')
-    );
+        : (tx.dealType === '전세' || tx.dealType === '월세');
+    });
   }, [safeTransactions, chartType]);
 
   const rawData = React.useMemo(() => {

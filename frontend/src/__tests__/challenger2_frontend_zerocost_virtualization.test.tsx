@@ -503,7 +503,7 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
       expect(lastGroup.style.containIntrinsicSize).toBe('auto 120px');
     });
 
-    it('supports rapid accordion collapse and expand all on 1,800 transactions without crashing', () => {
+    it('supports rapid per-date accordion collapse and expand on 1,800 transactions without crashing', () => {
       const stressData = generateStressTimelineData(60, 30);
 
       render(
@@ -514,12 +514,13 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
         />
       );
 
-      const collapseAllBtn = screen.getByTestId('timeline-collapse-all-btn');
-      expect(collapseAllBtn).toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-collapse-all-btn')).not.toBeInTheDocument();
+      const firstDateHeaderBtn = screen.getByTestId(`timeline-date-header-${stressData[0].dateStr}`);
+      expect(firstDateHeaderBtn).toBeInTheDocument();
 
-      // Click "모두 접기" (collapse all)
+      // Click first date header (collapse group)
       const t0 = performance.now();
-      fireEvent.click(collapseAllBtn);
+      fireEvent.click(firstDateHeaderBtn);
       const t1 = performance.now();
 
       // Assert UI responsiveness under jsdom: execution should complete safely without freezing (< 10000ms under parallel test load)
@@ -528,9 +529,9 @@ describe('Challenger 2 Empirical Adversarial Suite: Zero-Cost, Period Chunks, Vi
       // Verify header indicates collapsed count
       expect(screen.getAllByText(/접힘 \(30건\)/i).length).toBeGreaterThanOrEqual(1);
 
-      // Click "모두 펼치기" (expand all)
+      // Click first date header again (expand group)
       const t2 = performance.now();
-      fireEvent.click(collapseAllBtn);
+      fireEvent.click(firstDateHeaderBtn);
       const t3 = performance.now();
       expect(t3 - t2).toBeLessThan(10000);
 

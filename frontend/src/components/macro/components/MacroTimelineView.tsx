@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink, Plus, Search, Star, X } from 'lucide-react';
 import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
 import { trackEvent, trackSearchQuery } from '@/lib/utils/analytics';
@@ -11,7 +11,6 @@ import { TimelineFilterControls } from './MacroControls';
 import {
   getToggleTrackClass,
   getToggleBtnClass,
-  getControlPillClass,
 } from '@/lib/design-system/controls';
 import { HyperlocalInsightCards } from '@/components/stats/HyperlocalInsightCards';
 import { StatsPyeongRankingChart } from '@/components/stats/StatsPyeongRankingChart';
@@ -875,9 +874,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   // Date Accordion Collapse State (Set of dateStr that are collapsed)
   const [collapsedDates, setCollapsedDates] = useState<Set<string>>(new Set());
 
-  const allDates = useMemo(() => renderedGroups.map((g) => g.dateStr), [renderedGroups]);
-  const isAllCollapsed = allDates.length > 0 && allDates.every((date) => collapsedDates.has(date));
-
   const toggleDateCollapse = useCallback((dateStr: string) => {
     setCollapsedDates((prev) => {
       const next = new Set(prev);
@@ -889,28 +885,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
       return next;
     });
   }, []);
-
-  const toggleAllCollapse = useCallback(() => {
-    setCollapsedDates((prev) => {
-      if (allDates.every((d) => prev.has(d))) {
-        // Expand all
-        return new Set();
-      } else {
-        // Collapse all
-        return new Set(allDates);
-      }
-    });
-  }, [allDates]);
-
-  const handleDateJumpClick = useCallback((dateStr: string) => {
-    setSelectedDateJump((prev) => (prev === dateStr ? null : dateStr));
-    setCollapsedDates((prev) => {
-      if (!prev.has(dateStr)) return prev;
-      const next = new Set(prev);
-      next.delete(dateStr);
-      return next;
-    });
-  }, [setSelectedDateJump]);
 
   const availableDateOptions = useMemo(() => {
     return fullSourceData
@@ -988,12 +962,45 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
     rootMargin: '250px',
   });
 
+  const timelineScrollRef = useRef<HTMLDivElement | null>(null);
+  const pendingScrollRestoreRef = useRef<{ boxTop: number; winY: number } | null>(null);
+
+  const captureScrollBeforeExpand = useCallback(() => {
+    pendingScrollRestoreRef.current = {
+      boxTop: timelineScrollRef.current ? timelineScrollRef.current.scrollTop : 0,
+      winY: typeof window !== 'undefined' ? window.scrollY : 0,
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const saved = pendingScrollRestoreRef.current;
+    if (!saved) return;
+    pendingScrollRestoreRef.current = null;
+    if (timelineScrollRef.current) {
+      timelineScrollRef.current.scrollTop = saved.boxTop;
+    }
+    if (typeof window !== 'undefined' && window.scrollY !== saved.winY) {
+      window.scrollTo({ top: saved.winY, behavior: 'instant' as ScrollBehavior });
+    }
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        if (timelineScrollRef.current) {
+          timelineScrollRef.current.scrollTop = saved.boxTop;
+        }
+        if (window.scrollY !== saved.winY) {
+          window.scrollTo({ top: saved.winY, behavior: 'instant' as ScrollBehavior });
+        }
+      });
+    }
+  }, [effectiveVisibleCount]);
+
   // Only auto-trigger when explicitly enabled (preventing unwanted infinite scroll jumps)
   useEffect(() => {
     if (enableInfiniteScroll && inView && setVisibleTimelineCount && effectiveTotalCount > effectiveVisibleCount) {
+      captureScrollBeforeExpand();
       setVisibleTimelineCount((prev) => Math.min(effectiveTotalCount, prev + 20));
     }
-  }, [enableInfiniteScroll, inView, effectiveTotalCount, effectiveVisibleCount, setVisibleTimelineCount]);
+  }, [enableInfiniteScroll, inView, effectiveTotalCount, effectiveVisibleCount, setVisibleTimelineCount, captureScrollBeforeExpand]);
 
   if (isLoading) {
     return (
@@ -1125,29 +1132,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 </div>
               )}
             </div>
-
-            {/* Quick Collapse / Expand All Control */}
-            {activeSectionTab === 'timeline' && renderedGroups.length > 0 && (
-              <button
-                type="button"
-                onClick={toggleAllCollapse}
-                aria-label={isAllCollapsed ? '일자별 모두 펼치기' : '일자별 모두 접기'}
-                data-testid="timeline-collapse-all-btn"
-                className={getControlPillClass({ extraClass: 'active:scale-95 self-start sm:self-auto' })}
-              >
-                {isAllCollapsed ? (
-                  <>
-                    <ChevronDown size={14} className="text-secondary" />
-                    <span>모두 펼치기</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronUp size={14} className="text-secondary" />
-                    <span>모두 접기</span>
-                  </>
-                )}
-              </button>
-            )}
           </div>
 
           <TimelineFilterControls
@@ -1273,53 +1257,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </div>
             </div>
           )}
-
-          {/* Quick Date Jump Navigator Bar (Rendered when multiple dates exist across full filtered dataset) */}
-          {activeSectionTab === 'timeline' && (fullSourceData.length > 1 || selectedDateJump !== null) && (
-            <div
-              data-testid="timeline-date-jump-bar"
-              className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 w-full"
-            >
-              <button
-                type="button"
-                data-testid="timeline-date-jump-all"
-                aria-label="모든 날짜 보기"
-                aria-pressed={selectedDateJump === null}
-                onClick={() => setSelectedDateJump(null)}
-                className={`h-[32px] sm:h-[34px] px-3 rounded-[10px] text-[12px] font-extrabold whitespace-nowrap transition-all cursor-pointer shrink-0 tabular-nums ${
-                  selectedDateJump === null
-                    ? 'bg-slate-800 text-white dark:bg-slate-200 dark:text-slate-900 shadow-2xs'
-                    : 'bg-elevated hover:bg-slate-100 dark:bg-slate-800 dark:hover:bg-slate-700 text-secondary'
-                }`}
-              >
-                {`모든 날짜 (${fullSourceData.length}일)`}
-              </button>
-              {fullSourceData.slice(0, 14).map((group, idx) => {
-                const isDateActive = selectedDateJump === (group.dateStr || group.date);
-                const shortLabel = formatShortDateLabel(group.dateStr || group.date || '');
-                const pillItemCount = group.totalCount ?? group.items.length;
-                return (
-                  <button
-                    key={group.dateKey || group.dateStr || group.date || `date-pill-${idx}`}
-                    type="button"
-                    data-testid={`timeline-date-jump-pill-${group.dateStr || group.date}`}
-                    aria-label={`${shortLabel} 일자 바로가기`}
-                    aria-pressed={isDateActive}
-                    onClick={() => handleDateJumpClick(group.dateStr || group.date || '')}
-                    className={`h-[32px] sm:h-[34px] px-3 rounded-[10px] text-[12px] font-bold whitespace-nowrap transition-all cursor-pointer shrink-0 tabular-nums ${
-                      isDateActive
-                        ? 'bg-blue-600 text-white shadow-2xs font-extrabold ring-2 ring-blue-500/25'
-                        : 'bg-elevated hover:bg-slate-100 dark:bg-slate-800/80 dark:hover:bg-slate-800 text-secondary'
-                    }`}
-                  >
-                    <span className="inline-flex items-center gap-1">
-                      <span>{`${shortLabel} · ${pillItemCount}건`}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         {/* Bottom Switched Content Area: [일자별 실거래 내역] vs [실시간 시장 랭킹] vs [단지별 평당가 랭킹] */}
@@ -1336,7 +1273,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             />
           </div>
         ) : (
-        <div className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : compactHeroMode ? "overflow-y-auto" : "max-h-[520px] md:max-h-none overflow-y-auto"} pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-1 min-h-0 w-full box-border`}>
+        <div
+          ref={timelineScrollRef}
+          data-testid="timeline-scroll-container"
+          className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : compactHeroMode ? "overflow-y-auto overscroll-y-contain" : "max-h-[520px] md:max-h-none overflow-y-auto overscroll-y-contain"} [overflow-anchor:none] pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-1 min-h-0 w-full box-border`}
+        >
           {/* Active Favorites Watchlist Chip Bar + Quick Search-and-Add (Rendered when user has >= 1 favorite) */}
           {activeSegment === 'favorites' && effectiveUserFavorites.size > 0 && (
             <div
@@ -1728,7 +1669,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   <div
                     key={group.dateStr}
                     data-testid={`timeline-group-${group.dateStr}`}
-                    style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' }}
+                    style={!compactHeroMode ? { contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' } : undefined}
                     className="flex flex-col gap-2.5 relative pl-3.5 sm:pl-4 border-l-2 border-slate-100 dark:border-slate-800/80 w-full box-border"
                   >
                   {/* Sticky Date Group Header (Collapsible Accordion Button) */}
@@ -1883,7 +1824,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
           {/* Infinite Scroll Sentinel & Fallback Load More */}
           {!selectedDateJump && setVisibleTimelineCount && effectiveTotalCount > effectiveVisibleCount && (
-            <div ref={sentinelRef} className="w-full py-3 flex flex-col items-center justify-center gap-2">
+            <div ref={sentinelRef} className="w-full py-3 flex flex-col items-center justify-center gap-2 [overflow-anchor:none]">
               <div
                 data-testid="timeline-load-more-progress"
                 className="w-full flex items-center justify-between text-[10.5px] font-bold text-tertiary px-1"
@@ -1898,7 +1839,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               <div className="w-full flex items-center gap-2">
                 <button
                   type="button"
-                  onClick={() => setVisibleTimelineCount((prev) => Math.min(effectiveTotalCount, prev + 20))}
+                  onClick={() => {
+                    captureScrollBeforeExpand();
+                    setVisibleTimelineCount((prev) => Math.min(effectiveTotalCount, prev + 20));
+                  }}
                   className="flex-1 py-2.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-[12px] xs:text-[12.5px] font-bold text-secondary rounded-xl flex items-center justify-center gap-1.5 transition-colors cursor-pointer active:scale-[0.99]"
                 >
                   <span>최근 실거래 더보기 (+20개 / 남은 {effectiveTotalCount - effectiveVisibleCount}개)</span>
@@ -1908,7 +1852,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   type="button"
                   data-testid="timeline-show-all-btn"
                   aria-label="나머지 실거래 일괄 표시"
-                  onClick={() => setVisibleTimelineCount(effectiveTotalCount)}
+                  onClick={() => {
+                    captureScrollBeforeExpand();
+                    setVisibleTimelineCount(effectiveTotalCount);
+                  }}
                   className="px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-[11.5px] font-extrabold text-primary rounded-xl transition-colors cursor-pointer shrink-0"
                 >
                   일괄 펼치기
@@ -1918,10 +1865,15 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           )}
 
           {!selectedDateJump && setVisibleTimelineCount && effectiveTotalCount > 3 && effectiveTotalCount <= effectiveVisibleCount && (
-            <div className="w-full py-2 flex items-center justify-center">
+            <div className="w-full py-2 flex items-center justify-center [overflow-anchor:none]">
               <button
                 type="button"
-                onClick={() => setVisibleTimelineCount(isMobileViewport ? 3 : 8)}
+                onClick={() => {
+                  setVisibleTimelineCount(isMobileViewport ? 3 : 8);
+                  if (timelineScrollRef.current && typeof timelineScrollRef.current.scrollTo === 'function') {
+                    timelineScrollRef.current.scrollTo({ top: 0, behavior: 'smooth' });
+                  }
+                }}
                 className="px-4 py-1.5 bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-[11px] font-bold text-tertiary hover:text-secondary rounded-xl flex items-center justify-center gap-1 transition-colors cursor-pointer"
               >
                 <span>처음으로 접기</span>

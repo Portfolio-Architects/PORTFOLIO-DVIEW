@@ -249,10 +249,27 @@ const DONGTAN_KEYWORDS = [
   'GTX', '인덕원', '트램', '동인선'
 ];
 
+const DONGTAN_RAIL_KEYWORDS = [
+  '동탄', '솔빛나루', '분당선', '인덕원', '동인선', 'GTX', '트램',
+  'SRT', '수서', '삼성', '기흥', '오산', '병점', '환승센터', '철도망도'
+];
+
+const NON_DONGTAN_RAIL_KEYWORDS = [
+  '신안산선', '인천발', '봉담', '향남', '어천', '송산', '서해선', '남양'
+];
+
 function checkIfDongtan(title, dept) {
   const t = title || '';
   const d = dept || '';
   return DONGTAN_KEYWORDS.some(k => t.includes(k) || d.includes(k));
+}
+
+function checkIfDongtanRail(title, dept) {
+  const t = title || '';
+  const d = dept || '';
+  if (t.includes('동탄') || d.includes('동탄')) return true;
+  if (NON_DONGTAN_RAIL_KEYWORDS.some(k => t.includes(k))) return false;
+  return DONGTAN_RAIL_KEYWORDS.some(k => t.includes(k) || d.includes(k));
 }
 
 async function fetchWithTimeout(url, options = {}, timeoutMs = 5000) {
@@ -433,14 +450,22 @@ async function main() {
       rows.each((idx, tr) => {
         if (idx === 0) return;
         const tds = $(tr).find('td');
-        if (tds.length <= Math.max(titleIdx, deptIdx, dateIdx)) return;
+        const effectiveTitleIdx = titleIdx !== -1 ? titleIdx : 2;
+        const effectiveDeptIdx = deptIdx !== -1 ? deptIdx : 3;
+        const effectiveDateIdx = dateIdx !== -1 ? dateIdx : 4;
+        if (tds.length <= Math.max(effectiveTitleIdx, effectiveDeptIdx, effectiveDateIdx)) return;
 
         const originalId = $(tds[0]).text().trim();
-        const titleEl = $(tds[titleIdx]);
+        const titleEl = $(tds[effectiveTitleIdx]);
         const title = titleEl.text().trim().replace(/\s+/g, ' ');
         const link = (titleEl.find('a').attr('href') || '').trim();
-        const dept = $(tds[deptIdx]).text().trim();
-        const date = $(tds[dateIdx]).text().trim();
+        const rawDept = $(tds[effectiveDeptIdx]).text().trim();
+        const dept = (!rawDept || rawDept === '화성시' || rawDept === '화성시청' || rawDept === '관리자')
+          ? '철도전략과'
+          : rawDept;
+        const rawDate = $(tds[effectiveDateIdx]).text().trim();
+        const dateMatch = rawDate.match(/\d{4}-\d{2}-\d{2}/);
+        const date = dateMatch ? dateMatch[0] : rawDate;
 
         if (originalId && title && link) {
           const absoluteUrl = link.startsWith('http') ? link : `https://www.hscity.go.kr${link}`;
@@ -449,9 +474,9 @@ async function main() {
             originalId,
             title,
             url: absoluteUrl,
-            dept: dept || '철도전략과',
+            dept,
             date,
-            isDongtan: true,
+            isDongtan: checkIfDongtanRail(title, dept),
             source: 'rail',
             createdAt: new Date().toISOString()
           });
@@ -646,14 +671,15 @@ async function main() {
 
         if (originalId && title) {
           const absoluteUrl = `https://www.hscity.go.kr/www/gosi/BD_selectNoticeDetail.do?q_notAncmtMgtNo=${originalId}`;
+          const normalizedDept = dept || '화성시청';
           notices.push({
             id: `gosi_${originalId}`,
             originalId,
             title,
             url: absoluteUrl,
-            dept: dept || '화성시청',
+            dept: normalizedDept,
             date,
-            isDongtan: true,
+            isDongtan: checkIfDongtan(title, normalizedDept),
             source: 'gosi',
             createdAt: new Date().toISOString()
           });
@@ -664,17 +690,7 @@ async function main() {
     }
   }
 
-  // --- Source 6: 동탄 문화/축제 및 강좌, AI 리포트 생성 ---
-  console.log('   Source 6 (문화/축제 & AI 리포트 생성) 처리 중...');
-  try {
-    const cultureNotices = generateCultureEvents();
-    notices.push(...cultureNotices);
-    const aiReports = generateAIReports();
-    notices.push(...aiReports);
-    console.log(`      문화 소식 및 AI 리포트 ${cultureNotices.length + aiReports.length}건 추가 완료.`);
-  } catch (genErr) {
-    console.error('      ⚠️ 문화/AI 소식 생성 실패:', genErr.message);
-  }
+  // (임의 가공 문화/AI 리포트 생성 비활성화 — 화성시·동탄구청 공식 공공 데이터만 수집)
 
   // 3. Batch save to Firestore
   if (notices.length === 0) {

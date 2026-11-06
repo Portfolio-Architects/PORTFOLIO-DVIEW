@@ -329,21 +329,23 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
         aria-label={`실거래 분석 아파트 선택: ${item.aptName}, 위치: ${item.dong}, 가격: ${item.priceEok}`}
         className="flex-1 flex items-center justify-between gap-2 sm:gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-blue-500/50 rounded-lg p-0 bg-transparent border-none min-w-0 cursor-pointer after:content-[''] after:absolute after:inset-0 after:rounded-2xl"
       >
-        {/* Left: Apartment Full Name + Metadata (stacked on mobile, single row on sm+) */}
-        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2.5 min-w-0 flex-1 overflow-hidden">
-          <span
-            className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0 sm:max-w-[180px] xl:max-w-[230px] shrink-0"
-            title={item.displayAptName || item.aptName}
-          >
-            {item.displayAptName || item.aptName}
-          </span>
-
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-x-1 gap-y-0.5 min-w-0 flex-1 text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight tabular-nums overflow-hidden">
+        {/* Left: Apartment Full Name + Metadata (2-line stacked so metadata never clips mid-character) */}
+        <div className="flex flex-col gap-1 min-w-0 flex-1 overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span
+              className="text-xs xs:text-[13px] sm:text-sm font-extrabold text-primary group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors leading-tight truncate break-keep min-w-0"
+              title={item.displayAptName || item.aptName}
+            >
+              {item.displayAptName || item.aptName}
+            </span>
             {item.type === 'high' && (
-              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 mr-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
+              <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
               </span>
             )}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-0.5 min-w-0 text-[9.5px] xs:text-[10px] sm:text-[11px] text-tertiary font-bold tracking-tight tabular-nums">
             <span className="shrink-0 font-extrabold text-secondary max-w-[110px] sm:max-w-[140px] truncate min-w-0" title={item.dong}>
               {item.dong}
             </span>
@@ -374,8 +376,8 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
           </div>
         </div>
 
-        {/* Right of Button: Price & Delta Badges (stacked on mobile, inline single row on sm+) */}
-        <div className="flex flex-col sm:flex-row items-end sm:items-center justify-center sm:justify-end gap-0.5 sm:gap-2 shrink-0 ml-1 sm:ml-2 min-w-0 tabular-nums">
+        {/* Right of Button: Price & Delta Badges (2-line right-aligned stack matching left 2-line layout) */}
+        <div className="flex flex-col items-end justify-center gap-1 shrink-0 ml-1 sm:ml-2 min-w-0 tabular-nums">
           <div className="flex items-center gap-1 sm:gap-1.5 whitespace-nowrap">
             {item.delta !== 0 && item.prevPriceVal && item.prevPriceVal > 0 && (
               <>
@@ -666,14 +668,76 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const { railStrategyNotices, tramNotices } = useMemo(() => {
     const rail: LocalNoticeItem[] = [];
     const tram: LocalNoticeItem[] = [];
+    const railKeywords = [
+      '철도', '트램', 'gtx', '인동선', '동인선', '동탄인덕원',
+      'srt', '분당선', '솔빛나루', '환승센터', '광역철도', '복선전철', '복선절철'
+    ];
+    const westernNonDongtanKeywords = ['신안산선', '인천발', '봉담', '향남', '어천'];
+    const dongtanCoreRailKeywords = ['동탄', '솔빛나루', '인덕원', '동인선', '분당선', 'gtx-a', 'srt'];
+
     localNotices.forEach((item) => {
-      const t = (item.title || '') + (item.dept || '');
-      if (t.includes('트램') || item.source === 'culture') {
+      const id = item.id || '';
+      const title = item.title || '';
+      const dept = item.dept || '';
+      const titleLower = title.toLowerCase();
+      const deptLower = dept.toLowerCase();
+
+      // Exclude culture events and synthetic AI reports from railway board
+      if (
+        item.source === 'culture' ||
+        id.startsWith('culture_') ||
+        id.startsWith('ai_report') ||
+        title.startsWith('[AI') ||
+        dept.includes('AI 데이터 랩')
+      ) {
+        return;
+      }
+
+      const isRailSource =
+        item.source === 'rail' ||
+        id.startsWith('rail_') ||
+        id.includes('1131') ||
+        id.includes('1154') ||
+        deptLower.includes('철도') ||
+        deptLower.includes('트램') ||
+        deptLower.includes('추진단') ||
+        railKeywords.some((kw) => titleLower.includes(kw));
+
+      if (!isRailSource) return;
+
+      // Exclude non-Dongtan western Hwaseong railway projects unless Dongtan is explicitly mentioned
+      if (
+        !titleLower.includes('동탄') &&
+        westernNonDongtanKeywords.some((kw) => titleLower.includes(kw))
+      ) {
+        return;
+      }
+
+      const isTram =
+        id.includes('1154') ||
+        deptLower.includes('트램') ||
+        deptLower.includes('추진단') ||
+        titleLower.includes('트램');
+
+      if (isTram) {
         tram.push(item);
       } else {
         rail.push(item);
       }
     });
+
+    const sortRailItems = (a: LocalNoticeItem, b: LocalNoticeItem) => {
+      const dateCompare = (b.date || '').localeCompare(a.date || '');
+      if (dateCompare !== 0) return dateCompare;
+      const aCore = dongtanCoreRailKeywords.some((kw) => (a.title || '').toLowerCase().includes(kw)) ? 1 : 0;
+      const bCore = dongtanCoreRailKeywords.some((kw) => (b.title || '').toLowerCase().includes(kw)) ? 1 : 0;
+      if (bCore !== aCore) return bCore - aCore;
+      return (b.id || '').localeCompare(a.id || '', undefined, { numeric: true });
+    };
+
+    rail.sort(sortRailItems);
+    tram.sort(sortRailItems);
+
     return { railStrategyNotices: rail, tramNotices: tram };
   }, [localNotices]);
 

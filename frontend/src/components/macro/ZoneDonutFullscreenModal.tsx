@@ -493,6 +493,81 @@ export interface ZoneDonutFullscreenModalProps {
 const DEFAULT_ZONE_PREVIEW_LIMIT = 12;
 const DEFAULT_SINGLE_STREAM_LIMIT = 40;
 
+interface FullscreenDonutPieCanvasProps {
+  totalCount: number;
+  pieRenderData: AptDonutDataItem[];
+  onSliceMouseEnter: (data: unknown, index: number) => void;
+  onSliceMouseLeave: () => void;
+  onSliceClick: (entry: { category?: string; name?: string }) => void;
+}
+
+const FullscreenDonutPieCanvas = React.memo(function FullscreenDonutPieCanvas({
+  totalCount,
+  pieRenderData,
+  onSliceMouseEnter,
+  onSliceMouseLeave,
+  onSliceClick,
+}: FullscreenDonutPieCanvasProps) {
+  return (
+    <ResponsiveContainer
+      width="100%"
+      height="100%"
+      minWidth={0}
+      minHeight={0}
+      initialDimension={{ width: 228, height: 228 }}
+    >
+      <PieChart>
+        {totalCount === 0 ? (
+          <Pie
+            data={[{ value: 1 }]}
+            cx="50%"
+            cy="50%"
+            innerRadius="68%"
+            outerRadius="96%"
+            dataKey="value"
+            stroke="transparent"
+            rootTabIndex={-1}
+            isAnimationActive={false}
+          >
+            <Cell
+              className="fill-slate-200 dark:fill-slate-800"
+              fill="currentColor"
+            />
+          </Pie>
+        ) : (
+          <Pie
+            data={pieRenderData}
+            cx="50%"
+            cy="50%"
+            innerRadius="68%"
+            outerRadius="96%"
+            paddingAngle={2.5}
+            dataKey="value"
+            rootTabIndex={-1}
+            onMouseEnter={onSliceMouseEnter}
+            onMouseLeave={onSliceMouseLeave}
+            onClick={onSliceClick}
+            cursor="pointer"
+            isAnimationActive={false}
+          >
+            {pieRenderData.map((entry) => (
+              <Cell
+                key={entry.category}
+                fill={entry.color}
+                opacity={1}
+                stroke="transparent"
+                strokeWidth={0}
+                className="transition-all duration-200 outline-none cursor-pointer"
+              />
+            ))}
+          </Pie>
+        )}
+        <Tooltip content={() => null} />
+      </PieChart>
+    </ResponsiveContainer>
+  );
+});
+
 export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenModal({
   isOpen,
   onClose,
@@ -667,6 +742,84 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
     return null;
   }, [activeZoneMeta, hoveredZoneKey, zoneSlices]);
 
+  const fullscreenChartBoxRef = useRef<HTMLDivElement | null>(null);
+  const fullscreenTouchTimeRef = useRef<number>(0);
+
+  const canUseFullscreenHover = useCallback(() => {
+    if (Date.now() - fullscreenTouchTimeRef.current < 600) return false;
+    if (typeof window !== 'undefined' && typeof window.matchMedia === 'function') {
+      try {
+        if (window.matchMedia('(hover: none)').matches) return false;
+      } catch {
+        // Ignore matchMedia errors
+      }
+    }
+    return true;
+  }, []);
+
+  const fullscreenSliceHandlersRef = useRef({
+    selectedZoneKey,
+    pieRenderData,
+    zoneSlices,
+    handleSelectZone,
+    canUseFullscreenHover,
+  });
+  fullscreenSliceHandlersRef.current = {
+    selectedZoneKey,
+    pieRenderData,
+    zoneSlices,
+    handleSelectZone,
+    canUseFullscreenHover,
+  };
+
+  const handleFullscreenSliceEnter = useCallback((_data: unknown, index: number) => {
+    const {
+      selectedZoneKey: curZone,
+      pieRenderData: curPieData,
+      canUseFullscreenHover: checkHover,
+    } = fullscreenSliceHandlersRef.current;
+    if (curZone !== 'all' || !checkHover()) return;
+    const entry = curPieData[index];
+    if (entry) {
+      setHoveredZoneKey((prev) => (prev === entry.category ? prev : entry.category));
+    }
+  }, []);
+
+  const handleFullscreenSliceLeave = useCallback(() => {
+    setHoveredZoneKey((prev) => (prev === null ? prev : null));
+  }, []);
+
+  const handleFullscreenSliceClick = useCallback((entry: { category?: string; name?: string }) => {
+    const { zoneSlices: curZones, handleSelectZone: selectZone } = fullscreenSliceHandlersRef.current;
+    const matched = curZones.find(
+      (z) => z.category === entry?.category || z.name === entry?.name
+    );
+    if (matched) {
+      selectZone(matched.category);
+    }
+  }, []);
+
+  useEffect(() => {
+    const box = fullscreenChartBoxRef.current;
+    if (!box) return;
+    const paths = box.querySelectorAll<SVGElement>('.recharts-sector, [data-testid="pie-cell"]');
+    paths.forEach((pathEl, idx) => {
+      const entry = pieRenderData[idx];
+      if (!entry) return;
+      const isSelected = selectedZoneKey === entry.category;
+      const isHover = selectedZoneKey === 'all' && hoveredZoneKey === entry.category;
+      const isHighlighted =
+        (selectedZoneKey === 'all' && hoveredZoneKey === null) || isSelected || isHover;
+      const targetOpacity = isHighlighted ? '1' : '0.3';
+      const targetStroke = isSelected || isHover ? '#ffffff' : 'transparent';
+      const targetStrokeWidth = isSelected || isHover ? '2.5' : '0';
+      pathEl.setAttribute('opacity', targetOpacity);
+      pathEl.style.opacity = targetOpacity;
+      pathEl.setAttribute('stroke', targetStroke);
+      pathEl.setAttribute('stroke-width', targetStrokeWidth);
+    });
+  }, [selectedZoneKey, hoveredZoneKey, pieRenderData, totalCount, isOpen]);
+
   // Unified chronological stream across all zones (when groupingMode === 'unified_time' or single zone selected)
   const unifiedChronoStream = useMemo<EnrichedZoneItem[]>(() => {
     const sourceZones =
@@ -765,93 +918,29 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
         className="flex-1 min-h-0 w-full grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden"
       >
         {/* ─── Left Column: Enlarged Interactive Donut & 6-Zone Breakdown Matrix ─── */}
-        <aside className="lg:col-span-5 xl:col-span-4 border-b lg:border-b-0 lg:border-r border-border bg-surface p-4 sm:p-6 flex flex-col gap-5 lg:overflow-y-auto">
+        <aside
+          onTouchStartCapture={() => {
+            fullscreenTouchTimeRef.current = Date.now();
+          }}
+          className="lg:col-span-5 xl:col-span-4 border-b lg:border-b-0 lg:border-r border-border bg-surface p-4 sm:p-6 flex flex-col gap-5 lg:overflow-y-auto"
+        >
           {/* Enlarged Interactive Donut Stage */}
           <div className="w-full flex flex-col items-center justify-center py-1">
             <div
+              ref={fullscreenChartBoxRef}
               data-testid="fullscreen-donut-box"
+              onMouseLeave={handleFullscreenSliceLeave}
               className={`relative w-[228px] h-[228px] sm:w-[272px] sm:h-[272px] xl:w-[292px] xl:h-[292px] flex items-center justify-center transition-opacity duration-200 ${
                 isPeriodLoading ? 'opacity-50' : 'opacity-100'
               }`}
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  {totalCount === 0 ? (
-                    <Pie
-                      data={[{ value: 1 }]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="68%"
-                      outerRadius="96%"
-                      dataKey="value"
-                      stroke="transparent"
-                      rootTabIndex={-1}
-                      isAnimationActive={false}
-                    >
-                      <Cell
-                        className="fill-slate-200 dark:fill-slate-800"
-                        fill="currentColor"
-                      />
-                    </Pie>
-                  ) : (
-                    <Pie
-                      data={pieRenderData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius="68%"
-                      outerRadius="96%"
-                      paddingAngle={2.5}
-                      dataKey="value"
-                      rootTabIndex={-1}
-                      onMouseEnter={(_data: unknown, index: number) => {
-                        if (selectedZoneKey !== 'all') return;
-                        const entry = pieRenderData[index];
-                        if (entry) {
-                          setHoveredZoneKey((prev) =>
-                            prev === entry.category ? prev : entry.category
-                          );
-                        }
-                      }}
-                      onMouseLeave={() =>
-                        setHoveredZoneKey((prev) => (prev === null ? prev : null))
-                      }
-                      onClick={(entry: { category?: string; name?: string }) => {
-                        const matched = zoneSlices.find(
-                          (z) =>
-                            z.category === entry?.category || z.name === entry?.name
-                        );
-                        if (matched) {
-                          handleSelectZone(matched.category);
-                        }
-                      }}
-                      cursor="pointer"
-                      isAnimationActive={false}
-                    >
-                      {pieRenderData.map((entry) => {
-                        const isSelected = selectedZoneKey === entry.category;
-                        const isHover =
-                          selectedZoneKey === 'all' &&
-                          hoveredZoneKey === entry.category;
-                        const isHighlighted =
-                          (selectedZoneKey === 'all' && hoveredZoneKey === null) ||
-                          isSelected ||
-                          isHover;
-                        return (
-                          <Cell
-                            key={entry.category}
-                            fill={entry.color}
-                            opacity={isHighlighted ? 1 : 0.3}
-                            stroke={isSelected || isHover ? '#ffffff' : 'transparent'}
-                            strokeWidth={isSelected || isHover ? 2.5 : 0}
-                            className="transition-all duration-200 outline-none cursor-pointer"
-                          />
-                        );
-                      })}
-                    </Pie>
-                  )}
-                  <Tooltip content={() => null} />
-                </PieChart>
-              </ResponsiveContainer>
+              <FullscreenDonutPieCanvas
+                totalCount={totalCount}
+                pieRenderData={pieRenderData}
+                onSliceMouseEnter={handleFullscreenSliceEnter}
+                onSliceMouseLeave={handleFullscreenSliceLeave}
+                onSliceClick={handleFullscreenSliceClick}
+              />
 
               {/* Enlarged Center HUD */}
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none px-4">

@@ -281,7 +281,7 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
       notices.sort((a: NoticeData, b: NoticeData) => {
         const dateCompare = b.date.localeCompare(a.date);
         if (dateCompare !== 0) return dateCompare;
-        return b.id.localeCompare(a.id);
+        return b.id.localeCompare(a.id, undefined, { numeric: true });
       });
     } else {
       notices.sort((a: NoticeData, b: NoticeData) => {
@@ -289,7 +289,7 @@ export async function getLocalNotices(filterDongtan: boolean = true): Promise<Lo
         if (!a.isDongtan && b.isDongtan) return 1;
         const dateCompare = b.date.localeCompare(a.date);
         if (dateCompare !== 0) return dateCompare;
-        return b.id.localeCompare(a.id);
+        return b.id.localeCompare(a.id, undefined, { numeric: true });
       });
     }
 

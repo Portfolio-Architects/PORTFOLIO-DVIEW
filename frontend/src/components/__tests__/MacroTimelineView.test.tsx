@@ -441,7 +441,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
     });
 
-    it('toggles all date groups when "모두 접기" and "모두 펼치기" is clicked', () => {
+    it('omits top-level "모두 접기" button to keep header compact while allowing per-date accordion toggle', () => {
       render(
         <MacroTimelineView
           timelineGroups={sampleGroups}
@@ -450,20 +450,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const collapseAllBtn = screen.getByTestId('timeline-collapse-all-btn');
-      expect(collapseAllBtn).toHaveTextContent('모두 접기');
-
-      // Click "모두 접기" -> all groups collapse
-      fireEvent.click(collapseAllBtn);
-
-      expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
-      expect(screen.queryByTestId('timeline-card-동탄린스트라우스 더레이크')).not.toBeInTheDocument();
-      expect(collapseAllBtn).toHaveTextContent('모두 펼치기');
-
-      // Click "모두 펼치기" -> all groups expand
-      fireEvent.click(collapseAllBtn);
-      expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
-      expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-collapse-all-btn')).not.toBeInTheDocument();
     });
 
     it('auto-uncollapses date group when an apartment in it is selected', () => {
@@ -762,7 +749,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
   });
 
   describe('12. Quick Date Jump Navigator & Date Filtering', () => {
-    it('renders date jump pills when multiple date groups exist, filters by selected date, auto-uncollapses target date, and resets when filter changes', () => {
+    it('filters by selected date via dropdown (without redundant date jump pill bar), auto-uncollapses target date, and resets when filter changes', () => {
       const { rerender } = render(
         <MacroTimelineView
           timelineGroups={sampleGroups}
@@ -772,13 +759,9 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const jumpBar = screen.getByTestId('timeline-date-jump-bar');
-      expect(jumpBar).toBeInTheDocument();
-
-      const allDatesBtn = screen.getByTestId('timeline-date-jump-all');
-      const datePill2 = screen.getByTestId('timeline-date-jump-pill-2026.08.20 (수)');
-
-      expect(allDatesBtn).toHaveAttribute('aria-pressed', 'true');
+      expect(screen.queryByTestId('timeline-date-jump-bar')).not.toBeInTheDocument();
+      const dateSelect = screen.getByTestId('timeline-date-select') as HTMLSelectElement;
+      expect(dateSelect.value).toBe('');
       expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
       expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
 
@@ -786,9 +769,9 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       fireEvent.click(screen.getByTestId('timeline-date-header-2026.08.20 (수)'));
       expect(screen.queryByTestId('timeline-card-동탄린스트라우스 더레이크')).not.toBeInTheDocument();
 
-      // Click datePill2 to isolate 2026.08.20 (수) -> should also auto-uncollapse it!
-      fireEvent.click(datePill2);
-      expect(datePill2).toHaveAttribute('aria-pressed', 'true');
+      // Select 2026.08.20 (수) in dropdown to isolate 2026.08.20 (수) -> should also auto-uncollapse it!
+      fireEvent.change(dateSelect, { target: { value: '2026.08.20 (수)' } });
+      expect(dateSelect.value).toBe('2026.08.20 (수)');
       expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
       expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
 
@@ -801,7 +784,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
           quickFilter="high"
         />
       );
-      expect(screen.getByTestId('timeline-date-jump-all')).toHaveAttribute('aria-pressed', 'true');
+      expect(dateSelect.value).toBe('');
       expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
 
       // Verify new high count badge on date header
@@ -829,7 +812,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       expect(setVisibleTimelineCountMock).toHaveBeenCalledWith(30);
     });
 
-    it('prevents pagination slicing bias in KPI summary and date jump navigator when fullTimelineData is provided', () => {
+    it('prevents pagination slicing bias in KPI summary and date selector dropdown when fullTimelineData is provided', () => {
       const slicedDay1Only: TimelineGroup[] = [
         {
           dateStr: '2026.08.21 (목)',
@@ -867,16 +850,14 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       // 4. Date header shows totalCount (5건) instead of sliced items.length (1건)
       expect(screen.getByText('총 5건 거래')).toBeInTheDocument();
 
-      // 5. Date jump bar is visible even though displayedTimelineData has length 1, because fullTimelineData has 2 dates
-      const jumpBar = screen.getByTestId('timeline-date-jump-bar');
-      expect(jumpBar).toBeInTheDocument();
-      expect(screen.getByTestId('timeline-date-jump-all')).toHaveTextContent('모든 날짜 (2일)');
+      // 5. Date dropdown includes all dates from fullTimelineData even though displayedTimelineData has length 1
+      expect(screen.queryByTestId('timeline-date-jump-bar')).not.toBeInTheDocument();
+      const dateSelect = screen.getByTestId('timeline-date-select') as HTMLSelectElement;
+      expect(dateSelect).toHaveTextContent('모든 날짜 (2일)');
 
-      // 6. Clicking Day 2 pill (outside initial pagination slice) renders Day 2 items from fullTimelineData
-      const day2Pill = screen.getByTestId('timeline-date-jump-pill-2026.08.20 (수)');
-      fireEvent.click(day2Pill);
+      // 6. Selecting Day 2 (outside initial pagination slice) renders Day 2 items from fullTimelineData
+      fireEvent.change(dateSelect, { target: { value: '2026.08.20 (수)' } });
       expect(screen.getByTestId('timeline-card-동탄린스트라우스 더레이크')).toBeInTheDocument();
-      // KPI bar updates to Day 2 average: (15.0 + 18.2) / 2 = 16.6억
       expect(screen.queryByTestId('timeline-summary-kpi-bar')).not.toBeInTheDocument();
     });
   });

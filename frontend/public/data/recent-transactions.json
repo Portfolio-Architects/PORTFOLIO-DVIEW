@@ -6702,10 +6702,10 @@
     "floor": 14,
     "dealType": "중개거래",
     "isNewHigh": true,
-    "newHighDelta": 1.3,
-    "prevPriceVal": 5.8,
-    "delta": 1.7,
-    "deltaPercent": 29.3,
+    "newHighDelta": 1.25,
+    "prevPriceVal": 5.4,
+    "delta": 2.1,
+    "deltaPercent": 38.9,
     "dateLabel": "9월 29일"
   },
   {
@@ -7346,9 +7346,9 @@
     "dealType": "중개거래",
     "isNewHigh": true,
     "newHighDelta": 1.4,
-    "prevPriceVal": 9.3,
-    "delta": 2.9,
-    "deltaPercent": 31.2,
+    "prevPriceVal": 10.18,
+    "delta": 2.02,
+    "deltaPercent": 19.8,
     "dateLabel": "9월 22일"
   },
   {
@@ -7542,7 +7542,7 @@
     "floor": 6,
     "dealType": "중개거래",
     "isNewHigh": true,
-    "newHighDelta": 2.3,
+    "newHighDelta": 1.67,
     "prevPriceVal": 6.5,
     "delta": 2.3,
     "deltaPercent": 35.4,
@@ -8920,7 +8920,7 @@
     "floor": 12,
     "dealType": "중개거래",
     "isNewHigh": true,
-    "newHighDelta": 1,
+    "newHighDelta": 0.9,
     "prevPriceVal": 5.75,
     "delta": 1.85,
     "deltaPercent": 32.2,
@@ -9384,10 +9384,10 @@
     "floor": 26,
     "dealType": "중개거래",
     "isNewHigh": true,
-    "newHighDelta": 2.7,
-    "prevPriceVal": 10.8,
-    "delta": 3.5,
-    "deltaPercent": 32.4,
+    "newHighDelta": 1.35,
+    "prevPriceVal": 12.95,
+    "delta": 1.35,
+    "deltaPercent": 10.4,
     "dateLabel": "9월 14일"
   },
   {
@@ -11816,9 +11816,9 @@
     "dealType": "중개거래",
     "isNewHigh": true,
     "newHighDelta": 1.82,
-    "prevPriceVal": 6.35,
-    "delta": 2.15,
-    "deltaPercent": 33.9,
+    "prevPriceVal": 6.18,
+    "delta": 2.32,
+    "deltaPercent": 37.5,
     "dateLabel": "8월 27일"
   },
   {
@@ -12067,10 +12067,10 @@
     "floor": 3,
     "dealType": "중개거래",
     "isNewHigh": true,
-    "newHighDelta": 2.9,
-    "prevPriceVal": 9.9,
-    "delta": 3.1,
-    "deltaPercent": 31.3,
+    "newHighDelta": 2.13,
+    "prevPriceVal": 10.87,
+    "delta": 2.13,
+    "deltaPercent": 19.6,
     "dateLabel": "8월 24일"
   },
   {
@@ -12395,9 +12395,11 @@
     "areaPyeong": 24.1,
     "floor": 8,
     "dealType": "중개거래",
-    "isNewHigh": false,
-    "delta": 0,
-    "deltaPercent": 0,
+    "isNewHigh": true,
+    "newHighDelta": 0.55,
+    "prevPriceVal": 4.8,
+    "delta": 0.55,
+    "deltaPercent": 11.5,
     "dateLabel": "8월 19일"
   },
   {
@@ -12434,9 +12436,9 @@
     "floor": 1,
     "dealType": "중개거래",
     "isNewHigh": false,
-    "prevPriceVal": 6.1,
-    "delta": -0.4,
-    "deltaPercent": -6.6,
+    "prevPriceVal": 6.35,
+    "delta": -0.65,
+    "deltaPercent": -10.2,
     "dateLabel": "8월 18일"
   },
   {
@@ -13032,10 +13034,10 @@
     "floor": 2,
     "dealType": "중개거래",
     "isNewHigh": true,
-    "newHighDelta": 0.95,
-    "prevPriceVal": 7,
-    "delta": 1.3,
-    "deltaPercent": 18.6,
+    "newHighDelta": 0.8,
+    "prevPriceVal": 7.47,
+    "delta": 0.83,
+    "deltaPercent": 11.1,
     "dateLabel": "8월 13일"
   },
   {
