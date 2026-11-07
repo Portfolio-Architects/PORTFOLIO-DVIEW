@@ -145,9 +145,46 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
     }
   };
 
+  const resolveCanonicalOfficeJisanSlug = (name: string): string => {
+    const trimmed = (name || '').trim();
+    const compact = trimmed.toLowerCase().replace(/[\s-]+/g, '');
+    const canonicalAliasSlugMap: Record<string, string> = {
+      '금강펜테리움ix타워': '동탄금강펜테리움-IX타워',
+      '동탄금강펜테리움ix타워': '동탄금강펜테리움-IX타워',
+      '금강ix타워': '동탄금강펜테리움-IX타워',
+      '동탄skv1': '동탄-SK-V1-center',
+      '동탄skv1center': '동탄-SK-V1-center',
+      'skv1': '동탄-SK-V1-center',
+      'skv1center': '동탄-SK-V1-center',
+      '동탄비즈타워': '동탄비즈타워',
+      '비즈타워': '동탄비즈타워',
+      '동탄it타워': '동탄IT타워',
+      'it타워': '동탄IT타워',
+      '듀캐슬타워동탄': '듀캐슬타워동탄',
+      '동탄듀캐슬타워': '듀캐슬타워동탄',
+      '동탄더퍼스트타워': '더퍼스트타워',
+      '더퍼스트타워': '더퍼스트타워',
+      '동탄에이팩시티': '에이팩시티',
+      '에이팩시티': '에이팩시티',
+      'sh타임스퀘어': 'SH-TIME-SQUARE-1',
+      'shtimesquare': 'SH-TIME-SQUARE-1',
+      'shtimesquare1': 'SH-TIME-SQUARE-1',
+      '동탄메가비즈타워': '동탄역-메가비즈타워-A동',
+      '동탄메가비즈타워a동': '동탄역-메가비즈타워-A동',
+      '동탄메가비즈타워b동': '동탄역-메가비즈타워-B동',
+      '동탄메가비즈타워c동': '동탄역-메가비즈타워-C동',
+      '현대실리콘앨리': '현대-실리콘앨리-동탄',
+      '현대실리콘앨리동탄': '현대-실리콘앨리-동탄',
+      '동탄우미뉴브': '우미-뉴브',
+      '우미뉴브': '우미-뉴브',
+    };
+    return canonicalAliasSlugMap[compact] || trimmed.replace(/\s+/g, '-');
+  };
+
   const handleShare = async () => {
     if (!building) return;
-    const shareUrl = `${window.location.origin}/technovalley#building=${encodeURIComponent(building.name)}`;
+    const slug = resolveCanonicalOfficeJisanSlug(building.name);
+    const shareUrl = `${window.location.origin}/technovalley/${encodeURIComponent(slug)}`;
     if (navigator.clipboard) {
       await navigator.clipboard.writeText(shareUrl);
       showToast('빌딩 상세 리포트 링크가 클립보드에 복사되었습니다.');

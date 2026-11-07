@@ -98,19 +98,14 @@ test.describe('SWR Preloading and Duplicate Fetch Audit', () => {
     expect(versionlessRequests.length).toBe(0);
   });
 
-  test('Verify apartments-by-dong is removed from preloading targets array in SWRProvider.tsx', async () => {
+  test('Verify unconditional background API preloading and apartments-by-dong are removed from SWRProvider.tsx', async () => {
     const swrProviderPath = path.resolve(__dirname, '../src/components/pwa/SWRProvider.tsx');
     const content = fs.readFileSync(swrProviderPath, 'utf8');
-    
-    // We search for the targets array definition in SWRProvider.tsx
-    const targetsMatch = content.match(/const\s+targets\s*=\s*\[([\s\S]*?)\];/);
-    expect(targetsMatch).not.toBeNull();
-    
-    const targetsContent = targetsMatch![1];
-    console.log('Targets content in SWRProvider:', targetsContent);
-    
-    // Verify that apartments-by-dong is not in the preload targets array
-    expect(targetsContent).not.toContain('apartments-by-dong');
+
+    // Verify that unconditional idle-time background preloading was removed to prevent serverless CPU spikes
+    expect(content).not.toContain('preloadEssentialData');
+    expect(content).not.toContain('safePreloadTarget');
+    expect(content).not.toContain('/api/apartments-by-dong?');
   });
 
   test('Adversarial: Verify route mismatches in NewsClient.tsx statically', async () => {

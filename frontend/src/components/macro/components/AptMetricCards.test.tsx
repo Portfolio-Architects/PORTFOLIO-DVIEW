@@ -408,4 +408,101 @@ describe('AptMetricCards Test Suite', () => {
       expect(priceEl.className).toContain('shrink-0');
     });
   });
+
+  describe('Hyperlocal Insights 2x2 KPI Mode', () => {
+    const mockInsights = {
+      newHighComplex: {
+        aptKey: 'yeoul_lotte',
+        aptName: '동탄역롯데캐슬',
+        dong: '여울동',
+        region: 'DONGTAN2',
+        highestPrice: 262000,
+        highestPyeongPrice: 6276,
+        avgPyeongPrice: 6100,
+        avgPrice: 250000,
+        txCount: 8,
+        highestArea: 103,
+        highestAreaPyeong: 42,
+        highestFloor: 37,
+        highestContractDate: '20260828',
+      },
+      optimalGapComplex: {
+        aptKey: 'yeoul_lotte',
+        aptName: '동탄역롯데캐슬',
+        dong: '여울동',
+        region: 'DONGTAN2',
+        maxPyeongPrice: 6276,
+        maxPyeongTxPrice: 262000,
+        maxPyeongArea: 103,
+        maxPyeongAreaPyeong: 42,
+        maxPyeongFloor: 37,
+        maxPyeongContractDate: '20260828',
+        highestPrice: 262000,
+        avgPyeongPrice: 6100,
+        avgPrice: 250000,
+        txCount: 8,
+      },
+      volumeSurgeComplex: {
+        aptKey: 'song_hausd',
+        aptName: '동탄2하우스디더레이크',
+        dong: '송동',
+        region: 'DONGTAN2',
+        txCount: 22,
+        avgPyeongPrice: 3733,
+        avgPrice: 120000,
+        highestPrice: 135000,
+      },
+      urgentBargainComplex: {
+        aptKey: 'mok_epyeonhan',
+        aptName: '이편한세상동탄',
+        dong: '목동',
+        region: 'DONGTAN2',
+        highestPrice: 83000,
+        urgentSaleDiscountRate: 26.4,
+        avgPyeongPrice: 2100,
+        avgPrice: 61000,
+        txCount: 5,
+      },
+    };
+
+    it('renders the 4 hyperlocal insight cards in the 2x2 KPI grid when insights prop is provided', () => {
+      const mockSelectComplex = jest.fn();
+
+      const { container } = render(
+        <AptMetricCards
+          insights={mockInsights as any}
+          onSelectComplex={mockSelectComplex}
+        />
+      );
+
+      const grid = container.firstElementChild as HTMLElement;
+      expect(grid.className).toContain('grid-cols-2');
+      expect(grid.className).toContain('grid-rows-2');
+      expect(grid.className).toContain('h-[148px]');
+      expect(grid.className).toContain('lg:h-[152px]');
+
+      const newHighCard = screen.getByTestId('insight-card-new-high');
+      const optimalGapCard = screen.getByTestId('insight-card-optimal-gap');
+      const volumeSurgeCard = screen.getByTestId('insight-card-volume-surge');
+      const urgentBargainCard = screen.getByTestId('insight-card-urgent-bargain');
+
+      expect(newHighCard).toHaveTextContent('최고 거래가');
+      expect(newHighCard).toHaveTextContent('동탄역롯데캐슬');
+      expect(newHighCard).toHaveTextContent('26억2,000');
+
+      expect(optimalGapCard).toHaveTextContent('최고 평당가');
+      expect(optimalGapCard).toHaveTextContent('평당 6,276만원');
+
+      expect(volumeSurgeCard).toHaveTextContent('거래량 급증');
+      expect(volumeSurgeCard).toHaveTextContent('동탄2하우스디더레이크');
+      expect(volumeSurgeCard).toHaveTextContent('22건');
+
+      expect(urgentBargainCard).toHaveTextContent('낙폭과대 급매');
+      expect(urgentBargainCard).toHaveTextContent('이편한세상동탄');
+      expect(urgentBargainCard).toHaveTextContent('-26.4%');
+
+      fireEvent.click(newHighCard);
+      expect(mockSelectComplex).toHaveBeenCalledWith('yeoul_lotte', '동탄역롯데캐슬');
+    });
+  });
 });

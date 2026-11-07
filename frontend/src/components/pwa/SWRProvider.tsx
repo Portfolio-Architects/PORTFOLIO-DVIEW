@@ -1,7 +1,7 @@
 'use client';
 
 import React, { ReactNode, useEffect, useRef, useCallback } from 'react';
-import { SWRConfig, preload, useSWRConfig } from 'swr';
+import { SWRConfig, useSWRConfig } from 'swr';
 import { useNetworkStatus } from '@/lib/hooks/useNetworkStatus';
 import { retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { logger } from '@/lib/services/logger';
@@ -44,60 +44,9 @@ function SWRReconnectSyncManager({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-// Safe background preloader that only populates SWR preload cache on verified HTTP 200 JSON responses
-const safePreloadTarget = async (url: string): Promise<void> => {
-  try {
-    const res = await fetch(url);
-    const contentType = res.headers.get('content-type') || '';
-    if (!res.ok || !contentType.includes('application/json')) {
-      logger.warn('SWRProvider.preload', `Failed to background preload target: ${url}`, {
-        error: !res.ok ? `HTTP ${res.status}` : `Invalid content-type: ${contentType || 'unknown'}`
-      });
-      return;
-    }
-    const data = await res.json();
-    preload(url, () => Promise.resolve(data));
-  } catch (err) {
-    logger.warn('SWRProvider.preload', `Failed to background preload target: ${url}`, {
-      error: String(err)
-    });
-  }
-};
-
 const SWRProvider = React.memo(function SWRProvider({ children }: { children: ReactNode }) {
   const isOnline = useNetworkStatus();
   const cacheRef = useRef<Map<any, any> | null>(null);
-
-  useEffect(() => {
-    if (!isOnline || typeof window === 'undefined') return;
-
-    const preloadEssentialData = () => {
-      logger.info('SWRProvider.preload', 'Starting idle-time background preloading of critical static assets');
-      
-      const targets = [
-        `/data/location-scores.json?v=${BUILD_VERSION}`,
-        '/api/local-notices?dongtan=true',
-        '/api/dashboard-init',
-        '/api/macro/rates',
-        '/api/macro/news?limit=40'
-      ];
-
-      targets.forEach(url => {
-        void safePreloadTarget(url);
-      });
-    };
-
-    // requestIdleCallback is highly supported in modern browsers for non-blocking preloading
-    if ('requestIdleCallback' in window) {
-      const idleId = window.requestIdleCallback(() => {
-        preloadEssentialData();
-      }, { timeout: 3000 }); // Fallback timeout if browser remains busy
-      return () => window.cancelIdleCallback(idleId);
-    } else {
-      const timeoutId = setTimeout(preloadEssentialData, 1500);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [isOnline]);
 
   const getCache = useCallback(() => {
     if (typeof window === 'undefined') return new Map();

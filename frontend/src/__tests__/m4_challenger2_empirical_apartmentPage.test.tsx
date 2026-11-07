@@ -980,6 +980,15 @@ describe('Milestone 4 Challenger 2: Empirical Apartment Page & Service Challenge
         // Scenario 7: Redeploy / Deploy Hook on same SHA (VERCEL_GIT_PREVIOUS_SHA === HEAD) when HEAD tip commit only modified root data/
         const shaRootTip = runGit(['rev-parse', 'HEAD']).stdout.trim();
         expect(runIgnoreCmd({ VERCEL_GIT_PREVIOUS_SHA: shaRootTip }).status).toBe(1);
+
+        // Scenario 8: Test-only commit inside frontend/ (*.test.*, *.spec.*) -> exit 0 (skip build)
+        const testSubDir = path.join(frontendDir, 'src', '__tests__');
+        fs.mkdirSync(testSubDir, { recursive: true });
+        fs.writeFileSync(path.join(testSubDir, 'unit.test.tsx'), 'test');
+        fs.writeFileSync(path.join(frontendDir, 'e2e.spec.ts'), 'spec');
+        runGit(['add', '-A']);
+        runGit(['commit', '-m', 'test: update unit and e2e specs only']);
+        expect(runIgnoreCmd().status).toBe(0);
       } finally {
         fs.rmSync(tmpRepo, { recursive: true, force: true });
       }

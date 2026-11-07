@@ -16,14 +16,14 @@ import { sendTelemetry } from '@/lib/ads/cascadeFallback';
 export interface GuideAptPreviewCardProps {
   item: GuideAptMiniPreviewItem;
   guideSlug: string;
-  placement: 'zone_section' | 'article_bottom';
+  placement: 'article_top' | 'zone_section' | 'article_bottom';
   sectionTitle?: string;
 }
 
 export function recordGuideAptPreviewClick(params: {
   item: GuideAptMiniPreviewItem;
   guideSlug: string;
-  placement: 'zone_section' | 'article_bottom';
+  placement: 'article_top' | 'zone_section' | 'article_bottom';
   sectionTitle?: string;
   suppressVirtualPageView?: boolean;
 }): void {

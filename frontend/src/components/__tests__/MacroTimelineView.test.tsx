@@ -853,7 +853,8 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
       // 5. Date dropdown includes all dates from fullTimelineData even though displayedTimelineData has length 1
       expect(screen.queryByTestId('timeline-date-jump-bar')).not.toBeInTheDocument();
       const dateSelect = screen.getByTestId('timeline-date-select') as HTMLSelectElement;
-      expect(dateSelect).toHaveTextContent('모든 날짜 (2일)');
+      expect(dateSelect).toHaveTextContent('전체 날짜');
+      expect(dateSelect.options).toHaveLength(3);
 
       // 6. Selecting Day 2 (outside initial pagination slice) renders Day 2 items from fullTimelineData
       fireEvent.change(dateSelect, { target: { value: '2026.08.20 (수)' } });

@@ -56,14 +56,14 @@ describe('SWRProvider Offline Resilience', () => {
     expect(screen.getByTestId('refreshInterval').textContent).toBe('paused');
   });
 
-  it('catches asynchronous preload rejections without throwing unhandled rejection', async () => {
+  it('does not trigger background API preloading on mount to conserve serverless CPU', async () => {
     jest.useFakeTimers();
     (useNetworkStatus as jest.Mock).mockReturnValue(true);
 
     const originalFetch = global.fetch;
     global.fetch = jest.fn().mockResolvedValue({
-      ok: false,
-      status: 404,
+      ok: true,
+      status: 200,
       json: async () => ({})
     }) as unknown as typeof fetch;
 
@@ -73,11 +73,10 @@ describe('SWRProvider Offline Resilience', () => {
       </SWRProvider>
     );
 
-    jest.advanceTimersByTime(2000);
-    await Promise.resolve();
+    jest.advanceTimersByTime(5000);
     await Promise.resolve();
 
-    expect(global.fetch).toHaveBeenCalledWith('/api/macro/news?limit=40');
+    expect(global.fetch).not.toHaveBeenCalled();
 
     global.fetch = originalFetch;
     jest.useRealTimers();

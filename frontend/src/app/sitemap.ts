@@ -12,9 +12,46 @@ import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export const revalidate = 3600; // Revalidate sitemap every hour
 
+export function parseSitemapDate(
+  raw: string | undefined | null,
+  fallback: Date,
+  nowDate: Date = new Date()
+): Date {
+  if (!raw) return fallback;
+  const trimmed = String(raw).trim();
+  if (!trimmed) return fallback;
+
+  if (/^\d{4}[-./]?\d{2}[-./]?\d{2}$/.test(trimmed)) {
+    const digits = trimmed.replace(/\D/g, '');
+    const y = parseInt(digits.substring(0, 4), 10);
+    const m = parseInt(digits.substring(4, 6), 10) - 1;
+    const d = parseInt(digits.substring(6, 8), 10);
+    if (!isNaN(y) && !isNaN(m) && !isNaN(d) && m >= 0 && m <= 11 && d >= 1 && d <= 31) {
+      const parsed = new Date(Date.UTC(y, m, d));
+      if (
+        !isNaN(parsed.getTime()) &&
+        parsed.getUTCFullYear() === y &&
+        parsed.getUTCMonth() === m &&
+        parsed.getUTCDate() === d &&
+        parsed <= nowDate
+      ) {
+        return parsed;
+      }
+    }
+    return fallback;
+  }
+
+  const isoParsed = new Date(trimmed);
+  if (!isNaN(isoParsed.getTime()) && isoParsed <= nowDate) {
+    return isoParsed;
+  }
+
+  return fallback;
+}
+
 /**
- * Generates unified programmatic sitemap for D-VIEW (276 URLs).
- * @complexity Time: O(N), Space: O(N) where N = 276 programmatic entities
+ * Generates unified programmatic sitemap for D-VIEW (277 URLs).
+ * @complexity Time: O(N), Space: O(N) where N = 277 programmatic entities
  * @sideEffects Read-only file cache and optional Firestore metadata read
  */
 export default async function sitemap(
@@ -57,7 +94,7 @@ export default async function sitemap(
   GUIDE_ARTICLES.forEach((article) => {
     routes.push({
       url: `${baseUrl}/guide/${article.slug}`,
-      lastModified: article.updatedDate ? new Date(article.updatedDate) : nowDate,
+      lastModified: parseSitemapDate(article.updatedDate || article.date, staticFixedDate, nowDate),
       changeFrequency: 'monthly',
       priority: 0.9,
     });
@@ -78,9 +115,10 @@ export default async function sitemap(
     const jisanList = await getTechnoValleyJisanList();
     jisanList.forEach((item) => {
       const slug = formatTechnoValleyJisanSlug(item.name);
+      const rawJisanDate = item.completionDate || item.approvalDate || item.initialApprovalDate;
       routes.push({
         url: `${baseUrl}/technovalley/${encodeURIComponent(slug)}`,
-        lastModified: staticFixedDate,
+        lastModified: parseSitemapDate(rawJisanDate, staticFixedDate, nowDate),
         changeFrequency: 'weekly',
         priority: 0.85,
       });
@@ -89,7 +127,7 @@ export default async function sitemap(
     logger.error('Sitemap.technovalley', 'Failed to load TechnoValley Jisan list for sitemap', {}, err as Error);
   }
 
-  // 5. Apartment Routes (184 apartments from tx-summary.json)
+  // 5. Apartment Routes (185 canonical apartments from tx-summary.json)
   try {
     const txSummary = await getTxSummaryData();
     const aptNames = Object.keys(txSummary || {});
@@ -136,19 +174,7 @@ export default async function sitemap(
       seenCanonicalSlugs.add(canonicalSlug);
 
       const images = reportsMap.get(canonicalSlug) || reportsMap.get(aptName);
-
-      let lastModified = nowDate;
-      if (aptSummary && aptSummary.latestDate) {
-        const dateStr = String(aptSummary.latestDate).trim();
-        if (dateStr.length === 8) {
-          const y = parseInt(dateStr.substring(0, 4), 10);
-          const m = parseInt(dateStr.substring(4, 6), 10) - 1;
-          const d = parseInt(dateStr.substring(6, 8), 10);
-          if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
-            lastModified = new Date(Date.UTC(y, m, d));
-          }
-        }
-      }
+      const lastModified = parseSitemapDate(aptSummary?.latestDate, nowDate);
 
       const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
         url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,

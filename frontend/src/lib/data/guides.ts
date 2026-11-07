@@ -49,6 +49,23 @@ export interface GuideAptMiniPreviewItem {
   txCount: number;
 }
 
+export type GuideTopicClusterId =
+  | 'vs-region-comparison'
+  | 'school-chopuma-cluster'
+  | 'rail-urban-infra-cluster'
+  | 'budget-valuation-cluster'
+  | 'finance-tax-safety-cluster';
+
+export interface GuideTopicCluster {
+  id: GuideTopicClusterId;
+  title: string;
+  shortTitle: string;
+  description: string;
+  pillarSlug: string;
+  guideSlugs: string[];
+  flagshipApartments: string[];
+}
+
 export interface GuideArticle {
   slug: string;
   title: string;
@@ -57,6 +74,8 @@ export interface GuideArticle {
   description: string;
   seoDescription?: string;
   category: string;
+  topicClusterId?: GuideTopicClusterId;
+  relatedGuideSlugs?: string[];
   date: string;
   updatedDate?: string;
   author: string;
@@ -80,6 +99,14 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
     description: '1동탄(동탄1신도시)과 2동탄(동탄2신도시)의 도시계획적 차이, 나루마을·솔빛마을 vs 시범단지·동탄역권의 학군 및 학원가 밀도, GTX-A·동인선 교통망 연계, 노후도 대비 실거래가·전세가율 격차를 실증적으로 분석합니다.',
     seoDescription: '1동탄 2동탄 차이 완벽 정리 — 동탄1신도시(솔빛·나루·한빛마을) vs 동탄2신도시(동탄역·청계동 시범단지) 국토부 실거래가 시세·전세가율·학원가·GTX-A·동인선 수혜를 1:1 비교합니다. 실거주 가성비와 갈아타기 최적 단지를 확인하세요.',
     category: '입지 분석 리포트',
+    topicClusterId: 'vs-region-comparison',
+    relatedGuideSlugs: [
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-school-zone-top-apartments',
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'dongtan-budget-tier-ranking',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+    ],
     date: '2026-10-10',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 부동산 데이터 랩스',
@@ -90,15 +117,17 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
       '동탄2신도시는 GTX-A 동탄역 개통 및 복합환승센터, 신축 단지 희소성, 동탄테크노밸리 배후 수요로 인한 자산 가치 상방 탄력성 우위',
       '실거주 PER 분석 시 동탄1은 전세가율 65~75%의 안정적 저PER 지지대를 형성하는 반면, 동탄2 역세권은 미래 가치 선반영으로 매매가 변동폭이 큼'
     ],
-    featuredZones: ['metropolis', 'community', 'gbcx'],
+    featuredZones: ['metropolis', 'community', 'gbcx', 'waterfront'],
     featuredApartments: [
-      '동탄역롯데캐슬',
+      '동탄더샵레이크에듀타운',
       '더샵센트럴시티',
+      '동탄린스트라우스더레이크',
+      '솔빛마을서해그랑블',
+      '동탄역롯데캐슬',
+      '시범한빛마을동탄아이파크',
       '동탄역시범리슈빌아파트',
       '동탄역시범우남퍼스트빌아파트',
-      '시범한빛마을동탄아이파크',
       'METAPOLIS',
-      '솔빛마을서해그랑블',
     ],
     zoneSectionPreviews: [
       {
@@ -109,13 +138,15 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
       },
       {
         sectionHeadingMatch: '(2) 동탄2신도시',
-        sectionTitle: '동탄2신도시 시범단지·동탄역권 대표 단지 실시간 실거래 프리뷰',
+        sectionTitle: '동탄2신도시 시범단지·동탄역·호수공원 대장 단지 실시간 실거래 프리뷰',
         zoneId: 'community',
         apartments: [
           '동탄역시범리슈빌아파트',
           '동탄역롯데캐슬',
           '더샵센트럴시티',
           '동탄역시범우남퍼스트빌아파트',
+          '동탄더샵레이크에듀타운',
+          '동탄린스트라우스더레이크',
         ],
       },
     ],
@@ -137,6 +168,15 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
         rightApt: '동탄역시범리슈빌아파트',
         rightLabel: '동탄2 청계동 · 동탄역·시범학원가',
         verdict: '완성된 상권·병원·학원 인프라 밀도는 한빛마을 아이파크가 탄탄하며, 신축 연식과 강남·판교 광역철도 출퇴근 편익은 동탄역시범리슈빌이 앞섭니다.',
+      },
+      {
+        title: '1동탄 중심상권 대장 vs 2동탄 호수 에듀타운 대장 맞대결: 시범한빛마을동탄아이파크 vs 동탄더샵레이크에듀타운',
+        subtitle: '동탄1 반송동 한빛학군·동인선 예정권 vs 동탄2 산척동 호수공원 초·중·고 밀착 에듀타운 실거래 비교',
+        leftApt: '시범한빛마을동탄아이파크',
+        leftLabel: '동탄1 반송동 · 한빛학군·센트럴파크',
+        rightApt: '동탄더샵레이크에듀타운',
+        rightLabel: '동탄2 산척동 · 호수공원·초중고 에듀타운',
+        verdict: '완성된 북·남광장 상권과 동탄인덕원선 역세권 개통 수혜는 시범한빛마을동탄아이파크가, 2019년 신축 쾌적성과 단지 앞 초·중·고 원스톱 학군 및 호수공원 수변 생활권은 동탄더샵레이크에듀타운이 우위입니다.',
       },
     ],
     faqs: [
@@ -166,7 +206,7 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
 
 ### 2. 학군 및 학원가 인프라 밀도 비교
 
-학군과 보육 인프라는 실거주 만족도와 전세가 하방 경직성을 결정짓는 핵심 펀더멘털입니다.
+학군과 보육 인프라는 실거주 만족도와 전세가 하방 경직성을 결정짓는 핵심 펀더멘털입니다. 권역별 세부 배정 학교와 학원가 밀도는 [동탄 학군지 TOP 4·초품아 아파트 실거래가 분석](/guide/dongtan-school-zone-top-apartments) 리포트에서 함께 대조할 수 있습니다.
 
 #### (1) 동탄1신도시: 균질한 평지 통학로 및 집중형 학원가
 동탄1의 핵심 학군은 솔빛마을(솔빛초·솔빛중, **솔빛마을서해그랑블**)과 나루마을(반송초·반송중), 한빛마을(**시범한빛마을동탄아이파크**, **METAPOLIS**) 일대입니다.
@@ -174,15 +214,15 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
 - **통학 안전성**: 보행자 전용 도로망(그린웨이)이 단지 사이를 유기적으로 연결하여 차도를 건너지 않고 초·중학교를 통학할 수 있는 이른바 '초품아' 비율이 82%에 달합니다.
 
 #### (2) 동탄2신도시: 명문고 진학률 및 신흥 명문 학군 형성
-동탄2의 학군은 커뮤니티시범단지(청계동 **동탄역 시범 리슈빌**, **더샵센트럴시티**, **동탄역 시범 우남퍼스트빌**)와 광역비즈니스콤플렉스(**동탄역 롯데캐슬**), 남동탄 호수공원(산척동)을 양대 축으로 형성되어 있습니다.
+동탄2의 학군은 커뮤니티시범단지(청계동 **동탄역 시범 리슈빌**, **더샵센트럴시티**, **동탄역 시범 우남퍼스트빌**)와 광역비즈니스콤플렉스(**동탄역 롯데캐슬**), 남동탄 호수공원(산척동 **동탄더샵레이크에듀타운**, 송동 **동탄린스트라우스더레이크**)을 양대 축으로 형성되어 있습니다. 북동탄 역세권과 남동탄 수변 학군의 1:1 비교는 [동탄역(광비콤·시범단지) vs 동탄호수공원 실거래가 비교](/guide/dongtan-lake-vs-station-comparison) 및 [동탄역 광비콤 주상복합 vs 청계동 시범단지 4대장 비교](/guide/dongtan-station-gbcx-vs-sibeom-comparison)에서 상세히 다루고 있습니다.
 - **시범단지 학군**: 아인초, 청계초, 청계중, 동탄중앙고 등이 위치하며, 청계동 카림애비뉴 상권 및 항아리 상권에 약 200여 개의 대형 프랜차이즈 학원이 집결하여 1신도시에 필적하는 사교육 클러스터를 조성했습니다.
-- **특성화 고교 실적**: 화성시 고교 평준화 논의와 맞물려 동탄국제고(1신도시 반송동)와 세마고(오산 연계) 외에도, 동탄중앙고와 이산고 등 2신도시 내 신설 일반계 고교의 수시 및 정시 의약학 계열 진학 실적이 가파르게 상승하고 있습니다.
+- **호수공원 에듀타운 학군**: 산척동 **동탄더샵레이크에듀타운**과 송동 **동탄린스트라우스더레이크** 일대는 단지 바로 앞 유치원·초·중·고 원스톱 도보 통학망과 레이크꼬모·그랑파사쥬 수변 학원가를 동시에 누리는 남동탄 대장 학군지입니다.
 
 ---
 
 ### 3. 광역 교통망(GTX-A, 트램, 인덕원선) 수혜 격차
 
-교통 인프라의 확충은 매매가 리밸런싱의 최대 기폭제입니다.
+교통 인프라의 확충은 매매가 리밸런싱의 최대 기폭제입니다. 노선별 세부 정거장 반경 분석은 [동탄인덕원선(동인선) 정거장별 역세권 수혜 단지 분석](/guide/dongtan-indeogwon-line-station-impact-analysis) 및 [GTX-A 동탄역·동탄 트램 1·2호선 수혜 단지 총정리](/guide/gtx-a-tram-rail-network)를 참고하시기 바랍니다.
 
 | 노선 / 프로젝트 | 동탄1신도시 영향 | 동탄2신도시 영향 |
 | :--- | :--- | :--- |
@@ -196,7 +236,7 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
 
 ### 4. 자산 가치 평가: 실거주 PER 및 전세가율 괴리 분석
 
-D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세가)** 관점에서 양 신도시의 자산 특성은 다음과 같이 분류됩니다.
+D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세가)** 관점에서 양 신도시의 자산 특성은 다음과 같이 분류됩니다. 차주별 대출 한도와 예산 구간별 단지 추천은 [동탄 예산별(6억·9억·12억대) 아파트 실거래가 랭킹](/guide/dongtan-budget-tier-ranking) 및 [2026 스트레스 DSR 40% & 실거주 PER 활용 가이드](/guide/stress-dsr-valuation-guide)에서 확인할 수 있습니다.
 
 [산출 공식] 실거주 PER = 최근 실거래 매매가 ÷ 최근 실거래 전세가
 
@@ -210,7 +250,7 @@ D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세�
 ### 5. 종합 결론 및 의사결정 가이드
 
 - **미취학 및 초·중등 학령기 자녀 중심의 실속 실거주**: 완성된 학원가와 평지 통학로, 높은 가성비(낮은 매매가 대비 높은 전세 효용)를 제공하는 **동탄1신도시 나루·솔빛마을** 추천.
-- **서울 강남권 통근 편익 및 중장기 자산 증식(자본이득)**: 동탄역 도보권 및 트램 직결 역세권 프리미엄을 보유한 **동탄2신도시 시범단지 및 광역비즈니스콤플렉스** 우선 고려 권장.
+- **서울 강남권 통근 편익 및 중장기 자산 증식(자본이득)**: 동탄역 도보권 및 트램 직결 역세권 프리미엄을 보유한 **동탄2신도시 시범단지 및 광역비즈니스콤플렉스**, 또는 수변 학군 완성도가 높은 **호수공원 대장주(동탄더샵레이크에듀타운·동탄린스트라우스더레이크)** 우선 고려 권장.
 `
   },
   {
@@ -221,6 +261,14 @@ D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세�
     description: 'GTX-A 전면 개통 및 삼성·서울역 연장에 따른 통근 시간 단축 효과, 동탄 트램 1·2호선 34개 정거장의 노선도와 정거장별 500m 반경 수혜 아파트 단지 리스트 및 가치 변화를 실계측 데이터로 분석합니다.',
     seoDescription: 'GTX-A 동탄역(수서 20분) 개통 효과와 동탄 트램 1·2호선 정거장 반경 500m 수혜 아파트를 국토부 실거래가·전세가율로 비교합니다. 동탄역롯데캐슬·예미지시그너스·시범단지·호수공원 환승 수혜를 확인하세요.',
     category: '교통망 심층 분석',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-job-proximity-commuter-comparison',
+      'dongtan-gyeongbu-underground-park-urban-renewal',
+    ],
     date: '2026-10-10',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 교통 인프라 분석팀',
@@ -374,6 +422,14 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     description: '스트레스 DSR 2단계 및 3단계 전면 시행에 따른 가계 차주별 대출 한도 축소액, 금리 충격 민감도, 실거주 PER(Price-to-Jeonse Ratio) 지표를 활용한 내재가치 저평가 아파트 발굴 기법을 제시합니다.',
     seoDescription: '2026 스트레스 DSR 40% 시행에 따른 연소득별(5천만~1.5억) 주담대 최대 한도 축소액을 계산하고, 실거주 PER·전세가율 지표로 동탄 내 하방 지지력이 검증된 아파트를 비교합니다.',
     category: '금융·가치평가 가이드',
+    topicClusterId: 'finance-tax-safety-cluster',
+    relatedGuideSlugs: [
+      'dongtan-budget-tier-ranking',
+      'dongtan-first-home-policy-loan-comparison',
+      'dongtan-apartments-per-valuation-methodology',
+      'dongtan-jeonse-hug-126-safety-manual',
+      'dongtan-acquisition-property-tax-2026-guide',
+    ],
     date: '2026-10-10',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 퀀트 리서치팀',
@@ -511,6 +567,14 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     description: '동탄 1·2신도시 184개 아파트의 실제 국토교통부 매매·전세 실거래 데이터를 기반으로 6억~7억대 실속 진입 구간, 8억~11억대 핵심 갈아타기 구간, 12억 이상 하이엔드 대장주 구간의 대표 단지와 전세가율을 정밀 비교합니다.',
     seoDescription: '동탄 184개 아파트 국토부 실거래가를 6~7억대(능동·목동 실속 신축), 8~11억대(호수공원·솔빛 학군 갈아타기), 12억 이상(동탄역·시범단지 대장주) 3대 예산 구간으로 나누어 전세가율과 DSR 한도를 1:1 비교합니다.',
     category: '예산별 단지 랭킹',
+    topicClusterId: 'budget-valuation-cluster',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'stress-dsr-valuation-guide',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-school-zone-top-apartments',
+      'dongtan-first-home-policy-loan-comparison',
+    ],
     date: '2026-10-24',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 부동산 데이터 랩스',
@@ -523,14 +587,14 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     ],
     featuredZones: ['gbcx', 'community', 'waterfront', 'metropolis', 'newtown'],
     featuredApartments: [
-      '동탄역롯데캐슬',
       '더샵센트럴시티',
-      '동탄역시범리슈빌아파트',
-      '동탄역시범우남퍼스트빌아파트',
       '동탄더샵레이크에듀타운',
       '힐스테이트동탄',
-      '솔빛마을서해그랑블',
       '호반베르디움센트럴포레',
+      '동탄역롯데캐슬',
+      '동탄역시범리슈빌아파트',
+      '동탄역시범우남퍼스트빌아파트',
+      '솔빛마을서해그랑블',
       '능동마을이지더원',
       'e편한세상동탄파크아너스',
     ],
@@ -578,6 +642,15 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
         rightLabel: '산척동 · 호수공원·초중고 에듀타운',
         verdict: '합리적인 매수 예산 대비 브랜드 커뮤니티 효용은 힐스테이트동탄이 뛰어나며, 호수공원 도보 생활권과 초·중·고 원스톱 학군 프리미엄은 동탄더샵레이크에듀타운이 앞섭니다.',
       },
+      {
+        title: '12억+ 하이엔드 대장 Tier 3 맞대결: 더샵센트럴시티 vs 동탄역시범우남퍼스트빌아파트',
+        subtitle: '청계동 시범단지 초품아(청계초 87m) 대장 vs 동탄역 최단 도보·1,007건 최다 거래 대장 실거래 비교',
+        leftApt: '더샵센트럴시티',
+        leftLabel: '청계동 · 시범 1위·청계초 87m 초품아',
+        rightApt: '동탄역시범우남퍼스트빌아파트',
+        rightLabel: '청계동 · 동탄역 최단거리·1,007건 환금성',
+        verdict: '청계초 초품아와 중앙공원·카림애비뉴 학원가 중심 입지는 더샵센트럴시티가, 15억 원대 후반 진입 예산과 동탄역 최단 도보 접근성·압도적 거래 유동성은 동탄역시범우남퍼스트빌이 우위입니다.',
+      },
     ],
     faqs: [
       {
@@ -596,7 +669,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     content: `
 ### 1. 가용 자금과 스트레스 DSR이 결정하는 동탄 3대 가격 계층
 
-동탄 신도시 아파트 시장은 GTX-A 동탄역과의 물리적 거리, 초·중·고 학군 배정 권역, 그리고 준공 연식에 따라 명확한 3단계 가격 계층(Price Tier)을 형성하고 있습니다. 성공적인 내 집 마련과 상급지 갈아타기를 위해서는 본인의 자기자본과 스트레스 DSR 40% 한도를 합산한 예산 구간 내에서 **거래량(환금성)과 전세가율(하방 지지력)이 가장 검증된 단지**를 선별해야 합니다.
+동탄 신도시 아파트 시장은 GTX-A 동탄역과의 물리적 거리, 초·중·고 학군 배정 권역, 그리고 준공 연식에 따라 명확한 3단계 가격 계층(Price Tier)을 형성하고 있습니다. 성공적인 내 집 마련과 상급지 갈아타기를 위해서는 본인의 자기자본과 스트레스 DSR 40% 한도를 합산한 예산 구간 내에서 **거래량(환금성)과 전세가율(하방 지지력)이 가장 검증된 단지**를 선별해야 합니다. 연소득별 세부 주담대 한도는 [2026 스트레스 DSR 40% & 실거주 PER 활용 가이드](/guide/stress-dsr-valuation-guide) 및 [신생아 특례대출·보금자리론 vs 시중은행 주담대 매수 전략](/guide/dongtan-first-home-policy-loan-comparison)을 함께 참조하시기 바랍니다.
 
 | 예산 구간 | 핵심 타깃 수요층 | 주요 분포 행정동 | 대표 실거래 가격대 (국토부 기준) |
 | :--- | :--- | :--- | :--- |
@@ -610,14 +683,14 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 가용 예산 6억~7억 원 후반 구간은 부부 합산 연소득 7,000만~8,000만 원대 가구가 자기자본 2억~3억 원과 주택담보대출을 결합하여 무리 없이 진입할 수 있는 핵심 실수요 구간입니다.
 
-- **동탄1신도시 능동·반송동 축**: **능동마을이지더원**, **동탄숲속마을광명메이루즈**, **동탄나루마을동탄역U.BORA여울숲1.0** 등은 동탄인덕원선(동인선) 역세권 수혜와 완성된 초·중 통학 인프라를 동시에 갖추고 있으며 누적 거래량이 400~600건 이상으로 환금성이 뛰어납니다.
+- **동탄1신도시 능동·반송동 축**: **능동마을이지더원**, **동탄숲속마을광명메이루즈**, **동탄나루마을동탄역U.BORA여울숲1.0** 등은 [동탄인덕원선(동인선) 정거장별 역세권 수혜 단지 분석](/guide/dongtan-indeogwon-line-station-impact-analysis)에서 다루는 철도 개통 수혜와 완성된 초·중 통학 인프라를 동시에 갖추고 있으며 누적 거래량이 400~600건 이상으로 환금성이 뛰어납니다.
 - **동탄2신도시 목동·여울동·신동 실속 신축**: **호반베르디움센트럴포레**, **동탄2신도시호반베르디움22단지**, **동탄2신도시금강펜테리움센트럴파크1**, **e편한세상동탄파크아너스** 등은 쾌적한 신축 커뮤니티와 공원 인프라를 누리면서도 7억 원대에 실거래가 형성되어 있습니다.
 
 ---
 
 ### 3. [Tier 2] 8억 ~ 11억대 핵심 갈아타기 구간: 학군과 직주근접의 균형점
 
-동탄 내에서 가장 두터운 실수요 층이 포진한 허리 구간으로, 초등학교·중학교 학업성취도와 대형 상권 접근성이 단지 가치를 좌우합니다.
+동탄 내에서 가장 두터운 실수요 층이 포진한 허리 구간으로, 초등학교·중학교 학업성취도와 대형 상권 접근성이 단지 가치를 좌우합니다. 권역별 학군 및 신도시 간 비교는 [동탄 학군지 TOP 4·초품아 아파트 실거래가 분석](/guide/dongtan-school-zone-top-apartments)과 [1동탄 vs 2동탄 차이 심층 비교 리포트](/guide/dongtan-1-vs-2-comparison)에서 확인할 수 있습니다.
 
 - **남동탄 호수공원 에듀타운 축(산척동·장지동)**: **동탄더샵레이크에듀타운**, **동탄레이크자연앤푸르지오** 등은 호수공원 산책로와 초·중·고 밀집 학군을 도보로 누릴 수 있어 학령기 자녀 가구의 갈아타기 선호도가 높습니다.
 - **북동탄 직주근접 및 1신도시 중심 축(영천동·목동·반송동)**: **동탄역푸르지오**, **동탄역경남아너스빌**, **힐스테이트동탄**, **솔빛마을서해그랑블**, **시범한빛마을한화꿈에그린** 등은 탄탄한 전세 수요(전세가 5억~6억 원대)가 매매가 하방을 지지합니다.
@@ -626,7 +699,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 ### 4. [Tier 3] 12억 이상 하이엔드 대장주 구간: GTX-A 초역세권 희소 가치
 
-동탄 전체 시세의 상단(Ceiling)을 열어주는 리딩 단지군입니다.
+동탄 전체 시세의 상단(Ceiling)을 열어주는 리딩 단지군입니다. 북동탄 역세권과 남동탄 호수공원 대장주 간 맞대결은 [동탄역(광비콤·시범단지) vs 동탄호수공원 실거래가 비교](/guide/dongtan-lake-vs-station-comparison)를 참조하시기 바랍니다.
 - **광역비즈니스콤플렉스 및 커뮤니티시범단지(여울동·청계동)**: **동탄역롯데캐슬**, **더샵센트럴시티**, **동탄역시범한화꿈에그린프레스티지**, **동탄역시범우남퍼스트빌아파트**, **동탄역시범리슈빌아파트**, **시범반도유보라아이비파크4.0** 등이 대표적입니다.
 - GTX-A 수서역 20분 주파와 롯데백화점·청계동 학원가를 도보로 이용할 수 있는 대체 불가능한 입지 희소성 덕분에, 시장 상승기마다 가장 먼저 신고가를 경신하는 대장주 포트폴리오를 구성합니다.
 `
@@ -639,6 +712,14 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     description: '동탄2신도시 매수자의 최대 고민인 동탄역 생활권(여울동·청계동)과 동탄호수공원 생활권(송동·산척동·장지동)의 국토교통부 실거래가 추이, 전세가율, 초·중·고 학군, 상업 인프라 및 트램 개통 효과를 비교 분석합니다.',
     seoDescription: '동탄역(롯데캐슬·더샵센트럴시티·시범리슈빌) vs 동탄호수공원(린스트라우스더레이크·더샵레이크에듀타운) 국토부 실거래가·전세가율·학군·트램 1호선 수혜를 1:1 비교합니다.',
     category: '권역 맞대결 리포트',
+    topicClusterId: 'vs-region-comparison',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-school-zone-top-apartments',
+      'dongtan-budget-tier-ranking',
+      'gtx-a-tram-rail-network',
+    ],
     date: '2026-10-24',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 입지 분석팀',
@@ -652,13 +733,13 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     featuredZones: ['gbcx', 'community', 'waterfront'],
     featuredApartments: [
       '동탄역롯데캐슬',
+      '동탄린스트라우스더레이크',
       '더샵센트럴시티',
+      '동탄더샵레이크에듀타운',
       '동탄역시범한화꿈에그린프레스티지',
       '동탄역시범리슈빌아파트',
-      '동탄린스트라우스더레이크',
       '동탄더레이크팰리스',
       '호수공원역센트럴시티',
-      '동탄더샵레이크에듀타운',
       '더레이크시티부영5단지',
     ],
     zoneSectionPreviews: [
@@ -704,6 +785,15 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
         rightLabel: '산척동 · 호수공원·초중고 에듀타운',
         verdict: '동탄역 도보 접근성과 완성된 카림애비뉴 입시 학원가는 더샵센트럴시티가, 11억 원대 진입 예산으로 누리는 호수 산책로와 초·중·고 인접 통학 환경은 더샵레이크에듀타운이 우위입니다.',
       },
+      {
+        title: '시범단지 저밀도 쾌적 대장 vs 호수공원 1선 랜드마크: 동탄역시범리슈빌아파트 vs 동탄더레이크팰리스',
+        subtitle: '청계동 용적률 141%·아인초 학군 단지 vs 산척동 호수공원 수변 산책로 직결 대단지 실거래 비교',
+        leftApt: '동탄역시범리슈빌아파트',
+        leftLabel: '청계동 · 용적률 141%·동탄역 생활권',
+        rightApt: '동탄더레이크팰리스',
+        rightLabel: '산척동 · 호수공원 1선·수변 조망권',
+        verdict: '용적률 141%의 초저밀도 동간 거리와 동탄역·카림애비뉴 학원가 접근성은 동탄역시범리슈빌이, 13억 원대 예산으로 누리는 호수공원 수변 산책로 직결 라이프스타일은 동탄더레이크팰리스가 강점입니다.',
+      },
     ],
     faqs: [
       {
@@ -722,7 +812,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
     content: `
 ### 1. 동탄2신도시를 양분하는 두 개의 심장: 동탄역 vs 동탄호수공원
 
-동탄2신도시 내 상급지 진입을 검토하는 실수요자들이 가장 마지막까지 고민하는 주제는 **"출퇴근과 학원가의 중심인 동탄역(여울동·청계동)인가, 독보적인 수변 쾌적성과 신흥 학군을 갖춘 동탄호수공원(송동·산척동)인가"**입니다. 두 권역은 도시 설계 단계부터 명확히 다른 핵심 가치를 지향하며 발전해 왔습니다.
+동탄2신도시 내 상급지 진입을 검토하는 실수요자들이 가장 마지막까지 고민하는 주제는 **"출퇴근과 학원가의 중심인 동탄역(여울동·청계동)인가, 독보적인 수변 쾌적성과 신흥 학군을 갖춘 동탄호수공원(송동·산척동)인가"**입니다. 두 권역은 도시 설계 단계부터 명확히 다른 핵심 가치를 지향하며 발전해 왔습니다. 동탄1신도시를 포함한 전체 입지 구조는 [1동탄 vs 2동탄 차이 심층 비교 리포트](/guide/dongtan-1-vs-2-comparison) 및 [동탄역 광비콤 주상복합 vs 청계동 시범단지 4대장 비교](/guide/dongtan-station-gbcx-vs-sibeom-comparison)에서 함께 대조할 수 있습니다.
 
 | 비교 항목 | 동탄역 권역 (여울동 · 청계동) | 동탄호수공원 권역 (송동 · 산척동) |
 | :--- | :--- | :--- |
@@ -735,7 +825,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
 
 ### 2. 국토교통부 실거래가 및 거래 회전율 비교
 
-D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권역의 가격 형성 구조를 비교하면 뚜렷한 특징이 나타납니다.
+D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권역의 가격 형성 구조를 비교하면 뚜렷한 특징이 나타납니다. 가용 자금 구간별 매수 전략은 [동탄 예산별(6억·9억·12억대) 아파트 실거래가 랭킹](/guide/dongtan-budget-tier-ranking) 리포트에서 상세히 확인할 수 있습니다.
 
 1. **동탄역 권역(청계동·여울동)**: **동탄역롯데캐슬**(최근 실거래 26.2억), **더샵센트럴시티**(21.6억), **동탄역시범한화꿈에그린프레스티지**(18.4억), **동탄역시범리슈빌아파트**(16.8억), **동탄역시범우남퍼스트빌아파트**(15.85억, 누적 1,007건 거래) 등 동탄 전체 최고가 단지가 밀집해 있습니다. 특히 시범단지는 누적 거래량이 수백~천 건에 달해 시장 유동성이 가장 풍부합니다.
 2. **동탄호수공원 권역(송동·산척동)**: 호수 1선 대장주인 **동탄린스트라우스더레이크**(최근 실거래 14.0억)와 **동탄더레이크팰리스**(13.2억), **호수공원역센트럴시티**(12.0억), **동탄더샵레이크에듀타운**(11.7억), **더레이크시티부영5단지**(9억 6,700만) 등이 탄탄한 시세를 형성하고 있습니다. 동탄역 초역세권 대비 합리적인 진입 가격에 수변 조망 프리미엄을 누릴 수 있어 3040 실거주 층의 매수세가 꾸준합니다.
@@ -744,8 +834,10 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
 
 ### 3. 학군·상권 및 향후 교통 호재(트램 1호선)에 따른 선택 기준
 
+두 권역의 초품아 배정 학교와 트램 1호선 정거장 반경 수혜는 [동탄 학군지 TOP 4·초품아 아파트 실거래가 분석](/guide/dongtan-school-zone-top-apartments) 및 [GTX-A 동탄역·동탄 트램 1·2호선 수혜 단지 총정리](/guide/gtx-a-tram-rail-network)를 함께 참고하시기 바랍니다.
+
 - **서울 강남·판교 출퇴근 맞벌이 + 중·고등 입시 학원가 최우선**: 동탄역 도보권 및 청계동 카림애비뉴 학원가를 도보로 누리는 **광역비즈니스콤플렉스 및 커뮤니티시범단지**가 유리합니다.
-- **쾌적한 수변 육아 환경 + 초·중·고 밀집 초품아 + 합리적 실거주 가성비**: 호수공원 산책로와 산척동·송동 학군 클러스터가 결합된 **워터프론트콤플렉스**가 높은 주거 만족도를 제공합니다.
+- **쾌적한 수변 육아 환경 + 초·중·고 밀집 초품아 + 합리적 실거주 가성비**: 호수공원 산책로와 산척동·송동 학군 클러스터(**동탄더샵레이크에듀타운**, **동탄린스트라우스더레이크**)가 결합된 **워터프론트콤플렉스**가 높은 주거 만족도를 제공합니다.
 `
   },
   {
@@ -756,6 +848,14 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
     description: '동탄 학군지 핵심 4대 클러스터(청계동 시범단지, 반송동 솔빛·나루마을, 산척동 호수공원 에듀타운, 목동 신주거 학군)의 초품아 배정 학교, 학원가 밀집도, 실제 아파트 실거래가 및 전세가율을 분석합니다.',
     seoDescription: '동탄 학군지 4대 클러스터(청계동 시범단지, 반송동 솔빛·나루마을, 산척동 호수공원 에듀타운) 초품아 대표 아파트의 국토부 실거래가 시세·전세가율·배정 학군 및 학원가 도보 동선을 비교합니다.',
     category: '학군·초품아 리포트',
+    topicClusterId: 'school-chopuma-cluster',
+    relatedGuideSlugs: [
+      'dongtan-elementary-cho-pum-a-safety-index',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-budget-tier-ranking',
+    ],
     date: '2026-10-24',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 교육·입지 분석팀',
@@ -769,14 +869,14 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
     featuredZones: ['community', 'metropolis', 'waterfront'],
     featuredApartments: [
       '더샵센트럴시티',
+      '동탄더샵레이크에듀타운',
+      '솔빛마을서해그랑블',
       '동탄역시범우남퍼스트빌아파트',
       '동탄역시범한화꿈에그린프레스티지',
       '동탄역시범리슈빌아파트',
       '시범반도유보라아이비파크4.0',
-      '솔빛마을서해그랑블',
       '시범한빛마을동탄아이파크',
       '나루마을신도브래뉴',
-      '동탄더샵레이크에듀타운',
     ],
     zoneSectionPreviews: [
       {
@@ -788,6 +888,7 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
           '동탄역시범리슈빌아파트',
           '동탄역시범우남퍼스트빌아파트',
           '동탄역시범한화꿈에그린프레스티지',
+          '시범반도유보라아이비파크4.0',
         ],
       },
       {
@@ -798,9 +899,9 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
       },
       {
         sectionHeadingMatch: '(3) 산척동 레이크 에듀타운',
-        sectionTitle: '산척동 레이크 에듀타운·시범4.0 원스톱 학군 단지 실시간 실거래 프리뷰',
+        sectionTitle: '산척동 레이크 에듀타운 원스톱 학군 단지 실시간 실거래 프리뷰',
         zoneId: 'waterfront',
-        apartments: ['동탄더샵레이크에듀타운', '시범반도유보라아이비파크4.0'],
+        apartments: ['동탄더샵레이크에듀타운', '더레이크시티부영5단지'],
       },
     ],
     headToHeadComparisons: [
@@ -822,6 +923,15 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
         rightLabel: '산척동 · 유치원·초중고 연접 초품아',
         verdict: 'GTX-A 동탄역 출퇴근과 카림애비뉴 입시 학원가 연계는 동탄역시범리슈빌이, 단지 바로 앞 초·중·고 원스톱 도보 통학과 호수공원 주거 쾌적성은 더샵레이크에듀타운이 강점입니다.',
       },
+      {
+        title: '시범단지 1위 초품아 vs 시범 최다 학원밀집 맞대결: 더샵센트럴시티 vs 시범반도유보라아이비파크4.0',
+        subtitle: '청계동 화성청계초 87m 초품아 대장 vs 카림애비뉴 복합상가·학원 168개 일체형 단지 실거래 비교',
+        leftApt: '더샵센트럴시티',
+        leftLabel: '청계동 · 화성청계초 87m·시범 1위 대장',
+        rightApt: '시범반도유보라아이비파크4.0',
+        rightLabel: '청계동 · 카림애비뉴 학원가 직결 단지',
+        verdict: '화성청계초 87m 무차도 초품아와 시범단지 대장 상징성은 더샵센트럴시티가 독보적이며, 단지 하부 카림애비뉴 상권·학원가(반경 168개) 원스톱 엘리베이터 동선과 진입 가격 효율은 시범반도유보라4.0이 우위입니다.',
+      },
     ],
     faqs: [
       {
@@ -840,7 +950,7 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
     content: `
 ### 1. 동탄 아파트 시세 하방을 지탱하는 핵심 변수: 초품아와 학원가 동선
 
-학령기 자녀를 둔 3040 세대 비중이 전국 최고 수준인 동탄신도시에서 **초등학교 도보 실거리(초품아 여부)**와 **중학교 학업성취도 및 학원가 라이딩 동선**은 매매가 프리미엄뿐 아니라 전세가율을 결정짓는 가장 강력한 변수입니다.
+학령기 자녀를 둔 3040 세대 비중이 전국 최고 수준인 동탄신도시에서 **초등학교 도보 실거리(초품아 여부)**와 **중학교 학업성취도 및 학원가 라이딩 동선**은 매매가 프리미엄뿐 아니라 전세가율을 결정짓는 가장 강력한 변수입니다. 무차도 통학 안전 지수와 시범단지 4대장 학원가 세부 현황은 [동탄 초품아 보행 안전 지수 및 학원가 라이딩 제로 단지 분석](/guide/dongtan-elementary-cho-pum-a-safety-index) 및 [동탄역 광비콤 주상복합 vs 청계동 시범단지 4대장 비교](/guide/dongtan-station-gbcx-vs-sibeom-comparison)에서 함께 확인할 수 있습니다.
 
 | 4대 학군 권역 | 중심 행정동 | 주요 초·중·고 학군 | 대표 학군 대장 아파트 |
 | :--- | :--- | :--- | :--- |
@@ -857,10 +967,10 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
 **더샵센트럴시티**, **동탄역시범우남퍼스트빌아파트**, **동탄역시범한화꿈에그린프레스티지**, **동탄역시범리슈빌아파트**, **시범반도유보라아이비파크4.0** 등이 중앙 공원과 초·중학교를 둘러싸고 배치되어 있습니다. 카림애비뉴 상권 내 대형 입시·어학 학원가와 도보로 직결되어 초등 저학년부터 고등 입시까지 이사할 필요가 없는 완결성을 자랑합니다.
 
 #### (2) 반송동 솔빛·한빛·나루마을: 평지 그린웨이 통학망과 고밀도 학원가
-동탄1신도시의 **솔빛마을서해그랑블**, **시범한빛마을동탄아이파크**, **나루마을신도브래뉴**, **나루마을한화꿈에그린** 등은 보행자 전용 녹지축(그린웨이)을 통해 차도를 건너지 않고 초·중학교로 통학할 수 있습니다. 남광장·솔빛마을 사거리 학원가의 면학 분위기가 탄탄하며, 10억~12억 원대 실거래가로 동탄2 역세권 대비 높은 가성비를 제공합니다.
+동탄1신도시의 **솔빛마을서해그랑블**, **시범한빛마을동탄아이파크**, **나루마을신도브래뉴**, **나루마을한화꿈에그린** 등은 보행자 전용 녹지축(그린웨이)을 통해 차도를 건너지 않고 초·중학교로 통학할 수 있습니다. 남광장·솔빛마을 사거리 학원가의 면학 분위기가 탄탄하며, 10억~12억 원대 실거래가로 동탄2 역세권 대비 높은 가성비를 제공합니다. 양 신도시 간 학군·인프라 격차는 [1동탄 vs 2동탄 차이 심층 비교 리포트](/guide/dongtan-1-vs-2-comparison)를 참조하시기 바랍니다.
 
 #### (3) 산척동 레이크 에듀타운: 신축 대단지와 초·중·고 일체형 캠퍼스
-**동탄더샵레이크에듀타운**을 필두로 한 산척동 학군지는 단지 바로 앞에 초·중·고교가 나란히 배치되어 도보 3~5분 내 통학이 가능하며, 호수공원 상권 내 학원 인프라가 빠르게 확충되어 남동탄 최고의 교육 거점으로 자리잡았습니다.
+**동탄더샵레이크에듀타운**을 필두로 한 산척동 학군지는 단지 바로 앞에 초·중·고교가 나란히 배치되어 도보 3~5분 내 통학이 가능하며, 호수공원 상권 내 학원 인프라가 빠르게 확충되어 남동탄 최고의 교육 거점으로 자리잡았습니다. 북동탄 시범단지와 남동탄 호수 학군지 간 예산별 매수 비교는 [동탄역(광비콤·시범단지) vs 동탄호수공원 실거래가 비교](/guide/dongtan-lake-vs-station-comparison) 및 [동탄 예산별(6억·9억·12억대) 아파트 실거래가 랭킹](/guide/dongtan-budget-tier-ranking)에서 상세히 다루고 있습니다.
 `
   },
   {
@@ -871,6 +981,14 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
     description: '동탄2신도시 최고가 시세를 양분하는 여울동 광역비즈니스콤플렉스 주상복합(동탄역롯데캐슬·예미지시그너스·린스트라우스·반도7.0)과 청계동 커뮤니티시범단지 4대장(더샵센트럴시티·시범한화·시범리슈빌·시범우남)의 국토교통부 실거래가, 전세가율, 용적률·건폐율, 동탄역·초등학교 실거리를 정밀 비교합니다.',
     seoDescription: '동탄역 광비콤 주상복합(롯데캐슬 26.2억·예미지시그너스 16억) vs 청계동 시범단지 4대장(더샵센트럴시티 21.6억·시범한화 18.4억·시범리슈빌 16.8억·시범우남 15.85억) 국토부 실거래가·용적률·초품아·학원가를 1:1 비교합니다.',
     category: '역세권 대장 비교',
+    topicClusterId: 'vs-region-comparison',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-school-zone-top-apartments',
+      'dongtan-budget-tier-ranking',
+      'dongtan-gyeongbu-underground-park-urban-renewal',
+    ],
     date: '2026-10-31',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 부동산 데이터 랩스',
@@ -1025,6 +1143,14 @@ D-VIEW에 등록된 화성시 건축물대장 및 GIS 입지 데이터를 대조
     description: '동탄 실수요 허리 가격대(7억~15억대)를 형성하는 3대 직주근접 주거축인 북동탄 영천동(테크노밸리·11자상가), 중동탄 목동(힐스테이트·한신더휴 신축 타운), 서북측 석우동·능동(삼성전자 기흥·화성 캠퍼스 인접 및 동탄인덕원선 수혜)의 국토교통부 실거래가, 전세가율, 초등학교·철도 정거장 실거리를 비교 분석합니다.',
     seoDescription: '북동탄 영천동(센트럴자이·동탄역푸르지오·포레너스) vs 중동탄 목동(힐스테이트동탄·한신더휴·이편한세상) vs 삼성전자·동인선 석우·능동(롯데캐슬·우미린·두산위브) 국토부 실거래가·전세가율·통근 동선을 1:1 비교합니다.',
     category: '직주근접 비교 리포트',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-budget-tier-ranking',
+      'dongtan-technovalley-corporate-relocation-tax',
+      'gtx-a-tram-rail-network',
+    ],
     date: '2026-10-31',
     updatedDate: '2026-10-31',
     author: 'D-VIEW 입지·교통 분석팀',
@@ -1046,13 +1172,13 @@ D-VIEW에 등록된 화성시 건축물대장 및 GIS 입지 데이터를 대조
     featuredZones: ['techno', 'metropolis', 'culture'],
     featuredApartments: [
       '동탄역센트럴자이A-10',
-      '동탄역센트럴예미지',
+      '힐스테이트동탄',
+      '롯데캐슬',
       '동탄역푸르지오',
+      '동탄역센트럴예미지',
       '동탄역경남아너스빌',
       '동탄역포레너스',
-      '롯데캐슬',
       '우미린제일풍경채',
-      '힐스테이트동탄',
       '한신더휴',
       '푸른마을두산위브',
     ],
@@ -1173,6 +1299,14 @@ D-VIEW에 등록된 화성시 건축물대장 및 GIS 입지 데이터를 대조
     description: 'HUG 주택도시보증공사 전세보증금 반환보증의 126%(공시가격×140%×90%) 가입 기준을 정밀 해부하고, 동탄1신도시 고전세가율 단지와 동탄2신도시 역세권·호수공원 단지의 등기부 선순위 채권 및 역전세 결손 리스크 점검 절차를 제시합니다.',
     seoDescription: '동탄 아파트 전세 계약 필수 체크리스트 — HUG 전세보증보험 126% 계산법(공시가격×140%×90%), HF·SGI 보증 비교, 국토부 실거래가 대비 권역별 전세가율 안전 마진과 선순위 근저당 말소 특약 실무 가이드를 확인하세요.',
     category: '금융 및 전세 안전 진단',
+    topicClusterId: 'finance-tax-safety-cluster',
+    relatedGuideSlugs: [
+      'stress-dsr-valuation-guide',
+      'dongtan-first-home-policy-loan-comparison',
+      'dongtan-apartments-per-valuation-methodology',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-budget-tier-ranking',
+    ],
     date: '2026-10-18',
     updatedDate: '2026-10-25',
     author: 'D-VIEW 부동산 금융 리서치팀',
@@ -1287,6 +1421,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '동탄 아파트 매수 예산(6억·9억·12억·15억·20억 원)별로 달라지는 1주택자 및 다주택자 취득세율(지방교육세·농어촌특별세 포함), 전용 85㎡ 초과 여부, 공시가격 공정시장가액비율에 따른 재산세·종합부동산세 실부담액을 정밀 계산합니다.',
     seoDescription: '동탄 아파트 취득세·보유세(재산세·종합부동산세) 구간별 세액 비교 — 6억 이하 1.1%, 6~9억 누진세율, 9억 초과 3.3~3.5% 취득세 계산법과 1주택자 종부세 기본공제 12억 기준 단지별 세금 부담을 한눈에 확인하세요.',
     category: '세제 및 부동산 정책',
+    topicClusterId: 'finance-tax-safety-cluster',
+    relatedGuideSlugs: [
+      'dongtan-budget-tier-ranking',
+      'stress-dsr-valuation-guide',
+      'dongtan-first-home-policy-loan-comparison',
+      'dongtan-pyeong-supply-structure-24-34-40-analysis',
+      'dongtan-1-vs-2-comparison',
+    ],
     date: '2026-10-18',
     updatedDate: '2026-10-25',
     author: 'D-VIEW 세무·자산관리 리서치팀',
@@ -1400,6 +1542,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '출산 가구를 위한 신생아 특례 디딤돌 대출(주택가액 9억 원 이하, 한도 최대 5억 원, 저금리)과 한국주택금융공사 보금자리론(6억 원 이하), 시중은행 스트레스 DSR 40% 주택담보대출의 자격 요건 및 월 원리금 상환액을 비교 분석합니다.',
     seoDescription: '동탄 9억 이하 아파트 매수 필독 — 신생아 특례대출(9억 이하·전용 85㎡ 이하·최대 5억 한도) vs 보금자리론 vs 시중은행 주담대 금리·월 상환액 비교와 목동·능동·석우동 정책대출 직수혜 대단지를 확인하세요.',
     category: '금융 및 대출 분석',
+    topicClusterId: 'finance-tax-safety-cluster',
+    relatedGuideSlugs: [
+      'dongtan-budget-tier-ranking',
+      'stress-dsr-valuation-guide',
+      'dongtan-acquisition-property-tax-2026-guide',
+      'dongtan-jeonse-hug-126-safety-manual',
+      'dongtan-job-proximity-commuter-comparison',
+    ],
     date: '2026-10-18',
     updatedDate: '2026-10-25',
     author: 'D-VIEW 부동산 금융 리서치팀',
@@ -1512,6 +1662,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '판교·강남·수원 등 수도권 과밀억제권역에서 성장관리권역인 화성 동탄테크노밸리 지식산업센터로 본점·공장을 이전하거나 최초 분양 입주할 때 적용되는 취득세·재산세 감면, 법인세 감면 및 기숙사·임직원 배후 아파트 매칭 전략을 다룹니다.',
     seoDescription: '동탄테크노밸리 지식산업센터 입주 기업 필수 가이드 — 취득세·재산세 감면 요건, 수도권 과밀억제권역 이전 법인세 혜택, 국토부 상업업무용 실거래가 확인법 및 영천동(동탄역센트럴자이·푸르지오·포레너스) 배후 주거 단지 비교.',
     category: '지식산업센터·기업 이전',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'dongtan-job-proximity-commuter-comparison',
+      'gtx-a-tram-rail-network',
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'dongtan-acquisition-property-tax-2026-guide',
+      'dongtan-1-vs-2-comparison',
+    ],
     date: '2026-10-18',
     updatedDate: '2026-10-25',
     author: 'D-VIEW 기업부동산·세무 분석팀',
@@ -1621,6 +1779,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '초등학생 자녀의 차도 횡단 없는 안전 통학(초품아)과 도보 5분 내 학원가 완결성을 기준으로 동탄 1·2신도시 주요 단지의 초등학교 실거리, 보행자 전용 도로 연결성, 중학교 진학 연계 및 실거래가·전세가율을 분석합니다.',
     seoDescription: '동탄 초품아 아파트 및 3대 학군지 완벽 비교 — 반송동 솔빛·한빛마을 vs 청계동 시범단지(아인초·청계초) vs 산척동 레이크에듀타운의 초등학교 도보 거리, 학원가 밀도, 국토부 실거래가 및 전세가율을 확인하세요.',
     category: '학군 및 보육 인프라',
+    topicClusterId: 'school-chopuma-cluster',
+    relatedGuideSlugs: [
+      'dongtan-school-zone-top-apartments',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-budget-tier-ranking',
+    ],
     date: '2026-10-19',
     updatedDate: '2026-10-26',
     author: 'D-VIEW 학군·입지 데이터 분석팀',
@@ -1735,6 +1901,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '동탄2신도시의 마지막 대규모 택지인 신주거문화타운(신동)의 자연 친화형 단지 설계·최신 평면·초기 입주장 전세 및 매매 흐름을 분석하고, 인접한 목동(중동탄) 및 산척동 완성형 단지와의 가격·인프라 격차를 정량 비교합니다.',
     seoDescription: '동탄 신주거문화타운(신동 e편한세상동탄파크아너스 등) 입주 분석 — 왕배산·신리천 숲세권 최신 평면 가치, 신축 입주장 전세가 흐름, 그리고 완성형 목동(힐스테이트동탄·이편한세상동탄)과의 국토부 실거래가 1:1 비교.',
     category: '권역 및 신축 입주 분석',
+    topicClusterId: 'vs-region-comparison',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-budget-tier-ranking',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-job-proximity-commuter-comparison',
+      'dongtan-first-home-policy-loan-comparison',
+    ],
     date: '2026-10-19',
     updatedDate: '2026-10-26',
     author: 'D-VIEW 부동산 데이터 랩스',
@@ -1842,6 +2016,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '인덕원(4호선·GTX-C·월판선)에서 영통·능동·반송동을 거쳐 동탄역(GTX-A·SRT)까지 연결되는 동탄인덕원선 복선전철의 공사 진행 현황과 정거장 예정지 반경 500m 이내 직접 수혜 단지의 실거래가·전세가율 변화를 정밀 분석합니다.',
     seoDescription: '동탄인덕원선(동인선) 정거장별 수혜 아파트 총정리 — 능동역·반송역(메타폴리스)·동탄역 연계에 따른 동탄1신도시(능동마을이지더원·푸른마을두산위브·시범한빛마을·METAPOLIS) 국토부 실거래가 및 밸류에이션 리포트.',
     category: '교통망 심층 분석',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'gtx-a-tram-rail-network',
+      'dongtan-job-proximity-commuter-comparison',
+      'dongtan-reconstruction-remodeling-1st-new-town-outlook',
+      'dongtan-budget-tier-ranking',
+    ],
     date: '2026-10-19',
     updatedDate: '2026-10-26',
     author: 'D-VIEW 교통 인프라 분석팀',
@@ -1855,11 +2037,11 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     featuredZones: ['metropolis', 'gbcx'],
     featuredApartments: [
       '능동마을이지더원',
-      '푸른마을두산위브',
-      '동탄숲속마을광명메이루즈',
       '시범한빛마을동탄아이파크',
       'METAPOLIS',
       '솔빛마을서해그랑블',
+      '푸른마을두산위브',
+      '동탄숲속마을광명메이루즈',
       '롯데캐슬',
     ],
     zoneSectionPreviews: [
@@ -1895,6 +2077,15 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
         rightLabel: '반송동 · 중심상권 직결 · 중대형 · 11.5억',
         verdict: '초·중·고 학군 수요와 판상형 아파트 선호층에서는 시범한빛마을동탄아이파크가, 타임테라스 쇼핑몰·센트럴파크 원스톱 슬세권과 초고층 조망은 METAPOLIS가 강점입니다.',
       },
+      {
+        title: '동탄1 학군 대장 vs 삼성반도체 직주근접 대장: 솔빛마을서해그랑블 vs 롯데캐슬',
+        subtitle: '반송동 솔빛초·중 학원가 핵심축 vs 석우동 세대당 주차 1.89대·동인선 역세권 대단지 비교',
+        leftApt: '솔빛마을서해그랑블',
+        leftLabel: '반송동 · 솔빛초·중 학원가·중대형 강세',
+        rightApt: '롯데캐슬',
+        rightLabel: '석우동 · 주차 1.89대·동인선 582m·1,128건',
+        verdict: '솔빛사거리 대형 학원가와 그린웨이 초·중 통학 완성도는 솔빛마을서해그랑블이, 삼성전자 캠퍼스·한림대병원 직주근접과 세대당 1.89대의 압도적 주차 여유·9억 원대 중반 가성비는 석우동 롯데캐슬이 강점입니다.',
+      },
     ],
     faqs: [
       {
@@ -1913,7 +2104,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     content: `
 ### 1. 동탄인덕원선(동인선) 복선전철의 노선 가치와 네트워크 연결성
 
-**동탄인덕원선(인덕원~동탄 복선전철)**은 수도권 서남부 핵심 거점인 안양 인덕원역에서 의왕·수원(월드컵경기장·영통)·화성 동탄1신도시(능동·반송동)를 거쳐 동탄2신도시 **동탄역**까지 총연장 약 37.1km를 연결하는 광역 기간철도망입니다. 그동안 광역버스와 자가용에 의존해야 했던 동탄1신도시 주민들에게 최초의 중전철 역세권을 제공한다는 점에서 도시 공간 구조적 파급력이 매우 큽니다.
+**동탄인덕원선(인덕원~동탄 복선전철)**은 수도권 서남부 핵심 거점인 안양 인덕원역에서 의왕·수원(월드컵경기장·영통)·화성 동탄1신도시(능동·반송동)를 거쳐 동탄2신도시 **동탄역**까지 총연장 약 37.1km를 연결하는 광역 기간철도망입니다. 그동안 광역버스와 자가용에 의존해야 했던 동탄1신도시 주민들에게 최초의 중전철 역세권을 제공한다는 점에서 도시 공간 구조적 파급력이 매우 큽니다. GTX-A 및 트램 1·2호선과의 환승 연계는 [GTX-A 동탄역·동탄 트램 1·2호선 수혜 단지 총정리](/guide/gtx-a-tram-rail-network) 및 [1동탄 vs 2동탄 차이 심층 비교 리포트](/guide/dongtan-1-vs-2-comparison)에서 함께 대조할 수 있습니다.
 
 | 환승 거점역 | 연결 노선 | 주요 도달 업무지구 | 동탄1신도시 파급 효과 |
 | :--- | :--- | :--- | :--- |
@@ -1926,7 +2117,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
 ### 2. 정거장 예정권역별 핵심 수혜 단지 실거래 분석
 
 #### (1) 능동·석우동 북서측 관문 정거장 직수혜 단지
-수원 망포·서천지구에서 동탄1신도시로 진입하는 첫 관문인 능동 사거리 및 석우동 인접 생활권은 실속형 매매가와 높은 전세가율을 동시에 갖추고 있습니다.
+수원 망포·서천지구에서 동탄1신도시로 진입하는 첫 관문인 능동 사거리 및 석우동 인접 생활권은 실속형 매매가와 높은 전세가율을 동시에 갖추고 있습니다. 삼성반도체 통근축과 대지지분 분석은 [동탄 직주근접 3대 생활권 비교](/guide/dongtan-job-proximity-commuter-comparison) 및 [동탄1신도시 리모델링·노후계획도시 정비 전망](/guide/dongtan-reconstruction-remodeling-1st-new-town-outlook)에서 상세히 다루고 있습니다.
 - **능동마을이지더원**(최근 매매 7억 4,500만, 전세 3억 6,455만, 누적 663건)은 정거장 예정지와 도보 약 150m 내외로 맞닿은 대표 초역세권 단지입니다.
 - **푸른마을두산위브**(매매 8억 2,500만, 누적 1,030건), **동탄숲속마을광명메이루즈**(매매 7억 5,000만), 석우동 **롯데캐슬**(매매 9억 5,000만, 세대당 주차 1.89대)은 삼성전자 화성캠퍼스 직주근접 수요에 철도 역세권 프리미엄이 더해지는 단지군입니다.
 
@@ -1939,7 +2130,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
 
 ### 3. 동탄1·동탄2 역세권 스프레드 축소 전망
 
-현재 동탄2신도시 동탄역 도보권 단지(전용 84㎡ 15억~22억 원대)와 동탄1신도시 반송동 중심 단지(10억~12억 원대) 간에는 약 4억~9억 원의 가격 격차가 존재합니다. 동탄인덕원선이 개통되어 반송동·능동에서 동탄역 GTX-A 승강장까지 한두 정거장 만에 연결되면, 동탄1 핵심 단지의 교통 할인 요인이 해소되며 탄탄한 학원가·상권 가치와 결합된 시세 리레이팅이 나타날 것으로 분석됩니다.
+현재 동탄2신도시 동탄역 도보권 단지(전용 84㎡ 15억~22억 원대)와 동탄1신도시 반송동 중심 단지(10억~12억 원대) 간에는 약 4억~9억 원의 가격 격차가 존재합니다. 동탄인덕원선이 개통되어 반송동·능동에서 동탄역 GTX-A 승강장까지 한두 정거장 만에 연결되면, 동탄1 핵심 단지의 교통 할인 요인이 해소되며 탄탄한 학원가·상권 가치와 결합된 시세 리레이팅이 나타날 것으로 분석됩니다. 예산 구간별 매수 단지 비교는 [동탄 예산별(6억·9억·12억대) 아파트 실거래가 랭킹](/guide/dongtan-budget-tier-ranking) 및 [동탄 학군지 TOP 4·초품아 아파트 실거래가 분석](/guide/dongtan-school-zone-top-apartments)을 함께 참고하시기 바랍니다.
 `
   },
   {
@@ -1950,6 +2141,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '동탄 1·2신도시 184개 단지의 전용면적별(59㎡ 소형, 84㎡ 국민평형, 96~135㎡ 중대형) 세대 구성비와 국토교통부 실거래 회전율, 전세가율 및 상승기 평당 가격 상승 탄력성을 비교 분석합니다.',
     seoDescription: '동탄 아파트 평형별 투자·실거주 가이드 — 전용 59㎡(24~25평) 고전세가율·고회전율 단지 vs 전용 84㎡(33~34평) 국민평형 대장 vs 전용 96㎡+(40평대 이상) 희소 대형 평형 실거래가와 갈아타기 전략을 확인하세요.',
     category: '시장 수급 및 밸류에이션',
+    topicClusterId: 'budget-valuation-cluster',
+    relatedGuideSlugs: [
+      'dongtan-budget-tier-ranking',
+      'dongtan-apartments-per-valuation-methodology',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-acquisition-property-tax-2026-guide',
+    ],
     date: '2026-10-19',
     updatedDate: '2026-10-26',
     author: 'D-VIEW 부동산 데이터 랩스',
@@ -2059,6 +2258,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '경부고속도로 동탄JCT~기흥동탄IC 구간 지하화 개통과 지상부 1.2km 선형 랜드마크 공원 및 6개 광역 연결도로 개통이 동탄역 서측(여울동·오산동)과 동측(청계동) 단지의 보행 단절 해소 및 시세에 미치는 영향을 분석합니다.',
     seoDescription: '동탄 경부고속도로 지하화 및 상부 공원화 수혜 단지 완벽 분석 — 동탄역 동서 보행 직결로 가치가 급상승한 여울동(동탄역린스트라우스·예미지시그너스·반도유보라7.0)과 청계동(동탄역롯데캐슬·시범단지) 실거래가를 비교하세요.',
     category: '도시계획 및 인프라 호재',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'gtx-a-tram-rail-network',
+      'dongtan-yeoul-park-medical-welfare-zone-analysis',
+      'dongtan-indeogwon-line-station-impact-analysis',
+    ],
     date: '2026-10-19',
     updatedDate: '2026-10-26',
     author: 'D-VIEW 도시계획·입지 분석팀',
@@ -2174,6 +2381,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '전세가를 주거 공간의 순수 사용 가치(내재 가치)로 정의하고 매매가를 전세가로 나눈 실거주 PER(Price-to-Jeonse Ratio) 지표를 통해 동탄 7대 권역의 저평가·적정가·미래가치 선반영 구간을 과학적으로 판별합니다.',
     seoDescription: '동탄 저평가 아파트 찾는 법 — D-VIEW 독자 지표인 실거주 PER(매매가÷전세가)과 전세가율 밴드를 활용하여 하방 경직성이 높은 실속 단지(반송동·목동·석우동)와 성장형 단지(여울동·청계동)를 정량 비교하세요.',
     category: '시장 수급 및 밸류에이션',
+    topicClusterId: 'budget-valuation-cluster',
+    relatedGuideSlugs: [
+      'dongtan-budget-tier-ranking',
+      'stress-dsr-valuation-guide',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-pyeong-supply-structure-24-34-40-analysis',
+      'dongtan-jeonse-hug-126-safety-manual',
+    ],
     date: '2026-10-20',
     updatedDate: '2026-10-27',
     author: 'D-VIEW 퀀트·데이터 랩스',
@@ -2285,6 +2500,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '동탄역 서측 여울공원과 오산천 수변공원 일대의 쾌적한 정주 여건, 화성시·LH가 추진하는 동탄2 대형 종합병원(대학병원급 의료복합타운) 건립 프로젝트의 파급 효과 및 인접 단지(여울동·장지동·산척동) 실거래가를 심층 분석합니다.',
     seoDescription: '동탄 여울공원 숲세권 및 대학병원급 의료복합타운 수혜 단지 분석 — 여울동(동탄역린스트라우스·예미지시그너스·금강펜테리움)과 장지동·산척동 단지의 국토부 실거래가, 오산천 수변 보행망 및 고급 의료 인프라 가치를 확인하세요.',
     category: '도시계획 및 인프라 호재',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'dongtan-gyeongbu-underground-park-urban-renewal',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-1-vs-2-comparison',
+      'gtx-a-tram-rail-network',
+    ],
     date: '2026-10-20',
     updatedDate: '2026-10-27',
     author: 'D-VIEW 도시계획·입지 분석팀',
@@ -2400,6 +2623,14 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     description: '2007년 첫 입주를 시작해 준공 20년 차에 진입한 동탄1신도시(반송동·능동·석우동) 주요 아파트의 평균 용적률(160~195%), 건폐율(8~15%), 세대당 대지지분 및 주차대수를 분석하고 향후 리모델링·도시정비 잠재력을 진단합니다.',
     seoDescription: '동탄1신도시 아파트 대지지분·용적률 심층 분석 — 준공 20년 차에 접어든 반송동(솔빛·나루·한빛마을) 및 석우동(우미린제일풍경채·롯데캐슬)의 쾌적한 건폐율, 세대당 주차대수, 노후계획도시 정비 전망과 실거래가를 확인하세요.',
     category: '시장 수급 및 밸류에이션',
+    topicClusterId: 'vs-region-comparison',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'dongtan-school-zone-top-apartments',
+      'dongtan-job-proximity-commuter-comparison',
+      'dongtan-apartments-per-valuation-methodology',
+    ],
     date: '2026-10-20',
     updatedDate: '2026-10-27',
     author: 'D-VIEW 부동산 데이터 랩스',
@@ -3239,12 +3470,22 @@ export function buildGuideAptMiniPreview(
   const trimmed = (aptName || '').trim();
   if (!trimmed) return null;
 
+  const hasTxMapEntries = Boolean(txMap && Object.keys(txMap).length > 0);
   const canonicalSlug =
+    (hasTxMapEntries
+      ? resolveCanonicalAptSlug(trimmed, {
+          txMap: txMap as Record<string, unknown>,
+        })
+      : '') ||
     resolveCanonicalAptSlug(trimmed, {
-      txMap: txMap as Record<string, unknown>,
-    }) || trimmed;
+      txMap: GUIDE_DEFAULT_TX_SUMMARY_MAP as Record<string, unknown>,
+    }) ||
+    trimmed;
 
-  const s = txMap[canonicalSlug] || txMap[trimmed];
+  const primary = txMap?.[canonicalSlug] ?? txMap?.[trimmed];
+  const fallback =
+    GUIDE_DEFAULT_TX_SUMMARY_MAP[canonicalSlug] ?? GUIDE_DEFAULT_TX_SUMMARY_MAP[trimmed];
+  const s = primary !== undefined ? primary : fallback;
   if (!s) return null;
 
   const dong = (s.dong || '동탄').trim() || '동탄';
@@ -3660,3 +3901,197 @@ export function buildGuideArticleJsonLd(
     '@graph': graph,
   };
 }
+
+/**
+ * GA4 Top 5 highest-performing guide slugs for organic search & AI referrals.
+ */
+export const TOP_POPULAR_GUIDE_SLUGS: readonly string[] = [
+  'dongtan-1-vs-2-comparison',
+  'dongtan-school-zone-top-apartments',
+  'dongtan-indeogwon-line-station-impact-analysis',
+  'dongtan-budget-tier-ranking',
+  'dongtan-lake-vs-station-comparison',
+] as const;
+
+/**
+ * Topic Clustering architecture grouping all 20 guides into 5 strategic semantic clusters.
+ */
+export const GUIDE_TOPIC_CLUSTERS: readonly GuideTopicCluster[] = [
+  {
+    id: 'vs-region-comparison',
+    title: 'VS 권역·대장 단지 맞대결 클러스터',
+    shortTitle: '권역 VS 맞대결',
+    description:
+      '1동탄 vs 2동탄, 동탄역 vs 호수공원, 광비콤 vs 시범단지, 신동 vs 목동 등 핵심 생활권 1:1 실거래 비교',
+    pillarSlug: 'dongtan-1-vs-2-comparison',
+    guideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-new-town-culture-sin-dong-valuation',
+      'dongtan-reconstruction-remodeling-1st-new-town-outlook',
+    ],
+    flagshipApartments: [
+      '동탄역롯데캐슬',
+      '더샵센트럴시티',
+      '동탄역시범리슈빌아파트',
+      '동탄더샵레이크에듀타운',
+      '동탄린스트라우스더레이크',
+      '솔빛마을서해그랑블',
+    ],
+  },
+  {
+    id: 'school-chopuma-cluster',
+    title: '학군·초품아·학원가 심층 클러스터',
+    shortTitle: '학군·초품아 분석',
+    description:
+      '청계동 시범단지·반송동 솔빛·산척동 레이크 에듀타운 등 초·중·고 무차도 통학망과 7대 학원가 분석',
+    pillarSlug: 'dongtan-school-zone-top-apartments',
+    guideSlugs: [
+      'dongtan-school-zone-top-apartments',
+      'dongtan-elementary-cho-pum-a-safety-index',
+    ],
+    flagshipApartments: [
+      '더샵센트럴시티',
+      '동탄더샵레이크에듀타운',
+      '솔빛마을서해그랑블',
+      '동탄역시범우남퍼스트빌아파트',
+      '시범반도유보라아이비파크4.0',
+    ],
+  },
+  {
+    id: 'rail-urban-infra-cluster',
+    title: '철도망(동인선·GTX-A·트램)·직주근접 클러스터',
+    shortTitle: '철도·직주근접 호재',
+    description:
+      '동탄인덕원선 정거장 반경 수혜, GTX-A·트램 1·2호선 환승망, 경부고속도로 지하화 및 3대 직주근접 축 분석',
+    pillarSlug: 'dongtan-indeogwon-line-station-impact-analysis',
+    guideSlugs: [
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'gtx-a-tram-rail-network',
+      'dongtan-job-proximity-commuter-comparison',
+      'dongtan-gyeongbu-underground-park-urban-renewal',
+      'dongtan-yeoul-park-medical-welfare-zone-analysis',
+      'dongtan-technovalley-corporate-relocation-tax',
+    ],
+    flagshipApartments: [
+      '능동마을이지더원',
+      '시범한빛마을동탄아이파크',
+      'METAPOLIS',
+      '동탄역롯데캐슬',
+      '동탄역예미지시그너스',
+    ],
+  },
+  {
+    id: 'budget-valuation-cluster',
+    title: '예산별(6억·9억·12억) 랭킹·밸류에이션 클러스터',
+    shortTitle: '예산별 랭킹·PER',
+    description:
+      '가용 자금 구간별 실거래 랭킹, 전용 59·84·102㎡+ 평형 수급, 실거주 PER 기반 저평가 스크리닝',
+    pillarSlug: 'dongtan-budget-tier-ranking',
+    guideSlugs: [
+      'dongtan-budget-tier-ranking',
+      'dongtan-pyeong-supply-structure-24-34-40-analysis',
+      'dongtan-apartments-per-valuation-methodology',
+    ],
+    flagshipApartments: [
+      '힐스테이트동탄',
+      '동탄더샵레이크에듀타운',
+      '호반베르디움센트럴포레',
+      '더샵센트럴시티',
+      '동탄역시범우남퍼스트빌아파트',
+    ],
+  },
+  {
+    id: 'finance-tax-safety-cluster',
+    title: 'DSR 대출·세금·전세 안전진단 클러스터',
+    shortTitle: '대출·세무·전세안전',
+    description:
+      '스트레스 DSR 40% 주담대 한도, 신생아 특례·정책대출, 취득세·보유세 계산 및 HUG 126% 전세보증 안전 매뉴얼',
+    pillarSlug: 'stress-dsr-valuation-guide',
+    guideSlugs: [
+      'stress-dsr-valuation-guide',
+      'dongtan-first-home-policy-loan-comparison',
+      'dongtan-acquisition-property-tax-2026-guide',
+      'dongtan-jeonse-hug-126-safety-manual',
+    ],
+    flagshipApartments: [
+      '솔빛마을서해그랑블',
+      '나루마을신도브래뉴',
+      '시범반도유보라아이비파크4.0',
+      '힐스테이트동탄',
+    ],
+  },
+] as const;
+
+export function getTopicClusterForGuide(
+  slugOrArticle: string | GuideArticle
+): GuideTopicCluster | undefined {
+  const article =
+    typeof slugOrArticle === 'string'
+      ? GUIDE_ARTICLES.find((a) => a.slug === slugOrArticle)
+      : slugOrArticle;
+  const slug = typeof slugOrArticle === 'string' ? slugOrArticle : slugOrArticle.slug;
+
+  if (article?.topicClusterId) {
+    const byId = GUIDE_TOPIC_CLUSTERS.find((c) => c.id === article.topicClusterId);
+    if (byId) return byId;
+  }
+  return GUIDE_TOPIC_CLUSTERS.find((c) => c.guideSlugs.includes(slug));
+}
+
+/**
+ * Resolves high-conversion cross-linked guides for a given guide article using Topic Clustering,
+ * explicit `relatedGuideSlugs`, shared flagship apartments, and GA4 Top 5 popularity weights.
+ */
+export function getRelatedGuidesForGuide(
+  slugOrArticle: string | GuideArticle,
+  maxCount = 6
+): GuideArticle[] {
+  const article =
+    typeof slugOrArticle === 'string'
+      ? GUIDE_ARTICLES.find((a) => a.slug === slugOrArticle)
+      : slugOrArticle;
+  if (!article) return [];
+
+  const cluster = getTopicClusterForGuide(article);
+  const explicitOrder = new Map<string, number>();
+  (article.relatedGuideSlugs || []).forEach((s, idx) => explicitOrder.set(s, idx));
+
+  const clusterSlugs = new Set(cluster?.guideSlugs || []);
+  const popularOrder = new Map<string, number>();
+  TOP_POPULAR_GUIDE_SLUGS.forEach((s, idx) => popularOrder.set(s, idx));
+
+  const selfApts = new Set(
+    (article.featuredApartments || []).map((a) => normalizeGuideAptName(a)).filter(Boolean)
+  );
+  const selfZones = new Set(article.featuredZones || []);
+
+  const candidates = GUIDE_ARTICLES.filter((g) => g.slug !== article.slug).map((candidate) => {
+    let score = 0;
+    if (explicitOrder.has(candidate.slug)) {
+      score += 500 - (explicitOrder.get(candidate.slug) || 0) * 20;
+    }
+    if (clusterSlugs.has(candidate.slug)) {
+      score += 180;
+    }
+    if (popularOrder.has(candidate.slug)) {
+      score += 120 - (popularOrder.get(candidate.slug) || 0) * 10;
+    }
+    for (const apt of candidate.featuredApartments || []) {
+      if (selfApts.has(normalizeGuideAptName(apt))) {
+        score += 25;
+      }
+    }
+    for (const z of candidate.featuredZones || []) {
+      if (selfZones.has(z)) {
+        score += 15;
+      }
+    }
+    return { candidate, score };
+  });
+
+  candidates.sort((a, b) => b.score - a.score);
+  return candidates.slice(0, maxCount).map((entry) => entry.candidate);
+}
+

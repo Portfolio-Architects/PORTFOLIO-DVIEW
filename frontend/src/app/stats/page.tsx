@@ -11,19 +11,55 @@ import { StatsSkeleton } from '@/components/stats/StatsSkeleton';
 
 export const revalidate = 86400;
 
+const STATS_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent(
+  '동탄 아파트 통계 · 동탄역 거리별 실거래가 회귀분석'
+)}&subtitle=${encodeURIComponent(
+  '국토교통부 127개 표본 단지 평당가 상관계수 · 역세권 프리미엄 OLS 분석 | D-VIEW'
+)}`;
+
 export const metadata: Metadata = {
-  title: '동탄 아파트 통계 & 실거래가 분석 리포트 | D-VIEW 통계 랩',
-  description: '100% 국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 아파트 통계 분석 리포트. 동탄역 거리별 가격 상관관계 및 역세권 프리미엄 OLS 회귀분석 리포트를 제공합니다.',
+  title: '동탄 아파트 통계 · 동탄역 거리별 실거래가·역세권 프리미엄 회귀분석 (127개 단지) | D-VIEW 통계 랩',
+  description:
+    '국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 127개 아파트 단지 통계 분석 리포트. GTX-A·SRT 동탄역 거리별 평당가 상관계수 및 역세권 프리미엄 OLS 회귀분석, 세대수·연식·전세가율 다변량 지표를 제공합니다.',
+  keywords: [
+    '동탄 아파트 통계',
+    '동탄역 거리별 시세',
+    '동탄 역세권 프리미엄',
+    '동탄 평당가 분석',
+    '동탄 아파트 실거래가 통계',
+    '동탄 전세가율 통계',
+    '동탄 세대수 평당가',
+    'D-VIEW 통계 랩',
+    '디뷰',
+    '동뷰',
+    '동탄뷰',
+  ],
   alternates: {
     canonical: 'https://dongtanview.com/stats',
   },
   openGraph: {
-    title: '동탄 아파트 통계 & 실거래가 분석 리포트 | D-VIEW 통계 랩',
-    description: '100% 국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 아파트 통계 분석 리포트. 동탄역 거리별 가격 상관관계 및 역세권 프리미엄 OLS 회귀분석 리포트를 제공합니다.',
+    title: '동탄 아파트 통계 · 동탄역 거리별 실거래가·역세권 프리미엄 회귀분석 (127개 단지) | D-VIEW 통계 랩',
+    description:
+      '국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 127개 아파트 단지 통계 분석 리포트. 동탄역 거리별 가격 상관관계 및 역세권 프리미엄 OLS 회귀분석 리포트를 제공합니다.',
     url: 'https://dongtanview.com/stats',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
     type: 'website',
+    images: [
+      {
+        url: STATS_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 동탄 아파트 통계 및 동탄역 거리별 실거래가 OLS 회귀분석 리포트',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '동탄 아파트 통계 · 동탄역 거리별 실거래가·역세권 프리미엄 회귀분석 | D-VIEW',
+    description:
+      '국토교통부 실거래가 공공데이터 기반 동탄 127개 아파트 단지 동탄역 거리별 평당가 상관계수 및 역세권 프리미엄 OLS 회귀분석 리포트.',
+    images: [STATS_OG_IMAGE_URL],
   },
 };
 
@@ -39,8 +75,16 @@ export default function StatsPage() {
         '@type': 'WebPage',
         '@id': `${baseUrl}/stats#webpage`,
         url: `${baseUrl}/stats`,
-        name: '동탄 아파트 통계 & 실거래가 분석 리포트 | D-VIEW 통계 랩',
-        description: '100% 국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 아파트 통계 분석 리포트.',
+        name: '동탄 아파트 통계 · 동탄역 거리별 실거래가·역세권 프리미엄 회귀분석 (127개 단지) | D-VIEW 통계 랩',
+        description:
+          '국토교통부 실거래가 및 입지 공공데이터 기반 동탄신도시 127개 아파트 단지 통계 분석 리포트.',
+        inLanguage: 'ko-KR',
+        isPartOf: {
+          '@id': `${baseUrl}/#website`,
+        },
+        breadcrumb: {
+          '@id': `${baseUrl}/stats#breadcrumb`,
+        },
         publisher: {
           '@type': 'Organization',
           name: 'D-VIEW',
@@ -48,11 +92,41 @@ export default function StatsPage() {
         },
       },
       {
+        '@type': 'BreadcrumbList',
+        '@id': `${baseUrl}/stats#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: '홈',
+            item: baseUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: '아파트 통계',
+            item: `${baseUrl}/stats`,
+          },
+        ],
+      },
+      {
         '@type': 'Dataset',
         '@id': `${baseUrl}/stats#dataset-dongtan-station-distance`,
         name: '동탄역 거리별 아파트 실거래가 OLS 선형회귀 및 역세권 프리미엄 분석 데이터셋',
         description: `동탄신도시 ${datasetMeta?.totalComplexCount ?? 127}개 단지(${datasetMeta?.totalTxCount ?? 0}건 실거래) 대상 GTX-A·SRT 동탄역 직선거리와 평당 매매가 간 OLS 회귀분석(기울기 ${Math.round(regression.slopeWonPerKm).toLocaleString('ko-KR')}만원/km, 상관계수 r=${regression.pearsonR.toFixed(4)}, 결정계수 R²=${regression.rSquared.toFixed(4)}, 역세권 프리미엄 +${regression.stationPremiumRatePercent.toFixed(1)}%).`,
         url: `${baseUrl}/stats`,
+        inLanguage: 'ko-KR',
+        isAccessibleForFree: true,
+        keywords: [
+          '동탄 아파트 통계',
+          '동탄역 거리별 실거래가',
+          '역세권 프리미엄 회귀분석',
+          '동탄 평당가 상관계수',
+        ],
+        spatialCoverage: {
+          '@type': 'Place',
+          name: '경기도 화성시 동탄신도시',
+        },
         creator: {
           '@type': 'Organization',
           name: 'D-VIEW 부동산 데이터 랩스',

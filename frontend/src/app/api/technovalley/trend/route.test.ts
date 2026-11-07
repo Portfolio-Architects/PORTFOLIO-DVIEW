@@ -84,6 +84,9 @@ describe('Technovalley Trend API Route', () => {
     const req = new NextRequest('http://localhost/api/technovalley/trend?refresh=true');
     const res = await GET(req);
     expect(res.status).toBe(200);
+    expect(res.headers.get('Cache-Control')).toBe('public, s-maxage=3600, stale-while-revalidate=86400');
+    expect(fs.mkdirSync).not.toHaveBeenCalled();
+    expect(fs.writeFileSync).not.toHaveBeenCalled();
 
     const json = await res.json();
     expect(json.success).toBe(true);
@@ -98,6 +101,13 @@ describe('Technovalley Trend API Route', () => {
     expect(firstCalculated['금강 IX']).toBeDefined();
     expect(firstCalculated['금강IX_임대료']).toBeDefined();
     expect(firstCalculated['평균임대료']).toBeDefined();
+
+    // Subsequent non-refresh request hits in-memory L1 cache with s-maxage=3600
+    const cachedRes = await GET(new NextRequest('http://localhost/api/technovalley/trend'));
+    expect(cachedRes.status).toBe(200);
+    expect(cachedRes.headers.get('Cache-Control')).toBe('public, s-maxage=3600, stale-while-revalidate=86400');
+    const cachedJson = await cachedRes.json();
+    expect(cachedJson.source).toBe('memory-cache');
   });
 
   it('should compute rents and vacancy rate under normal operation with mocked transactions', async () => {

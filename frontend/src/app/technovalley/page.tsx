@@ -1,8 +1,9 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Building2, Landmark, FileSpreadsheet, CheckCircle2 } from 'lucide-react';
+import { Building2, Landmark, FileSpreadsheet, CheckCircle2, ArrowRight } from 'lucide-react';
 import TechnoValleyClient from './TechnoValleyClient';
+import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import {
@@ -13,12 +14,18 @@ import {
   formatTechnoValleyAreaM2 as formatAreaM2,
   formatTechnoValleyUnits as formatUnits,
   formatJisanTitleLabel,
+  formatTechnoValleyJisanSlug,
+  formatJisanCompletionOrApprovalDate,
+  matchJisanOfficeTransactions,
+  buildJisanTaxBenefitSummary,
+  type JisanOfficeTransactionItem,
 } from '@/lib/services/apartmentPageService';
 
 export const revalidate = 86400;
 
 export interface TechnoValleyPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;
+  initialTransactions?: JisanOfficeTransactionItem[];
 }
 
 export async function generateMetadata(): Promise<Metadata>;
@@ -54,6 +61,28 @@ export default async function TechnoValleyPage(
   const selectedJisan = resolveTechnoValleyJisan(jisanList, resolvedSearchParams?.jisan);
   const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl, selectedJisan);
 
+  let rawOfficeTransactions: JisanOfficeTransactionItem[] = [];
+  if (selectedJisan) {
+    if (Array.isArray(props?.initialTransactions)) {
+      rawOfficeTransactions = props.initialTransactions;
+    } else if (process.env.NODE_ENV !== 'test') {
+      try {
+        const { getOfficeTransactions } = await import('@/lib/services/officeTx.service');
+        rawOfficeTransactions = await getOfficeTransactions('41591', 'all');
+      } catch {
+        rawOfficeTransactions = [];
+      }
+    }
+  }
+  const matchedTransactions = selectedJisan
+    ? matchJisanOfficeTransactions(selectedJisan, rawOfficeTransactions)
+    : [];
+  const latestMatchedTx = matchedTransactions.length > 0 ? matchedTransactions[0] : null;
+  const taxBenefitSummary = selectedJisan
+    ? buildJisanTaxBenefitSummary(selectedJisan, matchedTransactions)
+    : null;
+  const selectedSlug = selectedJisan ? formatTechnoValleyJisanSlug(selectedJisan.name) : '';
+
   const completedCount = jisanList.filter(
     (item) =>
       (item.status && item.status.includes('완료')) ||
@@ -72,8 +101,146 @@ export default async function TechnoValleyPage(
         dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
 
+      <LoungeHeader activeTab="technovalley" />
+
+      {/* Above-the-Fold SSR Building Spec, Real Transaction & Tax Reduction Card when ?jisan=... matches */}
+      {selectedJisan && taxBenefitSummary && (
+        <section
+          id="technovalley-selected-jisan-above-fold"
+          aria-label={`${formatJisanTitleLabel(selectedJisan.name)} 핵심 스펙 및 실거래·취득세 감면 요약`}
+          className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-2"
+        >
+          <div
+            id="technovalley-selected-jisan-ssr"
+            className="rounded-3xl border border-emerald-500/30 bg-surface p-6 sm:p-8 shadow-sm space-y-5"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border/60 pb-5">
+              <div className="space-y-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11.5px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                    <Building2 size={13} className="shrink-0" />
+                    <span>선택 센터 정밀 스펙 · {selectedJisan.buildingStatus || selectedJisan.status || '승인'}</span>
+                  </span>
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                    취득세·재산세 35% 감면 대상
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+                  {formatJisanTitleLabel(selectedJisan.name)} 건축 스펙·실거래가 및 취득세 감면 요약
+                </h1>
+                <p className="text-[13.5px] text-secondary font-medium">
+                  소재지: {selectedJisan.roadAddress || selectedJisan.jibunAddress || '경기도 화성시 동탄테크노밸리'} · {formatJisanCompletionOrApprovalDate(selectedJisan)}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Link
+                  href={`/technovalley/${encodeURIComponent(selectedSlug)}`}
+                  prefetch={false}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[12px] font-extrabold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
+                >
+                  <span>정적 고유 주소(고정 링크)</span>
+                  <ArrowRight size={13} />
+                </Link>
+                <Link
+                  href="/technovalley"
+                  prefetch={false}
+                  className="inline-flex items-center px-3.5 py-2 rounded-xl text-[12px] font-bold bg-body text-secondary hover:text-primary border border-border/60 transition-colors"
+                >
+                  전체 {jisanList.length}개 센터 전수 보기
+                </Link>
+              </div>
+            </div>
+
+            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px] tabular-nums">
+              <div className="bg-body rounded-xl border border-border/60 p-3.5">
+                <dt className="text-tertiary text-[11.5px] font-semibold">연면적 / 대지면적</dt>
+                <dd className="mt-1 font-extrabold text-primary text-[15px]">
+                  {formatAreaM2(selectedJisan.totalFloorArea)} / {formatAreaM2(selectedJisan.landArea)}
+                </dd>
+              </div>
+              <div className="bg-body rounded-xl border border-border/60 p-3.5">
+                <dt className="text-tertiary text-[11.5px] font-semibold">산업시설 / 지원시설</dt>
+                <dd className="mt-1 font-bold text-primary">
+                  {formatAreaM2(selectedJisan.factoryArea)} / {formatAreaM2(selectedJisan.auxiliaryArea)}
+                </dd>
+              </div>
+              <div className="bg-body rounded-xl border border-border/60 p-3.5">
+                <dt className="text-tertiary text-[11.5px] font-semibold">집계 호실수 / 분양유형</dt>
+                <dd className="mt-1 font-bold text-primary">
+                  {formatUnits(selectedJisan.unitCount)} · {selectedJisan.saleType || '분양'}
+                </dd>
+              </div>
+              <div className="bg-body rounded-xl border border-border/60 p-3.5">
+                <dt className="text-tertiary text-[11.5px] font-semibold">시행사 / 시공사</dt>
+                <dd className="mt-1 font-bold text-primary truncate">
+                  {selectedJisan.developer || selectedJisan.companyName || '-'} / {selectedJisan.builder || '-'}
+                </dd>
+              </div>
+            </dl>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3.5 tabular-nums">
+              {/* Real Transaction Summary Box (MOLIT RTMSDataSvcNrgTrade 100% Real Data Only) */}
+              <div
+                id="technovalley-selected-jisan-real-tx"
+                className="bg-body rounded-2xl border border-border/60 p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[12px] font-extrabold text-primary">
+                    국토교통부 상업·업무용 매매 실거래가 현황
+                  </span>
+                  <span className="text-[11px] font-semibold text-tertiary">
+                    공공데이터포털 실시간 연동
+                  </span>
+                </div>
+                {latestMatchedTx ? (
+                  <div className="space-y-2">
+                    <div className="flex flex-wrap items-baseline justify-between gap-2">
+                      <div>
+                        <span className="text-[11.5px] text-secondary font-semibold mr-2">최근 실거래 매매가</span>
+                        <strong className="text-base sm:text-lg font-black text-emerald-700 dark:text-emerald-300">
+                          {latestMatchedTx.price}
+                        </strong>
+                      </div>
+                      <span className="text-[12px] text-secondary font-semibold">
+                        {latestMatchedTx.date} · 전용 {latestMatchedTx.sizeSqM}㎡ · {latestMatchedTx.floor}층 (최근 {matchedTransactions.length}건)
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-[12.5px] font-semibold text-secondary">
+                    등록된 실거래 내역이 없습니다. (국토교통부 상업·업무용 매매 실거래 신고 기준)
+                  </p>
+                )}
+              </div>
+
+              {/* Corporate Tax Reduction & Policy Loan Summary Box */}
+              <div
+                id="technovalley-selected-jisan-tax-summary"
+                className="bg-body rounded-2xl border border-border/60 p-4 space-y-2"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[12px] font-extrabold text-primary">
+                    입주 가능 업종 및 취득세·정책자금 감면 요약
+                  </span>
+                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                    {taxBenefitSummary.acquisitionTaxReductionRatePct}% 세액 감면
+                  </span>
+                </div>
+                <p className="text-[12.5px] text-secondary font-semibold leading-relaxed">
+                  입주 업종: <strong className="text-primary">{selectedJisan.representativeBusiness?.trim() || '제조·지식·정보통신(IT)'}</strong> · 취득세 35% 감면 ({taxBenefitSummary.referenceLabel} 기준 일반 4.6% 대비 약 <strong className="text-emerald-700 dark:text-emerald-300">{taxBenefitSummary.savedTaxManwon.toLocaleString('ko-KR')}만원</strong> 절감) · 재산세 {taxBenefitSummary.propertyTaxReductionRatePct}% 감면(5년) · 과밀억제권역 이전 법인세 {taxBenefitSummary.corporateTaxReductionLabel} · 정책자금 분양가 {taxBenefitSummary.policyLoanLimitLabel}
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Interactive TechnoValley Client Dashboard */}
-      <TechnoValleyClient selectedJisan={selectedJisan} />
+      <TechnoValleyClient
+        selectedJisan={selectedJisan}
+        initialTransactions={matchedTransactions}
+        hideHeader={true}
+      />
 
       {/* SSR B2B High-CPC Semantic Catalog & Corporate Tax Benefit Section */}
       <section
@@ -87,71 +254,19 @@ export default async function TechnoValleyPage(
               <Building2 size={14} className="shrink-0" />
               <span>D-VIEW B2B 기업이전·지식산업센터 데이터 랩</span>
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
-              {selectedJisan
-                ? `${formatJisanTitleLabel(selectedJisan.name)} 건축 스펙·입주 업종 및 세제 감면 분석`
-                : `동탄테크노밸리 ${jisanList.length}개 지식산업센터 전수 카탈로그 및 세제 혜택 분석`}
-            </h1>
+            {selectedJisan ? (
+              <h2 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+                동탄테크노밸리 {jisanList.length}개 지식산업센터 전수 카탈로그 및 세제 혜택 분석
+              </h2>
+            ) : (
+              <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+                동탄테크노밸리 {jisanList.length}개 지식산업센터 전수 카탈로그 및 세제 혜택 분석
+              </h1>
+            )}
             <p className="mt-3 text-secondary text-[14px] sm:text-[15.5px] leading-relaxed max-w-[960px] font-medium">
               수도권 남부 최대 첨단 클러스터인 동탄테크노밸리 내 {jisanList.length}개 지식산업센터(준공·완료 {completedCount}개소, 총 집계 호실 {totalUnitsSum.toLocaleString('ko-KR')}실)의 건축 스펙과 법인 사옥 이전 시 적용되는 취득세·재산세·법인세 감면 및 중소기업 정책자금 금융 조건을 실증 분석합니다.
             </p>
           </div>
-
-          {/* Focused SSR Building Spec Card when ?jisan=... matches a verified center */}
-          {selectedJisan && (
-            <div
-              id="technovalley-selected-jisan-ssr"
-              className="rounded-2xl border border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-5 sm:p-6 space-y-4"
-            >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="space-y-1">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
-                    선택 센터 정밀 스펙 · {selectedJisan.buildingStatus || selectedJisan.status || '승인'}
-                  </span>
-                  <h2 className="text-lg sm:text-xl font-black text-primary tracking-tight">
-                    {formatJisanTitleLabel(selectedJisan.name)}
-                  </h2>
-                  <p className="text-[13px] text-secondary font-medium">
-                    소재지: {selectedJisan.roadAddress || selectedJisan.jibunAddress || '경기도 화성시 동탄테크노밸리'}
-                  </p>
-                </div>
-                <Link
-                  href="/technovalley"
-                  prefetch={false}
-                  className="text-[12px] font-bold text-emerald-700 dark:text-emerald-300 hover:underline"
-                >
-                  전체 {jisanList.length}개 센터 전수 보기
-                </Link>
-              </div>
-
-              <dl className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-[13px] tabular-nums">
-                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
-                  <dt className="text-tertiary text-[11.5px] font-semibold">연면적</dt>
-                  <dd className="mt-1 font-extrabold text-primary text-[15px]">
-                    {formatAreaM2(selectedJisan.totalFloorArea)}
-                  </dd>
-                </div>
-                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
-                  <dt className="text-tertiary text-[11.5px] font-semibold">산업시설 / 지원시설</dt>
-                  <dd className="mt-1 font-bold text-primary">
-                    {formatAreaM2(selectedJisan.factoryArea)} / {formatAreaM2(selectedJisan.auxiliaryArea)}
-                  </dd>
-                </div>
-                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
-                  <dt className="text-tertiary text-[11.5px] font-semibold">집계 호실수 / 분양유형</dt>
-                  <dd className="mt-1 font-bold text-primary">
-                    {formatUnits(selectedJisan.unitCount)} · {selectedJisan.saleType || '분양'}
-                  </dd>
-                </div>
-                <div className="bg-surface rounded-xl border border-border/60 p-3.5">
-                  <dt className="text-tertiary text-[11.5px] font-semibold">입주 가능 업종 · 세제 혜택</dt>
-                  <dd className="mt-1 font-bold text-emerald-700 dark:text-emerald-300">
-                    {selectedJisan.representativeBusiness?.trim() || '제조·지식·정보통신(IT)'} · 취득세 35% 감면
-                  </dd>
-                </div>
-              </dl>
-            </div>
-          )}
 
           {/* Section 1: Corporate Tax Benefits & Policy Finance Table */}
           <div className="space-y-4">
@@ -277,6 +392,7 @@ export default async function TechnoValleyPage(
                   {jisanList.map((item) => {
                     const isSelected =
                       selectedJisan?.seq === item.seq && selectedJisan?.name === item.name;
+                    const itemSlug = formatTechnoValleyJisanSlug(item.name);
                     return (
                       <tr
                         key={`${item.seq}-${item.name}`}
@@ -291,7 +407,7 @@ export default async function TechnoValleyPage(
                         <td className="p-3 text-tertiary whitespace-nowrap">{item.seq}</td>
                         <th scope="row" className="p-3 font-bold text-primary whitespace-nowrap">
                           <Link
-                            href={`/technovalley?jisan=${encodeURIComponent(item.name)}`}
+                            href={`/technovalley/${encodeURIComponent(itemSlug)}`}
                             prefetch={false}
                             className={
                               isSelected

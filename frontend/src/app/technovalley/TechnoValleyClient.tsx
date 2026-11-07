@@ -1,13 +1,25 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Building2, MapPin, CheckCircle2, ArrowDownRight, LayoutGrid } from 'lucide-react';
+import {
+  Building2,
+  MapPin,
+  CheckCircle2,
+  ArrowDownRight,
+  LayoutGrid,
+  Landmark,
+  ReceiptText,
+  ExternalLink,
+} from 'lucide-react';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 import dynamic from 'next/dynamic';
-import type { TechnoValleyJisan } from '@/lib/services/apartmentPageService';
+import type {
+  TechnoValleyJisan,
+  JisanOfficeTransactionItem,
+} from '@/lib/services/apartmentPageService';
 
 const TechnoValleyDashboard = dynamic(
   () => import('@/components/macro/TechnoValleyDashboard'),
@@ -55,12 +67,188 @@ function formatCenterDisplayLabel(name: string): string {
   return trimmed.includes('지식산업센터') ? trimmed : `${trimmed} 지식산업센터`;
 }
 
-export interface TechnoValleyClientProps {
-  selectedJisan?: TechnoValleyJisan | null;
+function formatClientJisanSlug(name: string): string {
+  if (!name || typeof name !== 'string') return '';
+  return name.trim().replace(/\s+/g, '-');
 }
 
-export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClientProps = {}) {
+function normalizeClientCoreKey(input: string): string {
+  return input
+    .replace(/[\u2162\u2172]/g, '3')
+    .replace(/[\u2161\u2171]/g, '2')
+    .replace(/[\u2160\u2170]/g, '1')
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/지식산업센터/g, '')
+    .replace(/주식회사|\(주\)/g, '')
+    .replace(/타임스퀘어/g, 'timesquare')
+    .replace(/스퀘어/g, 'square')
+    .replace(/타워/g, 'tower')
+    .replace(/센터/g, 'center')
+    .replace(/아이티/g, 'it')
+    .replace(/쓰리/g, '3')
+    .replace(/투$/g, '2')
+    .replace(/[^a-z0-9가-힣]/g, '')
+    .replace(/iii$/g, '3')
+    .replace(/ii$/g, '2')
+    .replace(/(square|tower|center)i$/g, '$11')
+    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/동탄$/, '')
+    .replace(/center$/, '');
+}
+
+function parseClientJibunComponents(rawAddress?: string): {
+  dong: string | null;
+  lot: string | null;
+} {
+  if (!rawAddress) return { dong: null, lot: null };
+  const dongAndLot = rawAddress.match(
+    /([가-힣]+(?:동|리))\s+((?:산\s*)?\d+(?:-\d+)?)(?=번지|외|\s|$|,|\()/
+  );
+  if (dongAndLot) {
+    return {
+      dong: dongAndLot[1],
+      lot: dongAndLot[2].replace(/\s+/g, ''),
+    };
+  }
+  const bareLot = rawAddress
+    .trim()
+    .match(/^((?:산\s*)?\d+(?:-\d+)?)(?:번지|외)?$/);
+  if (bareLot) {
+    return {
+      dong: null,
+      lot: bareLot[1].replace(/\s+/g, ''),
+    };
+  }
+  return { dong: null, lot: null };
+}
+
+function filterTransactionsForJisan(
+  jisan: TechnoValleyJisan | null | undefined,
+  txList: readonly JisanOfficeTransactionItem[]
+): JisanOfficeTransactionItem[] {
+  if (!jisan || !Array.isArray(txList) || txList.length === 0) return [];
+  const targetCore = normalizeClientCoreKey(jisan.name);
+  const { dong: targetDong, lot: targetLot } = parseClientJibunComponents(jisan.jibunAddress);
+  const dongMatch = jisan.name.match(/([A-Ca-c])동/);
+  const targetDongBlock = dongMatch ? dongMatch[1].toUpperCase() : null;
+  const targetCoreWithoutBlock = targetDongBlock ? targetCore.replace(/[a-c]동$/, '') : targetCore;
+  const isLegalOrBlockCenterName = /\(주\)|주식회사|블럭|BL/i.test(jisan.name);
+
+  return txList
+    .filter((tx) => {
+      if (!tx || tx.type === '임대' || !tx.price || tx.price === '0원') return false;
+
+      const { dong: txDong, lot: txLot } = parseClientJibunComponents(tx.jibun);
+      if (targetDong && txDong && targetDong !== txDong) return false;
+
+      const bName = (tx.buildingName || '').trim();
+      if (targetDongBlock) {
+        if (bName) {
+          const txDongBlock = bName.match(/([A-Ca-c])동/);
+          if (txDongBlock && txDongBlock[1].toUpperCase() !== targetDongBlock) return false;
+        }
+        if (targetLot && txLot && txLot !== targetLot) return false;
+      }
+
+      const isGenericBuildingName =
+        !bName || bName === '미상 건물' || bName === '지식산업센터' || bName === '-';
+
+      if (!isGenericBuildingName) {
+        const txCore = normalizeClientCoreKey(bName);
+        if (txCore.length >= 3 && targetCore.length >= 3 && txCore === targetCore) return true;
+        if (
+          (targetCore === '금강펜테리움ixtower' && txCore === '금강ixtower') ||
+          (targetCore === '현대실리콘앨리' && txCore === '실리콘앨리') ||
+          (targetCore === 'shtimesquare1' && txCore === 'shtimesquare')
+        ) {
+          return true;
+        }
+        if (
+          targetDongBlock &&
+          txCore.length >= 3 &&
+          txCore === targetCoreWithoutBlock &&
+          targetLot &&
+          txLot === targetLot
+        ) {
+          return true;
+        }
+        if (isLegalOrBlockCenterName && targetLot && txLot && txLot === targetLot) {
+          return true;
+        }
+        return false;
+      }
+
+      return Boolean(targetLot && txLot && txLot === targetLot);
+    })
+    .sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
+}
+
+export interface TechnoValleyClientProps {
+  selectedJisan?: TechnoValleyJisan | null;
+  initialTransactions?: JisanOfficeTransactionItem[];
+  hideHeader?: boolean;
+}
+
+const EMPTY_TRANSACTIONS: JisanOfficeTransactionItem[] = [];
+
+export default function TechnoValleyClient({
+  selectedJisan,
+  initialTransactions = EMPTY_TRANSACTIONS,
+  hideHeader = false,
+}: TechnoValleyClientProps = {}) {
+  const [fetchedTxs, setFetchedTxs] = useState<JisanOfficeTransactionItem[]>(EMPTY_TRANSACTIONS);
+
+  useEffect(() => {
+    if (!selectedJisan || (initialTransactions && initialTransactions.length > 0)) {
+      setFetchedTxs((prev) => (prev.length === 0 ? prev : EMPTY_TRANSACTIONS));
+      return;
+    }
+    if (typeof window === 'undefined' || typeof window.fetch !== 'function') return;
+
+    let active = true;
+    window
+      .fetch('/api/technovalley/transactions?lawdCd=41591&dealYmd=all')
+      .then((res) => (res && res.ok ? res.json() : null))
+      .then(
+        (
+          payload:
+            | JisanOfficeTransactionItem[]
+            | { data?: JisanOfficeTransactionItem[] }
+            | null
+        ) => {
+          if (!active || !payload) return;
+          const rawList = Array.isArray(payload)
+            ? payload
+            : Array.isArray(payload.data)
+              ? payload.data
+              : [];
+          setFetchedTxs(filterTransactionsForJisan(selectedJisan, rawList));
+        }
+      )
+      .catch(() => {
+        // Ignore network errors in offline/test contexts; honest empty fallback is displayed
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedJisan, initialTransactions]);
+
+  const matchedTxs = useMemo(() => {
+    if (initialTransactions && initialTransactions.length > 0) {
+      return filterTransactionsForJisan(selectedJisan, initialTransactions);
+    }
+    return fetchedTxs;
+  }, [selectedJisan, initialTransactions, fetchedTxs]);
+
+  const latestSaleTx = matchedTxs.length > 0 ? matchedTxs[0] : null;
+  const benchmarkPriceManwon =
+    latestSaleTx?.priceRaw && latestSaleTx.priceRaw > 0 ? latestSaleTx.priceRaw : 30000;
+  const savedTaxManwon = Math.round(Math.round(benchmarkPriceManwon * 0.046) * 0.35);
+
   const selectedLabel = selectedJisan ? formatCenterDisplayLabel(selectedJisan.name) : null;
+  const selectedSlug = selectedJisan ? formatClientJisanSlug(selectedJisan.name) : '';
   const totalAreaNum = parsePositiveNum(selectedJisan?.totalFloorArea);
   const unitNum = Math.floor(parsePositiveNum(selectedJisan?.unitCount));
   const industryLabel =
@@ -83,7 +271,7 @@ export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClient
 
   return (
     <>
-      <LoungeHeader activeTab="technovalley" />
+      {!hideHeader && <LoungeHeader activeTab="technovalley" />}
 
       <div className="flex flex-col w-full bg-transparent">
         {/* Hero Header */}
@@ -100,8 +288,8 @@ export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClient
           {selectedJisan && selectedLabel && (
             <section
               id="technovalley-selected-jisan-hero-banner"
-              aria-label={`${selectedLabel} 핵심 건축 스펙 및 세제 혜택 요약`}
-              className="mb-6 rounded-2xl border border-emerald-500/30 bg-surface p-4 sm:p-5 shadow-sm"
+              aria-label={`${selectedLabel} 실거래가·핵심 건축 스펙 및 취득세 감면 요약`}
+              className="mb-6 rounded-2xl border border-emerald-500/30 bg-surface p-4 sm:p-5 shadow-sm space-y-4"
             >
               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div className="space-y-1.5 min-w-0">
@@ -123,9 +311,17 @@ export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClient
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <Link
+                    href={`/technovalley/${encodeURIComponent(selectedSlug)}`}
+                    prefetch={false}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-xs font-extrabold transition-colors"
+                  >
+                    <span>전용 상세 리포트</span>
+                    <ExternalLink size={13} className="shrink-0" />
+                  </Link>
                   <a
                     href="#technovalley-selected-jisan-ssr"
-                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-slate-50 text-xs font-extrabold transition-colors"
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-200 text-xs font-extrabold transition-colors"
                   >
                     <span>인허가·세제 상세 스펙</span>
                     <ArrowDownRight size={14} className="shrink-0" />
@@ -141,10 +337,12 @@ export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClient
                 </div>
               </div>
 
-              <dl className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs sm:text-[13px] tabular-nums">
+              <dl className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs sm:text-[13px] tabular-nums">
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
-                  <dt className="text-[11px] font-semibold text-tertiary">연면적</dt>
-                  <dd className="mt-0.5 font-extrabold text-primary">{formatHeroAreaM2(selectedJisan.totalFloorArea)}</dd>
+                  <dt className="text-[11px] font-semibold text-tertiary">연면적 / 대지면적</dt>
+                  <dd className="mt-0.5 font-extrabold text-primary">
+                    {formatHeroAreaM2(selectedJisan.totalFloorArea)} / {formatHeroAreaM2(selectedJisan.landArea)}
+                  </dd>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
                   <dt className="text-[11px] font-semibold text-tertiary">산업시설 / 지원시설</dt>
@@ -166,6 +364,60 @@ export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClient
                   </dd>
                 </div>
               </dl>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 text-xs sm:text-[13px] tabular-nums">
+                <div
+                  id="technovalley-client-jisan-real-tx"
+                  className="rounded-xl border border-border/60 bg-body px-4 py-3 space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-primary">
+                      <ReceiptText size={13} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>국토교통부 상업·업무용 매매 실거래가 요약</span>
+                    </span>
+                    <span className="text-[11px] font-semibold text-tertiary">
+                      RTMSDataSvcNrgTrade 공식 데이터
+                    </span>
+                  </div>
+                  {latestSaleTx ? (
+                    <div className="pt-0.5 text-secondary font-medium">
+                      최근 실거래{' '}
+                      <strong className="font-extrabold text-primary">{latestSaleTx.price}</strong>{' '}
+                      ({latestSaleTx.date} · 전용 {latestSaleTx.sizeSqM}㎡ · {latestSaleTx.floor}층, 총{' '}
+                      {matchedTxs.length}건)
+                    </div>
+                  ) : (
+                    <div className="pt-0.5 text-secondary font-medium">
+                      등록된 실거래 내역이 없습니다. ({selectedJisan.buildingStatus || '승인'} ·{' '}
+                      {selectedJisan.saleType || '분양'})
+                    </div>
+                  )}
+                </div>
+
+                <div
+                  id="technovalley-client-jisan-tax-summary"
+                  className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.04] dark:bg-emerald-950/20 px-4 py-3 space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="inline-flex items-center gap-1.5 text-[11.5px] font-extrabold text-emerald-800 dark:text-emerald-200">
+                      <Landmark size={13} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>취득세·재산세·법인세 감면 및 정책자금 핵심 요약</span>
+                    </span>
+                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300">
+                      지방세특례제한법 제58조의2
+                    </span>
+                  </div>
+                  <div className="pt-0.5 text-secondary font-medium">
+                    최초 분양 중소기업 취득세 <strong className="text-primary">35% 감면</strong>(예상 절감 약{' '}
+                    <strong className="text-emerald-700 dark:text-emerald-300">
+                      {savedTaxManwon.toLocaleString('ko-KR')}만원
+                    </strong>
+                    ) · 재산세 <strong className="text-primary">35% 감면(5년)</strong> · 과밀억제권역 이전 법인세{' '}
+                    <strong className="text-primary">최대 100% 감면</strong> · 정책자금{' '}
+                    <strong className="text-primary">분양가 70~80%</strong>
+                  </div>
+                </div>
+              </div>
             </section>
           )}
 
@@ -177,3 +429,4 @@ export default function TechnoValleyClient({ selectedJisan }: TechnoValleyClient
     </>
   );
 }
+

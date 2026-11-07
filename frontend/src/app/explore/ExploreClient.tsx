@@ -14,7 +14,14 @@ import { useDashboardMeta, type DashboardInitialDataLocal } from '@/hooks/useDas
 import { usePreloadApartmentTx } from '@/hooks/usePreloadApartmentTx';
 import { usePWA } from '@/components/pwa/PWAProvider';
 import { useTxData, useLocationScores } from '@/hooks/useStaticData';
-import { isSameApartment, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
+import {
+  isSameApartment,
+  normalizeAptName,
+  findTxKey,
+  resolveCanonicalAptSlug,
+  stripApartmentNoiseQueryParams,
+} from '@/lib/utils/apartmentMapping';
+import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
 import { dashboardFacade, FieldReportData } from '@/lib/DashboardFacade';
 import { type DongApartment } from '@/lib/dong-apartments';
 import { type ObjectiveMetrics } from '@/types/report';
@@ -24,7 +31,11 @@ import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import { trackEvent, trackApartmentView } from '@/lib/utils/analytics';
 import { logger } from '@/lib/services/logger';
-import { syncShallowModalCloseToDashboard } from '@/lib/ads/recirculationEngine';
+import {
+  decodeSafeAptParam,
+  syncShallowApartmentOpen,
+  syncShallowModalCloseToDashboard,
+} from '@/lib/ads/recirculationEngine';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const ExploreListSkeleton = () => (
@@ -240,6 +251,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   // Modals status
   const [isCompareOpen, setIsCompareOpen] = useState(false);
   const [compareInitialApt, setCompareInitialApt] = useState<string | undefined>(undefined);
+  const [compareSecondApt, setCompareSecondApt] = useState<string | undefined>(undefined);
 
   const [isJeonseSafetyOpen, setIsJeonseSafetyOpen] = useState(false);
   const [jeonseSafetyInitialApt, setJeonseSafetyInitialApt] = useState<string | undefined>(undefined);
@@ -265,6 +277,21 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     const matchKey = findTxKey(aptName, locationScores, nameMapping);
     return matchKey ? locationScores[matchKey] : {};
   }, [locationScores, nameMapping]);
+
+  const getCanonicalAptSlug = useCallback(
+    (name: string, dong?: string, txKey?: string): string => {
+      return (
+        resolveCanonicalAptSlug(name, {
+          txKey,
+          txMap: txSummary,
+          sheetApartments,
+          manualMapping: nameMapping || undefined,
+          dong,
+        }) || name
+      );
+    },
+    [txSummary, sheetApartments, nameMapping]
+  );
 
   const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummary);
 
@@ -326,6 +353,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     };
   }, []);
 
+  const returnExplorePathRef = useRef<string>('/explore');
+
   // Handle #apt= hash to open modal automatically
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -337,9 +366,28 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       if (match) {
         const aptName = decodeURIComponent(match[1]);
         const allApts = Object.values(apartments).flat() as DongApartment[];
-        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, mapping));
+        const targetApt =
+          allApts.find(
+            (a) =>
+              isSameApartment(a.name, aptName, mapping) ||
+              (a.txKey ? isSameApartment(a.txKey, aptName, mapping) : false)
+          ) ||
+          (CANONICAL_DONG_APT_LIST.find(
+            (a) =>
+              isSameApartment(a.name, aptName, mapping) ||
+              (a.txKey ? isSameApartment(a.txKey, aptName, mapping) : false) ||
+              (a.rawTxKey ? isSameApartment(a.rawTxKey, aptName, mapping) : false)
+          ) as DongApartment | undefined);
 
         if (targetApt) {
+          if (window.location.pathname.startsWith('/explore')) {
+            returnExplorePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
+          }
+          const canonicalSlug = getCanonicalAptSlug(
+            targetApt.name,
+            targetApt.dong,
+            targetApt.txKey
+          );
           const report = reportsMap.get(targetApt.name);
           if (report) {
             setSelectedReport(report);
@@ -359,10 +407,15 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
           trackApartmentView({
             apartment_name: targetApt.name,
             apt_name: targetApt.name,
+            canonical_slug: canonicalSlug,
             dong: targetApt.dong || undefined,
             surface: 'explore_hash_modal',
             view_type: 'modal',
             trigger: 'hash_link',
+          });
+          syncShallowApartmentOpen(targetApt.name, {
+            dong: targetApt.dong,
+            canonicalSlug,
           });
         }
       }
@@ -374,32 +427,103 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     
     window.addEventListener('hashchange', checkHashForApt, { passive: true });
     return () => window.removeEventListener('hashchange', checkHashForApt);
-  }, [mounted, !!sheetApartments]);
+  }, [mounted, sheetApartments, getCanonicalAptSlug, getLocScore]);
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
-      if (!window.location.hash && (window.location.pathname === '/explore')) {
-        syncShallowModalCloseToDashboard(`/explore${window.location.search || ''}`);
+      const pathname = window.location.pathname || '/explore';
+      if (pathname.startsWith('/apartment/')) {
+        const aptParam = decodeSafeAptParam(pathname.slice('/apartment/'.length));
+        setIsCompareOpen(false);
+        setIsMortgageOpen(false);
+        setIsTaxCalcOpen(false);
+        setIsJeonseSafetyOpen(false);
+        setIsSellTimingOpen(false);
+        if (aptParam) {
+          const { sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
+          const allApts = apartments ? (Object.values(apartments).flat() as DongApartment[]) : [];
+          const targetApt =
+            allApts.find(
+              (a) =>
+                isSameApartment(a.name, aptParam, mapping) ||
+                (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false)
+            ) ||
+            (CANONICAL_DONG_APT_LIST.find(
+              (a) =>
+                isSameApartment(a.name, aptParam, mapping) ||
+                (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false) ||
+                (a.rawTxKey ? isSameApartment(a.rawTxKey, aptParam, mapping) : false)
+            ) as DongApartment | undefined);
+          const resolvedName = targetApt?.name || aptParam;
+          const resolvedDong = targetApt?.dong || '';
+          const canonicalSlug = getCanonicalAptSlug(resolvedName, resolvedDong, targetApt?.txKey);
+          if (canonicalSlug && typeof window.history?.replaceState === 'function') {
+            const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+            const currentSearch = window.location.search || '';
+            const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
+            if (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) {
+              window.history.replaceState(
+                window.history.state,
+                '',
+                `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
+              );
+            }
+          }
+          syncShallowApartmentOpen(resolvedName, {
+            dong: resolvedDong,
+            canonicalSlug,
+          });
+          const report = (targetApt && reportsMap?.get(targetApt.name)) || {
+            id: `stub-${normalizeAptName(resolvedName)}`,
+            apartmentName: resolvedName,
+            dong: resolvedDong,
+            author: '',
+            likes: 0,
+            commentCount: 0,
+            createdAt: null,
+            metrics: { ...(targetApt || { name: aptParam, dong: '' }), ...(getLocScore(resolvedName) || {}) } as unknown as ObjectiveMetrics,
+          };
+          setSelectedReport(report);
+          setMobileModalOpen(true);
+        }
+        return;
+      }
+
+      if (!window.location.hash && pathname.startsWith('/explore')) {
+        const returnPath = `${pathname}${window.location.search || ''}`;
+        returnExplorePathRef.current = returnPath;
+        syncShallowModalCloseToDashboard(returnPath);
+        setIsCompareOpen(false);
+        setIsMortgageOpen(false);
+        setIsTaxCalcOpen(false);
+        setIsJeonseSafetyOpen(false);
+        setIsSellTimingOpen(false);
         setSelectedReport(null);
         setMobileModalOpen(false);
       }
     };
     window.addEventListener('popstate', handlePopState, { passive: true });
     return () => window.removeEventListener('popstate', handlePopState);
-  }, []);
+  }, [getCanonicalAptSlug, getLocScore]);
 
-  const handleAptClick = useCallback((apt: { name: string; dong: string }) => {
+  const handleAptClick = useCallback((apt: { name: string; dong: string; txKey?: string }) => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/explore')) {
+      returnExplorePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
+    }
+    const canonicalSlug = getCanonicalAptSlug(apt.name, apt.dong, apt.txKey);
     trackEvent('view_apartment', { apt_name: apt.name });
     trackApartmentView({
       apartment_name: apt.name,
       apt_name: apt.name,
+      canonical_slug: canonicalSlug,
       dong: apt.dong || undefined,
       surface: 'explore_catalog',
       view_type: 'modal',
     });
+    syncShallowApartmentOpen(apt.name, { dong: apt.dong, canonicalSlug });
     const report = fieldReportsMap.get(apt.name);
     if (report) {
       setSelectedReport(report);
@@ -428,20 +552,25 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     }
 
     setMobileModalOpen(true);
-  }, [fieldReportsMap, getLocScore]);
+  }, [fieldReportsMap, getLocScore, getCanonicalAptSlug]);
 
-  const handleAptClickByName = useCallback((name: string) => {
+  const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
-    const targetApt = allApts.find(a => isSameApartment(a.name, name, nameMapping));
+    const targetApt = allApts.find(
+      (a) =>
+        isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+        (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false)
+    );
     if (targetApt) {
       handleAptClick(targetApt);
     } else {
-      handleAptClick({ name, dong: '' });
+      handleAptClick({ name, dong: dong || '' });
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
   const handleOpenCompare = useCallback(() => {
     setCompareInitialApt(undefined);
+    setCompareSecondApt(undefined);
     setIsCompareOpen(true);
   }, []);
 
@@ -523,7 +652,11 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                 <FieldReportModal
                   report={selectedReport}
                   onClose={() => {
-                    syncShallowModalCloseToDashboard(`/explore${typeof window !== 'undefined' ? window.location.search || '' : ''}`);
+                    const returnPath =
+                      typeof window !== 'undefined' && window.location.pathname.startsWith('/explore')
+                        ? `${window.location.pathname}${window.location.search || ''}`
+                        : returnExplorePathRef.current || '/explore';
+                    syncShallowModalCloseToDashboard(returnPath);
                     setSelectedReport(null);
                     setMobileModalOpen(false);
                   }}
@@ -534,9 +667,11 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                   nameMapping={nameMapping || {}}
                   txSummaryData={txSummary}
                   locationScores={locationScores}
+                  onSelectApartment={handleAptClickByName}
 
-                  onOpenCompare={(aptName) => {
+                  onOpenCompare={(aptName, targetAptName) => {
                     setCompareInitialApt(aptName);
+                    setCompareSecondApt(targetAptName);
                     setIsCompareOpen(true);
                     trackEvent('open_calculator', { calculator_type: 'compare', apt_name: aptName });
                   }}
@@ -609,8 +744,17 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         >
           <AptCompareModal
             isOpen={isCompareOpen}
-            onClose={() => setIsCompareOpen(false)}
+            onClose={() => {
+              setIsCompareOpen(false);
+              setCompareSecondApt(undefined);
+            }}
             initialAptName={compareInitialApt}
+            initialSecondAptName={compareSecondApt}
+            onSelectApartment={(aptName) => {
+              setIsCompareOpen(false);
+              setCompareSecondApt(undefined);
+              handleAptClickByName(aptName);
+            }}
             sheetApartments={sheetApartments}
             txSummaryData={txSummary}
             nameMapping={nameMapping || {}}

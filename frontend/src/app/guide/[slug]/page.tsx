@@ -9,6 +9,7 @@ import {
   ArrowUpRight,
   Building2,
   MapPin,
+  Layers,
 } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
@@ -16,10 +17,14 @@ import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 import {
   GUIDE_ARTICLES,
+  TOP_POPULAR_GUIDE_SLUGS,
+  GUIDE_TOPIC_CLUSTERS,
   buildGuideArticleJsonLd,
   buildGuideAptMiniPreview,
   resolveGuideZoneSectionPreviews,
   normalizeGuideAptName,
+  getTopicClusterForGuide,
+  getRelatedGuidesForGuide,
   type GuideAptMiniPreviewItem,
   type ResolvedGuideZoneSectionPreview,
 } from '@/lib/data/guides';
@@ -29,7 +34,11 @@ import ReportShareBar from '@/components/common/ReportShareBar';
 import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
-import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import {
+  CANONICAL_DONG_APT_LIST,
+  CANONICAL_TX_SUMMARY_MAP,
+} from '@/lib/utils/canonicalAptCatalog';
 
 export const revalidate = 86400;
 
@@ -87,14 +96,85 @@ export async function generateMetadata(props: {
   };
 }
 
+function safeDecodeURIComponent(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export function renderInlineBold(
   text: string,
   inlineSlugLookup?: Map<string, string>
 ): React.ReactNode {
-  const parts = text.split(/(\*\*[^*]+\*\*)/g);
+  const parts = text.split(
+    /(\*\*\[[^\]]+\]\(\/(?:guide|apartment|zone)\/(?:\([^)]*\)|[^)])+\)\*\*|\[[^\]]+\]\(\/(?:guide|apartment|zone)\/(?:\([^)]*\)|[^)])+\)|\*\*[^*]+\*\*)/g
+  );
   return parts.map((part, idx) => {
+    const unwrappedLinkCandidate =
+      part.startsWith('**') && part.endsWith('**') && part.includes('](/')
+        ? part.slice(2, -2)
+        : part;
+    const mdMatch = unwrappedLinkCandidate.match(
+      /^\[([^\]]+)\]\((\/(?:guide|apartment|zone)\/(?:\([^)]*\)|[^)])+)\)$/
+    );
+    if (mdMatch) {
+      const cleanLabel = mdMatch[1].replace(/\*\*/g, '').trim();
+      const rawHref = mdMatch[2].trim();
+      if (rawHref.startsWith('/guide/')) {
+        return (
+          <Link
+            key={idx}
+            href={rawHref}
+            prefetch={false}
+            data-testid="guide-inline-cross-link"
+            className="font-extrabold text-blue-700 dark:text-blue-400 underline decoration-blue-500/40 underline-offset-4 hover:text-blue-600 transition-colors"
+          >
+            {cleanLabel}
+          </Link>
+        );
+      }
+      if (rawHref.startsWith('/apartment/')) {
+        const rawApt = safeDecodeURIComponent(rawHref.slice('/apartment/'.length)).trim();
+        const normApt = normalizeGuideAptName(rawApt);
+        const resolvedSlug =
+          (inlineSlugLookup && normApt ? inlineSlugLookup.get(normApt) : undefined) ||
+          resolveCanonicalAptSlug(rawApt) ||
+          rawApt;
+        return (
+          <Link
+            key={idx}
+            href={`/apartment/${encodeURIComponent(resolvedSlug)}`}
+            prefetch={false}
+            data-testid="guide-inline-apt-link"
+            className="font-extrabold text-emerald-700 dark:text-emerald-400 underline decoration-emerald-500/40 underline-offset-4 hover:text-emerald-600 transition-colors"
+          >
+            {cleanLabel}
+          </Link>
+        );
+      }
+      return (
+        <Link
+          key={idx}
+          href={rawHref}
+          prefetch={false}
+          className="font-extrabold text-blue-700 dark:text-blue-400 underline decoration-blue-500/40 underline-offset-4 hover:text-blue-600 transition-colors"
+        >
+          {cleanLabel}
+        </Link>
+      );
+    }
+
     if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
       const innerText = part.slice(2, -2);
+      if (/\[[^\]]+\]\(\/(?:guide|apartment|zone)\//.test(innerText)) {
+        return (
+          <strong key={idx} className="font-extrabold text-primary">
+            {renderInlineBold(innerText, inlineSlugLookup)}
+          </strong>
+        );
+      }
       const normKey = normalizeGuideAptName(innerText);
       const strippedParenBase = innerText.replace(/\s*\([^)]*\)\s*$/, '').trim();
       const fallbackNormKey =
@@ -425,11 +505,18 @@ function getBaseInlineSlugLookupEntries(): Array<[string, string]> {
   if (baseInlineSlugLookupEntriesCache) return baseInlineSlugLookupEntriesCache;
   const map = new Map<string, string>();
   for (const entry of CANONICAL_DONG_APT_LIST) {
+    if (!CANONICAL_TX_SUMMARY_MAP[entry.txKey]) continue;
     for (const alias of [entry.txKey, entry.name]) {
       const norm = normalizeGuideAptName(alias);
       if (norm.length >= 2 && !map.has(norm)) {
         map.set(norm, entry.txKey);
       }
+    }
+  }
+  for (const txKey of Object.keys(CANONICAL_TX_SUMMARY_MAP)) {
+    const norm = normalizeGuideAptName(txKey);
+    if (norm.length >= 2 && !map.has(norm)) {
+      map.set(norm, txKey);
     }
   }
   baseInlineSlugLookupEntriesCache = Array.from(map.entries());
@@ -450,7 +537,12 @@ export default async function GuideArticlePage(props: {
   const nonce = undefined;
   const jsonLd = buildGuideArticleJsonLd(article, baseUrl);
 
-  const otherArticles = GUIDE_ARTICLES.filter((a) => a.slug !== article.slug);
+  const topicCluster = getTopicClusterForGuide(article);
+  const clusterRelatedGuides = getRelatedGuidesForGuide(article, 6);
+  const relatedSlugSet = new Set(clusterRelatedGuides.map((g) => g.slug));
+  const otherArticles = GUIDE_ARTICLES.filter(
+    (a) => a.slug !== article.slug && !relatedSlugSet.has(a.slug)
+  );
   const txSummary = await getTxSummaryData();
 
   const mapAptMetric = (aptName: string): GuideAptMiniPreviewItem | null =>
@@ -459,6 +551,12 @@ export default async function GuideArticlePage(props: {
   const featuredAptRows = (article.featuredApartments || [])
     .map(mapAptMetric)
     .filter((item): item is GuideAptMiniPreviewItem => item !== null);
+
+  const clusterFlagshipAptRows = (topicCluster?.flagshipApartments || [])
+    .map(mapAptMetric)
+    .filter((item): item is GuideAptMiniPreviewItem => item !== null);
+
+  const topHighlightAptRows = featuredAptRows.slice(0, 4);
 
   const zoneSectionPreviews = resolveGuideZoneSectionPreviews(article, txSummary);
 
@@ -551,6 +649,11 @@ export default async function GuideArticlePage(props: {
                 <span className="font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                   {article.category}
                 </span>
+                {topicCluster && (
+                  <span className="font-bold text-blue-700 dark:text-blue-300 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20">
+                    {topicCluster.shortTitle}
+                  </span>
+                )}
                 <span className="flex items-center gap-1">
                   {article.date}
                 </span>
@@ -587,6 +690,134 @@ export default async function GuideArticlePage(props: {
                 ))}
               </ul>
             </div>
+
+            {/* Top-of-Article Flagship Complex Quick-Jump & Rival Matchup CTA */}
+            {featuredAptRows.length > 0 && (
+              <section
+                id="guide-top-apt-quick-jump"
+                data-testid="guide-top-apt-quick-jump"
+                aria-label="리포트 핵심 대장주 단지 상단 바로가기 및 라이벌 실거래 비교"
+                className="rounded-2xl border border-emerald-500/30 dark:border-emerald-500/35 bg-slate-50/90 dark:bg-slate-900/75 p-4 sm:p-6 space-y-4 shadow-2xs"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h2 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                      <Building2 size={17} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span>본문 핵심 대표 단지 (시범단지·호수공원·역세권 대장주) 실거래 바로가기</span>
+                    </h2>
+                    <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                      국토교통부 실거래가·전세가율·실거주 PER이 검증된 핵심 단지 상세 리포트로 즉시 이동합니다.
+                    </p>
+                  </div>
+                  {headToHeadRows.length > 0 && (
+                    <a
+                      href="#guide-head-to-head-comparison"
+                      className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0"
+                    >
+                      <Scale size={13} />
+                      <span>1:1 라이벌 매치업({headToHeadRows.length}건) 바로보기</span>
+                    </a>
+                  )}
+                </div>
+
+                {/* Top 4 Flagship Complex Preview Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {topHighlightAptRows.map((item) => (
+                    <GuideAptPreviewCard
+                      key={`top-preview-${item.canonicalSlug}`}
+                      item={item}
+                      guideSlug={article.slug}
+                      placement="article_top"
+                      sectionTitle={`${article.title} 상단 대표 단지 바로가기`}
+                    />
+                  ))}
+                </div>
+
+                {/* All Featured Complexes Direct Canonical Quick-Jump Pills */}
+                <div className="pt-2 border-t border-slate-200/80 dark:border-slate-800 space-y-2">
+                  <div className="text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <span>수록 단지 전체 상세 페이지 바로가기</span>
+                    <span className="text-slate-400 font-semibold tabular-nums">
+                      ({featuredAptRows.length}개 단지)
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {featuredAptRows.map((apt) => (
+                      <Link
+                        key={`top-pill-${apt.canonicalSlug}`}
+                        href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
+                        prefetch={false}
+                        data-testid="guide-top-apt-shortcut-pill"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 text-xs font-bold text-slate-800 dark:text-slate-100 transition-colors"
+                      >
+                        <span>{apt.displayName}</span>
+                        <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                          {apt.latestPriceStr}
+                        </span>
+                        <ArrowUpRight size={12} className="text-slate-400" />
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Top 1:1 Rival Matchup Quick-Comparison Bar */}
+                {headToHeadRows.length > 0 && (
+                  <div
+                    data-testid="guide-top-rival-matchup"
+                    className="rounded-xl border border-blue-500/25 dark:border-blue-500/30 bg-blue-500/[0.04] dark:bg-blue-950/20 p-3.5 space-y-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-700 dark:text-blue-300">
+                        <Scale size={13} />
+                        <span>핵심 라이벌 매치업 1:1 비교 하이라이트 ({headToHeadRows.length}선)</span>
+                      </span>
+                      <a
+                        href="#guide-rival-matchup-section"
+                        className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 hover:underline"
+                      >
+                        상세 스펙 대결표 이동
+                      </a>
+                    </div>
+                    <div className="grid grid-cols-1 gap-2">
+                      {headToHeadRows.map((matchup, idx) => (
+                        <div
+                          key={`top-matchup-${idx}-${matchup.left.canonicalSlug}-${matchup.right.canonicalSlug}`}
+                          data-testid="guide-top-rival-matchup-row"
+                          className="rounded-lg bg-white/80 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 px-3 py-2 flex flex-col lg:flex-row lg:items-center justify-between gap-2"
+                        >
+                          <p className="text-xs sm:text-[12.5px] font-extrabold text-slate-900 dark:text-slate-100">
+                            {matchup.title}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 shrink-0">
+                            <Link
+                              href={`/apartment/${encodeURIComponent(matchup.left.canonicalSlug)}`}
+                              prefetch={false}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 text-xs font-extrabold text-slate-900 dark:text-slate-100 transition-colors"
+                            >
+                              <span>{matchup.left.displayName}</span>
+                              <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">
+                                {matchup.left.latestPriceStr}
+                              </span>
+                            </Link>
+                            <span className="text-[11px] font-black text-slate-400">VS</span>
+                            <Link
+                              href={`/apartment/${encodeURIComponent(matchup.right.canonicalSlug)}`}
+                              prefetch={false}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500 text-xs font-extrabold text-slate-900 dark:text-slate-100 transition-colors"
+                            >
+                              <span>{matchup.right.displayName}</span>
+                              <span className="text-blue-700 dark:text-blue-400 tabular-nums">
+                                {matchup.right.latestPriceStr}
+                              </span>
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </section>
+            )}
 
             {/* Mid-Article Zero-CLS AdSlot */}
             {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
@@ -875,6 +1106,145 @@ export default async function GuideArticlePage(props: {
                     </table>
                   </div>
                 )}
+              </section>
+            )}
+
+            {/* Topic Cluster & Popular Guide Internal Cross-Linking Hub */}
+            {clusterRelatedGuides.length > 0 && (
+              <section
+                id="guide-topic-cluster-links"
+                data-testid="guide-topic-cluster-links"
+                aria-label="토픽 클러스터 연관 가이드 및 인기 리포트 교차 탐색"
+                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
+                      <Layers size={19} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>
+                        {topicCluster
+                          ? `${topicCluster.title} · 필수 연계 리포트`
+                          : '함께 읽으면 좋은 핵심 연계 가이드'}
+                      </span>
+                    </h3>
+                    <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
+                      {topicCluster
+                        ? `${topicCluster.description} — 본 리포트와 함께 비교하면 단지 선택 정확도가 높아집니다.`
+                        : '본 리포트의 실거래·입지 분석과 직결되는 인기 비교 가이드입니다.'}
+                    </p>
+                  </div>
+                  <Link
+                    href="/guide"
+                    prefetch={false}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition-colors w-fit shrink-0"
+                  >
+                    <span>전체 20개 가이드 허브</span>
+                    <ArrowUpRight size={13} />
+                  </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                  {clusterRelatedGuides.map((relGuide) => {
+                    const isTopPopular = TOP_POPULAR_GUIDE_SLUGS.includes(relGuide.slug);
+                    return (
+                      <Link
+                        key={`cluster-link-${relGuide.slug}`}
+                        href={`/guide/${relGuide.slug}`}
+                        prefetch={false}
+                        data-testid="guide-topic-cluster-card"
+                        className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 hover:border-blue-500/50 dark:hover:border-blue-400/50 p-4 flex flex-col justify-between gap-2.5 transition-all group"
+                      >
+                        <div className="space-y-1.5">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20">
+                              {relGuide.category}
+                            </span>
+                            {isTopPopular && (
+                              <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                                인기 TOP 5
+                              </span>
+                            )}
+                          </div>
+                          <h4 className="text-[13.5px] sm:text-[14.5px] font-extrabold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
+                            {relGuide.title}
+                          </h4>
+                          <p className="text-xs text-slate-600 dark:text-slate-400 font-medium line-clamp-2">
+                            {relGuide.subtitle}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800/60 text-[11.5px] font-bold text-blue-700 dark:text-blue-400">
+                          <span>심층 비교 리포트 이어서 읽기</span>
+                          <ArrowUpRight
+                            size={14}
+                            className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform"
+                          />
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+
+                {/* Cluster Flagship Apartment Direct Shortcuts */}
+                {clusterFlagshipAptRows.length > 0 && (
+                  <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-900/50 p-3.5 space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300">
+                        {topicCluster
+                          ? `${topicCluster.title} 대표 대장주 단지 실거래 바로가기`
+                          : '클러스터 대표 대장주 단지 바로가기'}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                        국토부 84㎡ 실거래 기준
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {clusterFlagshipAptRows.map((apt) => (
+                        <Link
+                          key={`cluster-flagship-apt-${apt.canonicalSlug}`}
+                          href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
+                          prefetch={false}
+                          data-testid="guide-cluster-flagship-apt-link"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 dark:hover:border-emerald-400/60 text-xs font-extrabold text-slate-800 dark:text-slate-100 transition-colors"
+                        >
+                          <Building2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>{apt.displayName}</span>
+                          <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 tabular-nums">
+                            {apt.latestPriceStr}
+                          </span>
+                          <ArrowUpRight size={12} className="text-slate-400" />
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 5-Cluster Pillar Cross-Navigation Bar */}
+                <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/40 p-3.5 space-y-2">
+                  <span className="block text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300">
+                    5대 핵심 토픽 클러스터 대표 가이드 (20개 리포트 전체 연결)
+                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {GUIDE_TOPIC_CLUSTERS.map((cluster) => {
+                      const isCurrentCluster = topicCluster?.id === cluster.id;
+                      return (
+                        <Link
+                          key={`cluster-pillar-${cluster.id}`}
+                          href={`/guide/${cluster.pillarSlug}`}
+                          prefetch={false}
+                          data-testid="guide-cluster-pillar-pill"
+                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-extrabold transition-colors ${
+                            isCurrentCluster
+                              ? 'bg-blue-500/10 border-blue-500/40 text-blue-700 dark:text-blue-300'
+                              : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-blue-500/40'
+                          }`}
+                        >
+                          <span>{cluster.title}</span>
+                          <ArrowUpRight size={12} className="opacity-70" />
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               </section>
             )}
 

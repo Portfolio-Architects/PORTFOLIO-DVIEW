@@ -12,7 +12,17 @@ import { getZoneById, dongToZoneId } from '@/lib/zones';
 import { safeReload } from '@/lib/utils/safeReload';
 import { logger } from '@/lib/services/logger';
 import { useAuth } from '@/hooks/useAuth';
-import { syncShallowModalCloseToDashboard } from '@/lib/ads/recirculationEngine';
+import {
+  decodeSafeAptParam,
+  syncShallowApartmentOpen,
+  syncShallowModalCloseToDashboard,
+} from '@/lib/ads/recirculationEngine';
+import {
+  isSameApartment,
+  normalizeAptName,
+  resolveCanonicalAptSlug,
+  stripApartmentNoiseQueryParams,
+} from '@/lib/utils/apartmentMapping';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
@@ -75,19 +85,59 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
   const zone = getZoneById(zoneId);
 
   const { fieldReports } = useDashboardData();
+  const fieldReportsRef = useRef<FieldReportData[]>(fieldReports || []);
+  useEffect(() => {
+    fieldReportsRef.current = fieldReports || [];
+  }, [fieldReports]);
+
+  const returnZonePathRef = useRef<string>(`/zone/${encodeURIComponent(zoneId)}`);
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/zone/')) {
+      returnZonePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
+    } else {
+      returnZonePathRef.current = `/zone/${encodeURIComponent(zoneId)}`;
+    }
+  }, [zoneId]);
+
   const [selectedReport, setSelectedReport] = useState<FieldReportData | null>(null);
   const [fullReportData, setFullReportData] = useState<FieldReportData | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState(false);
   const { user } = useAuth();
 
   const handleSelectReport = (report: FieldReportData) => {
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/zone/')) {
+      returnZonePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
+    }
+    const canonicalSlug =
+      resolveCanonicalAptSlug(report.apartmentName, { dong: report.dong }) ||
+      report.apartmentName;
+    syncShallowApartmentOpen(report.apartmentName, {
+      dong: report.dong,
+      canonicalSlug,
+    });
     setSelectedReport(report);
     setIsLoadingDetail(true);
     setFullReportData(null);
   };
 
+  const handleSelectApartmentByName = (aptName: string, dong?: string) => {
+    const matched = fieldReports?.find((r) =>
+      isSameApartment(r.apartmentName, aptName, undefined, r.dong, dong)
+    );
+    if (matched) {
+      handleSelectReport(matched);
+      return;
+    }
+    const canonicalSlug = resolveCanonicalAptSlug(aptName, { dong }) || aptName;
+    router.push(`/apartment/${encodeURIComponent(canonicalSlug)}`);
+  };
+
   const handleCloseModal = () => {
-    const returnZonePath = `/zone/${encodeURIComponent(zoneId)}${typeof window !== 'undefined' ? window.location.search || '' : ''}`;
+    const defaultZonePath = `/zone/${encodeURIComponent(zoneId)}`;
+    const returnZonePath =
+      typeof window !== 'undefined' && window.location.pathname.startsWith('/zone/')
+        ? `${window.location.pathname}${window.location.search || ''}`
+        : returnZonePathRef.current || defaultZonePath;
     syncShallowModalCloseToDashboard(returnZonePath);
     setSelectedReport(null);
     setFullReportData(null);
@@ -98,8 +148,59 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     if (typeof window === 'undefined') return;
     const expectedZonePrefix = `/zone/${encodeURIComponent(zoneId)}`;
     const handlePopState = () => {
-      if (window.location.pathname === expectedZonePrefix || window.location.pathname.startsWith('/zone/')) {
-        syncShallowModalCloseToDashboard(`${window.location.pathname}${window.location.search || ''}`);
+      const pathname = window.location.pathname || expectedZonePrefix;
+      if (pathname.startsWith('/apartment/')) {
+        const aptParam = decodeSafeAptParam(pathname.slice('/apartment/'.length));
+        if (aptParam) {
+          const reports = fieldReportsRef.current || [];
+          const matched = reports.find((r) =>
+            isSameApartment(r.apartmentName, aptParam, undefined, r.dong)
+          );
+          const resolvedName = matched?.apartmentName || aptParam;
+          const resolvedDong = matched?.dong || '';
+          const canonicalSlug =
+            resolveCanonicalAptSlug(resolvedName, { dong: resolvedDong }) || resolvedName;
+          if (canonicalSlug && typeof window.history?.replaceState === 'function') {
+            const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+            const currentSearch = window.location.search || '';
+            const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
+            if (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) {
+              window.history.replaceState(
+                window.history.state,
+                '',
+                `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
+              );
+            }
+          }
+          syncShallowApartmentOpen(resolvedName, {
+            dong: resolvedDong,
+            canonicalSlug,
+          });
+          if (matched) {
+            setSelectedReport(matched);
+            setIsLoadingDetail(true);
+            setFullReportData(null);
+          } else {
+            setSelectedReport({
+              id: `stub-${normalizeAptName(resolvedName)}`,
+              apartmentName: resolvedName,
+              dong: resolvedDong,
+              author: '',
+              likes: 0,
+              commentCount: 0,
+              createdAt: null,
+            });
+            setIsLoadingDetail(false);
+            setFullReportData(null);
+          }
+        }
+        return;
+      }
+
+      if (pathname === expectedZonePrefix || pathname.startsWith('/zone/')) {
+        const returnPath = `${pathname}${window.location.search || ''}`;
+        returnZonePathRef.current = returnPath;
+        syncShallowModalCloseToDashboard(returnPath);
         setSelectedReport(null);
         setFullReportData(null);
         setIsLoadingDetail(false);
@@ -112,6 +213,10 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
   // Fetch full report detail data when modal opens (lazy loading)
   useEffect(() => {
     if (!selectedReport) return;
+    if (selectedReport.id.startsWith('stub-')) {
+      setIsLoadingDetail(false);
+      return;
+    }
     
     let unmounted = false;
     dashboardFacade.getFullReport(selectedReport.id).then((data) => {
@@ -249,6 +354,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
           transactions={[]}
           typeMap={{}}
           isLoadingDetail={isLoadingDetail}
+          onSelectApartment={handleSelectApartmentByName}
         />
       )}
     </div>

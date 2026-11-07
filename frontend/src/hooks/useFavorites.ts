@@ -44,13 +44,19 @@ export function isApartmentInFavorites(
   return false;
 }
 
+export interface UseFavoritesOptions {
+  fetchGlobalCounts?: boolean;
+}
+
 export function useFavorites(
   _user?: User | null,
-  initialFavoriteCounts: Record<string, number> = {}
+  initialFavoriteCounts: Record<string, number> = {},
+  options?: UseFavoritesOptions
 ) {
   const [userFavorites, setUserFavorites] = useState<Set<string>>(new Set());
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>(initialFavoriteCounts);
   const isMountedRef = useRef(true);
+  const fetchGlobalCounts = options?.fetchGlobalCounts ?? false;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -114,9 +120,13 @@ export function useFavorites(
     };
   }, [getGuestFavorites]);
 
-  // Fetch latest global favorite counts on mount to ensure sync across devices
+  // Fetch global favorite counts only in test environment or when explicitly opted in
   useEffect(() => {
     const isTest = process.env.NODE_ENV === 'test';
+    if (!isTest && !fetchGlobalCounts) {
+      return;
+    }
+
     if (!isTest && clientFavoriteCountsCache && Date.now() < clientFavoriteCountsCache.expiresAt) {
       const cachedCounts = clientFavoriteCountsCache.counts;
       if (Object.keys(cachedCounts).length > 0) {
@@ -165,7 +175,7 @@ export function useFavorites(
     return () => {
       controller.abort();
     };
-  }, []);
+  }, [fetchGlobalCounts]);
 
   const isFavorited = useCallback(
     (aptName: string, nameMapping?: Record<string, string>): boolean => {

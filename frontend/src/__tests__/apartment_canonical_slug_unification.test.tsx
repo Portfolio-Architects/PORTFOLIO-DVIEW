@@ -58,6 +58,21 @@ import type { AptTxSummary } from '@/lib/types/transaction';
 import type { FieldReportData } from '@/lib/types/report.types';
 
 // --- Mocks for Client & SSR Shell Wrappers ---
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    refresh: jest.fn(),
+    back: jest.fn(),
+    forward: jest.fn(),
+    prefetch: jest.fn(),
+  }),
+  usePathname: () => (typeof window !== 'undefined' ? window.location.pathname : '/'),
+  useSearchParams: () =>
+    new URLSearchParams(typeof window !== 'undefined' ? window.location.search : ''),
+  useParams: () => ({ id: 'community' }),
+}));
+
 jest.mock('@/components/pwa/PWAProvider', () => ({
   usePWA: () => ({
     showToast: jest.fn(),
@@ -1325,7 +1340,189 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
         `https://dongtanview.com/apartment/${encodeURIComponent('동탄2아이파크1단지')}`
       );
     });
+
+    it('deduplicates cross-alias trackApartmentView cascades, normalizes canonical_slug payloads, and strips noise query params in trackVirtualPageView', async () => {
+      const analyticsModule = await import('@/lib/utils/analytics');
+      const {
+        trackApartmentView,
+        trackVirtualPageView,
+        resetAnalyticsInteractionState,
+      } = analyticsModule;
+
+      const trackEventSpy = jest.spyOn(analyticsModule, 'trackEvent');
+      window.dataLayer = [];
+      resetAnalyticsInteractionState();
+
+      // 1) Cross-alias cascade: spaced display name ('동탄역 시범 리슈빌') on parent surface followed immediately by canonical MOLIT key ('동탄역시범리슈빌아파트') on apartment_modal
+      const firstResult = trackApartmentView({
+        apartment_name: '동탄역 시범 리슈빌',
+        dong: '청계동',
+        surface: 'dashboard',
+        view_type: 'modal',
+      });
+      const secondResult = trackApartmentView({
+        apartment_name: '동탄역시범리슈빌아파트',
+        canonical_slug: '동탄역시범리슈빌아파트',
+        dong: '청계동',
+        surface: 'apartment_modal',
+        view_type: 'modal',
+      });
+      expect(firstResult).toBe(true);
+      expect(secondResult).toBe(false);
+      expect(trackEventSpy).toHaveBeenCalledTimes(1);
+
+      // 2) Radical alias cascade: '능동역 경남아너스빌' on search_dropdown followed immediately by '동탄숲속마을자연앤경남아너스빌1124-0' on apartment_modal
+      resetAnalyticsInteractionState();
+      trackEventSpy.mockClear();
+      expect(
+        trackApartmentView({
+          apartment_name: '능동역 경남아너스빌',
+          dong: '능동',
+          surface: 'search_dropdown',
+          view_type: 'shortcut',
+        })
+      ).toBe(true);
+      expect(
+        trackApartmentView({
+          apartment_name: '동탄숲속마을자연앤경남아너스빌1124-0',
+          canonical_slug: '동탄숲속마을자연앤경남아너스빌1124-0',
+          dong: '능동',
+          surface: 'apartment_modal',
+          view_type: 'modal',
+        })
+      ).toBe(false);
+      expect(trackEventSpy).toHaveBeenCalledTimes(1);
+
+      // 3) Normalization of spaced canonical_slug parameter when passed to trackApartmentView
+      resetAnalyticsInteractionState();
+      trackEventSpy.mockClear();
+      trackApartmentView({
+        apartment_name: '동탄역 푸르지오',
+        canonical_slug: '동탄역 푸르지오',
+        dong: '영천동',
+        surface: 'explore',
+        view_type: 'modal',
+      });
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        'apartment_view',
+        expect.objectContaining({
+          apartment_name: '동탄역 푸르지오',
+          apt_name: '동탄역 푸르지오',
+          canonical_slug: '동탄역푸르지오',
+          dong: '영천동',
+        })
+      );
+
+      // 4) trackVirtualPageView strips ?hl=ko-KR, ?gl=KR, ?_x_tr_* on /apartment/ routes while preserving legitimate UTM params
+      trackEventSpy.mockClear();
+      const canonicalEncodedPath = `/apartment/${encodeURIComponent('동탄역푸르지오')}`;
+      const pvEntry = trackVirtualPageView(
+        `${canonicalEncodedPath}?hl=ko-KR&gl=KR&_x_tr_sl=auto&utm_source=google#chapter-01`,
+        {
+          apartment_name: '동탄역 푸르지오',
+          dong: '영천동',
+        }
+      );
+      expect(pvEntry.path).toBe(`${canonicalEncodedPath}?utm_source=google#chapter-01`);
+      trackEventSpy.mockRestore();
+    });
+
+    it('renders only valid canonical /apartment/ links backed by tx-summary.json across all GuideArticlePage (/guide/[slug]) articles', async () => {
+      const GuideArticlePage = (await import('@/app/guide/[slug]/page')).default;
+      const { GUIDE_ARTICLES } = await import('@/lib/data/guides');
+
+      for (const guide of GUIDE_ARTICLES) {
+        const jsx = await GuideArticlePage({
+          params: Promise.resolve({ slug: guide.slug }),
+        });
+        const { container, unmount } = render(jsx);
+        const aptLinks = Array.from(
+          container.querySelectorAll('a[href^="/apartment/"]')
+        ) as HTMLAnchorElement[];
+
+        for (const link of aptLinks) {
+          const href = link.getAttribute('href') || '';
+          expect(href).not.toContain('%20');
+          const rawSlug = href.replace(/^\/apartment\//, '').split(/[?#]/)[0];
+          const decodedSlug = decodeURIComponent(rawSlug);
+          // Every /apartment/ link in guides must exist in REAL_TX_SUMMARY so Edge proxy never 307-redirects to /explore
+          expect(REAL_TX_SUMMARY[decodedSlug]).toBeDefined();
+        }
+        unmount();
+      }
+    });
+
+    it('resolves #apt= deep-links via CANONICAL_DONG_APT_LIST fallback, normalizes popstate /apartment/ slugs, and preserves /explore?dong=... query strings across ExploreClient transitions', async () => {
+      resetVirtualPageViewLedger();
+      window.history.replaceState(
+        null,
+        '',
+        `/explore?dong=${encodeURIComponent('영천동')}#apt=${encodeURIComponent('동탄역 푸르지오')}`
+      );
+
+      const ActualExploreClient = (
+        jest.requireActual('@/app/explore/ExploreClient') as {
+          default: typeof import('@/app/explore/ExploreClient').default;
+        }
+      ).default;
+      const { unmount } = render(
+        <ActualExploreClient
+          initialDashboardData={{
+            kpis: [],
+            newsFeed: [],
+            fieldReports: [],
+            userReviews: [],
+            dongtanApartments: ['동탄역 푸르지오', '동탄역 시범 리슈빌'],
+            txSummary: {
+              동탄역푸르지오: REAL_TX_SUMMARY['동탄역푸르지오'],
+              동탄역시범리슈빌아파트: REAL_TX_SUMMARY['동탄역시범리슈빌아파트'],
+            },
+            nameMapping: {},
+          }}
+        />
+      );
+
+      // 1) Opening modal via #apt=동탄역 푸르지오 on /explore?dong=영천동 resolves via CANONICAL_DONG_APT_LIST even before async /data/apartments-by-dong.json loads, and pushes /apartment/동탄역푸르지오
+      expect(window.location.pathname).toBe(`/apartment/${encodeURIComponent('동탄역푸르지오')}`);
+      expect(window.location.search).toBe('');
+      expect(getVirtualPageViewCount()).toBe(1);
+
+      // 2) Simulate browser popstate to non-canonical /apartment/동탄역 시범 리슈빌?hl=ko-KR
+      window.history.replaceState(
+        { step: 2 },
+        '',
+        `/apartment/${encodeURIComponent('동탄역 시범 리슈빌')}?hl=ko-KR`
+      );
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+      expect(window.location.search).toBe('');
+      // Popstate normalizes URL and updates shallow route signature without firing duplicate virtual PV
+      expect(getVirtualPageViewCount()).toBe(1);
+
+      // 3) Simulate browser popstate back to /explore?dong=영천동
+      window.history.replaceState(
+        { step: 1 },
+        '',
+        `/explore?dong=${encodeURIComponent('영천동')}`
+      );
+      window.dispatchEvent(new PopStateEvent('popstate'));
+      expect(window.location.pathname).toBe('/explore');
+      expect(decodeURIComponent(window.location.search)).toBe('?dong=영천동');
+
+      // 4) Re-opening '동탄역 시범 리슈빌' after popstate back to /explore dispatches a fresh virtual PV
+      const entryAfterBack = syncShallowApartmentOpen('동탄역 시범 리슈빌', {
+        dong: '청계동',
+        canonicalSlug: '동탄역시범리슈빌아파트',
+      });
+      expect(entryAfterBack?.path).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+      expect(getVirtualPageViewCount()).toBe(2);
+
+      unmount();
+    });
   });
 });
-
 

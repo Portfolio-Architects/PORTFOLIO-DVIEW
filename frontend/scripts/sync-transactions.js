@@ -1016,7 +1016,7 @@ async function main() {
     }
   }
 
-  if (process.env.OFFLINE_MODE !== 'true' && process.env.SKIP_MOLIT_DIRECT_FETCH !== 'true') {
+  if (!isOffline && !process.env.VERCEL && process.env.OFFLINE_MODE !== 'true' && process.env.SKIP_MOLIT_DIRECT_FETCH !== 'true') {
     await fetchRecentMolitDirect(byApt, now);
   }
 

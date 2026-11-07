@@ -287,6 +287,7 @@ import {
   resolveCanonicalAptSlug,
   stripApartmentNoiseQueryParams,
 } from '@/lib/utils/apartmentMapping';
+import { CANONICAL_DONG_APT_LIST } from '@/lib/utils/canonicalAptCatalog';
 import React, { useState, useEffect, useMemo, useRef, useCallback, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDisplayName } from '@/lib/utils/userUtils';
@@ -635,10 +636,28 @@ const DashboardClient = React.memo(function DashboardClient({
       if (match) {
         const aptName = decodeURIComponent(match[1]);
         const allApts = Object.values(apartments).flat() as DongApartment[];
-        const targetApt = allApts.find(a => isSameApartment(a.name, aptName, mapping));
+        const targetApt =
+          allApts.find(
+            (a) =>
+              isSameApartment(a.name, aptName, mapping) ||
+              (a.txKey ? isSameApartment(a.txKey, aptName, mapping) : false)
+          ) ||
+          (CANONICAL_DONG_APT_LIST.find(
+            (a) =>
+              isSameApartment(a.name, aptName, mapping) ||
+              (a.txKey ? isSameApartment(a.txKey, aptName, mapping) : false) ||
+              (a.rawTxKey ? isSameApartment(a.rawTxKey, aptName, mapping) : false)
+          ) as DongApartment | undefined);
         
         if (targetApt) {
           userHasSelected.current = true;
+          const canonicalSlug =
+            resolveCanonicalAptSlug(targetApt.name, {
+              txKey: targetApt.txKey,
+              sheetApartments: apartments,
+              manualMapping: mapping || undefined,
+              dong: targetApt.dong,
+            }) || targetApt.name;
           const report = reportsMap.get(targetApt.name);
           if (report) {
             setSelectedReport(report);
@@ -658,10 +677,15 @@ const DashboardClient = React.memo(function DashboardClient({
           trackApartmentView({
             apartment_name: targetApt.name,
             apt_name: targetApt.name,
+            canonical_slug: canonicalSlug,
             dong: targetApt.dong || undefined,
             surface: 'dashboard_hash_modal',
             view_type: 'modal',
             trigger: 'hash_link',
+          });
+          syncShallowApartmentOpen(targetApt.name, {
+            dong: targetApt.dong,
+            canonicalSlug,
           });
         }
       }
@@ -673,7 +697,7 @@ const DashboardClient = React.memo(function DashboardClient({
     
     window.addEventListener('hashchange', checkHashForApt, { passive: true });
     return () => window.removeEventListener('hashchange', checkHashForApt);
-  }, [mounted, !!sheetApartments]);
+  }, [mounted, sheetApartments]);
 
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
@@ -837,11 +861,18 @@ const DashboardClient = React.memo(function DashboardClient({
         if (aptParam) {
           const { sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
           const allApts = apartments ? Object.values(apartments).flat() : [];
-          const targetApt = allApts.find(
-            a =>
-              isSameApartment(a.name, aptParam, mapping) ||
-              (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false)
-          );
+          const targetApt =
+            allApts.find(
+              a =>
+                isSameApartment(a.name, aptParam, mapping) ||
+                (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false)
+            ) ||
+            (CANONICAL_DONG_APT_LIST.find(
+              a =>
+                isSameApartment(a.name, aptParam, mapping) ||
+                (a.txKey ? isSameApartment(a.txKey, aptParam, mapping) : false) ||
+                (a.rawTxKey ? isSameApartment(a.rawTxKey, aptParam, mapping) : false)
+            ) as DongApartment | undefined);
           const resolvedName = targetApt?.name || aptParam;
           const resolvedDong = targetApt?.dong || '';
           const canonicalSlug = getCanonicalAptSlug(resolvedName, resolvedDong, targetApt?.txKey);
@@ -857,6 +888,10 @@ const DashboardClient = React.memo(function DashboardClient({
               );
             }
           }
+          syncShallowApartmentOpen(resolvedName, {
+            dong: resolvedDong,
+            canonicalSlug,
+          });
           const report = (targetApt && reportsMap?.get(targetApt.name)) || {
             id: `stub-${normalizeAptName(resolvedName)}`,
             apartmentName: resolvedName,
@@ -1047,6 +1082,11 @@ const DashboardClient = React.memo(function DashboardClient({
         { type: 'MODAL_CLOSE' }
       );
       setMobileModalOpen(true);
+    } else if (
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/compare')
+    ) {
+      syncShallowModalCloseToDashboard();
     }
   }, [compareSecondApt]);
 
@@ -1100,6 +1140,11 @@ const DashboardClient = React.memo(function DashboardClient({
         { type: 'MODAL_CLOSE' }
       );
       setMobileModalOpen(true);
+    } else if (
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/calculator/')
+    ) {
+      syncShallowModalCloseToDashboard();
     }
   }, []);
 
@@ -1146,6 +1191,11 @@ const DashboardClient = React.memo(function DashboardClient({
         { type: 'MODAL_CLOSE' }
       );
       setMobileModalOpen(true);
+    } else if (
+      typeof window !== 'undefined' &&
+      window.location.pathname.startsWith('/calculator/')
+    ) {
+      syncShallowModalCloseToDashboard();
     }
   }, []);
 

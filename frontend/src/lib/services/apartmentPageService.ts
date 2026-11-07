@@ -1361,11 +1361,21 @@ function normalizeJisanPhoneticKey(input: string): string {
     .replace(/(square|tower|center)i$/g, '$11');
 }
 
+function normalizeJisanCoreAliasKey(input: string): string {
+  const phonetic = normalizeJisanPhoneticKey(input);
+  if (!phonetic) return '';
+  return phonetic
+    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/동탄$/, '')
+    .replace(/center$/, '');
+}
+
 interface PrecomputedJisanLookupIndex {
   exactMap: Map<string, TechnoValleyJisan>;
   compactMap: Map<string, TechnoValleyJisan>;
   strippedMap: Map<string, TechnoValleyJisan[]>;
   phoneticMap: Map<string, TechnoValleyJisan[]>;
+  coreAliasMap: Map<string, TechnoValleyJisan[]>;
 }
 
 const jisanLookupIndexCache = new WeakMap<object, PrecomputedJisanLookupIndex>();
@@ -1378,6 +1388,17 @@ function getJisanLookupIndex(jisanList: TechnoValleyJisan[]): PrecomputedJisanLo
   const compactMap = new Map<string, TechnoValleyJisan>();
   const strippedMap = new Map<string, TechnoValleyJisan[]>();
   const phoneticMap = new Map<string, TechnoValleyJisan[]>();
+  const coreAliasMap = new Map<string, TechnoValleyJisan[]>();
+
+  const pushUnique = (map: Map<string, TechnoValleyJisan[]>, key: string, item: TechnoValleyJisan) => {
+    if (!key) return;
+    const arr = map.get(key);
+    if (arr) {
+      if (!arr.includes(item)) arr.push(item);
+    } else {
+      map.set(key, [item]);
+    }
+  };
 
   for (const item of jisanList) {
     if (!item || !item.name) continue;
@@ -1390,15 +1411,26 @@ function getJisanLookupIndex(jisanList: TechnoValleyJisan[]): PrecomputedJisanLo
     }
     const stripped = compact.replace(/지식산업센터$/g, '');
     if (stripped) {
-      const arr = strippedMap.get(stripped);
-      if (arr) arr.push(item);
-      else strippedMap.set(stripped, [item]);
+      pushUnique(strippedMap, stripped, item);
     }
     const phonetic = normalizeJisanPhoneticKey(item.name);
     if (phonetic) {
-      const arr = phoneticMap.get(phonetic);
-      if (arr) arr.push(item);
-      else phoneticMap.set(phonetic, [item]);
+      pushUnique(phoneticMap, phonetic, item);
+    }
+    const coreAlias = normalizeJisanCoreAliasKey(item.name);
+    if (coreAlias) {
+      pushUnique(coreAliasMap, coreAlias, item);
+      if (coreAlias === 'shtimesquare1') {
+        pushUnique(coreAliasMap, 'shtimesquare', item);
+      } else if (coreAlias === '금강펜테리움ixtower') {
+        pushUnique(coreAliasMap, '금강ixtower', item);
+      } else if (coreAlias === '메가비즈towera동') {
+        pushUnique(coreAliasMap, '메가비즈tower', item);
+      } else if (coreAlias === '현대실리콘앨리') {
+        pushUnique(coreAliasMap, '실리콘앨리', item);
+      } else if (coreAlias === '루체스타비즈') {
+        pushUnique(coreAliasMap, '루체스타', item);
+      }
     }
   }
 
@@ -1407,13 +1439,14 @@ function getJisanLookupIndex(jisanList: TechnoValleyJisan[]): PrecomputedJisanLo
     compactMap,
     strippedMap,
     phoneticMap,
+    coreAliasMap,
   };
   jisanLookupIndexCache.set(jisanList, index);
   return index;
 }
 
 /**
- * Resolves a `?jisan=` query parameter strictly against the 56 verified FactoryOn Knowledge Industry Centers.
+ * Resolves a `?jisan=` query parameter or `/technovalley/[slug]` parameter strictly against the 56 verified FactoryOn Knowledge Industry Centers.
  * Returns `null` for empty, unrecognized, or untrusted inputs so arbitrary strings are never reflected into SERP metadata.
  */
 export function resolveTechnoValleyJisan(
@@ -1435,7 +1468,8 @@ export function resolveTechnoValleyJisan(
   const decoded = decodeJisanParamSafely(trimmed);
   if (!decoded) return null;
 
-  const { exactMap, compactMap, strippedMap, phoneticMap } = getJisanLookupIndex(jisanList);
+  const { exactMap, compactMap, strippedMap, phoneticMap, coreAliasMap } =
+    getJisanLookupIndex(jisanList);
 
   const exact = exactMap.get(decoded);
   if (exact) return exact;
@@ -1456,13 +1490,247 @@ export function resolveTechnoValleyJisan(
       const phoneticMatches = phoneticMap.get(qPhonetic);
       if (phoneticMatches && phoneticMatches.length === 1) return phoneticMatches[0];
     }
+
+    const qCore = normalizeJisanCoreAliasKey(decoded);
+    if (qCore.length >= 3) {
+      const coreMatches = coreAliasMap.get(qCore);
+      if (coreMatches && coreMatches.length === 1) return coreMatches[0];
+    }
   }
 
   return null;
 }
 
 /**
- * Pure deterministic builder for `/technovalley` and `/technovalley?jisan=...` SERP metadata.
+ * Formats a Knowledge Industry Center name into a clean URL path slug for `/technovalley/[slug]`.
+ */
+export function formatTechnoValleyJisanSlug(name: string): string {
+  if (!name || typeof name !== 'string') return '';
+  return name.trim().replace(/\s+/g, '-');
+}
+
+export interface JisanOfficeTransactionItem {
+  readonly date: string;
+  readonly type: '매매' | '임대';
+  readonly sizeSqM: number;
+  readonly floor: number;
+  readonly price: string;
+  readonly buildingName?: string;
+  readonly priceRaw?: number;
+  readonly jibun?: string;
+}
+
+export interface JisanTaxBenefitSummary {
+  readonly acquisitionTaxReductionRate: string;
+  readonly acquisitionTaxReductionRatePct: number;
+  readonly propertyTaxReductionRate: string;
+  readonly propertyTaxReductionRatePct: number;
+  readonly corporateTaxReductionRate: string;
+  readonly corporateTaxReductionLabel: string;
+  readonly policyLoanLtvLimit: string;
+  readonly policyLoanLimitLabel: string;
+  readonly eligibleIndustries: string;
+  readonly benchmarkPriceManwon: number;
+  readonly benchmarkLabel: string;
+  readonly referenceLabel: string;
+  readonly standardAcquisitionTaxManwon: number;
+  readonly reducedAcquisitionTaxManwon: number;
+  readonly savedAcquisitionTaxManwon: number;
+  readonly savedTaxManwon: number;
+}
+
+function parseJibunAddressComponents(rawAddress?: string | null): {
+  dong: string | null;
+  lot: string | null;
+} {
+  if (!rawAddress) return { dong: null, lot: null };
+  const dongAndLot = rawAddress.match(
+    /([가-힣]+(?:동|리))\s+((?:산\s*)?\d+(?:-\d+)?)(?=번지|외|\s|$|,|\()/
+  );
+  if (dongAndLot) {
+    return {
+      dong: dongAndLot[1],
+      lot: dongAndLot[2].replace(/\s+/g, ''),
+    };
+  }
+  const bareLot = rawAddress
+    .trim()
+    .match(/^((?:산\s*)?\d+(?:-\d+)?)(?:번지|외)?$/);
+  if (bareLot) {
+    return {
+      dong: null,
+      lot: bareLot[1].replace(/\s+/g, ''),
+    };
+  }
+  return { dong: null, lot: null };
+}
+
+/**
+ * Extracts a verified parcel lot number (지번, e.g. '853-1', '823-6', '산34-1') from a Jisan item's `jibunAddress`.
+ */
+export function extractJisanLotNumber(jisan?: TechnoValleyJisan | null): string | null {
+  return parseJibunAddressComponents(jisan?.jibunAddress).lot;
+}
+
+/**
+ * Formats an 8-digit YYYYMMDD date from FactoryOn (`completionDate` or `approvalDate`) into `YYYY.MM.DD`.
+ */
+export function formatJisanCompletionOrApprovalDate(jisan?: TechnoValleyJisan | null): string {
+  if (!jisan) return '일정 확인중';
+  const raw = (jisan.completionDate || jisan.approvalDate || jisan.initialApprovalDate || '').trim();
+  if (/^\d{8}$/.test(raw)) {
+    const label = jisan.completionDate?.trim() ? '준공' : '인허가';
+    return `${raw.slice(0, 4)}.${raw.slice(4, 6)}.${raw.slice(6, 8)} (${label})`;
+  }
+  if (jisan.completionYear?.trim()) {
+    return `${jisan.completionYear.trim()}년`;
+  }
+  return jisan.buildingStatus?.trim() || jisan.status?.trim() || '승인';
+}
+
+/**
+ * Filters MOLIT real commercial/office transactions (`RTMSDataSvcNrgTrade`) strictly for a target Jisan building.
+ * Strictly excludes any non-sale ('임대') records or zero-price placeholders in compliance with DVIEW Strict Real Data Only Rule.
+ */
+export function matchJisanOfficeTransactions(
+  jisan?: TechnoValleyJisan | null,
+  transactions?: readonly JisanOfficeTransactionItem[] | null
+): JisanOfficeTransactionItem[] {
+  if (!jisan || !Array.isArray(transactions) || transactions.length === 0) return [];
+
+  const targetPhonetic = normalizeJisanPhoneticKey(jisan.name);
+  const targetCore = normalizeJisanCoreAliasKey(jisan.name);
+  const { dong: targetDong, lot: targetLot } = parseJibunAddressComponents(jisan.jibunAddress);
+  const dongBlockMatch = jisan.name.match(/([A-Ca-c])동/);
+  const targetDongBlock = dongBlockMatch ? dongBlockMatch[1].toUpperCase() : null;
+  const targetCoreWithoutBlock = targetDongBlock ? targetCore.replace(/[a-c]동$/, '') : targetCore;
+  const isLegalOrBlockCenterName = /\(주\)|주식회사|블럭|BL/i.test(jisan.name);
+
+  const matched = transactions.filter((tx) => {
+    if (!tx || tx.type === '임대') return false;
+    if (!tx.price || tx.price === '0원') return false;
+
+    const { dong: txDong, lot: txLot } = parseJibunAddressComponents(tx.jibun);
+    if (targetDong && txDong && targetDong !== txDong) {
+      return false;
+    }
+
+    const txBuilding = (tx.buildingName || '').trim();
+    if (targetDongBlock) {
+      if (txBuilding) {
+        const txDongMatch = txBuilding.match(/([A-Ca-c])동/);
+        if (txDongMatch && txDongMatch[1].toUpperCase() !== targetDongBlock) {
+          return false;
+        }
+      }
+      if (targetLot && txLot && txLot !== targetLot) {
+        return false;
+      }
+    }
+
+    const isGenericBuildingName =
+      !txBuilding ||
+      txBuilding === '미상 건물' ||
+      txBuilding === '지식산업센터' ||
+      txBuilding === '-';
+
+    if (!isGenericBuildingName) {
+      const txPhonetic = normalizeJisanPhoneticKey(txBuilding);
+      if (txPhonetic && targetPhonetic && txPhonetic === targetPhonetic) {
+        return true;
+      }
+
+      const txCore = normalizeJisanCoreAliasKey(txBuilding);
+      if (txCore.length >= 3 && targetCore.length >= 3 && txCore === targetCore) {
+        return true;
+      }
+
+      if (
+        (targetCore === '금강펜테리움ixtower' && txCore === '금강ixtower') ||
+        (targetCore === '현대실리콘앨리' && txCore === '실리콘앨리') ||
+        (targetCore === 'shtimesquare1' && txCore === 'shtimesquare')
+      ) {
+        return true;
+      }
+
+      if (
+        targetDongBlock &&
+        txCore.length >= 3 &&
+        txCore === targetCoreWithoutBlock &&
+        targetLot &&
+        txLot === targetLot
+      ) {
+        return true;
+      }
+
+      if (isLegalOrBlockCenterName && targetLot && txLot && txLot === targetLot) {
+        return true;
+      }
+
+      return false;
+    }
+
+    if (targetLot && txLot && txLot === targetLot) {
+      return true;
+    }
+
+    return false;
+  });
+
+  return [...matched].sort((a, b) => (b.date > a.date ? 1 : b.date < a.date ? -1 : 0));
+}
+
+/**
+ * Computes acquisition/property/corporate tax reduction summary for a selected Knowledge Industry Center.
+ */
+export function buildJisanTaxBenefitSummary(
+  jisan?: TechnoValleyJisan | null,
+  matchedTransactions?: readonly JisanOfficeTransactionItem[] | null
+): JisanTaxBenefitSummary {
+  const latestSale =
+    Array.isArray(matchedTransactions) && matchedTransactions.length > 0
+      ? matchedTransactions[0]
+      : null;
+
+  const latestPriceRaw =
+    latestSale?.priceRaw && Number.isFinite(latestSale.priceRaw) && latestSale.priceRaw > 0
+      ? latestSale.priceRaw
+      : 0;
+
+  const benchmarkPriceManwon = latestPriceRaw > 0 ? latestPriceRaw : 30000;
+  const benchmarkLabel =
+    latestPriceRaw > 0 ? `최근 실거래가(${latestSale?.price})` : '표준 분양·취득가(3억 원)';
+
+  const standardAcquisitionTaxManwon = Math.round(benchmarkPriceManwon * 0.046);
+  const savedAcquisitionTaxManwon = Math.round(standardAcquisitionTaxManwon * 0.35);
+  const reducedAcquisitionTaxManwon = Math.max(
+    0,
+    standardAcquisitionTaxManwon - savedAcquisitionTaxManwon
+  );
+
+  return {
+    acquisitionTaxReductionRate: '취득세 35% 감면',
+    acquisitionTaxReductionRatePct: 35,
+    propertyTaxReductionRate: '재산세 35% 감면 (5년간)',
+    propertyTaxReductionRatePct: 35,
+    corporateTaxReductionRate: '법인세 최대 100% 감면 (4년 100% + 2년 50%)',
+    corporateTaxReductionLabel: '4년 100% + 2년 50% 감면',
+    policyLoanLtvLimit: '분양가 70% ~ 80% 이내',
+    policyLoanLimitLabel: '최대 70~80% 한도',
+    eligibleIndustries: jisan?.representativeBusiness?.trim() || '제조·지식·정보통신(IT)',
+    benchmarkPriceManwon,
+    benchmarkLabel,
+    referenceLabel: benchmarkLabel,
+    standardAcquisitionTaxManwon,
+    reducedAcquisitionTaxManwon,
+    savedAcquisitionTaxManwon,
+    savedTaxManwon: savedAcquisitionTaxManwon,
+  };
+}
+
+/**
+ * Pure deterministic builder for `/technovalley`, `/technovalley?jisan=...`, and `/technovalley/[slug]` SERP metadata.
+ * Unifies canonical and OpenGraph URLs onto the static path `/technovalley/[slug]`.
  */
 export function buildTechnoValleySeoMetadata(
   jisanList: TechnoValleyJisan[],
@@ -1559,7 +1827,8 @@ export function buildTechnoValleySeoMetadata(
     : '제조·지식·정보통신(IT) 입주 가능 업종';
 
   const description = `${centerTitleLabel}(${address}) 공식 인허가 스펙 — ${detailSummary}${eligibleDesc} 요건과 중소기업 취득세 35%·재산세 35% 세제 감면, 과밀억제권역 이전 법인세 감면 및 정책자금 최대 80% 대출 한도를 확인하세요.`;
-  const canonicalUrl = `${baseUrl}/technovalley?jisan=${encodeURIComponent(matched.name)}`;
+  const cleanSlug = formatTechnoValleyJisanSlug(matched.name);
+  const canonicalUrl = `${baseUrl}/technovalley/${encodeURIComponent(cleanSlug)}`;
   const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`${centerTitleLabel}${specParen}`)}&subtitle=${encodeURIComponent(`${address} · ${industryHook} · 취득세·재산세 35% 감면 | D-VIEW`)}`;
 
   const keywords = Array.from(
@@ -1568,6 +1837,7 @@ export function buildTechnoValleySeoMetadata(
       centerTitleLabel,
       `${matched.name} 입주 업종`,
       `${matched.name} 연면적`,
+      `${matched.name} 실거래가`,
       '동탄테크노밸리 지식산업센터',
       '지식산업센터 입주 업종',
       '취득세 35% 감면',
@@ -1628,22 +1898,26 @@ export function buildTechnoValleyJsonLd(
       mainEntity: {
         '@type': 'ItemList',
         numberOfItems: jisanList.length,
-        itemListElement: jisanList.map((item, idx) => ({
-          '@type': 'ListItem',
-          position: idx + 1,
-          item: {
-            '@type': 'Place',
-            name: item.name,
-            address: {
-              '@type': 'PostalAddress',
-              addressCountry: 'KR',
-              addressRegion: '경기도',
-              addressLocality: '화성시',
-              streetAddress: item.roadAddress || item.jibunAddress || '동탄테크노밸리',
+        itemListElement: jisanList.map((item, idx) => {
+          const itemSlug = formatTechnoValleyJisanSlug(item.name);
+          return {
+            '@type': 'ListItem',
+            position: idx + 1,
+            item: {
+              '@type': 'Place',
+              name: item.name,
+              url: `${baseUrl}/technovalley/${encodeURIComponent(itemSlug)}`,
+              address: {
+                '@type': 'PostalAddress',
+                addressCountry: 'KR',
+                addressRegion: '경기도',
+                addressLocality: '화성시',
+                streetAddress: item.roadAddress || item.jibunAddress || '동탄테크노밸리',
+              },
+              description: `${item.name} (${item.status || item.buildingStatus || '승인'}, 연면적 ${formatTechnoValleyAreaM2(item.totalFloorArea)}, 호실수 ${formatTechnoValleyUnits(item.unitCount)})`,
             },
-            description: `${item.name} (${item.status || item.buildingStatus || '승인'}, 연면적 ${formatTechnoValleyAreaM2(item.totalFloorArea)}, 호실수 ${formatTechnoValleyUnits(item.unitCount)})`,
-          },
-        })),
+          };
+        }),
       },
     },
     {
@@ -1663,7 +1937,8 @@ export function buildTechnoValleyJsonLd(
   ];
 
   if (selectedJisan) {
-    const selectedUrl = `${baseUrl}/technovalley?jisan=${encodeURIComponent(selectedJisan.name)}`;
+    const cleanSlug = formatTechnoValleyJisanSlug(selectedJisan.name);
+    const selectedUrl = `${baseUrl}/technovalley/${encodeURIComponent(cleanSlug)}`;
     const selectedLabel = formatJisanTitleLabel(selectedJisan.name);
     graph.push({
       '@type': 'Place',
@@ -1703,11 +1978,4 @@ export function resolveComplexGeoCoordinates(
   return null;
 }
 
-/**
- * Formats a Knowledge Industry Center name into a clean URL path slug for `/technovalley/[slug]`.
- */
-export function formatTechnoValleyJisanSlug(name: string): string {
-  if (!name || typeof name !== 'string') return '';
-  return name.trim().replace(/\s+/g, '-');
-}
 

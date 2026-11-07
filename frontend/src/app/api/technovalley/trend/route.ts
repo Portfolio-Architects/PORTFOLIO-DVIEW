@@ -173,7 +173,11 @@ interface CacheEntry {
   timestamp: number;
 }
 let memoryCache: CacheEntry | null = null;
-const CACHE_TTL_MS = 600000; // 10 minutes
+const CACHE_TTL_MS = 3600_000; // 1 hour L1 cache
+const TREND_CACHE_CONTROL = 'public, s-maxage=3600, stale-while-revalidate=86400';
+
+let cachedJisanDb: JisanBuilding[] | null = null;
+let cachedMacroBonus: number | null = null;
 
 export async function GET(request: NextRequest) {
   // Rate limiting check
@@ -196,43 +200,45 @@ export async function GET(request: NextRequest) {
         {
           status: 200,
           headers: {
-            'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+            'Cache-Control': TREND_CACHE_CONTROL
           }
         }
       );
     }
 
-    try {
-      if (fs.existsSync(cachePath)) {
-        const fileContent = fs.readFileSync(cachePath, 'utf8');
-        const fileCached = JSON.parse(fileContent) as { data: TrendRecord[]; timestamp?: number };
-        if (fileCached && fileCached.data) {
-          const cachedTime = fileCached.timestamp || 0;
-          if (now - cachedTime < CACHE_TTL_MS) {
-            logger.info('GET /api/technovalley/trend', 'Serving trend data from local file cache.');
-            
-            memoryCache = {
-              data: fileCached.data,
-              timestamp: cachedTime
-            };
+    if (!process.env.VERCEL) {
+      try {
+        if (fs.existsSync(cachePath)) {
+          const fileContent = fs.readFileSync(cachePath, 'utf8');
+          const fileCached = JSON.parse(fileContent) as { data: TrendRecord[]; timestamp?: number };
+          if (fileCached && fileCached.data) {
+            const cachedTime = fileCached.timestamp || 0;
+            if (now - cachedTime < 600000) {
+              logger.info('GET /api/technovalley/trend', 'Serving trend data from local file cache.');
+              
+              memoryCache = {
+                data: fileCached.data,
+                timestamp: cachedTime
+              };
 
-            return apiSuccess(
-              fileCached.data,
-              { source: 'file-cache' },
-              {
-                status: 200,
-                headers: {
-                  'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+              return apiSuccess(
+                fileCached.data,
+                { source: 'file-cache' },
+                {
+                  status: 200,
+                  headers: {
+                    'Cache-Control': TREND_CACHE_CONTROL
+                  }
                 }
-              }
-            );
-          } else {
-            logger.info('GET /api/technovalley/trend', 'Local file cache has expired. Recalculating.');
+              );
+            } else {
+              logger.info('GET /api/technovalley/trend', 'Local file cache has expired. Recalculating.');
+            }
           }
         }
+      } catch (err) {
+        logger.error('GET /api/technovalley/trend', 'Failed to read local file cache', {}, err);
       }
-    } catch (err) {
-      logger.error('GET /api/technovalley/trend', 'Failed to read local file cache', {}, err);
     }
   }
 
@@ -254,9 +260,19 @@ export async function GET(request: NextRequest) {
       })
     );
 
-    // Load building metadata dynamically from JSON database
-    const jisanDbPath = path.join(process.cwd(), 'src/lib/data/yeongcheon_jisan_units.json');
-    const jisanDb = JSON.parse(fs.readFileSync(jisanDbPath, 'utf8')) as JisanBuilding[];
+    const isTestEnv = process.env.NODE_ENV === 'test';
+
+    // Load building metadata dynamically from JSON database (cached in memory outside tests)
+    let jisanDb: JisanBuilding[];
+    if (!isTestEnv && cachedJisanDb) {
+      jisanDb = cachedJisanDb;
+    } else {
+      const jisanDbPath = path.join(process.cwd(), 'src/lib/data/yeongcheon_jisan_units.json');
+      jisanDb = JSON.parse(fs.readFileSync(jisanDbPath, 'utf8')) as JisanBuilding[];
+      if (!isTestEnv) {
+        cachedJisanDb = jisanDb;
+      }
+    }
 
     const BUILDING_TOTAL_UNITS: Record<string, number> = {};
     const BUILDING_GFA: Record<string, number> = {};
@@ -270,26 +286,33 @@ export async function GET(request: NextRequest) {
 
     // Load NPS Macro stats dynamically and calculate multi-factor macro market heat bonus (R2)
     let macroBonus = 0;
-    try {
-      const npsDbPath = path.join(process.cwd(), 'src/lib/data/nps_stats.json');
-      if (fs.existsSync(npsDbPath)) {
-        const npsData = JSON.parse(fs.readFileSync(npsDbPath, 'utf8')) as NpsStatsData;
-        const totalEmp = npsData.stats?.yeongcheonDong?.totalEmployees || 0;
-        const compCount = npsData.stats?.yeongcheonDong?.companiesCount || 1;
-        const newHires = npsData.stats?.yeongcheonDong?.newHires || 0;
-        const departures = npsData.stats?.yeongcheonDong?.departures || 0;
-        
-        const netHires = newHires - departures;
-        const jobGrowthRate = totalEmp > 0 ? (netHires / totalEmp) : 0;
+    if (!isTestEnv && cachedMacroBonus !== null) {
+      macroBonus = cachedMacroBonus;
+    } else {
+      try {
+        const npsDbPath = path.join(process.cwd(), 'src/lib/data/nps_stats.json');
+        if (fs.existsSync(npsDbPath)) {
+          const npsData = JSON.parse(fs.readFileSync(npsDbPath, 'utf8')) as NpsStatsData;
+          const totalEmp = npsData.stats?.yeongcheonDong?.totalEmployees || 0;
+          const compCount = npsData.stats?.yeongcheonDong?.companiesCount || 1;
+          const newHires = npsData.stats?.yeongcheonDong?.newHires || 0;
+          const departures = npsData.stats?.yeongcheonDong?.departures || 0;
+          
+          const netHires = newHires - departures;
+          const jobGrowthRate = totalEmp > 0 ? (netHires / totalEmp) : 0;
 
-        const baselineEmp = 25000;
-        const baselineComp = 2000;
-        const scaleFactor = 0.05 * (Math.log10(totalEmp || 1) / Math.log10(baselineEmp)) * (Math.log10(compCount || 1) / Math.log10(baselineComp));
-        const growthFactor = jobGrowthRate * 2.0;
-        macroBonus = scaleFactor + growthFactor; // symmetric, allows negative values
+          const baselineEmp = 25000;
+          const baselineComp = 2000;
+          const scaleFactor = 0.05 * (Math.log10(totalEmp || 1) / Math.log10(baselineEmp)) * (Math.log10(compCount || 1) / Math.log10(baselineComp));
+          const growthFactor = jobGrowthRate * 2.0;
+          macroBonus = scaleFactor + growthFactor; // symmetric, allows negative values
+        }
+        if (!isTestEnv) {
+          cachedMacroBonus = macroBonus;
+        }
+      } catch (e) {
+        logger.warn('GET /api/technovalley/trend', 'Could not load NPS stats', {}, e);
       }
-    } catch (e) {
-      logger.warn('GET /api/technovalley/trend', 'Could not load NPS stats', {}, e);
     }
 
     // Tracking stateful vacancy and rent across timeline months sequentially
@@ -513,18 +536,6 @@ export async function GET(request: NextRequest) {
       timestamp: Date.now()
     };
 
-    // Write to local file cache
-    try {
-      const LOCAL_CACHE_DIR = path.dirname(cachePath);
-      if (!fs.existsSync(LOCAL_CACHE_DIR)) {
-        fs.mkdirSync(LOCAL_CACHE_DIR, { recursive: true });
-      }
-      fs.writeFileSync(cachePath, JSON.stringify({ data: finalTrend, timestamp: Date.now() }), 'utf-8');
-      logger.info('GET /api/technovalley/trend', 'Successfully wrote trend data to local file cache.');
-    } catch (e: unknown) {
-      logger.error('GET /api/technovalley/trend', 'Failed to write local file cache', {}, e);
-    }
-
     logger.info('GET /api/technovalley/trend', 'Successfully calculated rents from raw sales transactions.');
 
     return apiSuccess(
@@ -533,7 +544,7 @@ export async function GET(request: NextRequest) {
       {
         status: 200,
         headers: {
-          'Cache-Control': 'public, max-age=60, stale-while-revalidate=30'
+          'Cache-Control': TREND_CACHE_CONTROL
         }
       }
     );

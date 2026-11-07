@@ -80,6 +80,33 @@ export default function GuideIndexPage() {
     name: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
     description:
       '동탄 1·2신도시 입지·학군 맞대결, 광비콤 주상복합 vs 시범단지 4대장, 동탄역 vs 호수공원, 북동탄 vs 중동탄 직주근접 비교, 예산별(6억·9억·12억) 랭킹, GTX-A·트램 수혜 단지, 스트레스 DSR 40% 실거주 PER 리포트 모음',
+    inLanguage: 'ko-KR',
+    isPartOf: {
+      '@id': `${baseUrl}/#website`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'D-VIEW (디뷰)',
+      url: baseUrl,
+    },
+    breadcrumb: {
+      '@type': 'BreadcrumbList',
+      '@id': `${baseUrl}/guide#breadcrumb`,
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: '홈',
+          item: baseUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '비교 가이드 리포트',
+          item: `${baseUrl}/guide`,
+        },
+      ],
+    },
     hasPart: GUIDE_ARTICLES.map((article, idx) => ({
       '@type': 'Article',
       position: idx + 1,

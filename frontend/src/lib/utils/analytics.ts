@@ -4,6 +4,10 @@ import * as analyticsSelf from './analytics';
 import { sendGAEvent } from '@next/third-parties/google';
 import { logger } from '@/lib/services/logger';
 import { applyGaDisableFlag, isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
+import {
+  resolveCanonicalAptSlug,
+  stripApartmentNoiseQueryParams,
+} from '@/lib/utils/apartmentMapping';
 
 const MAX_SEARCH_TERM_LENGTH = 100;
 
@@ -26,8 +30,14 @@ interface SearchQueryDedupRecord {
 let lastApartmentViewRecord: ApartmentViewDedupRecord | null = null;
 let lastSearchQueryRecord: SearchQueryDedupRecord | null = null;
 
-function normalizeAptIdentity(name: string): string {
-  return name.trim().replace(/\s+/g, '').toLowerCase();
+function normalizeAptIdentity(name: string, dong?: string, canonicalSlug?: string): string {
+  const candidate = (canonicalSlug || name || '').trim();
+  if (!candidate) return '';
+  const resolved = resolveCanonicalAptSlug(candidate, { dong });
+  if (resolved) {
+    return resolved.replace(/\s+/g, '').toLowerCase();
+  }
+  return candidate.replace(/\s+/g, '').toLowerCase();
 }
 
 function getCurrentDataLayerRef(): unknown {
@@ -56,6 +66,9 @@ function normalizeApartmentViewPayload(
       ? params.surface.trim()
       : 'unknown';
 
+  const trimmedDong =
+    typeof params.dong === 'string' && params.dong.trim() ? params.dong.trim() : undefined;
+
   const payload: Record<string, unknown> = {
     ...params,
     apartment_name: rawName,
@@ -63,8 +76,13 @@ function normalizeApartmentViewPayload(
     surface: safeSurface,
   };
   if (typeof params.dong === 'string') {
-    const trimmedDong = params.dong.trim();
-    payload.dong = trimmedDong || undefined;
+    payload.dong = trimmedDong;
+  }
+  if (typeof params.canonical_slug === 'string') {
+    const trimmedSlug = params.canonical_slug.trim();
+    payload.canonical_slug = trimmedSlug
+      ? resolveCanonicalAptSlug(trimmedSlug, { dong: trimmedDong }) || trimmedSlug
+      : undefined;
   }
   return payload;
 }
@@ -393,7 +411,10 @@ export function trackApartmentView(params: ApartmentViewEventParams): boolean {
   const rawName = payload.apartment_name as string;
   const safeSurface = payload.surface as string;
   const viewType = typeof payload.view_type === 'string' ? payload.view_type : undefined;
-  const normName = normalizeAptIdentity(rawName);
+  const dongHint = typeof payload.dong === 'string' ? payload.dong : undefined;
+  const canonicalSlugHint =
+    typeof payload.canonical_slug === 'string' ? payload.canonical_slug : undefined;
+  const normName = normalizeAptIdentity(rawName, dongHint, canonicalSlugHint);
 
   if (shouldSuppressApartmentViewCascade(normName, safeSurface, viewType)) {
     return false;
@@ -466,7 +487,14 @@ export function trackVirtualPageView(
   params?: Record<string, unknown>
 ): VirtualPageViewEntry {
   const trimmedPath = typeof path === 'string' ? path.trim() : '';
-  const safePath = trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`;
+  let safePath = trimmedPath.startsWith('/') ? trimmedPath : `/${trimmedPath}`;
+  if (safePath.startsWith('/apartment/') && safePath.includes('?')) {
+    const [pathAndQuery, hashFragment = ''] = safePath.split('#');
+    const [pathnameOnly, rawSearch = ''] = pathAndQuery.split('?');
+    const cleanedSearch = stripApartmentNoiseQueryParams(rawSearch ? `?${rawSearch}` : '');
+    const hashSuffix = hashFragment ? `#${hashFragment}` : '';
+    safePath = `${pathnameOnly}${cleanedSearch}${hashSuffix}`;
+  }
   const now = Date.now();
   const cleanExtraParams = sanitizeEventParams(params);
   const excluded = isAdminTrackingExcludedClient();

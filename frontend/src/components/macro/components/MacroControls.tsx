@@ -389,7 +389,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               data-testid="timeline-date-select"
               className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 min-w-0 truncate tabular-nums')}
             >
-              <option value="">{`모든 날짜 (${availableDates?.length || 0}일)`}</option>
+              <option value="">전체 날짜</option>
               {(availableDates || []).map((d) => (
                 <option key={d.dateKey} value={d.dateKey}>
                   {`${d.label} · ${d.count}건`}

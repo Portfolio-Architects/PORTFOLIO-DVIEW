@@ -26,7 +26,6 @@ import { RetentionActionCard } from "./macro/components/RetentionActionCard";
 import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
 import { AptMetricCards } from "./macro/AptMetricCards";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
-import { HyperlocalInsightCards } from "@/components/stats/HyperlocalInsightCards";
 import { usePWA } from "@/components/pwa/PWAProvider";
 import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -2072,10 +2071,12 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 txSummaryData={txSummaryData}
                 macroTrendData={macroTrendData}
                 activeSector={activeDonutSector}
+                insights={unifiedStatsData.insights}
                 onResetSector={() => handleDonutCategoryChange(null)}
                 onOpenSellTimingCalculator={handleOpenSellTiming}
                 onOpenMortgageModal={handleOpenMortgage}
                 onOpenJeonseSafetyModal={handleOpenJeonseSafety}
+                onSelectComplex={handleSelectComplex}
                 onSelectApt={(aptName) => {
                   setSelectedTimelineApt(aptName);
                   handleCardClick(aptName);
@@ -2165,19 +2166,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         )}
 
-        {/* ═══ Zone 3: 하이퍼로컬 핵심 실거래 인사이트 + 단지·매크로 시세 추이 그래프 ═══ */}
+        {/* ═══ Zone 3: 단지·매크로 시세 추이 그래프 ═══ */}
         <div className="w-full flex flex-col gap-5 pb-5 mb-6 border-b border-border box-border" data-testid="zone3-chart-section">
-          {unifiedStatsData.insights && (
-            <ErrorBoundary name="핵심 실거래 인사이트">
-              <HyperlocalInsightCards
-                insights={unifiedStatsData.insights}
-                onSelectComplex={handleSelectComplex}
-                onOpenJeonseSafety={handleOpenJeonseSafety}
-                onOpenCompare={handleOpenCompare}
-                className="mb-0"
-              />
-            </ErrorBoundary>
-          )}
           <ChartErrorBoundary fallbackText="가격 동향 차트를 불러올 수 없습니다.">
             <MacroChartSection
               isDefaultAptSettingUp={isDefaultAptSettingUp}

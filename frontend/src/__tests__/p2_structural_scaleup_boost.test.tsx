@@ -540,7 +540,7 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       expect(explorePageSrc).not.toMatch(/id="explore-ssr-semantic-catalog"[\s\S]{0,180}className="sr-only"/);
     });
 
-    it('generates 56 static params, SEO metadata, and SSR B2B detail view in /technovalley/[slug]/page.tsx', async () => {
+    it('generates 56 static params, SEO metadata, and above-the-fold SSR B2B detail view in /technovalley/[slug]/page.tsx', async () => {
       const staticParams = await generateTechnoValleyDetailStaticParams();
       expect(staticParams).toHaveLength(56);
 
@@ -560,19 +560,62 @@ describe('Phase 2 Structural Scale-Up & Boost Verification (P2-1 ~ P2-5, Guardra
       const PageJsx = await TechnoValleyDetailPage({
         params: Promise.resolve({ slug: shSlug }),
       });
-      const { container, getByTestId } = render(PageJsx);
+      const { container, getByTestId, unmount } = render(PageJsx);
+      const headerBannerEl = container.querySelector('header[role="banner"]');
+      const spotlightEl = container.querySelector('#technovalley-selected-jisan-ssr');
+      const mockClientEl = getByTestId('mock-technovalley-client');
+      expect(headerBannerEl).not.toBeNull();
+      expect(spotlightEl).not.toBeNull();
+      // Above-the-Fold DOM order invariant: LoungeHeader MUST precede #technovalley-selected-jisan-ssr, which MUST precede TechnoValleyClient
+      expect(
+        Boolean(
+          headerBannerEl!.compareDocumentPosition(spotlightEl!) & Node.DOCUMENT_POSITION_FOLLOWING
+        )
+      ).toBe(true);
+      expect(
+        Boolean(spotlightEl!.compareDocumentPosition(mockClientEl) & Node.DOCUMENT_POSITION_FOLLOWING)
+      ).toBe(true);
+      expect(container.querySelectorAll('h1').length).toBe(1);
       expect(container.querySelector('h1')?.textContent).toContain(
         'SH SQUAREⅡ 지식산업센터'
       );
       expect(container.textContent).toContain('35,576.2㎡');
       expect(container.textContent).toContain('453실');
       expect(container.textContent).toContain('취득세 35% 감면');
+      expect(container.textContent).toContain('등록된 실거래 내역이 없습니다.');
       expect(container.querySelectorAll('.font-mono').length).toBe(0);
       expect(getByTestId('technovalley-detail-b2b-adslot').className).not.toContain('p-4');
 
       const ldScript = container.querySelector('script[type="application/ld+json"]');
       expect(ldScript).not.toBeNull();
       expect(ldScript?.innerHTML).toContain('SH SQUAREⅡ');
+      unmount();
+
+      // Verify real transaction binding on /technovalley/[slug] for 동탄비즈타워
+      const bizTowerSlug = formatTechnoValleyJisanSlug('동탄비즈타워');
+      const BizTowerJsx = await TechnoValleyDetailPage({
+        params: Promise.resolve({ slug: bizTowerSlug }),
+        initialTransactions: [
+          {
+            date: '2026-10-12',
+            type: '매매',
+            sizeSqM: 76.28,
+            floor: 9,
+            price: '2억 8,000만원',
+            priceRaw: 28000,
+            buildingName: '동탄비즈타워',
+            jibun: '영천동 493-4',
+          },
+        ],
+      });
+      const bizRender = render(BizTowerJsx);
+      expect(
+        bizRender.container.querySelector('#technovalley-selected-jisan-real-tx')?.textContent
+      ).toContain('2억 8,000만원');
+      expect(
+        bizRender.container.querySelector('#technovalley-selected-jisan-tax-summary')?.textContent
+      ).toContain('451만원');
+      bizRender.unmount();
     });
 
     it('aligns WebSite SearchAction urlTemplate with /explore?search={search_term_string} and removes dummy +82-2-000-0000 telephone across JSON-LD schemas (B10)', () => {

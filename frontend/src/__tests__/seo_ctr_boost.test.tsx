@@ -30,6 +30,10 @@ import {
   getTechnoValleyJisanList,
   resolveTechnoValleyJisan,
   buildTechnoValleySeoMetadata,
+  formatTechnoValleyJisanSlug,
+  matchJisanOfficeTransactions,
+  buildJisanTaxBenefitSummary,
+  type JisanOfficeTransactionItem,
 } from '@/lib/services/apartmentPageService';
 import {
   GUIDE_ARTICLES,
@@ -1515,11 +1519,12 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       const jisanList = await getTechnoValleyJisanList();
       expect(jisanList).toHaveLength(56);
 
-      // Verify every single one of the 56 verified centers produces clean, non-duplicated, zero-emoji SERP metadata
+      // Verify every single one of the 56 verified centers produces clean, non-duplicated, zero-emoji SERP metadata unified on static /technovalley/[slug]
       for (const item of jisanList) {
         const meta = buildTechnoValleySeoMetadata(jisanList, item.name, 'https://dongtanview.com');
         const title = String(meta.title);
         const desc = String(meta.description);
+        const expectedSlug = formatTechnoValleyJisanSlug(item.name);
         expect(title).toContain(item.name);
         expect(title).toContain('연면적');
         expect(title).toContain('입주 업종');
@@ -1530,7 +1535,10 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         expect(title).not.toMatch(/(?:^|[^\d.,])0㎡/);
         expect(EMOJI_REGEX.test(title + desc)).toBe(false);
         expect(meta.alternates?.canonical).toBe(
-          `https://dongtanview.com/technovalley?jisan=${encodeURIComponent(item.name)}`
+          `https://dongtanview.com/technovalley/${encodeURIComponent(expectedSlug)}`
+        );
+        expect(meta.openGraph?.url).toBe(
+          `https://dongtanview.com/technovalley/${encodeURIComponent(expectedSlug)}`
         );
         const ogImages = meta.openGraph?.images as Array<{ url: string }>;
         expect(ogImages[0].url).not.toContain(' ');
@@ -1547,7 +1555,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(String(shSquareMeta.description)).toContain('산업시설 14,323.7㎡');
       expect(String(shSquareMeta.description)).toContain('취득세 35%');
       expect(shSquareMeta.alternates?.canonical).toBe(
-        `https://dongtanview.com/technovalley?jisan=${encodeURIComponent('SH SQUAREⅡ')}`
+        `https://dongtanview.com/technovalley/${encodeURIComponent('SH-SQUAREⅡ')}`
       );
 
       const gTowerMeta = await generateTechnoValleyMetadata({
@@ -1571,11 +1579,32 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         resolveTechnoValleyJisan(jisanList, ['', '  동탄 GTOWER  ', 'SH SQUAREⅡ'])?.name
       ).toBe('동탄 GTOWER');
 
+      // Verify all 5 GSC high-bounce target buildings and their user search variations resolve deterministically
+      for (const [alias, expectedCanonicalName] of [
+        ['동탄 SK V1 center', '동탄 SK V1 center'],
+        ['동탄 SK V1', '동탄 SK V1 center'],
+        ['동탄-SK-V1-center', '동탄 SK V1 center'],
+        ['동탄금강펜테리움 IX타워', '동탄금강펜테리움 IX타워'],
+        ['금강펜테리움 IX타워', '동탄금강펜테리움 IX타워'],
+        ['동탄 금강펜테리움 ix타워', '동탄금강펜테리움 IX타워'],
+        ['동탄비즈타워', '동탄비즈타워'],
+        ['동탄 비즈타워', '동탄비즈타워'],
+        ['동탄IT타워', '동탄IT타워'],
+        ['동탄 IT타워', '동탄IT타워'],
+        ['듀캐슬타워동탄', '듀캐슬타워동탄'],
+        ['듀캐슬타워 동탄', '듀캐슬타워동탄'],
+        ['동탄 듀캐슬타워', '듀캐슬타워동탄'],
+        ['동탄 더퍼스트타워', '더퍼스트타워'],
+        ['동탄 에이팩시티', '에이팩시티'],
+      ] as const) {
+        expect(resolveTechnoValleyJisan(jisanList, alias)?.name).toBe(expectedCanonicalName);
+      }
+
       const aliasCanonicalMeta = await generateTechnoValleyMetadata({
         searchParams: Promise.resolve({ jisan: 'sh square ii' }),
       });
       expect(aliasCanonicalMeta.alternates?.canonical).toBe(
-        `https://dongtanview.com/technovalley?jisan=${encodeURIComponent('SH SQUAREⅡ')}`
+        `https://dongtanview.com/technovalley/${encodeURIComponent('SH-SQUAREⅡ')}`
       );
 
       // Boundary item with unitCount: 0 and name already containing '지식산업센터'
@@ -1625,21 +1654,29 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         expect(fallbackMeta.alternates?.canonical).toBe('https://dongtanview.com/technovalley');
       }
 
-      // SSR Page spotlight, TechnoValleyClient prop wiring, row highlight, & JSON-LD verification
+      // SSR Page Above-the-Fold spotlight, DOM order BEFORE TechnoValleyClient, real transaction fallback, & JSON-LD verification
       const MatchedPageJsx = await TechnoValleyPage({
         searchParams: Promise.resolve({ jisan: 'SH SQUAREⅡ' }),
       });
       const matchedRender = render(MatchedPageJsx);
-      expect(
-        matchedRender
-          .getByTestId('mock-technovalley-client')
-          .getAttribute('data-selected-jisan')
-      ).toBe('SH SQUAREⅡ');
+      const mockHeaderEl = matchedRender.getByTestId('mock-lounge-header');
+      const mockClientEl = matchedRender.getByTestId('mock-technovalley-client');
+      expect(mockClientEl.getAttribute('data-selected-jisan')).toBe('SH SQUAREⅡ');
       const spotlight = matchedRender.container.querySelector('#technovalley-selected-jisan-ssr');
       expect(spotlight).not.toBeNull();
+      // Above-the-Fold DOM order invariant: LoungeHeader MUST precede #technovalley-selected-jisan-ssr, which MUST precede TechnoValleyClient
+      expect(
+        Boolean(mockHeaderEl.compareDocumentPosition(spotlight!) & Node.DOCUMENT_POSITION_FOLLOWING)
+      ).toBe(true);
+      expect(
+        Boolean(spotlight!.compareDocumentPosition(mockClientEl) & Node.DOCUMENT_POSITION_FOLLOWING)
+      ).toBe(true);
+      expect(matchedRender.container.querySelectorAll('h1').length).toBe(1);
       expect(spotlight?.textContent).toContain('SH SQUAREⅡ 지식산업센터');
       expect(spotlight?.textContent).toContain('35,576.2㎡');
       expect(spotlight?.textContent).toContain('453실');
+      expect(spotlight?.textContent).toContain('등록된 실거래 내역이 없습니다.');
+      expect(spotlight?.textContent).toContain('취득세 35% 감면');
       expect(matchedRender.container.querySelectorAll('.font-mono').length).toBe(0);
       expect(matchedRender.container.querySelectorAll('#jisan-catalog tbody tr').length).toBe(56);
       const highlightedRows = matchedRender.container.querySelectorAll(
@@ -1647,11 +1684,17 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       );
       expect(highlightedRows.length).toBe(1);
       expect(highlightedRows[0].textContent).toContain('SH SQUAREⅡ');
+      // All 56 catalog links point to static /technovalley/[slug] instead of ?jisan=
+      expect(
+        matchedRender.container.querySelectorAll(
+          '#jisan-catalog tbody a[href^="/technovalley/"]'
+        ).length
+      ).toBe(56);
       expect(
         matchedRender.container.querySelectorAll(
           '#jisan-catalog tbody a[href^="/technovalley?jisan="]'
         ).length
-      ).toBe(56);
+      ).toBe(0);
 
       const matchedJsonLd = JSON.parse(
         matchedRender.container.querySelector('script[type="application/ld+json"]')?.innerHTML ||
@@ -1659,17 +1702,126 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       );
       expect(
         matchedJsonLd['@graph'].some(
-          (n: { '@id'?: string }) => typeof n['@id'] === 'string' && n['@id'].endsWith('#selected-center')
+          (n: { '@id'?: string; url?: string }) =>
+            typeof n['@id'] === 'string' &&
+            n['@id'].endsWith('#selected-center') &&
+            n.url === `https://dongtanview.com/technovalley/${encodeURIComponent('SH-SQUAREⅡ')}`
         )
       ).toBe(true);
       matchedRender.unmount();
 
-      // Verify real TechnoValleyClient renders above-the-fold #technovalley-selected-jisan-hero-banner when selectedJisan is passed
+      // Verify real MOLIT sale transaction binding & 35% acquisition tax calculation in SSR TechnoValleyPage
+      const realTxSamples: JisanOfficeTransactionItem[] = [
+        {
+          date: '2026-09-18',
+          type: '매매',
+          sizeSqM: 89.42,
+          floor: 7,
+          price: '3억 2,000만원',
+          priceRaw: 32000,
+          buildingName: '동탄 SK V1 center',
+          jibun: '영천동 853-1',
+        },
+        {
+          date: '2026-08-05',
+          type: '임대',
+          sizeSqM: 89.42,
+          floor: 5,
+          price: '보증금 2,000만 / 월세 150만',
+          priceRaw: 150,
+          buildingName: '동탄 SK V1 center',
+          jibun: '영천동 853-1',
+        },
+      ];
+      const SkV1PageJsx = await TechnoValleyPage({
+        searchParams: Promise.resolve({ jisan: '동탄 SK V1 center' }),
+        initialTransactions: realTxSamples,
+      });
+      const skV1Render = render(SkV1PageJsx);
+      const skV1RealTxEl = skV1Render.container.querySelector('#technovalley-selected-jisan-real-tx');
+      const skV1TaxEl = skV1Render.container.querySelector('#technovalley-selected-jisan-tax-summary');
+      expect(skV1RealTxEl?.textContent).toContain('3억 2,000만원');
+      expect(skV1RealTxEl?.textContent).toContain('2026-09-18');
+      expect(skV1RealTxEl?.textContent).toContain('89.42㎡');
+      expect(skV1RealTxEl?.textContent).not.toContain('보증금');
+      // 32,000만원 * 4.6% = 1,472만원; 35% 감면 절감액 = Math.round(1472 * 0.35) = 515만원
+      expect(skV1TaxEl?.textContent).toContain('515만원');
+      skV1Render.unmount();
+
+      // Verify lot-number matching when MOLIT omits buildingName ('미상 건물') with dong-prefixed jibun,
+      // rejects unrelated building names on the same lot, and disambiguates multi-block centers (동탄역 메가비즈타워 A/B/C동)
+      const skV1Item = jisanList.find((i) => i.name === '동탄 SK V1 center')!;
+      expect(
+        matchJisanOfficeTransactions(skV1Item, [
+          {
+            date: '2026-10-01',
+            type: '매매',
+            sizeSqM: 72.5,
+            floor: 8,
+            price: '2억 9,500만원',
+            priceRaw: 29500,
+            buildingName: '미상 건물',
+            jibun: '영천동 853-1',
+          },
+          {
+            date: '2026-10-02',
+            type: '매매',
+            sizeSqM: 72.5,
+            floor: 4,
+            price: '2억 4,000만원',
+            priceRaw: 24000,
+            buildingName: '우성르보아타워',
+            jibun: '853-1',
+          },
+        ])
+      ).toHaveLength(1);
+
+      const megaBizB = resolveTechnoValleyJisan(jisanList, '동탄 메가비즈타워 B동')!;
+      const megaBizA = resolveTechnoValleyJisan(jisanList, '동탄 메가비즈타워')!;
+      expect(megaBizA?.name).toBe('동탄역 메가비즈타워 A동');
+      expect(megaBizB?.name).toBe('동탄역 메가비즈타워 B동');
+      const megaBizBlockTx: JisanOfficeTransactionItem[] = [
+        {
+          date: '2026-09-20',
+          type: '매매',
+          sizeSqM: 60.12,
+          floor: 5,
+          price: '2억 1,000만원',
+          priceRaw: 21000,
+          buildingName: '동탄역 메가비즈타워',
+          jibun: '영천동 873-2',
+        },
+      ];
+      expect(matchJisanOfficeTransactions(megaBizB, megaBizBlockTx)).toHaveLength(1);
+      expect(matchJisanOfficeTransactions(megaBizA, megaBizBlockTx)).toHaveLength(0);
+
+      // Verify dashboard/explorer aliases resolve deterministically
+      expect(resolveTechnoValleyJisan(jisanList, '금강 IX타워')?.name).toBe(
+        '동탄금강펜테리움 IX타워'
+      );
+      expect(resolveTechnoValleyJisan(jisanList, '현대 실리콘앨리')?.name).toBe(
+        '현대 실리콘앨리 동탄'
+      );
+      expect(resolveTechnoValleyJisan(jisanList, '동탄 헤센IT타워')?.name).toBe(
+        '신동탄 헤센IT타워'
+      );
+      expect(resolveTechnoValleyJisan(jisanList, '동탄 M-TOPIA')?.name).toBe(
+        '동탄 2 M-TOPIA 지식산업센터'
+      );
+
+      // Verify real TechnoValleyClient renders above-the-fold #technovalley-selected-jisan-hero-banner with real transaction & tax summary when selectedJisan is passed
       const ActualTechnoValleyClient = jest.requireActual(
         '@/app/technovalley/TechnoValleyClient'
-      ).default as React.ComponentType<{ selectedJisan?: (typeof jisanList)[number] | null }>;
+      ).default as React.ComponentType<{
+        selectedJisan?: (typeof jisanList)[number] | null;
+        initialTransactions?: JisanOfficeTransactionItem[];
+        hideHeader?: boolean;
+      }>;
       const shItem = jisanList.find((i) => i.name === 'SH SQUAREⅡ')!;
-      const clientSelectedRender = render(<ActualTechnoValleyClient selectedJisan={shItem} />);
+      const clientSelectedRender = render(
+        <ActualTechnoValleyClient selectedJisan={shItem} initialTransactions={[]} hideHeader={true} />
+      );
+      expect(clientSelectedRender.queryByTestId('mock-lounge-header')).toBeNull();
       const heroBanner = clientSelectedRender.container.querySelector(
         '#technovalley-selected-jisan-hero-banner'
       );
@@ -1678,8 +1830,23 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(heroBanner?.textContent).toContain('35,576.2㎡');
       expect(heroBanner?.textContent).toContain('453실');
       expect(heroBanner?.textContent).toContain('취득세 35% 감면');
+      expect(heroBanner?.textContent).toContain('등록된 실거래 내역이 없습니다.');
       expect(clientSelectedRender.container.querySelectorAll('.font-mono').length).toBe(0);
       clientSelectedRender.unmount();
+
+      const clientWithTxRender = render(
+        <ActualTechnoValleyClient
+          selectedJisan={skV1Item}
+          initialTransactions={matchJisanOfficeTransactions(skV1Item, realTxSamples)}
+        />
+      );
+      expect(
+        clientWithTxRender.container.querySelector('#technovalley-client-jisan-real-tx')?.textContent
+      ).toContain('3억 2,000만원');
+      expect(
+        clientWithTxRender.container.querySelector('#technovalley-client-jisan-tax-summary')?.textContent
+      ).toContain('515만원');
+      clientWithTxRender.unmount();
 
       const clientDefaultRender = render(<ActualTechnoValleyClient selectedJisan={null} />);
       expect(
@@ -1692,6 +1859,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       });
       const untrustedRender = render(UntrustedPageJsx);
       expect(untrustedRender.container.querySelector('#technovalley-selected-jisan-ssr')).toBeNull();
+      expect(untrustedRender.container.querySelectorAll('h1').length).toBe(1);
       expect(untrustedRender.container.innerHTML).not.toContain('onerror=alert(1)');
       untrustedRender.unmount();
     });
@@ -1776,31 +1944,31 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       );
       expect(untrustedJisanAction.targetRoute).toBe('/technovalley');
       expect(untrustedJisanAction.recommendedAction).not.toContain('<script>');
-      // Page-less GSC Queries.csv rows for specific Jisan centers must route to /technovalley?jisan=<canonical> instead of /explore
+      // Page-less GSC Queries.csv rows for specific Jisan centers must route to static /technovalley/<slug> instead of /explore
       expect(
         recommendDviewSeoAction(
           { query: 'SH SQUAREⅡ', clicks: 0, impressions: 5, ctr: 0, position: 2.0 },
           aptKeys
         ).targetRoute
-      ).toBe('/technovalley?jisan=SH SQUAREⅡ');
+      ).toBe('/technovalley/SH-SQUAREⅡ');
       expect(
         recommendDviewSeoAction(
           { query: 'sh 스퀘어 2', clicks: 0, impressions: 5, ctr: 0, position: 2.0 },
           aptKeys
         ).targetRoute
-      ).toBe('/technovalley?jisan=SH SQUAREⅡ');
+      ).toBe('/technovalley/SH-SQUAREⅡ');
       expect(
         recommendDviewSeoAction(
           { query: '동탄 GTOWER 입주 업종', clicks: 0, impressions: 4, ctr: 0, position: 3.1 },
           aptKeys
         ).targetRoute
-      ).toBe('/technovalley?jisan=동탄 GTOWER');
+      ).toBe('/technovalley/동탄-GTOWER');
       expect(
         recommendDviewSeoAction(
           { query: '현대 실리콘앨리 동탄 취득세', clicks: 0, impressions: 4, ctr: 0, position: 3.5 },
           aptKeys
         ).targetRoute
-      ).toBe('/technovalley?jisan=현대 실리콘앨리 동탄');
+      ).toBe('/technovalley/현대-실리콘앨리-동탄');
       expect(
         recommendDviewSeoAction(
           {
@@ -1826,7 +1994,46 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
           },
           aptKeys
         ).targetRoute
-      ).toBe('/technovalley?jisan=SH SQUAREⅡ');
+      ).toBe('/technovalley/SH-SQUAREⅡ');
+      expect(
+        recommendDviewSeoAction(
+          {
+            query: '동탄 SK V1 center',
+            page: 'https://dongtanview.com/technovalley/%EB%8F%99%ED%83%84-SK-V1-center',
+            clicks: 0,
+            impressions: 12,
+            ctr: 0,
+            position: 3.0,
+          },
+          aptKeys
+        ).targetRoute
+      ).toBe('/technovalley/동탄-SK-V1-center');
+      expect(
+        recommendDviewSeoAction(
+          {
+            query: '동탄 sk v1 취득세',
+            page: 'https://dongtanview.com/technovalley?jisan=%EB%8F%99%ED%83%84%20SK%20V1',
+            clicks: 0,
+            impressions: 8,
+            ctr: 0,
+            position: 2.4,
+          },
+          aptKeys
+        ).targetRoute
+      ).toBe('/technovalley/동탄-SK-V1-center');
+      expect(
+        recommendDviewSeoAction(
+          {
+            query: '금강펜테리움 ix타워 분양가',
+            page: 'https://dongtanview.com/technovalley?jisan=%EA%B8%88%EA%B0%95%ED%8E%9C%ED%85%8C%EB%A6%AC%EC%9B%80%20IX%ED%83%80%EC%9B%8C',
+            clicks: 0,
+            impressions: 9,
+            ctr: 0,
+            position: 2.8,
+          },
+          aptKeys
+        ).targetRoute
+      ).toBe('/technovalley/동탄금강펜테리움-IX타워');
     });
   });
 

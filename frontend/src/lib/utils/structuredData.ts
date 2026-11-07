@@ -184,10 +184,24 @@ export function getExploreSchema(baseUrl: string) {
     "@type": "CollectionPage",
     "@id": `${baseUrl}/explore#webpage`,
     "url": `${baseUrl}/explore`,
-    "name": "동탄 단지 탐색 | D-VIEW 아파트 비교 분석",
+    "name": "동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색",
     "description": "동탄 1, 2신도시 전체 184개 단지의 국토교통부 실거래가, 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵",
+    "inLanguage": "ko-KR",
+    "isPartOf": {
+      "@id": `${baseUrl}/#website`
+    },
+    "about": {
+      "@type": "Place",
+      "name": "경기도 화성시 동탄신도시"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "D-VIEW (디뷰)",
+      "url": baseUrl
+    },
     "breadcrumb": {
       "@type": "BreadcrumbList",
+      "@id": `${baseUrl}/explore#breadcrumb`,
       "itemListElement": [
         {
           "@type": "ListItem",
@@ -205,3 +219,4 @@ export function getExploreSchema(baseUrl: string) {
     }
   };
 }
+

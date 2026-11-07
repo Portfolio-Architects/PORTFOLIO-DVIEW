@@ -667,6 +667,19 @@ function stripJisanSearchIntentSuffixes(raw: string): string {
   return current;
 }
 
+function formatJisanStaticSlugRoute(name: string): string {
+  return `/technovalley/${name.trim().replace(/\s+/g, '-')}`;
+}
+
+function normalizeJisanCoreSearchKey(input: string): string {
+  const phonetic = normalizeJisanPhoneticSearchKey(input);
+  if (!phonetic) return '';
+  return phonetic
+    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/동탄$/, '')
+    .replace(/center$/, '');
+}
+
 function resolveVerifiedJisanParamName(rawParam: string, jisanNames: string[]): string | null {
   if (!rawParam || jisanNames.length === 0) return null;
   const decoded = decodeUriPathSafely(rawParam).trim();
@@ -682,7 +695,7 @@ function resolveVerifiedJisanParamName(rawParam: string, jisanNames: string[]): 
       .replace(/[\u2160\u2170]/g, '1')
       .normalize('NFKC')
       .toLowerCase()
-      .replace(/\s+/g, '');
+      .replace(/[\s-]+/g, '');
 
   const qCompact = normalizeCompact(decoded);
   if (!qCompact) return null;
@@ -702,6 +715,21 @@ function resolveVerifiedJisanParamName(rawParam: string, jisanNames: string[]): 
         (n) => normalizeJisanPhoneticSearchKey(n) === qPhonetic
       );
       if (phoneticMatches.length === 1) return phoneticMatches[0];
+    }
+
+    const qCore = normalizeJisanCoreSearchKey(decoded);
+    if (qCore.length >= 3) {
+      const coreMatches = jisanNames.filter((n) => {
+        const nCore = normalizeJisanCoreSearchKey(n);
+        if (nCore === qCore) return true;
+        if (qCore === 'shtimesquare' && nCore === 'shtimesquare1') return true;
+        if (qCore === '금강ixtower' && nCore === '금강펜테리움ixtower') return true;
+        if (qCore === '메가비즈tower' && nCore === '메가비즈towera동') return true;
+        if (qCore === '실리콘앨리' && nCore === '현대실리콘앨리') return true;
+        if (qCore === '루체스타' && nCore === '루체스타비즈') return true;
+        return false;
+      });
+      if (coreMatches.length === 1) return coreMatches[0];
     }
   }
   return null;
@@ -750,6 +778,7 @@ function matchVerifiedJisanFromQuery(rawQuery: string, jisanNames: string[]): st
         name,
         phonetic,
         withoutRegion: stripLeadingDongtanRegion(phonetic),
+        coreKey: normalizeJisanCoreSearchKey(name),
       };
     })
     .filter((e) => e.phonetic.length >= 3);
@@ -760,10 +789,18 @@ function matchVerifiedJisanFromQuery(rawQuery: string, jisanNames: string[]): st
   );
   if (exact) return exact.name;
 
-  // 2. Exact match on region-stripped building core (e.g. '금강펜테리움 ix타워' -> '동탄금강펜테리움 IX타워', 'g타워' with 동탄 stripped >= 5 chars)
+  // 2. Exact match on region/center-stripped building core (e.g. '금강펜테리움 ix타워', 'sk v1', '더퍼스트타워')
   const qWithoutRegion = stripLeadingDongtanRegion(qPhoneticCore);
-  if (qWithoutRegion.length >= 5) {
-    const regionStrippedMatches = entries.filter((e) => e.withoutRegion === qWithoutRegion);
+  const qCoreKey = normalizeJisanCoreSearchKey(strippedQuery);
+  if (qWithoutRegion.length >= 4 || qCoreKey.length >= 4) {
+    const regionStrippedMatches = entries.filter(
+      (e) =>
+        (qWithoutRegion.length >= 4 && e.withoutRegion === qWithoutRegion) ||
+        (qCoreKey.length >= 4 && e.coreKey === qCoreKey) ||
+        (qCoreKey === '금강ixtower' && e.coreKey === '금강펜테리움ixtower') ||
+        (qCoreKey === '메가비즈tower' && e.coreKey === '메가비즈towera동') ||
+        (qCoreKey === '실리콘앨리' && e.coreKey === '현대실리콘앨리')
+    );
     if (regionStrippedMatches.length === 1) return regionStrippedMatches[0].name;
   }
 
@@ -779,11 +816,12 @@ function matchVerifiedJisanFromQuery(rawQuery: string, jisanNames: string[]): st
   }
 
   // 4. Unambiguous distinctive building token match (e.g. '동탄 sk v1' -> '동탄 SK V1 center', '현대 실리콘앨리' -> '현대 실리콘앨리 동탄')
-  if (qPhoneticCore.length >= 5 && !qPhoneticCore.includes('센트럴파크')) {
+  if (qPhoneticCore.length >= 4 && !qPhoneticCore.includes('센트럴파크')) {
     const uniqueSubMatches = entries.filter(
       (e) =>
         e.phonetic.includes(qPhoneticCore) ||
-        (qWithoutRegion.length >= 5 && e.withoutRegion.includes(qWithoutRegion))
+        (qWithoutRegion.length >= 4 && e.withoutRegion.includes(qWithoutRegion)) ||
+        (qCoreKey.length >= 4 && e.coreKey === qCoreKey)
     );
     if (uniqueSubMatches.length === 1) {
       return uniqueSubMatches[0].name;
@@ -870,17 +908,20 @@ export function recommendDviewSeoAction(
           const queryMatchedJisan = matchVerifiedJisanFromQuery(row.query, verifiedJisanNames);
           if (queryMatchedJisan) {
             return {
-              targetRoute: `/technovalley?jisan=${queryMatchedJisan}`,
+              targetRoute: formatJisanStaticSlugRoute(queryMatchedJisan),
               recommendedAction: `'${queryMatchedJisan}' 개별 지식산업센터 동적 메타 타이틀에 연면적·제조·IT 입주 업종·취득세 35% 감면 스펙을 명시`,
             };
           }
 
-          const rawJisan = parsedUrl.searchParams.get('jisan')?.trim();
+          const rawSlugFromPath = decodedPath.startsWith('/technovalley/')
+            ? decodedPath.slice('/technovalley/'.length).replace(/\/+$/, '')
+            : '';
+          const rawJisan = parsedUrl.searchParams.get('jisan')?.trim() || rawSlugFromPath;
           if (rawJisan) {
             const resolvedPageJisan = resolveVerifiedJisanParamName(rawJisan, verifiedJisanNames);
             if (resolvedPageJisan && doesQueryReferToJisan(row.query, resolvedPageJisan)) {
               return {
-                targetRoute: `/technovalley?jisan=${resolvedPageJisan}`,
+                targetRoute: formatJisanStaticSlugRoute(resolvedPageJisan),
                 recommendedAction: `'${resolvedPageJisan}' 개별 지식산업센터 동적 메타 타이틀에 연면적·제조·IT 입주 업종·취득세 35% 감면 스펙을 명시`,
               };
             }
@@ -963,7 +1004,7 @@ export function recommendDviewSeoAction(
   const matchedJisanWithoutPage = matchVerifiedJisanFromQuery(row.query, verifiedJisanNames);
   if (matchedJisanWithoutPage) {
     return {
-      targetRoute: `/technovalley?jisan=${matchedJisanWithoutPage}`,
+      targetRoute: formatJisanStaticSlugRoute(matchedJisanWithoutPage),
       recommendedAction: `'${matchedJisanWithoutPage}' 개별 지식산업센터 동적 메타 타이틀에 연면적·제조·IT 입주 업종·취득세 35% 감면 스펙을 명시`,
     };
   }

@@ -251,7 +251,7 @@ export async function getOfficeTransactions(lawdCd: string = '41591', dealYmd: s
         }
       }
 
-      if (!isTestEnv && sorted.length > 0) {
+      if (!isTestEnv && (sorted.length > 0 || !process.env.PUBLIC_DATA_PORTAL_KEY)) {
         officeTxL1Cache.set(l1Key, { value: sorted, expiresAt: Date.now() + OFFICE_TX_L1_TTL_MS });
       }
 

@@ -115,7 +115,7 @@ describe('useFavorites Hook & Decoupled Local Storage Operation', () => {
     expect(isApartmentInFavorites(favs, '동탄역 롯데캐슬')).toBe(false);
   });
 
-  it('coalesces concurrent /api/favorite-counts requests and serves L1 cache across multiple hook instances in production', async () => {
+  it('does not fetch /api/favorite-counts by default in production and coalesces when fetchGlobalCounts is opted in', async () => {
     const prevEnv = process.env.NODE_ENV;
     try {
       (process.env as Record<string, string | undefined>).NODE_ENV = 'production';
@@ -133,13 +133,22 @@ describe('useFavorites Hook & Decoupled Local Storage Operation', () => {
         return Promise.resolve(new Response(JSON.stringify({}), { status: 200 }));
       });
 
+      // Default production mount makes ZERO network requests to /api/favorite-counts
+      await act(async () => {
+        renderHook(() => useFavorites());
+        renderHook(() => useFavorites());
+        await new Promise((r) => setTimeout(r, 20));
+      });
+      expect(favCountsCalls.length).toBe(0);
+
+      // Opt-in mounts coalesce concurrent requests and populate L1 cache
       let hook1: any;
       let hook2: any;
       let hook3: any;
       await act(async () => {
-        hook1 = renderHook(() => useFavorites());
-        hook2 = renderHook(() => useFavorites());
-        hook3 = renderHook(() => useFavorites());
+        hook1 = renderHook(() => useFavorites(null, {}, { fetchGlobalCounts: true }));
+        hook2 = renderHook(() => useFavorites(null, {}, { fetchGlobalCounts: true }));
+        hook3 = renderHook(() => useFavorites(null, {}, { fetchGlobalCounts: true }));
         await new Promise((r) => setTimeout(r, 30));
       });
 
@@ -148,10 +157,10 @@ describe('useFavorites Hook & Decoupled Local Storage Operation', () => {
       expect(hook2.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);
       expect(hook3.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);
 
-      // Subsequent mount hits client L1 cache with zero additional network calls
+      // Subsequent opt-in mount hits client L1 cache with zero additional network calls
       let hook4: any;
       await act(async () => {
-        hook4 = renderHook(() => useFavorites());
+        hook4 = renderHook(() => useFavorites(null, {}, { fetchGlobalCounts: true }));
       });
       expect(favCountsCalls.length).toBe(1);
       expect(hook4.result.current.favoriteCounts['동탄역롯데캐슬']).toBe(42);

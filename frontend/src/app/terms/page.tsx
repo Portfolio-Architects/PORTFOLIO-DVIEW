@@ -1,41 +1,95 @@
 import React from 'react';
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { AlertTriangle } from 'lucide-react';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
-export const metadata = {
-  title: '이용약관 | D-VIEW',
-  description: 'D-VIEW 서비스 이용약관',
+const TERMS_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent(
+  'D-VIEW 서비스 이용약관 및 공공데이터 면책 고지'
+)}&subtitle=${encodeURIComponent(
+  '국토교통부 실거래 공공데이터 활용 기준 · 저작권 보호 · 이용자 권리 및 의무'
+)}`;
+
+export const metadata: Metadata = {
+  title: '서비스 이용약관 · 공공데이터 면책 고지 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',
+  description:
+    'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 신도시 부동산 실거래 데이터 분석 플랫폼의 서비스 이용약관, 국토교통부 공공데이터 활용 기준, 저작권 보호 및 투자 면책 고지 사항을 안내합니다.',
   alternates: {
     canonical: 'https://dongtanview.com/terms',
+  },
+  openGraph: {
+    title: '서비스 이용약관 · 공공데이터 면책 고지 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',
+    description:
+      'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 신도시 부동산 실거래 데이터 분석 플랫폼의 서비스 이용약관, 국토교통부 공공데이터 활용 기준, 저작권 보호 및 투자 면책 고지 사항을 안내합니다.',
+    url: 'https://dongtanview.com/terms',
+    siteName: 'D-VIEW',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: TERMS_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 서비스 이용약관',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '서비스 이용약관 · 공공데이터 면책 고지 | D-VIEW',
+    description:
+      'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 서비스 이용약관 및 국토교통부 공공데이터 활용·투자 면책 고지 안내.',
+    images: [TERMS_OG_IMAGE_URL],
   },
 };
 
 export default function TermsPage() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/terms#webpage`,
+        url: `${baseUrl}/terms`,
+        name: '서비스 이용약관 · 공공데이터 면책 고지 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',
+        description:
+          'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 신도시 부동산 실거래 데이터 분석 플랫폼의 서비스 이용약관 및 면책 고지.',
+        inLanguage: 'ko-KR',
+        isPartOf: {
+          '@id': `${baseUrl}/#website`,
+        },
+        breadcrumb: {
+          '@id': `${baseUrl}/terms#breadcrumb`,
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${baseUrl}/terms#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: '홈',
+            item: baseUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: '이용약관',
+            item: `${baseUrl}/terms`,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-body font-sans">
-      {/* Breadcrumb List JSON-LD for Search Engine Optimization */}
+      {/* WebPage + BreadcrumbList JSON-LD for Search Engine Optimization */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              {
-                '@type': 'ListItem',
-                position: 1,
-                name: '홈',
-                item: 'https://dongtanview.com',
-              },
-              {
-                '@type': 'ListItem',
-                position: 2,
-                name: '이용약관',
-                item: 'https://dongtanview.com/terms',
-              },
-            ],
-          }),
-        }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
 
       <div className="bg-surface border-b border-border sticky top-0 z-50">

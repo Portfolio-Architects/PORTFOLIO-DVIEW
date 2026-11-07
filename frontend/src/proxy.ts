@@ -108,6 +108,7 @@ const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
   '/api/push/unsubscribe',
   '/api/push/notify-new-high',
   '/api/indexing/apartment',
+  '/api/cron/sync-transactions',
 ]);
 
 function isProxyRateLimitExemptApiPath(pathname: string): boolean {
@@ -263,9 +264,14 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// 미들웨어 구동 범위 (정적 에셋 등 불필요한 연산 방지)
+// 미들웨어 구동 범위: 동적 리다이렉트(/?tab=imjang, /apartment/:path*) 및 API 보호(/api/:path*)에만 한정하여 정적/ISR 페이지의 불필요한 Fluid CPU 실행 원천 차단
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|_vercel|assets|css|js|images|data|tx-data|sw\\.js|manifest\\.webmanifest|ads\\.txt|robots\\.txt|sitemap\\.xml).*)',
+    {
+      source: '/',
+      has: [{ type: 'query', key: 'tab', value: 'imjang' }],
+    },
+    '/apartment/:path*',
+    '/api/:path*',
   ],
 };

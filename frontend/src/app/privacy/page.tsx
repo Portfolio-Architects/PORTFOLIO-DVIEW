@@ -1,40 +1,94 @@
 import React from 'react';
 import Link from 'next/link';
+import { Metadata } from 'next';
+import { safeJsonLd } from '@/lib/utils/structuredData';
 
-export const metadata = {
-  title: '개인정보처리방침 | D-VIEW',
-  description: 'D-VIEW 개인정보처리방침',
+const PRIVACY_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent(
+  'D-VIEW 개인정보처리방침 및 쿠키·위치정보 보호 정책'
+)}&subtitle=${encodeURIComponent(
+  '입주민 GPS 인증 좌표 비저장 원칙 · 웹 푸시 알림 · Google AdSense 쿠키 안내'
+)}`;
+
+export const metadata: Metadata = {
+  title: '개인정보처리방침 · 위치기반 인증 및 쿠키 정책 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',
+  description:
+    'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 부동산 데이터 분석 플랫폼의 개인정보 수집 항목, 입주민 GPS 인증 정보 비저장 원칙, 웹 푸시 알림 및 Google AdSense 쿠키 운용 방침을 안내합니다.',
   alternates: {
     canonical: 'https://dongtanview.com/privacy',
+  },
+  openGraph: {
+    title: '개인정보처리방침 · 위치기반 인증 및 쿠키 정책 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',
+    description:
+      'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 동탄 부동산 데이터 분석 플랫폼의 개인정보 수집 항목, 입주민 GPS 인증 정보 비저장 원칙, 웹 푸시 알림 및 Google AdSense 쿠키 운용 방침을 안내합니다.',
+    url: 'https://dongtanview.com/privacy',
+    siteName: 'D-VIEW',
+    locale: 'ko_KR',
+    type: 'website',
+    images: [
+      {
+        url: PRIVACY_OG_IMAGE_URL,
+        width: 1200,
+        height: 630,
+        alt: 'D-VIEW 개인정보처리방침',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: '개인정보처리방침 · 위치기반 인증 및 쿠키 정책 | D-VIEW',
+    description:
+      'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 개인정보 수집 항목, 입주민 GPS 좌표 비저장 원칙 및 쿠키 운용 방침 안내.',
+    images: [PRIVACY_OG_IMAGE_URL],
   },
 };
 
 export default function PrivacyPage() {
+  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'WebPage',
+        '@id': `${baseUrl}/privacy#webpage`,
+        url: `${baseUrl}/privacy`,
+        name: '개인정보처리방침 · 위치기반 인증 및 쿠키 정책 | D-VIEW (디뷰 · 동뷰 · 동탄뷰)',
+        description:
+          'D-VIEW(디뷰 · 동뷰 · 동탄뷰) 개인정보처리방침, 위치기반 인증 비저장 원칙 및 쿠키 정책.',
+        inLanguage: 'ko-KR',
+        isPartOf: {
+          '@id': `${baseUrl}/#website`,
+        },
+        breadcrumb: {
+          '@id': `${baseUrl}/privacy#breadcrumb`,
+        },
+      },
+      {
+        '@type': 'BreadcrumbList',
+        '@id': `${baseUrl}/privacy#breadcrumb`,
+        itemListElement: [
+          {
+            '@type': 'ListItem',
+            position: 1,
+            name: '홈',
+            item: baseUrl,
+          },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: '개인정보처리방침',
+            item: `${baseUrl}/privacy`,
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-body font-sans">
-      {/* Breadcrumb List JSON-LD for Search Engine Optimization */}
+      {/* WebPage + BreadcrumbList JSON-LD for Search Engine Optimization */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BreadcrumbList',
-            itemListElement: [
-              {
-                '@type': 'ListItem',
-                position: 1,
-                name: '홈',
-                item: 'https://dongtanview.com',
-              },
-              {
-                '@type': 'ListItem',
-                position: 2,
-                name: '개인정보처리방침',
-                item: 'https://dongtanview.com/privacy',
-              },
-            ],
-          }),
-        }}
+        dangerouslySetInnerHTML={safeJsonLd(jsonLd)}
       />
 
       <div className="bg-surface border-b border-border sticky top-0 z-50">

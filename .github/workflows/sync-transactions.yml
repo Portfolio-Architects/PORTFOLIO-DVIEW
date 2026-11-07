@@ -2,12 +2,8 @@ name: Sync Transactions
 
 on:
   schedule:
-    # [1차 티어] 매일 아침 KST 05:38 (UTC 20:38) — 조기 수집 (국토부 배치 안착 직후, 비정각 분산)
+    # 매일 아침 KST 05:38 (UTC 20:38) — 일 1회 단일 수집 (국토부 배치 안착 직후, 비정각 분산)
     - cron: '38 20 * * *'
-    # [2차 티어] 매일 아침 KST 06:18 (UTC 21:18) — 추가 배치 반영 및 1차 누락 시 캐치업
-    - cron: '18 21 * * *'
-    # [3차 티어] 매일 아침 KST 06:38 (UTC 21:38) — 07:00 KST 이전 최종 비상 안전망 (~22분 완충 버퍼)
-    - cron: '38 21 * * *'
   workflow_dispatch: # 긴급 수동 동기화 지원
   push:
     branches:
@@ -97,6 +93,7 @@ jobs:
         if: github.event_name != 'push'
         run: node scripts/sync-transactions.js
         env:
+          SKIP_MOLIT_DIRECT_FETCH: 'true'
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           VERCEL_APP_URL: https://dongtanview.com

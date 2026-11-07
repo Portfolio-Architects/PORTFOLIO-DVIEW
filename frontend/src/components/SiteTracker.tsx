@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { ShieldCheck, ShieldOff, X } from 'lucide-react';
-import { incrementWebsiteVisit } from '@/lib/repositories/traffic.repository';
 import { logger } from '@/lib/services/logger';
 import {
   type AdminToggleNotice,
@@ -38,8 +37,8 @@ const NOTICE_MESSAGES: Record<
 
 /**
  * Global Site Tracker & Admin Exclusion Controller
- * Mounts once per app load. Synchronizes admin device exclusion (`?dview_admin=1|0|status`),
- * enforces `window['ga-disable-...']`, and increments daily websiteVisit counter for real visitors only.
+ * Mounts once per app load. Synchronizes admin device exclusion (`?dview_admin=1|0|status`)
+ * and enforces `window['ga-disable-...']` without triggering serverless POST /api/traffic calls.
  */
 const SiteTracker = React.memo(function SiteTracker() {
   const [notice, setNotice] = useState<AdminToggleNotice | null>(null);
@@ -58,25 +57,11 @@ const SiteTracker = React.memo(function SiteTracker() {
         }, 4500);
       }
 
-      // Exclude Admin from tracking
+      // Synchronize admin exclusion flag on mount
       if (isAdminTrackingExcludedClient()) {
         return () => {
           if (dismissTimer) clearTimeout(dismissTimer);
         };
-      }
-
-      // Get current date string in KST
-      const d = new Date();
-      d.setHours(d.getHours() + 9);
-      const today = d.toISOString().split('T')[0];
-
-      const lastVisit = localStorage.getItem('dview_last_visit');
-      if (lastVisit !== today) {
-        localStorage.setItem('dview_last_visit', today);
-        // Fire & Forget: increment global stats
-        incrementWebsiteVisit().catch((err) => {
-          logger.error('SiteTracker.visitIncrement', 'Failed to increment website visit', undefined, err);
-        });
       }
     } catch (e) {
       logger.warn('SiteTracker', 'SiteTracker error', undefined, e);
