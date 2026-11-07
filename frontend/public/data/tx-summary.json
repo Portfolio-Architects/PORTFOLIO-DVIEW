@@ -8269,8 +8269,8 @@
       "maxPriceEok": "7억2,000",
       "maxPriceByArea": {
         "74.97": 71500,
-        "59.99": 66900,
         "59.98": 69000,
+        "59.99": 66900,
         "84.97": 68000,
         "74.98": 65800,
         "84.98": 72000
@@ -8279,8 +8279,8 @@
       "minPriceEok": "2억9,000",
       "minPriceByArea": {
         "74.97": 33000,
-        "59.99": 29000,
         "59.98": 33000,
+        "59.99": 29000,
         "84.97": 52000,
         "74.98": 40500,
         "84.98": 43800
@@ -8326,9 +8326,9 @@
       "avg3MPerPyeong": 2641,
       "avg3MTxCount": 16,
       "rentTxCount": 557,
-      "latestRentDeposit": 33000,
-      "latestRentDepositEok": "3억3,000",
-      "latestRentMonthly": 0,
+      "latestRentDeposit": 37273,
+      "latestRentDepositEok": "3억7,273",
+      "latestRentMonthly": 125,
       "latestRentDate": "20261104",
       "avg1MRentDeposit": 40200,
       "avg1MRentDepositEok": "4억200",
@@ -9257,16 +9257,16 @@
       "maxPriceByArea": {
         "77.18": 63300,
         "85.00": 72000,
-        "96.79": 87800,
-        "96.70": 75000
+        "96.70": 75000,
+        "96.79": 87800
       },
       "minPrice": 33279,
       "minPriceEok": "3억3,279",
       "minPriceByArea": {
         "77.18": 33279,
         "85.00": 35400,
-        "96.79": 38530,
-        "96.70": 37670
+        "96.70": 37670,
+        "96.79": 38530
       },
       "allTimeHigh": 87800,
       "allTimeHighEok": "8억7,800",
@@ -12441,10 +12441,10 @@
     },
     "시범한빛마을금호어울림": {
       "dong": "반송동",
-      "latestPrice": 119800,
-      "latestPriceEok": "11억9,800",
+      "latestPrice": 110000,
+      "latestPriceEok": "11억",
       "latestArea": 32.9725,
-      "latestFloor": 22,
+      "latestFloor": 10,
       "latestDate": "20261031",
       "maxPrice": 119800,
       "maxPriceEok": "11억9,800",
@@ -12489,7 +12489,7 @@
         "2025": 32,
         "2026": 40
       },
-      "appreciationRate": 232.8,
+      "appreciationRate": 205.6,
       "allTimeAppreciationRate": 327.9,
       "earliestDate": "20071001",
       "earliestPrice": 36000,
