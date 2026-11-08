@@ -39,8 +39,14 @@ export async function GET(request: NextRequest) {
 
     const { aptName } = parsed.data;
 
+    const voteGetInit: ResponseInit = {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    };
+
     if (!adminDb) {
-      return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 });
+      return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 }, voteGetInit);
     }
 
     const isDev = process.env.NODE_ENV === 'development';
@@ -72,7 +78,7 @@ export async function GET(request: NextRequest) {
         buyCount += data.buyCount || 0;
         waitCount += data.waitCount || 0;
       });
-      return apiSuccess({ buyCount, waitCount }, { buyCount, waitCount });
+      return apiSuccess({ buyCount, waitCount }, { buyCount, waitCount }, voteGetInit);
     }
 
     const docId = normalizeAptName(aptName);
@@ -80,7 +86,7 @@ export async function GET(request: NextRequest) {
     const docSnap = await withTimeout(docRef.get(), timeoutMs);
 
     if (!docSnap.exists) {
-      return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 });
+      return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 }, voteGetInit);
     }
 
     const data = docSnap.data() || { buyCount: 0, waitCount: 0 };
@@ -90,11 +96,15 @@ export async function GET(request: NextRequest) {
     }, {
       buyCount: data.buyCount || 0,
       waitCount: data.waitCount || 0,
-    });
+    }, voteGetInit);
   } catch (error: unknown) {
     const err = error instanceof Error ? error : new Error(String(error));
     logger.warn('ApartmentVoteAPI.GET', 'Error fetching votes, using fallback', {}, err);
-    return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 });
+    return apiSuccess({ buyCount: 0, waitCount: 0 }, { buyCount: 0, waitCount: 0 }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+      },
+    });
   }
 }
 

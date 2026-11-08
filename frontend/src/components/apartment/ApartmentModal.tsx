@@ -729,12 +729,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
   const canonicalAptSlug = useMemo(
     () =>
       resolveCanonicalAptSlug(report.apartmentName, {
+        txKey: report.txKey,
         txMap: effectiveTxSummaryMap,
         sheetApartments,
         manualMapping: nameMapping,
         dong: report.dong,
       }) || report.apartmentName,
-    [report.apartmentName, report.dong, effectiveTxSummaryMap, sheetApartments, nameMapping]
+    [report.apartmentName, report.txKey, report.dong, effectiveTxSummaryMap, sheetApartments, nameMapping]
   );
 
   const recirculationTargets = useMemo(() => {
@@ -756,45 +757,46 @@ const ApartmentModal = React.memo(function ApartmentModal({
   ]);
 
   useEffect(() => {
-    if (!inline && report.apartmentName) {
-      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/apartment/')) {
-        const currentUrlApt = decodeSafeAptParam(
-          window.location.pathname.slice('/apartment/'.length)
-        );
-        const isCurrentSameApt =
-          Boolean(currentUrlApt) &&
-          (currentUrlApt === canonicalAptSlug ||
-            currentUrlApt === report.apartmentName ||
-            isSameApartment(
-              currentUrlApt,
-              report.apartmentName,
-              nameMapping,
-              undefined,
-              report.dong || undefined
-            ) ||
-            isSameApartment(
-              currentUrlApt,
-              canonicalAptSlug,
-              nameMapping,
-              undefined,
-              report.dong || undefined
-            ));
-        if (isCurrentSameApt) {
-          const canonicalPath = `/apartment/${encodeURIComponent(canonicalAptSlug)}`;
-          const currentSearch = window.location.search || '';
-          const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
-          if (
-            (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) &&
-            typeof window.history?.replaceState === 'function'
-          ) {
-            window.history.replaceState(
-              window.history.state,
-              '',
-              `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
-            );
-          }
+    if (!report.apartmentName) return;
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/apartment/')) {
+      const currentUrlApt = decodeSafeAptParam(
+        window.location.pathname.slice('/apartment/'.length)
+      );
+      const isCurrentSameApt =
+        Boolean(currentUrlApt) &&
+        (currentUrlApt === canonicalAptSlug ||
+          currentUrlApt === report.apartmentName ||
+          isSameApartment(
+            currentUrlApt,
+            report.apartmentName,
+            nameMapping,
+            undefined,
+            report.dong || undefined
+          ) ||
+          isSameApartment(
+            currentUrlApt,
+            canonicalAptSlug,
+            nameMapping,
+            undefined,
+            report.dong || undefined
+          ));
+      if (isCurrentSameApt) {
+        const canonicalPath = `/apartment/${encodeURIComponent(canonicalAptSlug)}`;
+        const currentSearch = window.location.search || '';
+        const cleanedSearch = stripApartmentNoiseQueryParams(currentSearch);
+        if (
+          (window.location.pathname !== canonicalPath || cleanedSearch !== currentSearch) &&
+          typeof window.history?.replaceState === 'function'
+        ) {
+          window.history.replaceState(
+            window.history.state,
+            '',
+            `${canonicalPath}${cleanedSearch}${window.location.hash || ''}`
+          );
         }
       }
+    }
+    if (!inline) {
       syncShallowApartmentOpen(report.apartmentName, {
         dong: report.dong,
         canonicalSlug: canonicalAptSlug,
@@ -806,7 +808,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
   useEffect(() => {
     const aptName = report?.apartmentName?.trim();
     if (!aptName) return;
-    const viewKey = `${inline ? 'inline' : 'modal'}:${aptName}`;
+    const identityKey = (canonicalAptSlug || aptName).replace(/\s+/g, '').toLowerCase();
+    const viewKey = `${inline ? 'inline' : 'modal'}:${identityKey}`;
     if (lastTrackedAptViewRef.current === viewKey) return;
     lastTrackedAptViewRef.current = viewKey;
     trackApartmentView({

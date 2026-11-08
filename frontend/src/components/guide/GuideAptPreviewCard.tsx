@@ -20,6 +20,15 @@ export interface GuideAptPreviewCardProps {
   sectionTitle?: string;
 }
 
+export function resolveSafePreviewIdentity(item: GuideAptMiniPreviewItem): {
+  safeSlug: string;
+  safeHref: string;
+} {
+  const safeSlug = item.canonicalSlug || item.name || item.displayName || 'dongtan';
+  const safeHref = item.href || `/apartment/${encodeURIComponent(safeSlug)}`;
+  return { safeSlug, safeHref };
+}
+
 export function recordGuideAptPreviewClick(params: {
   item: GuideAptMiniPreviewItem;
   guideSlug: string;
@@ -28,14 +37,15 @@ export function recordGuideAptPreviewClick(params: {
   suppressVirtualPageView?: boolean;
 }): void {
   const { item, guideSlug, placement, sectionTitle, suppressVirtualPageView } = params;
-  const pageTitle = `${item.displayName} 실거래가·전세가율 상세 리포트 | D-VIEW`;
+  const { safeSlug, safeHref } = resolveSafePreviewIdentity(item);
+  const pageTitle = `${item.displayName || safeSlug} 실거래가·전세가율 상세 리포트 | D-VIEW`;
 
   if (!suppressVirtualPageView) {
-    trackVirtualPageView(item.href, {
+    trackVirtualPageView(safeHref, {
       page_title: pageTitle,
       guide_slug: guideSlug,
       placement,
-      apartment_name: item.canonicalSlug,
+      apartment_name: safeSlug,
       dong: item.dong,
     });
   }
@@ -44,17 +54,17 @@ export function recordGuideAptPreviewClick(params: {
     guide_slug: guideSlug,
     placement,
     section_title: sectionTitle || placement,
-    apartment_name: item.canonicalSlug,
-    display_name: item.displayName,
+    apartment_name: safeSlug,
+    display_name: item.displayName || safeSlug,
     dong: item.dong,
-    target_path: item.href,
+    target_path: safeHref,
   });
 
   sendTelemetry({
     eventType: 'CLICK',
-    slotId: `guide_${guideSlug}_${placement}_${item.canonicalSlug}`,
+    slotId: `guide_${guideSlug}_${placement}_${safeSlug}`,
     placementSlotId: `guide_${placement}`,
-    apartmentName: item.canonicalSlug,
+    apartmentName: safeSlug,
     dong: item.dong,
     timestamp: new Date().toISOString(),
   });
@@ -92,20 +102,30 @@ export default function GuideAptPreviewCard({
   }
   const latestSpecText = latestSpecParts.join(' · ');
 
+  const { safeSlug, safeHref } = resolveSafePreviewIdentity(item);
+
+  const isLakeEduTownHero = safeSlug === '동탄더샵레이크에듀타운';
+  const isHighConversionFlagship =
+    isLakeEduTownHero ||
+    safeSlug === '더샵센트럴시티' ||
+    safeSlug === '동탄역롯데캐슬' ||
+    safeSlug === '능동마을이지더원' ||
+    safeSlug === '동탄역센트럴자이A-10';
+
   return (
     <Link
-      href={item.href}
+      href={safeHref}
       prefetch={false}
       onClick={handleCardClick}
       data-testid={`guide-apt-preview-card-${placement}`}
-      data-apt-slug={item.canonicalSlug}
+      data-apt-slug={safeSlug}
       data-apt-dong={item.dong}
       aria-label={`${item.displayName} 실시간 실거래가 미니 프리뷰 및 단지 상세 이동`}
       className="group relative flex flex-col justify-between min-h-[158px] sm:min-h-[168px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80 hover:border-emerald-500/40 p-4 transition-all duration-200 shadow-2xs hover:shadow-sm no-underline"
     >
       <div className="space-y-3">
         {/* Top Metadata Row: Dong/Zone Badge & Live Indicator */}
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200/80 dark:border-emerald-800/60 px-2.5 py-0.5 rounded-lg">
             <Building2 size={12} className="shrink-0" />
             <span>
@@ -113,10 +133,21 @@ export default function GuideAptPreviewCard({
             </span>
           </div>
 
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-800/50 px-2 py-0.5 rounded-md shrink-0">
-            <TrendingUp size={11} className="shrink-0" />
-            <span>실거래 프리뷰</span>
-          </span>
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+            {isHighConversionFlagship && (
+              <span
+                data-testid={isLakeEduTownHero ? 'guide-apt-preview-high-dwell-badge' : 'guide-apt-preview-flagship-badge'}
+                className="inline-flex items-center gap-1 text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 border border-emerald-500/25 px-2 py-0.5 rounded-md"
+              >
+                <ShieldCheck size={11} className="shrink-0" />
+                <span>{isLakeEduTownHero ? '평균 15분 체류 대장' : '고전환 핵심 대장'}</span>
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200/70 dark:border-blue-800/50 px-2 py-0.5 rounded-md">
+              <TrendingUp size={11} className="shrink-0" />
+              <span>실거래 프리뷰</span>
+            </span>
+          </div>
         </div>
 
         {/* Complex Display Name + Official Key */}

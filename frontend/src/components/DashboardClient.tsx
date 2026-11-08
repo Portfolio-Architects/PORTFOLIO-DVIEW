@@ -14,7 +14,11 @@ import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import { safeReload } from '@/lib/utils/safeReload';
 import { localCache } from '@/lib/utils/localCache';
 import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
-import { trackEvent, trackApartmentView } from '@/lib/utils/analytics';
+import {
+  trackEvent,
+  trackApartmentView,
+  resetAnalyticsInteractionState,
+} from '@/lib/utils/analytics';
 import {
   decodeSafeAptParam,
   syncShallowApartmentOpen,
@@ -497,9 +501,16 @@ const DashboardClient = React.memo(function DashboardClient({
 
   // Tab highlight logic removed since boxes are separated now
 
-  // Trigger lazy fetching of detailed sheets data on relevant tab switches, preselected pages, or deep-links
+  // Trigger lazy fetching of detailed sheets data on relevant tab switches, modal preselects, or deep-links
   useEffect(() => {
-    if (preselectedAptName || activeTab === 'imjang') {
+    if (
+      typeof navigator !== 'undefined' &&
+      (navigator.webdriver ||
+        /bot|crawl|spider|slurp|mediapartners|lighthouse/i.test(navigator.userAgent || ''))
+    ) {
+      return;
+    }
+    if ((!isInlineApartmentPage && preselectedAptName) || activeTab === 'imjang') {
       triggerFetch();
     } else if (typeof window !== 'undefined') {
       const hash = window.location.hash;
@@ -507,7 +518,7 @@ const DashboardClient = React.memo(function DashboardClient({
         triggerFetch();
       }
     }
-  }, [preselectedAptName, activeTab, triggerFetch]);
+  }, [isInlineApartmentPage, preselectedAptName, activeTab, triggerFetch]);
 
   const fieldReportsMap = useMemo(() => {
     const map = new Map<string, FieldReportData>();
@@ -890,8 +901,8 @@ const DashboardClient = React.memo(function DashboardClient({
       }
       userHasSelected.current = true;
       setSelectedReport(preselectedBaseReport);
-      triggerFetch();
       if (autoOpenPreselectedModal) {
+        triggerFetch();
         setMobileModalOpen(true);
         trackApartmentView({
           apartment_name: preselectedBaseReport.apartmentName,
@@ -1073,9 +1084,8 @@ const DashboardClient = React.memo(function DashboardClient({
       }
     }
 
-    // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV + funnel view_apartment
+    // Shallow Routing & Virtual PV Invariant: synchronize `/apartment/[aptName]` and fire virtual PV + funnel apartment_view
     const canonicalSlug = getCanonicalAptSlug(apt.name, apt.dong, (apt as DongApartment).txKey);
-    trackEvent('view_apartment', { apt_name: apt.name, dong: apt.dong || undefined, surface: 'dashboard' });
     trackApartmentView({
       apartment_name: apt.name,
       apt_name: apt.name,
@@ -1090,22 +1100,43 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
-    const targetApt = allApts.find(a => isSameApartment(a.name, name, nameMapping, a.dong, dong) || (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false));
+    const targetApt = allApts.find(
+      (a) =>
+        isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+        (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false)
+    );
     if (targetApt) {
       handleAptClick(targetApt);
     } else {
-      handleAptClick({ name, dong: dong || '' });
+      const fallbackApt = CANONICAL_DONG_APT_LIST.find(
+        (a) =>
+          isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+          (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false) ||
+          (a.rawTxKey ? isSameApartment(a.rawTxKey, name, nameMapping, a.dong, dong) : false)
+      ) as DongApartment | undefined;
+      handleAptClick({
+        ...(fallbackApt || {}),
+        name,
+        dong: dong || fallbackApt?.dong || '',
+      });
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
   const handleNavigateApartmentPage = useCallback((name: string, dong?: string) => {
     if (!name) return;
     const allApts = Object.values(sheetApartments).flat();
-    const targetApt = allApts.find(
-      (a) =>
-        isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
-        (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false)
-    );
+    const targetApt =
+      allApts.find(
+        (a) =>
+          isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+          (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false)
+      ) ||
+      (CANONICAL_DONG_APT_LIST.find(
+        (a) =>
+          isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+          (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false) ||
+          (a.rawTxKey ? isSameApartment(a.rawTxKey, name, nameMapping, a.dong, dong) : false)
+      ) as DongApartment | undefined);
     const resolvedDong = dong || targetApt?.dong;
     const canonicalSlug = getCanonicalAptSlug(name, resolvedDong, targetApt?.txKey);
 
@@ -1145,6 +1176,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleOpenCompare = useCallback(
     (aptName?: string, targetAptName?: string) => {
+      triggerFetch();
       setIsMortgageOpen(false);
       setIsTaxCalcOpen(false);
       setIsJeonseSafetyOpen(false);
@@ -1179,7 +1211,7 @@ const DashboardClient = React.memo(function DashboardClient({
       }
       setIsCompareOpen(true);
     },
-    [isInlineApartmentPage, mobileModalOpen, selectedReport, getCanonicalAptSlug]
+    [isInlineApartmentPage, mobileModalOpen, selectedReport, getCanonicalAptSlug, triggerFetch]
   );
 
   const handleCloseCompare = useCallback(() => {
@@ -1207,16 +1239,18 @@ const DashboardClient = React.memo(function DashboardClient({
   }, [compareSecondApt, isInlineApartmentPage]);
 
   const handleOpenJeonseSafety = useCallback((aptName?: string) => {
+    triggerFetch();
     setIsCompareOpen(false);
     setIsMortgageOpen(false);
     setIsTaxCalcOpen(false);
     setIsSellTimingOpen(false);
     setJeonseSafetyInitialApt(aptName);
     setIsJeonseSafetyOpen(true);
-  }, []);
+  }, [triggerFetch]);
 
   const handleOpenMortgage = useCallback(
     (aptName?: string, priceWon?: number) => {
+      triggerFetch();
       setIsCompareOpen(false);
       setIsTaxCalcOpen(false);
       setIsJeonseSafetyOpen(false);
@@ -1251,7 +1285,7 @@ const DashboardClient = React.memo(function DashboardClient({
       }
       setIsMortgageOpen(true);
     },
-    [isInlineApartmentPage, mobileModalOpen, selectedReport, getCanonicalAptSlug]
+    [isInlineApartmentPage, mobileModalOpen, selectedReport, getCanonicalAptSlug, triggerFetch]
   );
 
   const handleCloseMortgage = useCallback(() => {
@@ -1278,6 +1312,7 @@ const DashboardClient = React.memo(function DashboardClient({
 
   const handleOpenTaxCalculator = useCallback(
     (aptName?: string) => {
+      triggerFetch();
       setIsCompareOpen(false);
       setIsMortgageOpen(false);
       setIsJeonseSafetyOpen(false);
@@ -1310,7 +1345,7 @@ const DashboardClient = React.memo(function DashboardClient({
       }
       setIsTaxCalcOpen(true);
     },
-    [isInlineApartmentPage, mobileModalOpen, selectedReport, getCanonicalAptSlug]
+    [isInlineApartmentPage, mobileModalOpen, selectedReport, getCanonicalAptSlug, triggerFetch]
   );
 
   const handleCloseTaxCalculator = useCallback(() => {
@@ -1336,18 +1371,20 @@ const DashboardClient = React.memo(function DashboardClient({
   }, [isInlineApartmentPage]);
 
   const handleOpenSellTimingCalculator = useCallback((aptName?: string) => {
+    triggerFetch();
     setIsCompareOpen(false);
     setIsMortgageOpen(false);
     setIsTaxCalcOpen(false);
     setIsJeonseSafetyOpen(false);
     setSellTimingInitialApt(aptName);
     setIsSellTimingOpen(true);
-  }, []);
+  }, [triggerFetch]);
 
   const handleCloseMobileModal = useCallback(() => {
     returnToAptRef.current = null;
     setSelectedReport(null);
     setMobileModalOpen(false);
+    resetAnalyticsInteractionState();
     
     const currentHash = window.location.hash;
     if (currentHash.includes('post=')) {

@@ -1523,6 +1523,239 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
 
       unmount();
     });
+
+    it('resolves all 183 apartments to identical canonical slugs even when manualMapping contains raw/aliased keys and txMap is a 1-key SSR scoped map', () => {
+      const allApts = Object.values(REAL_BY_DONG).flat();
+      const simulatedNameMapping: Record<string, string> = {};
+      for (const apt of allApts) {
+        if (apt.txKey) {
+          simulatedNameMapping[apt.name] = apt.txKey;
+        }
+      }
+      // Also inject shorthand/display-name manualMapping aliases that require HARDCODED_MAPPING resolution
+      simulatedNameMapping['동탄역 시범 대원칸타빌'] = '동탄역시범대원칸타빌';
+      simulatedNameMapping['동탄역 시범 리슈빌'] = '동탄역시범리슈빌';
+      simulatedNameMapping['동탄역 시범 예미지'] = '동탄역시범예미지';
+      simulatedNameMapping['동탄역 디에트르 퍼스티지'] = '동탄역 디에트르 퍼스티지';
+
+      const scopedOneKeyTxMap = {
+        동탄역롯데캐슬: REAL_TX_SUMMARY['동탄역롯데캐슬'],
+      };
+
+      for (const apt of allApts) {
+        const expectedCanonical = resolveCanonicalAptSlug(apt.name, {
+          txKey: apt.txKey,
+          txMap: REAL_TX_SUMMARY,
+          sheetApartments: REAL_BY_DONG as Record<string, CanonicalAptSlugItem[]>,
+          dong: apt.dong,
+        });
+
+        const resolvedWithManualAndScopedTx = resolveCanonicalAptSlug(apt.name, {
+          manualMapping: simulatedNameMapping,
+          txMap: scopedOneKeyTxMap,
+          sheetApartments: REAL_BY_DONG as Record<string, CanonicalAptSlugItem[]>,
+          dong: apt.dong,
+        });
+
+        expect(resolvedWithManualAndScopedTx).toBe(expectedCanonical);
+        expect(resolvedWithManualAndScopedTx).not.toMatch(/\s/);
+      }
+    });
+
+    it('normalizes window.location.pathname in-place when ApartmentModal is rendered with inline={true} on /apartment/[aptName] without firing duplicate shallow virtual PV', async () => {
+      const analyticsModule = await import('@/lib/utils/analytics');
+      analyticsModule.resetAnalyticsInteractionState();
+      resetVirtualPageViewLedger();
+
+      let pathnameAtTrackTime = '';
+      const trackEventSpy = jest
+        .spyOn(analyticsModule, 'trackEvent')
+        .mockImplementation((eventName) => {
+          if (eventName === 'apartment_view') {
+            pathnameAtTrackTime = window.location.pathname;
+          }
+        });
+
+      window.history.replaceState(
+        { inlineTest: true },
+        '',
+        `/apartment/${encodeURIComponent('동탄역 시범 리슈빌')}?hl=ko-KR&utm_source=naver`
+      );
+
+      const { unmount } = render(
+        <ApartmentModal
+          inline={true}
+          report={{
+            id: 'inline-richeville',
+            apartmentName: '동탄역 시범 리슈빌',
+            dong: '청계동',
+            author: 'D-VIEW',
+            createdAt: 1711800000000,
+            likes: 0,
+            commentCount: 0,
+            totalScore: 88,
+            images: [],
+            metrics: {} as never,
+          }}
+          onClose={jest.fn()}
+          user={null}
+          typeMap={{}}
+          sheetApartments={{
+            청계동: REAL_BY_DONG['청계동'],
+          }}
+          txSummaryData={{
+            동탄역시범리슈빌아파트: REAL_TX_SUMMARY['동탄역시범리슈빌아파트'],
+          }}
+          nameMapping={{
+            '동탄역 시범 리슈빌': '동탄역시범리슈빌',
+          }}
+        />
+      );
+
+      const expectedEncodedPath = `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`;
+      expect(window.location.pathname).toBe(expectedEncodedPath);
+      expect(window.location.search).toBe('?utm_source=naver');
+      // inline={true} must not trigger syncShallowApartmentOpen virtual PV
+      expect(getVirtualPageViewCount()).toBe(0);
+
+      // URL normalization must occur BEFORE apartment_view fires so GA4 page_location is already canonical
+      expect(pathnameAtTrackTime).toBe(expectedEncodedPath);
+      expect(trackEventSpy).toHaveBeenCalledWith(
+        'apartment_view',
+        expect.objectContaining({
+          apartment_name: '동탄역 시범 리슈빌',
+          canonical_slug: '동탄역시범리슈빌아파트',
+          surface: 'apartment_ssr_page',
+          view_type: 'inline_report',
+        })
+      );
+
+      trackEventSpy.mockRestore();
+      unmount();
+    });
+
+    it('canonicalizes recommendDviewSeoAction targetRoute and getApartmentSchema URLs when given spaced apartment names', async () => {
+      const { recommendDviewSeoAction } = await import('@/lib/services/searchConsoleCtr');
+      const { getApartmentSchema } = await import('@/lib/utils/structuredData');
+
+      const recLotte = recommendDviewSeoAction(
+        {
+          query: '동탄역 롯데캐슬 실거래가',
+          clicks: 0,
+          impressions: 120,
+          ctr: 0,
+          position: 4.2,
+        },
+        ['동탄역 롯데캐슬', '동탄역 시범 리슈빌']
+      );
+      expect(recLotte.targetRoute).toBe('/apartment/동탄역롯데캐슬');
+
+      const recRicheville = recommendDviewSeoAction(
+        {
+          query: '동탄역 시범 리슈빌 매매',
+          clicks: 0,
+          impressions: 85,
+          ctr: 0,
+          position: 5.1,
+        },
+        ['동탄역 롯데캐슬', '동탄역 시범 리슈빌']
+      );
+      expect(recRicheville.targetRoute).toBe('/apartment/동탄역시범리슈빌아파트');
+
+      const schema = getApartmentSchema(
+        {
+          name: '동탄역 시범 리슈빌',
+          canonicalSlug: '동탄역 시범 리슈빌',
+          dong: '청계동',
+          address: '동탄순환대로21길 53',
+          description: '동탄역 시범 리슈빌 실거래가',
+          pyeongs: [
+            {
+              pyeong: 34,
+              areaM2: 84.99,
+              latestPriceStr: '11억 5,000만',
+              maxPriceStr: '13억 2,000만',
+              jeonseRatio: 54,
+            },
+          ],
+        },
+        'https://d-view.kr'
+      );
+      const encodedCanonical = encodeURIComponent('동탄역시범리슈빌아파트');
+      const graph = schema['@graph'] as Array<Record<string, unknown>>;
+      expect(graph[0].url).toBe(`https://d-view.kr/apartment/${encodedCanonical}`);
+      expect(graph[0]['@id']).toBe(`https://d-view.kr/apartment/${encodedCanonical}#complex`);
+      const offers = graph[0].offers as Array<Record<string, unknown>>;
+      expect(offers[0].url).toBe(`https://d-view.kr/apartment/${encodedCanonical}`);
+
+      // Newly introduced complex in sheetApartments (not in HARDCODED_MAPPING or CANONICAL_TX_SUMMARY_MAP)
+      // referenced via manualMapping while txMap is a 1-key SSR scoped object
+      const scopedOneKeyTxMap = {
+        동탄역롯데캐슬: REAL_TX_SUMMARY['동탄역롯데캐슬'],
+      };
+      const extendedSheetApartments: Record<string, CanonicalAptSlugItem[]> = {
+        ...REAL_BY_DONG,
+        신동: [
+          ...(REAL_BY_DONG['신동'] || []),
+          {
+            name: '신규단지 아테라 2차',
+            dong: '신동',
+            txKey: '화성동탄신규단지아테라2차',
+          },
+        ],
+      };
+      expect(
+        resolveCanonicalAptSlug('아테라 2차 별칭', {
+          manualMapping: { '아테라 2차 별칭': '신규단지 아테라 2차' },
+          txMap: scopedOneKeyTxMap,
+          sheetApartments: extendedSheetApartments,
+          dong: '신동',
+        })
+      ).toBe('화성동탄신규단지아테라2차');
+
+      // manualMapping target pointing to a display name not in HARDCODED_MAPPING ('석우동 예당마을 푸르지오' -> '푸르지오')
+      expect(
+        resolveCanonicalAptSlug('석우푸르지오', {
+          manualMapping: { 석우푸르지오: '석우동 예당마을 푸르지오' },
+          txMap: scopedOneKeyTxMap,
+          dong: '석우동',
+        })
+      ).toBe('푸르지오');
+
+      // Spaceless input matching a spaced key in manualMapping
+      expect(
+        resolveCanonicalAptSlug('동탄역시범리슈빌', {
+          manualMapping: { '동탄역 시범 리슈빌': '동탄역시범리슈빌' },
+          txMap: scopedOneKeyTxMap,
+          dong: '청계동',
+        })
+      ).toBe('동탄역시범리슈빌아파트');
+
+      // enrichApartmentStatRecord normalizes spaced metaOverride.canonicalSlug
+      const { enrichApartmentStatRecord } = await import(
+        '@/lib/stats/thematicPriceComparisonEngine'
+      );
+      const enriched = enrichApartmentStatRecord(
+        {
+          name: '동탄역 시범 리슈빌',
+          dong: '청계동',
+          householdCount: 656,
+          yearBuilt: 2015,
+          distanceToStationMeters: 850,
+          band: '500_1000m',
+          txCount: 15,
+          avgPriceWon: 1_100_000_000,
+          avgPyeongWon: 32_000_000,
+          latestPriceWon: 1_150_000_000,
+          latestPriceEokText: '11.5억',
+          latestAreaM2: 84.99,
+          latestFloor: 15,
+          latestContractDate: '2026-03-01',
+        },
+        { canonicalSlug: '동탄역 시범 리슈빌' }
+      );
+      expect(enriched.canonicalSlug).toBe('동탄역시범리슈빌아파트');
+    });
   });
 });
 

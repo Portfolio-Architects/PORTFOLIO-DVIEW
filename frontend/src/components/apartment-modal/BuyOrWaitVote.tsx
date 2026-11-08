@@ -13,6 +13,12 @@ interface BuyOrWaitVoteProps {
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
+function isAutomatedBot(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  if (navigator.webdriver) return true;
+  return /bot|crawl|spider|slurp|mediapartners|lighthouse/i.test(navigator.userAgent || '');
+}
+
 const BuyOrWaitVote = React.memo(function BuyOrWaitVote({ 
   aptName,
   valuationStatus = 'fair',
@@ -37,6 +43,12 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isSubmittingRef = useRef(false);
   const mountedRef = useRef(true);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [isVisible, setIsVisible] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    if (isAutomatedBot()) return false;
+    return typeof IntersectionObserver === 'undefined';
+  });
   const cooldownTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const reactionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -91,8 +103,32 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window === 'undefined' || isVisible || isAutomatedBot()) return;
+    if (typeof IntersectionObserver === 'undefined') {
+      setIsVisible(true);
+      return;
+    }
+    const el = containerRef.current;
+    if (!el) {
+      setIsVisible(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting || entry.intersectionRatio > 0)) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px 0px' }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [isVisible]);
+
   const { data, error, isLoading, mutate: mutateVote } = useSWR(
-    aptName ? `/api/apartments/vote?aptName=${encodeURIComponent(aptName)}` : null,
+    aptName && isVisible ? `/api/apartments/vote?aptName=${encodeURIComponent(aptName)}` : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -271,7 +307,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
   }, [aptName, jsonLdElements, data, isLoading, error]);
 
   return (
-    <div className="bg-body rounded-2xl p-4 sm:p-5 border border-border shadow-sm mt-6">
+    <div ref={containerRef} className="bg-body rounded-2xl p-4 sm:p-5 border border-border shadow-sm mt-6">
       {jsonLd && (
         <script
           type="application/ld+json"

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { redirect, permanentRedirect } from 'next/navigation';
 import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen, GraduationCap } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import LoungeHeader from '@/components/LoungeHeader';
@@ -47,7 +48,7 @@ function formatSummaryPriceField(numManwon?: number, eokStr?: string): string {
 }
 
 export const dynamic = 'force-static';
-export const revalidate = 21600;
+export const revalidate = 86400;
 export const dynamicParams = true;
 
 export async function generateStaticParams() {
@@ -85,16 +86,40 @@ export async function generateMetadata(props: {
   }
 }
 
-export default async function ApartmentPage(props: { params: Promise<{ aptName: string }> }) {
+export default async function ApartmentPage(props: {
+  params: Promise<{ aptName: string }>;
+  enforceCanonicalRedirect?: boolean;
+}) {
   let decodedName = '아파트';
+  let rawAptParam = '';
 
   try {
     const params = props.params ? await props.params : null;
     if (params?.aptName) {
+      rawAptParam = params.aptName;
       decodedName = decodeAptName(params.aptName);
     }
   } catch {
     // fallback to default
+  }
+
+  if (process.env.NODE_ENV !== 'test' || props.enforceCanonicalRedirect) {
+    const fastTxSummary = await getTxSummaryData();
+    const fastCanonicalSlug = resolveCanonicalAptSlug(rawAptParam || decodedName, {
+      txMap: fastTxSummary,
+    });
+    if (!fastCanonicalSlug || !fastTxSummary?.[fastCanonicalSlug]) {
+      redirect('/explore');
+    }
+    let rawDecodedOnce = rawAptParam;
+    try {
+      rawDecodedOnce = decodeURIComponent(rawAptParam);
+    } catch {
+      // ignore malformed URI sequence
+    }
+    if (rawDecodedOnce !== fastCanonicalSlug) {
+      permanentRedirect(`/apartment/${encodeURIComponent(fastCanonicalSlug)}`);
+    }
   }
 
   const pageData = await getApartmentPageData(decodedName);

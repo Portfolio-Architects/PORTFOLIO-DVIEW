@@ -21,7 +21,7 @@ async function fetchWithTimeout(url: string, timeoutMs: number = 3000): Promise<
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       },
-      next: { revalidate: 60 } // Cache feed locally for 60 seconds
+      next: { revalidate: 86400 } // Cache feed for 24 hours so /news ISR revalidate=86400 is not downgraded to 60s
     });
     clearTimeout(id);
     return response;

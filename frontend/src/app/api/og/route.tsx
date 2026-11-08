@@ -15,7 +15,7 @@ class ImageResponse extends NextImageResponse {
   constructor(...args: ConstructorParameters<typeof NextImageResponse>) {
     const [element, options] = args;
     const cacheHeaders = {
-      'Cache-Control': 'public, max-age=86400, s-maxage=31536000, stale-while-revalidate=60',
+      'Cache-Control': 'public, max-age=86400, s-maxage=604800, stale-while-revalidate=86400',
     };
     
     // Assemble fonts configuration if buffers are hydrated

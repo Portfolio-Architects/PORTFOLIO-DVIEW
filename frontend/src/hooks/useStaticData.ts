@@ -222,6 +222,24 @@ export function useLocationScores(fallbackData?: Record<string, LocationScoreIte
   };
 }
 
+function filterTransactionsByLatestDay(txs: RecentTransaction[]): RecentTransaction[] {
+  if (!Array.isArray(txs) || txs.length === 0) return [];
+  let maxDateStr = '';
+  for (let i = 0; i < txs.length; i++) {
+    const cd = String(txs[i]?.registeredDate || txs[i]?.contractDate || txs[i]?.date || '');
+    const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+    if (clean.length === 8 && clean > maxDateStr) maxDateStr = clean;
+  }
+  if (maxDateStr.length < 8) return txs;
+
+  return txs.filter((tx) => {
+    const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+    const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+    if (clean.length < 8) return true;
+    return clean === maxDateStr;
+  });
+}
+
 function filterTransactionsByDays(txs: RecentTransaction[], days: number): RecentTransaction[] {
   if (!Array.isArray(txs) || txs.length === 0) return [];
   let maxDateStr = '';
@@ -266,10 +284,11 @@ export function usePeriodTransactions(
   }, []);
 
   const useChunked = Boolean(options?.chunked);
-  const isRecentBased = period === '90d' || period === '7d' || period === '30d';
+  const isRecentBased = period === '1d' || period === '7d' || period === '30d' || period === '90d';
   const hasRecentFallback = !!(isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0);
 
   const periodPathMap: Record<TimelinePeriod, string> = {
+    '1d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
     '7d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
     '30d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
     '90d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
@@ -318,8 +337,39 @@ export function usePeriodTransactions(
       }
     } else {
       list = parsePeriodTransactions(rawData);
+      if (!isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0 && list.length > 0) {
+        const regLookup = new Map<string, RecentTransaction>();
+        for (let i = 0; i < fallbackRecentTransactions.length; i++) {
+          const rTx = fallbackRecentTransactions[i];
+          if (rTx?.registeredDate) {
+            const k = `${rTx.txKey || rTx.aptName}|${rTx.contractDate}|${rTx.priceVal}|${rTx.floor}|${rTx.area}`;
+            if (!regLookup.has(k)) regLookup.set(k, rTx);
+          }
+        }
+        if (regLookup.size > 0) {
+          const maxCheck = Math.min(list.length, fallbackRecentTransactions.length * 2);
+          for (let i = 0; i < maxCheck; i++) {
+            const item = list[i];
+            if (item && !item.registeredDate) {
+              const k = `${item.txKey || item.aptName}|${item.contractDate}|${item.priceVal}|${item.floor}|${item.area}`;
+              const matched = regLookup.get(k);
+              if (matched?.registeredDate) {
+                list[i] = {
+                  ...item,
+                  registeredDate: matched.registeredDate,
+                  registeredDateLabel: matched.registeredDateLabel,
+                  ...(matched.prevPriceVal !== undefined ? { prevPriceVal: matched.prevPriceVal } : {}),
+                };
+              }
+            }
+          }
+        }
+      }
     }
 
+    if (period === '1d') {
+      return filterTransactionsByLatestDay(list);
+    }
     if (period === '7d') {
       return filterTransactionsByDays(list, 7);
     }

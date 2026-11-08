@@ -58,9 +58,12 @@ export function getMainPageSchema(baseUrl: string) {
   };
 }
 
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+
 // 2. Apartment Detail Page Schema (ApartmentComplex, Place, Accommodation)
 export interface ApartmentSchemaParams {
   name: string;
+  canonicalSlug?: string;
   dong: string;
   address: string;
   description: string;
@@ -76,8 +79,11 @@ export interface ApartmentSchemaParams {
 }
 
 export function getApartmentSchema(params: ApartmentSchemaParams, baseUrl: string) {
-  const { name, dong, address, description, imageUrl, geo, pyeongs } = params;
-  const encodedName = encodeURIComponent(name);
+  const { name, canonicalSlug, dong, address, description, imageUrl, geo, pyeongs } = params;
+  const resolvedSlug = canonicalSlug
+    ? resolveCanonicalAptSlug(canonicalSlug, { dong }) || canonicalSlug
+    : name;
+  const encodedName = encodeURIComponent(resolvedSlug);
 
   // Build offer details based on pyeong ranges
   const offers = pyeongs.map((p) => ({

@@ -2034,15 +2034,18 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
       '정거장 예정지 반경 300~500m 이내 초역세권 단지(능동마을이지더원·시범한빛마을동탄아이파크·METAPOLIS 등)는 버스 환승 의존 구조에서 지하철 도보 역세권으로 지위가 격상됨',
       '동인선 개통 시 동탄1신도시에서 동탄역까지 1~2정거장(약 5분 내외)으로 연결되어 동탄1·동탄2 간 역세권 시세 격차(Spread) 축소의 핵심 동력으로 작용함'
     ],
-    featuredZones: ['metropolis', 'gbcx'],
+    featuredZones: ['metropolis', 'gbcx', 'waterfront'],
     featuredApartments: [
       '능동마을이지더원',
+      '동탄더샵레이크에듀타운',
       '시범한빛마을동탄아이파크',
       'METAPOLIS',
       '솔빛마을서해그랑블',
       '푸른마을두산위브',
       '동탄숲속마을광명메이루즈',
       '롯데캐슬',
+      '동탄역롯데캐슬',
+      '더샵센트럴시티',
     ],
     zoneSectionPreviews: [
       {
@@ -2056,6 +2059,12 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
         sectionTitle: '동인선 반송동 중심상권 역세권 대표 단지 실시간 실거래 프리뷰',
         zoneId: 'metropolis',
         apartments: ['시범한빛마을동탄아이파크', 'METAPOLIS', '솔빛마을서해그랑블'],
+      },
+      {
+        sectionHeadingMatch: '3. 동탄1·동탄2 역세권 스프레드 축소 전망',
+        sectionTitle: '동탄역(GTX-A·동인선 환승) 및 산척동 에듀타운 비교 대장 단지 실시간 실거래 프리뷰',
+        zoneId: 'waterfront',
+        apartments: ['동탄더샵레이크에듀타운', '더샵센트럴시티', '동탄역롯데캐슬'],
       },
     ],
     headToHeadComparisons: [
@@ -4094,4 +4103,67 @@ export function getRelatedGuidesForGuide(
   candidates.sort((a, b) => b.score - a.score);
   return candidates.slice(0, maxCount).map((entry) => entry.candidate);
 }
+
+export interface TopAcquisitionEntryRoute {
+  id: string;
+  href: string;
+  badge: string;
+  title: string;
+  subtitle: string;
+  highlightAptSlug: string;
+}
+
+/**
+ * Top 3 Organic & AI Acquisition Entry Channels (Google #1, ChatGPT·Google Dual Inflow, 7-Day Surging TechnoValley)
+ * used across Top/Mid conversion slots and hub cross-linking to maximize multi-page dwell time and AdSense Fill Rate.
+ */
+export const TOP_ACQUISITION_ENTRY_ROUTES: readonly TopAcquisitionEntryRoute[] = [
+  {
+    id: 'dongtan-1-vs-2-comparison',
+    href: '/guide/dongtan-1-vs-2-comparison',
+    badge: '구글 검색 1위',
+    title: '1동탄 vs 2동탄 차이 심층 비교',
+    subtitle: '실거래가·전세가율·학군·교통망 1:1 대조 리포트',
+    highlightAptSlug: '동탄더샵레이크에듀타운',
+  },
+  {
+    id: 'dongtan-indeogwon-line-station-impact-analysis',
+    href: '/guide/dongtan-indeogwon-line-station-impact-analysis',
+    badge: 'ChatGPT·구글 동시 유입',
+    title: '동탄인덕원선(동인선) 정거장별 역세권 분석',
+    subtitle: '능동·반송동·석우동·동탄역 반경 500m 수혜 단지',
+    highlightAptSlug: '능동마을이지더원',
+  },
+  {
+    id: 'technovalley',
+    href: '/technovalley',
+    badge: '최근 7일 급상승',
+    title: '동탄테크노밸리 56개 지식산업센터 & 배후단지',
+    subtitle: '취득세·재산세 35% 감면 및 직주근접 아파트 매칭',
+    highlightAptSlug: '동탄역센트럴자이A-10',
+  },
+] as const;
+
+/**
+ * High-conversion flagship apartments proven to drive deep user dwell time (e.g. 동탄더샵레이크에듀타운 15-min retention).
+ */
+export const HIGH_CONVERSION_FLAGSHIP_APARTMENTS: readonly string[] = [
+  '동탄더샵레이크에듀타운',
+  '더샵센트럴시티',
+  '동탄역롯데캐슬',
+  '능동마을이지더원',
+] as const;
+
+/**
+ * Representative residential commuter & high-dwell complexes displayed in the SEO Guide Format section on /technovalley.
+ */
+export const TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS: readonly string[] = [
+  '동탄역센트럴자이A-10',
+  '동탄역푸르지오',
+  '더샵센트럴시티',
+  '동탄더샵레이크에듀타운',
+  '동탄역포레너스',
+  '솔빛마을서해그랑블',
+] as const;
+
 

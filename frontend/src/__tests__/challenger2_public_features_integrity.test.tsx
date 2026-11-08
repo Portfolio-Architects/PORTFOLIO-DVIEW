@@ -475,7 +475,7 @@ describe('Challenger 2: Core Public Feature Integrity & Zero-Auth Verification',
 
       // Verify dashboard components render without throwing
       expect(screen.getByText('일자별 최근 실거래')).toBeInTheDocument();
-      expect(screen.getByTestId('timeline-period-tab-90d')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('단지명 검색...')).toBeInTheDocument();
     });
   });
 

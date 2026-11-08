@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
       typeof responseData === 'object' && responseData !== null ? (responseData as unknown as Record<string, unknown>) : undefined,
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=600, stale-while-revalidate=300',
+          'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
         },
       }
     );

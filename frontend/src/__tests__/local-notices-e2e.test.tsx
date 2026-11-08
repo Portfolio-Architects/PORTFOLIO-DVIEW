@@ -828,8 +828,8 @@ describe('Hwaseong & Dongtan Administrative Notices E2E Test Suite', () => {
         const res = await getLocalNoticesRoute(req);
 
         expect(res.headers.get('Cache-Control')).toContain('public');
-        expect(res.headers.get('Cache-Control')).toContain('s-maxage=600');
-        expect(res.headers.get('Cache-Control')).toContain('stale-while-revalidate=300');
+        expect(res.headers.get('Cache-Control')).toContain('s-maxage=3600');
+        expect(res.headers.get('Cache-Control')).toContain('stale-while-revalidate=86400');
       });
 
       it('6.5 returns fallback envelope with source "fallback_error" when service encounters unexpected exception', async () => {

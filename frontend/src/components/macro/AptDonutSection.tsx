@@ -8,8 +8,7 @@ import {
   Cell,
   Tooltip,
 } from 'recharts';
-import { ChevronRight, Maximize2 } from 'lucide-react';
-import { ZoneDonutFullscreenModal } from './ZoneDonutFullscreenModal';
+import { ChevronRight } from 'lucide-react';
 import { getDisplayAptName, normalizeAptName, findTxKey } from '@/lib/utils/apartmentMapping';
 import { buildInitialApartments } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types';
@@ -18,9 +17,10 @@ import type { TimelinePeriod } from '@/types/transaction';
 import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
 import { trackEvent } from '@/lib/utils/analytics';
 
-export type AptDonutPeriod = '7d' | '30d' | '90d' | '1y';
+export type AptDonutPeriod = '1d' | '7d' | '30d' | '90d' | '1y';
 
 export const PERIOD_LABELS: Record<AptDonutPeriod, string> = {
+  '1d': '최근 1일',
   '7d': '최근 7일',
   '30d': '최근 30일',
   '90d': '최근 90일',
@@ -28,6 +28,7 @@ export const PERIOD_LABELS: Record<AptDonutPeriod, string> = {
 };
 
 export const PERIOD_BUTTONS: { key: AptDonutPeriod; label: string; ariaLabel: string }[] = [
+  { key: '1d', label: '1일', ariaLabel: '최근 1일 실거래 보기' },
   { key: '7d', label: '7일', ariaLabel: '최근 7일 실거래 보기' },
   { key: '30d', label: '30일', ariaLabel: '최근 30일 실거래 보기' },
   { key: '90d', label: '90일', ariaLabel: '최근 90일 실거래 보기' },
@@ -398,8 +399,11 @@ export const AptDonutSection = React.memo(function AptDonutSection({
 
   const [internalActiveCategory, setInternalActiveCategory] = useState<string | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
-  const [isFullscreenOpen, setIsFullscreenOpen] = useState(false);
-  const [fullscreenInitialZone, setFullscreenInitialZone] = useState<string | null>(null);
+  void onSelectApt;
+  void onOpenAptDetail;
+  void enableFullscreen;
+  void preloadApartmentTx;
+  void onOpenMortgageModal;
 
   const isControlledCategory = controlledActiveCategory !== undefined;
   const activeCategory = isControlledCategory
@@ -471,15 +475,24 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     if (!Array.isArray(baseTxs) || baseTxs.length === 0) return [];
     if (period === '90d' || period === '1y') return baseTxs;
 
-    const days = period === '7d' ? 7 : 30;
-
     let maxDateStr = '';
     for (let i = 0; i < baseTxs.length; i++) {
       const cd = String(baseTxs[i]?.registeredDate || baseTxs[i]?.contractDate || baseTxs[i]?.date || '');
       const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
-      if (clean > maxDateStr) maxDateStr = clean;
+      if (clean.length === 8 && clean > maxDateStr) maxDateStr = clean;
     }
     if (maxDateStr.length < 8) return baseTxs;
+
+    if (period === '1d') {
+      return baseTxs.filter((tx) => {
+        const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+        const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+        if (clean.length < 8) return true;
+        return clean === maxDateStr;
+      });
+    }
+
+    const days = period === '7d' ? 7 : 30;
 
     const y = parseInt(maxDateStr.slice(0, 4), 10);
     const m = parseInt(maxDateStr.slice(4, 6), 10) - 1;
@@ -494,6 +507,60 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       return parseInt(clean, 10) >= cutoffNum;
     });
   }, [period, periodTransactions, recentTransactions, selectedDateLabel]);
+
+  const centerPeriodInfo = useMemo(() => {
+    if (selectedDateLabel) {
+      const digits = selectedDateLabel.replace(/[^0-9]/g, '').slice(0, 8);
+      if (digits.length === 8) {
+        return {
+          periodText: '당일',
+          dateText: `${digits.slice(4, 6)}.${digits.slice(6, 8)}`,
+        };
+      }
+      return {
+        periodText: '기준',
+        dateText: selectedDateLabel,
+      };
+    }
+
+    let minDateStr = '';
+    let maxDateStr = '';
+    if (Array.isArray(activeTransactions)) {
+      for (let i = 0; i < activeTransactions.length; i++) {
+        const raw = String(
+          activeTransactions[i]?.registeredDate ||
+            activeTransactions[i]?.contractDate ||
+            activeTransactions[i]?.date ||
+            ''
+        );
+        const clean = raw.replace(/[^0-9]/g, '').slice(0, 8);
+        if (clean.length === 8) {
+          if (!minDateStr || clean < minDateStr) minDateStr = clean;
+          if (!maxDateStr || clean > maxDateStr) maxDateStr = clean;
+        }
+      }
+    }
+
+    const baseLabel = PERIOD_LABELS[period] || '최근 90일';
+    if (!maxDateStr) {
+      return { periodText: baseLabel, dateText: '' };
+    }
+
+    const maxMD = `${maxDateStr.slice(4, 6)}.${maxDateStr.slice(6, 8)}`;
+    if (period === '1d' || !minDateStr || minDateStr === maxDateStr) {
+      return { periodText: baseLabel, dateText: maxMD };
+    }
+
+    if (period === '1y' && minDateStr.slice(0, 4) !== maxDateStr.slice(0, 4)) {
+      return {
+        periodText: baseLabel,
+        dateText: `${minDateStr.slice(2, 4)}.${minDateStr.slice(4, 6)}~${maxDateStr.slice(2, 4)}.${maxDateStr.slice(4, 6)}`,
+      };
+    }
+
+    const minMD = `${minDateStr.slice(4, 6)}.${minDateStr.slice(6, 8)}`;
+    return { periodText: baseLabel, dateText: `${minMD}~${maxMD}` };
+  }, [activeTransactions, period, selectedDateLabel]);
 
   const handleModeChange = useCallback((newMode: AptDonutMode) => {
     if (!isControlledMode) {
@@ -1115,22 +1182,6 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     }
   }, [activeCategory, setActiveCategory, isNavigator, mode, budget]);
 
-  const handleOpenFullscreen = useCallback((initialZone: string | null = null) => {
-    if (!enableFullscreen) return;
-    setHoveredCategory(null);
-    setFullscreenInitialZone(initialZone);
-    setIsFullscreenOpen(true);
-    trackEvent('donut_fullscreen_open', {
-      mode,
-      period,
-      initial_zone: initialZone || 'all',
-    });
-  }, [enableFullscreen, mode, period]);
-
-  const handleCloseFullscreen = useCallback(() => {
-    setIsFullscreenOpen(false);
-  }, []);
-
   const chartBoxRef = useRef<HTMLDivElement | null>(null);
   const lastTouchTimeRef = useRef<number>(0);
 
@@ -1370,24 +1421,8 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               : `sm:flex-1 min-w-0 flex items-center justify-center relative sm:h-full sm:border-r border-border/60 dark:border-border/30 py-0.5 ${
                   isNavigator ? 'pr-0 sm:pr-2.5 xl:pr-4' : 'pr-0 sm:pr-3'
                 }`
-          } ${enableFullscreen ? 'group/donut' : ''}`}
+          }`}
         >
-          {enableFullscreen && (
-            <button
-              type="button"
-              data-testid="donut-fullscreen-open-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleOpenFullscreen(activeSector ? activeSector.category : null);
-              }}
-              aria-label="도넛차트 크게 보기"
-              title="도넛차트 크게 보기"
-              className="absolute top-0.5 right-1 sm:right-2.5 z-10 px-2 py-1 rounded-lg bg-elevated hover:bg-blue-50 dark:hover:bg-blue-950/60 border border-border/80 group-hover/donut:border-blue-500/30 text-secondary group-hover/donut:text-blue-600 dark:group-hover/donut:text-blue-400 hover:text-blue-600 dark:hover:text-blue-400 text-[11px] font-extrabold inline-flex items-center gap-1 transition-colors cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-blue-600/30 whitespace-nowrap"
-            >
-              <Maximize2 size={12} className="shrink-0" />
-              <span>크게 보기</span>
-            </button>
-          )}
           {mounted ? (
             <div
               ref={chartBoxRef}
@@ -1451,8 +1486,19 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                         `${energyMetrics.bullishPct.toFixed(1)}%`
                       )}
                     </span>
-                    <span className="text-[9.5px] font-bold text-tertiary mt-0.5 tabular-nums whitespace-nowrap">
-                      신고가 {energyMetrics.highCount} · 급매 {energyMetrics.fallingCount}건
+                    <span className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100/90 dark:bg-slate-800/90 tabular-nums whitespace-nowrap">
+                      <span className="text-[10px] xl:text-[10.5px] font-bold text-slate-500 dark:text-slate-400">
+                        {centerPeriodInfo.periodText}
+                      </span>
+                      {centerPeriodInfo.dateText && (
+                        <>
+                          <span className="text-[9px] text-slate-300 dark:text-slate-600">·</span>
+                          <span className="text-[11px] xl:text-[11.5px] font-black text-slate-900 dark:text-white tracking-tight">
+                            {centerPeriodInfo.dateText}
+                          </span>
+                        </>
+                      )}
+                      <span className="sr-only">신고가 {energyMetrics.highCount} · 급매 {energyMetrics.fallingCount}건</span>
                     </span>
                   </>
                 ) : (
@@ -1639,21 +1685,6 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           })}
         </div>
       </div>
-
-      {enableFullscreen && isFullscreenOpen && (
-        <ZoneDonutFullscreenModal
-          isOpen={isFullscreenOpen}
-          onClose={handleCloseFullscreen}
-          zoneSlices={donutData}
-          totalCount={effectiveTotalCount}
-          period={period}
-          onPeriodChange={handlePeriodChange}
-          isPeriodLoading={isPeriodLoading}
-          initialSelectedZone={fullscreenInitialZone}
-          onSelectApt={onOpenAptDetail || onSelectApt}
-          preloadApartmentTx={preloadApartmentTx}
-        />
-      )}
     </div>
   );
 });

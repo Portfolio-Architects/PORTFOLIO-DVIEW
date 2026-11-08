@@ -152,7 +152,7 @@ export interface DongtanMacroTrendPoint {
 }
 
 /** Timeline feed period selection filter */
-export type TimelinePeriod = '7d' | '30d' | '90d' | '1y' | '3y' | 'all';
+export type TimelinePeriod = '1d' | '7d' | '30d' | '90d' | '1y' | '3y' | 'all';
 
 /** MOLIT Open Data XML raw parsed record */
 export interface MolTransactionXml {

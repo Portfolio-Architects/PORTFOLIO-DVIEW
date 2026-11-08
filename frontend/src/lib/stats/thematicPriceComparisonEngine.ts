@@ -351,8 +351,10 @@ export function enrichApartmentStatRecord(
     ...(metaOverride || {}),
   };
 
-  const canonicalSlug =
-    meta.canonicalSlug || resolveStatsComplexCanonicalSlug(record.name, record.dong);
+  const canonicalSlug = resolveStatsComplexCanonicalSlug(
+    meta.canonicalSlug || record.name,
+    record.dong
+  );
   const regionId = classifyDongtanRegion(record.dong);
   const effectiveLatestPriceWon =
     record.latestPriceWon > 0 ? record.latestPriceWon : record.avgPriceWon;

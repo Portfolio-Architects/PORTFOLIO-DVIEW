@@ -18,6 +18,7 @@ import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketS
 import {
   GUIDE_ARTICLES,
   TOP_POPULAR_GUIDE_SLUGS,
+  TOP_ACQUISITION_ENTRY_ROUTES,
   GUIDE_TOPIC_CLUSTERS,
   buildGuideArticleJsonLd,
   buildGuideAptMiniPreview,
@@ -224,6 +225,7 @@ export function renderGuideBodyContent(
     guideSlug: string;
     zoneSectionPreviews: ResolvedGuideZoneSectionPreview[];
     inlineSlugLookup: Map<string, string>;
+    lakeEduTownPreview?: GuideAptMiniPreviewItem | null;
   }
 ): React.ReactNode[] {
   const withoutCodeFences = rawContent.replace(/```[\s\S]*?```/g, '');
@@ -232,10 +234,82 @@ export function renderGuideBodyContent(
   const guideSlug = options?.guideSlug || 'guide';
   const zoneSectionPreviews = options?.zoneSectionPreviews || [];
   const inlineSlugLookup = options?.inlineSlugLookup;
+  const lakeEduTownPreview =
+    options?.lakeEduTownPreview !== undefined
+      ? options.lakeEduTownPreview
+      : buildGuideAptMiniPreview('동탄더샵레이크에듀타운');
+  const lakeEduHref =
+    lakeEduTownPreview?.href || `/apartment/${encodeURIComponent('동탄더샵레이크에듀타운')}`;
+  const lakeEduPriceLabel = lakeEduTownPreview?.latestPriceStr
+    ? ` (${lakeEduTownPreview.latestPriceStr})`
+    : '';
 
   let activeZonePreview: ResolvedGuideZoneSectionPreview | null = null;
   let activeZonePreviewLevel: 3 | 4 | null = null;
+  let emittedZonePreviewCount = 0;
   const emittedHeadings = new Set<string>();
+
+  const renderMidConversionActionBar = () => (
+    <div
+      data-testid="guide-mid-conversion-slot"
+      className="pt-3 border-t border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
+    >
+      <div className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300 flex flex-wrap items-center gap-1.5">
+        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10.5px]">
+          중간 전환 하이라이트
+        </span>
+        <span>실수요 평균 15분 체류 검증 대장주 및 유입 상위 허브 바로가기</span>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+        <Link
+          href={lakeEduHref}
+          prefetch={false}
+          data-testid="guide-mid-lake-edutown-cta"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
+        >
+          <span className="tabular-nums">{`동탄더샵레이크에듀타운 실거래${lakeEduPriceLabel}`}</span>
+          <ArrowUpRight size={11} />
+        </Link>
+        <Link
+          href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+          prefetch={false}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold transition-colors"
+        >
+          <span>1동탄 vs 2동탄 통계</span>
+          <ArrowUpRight size={11} />
+        </Link>
+        <Link
+          href="/technovalley"
+          prefetch={false}
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 text-slate-800 dark:text-slate-200 text-[11px] font-extrabold transition-colors"
+        >
+          <span>테크노밸리 직주근접</span>
+          <ArrowUpRight size={11} />
+        </Link>
+      </div>
+    </div>
+  );
+
+  const renderInBodyAdSlot = (apartmentName: string, dong?: string) => {
+    if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true') {
+      return null;
+    }
+    return (
+      <div
+        data-testid="guide-article-adslot-inbody"
+        className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+      >
+        <AdSlot
+          refreshSlotId={`1000000002_guide_${guideSlug}_inbody_zone`}
+          format="rectangle"
+          minHeightClass="min-h-[250px]"
+          cpaCampaignId="mortgage-refinance"
+          apartmentName={apartmentName}
+          dong={dong}
+        />
+      </div>
+    );
+  };
 
   const flushActiveZonePreview = (keySuffix: string | number) => {
     if (!activeZonePreview || emittedHeadings.has(activeZonePreview.sectionHeadingMatch)) {
@@ -245,6 +319,8 @@ export function renderGuideBodyContent(
     }
     const currentPreview = activeZonePreview;
     emittedHeadings.add(currentPreview.sectionHeadingMatch);
+    emittedZonePreviewCount += 1;
+    const isFirstZonePreview = emittedZonePreviewCount === 1;
     activeZonePreview = null;
     activeZonePreviewLevel = null;
 
@@ -290,6 +366,16 @@ export function renderGuideBodyContent(
             />
           ))}
         </div>
+
+        {/* Mid-Article High-Dwell Conversion Action Bar */}
+        {renderMidConversionActionBar()}
+
+        {/* In-Body Mid-Section Zero-CLS AdSlot for Active-View Fill Rate */}
+        {isFirstZonePreview &&
+          renderInBodyAdSlot(
+            currentPreview.items[0]?.canonicalSlug || currentPreview.sectionTitle,
+            currentPreview.items[0]?.dong
+          )}
       </section>
     );
   };
@@ -497,6 +583,27 @@ export function renderGuideBodyContent(
 
   flushActiveZonePreview('end-of-body');
 
+  if (emittedZonePreviewCount === 0 && elements.length > 0) {
+    const midIndex = Math.max(1, Math.floor(elements.length / 2));
+    elements.splice(
+      midIndex,
+      0,
+      <section
+        key="zone-preview-fallback-mid"
+        data-testid="guide-zone-section-preview"
+        data-zone-id="guide"
+        aria-label="리포트 중간 핵심 전환 및 실거래 바로가기"
+        className="not-prose my-6 rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/15 p-4 sm:p-5 space-y-3.5"
+      >
+        {renderMidConversionActionBar()}
+        {renderInBodyAdSlot(
+          lakeEduTownPreview?.canonicalSlug || '동탄더샵레이크에듀타운',
+          lakeEduTownPreview?.dong
+        )}
+      </section>
+    );
+  }
+
   return elements;
 }
 
@@ -548,6 +655,8 @@ export default async function GuideArticlePage(props: {
 
   const mapAptMetric = (aptName: string): GuideAptMiniPreviewItem | null =>
     buildGuideAptMiniPreview(aptName, txSummary);
+
+  const lakeEduTownPreview = mapAptMetric('동탄더샵레이크에듀타운');
 
   const featuredAptRows = (article.featuredApartments || [])
     .map(mapAptMetric)
@@ -829,6 +938,76 @@ export default async function GuideArticlePage(props: {
                     </div>
                   </div>
                 )}
+
+                {/* Top Conversion Boost Slot: Top 3 Acquisition Channels & High-Dwell Complex Bridge */}
+                <div
+                  data-testid="guide-top-conversion-boost-slot"
+                  className="rounded-xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-3.5 space-y-2.5"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10.5px] font-extrabold">
+                        상단 고전환 슬롯
+                      </span>
+                      <span className="text-xs font-extrabold text-slate-900 dark:text-slate-100">
+                        신규 유입 TOP 3 핵심 허브 및 15분 체류 검증 대장 단지 바로가기
+                      </span>
+                    </div>
+                    <Link
+                      href={
+                        lakeEduTownPreview?.href ||
+                        `/apartment/${encodeURIComponent('동탄더샵레이크에듀타운')}`
+                      }
+                      prefetch={false}
+                      data-testid="guide-top-lake-edutown-spotlight"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors w-fit shrink-0"
+                    >
+                      <span className="tabular-nums">
+                        {`동탄더샵레이크에듀타운 (평균 15분 체류${
+                          lakeEduTownPreview?.latestPriceStr
+                            ? ` · ${lakeEduTownPreview.latestPriceStr}`
+                            : ''
+                        }) 상세보기`}
+                      </span>
+                      <ArrowUpRight size={12} />
+                    </Link>
+                  </div>
+
+                  <div
+                    data-testid="guide-top-inflow-hub-links"
+                    className="grid grid-cols-1 sm:grid-cols-3 gap-2"
+                  >
+                    {TOP_ACQUISITION_ENTRY_ROUTES.map((entry) => {
+                      const isCurrentGuide = entry.href === `/guide/${article.slug}`;
+                      return (
+                        <Link
+                          key={entry.id}
+                          href={entry.href}
+                          prefetch={false}
+                          data-testid={`guide-top-inflow-hub-${entry.id}`}
+                          className={`rounded-lg border p-2.5 flex flex-col justify-between gap-1 transition-colors ${
+                            isCurrentGuide
+                              ? 'bg-emerald-500/10 border-emerald-500/40 text-slate-900 dark:text-slate-50'
+                              : 'bg-white/85 dark:bg-slate-900/75 border-slate-200/80 dark:border-slate-800 hover:border-emerald-500/50 text-slate-800 dark:text-slate-100'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                              {entry.badge}
+                            </span>
+                            <ArrowUpRight size={12} className="text-slate-400 shrink-0" />
+                          </div>
+                          <p className="text-xs font-extrabold leading-snug line-clamp-1">
+                            {entry.title}
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium line-clamp-1">
+                            {entry.subtitle}
+                          </p>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
               </section>
             )}
 
@@ -858,6 +1037,7 @@ export default async function GuideArticlePage(props: {
                 guideSlug: article.slug,
                 zoneSectionPreviews,
                 inlineSlugLookup,
+                lakeEduTownPreview,
               })}
             </div>
 

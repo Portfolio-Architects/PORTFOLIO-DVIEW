@@ -129,22 +129,35 @@ function shouldSuppressApartmentViewCascade(
   const elapsed = Date.now() - lastApartmentViewRecord.timestamp;
   if (elapsed < 0) return false;
 
-  // 1. Suppress child ApartmentModal mount when parent opener (DashboardClient, ExploreClient, SearchSuggestionDropdown) just emitted apartment_view
+  // 1. Suppress child ApartmentModal mount when parent opener (DashboardClient, ExploreClient, ZoneDetailClient, SearchSuggestionDropdown, etc.) already emitted apartment_view for this modal session (even if next/dynamic chunk loading takes >500ms on slow mobile networks)
+  const isParentModalOpenGesture =
+    lastApartmentViewRecord.viewType === 'modal' ||
+    lastApartmentViewRecord.viewType === 'shortcut' ||
+    lastApartmentViewRecord.viewType === 'detail_page' ||
+    lastApartmentViewRecord.viewType === 'modal_tx_click';
   if (
     surface === 'apartment_modal' &&
     lastApartmentViewRecord.surface !== 'apartment_modal' &&
-    elapsed < 500
+    (elapsed < 500 || (isParentModalOpenGesture && elapsed < 10000))
   ) {
     return true;
   }
 
-  // 2. Suppress parent modal opener when SearchSuggestionDropdown shortcut just emitted apartment_view
+  // 2. Suppress parent modal opener (DashboardClient, ExploreClient, ZoneDetailClient) when a child initiator
+  // (SearchSuggestionDropdown shortcut, MacroDashboardClient detail/complex click, or ZoneDonutFullscreenModal row click)
+  // just emitted apartment_view for the same apartment
   if (
     viewType === 'modal' &&
     surface !== 'apartment_modal' &&
-    lastApartmentViewRecord.viewType === 'shortcut' &&
+    lastApartmentViewRecord.surface !== surface &&
+    (lastApartmentViewRecord.viewType === 'shortcut' ||
+      lastApartmentViewRecord.viewType === 'detail_page' ||
+      lastApartmentViewRecord.viewType === 'modal_tx_click' ||
+      lastApartmentViewRecord.viewType === 'chart_preview' ||
+      lastApartmentViewRecord.viewType === 'mobile_drawer') &&
     elapsed < 250
   ) {
+    lastApartmentViewRecord.viewType = 'modal';
     return true;
   }
 
@@ -243,7 +256,7 @@ function resolveVirtualPageLocation(safePath: string): string {
  * If in development mode, it logs the event to the console instead.
  * Admin users are excluded from tracking.
  *
- * @param eventName The event name (e.g., 'search_apartment', 'view_apartment')
+ * @param eventName The event name (e.g., 'search_query', 'apartment_view')
  * @param params Custom event parameters
  */
 export function trackEvent(eventName: string, params?: Record<string, unknown>) {

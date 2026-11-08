@@ -10,7 +10,7 @@ import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDispl
 import { matchesApartmentSearch } from "@/lib/utils/apartmentSearch";
 import { addRecentApartment } from "@/lib/utils/recentApartments";
 import { aggregateStats, resolveSummaryEntry } from "@/lib/analytics/statsEngine";
-import type { RegionFilter, PyeongFilter, TimeframeFilter, SortOption, RawTransactionRecord } from "@/types/stats";
+import type { RegionFilter, PyeongFilter, TimeframeFilter, SortOption, RawTransactionRecord, HyperlocalInsightCardsData } from "@/types/stats";
 import { useSettingsValues } from "@/contexts/SettingsContext";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocationScores, usePeriodTransactions } from "@/hooks/useStaticData";
@@ -23,7 +23,7 @@ import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
 import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { RetentionActionCard } from "./macro/components/RetentionActionCard";
-import { AptDonutSection, type AptDonutDataItem } from "./macro/AptDonutSection";
+import { AptDonutSection, type AptDonutDataItem, type AptDonutPeriod } from "./macro/AptDonutSection";
 import { AptMetricCards } from "./macro/AptMetricCards";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
 import { usePWA } from "@/components/pwa/PWAProvider";
@@ -854,11 +854,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const [activeDonutCategory, setActiveDonutCategory] = useState<string | null>(null);
   const [activeDonutSector, setActiveDonutSector] = useState<AptDonutDataItem | null>(null);
   const [selectedTimelineDateJump, setSelectedTimelineDateJump] = useState<string | null>(null);
+  const [isTimelineInlineExpanded, setIsTimelineInlineExpanded] = useState(false);
 
-  const donutPeriod: '7d' | '30d' | '90d' | '1y' =
-    periodFilter === '7d' || periodFilter === '30d' || periodFilter === '90d' || periodFilter === '1y'
-      ? periodFilter
-      : '90d';
+  const [donutPeriod, setDonutPeriod] = useState<AptDonutPeriod>('1d');
+
+  const handleDonutPeriodChange = useCallback(
+    (nextPeriod: AptDonutPeriod) => {
+      setDonutPeriod(nextPeriod);
+      setSelectedTimelineDateJump(null);
+      setPeriodFilter(nextPeriod === '1y' ? '1y' : '90d');
+    },
+    [setPeriodFilter]
+  );
 
   const handleDonutCategoryChange = useCallback(
     (cat: string | null) => {
@@ -898,6 +905,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const handleResetAllFilters = useCallback(() => {
     setSelectedTimelineDateJump(null);
+    setDonutPeriod('1d');
     resetFilters();
   }, [resetFilters]);
 
@@ -1710,52 +1718,145 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const donutTransactions = useMemo(() => {
     const rawBase =
-      periodFilter === '1y' && timelinePeriodTransactions && timelinePeriodTransactions.length > 0
+      donutPeriod === '1y' && timelinePeriodTransactions && timelinePeriodTransactions.length > 0
         ? timelinePeriodTransactions
         : recentTransactions && recentTransactions.length > 0
           ? recentTransactions
           : timelinePeriodTransactions || [];
 
+    if (selectedTimelineDateJump) {
+      const targetDigits = selectedTimelineDateJump.replace(/[^0-9]/g, '').slice(0, 8);
+      if (targetDigits.length === 8) {
+        return rawBase.filter((tx) => {
+          const raw = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+          const clean = raw.replace(/[^0-9]/g, '').slice(0, 8);
+          return clean === targetDigits || tx?.registeredDateLabel === selectedTimelineDateJump;
+        });
+      }
+      const matchedGroup = dailyTimelineData.find(
+        (g) => (g.dateStr || g.dateKey) === selectedTimelineDateJump
+      );
+      return matchedGroup ? (matchedGroup.items as unknown as RecentTransaction[]) : rawBase;
+    }
+
     let baseSource = rawBase;
-    if ((periodFilter === '7d' || periodFilter === '30d') && rawBase.length > 0) {
-      const days = periodFilter === '7d' ? 7 : 30;
+    if ((donutPeriod === '1d' || donutPeriod === '7d' || donutPeriod === '30d') && rawBase.length > 0) {
       let maxDateStr = '';
       for (let i = 0; i < rawBase.length; i++) {
         const cd = String(rawBase[i]?.registeredDate || rawBase[i]?.contractDate || rawBase[i]?.date || '');
         const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
-        if (clean > maxDateStr) maxDateStr = clean;
+        if (clean.length === 8 && clean > maxDateStr) maxDateStr = clean;
       }
       if (maxDateStr.length === 8) {
-        const y = parseInt(maxDateStr.slice(0, 4), 10);
-        const m = parseInt(maxDateStr.slice(4, 6), 10) - 1;
-        const d = parseInt(maxDateStr.slice(6, 8), 10);
-        const cutoffD = new Date(y, m, d - days);
-        const cutoffNum = cutoffD.getFullYear() * 10000 + (cutoffD.getMonth() + 1) * 100 + cutoffD.getDate();
-        baseSource = rawBase.filter((tx) => {
-          const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
-          const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
-          if (clean.length < 8) return true;
-          return parseInt(clean, 10) >= cutoffNum;
-        });
+        if (donutPeriod === '1d') {
+          baseSource = rawBase.filter((tx) => {
+            const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+            const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+            if (clean.length < 8) return true;
+            return clean === maxDateStr;
+          });
+        } else {
+          const days = donutPeriod === '7d' ? 7 : 30;
+          const y = parseInt(maxDateStr.slice(0, 4), 10);
+          const m = parseInt(maxDateStr.slice(4, 6), 10) - 1;
+          const d = parseInt(maxDateStr.slice(6, 8), 10);
+          const cutoffD = new Date(y, m, d - days);
+          const cutoffNum = cutoffD.getFullYear() * 10000 + (cutoffD.getMonth() + 1) * 100 + cutoffD.getDate();
+          baseSource = rawBase.filter((tx) => {
+            const cd = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
+            const clean = cd.replace(/[^0-9]/g, '').slice(0, 8);
+            if (clean.length < 8) return true;
+            return parseInt(clean, 10) >= cutoffNum;
+          });
+        }
       }
     }
 
-    if (!selectedTimelineDateJump) {
-      return baseSource;
-    }
-    const targetDigits = selectedTimelineDateJump.replace(/[^0-9]/g, '').slice(0, 8);
-    if (targetDigits.length === 8) {
-      return baseSource.filter((tx) => {
-        const raw = String(tx?.registeredDate || tx?.contractDate || tx?.date || '');
-        const clean = raw.replace(/[^0-9]/g, '').slice(0, 8);
-        return clean === targetDigits || tx?.registeredDateLabel === selectedTimelineDateJump;
-      });
-    }
-    const matchedGroup = dailyTimelineData.find(
-      (g) => (g.dateStr || g.dateKey) === selectedTimelineDateJump
+    return baseSource;
+  }, [donutPeriod, timelinePeriodTransactions, recentTransactions, selectedTimelineDateJump, dailyTimelineData]);
+
+  const donutInsights = useMemo<HyperlocalInsightCardsData>(() => {
+    const summaryMap =
+      (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary ||
+      (txSummaryData as Record<string, AptTxSummary>) ||
+      {};
+
+    const enrichedDonutTxs = (donutTransactions as unknown as RawTransactionRecord[]).map((tx) => {
+      if (typeof tx.deltaPercent === 'number' && isFinite(tx.deltaPercent) && tx.deltaPercent !== 0) {
+        return tx;
+      }
+      const rawDelta = typeof tx.delta === 'number' && isFinite(tx.delta) ? tx.delta : 0;
+      if (rawDelta >= 0) return tx;
+      const priceEok =
+        typeof tx.priceVal === 'number' && tx.priceVal > 0
+          ? tx.priceVal
+          : typeof tx.price === 'number' && tx.price > 0
+            ? tx.price > 1000
+              ? tx.price / 10000
+              : tx.price
+            : 0;
+      const prevEok =
+        typeof tx.prevPriceVal === 'number' && tx.prevPriceVal > 0
+          ? tx.prevPriceVal
+          : priceEok - rawDelta;
+      if (prevEok > 0) {
+        return {
+          ...tx,
+          deltaPercent: parseFloat(((rawDelta / prevEok) * 100).toFixed(1)),
+        };
+      }
+      return tx;
+    });
+
+    const stats = aggregateStats(
+      {
+        transactions: enrichedDonutTxs,
+        rents: [],
+        macroTrend: deferredMacroTrendData,
+        summaryMap,
+      },
+      {
+        region: 'ALL',
+        pyeong: 'ALL',
+        timeframe: 'ALL',
+        sort: 'PYEONG_DESC',
+      },
+      {
+        sortBy: 'PYEONG_DESC',
+        rankLimit: 0,
+      }
     );
-    return matchedGroup ? (matchedGroup.items as unknown as RecentTransaction[]) : baseSource;
-  }, [periodFilter, timelinePeriodTransactions, recentTransactions, selectedTimelineDateJump, dailyTimelineData]);
+
+    let urgentBargainComplex = stats.insights.urgentBargainComplex;
+    if (enrichedDonutTxs.length > 0) {
+      let steepestTx: RawTransactionRecord | null = null;
+      let maxDropPct = 0;
+      for (let i = 0; i < enrichedDonutTxs.length; i++) {
+        const tx = enrichedDonutTxs[i];
+        const dp = typeof tx.deltaPercent === 'number' && isFinite(tx.deltaPercent) ? tx.deltaPercent : 0;
+        if (dp < 0 && Math.abs(dp) > maxDropPct) {
+          maxDropPct = Math.abs(dp);
+          steepestTx = tx;
+        }
+      }
+      if (steepestTx && maxDropPct > 0) {
+        const matchedRank = stats.pyeongRankings.find(
+          (r) => r.aptName === steepestTx?.aptName || r.aptKey === (steepestTx?.txKey || steepestTx?.aptName)
+        );
+        if (matchedRank) {
+          urgentBargainComplex = {
+            ...matchedRank,
+            urgentSaleDiscountRate: parseFloat(maxDropPct.toFixed(1)),
+          };
+        }
+      }
+    }
+
+    return {
+      ...stats.insights,
+      urgentBargainComplex,
+    };
+  }, [donutTransactions, txSummaryData, deferredMacroTrendData]);
 
   const unifiedStatsData = useMemo(() => {
     const rawTxSource = (timelinePeriodTransactions && timelinePeriodTransactions.length > 0)
@@ -2050,18 +2151,20 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           <div
             data-testid="hero-left-donut-col"
             className={
-              isSplitMode
-                ? 'flex flex-col gap-3.5 min-w-0 justify-between box-border pb-5 border-b border-border'
-                : 'lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] min-w-0 justify-between box-border pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border'
+              isTimelineInlineExpanded
+                ? 'hidden'
+                : isSplitMode
+                  ? 'flex flex-col gap-3.5 min-w-0 justify-between box-border pb-5 border-b border-border'
+                  : 'lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] min-w-0 justify-between box-border pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border'
             }
           >
             <ChartErrorBoundary fallbackText="실거래 체결 온도 차트를 불러올 수 없습니다.">
               <AptDonutSection
                 variant="navigator"
                 initialMode="energy"
-                initialPeriod="90d"
+                initialPeriod="1d"
                 period={donutPeriod}
-                onPeriodChange={setPeriodFilter}
+                onPeriodChange={handleDonutPeriodChange}
                 mounted={mounted}
                 isSplitMode={isSplitMode}
                 recentTransactions={donutTransactions}
@@ -2092,7 +2195,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 txSummaryData={txSummaryData}
                 macroTrendData={macroTrendData}
                 activeSector={activeDonutSector}
-                insights={unifiedStatsData.insights}
+                insights={donutInsights}
                 onResetSector={() => handleDonutCategoryChange(null)}
                 onOpenSellTimingCalculator={handleOpenSellTiming}
                 onOpenMortgageModal={handleOpenMortgage}
@@ -2107,18 +2210,24 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </ErrorBoundary>
           </div>
 
-          {/* Right 6 Columns (lg:col-span-6): MacroTimelineView (통합 실거래 타임라인 + 실시간 시장 랭킹 탭) */}
+          {/* Right 6 Columns (lg:col-span-6, or lg:col-span-12 when inline expanded): MacroTimelineView */}
           <div
             data-testid="hero-right-chart-col"
             className={
-              isSplitMode
-                ? 'flex flex-col gap-6 min-w-0 box-border'
-                : 'lg:col-span-6 flex flex-col gap-6 lg:h-[526px] min-w-0 lg:pl-6 xl:pl-8 box-border'
+              isTimelineInlineExpanded
+                ? 'lg:col-span-12 flex flex-col gap-6 min-w-0 box-border'
+                : isSplitMode
+                  ? 'flex flex-col gap-6 min-w-0 box-border'
+                  : 'lg:col-span-6 flex flex-col gap-6 lg:h-[526px] min-w-0 lg:pl-6 xl:pl-8 box-border'
             }
           >
             <ErrorBoundary name="실거래 타임라인">
               <MacroTimelineView
                 compactHeroMode={true}
+                isInlineExpanded={isTimelineInlineExpanded}
+                onToggleInlineExpand={setIsTimelineInlineExpanded}
+                donutPeriod={donutPeriod}
+                onDonutPeriodChange={handleDonutPeriodChange}
                 displayedTimelineData={displayedTimelineData}
                 fullTimelineData={filteredTimelineData}
                 selectedTimelineApt={selectedTimelineApt}
@@ -2131,7 +2240,16 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 setVisibleTimelineCount={setVisibleTimelineCount}
                 enableInfiniteScroll={false}
                 periodFilter={periodFilter}
-                setPeriodFilter={setPeriodFilter}
+                setPeriodFilter={
+                  isTimelineInlineExpanded
+                    ? (p) =>
+                        handleDonutPeriodChange(
+                          p === '1d' || p === '7d' || p === '30d' || p === '90d' || p === '1y'
+                            ? p
+                            : '1y'
+                        )
+                    : undefined
+                }
                 selectedDateJump={selectedTimelineDateJump}
                 onSelectedDateJumpChange={setSelectedTimelineDateJump}
                 isLoading={isTimelinePeriodLoading}
@@ -2159,7 +2277,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 sortOrder={sortOrder}
                 setSortOrder={setSortOrder}
                 viewMode={viewMode}
-
+                setViewMode={setViewMode}
                 onResetFilters={handleResetAllFilters}
                 showQuickFilters={false}
                 pyeongRankings={unifiedStatsData.pyeongRankings}

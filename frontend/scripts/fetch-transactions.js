@@ -101,8 +101,6 @@ function buildRelayUrl(rawUrl, defaultTarget = 'trade') {
   }
 }
 
-let relayPreferred = false;
-
 function isGenuineMolitPayload(data) {
   if (typeof data === 'string') {
     const trimmed = data.trim();
@@ -125,11 +123,12 @@ function isGenuineMolitPayload(data) {
 // 헬퍼: 타임아웃 및 지수 백오프 기반 재시도 로직이 탑재된 HTTP 클라이언트 (프록시 장애 시 직통 연결 및 한국 Vercel 리전 릴레이 폴백 지원)
 async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
   const hadProxyAgent = Boolean(options.httpAgent || options.httpsAgent);
-  const defaultTimeout = process.env.CI ? 10000 : 25000;
+  const defaultTimeout = process.env.CI ? 20000 : 25000;
   const isJest = Boolean(process.env.JEST_WORKER_ID);
   let lastRelayFailed = false;
 
   for (let i = 0; i < retries; i++) {
+    let usingRelay = false;
     try {
       const requestOptions = {
         ...options,
@@ -140,10 +139,8 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
         delete requestOptions.httpsAgent;
       }
       let targetUrl = url;
-      let usingRelay = false;
       const shouldTryRelay =
-        (!isJest && relayPreferred && i === 0) ||
-        (i > 0 && !lastRelayFailed && (!hadProxyAgent || i === retries - 1));
+        i > 0 && !lastRelayFailed && (i === retries - 1 || (isJest && !hadProxyAgent));
 
       if (shouldTryRelay) {
         const relayUrl = buildRelayUrl(url, 'trade');
@@ -160,21 +157,16 @@ async function fetchWithRetry(url, options = {}, retries = 3, delay = 1500) {
       const response = await axios.get(targetUrl, requestOptions);
       if (usingRelay && !isGenuineMolitPayload(response.data)) {
         lastRelayFailed = true;
-        relayPreferred = false;
         throw new Error('Invalid non-MOLIT relay response payload');
       }
       const envelope = parseGovApiEnvelope(response.data);
       if (envelope.isError) {
         throw new Error(`Gov API Gateway Error Envelope [${envelope.resultCode || 'ERR'}]: ${envelope.resultMsg || 'Unknown Gov API Gateway Error'}`);
       }
-      if (usingRelay && !isJest) {
-        relayPreferred = true;
-      }
       return response;
     } catch (err) {
-      if (err.message === 'Invalid non-MOLIT relay response payload' || (err.response && err.response.status >= 400)) {
+      if (usingRelay || err.message === 'Invalid non-MOLIT relay response payload' || (err.response && err.response.status >= 400)) {
         lastRelayFailed = true;
-        relayPreferred = false;
       }
       const isLastActive = i === retries - 1;
       const status = err.response ? err.response.status : (err.code || 'TIMEOUT_OR_NET_ERR');

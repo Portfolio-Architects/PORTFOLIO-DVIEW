@@ -993,5 +993,183 @@ describe('GA4 Apartment Modal & Search Interaction Telemetry Boost Suite', () =>
         ])
       );
     });
+
+    it('unifies all apartment view events under apartment_view across SearchSuggestionDropdown (recent_shortcut & search_shortcut), ExploreClient, and DashboardClient without emitting legacy view_apartment', async () => {
+      const fs = await import('fs');
+      const path = await import('path');
+      const { addRecentApartment } = await import('@/lib/utils/recentApartments');
+      const { resetAnalyticsInteractionState } = await import('@/lib/utils/analytics');
+      const trackSpy = jest.spyOn(analytics, 'trackEvent');
+
+      // 1) Recent viewed apartment shortcut in SearchSuggestionDropdown (empty query)
+      resetAnalyticsInteractionState();
+      addRecentApartment({ name: '힐스테이트 동탄역', dong: '영천동' });
+      const handleSelectApt = jest.fn();
+
+      const { unmount: unmountDropdown } = render(
+        <SearchSuggestionDropdown
+          searchQuery=""
+          setSearchQuery={jest.fn()}
+          setIsSearchFocused={jest.fn()}
+          recommendedKeywords={[]}
+          setCurrentCategory={jest.fn()}
+          suggestionsApts={[]}
+          suggestionsDongs={[]}
+          suggestionsBrands={[]}
+          handleSelectApt={handleSelectApt}
+        />
+      );
+
+      const recentOption = screen.getByRole('option', { name: /힐스테이트 동탄역/ });
+      fireEvent.click(recentOption);
+
+      expect(handleSelectApt).toHaveBeenCalledWith('힐스테이트 동탄역');
+      expect(trackSpy).toHaveBeenCalledWith('apartment_view', {
+        apartment_name: '힐스테이트 동탄역',
+        apt_name: '힐스테이트 동탄역',
+        dong: '영천동',
+        surface: 'search_suggestion_dropdown',
+        trigger: 'recent_shortcut',
+        view_type: 'shortcut',
+      });
+      expect(trackSpy.mock.calls.filter((c) => c[0] === 'view_apartment')).toHaveLength(0);
+      unmountDropdown();
+
+      // 2) ExploreClient #apt= hash deep-link & catalog selection emit apartment_view only (0 view_apartment)
+      resetAnalyticsInteractionState();
+      trackSpy.mockClear();
+      window.history.replaceState(
+        null,
+        '',
+        `/explore#apt=${encodeURIComponent('동탄역 롯데캐슬')}`
+      );
+      const ExploreClient = (await import('@/app/explore/ExploreClient')).default;
+      const { unmount: unmountExplore } = render(
+        <SettingsProvider>
+          <AuthProvider>
+            <ExploreClient
+              initialDashboardData={{
+                kpis: [],
+                newsFeed: [],
+                fieldReports: [],
+                userReviews: [],
+                dongtanApartments: ['동탄역 롯데캐슬'],
+                txSummary: mockTxSummaryData,
+                nameMapping: {},
+              }}
+            />
+          </AuthProvider>
+        </SettingsProvider>
+      );
+
+      const exploreAptViews = trackSpy.mock.calls.filter((c) => c[0] === 'apartment_view');
+      expect(exploreAptViews.length).toBeGreaterThanOrEqual(1);
+      expect(exploreAptViews[0][1]).toMatchObject({
+        apartment_name: '동탄역 롯데캐슬',
+        apt_name: '동탄역 롯데캐슬',
+        canonical_slug: '동탄역롯데캐슬',
+        dong: '여울동',
+        surface: 'explore_hash_modal',
+        view_type: 'modal',
+      });
+      expect(trackSpy.mock.calls.filter((c) => c[0] === 'view_apartment')).toHaveLength(0);
+      unmountExplore();
+
+      // 3) Main Dashboard 4-hop cascade (donut_fullscreen_modal -> donut_fullscreen -> dashboard -> delayed >500ms apartment_modal)
+      // and 3-hop detail cascade (timeline_detail -> dashboard -> delayed >500ms apartment_modal) emit exactly 1 apartment_view each
+      resetAnalyticsInteractionState();
+      trackSpy.mockClear();
+      const baseTime = Date.now();
+      const nowSpy = jest.spyOn(Date, 'now').mockReturnValue(baseTime);
+      try {
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역 롯데캐슬',
+            dong: '오산동',
+            zone: 'station',
+            surface: 'donut_fullscreen_modal',
+            view_type: 'modal_tx_click',
+          })
+        ).toBe(true);
+        // Hop 2: MacroDashboardClient handleNavigateDetailPage('donut_fullscreen')
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역 롯데캐슬',
+            dong: '오산동',
+            surface: 'donut_fullscreen',
+            view_type: 'detail_page',
+          })
+        ).toBe(false);
+        // Hop 3: DashboardClient.handleAptClick ('dashboard', 'modal')
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역 롯데캐슬',
+            canonical_slug: '동탄역롯데캐슬',
+            dong: '오산동',
+            surface: 'dashboard',
+            view_type: 'modal',
+          })
+        ).toBe(false);
+        // Hop 4: Dynamic chunk for ApartmentModal resolves 2,000ms later (>500ms slow 3G)
+        nowSpy.mockReturnValue(baseTime + 2000);
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역롯데캐슬',
+            canonical_slug: '동탄역롯데캐슬',
+            dong: '오산동',
+            surface: 'apartment_modal',
+            view_type: 'modal',
+          })
+        ).toBe(false);
+        expect(trackSpy.mock.calls.filter((c) => c[0] === 'apartment_view')).toHaveLength(1);
+
+        // Timeline detail click -> DashboardClient.handleAptClick -> 1,800ms delayed ApartmentModal mount
+        resetAnalyticsInteractionState();
+        trackSpy.mockClear();
+        nowSpy.mockReturnValue(baseTime + 5000);
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역 푸르지오',
+            dong: '영천동',
+            surface: 'timeline_detail',
+            view_type: 'detail_page',
+          })
+        ).toBe(true);
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역 푸르지오',
+            canonical_slug: '동탄역푸르지오',
+            dong: '영천동',
+            surface: 'dashboard',
+            view_type: 'modal',
+          })
+        ).toBe(false);
+        nowSpy.mockReturnValue(baseTime + 6800);
+        expect(
+          trackApartmentView({
+            apartment_name: '동탄역푸르지오',
+            canonical_slug: '동탄역푸르지오',
+            dong: '영천동',
+            surface: 'apartment_modal',
+            view_type: 'modal',
+          })
+        ).toBe(false);
+        expect(trackSpy.mock.calls.filter((c) => c[0] === 'apartment_view')).toHaveLength(1);
+      } finally {
+        nowSpy.mockRestore();
+      }
+
+      // 4) Source invariant: production components must never call trackEvent('view_apartment', ...)
+      const productionFiles = [
+        path.resolve(__dirname, '../components/explore/SearchSuggestionDropdown.tsx'),
+        path.resolve(__dirname, '../app/explore/ExploreClient.tsx'),
+        path.resolve(__dirname, '../components/DashboardClient.tsx'),
+        path.resolve(__dirname, '../app/zone/[id]/ZoneDetailClient.tsx'),
+      ];
+      for (const filePath of productionFiles) {
+        const src = fs.readFileSync(filePath, 'utf8');
+        expect(src).not.toMatch(/trackEvent\(\s*['"]view_apartment['"]/);
+      }
+    });
   });
 });

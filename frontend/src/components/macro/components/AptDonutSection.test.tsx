@@ -416,8 +416,8 @@ describe('AptDonutSection Test Suite', () => {
     });
   });
 
-  describe('Period Selection (7d / 30d / 90d / 1y)', () => {
-    it('renders all 4 period buttons and default 90d badge and label', () => {
+  describe('Period Selection (1d / 7d / 30d / 90d / 1y)', () => {
+    it('renders all 5 period buttons and default 90d badge and label', () => {
       render(
         <AptDonutSection
           mounted={true}
@@ -426,6 +426,7 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
+      expect(screen.getByRole('button', { name: /최근 1일 실거래 보기/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /최근 7일 실거래 보기/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /최근 30일 실거래 보기/i })).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /최근 90일 실거래 보기/i })).toBeInTheDocument();
@@ -450,6 +451,12 @@ describe('AptDonutSection Test Suite', () => {
         />
       );
 
+      const oneDayBtn = screen.getByRole('button', { name: /최근 1일 실거래 보기/i });
+      fireEvent.click(oneDayBtn);
+
+      expect(handlePeriodChange).toHaveBeenCalledWith('1d');
+      expect(screen.getByText(/최근 1일.*기준/)).toBeInTheDocument();
+
       const sevenDaysBtn = screen.getByRole('button', { name: /최근 7일 실거래 보기/i });
       fireEvent.click(sevenDaysBtn);
 
@@ -469,22 +476,25 @@ describe('AptDonutSection Test Suite', () => {
       expect(screen.getByText(/최근 1년.*기준/)).toBeInTheDocument();
     });
 
-    it('filters transactions dynamically by date for 7d period', () => {
+    it('filters transactions dynamically by date for 1d and 7d periods', () => {
       const transactionsWithVariousDates = [
         {
           aptName: '동탄역 롯데캐슬',
+          registeredDate: '20260818',
           contractDate: '20260818',
           priceVal: 16.5,
           area: 59.8,
         },
         {
           aptName: '동탄역 시범 우남퍼스트빌',
+          registeredDate: '20260815',
           contractDate: '20260815',
           priceVal: 11.2,
           area: 84.8,
         },
         {
           aptName: '동탄역 시범 한화꿈에그린',
+          registeredDate: '20260701',
           contractDate: '20260701', // over 40 days prior
           priceVal: 11.5,
           area: 120.5,
@@ -500,6 +510,11 @@ describe('AptDonutSection Test Suite', () => {
 
       // In 90d (default), all 3 transactions are included
       expect(screen.getByText('3건')).toBeInTheDocument();
+
+      // Click 1d button -> only the latest registeredDate (20260818) is included
+      const oneDayBtn = screen.getByRole('button', { name: /최근 1일 실거래 보기/i });
+      fireEvent.click(oneDayBtn);
+      expect(screen.getByText('1건')).toBeInTheDocument();
 
       // Click 7d button
       const sevenDaysBtn = screen.getByRole('button', { name: /최근 7일 실거래 보기/i });

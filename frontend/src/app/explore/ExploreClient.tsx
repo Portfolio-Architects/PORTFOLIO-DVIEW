@@ -514,7 +514,6 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       returnExplorePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
     }
     const canonicalSlug = getCanonicalAptSlug(apt.name, apt.dong, apt.txKey);
-    trackEvent('view_apartment', { apt_name: apt.name });
     trackApartmentView({
       apartment_name: apt.name,
       apt_name: apt.name,
@@ -556,11 +555,18 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const handleAptClickByName = useCallback((name: string, dong?: string) => {
     const allApts = Object.values(sheetApartments).flat();
-    const targetApt = allApts.find(
-      (a) =>
-        isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
-        (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false)
-    );
+    const targetApt =
+      allApts.find(
+        (a) =>
+          isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+          (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false)
+      ) ||
+      (CANONICAL_DONG_APT_LIST.find(
+        (a) =>
+          isSameApartment(a.name, name, nameMapping, a.dong, dong) ||
+          (a.txKey ? isSameApartment(a.txKey, name, nameMapping, a.dong, dong) : false) ||
+          (a.rawTxKey ? isSameApartment(a.rawTxKey, name, nameMapping, a.dong, dong) : false)
+      ) as DongApartment | undefined);
     if (targetApt) {
       handleAptClick(targetApt);
     } else {

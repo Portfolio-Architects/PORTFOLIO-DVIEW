@@ -60,6 +60,10 @@ jest.mock('recharts', () => {
 
 import { AptDonutSection } from '@/components/macro/AptDonutSection';
 import {
+  MacroTimelineView,
+  type TimelineGroup,
+} from '@/components/macro/components/MacroTimelineView';
+import {
   computeZoneDetailStats,
   sortItemsChronologically,
   extractChronoDateInfo,
@@ -152,186 +156,208 @@ const REAL_TRANSACTIONS = [
   },
 ];
 
-describe('Fullscreen Zone Donut Explorer & Chronological Real-Transaction Analytics', () => {
+const SAMPLE_TIMELINE_GROUPS: TimelineGroup[] = [
+  {
+    dateStr: '2026.10.29 (목)',
+    dateKey: '2026-10-29',
+    timestamp: 1793251200000,
+    items: [
+      {
+        aptName: '동탄역 롯데캐슬',
+        dong: '오산동',
+        contractDate: '20261029',
+        priceVal: 15.6,
+        priceEok: '15억 6,000만',
+        area: 84.9,
+        areaPyeong: 34.2,
+        floor: 32,
+        type: 'high',
+        isNewHigh: true,
+        delta: 0.8,
+        deltaPercent: 5.4,
+      },
+      {
+        aptName: '동탄린스트라우스더레이크',
+        dong: '송동',
+        contractDate: '20261028',
+        priceVal: 12.6,
+        priceEok: '12억 6,000만',
+        area: 98.4,
+        areaPyeong: 38.0,
+        floor: 24,
+        type: 'high',
+        isNewHigh: true,
+        delta: 0.6,
+        deltaPercent: 5.0,
+      },
+    ],
+  },
+  {
+    dateStr: '2026.10.27 (화)',
+    dateKey: '2026-10-27',
+    timestamp: 1793078400000,
+    items: [
+      {
+        aptName: '동탄역 시범 더샵 센트럴시티',
+        dong: '청계동',
+        contractDate: '20261027',
+        priceVal: 11.4,
+        priceEok: '11억 4,000만',
+        area: 84.5,
+        areaPyeong: 33.5,
+        floor: 20,
+        type: 'normal',
+        isNewHigh: false,
+        delta: 0,
+        deltaPercent: 0,
+      },
+      {
+        aptName: '동탄호수공원 아이파크',
+        dong: '장지동',
+        contractDate: '20261022',
+        priceVal: 7.4,
+        priceEok: '7억 4,000만',
+        area: 84.5,
+        areaPyeong: 33.4,
+        floor: 15,
+        type: 'normal',
+        isNewHigh: false,
+        delta: -0.5,
+        deltaPercent: -6.3,
+      },
+    ],
+  },
+];
+
+describe('Masterpiece Inline Timeline Detail Explorer & Donut Fullscreen Removal', () => {
   beforeEach(() => {
     mockTrackEvent.mockClear();
     document.body.style.overflow = '';
   });
 
-  it('expands to fullscreen when clicking the donut chart and displays per-zone statistics and chronological transaction lists', () => {
-    const onOpenAptDetail = jest.fn();
-
+  it('removes donut-fullscreen-open-btn ("크게 보기") and modal trigger from AptDonutSection', () => {
     render(
       <AptDonutSection
         variant="navigator"
-        initialMode="zone"
+        initialMode="energy"
         initialPeriod="90d"
         mounted={true}
         recentTransactions={REAL_TRANSACTIONS}
-        onOpenAptDetail={onOpenAptDetail}
       />
     );
 
-    // Initially fullscreen modal is not mounted
+    expect(screen.queryByTestId('donut-fullscreen-open-btn')).not.toBeInTheDocument();
     expect(screen.queryByTestId('zone-donut-fullscreen-modal')).not.toBeInTheDocument();
 
-    // Click on the dedicated 크게 보기 button
-    fireEvent.click(screen.getByTestId('donut-fullscreen-open-btn'));
-
-    const modal = screen.getByTestId('zone-donut-fullscreen-modal');
-    expect(modal).toBeInTheDocument();
-    expect(document.body.style.overflow).toBe('hidden');
-    expect(
-      within(modal).getByText('권역별 실거래 · 시세 상세 분석')
-    ).toBeInTheDocument();
-
-    // Overall statistics grid shows accurate real calculations (6 transactions)
-    const statsGrid = within(modal).getByTestId('fullscreen-stats-grid');
-    expect(statsGrid).toHaveTextContent('6건');
-    expect(statsGrid).toHaveTextContent('신고가 2건');
-
-    // Zone section for 동탄호수권 renders per-zone stats AND strictly chronological rows (10.28 -> 10.25 -> 10.22)
-    const lakeSection = within(modal).getByTestId('fullscreen-zone-section-lake');
-    expect(lakeSection).toHaveTextContent('동탄호수권');
-    expect(lakeSection).toHaveTextContent('거래 3건 (50.0%)');
-    expect(lakeSection).toHaveTextContent('평균 9억');
-    expect(lakeSection).toHaveTextContent('중위 7억 4,000만');
-    expect(lakeSection).toHaveTextContent('신고가 1건');
-
-    const lakeButtons = within(lakeSection)
-      .getAllByRole('button')
-      .filter((btn) =>
-        btn.getAttribute('data-testid')?.startsWith('fullscreen-tx-row-')
-      );
-    expect(lakeButtons).toHaveLength(3);
-    expect(lakeButtons[0]).toHaveTextContent('2026.10.28');
-    expect(lakeButtons[0]).toHaveTextContent('린스트라우스더레이크');
-    expect(lakeButtons[1]).toHaveTextContent('2026.10.25');
-    expect(lakeButtons[1]).toHaveTextContent('금강펜테리움');
-    expect(lakeButtons[2]).toHaveTextContent('2026.10.22');
-    expect(lakeButtons[2]).toHaveTextContent('아이파크');
-
-    // Switch chronological sort to 과거순 (oldest first: 10.22 -> 10.25 -> 10.28)
-    fireEvent.click(within(modal).getByTestId('fullscreen-sort-oldest'));
-    const reversedLakeButtons = within(
-      within(modal).getByTestId('fullscreen-zone-section-lake')
-    )
-      .getAllByRole('button')
-      .filter((btn) =>
-        btn.getAttribute('data-testid')?.startsWith('fullscreen-tx-row-')
-      );
-    expect(reversedLakeButtons[0]).toHaveTextContent('2026.10.22');
-    expect(reversedLakeButtons[1]).toHaveTextContent('2026.10.25');
-    expect(reversedLakeButtons[2]).toHaveTextContent('2026.10.28');
-
-    // Clicking a transaction row dispatches onOpenAptDetail with (aptName, dong)
-    fireEvent.click(reversedLakeButtons[2]);
-    expect(onOpenAptDetail).toHaveBeenCalledWith(
-      '동탄린스트라우스더레이크',
-      '송동'
-    );
-  });
-
-  it('filters statistics and chronological feed to a single zone and switches to unified timeline mode cleanly', () => {
-    render(
-      <AptDonutSection
-        variant="navigator"
-        initialMode="zone"
-        initialPeriod="90d"
-        mounted={true}
-        recentTransactions={REAL_TRANSACTIONS}
-      />
-    );
-
-    // Open via dedicated expand button
-    fireEvent.click(screen.getByTestId('donut-fullscreen-open-btn'));
-    const modal = screen.getByTestId('zone-donut-fullscreen-modal');
-
-    // Switch to 통합 시간순 across all zones
-    fireEvent.click(within(modal).getByTestId('fullscreen-group-unified'));
-    const unifiedStream = within(modal).getByTestId('fullscreen-unified-stream');
-    const unifiedRows = within(unifiedStream)
-      .getAllByRole('button')
-      .filter((b) =>
-        b.getAttribute('data-testid')?.startsWith('fullscreen-tx-row-')
-      );
-    expect(unifiedRows).toHaveLength(6);
-    // Latest deal overall is 2026.10.29 동탄역 롯데캐슬
-    expect(unifiedRows[0]).toHaveTextContent('2026.10.29');
-    expect(unifiedRows[0]).toHaveTextContent('동탄역권');
-
-    // Drill down to 시범단지·청계권 via zone tab
-    fireEvent.click(within(modal).getByTestId('fullscreen-zone-tab-sibeom'));
-    const statsGrid = within(modal).getByTestId('fullscreen-stats-grid');
-    expect(statsGrid).toHaveTextContent('2건');
-    expect(statsGrid).toHaveTextContent('11억 1,000만'); // (10.8 + 11.4) / 2 = 11.1억
-
-    // Search filter narrows results and Escape closes modal cleanly
-    const searchInput = within(modal).getByTestId('fullscreen-search-input');
-    fireEvent.change(searchInput, { target: { value: '우남' } });
-    const filteredRows = within(
-      within(modal).getByTestId('fullscreen-unified-stream')
-    )
-      .getAllByRole('button')
-      .filter((b) =>
-        b.getAttribute('data-testid')?.startsWith('fullscreen-tx-row-')
-      );
-    expect(filteredRows).toHaveLength(1);
-    expect(filteredRows[0]).toHaveTextContent('우남퍼스트빌');
-
-    fireEvent.keyDown(window, { key: 'Escape' });
-    expect(screen.queryByTestId('zone-donut-fullscreen-modal')).not.toBeInTheDocument();
-    expect(document.body.style.overflow).toBe('');
-  });
-
-  it('enforces Ad Money v5.0 invariants (zero emojis, zero legacy monospace fonts, honest empty data handling)', () => {
-    render(
-      <AptDonutSection
-        variant="navigator"
-        initialMode="zone"
-        initialPeriod="90d"
-        mounted={true}
-        recentTransactions={[]}
-      />
-    );
-
-    fireEvent.click(screen.getByTestId('donut-fullscreen-open-btn'));
-    const modal = screen.getByTestId('zone-donut-fullscreen-modal');
-
-    const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
-    expect(emojiRegex.test(modal.textContent || '')).toBe(false);
-    expect(modal.innerHTML).not.toMatch(/font-mono|Consolas|Gulim/i);
-    expect(
-      within(modal).getByText('선택한 기간에 등록된 실거래 내역이 없습니다.')
-    ).toBeInTheDocument();
-  });
-
-  it('opens fullscreen only when clicking donut-fullscreen-open-btn (not donut-chart-pane) and displays the 4 energy temperature slices in default navigator mode', () => {
-    render(
-      <AptDonutSection
-        variant="navigator"
-        initialPeriod="90d"
-        mounted={true}
-        recentTransactions={REAL_TRANSACTIONS}
-      />
-    );
-
-    const openBtn = screen.getByTestId('donut-fullscreen-open-btn');
-    expect(openBtn).toHaveTextContent('크게 보기');
-
-    // Clicking donut-chart-pane must NOT open fullscreen
     fireEvent.click(screen.getByTestId('donut-chart-pane'));
     expect(screen.queryByTestId('zone-donut-fullscreen-modal')).not.toBeInTheDocument();
+  });
 
-    // Clicking 크게 보기 opens fullscreen with the 4 energy slices
-    fireEvent.click(openBtn);
-    const modal = screen.getByTestId('zone-donut-fullscreen-modal');
-    expect(modal).toBeInTheDocument();
-    expect(within(modal).getByTestId('fullscreen-zone-section-high')).toHaveTextContent('신고가 돌파');
-    expect(within(modal).getByTestId('fullscreen-zone-section-rising')).toHaveTextContent('직전가 대비 상승');
-    expect(within(modal).getByTestId('fullscreen-zone-section-flat')).toHaveTextContent('보합권 체결');
-    expect(within(modal).getByTestId('fullscreen-zone-section-falling')).toHaveTextContent('직전가 대비 하락·급매');
-    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  it('expands MacroTimelineView inline ("자세히 보기" -> Masterpiece Inline Tab) with 4-card real stats and Master-Detail date rail without any modal overlay', () => {
+    const onDetailsClick = jest.fn();
+
+    render(
+      <MacroTimelineView
+        compactHeroMode={true}
+        displayedTimelineData={[SAMPLE_TIMELINE_GROUPS[0]]}
+        fullTimelineData={SAMPLE_TIMELINE_GROUPS}
+        onDetailsClick={onDetailsClick}
+      />
+    );
+
+    // Initially in compactHeroMode: segment tabs, inline stats grid, and date rail are hidden
+    expect(screen.queryByTestId('timeline-inline-expanded-view')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-inline-stats-grid')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-inline-date-rail')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-segment-tabs')).not.toBeInTheDocument();
+
+    // Click "자세히 보기" inline expand button
+    const expandBtn = screen.getByTestId('timeline-inline-expand-btn');
+    expect(expandBtn).toHaveTextContent('자세히 보기');
+    fireEvent.click(expandBtn);
+
+    // Inline expanded view is active (and body overflow is NOT locked by any modal)
+    expect(screen.getByTestId('timeline-inline-expanded-view')).toBeInTheDocument();
+    expect(screen.queryByTestId('zone-donut-fullscreen-modal')).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('');
+    expect(expandBtn).toHaveTextContent('기본 화면으로 축소');
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      'timeline_inline_expand_toggle',
+      expect.objectContaining({ expanded: true })
+    );
+
+    // 4-Card Statistical Briefing Strip renders accurate metrics for all 4 items across 2 dates
+    const statsGrid = screen.getByTestId('timeline-inline-stats-grid');
+    expect(statsGrid).toBeInTheDocument();
+    expect(within(statsGrid).getByTestId('timeline-inline-stat-volume')).toHaveTextContent('4건');
+    expect(within(statsGrid).getByTestId('timeline-inline-stat-volume')).toHaveTextContent('4개 단지 · 2개 등록일');
+    expect(within(statsGrid).getByTestId('timeline-inline-stat-peak')).toHaveTextContent('롯데캐슬');
+    expect(within(statsGrid).getByTestId('timeline-inline-stat-peak')).toHaveTextContent('신고가 2건');
+
+    // Left Master Date Rail renders all date groups from fullTimelineData
+    const dateRail = screen.getByTestId('timeline-inline-date-rail');
+    expect(dateRail).toBeInTheDocument();
+    const dateItemOct27 = within(dateRail).getByTestId('timeline-date-rail-item-2026.10.27 (화)');
+    expect(dateItemOct27).toHaveTextContent('2건');
+
+    // Clicking a date in the Left Master Rail filters the right detail feed and recalculates the 4 stat cards
+    fireEvent.click(dateItemOct27);
+    expect(within(statsGrid).getByTestId('timeline-inline-stat-volume')).toHaveTextContent('2건');
+    expect(screen.getByTestId('timeline-card-동탄호수공원 아이파크')).toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+
+    // Clicking "전체 일자" reset button in the date rail restores all dates
+    fireEvent.click(within(dateRail).getByTestId('timeline-date-rail-reset'));
+    expect(within(statsGrid).getByTestId('timeline-inline-stat-volume')).toHaveTextContent('4건');
+    expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+  });
+
+  it('supports inline energy temperature filter chips and card/list view mode switching in inline expanded mode', () => {
+    render(
+      <MacroTimelineView
+        compactHeroMode={true}
+        displayedTimelineData={SAMPLE_TIMELINE_GROUPS}
+        fullTimelineData={SAMPLE_TIMELINE_GROUPS}
+      />
+    );
+
+    fireEvent.click(screen.getByTestId('timeline-inline-expand-btn'));
+
+    // Inline energy chips are rendered and filter items
+    const energyChips = screen.getByTestId('timeline-inline-energy-chips');
+    expect(energyChips).toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('timeline-energy-chip-falling'));
+    expect(screen.getByTestId('timeline-card-동탄호수공원 아이파크')).toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
+
+    // Reset energy chip to all
+    fireEvent.click(screen.getByTestId('timeline-energy-chip-all'));
+    expect(screen.getByTestId('timeline-card-동탄역 롯데캐슬')).toBeInTheDocument();
+
+    // Switch to compact list view mode
+    const listBtn = screen.getByLabelText('리스트 뷰 보기');
+    fireEvent.click(listBtn);
+    expect(screen.getByTestId('timeline-row-동탄역 롯데캐슬')).toBeInTheDocument();
+
+    // Collapse back to compact Hero mode
+    fireEvent.click(screen.getByTestId('timeline-inline-expand-btn'));
+    expect(screen.queryByTestId('timeline-inline-expanded-view')).not.toBeInTheDocument();
+  });
+
+  it('enforces Ad Money v5.0 invariants (zero emojis, zero legacy monospace fonts) in inline expanded view', () => {
+    const { container } = render(
+      <MacroTimelineView
+        compactHeroMode={true}
+        isInlineExpanded={true}
+        displayedTimelineData={SAMPLE_TIMELINE_GROUPS}
+        fullTimelineData={SAMPLE_TIMELINE_GROUPS}
+      />
+    );
+
+    const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+    expect(emojiRegex.test(container.textContent || '')).toBe(false);
+    expect(container.innerHTML).not.toMatch(/font-mono|Consolas|Gulim/i);
   });
 
   it('computes pure median, mean, per-pyeong, and date normalization deterministically', () => {

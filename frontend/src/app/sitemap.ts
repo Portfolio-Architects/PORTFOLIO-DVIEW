@@ -10,7 +10,7 @@ import {
 } from '@/lib/services/apartmentPageService';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
-export const revalidate = 3600; // Revalidate sitemap every hour
+export const revalidate = 86400; // Revalidate sitemap every 24 hours
 
 export function parseSitemapDate(
   raw: string | undefined | null,

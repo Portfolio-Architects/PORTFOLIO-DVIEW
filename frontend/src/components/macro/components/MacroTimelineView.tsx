@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { ChevronDown, ChevronUp, ExternalLink, Plus, Search, Star, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, ExternalLink, Maximize2, Minimize2, Plus, RotateCcw, Search, Star, X } from 'lucide-react';
 import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
 import { trackEvent, trackSearchQuery } from '@/lib/utils/analytics';
 import { useInView } from 'react-intersection-observer';
@@ -279,9 +279,23 @@ export interface MacroTimelineViewProps {
   enableInFeedAd?: boolean;
   inFeedAdSlotId?: string;
   compactHeroMode?: boolean;
+  isInlineExpanded?: boolean;
+  onToggleInlineExpand?: (expanded: boolean) => void;
+  donutPeriod?: '1d' | '7d' | '30d' | '90d' | '1y';
+  onDonutPeriodChange?: (period: '1d' | '7d' | '30d' | '90d' | '1y') => void;
   selectedDateJump?: string | null;
   onSelectedDateJumpChange?: (dateStr: string | null) => void;
   className?: string;
+}
+
+export function formatEokManValue(eokVal: number): string {
+  if (typeof eokVal !== 'number' || isNaN(eokVal) || !isFinite(eokVal) || eokVal <= 0) return '0억';
+  const roundedMan = Math.round(eokVal * 10000);
+  const eok = Math.floor(roundedMan / 10000);
+  const man = roundedMan % 10000;
+  if (eok === 0) return `${man.toLocaleString()}만`;
+  if (man === 0) return `${eok}억`;
+  return `${eok}억 ${man.toLocaleString()}만`;
 }
 
 export function formatDailyAvgPrice(items: TimelineItem[]): string {
@@ -590,6 +604,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   enableInFeedAd = false,
   inFeedAdSlotId,
   compactHeroMode = false,
+  isInlineExpanded: controlledInlineExpanded,
+  onToggleInlineExpand,
+  donutPeriod: _donutPeriod,
+  onDonutPeriodChange: _onDonutPeriodChange,
   selectedDateJump: controlledSelectedDateJump,
   onSelectedDateJumpChange,
   className,
@@ -601,6 +619,50 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   const [localSegment, setLocalSegment] = useState<'all' | 'favorites' | 'new_high' | 'ranking'>('all');
   const activeSegment = timelineSegment !== undefined ? timelineSegment : localSegment;
   const [activeSectionTab, setActiveSectionTab] = useState<'timeline' | 'live_ranking' | 'ranking'>('timeline');
+
+  const [internalInlineExpanded, setInternalInlineExpanded] = useState(false);
+  const effectiveInlineExpanded = controlledInlineExpanded !== undefined ? controlledInlineExpanded : internalInlineExpanded;
+
+  const handleToggleInlineExpand = useCallback(
+    (next?: boolean) => {
+      const resolvedNext = typeof next === 'boolean' ? next : !effectiveInlineExpanded;
+      trackEvent('timeline_inline_expand_toggle', {
+        expanded: resolvedNext,
+        segment: activeSegment,
+      });
+      if (controlledInlineExpanded === undefined) {
+        setInternalInlineExpanded(resolvedNext);
+      }
+      onToggleInlineExpand?.(resolvedNext);
+    },
+    [effectiveInlineExpanded, activeSegment, controlledInlineExpanded, onToggleInlineExpand]
+  );
+
+  const [internalViewMode, setInternalViewMode] = useState<TimelineViewMode>(viewMode);
+  useEffect(() => {
+    setInternalViewMode(viewMode);
+  }, [viewMode]);
+  const effectiveViewMode = setViewMode ? viewMode : internalViewMode;
+  const effectiveSetViewMode = useCallback(
+    (mode: TimelineViewMode) => {
+      setInternalViewMode(mode);
+      setViewMode?.(mode);
+    },
+    [setViewMode]
+  );
+
+  const [internalTradeTypeFilter, setInternalTradeTypeFilter] = useState<TradeTypeFilterType>(tradeTypeFilter);
+  useEffect(() => {
+    setInternalTradeTypeFilter(tradeTypeFilter);
+  }, [tradeTypeFilter]);
+  const effectiveTradeTypeFilter = setTradeTypeFilter ? tradeTypeFilter : internalTradeTypeFilter;
+  const effectiveSetTradeTypeFilter = useCallback(
+    (type: TradeTypeFilterType) => {
+      setInternalTradeTypeFilter(type);
+      setTradeTypeFilter?.(type);
+    },
+    [setTradeTypeFilter]
+  );
 
   const setActiveSegment = useCallback((segment: 'all' | 'favorites' | 'new_high' | 'ranking') => {
     trackEvent('timeline_segment_tab_click', { segment });
@@ -757,17 +819,24 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   );
 
   const filterItemBySegment = useCallback((item: TimelineItem) => {
-    if (isFavoritesSegment) {
-      return isApartmentInFavorites(effectiveUserFavorites, item.aptName, nameMapping);
+    if (isFavoritesSegment && !isApartmentInFavorites(effectiveUserFavorites, item.aptName, nameMapping)) {
+      return false;
     }
-    if (isNewHighSegment) {
-      return item.type === 'high' || !!item.isNewHigh;
+    if (isNewHighSegment && !(item.type === 'high' || !!item.isNewHigh)) {
+      return false;
+    }
+    if (internalTradeTypeFilter !== 'all') {
+      const isItemHigh = item.type === 'high' || Boolean(item.isNewHigh);
+      if (internalTradeTypeFilter === 'high' && !isItemHigh) return false;
+      if (internalTradeTypeFilter === 'rising' && (isItemHigh || (item.delta || 0) <= 0.0001)) return false;
+      if (internalTradeTypeFilter === 'flat' && (isItemHigh || Math.abs(item.delta || 0) > 0.0001)) return false;
+      if (internalTradeTypeFilter === 'falling' && (isItemHigh || (item.delta || 0) >= -0.0001)) return false;
     }
     return true;
-  }, [isFavoritesSegment, isNewHighSegment, effectiveUserFavorites, nameMapping]);
+  }, [isFavoritesSegment, isNewHighSegment, effectiveUserFavorites, nameMapping, internalTradeTypeFilter]);
 
   const segmentedSourceData = useMemo(() => {
-    if (activeSegment !== 'favorites' && activeSegment !== 'new_high') {
+    if (activeSegment !== 'favorites' && activeSegment !== 'new_high' && internalTradeTypeFilter === 'all') {
       return fullSourceData;
     }
     return fullSourceData
@@ -776,10 +845,10 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
         items: g.items.filter(filterItemBySegment),
       }))
       .filter((g) => g.items.length > 0);
-  }, [fullSourceData, activeSegment, filterItemBySegment]);
+  }, [fullSourceData, activeSegment, internalTradeTypeFilter, filterItemBySegment]);
 
   const segmentedEffectiveData = useMemo(() => {
-    if (activeSegment !== 'favorites' && activeSegment !== 'new_high') {
+    if (activeSegment !== 'favorites' && activeSegment !== 'new_high' && internalTradeTypeFilter === 'all') {
       return effectiveData;
     }
     return effectiveData
@@ -788,7 +857,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
         items: g.items.filter(filterItemBySegment),
       }))
       .filter((g) => g.items.length > 0);
-  }, [effectiveData, activeSegment, filterItemBySegment]);
+  }, [effectiveData, activeSegment, internalTradeTypeFilter, filterItemBySegment]);
 
   const handleComplexSelect = useCallback(
     (aptKey: string, aptName: string) => {
@@ -804,7 +873,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   );
 
   const totalCalculatedItems = segmentedSourceData.reduce((acc, g) => acc + (g.items ? g.items.length : 0), 0);
-  const effectiveTotalCount = (activeSegment === 'favorites' || activeSegment === 'new_high')
+  const effectiveTotalCount = (activeSegment === 'favorites' || activeSegment === 'new_high' || internalTradeTypeFilter !== 'all')
     ? totalCalculatedItems
     : (totalTimelineCardsCount ?? totalCalculatedItems);
   const effectiveVisibleCount = visibleTimelineCount ?? effectiveTotalCount;
@@ -844,10 +913,12 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   ]);
 
   const renderedGroups = useMemo(() => {
-    if (!selectedDateJump) return segmentedEffectiveData;
+    if (!selectedDateJump) {
+      return effectiveInlineExpanded ? segmentedSourceData : segmentedEffectiveData;
+    }
     const matched = segmentedSourceData.filter((g) => g.dateStr === selectedDateJump);
     return matched.length > 0 ? matched : segmentedEffectiveData;
-  }, [segmentedEffectiveData, segmentedSourceData, selectedDateJump]);
+  }, [segmentedEffectiveData, segmentedSourceData, selectedDateJump, effectiveInlineExpanded]);
 
   const metricsSourceGroups = useMemo(() => {
     if (selectedDateJump) {
@@ -861,6 +932,79 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
     () => computeTimelineAggregateMetrics(metricsSourceGroups),
     [metricsSourceGroups]
   );
+
+  const inlineStats = useMemo(() => {
+    const complexSet = new Set<string>();
+    const prices: number[] = [];
+    let maxItem: TimelineItem | null = null;
+    let highCount = 0;
+    let risingCount = 0;
+    let flatCount = 0;
+    let fallingCount = 0;
+
+    for (const g of metricsSourceGroups) {
+      if (!g || !Array.isArray(g.items)) continue;
+      for (const it of g.items) {
+        if (!it || typeof it.priceVal !== 'number' || !isFinite(it.priceVal) || it.priceVal <= 0) continue;
+        complexSet.add(normalizeAptName(it.aptName) || it.aptName);
+        prices.push(it.priceVal);
+        if (!maxItem || it.priceVal > maxItem.priceVal) {
+          maxItem = it;
+        }
+        const isHigh = it.type === 'high' || Boolean(it.isNewHigh);
+        if (isHigh) {
+          highCount++;
+        } else if ((it.delta || 0) > 0.0001) {
+          risingCount++;
+        } else if ((it.delta || 0) < -0.0001) {
+          fallingCount++;
+        } else {
+          flatCount++;
+        }
+      }
+    }
+
+    prices.sort((a, b) => a - b);
+    let medianVal = 0;
+    if (prices.length > 0) {
+      const mid = Math.floor(prices.length / 2);
+      medianVal = prices.length % 2 === 0 ? (prices[mid - 1] + prices[mid]) / 2 : prices[mid];
+    }
+
+    const avgPyeongMan = aggregateMetrics.avgPyeongPriceMan;
+    const equiv84EokVal = avgPyeongMan > 0 ? (avgPyeongMan * 34) / 10000 : 0;
+
+    return {
+      totalCount: prices.length,
+      uniqueComplexes: complexSet.size,
+      dateCount: metricsSourceGroups.length,
+      avgPriceText: formatEokManValue(aggregateMetrics.avgPriceEokVal),
+      medianPriceText: formatEokManValue(medianVal),
+      avgPyeongMan,
+      equiv84Text: formatEokManValue(equiv84EokVal),
+      maxApt: maxItem
+        ? {
+            aptName: maxItem.aptName,
+            displayAptName: maxItem.displayAptName || getDisplayAptName(maxItem.aptName),
+            priceEok: maxItem.priceEok,
+            dong: maxItem.dong,
+          }
+        : null,
+      highCount,
+      risingCount,
+      flatCount,
+      fallingCount,
+    };
+  }, [metricsSourceGroups, aggregateMetrics]);
+
+  const maxDateGroupCount = useMemo(() => {
+    let maxC = 1;
+    for (const g of segmentedSourceData) {
+      const c = g.totalCount ?? g.items.length;
+      if (c > maxC) maxC = c;
+    }
+    return maxC;
+  }, [segmentedSourceData]);
 
   const distinctYears = useMemo(() => {
     const years = new Set<number>();
@@ -1014,13 +1158,16 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
   }
 
   return (
-    <div className={`w-full flex flex-col gap-4 min-w-0 max-w-full ${compactHeroMode ? 'lg:h-[526px]' : ''} box-border ${className || ''}`}>
+    <div
+      data-testid={effectiveInlineExpanded ? 'timeline-inline-expanded-view' : undefined}
+      className={`w-full flex flex-col gap-4 min-w-0 max-w-full ${compactHeroMode && !effectiveInlineExpanded ? 'lg:h-[526px]' : ''} box-border ${className || ''}`}
+    >
       {/* Daily Timeline Card Container */}
-      <div className={`flex flex-col bg-surface ${compactHeroMode ? 'py-0 lg:h-[526px]' : 'py-4 sm:py-5 border-b border-border'} min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border`}>
+      <div className={`flex flex-col bg-surface ${compactHeroMode && !effectiveInlineExpanded ? 'py-0 lg:h-[526px]' : 'py-4 sm:py-5 border-b border-border'} min-h-[420px] min-w-0 max-w-full overflow-hidden w-full box-border`}>
         {/* Header & Filter Controls Bar */}
-        <div className={`flex flex-col ${compactHeroMode ? 'gap-2.5 mb-2.5 shrink-0' : 'gap-3.5 mb-4 sm:mb-5'} w-full`}>
-          {/* Top 4-Segment Tabs (hidden in compactHeroMode) */}
-          {!compactHeroMode && (
+        <div className={`flex flex-col ${compactHeroMode && !effectiveInlineExpanded ? 'gap-2.5 mb-2.5 shrink-0' : 'gap-3.5 mb-4 sm:mb-5'} w-full`}>
+          {/* Top 4-Segment Tabs (hidden in compactHeroMode unless inline expanded) */}
+          {(!compactHeroMode || effectiveInlineExpanded) && (
           <div
             data-testid="timeline-segment-tabs"
             className="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-border/60 w-full"
@@ -1092,15 +1239,88 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 </button>
               )}
             </div>
+
+            {/* Inline Energy Temperature Filter Chips (Visible in Inline Expanded Mode) */}
+            {effectiveInlineExpanded && (
+              <div
+                data-testid="timeline-inline-energy-chips"
+                role="group"
+                aria-label="실거래 체결 온도 필터"
+                className="flex flex-wrap items-center gap-1.5"
+              >
+                {([
+                  { key: 'all', label: '전체 온도', dotClass: 'bg-slate-400' },
+                  { key: 'high', label: '신고가 돌파', dotClass: 'bg-red-600' },
+                  { key: 'rising', label: '직전가 상승', dotClass: 'bg-red-400' },
+                  { key: 'flat', label: '보합권', dotClass: 'bg-emerald-500' },
+                  { key: 'falling', label: '하락·급매', dotClass: 'bg-blue-600' },
+                ] as const).map((chip) => {
+                  const isActive = effectiveTradeTypeFilter === chip.key;
+                  return (
+                    <button
+                      key={chip.key}
+                      type="button"
+                      data-testid={`timeline-energy-chip-${chip.key}`}
+                      aria-pressed={isActive}
+                      onClick={() => {
+                        const nextFilter = chip.key === 'all' ? 'all' : (isActive ? 'all' : chip.key);
+                        effectiveSetTradeTypeFilter(nextFilter);
+                      }}
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer tabular-nums ${
+                        isActive
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'bg-elevated hover:bg-slate-100 dark:hover:bg-slate-800 text-secondary border border-border/60'
+                      }`}
+                    >
+                      <span
+                        className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                          isActive ? 'bg-white' : chip.dotClass
+                        }`}
+                      />
+                      <span>{chip.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
           )}
 
           <TimelineFilterControls
             headerLeftNode={
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 <h2 className="text-[14px] xs:text-[15px] sm:text-[18px] font-black text-primary tracking-tight whitespace-nowrap shrink-0">
                   일자별 최근 실거래
                 </h2>
+
+                <button
+                  type="button"
+                  data-testid="timeline-inline-expand-btn"
+                  aria-expanded={effectiveInlineExpanded}
+                  aria-label={
+                    effectiveInlineExpanded
+                      ? '일자별 최근 실거래 기본 화면으로 축소'
+                      : '일자별 최근 실거래 자세히 보기'
+                  }
+                  onClick={() => handleToggleInlineExpand()}
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer shrink-0 active:scale-95 ${
+                    effectiveInlineExpanded
+                      ? 'bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-xs'
+                      : 'bg-elevated hover:bg-blue-50 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400 border border-border/60 shadow-2xs'
+                  }`}
+                >
+                  {effectiveInlineExpanded ? (
+                    <>
+                      <Minimize2 size={12} className="shrink-0" />
+                      <span>기본 화면으로 축소</span>
+                    </>
+                  ) : (
+                    <>
+                      <Maximize2 size={12} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                      <span>자세히 보기</span>
+                    </>
+                  )}
+                </button>
 
                 {/* Quick Period Selector (7d / 30d / 90d / 1y) */}
                 {setPeriodFilter && (
@@ -1145,8 +1365,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             setRegionFilter={setRegionFilter}
             pyeongFilter={pyeongFilter}
             setPyeongFilter={setPyeongFilter}
-            tradeTypeFilter={tradeTypeFilter}
-            setTradeTypeFilter={setTradeTypeFilter}
+            tradeTypeFilter={effectiveTradeTypeFilter}
+            setTradeTypeFilter={effectiveSetTradeTypeFilter}
             quickFilter={quickFilter}
             setQuickFilter={setQuickFilter}
             showQuickFilters={showQuickFilters}
@@ -1154,12 +1374,13 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             setSearchQuery={setSearchQuery}
             sortOrder={sortOrder}
             setSortOrder={setSortOrder}
-            viewMode={viewMode}
-            setViewMode={compactHeroMode ? undefined : setViewMode}
+            viewMode={effectiveViewMode}
+            setViewMode={compactHeroMode && !effectiveInlineExpanded ? undefined : effectiveSetViewMode}
             onResetFilters={
               onResetFilters
                 ? () => {
                     setSelectedDateJump(null);
+                    setInternalTradeTypeFilter('all');
                     onResetFilters();
                   }
                 : undefined
@@ -1168,6 +1389,72 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             selectedDate={selectedDateJump}
             onSelectDate={handleSelectDate}
           />
+
+          {/* Inline 4-Card Statistical Briefing Strip (Soft-Surface Bento when Inline Expanded) */}
+          {effectiveInlineExpanded && activeSectionTab === 'timeline' && (
+            <div
+              data-testid="timeline-inline-stats-grid"
+              className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 w-full box-border"
+            >
+              <div
+                data-testid="timeline-inline-stat-volume"
+                className="p-3.5 rounded-2xl bg-elevated flex flex-col justify-between gap-1 min-w-0"
+              >
+                <span className="text-[11px] font-bold text-tertiary truncate">조회 실거래량 · 단지</span>
+                <div className="text-[16px] sm:text-[18px] font-black text-primary tabular-nums truncate">
+                  {inlineStats.totalCount.toLocaleString()}건
+                </div>
+                <span className="text-[11px] font-semibold text-secondary tabular-nums truncate">
+                  {inlineStats.uniqueComplexes.toLocaleString()}개 단지 · {inlineStats.dateCount.toLocaleString()}개 등록일
+                </span>
+              </div>
+
+              <div
+                data-testid="timeline-inline-stat-price"
+                className="p-3.5 rounded-2xl bg-elevated flex flex-col justify-between gap-1 min-w-0"
+              >
+                <span className="text-[11px] font-bold text-tertiary truncate">평균 · 중위 실거래가</span>
+                <div className="text-[16px] sm:text-[18px] font-black text-blue-600 dark:text-blue-400 tabular-nums truncate">
+                  평균 {inlineStats.avgPriceText}
+                </div>
+                <span className="text-[11px] font-semibold text-secondary tabular-nums truncate">
+                  중위가 {inlineStats.medianPriceText}
+                </span>
+              </div>
+
+              <div
+                data-testid="timeline-inline-stat-pyeong"
+                className="p-3.5 rounded-2xl bg-elevated flex flex-col justify-between gap-1 min-w-0"
+              >
+                <span className="text-[11px] font-bold text-tertiary truncate">평당 평균가 · 84㎡ 환산</span>
+                <div className="text-[16px] sm:text-[18px] font-black text-emerald-600 dark:text-emerald-400 tabular-nums truncate">
+                  {inlineStats.avgPyeongMan > 0 ? `${inlineStats.avgPyeongMan.toLocaleString()}만/평` : '0만/평'}
+                </div>
+                <span className="text-[11px] font-semibold text-secondary tabular-nums truncate">
+                  전용 84㎡ 환산 약 {inlineStats.equiv84Text}
+                </span>
+              </div>
+
+              <div
+                data-testid="timeline-inline-stat-peak"
+                className="p-3.5 rounded-2xl bg-elevated flex flex-col justify-between gap-1 min-w-0"
+              >
+                <span className="text-[11px] font-bold text-tertiary truncate">최고 실거래 · 체결 온도</span>
+                <div className="text-[14px] sm:text-[15.5px] font-black text-primary tabular-nums truncate">
+                  {inlineStats.maxApt
+                    ? `${inlineStats.maxApt.displayAptName} ${inlineStats.maxApt.priceEok}`
+                    : '해당 내역 없음'}
+                </div>
+                <div className="flex items-center gap-1.5 text-[10.5px] font-extrabold tabular-nums truncate">
+                  <span className="text-red-600 dark:text-red-400">신고가 {inlineStats.highCount}건</span>
+                  <span className="text-tertiary">·</span>
+                  <span className="text-red-500">상승 {inlineStats.risingCount}건</span>
+                  <span className="text-tertiary">·</span>
+                  <span className="text-blue-600 dark:text-blue-400">하락 {inlineStats.fallingCount}건</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Hyperlocal Insight Summary Cards (4 Engagement Anchors) */}
           {insights && (
@@ -1181,7 +1468,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           )}
 
           {/* Bottom View Switcher Tabs: [일자별 실거래 내역] vs [실시간 시장 랭킹] vs [단지별 평당가 랭킹] */}
-          {!compactHeroMode && (pyeongRankings !== undefined || liveRankingBoardNode !== undefined) && (
+          {(!compactHeroMode || effectiveInlineExpanded) && (pyeongRankings !== undefined || liveRankingBoardNode !== undefined) && (
             <div
               data-testid="timeline-view-tab-switcher"
               className="flex items-center justify-between gap-2 pt-1 border-t border-border/60"
@@ -1261,11 +1548,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
         {/* Bottom Switched Content Area: [일자별 실거래 내역] vs [실시간 시장 랭킹] vs [단지별 평당가 랭킹] */}
         {activeSectionTab === 'live_ranking' && liveRankingBoardNode !== undefined ? (
-          <div className={`w-full mt-1 ${compactHeroMode ? 'flex-1 min-h-0 overflow-y-auto pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}`} data-testid="timeline-live-ranking-panel">
+          <div className={`w-full mt-1 ${compactHeroMode && !effectiveInlineExpanded ? 'flex-1 min-h-0 overflow-y-auto pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}`} data-testid="timeline-live-ranking-panel">
             {liveRankingBoardNode}
           </div>
         ) : activeSectionTab === 'ranking' && pyeongRankings !== undefined ? (
-          <div className={`w-full mt-1 ${compactHeroMode ? 'flex-1 min-h-0 overflow-y-auto pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}`}>
+          <div className={`w-full mt-1 ${compactHeroMode && !effectiveInlineExpanded ? 'flex-1 min-h-0 overflow-y-auto pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full' : ''}`}>
             <StatsPyeongRankingChart
               rankings={pyeongRankings}
               onSelectComplex={handleComplexSelect}
@@ -1274,9 +1561,131 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           </div>
         ) : (
         <div
+          data-testid={effectiveInlineExpanded ? 'timeline-inline-master-detail-grid' : undefined}
+          className={
+            effectiveInlineExpanded
+              ? 'grid grid-cols-1 lg:grid-cols-12 gap-4 items-start w-full min-w-0 flex-1'
+              : 'flex-1 flex flex-col min-h-0 w-full min-w-0'
+          }
+        >
+          {/* Left Master Rail: Date-by-Date Summary Navigator (Visible when Inline Expanded) */}
+          {effectiveInlineExpanded && (
+            <div
+              data-testid="timeline-inline-date-rail"
+              className="lg:col-span-4 xl:col-span-3 flex flex-col gap-2 bg-elevated/70 dark:bg-slate-900/50 rounded-2xl p-3 border border-border/60 max-h-[680px] overflow-y-auto [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full w-full box-border"
+            >
+              <div className="flex items-center justify-between px-1 pb-1.5 border-b border-border/50">
+                <span className="text-[11.5px] font-black text-primary tracking-tight">
+                  일자별 요약 ({segmentedSourceData.length}일)
+                </span>
+                {selectedDateJump && (
+                  <button
+                    type="button"
+                    data-testid="timeline-date-rail-reset"
+                    onClick={() => handleSelectDate(null)}
+                    className="inline-flex items-center gap-1 text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                  >
+                    <RotateCcw size={10} />
+                    <span>전체 일자</span>
+                  </button>
+                )}
+              </div>
+
+              <button
+                type="button"
+                data-testid="timeline-date-rail-all"
+                aria-pressed={selectedDateJump === null}
+                onClick={() => handleSelectDate(null)}
+                className={`w-full text-left p-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                  selectedDateJump === null
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'bg-surface hover:bg-slate-100 dark:hover:bg-slate-800/80 text-primary border border-border/50'
+                }`}
+              >
+                <span className="text-[12px] font-black">전체 일자 한눈에</span>
+                <span
+                  className={`px-2 py-0.5 rounded-md text-[10.5px] font-black tabular-nums ${
+                    selectedDateJump === null
+                      ? 'bg-white/20 text-white'
+                      : 'bg-elevated text-secondary'
+                  }`}
+                >
+                  총 {totalCalculatedItems}건
+                </span>
+              </button>
+
+              {segmentedSourceData.map((group) => {
+                const isDateSelected = selectedDateJump === group.dateStr;
+                const gCount = group.totalCount ?? group.items.length;
+                const gAvg = group.avgPriceEok || formatDailyAvgPrice(group.items);
+                const gNewHigh = group.items.filter((it) => it.type === 'high' || it.isNewHigh).length;
+                const gTopApt =
+                  group.highestPriceApt ||
+                  (group.items.length > 0
+                    ? group.items.reduce((max, cur) => (cur.priceVal > max.priceVal ? cur : max), group.items[0])
+                    : null);
+                const widthPct = Math.max(8, Math.min(100, Math.round((gCount / maxDateGroupCount) * 100)));
+
+                return (
+                  <button
+                    key={group.dateStr}
+                    type="button"
+                    data-testid={`timeline-date-rail-item-${group.dateStr}`}
+                    aria-pressed={isDateSelected}
+                    onClick={() => handleSelectDate(isDateSelected ? null : group.dateStr)}
+                    className={`w-full text-left p-2.5 rounded-xl transition-all cursor-pointer flex flex-col gap-1.5 ${
+                      isDateSelected
+                        ? 'bg-blue-50 dark:bg-blue-950/40 ring-2 ring-blue-600/40 border border-blue-500/40'
+                        : 'bg-surface hover:bg-slate-100/90 dark:hover:bg-slate-800/60 border border-border/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1.5 w-full">
+                      <span className="text-[12px] font-black text-primary tabular-nums truncate">
+                        {group.dateStr}
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {gNewHigh > 0 && (
+                          <span className="px-1.5 py-0.5 rounded bg-red-50 dark:bg-red-950/50 text-red-600 dark:text-red-400 text-[9.5px] font-black tabular-nums">
+                            신고가 {gNewHigh}
+                          </span>
+                        )}
+                        <span className="px-1.5 py-0.5 rounded bg-elevated text-secondary text-[10px] font-extrabold tabular-nums">
+                          {gCount}건
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2 text-[10.5px] text-secondary tabular-nums">
+                      <span className="font-bold text-blue-600 dark:text-blue-400">
+                        {gAvg ? `평균 ${gAvg}` : '-'}
+                      </span>
+                      {gTopApt && (
+                        <span className="text-tertiary truncate max-w-[140px]">
+                          최고 {(gTopApt as HighestPriceAptInfo).displayAptName || gTopApt.aptName} {gTopApt.priceEok}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="w-full h-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-blue-500/80 transition-all duration-300"
+                        style={{ width: `${widthPct}%` }}
+                      />
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+        <div
           ref={timelineScrollRef}
           data-testid="timeline-scroll-container"
-          className={`flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : compactHeroMode ? "overflow-y-auto overscroll-y-contain" : "max-h-[520px] md:max-h-none overflow-y-auto overscroll-y-contain"} [overflow-anchor:none] pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-1 min-h-0 w-full box-border`}
+          className={`${
+            effectiveInlineExpanded
+              ? 'lg:col-span-8 xl:col-span-9 max-h-[680px] overflow-y-auto overscroll-y-contain'
+              : `flex-1 ${isMobileViewport ? "max-h-none overflow-visible" : compactHeroMode ? "overflow-y-auto overscroll-y-contain" : "max-h-[520px] md:max-h-none overflow-y-auto overscroll-y-contain"}`
+          } [overflow-anchor:none] pr-0.5 [&::-webkit-scrollbar]:w-1.5 [&::-webkit-scrollbar-track]:bg-transparent [&::-webkit-scrollbar-thumb]:bg-border/60 [&::-webkit-scrollbar-thumb]:rounded-full flex flex-col gap-4 mt-1 min-h-0 w-full box-border`}
         >
           {/* Active Favorites Watchlist Chip Bar + Quick Search-and-Add (Rendered when user has >= 1 favorite) */}
           {activeSegment === 'favorites' && effectiveUserFavorites.size > 0 && (
@@ -1745,7 +2154,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
                   {/* Items List (Dual View Mode: Card Grid vs Compact List) */}
                   {!isCollapsed && (
-                    viewMode === 'list' ? (
+                    effectiveViewMode === 'list' ? (
                       <div className="flex flex-col divide-y divide-border bg-surface w-full">
                         {group.items.map((item, idx) => {
                           const isSelected = !!effectiveSelectedApt && (
@@ -1775,7 +2184,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         })}
                       </div>
                     ) : (
-                      <div className={`grid grid-cols-1 ${compactHeroMode ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-2 w-full box-border`}>
+                      <div className={`grid grid-cols-1 ${compactHeroMode && !effectiveInlineExpanded ? '' : 'md:grid-cols-2 lg:grid-cols-3'} gap-2 w-full box-border`}>
                         {group.items.map((item, idx) => {
                           const isSelected = !!effectiveSelectedApt && (
                             effectiveSelectedApt === item.aptName ||
@@ -1823,7 +2232,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
           )}
 
           {/* Infinite Scroll Sentinel & Fallback Load More */}
-          {!selectedDateJump && setVisibleTimelineCount && effectiveTotalCount > effectiveVisibleCount && (
+          {!effectiveInlineExpanded && !selectedDateJump && setVisibleTimelineCount && effectiveTotalCount > effectiveVisibleCount && (
             <div ref={sentinelRef} className="w-full py-3 flex flex-col items-center justify-center gap-2 [overflow-anchor:none]">
               <div
                 data-testid="timeline-load-more-progress"
@@ -1864,7 +2273,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             </div>
           )}
 
-          {!selectedDateJump && setVisibleTimelineCount && effectiveTotalCount > 3 && effectiveTotalCount <= effectiveVisibleCount && (
+          {!effectiveInlineExpanded && !selectedDateJump && setVisibleTimelineCount && effectiveTotalCount > 3 && effectiveTotalCount <= effectiveVisibleCount && (
             <div className="w-full py-2 flex items-center justify-center [overflow-anchor:none]">
               <button
                 type="button"
@@ -1881,6 +2290,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
             </div>
           )}
+        </div>
         </div>
         )}
       </div>

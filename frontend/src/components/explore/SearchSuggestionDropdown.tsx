@@ -72,7 +72,6 @@ export function SearchSuggestionDropdown({
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
                         addRecentApartment({ name: recent.name, dong: recent.dong });
-                        trackEvent('view_apartment', { apt_name: recent.name, trigger: 'recent_shortcut' });
                         trackApartmentView({
                           apartment_name: recent.name,
                           apt_name: recent.name,
@@ -192,7 +191,6 @@ export function SearchSuggestionDropdown({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={() => {
                       addRecentApartment({ name: item.apt.name, dong: item.apt.dong });
-                      trackEvent('view_apartment', { apt_name: item.apt.name, trigger: 'search_shortcut' });
                       if (searchQuery.trim()) {
                         trackSearchQuery({
                           search_term: searchQuery.trim(),

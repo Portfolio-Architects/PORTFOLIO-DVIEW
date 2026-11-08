@@ -434,7 +434,7 @@ describe('Tier 5 Adversarial Coverage & Edge Case Discovery Suite', () => {
       const req = new NextRequest('http://localhost/api/local-notices');
       const res = await getLocalNoticesRoute(req);
       expect(res.status).toBe(200);
-      expect(res.headers.get('Cache-Control')).toContain('public, s-maxage=600');
+      expect(res.headers.get('Cache-Control')).toContain('public, s-maxage=3600');
     });
   });
 

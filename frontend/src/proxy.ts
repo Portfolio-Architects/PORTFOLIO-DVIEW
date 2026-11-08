@@ -111,6 +111,12 @@ const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
   '/api/cron/sync-transactions',
 ]);
 
+const CANONICAL_APT_PATH_SET = new Set(
+  Object.keys(CANONICAL_TX_SUMMARY_MAP).map(
+    (slug) => `/apartment/${encodeURIComponent(slug.normalize('NFC'))}`
+  )
+);
+
 function isProxyRateLimitExemptApiPath(pathname: string): boolean {
   if (PROXY_RATELIMIT_EXEMPT_API_PATHS.has(pathname)) return true;
   if (pathname.startsWith('/api/board/posts/')) return true;
@@ -132,29 +138,31 @@ export async function proxy(request: NextRequest) {
 
   // 0.6. 아파트 상세 비정규 URL 슬러그(공백·별칭·NFD·이중인코딩) 및 크롤러/번역 노이즈 쿼리(?hl=ko-KR 등) → 단일 정규 슬러그 HTTP 308 영구 리다이렉트
   if (pathname.startsWith('/apartment/')) {
-    const rawSegment = pathname.slice('/apartment/'.length).replace(/\/+$/, '');
-    if (rawSegment && !rawSegment.includes('/')) {
-      const canonicalSlug = resolveCanonicalAptSlug(rawSegment);
-      if (!canonicalSlug || !CANONICAL_TX_SUMMARY_MAP[canonicalSlug]) {
-        return NextResponse.redirect(new URL('/explore', request.url), 307);
-      }
-
-      const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
-
-      const noiseKeysToDelete: string[] = [];
-      for (const key of Array.from(request.nextUrl.searchParams.keys())) {
-        if ((NOISE_APARTMENT_QUERY_PARAMS as readonly string[]).includes(key.toLowerCase())) {
-          noiseKeysToDelete.push(key);
+    if (!CANONICAL_APT_PATH_SET.has(pathname) || request.nextUrl.search) {
+      const rawSegment = pathname.slice('/apartment/'.length).replace(/\/+$/, '');
+      if (rawSegment && !rawSegment.includes('/')) {
+        const canonicalSlug = resolveCanonicalAptSlug(rawSegment);
+        if (!canonicalSlug || !CANONICAL_TX_SUMMARY_MAP[canonicalSlug]) {
+          return NextResponse.redirect(new URL('/explore', request.url), 307);
         }
-      }
 
-      if (pathname !== canonicalPath || noiseKeysToDelete.length > 0) {
-        const redirectUrl = request.nextUrl.clone();
-        redirectUrl.pathname = canonicalPath;
-        for (const key of noiseKeysToDelete) {
-          redirectUrl.searchParams.delete(key);
+        const canonicalPath = `/apartment/${encodeURIComponent(canonicalSlug)}`;
+
+        const noiseKeysToDelete: string[] = [];
+        for (const key of Array.from(request.nextUrl.searchParams.keys())) {
+          if ((NOISE_APARTMENT_QUERY_PARAMS as readonly string[]).includes(key.toLowerCase())) {
+            noiseKeysToDelete.push(key);
+          }
         }
-        return NextResponse.redirect(redirectUrl, 308);
+
+        if (pathname !== canonicalPath || noiseKeysToDelete.length > 0) {
+          const redirectUrl = request.nextUrl.clone();
+          redirectUrl.pathname = canonicalPath;
+          for (const key of noiseKeysToDelete) {
+            redirectUrl.searchParams.delete(key);
+          }
+          return NextResponse.redirect(redirectUrl, 308);
+        }
       }
     }
   }
@@ -264,14 +272,13 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// 미들웨어 구동 범위: 동적 리다이렉트(/?tab=imjang, /apartment/:path*) 및 API 보호(/api/:path*)에만 한정하여 정적/ISR 페이지의 불필요한 Fluid CPU 실행 원천 차단
+// 미들웨어 구동 범위: /apartment/:path* 매처를 제거하여 정적 ISR 상세 페이지 조회 시 불필요한 Node.js 프록시 Fluid CPU 기동을 원천 차단
 export const config = {
   matcher: [
     {
       source: '/',
       has: [{ type: 'query', key: 'tab', value: 'imjang' }],
     },
-    '/apartment/:path*',
-    '/api/:path*',
+    '/api/bypass-notice',
   ],
 };

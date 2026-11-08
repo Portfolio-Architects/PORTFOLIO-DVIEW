@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
 
     return apiSuccess(list, undefined, {
       headers: {
-        'Cache-Control': 'public, max-age=300, stale-while-revalidate=60',
+        'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400',
       },
     });
   } catch (err) {

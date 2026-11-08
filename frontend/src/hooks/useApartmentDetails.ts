@@ -288,6 +288,13 @@ export function useApartmentDetails(
 
       const trackView = () => {
         if (unmounted || activeRequestIdRef.current !== currentRequestId) return;
+        if (
+          typeof navigator !== 'undefined' &&
+          (navigator.webdriver ||
+            /bot|crawl|spider|slurp|mediapartners|lighthouse/i.test(navigator.userAgent || ''))
+        ) {
+          return;
+        }
         apiClient
           .post(
             '/api/report-view',

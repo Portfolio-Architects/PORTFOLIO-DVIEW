@@ -1,10 +1,24 @@
 import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { Building2, Landmark, FileSpreadsheet, CheckCircle2, ArrowRight } from 'lucide-react';
+import {
+  Building2,
+  Landmark,
+  FileSpreadsheet,
+  CheckCircle2,
+  ArrowRight,
+  ArrowUpRight,
+} from 'lucide-react';
 import TechnoValleyClient from './TechnoValleyClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
+import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import {
+  TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS,
+  TOP_ACQUISITION_ENTRY_ROUTES,
+  buildGuideAptMiniPreview,
+  type GuideAptMiniPreviewItem,
+} from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import {
   getTechnoValleyJisanList,
@@ -21,6 +35,7 @@ import {
   type JisanOfficeTransactionItem,
 } from '@/lib/services/apartmentPageService';
 
+export const dynamic = 'force-static';
 export const revalidate = 86400;
 
 export interface TechnoValleyPageProps {
@@ -28,22 +43,28 @@ export interface TechnoValleyPageProps {
   initialTransactions?: JisanOfficeTransactionItem[];
 }
 
+async function resolveStaticSafeSearchParams(
+  props?: TechnoValleyPageProps
+): Promise<Record<string, string | string[] | undefined> | undefined> {
+  if (!props || process.env.NODE_ENV !== 'test') return undefined;
+  if (!props.searchParams) return undefined;
+  try {
+    return await props.searchParams;
+  } catch {
+    return undefined;
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata>;
 export async function generateMetadata(props: TechnoValleyPageProps): Promise<Metadata>;
-export async function generateMetadata(props?: TechnoValleyPageProps): Promise<Metadata> {
+export async function generateMetadata(...args: [TechnoValleyPageProps?]): Promise<Metadata> {
+  const props = args[0];
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   try {
-    const resolvedSearchParams = props?.searchParams ? await props.searchParams : undefined;
+    const resolvedSearchParams = await resolveStaticSafeSearchParams(props);
     const jisanList = await getTechnoValleyJisanList();
     return buildTechnoValleySeoMetadata(jisanList, resolvedSearchParams?.jisan, baseUrl);
-  } catch (err) {
-    if (
-      err &&
-      typeof err === 'object' &&
-      ('digest' in err || (err as Error).message?.includes('Dynamic server usage'))
-    ) {
-      throw err;
-    }
+  } catch {
     return buildTechnoValleySeoMetadata([], undefined, baseUrl);
   }
 }
@@ -53,10 +74,11 @@ export default async function TechnoValleyPage(
   props: TechnoValleyPageProps
 ): Promise<React.JSX.Element>;
 export default async function TechnoValleyPage(
-  props?: TechnoValleyPageProps
+  ...args: [TechnoValleyPageProps?]
 ): Promise<React.JSX.Element> {
+  const props = args[0];
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
-  const resolvedSearchParams = props?.searchParams ? await props.searchParams : undefined;
+  const resolvedSearchParams = await resolveStaticSafeSearchParams(props);
   const jisanList = await getTechnoValleyJisanList();
   const selectedJisan = resolveTechnoValleyJisan(jisanList, resolvedSearchParams?.jisan);
   const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl, selectedJisan);
@@ -93,6 +115,11 @@ export default async function TechnoValleyPage(
     const num = typeof item.unitCount === 'number' ? item.unitCount : parseInt(String(item.unitCount || '0'), 10);
     return acc + (Number.isFinite(num) && num > 0 ? num : 0);
   }, 0);
+
+  const commuterAptPreviewItems: GuideAptMiniPreviewItem[] =
+    TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS.map((aptName) => buildGuideAptMiniPreview(aptName)).filter(
+      (item): item is GuideAptMiniPreviewItem => item !== null
+    );
 
   return (
     <div className="min-h-screen bg-body font-sans pb-20">
@@ -238,7 +265,8 @@ export default async function TechnoValleyPage(
       {/* Interactive TechnoValley Client Dashboard */}
       <TechnoValleyClient
         selectedJisan={selectedJisan}
-        initialTransactions={matchedTransactions}
+        jisanList={jisanList}
+        initialTransactions={selectedJisan ? matchedTransactions : undefined}
         hideHeader={true}
       />
 
@@ -266,6 +294,62 @@ export default async function TechnoValleyPage(
             <p className="mt-3 text-secondary text-[14px] sm:text-[15.5px] leading-relaxed max-w-[960px] font-medium">
               수도권 남부 최대 첨단 클러스터인 동탄테크노밸리 내 {jisanList.length}개 지식산업센터(준공·완료 {completedCount}개소, 총 집계 호실 {totalUnitsSum.toLocaleString('ko-KR')}실)의 건축 스펙과 법인 사옥 이전 시 적용되는 취득세·재산세·법인세 감면 및 중소기업 정책자금 금융 조건을 실증 분석합니다.
             </p>
+          </div>
+
+          {/* SEO Guide Format Top Conversion Slot: Key Takeaways & Top 3 Inflow Hub Links */}
+          <div
+            data-testid="technovalley-seo-guide-top-slot"
+            className="rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.04] dark:bg-emerald-950/20 p-5 sm:p-6 space-y-4"
+          >
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
+                <span>테크노밸리 기업 이전 · 직주근접 핵심 결론 요약 (Key Takeaways)</span>
+              </div>
+              <Link
+                href="/guide/dongtan-technovalley-corporate-relocation-tax"
+                prefetch={false}
+                data-testid="technovalley-top-guide-cta"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors shadow-2xs shrink-0"
+              >
+                <span>기업 이전 세제·배후 주거 심층 가이드 읽기</span>
+                <ArrowUpRight size={13} />
+              </Link>
+            </div>
+
+            <ul className="space-y-2 text-[13px] sm:text-[14px] text-secondary font-medium pl-5 list-disc">
+              <li className="leading-relaxed">
+                화성 동탄테크노밸리는 수도권 성장관리권역으로 과밀억제권역(서울·판교·수원) 대비 취득세 중과 배제 및 적격 업종 최초 분양 시 취득세·재산세 35% 감면 혜택이 적용됩니다.
+              </li>
+              <li className="leading-relaxed">
+                56개 지식산업센터 클러스터와 직결되는 영천동·청계동(동탄역센트럴자이A-10·동탄역푸르지오·더샵센트럴시티) 및 산척동 에듀타운(동탄더샵레이크에듀타운)은 임직원 실거주 만족도가 가장 높은 배후 단지입니다.
+              </li>
+              <li className="leading-relaxed">
+                하단 단지 프리뷰 카드를 통해 국토교통부 최신 매매·전세 실거래가와 전세가율, 스트레스 DSR 40% 대출 한도 리포트를 즉시 교차 검증할 수 있습니다.
+              </li>
+            </ul>
+
+            <div className="pt-3 border-t border-emerald-500/20 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              {TOP_ACQUISITION_ENTRY_ROUTES.map((entry) => (
+                <Link
+                  key={entry.id}
+                  href={entry.href}
+                  prefetch={false}
+                  data-testid={`technovalley-top-hub-link-${entry.id}`}
+                  className="rounded-xl bg-surface border border-border/70 hover:border-emerald-500/50 p-3 flex flex-col justify-between gap-1 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-1.5">
+                    <span className="text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                      {entry.badge}
+                    </span>
+                    <ArrowUpRight size={12} className="text-tertiary shrink-0" />
+                  </div>
+                  <p className="text-xs font-extrabold text-primary line-clamp-1">{entry.title}</p>
+                  <p className="text-[11px] text-secondary font-medium line-clamp-1">
+                    {entry.subtitle}
+                  </p>
+                </Link>
+              ))}
+            </div>
           </div>
 
           {/* Section 1: Corporate Tax Benefits & Policy Finance Table */}
@@ -354,6 +438,73 @@ export default async function TechnoValleyPage(
                 cpaCampaignId="corporate-relocation"
                 apartmentName="동탄테크노밸리"
               />
+            </div>
+          )}
+
+          {/* SEO Guide Format Mid Conversion Slot: Commuter & High-Dwell Residential Apartment Previews */}
+          {commuterAptPreviewItems.length > 0 && (
+            <div
+              id="technovalley-commuter-apt-preview-section"
+              data-testid="technovalley-commuter-apt-preview-section"
+              className="rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-slate-50/90 dark:bg-slate-900/75 p-5 sm:p-6 space-y-4"
+            >
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div>
+                  <h2 className="text-base sm:text-lg font-extrabold text-primary flex items-center gap-2">
+                    <Building2 size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>동탄테크노밸리 직주근접 배후 단지 &amp; 실수요 체류 1위 대장주 실거래 프리뷰</span>
+                  </h2>
+                  <p className="mt-1 text-xs sm:text-[13px] text-secondary font-medium">
+                    기업 임직원 사택·직주근접 선호도가 높은 영천동·청계동 단지와 평균 15분 심층 체류가 검증된 핵심 대장 단지의 국토교통부 실시간 실거래가 카드입니다.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                  <Link
+                    href="/guide/dongtan-1-vs-2-comparison"
+                    prefetch={false}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors"
+                  >
+                    <span>1동탄 vs 2동탄 비교 (구글 1위)</span>
+                    <ArrowUpRight size={12} />
+                  </Link>
+                  <Link
+                    href="/guide/dongtan-indeogwon-line-station-impact-analysis"
+                    prefetch={false}
+                    className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors"
+                  >
+                    <span>동인선 수혜 단지 분석</span>
+                    <ArrowUpRight size={12} />
+                  </Link>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                {commuterAptPreviewItems.map((item) => (
+                  <GuideAptPreviewCard
+                    key={`technovalley-commuter-${item.canonicalSlug}`}
+                    item={item}
+                    guideSlug="technovalley"
+                    placement="zone_section"
+                    sectionTitle="동탄테크노밸리 직주근접 배후 단지 실거래 프리뷰"
+                  />
+                ))}
+              </div>
+
+              {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                <div
+                  data-testid="technovalley-b2b-adslot-mid"
+                  className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+                >
+                  <AdSlot
+                    refreshSlotId="1000000002_technovalley_mid_commuter"
+                    format="rectangle"
+                    minHeightClass="min-h-[250px]"
+                    cpaCampaignId="mortgage-refinance"
+                    apartmentName={commuterAptPreviewItems[0]?.canonicalSlug || '동탄테크노밸리'}
+                    dong={commuterAptPreviewItems[0]?.dong}
+                  />
+                </div>
+              )}
             </div>
           )}
 

@@ -985,8 +985,9 @@ export function recommendDviewSeoAction(
       if (isComparisonQuery) {
         return resolveBestGuideForApartments(qNorm, qLower, [bestAptMatch]);
       }
+      const canonicalAptSlug = resolveCanonicalAptSlug(bestAptMatch) || bestAptMatch;
       return {
-        targetRoute: `/apartment/${bestAptMatch}`,
+        targetRoute: `/apartment/${canonicalAptSlug}`,
         recommendedAction: `'${bestAptMatch}' 메타 타이틀에 국토부 최신 실거래가·전세가율·대표 평형을 명시하고 띄어쓰기 검색어 변형을 흡수`,
       };
     }

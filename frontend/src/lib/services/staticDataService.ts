@@ -102,7 +102,7 @@ export function parsePeriodTransactions(data: unknown): RecentTransaction[] {
     // Pre-resolve field indices once outside the loop to eliminate all closure allocations
     const isStandard13 =
       Array.isArray(fields) &&
-      fields.length === 13 &&
+      (fields.length === 13 || fields.length === 14) &&
       fields[0] === 'aptName' &&
       fields[9] === 'dealType';
 
@@ -145,7 +145,11 @@ export function parsePeriodTransactions(data: unknown): RecentTransaction[] {
         ...(deltaIdx >= 0 ? { delta: r[deltaIdx] as number } : {}),
         ...(deltaPercentIdx >= 0 ? { deltaPercent: r[deltaPercentIdx] as number } : {}),
         ...(registeredDateIdx >= 0 && r[registeredDateIdx] ? { registeredDate: String(r[registeredDateIdx]) } : {}),
-        ...(registeredDateLabelIdx >= 0 && r[registeredDateLabelIdx] ? { registeredDateLabel: String(r[registeredDateLabelIdx]) } : {}),
+        ...(registeredDateLabelIdx >= 0 && r[registeredDateLabelIdx]
+          ? { registeredDateLabel: String(r[registeredDateLabelIdx]) }
+          : registeredDateIdx >= 0 && r[registeredDateIdx] && String(r[registeredDateIdx]).length === 8
+            ? { registeredDateLabel: `${String(r[registeredDateIdx]).slice(4, 6)}.${String(r[registeredDateIdx]).slice(6, 8)}` }
+            : {}),
       };
     }
     return result;
@@ -507,6 +511,7 @@ export const staticDataService = {
     signal?: AbortSignal
   ): Promise<RecentTransaction[]> {
     const periodFileMap: Record<TimelinePeriod, string> = {
+      '1d': `/data/recent-transactions.json?v=${buildVersion}`,
       '7d': `/data/recent-transactions.json?v=${buildVersion}`,
       '30d': `/data/recent-transactions.json?v=${buildVersion}`,
       '90d': `/data/recent-transactions.json?v=${buildVersion}`,
@@ -530,6 +535,7 @@ export const staticDataService = {
         return ['tx-2026.json', 'tx-2025.json', 'tx-2024.json'];
       case 'all':
         return ['tx-2026.json', 'tx-2025.json', 'tx-2024.json', 'tx-historical.json'];
+      case '1d':
       case '7d':
       case '30d':
       case '90d':
@@ -568,7 +574,7 @@ export const staticDataService = {
     buildVersion: string = BUILD_VERSION,
     signal?: AbortSignal
   ): Promise<RecentTransaction[]> {
-    if (period === '7d' || period === '30d' || period === '90d') {
+    if (period === '1d' || period === '7d' || period === '30d' || period === '90d') {
       return this.fetchPeriodTransactions(period, buildVersion, signal);
     }
     const chunkFiles = this.resolveYearlyChunkFiles(period);

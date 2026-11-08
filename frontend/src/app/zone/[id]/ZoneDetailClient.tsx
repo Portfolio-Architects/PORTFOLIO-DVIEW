@@ -23,6 +23,7 @@ import {
   resolveCanonicalAptSlug,
   stripApartmentNoiseQueryParams,
 } from '@/lib/utils/apartmentMapping';
+import { trackApartmentView } from '@/lib/utils/analytics';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
@@ -111,6 +112,15 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     const canonicalSlug =
       resolveCanonicalAptSlug(report.apartmentName, { dong: report.dong }) ||
       report.apartmentName;
+    trackApartmentView({
+      apartment_name: report.apartmentName,
+      apt_name: report.apartmentName,
+      canonical_slug: canonicalSlug,
+      dong: report.dong || undefined,
+      zone: zoneId || undefined,
+      surface: 'zone_detail',
+      view_type: 'modal',
+    });
     syncShallowApartmentOpen(report.apartmentName, {
       dong: report.dong,
       canonicalSlug,
@@ -132,6 +142,15 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
       returnZonePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
     }
     const canonicalSlug = resolveCanonicalAptSlug(aptName, { dong }) || aptName;
+    trackApartmentView({
+      apartment_name: aptName,
+      apt_name: aptName,
+      canonical_slug: canonicalSlug,
+      dong: dong || undefined,
+      zone: zoneId || undefined,
+      surface: 'zone_detail',
+      view_type: 'modal',
+    });
     syncShallowApartmentOpen(aptName, {
       dong,
       canonicalSlug,

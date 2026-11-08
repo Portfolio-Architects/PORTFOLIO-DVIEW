@@ -50,29 +50,10 @@ jobs:
         run: echo "Skipped data synchronization during standard push events. This job safely exists to satisfy branch protection rules without duplicate api calls."
 
       # Step 1: 국토부 API → Firestore (평일 2개월 증분, 일요일 4개월 딥 싱크)
+      # Note: Direct runner sync replaces pre-loop curl to /api/cron/sync-transactions?ym=${YM}&skipDeploy=1 to prevent duplicate Vercel Fluid CPU execution
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
         run: |
-          API_KEY_RESOLVED="${BUILDING_API_KEY:-4611c02045e69b5e6c0bf50b9ecbee6de92e7ee0351eb8a7d529253340f755ff}"
-          CRON_SECRET_RESOLVED="${CRON_SECRET:-dview-default-cron-secret-2026}"
-
-          # [버그 수정] date -u 사용 금지: Asia/Seoul 기준 요일 및 월 계산
-          DAY_OF_WEEK=$(date +%u)
-          OFFSETS="0 1"
-          if [ "$DAY_OF_WEEK" -eq "7" ]; then
-            OFFSETS="0 1 2 3" # 주간 4개월 심층 동기화 (M, M-1, M-2, M-3)
-          fi
-
-          for OFFSET in $OFFSETS; do
-            YM=$(date -d "$(date +%Y-%m-01) -${OFFSET} month" +%Y%m 2>/dev/null || date +%Y%m)
-            echo "📡 Vercel icn1 크론 릴레이 동기화 트리거 (${YM})..."
-            curl -sS -m 55 \
-              -H "Authorization: Bearer ${CRON_SECRET_RESOLVED}" \
-              -H "x-building-api-key: ${API_KEY_RESOLVED}" \
-              "${VERCEL_APP_URL:-https://dongtanview.com}/api/cron/sync-transactions?ym=${YM}&skipDeploy=1" || echo "⚠️ Vercel 크론 호출 실패, Node 스크립트로 계속 진행"
-            echo ""
-          done
-
           node scripts/fetch-transactions.js || echo "⚠️ fetch-transactions.js 경고 발생; 후속 작업 지속"
           node scripts/fetch-rent.js || echo "⚠️ fetch-rent.js 경고 발생; 후속 작업 지속"
         env:

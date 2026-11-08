@@ -1115,19 +1115,51 @@ export function resolveCanonicalAptSlug(
 
   // 0. Explicit manualMapping override takes absolute precedence
   if (manualMapping) {
-    const directManual =
+    let directManual =
       manualMapping[decoded] ||
       (normDecoded ? manualMapping[normDecoded] : undefined) ||
       (sanDecoded ? manualMapping[sanDecoded] : undefined);
+    if (!directManual && (normDecoded || sanDecoded)) {
+      for (const [k, v] of Object.entries(manualMapping)) {
+        if (
+          v &&
+          ((normDecoded && normalizeAptName(k) === normDecoded) ||
+            (sanDecoded && sanitizeAptKey(k) === sanDecoded))
+        ) {
+          directManual = v;
+          break;
+        }
+      }
+    }
     if (directManual) {
       const sanManual = sanitizeAptKey(directManual) || directManual;
-      if (Object.prototype.hasOwnProperty.call(effectiveTxMap, directManual)) {
+      const normManual = normalizeAptName(directManual);
+      const mappedManual =
+        HARDCODED_MAPPING[sanManual] ||
+        (normManual ? HARDCODED_MAPPING[normManual] : undefined) ||
+        HARDCODED_MAPPING[directManual] ||
+        sanManual;
+      if (Object.prototype.hasOwnProperty.call(effectiveTxMap, mappedManual)) {
+        return cacheAndReturn(mappedManual);
+      }
+      if (
+        !/\s/.test(directManual) &&
+        Object.prototype.hasOwnProperty.call(effectiveTxMap, directManual)
+      ) {
         return cacheAndReturn(directManual);
       }
       if (Object.prototype.hasOwnProperty.call(effectiveTxMap, sanManual)) {
         return cacheAndReturn(sanManual);
       }
-      return cacheAndReturn(sanManual);
+      const resolvedManual = resolveCanonicalAptSlug(directManual, {
+        txMap: options?.txMap,
+        sheetApartments: options?.sheetApartments,
+        dong: options?.dong,
+      });
+      if (resolvedManual && resolvedManual !== directManual && !/\s/.test(resolvedManual)) {
+        return cacheAndReturn(resolvedManual);
+      }
+      return cacheAndReturn(mappedManual);
     }
     if (
       !/\s/.test(decoded) &&

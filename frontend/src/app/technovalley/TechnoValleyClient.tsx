@@ -186,21 +186,74 @@ function filterTransactionsForJisan(
 
 export interface TechnoValleyClientProps {
   selectedJisan?: TechnoValleyJisan | null;
+  jisanList?: readonly TechnoValleyJisan[];
   initialTransactions?: JisanOfficeTransactionItem[];
   hideHeader?: boolean;
 }
 
 const EMPTY_TRANSACTIONS: JisanOfficeTransactionItem[] = [];
 
+function resolveClientQueryJisan(
+  jisanList: readonly TechnoValleyJisan[] | undefined,
+  rawQuery: string | null | undefined
+): TechnoValleyJisan | null {
+  if (!jisanList || jisanList.length === 0 || !rawQuery) return null;
+  const trimmed = rawQuery.trim();
+  if (!trimmed || trimmed.length > 100 || /[<>"'`()]|javascript:|onerror=/i.test(trimmed)) {
+    return null;
+  }
+  const targetSlug = formatClientJisanSlug(trimmed).toLowerCase();
+  const targetCore = normalizeClientCoreKey(trimmed);
+  for (const item of jisanList) {
+    if (!item?.name) continue;
+    if (
+      item.name.trim().toLowerCase() === trimmed.toLowerCase() ||
+      formatClientJisanSlug(item.name).toLowerCase() === targetSlug ||
+      (targetCore.length >= 2 && normalizeClientCoreKey(item.name) === targetCore)
+    ) {
+      return item;
+    }
+  }
+  return null;
+}
+
 export default function TechnoValleyClient({
   selectedJisan,
-  initialTransactions = EMPTY_TRANSACTIONS,
+  jisanList,
+  initialTransactions,
   hideHeader = false,
 }: TechnoValleyClientProps = {}) {
+  const [clientQueryJisan, setClientQueryJisan] = useState<TechnoValleyJisan | null>(() => {
+    if (selectedJisan || typeof window === 'undefined' || !jisanList?.length) return null;
+    try {
+      const param = new URLSearchParams(window.location.search).get('jisan');
+      return resolveClientQueryJisan(jisanList, param);
+    } catch {
+      return null;
+    }
+  });
+
+  useEffect(() => {
+    if (selectedJisan) {
+      setClientQueryJisan(null);
+      return;
+    }
+    if (typeof window === 'undefined' || !jisanList?.length) return;
+    try {
+      const param = new URLSearchParams(window.location.search).get('jisan');
+      setClientQueryJisan(resolveClientQueryJisan(jisanList, param));
+    } catch {
+      setClientQueryJisan(null);
+    }
+  }, [selectedJisan, jisanList]);
+
+  const effectiveSelectedJisan = selectedJisan ?? clientQueryJisan ?? null;
+  const hasServerInitialTransactions = initialTransactions !== undefined;
+  const resolvedInitialTransactions = initialTransactions ?? EMPTY_TRANSACTIONS;
   const [fetchedTxs, setFetchedTxs] = useState<JisanOfficeTransactionItem[]>(EMPTY_TRANSACTIONS);
 
   useEffect(() => {
-    if (!selectedJisan || (initialTransactions && initialTransactions.length > 0)) {
+    if (!effectiveSelectedJisan || hasServerInitialTransactions) {
       setFetchedTxs((prev) => (prev.length === 0 ? prev : EMPTY_TRANSACTIONS));
       return;
     }
@@ -223,7 +276,7 @@ export default function TechnoValleyClient({
             : Array.isArray(payload.data)
               ? payload.data
               : [];
-          setFetchedTxs(filterTransactionsForJisan(selectedJisan, rawList));
+          setFetchedTxs(filterTransactionsForJisan(effectiveSelectedJisan, rawList));
         }
       )
       .catch(() => {
@@ -233,33 +286,37 @@ export default function TechnoValleyClient({
     return () => {
       active = false;
     };
-  }, [selectedJisan, initialTransactions]);
+  }, [effectiveSelectedJisan, hasServerInitialTransactions]);
 
   const matchedTxs = useMemo(() => {
-    if (initialTransactions && initialTransactions.length > 0) {
-      return filterTransactionsForJisan(selectedJisan, initialTransactions);
+    if (hasServerInitialTransactions) {
+      return filterTransactionsForJisan(effectiveSelectedJisan, resolvedInitialTransactions);
     }
     return fetchedTxs;
-  }, [selectedJisan, initialTransactions, fetchedTxs]);
+  }, [effectiveSelectedJisan, hasServerInitialTransactions, resolvedInitialTransactions, fetchedTxs]);
 
   const latestSaleTx = matchedTxs.length > 0 ? matchedTxs[0] : null;
   const benchmarkPriceManwon =
     latestSaleTx?.priceRaw && latestSaleTx.priceRaw > 0 ? latestSaleTx.priceRaw : 30000;
   const savedTaxManwon = Math.round(Math.round(benchmarkPriceManwon * 0.046) * 0.35);
 
-  const selectedLabel = selectedJisan ? formatCenterDisplayLabel(selectedJisan.name) : null;
-  const selectedSlug = selectedJisan ? formatClientJisanSlug(selectedJisan.name) : '';
-  const totalAreaNum = parsePositiveNum(selectedJisan?.totalFloorArea);
-  const unitNum = Math.floor(parsePositiveNum(selectedJisan?.unitCount));
+  const selectedLabel = effectiveSelectedJisan
+    ? formatCenterDisplayLabel(effectiveSelectedJisan.name)
+    : null;
+  const selectedSlug = effectiveSelectedJisan
+    ? formatClientJisanSlug(effectiveSelectedJisan.name)
+    : '';
+  const totalAreaNum = parsePositiveNum(effectiveSelectedJisan?.totalFloorArea);
+  const unitNum = Math.floor(parsePositiveNum(effectiveSelectedJisan?.unitCount));
   const industryLabel =
-    selectedJisan?.representativeBusiness?.trim() || '제조·지식·정보통신(IT)';
+    effectiveSelectedJisan?.representativeBusiness?.trim() || '제조·지식·정보통신(IT)';
   const addressLabel =
-    selectedJisan?.roadAddress?.trim() ||
-    selectedJisan?.jibunAddress?.trim() ||
+    effectiveSelectedJisan?.roadAddress?.trim() ||
+    effectiveSelectedJisan?.jibunAddress?.trim() ||
     '경기도 화성시 동탄테크노밸리';
 
   const heroSubtitleStrong = selectedLabel || '동탄테크노밸리 지식산업센터 56곳';
-  const heroSubtitleLight = selectedJisan
+  const heroSubtitleLight = effectiveSelectedJisan
     ? [
         totalAreaNum > 0 ? `연면적 ${formatHeroAreaM2(totalAreaNum)}` : null,
         unitNum > 0 ? `${unitNum.toLocaleString('ko-KR')}실` : null,
@@ -285,7 +342,7 @@ export default function TechnoValleyClient({
         />
 
         <div className="max-w-[2000px] mx-auto w-full max-w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 overflow-x-hidden min-w-0">
-          {selectedJisan && selectedLabel && (
+          {effectiveSelectedJisan && selectedLabel && (
             <section
               id="technovalley-selected-jisan-hero-banner"
               aria-label={`${selectedLabel} 실거래가·핵심 건축 스펙 및 취득세 감면 요약`}
@@ -297,7 +354,7 @@ export default function TechnoValleyClient({
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
                       <Building2 size={12} className="shrink-0" />
                       <span>
-                        선택 센터 요약 · {selectedJisan.buildingStatus || selectedJisan.status || '승인'}
+                        선택 센터 요약 · {effectiveSelectedJisan.buildingStatus || effectiveSelectedJisan.status || '승인'}
                       </span>
                     </span>
                     <span className="inline-flex items-center gap-1 text-[12px] text-secondary font-medium truncate">
@@ -341,19 +398,19 @@ export default function TechnoValleyClient({
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
                   <dt className="text-[11px] font-semibold text-tertiary">연면적 / 대지면적</dt>
                   <dd className="mt-0.5 font-extrabold text-primary">
-                    {formatHeroAreaM2(selectedJisan.totalFloorArea)} / {formatHeroAreaM2(selectedJisan.landArea)}
+                    {formatHeroAreaM2(effectiveSelectedJisan.totalFloorArea)} / {formatHeroAreaM2(effectiveSelectedJisan.landArea)}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
                   <dt className="text-[11px] font-semibold text-tertiary">산업시설 / 지원시설</dt>
                   <dd className="mt-0.5 font-bold text-primary">
-                    {formatHeroAreaM2(selectedJisan.factoryArea)} / {formatHeroAreaM2(selectedJisan.auxiliaryArea)}
+                    {formatHeroAreaM2(effectiveSelectedJisan.factoryArea)} / {formatHeroAreaM2(effectiveSelectedJisan.auxiliaryArea)}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
                   <dt className="text-[11px] font-semibold text-tertiary">집계 호실수 · 분양유형</dt>
                   <dd className="mt-0.5 font-bold text-primary">
-                    {formatHeroUnits(selectedJisan.unitCount)} · {selectedJisan.saleType || '분양'}
+                    {formatHeroUnits(effectiveSelectedJisan.unitCount)} · {effectiveSelectedJisan.saleType || '분양'}
                   </dd>
                 </div>
                 <div className="rounded-xl border border-border/60 bg-body px-3.5 py-2.5">
@@ -388,8 +445,8 @@ export default function TechnoValleyClient({
                     </div>
                   ) : (
                     <div className="pt-0.5 text-secondary font-medium">
-                      등록된 실거래 내역이 없습니다. ({selectedJisan.buildingStatus || '승인'} ·{' '}
-                      {selectedJisan.saleType || '분양'})
+                      등록된 실거래 내역이 없습니다. ({effectiveSelectedJisan.buildingStatus || '승인'} ·{' '}
+                      {effectiveSelectedJisan.saleType || '분양'})
                     </div>
                   )}
                 </div>

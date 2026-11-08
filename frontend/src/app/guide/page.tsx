@@ -1,15 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { ArrowUpRight } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
-import { GUIDE_ARTICLES, buildGuideAptMiniPreview } from '@/lib/data/guides';
+import {
+  GUIDE_ARTICLES,
+  TOP_ACQUISITION_ENTRY_ROUTES,
+  HIGH_CONVERSION_FLAGSHIP_APARTMENTS,
+  buildGuideAptMiniPreview,
+} from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
+import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
 
 const GUIDE_HUB_OG_IMAGE =
   'https://dongtanview.com/api/og?title=' +
@@ -123,6 +130,8 @@ export default function GuideIndexPage() {
     })),
   };
 
+  const lakeEduPreview = buildGuideAptMiniPreview('동탄더샵레이크에듀타운');
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
       <script
@@ -182,6 +191,78 @@ export default function GuideIndexPage() {
             placement="guide_index_top"
             compact
           />
+
+          {/* Top Inflow Guides & High-Dwell Apartment Conversion Slot */}
+          <section
+            data-testid="guide-index-top-conversion-hub"
+            aria-label="유입 상위 가이드 및 실거래 체류 상위 대장 단지"
+            className="w-full p-4 sm:p-5 rounded-2xl bg-surface border border-border/80 shadow-2xs space-y-4"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-extrabold bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                  신규 유입 TOP 3 · 고전환 단지 허브
+                </span>
+                <h2 className="text-sm sm:text-base font-extrabold text-primary">
+                  구글·ChatGPT 유입 1위 핵심 가이드 & 체류 상위 대장 단지 프리뷰
+                </h2>
+              </div>
+              <Link
+                href={
+                  lakeEduPreview?.href ||
+                  `/apartment/${encodeURIComponent('동탄더샵레이크에듀타운')}`
+                }
+                data-testid="guide-index-lake-edutown-spotlight"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0 tabular-nums"
+              >
+                <span>
+                  {`동탄더샵레이크에듀타운 (평균 15분 체류${
+                    lakeEduPreview?.latestPriceStr ? ` · ${lakeEduPreview.latestPriceStr}` : ''
+                  })`}
+                </span>
+                <ArrowUpRight size={13} className="shrink-0" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              {TOP_ACQUISITION_ENTRY_ROUTES.map((route) => (
+                <Link
+                  key={`guide-hub-route-${route.id}`}
+                  href={route.href}
+                  className="p-3.5 rounded-xl bg-body hover:bg-emerald-500/5 border border-border/60 hover:border-emerald-500/40 transition-colors flex flex-col justify-between gap-1.5"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20">
+                      {route.badge}
+                    </span>
+                    <ArrowUpRight size={13} className="text-slate-400 shrink-0" />
+                  </div>
+                  <p className="text-xs sm:text-[13px] font-extrabold text-primary line-clamp-1">
+                    {route.title}
+                  </p>
+                  <p className="text-[11px] text-secondary line-clamp-1">
+                    {route.subtitle}
+                  </p>
+                </Link>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
+              {HIGH_CONVERSION_FLAGSHIP_APARTMENTS.map((aptName) => {
+                const previewItem = buildGuideAptMiniPreview(aptName);
+                if (!previewItem) return null;
+                return (
+                  <GuideAptPreviewCard
+                    key={`guide-hub-flagship-${previewItem.canonicalSlug}`}
+                    item={previewItem}
+                    guideSlug="guide-index"
+                    placement="article_top"
+                    sectionTitle="가이드 허브 고전환 핵심 대장 단지"
+                  />
+                );
+              })}
+            </div>
+          </section>
 
           {/* Top In-Feed Zero-CLS AdSlot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (

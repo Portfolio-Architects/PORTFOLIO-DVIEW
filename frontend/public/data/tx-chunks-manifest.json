@@ -9,7 +9,7 @@
         2026
       ],
       "count": 7388,
-      "sizeBytes": 1097388
+      "sizeBytes": 1100298
     },
     {
       "key": "2025",
@@ -18,7 +18,7 @@
         2025
       ],
       "count": 6590,
-      "sizeBytes": 1005057
+      "sizeBytes": 1005074
     },
     {
       "key": "2024",
@@ -27,7 +27,7 @@
         2024
       ],
       "count": 4349,
-      "sizeBytes": 659868
+      "sizeBytes": 659885
     },
     {
       "key": "historical",
@@ -37,7 +37,7 @@
         2023
       ],
       "count": 47868,
-      "sizeBytes": 6770067
+      "sizeBytes": 6770084
     }
   ],
   "periodMap": {

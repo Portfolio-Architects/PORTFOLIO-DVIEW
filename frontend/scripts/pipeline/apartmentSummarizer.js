@@ -486,9 +486,10 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
       'dealType',
       'isNewHigh',
       'delta',
-      'deltaPercent'
+      'deltaPercent',
+      'registeredDate'
     ];
-    const data = filtered.map(t => [
+    const data = filtered.map(t => { const contractDate = t.contractDate || ''; const registeredDate = normalizeRegisteredDate(t.registeredDate || t.registrationDate, contractDate); const row = [
       t.aptName || '',
       sanitizeAptKey(t.txKey || t.aptName || ''),
       `${(t.contractYm || '').slice(4)}.${t.contractDay || ''}`,
@@ -502,7 +503,7 @@ function formatPeriodTransactions(allSaleTxs, period = '90d', now = new Date(), 
       t.isNewHigh ? 1 : 0,
       t.delta ? t.delta / 10000 : 0,
       t.deltaPercent || 0
-    ]);
+    ]; if (registeredDate && registeredDate !== contractDate) row.push(registeredDate); return row; });
     return { fields, data };
   }
 

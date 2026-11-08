@@ -2,10 +2,17 @@ import React from 'react';
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Building2, Landmark, FileSpreadsheet, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { Building2, Landmark, FileSpreadsheet, CheckCircle2, ArrowLeft, ArrowUpRight } from 'lucide-react';
 import TechnoValleyClient from '../TechnoValleyClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
+import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import {
+  TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS,
+  TOP_ACQUISITION_ENTRY_ROUTES,
+  buildGuideAptMiniPreview,
+  type GuideAptMiniPreviewItem,
+} from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import {
   getTechnoValleyJisanList,
@@ -91,6 +98,12 @@ export default async function TechnoValleyDetailPage(
   const taxBenefitSummary = buildJisanTaxBenefitSummary(selectedJisan, matchedTransactions);
 
   const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl, selectedJisan);
+  const commuterPreviewItems: GuideAptMiniPreviewItem[] = TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS.slice(
+    0,
+    4
+  )
+    .map((aptName) => buildGuideAptMiniPreview(aptName))
+    .filter((item): item is GuideAptMiniPreviewItem => item !== null);
 
   return (
     <div className="min-h-screen bg-body font-sans pb-20">
@@ -259,6 +272,60 @@ export default async function TechnoValleyDetailPage(
                   중소벤처기업진흥공단 및 경기도 중소기업 육성자금을 통해 분양가의 70%~80% 이내 저리 시설자금 대출을 활용할 수 있습니다.
                 </div>
               </div>
+            </div>
+          </div>
+
+          {/* High-Efficiency SEO Guide Format: Commuter Apartment Previews & Top Inflow Guides */}
+          <div
+            data-testid="technovalley-detail-commuter-preview-slot"
+            className="space-y-4 pt-6 border-t border-border/60"
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h2 className="text-base sm:text-lg font-extrabold text-primary flex items-center gap-2">
+                  <span>{selectedJisan.name} 직주근접 배후 대장 아파트 실거래 & 체류 상위 단지</span>
+                </h2>
+                <p className="text-xs sm:text-[13px] text-secondary mt-0.5">
+                  테크노밸리 출퇴근 10분권 영천동·반송동·송동 배후 주거 단지 84㎡ 국토부 실거래가 및 전세가율 비교
+                </p>
+              </div>
+              <Link
+                href="/guide/dongtan-1-vs-2-comparison"
+                className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0"
+              >
+                <span>동탄1 vs 동탄2 입지 비교 가이드</span>
+                <ArrowUpRight size={13} className="shrink-0" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {commuterPreviewItems.map((item) => (
+                <GuideAptPreviewCard
+                  key={`tv-detail-commuter-${item.canonicalSlug}`}
+                  item={item}
+                  guideSlug={`technovalley-${formatTechnoValleyJisanSlug(selectedJisan.name)}`}
+                  placement="zone_section"
+                  sectionTitle={`${selectedJisan.name} 직주근접 배후 대장 단지`}
+                />
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1">
+              {TOP_ACQUISITION_ENTRY_ROUTES.map((route) => (
+                <Link
+                  key={`tv-detail-route-${route.id}`}
+                  href={route.href}
+                  className="p-3 rounded-xl bg-body hover:bg-emerald-500/5 border border-border/60 hover:border-emerald-500/40 transition-colors flex flex-col justify-between gap-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-extrabold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                      {route.badge}
+                    </span>
+                    <ArrowUpRight size={13} className="text-slate-400 shrink-0" />
+                  </div>
+                  <p className="text-xs font-extrabold text-primary line-clamp-1">{route.title}</p>
+                </Link>
+              ))}
             </div>
           </div>
 

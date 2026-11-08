@@ -30,7 +30,7 @@ interface TxSummaryItem {
   avg1MRentDeposit?: number;
 }
 
-export const revalidate = 3600;
+export const revalidate = 86400;
 
 const HOME_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 아파트 시세·실거래가·집값 추이 그래프')}&subtitle=${encodeURIComponent('동탄 1·2신도시 184개 단지 국토부 실거래가·전세가율·학군 비교 | D-VIEW')}`;
 
