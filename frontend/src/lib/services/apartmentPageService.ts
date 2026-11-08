@@ -22,14 +22,18 @@ import {
   sanitizeAptKey,
 } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
+import { dongToZoneId } from '@/lib/zones';
 import {
   decodeAptName,
   formatPriceEok,
+  formatPriceDeltaManwon,
   getPyeongSummaries,
+  computeMolitLatestTradeSummary,
   calculatePriceAnalytics,
   generateAiBriefing,
   type PyeongSummary,
   type TransactionRecord,
+  type MolitLatestTradeSummary,
   type PriceAnalytics,
 } from '@/lib/utils/analyticsUtils';
 import {
@@ -48,12 +52,15 @@ import {
 export {
   decodeAptName,
   formatPriceEok,
+  formatPriceDeltaManwon,
   getPyeongSummaries,
+  computeMolitLatestTradeSummary,
   calculatePriceAnalytics,
   generateAiBriefing,
   resolveCanonicalAptSlug,
   type PyeongSummary,
   type TransactionRecord,
+  type MolitLatestTradeSummary,
   type PriceAnalytics,
 };
 
@@ -154,6 +161,48 @@ export async function getTechnoValleyJisanList(): Promise<TechnoValleyJisan[]> {
 
 export type { LocationScore };
 
+export interface ApartmentFaqContext {
+  aptSummary?: AptTxSummary;
+  pyeongSummaries?: PyeongSummary[];
+  locationScore?: LocationScore | null;
+  analytics?: PriceAnalytics;
+  txs?: TransactionRecord[];
+  tradeSummary?: MolitLatestTradeSummary;
+}
+
+export interface SimilarPerPyeongPeerItem {
+  name: string;
+  canonicalSlug: string;
+  dong: string;
+  perPyeongManwon: number;
+  perPyeongStr: string;
+  perPyeongDiffManwon: number;
+  latestPriceManwon: number;
+  latestPriceStr: string;
+  txCount: number;
+  isSameDong: boolean;
+}
+
+export interface SchoolZoneCompetitorPeerItem {
+  name: string;
+  canonicalSlug: string;
+  dong: string;
+  elementarySchool: string;
+  middleSchool?: string;
+  distanceToElementary?: number;
+  matchType: '동일 초등학교 배정' | '동일 중학교 학군' | '인접 학군 생활권';
+  perPyeongManwon: number;
+  perPyeongStr: string;
+  latestPriceManwon: number;
+  latestPriceStr: string;
+  txCount: number;
+}
+
+export interface ApartmentComparisonPeersResult {
+  sameZoneSimilarPerPyeongTop5: SimilarPerPyeongPeerItem[];
+  schoolZoneCompetitors: SchoolZoneCompetitorPeerItem[];
+}
+
 export interface MortgageSsrData {
   principalWon: number;
   jeonseDepositWon: number;
@@ -180,6 +229,7 @@ export interface ApartmentPageData {
   structuredImages: string[];
   analytics: PriceAnalytics;
   aiBriefing: string;
+  tradeSummary?: MolitLatestTradeSummary;
   mortgageSsr?: MortgageSsrData;
 }
 
@@ -205,6 +255,15 @@ export async function getApartmentsByDongData(): Promise<Record<string, DongApar
     return raw.byDong as Record<string, DongApartment[]>;
   }
   return raw as Record<string, DongApartment[]>;
+}
+
+/**
+ * 전체 단지 입지 점수 및 학군 데이터 (location-scores.json) 조회
+ */
+export async function getLocationScoresData(): Promise<Record<string, LocationScore>> {
+  const allScores = await readJsonFileCached<Record<string, LocationScore>>('public/data/location-scores.json', {});
+  if (!allScores || typeof allScores !== 'object') return {};
+  return allScores;
 }
 
 interface IndexedDongApartmentCatalog {
@@ -483,21 +542,20 @@ const STATIC_SHORTFALL_RATES = [0.05, 0.10, 0.15];
 export function buildMortgageSsrData(
   aptName: string,
   latestPriceManwon?: number,
-  latestDepositManwon?: number
+  latestDepositManwon?: number,
+  faqContext?: ApartmentFaqContext
 ): MortgageSsrData {
-  const rawPriceManwon =
-    typeof latestPriceManwon === 'number' && Number.isFinite(latestPriceManwon) && latestPriceManwon > 0
-      ? latestPriceManwon
-      : 50000; // 5억원 기본 기준값
+  const hasValidInputPrice =
+    typeof latestPriceManwon === 'number' && Number.isFinite(latestPriceManwon) && latestPriceManwon > 0;
+  const rawPriceManwon = hasValidInputPrice ? latestPriceManwon : 50000; // 5억원 기본 기준값
   const rawPriceWon = rawPriceManwon * 10000;
 
   // LTV 70% 기본 적용, 최소 1천만원 가드
   const principalWon = Math.max(10000000, Math.round(rawPriceWon * 0.70));
 
-  const rawDepositManwon =
-    typeof latestDepositManwon === 'number' && Number.isFinite(latestDepositManwon) && latestDepositManwon > 0
-      ? latestDepositManwon
-      : Math.round(rawPriceManwon * 0.60);
+  const hasValidInputDeposit =
+    typeof latestDepositManwon === 'number' && Number.isFinite(latestDepositManwon) && latestDepositManwon > 0;
+  const rawDepositManwon = hasValidInputDeposit ? latestDepositManwon : Math.round(rawPriceManwon * 0.60);
   const jeonseDepositWon = Math.max(10000000, rawDepositManwon * 10000);
 
   // 1. Amortization (30년 만기, 기본금리 4.0%)
@@ -536,25 +594,78 @@ export function buildMortgageSsrData(
     })
   );
 
-  // FAQ 리스트
+  // FAQ 리스트 (실수요 검색 의도 키워드 + 국토부 최신 거래 요약 + 주담대/DSR/역전세 통합)
   const ltvAmountEokStr = (Math.round((principalWon / 100000000) * 10) / 10).toLocaleString('ko-KR');
+  const tradeSummary =
+    faqContext?.tradeSummary ||
+    computeMolitLatestTradeSummary(
+      faqContext?.txs,
+      faqContext?.aptSummary,
+      faqContext?.pyeongSummaries || []
+    );
+
+  const hasSaleRecord = Boolean(tradeSummary.latestSalePriceStr || hasValidInputPrice);
+  const salePriceLabel =
+    tradeSummary.latestSalePriceStr ||
+    (hasValidInputPrice ? formatPriceEok(rawPriceManwon) : '실거래 집계 중');
+  const dealDateLabel = tradeSummary.latestDealDateStr
+    ? `최근 거래일 ${tradeSummary.latestDealDateStr} 기준 `
+    : '최근 거래일 집계 기준 ';
+  const perPyeongLabel = tradeSummary.perPyeongStr
+    ? `, 평당가는 약 ${tradeSummary.perPyeongStr}`
+    : ', 평당가는 실거래 집계 중';
+  const maxPriceLabel = tradeSummary.maxSalePriceStr
+    ? `, 최고가는 ${tradeSummary.maxSalePriceStr}`
+    : hasValidInputPrice
+      ? `, 최고가는 ${formatPriceEok(rawPriceManwon)}`
+      : ', 최고가는 집계 중';
+  const deltaLabel = tradeSummary.priceDeltaStr
+    ? `, 직전 대비 변동액은 ${tradeSummary.priceDeltaStr}`
+    : ', 직전 대비 변동액은 동일 평형 비교 거래 집계 중';
+
+  const ratioVal =
+    faqContext?.analytics?.ratioPercent &&
+    faqContext.analytics.ratioPercent > 0 &&
+    faqContext.analytics.ratioPercent <= 100
+      ? faqContext.analytics.ratioPercent
+      : hasValidInputPrice && hasValidInputDeposit
+        ? Math.min(100, Math.max(1, Math.round((rawDepositManwon / rawPriceManwon) * 100)))
+        : 60;
+  const depositLabel = formatPriceEok(Math.round(jeonseDepositWon / 10000));
+  const elemSchool = faqContext?.locationScore?.nearestSchoolNames?.elementary?.trim();
+  const elemDistMin =
+    faqContext?.locationScore?.distanceToElementary && faqContext.locationScore.distanceToElementary > 0
+      ? Math.max(1, Math.round(faqContext.locationScore.distanceToElementary / 70))
+      : null;
+  const schoolClause = elemSchool
+    ? `배정 초등학교는 ${elemSchool}${elemDistMin ? `(도보 약 ${elemDistMin}분)` : ''}이며, `
+    : '동탄 학군 배정 권역 내에 위치하며, ';
+  const stationClause = faqContext?.locationScore?.nearestStationName
+    ? `인근 ${faqContext.locationScore.nearestStationName}역(${faqContext.locationScore.nearestStationLine || '광역교통'}) 접근성과 `
+    : '';
+
+  const faq0Answer = hasSaleRecord
+    ? `동탄 ${aptName} 국토교통부 실거래가 요약 결과, ${dealDateLabel}최근 매매 실거래가는 ${salePriceLabel}${perPyeongLabel}${maxPriceLabel}${deltaLabel} 수준입니다. 주택담보대출 갈아타기 시 LTV 최대 70% 적용 한도는 약 ${ltvAmountEokStr}억원이며, 스트레스 DSR 40% 규제에 따라 최종 한도가 결정됩니다.`
+    : hasValidInputDeposit
+      ? `동탄 ${aptName} 국토교통부 실거래가 요약 결과, 현재 등록된 매매 실거래 내역이 없으며(평당가·최고가·직전 대비 변동액 집계 중), ${dealDateLabel}최근 전월세 보증금 실거래가는 ${formatPriceEok(rawDepositManwon)} 수준입니다. 기준 시세 적용 시 주택담보대출 갈아타기 LTV 최대 70% 한도는 약 ${ltvAmountEokStr}억원이며, 스트레스 DSR 40% 규제에 따라 최종 한도가 결정됩니다.`
+      : `동탄 ${aptName} 국토교통부 실거래가 요약 결과, 현재 등록된 매매 실거래 내역이 없으며 최근 거래일·평당가·최고가·직전 대비 변동액은 실거래 신고 집계 중입니다. 기준 시세 적용 시 주택담보대출 갈아타기 LTV 최대 70% 한도는 약 ${ltvAmountEokStr}억원이며, 스트레스 DSR 40% 규제에 따라 최종 한도가 결정됩니다.`;
 
   const faqList = [
     {
-      question: `동탄 ${aptName} 주택담보대출 갈아타기 시 최대 한도는 얼마인가요?`,
-      answer: `동탄 ${aptName} 최근 실거래가 기준 LTV 최대 70% 적용 시 약 ${ltvAmountEokStr}억원 수준이며, 스트레스 DSR 40% 규제(가산금리 1.2%p) 및 차주 소득에 따라 최종 한도가 결정됩니다.`,
+      question: `동탄 ${aptName} 최근 실거래가, 평당가 및 최고가·직전 대비 변동액은 얼마인가요?`,
+      answer: faq0Answer,
     },
     {
-      question: 'DSR 40% 한도 규제 적용 시 연소득별 최대 대출 가능 금액은 어떻게 되나요?',
-      answer: `30년 만기 및 스트레스 금리 5.2% 기준, 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원이 최대 한도로 도출됩니다.`,
+      question: `동탄 ${aptName} 전세가율, 배정 초등학교 학군 및 호갱노노 비교 시 핵심 포인트는 무엇인가요?`,
+      answer: `동탄 ${aptName}의 현재 전세가율은 약 ${ratioVal}%(기준 전세보증금 ${depositLabel})입니다. ${schoolClause}${stationClause}호갱노노 비교 및 실수요 탐색 시에는 단순 호가가 아닌 국토부 실거래가·평당가 추이와 동일 권역 유사 평당가 단지 대비 전세 안전 마진을 함께 비교하는 것이 유리합니다.`,
     },
     {
-      question: `동탄 ${aptName} 전세보증금 반환대출(역전세 대출) 신청 요건은 무엇인가요?`,
-      answer: '신규 전세가가 기존 보증금 대비 하락한 경우 임대인은 전세보증금 반환목적 주담대를 이용할 수 있으며, 정부의 역전세 대환 완화 기준(DTI 60% 등)에 따라 결손 차액 전액 대출이 가능합니다.',
+      question: `동탄 ${aptName} 주택담보대출 갈아타기 및 DSR 40% 한도 규제 적용 시 연소득별 최대 대출 가능 금액은 어떻게 되나요?`,
+      answer: `동탄 ${aptName} 최근 실거래가 기준 LTV 최대 70%(약 ${ltvAmountEokStr}억원) 및 30년 만기 스트레스 금리 5.2%(가산금리 1.2%p) 기준, 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원이 최대 한도로 도출됩니다.`,
     },
     {
-      question: '원리금균등 상환과 원금균등 상환 중 어떤 방식이 이자 절감에 유리한가요?',
-      answer: '원리금균등은 매월 균등액 납부로 가계 지출 관리가 유리하나, 원금균등은 초기 상환액이 높은 대신 원금이 신속히 상환되어 총 이자비용을 상당 부분 절감할 수 있습니다.',
+      question: `동탄 ${aptName} 전세보증금 반환대출(역전세 대출) 신청 요건과 원리금균등·원금균등 상환 방식 차이는 무엇인가요?`,
+      answer: '신규 전세가가 기존 보증금 대비 하락한 경우 임대인은 전세보증금 반환목적 주담대(DTI 60% 등)를 통해 결손 차액 전액 대출이 가능합니다. 원리금균등은 매월 균등액 납부로 가계 지출 관리가 유리하나, 원금균등은 초기 상환액이 높은 대신 원금이 신속히 상환되어 총 이자비용을 상당 부분 절감할 수 있습니다.',
     },
   ];
 
@@ -637,11 +748,19 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
 
     const pyeongSummaries = getPyeongSummariesCached(txs);
     const analytics = calculatePriceAnalytics(pyeongSummaries, aptSummary);
-    const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore);
+    const tradeSummary = computeMolitLatestTradeSummary(txs, aptSummary, pyeongSummaries);
+    const aiBriefing = generateAiBriefing(aptName, aptSummary, pyeongSummaries, locationScore, txs);
 
     const latestPriceManwon = aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0);
     const latestDepositManwon = aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0);
-    const mortgageSsr = buildMortgageSsrData(aptName, latestPriceManwon, latestDepositManwon);
+    const mortgageSsr = buildMortgageSsrData(aptName, latestPriceManwon, latestDepositManwon, {
+      aptSummary,
+      pyeongSummaries,
+      locationScore,
+      analytics,
+      txs,
+      tradeSummary,
+    });
 
     let structuredImages: string[] = [];
     if (matchedReportData?.images && Array.isArray(matchedReportData.images)) {
@@ -667,6 +786,7 @@ export async function getApartmentPageData(rawAptName: string): Promise<Apartmen
       structuredImages,
       analytics,
       aiBriefing,
+      tradeSummary,
       mortgageSsr,
     };
 
@@ -723,7 +843,15 @@ export function buildApartmentJsonLd(
     buildMortgageSsrData(
       aptName,
       aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0),
-      aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0)
+      aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0),
+      {
+        aptSummary,
+        pyeongSummaries,
+        locationScore,
+        analytics,
+        txs: data.txs,
+        tradeSummary: data.tradeSummary,
+      }
     );
 
   const rawReport = matchedReportData as Record<string, unknown> | null;
@@ -1089,8 +1217,8 @@ export function buildApartmentJsonLd(
  */
 export function getDefaultApartmentMetadata(baseUrl: string, aptName: string = '아파트'): Metadata {
   const canonicalSlug = resolveCanonicalAptSlug(aptName) || aptName;
-  const title = `동탄 ${aptName} 실거래가, 매매가, 전세가율 및 학군 분석 - D-VIEW`;
-  const description = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  const title = `동탄 ${aptName} 실거래가·평당가·매매가·전세가율 및 배정 초등학교 학군 분석 - D-VIEW`;
+  const description = `동탄 ${aptName} 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교 학군, 호갱노노 비교, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
   return {
     title,
     description,
@@ -1220,7 +1348,7 @@ export async function buildApartmentSeoMetadata(
     const realRatioHook =
       effectiveRatioPercent > 0 ? `·전세가율 ${effectiveRatioPercent}%` : '·전세가율';
 
-    const seoTitle = `${decodedName}${titlePyeong} 실거래가${realPriceHook}${realRatioHook}·학군 분석 - D-VIEW`;
+    const seoTitle = `${decodedName}${titlePyeong} 실거래가${realPriceHook}·평당가${realRatioHook}·학군 분석 - D-VIEW`;
 
     const shortAlias = decodedName.replace(/아파트$/g, '').trim();
     const spacedDisplayAlias =
@@ -1240,7 +1368,8 @@ export async function buildApartmentSeoMetadata(
       .map((p) => `${decodedName} ${p.pyeong}평, ${shortAlias} ${p.pyeong}평 실거래가, ${decodedName} ${p.pyeong}평 전세가율`)
       .join(', ');
     const aliasKeywords = [
-      shortAlias !== decodedName ? `${shortAlias}, ${shortAlias} 실거래가, ${shortAlias} 전세가율` : '',
+      `${decodedName} 실거래가, ${decodedName} 평당가, ${decodedName} 전세가율, ${decodedName} 배정 초등학교, ${decodedName} 호갱노노 비교`,
+      shortAlias !== decodedName ? `${shortAlias}, ${shortAlias} 실거래가, ${shortAlias} 평당가, ${shortAlias} 전세가율` : '',
       spacedDisplayAlias ? `${spacedDisplayAlias}, ${spacedDisplayAlias} 실거래가, ${spacedDisplayAlias} 시세` : '',
       unspacedMolitAlias ? `${unspacedMolitAlias}, ${unspacedMolitAlias} 실거래가, ${unspacedMolitAlias} 시세` : '',
       unspacedShortAlias && unspacedShortAlias !== unspacedMolitAlias && unspacedShortAlias !== shortAlias
@@ -1251,7 +1380,7 @@ export async function buildApartmentSeoMetadata(
       .filter(Boolean)
       .join(', ');
     const highValueMortgageKeywords = '주택담보대출 갈아타기, DSR 40% 한도, 스트레스 DSR, 전세보증금 반환대출, 역전세 대출, 금리 충격 계산기';
-    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 매매가, 전세가율, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${aliasKeywords ? `, ${aliasKeywords}` : ''}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
+    const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교, 호갱노노 비교, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${aliasKeywords ? `, ${aliasKeywords}` : ''}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
 
     return {
       title: seoTitle,
@@ -1290,6 +1419,344 @@ export async function buildApartmentSeoMetadata(
     logger.warn('ApartmentPageService.buildApartmentSeoMetadata', '[SEO] Failed to generate metadata, returning default', {}, err as Error);
     return getDefaultApartmentMetadata(baseUrl, decodedName);
   }
+}
+
+interface IndexedPeerCandidate {
+  txKey: string;
+  displayName: string;
+  canonicalSlug: string;
+  dong: string;
+  zoneId: string;
+  perPyeongManwon: number;
+  perPyeongStr: string;
+  latestPriceManwon: number;
+  latestPriceStr: string;
+  txCount: number;
+  elementarySchool: string;
+  middleSchool?: string;
+  distanceToElementary?: number;
+}
+
+const peerCandidatesByTxSummaryCache = new WeakMap<object, IndexedPeerCandidate[]>();
+
+function getIndexedPeerCandidates(
+  allTxSummary: Record<string, AptTxSummary>,
+  byDong?: Record<string, DongApartment[]>,
+  allLocationScores?: Record<string, LocationScore>
+): IndexedPeerCandidate[] {
+  const canUseWeakCache =
+    allTxSummary &&
+    typeof allTxSummary === 'object' &&
+    Boolean(byDong && Object.keys(byDong).length > 0) &&
+    Boolean(allLocationScores && Object.keys(allLocationScores).length > 0);
+
+  if (canUseWeakCache) {
+    const cached = peerCandidatesByTxSummaryCache.get(allTxSummary);
+    if (cached) return cached;
+  }
+
+  const catalog =
+    byDong && typeof byDong === 'object' ? getIndexedDongApartmentCatalog(byDong) : null;
+  const manualMapping = catalog?.manualMapping || {};
+  const seenSlugs = new Set<string>();
+  const candidates: IndexedPeerCandidate[] = [];
+
+  for (const [txKey, s] of Object.entries(allTxSummary || {})) {
+    if (!s) continue;
+    const hasSalePrice = (s.latestPrice || 0) > 0;
+    const hasRentDeposit = (s.latestRentDeposit || 0) > 0;
+    if (!hasSalePrice && !hasRentDeposit) continue;
+
+    const dong = s.dong || '동탄';
+    const zoneId = dongToZoneId(dong);
+    const dongApt = catalog
+      ? catalog.exactMap.get(txKey) ||
+        catalog.normMap.get(normalizeAptName(txKey)) ||
+        catalog.sanMap.get(sanitizeAptKey(txKey))
+      : undefined;
+
+    const canonicalSlug =
+      resolveCanonicalAptSlug(txKey, {
+        txKey: dongApt?.txKey || txKey,
+        txMap: allTxSummary,
+        sheetApartments: byDong,
+        manualMapping,
+        dong,
+      }) || txKey;
+
+    if (seenSlugs.has(canonicalSlug)) continue;
+    seenSlugs.add(canonicalSlug);
+
+    const rawPerPyeong = hasSalePrice
+      ? (s.avg1MPerPyeong && s.avg1MPerPyeong > 0 ? Math.round(s.avg1MPerPyeong) : 0) ||
+        (s.avg3MPerPyeong && s.avg3MPerPyeong > 0 ? Math.round(s.avg3MPerPyeong) : 0) ||
+        (s.latestPrice && s.latestPrice > 0 && s.latestArea && s.latestArea > 0
+          ? Math.round(s.latestPrice / s.latestArea)
+          : 0)
+      : 0;
+
+    if (hasSalePrice && rawPerPyeong <= 0 && !hasRentDeposit) continue;
+
+    let locScore: LocationScore | undefined;
+    if (allLocationScores && typeof allLocationScores === 'object') {
+      locScore =
+        allLocationScores[txKey] ||
+        (dongApt?.name ? allLocationScores[dongApt.name] : undefined);
+      if (!locScore) {
+        const matchedScoreKey = findTxKey(
+          dongApt?.name || txKey,
+          allLocationScores,
+          manualMapping,
+          false,
+          dong
+        );
+        if (matchedScoreKey) {
+          locScore = allLocationScores[matchedScoreKey];
+        }
+      }
+    }
+
+    const latestPriceManwon = hasSalePrice ? s.latestPrice || 0 : s.latestRentDeposit || 0;
+    const latestPriceStr = hasSalePrice
+      ? s.latestPriceEok || formatPriceEok(s.latestPrice || 0)
+      : `전세 ${s.latestRentDepositEok || formatPriceEok(s.latestRentDeposit || 0)}`;
+
+    candidates.push({
+      txKey,
+      displayName: dongApt?.name || txKey,
+      canonicalSlug,
+      dong,
+      zoneId,
+      perPyeongManwon: rawPerPyeong > 0 ? rawPerPyeong : 0,
+      perPyeongStr: rawPerPyeong > 0 ? formatPriceEok(rawPerPyeong) : '평당가 집계중',
+      latestPriceManwon,
+      latestPriceStr,
+      txCount: s.txCount || 0,
+      elementarySchool: locScore?.nearestSchoolNames?.elementary?.trim() || '',
+      middleSchool: locScore?.nearestSchoolNames?.middle?.trim() || undefined,
+      distanceToElementary: locScore?.distanceToElementary,
+    });
+  }
+
+  if (canUseWeakCache) {
+    peerCandidatesByTxSummaryCache.set(allTxSummary, candidates);
+  }
+  return candidates;
+}
+
+/**
+ * 단지 상세 페이지 하단 SSR 크로스링킹용 비교 단지 선정:
+ * 1) 같은 동(권역) 내 평당가 유사 단지 TOP 5 (`sameZoneSimilarPerPyeongTop5`)
+ * 2) 인접 학군 경쟁 단지 비교 (`schoolZoneCompetitors`)
+ */
+export function selectApartmentComparisonPeers(params: {
+  aptName: string;
+  canonicalSlug?: string;
+  resolvedTxKey?: string;
+  aptDong?: string | null;
+  targetPerPyeongManwon?: number;
+  locationScore?: LocationScore | null;
+  allTxSummary: Record<string, AptTxSummary>;
+  byDong?: Record<string, DongApartment[]>;
+  allLocationScores?: Record<string, LocationScore>;
+}): ApartmentComparisonPeersResult {
+  const {
+    aptName,
+    canonicalSlug,
+    resolvedTxKey,
+    aptDong,
+    targetPerPyeongManwon,
+    locationScore,
+    allTxSummary,
+    byDong,
+    allLocationScores,
+  } = params;
+
+  const allCandidates = getIndexedPeerCandidates(allTxSummary, byDong, allLocationScores);
+  const catalog =
+    byDong && typeof byDong === 'object' ? getIndexedDongApartmentCatalog(byDong) : null;
+  const selfCanon =
+    canonicalSlug ||
+    resolveCanonicalAptSlug(aptName, {
+      txKey: resolvedTxKey,
+      txMap: allTxSummary,
+      sheetApartments: byDong,
+      manualMapping: catalog?.manualMapping,
+      dong: aptDong || undefined,
+    }) ||
+    resolvedTxKey ||
+    aptName;
+  const selfNorm = normalizeAptName(aptName);
+  const selfCanonNorm = normalizeAptName(selfCanon);
+
+  const filteredCandidates = allCandidates.filter((c) => {
+    if (c.txKey === aptName || c.txKey === selfCanon || c.txKey === resolvedTxKey) return false;
+    if (c.canonicalSlug === selfCanon || c.displayName === aptName) return false;
+    if (
+      selfNorm &&
+      (normalizeAptName(c.txKey) === selfNorm || normalizeAptName(c.displayName) === selfNorm)
+    ) {
+      return false;
+    }
+    if (
+      selfCanonNorm &&
+      (normalizeAptName(c.txKey) === selfCanonNorm ||
+        normalizeAptName(c.canonicalSlug) === selfCanonNorm)
+    ) {
+      return false;
+    }
+    return true;
+  });
+
+  if (filteredCandidates.length === 0) {
+    return {
+      sameZoneSimilarPerPyeongTop5: [],
+      schoolZoneCompetitors: [],
+    };
+  }
+
+  const trimmedDong = aptDong?.trim() || '';
+  const targetZoneId = trimmedDong ? dongToZoneId(trimmedDong) : null;
+
+  const pricedCandidates = filteredCandidates.filter((c) => c.perPyeongManwon > 0);
+  const sameDongPricedPool = trimmedDong
+    ? pricedCandidates.filter((c) => c.dong === trimmedDong)
+    : [];
+  const referencePool = sameDongPricedPool.length > 0 ? sameDongPricedPool : pricedCandidates;
+  const fallbackBaselinePerPyeong =
+    referencePool.length > 0
+      ? Math.round(
+          referencePool.reduce((sum, c) => sum + c.perPyeongManwon, 0) / referencePool.length
+        )
+      : 0;
+  const baselinePerPyeong =
+    typeof targetPerPyeongManwon === 'number' &&
+    Number.isFinite(targetPerPyeongManwon) &&
+    targetPerPyeongManwon > 0
+      ? targetPerPyeongManwon
+      : fallbackBaselinePerPyeong;
+
+  const getPerPyeongTier = (c: IndexedPeerCandidate): number => {
+    const isSameDong = Boolean(trimmedDong && c.dong === trimmedDong);
+    const isSameZone = Boolean(targetZoneId && c.zoneId === targetZoneId);
+    const hasPerPyeong = c.perPyeongManwon > 0;
+    if (isSameDong && hasPerPyeong) return 0;
+    if (isSameZone && hasPerPyeong) return 1;
+    if (isSameDong && !hasPerPyeong) return 2;
+    if (hasPerPyeong) return 3;
+    return 4;
+  };
+
+  // 1. 같은 동(권역) 내 평당가 유사 단지 TOP 5
+  const sortedForPerPyeong = [...filteredCandidates].sort((a, b) => {
+    const tierA = getPerPyeongTier(a);
+    const tierB = getPerPyeongTier(b);
+    if (tierA !== tierB) return tierA - tierB;
+
+    if (a.perPyeongManwon > 0 && b.perPyeongManwon > 0) {
+      const diffA = Math.abs(a.perPyeongManwon - baselinePerPyeong);
+      const diffB = Math.abs(b.perPyeongManwon - baselinePerPyeong);
+      if (diffA !== diffB) return diffA - diffB;
+    }
+
+    if (b.txCount !== a.txCount) return b.txCount - a.txCount;
+    return a.canonicalSlug.localeCompare(b.canonicalSlug);
+  });
+
+  const sameZoneSimilarPerPyeongTop5: SimilarPerPyeongPeerItem[] = sortedForPerPyeong
+    .slice(0, 5)
+    .map((c) => ({
+      name: c.txKey,
+      canonicalSlug: c.canonicalSlug,
+      dong: c.dong,
+      perPyeongManwon: c.perPyeongManwon,
+      perPyeongStr: c.perPyeongStr,
+      perPyeongDiffManwon:
+        c.perPyeongManwon > 0 && baselinePerPyeong > 0
+          ? c.perPyeongManwon - baselinePerPyeong
+          : 0,
+      latestPriceManwon: c.latestPriceManwon,
+      latestPriceStr: c.latestPriceStr,
+      txCount: c.txCount,
+      isSameDong: Boolean(trimmedDong && c.dong === trimmedDong),
+    }));
+
+  const top5Slugs = new Set(sameZoneSimilarPerPyeongTop5.map((p) => p.canonicalSlug));
+
+  // 2. 인접 학군 경쟁 단지 비교
+  const targetElem = locationScore?.nearestSchoolNames?.elementary?.trim() || '';
+  const targetMiddle = locationScore?.nearestSchoolNames?.middle?.trim() || '';
+
+  const schoolCandidates = filteredCandidates
+    .filter((c) => c.elementarySchool.length > 0)
+    .map((c) => {
+      let matchTier = 4;
+      let matchType: SchoolZoneCompetitorPeerItem['matchType'] = '인접 학군 생활권';
+
+      if (targetElem && c.elementarySchool === targetElem) {
+        matchTier = 1;
+        matchType = '동일 초등학교 배정';
+      } else if (targetMiddle && c.middleSchool && c.middleSchool === targetMiddle) {
+        matchTier = 2;
+        matchType = '동일 중학교 학군';
+      } else if (
+        (trimmedDong && c.dong === trimmedDong) ||
+        (Boolean(targetZoneId) && c.zoneId === targetZoneId)
+      ) {
+        matchTier = 3;
+        matchType = '인접 학군 생활권';
+      }
+
+      return {
+        candidate: c,
+        matchTier,
+        matchType,
+        inTop5: top5Slugs.has(c.canonicalSlug),
+      };
+    })
+    .sort((a, b) => {
+      if (a.matchTier !== b.matchTier) return a.matchTier - b.matchTier;
+      if (a.inTop5 !== b.inTop5) return a.inTop5 ? 1 : -1;
+
+      const hasPerPyeongA = a.candidate.perPyeongManwon > 0;
+      const hasPerPyeongB = b.candidate.perPyeongManwon > 0;
+      if (hasPerPyeongA !== hasPerPyeongB) return hasPerPyeongA ? -1 : 1;
+
+      if (hasPerPyeongA && hasPerPyeongB) {
+        const diffA = Math.abs(a.candidate.perPyeongManwon - baselinePerPyeong);
+        const diffB = Math.abs(b.candidate.perPyeongManwon - baselinePerPyeong);
+        if (diffA !== diffB) return diffA - diffB;
+      }
+
+      if (b.candidate.txCount !== a.candidate.txCount) {
+        return b.candidate.txCount - a.candidate.txCount;
+      }
+      return a.candidate.canonicalSlug.localeCompare(b.candidate.canonicalSlug);
+    });
+
+  const schoolZoneCompetitors: SchoolZoneCompetitorPeerItem[] = schoolCandidates
+    .slice(0, 5)
+    .map(({ candidate: c, matchType }) => ({
+      name: c.txKey,
+      canonicalSlug: c.canonicalSlug,
+      dong: c.dong,
+      elementarySchool: c.elementarySchool,
+      ...(c.middleSchool ? { middleSchool: c.middleSchool } : {}),
+      ...(typeof c.distanceToElementary === 'number'
+        ? { distanceToElementary: c.distanceToElementary }
+        : {}),
+      matchType,
+      perPyeongManwon: c.perPyeongManwon,
+      perPyeongStr: c.perPyeongStr,
+      latestPriceManwon: c.latestPriceManwon,
+      latestPriceStr: c.latestPriceStr,
+      txCount: c.txCount,
+    }));
+
+  return {
+    sameZoneSimilarPerPyeongTop5,
+    schoolZoneCompetitors,
+  };
 }
 
 function parseJisanPositiveNumber(val?: number | string): number {

@@ -212,6 +212,7 @@ export interface ScoutingReport {
 export interface FieldReportData {
   id: string;
   dong?: string;
+  txKey?: string;
   apartmentName: string;
   sections?: ReportSections;
   premiumScores?: PremiumScores | null;

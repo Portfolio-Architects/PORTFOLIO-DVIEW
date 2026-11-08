@@ -1,37 +1,125 @@
 'use client';
 
-import React, { Suspense, useState, useMemo, useCallback, useEffect } from 'react';
+import React, { Suspense, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Clock } from 'lucide-react';
 import { getDongtanStationAnalysisData } from '@/lib/stats/dongtanStationDistanceEngine';
-import type { StatsFilterOptions, Issue1AnalysisPayload } from '@/lib/stats/types';
+import {
+  getDongtan1Vs2ComparisonData,
+  resolveStatsComplexCanonicalSlug,
+  type Dongtan1Vs2ComparisonPayload,
+} from '@/lib/stats/dongtan1Vs2ComparisonEngine';
+import {
+  getSchoolDistrictPremiumData,
+  getLakeParkPremiumData,
+  getBuildingAgeDepreciationData,
+  type SchoolDistrictPremiumPayload,
+  type LakeParkPremiumPayload,
+  type BuildingAgeDepreciationPayload,
+} from '@/lib/stats/thematicPriceComparisonEngine';
+import type {
+  StatsFilterOptions,
+  Issue1AnalysisPayload,
+  ApartmentStatRecord,
+  AreaBandFilter,
+} from '@/lib/stats/types';
 import { getStatsTopicById } from '@/types/statsTopic';
 import { StatsTopicSelector } from '@/components/stats/StatsTopicSelector';
 import { StationPremiumSummary } from '@/components/stats/StationPremiumSummary';
 import { DistanceBandComparisonChart } from '@/components/stats/DistanceBandComparisonChart';
 import { DistanceRegressionScatterPlot } from '@/components/stats/DistanceRegressionScatterPlot';
 import { ComplexDrillDownTable } from '@/components/stats/ComplexDrillDownTable';
+import { Dongtan1Vs2ComparisonSection } from '@/components/stats/Dongtan1Vs2ComparisonSection';
+import {
+  ThematicPriceComparisonSection,
+  type ThematicTopicId,
+} from '@/components/stats/ThematicPriceComparisonSection';
 import { AdSlot } from '@/components/ads/AdSlot';
+import { trackEvent, trackVirtualPageView } from '@/lib/utils/analytics';
 
 export interface StatsPageClientProps {
   initialTopicId?: string;
   initialFilters?: Partial<StatsFilterOptions>;
   initialPayload?: Issue1AnalysisPayload;
+  initialComparisonData?: Dongtan1Vs2ComparisonPayload;
+  initialSchoolData?: SchoolDistrictPremiumPayload;
+  initialLakeData?: LakeParkPremiumPayload;
+  initialAgeData?: BuildingAgeDepreciationPayload;
+}
+
+const THEMATIC_TOPIC_IDS: ReadonlySet<string> = new Set([
+  'school-district-premium',
+  'lake-park-view-premium',
+  'building-age-depreciation',
+]);
+
+function isThematicTopicId(topicId: string): topicId is ThematicTopicId {
+  return THEMATIC_TOPIC_IDS.has(topicId);
+}
+
+function scrollTopicSectionIntoView(topicId: string) {
+  try {
+    const el = document.getElementById(topicId);
+    if (el && typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  } catch {
+    // Ignore scroll error in non-browser / test environments
+  }
 }
 
 function StatsTopicUrlSync({
+  initialTopicId,
   onQueryTopicChange,
 }: {
+  initialTopicId: string;
   onQueryTopicChange: (topicId: string) => void;
 }) {
   const searchParams = useSearchParams();
-  const queryTopic = searchParams?.get('topic');
+  const queryTopic =
+    searchParams?.get('topic') ??
+    (typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('topic')
+      : null);
+  const prevQueryTopicRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (queryTopic) {
-      onQueryTopicChange(queryTopic);
+    if (queryTopic && getStatsTopicById(queryTopic)) {
+      if (prevQueryTopicRef.current !== queryTopic) {
+        prevQueryTopicRef.current = queryTopic;
+        onQueryTopicChange(queryTopic);
+        if (queryTopic === 'dongtan-1-vs-2-comparison' || isThematicTopicId(queryTopic)) {
+          scrollTopicSectionIntoView(queryTopic);
+        }
+      }
+    } else if (!queryTopic && prevQueryTopicRef.current !== null) {
+      prevQueryTopicRef.current = null;
+      onQueryTopicChange(initialTopicId);
     }
-  }, [queryTopic, onQueryTopicChange]);
+  }, [queryTopic, initialTopicId, onQueryTopicChange]);
+
+  useEffect(() => {
+    const handlePopState = () => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const popTopic = params.get('topic');
+        if (popTopic && getStatsTopicById(popTopic)) {
+          prevQueryTopicRef.current = popTopic;
+          onQueryTopicChange(popTopic);
+          if (popTopic === 'dongtan-1-vs-2-comparison' || isThematicTopicId(popTopic)) {
+            scrollTopicSectionIntoView(popTopic);
+          }
+        } else {
+          prevQueryTopicRef.current = null;
+          onQueryTopicChange(initialTopicId);
+        }
+      } catch {
+        // Ignore in non-browser environments
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [initialTopicId, onQueryTopicChange]);
 
   return null;
 }
@@ -40,6 +128,10 @@ export function StatsPageClient({
   initialTopicId = 'dongtan-station-distance',
   initialFilters,
   initialPayload,
+  initialComparisonData,
+  initialSchoolData,
+  initialLakeData,
+  initialAgeData,
 }: StatsPageClientProps) {
   const router = useRouter();
   const [activeTopicId, setActiveTopicId] = useState<string>(initialTopicId);
@@ -65,8 +157,28 @@ export function StatsPageClient({
     return getDongtanStationAnalysisData(filters);
   }, [filters, initialPayload]);
 
+  const comparisonData = useMemo(() => {
+    return initialComparisonData ?? getDongtan1Vs2ComparisonData('all');
+  }, [initialComparisonData]);
+
+  const schoolData = useMemo(() => {
+    return initialSchoolData ?? getSchoolDistrictPremiumData('all');
+  }, [initialSchoolData]);
+
+  const lakeData = useMemo(() => {
+    return initialLakeData ?? getLakeParkPremiumData('all');
+  }, [initialLakeData]);
+
+  const ageData = useMemo(() => {
+    return initialAgeData ?? getBuildingAgeDepreciationData('all');
+  }, [initialAgeData]);
+
   const handleTopicChange = useCallback((topicId: string) => {
     setActiveTopicId(topicId);
+    trackEvent('stats_topic_select', {
+      event_category: 'stats_navigation',
+      topic_id: topicId,
+    });
     try {
       const params = new URLSearchParams(window.location.search);
       params.set('topic', topicId);
@@ -79,6 +191,43 @@ export function StatsPageClient({
   const handleFilterChange = useCallback((updated: Partial<StatsFilterOptions>) => {
     setFilters((prev) => ({ ...prev, ...updated }));
   }, []);
+
+  const handleSelectTableComplex = useCallback(
+    (record: ApartmentStatRecord) => {
+      const slug = resolveStatsComplexCanonicalSlug(record.name, record.dong);
+      trackEvent('stats_table_complex_click', {
+        event_category: 'stats_navigation',
+        apartment_name: record.name,
+        dong: record.dong,
+        canonical_slug: slug,
+      });
+      trackVirtualPageView(`/apartment/${encodeURIComponent(slug)}`, {
+        page_title: `${record.name} 실거래 상세`,
+      });
+      router.push(`/apartment/${encodeURIComponent(slug)}`);
+    },
+    [router]
+  );
+
+  const handleFilterRegionInTable = useCallback(
+    (region: '동탄1' | '동탄2', nextAreaBand?: AreaBandFilter) => {
+      setFilters((prev) => ({
+        ...prev,
+        dong: region,
+        areaBand: nextAreaBand ?? prev.areaBand,
+        sortBy: 'latestPriceDesc',
+      }));
+      try {
+        const tableEl = document.getElementById('stats-complex-drilldown-anchor');
+        if (tableEl && typeof tableEl.scrollIntoView === 'function') {
+          tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch {
+        // Ignore scroll error in test environment
+      }
+    },
+    []
+  );
 
   const currentTopic = useMemo(() => {
     if (activeTopicId === 'dongtan-station-distance') {
@@ -94,10 +243,16 @@ export function StatsPageClient({
     [payload.topic]
   );
 
+  const isComparisonPrimaryView = activeTopicId === 'dongtan-1-vs-2-comparison';
+  const activeThematicTopicId = isThematicTopicId(activeTopicId) ? activeTopicId : null;
+
   return (
     <div className="w-full flex flex-col gap-6">
       <Suspense fallback={null}>
-        <StatsTopicUrlSync onQueryTopicChange={setActiveTopicId} />
+        <StatsTopicUrlSync
+          initialTopicId={initialTopicId}
+          onQueryTopicChange={setActiveTopicId}
+        />
       </Suspense>
 
       {/* Extensible Topic Research Selector */}
@@ -107,7 +262,7 @@ export function StatsPageClient({
         topicOverrides={topicOverrides}
       />
 
-      {/* Conditional Rendering: Issue #1 Report vs. Upcoming Topic Placeholder */}
+      {/* Conditional Rendering: Active Report vs. Upcoming Topic Placeholder */}
       {currentTopic.status === 'active' ? (
         <>
           {/* AdSlot 1: Top Horizontal-Strip */}
@@ -121,36 +276,103 @@ export function StatsPageClient({
             </div>
           )}
 
-          {/* Section 1: Executive KPI Cards & Station Premium Summary */}
-          <StationPremiumSummary
-            regression={payload.regression}
-            distanceTiers={payload.distanceTiers}
-            totalComplexCount={payload.allRecords.length}
-            totalTxCount={payload.allRecords.reduce((acc, r) => acc + r.txCount, 0)}
-            latestContractDate={payload.datasetMeta?.latestContractDate}
-          />
-
-          {/* Section 2: 5-Tier Distance Comparison Bar Chart */}
-          <DistanceBandComparisonChart
-            distanceTiers={payload.distanceTiers}
-          />
-
-          {/* AdSlot 2: Mid In-Feed Slot */}
-          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-            <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
-              <AdSlot
-                refreshSlotId="1000000002_stats_mid"
-                format="in-feed"
-                className="w-full"
+          {activeThematicTopicId ? (
+            <>
+              {/* Issue #2 / #3 / #4 Primary View: Thematic House Price Gap Report */}
+              <ThematicPriceComparisonSection
+                topicId={activeThematicTopicId}
+                initialSchoolData={schoolData}
+                initialLakeData={lakeData}
+                initialAgeData={ageData}
+                onSelectTopic={handleTopicChange}
+                onApplyTableFilter={handleFilterChange}
               />
-            </div>
-          )}
 
-          {/* Section 3: Complex-Level SVG Scatter Plot & OLS Linear Regression Trendline */}
-          <DistanceRegressionScatterPlot
-            records={payload.filteredRecords}
-            regression={payload.regression}
-          />
+              {/* AdSlot 2: Mid In-Feed Slot */}
+              {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+                  <AdSlot
+                    refreshSlotId="1000000002_stats_mid"
+                    format="in-feed"
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              {/* Dongtan 1 vs Dongtan 2 House Price Comparison & Guide Recirculation Hub */}
+              <Dongtan1Vs2ComparisonSection
+                initialData={comparisonData}
+                onFilterRegionInTable={handleFilterRegionInTable}
+              />
+            </>
+          ) : isComparisonPrimaryView ? (
+            <>
+              {/* VS Special Topic Primary View: Dongtan 1 vs Dongtan 2 Comparison Hub */}
+              <Dongtan1Vs2ComparisonSection
+                initialData={comparisonData}
+                onFilterRegionInTable={handleFilterRegionInTable}
+              />
+
+              {/* AdSlot 2: Mid In-Feed Slot */}
+              {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+                  <AdSlot
+                    refreshSlotId="1000000002_stats_mid"
+                    format="in-feed"
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              {/* Station Distance Context Summary & Scatter Plot */}
+              <StationPremiumSummary
+                regression={payload.regression}
+                distanceTiers={payload.distanceTiers}
+                totalComplexCount={payload.allRecords.length}
+                totalTxCount={payload.allRecords.reduce((acc, r) => acc + r.txCount, 0)}
+                latestContractDate={payload.datasetMeta?.latestContractDate}
+              />
+            </>
+          ) : (
+            <>
+              {/* Issue #1 Primary View: Executive KPI Cards & Station Premium Summary */}
+              <StationPremiumSummary
+                regression={payload.regression}
+                distanceTiers={payload.distanceTiers}
+                totalComplexCount={payload.allRecords.length}
+                totalTxCount={payload.allRecords.reduce((acc, r) => acc + r.txCount, 0)}
+                latestContractDate={payload.datasetMeta?.latestContractDate}
+              />
+
+              {/* Section 2: 5-Tier Distance Comparison Bar Chart */}
+              <DistanceBandComparisonChart
+                distanceTiers={payload.distanceTiers}
+              />
+
+              {/* AdSlot 2: Mid In-Feed Slot */}
+              {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+                <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">
+                  <AdSlot
+                    refreshSlotId="1000000002_stats_mid"
+                    format="in-feed"
+                    className="w-full"
+                  />
+                </div>
+              )}
+
+              {/* Section 3: Complex-Level SVG Scatter Plot & OLS Linear Regression Trendline */}
+              <DistanceRegressionScatterPlot
+                records={payload.filteredRecords}
+                regression={payload.regression}
+              />
+
+              {/* Section 3.5: Dongtan 1 vs Dongtan 2 House Price Comparison & Guide Recirculation Hub */}
+              <Dongtan1Vs2ComparisonSection
+                initialData={comparisonData}
+                onFilterRegionInTable={handleFilterRegionInTable}
+              />
+            </>
+          )}
 
           {/* AdSlot 3: Pre-Table Rectangle Slot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
@@ -164,11 +386,14 @@ export function StatsPageClient({
           )}
 
           {/* Section 4: Interactive Filtering Controls & Sortable Complex Drill-Down Table */}
-          <ComplexDrillDownTable
-            records={payload.filteredRecords}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-          />
+          <div id="stats-complex-drilldown-anchor">
+            <ComplexDrillDownTable
+              records={payload.filteredRecords}
+              filters={filters}
+              onFilterChange={handleFilterChange}
+              onSelectComplex={handleSelectTableComplex}
+            />
+          </div>
 
           {/* AdSlot 4: Bottom Banner Slot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (

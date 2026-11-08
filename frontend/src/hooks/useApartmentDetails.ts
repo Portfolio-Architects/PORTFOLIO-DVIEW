@@ -116,7 +116,7 @@ export function useApartmentDetails(
 
   const fileKey = useMemo(() => {
     if (!selectedReport) return null;
-    return getApartmentFileKey(
+    const resolvedKey = getApartmentFileKey(
       selectedReport.apartmentName,
       selectedReport.dong,
       apartmentsMap,
@@ -124,6 +124,14 @@ export function useApartmentDetails(
       nameMapping,
       txSummaryData
     );
+    if (
+      selectedReport.txKey &&
+      flatApartments.length === 0 &&
+      resolvedKey === selectedReport.apartmentName
+    ) {
+      return selectedReport.txKey;
+    }
+    return resolvedKey;
   }, [selectedReport, flatApartments, apartmentsMap, txSummaryData, nameMapping]);
 
   const [shouldFetchFull, setShouldFetchFull] = useState(false);
@@ -342,7 +350,11 @@ export function useApartmentDetails(
     const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping, false, raw.dong);
     const locScore = (matchKey ? locationScores[matchKey] : {}) as LocationScoreItem;
 
-    const mergedMetrics = { ...(fallback || {}), ...locScore } as Record<string, unknown>;
+    const mergedMetrics = {
+      ...(fallback || {}),
+      ...(selectedReport.metrics || {}),
+      ...locScore,
+    } as Record<string, unknown>;
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {
@@ -376,7 +388,11 @@ export function useApartmentDetails(
       nameMapping,
       txSummaryData
     );
-    return txSummaryData[key];
+    return (
+      txSummaryData[key] ||
+      (selectedReport.txKey ? txSummaryData[selectedReport.txKey] : undefined) ||
+      txSummaryData[selectedReport.apartmentName]
+    );
   }, [selectedReport, flatApartments, apartmentsMap, nameMapping, txSummaryData]);
 
   const preloadApartmentTx = usePreloadApartmentTx(sheetApartments, nameMapping, txSummaryData);

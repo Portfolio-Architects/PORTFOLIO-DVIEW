@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
-import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen } from 'lucide-react';
+import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen, GraduationCap } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
@@ -15,12 +15,15 @@ import {
   decodeAptName,
   formatPriceEok,
   getTxSummaryData,
+  getApartmentsByDongData,
+  getLocationScoresData,
   getApartmentPageData,
   buildApartmentJsonLd,
   buildApartmentSeoMetadata,
   getDefaultApartmentMetadata,
   buildMortgageSsrData,
   resolveCanonicalAptSlug,
+  selectApartmentComparisonPeers,
 } from '@/lib/services/apartmentPageService';
 
 function formatWon(val: number): string {
@@ -50,8 +53,11 @@ export const dynamicParams = true;
 export async function generateStaticParams() {
   const txSummary = await getTxSummaryData();
   const aptNames = Object.keys(txSummary || {});
-  return aptNames.map((name) => ({
-    aptName: name,
+  const canonicalSlugs = Array.from(
+    new Set(aptNames.map((name) => resolveCanonicalAptSlug(name, { txMap: txSummary }) || name))
+  );
+  return canonicalSlugs.map((aptName) => ({
+    aptName,
   }));
 }
 
@@ -108,13 +114,18 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
   } = pageData;
 
   const aptDong = aptSummary?.dong || matchedDongApt?.dong || matchedReportData?.dong || '';
-  const allTxSummary = await getTxSummaryData();
+  const [allTxSummary, allByDong, allLocationScores] = await Promise.all([
+    getTxSummaryData(),
+    getApartmentsByDongData(),
+    getLocationScoresData(),
+  ]);
   const canonicalSlug =
     pageCanonicalSlug ||
     pageResolvedTxKey ||
     resolveCanonicalAptSlug(decodedName, {
       txKey: matchedDongApt?.txKey,
       txMap: allTxSummary,
+      sheetApartments: allByDong,
       dong: aptDong,
     }) ||
     decodedName;
@@ -163,30 +174,30 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
     buildMortgageSsrData(
       decodedName,
       aptSummary?.latestPrice || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0),
-      aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0)
+      aptSummary?.latestRentDeposit || (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestDeposit : 0),
+      {
+        aptSummary,
+        pyeongSummaries,
+        locationScore,
+        analytics: pageData.analytics,
+        txs: pageData.txs,
+        tradeSummary: pageData.tradeSummary,
+      }
     );
 
-  const parentZoneId = dongToZoneId(aptDong || undefined);
-  const parentZone = getZoneById(parentZoneId);
-  const peerApartments = Object.entries(allTxSummary || {})
-    .filter(([name, s]) => {
-      if (!s || name === decodedName || name === resolvedTxKey || name === canonicalSlug) return false;
-      if ((s.latestPrice || 0) <= 0) return false;
-      return aptDong ? s.dong === aptDong : true;
-    })
-    .sort((a, b) => (b[1]?.latestPrice || 0) - (a[1]?.latestPrice || 0))
-    .slice(0, 8)
-    .map(([name, s]) => {
-      const dong = s.dong || aptDong || '동탄';
-      return {
-        name,
-        canonicalSlug: resolveCanonicalAptSlug(name, { txMap: allTxSummary, dong }) || name,
-        dong,
-        latestPrice: s.latestPrice || 0,
-        latestPriceStr: s.latestPriceEok || formatPriceEok(s.latestPrice || 0),
-        txCount: s.txCount || 0,
-      };
-    });
+  const parentZoneId = aptDong ? dongToZoneId(aptDong) : null;
+  const parentZone = parentZoneId ? getZoneById(parentZoneId) : undefined;
+  const { sameZoneSimilarPerPyeongTop5, schoolZoneCompetitors } = selectApartmentComparisonPeers({
+    aptName: decodedName,
+    canonicalSlug,
+    resolvedTxKey,
+    aptDong,
+    targetPerPyeongManwon: pageData.tradeSummary?.perPyeongManwon,
+    locationScore,
+    allTxSummary,
+    byDong: allByDong,
+    allLocationScores,
+  });
 
   const {
     relatedGuides,
@@ -261,6 +272,13 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
       />
 
       <LoungeHeader activeTab="explore" />
+
+      <DashboardClient
+        initialDashboardData={scopedInitialData}
+        preselectedAptName={decodedName}
+        autoOpenPreselectedModal={false}
+        hideHeader={true}
+      />
 
       {/* High-Value Comprehensive Apartment Analysis Report (Content-First Visible SSR Report for Users & Search Crawlers) */}
       <section
@@ -697,18 +715,18 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
           <section
             id="chapter-06-neighborhood-links-ssr"
             aria-label={`${decodedName} 소속 권역 및 인근 단지 비교 리포트`}
-            className="space-y-5 pt-4 border-t border-slate-200 dark:border-slate-800"
+            className="space-y-6 pt-4 border-t border-slate-200 dark:border-slate-800"
           >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
                   <MapPin size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>
-                    {aptDong ? `동탄 ${aptDong}` : '동탄 권역'} 주요 비교 단지 및 소속 권역 시세 리포트
+                    {aptDong ? `동탄 ${aptDong}` : '동탄 권역'} 평당가 유사 단지 및 인접 학군 경쟁 단지 비교
                   </span>
                 </h2>
                 <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
-                  같은 행정동 및 생활권 내 주요 아파트 단지의 국토교통부 최신 실거래가와 입지 가치를 함께 비교해 보세요.
+                  같은 동(권역) 내 평당가 유사 단지 TOP 5와 배정 초등학교·중학교 학군 경쟁 단지의 국토교통부 최신 실거래가를 1:1로 비교해 보세요.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -733,39 +751,139 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
               </div>
             </div>
 
-            {peerApartments.length > 0 && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {peerApartments.map((peer) => (
-                  <Link
-                    key={peer.name}
-                    href={`/apartment/${encodeURIComponent(peer.canonicalSlug)}`}
-                    prefetch={false}
-                    className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
-                        <span className="inline-flex items-center gap-1 text-emerald-700 dark:text-emerald-400">
-                          <Building2 size={12} />
-                          <span>{peer.dong}</span>
-                        </span>
-                        {peer.txCount > 0 && (
-                          <span className="tabular-nums">누적 {peer.txCount}건</span>
-                        )}
+            {sameZoneSimilarPerPyeongTop5.length > 0 && (
+              <div
+                id="apt-similar-per-pyeong-top5-ssr"
+                data-testid="apt-similar-per-pyeong-top5-ssr"
+                className="space-y-3"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                    <Building2 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                    <span>
+                      같은 동(권역) 내 평당가 유사 단지 TOP 5
+                      {pageData.tradeSummary?.perPyeongStr
+                        ? ` (기준 평당가 ${pageData.tradeSummary.perPyeongStr})`
+                        : ''}
+                    </span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    국토부 실거래 평당가 근접순
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  {sameZoneSimilarPerPyeongTop5.map((peer, idx) => (
+                    <Link
+                      key={peer.canonicalSlug}
+                      href={`/apartment/${encodeURIComponent(peer.canonicalSlug)}`}
+                      prefetch={false}
+                      className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2.5 transition-colors"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 font-extrabold tabular-nums">
+                            TOP {idx + 1} · {peer.dong}
+                          </span>
+                          {peer.txCount > 0 && (
+                            <span className="tabular-nums">누적 {peer.txCount}건</span>
+                          )}
+                        </div>
+                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 truncate transition-colors">
+                          {peer.name}
+                        </h4>
                       </div>
-                      <h3 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 truncate transition-colors">
-                        {peer.name}
-                      </h3>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/60">
-                      <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
-                        최근 실거래가
-                      </span>
-                      <span className="text-xs sm:text-[13px] tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400">
-                        {peer.latestPriceStr}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+                      <div className="space-y-1 pt-2 border-t border-slate-200/80 dark:border-slate-700/60 text-xs tabular-nums">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                            평당가
+                          </span>
+                          <span className="font-extrabold text-slate-900 dark:text-slate-100">
+                            {peer.perPyeongStr}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                            최근 실거래가
+                          </span>
+                          <span className="font-extrabold text-emerald-700 dark:text-emerald-400">
+                            {peer.latestPriceStr}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {schoolZoneCompetitors.length > 0 && (
+              <div
+                id="apt-school-zone-competitors-ssr"
+                data-testid="apt-school-zone-competitors-ssr"
+                className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                    <GraduationCap size={16} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span>
+                      인접 학군 경쟁 단지 비교
+                      {locationScore?.nearestSchoolNames?.elementary
+                        ? ` (${locationScore.nearestSchoolNames.elementary}${
+                            locationScore.nearestSchoolNames.middle
+                              ? ` · ${locationScore.nearestSchoolNames.middle}`
+                              : ''
+                          })`
+                        : ''}
+                    </span>
+                  </h3>
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    동일 배정 초등학교 · 중학교 학군 기준
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+                  {schoolZoneCompetitors.map((peer) => (
+                    <Link
+                      key={peer.canonicalSlug}
+                      href={`/apartment/${encodeURIComponent(peer.canonicalSlug)}`}
+                      prefetch={false}
+                      className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-700 rounded-2xl p-4 flex flex-col justify-between gap-2.5 transition-colors"
+                    >
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-2 text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-500/10 text-blue-700 dark:text-blue-300 font-extrabold">
+                            {peer.matchType}
+                          </span>
+                          <span>{peer.dong}</span>
+                        </div>
+                        <h4 className="text-sm font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 truncate transition-colors">
+                          {peer.name}
+                        </h4>
+                        <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 truncate">
+                          배정초: {peer.elementarySchool}
+                          {peer.middleSchool ? ` · ${peer.middleSchool}` : ''}
+                        </p>
+                      </div>
+                      <div className="space-y-1 pt-2 border-t border-slate-200/80 dark:border-slate-700/60 text-xs tabular-nums">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                            평당가
+                          </span>
+                          <span className="font-extrabold text-slate-900 dark:text-slate-100">
+                            {peer.perPyeongStr}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                            최근 실거래가
+                          </span>
+                          <span className="font-extrabold text-emerald-700 dark:text-emerald-400">
+                            {peer.latestPriceStr}
+                          </span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
               </div>
             )}
 
@@ -817,17 +935,132 @@ export default async function ApartmentPage(props: { params: Promise<{ aptName: 
                 </div>
               </div>
             )}
+
+            {/* Thematic House Price Comparison Hub Bridge (SSR Internal Link Mesh to /stats Issues #2, #3, #4, #5) */}
+            <div
+              id="apt-thematic-stats-bridge-ssr"
+              data-testid="apt-thematic-stats-bridge-ssr"
+              className="space-y-3 pt-4 border-t border-slate-200 dark:border-slate-800"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="text-sm sm:text-base font-extrabold text-slate-900 dark:text-slate-50 flex items-center gap-2">
+                  <BarChart3 size={16} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>
+                    {decodedName} 입지 테마별 집값 비교 통계 리포트 (초품아·호수공원·연식별·동탄1 vs 2)
+                  </span>
+                </h3>
+                <Link
+                  href="/stats"
+                  prefetch={false}
+                  className="text-xs font-extrabold text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1 shrink-0"
+                >
+                  <span>아파트 통계 전체보기</span>
+                  <ArrowRight size={12} />
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 tabular-nums">
+                <Link
+                  href="/stats?topic=school-district-premium#school-district-premium"
+                  prefetch={false}
+                  className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-blue-700 dark:text-blue-400">
+                      Issue #2 · 초품아·학군 프리미엄
+                    </span>
+                    <h4 className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                      초품아 vs 일반 단지 · 학원가 밀집도별 집값 격차 비교
+                    </h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                      {locationScore?.nearestSchoolNames?.elementary
+                        ? `${locationScore.nearestSchoolNames.elementary}${
+                            typeof locationScore.distanceToElementary === 'number'
+                              ? ` (${locationScore.distanceToElementary}m)`
+                              : ''
+                          }`
+                        : '배정 초등학교 도보권'}{' '}
+                      학군 시세 위치 확인
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
+                    <span>학군별 집값 통계 열기</span>
+                    <ArrowRight size={11} />
+                  </span>
+                </Link>
+
+                <Link
+                  href="/stats?topic=lake-park-view-premium#lake-park-view-premium"
+                  prefetch={false}
+                  className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                      Issue #3 · 호수공원 조망권 비교
+                    </span>
+                    <h4 className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                      동탄호수공원 수변·도보권 vs 비수변 집값·회전율 비교
+                    </h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                      {aptDong ? `동탄 ${aptDong}` : '동탄 권역'} 대비 수변 랜드마크 평당가·회전율 격차 확인
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
+                    <span>호수공원 집값 통계 열기</span>
+                    <ArrowRight size={11} />
+                  </span>
+                </Link>
+
+                <Link
+                  href="/stats?topic=building-age-depreciation#building-age-depreciation"
+                  prefetch={false}
+                  className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-blue-300 dark:hover:border-blue-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-blue-700 dark:text-blue-400">
+                      Issue #4 · 연식별 감가·방어율 비교
+                    </span>
+                    <h4 className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-blue-700 dark:group-hover:text-blue-400 transition-colors leading-snug">
+                      신축(5년 이하) vs 준신축 vs 구축 집값·전고점 방어율 비교
+                    </h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                      {yearBuiltNum > 0 && buildingAge !== null
+                        ? `${yearBuiltNum}년 준공(${buildingAge}년차) 연식 구간 시세 방어율 비교`
+                        : '준공 연차별 감가상각 및 시세 방어율 비교'}
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-blue-700 dark:text-blue-400 inline-flex items-center gap-1">
+                    <span>연식별 집값 통계 열기</span>
+                    <ArrowRight size={11} />
+                  </span>
+                </Link>
+
+                <Link
+                  href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                  prefetch={false}
+                  className="group bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 rounded-2xl p-4 flex flex-col justify-between gap-2 transition-colors"
+                >
+                  <div className="space-y-1">
+                    <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                      VS 특집 · 동탄1 vs 동탄2 집값 비교
+                    </span>
+                    <h4 className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                      동탄1신도시 vs 동탄2신도시 평형별·예산대별 실거래 비교
+                    </h4>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                      법정동별 평균 매매가 및 6억~15억+ 예산대별 단지 분포 비교
+                    </p>
+                  </div>
+                  <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400 inline-flex items-center gap-1">
+                    <span>동탄1 vs 2 통계 열기</span>
+                    <ArrowRight size={11} />
+                  </span>
+                </Link>
+              </div>
+            </div>
           </section>
 
         </div>
       </section>
-
-      <DashboardClient
-        initialDashboardData={scopedInitialData}
-        preselectedAptName={decodedName}
-        autoOpenPreselectedModal={false}
-        hideHeader={true}
-      />
     </>
   );
 }

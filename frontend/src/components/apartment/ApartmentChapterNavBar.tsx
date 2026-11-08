@@ -280,7 +280,7 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
               )}
 
               <span
-                className={`inline-flex items-center justify-center text-[10px] sm:text-[11px] font-mono font-bold px-1.5 py-0.5 rounded-md transition-colors ${
+                className={`inline-flex items-center justify-center text-[10px] sm:text-[11px] tabular-nums font-bold px-1.5 py-0.5 rounded-md transition-colors ${
                   isActive
                     ? 'bg-primary text-white dark:bg-primary dark:text-white'
                     : 'bg-surface-variant text-tertiary'

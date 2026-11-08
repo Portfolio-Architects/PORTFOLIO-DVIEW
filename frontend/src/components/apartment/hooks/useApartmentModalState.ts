@@ -2,16 +2,17 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 
 export interface UseApartmentModalStateProps {
   initialActiveTab?: string;
+  inline?: boolean;
 }
 
-export function useApartmentModalState({ initialActiveTab = 'sec-price-overview' }: UseApartmentModalStateProps = {}) {
+export function useApartmentModalState({ initialActiveTab = 'sec-price-overview', inline = false }: UseApartmentModalStateProps = {}) {
   const [activeTab, setActiveTab] = useState<string>(initialActiveTab);
   const [isSharing, setIsSharing] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState<'all-link' | 'summary' | null>(null);
   const [isPhotoModalOpen, setIsPhotoModalOpen] = useState(false);
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [isToolDropdownOpen, setIsToolDropdownOpen] = useState(false);
-  const [isAnimationFinished, setIsAnimationFinished] = useState(false);
+  const [isAnimationFinished, setIsAnimationFinished] = useState(Boolean(inline));
 
   const copiedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const shareActionTimeoutRef = useRef<NodeJS.Timeout | null>(null);

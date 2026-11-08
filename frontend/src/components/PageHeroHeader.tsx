@@ -12,6 +12,7 @@ export interface PageHeroHeaderProps {
   readonly compactTitle?: string;
   readonly bottomContent?: React.ReactNode;
   readonly isTitleDiv?: boolean;
+  readonly isSplitMode?: boolean;
 }
 
 const PageHeroHeader = React.memo(function PageHeroHeader({
@@ -23,6 +24,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
   compactTitle,
   bottomContent,
   isTitleDiv = false,
+  isSplitMode = false,
 }: PageHeroHeaderProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const TitleTag = isTitleDiv ? "div" : "h1";
@@ -65,7 +67,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
       </div>
 
       {/* Standardized Hero Header */}
-      <div className="h-[144px] flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 z-20 relative">
+      <div className={`h-[144px] flex flex-col gap-3 sm:gap-4 ${isSplitMode ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-10 lg:px-16'} pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-slate-200/80 dark:border-slate-800/80 shrink-0 z-20 relative transition-all duration-300 ease-out`}>
         <div className="flex items-start justify-between w-full max-w-full min-w-0">
           <div className="flex flex-col gap-3 sm:gap-4 w-full min-w-0">
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">

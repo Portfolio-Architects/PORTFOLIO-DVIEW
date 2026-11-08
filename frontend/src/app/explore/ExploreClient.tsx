@@ -594,6 +594,8 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     setIsSellTimingOpen(true);
   }, []);
 
+  const isSplitDetailOpen = Boolean(selectedReport && mobileModalOpen);
+
   return (
     <>
       <PullToRefresh
@@ -601,104 +603,132 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         disabled={mobileModalOpen || !!selectedReport}
       >
         <div className="flex flex-col min-h-[100dvh] min-h-[800px] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
-          <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto min-h-[85vh] min-h-[800px]">
-            <div className={mobileModalOpen ? "invisible" : ""}>
-              <section className="w-full bg-transparent min-h-[85vh] min-h-[800px]">
-                <PageHeroHeader 
-                  title="D-VIEW 아파트 탐색"
-                  subtitleStrong={<MarketStatsStrong />}
-                  subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
-                />
-                <ErrorBoundary name="아파트 맞춤 탐색">
-                  <TossApartmentExploreClient
-                    sheetApartments={sheetApartments}
-                    txSummaryData={txSummary}
-                    nameMapping={nameMapping || {}}
-                    fieldReportsMap={fieldReportsMap}
-                    publicRentalSet={publicRentalSet}
-                    typeMap={typeMap}
-                    handleSelectApt={handleAptClickByName}
-                    onOpenCompare={handleOpenCompare}
-                    onOpenJeonseSafety={handleOpenJeonseSafety}
-                    onOpenMortgage={handleOpenMortgage}
-                    onOpenTaxCalculator={handleOpenTaxCalculator}
-                    onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
-                    onSearchFocus={triggerFetch}
-                    preloadApartmentTx={preloadApartmentTx}
-                    inFeedAdSlot={
-                      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' ? (
-                        <div
-                          data-testid="explore-infeed-ad-wrapper"
-                          className="w-full py-1 empty:hidden"
-                        >
-                          <AdSlot
-                            refreshSlotId="explore_top_infeed"
-                            format="in-feed"
-                            minHeightClass="min-h-[140px] sm:min-h-[160px]"
-                            cpaCampaignId="jeonse-sentinel"
-                          />
-                        </div>
-                      ) : null
-                    }
-                  />
-                </ErrorBoundary>
-              </section>
+          <div
+            data-testid="master-detail-workspace"
+            data-split-open={String(isSplitDetailOpen)}
+            className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-all duration-300 ease-out"
+          >
+            {/* Left Master Pane (Explore Catalog) */}
+            <div
+              data-testid="master-workspace-pane"
+              className={`flex-1 min-w-0 max-w-full flex flex-col transition-all duration-300 ease-out ${
+                isSplitDetailOpen
+                  ? 'w-full md:w-[calc(100%-52vw)] lg:w-[calc(100%-780px)] xl:w-[calc(100%-880px)]'
+                  : 'w-full'
+              }`}
+            >
+              <main id="main-content" className="flex-1 w-full max-w-full mx-auto min-w-0 min-h-[85vh] min-h-[800px] transition-all duration-300 ease-out">
+                <div>
+                  <section className="w-full bg-transparent min-h-[85vh] min-h-[800px]">
+                    <PageHeroHeader 
+                      title="D-VIEW 아파트 탐색"
+                      subtitleStrong={<MarketStatsStrong />}
+                      subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
+                      isSplitMode={isSplitDetailOpen}
+                    />
+                    <ErrorBoundary name="아파트 맞춤 탐색">
+                      <TossApartmentExploreClient
+                        sheetApartments={sheetApartments}
+                        txSummaryData={txSummary}
+                        nameMapping={nameMapping || {}}
+                        fieldReportsMap={fieldReportsMap}
+                        publicRentalSet={publicRentalSet}
+                        typeMap={typeMap}
+                        handleSelectApt={handleAptClickByName}
+                        onOpenCompare={handleOpenCompare}
+                        onOpenJeonseSafety={handleOpenJeonseSafety}
+                        onOpenMortgage={handleOpenMortgage}
+                        onOpenTaxCalculator={handleOpenTaxCalculator}
+                        onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+                        onSearchFocus={triggerFetch}
+                        preloadApartmentTx={preloadApartmentTx}
+                        isSplitMode={isSplitDetailOpen}
+                        inFeedAdSlot={
+                          process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' ? (
+                            <div
+                              data-testid="explore-infeed-ad-wrapper"
+                              className="w-full py-1 empty:hidden"
+                            >
+                              <AdSlot
+                                refreshSlotId="explore_top_infeed"
+                                format="in-feed"
+                                minHeightClass="min-h-[140px] sm:min-h-[160px]"
+                                cpaCampaignId="jeonse-sentinel"
+                              />
+                            </div>
+                          ) : null
+                        }
+                      />
+                    </ErrorBoundary>
+                  </section>
+                </div>
+              </main>
             </div>
 
+            {/* Right Detail Pane (Animated Split Inspector on Desktop / Bottom Sheet on Mobile) */}
+            <aside
+              data-testid="detail-workspace-pane"
+              aria-label="아파트 상세 리포트 인스펙터"
+              aria-hidden={!isSplitDetailOpen}
+              className={`shrink-0 transition-all duration-300 ease-out ${
+                isSplitDetailOpen
+                  ? 'w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:max-w-[780px] xl:max-w-[880px] md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] md:overflow-hidden opacity-100 z-[60] md:z-40'
+                  : 'w-0 max-w-0 h-0 md:h-dvh md:max-h-[calc(100dvh-80px)] md:sticky md:top-[80px] opacity-0 md:translate-x-8 overflow-hidden pointer-events-none border-0'
+              }`}
+            >
+              {isSplitDetailOpen && selectedReport && (
+                <ErrorBoundary name="아파트 상세 정보">
+                  <FieldReportModal
+                    report={selectedReport}
+                    onClose={() => {
+                      const returnPath =
+                        typeof window !== 'undefined' && window.location.pathname.startsWith('/explore')
+                          ? `${window.location.pathname}${window.location.search || ''}`
+                          : returnExplorePathRef.current || '/explore';
+                      syncShallowModalCloseToDashboard(returnPath);
+                      setSelectedReport(null);
+                      setMobileModalOpen(false);
+                    }}
+                    user={user}
+                    typeMap={typeMap}
+                    inline={false}
+                    sheetApartments={sheetApartments}
+                    nameMapping={nameMapping || {}}
+                    txSummaryData={txSummary}
+                    locationScores={locationScores}
+                    onSelectApartment={handleAptClickByName}
 
-            {/* Apartment Detail Modal */}
-            {selectedReport && mobileModalOpen && (
-              <ErrorBoundary name="아파트 상세 정보">
-                <FieldReportModal
-                  report={selectedReport}
-                  onClose={() => {
-                    const returnPath =
-                      typeof window !== 'undefined' && window.location.pathname.startsWith('/explore')
-                        ? `${window.location.pathname}${window.location.search || ''}`
-                        : returnExplorePathRef.current || '/explore';
-                    syncShallowModalCloseToDashboard(returnPath);
-                    setSelectedReport(null);
-                    setMobileModalOpen(false);
-                  }}
-                  user={user}
-                  typeMap={typeMap}
-                  inline={false}
-                  sheetApartments={sheetApartments}
-                  nameMapping={nameMapping || {}}
-                  txSummaryData={txSummary}
-                  locationScores={locationScores}
-                  onSelectApartment={handleAptClickByName}
-
-                  onOpenCompare={(aptName, targetAptName) => {
-                    setCompareInitialApt(aptName);
-                    setCompareSecondApt(targetAptName);
-                    setIsCompareOpen(true);
-                    trackEvent('open_calculator', { calculator_type: 'compare', apt_name: aptName });
-                  }}
-                  onOpenJeonseSafety={(aptName) => {
-                    setJeonseSafetyInitialApt(aptName);
-                    setIsJeonseSafetyOpen(true);
-                    trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: aptName });
-                  }}
-                  onOpenMortgage={(aptName) => {
-                    setMortgageInitialApt(aptName);
-                    setIsMortgageOpen(true);
-                    trackEvent('open_calculator', { calculator_type: 'mortgage', apt_name: aptName });
-                  }}
-                  onOpenTaxCalculator={(aptName) => {
-                    setTaxCalcInitialApt(aptName);
-                    setIsTaxCalcOpen(true);
-                    trackEvent('open_calculator', { calculator_type: 'property_tax', apt_name: aptName });
-                  }}
-                  onOpenSellTimingCalculator={(aptName) => {
-                    setSellTimingInitialApt(aptName);
-                    setIsSellTimingOpen(true);
-                    trackEvent('open_calculator', { calculator_type: 'sell_timing', apt_name: aptName });
-                  }}
-                />
-              </ErrorBoundary>
-            )}
-          </main>
+                    onOpenCompare={(aptName, targetAptName) => {
+                      setCompareInitialApt(aptName);
+                      setCompareSecondApt(targetAptName);
+                      setIsCompareOpen(true);
+                      trackEvent('open_calculator', { calculator_type: 'compare', apt_name: aptName });
+                    }}
+                    onOpenJeonseSafety={(aptName) => {
+                      setJeonseSafetyInitialApt(aptName);
+                      setIsJeonseSafetyOpen(true);
+                      trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: aptName });
+                    }}
+                    onOpenMortgage={(aptName) => {
+                      setMortgageInitialApt(aptName);
+                      setIsMortgageOpen(true);
+                      trackEvent('open_calculator', { calculator_type: 'mortgage', apt_name: aptName });
+                    }}
+                    onOpenTaxCalculator={(aptName) => {
+                      setTaxCalcInitialApt(aptName);
+                      setIsTaxCalcOpen(true);
+                      trackEvent('open_calculator', { calculator_type: 'property_tax', apt_name: aptName });
+                    }}
+                    onOpenSellTimingCalculator={(aptName) => {
+                      setSellTimingInitialApt(aptName);
+                      setIsSellTimingOpen(true);
+                      trackEvent('open_calculator', { calculator_type: 'sell_timing', apt_name: aptName });
+                    }}
+                  />
+                </ErrorBoundary>
+              )}
+            </aside>
+          </div>
         </div>
       </PullToRefresh>
 

@@ -1,7 +1,9 @@
 import {
   decodeAptName,
   formatPriceEok,
+  formatPriceDeltaManwon,
   getPyeongSummaries,
+  computeMolitLatestTradeSummary,
   calculatePriceAnalytics,
   generateAiBriefing,
   type TransactionRecord,
@@ -164,6 +166,166 @@ describe('analyticsUtils Domain Logic Tests', () => {
     });
   });
 
+  describe('computeMolitLatestTradeSummary & formatPriceDeltaManwon', () => {
+    it('computes latestDealDate, maxSalePrice, same-pyeong priceDelta, and perPyeong while skipping cancelled deals', () => {
+      const txs: TransactionRecord[] = [
+        {
+          contractYm: '202603',
+          contractDay: '25',
+          contractDate: '2026-03-25',
+          cancelDate: '2026-03-26', // cancelled deal - must be ignored
+          price: 120000,
+          area: 84.9,
+          areaPyeong: 33.0,
+          floor: 20,
+          dealType: '매매',
+        },
+        {
+          contractYm: '202603',
+          contractDay: '21',
+          contractDate: '2026-03-21',
+          cancelDate: '-',
+          price: 94000,
+          priceEok: '9억 4,000',
+          area: 84.9,
+          areaPyeong: 32.97,
+          floor: 13,
+          dealType: '중개거래',
+        },
+        {
+          contractYm: '202603',
+          contractDay: '14',
+          contractDate: '2026-03-14',
+          cancelDate: '',
+          price: 97000,
+          priceEok: '9억 7,000',
+          area: 84.9,
+          areaPyeong: 32.97,
+          floor: 15,
+          dealType: '중개거래',
+        },
+      ];
+
+      const summaries = getPyeongSummaries(txs);
+      const summary = computeMolitLatestTradeSummary(
+        txs,
+        {
+          dong: '송동',
+          latestPrice: 94000,
+          latestDate: '20260321',
+          allTimeHigh: 109000,
+          avg1MPerPyeong: 2866,
+        } as any,
+        summaries
+      );
+
+      expect(summary.latestDealDateStr).toBe('2026.03.21');
+      expect(summary.latestSalePriceManwon).toBe(94000);
+      expect(summary.latestSalePriceStr).toBe('9억 4,000');
+      expect(summary.maxSalePriceManwon).toBe(109000);
+      expect(summary.maxSalePriceStr).toBe('10억 9,000');
+      expect(summary.priceDeltaManwon).toBe(-3000);
+      expect(summary.priceDeltaStr).toBe('-3,000만 하락');
+      expect(summary.perPyeongManwon).toBe(2866);
+      expect(summary.perPyeongStr).toBe('2,866만');
+
+      expect(formatPriceDeltaManwon(3500)).toBe('+3,500만 상승');
+      expect(formatPriceDeltaManwon(0)).toBe('보합(변동 없음)');
+      expect(formatPriceDeltaManwon(null)).toBeNull();
+    });
+
+    it('anchors latestSaleTx to aptSummary.latestPrice/latestDate when direct-deal outliers precede the brokered summary deal and never compares across different pyeongs', () => {
+      // Scenario 1: Direct deal on 2026-11-04 (75,000), brokered deal matching aptSummary on 2026-10-09 (132,000), prior same-pyeong deal on 2026-10-07 (139,000)
+      const lakePalaceTxs: TransactionRecord[] = [
+        {
+          contractYm: '202611',
+          contractDay: '04',
+          contractDate: '2026-11-04',
+          price: 75000,
+          area: 98.5,
+          areaPyeong: 39.0,
+          floor: 3,
+          dealType: '직거래',
+        },
+        {
+          contractYm: '202610',
+          contractDay: '09',
+          contractDate: '2026-10-09',
+          price: 132000,
+          area: 98.5,
+          areaPyeong: 39.0,
+          floor: 18,
+          dealType: '중개거래',
+        },
+        {
+          contractYm: '202610',
+          contractDay: '07',
+          contractDate: '2026-10-07',
+          price: 139000,
+          area: 98.5,
+          areaPyeong: 39.0,
+          floor: 22,
+          dealType: '중개거래',
+        },
+      ];
+
+      const anchoredSummary = computeMolitLatestTradeSummary(
+        lakePalaceTxs,
+        {
+          dong: '송동',
+          latestPrice: 132000,
+          latestDate: '26.10.09',
+          allTimeHigh: 158000,
+        } as any,
+        getPyeongSummaries(lakePalaceTxs)
+      );
+
+      expect(anchoredSummary.latestDealDateStr).toBe('2026.10.09');
+      expect(anchoredSummary.latestSalePriceManwon).toBe(132000);
+      expect(anchoredSummary.priceDeltaManwon).toBe(-7000);
+      expect(anchoredSummary.priceDeltaStr).toBe('-7,000만 하락');
+
+      // Scenario 2: Only 1 sale of 10평 and 1 sale of 8평 — must NOT compute cross-pyeong delta
+      const crossPyeongTxs: TransactionRecord[] = [
+        {
+          contractYm: '202607',
+          contractDay: '24',
+          contractDate: '2026-07-24',
+          price: 12000,
+          area: 33.1,
+          areaPyeong: 10.0,
+          floor: 7,
+          dealType: '중개거래',
+        },
+        {
+          contractYm: '202605',
+          contractDay: '12',
+          contractDate: '2026-05-12',
+          price: 9500,
+          area: 26.4,
+          areaPyeong: 8.0,
+          floor: 5,
+          dealType: '중개거래',
+        },
+      ];
+
+      const crossPyeongResult = computeMolitLatestTradeSummary(
+        crossPyeongTxs,
+        {
+          dong: '반송동',
+          latestPrice: 12000,
+          latestDate: '26.07.24',
+          avg3MPrice: 10750,
+        } as any,
+        getPyeongSummaries(crossPyeongTxs)
+      );
+
+      expect(crossPyeongResult.latestPyeong).toBe(10);
+      expect(crossPyeongResult.priceDeltaManwon).toBeNull();
+      expect(crossPyeongResult.priceDeltaStr).toBeNull();
+    });
+  });
+
   describe('generateAiBriefing', () => {
     it('generates rich AI briefing when pyeong summaries and location scores are provided', () => {
       const summaries = [
@@ -183,6 +345,10 @@ describe('analyticsUtils Domain Logic Tests', () => {
           avgDeposit: 90000,
           avgDepositStr: '9억',
           jeonseRatio: 60,
+          latestDealDate: '2026.05.10',
+          prevSalePrice: 140000,
+          priceDelta: 10000,
+          perPyeongPrice: 4545,
         },
       ];
 
@@ -200,6 +366,11 @@ describe('analyticsUtils Domain Logic Tests', () => {
       expect(brief).toContain('최근 매매가 15억');
       expect(brief).toContain('전세가 9억');
       expect(brief).toContain('전세가율 60%');
+      expect(brief).toContain('평당가 4,545만');
+      expect(brief).toContain('최근 거래일 2026.05.10');
+      expect(brief).toContain('최고가 15억');
+      expect(brief).toContain('직전 대비 변동액 +1억 상승');
+      expect(brief).toContain('호갱노노 비교');
       expect(brief).toContain('배정 초등학교는 동탄초등학교');
       expect(brief).toContain('가장 가까운 역은 동탄역(SRT/GTX-A');
     });

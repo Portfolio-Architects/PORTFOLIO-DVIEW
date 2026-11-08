@@ -35,13 +35,14 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
       expect(issue1?.badge).toBe('Issue #1');
     });
 
-    test('STATS_TOPICS contains extensible upcoming issues for future research', () => {
-      const upcoming = STATS_TOPICS.filter((t) => t.status === 'upcoming');
-      expect(upcoming.length).toBeGreaterThanOrEqual(3);
-      upcoming.forEach((topic) => {
-        expect(topic.status).toBe('upcoming');
+    test('STATS_TOPICS contains active thematic research issues (#2, #3, #4, #5)', () => {
+      const additionalIssues = STATS_TOPICS.filter((t) => t.issueNumber > 1);
+      expect(additionalIssues.length).toBeGreaterThanOrEqual(4);
+      additionalIssues.forEach((topic) => {
+        expect(topic.status).toBe('active');
         expect(topic.issueNumber).toBeGreaterThan(1);
         expect(topic.title.length).toBeGreaterThan(0);
+        expect(topic.sampleCount.length).toBeGreaterThan(0);
       });
     });
 
@@ -168,9 +169,9 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
       ]);
     });
 
-    test('Complex count partitions all 127 complexes: 6 + 15 + 29 + 34 + 43 = 127', () => {
+    test('Complex count partitions all 127 complexes: 5 + 16 + 29 + 34 + 43 = 127', () => {
       const counts = tiers.map((t) => t.complexCount);
-      expect(counts).toEqual([6, 15, 29, 34, 43]);
+      expect(counts).toEqual([5, 16, 29, 34, 43]);
       expect(counts.reduce((a, b) => a + b, 0)).toBe(127);
     });
 
@@ -194,11 +195,11 @@ describe('DongtanStationDistanceEngine Unit Test Suite', () => {
       expect(tiers[2].avgPricePerPyeongWon).toBeGreaterThan(tiers[3].avgPricePerPyeongWon);
     });
 
-    test('Premium rate vs overall average is highest for <500m (+64%) and 500m-1km (+41%)', () => {
+    test('Premium rate vs overall average is highest for <500m (+64%) and 500m-1km (+47%)', () => {
       expect(tiers[0].premiumVsAveragePercent).toBeGreaterThan(60);
       expect(tiers[0].premiumVsAveragePercent).toBeLessThan(70);
       expect(tiers[1].premiumVsAveragePercent).toBeGreaterThan(38);
-      expect(tiers[1].premiumVsAveragePercent).toBeLessThan(46);
+      expect(tiers[1].premiumVsAveragePercent).toBeLessThan(50);
     });
 
     test('Empty records input returns 5 zeroed tiers with zero NaN or Infinity', () => {

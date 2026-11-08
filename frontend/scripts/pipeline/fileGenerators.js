@@ -12,7 +12,12 @@ const path = require('path');
 const { applyIqrOutlierDetection } = require('./outlierFilters');
 const { formatPriceEok, normalizeAptName, normalizeRegisteredDate } = require('./apartmentSummarizer');
 const { sanitizeAptChunkFileName, sanitizeAptKey, isCancelledTransaction } = require('../../pipeline/core/normalizer');
-const { writeStatsStationCache, buildStatsStationCachePayload } = require('./statsStationCacheGenerator');
+const {
+  writeStatsStationCache,
+  buildStatsStationCachePayload,
+  writeStatsThematicCache,
+  buildStatsThematicCachePayload,
+} = require('./statsStationCacheGenerator');
 
 /**
  * Synchronous file writer with zero-spin OS thread backoff
@@ -198,7 +203,7 @@ function writeSummaryFiles(paths, data) {
     safeWriteFileSync(period1yPath, JSON.stringify(transactions1y));
     console.log(`📁 파일 생성: ${period1yPath}`);
 
-    // Guardrail D & P2-1: Atomically update stats-station-cache.json whenever transactions-1y.json is written
+    // Guardrail D & P2-1: Atomically update stats-station-cache.json and stats-thematic-cache.json whenever transactions-1y.json is written
     try {
       const cachePayload = writeStatsStationCache({
         outDirData: dir,
@@ -207,6 +212,18 @@ function writeSummaryFiles(paths, data) {
       console.log(`📁 파일 생성: ${path.join(dir, 'stats-station-cache.json')} (${cachePayload.records.length} complexes)`);
     } catch (err) {
       console.warn('⚠️ stats-station-cache.json 생성 중 경고:', err && err.message ? err.message : err);
+    }
+
+    try {
+      const thematicPayload = writeStatsThematicCache({
+        outDirData: dir,
+        txSummaryPayload: summary ? { summary, recent7DaysVolume } : undefined,
+      });
+      console.log(
+        `📁 파일 생성: ${path.join(dir, 'stats-thematic-cache.json')} (${thematicPayload.summaryMeta.complexCount} complexes)`
+      );
+    } catch (err) {
+      console.warn('⚠️ stats-thematic-cache.json 생성 중 경고:', err && err.message ? err.message : err);
     }
   }
 

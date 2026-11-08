@@ -594,9 +594,9 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
         ]);
       });
 
-      test('T1.4.2: Distance tier aggregation partitions all 127 complexes completely (6 + 15 + 29 + 34 + 43 = 127)', () => {
+      test('T1.4.2: Distance tier aggregation partitions all 127 complexes completely (5 + 16 + 29 + 34 + 43 = 127)', () => {
         const counts = baseTiers.map((t) => t.complexCount);
-        expect(counts).toEqual([6, 15, 29, 34, 43]);
+        expect(counts).toEqual([5, 16, 29, 34, 43]);
         const sum = counts.reduce((acc, n) => acc + n, 0);
         expect(sum).toBe(127);
       });

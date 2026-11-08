@@ -11,6 +11,8 @@ import type { LocationScore } from '@/types/apartment';
 export interface TransactionRecord {
   contractYm: string;
   contractDay: string | number;
+  contractDate?: string;
+  cancelDate?: string;
   price: number;
   priceEok?: string;
   deposit?: number;
@@ -37,6 +39,23 @@ export interface PyeongSummary {
   avgDeposit: number;
   avgDepositStr: string;
   jeonseRatio: number;
+  latestDealDate?: string;
+  prevSalePrice?: number;
+  priceDelta?: number;
+  perPyeongPrice?: number;
+}
+
+export interface MolitLatestTradeSummary {
+  latestDealDateStr: string | null;
+  latestSalePriceManwon: number;
+  latestSalePriceStr: string | null;
+  latestPyeong: number | null;
+  maxSalePriceManwon: number;
+  maxSalePriceStr: string | null;
+  priceDeltaManwon: number | null;
+  priceDeltaStr: string | null;
+  perPyeongManwon: number;
+  perPyeongStr: string | null;
 }
 
 export interface PriceAnalytics {
@@ -96,6 +115,56 @@ function toSortableContractDateNum(tx: TransactionRecord): number {
   return 0;
 }
 
+function formatRawDateToDots(raw?: string | number | null): string | null {
+  if (raw === undefined || raw === null) return null;
+  const str = String(raw).trim();
+  if (/^\d{8}$/.test(str)) {
+    return `${str.slice(0, 4)}.${str.slice(4, 6)}.${str.slice(6, 8)}`;
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return str.replace(/-/g, '.');
+  }
+  if (/^\d{4}\.\d{2}\.\d{2}$/.test(str)) {
+    return str;
+  }
+  return null;
+}
+
+function formatTxContractDate(tx?: TransactionRecord | null): string | null {
+  if (!tx) return null;
+  if (tx.contractDate) {
+    const formatted = formatRawDateToDots(tx.contractDate);
+    if (formatted) return formatted;
+  }
+  const ym = String(tx.contractYm || '').trim();
+  const day = String(tx.contractDay ?? '').trim().padStart(2, '0');
+  if (/^\d{6}$/.test(ym) && /^\d{2}$/.test(day) && day !== '00') {
+    return `${ym.slice(0, 4)}.${ym.slice(4, 6)}.${day}`;
+  }
+  return null;
+}
+
+function isCancelledTx(tx?: TransactionRecord | null): boolean {
+  if (!tx || !tx.cancelDate) return false;
+  const trimmed = String(tx.cancelDate).trim();
+  return trimmed.length > 0 && trimmed !== '-';
+}
+
+export function formatPriceDeltaManwon(deltaManwon: number | null | undefined): string | null {
+  if (deltaManwon === null || deltaManwon === undefined || !Number.isFinite(deltaManwon)) {
+    return null;
+  }
+  const rounded = Math.round(deltaManwon);
+  if (rounded === 0) {
+    return '보합(변동 없음)';
+  }
+  const absFormatted = formatPriceEok(Math.abs(rounded));
+  if (absFormatted === '0만') {
+    return '보합(변동 없음)';
+  }
+  return rounded > 0 ? `+${absFormatted} 상승` : `-${absFormatted} 하락`;
+}
+
 /**
  * 실거래가 레코드 목록을 평형별로 그룹화 및 통계 요약
  */
@@ -106,6 +175,7 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
 
   for (let i = 0; i < txs.length; i++) {
     const t = txs[i];
+    if (isCancelledTx(t)) continue;
     const pyeong = Math.round(t.areaPyeong);
     if (!pyeong || pyeong <= 0) continue;
     let bucket = groups[pyeong];
@@ -132,6 +202,7 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
     let salesCount = 0;
     let rentCount = 0;
     let latestSale: TransactionRecord | undefined;
+    let prevSale: TransactionRecord | undefined;
     let latestJeonse: TransactionRecord | undefined;
     let maxPrice = 0;
     let salePriceSum = 0;
@@ -144,8 +215,12 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
       areaSum += t.area || 0;
       if (t.dealType !== '전세' && t.dealType !== '월세') {
         salesCount++;
-        if (!latestSale) latestSale = t;
         const p = t.price || 0;
+        if (!latestSale) {
+          latestSale = t;
+        } else if (!prevSale && p > 0 && !isCancelledTx(t)) {
+          prevSale = t;
+        }
         if (p > 0) {
           if (p > maxPrice) maxPrice = p;
           salePriceSum += p;
@@ -183,6 +258,13 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
       jeonseRatio = Math.round((latestDeposit / latestPrice) * 100);
     }
 
+    const latestDealDate = formatTxContractDate(latestSale || latestJeonse) || undefined;
+    const prevSalePrice = prevSale?.price && prevSale.price > 0 ? prevSale.price : undefined;
+    const priceDelta =
+      latestPrice > 0 && prevSalePrice !== undefined ? latestPrice - prevSalePrice : undefined;
+    const perPyeongPrice =
+      latestPrice > 0 && pyeong > 0 ? Math.round(latestPrice / pyeong) : undefined;
+
     summaries.push({
       pyeong,
       areaM2: Math.round(avgArea * 100) / 100,
@@ -199,10 +281,179 @@ export function getPyeongSummaries(txs: TransactionRecord[]): PyeongSummary[] {
       avgDeposit,
       avgDepositStr,
       jeonseRatio,
+      ...(latestDealDate ? { latestDealDate } : {}),
+      ...(prevSalePrice !== undefined ? { prevSalePrice } : {}),
+      ...(priceDelta !== undefined ? { priceDelta } : {}),
+      ...(perPyeongPrice !== undefined ? { perPyeongPrice } : {}),
     });
   }
 
   return summaries.sort((a, b) => a.pyeong - b.pyeong);
+}
+
+/**
+ * 국토교통부 실거래 레코드 및 요약본으로부터 최신 거래일·최고가·직전 대비 변동액·평당가 산출
+ */
+export function computeMolitLatestTradeSummary(
+  txs?: TransactionRecord[],
+  aptSummary?: AptTxSummary,
+  pyeongSummaries: PyeongSummary[] = []
+): MolitLatestTradeSummary {
+  const validSales = Array.isArray(txs)
+    ? txs
+        .filter(
+          (t) =>
+            t &&
+            t.dealType !== '전세' &&
+            t.dealType !== '월세' &&
+            typeof t.price === 'number' &&
+            Number.isFinite(t.price) &&
+            t.price > 0 &&
+            !isCancelledTx(t)
+        )
+        .sort((a, b) => {
+          const numDiff = toSortableContractDateNum(b) - toSortableContractDateNum(a);
+          if (numDiff !== 0) return numDiff;
+          const dateA = String(a.contractYm) + String(a.contractDay).padStart(2, '0');
+          const dateB = String(b.contractYm) + String(b.contractDay).padStart(2, '0');
+          return dateB.localeCompare(dateA);
+        })
+    : [];
+
+  const summaryDotsDate = formatRawDateToDots(aptSummary?.latestDate);
+  const matchedSummaryIdx =
+    aptSummary?.latestPrice && aptSummary.latestPrice > 0
+      ? validSales.findIndex(
+          (t) =>
+            t.price === aptSummary.latestPrice &&
+            (!summaryDotsDate || formatTxContractDate(t) === summaryDotsDate)
+        )
+      : -1;
+  const fallbackPriceIdx =
+    matchedSummaryIdx >= 0
+      ? matchedSummaryIdx
+      : aptSummary?.latestPrice && aptSummary.latestPrice > 0
+        ? validSales.findIndex((t) => t.price === aptSummary.latestPrice)
+        : 0;
+  const anchorIdx = fallbackPriceIdx >= 0 ? fallbackPriceIdx : 0;
+  const latestSaleTx = validSales.length > 0 ? validSales[anchorIdx] : undefined;
+
+  const summaryDealDates = pyeongSummaries
+    .map((p) => p.latestDealDate)
+    .filter((d): d is string => Boolean(d))
+    .sort((a, b) => b.localeCompare(a));
+
+  const latestDealDateStr =
+    summaryDotsDate ||
+    formatTxContractDate(latestSaleTx) ||
+    summaryDealDates[0] ||
+    formatRawDateToDots(aptSummary?.latestRentDate) ||
+    null;
+
+  const dominantSalePyeong = [...pyeongSummaries]
+    .filter((p) => p.latestPrice > 0)
+    .sort((a, b) => b.salesCount - a.salesCount)[0];
+
+  const latestSalePriceManwon =
+    (aptSummary?.latestPrice && aptSummary.latestPrice > 0 ? aptSummary.latestPrice : 0) ||
+    (latestSaleTx?.price && latestSaleTx.price > 0 ? latestSaleTx.price : 0) ||
+    (dominantSalePyeong?.latestPrice && dominantSalePyeong.latestPrice > 0
+      ? dominantSalePyeong.latestPrice
+      : 0);
+
+  const latestSalePriceStr =
+    latestSalePriceManwon > 0 ? formatPriceEok(latestSalePriceManwon) : null;
+
+  const latestPyeong =
+    (latestSaleTx?.areaPyeong && latestSaleTx.areaPyeong > 0
+      ? Math.round(latestSaleTx.areaPyeong)
+      : null) ||
+    (aptSummary?.latestArea && aptSummary.latestArea > 0
+      ? Math.round(aptSummary.latestArea)
+      : null) ||
+    (dominantSalePyeong?.pyeong && dominantSalePyeong.pyeong > 0
+      ? dominantSalePyeong.pyeong
+      : null);
+
+  const pyeongMaxPrice = pyeongSummaries.reduce(
+    (max, p) => (p.maxPrice && p.maxPrice > max ? p.maxPrice : max),
+    0
+  );
+  const txMaxPrice = validSales.reduce(
+    (max, t) => (t.price && t.price > max ? t.price : max),
+    0
+  );
+  const maxSalePriceManwon = Math.max(
+    aptSummary?.allTimeHigh || 0,
+    aptSummary?.maxPrice || 0,
+    pyeongMaxPrice,
+    txMaxPrice,
+    latestSalePriceManwon
+  );
+  const maxSalePriceStr = maxSalePriceManwon > 0 ? formatPriceEok(maxSalePriceManwon) : null;
+
+  let priceDeltaManwon: number | null = null;
+  if (validSales.length >= 2 && latestSaleTx) {
+    const targetPyeong = Math.round(latestSaleTx.areaPyeong || 0);
+    const olderSales = validSales.slice(anchorIdx + 1);
+    const prevSamePyeong =
+      targetPyeong > 0
+        ? olderSales.find((t) => Math.round(t.areaPyeong || 0) === targetPyeong)
+        : olderSales.find((t) => Math.round(t.areaPyeong || 0) === 0);
+    if (prevSamePyeong && prevSamePyeong.price > 0) {
+      priceDeltaManwon = latestSaleTx.price - prevSamePyeong.price;
+    }
+  } else {
+    const matchingPyeongWithDelta =
+      (latestPyeong
+        ? pyeongSummaries.find((p) => p.pyeong === latestPyeong && typeof p.priceDelta === 'number')
+        : undefined) ||
+      pyeongSummaries.find((p) => typeof p.priceDelta === 'number');
+
+    if (matchingPyeongWithDelta && typeof matchingPyeongWithDelta.priceDelta === 'number') {
+      priceDeltaManwon = matchingPyeongWithDelta.priceDelta;
+    } else if (
+      validSales.length === 0 &&
+      aptSummary?.latestPrice &&
+      aptSummary.latestPrice > 0 &&
+      aptSummary?.avg3MPrice &&
+      aptSummary.avg3MPrice > 0
+    ) {
+      priceDeltaManwon = aptSummary.latestPrice - aptSummary.avg3MPrice;
+    }
+  }
+
+  const priceDeltaStr = formatPriceDeltaManwon(priceDeltaManwon);
+
+  const rawPerPyeong =
+    (aptSummary?.avg1MPerPyeong && aptSummary.avg1MPerPyeong > 0
+      ? Math.round(aptSummary.avg1MPerPyeong)
+      : 0) ||
+    (aptSummary?.avg3MPerPyeong && aptSummary.avg3MPerPyeong > 0
+      ? Math.round(aptSummary.avg3MPerPyeong)
+      : 0) ||
+    (latestSalePriceManwon > 0 && latestPyeong && latestPyeong > 0
+      ? Math.round(latestSalePriceManwon / latestPyeong)
+      : 0) ||
+    (dominantSalePyeong?.perPyeongPrice && dominantSalePyeong.perPyeongPrice > 0
+      ? dominantSalePyeong.perPyeongPrice
+      : 0);
+
+  const perPyeongManwon = Number.isFinite(rawPerPyeong) && rawPerPyeong > 0 ? rawPerPyeong : 0;
+  const perPyeongStr = perPyeongManwon > 0 ? formatPriceEok(perPyeongManwon) : null;
+
+  return {
+    latestDealDateStr,
+    latestSalePriceManwon,
+    latestSalePriceStr,
+    latestPyeong,
+    maxSalePriceManwon,
+    maxSalePriceStr,
+    priceDeltaManwon,
+    priceDeltaStr,
+    perPyeongManwon,
+    perPyeongStr,
+  };
 }
 
 /**
@@ -258,21 +509,46 @@ export function generateAiBriefing(
   aptName: string,
   aptSummary: AptTxSummary | undefined,
   pyeongSummaries: PyeongSummary[],
-  locationScore?: LocationScore | null
+  locationScore?: LocationScore | null,
+  txs?: TransactionRecord[]
 ): string {
-  const defaultBrief = `동탄 ${aptName} 실거래가, 매매가, 전세가율, 학군, 교통 호재, 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
+  const defaultBrief = `동탄 ${aptName} 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교 학군, 호갱노노 비교, 국토교통부 최근 거래일·최고가·직전 대비 변동액 요약 및 적정 가치 분석. D-VIEW에서 실제 데이터 기반의 프리미엄 분석을 확인하세요.`;
 
   let brief = '';
   const pyeongListStr = pyeongSummaries.map((p) => `${p.pyeong}평`).join(', ');
   const dongPrefix = aptSummary?.dong ? ` ${aptSummary.dong}` : '';
   const aptDisplay = aptName.endsWith('아파트') ? aptName : `${aptName} 아파트`;
+  const tradeSummary = computeMolitLatestTradeSummary(txs, aptSummary, pyeongSummaries);
+
+  const buildTradeHighlightClause = (): string => {
+    const parts: string[] = [];
+    if (tradeSummary.perPyeongStr) {
+      parts.push(`평당가 ${tradeSummary.perPyeongStr}`);
+    }
+    if (tradeSummary.latestDealDateStr) {
+      parts.push(`최근 거래일 ${tradeSummary.latestDealDateStr}`);
+    }
+    if (tradeSummary.maxSalePriceStr) {
+      parts.push(`최고가 ${tradeSummary.maxSalePriceStr}`);
+    } else if (tradeSummary.latestDealDateStr) {
+      parts.push('매매 최고가 집계 중');
+    }
+    if (tradeSummary.priceDeltaStr) {
+      parts.push(`직전 대비 변동액 ${tradeSummary.priceDeltaStr}`);
+    } else if (tradeSummary.maxSalePriceStr || tradeSummary.latestDealDateStr) {
+      parts.push('직전 대비 변동액 집계 중');
+    }
+    return parts.length > 0
+      ? ` [${parts.join(' · ')}]`
+      : ' [최근 거래일 · 최고가 · 직전 대비 변동액 집계 중]';
+  };
 
   if (pyeongSummaries.length === 0) {
     if (!aptSummary) return defaultBrief;
     if (aptSummary.latestPrice && aptSummary.latestPrice > 0) {
       const latestStr = formatPriceEok(aptSummary.latestPrice);
       const txBadge = aptSummary.txCount && aptSummary.txCount > 0 ? ` (누적 ${aptSummary.txCount.toLocaleString()}건)` : '';
-      brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 실거래 매매가 ${latestStr}${txBadge} — 전세가율, 스트레스 DSR 대출 한도, 배정 학군 및 교통 인프라 분석 리포트를 D-VIEW에서 확인하세요.`;
+      brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 실거래 매매가 ${latestStr}${txBadge}${buildTradeHighlightClause()} — 평당가, 전세가율, 배정 초등학교 학군, 호갱노노 비교 및 스트레스 DSR 대출 한도 분석 리포트를 D-VIEW에서 확인하세요.`;
     } else {
       const rawAvgEok = aptSummary.avg1MPriceEok?.trim();
       const hasValidAvgEok = Boolean(
@@ -280,16 +556,16 @@ export function generateAiBriefing(
       );
       if (aptSummary.avg1MPrice && aptSummary.avg1MPrice > 0) {
         const avg1MPrice = formatPriceEok(aptSummary.avg1MPrice);
-        brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+        brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원${buildTradeHighlightClause()}이며, D-VIEW에서 평당가, 전세가율, 배정 초등학교 학군, 호갱노노 비교 및 교통 인프라 분석 리포트를 확인해보세요.`;
       } else if (hasValidAvgEok && rawAvgEok) {
         const avg1MPrice = /[억만]/.test(rawAvgEok) ? rawAvgEok : `${rawAvgEok}억`;
-        brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+        brief = `${aptName}의 최근 1개월 평균 매매가는 ${avg1MPrice}원${buildTradeHighlightClause()}이며, D-VIEW에서 평당가, 전세가율, 배정 초등학교 학군, 호갱노노 비교 및 교통 인프라 분석 리포트를 확인해보세요.`;
       } else if (aptSummary.latestRentDeposit && aptSummary.latestRentDeposit > 0) {
         const rentStr = formatPriceEok(aptSummary.latestRentDeposit);
         const txBadge = aptSummary.txCount && aptSummary.txCount > 0 ? ` (누적 ${aptSummary.txCount.toLocaleString()}건)` : '';
-        brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 전월세 보증금 실거래가 ${rentStr}${txBadge} — 전세가율, 스트레스 DSR 대출 한도, 배정 학군 및 교통 인프라 분석 리포트를 D-VIEW에서 확인하세요.`;
+        brief = `동탄${dongPrefix} ${aptName} 국토교통부 최신 전월세 보증금 실거래가 ${rentStr}${txBadge}${buildTradeHighlightClause()} — 평당가, 전세가율, 배정 초등학교 학군, 호갱노노 비교 및 스트레스 DSR 대출 한도 분석 리포트를 D-VIEW에서 확인하세요.`;
       } else {
-        brief = `${aptName}의 최근 1개월 평균 매매가는 정보 없음이며, D-VIEW에서 학군, 교통 인프라 및 프리미엄 적정 가치 분석 리포트를 확인해보세요.`;
+        brief = `${aptName}의 최근 1개월 평균 매매가는 정보 없음${buildTradeHighlightClause()}이며, D-VIEW에서 평당가, 전세가율, 배정 초등학교 학군, 호갱노노 비교 및 교통 인프라 분석 리포트를 확인해보세요.`;
       }
     }
   } else {
@@ -304,7 +580,7 @@ export function generateAiBriefing(
       aptSummary?.txCount && aptSummary.txCount > 0
         ? ` (누적 실거래 ${aptSummary.txCount.toLocaleString()}건)`
         : '';
-    brief = `동탄${dongPrefix} ${aptDisplay}(${pyeongListStr}) 국토교통부 실거래가 요약${txBadge}: ${majorDetails}. 평형별 매매·전세 시세 추이, 스트레스 DSR 40% 대출 한도와 학군·대중교통 인프라 분석을 D-VIEW에서 제공합니다.`;
+    brief = `동탄${dongPrefix} ${aptDisplay}(${pyeongListStr}) 국토교통부 실거래가 요약${txBadge}: ${majorDetails}${buildTradeHighlightClause()}. 평당가·전세가율·배정 초등학교·호갱노노 비교 분석 및 스트레스 DSR 40% 대출 한도를 D-VIEW에서 제공합니다.`;
   }
 
   if (locationScore) {
@@ -322,3 +598,4 @@ export function generateAiBriefing(
 
   return brief;
 }
+

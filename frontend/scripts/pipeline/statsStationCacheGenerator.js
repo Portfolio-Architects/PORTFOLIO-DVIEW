@@ -247,6 +247,175 @@ function buildStatsStationCachePayload({
   return { records, datasetMeta };
 }
 
+const DONGTAN_LAKE_PARK_COORDS = { lat: 37.1675, lng: 127.1035 };
+
+function normalizeTxSummaryLookupKey(str) {
+  return String(str || '')
+    .replace(/\s+/g, '')
+    .replace(/[(),]/g, '')
+    .replace(/[-_.]/g, '')
+    .replace(/Ⅰ/g, '1')
+    .replace(/Ⅱ/g, '2')
+    .replace(/Ⅲ/g, '3')
+    .replace(/Ⅳ/g, '4')
+    .toLowerCase();
+}
+
+/**
+ * Pre-computes thematic comparison metadata (`stats-thematic-cache.json`) for the 127 complexes
+ * from `apartments-by-dong.json`, `location-scores.json`, and `tx-summary.json`.
+ */
+function buildStatsThematicCachePayload({
+  apartmentsByDongRaw,
+  locationScoresRaw,
+  txSummaryRaw,
+}) {
+  const locMap = locationScoresRaw || {};
+  const rawByDong =
+    apartmentsByDongRaw && typeof apartmentsByDongRaw === 'object' && apartmentsByDongRaw.byDong
+      ? apartmentsByDongRaw.byDong
+      : apartmentsByDongRaw || {};
+  const rawSummary =
+    txSummaryRaw && typeof txSummaryRaw === 'object' && txSummaryRaw.summary
+      ? txSummaryRaw.summary
+      : txSummaryRaw || {};
+
+  const txSumNormMap = new Map();
+  for (const [slug, summaryObj] of Object.entries(rawSummary)) {
+    if (summaryObj && typeof summaryObj === 'object') {
+      const entry = {
+        canonicalSlug: slug,
+        summary: summaryObj,
+      };
+      txSumNormMap.set(normalizeTxSummaryLookupKey(slug), entry);
+      txSumNormMap.set(cleanApartmentName(slug), entry);
+    }
+  }
+
+  const complexes = {};
+  let totalAllTimeSalesCount = 0;
+  let totalAllTimeRentCount = 0;
+
+  for (const [dongName, list] of Object.entries(rawByDong)) {
+    if (!Array.isArray(list)) continue;
+    for (const apt of list) {
+      if (apt.lat && apt.lat > 0 && locMap[apt.name]) {
+        const loc = locMap[apt.name];
+        const distLake = calculateHaversineDistanceMeters(
+          apt.lat,
+          apt.lng,
+          DONGTAN_LAKE_PARK_COORDS.lat,
+          DONGTAN_LAKE_PARK_COORDS.lng
+        );
+        const foundTx =
+          txSumNormMap.get(normalizeTxSummaryLookupKey(apt.txKey)) ||
+          txSumNormMap.get(normalizeTxSummaryLookupKey(apt.name)) ||
+          txSumNormMap.get(cleanApartmentName(apt.txKey)) ||
+          txSumNormMap.get(cleanApartmentName(apt.name));
+        const txSum = foundTx ? foundTx.summary : {};
+        const canonicalSlug = foundTx ? foundTx.canonicalSlug : apt.txKey || apt.name;
+
+        const allTimeHighWon = Math.round((Number(txSum.allTimeHigh) || 0) * 10000);
+        const allTimeLowWon = Math.round((Number(txSum.allTimeLow) || 0) * 10000);
+        const allTimeTxCount = Number(txSum.txCount) || 0;
+        const rentTxCount = Number(txSum.rentTxCount) || 0;
+        const latestRentDepositWon = Math.round((Number(txSum.latestRentDeposit) || 0) * 10000);
+
+        totalAllTimeSalesCount += allTimeTxCount;
+        totalAllTimeRentCount += rentTxCount;
+
+        complexes[apt.name] = {
+          dong: dongName,
+          canonicalSlug,
+          distanceToElementary: Number(loc.distanceToElementary) || 0,
+          distanceToMiddle: Number(loc.distanceToMiddle) || 0,
+          distanceToHigh: Number(loc.distanceToHigh) || 0,
+          elementarySchoolName:
+            (loc.nearestSchoolNames && loc.nearestSchoolNames.elementary) || '',
+          middleSchoolName: (loc.nearestSchoolNames && loc.nearestSchoolNames.middle) || '',
+          highSchoolName: (loc.nearestSchoolNames && loc.nearestSchoolNames.high) || '',
+          academyDensity: Number(loc.academyDensity) || 0,
+          distanceToLakeMeters: distLake,
+          allTimeHighWon,
+          allTimeLowWon,
+          allTimeTxCount,
+          rentTxCount,
+          latestRentDepositWon,
+        };
+      }
+    }
+  }
+
+  return {
+    complexes,
+    summaryMeta: {
+      complexCount: Object.keys(complexes).length,
+      totalAllTimeSalesCount,
+      totalAllTimeRentCount,
+      lakeParkCenterCoords: DONGTAN_LAKE_PARK_COORDS,
+    },
+  };
+}
+
+/**
+ * Generates and writes `stats-thematic-cache.json` to `outDirData` (`public/data`).
+ */
+function writeStatsThematicCache({
+  outDirData,
+  txSummaryPayload,
+  apartmentsByDongPath,
+  locationScoresPath,
+  txSummaryPath,
+}) {
+  const defaultRootDataDir = path.resolve(__dirname, '../../public/data');
+  const defaultSrcLibLocPath = path.resolve(__dirname, '../../src/lib/location-scores.json');
+
+  const resolvedAptsPath =
+    apartmentsByDongPath ||
+    (fs.existsSync(path.join(outDirData, 'apartments-by-dong.json'))
+      ? path.join(outDirData, 'apartments-by-dong.json')
+      : path.join(defaultRootDataDir, 'apartments-by-dong.json'));
+
+  const resolvedLocsPath =
+    locationScoresPath ||
+    (fs.existsSync(defaultSrcLibLocPath)
+      ? defaultSrcLibLocPath
+      : fs.existsSync(path.join(outDirData, 'location-scores.json'))
+        ? path.join(outDirData, 'location-scores.json')
+        : path.join(defaultRootDataDir, 'location-scores.json'));
+
+  const resolvedTxSumPath =
+    txSummaryPath ||
+    (fs.existsSync(path.join(outDirData, 'tx-summary.json'))
+      ? path.join(outDirData, 'tx-summary.json')
+      : path.join(defaultRootDataDir, 'tx-summary.json'));
+
+  const apartmentsByDongRaw = fs.existsSync(resolvedAptsPath)
+    ? JSON.parse(fs.readFileSync(resolvedAptsPath, 'utf8'))
+    : {};
+  const locationScoresRaw = fs.existsSync(resolvedLocsPath)
+    ? JSON.parse(fs.readFileSync(resolvedLocsPath, 'utf8'))
+    : {};
+  const txSummaryRaw =
+    txSummaryPayload ||
+    (fs.existsSync(resolvedTxSumPath)
+      ? JSON.parse(fs.readFileSync(resolvedTxSumPath, 'utf8'))
+      : {});
+
+  const thematicPayload = buildStatsThematicCachePayload({
+    apartmentsByDongRaw,
+    locationScoresRaw,
+    txSummaryRaw,
+  });
+
+  if (!fs.existsSync(outDirData)) {
+    fs.mkdirSync(outDirData, { recursive: true });
+  }
+  const outPath = path.join(outDirData, 'stats-thematic-cache.json');
+  fs.writeFileSync(outPath, JSON.stringify(thematicPayload), 'utf8');
+  return thematicPayload;
+}
+
 /**
  * Generates and writes `stats-station-cache.json` to `outDirData` (`public/data`).
  */
@@ -303,9 +472,13 @@ function writeStatsStationCache({
 
 module.exports = {
   DONGTAN_STATION_COORDS,
+  DONGTAN_LAKE_PARK_COORDS,
   calculateHaversineDistanceMeters,
   cleanApartmentName,
   normalizeTx1yRows,
+  normalizeTxSummaryLookupKey,
   buildStatsStationCachePayload,
+  buildStatsThematicCachePayload,
   writeStatsStationCache,
+  writeStatsThematicCache,
 };

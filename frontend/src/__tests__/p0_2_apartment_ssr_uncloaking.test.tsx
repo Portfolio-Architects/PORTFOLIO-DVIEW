@@ -311,7 +311,7 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
     }
   });
 
-  it('7. renders LoungeHeader(activeTab="explore") and #apt-ssr-comprehensive-report ABOVE DashboardClient without auto-opening modal, and synthesizes complex-specific narrative in #chapter-01-dynamic-narrative-ssr', async () => {
+  it('7. renders LoungeHeader(activeTab="explore"), inline DashboardClient, and #apt-ssr-comprehensive-report in matching DOM & visual order without auto-opening modal, and synthesizes complex-specific narrative in #chapter-01-dynamic-narrative-ssr', async () => {
     const jsx = await ApartmentPage({
       params: Promise.resolve({ aptName: encodeURIComponent('동탄역롯데캐슬') }),
     });
@@ -329,10 +329,11 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
     expect(exploreNavLink).not.toBeNull();
     expect(exploreNavLink?.className).toContain('text-blue-600');
 
-    // Content-First invariant: headerBanner -> reportSection -> dashboardClient in DOM document order
-    expect(headerBanner.compareDocumentPosition(reportSection) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    const positionMask = reportSection.compareDocumentPosition(dashboardClient);
+    // Inline Detail View invariant: headerBanner -> dashboardClient -> reportSection in natural DOM & visual order (no flex order-1/order-2 mismatch)
+    expect(headerBanner.compareDocumentPosition(dashboardClient) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const positionMask = dashboardClient.compareDocumentPosition(reportSection);
     expect(positionMask & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(reportSection.className).not.toContain('order-2');
 
     // Verify DashboardClient does NOT auto-open full-screen modal over #apt-ssr-comprehensive-report
     expect(dashboardClient.getAttribute('data-auto-open-modal')).toBe('false');

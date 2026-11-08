@@ -32,6 +32,7 @@ import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
@@ -679,8 +680,20 @@ export default async function GuideArticlePage(props: {
 
             {/* Key Takeaways Callout */}
             <div className="bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
-                <span>본 리포트의 핵심 결론 및 요약 (Key Takeaways)</span>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
+                  <span>본 리포트의 핵심 결론 및 요약 (Key Takeaways)</span>
+                </div>
+                <Link
+                  href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                  prefetch={false}
+                  data-testid="guide-top-stats-comparison-cta"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs shrink-0"
+                >
+                  <Scale size={13} />
+                  <span>동탄1 vs 동탄2 실시간 집값 통계 비교표 열기</span>
+                  <ArrowUpRight size={13} />
+                </Link>
               </div>
               <ul className="space-y-2 text-[13px] sm:text-[14px] text-secondary font-medium pl-5 list-disc">
                 {article.keyTakeaways.map((point, idx) => (
@@ -1109,6 +1122,13 @@ export default async function GuideArticlePage(props: {
               </section>
             )}
 
+            {/* Bidirectional Bridge to /stats Dongtan 1 vs Dongtan 2 House Price Comparison */}
+            <GuideStatsComparisonBridge
+              guideSlug={article.slug}
+              guideTitle={article.title}
+              placement="guide_article_bottom"
+            />
+
             {/* Topic Cluster & Popular Guide Internal Cross-Linking Hub */}
             {clusterRelatedGuides.length > 0 && (
               <section
@@ -1322,6 +1342,12 @@ export default async function GuideArticlePage(props: {
                 <p className="text-[12px] text-secondary mt-0.5">국토교통부 실거래가 및 행정 인프라 공공데이터 융합 퀀트 리서치</p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-colors"
+                >
+                  <span>동탄1 vs 동탄2 집값 통계</span>
+                </Link>
                 <Link
                   href="/explore"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-bold transition-colors"

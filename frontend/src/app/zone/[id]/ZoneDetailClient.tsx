@@ -128,8 +128,25 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
       handleSelectReport(matched);
       return;
     }
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/zone/')) {
+      returnZonePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
+    }
     const canonicalSlug = resolveCanonicalAptSlug(aptName, { dong }) || aptName;
-    router.push(`/apartment/${encodeURIComponent(canonicalSlug)}`);
+    syncShallowApartmentOpen(aptName, {
+      dong,
+      canonicalSlug,
+    });
+    setSelectedReport({
+      id: `stub-${normalizeAptName(aptName)}`,
+      apartmentName: aptName,
+      dong: dong || '',
+      author: '',
+      likes: 0,
+      commentCount: 0,
+      createdAt: null,
+    });
+    setIsLoadingDetail(false);
+    setFullReportData(null);
   };
 
   const handleCloseModal = () => {
@@ -247,11 +264,13 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
     );
   }
 
+  const isSplitDetailOpen = Boolean(selectedReport);
+
   return (
-    <div className="min-h-screen bg-body font-sans">
-      {/* Header */}
-      <header className="bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-40">
-        <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 h-14 sm:h-16 flex items-center gap-3 sm:gap-4">
+    <div className="min-h-screen bg-body font-sans flex flex-col">
+      {/* Header — Full-width top navigation bar outside split workspace */}
+      <header className="w-full bg-surface/90 backdrop-blur-xl border-b border-border sticky top-0 z-50">
+        <div className="w-full max-w-[2000px] mx-auto px-3 sm:px-6 md:px-12 h-14 sm:h-16 flex items-center gap-3 sm:gap-4">
           <button 
             onClick={() => router.push('/')}
             className="flex items-center gap-2 text-secondary hover:text-primary transition-colors font-bold text-[14px]"
@@ -264,99 +283,124 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
         </div>
       </header>
 
-      {/* Zone Hero Banner */}
-      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 pt-6 sm:pt-8 pb-4">
-        <div className="bg-surface rounded-3xl border border-border p-6 md:p-8 shadow-sm">
-          <div className="flex flex-col md:flex-row md:items-center gap-4">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-[12px] font-bold px-3 py-1 rounded-lg text-surface" style={{ backgroundColor: zone.color }}>{zone.dongLabel}</span>
-                <span className="bg-body text-secondary text-[13px] font-bold px-3 py-1 rounded-lg">{zoneReports.length}개 단지</span>
+      <div
+        data-testid="master-detail-workspace"
+        data-split-open={String(isSplitDetailOpen)}
+        className="flex-1 flex flex-col md:flex-row items-start w-full max-w-[2000px] mx-auto min-w-0 relative transition-all duration-300 ease-out"
+      >
+        {/* Left Master Pane (Zone Catalog) */}
+        <div
+          data-testid="master-workspace-pane"
+          className={`flex-1 min-w-0 max-w-full flex flex-col transition-all duration-300 ease-out ${
+            isSplitDetailOpen
+              ? 'w-full md:w-[calc(100%-52vw)] lg:w-[calc(100%-780px)] xl:w-[calc(100%-880px)]'
+              : 'w-full'
+          }`}
+        >
+          {/* Zone Hero Banner */}
+          <div className={`w-full max-w-[1400px] mx-auto ${isSplitDetailOpen ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-12'} pt-6 sm:pt-8 pb-4 transition-all duration-300 ease-out`}>
+            <div className="bg-surface rounded-3xl border border-border p-6 md:p-8 shadow-sm">
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="text-[12px] font-bold px-3 py-1 rounded-lg text-surface" style={{ backgroundColor: zone.color }}>{zone.dongLabel}</span>
+                    <span className="bg-body text-secondary text-[13px] font-bold px-3 py-1 rounded-lg">{zoneReports.length}개 단지</span>
+                  </div>
+                  <h2 className="text-[28px] md:text-[32px] font-extrabold text-primary tracking-tight mb-2">{zone.name}</h2>
+                  <p className="text-[15px] text-secondary leading-relaxed">{zone.description}</p>
+                </div>
               </div>
-              <h2 className="text-[28px] md:text-[32px] font-extrabold text-primary tracking-tight mb-2">{zone.name}</h2>
-              <p className="text-[15px] text-secondary leading-relaxed">{zone.description}</p>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Apartment Grid */}
-      <div className="w-full max-w-[1400px] mx-auto px-3 sm:px-6 md:px-12 py-6">
-        {zoneReports.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {zoneReports.map((report) => {
-              const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
-                                  report.thumbnail || 
-                                  report.sections?.infra?.gateImg || 
-                                  report.sections?.infra?.landscapeImg || 
-                                  report.sections?.ecosystem?.communityImg;
-              const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : 5;
+          {/* Apartment Grid */}
+          <div className={`w-full max-w-[1400px] mx-auto ${isSplitDetailOpen ? 'px-4 sm:px-5 md:px-6 xl:px-8' : 'px-3 sm:px-6 md:px-12'} py-6 transition-all duration-300 ease-out`}>
+            {zoneReports.length > 0 ? (
+              <div className={`grid grid-cols-1 ${isSplitDetailOpen ? 'xl:grid-cols-2' : 'md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'} gap-6 transition-all duration-300 ease-out`}>
+                {zoneReports.map((report) => {
+                  const coverImage = (report.images && report.images.length > 0) ? report.images[0].url : 
+                                      report.thumbnail || 
+                                      report.sections?.infra?.gateImg || 
+                                      report.sections?.infra?.landscapeImg || 
+                                      report.sections?.ecosystem?.communityImg;
+                  const rating = report.premiumScores?.totalPremiumScore ? Math.max(1, Math.round(report.premiumScores.totalPremiumScore / 20)) : 5;
 
-              return (
-                <button
-                  type="button"
-                  key={report.id}
-                  onClick={() => handleSelectReport(report)}
-                  className="w-full text-left bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
-                  aria-label={`리포트: ${report.apartmentName}, 작성자: ${report.author}, 평점: ${rating}점`}
-                >
-                  {coverImage ? (
-                    <div className="w-full h-[200px] shrink-0 bg-body relative overflow-hidden">
-                      <Image src={coverImage} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    </div>
-                  ) : (
-                    <div className="w-full h-[200px] shrink-0 bg-body flex items-center justify-center relative overflow-hidden">
-                       <Camera size={32} className="text-toss-gray" />
-                     </div>
-                  )}
-                  
-                  <div className="p-5 flex flex-col justify-between flex-1 w-full">
-                     <div>
-                       <div className="flex justify-between items-start mb-2">
-                         <h3 className="text-[18px] font-bold text-primary tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
-                         <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 dark:bg-surface/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
-                           평점 {rating}점
-                         </div>
-                       </div>
-                       <p className="text-[14px] text-secondary line-clamp-2 leading-relaxed h-[42px] mb-4">
-                         {report.premiumContent || report.sections?.assessment?.alphaDriver || '상세 리뷰가 접수되었습니다.'}
-                       </p>
-                     </div>
-                     
-                     <div className="flex justify-between items-center pt-4 border-t border-body w-full">
-                        <span className="text-[12px] font-bold text-tertiary">{report.author}</span>
-                        <div className="flex items-center gap-3 text-tertiary">
-                           <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
-                           <span className="text-[12px] font-bold">댓글 {report.commentCount || 0}</span>
+                  return (
+                    <button
+                      type="button"
+                      key={report.id}
+                      onClick={() => handleSelectReport(report)}
+                      className="w-full text-left bg-surface border shadow-sm border-border rounded-3xl overflow-hidden hover:border-toss-blue/50 hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-300 flex flex-col group focus:outline-none focus-visible:ring-2 focus-visible:ring-toss-blue"
+                      aria-label={`리포트: ${report.apartmentName}, 작성자: ${report.author}, 평점: ${rating}점`}
+                    >
+                      {coverImage ? (
+                        <div className="w-full h-[200px] shrink-0 bg-body relative overflow-hidden">
+                          <Image src={coverImage} alt="" fill sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                         </div>
-                     </div>
-                  </div>
-                </button>
-              );
-            })}
+                      ) : (
+                        <div className="w-full h-[200px] shrink-0 bg-body flex items-center justify-center relative overflow-hidden">
+                           <Camera size={32} className="text-toss-gray" />
+                         </div>
+                      )}
+                      
+                      <div className="p-5 flex flex-col justify-between flex-1 w-full">
+                         <div>
+                           <div className="flex justify-between items-start mb-2">
+                             <h3 className="text-[18px] font-bold text-primary tracking-tight leading-snug line-clamp-1" title={report.apartmentName}>{report.apartmentName}</h3>
+                             <div className="flex items-center text-[#ffc107] text-[12px] font-bold tracking-widest bg-black/5 dark:bg-surface/5 px-2 py-0.5 rounded-full shrink-0 ml-2">
+                               평점 {rating}점
+                             </div>
+                           </div>
+                           <p className="text-[14px] text-secondary line-clamp-2 leading-relaxed h-[42px] mb-4">
+                             {report.premiumContent || report.sections?.assessment?.alphaDriver || '상세 리뷰가 접수되었습니다.'}
+                           </p>
+                         </div>
+                         
+                         <div className="flex justify-between items-center pt-4 border-t border-body w-full">
+                            <span className="text-[12px] font-bold text-tertiary">{report.author}</span>
+                            <div className="flex items-center gap-3 text-tertiary">
+                               <span className="text-[12px] font-bold">좋아요 {report.likes || 0}</span>
+                               <span className="text-[12px] font-bold">댓글 {report.commentCount || 0}</span>
+                            </div>
+                         </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <MapPin size={48} className="text-toss-gray mb-4" />
+                <h3 className="text-[18px] font-bold text-primary mb-2">아직 등록된 리뷰가 없습니다</h3>
+                <p className="text-[14px] text-tertiary">이 권역의 첫 임장기를 작성해보세요!</p>
+              </div>
+            )}
           </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
-            <MapPin size={48} className="text-toss-gray mb-4" />
-            <h3 className="text-[18px] font-bold text-primary mb-2">아직 등록된 리뷰가 없습니다</h3>
-            <p className="text-[14px] text-tertiary">이 권역의 첫 임장기를 작성해보세요!</p>
-          </div>
-        )}
+        </div>
+
+        {/* Right Detail Pane (Animated Split Inspector on Desktop / Bottom Sheet on Mobile) */}
+        <aside
+          data-testid="detail-workspace-pane"
+          aria-label="아파트 상세 리포트 인스펙터"
+          aria-hidden={!isSplitDetailOpen}
+          className={`shrink-0 transition-all duration-300 ease-out ${
+            isSplitDetailOpen
+              ? 'w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:max-w-[780px] xl:max-w-[880px] md:h-dvh md:max-h-[calc(100dvh-64px)] md:sticky md:top-16 md:overflow-hidden opacity-100 z-[60] md:z-40'
+              : 'w-0 max-w-0 h-0 md:h-dvh md:max-h-[calc(100dvh-64px)] md:sticky md:top-16 opacity-0 md:translate-x-8 overflow-hidden pointer-events-none border-0'
+          }`}
+        >
+          {selectedReport && (
+            <FieldReportModal 
+              report={fullReportData || selectedReport} 
+              onClose={handleCloseModal} 
+              user={user}
+              typeMap={{}}
+              isLoadingDetail={isLoadingDetail}
+              onSelectApartment={handleSelectApartmentByName}
+            />
+          )}
+        </aside>
       </div>
-
-
-      {/* Report Detail Modal */}
-      {selectedReport && (
-        <FieldReportModal 
-          report={fullReportData || selectedReport} 
-          onClose={handleCloseModal} 
-          user={user}
-          transactions={[]}
-          typeMap={{}}
-          isLoadingDetail={isLoadingDetail}
-          onSelectApartment={handleSelectApartmentByName}
-        />
-      )}
     </div>
   );
 });

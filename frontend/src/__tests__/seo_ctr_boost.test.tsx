@@ -25,8 +25,13 @@ import {
 } from '@/lib/repositories/searchConsole.repository';
 import {
   getTxSummaryData,
+  getApartmentsByDongData,
+  getLocationScoresData,
   getApartmentPageData,
+  buildApartmentJsonLd,
   buildApartmentSeoMetadata,
+  resolveCanonicalAptSlug,
+  selectApartmentComparisonPeers,
   getTechnoValleyJisanList,
   resolveTechnoValleyJisan,
   buildTechnoValleySeoMetadata,
@@ -2441,7 +2446,201 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       }
     });
   });
+
+  describe('Step 4: 184 Apartment Detail Pages FAQPage JSON-LD & Similar Per-Pyeong / School-Zone SSR Cross-Linking', () => {
+    it('enriches /apartment/동탄더샵레이크에듀타운 and /apartment/동탄역롯데캐슬 with MOLIT latest trade summary, search-intent keywords, and FAQPage JSON-LD', async () => {
+      const targetComplexes = ['동탄더샵레이크에듀타운', '동탄역롯데캐슬'];
+
+      for (const aptName of targetComplexes) {
+        const [pageData, meta] = await Promise.all([
+          getApartmentPageData(aptName),
+          buildApartmentSeoMetadata(aptName, undefined, 'https://dongtanview.com'),
+        ]);
+
+        // 1. Canonical URL unification
+        const expectedCanonicalUrl = `https://dongtanview.com/apartment/${encodeURIComponent(aptName)}`;
+        expect(meta.alternates?.canonical).toBe(expectedCanonicalUrl);
+        expect(meta.openGraph?.url).toBe(expectedCanonicalUrl);
+
+        // 2. Title & Meta keywords reflect 실거래가 / 평당가 / 전세가율 / 배정 초등학교 / 호갱노노 비교
+        const titleStr = String(meta.title);
+        const descStr = String(meta.description);
+        const keywordsStr = String(meta.keywords);
+
+        expect(titleStr).toContain(aptName);
+        expect(titleStr).toContain('실거래가');
+        expect(titleStr).toContain('평당가');
+        expect(titleStr).toContain('전세가율');
+        expect(keywordsStr).toContain('평당가');
+        expect(keywordsStr).toContain('배정 초등학교');
+        expect(keywordsStr).toContain('호갱노노 비교');
+
+        // 3. First paragraph (aiBriefing) reflects search-intent keywords + MOLIT latest trade summary (최근 거래일 · 최고가 · 직전 대비 변동액 · 평당가)
+        expect(pageData.aiBriefing).toContain('실거래가');
+        expect(pageData.aiBriefing).toContain('평당가');
+        expect(pageData.aiBriefing).toContain('전세가율');
+        expect(pageData.aiBriefing).toContain('배정 초등학교');
+        expect(pageData.aiBriefing).toContain('호갱노노 비교');
+        expect(pageData.aiBriefing).toMatch(/최근 거래일 \d{4}\.\d{2}\.\d{2}/);
+        expect(pageData.aiBriefing).toContain('최고가');
+        expect(pageData.aiBriefing).toContain('직전 대비 변동액');
+        expect(descStr).toMatch(/최근 거래일 \d{4}\.\d{2}\.\d{2}/);
+
+        // 4. FAQPage JSON-LD reflects the same search-intent keywords and MOLIT latest trade summary
+        const jsonLd = buildApartmentJsonLd(pageData, 'https://dongtanview.com');
+        const graph = jsonLd['@graph'] as Array<Record<string, unknown>>;
+        const faqNode = graph.find((n) => n['@type'] === 'FAQPage');
+        expect(faqNode).toBeDefined();
+        expect(faqNode?.['@id']).toBe(`${expectedCanonicalUrl}#faq`);
+
+        const mainEntity = faqNode?.mainEntity as Array<{
+          '@type': string;
+          name: string;
+          acceptedAnswer: { '@type': string; text: string };
+        }>;
+        expect(mainEntity).toHaveLength(4);
+        const combinedFaqText = mainEntity
+          .map((q) => `${q.name} ${q.acceptedAnswer.text}`)
+          .join(' ');
+
+        expect(combinedFaqText).toContain('실거래가');
+        expect(combinedFaqText).toContain('평당가');
+        expect(combinedFaqText).toContain('전세가율');
+        expect(combinedFaqText).toContain('배정 초등학교');
+        expect(combinedFaqText).toContain('호갱노노 비교');
+        expect(combinedFaqText).toMatch(/최근 거래일 \d{4}\.\d{2}\.\d{2}/);
+        expect(combinedFaqText).toContain('최고가');
+        expect(combinedFaqText).toContain('직전 대비 변동액');
+      }
+    });
+
+    it('renders static SSR cross-linking sections (같은 동(권역) 내 평당가 유사 단지 TOP 5 & 인접 학군 경쟁 단지 비교) with canonical /apartment/<canonicalSlug> links', async () => {
+      const allTxSummary = await getTxSummaryData();
+
+      // Test on 동탄더샵레이크에듀타운 (송동, 왕배초등학교 배정)
+      const PageJsx = await ApartmentPage({
+        params: Promise.resolve({ aptName: '동탄더샵레이크에듀타운' }),
+      });
+      const { container, getByTestId, unmount } = render(PageJsx);
+
+      const top5Section = getByTestId('apt-similar-per-pyeong-top5-ssr');
+      const schoolSection = getByTestId('apt-school-zone-competitors-ssr');
+
+      expect(top5Section.textContent).toContain('같은 동(권역) 내 평당가 유사 단지 TOP 5');
+      expect(schoolSection.textContent).toContain('인접 학군 경쟁 단지 비교');
+      expect(schoolSection.textContent).toContain('왕배초등학교');
+
+      const top5Links = Array.from(top5Section.querySelectorAll('a[href^="/apartment/"]'));
+      const schoolLinks = Array.from(schoolSection.querySelectorAll('a[href^="/apartment/"]'));
+
+      expect(top5Links).toHaveLength(5);
+      expect(schoolLinks).toHaveLength(5);
+
+      for (const link of [...top5Links, ...schoolLinks]) {
+        const href = link.getAttribute('href') || '';
+        expect(href.startsWith('/apartment/')).toBe(true);
+        const decodedSlug = decodeURIComponent(href.replace(/^\/apartment\//, ''));
+        // Never self-links
+        expect(decodedSlug).not.toBe('동탄더샵레이크에듀타운');
+        // Strictly canonical slug present in tx-summary.json
+        expect(allTxSummary[decodedSlug]).toBeDefined();
+        expect(resolveCanonicalAptSlug(decodedSlug, { txMap: allTxSummary })).toBe(decodedSlug);
+      }
+
+      // First paragraph in SSR DOM contains MOLIT latest trade summary and search-intent keywords
+      const reportSection = container.querySelector('#apt-ssr-comprehensive-report');
+      expect(reportSection?.textContent).toContain('최근 거래일');
+      expect(reportSection?.textContent).toContain('최고가');
+      expect(reportSection?.textContent).toContain('직전 대비 변동액');
+      expect(reportSection?.textContent).toContain('호갱노노 비교');
+
+      unmount();
+    });
+
+    it('handles rent-only and ghost complexes gracefully in selectApartmentComparisonPeers and SSR cross-linking without NaN or self-links', async () => {
+      const [allTxSummary, allByDong, allLocationScores] = await Promise.all([
+        getTxSummaryData(),
+        getApartmentsByDongData(),
+        getLocationScoresData(),
+      ]);
+
+      const ghostPeers = selectApartmentComparisonPeers({
+        aptName: '존재하지않는유령단지_999',
+        canonicalSlug: '존재하지않는유령단지_999',
+        allTxSummary,
+        byDong: allByDong,
+        allLocationScores,
+      });
+
+      expect(ghostPeers.sameZoneSimilarPerPyeongTop5).toHaveLength(5);
+      expect(ghostPeers.schoolZoneCompetitors).toHaveLength(5);
+
+      for (const peer of ghostPeers.sameZoneSimilarPerPyeongTop5) {
+        expect(peer.perPyeongManwon).toBeGreaterThan(0);
+        expect(peer.perPyeongStr).not.toBe('0만');
+        expect(peer.canonicalSlug).not.toBe('존재하지않는유령단지_999');
+      }
+
+      // Unspaced display alias (e.g., '능동역경남아너스빌' -> canonical '동탄숲속마을자연앤경남아너스빌1124-0') must never self-link
+      const aliasPeers = selectApartmentComparisonPeers({
+        aptName: '능동역경남아너스빌',
+        aptDong: '능동',
+        allTxSummary,
+        byDong: allByDong,
+        allLocationScores,
+      });
+      for (const peer of [
+        ...aliasPeers.sameZoneSimilarPerPyeongTop5,
+        ...aliasPeers.schoolZoneCompetitors,
+      ]) {
+        expect(peer.canonicalSlug).not.toBe('동탄숲속마을자연앤경남아너스빌1124-0');
+        expect(peer.name).not.toBe('능동역 경남아너스빌');
+      }
+
+      // 신동 (newtown) complex prioritizes actual 신동 peers rather than unrelated Dongtan 1 complexes
+      const sindongPeers = selectApartmentComparisonPeers({
+        aptName: 'e편한세상동탄파크아너스',
+        canonicalSlug: 'e편한세상동탄파크아너스',
+        aptDong: '신동',
+        allTxSummary,
+        byDong: allByDong,
+        allLocationScores,
+      });
+      expect(sindongPeers.sameZoneSimilarPerPyeongTop5).toHaveLength(5);
+      expect(sindongPeers.sameZoneSimilarPerPyeongTop5.every((p) => p.dong === '신동')).toBe(true);
+      expect(sindongPeers.sameZoneSimilarPerPyeongTop5[0].canonicalSlug).toBe('동탄2디에트르포레');
+      expect(sindongPeers.sameZoneSimilarPerPyeongTop5[0].perPyeongManwon).toBeGreaterThan(0);
+
+      // Rent-only complex (동탄파크릭스A51-1BL아파트) produces clean Korean FAQPage & aiBriefing without broken "실거래 집계 중 수준입니다"
+      const rentOnlyPageData = await getApartmentPageData('동탄파크릭스A51-1BL아파트');
+      expect(rentOnlyPageData.aiBriefing).toContain('실거래가');
+      expect(rentOnlyPageData.aiBriefing).toContain('평당가');
+      expect(rentOnlyPageData.aiBriefing).toContain('전세가율');
+      expect(rentOnlyPageData.aiBriefing).toContain('배정 초등학교');
+      expect(rentOnlyPageData.aiBriefing).toContain('호갱노노 비교');
+      expect(rentOnlyPageData.aiBriefing).toMatch(/최근 거래일 \d{4}\.\d{2}\.\d{2}/);
+      expect(rentOnlyPageData.aiBriefing).toContain('최고가');
+      expect(rentOnlyPageData.aiBriefing).toContain('직전 대비 변동액');
+
+      const rentOnlyJsonLd = buildApartmentJsonLd(rentOnlyPageData, 'https://dongtanview.com');
+      const rentOnlyGraph = rentOnlyJsonLd['@graph'] as Array<Record<string, unknown>>;
+      const rentOnlyFaqNode = rentOnlyGraph.find((n) => n['@type'] === 'FAQPage');
+      const rentOnlyFaqText = (
+        rentOnlyFaqNode?.mainEntity as Array<{
+          name: string;
+          acceptedAnswer: { text: string };
+        }>
+      )
+        .map((q) => `${q.name} ${q.acceptedAnswer.text}`)
+        .join(' ');
+
+      expect(rentOnlyFaqText).not.toContain('최근 매매 실거래가는 실거래 집계 중 수준입니다');
+      expect(rentOnlyFaqText).toContain('현재 등록된 매매 실거래 내역이 없으며');
+      expect(rentOnlyFaqText).toContain('최근 전월세 보증금 실거래가는');
+    });
+  });
 });
+
 
 
 

@@ -253,6 +253,7 @@ export interface AptDonutSectionProps {
   chartSize?: number;
   selectedDateLabel?: string | null;
   onClearSelectedDate?: () => void;
+  isSplitMode?: boolean;
   className?: string;
 }
 
@@ -382,6 +383,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
   chartSize = 270,
   selectedDateLabel = null,
   onClearSelectedDate,
+  isSplitMode = false,
   className = '',
 }: AptDonutSectionProps) {
   const isNavigator = variant === 'navigator';
@@ -1151,13 +1153,15 @@ export const AptDonutSection = React.memo(function AptDonutSection({
     handleToggleSlice,
     canUseHoverPreview,
   });
-  sliceHandlersRef.current = {
-    activeCategory,
-    pieRenderData,
-    donutData,
-    handleToggleSlice,
-    canUseHoverPreview,
-  };
+  useEffect(() => {
+    sliceHandlersRef.current = {
+      activeCategory,
+      pieRenderData,
+      donutData,
+      handleToggleSlice,
+      canUseHoverPreview,
+    };
+  }, [activeCategory, pieRenderData, donutData, handleToggleSlice, canUseHoverPreview]);
 
   const handleSliceMouseEnter = useCallback((data: any, index: number) => {
     const {
@@ -1262,7 +1266,9 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         lastTouchTimeRef.current = Date.now();
       }}
       onClick={(e) => handleEmptySpaceReset(e.target)}
-      className={`bg-surface border-b border-border pb-3.5 sm:pb-4 flex flex-col justify-between h-auto sm:min-h-[315px] lg:h-[360px] shrink-0 ${className}`}
+      className={`bg-surface border-b border-border pb-3.5 sm:pb-4 flex flex-col justify-between h-auto sm:min-h-[315px] ${
+        isSplitMode ? 'xl:h-[360px]' : 'lg:h-[360px]'
+      } shrink-0 ${className}`}
     >
       {/* Header with Period Switcher (and Mode Toggle in classic variant only) */}
       <div className={`flex flex-wrap xl:flex-nowrap items-center justify-between gap-y-2 gap-x-1.5 sm:gap-x-2.5 ${isNavigator ? 'mb-2 sm:mb-2.5' : 'mb-2.5 sm:mb-3'}`}>
@@ -1348,15 +1354,23 @@ export const AptDonutSection = React.memo(function AptDonutSection({
       </div>
 
       {/* Main Chart & Category Legend (Chart-dominant ratio with compact right legend) */}
-      <div className={`flex flex-col sm:flex-row items-center flex-1 w-full ${isNavigator ? 'gap-2.5 sm:gap-3 xl:gap-4' : 'gap-2.5 sm:gap-4'} min-h-0`}>
+      <div
+        className={`flex ${
+          isSplitMode ? 'flex-col xl:flex-row' : 'flex-col sm:flex-row'
+        } items-center flex-1 w-full ${
+          isNavigator ? 'gap-2.5 sm:gap-3 xl:gap-4' : 'gap-2.5 sm:gap-4'
+        } min-h-0`}
+      >
         {/* Left: Donut Chart Container (dominant flex-1 width) */}
         <div
           data-testid="donut-chart-pane"
-          className={`w-full sm:flex-1 min-w-0 flex items-center justify-center relative sm:h-full sm:border-r border-border/60 dark:border-border/30 py-0.5 ${
-            enableFullscreen ? 'group/donut' : ''
-          } ${
-            isNavigator ? 'pr-0 sm:pr-2.5 xl:pr-4' : 'pr-0 sm:pr-3'
-          }`}
+          className={`w-full ${
+            isSplitMode
+              ? 'xl:flex-1 shrink-0 flex items-center justify-center relative xl:h-full xl:border-r border-border/60 dark:border-border/30 py-0.5 pr-0 xl:pr-3 2xl:pr-4'
+              : `sm:flex-1 min-w-0 flex items-center justify-center relative sm:h-full sm:border-r border-border/60 dark:border-border/30 py-0.5 ${
+                  isNavigator ? 'pr-0 sm:pr-2.5 xl:pr-4' : 'pr-0 sm:pr-3'
+                }`
+          } ${enableFullscreen ? 'group/donut' : ''}`}
         >
           {enableFullscreen && (
             <button
@@ -1380,10 +1394,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               data-testid="donut-chart-box"
               onMouseLeave={handleSliceMouseLeave}
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`relative flex items-center justify-center transition-opacity duration-200 ${
-                isNavigator
-                  ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
-                  : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
+              className={`relative shrink-0 flex items-center justify-center transition-opacity duration-200 ${
+                isSplitMode
+                  ? 'w-[196px] h-[196px] sm:w-[204px] sm:h-[204px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
+                  : isNavigator
+                    ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
+                    : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
               } ${isPeriodLoading ? 'opacity-50' : 'opacity-100'}`}
             >
               <DonutPieCanvas
@@ -1398,10 +1414,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
                 {displaySector ? (
                   <>
-                    <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                    <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
                       {displaySector.name}
                     </span>
-                    <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-primary leading-tight mt-0.5 tabular-nums">
+                    <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-primary leading-tight mt-0.5 tabular-nums whitespace-nowrap">
                       {isNavigator
                         ? `${displaySector.count.toLocaleString()}건`
                         : `${displaySector.value.toFixed(1)}%`}
@@ -1419,11 +1435,11 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   </>
                 ) : mode === 'energy' ? (
                   <>
-                    <span className="text-[10.5px] xl:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight">
+                    <span className="text-[10.5px] xl:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
                       {energyMetrics.bullishPct >= 50 ? '상승 에너지 우위' : '급매·매수 우위'}
                     </span>
                     <span
-                      className={`text-[20px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums ${
+                      className={`text-[20px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums whitespace-nowrap ${
                         energyMetrics.bullishPct >= 50
                           ? 'text-red-600 dark:text-red-400'
                           : 'text-blue-600 dark:text-blue-400'
@@ -1435,19 +1451,19 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                         `${energyMetrics.bullishPct.toFixed(1)}%`
                       )}
                     </span>
-                    <span className="text-[9.5px] font-bold text-tertiary mt-0.5 tabular-nums">
+                    <span className="text-[9.5px] font-bold text-tertiary mt-0.5 tabular-nums whitespace-nowrap">
                       신고가 {energyMetrics.highCount} · 급매 {energyMetrics.fallingCount}건
                     </span>
                   </>
                 ) : (
                   <>
-                    <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight">
+                    <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
                       {mode === 'zone' && budget !== 'all'
                         ? `${BUDGET_LABELS[budget]} 거래`
                         : `${PERIOD_LABELS[period]} 거래`}
                       <span className="sr-only">총 실거래</span>
                     </span>
-                    <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5 tabular-nums">
+                    <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5 tabular-nums whitespace-nowrap">
                       {isPeriodLoading ? (
                         <span className="text-[14px] font-bold text-tertiary animate-pulse">조회 중...</span>
                       ) : (
@@ -1455,7 +1471,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                       )}
                     </span>
                     {isNavigator && overallAvgPriceLabel && (
-                      <span className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full mt-0.5 tabular-nums truncate max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                      <span className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full mt-0.5 tabular-nums truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
                         전체 {overallAvgPriceLabel}
                       </span>
                     )}
@@ -1469,10 +1485,12 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           ) : (
             <div
               style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`${
-                isNavigator
-                  ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
-                  : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
+              className={`shrink-0 ${
+                isSplitMode
+                  ? 'w-[196px] h-[196px] sm:w-[204px] sm:h-[204px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
+                  : isNavigator
+                    ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
+                    : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
               } rounded-full border-4 border-dashed border-border animate-pulse`}
             />
           )}
@@ -1482,13 +1500,17 @@ export const AptDonutSection = React.memo(function AptDonutSection({
         <div
           data-testid="donut-legend-pane"
           onMouseLeave={handleSliceMouseLeave}
-          className={`w-full max-w-[340px] mx-auto sm:mx-0 sm:max-w-none shrink-0 flex flex-col justify-center ${
+          className={`w-full max-w-[340px] mx-auto ${
+            isSplitMode
+              ? 'xl:mx-0 xl:max-w-[268px] 2xl:max-w-none xl:flex-1 xl:min-w-[210px] 2xl:flex-none 2xl:w-[292px] shrink-0 pl-0 xl:pl-1.5'
+              : `sm:mx-0 sm:max-w-none shrink-0 ${
+                  isNavigator
+                    ? 'sm:w-[268px] md:w-[296px] lg:w-[212px] xl:w-[280px] 2xl:w-[324px] pl-0 sm:pl-1 xl:pl-1.5'
+                    : 'sm:w-[252px] md:w-[276px] lg:w-[204px] xl:w-[260px] 2xl:w-[296px] pl-0 sm:pl-1.5'
+                }`
+          } flex flex-col justify-center ${
             isNavigator ? 'gap-2 sm:gap-2.5 xl:gap-3' : 'gap-1.5 sm:gap-2'
-          } my-auto py-0.5 ${
-            isNavigator
-              ? 'sm:w-[268px] md:w-[296px] lg:w-[212px] xl:w-[280px] 2xl:w-[324px] pl-0 sm:pl-1 xl:pl-1.5'
-              : 'sm:w-[252px] md:w-[276px] lg:w-[204px] xl:w-[260px] 2xl:w-[296px] pl-0 sm:pl-1.5'
-          }`}
+          } my-auto py-0.5`}
         >
           {donutData.map((sector, idx) => {
             const isSelected = activeCategory === sector.name || activeCategory === sector.category;

@@ -87,6 +87,7 @@ interface TossApartmentExploreClientProps {
   onSearchFocus?: () => void;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
   inFeedAdSlot?: React.ReactNode;
+  isSplitMode?: boolean;
 }
 
 const globalAptsCache = {
@@ -117,6 +118,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   onSearchFocus,
   preloadApartmentTx,
   inFeedAdSlot,
+  isSplitMode = false,
 }: TossApartmentExploreClientProps) {
   const [sidebarWidth, setSidebarWidth] = useState(240);
   const [mounted, setMounted] = useState(false);
@@ -696,11 +698,15 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
         />
       )}
       {/* Main Content Area */}
-      <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col">
+      <div
+        data-testid="explore-main-container"
+        className={`w-full ${isSplitMode ? 'px-3 sm:px-4 md:px-5 xl:px-8' : 'px-4 sm:px-6 md:px-10 lg:px-16'} pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col transition-all duration-300 ease-out`}
+      >
         <div className="flex w-full bg-surface border-t border-border items-stretch flex-1 min-h-0">
           <aside 
+            data-testid="explore-category-sidebar"
             style={{ width: `${sidebarWidth}px` }}
-            className="hidden md:flex flex-col w-auto shrink-0 border-r border-border bg-surface py-6 pr-5 sticky top-[68px] self-start"
+            className={`${isSplitMode ? 'hidden 2xl:flex' : 'hidden md:flex'} flex-col w-auto shrink-0 border-r border-border bg-surface py-6 pr-5 sticky top-[68px] self-start`}
           >
         <div className="mb-6">
           <h2 className="text-[14px] font-extrabold text-primary mb-3">단지 랭킹</h2>
@@ -770,7 +776,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
             setSidebarWidth(prev => Math.min(380, prev + 10));
           }
         }}
-        className="hidden md:block w-1 hover:w-1.5 bg-border/80 hover:bg-emerald-500/30 active:bg-emerald-500/50 cursor-col-resize select-none shrink-0 transition-all z-20 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-emerald-500/50"
+        className={`${isSplitMode ? 'hidden 2xl:block' : 'hidden md:block'} w-1 hover:w-1.5 bg-border/80 hover:bg-emerald-500/30 active:bg-emerald-500/50 cursor-col-resize select-none shrink-0 transition-all z-20 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-emerald-500/50`}
         title="드래그 또는 화살표 키로 크기 조절"
         aria-label="사이드바 크기 조절기"
       />
@@ -838,7 +844,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
       </div>
 
       {/* Main Table Area */}
-      <div className="flex-1 flex flex-col bg-transparent min-w-0 md:pl-6 lg:pl-8 md:pr-6 lg:pr-8 py-2 md:rounded-r-2xl">
+      <div className={`flex-1 flex flex-col bg-transparent min-w-0 ${isSplitMode ? 'md:pl-3 lg:pl-4 md:pr-3 lg:pr-4' : 'md:pl-6 lg:pl-8 md:pr-6 lg:pr-8'} py-2 md:rounded-r-2xl transition-all duration-300 ease-out`}>
         {/* Top Ranking Navigation Tab Bar (Prominent on Desktop & Mobile) */}
         <div
           data-testid="explore-top-ranking-tabs"

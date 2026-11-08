@@ -9,6 +9,7 @@ import { GUIDE_ARTICLES, buildGuideAptMiniPreview } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 
 const GUIDE_HUB_OG_IMAGE =
   'https://dongtanview.com/api/og?title=' +
@@ -152,7 +153,13 @@ export default function GuideIndexPage() {
               </p>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              <Link
+                href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors"
+              >
+                <span>동탄1 vs 동탄2 집값 통계 비교</span>
+              </Link>
               <Link
                 href="/explore"
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
@@ -167,6 +174,14 @@ export default function GuideIndexPage() {
               </Link>
             </div>
           </div>
+
+          {/* Bidirectional Live House Price Comparison Bridge to /stats */}
+          <GuideStatsComparisonBridge
+            guideSlug="guide-index"
+            guideTitle="동탄 부동산 비교 가이드 허브"
+            placement="guide_index_top"
+            compact
+          />
 
           {/* Top In-Feed Zero-CLS AdSlot */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (

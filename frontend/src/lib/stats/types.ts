@@ -48,8 +48,10 @@ export interface RegressionAnalysisResult {
   interceptManwon?: number;
 }
 
+export type AreaBandFilter = 'all' | 'small' | 'medium' | 'large';
+
 export interface StatsFilterOptions {
-  areaBand: 'all' | 'small' | 'medium' | 'large'; // small: <60m2, medium: 60-85m2, large: >85m2
+  areaBand: AreaBandFilter; // small: <60m2, medium: 60-85m2, large: >85m2
   buildingAge: 'all' | 'under5' | '5to10' | 'over10';
   dong: string; // 'all' or legal dong name
   sortBy: 'distance' | 'pyeongPriceDesc' | 'priceDesc' | 'latestPriceDesc' | 'volumeDesc' | 'latestYear';

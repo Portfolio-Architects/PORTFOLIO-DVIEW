@@ -261,4 +261,86 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     );
     expect(container.querySelector('#apt-market-energy-donut')).toBeInTheDocument();
   });
+
+  it('adapts internal grids and padding cleanly when Master-Detail split workspace is active (isSplitMode=true)', () => {
+    render(
+      <SettingsProvider>
+        <AuthProvider>
+          <MacroDashboardClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            macroTrendData={mockMacroTrendData}
+            publicRentalSet={new Set()}
+            fieldReportsMap={new Map()}
+            favoriteCounts={{}}
+            recentTransactions={mockRecentTransactions}
+            isSplitMode={true}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    const heroGrid = screen.getByTestId('hero-donut-trend-grid');
+    const financeGrid = screen.getByTestId('finance-quick-widgets-grid');
+    const guidesGrid = screen.getByTestId('curated-guides-grid');
+    const retentionGrid = screen.getByTestId('zone4-retention-community-grid');
+
+    expect(heroGrid.className).toContain('grid-cols-1');
+    expect(heroGrid.className).not.toContain('lg:grid-cols-12');
+    expect(heroGrid.className).not.toContain('2xl:grid-cols-12');
+    expect(financeGrid.className).toContain('grid-cols-1');
+    expect(financeGrid.className).not.toContain('lg:grid-cols-2');
+    expect(guidesGrid.className).toContain('grid-cols-1');
+    expect(guidesGrid.className).not.toContain('md:grid-cols-3');
+    expect(guidesGrid.className).not.toContain('xl:grid-cols-3');
+    expect(retentionGrid.className).toContain('grid-cols-1');
+    expect(retentionGrid.className).not.toContain('lg:grid-cols-12');
+    expect(retentionGrid.className).not.toContain('2xl:grid-cols-12');
+  });
+
+  it('adapts TossApartmentExploreClient container padding and secondary category sidebar when Master-Detail split workspace is active (isSplitMode=true)', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const TossApartmentExploreClient = require('@/components/TossApartmentExploreClient').default;
+    const { rerender } = render(
+      <SettingsProvider>
+        <AuthProvider>
+          <TossApartmentExploreClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            nameMapping={{}}
+            fieldReportsMap={new Map()}
+            publicRentalSet={new Set()}
+            typeMap={{}}
+            handleSelectApt={jest.fn()}
+            isSplitMode={false}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    const mainContainer = screen.getByTestId('explore-main-container');
+    const categorySidebar = screen.getByTestId('explore-category-sidebar');
+    expect(mainContainer.className).toContain('lg:px-16');
+    expect(categorySidebar.className).toContain('hidden md:flex');
+
+    rerender(
+      <SettingsProvider>
+        <AuthProvider>
+          <TossApartmentExploreClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            nameMapping={{}}
+            fieldReportsMap={new Map()}
+            publicRentalSet={new Set()}
+            typeMap={{}}
+            handleSelectApt={jest.fn()}
+            isSplitMode={true}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    expect(mainContainer.className).toContain('md:px-5');
+    expect(categorySidebar.className).toContain('hidden 2xl:flex');
+  });
 });

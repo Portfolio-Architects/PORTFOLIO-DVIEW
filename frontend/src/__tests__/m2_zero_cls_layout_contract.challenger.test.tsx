@@ -224,6 +224,88 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(clsContribution).toBe(0);
       expect(clsContribution).toBeLessThan(0.001);
     });
+
+    it('switches MacroDashboardClient multi-column grids to a single-column vertical stack when isSplitMode={true} and restores 2-column wide layout when isSplitMode={false}', () => {
+      const { rerender } = render(
+        <SettingsProvider>
+          <AuthProvider>
+            <MacroDashboardClient
+              sheetApartments={mockSheetApartments}
+              txSummaryData={mockTxSummaryData}
+              macroTrendData={mockMacroTrendData}
+              publicRentalSet={new Set()}
+              fieldReportsMap={new Map()}
+              favoriteCounts={{}}
+              recentTransactions={mockRecentTransactions}
+              isSplitMode={true}
+            />
+          </AuthProvider>
+        </SettingsProvider>
+      );
+
+      const heroGrid = screen.getByTestId('hero-donut-trend-grid');
+      const heroLeftCol = screen.getByTestId('hero-left-donut-col');
+      const heroRightCol = screen.getByTestId('hero-right-chart-col');
+      const donutBox = screen.getByTestId('donut-chart-box');
+      const financeGrid = screen.getByTestId('finance-quick-widgets-grid');
+      const guidesGrid = screen.getByTestId('curated-guides-grid');
+      const zone4Grid = screen.getByTestId('zone4-retention-community-grid');
+
+      // When isSplitMode={true}, all multi-column grids must stack vertically in 1 column (grid-cols-1)
+      expect(heroGrid.className).toContain('grid-cols-1');
+      expect(heroGrid.className).not.toContain('lg:grid-cols-12');
+      expect(heroGrid.className).not.toContain('2xl:grid-cols-12');
+      expect(heroLeftCol.className).not.toContain('lg:col-span-6');
+      expect(heroLeftCol.className).not.toContain('2xl:col-span-6');
+      expect(heroLeftCol.className).not.toContain('lg:border-r');
+      expect(heroRightCol.className).not.toContain('lg:col-span-6');
+      expect(heroRightCol.className).not.toContain('2xl:col-span-6');
+
+      // Donut chart box enforces shrink-0 so it is never crushed by legend
+      expect(donutBox.className).toContain('shrink-0');
+      expect(screen.getByTestId('donut-chart-pane').className).toContain('shrink-0');
+      expect(screen.getByTestId('donut-legend-pane').className).toContain('xl:flex-1');
+      const timelineDropdowns = screen.getByTestId('timeline-dropdown-filters-wrapper');
+      expect(timelineDropdowns.className).toContain('sm:flex-wrap');
+      timelineDropdowns.querySelectorAll('select').forEach((selectEl) => {
+        expect(selectEl.className).toContain('sm:min-w-[100px]');
+      });
+
+      // Lower grids also stack in 1 column when isSplitMode={true}
+      expect(financeGrid.className).toContain('grid-cols-1');
+      expect(financeGrid.className).not.toContain('lg:grid-cols-2');
+      expect(guidesGrid.className).toContain('grid-cols-1');
+      expect(guidesGrid.className).not.toContain('md:grid-cols-3');
+      expect(guidesGrid.className).not.toContain('xl:grid-cols-3');
+      expect(zone4Grid.className).toContain('grid-cols-1');
+      expect(zone4Grid.className).not.toContain('lg:grid-cols-12');
+      expect(zone4Grid.className).not.toContain('2xl:grid-cols-12');
+
+      // Closing the right inspector (isSplitMode={false}) restores the 2-column wide desktop layout
+      rerender(
+        <SettingsProvider>
+          <AuthProvider>
+            <MacroDashboardClient
+              sheetApartments={mockSheetApartments}
+              txSummaryData={mockTxSummaryData}
+              macroTrendData={mockMacroTrendData}
+              publicRentalSet={new Set()}
+              fieldReportsMap={new Map()}
+              favoriteCounts={{}}
+              recentTransactions={mockRecentTransactions}
+              isSplitMode={false}
+            />
+          </AuthProvider>
+        </SettingsProvider>
+      );
+
+      expect(heroGrid.className).toContain('lg:grid-cols-12');
+      expect(heroLeftCol.className).toContain('lg:col-span-6');
+      expect(heroRightCol.className).toContain('lg:col-span-6');
+      expect(financeGrid.className).toContain('lg:grid-cols-2');
+      expect(guidesGrid.className).toContain('md:grid-cols-3');
+      expect(zone4Grid.className).toContain('lg:grid-cols-12');
+    });
   });
 
   // ══════════════════════════════════════════════════════════════════════

@@ -47,12 +47,16 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
 }: ApartmentModalTransactionsTableProps) {
   return (
     <>
-      {/* Hero Section — Layout: Global Filter Bar + (35% table / 65% chart) */}
-      <section className="w-full flex flex-col py-4 md:py-6 bg-surface border-b border-border shrink-0 md:h-[700px]">
+      {/* Hero Section — Layout: Global Filter Bar + (Inline: 35% table / 65% chart | Inspector: Full-width stacked Chart + Table) */}
+      <section
+        className={`w-full flex flex-col py-4 md:py-5 bg-surface border-b border-border shrink-0 ${
+          inline ? 'md:h-[700px]' : ''
+        }`}
+      >
         {/* Global Real Transaction Filter Bar */}
         {isAnimationFinished && (
-          <div className="w-full flex flex-wrap items-center justify-between gap-4 pb-4.5 mb-4.5 border-b border-border/50 shrink-0">
-            <div className="flex flex-wrap items-center gap-3">
+          <div className="w-full flex flex-wrap items-center justify-between gap-3 pb-4 mb-4 border-b border-border/50 shrink-0">
+            <div className="flex flex-wrap items-center gap-2.5">
               {/* Area Type Filter */}
               {areaFilterChips.length > 0 && (
                 areaFilterChips.length > 5 ? (
@@ -118,15 +122,31 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
           </div>
         )}
 
-        {/* Main Data Area: Table (35%) & Chart (65%) */}
-        <div className="w-full flex flex-col-reverse md:flex-row gap-4 md:gap-8 flex-1 min-h-0">
-          {/* Left: Transaction Table (35%) */}
-          <div className="w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full">
+        {/* Main Data Area: Inline (35% Table & 65% Chart) vs Inspector (Full-width Stacked Chart & Table) */}
+        <div
+          className={`w-full flex flex-col-reverse ${
+            inline ? 'md:flex-row gap-4 md:gap-8 flex-1 min-h-0' : 'gap-5'
+          }`}
+        >
+          {/* Transaction Table */}
+          <div
+            className={
+              inline
+                ? 'w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full'
+                : 'w-full shrink-0 flex flex-col min-h-[320px] h-[360px] md:h-[380px]'
+            }
+          >
             {renderTransactionTable()}
           </div>
 
-          {/* Right: Transaction Chart (65%) */}
-          <div className="w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch">
+          {/* Transaction Chart */}
+          <div
+            className={
+              inline
+                ? 'w-full md:w-[65%] flex flex-col min-h-[320px] md:h-full md:self-stretch'
+                : 'w-full flex flex-col min-h-[340px] h-[360px] md:h-[400px]'
+            }
+          >
             <ErrorBoundary name="실거래 차트">
               {renderTransactionChart()}
             </ErrorBoundary>

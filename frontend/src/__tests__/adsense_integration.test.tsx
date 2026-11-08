@@ -223,6 +223,64 @@ describe('Google AdSense Integration Suite', () => {
 
       jest.useRealTimers();
     });
+
+    it('keeps body scroll unlocked and ignores backdrop click on desktop (>=768px) while locking body scroll and closing on backdrop click on mobile (<768px)', () => {
+      const originalInnerWidth = window.innerWidth;
+      document.body.style.overflow = '';
+
+      // 1. Desktop Master-Detail mode (>= 768px)
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1280 });
+      const onCloseDesktop = jest.fn();
+      const { unmount: unmountDesktop } = render(
+        <ApartmentModal report={mockReport} onClose={onCloseDesktop} inline={false} />
+      );
+
+      expect(document.body.style.overflow).not.toBe('hidden');
+      const desktopBackdrop = screen.getByTestId('apartment-inspector-backdrop');
+      desktopBackdrop.click();
+      expect(onCloseDesktop).not.toHaveBeenCalled();
+      unmountDesktop();
+
+      // 2. Mobile Bottom Sheet mode (< 768px)
+      Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 });
+      const onCloseMobile = jest.fn();
+      const { unmount: unmountMobile } = render(
+        <ApartmentModal report={mockReport} onClose={onCloseMobile} inline={false} />
+      );
+
+      expect(document.body.style.overflow).toBe('hidden');
+      expect(document.documentElement.style.overscrollBehavior).toBe('none');
+      const panel = screen.getByTestId('apartment-inspector-panel');
+      expect(panel.className).toContain('lg:w-[780px]');
+      expect(panel.className).toContain('xl:w-[880px]');
+      expect(panel.className).toContain('shrink-0');
+
+      // 3. Dynamic viewport resize from mobile (<768px) to desktop (>=768px) unlocks body scroll so Master pane scrolls freely
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 1280 });
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(document.body.style.overflow).toBe('');
+
+      // 4. Dynamic viewport resize back to mobile (<768px) re-locks body scroll for bottom sheet
+      act(() => {
+        Object.defineProperty(window, 'innerWidth', { writable: true, configurable: true, value: 375 });
+        window.dispatchEvent(new Event('resize'));
+      });
+      expect(document.body.style.overflow).toBe('hidden');
+
+      const mobileBackdrop = screen.getByTestId('apartment-inspector-backdrop');
+      mobileBackdrop.click();
+      expect(onCloseMobile).toHaveBeenCalledTimes(1);
+      unmountMobile();
+
+      expect(document.body.style.overflow).toBe('');
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: originalInnerWidth,
+      });
+    });
   });
 
 

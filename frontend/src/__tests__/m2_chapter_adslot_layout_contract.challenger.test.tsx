@@ -536,6 +536,57 @@ describe('Milestone M2 Empirical Adversarial Challenge: 8-Chapter & AdSlot Invar
       expect(spyOnTabSwitch).toHaveBeenCalled();
       spyOnTabSwitch.mockRestore();
     });
+
+    it('3.4 In inline={true} full-page mode, attaches md:top-[80px] sticky offset, renders back button, and binds scroll-to-top to window.scrollY', () => {
+      const handleClose = jest.fn();
+      window.scrollTo = jest.fn();
+
+      const { container } = render(
+        <ApartmentModal
+          report={mockReport}
+          onClose={handleClose}
+          user={null}
+          transactions={mockTransactions}
+          typeMap={mockTypeMap}
+          inline={true}
+        />
+      );
+
+      // 1. Sticky chapter navbar has md:top-[80px] offset for LoungeHeader
+      const navBar = screen.getByRole('navigation', { name: '아파트 단지 분석 챕터 내비게이션' });
+      expect(navBar.className).toContain('md:top-[80px]');
+
+      // 2. All 8 chapter sections have md:scroll-mt-36 to clear both 80px LoungeHeader + 56px ChapterNavBar
+      expect(APARTMENT_CHAPTERS.length).toBe(8);
+      APARTMENT_CHAPTERS.forEach((ch) => {
+        const sec = container.querySelector(`section#${ch.id}`);
+        expect(sec).not.toBeNull();
+        expect(sec?.className).toContain('md:scroll-mt-36');
+      });
+
+      // 3. Back button is rendered in header and invokes onClose
+      const backBtn = screen.getByTestId('apt-inline-back-btn');
+      expect(backBtn).toBeInTheDocument();
+      fireEvent.click(backBtn);
+      expect(handleClose).toHaveBeenCalledTimes(1);
+
+      // 4. Window scroll > 400 reveals floating scroll-to-top button
+      const rafSpy = jest.spyOn(window, 'requestAnimationFrame').mockImplementation((cb) => {
+        cb(0);
+        return 1;
+      });
+      expect(screen.queryByRole('button', { name: '맨 위로 이동' })).toBeNull();
+      Object.defineProperty(window, 'scrollY', { value: 520, configurable: true, writable: true });
+      act(() => {
+        fireEvent.scroll(window);
+      });
+
+      const scrollTopBtn = screen.getByRole('button', { name: '맨 위로 이동' });
+      expect(scrollTopBtn).toBeInTheDocument();
+      fireEvent.click(scrollTopBtn);
+      expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
+      rafSpy.mockRestore();
+    });
   });
 
   // ══════════════════════════════════════════════════════════════════════

@@ -13,6 +13,7 @@ export interface HighCpcFinanceSectionProps {
   onOpenSellTiming?: (aptName?: string) => void;
   apartmentName?: string | null;
   defaultPriceWon?: number;
+  isSplitMode?: boolean;
 }
 
 export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
@@ -24,6 +25,7 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
   onOpenSellTiming,
   apartmentName,
   defaultPriceWon,
+  isSplitMode = false,
 }: HighCpcFinanceSectionProps) {
   const handleMortgage = () => (onOpenMortgageModal || onOpenMortgage)?.();
   const handleJeonse = () => (onOpenJeonseSafetyModal || onOpenJeonseSafety)?.();
@@ -105,8 +107,11 @@ export const HighCpcFinanceSection = React.memo(function HighCpcFinanceSection({
         </div>
       </div>
 
-      {/* 2-Column Interactive Quick Widgets */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* 2-Column Interactive Quick Widgets (switches to 1-Column vertical stack in split mode) */}
+      <div
+        data-testid="finance-quick-widgets-grid"
+        className={`grid grid-cols-1 ${isSplitMode ? '' : 'lg:grid-cols-2'} gap-4 transition-all duration-300 ease-out`}
+      >
         <PolicyLoanQuickWidget
           onOpenMortgageModal={handleMortgage}
           initialHomePriceWon={defaultPriceWon}

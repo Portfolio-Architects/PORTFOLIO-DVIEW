@@ -305,7 +305,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
         {/* Row 2: 5-Column Uniformly Aligned Dropdown Filters */}
         <div
           data-testid="timeline-dropdown-filters-wrapper"
-          className={`grid-cols-2 sm:flex sm:items-center gap-1.5 w-full min-w-0 ${
+          className={`grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-1.5 w-full min-w-0 ${
             isMobileFiltersExpanded ? 'grid' : 'hidden sm:flex'
           }`}
         >
@@ -315,7 +315,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as TimelineSortOrder)}
               aria-label="정렬 기준 선택"
-              className={getControlSelectClass('w-full sm:flex-1 min-w-0 truncate')}
+              className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
             >
               {TIMELINE_SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -330,7 +330,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             value={currentRegion}
             onChange={(e) => handleRegionChange(e.target.value)}
             aria-label="권역 및 법정동 선택"
-            className={getControlSelectClass('w-full sm:flex-1 min-w-0 truncate')}
+            className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
           >
             <option value="all">전체 권역/동</option>
             <optgroup label="권역 그룹">
@@ -353,7 +353,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setPyeongFilter(e.target.value as PyeongFilterType)}
               aria-label="평형대 선택"
               data-testid="timeline-pyeong-select"
-              className={getControlSelectClass('w-full sm:flex-1 min-w-0 truncate')}
+              className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
             >
               <option value="all">전체 평형</option>
               <option value="under20">20평 미만</option>
@@ -370,7 +370,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => setTradeTypeFilter(e.target.value as TradeTypeFilterType)}
               aria-label="거래 유형 선택"
               data-testid="timeline-tradetype-select"
-              className={getControlSelectClass('w-full sm:flex-1 min-w-0 truncate')}
+              className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
             >
               <option value="all">전체 유형</option>
               <option value="high">신고가 거래</option>
@@ -387,7 +387,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               onChange={(e) => onSelectDate(e.target.value ? e.target.value : null)}
               aria-label="거래 일자 선택"
               data-testid="timeline-date-select"
-              className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 min-w-0 truncate tabular-nums')}
+              className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate tabular-nums')}
             >
               <option value="">전체 날짜</option>
               {(availableDates || []).map((d) => (
@@ -401,7 +401,7 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               value={timelineAptFilter}
               onChange={(e) => setTimelineAptFilter(e.target.value)}
               aria-label="단지 선택"
-              className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 min-w-0 truncate')}
+              className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
             >
               <option value="전체">전체 단지</option>
               {availableApts.map((apt) => (

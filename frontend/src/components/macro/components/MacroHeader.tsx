@@ -4,10 +4,12 @@ import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketS
 
 export interface MacroHeaderProps {
   macroTrendJsonLd: string | null;
+  isSplitMode?: boolean;
 }
 
 export const MacroHeader = React.memo(function MacroHeader({
   macroTrendJsonLd,
+  isSplitMode = false,
 }: MacroHeaderProps) {
   return (
     <>
@@ -22,6 +24,7 @@ export const MacroHeader = React.memo(function MacroHeader({
         compactTitle="D-VIEW 동탄 아파트 랩"
         subtitleStrong={<MarketStatsStrong />}
         subtitleLight={<MarketStatsLight text="내 한도로 살 수 있는 단지와 갈아타기 손익까지" />}
+        isSplitMode={isSplitMode}
         rightContent={
           <div className="hidden sm:flex items-center gap-2">
           </div>

@@ -192,6 +192,7 @@ interface MacroDashboardProps {
   initialLocationScores?: Record<string, import("@/types/transaction").LocationScoreItem>;
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
   favoriteCounts?: Record<string, number>;
+  isSplitMode?: boolean;
 }
 
 const fetcher = async (url: string) => {
@@ -645,6 +646,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   initialLocationScores,
   preloadApartmentTx,
   favoriteCounts,
+  isSplitMode = false,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
@@ -2021,19 +2023,37 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   }, [sheetApartments, preloadApartmentTx]);
 
   return (
-    <div className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full" style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}>
-      <MacroHeader macroTrendJsonLd={macroTrendJsonLd} />
+    <div
+      data-split-mode={String(isSplitMode)}
+      className="w-full flex flex-col bg-transparent relative min-h-[85vh] min-h-[800px] min-w-0 max-w-full transition-all duration-300 ease-out"
+      style={{ contain: 'layout paint', containIntrinsicSize: '800px' }}
+    >
+      <MacroHeader macroTrendJsonLd={macroTrendJsonLd} isSplitMode={isSplitMode} />
 
-      <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border">
+      <div
+        className={`flex flex-col ${
+          isSplitMode
+            ? 'px-4 sm:px-5 md:px-6 xl:px-8'
+            : 'px-4 sm:px-6 md:px-10 lg:px-16'
+        } pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-auto max-w-full overflow-x-clip min-w-0 min-h-[85vh] min-h-[800px] box-border transition-all duration-300 ease-out`}
+      >
         {/* ═══ Zone 2A: 메인 히어로 (좌측 원형 도넛 네비게이터 + 연동 4칸 카드 | 우측 단지·매크로 시세 추이) ═══ */}
         <div
           data-testid="hero-donut-trend-grid"
-          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0 pb-5 mb-4 border-b border-border items-stretch box-border"
+          className={`w-full ${
+            isSplitMode
+              ? 'grid grid-cols-1 gap-6'
+              : 'grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-0'
+          } pb-5 mb-4 border-b border-border items-stretch box-border transition-all duration-300 ease-out`}
         >
           {/* Left 6 Columns (lg:col-span-6, 시그니처 도넛 차트 자리): Circular Donut Navigator + Connected 4-Card Drilldown */}
           <div
             data-testid="hero-left-donut-col"
-            className="lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] min-w-0 justify-between box-border pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border"
+            className={
+              isSplitMode
+                ? 'flex flex-col gap-3.5 min-w-0 justify-between box-border pb-5 border-b border-border'
+                : 'lg:col-span-6 flex flex-col gap-3.5 lg:h-[526px] min-w-0 justify-between box-border pb-5 border-b border-border lg:pb-0 lg:border-b-0 lg:pr-6 xl:pr-8 lg:border-r lg:border-border'
+            }
           >
             <ChartErrorBoundary fallbackText="실거래 체결 온도 차트를 불러올 수 없습니다.">
               <AptDonutSection
@@ -2043,6 +2063,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 period={donutPeriod}
                 onPeriodChange={setPeriodFilter}
                 mounted={mounted}
+                isSplitMode={isSplitMode}
                 recentTransactions={donutTransactions}
                 selectedDateLabel={selectedTimelineDateJump}
                 onClearSelectedDate={() => setSelectedTimelineDateJump(null)}
@@ -2089,7 +2110,11 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           {/* Right 6 Columns (lg:col-span-6): MacroTimelineView (통합 실거래 타임라인 + 실시간 시장 랭킹 탭) */}
           <div
             data-testid="hero-right-chart-col"
-            className="lg:col-span-6 flex flex-col gap-6 lg:h-[526px] min-w-0 lg:pl-6 xl:pl-8 box-border"
+            className={
+              isSplitMode
+                ? 'flex flex-col gap-6 min-w-0 box-border'
+                : 'lg:col-span-6 flex flex-col gap-6 lg:h-[526px] min-w-0 lg:pl-6 xl:pl-8 box-border'
+            }
           >
             <ErrorBoundary name="실거래 타임라인">
               <MacroTimelineView
@@ -2207,6 +2232,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             onOpenSellTiming={handleOpenSellTiming}
             apartmentName={financeBinding.aptName}
             defaultPriceWon={financeBinding.priceWon}
+            isSplitMode={isSplitMode}
           />
         </ErrorBoundary>
 
@@ -2247,7 +2273,10 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4" data-testid="curated-guides-grid">
+          <div
+            className={`grid grid-cols-1 ${isSplitMode ? '' : 'md:grid-cols-3'} gap-4 transition-all duration-300 ease-out`}
+            data-testid="curated-guides-grid"
+          >
             {topGuides.map((guide) => (
               <Link
                 key={guide.slug}
@@ -2293,10 +2322,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
         {/* Lower 7:5 Asymmetric Retention & Community Hub */}
         <div
           data-testid="zone4-retention-community-grid"
-          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch box-border"
+          className={`w-full ${
+            isSplitMode ? 'grid grid-cols-1' : 'grid grid-cols-1 lg:grid-cols-12'
+          } gap-6 items-stretch box-border transition-all duration-300 ease-out`}
         >
           {/* Left 7 Columns (lg:col-span-7): TrafficNoticeBoard + Community Lounge */}
-          <div className="lg:col-span-7 flex flex-col gap-4 min-w-0">
+          <div
+            className={
+              isSplitMode
+                ? 'flex flex-col gap-4 min-w-0'
+                : 'lg:col-span-7 flex flex-col gap-4 min-w-0'
+            }
+          >
             <ErrorBoundary name="철도·교통 게시판">
               <TrafficNoticeBoard
                 railStrategyNotices={railStrategyNotices}
@@ -2357,7 +2394,13 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
 
           {/* Right 5 Columns (lg:col-span-5): RetentionActionCard */}
-          <div className="lg:col-span-5 flex flex-col gap-4 min-w-0">
+          <div
+            className={
+              isSplitMode
+                ? 'flex flex-col gap-4 min-w-0'
+                : 'lg:col-span-5 flex flex-col gap-4 min-w-0'
+            }
+          >
             <ErrorBoundary name="리텐션 액션 허브">
               <RetentionActionCard
                 selectedAptName={selectedTimelineApt}

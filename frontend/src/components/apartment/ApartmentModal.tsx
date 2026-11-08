@@ -20,7 +20,6 @@ import {
 import type { FieldReportData } from '@/lib/DashboardFacade';
 import type { User } from 'firebase/auth';
 import { usePreventElasticBounce } from '@/hooks/usePreventElasticBounce';
-import { createPortal } from 'react-dom';
 import { safeReload } from '@/lib/utils/safeReload';
 import { TransactionListSchema } from '@/lib/validation/facade.schemas';
 import { logger } from '@/lib/services/logger';
@@ -390,7 +389,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
     onClose();
   }, [inline, onClose]);
 
-  useSwipeNavigation({ onBack: handleModalClose });
+  useSwipeNavigation({ onBack: handleModalClose, enabled: !inline });
 
 
   const { 
@@ -442,7 +441,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
     shareCardRef,
     toolDropdownRef,
     mountedRef,
-  } = useApartmentModalState();
+  } = useApartmentModalState({ inline });
 
   const [mounted, setMounted] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
@@ -473,10 +472,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
       next.add(chapterId);
       return next;
     });
-    const targetElement = document.getElementById(chapterId);
-    if (targetElement) {
-      targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
     if (report?.apartmentName) {
       trackEvent('apartment_modal_chapter_view', {
         apartment_name: report.apartmentName,
@@ -498,6 +493,12 @@ const ApartmentModal = React.memo(function ApartmentModal({
       return next;
     });
   }, [activeChapter]);
+
+  // Reset area filter and active chapter when switching apartments
+  useEffect(() => {
+    setSelectedAreaFilter('전체');
+    setActiveChapter('chapter-01-overview');
+  }, [report?.apartmentName]);
 
   // Viewport proximity observation for pre-mounting chapters within 350px
   useEffect(() => {
@@ -819,14 +820,33 @@ const ApartmentModal = React.memo(function ApartmentModal({
   }, [inline, report?.apartmentName, report?.dong, canonicalAptSlug]);
 
   useEffect(() => {
-    if (inline || typeof document === 'undefined') return;
+    if (inline || typeof document === 'undefined' || typeof window === 'undefined') return;
     const originalOverflow = document.body.style.overflow;
     const originalOverscroll = document.documentElement.style.overscrollBehavior;
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overscrollBehavior = 'none';
+    let isLocked = false;
+
+    const syncScrollLock = () => {
+      if (window.innerWidth < 768) {
+        if (!isLocked) {
+          document.body.style.overflow = 'hidden';
+          document.documentElement.style.overscrollBehavior = 'none';
+          isLocked = true;
+        }
+      } else if (isLocked) {
+        document.body.style.overflow = originalOverflow;
+        document.documentElement.style.overscrollBehavior = originalOverscroll;
+        isLocked = false;
+      }
+    };
+
+    syncScrollLock();
+    window.addEventListener('resize', syncScrollLock, { passive: true });
     return () => {
-      document.body.style.overflow = originalOverflow;
-      document.documentElement.style.overscrollBehavior = originalOverscroll;
+      window.removeEventListener('resize', syncScrollLock);
+      if (isLocked) {
+        document.body.style.overflow = originalOverflow;
+        document.documentElement.style.overscrollBehavior = originalOverscroll;
+      }
     };
   }, [inline]);
 
@@ -845,9 +865,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
           }) || targetAptName;
         syncShallowApartmentOpen(targetAptName, { force: true, canonicalSlug: targetSlug });
       }
-      modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      if (inline && typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        modalRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     },
-    [onSelectApartment, recirculationTargets, effectiveTxSummaryMap, sheetApartments, nameMapping]
+    [inline, onSelectApartment, recirculationTargets, effectiveTxSummaryMap, sheetApartments, nameMapping]
   );
 
   const handleRecircOpenCompare = useCallback(
@@ -931,13 +955,19 @@ const ApartmentModal = React.memo(function ApartmentModal({
   }, []);
 
   const handleScroll = useCallback(() => {
+    if (inline) {
+      if (typeof window !== 'undefined') {
+        setShowScrollTop(window.scrollY > 400);
+      }
+      return;
+    }
     if (!modalRef.current) return;
     if (modalRef.current.scrollTop > 400) {
       setShowScrollTop(true);
     } else {
       setShowScrollTop(false);
     }
-  }, []);
+  }, [inline]);
 
   useEffect(() => {
 
@@ -992,8 +1022,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    const el = modalRef.current;
-    if (!el) return;
+    const scrollTarget: HTMLElement | Window | null = inline ? window : modalRef.current;
+    if (!scrollTarget) return;
 
     let ticking = false;
     let rId: number | null = null;
@@ -1009,12 +1039,12 @@ const ApartmentModal = React.memo(function ApartmentModal({
       }
     };
 
-    el.addEventListener('scroll', onScroll, { passive: true });
+    scrollTarget.addEventListener('scroll', onScroll, { passive: true });
     return () => {
-      el.removeEventListener('scroll', onScroll);
+      scrollTarget.removeEventListener('scroll', onScroll);
       if (rId) window.cancelAnimationFrame(rId);
     };
-  }, [handleScroll, mountedRef]);
+  }, [inline, handleScroll, mountedRef]);
 
   const handleKakaoShare = useCallback(async () => {
     if (isSharing) return;
@@ -1269,12 +1299,15 @@ const ApartmentModal = React.memo(function ApartmentModal({
     />
   ), [filteredTransactions, report.apartmentName, typeMap, filterOutliers, chartType]);
 
+  const chapterScrollMarginClass = inline ? 'scroll-mt-14 md:scroll-mt-36' : 'scroll-mt-14';
+
   const content = (
     <>
       <ApartmentModalHeader
         report={report}
         displayAptName={displayAptName}
         inline={inline}
+        onBack={inline ? handleModalClose : undefined}
         handleNativeShare={handleNativeShare}
         handleCopySummary={handleCopySummary}
         handleDownloadShareCard={handleDownloadShareCard}
@@ -1294,16 +1327,17 @@ const ApartmentModal = React.memo(function ApartmentModal({
       <ApartmentChapterNavBar
         activeChapter={activeChapter}
         onSelectChapter={handleSelectChapter}
-        scrollContainerRef={modalRef}
+        scrollContainerRef={inline ? undefined : modalRef}
+        className={inline ? 'md:top-[80px]' : ''}
       />
 
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
-      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-2 py-2 md:px-3 md:py-3'} flex flex-col gap-8 w-full`}>
+      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-3 py-3 md:px-6 md:py-4'} flex flex-col gap-8 w-full`}>
         {/* Chapter 01: 개요 및 실거래 궤적 (Overview & Price) */}
         <section
           id="chapter-01-overview"
           data-testid="chapter-01-overview"
-          className="scroll-mt-14 snap-start w-full"
+          className={`${chapterScrollMarginClass} snap-start w-full`}
         >
           <ErrorBoundary name="실거래가 내역 및 시세 차트">
             <ApartmentModalTransactionsTable
@@ -1336,7 +1370,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-02-volume"
           data-testid="chapter-02-volume"
-          className="scroll-mt-14 snap-start w-full"
+          className={`${chapterScrollMarginClass} snap-start w-full`}
         >
           <div className="flex flex-col gap-3 w-full">
             <div className="flex items-center justify-between border-b border-border pb-3">
@@ -1391,7 +1425,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-03-gap"
           data-testid="chapter-03-gap"
-          className="scroll-mt-14 snap-start w-full"
+          className={`${chapterScrollMarginClass} snap-start w-full`}
         >
           <div className="bg-surface py-5 md:py-6 border-b border-border flex flex-col gap-5">
             <div className="flex items-center justify-between border-b border-border pb-3">
@@ -1454,7 +1488,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-04-infra"
           data-testid="chapter-04-infra"
-          className="scroll-mt-14 snap-start w-full flex flex-col gap-8"
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8`}
         >
           {isAnimationFinished && isChapterMounted('chapter-04-infra') ? (
             <>
@@ -1495,7 +1529,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-05-mortgage"
           data-testid="chapter-05-mortgage"
-          className="scroll-mt-14 snap-start w-full flex flex-col gap-6"
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-6`}
         >
           {isAnimationFinished && isChapterMounted('chapter-05-mortgage') ? (
             <>
@@ -1608,7 +1642,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-06-ledger"
           data-testid="chapter-06-ledger"
-          className="scroll-mt-14 snap-start w-full"
+          className={`${chapterScrollMarginClass} snap-start w-full`}
         >
           {isAnimationFinished && isChapterMounted('chapter-06-ledger') ? (
             <ErrorBoundary name="단지 기본정보 및 평형 대장">
@@ -1627,7 +1661,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-07-macro"
           data-testid="chapter-07-macro"
-          className="scroll-mt-14 snap-start w-full flex flex-col gap-4"
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-4`}
         >
           {isAnimationFinished && isChapterMounted('chapter-07-macro') ? (
             <div className="relative w-full">
@@ -1649,7 +1683,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         <section
           id="chapter-08-report"
           data-testid="chapter-08-report"
-          className="scroll-mt-14 snap-start w-full flex flex-col gap-8"
+          className={`${chapterScrollMarginClass} snap-start w-full flex flex-col gap-8`}
         >
           {isAnimationFinished && isChapterMounted('chapter-08-report') ? (
             <>
@@ -1783,8 +1817,17 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   if (inline) {
     return (
-      <div className="w-full flex flex-col">
+      <div data-testid="apartment-inline-report" className="w-full flex flex-col">
         {content}
+        {showScrollTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-20 md:bottom-6 right-6 z-50 p-3.5 rounded-full bg-blue-600 text-white shadow-xl hover:bg-blue-700 transition-all active:scale-95 cursor-pointer border-none"
+            aria-label="맨 위로 이동"
+          >
+            <ArrowLeft size={20} className="rotate-90" />
+          </button>
+        )}
         <PhotoUploadModal
           isOpen={isUploadModalOpen}
           onClose={() => setIsUploadModalOpen(false)}
@@ -1810,17 +1853,26 @@ const ApartmentModal = React.memo(function ApartmentModal({
     );
   }
 
-  return createPortal(
+  return (
     <div 
-      className="fixed inset-0 z-[10000] flex items-center justify-center p-0 md:p-6 bg-black/70 backdrop-blur-md overscroll-none animate-in fade-in duration-200"
+      data-testid="apartment-inspector-backdrop"
+      className="fixed inset-0 z-[10000] md:static md:inset-auto md:z-auto md:w-full md:h-dvh md:max-h-[calc(100dvh-80px)] flex items-end md:items-stretch justify-center md:justify-end p-0 bg-black/60 md:bg-transparent backdrop-blur-sm md:backdrop-blur-none overscroll-none animate-in fade-in duration-200"
       onWheel={(e) => e.stopPropagation()}
-      onClick={handleModalClose}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && (typeof window === 'undefined' || window.innerWidth < 768)) {
+          handleModalClose();
+        }
+      }}
     >
       <div 
         ref={modalRef}
+        data-testid="apartment-inspector-panel"
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full h-full md:h-[94vh] md:max-w-[1275px] bg-surface rounded-none md:rounded-3xl shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden flex flex-col border border-border/80 outline-none"
+        className="relative w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:min-w-[380px] lg:min-w-[780px] xl:min-w-[880px] shrink-0 h-[94dvh] max-h-[94dvh] md:h-dvh md:max-h-[calc(100dvh-80px)] md:max-w-[780px] xl:max-w-[880px] bg-surface rounded-t-3xl md:rounded-none md:rounded-l-3xl shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden flex flex-col border-t md:border-t-0 md:border-l border-border/80 outline-none animate-in slide-in-from-bottom md:slide-in-from-right duration-300"
       >
+        <div className="md:hidden w-full pt-2.5 pb-1 flex justify-center shrink-0 bg-surface" aria-hidden="true">
+          <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+        </div>
         <button
           onClick={handleModalClose}
           aria-label="닫기"
@@ -1866,8 +1918,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
           />
         )}
       </div>
-    </div>,
-    document.getElementById('modal-root') || document.body
+    </div>
   );
 });
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  MapPin, Share, Check, MessageSquare, Camera, Bell,
+  ArrowLeft, MapPin, Share, Check, MessageSquare, Camera, Bell,
   Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert, Star
 } from 'lucide-react';
 import type { FieldReportData } from '@/types/report';
@@ -11,6 +11,7 @@ export interface ApartmentModalHeaderProps {
   report: FieldReportData;
   displayAptName: string;
   inline?: boolean;
+  onBack?: () => void;
   isFavorite?: boolean;
   onToggleFavorite?: (aptName: string) => void;
   handleNativeShare: () => void;
@@ -33,6 +34,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   report,
   displayAptName,
   inline,
+  onBack,
   isFavorite: propIsFavorite,
   onToggleFavorite: propToggleFavorite,
   handleNativeShare,
@@ -51,22 +53,50 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   onOpenSellTimingCalculator,
 }: ApartmentModalHeaderProps) {
   const { userFavorites, handleToggleFavorite } = useFavorites();
-  const targetAptName = report.apartmentName || displayAptName;
+  const resolvedDisplayAptName = displayAptName || report.apartmentName || '';
+  const targetAptName = report.apartmentName || resolvedDisplayAptName;
   const effectiveIsFavorite =
     propIsFavorite !== undefined
       ? propIsFavorite
       : isApartmentInFavorites(userFavorites, targetAptName) ||
-        isApartmentInFavorites(userFavorites, displayAptName);
+        isApartmentInFavorites(userFavorites, resolvedDisplayAptName);
   const effectiveToggleFavorite = propToggleFavorite || handleToggleFavorite;
+  const HeadingTag = inline ? 'h2' : 'h1';
 
   return (
-    <div className={`w-full ${inline ? 'bg-surface' : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md'} pt-8 md:pt-10 pb-6 px-4 md:px-10 border-b border-border rounded-t-none md:rounded-t-3xl relative z-20`}>
-      <div className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex flex-col gap-1.5 flex-1 min-w-0 lg:min-w-[450px]">
-          <div className="flex items-center gap-2">
+    <div
+      className={`w-full ${
+        inline
+          ? 'bg-surface pt-8 md:pt-10 pb-6 px-4 md:px-10 rounded-t-none md:rounded-t-3xl'
+          : 'bg-surface/70 dark:bg-surface/40 backdrop-blur-md pt-5 md:pt-7 pb-5 px-4 md:px-6 rounded-t-none md:rounded-tl-3xl'
+      } border-b border-border relative z-20`}
+    >
+      <div
+        className={`w-full flex flex-col ${
+          inline ? 'lg:flex-row lg:items-center justify-between gap-4' : 'gap-3.5'
+        }`}
+      >
+        <div
+          className={`flex flex-col gap-1.5 flex-1 min-w-0 ${
+            inline ? 'lg:min-w-[450px]' : 'pr-12'
+          }`}
+        >
+          <div className="flex items-center gap-2 flex-wrap">
+            {inline && onBack && (
+              <button
+                type="button"
+                data-testid="apt-inline-back-btn"
+                onClick={onBack}
+                className="inline-flex items-center gap-1 text-xs font-bold text-secondary hover:text-primary bg-body hover:bg-border/40 px-2.5 py-1 rounded-full transition-all shrink-0 cursor-pointer border border-border/60"
+                title="이전 화면으로 돌아가기"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" />
+                <span>뒤로가기</span>
+              </button>
+            )}
             <span className="bg-body text-secondary text-sm font-bold px-3 py-1 rounded-full whitespace-nowrap shrink-0">{report.dong || '동탄'}</span>
             <a 
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(displayAptName + (displayAptName.includes('아파트') ? '' : ' 아파트'))}`}
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resolvedDisplayAptName + (resolvedDisplayAptName.includes('아파트') ? '' : ' 아파트'))}`}
               target="_blank" rel="noopener noreferrer"
               className="inline-flex items-center gap-1 text-xs font-bold text-blue-600 bg-[#e8f3ff] hover:bg-[#dbeafe] px-2.5 py-1 rounded-full transition-all shrink-0 group border border-blue-600/20"
               title="구글 지도에서 아파트 위치 보기"
@@ -76,14 +106,24 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             </a>
           </div>
           <div className="flex items-center justify-between gap-3 w-full">
-            <h1 className="text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px] font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1">
-              <span className="break-keep break-words block w-full">{displayAptName}</span>
-            </h1>
+            <HeadingTag
+              className={`${
+                inline
+                  ? 'text-xl sm:text-2xl lg:text-[28px] xl:text-[32px] min-[1400px]:text-[36px]'
+                  : 'text-xl sm:text-2xl md:text-[26px]'
+              } font-extrabold leading-[1.25] tracking-tight text-primary min-w-0 flex-1`}
+            >
+              <span className="break-keep break-words block w-full">{resolvedDisplayAptName}</span>
+            </HeadingTag>
           </div>
         </div>
 
         <div 
-          className="flex items-center gap-2.5 overflow-x-auto no-scrollbar -mx-4 px-4 py-1.5 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0 select-none"
+          className={`flex items-center gap-2 ${
+            inline
+              ? 'overflow-x-auto no-scrollbar -mx-4 px-4 py-1.5 w-[calc(100%+2rem)] shrink-0 lg:w-auto lg:overflow-x-visible lg:px-0 lg:mx-0'
+              : 'flex-wrap pt-0.5'
+          } select-none`}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           {/* Favorite Watchlist Toggle Button (Visible on Mobile & Desktop) */}
@@ -91,7 +131,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             type="button"
             data-testid="apt-detail-favorite-btn"
             aria-pressed={effectiveIsFavorite}
-            aria-label={`${displayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
+            aria-label={`${resolvedDisplayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
             onClick={() => {
               trackEvent('watchlist_toggle_favorite', {
                 apt_name: targetAptName,
