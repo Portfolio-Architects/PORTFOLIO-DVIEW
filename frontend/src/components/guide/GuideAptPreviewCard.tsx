@@ -12,6 +12,7 @@ import {
 import type { GuideAptMiniPreviewItem } from '@/lib/data/guides';
 import { trackEvent, trackVirtualPageView } from '@/lib/utils/analytics';
 import { sendTelemetry } from '@/lib/ads/cascadeFallback';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
 export interface GuideAptPreviewCardProps {
   item: GuideAptMiniPreviewItem;
@@ -24,8 +25,12 @@ export function resolveSafePreviewIdentity(item: GuideAptMiniPreviewItem): {
   safeSlug: string;
   safeHref: string;
 } {
-  const safeSlug = item.canonicalSlug || item.name || item.displayName || 'dongtan';
-  const safeHref = item.href || `/apartment/${encodeURIComponent(safeSlug)}`;
+  const rawSlug = item.canonicalSlug || item.name || item.displayName || 'dongtan';
+  const safeSlug =
+    resolveCanonicalAptSlug(rawSlug, item.dong ? { dong: item.dong } : undefined) || rawSlug;
+  const canonicalHref = `/apartment/${encodeURIComponent(safeSlug)}`;
+  const safeHref =
+    item.href && !item.href.startsWith('/apartment/') ? item.href : canonicalHref;
   return { safeSlug, safeHref };
 }
 

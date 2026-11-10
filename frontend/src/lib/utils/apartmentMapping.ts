@@ -284,7 +284,7 @@ export function isSameApartment(
 
   const rDong = rDongInput || extractDong(rName);
   const tDong = tDongInput || extractDong(tName);
-  if (rDong && tDong && rDong !== tDong) return false;
+  if (rDong && tDong && !isDongHintCompatible(rDong, tDong)) return false;
 
   const a = normalizeAptName(rName);
   const b = normalizeAptName(tName);
@@ -304,7 +304,7 @@ export function isSameApartment(
   const sb = stripLocationSuffix(stripLocationPrefix(b));
   if (sa && sb && sa === sb) {
     const isGenericBrand = BRAND_NAMES.has(sa) || BRAND_NAMES.has(sb) || sa.length <= 3 || sb.length <= 3;
-    if (!isGenericBrand || (rDong && tDong && rDong === tDong)) {
+    if (!isGenericBrand || (rDong && tDong && isDongHintCompatible(rDong, tDong))) {
       return true;
     }
   }
@@ -313,7 +313,7 @@ export function isSameApartment(
   const dsb = deepNormalize(sb);
   if (dsa && dsb && dsa === dsb) {
     const isGenericBrand = BRAND_NAMES.has(dsa) || BRAND_NAMES.has(dsb) || dsa.length <= 3 || dsb.length <= 3;
-    if (!isGenericBrand || (rDong && tDong && rDong === tDong)) {
+    if (!isGenericBrand || (rDong && tDong && isDongHintCompatible(rDong, tDong))) {
       return true;
     }
   }
@@ -665,9 +665,9 @@ export function findTxKey<T>(
     const keyDong = (resObj && typeof resObj === 'object' && typeof resObj.dong === 'string' && resObj.dong)
       ? resObj.dong
       : extractDong(res);
-    if (!aptDong || !keyDong || aptDong === keyDong) {
+    if (!aptDong || !keyDong || isDongHintCompatible(aptDong, keyDong)) {
       const isGeneric = BRAND_NAMES.has(stripped) || stripped.length <= 3;
-      if (!isGeneric || (aptDong && keyDong && aptDong === keyDong)) {
+      if (!isGeneric || (aptDong && keyDong && isDongHintCompatible(aptDong, keyDong))) {
         resolvedMap.set(cacheKey, res);
         return res;
       }
@@ -675,11 +675,11 @@ export function findTxKey<T>(
   }
 
   for (const info of infoList) {
-    if (aptDong && info.keyDong && aptDong !== info.keyDong) continue;
+    if (aptDong && info.keyDong && !isDongHintCompatible(aptDong, info.keyDong)) continue;
 
     if (info.keyStripped === stripped) {
       const isGeneric = BRAND_NAMES.has(stripped) || stripped.length <= 3;
-      if (!isGeneric || (aptDong && info.keyDong && aptDong === info.keyDong)) {
+      if (!isGeneric || (aptDong && info.keyDong && isDongHintCompatible(aptDong, info.keyDong))) {
         const res = info.originalKey;
         resolvedMap.set(cacheKey, res);
         return res;
@@ -690,11 +690,11 @@ export function findTxKey<T>(
   // 3단계: 심층 정규화
   const deepNorm = deepNormalize(stripped);
   for (const info of infoList) {
-    if (aptDong && info.keyDong && aptDong !== info.keyDong) continue;
+    if (aptDong && info.keyDong && !isDongHintCompatible(aptDong, info.keyDong)) continue;
 
     if (info.keyDeep === deepNorm || info.keyDeepAlt === deepNorm) {
       const isGeneric = BRAND_NAMES.has(deepNorm) || deepNorm.length <= 3;
-      if (!isGeneric || (aptDong && info.keyDong && aptDong === info.keyDong)) {
+      if (!isGeneric || (aptDong && info.keyDong && isDongHintCompatible(aptDong, info.keyDong))) {
         const res = info.originalKey;
         resolvedMap.set(cacheKey, res);
         return res;
@@ -866,6 +866,7 @@ function decodeCanonicalAptInput(raw: string | undefined | null): string {
 function canonDongSlugHint(d?: string | null): string {
   return String(d || '')
     .normalize('NFC')
+    .replace(/\([^)]*\)/g, '')
     .replace(/[0-9동\s]/g, '')
     .replace(/^오산$/, '여울');
 }

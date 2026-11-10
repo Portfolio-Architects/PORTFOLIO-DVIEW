@@ -680,6 +680,7 @@ const DashboardClient = React.memo(function DashboardClient({
           const canonicalSlug =
             resolveCanonicalAptSlug(targetApt.name, {
               txKey: targetApt.txKey,
+              txMap: txSummary || undefined,
               sheetApartments: apartments,
               manualMapping: mapping || undefined,
               dong: targetApt.dong,

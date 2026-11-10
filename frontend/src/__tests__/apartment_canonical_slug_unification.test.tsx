@@ -26,6 +26,8 @@ import { render, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { NextRequest } from 'next/server';
 import {
+  findTxKey,
+  isSameApartment,
   resolveCanonicalAptSlug,
   sanitizeAptKey,
   stripApartmentNoiseQueryParams,
@@ -1756,6 +1758,259 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       );
       expect(enriched.canonicalSlug).toBe('동탄역시범리슈빌아파트');
     });
+
+    it('normalizes /apartment/동탄역 롯데캐슬 and /apartment/동탄역 시범 리슈빌 in <head> before GoogleAnalytics via buildPreHydrationAdminGuardScript, syncShallowApartmentOpen, GuideAptPreviewCard, and lookupCanonicalTxKeyForDongApt', async () => {
+      const vm = await import('vm');
+      const { buildPreHydrationAdminGuardScript } = await import('@/lib/utils/adminExclusion');
+      const { lookupCanonicalTxKeyForDongApt } = await import('@/lib/utils/canonicalAptCatalog');
+      const { resolveStatsComplexCanonicalSlug } = await import(
+        '@/lib/stats/dongtan1Vs2ComparisonEngine'
+      );
+      const {
+        resolveSafePreviewIdentity,
+        recordGuideAptPreviewClick,
+      } = await import('@/components/guide/GuideAptPreviewCard');
+
+      const scriptCode = buildPreHydrationAdminGuardScript('G-Y17BHJ77W6');
+
+      // 1. Pre-GA4 <head> script normalizes /apartment/동탄역 롯데캐슬 -> /apartment/동탄역롯데캐슬 + strips noise params
+      window.history.replaceState(
+        null,
+        '',
+        `/apartment/${encodeURIComponent('동탄역 롯데캐슬')}?hl=ko-KR&utm_source=google#tx`
+      );
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역롯데캐슬')}`
+      );
+      expect(window.location.search).toBe('?utm_source=google');
+      expect(window.location.hash).toBe('#tx');
+
+      // 2. Pre-GA4 <head> script normalizes /apartment/동탄역 시범 리슈빌 -> /apartment/동탄역시범리슈빌아파트
+      window.history.replaceState(
+        null,
+        '',
+        `/apartment/${encodeURIComponent('동탄역 시범 리슈빌')}?gl=KR`
+      );
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+      expect(window.location.search).toBe('');
+
+      // 3. Idempotency: does not call history.replaceState when URL is already canonical and noise-free
+      const replaceSpy = jest.spyOn(window.history, 'replaceState');
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(replaceSpy).not.toHaveBeenCalled();
+      replaceSpy.mockRestore();
+
+      // 4. syncShallowApartmentOpen with resolved canonicalSlug option
+      window.history.replaceState(null, '', '/');
+      resetVirtualPageViewLedger();
+      syncShallowApartmentOpen('동탄역 롯데캐슬', {
+        dong: '오산동',
+        canonicalSlug: resolveCanonicalAptSlug('동탄역 롯데캐슬', { dong: '오산동' }),
+        force: true,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역롯데캐슬')}`
+      );
+
+      syncShallowApartmentOpen('동탄역 시범 리슈빌', {
+        dong: '청계동',
+        canonicalSlug: resolveCanonicalAptSlug('동탄역 시범 리슈빌', { dong: '청계동' }),
+        force: true,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+
+      // 5. GuideAptPreviewCard resolveSafePreviewIdentity & recordGuideAptPreviewClick normalize spaced names
+      const lottePreviewIdentity = resolveSafePreviewIdentity({
+        name: '동탄역 롯데캐슬',
+        canonicalSlug: '동탄역 롯데캐슬',
+        displayName: '동탄역 롯데캐슬',
+        dong: '여울동',
+        zoneName: '동탄2신도시',
+        latestPriceStr: '15억',
+        latestAreaPyeong: 34,
+        latestDealDate: '2026.02',
+        txCount: 12,
+        jeonseRatioStr: '52%',
+        href: `/apartment/${encodeURIComponent('동탄역 롯데캐슬')}`,
+      });
+      expect(lottePreviewIdentity.safeSlug).toBe('동탄역롯데캐슬');
+      expect(lottePreviewIdentity.safeHref).toBe(
+        `/apartment/${encodeURIComponent('동탄역롯데캐슬')}`
+      );
+
+      resetVirtualPageViewLedger();
+      recordGuideAptPreviewClick({
+        item: {
+          name: '동탄역 시범 리슈빌',
+          canonicalSlug: '동탄역 시범 리슈빌',
+          displayName: '동탄역 시범 리슈빌',
+          dong: '청계동',
+          zoneName: '동탄2신도시',
+          latestPriceStr: '11.5억',
+          latestAreaPyeong: 34,
+          latestDealDate: '2026.02',
+          txCount: 10,
+          jeonseRatioStr: '54%',
+          href: `/apartment/${encodeURIComponent('동탄역 시범 리슈빌')}`,
+        },
+        guideSlug: 'dongtan-1-vs-2-comparison',
+        placement: 'article_top',
+      });
+      const ledger = getVirtualPageViewLedger();
+      expect(ledger[ledger.length - 1]?.path).toBe(
+        `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
+      );
+
+      // 6. lookupCanonicalTxKeyForDongApt, isSameApartment, findTxKey & resolveStatsComplexCanonicalSlug support 여울동 / 오산동 (법정동 개칭)
+      expect(lookupCanonicalTxKeyForDongApt('여울동', '동탄역 롯데캐슬')).toBe('동탄역롯데캐슬');
+      expect(lookupCanonicalTxKeyForDongApt('여울동', '동탄역롯데캐슬')).toBe('동탄역롯데캐슬');
+      expect(lookupCanonicalTxKeyForDongApt('오산동', '동탄역 롯데캐슬')).toBe('동탄역롯데캐슬');
+      expect(lookupCanonicalTxKeyForDongApt('오산동 (동탄역)', '동탄역 롯데캐슬')).toBe('동탄역롯데캐슬');
+      expect(lookupCanonicalTxKeyForDongApt('오산동', '동탄역롯데캐슬')).toBe('동탄역롯데캐슬');
+      expect(lookupCanonicalTxKeyForDongApt('청계동', '동탄역 시범 리슈빌')).toBe(
+        '동탄역시범리슈빌아파트'
+      );
+      expect(resolveStatsComplexCanonicalSlug('동탄역 롯데캐슬', '오산동')).toBe('동탄역롯데캐슬');
+      expect(
+        isSameApartment('동탄역 롯데캐슬', '동탄역롯데캐슬', undefined, '오산동', '여울동')
+      ).toBe(true);
+      expect(
+        isSameApartment(
+          '동탄역 롯데캐슬',
+          '동탄역롯데캐슬',
+          undefined,
+          '오산동 (동탄역)',
+          '여울동'
+        )
+      ).toBe(true);
+      expect(
+        isSameApartment('[오산동] 동탄역 롯데캐슬', '동탄역롯데캐슬', undefined, undefined, '여울동')
+      ).toBe(true);
+      expect(
+        findTxKey(
+          '여울동 동탄역 롯데캐슬',
+          { 동탄역롯데캐슬: { dong: '여울동' } },
+          undefined,
+          '오산동'
+        )
+      ).toBe('동탄역롯데캐슬');
+      expect(resolveCanonicalAptSlug('오산동 동탄역 롯데캐슬')).toBe('동탄역롯데캐슬');
+      expect(
+        resolveCanonicalAptSlug('동탄역 롯데캐슬', { dong: '오산동 (동탄역)' })
+      ).toBe('동탄역롯데캐슬');
+
+      // 7. Proxy 308 permanent redirect for dong-prefixed 오산동 동탄역 롯데캐슬
+      const osanPrefixedRes = await proxy(
+        new NextRequest(
+          `https://dongtanview.com/apartment/${encodeURIComponent('오산동 동탄역 롯데캐슬')}`
+        )
+      );
+      expect(osanPrefixedRes.status).toBe(308);
+      expect(osanPrefixedRes.headers.get('location')).toBe(
+        `https://dongtanview.com/apartment/${encodeURIComponent('동탄역롯데캐슬')}`
+      );
+
+      // 8. Pre-GA4 <head> script handles double-encoded NFD Hangul + mixed-case noise query params + dview_admin=status + hash preservation
+      const nfdLotteDoubleEncoded = encodeURIComponent(
+        encodeURIComponent('동탄역 롯데캐슬'.normalize('NFD'))
+      );
+      window.history.replaceState(
+        null,
+        '',
+        `/apartment/${nfdLotteDoubleEncoded}?HL=ko-KR&_X_TR_SL=auto&dview_admin=status&utm_source=naver#tx`
+      );
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역롯데캐슬')}`
+      );
+      expect(window.location.search).toBe('?utm_source=naver');
+      expect(window.location.hash).toBe('#tx');
+      expect(window.__dviewAdminNotice).toBe('status_off');
+      delete window.__dviewAdminNotice;
+
+      // 9. Pre-GA4 <head> script resolves dong-prefixed and parenthetical apartment URLs and never double-encodes malformed %ZZ
+      window.history.replaceState(
+        null,
+        '',
+        `/apartment/${encodeURIComponent('오산동 동탄역 롯데캐슬')}`
+      );
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역롯데캐슬')}`
+      );
+
+      window.history.replaceState(
+        null,
+        '',
+        `/apartment/${encodeURIComponent('동탄숲속마을자연앤경남아너스빌(1124-0)')}`
+      );
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄숲속마을자연앤경남아너스빌1124-0')}`
+      );
+
+      window.history.replaceState(
+        null,
+        '',
+        `/apartment/${encodeURIComponent('동탄역센트럴자이(A-10)')}`
+      );
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).toBe(
+        `/apartment/${encodeURIComponent('동탄역센트럴자이A-10')}`
+      );
+
+      window.history.replaceState(null, '', '/apartment/%E0%A4%A%ZZ동탄');
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+      expect(window.location.pathname).not.toContain('%25');
+    });
   });
 });
+
+
 
