@@ -1216,7 +1216,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
-                role="tab"
                 data-segment-btn="true"
                 data-testid="timeline-segment-favorites"
                 aria-selected={activeSegment === 'favorites'}

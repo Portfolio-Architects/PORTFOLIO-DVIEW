@@ -300,8 +300,8 @@ describe('AptMetricCards Test Suite', () => {
       expect(screen.getByText('12억')).toBeInTheDocument();
       expect(screen.getByText('-2,000만')).toBeInTheDocument();
 
-      // Middle analysis line displays pyeong price
-      expect(screen.getAllByText(/평당/).length).toBeGreaterThanOrEqual(1);
+      // Top metadata line displays pyeong area
+      expect(screen.getAllByText(/34평/).length).toBeGreaterThanOrEqual(1);
 
       // Default macro KPIs should NOT be displayed in this mode
       expect(screen.queryByText('평당 평균 실거래가')).not.toBeInTheDocument();
@@ -491,13 +491,13 @@ describe('AptMetricCards Test Suite', () => {
       expect(newHighCard).toHaveTextContent('26억2,000');
 
       expect(optimalGapCard).toHaveTextContent('최고 평당가');
-      expect(optimalGapCard).toHaveTextContent('평당 6,276만원');
+      expect(optimalGapCard).toHaveTextContent('6,276만/평');
 
-      expect(volumeSurgeCard).toHaveTextContent('거래량 급증');
+      expect(volumeSurgeCard).toHaveTextContent('거래량 최다');
       expect(volumeSurgeCard).toHaveTextContent('동탄2하우스디더레이크');
       expect(volumeSurgeCard).toHaveTextContent('22건');
 
-      expect(urgentBargainCard).toHaveTextContent('낙폭과대 급매');
+      expect(urgentBargainCard).toHaveTextContent('직전가 대비 하락');
       expect(urgentBargainCard).toHaveTextContent('이편한세상동탄');
       expect(urgentBargainCard).toHaveTextContent('-26.4%');
 
