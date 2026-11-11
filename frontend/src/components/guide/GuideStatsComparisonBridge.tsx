@@ -19,6 +19,7 @@ import {
   getBuildingAgeDepreciationData,
 } from '@/lib/stats/thematicPriceComparisonEngine';
 import { trackEvent, trackVirtualPageView } from '@/lib/utils/analytics';
+import { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 
 export interface GuideStatsComparisonBridgeProps {
   guideSlug: string;
@@ -40,6 +41,7 @@ export function GuideStatsComparisonBridge({
   const { dongtan1, dongtan2, delta } = comparison;
 
   const isDongtan1Vs2Article = guideSlug === 'dongtan-1-vs-2-comparison';
+  const aptPlacement = placement?.includes('top') ? 'article_top' : 'article_bottom';
 
   const handleStatsClick = useCallback(
     (targetTopic: string, ctaLabel: string) => {
@@ -128,9 +130,20 @@ export function GuideStatsComparisonBridge({
           </div>
           <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-slate-100 dark:border-slate-800">
             <span>평당 {dongtan1.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원</span>
-            <span>
+            <GuideAptCtaLink
+              href={`/apartment/${encodeURIComponent(dongtan1.maxPriceComplexSlug || dongtan1.maxPriceComplexName)}`}
+              apartmentName={dongtan1.maxPriceComplexSlug || dongtan1.maxPriceComplexName}
+              canonicalSlug={dongtan1.maxPriceComplexSlug || dongtan1.maxPriceComplexName}
+              displayName={dongtan1.maxPriceComplexName}
+              dong={dongtan1.maxPriceComplexDong}
+              guideSlug={guideSlug}
+              placement={aptPlacement}
+              sectionTitle="동탄1신도시 최고가 대표 단지 바로가기"
+              dataTestId="bridge-dongtan1-max-apt-cta"
+              className="font-bold text-emerald-700 dark:text-emerald-300 hover:underline"
+            >
               최고 {dongtan1.maxPriceComplexName} ({dongtan1.maxLatestPriceEokText})
-            </span>
+            </GuideAptCtaLink>
           </div>
         </div>
 
@@ -154,9 +167,20 @@ export function GuideStatsComparisonBridge({
           </div>
           <div className="flex items-center justify-between text-[11px] text-secondary tabular-nums pt-1.5 border-t border-slate-100 dark:border-slate-800">
             <span>평당 {dongtan2.weightedAvgPyeongManwon.toLocaleString('ko-KR')}만원</span>
-            <span>
+            <GuideAptCtaLink
+              href={`/apartment/${encodeURIComponent(dongtan2.maxPriceComplexSlug || dongtan2.maxPriceComplexName)}`}
+              apartmentName={dongtan2.maxPriceComplexSlug || dongtan2.maxPriceComplexName}
+              canonicalSlug={dongtan2.maxPriceComplexSlug || dongtan2.maxPriceComplexName}
+              displayName={dongtan2.maxPriceComplexName}
+              dong={dongtan2.maxPriceComplexDong}
+              guideSlug={guideSlug}
+              placement={aptPlacement}
+              sectionTitle="동탄2신도시 최고가 대표 단지 바로가기"
+              dataTestId="bridge-dongtan2-max-apt-cta"
+              className="font-bold text-blue-700 dark:text-blue-300 hover:underline"
+            >
               최고 {dongtan2.maxPriceComplexName} ({dongtan2.maxLatestPriceEokText})
-            </span>
+            </GuideAptCtaLink>
           </div>
         </div>
 

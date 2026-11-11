@@ -764,13 +764,15 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
     handleSelectZone,
     canUseFullscreenHover,
   });
-  fullscreenSliceHandlersRef.current = {
-    selectedZoneKey,
-    pieRenderData,
-    zoneSlices,
-    handleSelectZone,
-    canUseFullscreenHover,
-  };
+  useEffect(() => {
+    fullscreenSliceHandlersRef.current = {
+      selectedZoneKey,
+      pieRenderData,
+      zoneSlices,
+      handleSelectZone,
+      canUseFullscreenHover,
+    };
+  });
 
   const handleFullscreenSliceEnter = useCallback((_data: unknown, index: number) => {
     const {

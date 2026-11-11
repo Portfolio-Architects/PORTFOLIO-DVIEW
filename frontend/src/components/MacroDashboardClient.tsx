@@ -123,6 +123,7 @@ export interface TimelineItem {
   registeredDateLabel?: string;
   date?: string;
   isNewHigh?: boolean;
+  isTodayRegistered?: boolean;
 }
 
 interface RecentTransaction {
@@ -312,6 +313,25 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   const isFalling = item.delta < 0;
   const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
+  const isToday = Boolean(
+    item.isTodayRegistered ?? (
+      item.registeredDate &&
+      String(item.registeredDate).replace(/[^0-9]/g, '').slice(0, 8) === (
+        (() => {
+          try {
+            return new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Seoul',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(new Date()).replace(/[^0-9]/g, '');
+          } catch {
+            return new Date().toISOString().slice(0, 10).replace(/[^0-9]/g, '');
+          }
+        })()
+      )
+    )
+  );
 
   return (
     <div
@@ -338,6 +358,14 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             >
               {item.displayAptName || item.aptName}
             </span>
+            {isToday && (
+              <span
+                data-testid="timeline-today-registered-badge"
+                className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 shrink-0 whitespace-nowrap tracking-wider tabular-nums leading-none"
+              >
+                오늘 등록
+              </span>
+            )}
             {item.type === 'high' && (
               <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
@@ -521,6 +549,25 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   const displayName = item.displayAptName || item.aptName;
   const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
+  const isToday = Boolean(
+    item.isTodayRegistered ?? (
+      item.registeredDate &&
+      String(item.registeredDate).replace(/[^0-9]/g, '').slice(0, 8) === (
+        (() => {
+          try {
+            return new Intl.DateTimeFormat('en-CA', {
+              timeZone: 'Asia/Seoul',
+              year: 'numeric',
+              month: '2-digit',
+              day: '2-digit',
+            }).format(new Date()).replace(/[^0-9]/g, '');
+          } catch {
+            return new Date().toISOString().slice(0, 10).replace(/[^0-9]/g, '');
+          }
+        })()
+      )
+    )
+  );
 
   return (
     <div
@@ -543,6 +590,14 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
             <span className="text-[12px] sm:text-[13px] font-extrabold text-primary truncate max-w-[180px] sm:max-w-[280px]">
               {displayName}
             </span>
+            {isToday && (
+              <span
+                data-testid="timeline-row-today-badge"
+                className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider tabular-nums leading-none"
+              >
+                오늘 등록
+              </span>
+            )}
             {item.type === 'high' && (
               <span className="px-1.5 py-0.2 rounded bg-red-500 text-white text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider">
                 신고가
@@ -862,7 +917,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     (nextPeriod: AptDonutPeriod) => {
       setDonutPeriod(nextPeriod);
       setSelectedTimelineDateJump(null);
-      setPeriodFilter(nextPeriod === '1y' ? '1y' : '90d');
+      setPeriodFilter(nextPeriod);
     },
     [setPeriodFilter]
   );
@@ -1885,7 +1940,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     else if (pyeongFilter === '40plus') mappedPyeong = 'LARGE';
 
     let mappedTimeframe: TimeframeFilter = '3M';
-    if (periodFilter === '7d' || periodFilter === '30d') mappedTimeframe = '1M';
+    if (periodFilter === '1d' || periodFilter === '7d' || periodFilter === '30d') mappedTimeframe = '1M';
     else if (periodFilter === '90d') mappedTimeframe = '3M';
     else if (periodFilter === '1y') mappedTimeframe = '1Y';
 

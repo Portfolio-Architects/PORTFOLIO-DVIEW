@@ -1,5 +1,5 @@
-const CACHE_NAME = 'dview-cache-v-1794142218646';
-const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1794142218646';
+const CACHE_NAME = 'dview-cache-v-1794404694340';
+const DYNAMIC_CACHE_NAME = 'dview-dynamic-v-1794404694340';
 
 // 1. Install & Activate
 self.addEventListener('install', (event) => {
@@ -326,12 +326,19 @@ self.addEventListener('push', (event) => {
     try {
       const data = event.data.json();
       const title = data.title || 'D-VIEW 알림';
+      // Support nested data.data.url, flat data.url, and apartment query fallback
+      const targetUrl = (data.data && data.data.url) || data.url || (data.data && data.data.aptName ? `/?apt=${encodeURIComponent(data.data.aptName)}` : '/');
+      const aptName = (data.data && data.data.aptName) || data.aptName || '';
       const options = {
         body: data.body || '새로운 변동사항이 있습니다.',
-        icon: '/icon-192x192.png',
-        badge: '/icon-192x192.png',
+        icon: data.icon || '/icon-192x192.png',
+        badge: data.badge || '/icon-192x192.png',
         vibrate: [100, 50, 100],
-        data: { url: data.url || '/' }
+        data: {
+          url: targetUrl,
+          aptName: aptName,
+          ...(data.data || {})
+        }
       };
       event.waitUntil(self.registration.showNotification(title, options));
     } catch (err) {

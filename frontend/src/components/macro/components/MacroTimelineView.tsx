@@ -25,6 +25,7 @@ import type {
   TimelineSortOrder,
   TimelineViewMode,
 } from '../hooks/useMacroFilters';
+import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
 
 export interface HighestPriceAptInfo {
   aptName: string;
@@ -53,6 +54,7 @@ export interface TimelineItem {
   isNewHigh?: boolean;
   registeredDate?: string;
   registeredDateLabel?: string;
+  isTodayRegistered?: boolean;
 }
 
 export interface TimelineGroup {
@@ -349,6 +351,18 @@ function DefaultTimelineCard({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-[12px] font-extrabold text-primary truncate">{displayName}</span>
+            {(() => {
+              const reg = String(item.registeredDate || '').replace(/[^0-9]/g, '').slice(0, 8);
+              const isToday = Boolean(item.isTodayRegistered ?? (reg.length === 8 && reg === getTodayYmdKST()));
+              return isToday ? (
+                <span
+                  data-testid="timeline-today-registered-badge"
+                  className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[9.5px] font-black shrink-0 tabular-nums whitespace-nowrap leading-none"
+                >
+                  오늘 등록
+                </span>
+              ) : null;
+            })()}
             {item.type === 'high' && (
               <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 text-[9.5px] font-black">
                 신고가
@@ -460,6 +474,18 @@ function DefaultTimelineRow({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-[11.5px] font-bold text-primary truncate">{displayName}</span>
+            {(() => {
+              const reg = String(item.registeredDate || '').replace(/[^0-9]/g, '').slice(0, 8);
+              const isToday = Boolean(item.isTodayRegistered ?? (reg.length === 8 && reg === getTodayYmdKST()));
+              return isToday ? (
+                <span
+                  data-testid="timeline-row-today-badge"
+                  className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider tabular-nums leading-none whitespace-nowrap"
+                >
+                  오늘 등록
+                </span>
+              ) : null;
+            })()}
             {item.type === 'high' && (
               <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 text-[9px] font-black">
                 신고가
@@ -1190,6 +1216,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               </button>
               <button
                 type="button"
+                role="tab"
                 data-segment-btn="true"
                 data-testid="timeline-segment-favorites"
                 aria-selected={activeSegment === 'favorites'}
@@ -1322,11 +1349,11 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                   )}
                 </button>
 
-                {/* Quick Period Selector (7d / 30d / 90d / 1y) */}
+                {/* Quick Period Selector (1d / 7d / 30d / 90d / 1y) */}
                 {setPeriodFilter && (
                   <div className={getToggleTrackClass('sm:ml-1')}>
-                    {(['7d', '30d', '90d', '1y'] as const).map((p) => {
-                      const labelMap = { '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
+                    {(['1d', '7d', '30d', '90d', '1y'] as const).map((p) => {
+                      const labelMap: Record<string, string> = { '1d': '오늘', '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
                       const isSelected = periodFilter === p;
                       return (
                         <button
@@ -1474,6 +1501,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               className="flex items-center justify-between gap-2 pt-1 border-t border-border/60"
             >
               <div
+                role="tablist"
+                aria-label="타임라인 섹션 탭"
                 className={getToggleTrackClass(
                   pyeongRankings !== undefined && liveRankingBoardNode !== undefined
                     ? 'grid grid-cols-3 w-full'
@@ -1482,6 +1511,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
               >
                 <button
                   type="button"
+                  role="tab"
                   data-testid="timeline-tab-transactions"
                   aria-selected={activeSectionTab === 'timeline'}
                   onClick={() => {
@@ -1502,6 +1532,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 {liveRankingBoardNode !== undefined && (
                   <button
                     type="button"
+                    role="tab"
                     data-testid="timeline-tab-live-rankings"
                     aria-selected={activeSectionTab === 'live_ranking'}
                     onClick={() => {
@@ -1523,6 +1554,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                 {pyeongRankings !== undefined && (
                   <button
                     type="button"
+                    role="tab"
                     data-testid="timeline-tab-rankings"
                     aria-selected={activeSectionTab === 'ranking'}
                     onClick={() => {
@@ -2059,6 +2091,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
 
               const isCollapsed = collapsedDates.has(group.dateStr);
               const groupItemCount = group.totalCount ?? group.items.length;
+              const cleanGroupDate = String(group.dateKey || group.dateStr || group.date || '').replace(/[^0-9]/g, '').slice(0, 8);
+              const isGroupToday = cleanGroupDate.length === 8 && cleanGroupDate === getTodayYmdKST();
 
               return (
                 <React.Fragment key={group.dateKey || group.dateStr || group.date || `group-${index}`}>
@@ -2095,7 +2129,9 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         className={`w-2.5 h-2.5 rounded-full transition-all duration-300 shrink-0 ${
                           isGroupSelected
                             ? "bg-blue-600 ring-4 ring-blue-500/25 scale-110"
-                            : "bg-slate-300 dark:bg-slate-600"
+                            : isGroupToday
+                              ? "bg-emerald-500 ring-4 ring-emerald-500/25 scale-110"
+                              : "bg-slate-300 dark:bg-slate-600"
                         }`}
                       />
                       <h3 className="text-[12.5px] xs:text-[13.5px] font-black text-primary flex items-center gap-1.5 truncate">
@@ -2104,6 +2140,15 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 text-[9.5px] font-extrabold shrink-0">
                           국토부 등록일
                         </span>
+                        {isGroupToday && (
+                          <span
+                            data-testid="timeline-group-today-badge"
+                            className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[9.5px] font-black shrink-0 tracking-wider flex items-center gap-1 tabular-nums"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                            오늘 신규 반영
+                          </span>
+                        )}
                       </h3>
                       {isCollapsed && (
                         <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-tertiary">

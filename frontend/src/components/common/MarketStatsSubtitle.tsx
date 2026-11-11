@@ -4,6 +4,10 @@ import React, { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { staticDataService } from '@/lib/services/staticDataService';
 import { BUILD_VERSION } from '@/lib/build-version';
+import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
+
+export { TodayUpdatePillBadge } from './TodayUpdatePillBadge';
+export type { TodayUpdatePillBadgeProps } from './TodayUpdatePillBadge';
 
 /**
  * 서브타이틀 실시간 지표 (등록 단지 수 / 국토부 매매 실거래 누적 건수 / 최신 국토부 등록일·계약일).
@@ -16,6 +20,9 @@ export interface MarketStats {
   saleTxCount: number;
   latestContractDate: string | null;
   latestRegisteredDate?: string | null;
+  todayRegisteredCount?: number;
+  todayNewHighCount?: number;
+  lastSyncTime?: string;
 }
 
 function useMarketStats(): MarketStats | null {
@@ -76,17 +83,31 @@ export function MarketStatsLight({ text }: { text: string }) {
   const stats = useMarketStats();
   const registeredLabel = formatContractDate(stats?.latestRegisteredDate ?? null);
   const contractFallbackLabel = formatContractDate(stats?.latestContractDate ?? null);
-  const suffixText = registeredLabel
-    ? ` · ${registeredLabel} 국토부 등록 반영`
-    : contractFallbackLabel
-      ? ` · ${contractFallbackLabel} 거래 반영`
-      : '';
+
+  const todayYmdKST = getTodayYmdKST();
+  const isTodayBatch = stats?.latestRegisteredDate === todayYmdKST;
+
+  const suffixText = isTodayBatch && registeredLabel
+    ? ` · 오늘 아침 7시 갱신 (${registeredLabel})`
+    : registeredLabel
+      ? ` · ${registeredLabel} 국토부 등록 반영`
+      : contractFallbackLabel
+        ? ` · ${contractFallbackLabel} 거래 반영`
+        : '';
+
   return (
     <>
       <span className="hidden sm:inline text-slate-300 dark:text-slate-600 mr-1.5">—</span>
       {text}
       <span className="hidden lg:inline-block min-w-[11.5rem] text-slate-500 dark:text-slate-400 tabular-nums">
-        {suffixText}
+        {isTodayBatch && registeredLabel ? (
+          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            {suffixText}
+          </span>
+        ) : (
+          suffixText
+        )}
       </span>
     </>
   );

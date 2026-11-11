@@ -11,6 +11,7 @@ import {
   TimelineItem,
   HighestPriceAptInfo,
 } from '../macro/components/MacroTimelineView';
+import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
 
 // Mock react-intersection-observer
 jest.mock('react-intersection-observer', () => ({
@@ -163,6 +164,30 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
 
       const activeDots = container.querySelectorAll('.bg-blue-600.ring-4');
       expect(activeDots.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('highlights sticky date header dot in emerald and renders today badge for today group', () => {
+      const todayYmd = getTodayYmdKST();
+      const todayGroup = {
+        dateStr: `${todayYmd.slice(0, 4)}.${todayYmd.slice(4, 6)}.${todayYmd.slice(6, 8)}`,
+        dateKey: todayYmd,
+        timestamp: Date.now(),
+        items: [sampleGroups[0].items[0]],
+      };
+
+      const { container } = render(
+        <MacroTimelineView
+          timelineGroups={[todayGroup, ...sampleGroups]}
+          selectedApt={null}
+        />
+      );
+
+      const todayBadge = screen.getByTestId('timeline-group-today-badge');
+      expect(todayBadge).toBeInTheDocument();
+      expect(todayBadge).toHaveTextContent('오늘 신규 반영');
+
+      const emeraldDots = container.querySelectorAll('.bg-emerald-500.ring-4');
+      expect(emeraldDots.length).toBeGreaterThanOrEqual(1);
     });
   });
 
@@ -484,7 +509,7 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
   });
 
   describe('9. Period Selection Tabs & Actions', () => {
-    it('renders period tabs (7일, 30일, 90일, 1년) and triggers setPeriodFilter on tab click', () => {
+    it('renders period tabs (오늘, 7일, 30일, 90일, 1년) and triggers setPeriodFilter on tab click', () => {
       const setPeriodFilter = jest.fn();
       render(
         <MacroTimelineView
@@ -496,15 +521,21 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
+      const tab1d = screen.getByTestId('timeline-period-tab-1d');
       const tab7d = screen.getByTestId('timeline-period-tab-7d');
       const tab30d = screen.getByTestId('timeline-period-tab-30d');
       const tab90d = screen.getByTestId('timeline-period-tab-90d');
       const tab1y = screen.getByTestId('timeline-period-tab-1y');
 
+      expect(tab1d).toBeInTheDocument();
+      expect(tab1d).toHaveTextContent('오늘');
       expect(tab7d).toBeInTheDocument();
       expect(tab30d).toBeInTheDocument();
       expect(tab90d).toBeInTheDocument();
       expect(tab1y).toBeInTheDocument();
+
+      fireEvent.click(tab1d);
+      expect(setPeriodFilter).toHaveBeenCalledWith('1d');
 
       fireEvent.click(tab7d);
       expect(setPeriodFilter).toHaveBeenCalledWith('7d');

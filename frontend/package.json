@@ -32,6 +32,7 @@
     "sync-all": "node scripts/sync-nps.js && node scripts/sync-apartments.js && node scripts/sync-transactions.js && node scripts/sync-location-scores.js && node scripts/fetch-local-notices.js && npm run sync-static",
     "test": "jest",
     "test:unit": "jest",
+    "test:push": "node scripts/test-push-notification.js --dry-run",
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --project='Mobile Chrome' --project='Mobile Safari'"
   },

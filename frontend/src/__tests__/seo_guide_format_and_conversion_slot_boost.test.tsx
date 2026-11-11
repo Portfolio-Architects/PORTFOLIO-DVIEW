@@ -4,16 +4,20 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
 import GuideIndexPage from '@/app/guide/page';
-import GuideDetailPage, { renderGuideBodyContent } from '@/app/guide/[slug]/page';
+import GuideDetailPage, { renderGuideBodyContent, renderInlineBold } from '@/app/guide/[slug]/page';
 import TechnoValleyPage from '@/app/technovalley/page';
 import TechnoValleyDetailPage from '@/app/technovalley/[slug]/page';
-import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 import * as analyticsUtils from '@/lib/utils/analytics';
 import {
   GUIDE_ARTICLES,
   buildGuideAptMiniPreview,
   resolveGuideZoneSectionPreviews,
   TOP_ACQUISITION_ENTRY_ROUTES,
+  TOP_LANDING_GUIDE_SLUGS,
+  isTopLandingGuideSlug,
+  resolveGuideRepresentativeAptCtas,
+  resolveMidSectionRepresentativeAptCtas,
   HIGH_CONVERSION_FLAGSHIP_APARTMENTS,
   TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS,
   type GuideAptMiniPreviewItem,
@@ -79,6 +83,7 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
   const originalApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE;
 
   afterEach(() => {
+    jest.restoreAllMocks();
     if (originalApprovalMode === undefined) {
       delete process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE;
     } else {
@@ -548,6 +553,354 @@ describe('High-Efficiency SEO Guide Format Expansion & Top/Mid Conversion Slot B
 
       trackEventSpy.mockRestore();
       unmount();
+    });
+  });
+
+  describe('6. Top 3 Landing Guides (/guide/* -> /apartment/*) Top/Mid Representative Apartment CTA Visibility & Session PV Boost', () => {
+    it('validates isTopLandingGuideSlug, resolveGuideRepresentativeAptCtas, and resolveMidSectionRepresentativeAptCtas across normal and boundary edge cases', async () => {
+      const txSummary = await getTxSummaryData();
+
+      expect(TOP_LANDING_GUIDE_SLUGS).toEqual([
+        'dongtan-1-vs-2-comparison',
+        'dongtan-school-zone-top-apartments',
+        'dongtan-indeogwon-line-station-impact-analysis',
+      ]);
+
+      for (const slug of TOP_LANDING_GUIDE_SLUGS) {
+        expect(isTopLandingGuideSlug(slug)).toBe(true);
+        expect(isTopLandingGuideSlug(`  ${slug}  `)).toBe(true);
+      }
+      expect(isTopLandingGuideSlug('dongtan-tram-line-1-2-impact')).toBe(false);
+      expect(isTopLandingGuideSlug('')).toBe(false);
+      expect(isTopLandingGuideSlug('   ')).toBe(false);
+      expect(isTopLandingGuideSlug(null)).toBe(false);
+      expect(isTopLandingGuideSlug(undefined)).toBe(false);
+
+      // String slug and GuideArticle object both resolve real MOLIT representative apartments
+      const ctasFromSlug = resolveGuideRepresentativeAptCtas(
+        'dongtan-1-vs-2-comparison',
+        txSummary,
+        3
+      );
+      expect(ctasFromSlug).toHaveLength(3);
+      for (const item of ctasFromSlug) {
+        expect(item.latestPrice).toBeGreaterThan(0);
+        expect(item.href).toMatch(/^\/apartment\//);
+      }
+
+      const articleObj = GUIDE_ARTICLES.find((a) => a.slug === 'dongtan-school-zone-top-apartments')!;
+      const ctasFromArticle = resolveGuideRepresentativeAptCtas(articleObj, txSummary, 2);
+      expect(ctasFromArticle).toHaveLength(2);
+
+      // Fallback when featuredApartments is empty or has only unmatched names
+      const emptyFeaturedArticle = {
+        ...articleObj,
+        featuredApartments: [],
+      };
+      const fallbackFromEmpty = resolveGuideRepresentativeAptCtas(emptyFeaturedArticle, txSummary, 3);
+      expect(fallbackFromEmpty).toHaveLength(3);
+      expect(fallbackFromEmpty.map((i) => i.canonicalSlug)).toEqual(
+        HIGH_CONVERSION_FLAGSHIP_APARTMENTS.slice(0, 3)
+      );
+
+      const unmatchedFeaturedArticle = {
+        ...articleObj,
+        featuredApartments: ['존재하지않는가상단지A', '존재하지않는가상단지B'],
+      };
+      const fallbackFromUnmatched = resolveGuideRepresentativeAptCtas(
+        unmatchedFeaturedArticle,
+        txSummary,
+        3
+      );
+      expect(fallbackFromUnmatched).toHaveLength(3);
+      for (const item of fallbackFromUnmatched) {
+        expect(item.latestPrice).toBeGreaterThan(0);
+        expect(item.dong.length).toBeGreaterThan(0);
+      }
+
+      // Edge cases: maxCount <= 0, unknown slug, null input
+      expect(resolveGuideRepresentativeAptCtas('dongtan-1-vs-2-comparison', txSummary, 0)).toEqual([]);
+      expect(resolveGuideRepresentativeAptCtas('dongtan-1-vs-2-comparison', txSummary, -2)).toEqual([]);
+      expect(resolveGuideRepresentativeAptCtas('non-existent-guide-slug', txSummary, 3)).toEqual([]);
+      expect(resolveGuideRepresentativeAptCtas(null, txSummary, 3)).toEqual([]);
+
+      // Mid-section CTA deduplication & fallback merge
+      const firstTwo = ctasFromSlug.slice(0, 2);
+      const mergedMid = resolveMidSectionRepresentativeAptCtas(firstTwo, ctasFromSlug, 3);
+      expect(mergedMid).toHaveLength(3);
+      expect(new Set(mergedMid.map((m) => m.canonicalSlug)).size).toBe(3);
+
+      expect(resolveMidSectionRepresentativeAptCtas([], ctasFromSlug, 2)).toHaveLength(2);
+      expect(resolveMidSectionRepresentativeAptCtas(undefined, undefined, 3)).toHaveLength(3);
+      expect(resolveMidSectionRepresentativeAptCtas(ctasFromSlug, ctasFromSlug, 0)).toEqual([]);
+    });
+
+    it('renders high-visibility Top Representative Apartment CTA Bar (with Top 3 badge), Mid-Section Representative Apartment CTA Buttons, valid rival matchup anchor, and Bridge Max-Price Apartment CTAs across all Top 3 landing guides', async () => {
+      for (const slug of TOP_LANDING_GUIDE_SLUGS) {
+        const jsx = await GuideDetailPage({
+          params: Promise.resolve({ slug }),
+        });
+        const { container, unmount } = render(jsx);
+
+        const topRepBar = container.querySelector(
+          '[data-testid="guide-top-representative-apt-cta-bar"]'
+        );
+        expect(topRepBar).not.toBeNull();
+        expect(topRepBar?.getAttribute('data-top-landing-guide')).toBe('true');
+        expect(
+          topRepBar?.querySelector('[data-testid="guide-top3-landing-badge"]')
+        ).not.toBeNull();
+
+        const topRepBtns = topRepBar!.querySelectorAll(
+          '[data-testid="guide-top-rep-apt-cta-btn"]'
+        );
+        expect(topRepBtns).toHaveLength(3);
+        topRepBtns.forEach((btn) => {
+          expect(btn.getAttribute('href')).toMatch(/^\/apartment\/.+/);
+          expect((btn.getAttribute('data-apt-dong') || '').length).toBeGreaterThan(0);
+          expect(btn.textContent).toContain('실거래 상세');
+          expect(btn.textContent).toContain('매매');
+        });
+
+        // Verify Top 1:1 Rival Matchup anchor points to existing #guide-head-to-head-comparison section
+        const rivalMatchupBox = container.querySelector('[data-testid="guide-top-rival-matchup"]');
+        expect(rivalMatchupBox).not.toBeNull();
+        const rivalJumpLink = rivalMatchupBox!.querySelector(
+          'a[href="#guide-head-to-head-comparison"]'
+        );
+        expect(rivalJumpLink).not.toBeNull();
+        expect(container.querySelector('#guide-head-to-head-comparison')).not.toBeNull();
+
+        // Verify GuideStatsComparisonBridge max-price apartment CTAs are clickable links
+        const bridgeD1MaxCta = container.querySelector(
+          '[data-testid="bridge-dongtan1-max-apt-cta"]'
+        ) as HTMLAnchorElement;
+        const bridgeD2MaxCta = container.querySelector(
+          '[data-testid="bridge-dongtan2-max-apt-cta"]'
+        ) as HTMLAnchorElement;
+        expect(bridgeD1MaxCta).not.toBeNull();
+        expect(bridgeD2MaxCta).not.toBeNull();
+        expect(bridgeD1MaxCta.getAttribute('href')).toMatch(/^\/apartment\/.+/);
+        expect(bridgeD2MaxCta.getAttribute('href')).toMatch(/^\/apartment\/.+/);
+
+        const midActionBars = container.querySelectorAll(
+          '[data-testid="guide-mid-conversion-slot"]'
+        );
+        expect(midActionBars.length).toBeGreaterThanOrEqual(2);
+        midActionBars.forEach((bar) => {
+          expect(bar.getAttribute('data-top-landing-guide')).toBe('true');
+          const midRepList = bar.querySelector(
+            '[data-testid="guide-mid-rep-apt-quick-cta-list"]'
+          );
+          expect(midRepList).not.toBeNull();
+          const midRepBtns = midRepList!.querySelectorAll(
+            '[data-testid="guide-mid-rep-apt-cta-btn"]'
+          );
+          expect(midRepBtns.length).toBeGreaterThanOrEqual(2);
+          midRepBtns.forEach((btn) => {
+            expect(btn.getAttribute('href')).toMatch(/^\/apartment\/.+/);
+            expect((btn.getAttribute('data-apt-dong') || '').length).toBeGreaterThan(0);
+            expect(btn.textContent).toContain('실거래 상세');
+          });
+        });
+
+        // Preview cards have solid high-visibility CTA footer buttons
+        const cardCtaBtns = container.querySelectorAll(
+          '[data-testid="guide-apt-preview-card-cta-btn"]'
+        );
+        expect(cardCtaBtns.length).toBeGreaterThanOrEqual(6);
+
+        // 1:1 Head-to-Head matchup cards have direct apartment CTA buttons with dong metadata
+        const h2hCtaBtns = container.querySelectorAll('[data-testid="guide-h2h-apt-cta-btn"]');
+        expect(h2hCtaBtns.length).toBeGreaterThanOrEqual(4);
+        h2hCtaBtns.forEach((btn) => {
+          expect((btn.getAttribute('data-apt-dong') || '').length).toBeGreaterThan(0);
+        });
+
+        unmount();
+      }
+
+      // Non-top-3 guide still gets the top representative CTA bar, but with data-top-landing-guide="false"
+      const nonTopJsx = await GuideDetailPage({
+        params: Promise.resolve({ slug: 'gtx-a-tram-rail-network' }),
+      });
+      const { container: nonTopContainer, unmount: unmountNonTop } = render(nonTopJsx);
+      const nonTopBar = nonTopContainer.querySelector(
+        '[data-testid="guide-top-representative-apt-cta-bar"]'
+      );
+      expect(nonTopBar).not.toBeNull();
+      expect(nonTopBar?.getAttribute('data-top-landing-guide')).toBe('false');
+      expect(nonTopBar?.querySelector('[data-testid="guide-top3-landing-badge"]')).toBeNull();
+      unmountNonTop();
+    });
+
+    it('emits guide_apt_preview_click with accurate dong/display_name and increments session virtual pageviews across multi-apartment hopping while suppressing virtual PV on modified clicks', async () => {
+      analyticsUtils.resetVirtualPageViewLedger();
+      const trackEventSpy = jest.spyOn(analyticsUtils, 'trackEvent');
+      const trackVirtualPvSpy = jest.spyOn(analyticsUtils, 'trackVirtualPageView');
+
+      const jsx = await GuideDetailPage({
+        params: Promise.resolve({ slug: 'dongtan-1-vs-2-comparison' }),
+      });
+      const { container, unmount } = render(jsx);
+
+      const topRepBtns = container.querySelectorAll(
+        '[data-testid="guide-top-rep-apt-cta-btn"]'
+      ) as NodeListOf<HTMLAnchorElement>;
+      const midRepBtn = container.querySelector(
+        '[data-testid="guide-mid-rep-apt-cta-btn"]'
+      ) as HTMLAnchorElement;
+      const inlineLink = container.querySelector(
+        '[data-testid="guide-inline-apt-link"]'
+      ) as HTMLAnchorElement;
+      const shortcutPill = container.querySelector(
+        '[data-testid="guide-top-apt-shortcut-pill"]'
+      ) as HTMLAnchorElement;
+      const h2hBtn = container.querySelector(
+        '[data-testid="guide-h2h-apt-cta-btn"]'
+      ) as HTMLAnchorElement;
+      const tableLink = container.querySelector(
+        '[data-testid="guide-table-apt-cta-link"]'
+      ) as HTMLAnchorElement;
+      const bridgeD2MaxCta = container.querySelector(
+        '[data-testid="bridge-dongtan2-max-apt-cta"]'
+      ) as HTMLAnchorElement;
+
+      expect(topRepBtns.length).toBe(3);
+      expect(midRepBtn).not.toBeNull();
+      expect(inlineLink).not.toBeNull();
+      expect(shortcutPill).not.toBeNull();
+      expect(h2hBtn).not.toBeNull();
+      expect(tableLink).not.toBeNull();
+      expect(bridgeD2MaxCta).not.toBeNull();
+
+      // 1. Multi-apartment hopping across Top CTA #1 and Top CTA #2 -> increments virtual PV ledger
+      fireEvent.click(topRepBtns[0]);
+      expect(trackEventSpy).toHaveBeenLastCalledWith(
+        'guide_apt_preview_click',
+        expect.objectContaining({
+          guide_slug: 'dongtan-1-vs-2-comparison',
+          placement: 'article_top',
+          apartment_name: '동탄더샵레이크에듀타운',
+          display_name: '동탄 더샵 레이크에듀타운',
+          dong: '산척동',
+        })
+      );
+      expect(trackVirtualPvSpy).toHaveBeenCalledTimes(1);
+      expect(analyticsUtils.getVirtualPageViewCount()).toBe(1);
+
+      fireEvent.click(topRepBtns[1]);
+      expect(trackVirtualPvSpy).toHaveBeenCalledTimes(2);
+      expect(analyticsUtils.getVirtualPageViewCount()).toBe(2);
+
+      // 2. Normal click on Mid CTA (#3 distinct apartment) -> reaches 3.0+ virtual PV target
+      const distinctMidBtn = Array.from(
+        container.querySelectorAll('[data-testid="guide-mid-rep-apt-cta-btn"]')
+      ).find(
+        (el) =>
+          el.getAttribute('data-apt-slug') !== topRepBtns[0].getAttribute('data-apt-slug') &&
+          el.getAttribute('data-apt-slug') !== topRepBtns[1].getAttribute('data-apt-slug')
+      ) as HTMLAnchorElement;
+      expect(distinctMidBtn).toBeDefined();
+
+      fireEvent.click(distinctMidBtn);
+      expect(trackEventSpy).toHaveBeenLastCalledWith(
+        'guide_apt_preview_click',
+        expect.objectContaining({
+          guide_slug: 'dongtan-1-vs-2-comparison',
+          placement: 'zone_section',
+          dong: distinctMidBtn.getAttribute('data-apt-dong'),
+        })
+      );
+      expect(trackVirtualPvSpy).toHaveBeenCalledTimes(3);
+      expect(analyticsUtils.getVirtualPageViewCount()).toBe(3);
+
+      // 3. Normal click on Inline apartment mention -> resolves dong & fires guide_apt_preview_click
+      fireEvent.click(inlineLink);
+      expect(trackEventSpy).toHaveBeenLastCalledWith(
+        'guide_apt_preview_click',
+        expect.objectContaining({
+          guide_slug: 'dongtan-1-vs-2-comparison',
+          placement: 'zone_section',
+          dong: expect.any(String),
+        })
+      );
+
+      // 4. Click on Bridge Max-Price Apartment CTA -> fires guide_apt_preview_click
+      fireEvent.click(bridgeD2MaxCta);
+      expect(trackEventSpy).toHaveBeenLastCalledWith(
+        'guide_apt_preview_click',
+        expect.objectContaining({
+          guide_slug: 'dongtan-1-vs-2-comparison',
+          placement: 'article_bottom',
+          apartment_name: bridgeD2MaxCta.getAttribute('data-apt-slug'),
+        })
+      );
+
+      // 5. Modified clicks (Ctrl+Click / Cmd+Click / Middle Click) -> fires guide_apt_preview_click but suppresses duplicate virtual pageview
+      const pvCallCountBeforeModified = trackVirtualPvSpy.mock.calls.length;
+      const eventCallCountBeforeModified = trackEventSpy.mock.calls.filter(
+        ([name]) => name === 'guide_apt_preview_click'
+      ).length;
+      fireEvent.click(shortcutPill, { ctrlKey: true });
+      fireEvent.click(h2hBtn, { metaKey: true });
+      fireEvent.click(tableLink, { button: 1 });
+
+      const eventCallCountAfterModified = trackEventSpy.mock.calls.filter(
+        ([name]) => name === 'guide_apt_preview_click'
+      ).length;
+      expect(eventCallCountAfterModified).toBe(eventCallCountBeforeModified + 3);
+      expect(trackVirtualPvSpy).toHaveBeenCalledTimes(pvCallCountBeforeModified);
+
+      trackEventSpy.mockRestore();
+      trackVirtualPvSpy.mockRestore();
+      unmount();
+    });
+
+    it('normalizes non-canonical href props in GuideAptCtaLink, omits empty dong in GA4 payloads, and supports renderInlineBold default lookup fallback', () => {
+      const trackEventSpy = jest.spyOn(analyticsUtils, 'trackEvent');
+
+      // 1. Non-canonical / unencoded href is normalized to canonical encoded /apartment/{slug}
+      const { getByTestId, unmount } = render(
+        <GuideAptCtaLink
+          href="/apartment/동탄역 시범 리슈빌"
+          aptSlug="동탄역시범리슈빌아파트"
+          apartmentName="동탄역 시범 리슈빌"
+          guideSlug="dongtan-1-vs-2-comparison"
+          placement="article_top"
+          data-testid="non-canonical-cta-link"
+        >
+          리슈빌 바로가기
+        </GuideAptCtaLink>
+      );
+
+      const linkEl = getByTestId('non-canonical-cta-link') as HTMLAnchorElement;
+      const expectedCanonicalHref = `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`;
+      expect(linkEl.getAttribute('href')).toBe(expectedCanonicalHref);
+      expect(linkEl.getAttribute('data-apt-dong')).toBeNull();
+
+      fireEvent.click(linkEl);
+      const lastCallPayload = trackEventSpy.mock.calls.find(
+        ([name]) => name === 'guide_apt_preview_click'
+      )?.[1] as Record<string, unknown>;
+      expect(lastCallPayload).toBeDefined();
+      expect(lastCallPayload.target_path).toBe(expectedCanonicalHref);
+      expect(lastCallPayload.dong).toBeUndefined();
+      unmount();
+
+      // 2. renderInlineBold without explicit inlineSlugLookup still links known apartments via base lookup map
+      const { container: inlineContainer, unmount: unmountInline } = render(
+        <div>{renderInlineBold('동탄2 호수공원 대장주 **동탄더샵레이크에듀타운** 실거래 분석')}</div>
+      );
+      const autoLinkedEl = inlineContainer.querySelector(
+        '[data-testid="guide-inline-apt-link"]'
+      ) as HTMLAnchorElement;
+      expect(autoLinkedEl).not.toBeNull();
+      expect(autoLinkedEl.getAttribute('data-apt-slug')).toBe('동탄더샵레이크에듀타운');
+      expect(autoLinkedEl.getAttribute('data-apt-dong')).toBe('산척동');
+      unmountInline();
+
+      trackEventSpy.mockRestore();
     });
   });
 });

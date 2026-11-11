@@ -242,11 +242,11 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
               </button>
             )}
 
-            {/* Period Selector (7d / 30d / 90d / 1y) */}
+            {/* Period Selector (1d / 7d / 30d / 90d / 1y) */}
             {setPeriodFilter && (
               <div className={getToggleTrackClass()}>
-                {(['7d', '30d', '90d', '1y'] as const).map((p) => {
-                  const labelMap = { '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
+                {(['1d', '7d', '30d', '90d', '1y'] as const).map((p) => {
+                  const labelMap: Record<string, string> = { '1d': '오늘', '7d': '7일', '30d': '30일', '90d': '90일', '1y': '1년' };
                   const isSelected = periodFilter === p;
                   return (
                     <button

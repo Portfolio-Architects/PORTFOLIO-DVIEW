@@ -43,6 +43,7 @@ export function recordGuideAptPreviewClick(params: {
 }): void {
   const { item, guideSlug, placement, sectionTitle, suppressVirtualPageView } = params;
   const { safeSlug, safeHref } = resolveSafePreviewIdentity(item);
+  const cleanDong = item.dong ? item.dong.trim() || undefined : undefined;
   const pageTitle = `${item.displayName || safeSlug} 실거래가·전세가율 상세 리포트 | D-VIEW`;
 
   if (!suppressVirtualPageView) {
@@ -51,7 +52,7 @@ export function recordGuideAptPreviewClick(params: {
       guide_slug: guideSlug,
       placement,
       apartment_name: safeSlug,
-      dong: item.dong,
+      dong: cleanDong,
     });
   }
 
@@ -61,7 +62,7 @@ export function recordGuideAptPreviewClick(params: {
     section_title: sectionTitle || placement,
     apartment_name: safeSlug,
     display_name: item.displayName || safeSlug,
-    dong: item.dong,
+    dong: cleanDong,
     target_path: safeHref,
   });
 
@@ -70,9 +71,116 @@ export function recordGuideAptPreviewClick(params: {
     slotId: `guide_${guideSlug}_${placement}_${safeSlug}`,
     placementSlotId: `guide_${placement}`,
     apartmentName: safeSlug,
-    dong: item.dong,
+    dong: cleanDong,
     timestamp: new Date().toISOString(),
   });
+}
+
+export interface GuideAptCtaLinkProps {
+  item?: GuideAptMiniPreviewItem | null;
+  aptSlug?: string;
+  canonicalSlug?: string;
+  displayName?: string;
+  apartmentName?: string;
+  dong?: string;
+  href?: string;
+  guideSlug: string;
+  placement: 'article_top' | 'zone_section' | 'article_bottom';
+  sectionTitle?: string;
+  className?: string;
+  dataTestId?: string;
+  'data-testid'?: string;
+  'data-apt-slug'?: string;
+  'data-apt-dong'?: string;
+  ariaLabel?: string;
+  'aria-label'?: string;
+  children: React.ReactNode;
+}
+
+export function GuideAptCtaLink({
+  item,
+  aptSlug,
+  canonicalSlug,
+  displayName,
+  apartmentName,
+  dong,
+  href,
+  guideSlug,
+  placement,
+  sectionTitle,
+  className,
+  dataTestId,
+  'data-testid': hyphenDataTestId,
+  'data-apt-slug': dataAptSlug,
+  'data-apt-dong': dataAptDong,
+  ariaLabel,
+  'aria-label': hyphenAriaLabel,
+  children,
+}: GuideAptCtaLinkProps) {
+  const resolvedTestId = dataTestId ?? hyphenDataTestId;
+  const resolvedAriaLabel = ariaLabel ?? hyphenAriaLabel;
+  const fallbackSlug = (
+    canonicalSlug ||
+    aptSlug ||
+    item?.canonicalSlug ||
+    apartmentName ||
+    item?.name ||
+    displayName ||
+    item?.displayName ||
+    'dongtan'
+  ).trim();
+  const effectiveItem: GuideAptMiniPreviewItem = {
+    name: (item?.name || apartmentName || displayName || fallbackSlug).trim(),
+    displayName: (displayName || item?.displayName || apartmentName || item?.name || fallbackSlug).trim(),
+    canonicalSlug: fallbackSlug,
+    href: (href || item?.href || '').trim(),
+    dong: (dong || item?.dong || '').trim(),
+    zoneId: item?.zoneId || '',
+    zoneName: item?.zoneName || '',
+    latestPrice: item?.latestPrice || 0,
+    latestPriceStr: item?.latestPriceStr || '',
+    latestRent: item?.latestRent || 0,
+    latestRentStr: item?.latestRentStr || '',
+    jeonseRatio: item?.jeonseRatio || 0,
+    perValue: item?.perValue ?? null,
+    latestDate: item?.latestDate || '',
+    latestArea: item?.latestArea || 0,
+    latestFloor: item?.latestFloor || 0,
+    txCount: item?.txCount || 0,
+  };
+
+  const { safeSlug, safeHref } = resolveSafePreviewIdentity(effectiveItem);
+
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    const isModifiedClick =
+      e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey ||
+      (typeof e.button === 'number' && e.button !== 0);
+    recordGuideAptPreviewClick({
+      item: effectiveItem,
+      guideSlug,
+      placement,
+      sectionTitle,
+      suppressVirtualPageView: isModifiedClick,
+    });
+  };
+
+  return (
+    <Link
+      href={safeHref}
+      prefetch={false}
+      onClick={handleClick}
+      data-testid={resolvedTestId}
+      data-apt-slug={dataAptSlug ?? safeSlug}
+      data-apt-dong={dataAptDong ?? (effectiveItem.dong || undefined)}
+      aria-label={resolvedAriaLabel}
+      className={className}
+    >
+      {children}
+    </Link>
+  );
 }
 
 export default function GuideAptPreviewCard({
@@ -168,7 +276,7 @@ export default function GuideAptPreviewCard({
             </div>
           </div>
 
-          <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-500 dark:text-slate-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 group-hover:border-emerald-500/40 transition-colors shrink-0">
+          <span className="inline-flex items-center justify-center w-7 h-7 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 border border-emerald-500/30 text-emerald-700 dark:text-emerald-300 group-hover:bg-emerald-600 group-hover:text-white group-hover:border-emerald-600 transition-colors shrink-0">
             <ArrowUpRight size={14} />
           </span>
         </div>
@@ -221,7 +329,7 @@ export default function GuideAptPreviewCard({
         </dl>
       </div>
 
-      {/* Footer Meta Bar: Latest Contract Date + Area/Floor + Deep-Link CTA */}
+      {/* Footer Meta Bar: Latest Contract Date + Area/Floor + High-Visibility Deep-Link CTA Button */}
       <div className="mt-3 pt-2.5 border-t border-slate-200/60 dark:border-slate-800/70 flex items-center justify-between gap-2 text-[11px]">
         <span className="inline-flex items-center gap-1 text-slate-500 dark:text-slate-400 font-semibold tabular-nums truncate">
           <Calendar size={11} className="shrink-0" />
@@ -229,11 +337,15 @@ export default function GuideAptPreviewCard({
           {latestSpecText && <span>· {latestSpecText}</span>}
         </span>
 
-        <span className="inline-flex items-center gap-0.5 font-extrabold text-emerald-700 dark:text-emerald-400 group-hover:underline shrink-0">
-          <span>단지 상세 리포트</span>
+        <span
+          data-testid="guide-apt-preview-card-cta-btn"
+          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 group-hover:bg-emerald-700 text-white text-[11px] font-extrabold shadow-2xs transition-colors shrink-0"
+        >
+          <span>실거래 · 단지 상세 리포트</span>
           <ArrowUpRight size={12} />
         </span>
       </div>
     </Link>
   );
 }
+

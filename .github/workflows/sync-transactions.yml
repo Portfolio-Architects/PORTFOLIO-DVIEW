@@ -2,13 +2,20 @@ name: Sync Transactions
 
 on:
   schedule:
-    # 매일 아침 KST 05:38 (UTC 20:38) — 일 1회 단일 수집 (국토부 배치 안착 직후, 비정각 분산)
+    # [Tier 1] 매일 05:38 KST (UTC 20:38) — 1차 조기 수집 (국토부 일일 배치 안착 직후)
     - cron: '38 20 * * *'
+    # [Tier 2] 매일 06:18 KST (UTC 21:18) — 2차 보정 및 지연 캐치업 (1차 누락/장애 시 자동 구제)
+    - cron: '18 21 * * *'
+    # [Tier 3] 매일 06:38 KST (UTC 21:38) — 3차 최종 비상 안전망 (07:00 마감 전 22분 완충 버퍼 확보)
+    - cron: '38 21 * * *'
   workflow_dispatch: # 긴급 수동 동기화 지원
   push:
     branches:
       - master
       - main
+
+env:
+  TZ: 'Asia/Seoul' # [중요] 한국 표준시 고정으로 매월 1일 및 요일 경계선 버그 원천 방지
 
 concurrency:
   group: sync-transactions-production
@@ -54,8 +61,8 @@ jobs:
       - name: Fetch transactions from 국토부 API
         if: github.event_name != 'push'
         run: |
-          node scripts/fetch-transactions.js || echo "⚠️ fetch-transactions.js 경고 발생; 후속 작업 지속"
-          node scripts/fetch-rent.js || echo "⚠️ fetch-rent.js 경고 발생; 후속 작업 지속"
+          node scripts/fetch-transactions.js
+          node scripts/fetch-rent.js
         env:
           BUILDING_API_KEY: ${{ secrets.BUILDING_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
@@ -108,14 +115,56 @@ jobs:
           git add -A
           if git diff --staged --quiet; then
             echo "✅ No changes to commit"
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
           else
             TODAY=$(date +%Y-%m-%d)
             git commit -m "data: auto-sync transactions via github actions ($TODAY)"
             git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
             git push
             echo "pushed_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
             echo "🚀 Changes pushed — Vercel auto-deployment triggered"
           fi
+
+      # Step 3.5: 신규 실거래가 커밋 시 PWA 웹 푸시 알림 발송
+      - name: Trigger PWA Push Notifications for New Transactions
+        id: trigger_push_notifications
+        if: github.event_name != 'push' && (steps.commit_push.outputs.has_changes == 'true' || steps.commit_push.outputs.pushed_sha != '')
+        run: |
+          APP_URL="${VERCEL_APP_URL:-https://dongtanview.com}"
+          CRON_AUTH="${CRON_SECRET:-dview-default-cron-secret-2026}"
+          TARGET_DATE=$(date +%Y%m%d)
+
+          echo "📣 신규 실거래가 커밋 감지 (SHA: ${{ steps.commit_push.outputs.pushed_sha }})"
+          echo "📡 푸시 발송 엔드포인트 호출 대상 일자: ${TARGET_DATE}"
+
+          # 1순위: 로컬 runner CLI 스크립트가 존재할 경우 직접 실행 (Zero-delay, No Vercel cold-start)
+          if [ -f "scripts/send-tx-notifications.js" ]; then
+            echo "▶️ runner CLI 스크립트(scripts/send-tx-notifications.js) 직접 실행"
+            node scripts/send-tx-notifications.js --date="${TARGET_DATE}" || echo "⚠️ 로컬 푸시 스크립트 경고 (엔드포인트 호출 지속)"
+          elif [ -f "scripts/test-push-notification.js" ]; then
+            echo "▶️ runner CLI 스크립트(scripts/test-push-notification.js --send) 직접 실행"
+            node scripts/test-push-notification.js --send --date="${TARGET_DATE}" || echo "⚠️ 로컬 푸시 스크립트 경고 (엔드포인트 호출 지속)"
+          fi
+
+          # 2순위: 프로덕션 API 엔드포인트 트리거 (웹훅 기반 디스패치 및 구독자 전송)
+          RESPONSE=$(curl -sS -m 45 -X GET \
+            -H "Authorization: Bearer ${CRON_AUTH}" \
+            "${APP_URL}/api/cron/send-tx-notifications?date=${TARGET_DATE}" || echo '{"error":"CURL_TRIGGER_NOTICE"}')
+
+          echo "✅ 푸시 발송 API 응답: ${RESPONSE}"
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          VERCEL_APP_URL: https://dongtanview.com
+          FIREBASE_SERVICE_ACCOUNT_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY }}
+          FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+          FIREBASE_ADMIN_PRIVATE_KEY: ${{ secrets.FIREBASE_ADMIN_PRIVATE_KEY }}
+          FIREBASE_ADMIN_CLIENT_EMAIL: ${{ secrets.FIREBASE_ADMIN_CLIENT_EMAIL }}
+          GOOGLE_PRIVATE_KEY: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          GOOGLE_SERVICE_ACCOUNT_EMAIL: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_EMAIL }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_VAPID_PUBLIC_KEY: ${{ secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY }}
+          VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
 
       # Step 4: Vercel 배포 정리 (최신 배포 2개 유지)
       - name: Prune Vercel deployments

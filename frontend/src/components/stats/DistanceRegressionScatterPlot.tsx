@@ -995,7 +995,7 @@ export function DistanceRegressionScatterPlot({
                   style={{
                     left: `${Math.min(
                       Math.max(12, tooltipPos.x + 14),
-                      Math.max(20, (containerRef.current?.clientWidth || 600) - 265)
+                      Math.max(20, (svgWidth || 600) - 265)
                     )}px`,
                     top: `${Math.max(12, tooltipPos.y - 180)}px`,
                   }}

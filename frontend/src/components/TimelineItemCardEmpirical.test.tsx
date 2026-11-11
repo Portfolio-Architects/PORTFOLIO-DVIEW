@@ -308,4 +308,93 @@ export { TimelineItemCard, TimelineItemCardProps };
       expect(onCardHoverMock).toHaveBeenCalledWith('콜백 테스트 단지', '중동');
     }
   });
+
+  const sampleItem = {
+    aptName: '동탄역 롯데캐슬',
+    dong: '오산동',
+    priceEok: '15억 5,000만',
+    priceVal: 15.5,
+    areaPyeong: 34,
+    area: 84.9,
+    floor: 15,
+    type: 'normal',
+    delta: 0.5,
+    prevPriceVal: 15.0,
+    areaLabelM2: '84A㎡',
+    areaLabelPyeong: '34평형',
+  };
+
+  it('renders [오늘 등록] emerald badge when item is registered today', () => {
+    const TimelineItemCard = getComponent();
+    const item = {
+      ...sampleItem,
+      registeredDate: '20261111',
+      isTodayRegistered: true,
+    };
+
+    render(
+      <TimelineItemCard
+        {...defaultProps}
+        item={item}
+        onCardHover={jest.fn()}
+        onCardClick={jest.fn()}
+        onDetailsClick={jest.fn()}
+        onDetailsHover={jest.fn()}
+      />
+    );
+
+    const todayBadge = screen.getByTestId('timeline-today-registered-badge');
+    expect(todayBadge).toBeInTheDocument();
+    expect(todayBadge).toHaveTextContent('오늘 등록');
+    expect(todayBadge).toHaveClass('bg-emerald-50');
+    expect(todayBadge).toHaveClass('text-emerald-700');
+    expect(todayBadge).toHaveClass('tabular-nums');
+  });
+
+  it('coexists harmoniously with [신고가] badge on the same item without breaking layout', () => {
+    const TimelineItemCard = getComponent();
+    const item = {
+      ...sampleItem,
+      type: 'high',
+      isTodayRegistered: true,
+    };
+
+    render(
+      <TimelineItemCard
+        {...defaultProps}
+        item={item}
+        onCardHover={jest.fn()}
+        onCardClick={jest.fn()}
+        onDetailsClick={jest.fn()}
+        onDetailsHover={jest.fn()}
+      />
+    );
+
+    expect(screen.getByTestId('timeline-today-registered-badge')).toBeInTheDocument();
+    expect(screen.getByText('오늘 등록')).toBeInTheDocument();
+    expect(screen.getByText('신고가')).toBeInTheDocument();
+  });
+
+  it('does NOT render [오늘 등록] badge for past registered transactions', () => {
+    const TimelineItemCard = getComponent();
+    const item = {
+      ...sampleItem,
+      registeredDate: '20261020',
+      isTodayRegistered: false,
+    };
+
+    render(
+      <TimelineItemCard
+        {...defaultProps}
+        item={item}
+        onCardHover={jest.fn()}
+        onCardClick={jest.fn()}
+        onDetailsClick={jest.fn()}
+        onDetailsHover={jest.fn()}
+      />
+    );
+
+    expect(screen.queryByTestId('timeline-today-registered-badge')).toBeNull();
+    expect(screen.queryByText('오늘 등록')).toBeNull();
+  });
 });

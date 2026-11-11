@@ -4166,4 +4166,88 @@ export const TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS: readonly string[] = [
   '솔빛마을서해그랑블',
 ] as const;
 
+/**
+ * Top 3 Organic & AI Landing Guide Slugs receiving the highest visitor inflow,
+ * prioritized for Top/Mid real-time representative apartment quick-jump CTA visibility.
+ */
+export const TOP_LANDING_GUIDE_SLUGS: readonly string[] = [
+  'dongtan-1-vs-2-comparison',
+  'dongtan-school-zone-top-apartments',
+  'dongtan-indeogwon-line-station-impact-analysis',
+] as const;
 
+export function isTopLandingGuideSlug(slug?: string | null): boolean {
+  if (!slug) return false;
+  return TOP_LANDING_GUIDE_SLUGS.includes(slug.trim());
+}
+
+/**
+ * Resolves deduplicated top representative apartment mini-preview items for a guide's Top CTA bar,
+ * padding from HIGH_CONVERSION_FLAGSHIP_APARTMENTS when featuredApartments has fewer than maxCount items.
+ */
+export function resolveGuideRepresentativeAptCtas(
+  slugOrArticle: string | GuideArticle | null | undefined,
+  txSummaryMap?: Record<string, AptTxSummary>,
+  maxCount = 3
+): GuideAptMiniPreviewItem[] {
+  if (!slugOrArticle || maxCount <= 0) return [];
+  const article =
+    typeof slugOrArticle === 'string'
+      ? GUIDE_ARTICLES.find((a) => a.slug === slugOrArticle.trim())
+      : slugOrArticle;
+  if (!article) return [];
+
+  const candidateNames = [
+    ...(article.featuredApartments || []),
+    ...HIGH_CONVERSION_FLAGSHIP_APARTMENTS,
+  ];
+
+  const seenSlugs = new Set<string>();
+  const resolved: GuideAptMiniPreviewItem[] = [];
+
+  for (const name of candidateNames) {
+    if (resolved.length >= maxCount) break;
+    const item = buildGuideAptMiniPreview(name, txSummaryMap);
+    if (!item || seenSlugs.has(item.canonicalSlug)) continue;
+    seenSlugs.add(item.canonicalSlug);
+    resolved.push(item);
+  }
+
+  return resolved;
+}
+
+/**
+ * Resolves deduplicated representative apartment CTA items for a Mid-Article conversion bar,
+ * prioritizing current section apartments and padding from guide featured/flagship apartments.
+ */
+export function resolveMidSectionRepresentativeAptCtas(
+  sectionItems?: GuideAptMiniPreviewItem[] | null,
+  fallbackItems?: GuideAptMiniPreviewItem[] | null,
+  maxCount = 3
+): GuideAptMiniPreviewItem[] {
+  if (maxCount <= 0) return [];
+  const seenSlugs = new Set<string>();
+  const resolved: GuideAptMiniPreviewItem[] = [];
+
+  const pushUnique = (item: GuideAptMiniPreviewItem | null | undefined) => {
+    if (!item || !item.canonicalSlug || resolved.length >= maxCount) return;
+    if (seenSlugs.has(item.canonicalSlug)) return;
+    seenSlugs.add(item.canonicalSlug);
+    resolved.push(item);
+  };
+
+  for (const item of sectionItems || []) {
+    pushUnique(item);
+  }
+  for (const item of fallbackItems || []) {
+    pushUnique(item);
+  }
+  if (resolved.length < maxCount) {
+    for (const aptName of HIGH_CONVERSION_FLAGSHIP_APARTMENTS) {
+      if (resolved.length >= maxCount) break;
+      pushUnique(buildGuideAptMiniPreview(aptName));
+    }
+  }
+
+  return resolved;
+}

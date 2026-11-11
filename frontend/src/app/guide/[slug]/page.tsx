@@ -18,21 +18,26 @@ import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketS
 import {
   GUIDE_ARTICLES,
   TOP_POPULAR_GUIDE_SLUGS,
+  TOP_LANDING_GUIDE_SLUGS,
   TOP_ACQUISITION_ENTRY_ROUTES,
   GUIDE_TOPIC_CLUSTERS,
+  GUIDE_DEFAULT_TX_SUMMARY_MAP,
   buildGuideArticleJsonLd,
   buildGuideAptMiniPreview,
   resolveGuideZoneSectionPreviews,
   normalizeGuideAptName,
   getTopicClusterForGuide,
   getRelatedGuidesForGuide,
+  isTopLandingGuideSlug,
+  resolveGuideRepresentativeAptCtas,
+  resolveMidSectionRepresentativeAptCtas,
   type GuideAptMiniPreviewItem,
   type ResolvedGuideZoneSectionPreview,
 } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
-import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
@@ -108,8 +113,10 @@ function safeDecodeURIComponent(value: string): string {
 
 export function renderInlineBold(
   text: string,
-  inlineSlugLookup?: Map<string, string>
+  inlineSlugLookup?: Map<string, string>,
+  guideSlug = 'guide'
 ): React.ReactNode {
+  const effectiveLookup = inlineSlugLookup ?? getBaseInlineSlugLookupMap();
   const parts = text.split(
     /(\*\*\[[^\]]+\]\(\/(?:guide|apartment|zone)\/(?:\([^)]*\)|[^)])+\)\*\*|\[[^\]]+\]\(\/(?:guide|apartment|zone)\/(?:\([^)]*\)|[^)])+\)|\*\*[^*]+\*\*)/g
   );
@@ -141,19 +148,28 @@ export function renderInlineBold(
         const rawApt = safeDecodeURIComponent(rawHref.slice('/apartment/'.length)).trim();
         const normApt = normalizeGuideAptName(rawApt);
         const resolvedSlug =
-          (inlineSlugLookup && normApt ? inlineSlugLookup.get(normApt) : undefined) ||
+          (effectiveLookup && normApt ? effectiveLookup.get(normApt) : undefined) ||
           resolveCanonicalAptSlug(rawApt) ||
           rawApt;
+        const knownTx =
+          CANONICAL_TX_SUMMARY_MAP[resolvedSlug] || GUIDE_DEFAULT_TX_SUMMARY_MAP[resolvedSlug];
         return (
-          <Link
+          <GuideAptCtaLink
             key={idx}
+            aptSlug={resolvedSlug}
+            canonicalSlug={resolvedSlug}
+            apartmentName={resolvedSlug}
+            displayName={cleanLabel}
+            dong={knownTx?.dong || ''}
             href={`/apartment/${encodeURIComponent(resolvedSlug)}`}
-            prefetch={false}
+            guideSlug={guideSlug}
+            placement="zone_section"
+            sectionTitle="본문 인라인 단지 링크"
             data-testid="guide-inline-apt-link"
             className="font-extrabold text-emerald-700 dark:text-emerald-400 underline decoration-emerald-500/40 underline-offset-4 hover:text-emerald-600 transition-colors"
           >
             {cleanLabel}
-          </Link>
+          </GuideAptCtaLink>
         );
       }
       return (
@@ -173,7 +189,7 @@ export function renderInlineBold(
       if (/\[[^\]]+\]\(\/(?:guide|apartment|zone)\//.test(innerText)) {
         return (
           <strong key={idx} className="font-extrabold text-primary">
-            {renderInlineBold(innerText, inlineSlugLookup)}
+            {renderInlineBold(innerText, effectiveLookup, guideSlug)}
           </strong>
         );
       }
@@ -184,21 +200,30 @@ export function renderInlineBold(
           ? normalizeGuideAptName(strippedParenBase)
           : '';
       const matchedSlug =
-        inlineSlugLookup && normKey.length >= 2
-          ? inlineSlugLookup.get(normKey) ||
-            (fallbackNormKey.length >= 2 ? inlineSlugLookup.get(fallbackNormKey) : undefined)
+        effectiveLookup && normKey.length >= 2
+          ? effectiveLookup.get(normKey) ||
+            (fallbackNormKey.length >= 2 ? effectiveLookup.get(fallbackNormKey) : undefined)
           : undefined;
       if (matchedSlug) {
+        const knownTx =
+          CANONICAL_TX_SUMMARY_MAP[matchedSlug] || GUIDE_DEFAULT_TX_SUMMARY_MAP[matchedSlug];
         return (
-          <Link
+          <GuideAptCtaLink
             key={idx}
+            aptSlug={matchedSlug}
+            canonicalSlug={matchedSlug}
+            apartmentName={matchedSlug}
+            displayName={innerText}
+            dong={knownTx?.dong || ''}
             href={`/apartment/${encodeURIComponent(matchedSlug)}`}
-            prefetch={false}
+            guideSlug={guideSlug}
+            placement="zone_section"
+            sectionTitle="본문 인라인 단지 링크"
             data-testid="guide-inline-apt-link"
             className="font-extrabold text-emerald-700 dark:text-emerald-400 underline decoration-emerald-500/40 underline-offset-4 hover:text-emerald-600 transition-colors"
           >
             {innerText}
-          </Link>
+          </GuideAptCtaLink>
         );
       }
       return (
@@ -226,12 +251,14 @@ export function renderGuideBodyContent(
     zoneSectionPreviews: ResolvedGuideZoneSectionPreview[];
     inlineSlugLookup: Map<string, string>;
     lakeEduTownPreview?: GuideAptMiniPreviewItem | null;
+    featuredAptRows?: GuideAptMiniPreviewItem[];
   }
 ): React.ReactNode[] {
   const withoutCodeFences = rawContent.replace(/```[\s\S]*?```/g, '');
   const lines = withoutCodeFences.split(/\r?\n/);
   const elements: React.ReactNode[] = [];
   const guideSlug = options?.guideSlug || 'guide';
+  const isTopLandingGuide = isTopLandingGuideSlug(guideSlug);
   const zoneSectionPreviews = options?.zoneSectionPreviews || [];
   const inlineSlugLookup = options?.inlineSlugLookup;
   const lakeEduTownPreview =
@@ -249,46 +276,108 @@ export function renderGuideBodyContent(
   let emittedZonePreviewCount = 0;
   const emittedHeadings = new Set<string>();
 
-  const renderMidConversionActionBar = () => (
-    <div
-      data-testid="guide-mid-conversion-slot"
-      className="pt-3 border-t border-emerald-500/20 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5"
-    >
-      <div className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300 flex flex-wrap items-center gap-1.5">
-        <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/25 text-emerald-700 dark:text-emerald-300 font-extrabold text-[10.5px]">
-          중간 전환 하이라이트
-        </span>
-        <span>실수요 평균 15분 체류 검증 대장주 및 유입 상위 허브 바로가기</span>
+  const renderMidConversionActionBar = (sectionPreview?: ResolvedGuideZoneSectionPreview) => {
+    const midRepApts = resolveMidSectionRepresentativeAptCtas(
+      sectionPreview?.items,
+      options?.featuredAptRows,
+      3
+    );
+    const barSectionTitle =
+      sectionPreview?.sectionTitle || '리포트 중간 핵심 전환 대표 단지 바로가기';
+
+    return (
+      <div
+        data-testid="guide-mid-conversion-slot"
+        data-top-landing-guide={isTopLandingGuide ? 'true' : 'false'}
+        className="pt-3.5 border-t border-emerald-500/25 space-y-3"
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div className="text-[11.5px] font-bold text-slate-700 dark:text-slate-300 flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-600 text-white font-extrabold text-[10.5px]">
+              {isTopLandingGuide ? 'TOP 3 가이드 중간 전환 하이라이트' : '중간 전환 하이라이트'}
+            </span>
+            <span>실시간 실거래 대표 단지 상세 리포트 및 유입 상위 허브 바로가기</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+            <GuideAptCtaLink
+              item={lakeEduTownPreview}
+              aptSlug="동탄더샵레이크에듀타운"
+              displayName="동탄더샵레이크에듀타운"
+              dong={lakeEduTownPreview?.dong || '산척동'}
+              href={lakeEduHref}
+              guideSlug={guideSlug}
+              placement="zone_section"
+              sectionTitle={barSectionTitle}
+              data-testid="guide-mid-lake-edutown-cta"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
+            >
+              <span className="tabular-nums">{`동탄더샵레이크에듀타운 실거래${lakeEduPriceLabel}`}</span>
+              <ArrowUpRight size={11} />
+            </GuideAptCtaLink>
+            <Link
+              href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+              prefetch={false}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold transition-colors"
+            >
+              <span>1동탄 vs 2동탄 통계</span>
+              <ArrowUpRight size={11} />
+            </Link>
+            <Link
+              href="/technovalley"
+              prefetch={false}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 text-slate-800 dark:text-slate-200 text-[11px] font-extrabold transition-colors"
+            >
+              <span>테크노밸리 직주근접</span>
+              <ArrowUpRight size={11} />
+            </Link>
+          </div>
+        </div>
+
+        {/* High-Visibility Direct Representative Apartment Quick-Jump CTA Row */}
+        {midRepApts.length > 0 && (
+          <div
+            data-testid="guide-mid-rep-apt-quick-cta-list"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-2"
+          >
+            {midRepApts.map((apt, idx) => (
+              <GuideAptCtaLink
+                key={`mid-rep-cta-${apt.canonicalSlug}-${idx}`}
+                item={apt}
+                guideSlug={guideSlug}
+                placement="zone_section"
+                sectionTitle={barSectionTitle}
+                data-testid="guide-mid-rep-apt-cta-btn"
+                className="group rounded-xl bg-white dark:bg-slate-900/95 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/40 border border-emerald-500/35 hover:border-emerald-600 px-3 py-2 flex items-center justify-between gap-2 transition-colors shadow-2xs"
+              >
+                <div className="min-w-0">
+                  <div className="flex items-center gap-1 text-[10.5px] font-extrabold text-emerald-700 dark:text-emerald-400">
+                    <span>{apt.dong}</span>
+                    {apt.jeonseRatio > 0 && (
+                      <span className="text-slate-500 dark:text-slate-400 tabular-nums">
+                        · 전세가율 {apt.jeonseRatio}%
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-black text-slate-900 dark:text-slate-50 truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-300">
+                    {apt.displayName}
+                  </p>
+                </div>
+                <div className="flex flex-col items-end shrink-0">
+                  <span className="text-xs font-black text-emerald-700 dark:text-emerald-400 tabular-nums">
+                    {apt.latestPriceStr}
+                  </span>
+                  <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-600 text-white text-[10px] font-extrabold">
+                    <span>실거래 상세</span>
+                    <ArrowUpRight size={10} />
+                  </span>
+                </div>
+              </GuideAptCtaLink>
+            ))}
+          </div>
+        )}
       </div>
-      <div className="flex flex-wrap items-center gap-1.5 shrink-0">
-        <Link
-          href={lakeEduHref}
-          prefetch={false}
-          data-testid="guide-mid-lake-edutown-cta"
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
-        >
-          <span className="tabular-nums">{`동탄더샵레이크에듀타운 실거래${lakeEduPriceLabel}`}</span>
-          <ArrowUpRight size={11} />
-        </Link>
-        <Link
-          href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
-          prefetch={false}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-extrabold transition-colors"
-        >
-          <span>1동탄 vs 2동탄 통계</span>
-          <ArrowUpRight size={11} />
-        </Link>
-        <Link
-          href="/technovalley"
-          prefetch={false}
-          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/50 text-slate-800 dark:text-slate-200 text-[11px] font-extrabold transition-colors"
-        >
-          <span>테크노밸리 직주근접</span>
-          <ArrowUpRight size={11} />
-        </Link>
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderInBodyAdSlot = (apartmentName: string, dong?: string) => {
     if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true') {
@@ -368,7 +457,7 @@ export function renderGuideBodyContent(
         </div>
 
         {/* Mid-Article High-Dwell Conversion Action Bar */}
-        {renderMidConversionActionBar()}
+        {renderMidConversionActionBar(currentPreview)}
 
         {/* In-Body Mid-Section Zero-CLS AdSlot for Active-View Fill Rate */}
         {isFirstZonePreview &&
@@ -416,7 +505,7 @@ export function renderGuideBodyContent(
           key={`h3-${i}`}
           className="text-xl sm:text-2xl font-black text-primary tracking-tight mt-10 mb-4 pb-2 border-b border-border/40"
         >
-          {renderInlineBold(headingText, inlineSlugLookup)}
+          {renderInlineBold(headingText, inlineSlugLookup, guideSlug)}
         </h3>
       );
       i += 1;
@@ -438,7 +527,7 @@ export function renderGuideBodyContent(
           key={`h4-${i}`}
           className="text-base sm:text-lg font-extrabold text-primary tracking-tight mt-6 mb-2"
         >
-          {renderInlineBold(headingText, inlineSlugLookup)}
+          {renderInlineBold(headingText, inlineSlugLookup, guideSlug)}
         </h4>
       );
       i += 1;
@@ -468,7 +557,7 @@ export function renderGuideBodyContent(
               <tr>
                 {headers.map((h, hIdx) => (
                   <th key={hIdx} className="p-3.5 whitespace-nowrap">
-                    {renderInlineBold(h, inlineSlugLookup)}
+                    {renderInlineBold(h, inlineSlugLookup, guideSlug)}
                   </th>
                 ))}
               </tr>
@@ -483,7 +572,7 @@ export function renderGuideBodyContent(
                   <tr key={rIdx} className="hover:bg-black/[0.02] dark:hover:bg-surface/5 transition-colors">
                     {cells.map((cell, cIdx) => (
                       <td key={cIdx} className="p-3.5 whitespace-nowrap tabular-nums">
-                        {renderInlineBold(cell, inlineSlugLookup)}
+                        {renderInlineBold(cell, inlineSlugLookup, guideSlug)}
                       </td>
                     ))}
                   </tr>
@@ -510,7 +599,7 @@ export function renderGuideBodyContent(
         >
           {items.map((item, idx) => (
             <li key={idx} className="break-keep">
-              {renderInlineBold(item, inlineSlugLookup)}
+              {renderInlineBold(item, inlineSlugLookup, guideSlug)}
             </li>
           ))}
         </ul>
@@ -538,12 +627,12 @@ export function renderGuideBodyContent(
         >
           {orderedItems.map((item, idx) => (
             <li key={idx} className="break-keep">
-              <span>{renderInlineBold(item.mainText, inlineSlugLookup)}</span>
+              <span>{renderInlineBold(item.mainText, inlineSlugLookup, guideSlug)}</span>
               {item.subBullets.length > 0 && (
                 <ul className="mt-1.5 space-y-1 pl-4 list-disc text-[13.5px] sm:text-[14.5px] text-secondary">
                   {item.subBullets.map((sub, subIdx) => (
                     <li key={subIdx} className="break-keep">
-                      {renderInlineBold(sub, inlineSlugLookup)}
+                      {renderInlineBold(sub, inlineSlugLookup, guideSlug)}
                     </li>
                   ))}
                 </ul>
@@ -576,7 +665,7 @@ export function renderGuideBodyContent(
 
     elements.push(
       <p key={`p-${startIdx}`} className="text-[14px] sm:text-[15.5px] leading-relaxed break-keep">
-        {renderInlineBold(paraLines.join(' '), inlineSlugLookup)}
+        {renderInlineBold(paraLines.join(' '), inlineSlugLookup, guideSlug)}
       </p>
     );
   }
@@ -608,12 +697,15 @@ export function renderGuideBodyContent(
 }
 
 let baseInlineSlugLookupEntriesCache: Array<[string, string]> | null = null;
+let baseInlineSlugLookupMapCache: Map<string, string> | null = null;
 
 function getBaseInlineSlugLookupEntries(): Array<[string, string]> {
   if (baseInlineSlugLookupEntriesCache) return baseInlineSlugLookupEntriesCache;
   const map = new Map<string, string>();
   for (const entry of CANONICAL_DONG_APT_LIST) {
-    if (!CANONICAL_TX_SUMMARY_MAP[entry.txKey]) continue;
+    if (!CANONICAL_TX_SUMMARY_MAP[entry.txKey] && !GUIDE_DEFAULT_TX_SUMMARY_MAP[entry.txKey]) {
+      continue;
+    }
     for (const alias of [entry.txKey, entry.name]) {
       const norm = normalizeGuideAptName(alias);
       if (norm.length >= 2 && !map.has(norm)) {
@@ -621,14 +713,21 @@ function getBaseInlineSlugLookupEntries(): Array<[string, string]> {
       }
     }
   }
-  for (const txKey of Object.keys(CANONICAL_TX_SUMMARY_MAP)) {
+  for (const txKey of Object.keys(GUIDE_DEFAULT_TX_SUMMARY_MAP)) {
     const norm = normalizeGuideAptName(txKey);
     if (norm.length >= 2 && !map.has(norm)) {
       map.set(norm, txKey);
     }
   }
   baseInlineSlugLookupEntriesCache = Array.from(map.entries());
+  baseInlineSlugLookupMapCache = map;
   return baseInlineSlugLookupEntriesCache;
+}
+
+function getBaseInlineSlugLookupMap(): Map<string, string> {
+  if (baseInlineSlugLookupMapCache) return baseInlineSlugLookupMapCache;
+  getBaseInlineSlugLookupEntries();
+  return baseInlineSlugLookupMapCache!;
 }
 
 export default async function GuideArticlePage(props: {
@@ -657,6 +756,9 @@ export default async function GuideArticlePage(props: {
     buildGuideAptMiniPreview(aptName, txSummary);
 
   const lakeEduTownPreview = mapAptMetric('동탄더샵레이크에듀타운');
+
+  const isTopLandingGuide = isTopLandingGuideSlug(article.slug);
+  const topRepAptCtas = resolveGuideRepresentativeAptCtas(article, txSummary, 3);
 
   const featuredAptRows = (article.featuredApartments || [])
     .map(mapAptMetric)
@@ -787,8 +889,8 @@ export default async function GuideArticlePage(props: {
               </p>
             </header>
 
-            {/* Key Takeaways Callout */}
-            <div className="bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-3">
+            {/* Key Takeaways Callout + Above-the-Fold Representative Complex Instant CTA Bar */}
+            <div className="bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
                   <span>본 리포트의 핵심 결론 및 요약 (Key Takeaways)</span>
@@ -811,6 +913,82 @@ export default async function GuideArticlePage(props: {
                   </li>
                 ))}
               </ul>
+
+              {topRepAptCtas.length > 0 && (
+                <div
+                  data-testid="guide-top-representative-apt-cta-bar"
+                  data-top-landing-guide={isTopLandingGuide ? 'true' : 'false'}
+                  className="pt-3.5 border-t border-emerald-500/20 space-y-2.5"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {isTopLandingGuide && (
+                        <span
+                          data-testid="guide-top3-landing-badge"
+                          className="inline-flex items-center px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10.5px] font-extrabold"
+                        >
+                          신규 유입 TOP 3 핵심 리포트
+                        </span>
+                      )}
+                      <span className="text-xs sm:text-[13px] font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+                        <Building2 size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <span>본문 핵심 대표 단지 실시간 실거래 바로가기 (상단 즉시 이동)</span>
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-bold text-emerald-700 dark:text-emerald-300 tabular-nums">
+                      국토교통부 최신 매매·전세 실거래 검증
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                    {topRepAptCtas.map((apt, idx) => (
+                      <GuideAptCtaLink
+                        key={`top-rep-cta-${apt.canonicalSlug}`}
+                        item={apt}
+                        href={apt.href}
+                        apartmentName={apt.name}
+                        canonicalSlug={apt.canonicalSlug}
+                        displayName={apt.displayName}
+                        dong={apt.dong}
+                        guideSlug={article.slug}
+                        placement="article_top"
+                        sectionTitle={`${article.title} 상단 요약 대표 단지 CTA #${idx + 1}`}
+                        dataTestId="guide-top-rep-apt-cta-btn"
+                        ariaLabel={`${apt.displayName} 실시간 실거래가 ${apt.latestPriceStr} 단지 상세 리포트 바로가기`}
+                        className="group rounded-xl border border-emerald-500/40 dark:border-emerald-500/45 bg-white dark:bg-slate-900 hover:bg-emerald-50/70 dark:hover:bg-emerald-950/40 hover:border-emerald-600 px-3.5 py-2.5 flex items-center justify-between gap-2 transition-all shadow-2xs"
+                      >
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0 tabular-nums">
+                              대표 {idx + 1}
+                            </span>
+                            <span className="text-xs sm:text-[13px] font-black text-slate-900 dark:text-slate-50 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 truncate">
+                              {apt.displayName}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex items-center gap-1.5 text-[11px] font-bold text-slate-500 dark:text-slate-400 tabular-nums">
+                            <span>{apt.dong}</span>
+                            <span>·</span>
+                            <span className="font-black text-emerald-700 dark:text-emerald-400">
+                              매매 {apt.latestPriceStr}
+                            </span>
+                            {apt.jeonseRatio > 0 && (
+                              <>
+                                <span>·</span>
+                                <span>전세가율 {apt.jeonseRatio}%</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 group-hover:bg-emerald-700 text-white text-[11px] font-extrabold shrink-0 transition-colors">
+                          <span>실거래 상세</span>
+                          <ArrowUpRight size={12} />
+                        </span>
+                      </GuideAptCtaLink>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Top-of-Article Flagship Complex Quick-Jump & Rival Matchup CTA */}
@@ -865,11 +1043,18 @@ export default async function GuideArticlePage(props: {
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {featuredAptRows.map((apt) => (
-                      <Link
+                      <GuideAptCtaLink
                         key={`top-pill-${apt.canonicalSlug}`}
+                        item={apt}
                         href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
-                        prefetch={false}
-                        data-testid="guide-top-apt-shortcut-pill"
+                        apartmentName={apt.name}
+                        canonicalSlug={apt.canonicalSlug}
+                        displayName={apt.displayName}
+                        dong={apt.dong}
+                        guideSlug={article.slug}
+                        placement="article_top"
+                        sectionTitle="수록 단지 전체 상세 페이지 상단 바로가기 알약"
+                        dataTestId="guide-top-apt-shortcut-pill"
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 text-xs font-bold text-slate-800 dark:text-slate-100 transition-colors"
                       >
                         <span>{apt.displayName}</span>
@@ -877,7 +1062,7 @@ export default async function GuideArticlePage(props: {
                           {apt.latestPriceStr}
                         </span>
                         <ArrowUpRight size={12} className="text-slate-400" />
-                      </Link>
+                      </GuideAptCtaLink>
                     ))}
                   </div>
                 </div>
@@ -894,7 +1079,7 @@ export default async function GuideArticlePage(props: {
                         <span>핵심 라이벌 매치업 1:1 비교 하이라이트 ({headToHeadRows.length}선)</span>
                       </span>
                       <a
-                        href="#guide-rival-matchup-section"
+                        href="#guide-head-to-head-comparison"
                         className="text-[11px] font-extrabold text-blue-700 dark:text-blue-300 hover:underline"
                       >
                         상세 스펙 대결표 이동
@@ -911,27 +1096,41 @@ export default async function GuideArticlePage(props: {
                             {matchup.title}
                           </p>
                           <div className="flex flex-wrap items-center gap-2 shrink-0">
-                            <Link
+                            <GuideAptCtaLink
+                              item={matchup.left}
                               href={`/apartment/${encodeURIComponent(matchup.left.canonicalSlug)}`}
-                              prefetch={false}
+                              apartmentName={matchup.left.name}
+                              canonicalSlug={matchup.left.canonicalSlug}
+                              displayName={matchup.left.displayName}
+                              dong={matchup.left.dong}
+                              guideSlug={article.slug}
+                              placement="article_top"
+                              sectionTitle={matchup.title}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500 text-xs font-extrabold text-slate-900 dark:text-slate-100 transition-colors"
                             >
                               <span>{matchup.left.displayName}</span>
                               <span className="text-emerald-700 dark:text-emerald-400 tabular-nums">
                                 {matchup.left.latestPriceStr}
                               </span>
-                            </Link>
+                            </GuideAptCtaLink>
                             <span className="text-[11px] font-black text-slate-400">VS</span>
-                            <Link
+                            <GuideAptCtaLink
+                              item={matchup.right}
                               href={`/apartment/${encodeURIComponent(matchup.right.canonicalSlug)}`}
-                              prefetch={false}
+                              apartmentName={matchup.right.name}
+                              canonicalSlug={matchup.right.canonicalSlug}
+                              displayName={matchup.right.displayName}
+                              dong={matchup.right.dong}
+                              guideSlug={article.slug}
+                              placement="article_top"
+                              sectionTitle={matchup.title}
                               className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-blue-500 text-xs font-extrabold text-slate-900 dark:text-slate-100 transition-colors"
                             >
                               <span>{matchup.right.displayName}</span>
                               <span className="text-blue-700 dark:text-blue-400 tabular-nums">
                                 {matchup.right.latestPriceStr}
                               </span>
-                            </Link>
+                            </GuideAptCtaLink>
                           </div>
                         </div>
                       ))}
@@ -953,13 +1152,20 @@ export default async function GuideArticlePage(props: {
                         신규 유입 TOP 3 핵심 허브 및 15분 체류 검증 대장 단지 바로가기
                       </span>
                     </div>
-                    <Link
+                    <GuideAptCtaLink
+                      item={lakeEduTownPreview}
                       href={
                         lakeEduTownPreview?.href ||
                         `/apartment/${encodeURIComponent('동탄더샵레이크에듀타운')}`
                       }
-                      prefetch={false}
-                      data-testid="guide-top-lake-edutown-spotlight"
+                      apartmentName={lakeEduTownPreview?.name || '동탄더샵레이크에듀타운'}
+                      canonicalSlug={lakeEduTownPreview?.canonicalSlug || '동탄더샵레이크에듀타운'}
+                      displayName={lakeEduTownPreview?.displayName || '동탄더샵레이크에듀타운'}
+                      dong={lakeEduTownPreview?.dong || '산척동'}
+                      guideSlug={article.slug}
+                      placement="article_top"
+                      sectionTitle="상단 고전환 슬롯 동탄더샵레이크에듀타운 바로가기"
+                      dataTestId="guide-top-lake-edutown-spotlight"
                       className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors w-fit shrink-0"
                     >
                       <span className="tabular-nums">
@@ -970,7 +1176,7 @@ export default async function GuideArticlePage(props: {
                         }) 상세보기`}
                       </span>
                       <ArrowUpRight size={12} />
-                    </Link>
+                    </GuideAptCtaLink>
                   </div>
 
                   <div
@@ -1038,6 +1244,7 @@ export default async function GuideArticlePage(props: {
                 zoneSectionPreviews,
                 inlineSlugLookup,
                 lakeEduTownPreview,
+                featuredAptRows,
               })}
             </div>
 
@@ -1153,59 +1360,91 @@ export default async function GuideArticlePage(props: {
                         ].map((card) => (
                           <div
                             key={card.apt.name}
-                            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 space-y-3"
+                            className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/70 p-4 space-y-3 flex flex-col justify-between"
                           >
-                            <div className="flex items-start justify-between gap-2">
-                              <div>
-                                <span
-                                  className={
-                                    card.accent === 'emerald'
-                                      ? 'inline-block text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md'
-                                      : 'inline-block text-[11px] font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md'
-                                  }
-                                >
-                                  {card.label}
+                            <div className="space-y-3">
+                              <div className="flex items-start justify-between gap-2">
+                                <div>
+                                  <span
+                                    className={
+                                      card.accent === 'emerald'
+                                        ? 'inline-block text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/60 px-2 py-0.5 rounded-md'
+                                        : 'inline-block text-[11px] font-extrabold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 border border-blue-200 dark:border-blue-800/60 px-2 py-0.5 rounded-md'
+                                    }
+                                  >
+                                    {card.label}
+                                  </span>
+                                  <GuideAptCtaLink
+                                    item={card.apt}
+                                    href={`/apartment/${encodeURIComponent(card.apt.canonicalSlug)}`}
+                                    apartmentName={card.apt.name}
+                                    canonicalSlug={card.apt.canonicalSlug}
+                                    displayName={card.apt.displayName}
+                                    dong={card.apt.dong}
+                                    guideSlug={article.slug}
+                                    placement="article_bottom"
+                                    sectionTitle={matchup.title}
+                                    className="mt-1.5 flex items-center gap-1 text-[15px] font-black text-slate-900 dark:text-slate-50 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                                  >
+                                    <span>{card.apt.name}</span>
+                                    <ArrowUpRight size={14} className="shrink-0 text-slate-400" />
+                                  </GuideAptCtaLink>
+                                </div>
+                                <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
+                                  {card.apt.dong}
                                 </span>
-                                <Link
-                                  href={`/apartment/${encodeURIComponent(card.apt.canonicalSlug)}`}
-                                  prefetch={false}
-                                  className="mt-1.5 flex items-center gap-1 text-[15px] font-black text-slate-900 dark:text-slate-50 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                                >
-                                  <span>{card.apt.name}</span>
-                                  <ArrowUpRight size={14} className="shrink-0 text-slate-400" />
-                                </Link>
                               </div>
-                              <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400 shrink-0">
-                                {card.apt.dong}
-                              </span>
+
+                              <dl className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
+                                <div>
+                                  <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 매매 실거래</dt>
+                                  <dd className="mt-0.5 text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-400">
+                                    {card.apt.latestPriceStr}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 전세 실거래</dt>
+                                  <dd className="mt-0.5 text-sm font-bold tabular-nums text-slate-900 dark:text-slate-100">
+                                    {card.apt.latestRentStr}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-slate-500 dark:text-slate-400 font-medium">전세가율 (하방지지)</dt>
+                                  <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+                                    {card.apt.jeonseRatio > 0 ? `${card.apt.jeonseRatio}%` : '정보 없음'}
+                                  </dd>
+                                </div>
+                                <div>
+                                  <dt className="text-slate-500 dark:text-slate-400 font-medium">누적 실거래량</dt>
+                                  <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
+                                    {card.apt.txCount > 0 ? `${card.apt.txCount.toLocaleString()}건` : '정보 없음'}
+                                  </dd>
+                                </div>
+                              </dl>
                             </div>
 
-                            <dl className="grid grid-cols-2 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs">
-                              <div>
-                                <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 매매 실거래</dt>
-                                <dd className="mt-0.5 text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-400">
-                                  {card.apt.latestPriceStr}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt className="text-slate-500 dark:text-slate-400 font-medium">최근 전세 실거래</dt>
-                                <dd className="mt-0.5 text-sm font-bold tabular-nums text-slate-900 dark:text-slate-100">
-                                  {card.apt.latestRentStr}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt className="text-slate-500 dark:text-slate-400 font-medium">전세가율 (하방지지)</dt>
-                                <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
-                                  {card.apt.jeonseRatio > 0 ? `${card.apt.jeonseRatio}%` : '정보 없음'}
-                                </dd>
-                              </div>
-                              <div>
-                                <dt className="text-slate-500 dark:text-slate-400 font-medium">누적 실거래량</dt>
-                                <dd className="mt-0.5 font-extrabold tabular-nums text-slate-800 dark:text-slate-200">
-                                  {card.apt.txCount > 0 ? `${card.apt.txCount.toLocaleString()}건` : '정보 없음'}
-                                </dd>
-                              </div>
-                            </dl>
+                            <div className="pt-2 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-end">
+                              <GuideAptCtaLink
+                                item={card.apt}
+                                href={`/apartment/${encodeURIComponent(card.apt.canonicalSlug)}`}
+                                apartmentName={card.apt.name}
+                                canonicalSlug={card.apt.canonicalSlug}
+                                displayName={card.apt.displayName}
+                                dong={card.apt.dong}
+                                guideSlug={article.slug}
+                                placement="article_bottom"
+                                sectionTitle={matchup.title}
+                                dataTestId="guide-h2h-apt-cta-btn"
+                                className={
+                                  card.accent === 'emerald'
+                                    ? 'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors shadow-2xs'
+                                    : 'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs'
+                                }
+                              >
+                                <span>{card.apt.displayName} 실거래 상세 리포트</span>
+                                <ArrowUpRight size={12} />
+                              </GuideAptCtaLink>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -1274,13 +1513,22 @@ export default async function GuideArticlePage(props: {
                         {featuredAptRows.map((apt) => (
                           <tr key={apt.name} className="hover:bg-slate-100/60 dark:hover:bg-slate-800/40 transition-colors">
                             <th scope="row" className="p-3.5 font-extrabold text-slate-900 dark:text-slate-50 whitespace-nowrap">
-                              <Link
+                              <GuideAptCtaLink
+                                item={apt}
                                 href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
-                                prefetch={false}
+                                apartmentName={apt.name}
+                                canonicalSlug={apt.canonicalSlug}
+                                displayName={apt.displayName}
+                                dong={apt.dong}
+                                guideSlug={article.slug}
+                                placement="article_bottom"
+                                sectionTitle="리포트 핵심 아파트 국토교통부 최신 실거래가 비교표"
+                                dataTestId="guide-table-apt-cta-link"
                                 className="text-blue-700 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
                               >
                                 <span>{apt.name}</span>
-                              </Link>
+                                <ArrowUpRight size={12} className="shrink-0 opacity-75" />
+                              </GuideAptCtaLink>
                             </th>
                             <td className="p-3.5 whitespace-nowrap">{apt.dong}</td>
                             <td className="p-3.5 tabular-nums font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
@@ -1399,11 +1647,18 @@ export default async function GuideArticlePage(props: {
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       {clusterFlagshipAptRows.map((apt) => (
-                        <Link
+                        <GuideAptCtaLink
                           key={`cluster-flagship-apt-${apt.canonicalSlug}`}
+                          item={apt}
                           href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
-                          prefetch={false}
-                          data-testid="guide-cluster-flagship-apt-link"
+                          apartmentName={apt.name}
+                          canonicalSlug={apt.canonicalSlug}
+                          displayName={apt.displayName}
+                          dong={apt.dong}
+                          guideSlug={article.slug}
+                          placement="article_bottom"
+                          sectionTitle="클러스터 대표 대장주 단지 바로가기"
+                          dataTestId="guide-cluster-flagship-apt-link"
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/60 dark:hover:border-emerald-400/60 text-xs font-extrabold text-slate-800 dark:text-slate-100 transition-colors"
                         >
                           <Building2 size={12} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
@@ -1412,7 +1667,7 @@ export default async function GuideArticlePage(props: {
                             {apt.latestPriceStr}
                           </span>
                           <ArrowUpRight size={12} className="text-slate-400" />
-                        </Link>
+                        </GuideAptCtaLink>
                       ))}
                     </div>
                   </div>

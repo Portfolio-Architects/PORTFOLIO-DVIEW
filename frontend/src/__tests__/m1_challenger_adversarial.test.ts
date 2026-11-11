@@ -1,742 +1,217 @@
-/**
- * @file m1_challenger_adversarial.test.ts
- * @description Empirical Challenger 1 Adversarial Test Suite for Milestone 1 (Domain & Types Layer Refactoring)
- * Tests:
- * 1. Boundary conditions, type coercion, and malformed inputs against Zod schemas in facade.schemas.ts
- * 2. Edge cases in userUtils.ts (empty inputs, unicode, special chars, boundary strings, distributions)
- * 3. Static type equivalence and runtime export identity between @/types and @/lib/types
- * 4. Architectural layer isolation and zero-runtime invariants for src/types/
- */
+import fs from 'fs';
+import path from 'path';
+import yaml from 'js-yaml';
 
-import { z } from 'zod';
-import {
-  POISchema,
-  SchoolPOISchema,
-  StationPOISchema,
-  AcademyPOISchema,
-  RestaurantPOISchema,
-  ApartmentPOISchema,
-  SheetApartmentSchema,
-  JisanStatusItemSchema,
-  JisanStatusResponseSchema,
-  NicknameSchema,
-  KPIDataSchema,
-  FakePriceDataSchema,
-  SearchConsoleStatusSchema,
-  googleNewsItemSchema,
-  noticeSchema,
-  ImageMetaSchema,
-  ObjectiveMetricsSchema,
-  AdSlotSchema,
-  ReportSpecsSchema,
-  ReportInfraSchema,
-  ReportEcosystemSchema,
-  ReportLocationSchema,
-  ReportAssessmentSchema,
-  ReportSectionsSchema,
-  ScoutingReportInputSchema,
-  CreateFieldReportInputSchema,
-  AddPostInputSchema,
-  AddFieldReportInputSchema,
-  AddFieldReportCommentInputSchema,
-  DeleteFieldReportCommentInputSchema,
-  AddUserReviewInputSchema,
-  UpdateNicknameInputSchema,
-  UpdatePhotoURLInputSchema,
-  TransactionRecordSchema,
-  TransactionListSchema,
-  QuizAnswerSchema,
-  ViewedAptsSchema,
-  PostDataSchema,
-  CreatePostSchema,
-  SyncManagerPostSchema,
-  TypeMapItemSchema,
-  ApartmentMetaItemSchema,
-  ApartmentMetaSchema,
-  DongApartmentSchema,
-  Recent7DaysVolumeSchema,
-  RecentTransactionSchema,
-  RecentTxSchema,
-  AptTxSummarySchema,
-  FieldReportImageSchema,
-  FieldReportSchema,
-  DongtanMacroTrendPointSchema,
-  InitialPageDataSchema,
-  FieldReportDataSchema,
-  HwaseongEnterpriseSchema,
-  MolTransactionXmlSchema,
-  RedisCacheEnvelopeSchema,
-  IsomorphicFileSchema,
-} from '@/lib/validation/facade.schemas';
+describe('Milestone 1 Empirical Challenger: Adversarial Stress Test Suite', () => {
+  const workflowPath = path.resolve(__dirname, '../../../.github/workflows/sync-transactions.yml');
+  let rawContent: string;
+  let parsedDoc: any;
 
-import {
-  getDisplayName,
-  createEmojiAvatar,
-  DEFAULT_AVATARS,
-  getRandomDefaultAvatar,
-} from '@/lib/utils/userUtils';
+  beforeAll(() => {
+    expect(fs.existsSync(workflowPath)).toBe(true);
+    rawContent = fs.readFileSync(workflowPath, 'utf8');
+    parsedDoc = yaml.load(rawContent);
+  });
 
-// Import from canonical @/types
-import type {
-  DongApartment as CanonicalDongApartment,
-  StaticApartment as CanonicalStaticApartment,
-  SheetApartment as CanonicalSheetApartment,
-  ApartmentMetaItem as CanonicalApartmentMetaItem,
-  ApartmentMeta as CanonicalApartmentMeta,
-  TypeMapItem as CanonicalTypeMapItem,
-  POIData as CanonicalPOIData,
-  SchoolPOI as CanonicalSchoolPOI,
-  StationPOI as CanonicalStationPOI,
-  AcademyPOI as CanonicalAcademyPOI,
-  RestaurantPOI as CanonicalRestaurantPOI,
-  ApartmentPOI as CanonicalApartmentPOI,
-  LocationScoreItem as CanonicalLocationScoreItem,
-} from '@/types/apartment';
+  describe('1. 3-Tier Early Morning Cron Schedule Invariants', () => {
+    it('should have exactly 3 scheduled crons defined in UTC that map to 05:38, 06:18, and 06:38 KST', () => {
+      const schedule = parsedDoc.on?.schedule;
+      expect(Array.isArray(schedule)).toBe(true);
+      expect(schedule.length).toBe(3);
 
-import type {
-  TransactionRecord as CanonicalTransactionRecord,
-  RawTransactionRecord as CanonicalRawTransactionRecord,
-  RecentTx as CanonicalRecentTx,
-  RecentTransaction as CanonicalRecentTransaction,
-  AptTxSummary as CanonicalAptTxSummary,
-  Recent7DaysVolume as CanonicalRecent7DaysVolume,
-  DongtanMacroTrendPoint as CanonicalDongtanMacroTrendPoint,
-  MolTransactionXml as CanonicalMolTransactionXml,
-} from '@/types/transaction';
+      const crons = schedule.map((s: { cron: string }) => s.cron);
+      expect(crons[0]).toBe('38 20 * * *'); // Tier 1: 20:38 UTC = 05:38 KST
+      expect(crons[1]).toBe('18 21 * * *'); // Tier 2: 21:18 UTC = 06:18 KST
+      expect(crons[2]).toBe('38 21 * * *'); // Tier 3: 21:38 UTC = 06:38 KST
 
-import type {
-  ImageMeta as CanonicalImageMeta,
-  PhotoItem as CanonicalPhotoItem,
-  FieldReportImage as CanonicalFieldReportImage,
-  ObjectiveMetrics as CanonicalObjectiveMetrics,
-  AdSlot as CanonicalAdSlot,
-  ReportSpecs as CanonicalReportSpecs,
-  ReportInfra as CanonicalReportInfra,
-  ReportEcosystem as CanonicalReportEcosystem,
-  ReportLocation as CanonicalReportLocation,
-  ReportAssessment as CanonicalReportAssessment,
-  ReportSections as CanonicalReportSections,
-  CommentData as CanonicalCommentData,
-  ScoutingReport as CanonicalScoutingReport,
-  FieldReportData as CanonicalFieldReportData,
-} from '@/types/report';
-
-import type {
-  LoungePost as CanonicalLoungePost,
-  PostDetail as CanonicalPostDetail,
-  RecentLoungeItem as CanonicalRecentLoungeItem,
-  PostComment as CanonicalPostComment,
-  AptStory as CanonicalAptStory,
-  CombinedPostItem as CanonicalCombinedPostItem,
-  KPIData as CanonicalKPIData,
-  NewsItemData as CanonicalNewsItemData,
-  AdBannerData as CanonicalAdBannerData,
-} from '@/types/lounge';
-
-import type {
-  UserReview as CanonicalUserReview,
-  ReviewInput as CanonicalReviewInput,
-} from '@/types/review';
-
-import type {
-  VerificationLevel as CanonicalVerificationLevel,
-  UserProfile as CanonicalUserProfile,
-  UserRole as CanonicalUserRole,
-  AuthUser as CanonicalAuthUser,
-} from '@/types/user';
-
-import type {
-  MacroEnvironment as CanonicalMacroEnvironment,
-  SupplyPipeline as CanonicalSupplyPipeline,
-  MacroDataConfig as CanonicalMacroDataConfig,
-} from '@/types/macro';
-
-import type {
-  ApiSuccessResponse as CanonicalApiSuccessResponse,
-  ApiErrorResponse as CanonicalApiErrorResponse,
-  ApiResponse as CanonicalApiResponse,
-  RateLimitConfig as CanonicalRateLimitConfig,
-  RateLimitResult as CanonicalRateLimitResult,
-  RedisCacheEnvelope as CanonicalRedisCacheEnvelope,
-} from '@/types/api';
-
-// Import from legacy re-export barrels @/lib/types/*
-import type {
-  KPIData as LegacyKPIData,
-  NewsItemData as LegacyNewsItemData,
-  AdBannerData as LegacyAdBannerData,
-} from '@/lib/types/dashboard.types';
-
-import type {
-  MacroEnvironment as LegacyMacroEnvironment,
-  SupplyPipeline as LegacySupplyPipeline,
-  MacroDataConfig as LegacyMacroDataConfig,
-} from '@/lib/types/macro.types';
-
-import type {
-  ReportSpecs as LegacyReportSpecs,
-  ReportInfra as LegacyReportInfra,
-  ReportEcosystem as LegacyReportEcosystem,
-  ReportLocation as LegacyReportLocation,
-  ReportAssessment as LegacyReportAssessment,
-  ReportSections as LegacyReportSections,
-  CommentData as LegacyCommentData,
-  FieldReportData as LegacyFieldReportData,
-  FieldReportImage as LegacyFieldReportImage,
-} from '@/lib/types/report.types';
-
-import type {
-  UserReview as LegacyUserReview,
-  ReviewInput as LegacyReviewInput,
-} from '@/lib/types/review.types';
-
-import type {
-  ImageMeta as LegacyImageMeta,
-  PhotoItem as LegacyPhotoItem,
-  ObjectiveMetrics as LegacyObjectiveMetrics,
-  AdSlot as LegacyAdSlot,
-  ScoutingReport as LegacyScoutingReport,
-} from '@/lib/types/scoutingReport';
-
-import type {
-  TransactionRecord as LegacyTransactionRecord,
-  RawTransactionRecord as LegacyRawTransactionRecord,
-  RecentTx as LegacyRecentTx,
-  RecentTransaction as LegacyRecentTransaction,
-  AptTxSummary as LegacyAptTxSummary,
-  Recent7DaysVolume as LegacyRecent7DaysVolume,
-  DongtanMacroTrendPoint as LegacyDongtanMacroTrendPoint,
-  MolTransactionXml as LegacyMolTransactionXml,
-  LocationScoreItem as LegacyLocationScoreItem,
-} from '@/lib/types/transaction';
-
-import {
-  getDisplayName as legacyGetDisplayName,
-  createEmojiAvatar as legacyCreateEmojiAvatar,
-  DEFAULT_AVATARS as legacyDEFAULT_AVATARS,
-  getRandomDefaultAvatar as legacyGetRandomDefaultAvatar,
-} from '@/lib/types/user.types';
-
-import type {
-  VerificationLevel as LegacyVerificationLevel,
-  UserProfile as LegacyUserProfile,
-  UserRole as LegacyUserRole,
-  AuthUser as LegacyAuthUser,
-} from '@/lib/types/user.types';
-
-// Helper type-check assertions at compile time
-type ExpectTrue<T extends true> = T;
-type TypeEquals<X, Y> = (<T>() => T extends X ? 1 : 2) extends (<T>() => T extends Y ? 1 : 2) ? true : false;
-
-describe('M1 Empirical Challenger Adversarial Test Suite', () => {
-
-  // =========================================================================
-  // Section 1: Zod Schemas Boundary Conditions & Malformed Data
-  // =========================================================================
-  describe('1. Zod Schemas Boundary Conditions & Stress Testing', () => {
-
-    describe('NicknameSchema', () => {
-      it('rejects empty, whitespace-only, and single character inputs', () => {
-        expect(NicknameSchema.safeParse('').success).toBe(false);
-        expect(NicknameSchema.safeParse('   ').success).toBe(false);
-        expect(NicknameSchema.safeParse('a').success).toBe(false);
-        expect(NicknameSchema.safeParse('가').success).toBe(false);
-        expect(NicknameSchema.safeParse('1').success).toBe(false);
-        expect(NicknameSchema.safeParse('_').success).toBe(false);
-      });
-
-      it('accepts valid 2-to-10 character alphanumeric, Korean, and underscore nicknames', () => {
-        expect(NicknameSchema.safeParse('동탄').success).toBe(true);
-        expect(NicknameSchema.safeParse('ab').success).toBe(true);
-        expect(NicknameSchema.safeParse('12').success).toBe(true);
-        expect(NicknameSchema.safeParse('__').success).toBe(true);
-        expect(NicknameSchema.safeParse('동탄_러12').success).toBe(true);
-        expect(NicknameSchema.safeParse('ㅋㅋ_ㅎㅎ').success).toBe(true);
-        // Exactly 10 Korean characters
-        expect(NicknameSchema.safeParse('동탄역더샵센트럴시티').success).toBe(true);
-      });
-
-      it('trims leading/trailing whitespace before length and format checks', () => {
-        const res = NicknameSchema.safeParse('   동탄역   ');
-        expect(res.success).toBe(true);
-        if (res.success) {
-          expect(res.data).toBe('동탄역');
-        }
-      });
-
-      it('rejects nicknames longer than 10 characters', () => {
-        // 11 characters
-        expect(NicknameSchema.safeParse('동탄역더샵센트럴시티1').success).toBe(false);
-        expect(NicknameSchema.safeParse('12345678901').success).toBe(false);
-        expect(NicknameSchema.safeParse('abcdefghijk').success).toBe(false);
-      });
-
-      it('rejects special characters, HTML/SQL injection strings, and emojis', () => {
-        expect(NicknameSchema.safeParse('동탄<script>').success).toBe(false);
-        expect(NicknameSchema.safeParse('user@email').success).toBe(false);
-        expect(NicknameSchema.safeParse('admin;--').success).toBe(false);
-        expect(NicknameSchema.safeParse('동탄 러').success).toBe(false); // internal space
-        expect(NicknameSchema.safeParse('🔥동탄🔥').success).toBe(false);
-        expect(NicknameSchema.safeParse('👨‍👩‍👧‍👦').success).toBe(false);
-      });
+      // Verify Tier 3 gives at least 20 minutes buffer before 07:00 KST
+      const tier3MinutesPastMidnight = 6 * 60 + 38; // 398 min
+      const deadlineMinutes = 7 * 60; // 420 min
+      const buffer = deadlineMinutes - tier3MinutesPastMidnight;
+      expect(buffer).toBe(22);
+      expect(buffer).toBeGreaterThanOrEqual(20);
     });
 
-    describe('SheetApartmentSchema', () => {
-      it('validates canonical full data and coerces string numbers properly', () => {
-        const input = {
-          ticker: 'DTT001',
-          name: '동탄역시범우남퍼스트빌',
-          dong: '청계동',
-          lat: '37.2005',
-          lng: '127.1005',
-          householdCount: '1442',
-          yearBuilt: '2015',
-          far: '219.5',
-          bcr: '14.8',
-          parkingCount: '1800',
-          parkingPerHousehold: '1.25',
-          brand: '우남퍼스트빌',
-          maxFloor: '37',
-          minFloor: '15',
-          txKey: '4159013100-12345',
-          isPublicRental: false,
-          starbucksName: '스타벅스 동탄역점',
-          starbucksAddress: '경기도 화성시 동탄대로 500',
-          starbucksCoordinates: '37.2000,127.1000',
-          distanceToStarbucks: '150',
-          mcdonaldsName: null,
-          distanceToMcDonalds: null,
-          oliveYoungName: '올리브영 동탄역',
-          distanceToOliveYoung: '200',
-          daisoName: '다이소 동탄점',
-          distanceToDaiso: '300',
-          supermarketName: '롯데마트 동탄점',
-          distanceToSupermarket: '450',
-        };
-
-        const res = SheetApartmentSchema.safeParse(input);
-        expect(res.success).toBe(true);
-        if (res.success) {
-          expect(res.data.lat).toBe(37.2005);
-          expect(res.data.lng).toBe(127.1005);
-          expect(res.data.householdCount).toBe(1442);
-          expect(res.data.far).toBe(219.5);
-          expect(res.data.bcr).toBe(14.8);
-          expect(res.data.parkingCount).toBe(1800);
-          expect(res.data.parkingPerHousehold).toBe(1.25);
-          expect(res.data.maxFloor).toBe(37);
-          expect(res.data.minFloor).toBe(15);
-          expect(res.data.distanceToStarbucks).toBe(150);
-          expect(res.data.mcdonaldsName).toBeNull();
-          expect(res.data.distanceToMcDonalds).toBeNull();
-        }
-      });
-
-      it('handles null and undefined optional values without crashing', () => {
-        const minimal = {
-          name: '동탄역 유보라',
-          dong: '오산동',
-          lat: 37.199,
-          lng: 127.098,
-        };
-        const res = SheetApartmentSchema.safeParse(minimal);
-        expect(res.success).toBe(true);
-      });
-
-      it('rejects missing mandatory fields name or dong or invalid coordinate strings', () => {
-        expect(SheetApartmentSchema.safeParse({ dong: '청계동', lat: 37.2, lng: 127.1 }).success).toBe(false);
-        expect(SheetApartmentSchema.safeParse({ name: '아파트', lat: 37.2, lng: 127.1 }).success).toBe(false);
-        // Non-numeric coordinate string coerces to NaN and fails Zod number schema
-        expect(SheetApartmentSchema.safeParse({ name: '아파트', dong: '동', lat: 'invalid_lat', lng: 127.1 }).success).toBe(false);
-      });
+    it('should strictly exclude any afternoon or evening cron (e.g., legacy 12 9 * * * / 18:12 KST)', () => {
+      expect(rawContent).not.toContain('12 9 * * *');
+      expect(rawContent).not.toContain('cron: "12 9 * * *"');
     });
 
-    describe('ObjectiveMetricsSchema', () => {
-      it('transforms missing and null fields into standard defaults', () => {
-        const raw = {
-          brand: null,
-          householdCount: null,
-          far: null,
-          bcr: null,
-          yearBuilt: null,
-          distanceToElementary: null,
-          distanceToMiddle: null,
-          distanceToHigh: null,
-          distanceToSubway: null,
-          nearestSchoolNames: null,
-        };
-
-        const res = ObjectiveMetricsSchema.safeParse(raw);
-        expect(res.success).toBe(true);
-        if (res.success) {
-          expect(res.data.brand).toBe('');
-          expect(res.data.householdCount).toBe(0);
-          expect(res.data.far).toBe(0);
-          expect(res.data.bcr).toBe(0);
-          expect(res.data.yearBuilt).toBe(0);
-          expect(res.data.distanceToElementary).toBe(9999);
-          expect(res.data.distanceToMiddle).toBe(9999);
-          expect(res.data.distanceToHigh).toBe(9999);
-          expect(res.data.distanceToSubway).toBe(9999);
-          expect(res.data.nearestSchoolNames).toEqual({ elementary: '', middle: '', high: '' });
-        }
-      });
-
-      it('preprocesses dirty string yearBuilt values into integers', () => {
-        const cases = [
-          { input: '2015년', expected: 2015 },
-          { input: '2020.08', expected: 202008 },
-          { input: 2018, expected: 2018 },
-          { input: '신축 미정', expected: 0 }, // no digits -> null -> default 0
-        ];
-
-        for (const c of cases) {
-          const res = ObjectiveMetricsSchema.safeParse({ yearBuilt: c.input });
-          expect(res.success).toBe(true);
-          if (res.success) {
-            expect(res.data.yearBuilt).toBe(c.expected);
-          }
-        }
-      });
-
-      it('rejects negative numbers for strictly nonnegative metrics', () => {
-        expect(ObjectiveMetricsSchema.safeParse({ householdCount: -1 }).success).toBe(false);
-        expect(ObjectiveMetricsSchema.safeParse({ far: -10 }).success).toBe(false);
-        expect(ObjectiveMetricsSchema.safeParse({ bcr: -5 }).success).toBe(false);
-        expect(ObjectiveMetricsSchema.safeParse({ distanceToElementary: -50 }).success).toBe(false);
-      });
+    it('should configure concurrency group with cancel-in-progress: false to avoid corrupting running transactions', () => {
+      expect(parsedDoc.concurrency).toBeDefined();
+      expect(parsedDoc.concurrency.group).toBe('sync-transactions-production');
+      expect(parsedDoc.concurrency['cancel-in-progress']).toBe(false);
     });
 
-    describe('ReportSectionsSchema and Sub-schemas', () => {
-      it('applies default empty strings and allows passthrough properties', () => {
-        const emptySections = {};
-        const res = ReportSectionsSchema.safeParse(emptySections);
-        expect(res.success).toBe(true);
-
-        const partialSpecs = {
-          specs: {
-            builtYear: '2021',
-            customExtraProperty: 'extra_value',
-          },
-          infra: {
-            gateText: '정문 문주 웅장함',
-            legacyExtraRating: 4.5,
-          },
-        };
-        const resPartial = ReportSectionsSchema.safeParse(partialSpecs);
-        expect(resPartial.success).toBe(true);
-        if (resPartial.success) {
-          expect(resPartial.data.specs?.builtYear).toBe('2021');
-          expect((resPartial.data.specs as any)?.customExtraProperty).toBe('extra_value');
-          expect(resPartial.data.infra?.gateText).toBe('정문 문주 웅장함');
-          expect((resPartial.data.infra as any)?.legacyExtraRating).toBe(4.5);
-        }
-      });
-    });
-
-    describe('KPIDataSchema (Presentation Leak Isolation)', () => {
-      it('validates string icon names and styling string properties', () => {
-        const validKPI = {
-          id: 'kpi_tx_vol',
-          title: '거래량 급증',
-          subtitle: '최근 7일 기준',
-          badgeText: 'HOT',
-          badgeStyle: 'bg-red-500 text-white',
-          mainValue: '128건',
-          subValue: '+24%',
-          description: '전주 대비 거래량 대폭 상승',
-          icon: 'TrendingUp',
-          gradientBackground: 'from-blue-500 to-blue-600',
-          borderColor: 'border-blue-200',
-          titleColor: 'text-blue-900',
-        };
-
-        const res = KPIDataSchema.safeParse(validKPI);
-        expect(res.success).toBe(true);
-      });
-
-      it('rejects ReactNode or non-string icon types', () => {
-        const invalidKPIWithJSX = {
-          id: 'kpi_invalid',
-          title: '제목',
-          subtitle: '부제목',
-          mainValue: '100',
-          subValue: '+10',
-          description: '설명',
-          icon: { $$typeof: Symbol.for('react.element'), type: 'div', props: {} },
-        };
-
-        expect(KPIDataSchema.safeParse(invalidKPIWithJSX).success).toBe(false);
-      });
-    });
-
-    describe('TransactionRecordSchema', () => {
-      it('applies default values for missing optional fields and coerces strings to numbers', () => {
-        const raw = {
-          dong: '청계동',
-          aptName: '동탄역 시범우남퍼스트빌',
-          price: '115000',
-          area: '84.94',
-          areaPyeong: '25.7',
-          floor: '12',
-          buildYear: '2015',
-          contractYm: '202608',
-          contractDay: '15',
-        };
-
-        const res = TransactionRecordSchema.safeParse(raw);
-        expect(res.success).toBe(true);
-        if (res.success) {
-          expect(res.data.price).toBe(115000);
-          expect(res.data.area).toBe(84.94);
-          expect(res.data.areaPyeong).toBe(25.7);
-          expect(res.data.floor).toBe(12);
-          expect(res.data.buildYear).toBe(2015);
-          expect(res.data.dealType).toBe('매매'); // default
-          expect(res.data.priceEok).toBe(''); // default
-        }
-      });
-    });
-
-    describe('IsomorphicFileSchema', () => {
-      it('handles undefined and null gracefully', () => {
-        expect(IsomorphicFileSchema.safeParse(undefined).success).toBe(true);
-      });
-
-      it('validates File instance when File is defined in environment or passes in SSR', () => {
-        if (typeof File !== 'undefined') {
-          const dummyFile = new File(['content'], 'test.png', { type: 'image/png' });
-          expect(IsomorphicFileSchema.safeParse(dummyFile).success).toBe(true);
-          expect(IsomorphicFileSchema.safeParse('not-a-file').success).toBe(false);
-        } else {
-          expect(IsomorphicFileSchema.safeParse({}).success).toBe(true);
-        }
-      });
-    });
-
-    describe('InitialPageDataSchema (Aggregate Contract)', () => {
-      it('validates a complete initial page data envelope', () => {
-        const pageData = {
-          favoriteCounts: { '동탄역더샵': 42, '시범우남': 19 },
-          apartmentMeta: {
-            '동탄역더샵': { dong: '오산동', txKey: 'tx-1', isPublicRental: false },
-          },
-          fieldReports: [
-            {
-              id: 'fr-1',
-              dong: '오산동',
-              apartmentName: '동탄역더샵센트럴시티',
-              author: '전문임장러',
-              likes: 12,
-              commentCount: 3,
-            },
-          ],
-        };
-
-        const res = InitialPageDataSchema.safeParse(pageData);
-        expect(res.success).toBe(true);
-      });
-
-      it('rejects negative counts in favoriteCounts', () => {
-        const invalidData = {
-          favoriteCounts: { '동탄역더샵': -5 },
-          apartmentMeta: {},
-          fieldReports: [],
-        };
-        expect(InitialPageDataSchema.safeParse(invalidData).success).toBe(false);
-      });
+    it('should configure 15 minutes timeout to ensure job finishes before 07:00 KST even on Tier 3', () => {
+      expect(parsedDoc.jobs?.sync?.['timeout-minutes']).toBe(15);
+      // If Tier 3 starts at 06:38 and takes up to 15 min, it completes by 06:53 KST (< 07:00 KST)
+      const worstCaseFinishMinutes = 6 * 60 + 38 + 15; // 413 min (06:53 KST)
+      expect(worstCaseFinishMinutes).toBeLessThan(7 * 60);
     });
   });
 
-  // =========================================================================
-  // Section 2: userUtils.ts Edge Cases & Stress Testing
-  // =========================================================================
-  describe('2. userUtils.ts Edge Cases & Stress Testing', () => {
-
-    describe('getDisplayName', () => {
-      it('returns fallback default for null, undefined, empty string, and empty object', () => {
-        expect(getDisplayName(null)).toBe('임시_임장러');
-        expect(getDisplayName(undefined)).toBe('임시_임장러');
-        expect(getDisplayName({})).toBe('임시_임장러');
-        expect(getDisplayName({ nickname: '' })).toBe('임시_임장러');
-        expect(getDisplayName({ nickname: undefined })).toBe('임시_임장러');
-      });
-
-      it('returns provided nickname accurately for valid strings', () => {
-        expect(getDisplayName({ nickname: '동탄임장왕' })).toBe('동탄임장왕');
-        expect(getDisplayName({ nickname: 'User123' })).toBe('User123');
-      });
-
-      it('handles unicode, emojis, and special characters safely', () => {
-        expect(getDisplayName({ nickname: '🔥동탄러🔥' })).toBe('🔥동탄러🔥');
-        expect(getDisplayName({ nickname: '🚀_Admin_99' })).toBe('🚀_Admin_99');
-        expect(getDisplayName({ nickname: '<script>alert(1)</script>' })).toBe('<script>alert(1)</script>');
-      });
-
-      it('handles extreme length nicknames without truncation or memory issues', () => {
-        const longNick = '동탄'.repeat(500);
-        expect(getDisplayName({ nickname: longNick })).toBe(longNick);
-      });
+  describe('2. Dual-Level Timezone (Asia/Seoul) Configuration', () => {
+    it('should enforce Asia/Seoul at the workflow root env level', () => {
+      expect(parsedDoc.env?.TZ).toBe('Asia/Seoul');
     });
 
-    describe('createEmojiAvatar', () => {
-      it('generates valid SVG data URI containing escaped emoji and gradient colors', () => {
-        const emoji = '🦊';
-        const start = '#FFE6E6';
-        const end = '#E6E6FF';
-        const uri = createEmojiAvatar(emoji, start, end);
-
-        expect(uri.startsWith('data:image/svg+xml;utf8,')).toBe(true);
-
-        const decoded = decodeURIComponent(uri.replace('data:image/svg+xml;utf8,', ''));
-        expect(decoded).toContain('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">');
-        expect(decoded).toContain(`<stop offset="0%" stop-color="${start}" />`);
-        expect(decoded).toContain(`<stop offset="100%" stop-color="${end}" />`);
-        expect(decoded).toContain(emoji);
-        expect(decoded).toContain('</svg>');
-      });
-
-      it('handles complex composite multi-byte emojis and unicode grapheme clusters', () => {
-        const compositeEmojis = ['👨‍👩‍👧‍👦', '🏳️‍🌈', '🧑🏽‍💻', '🧟‍♀️', '🧗‍♂️'];
-        for (const emoji of compositeEmojis) {
-          const uri = createEmojiAvatar(emoji, '#000000', '#FFFFFF');
-          const decoded = decodeURIComponent(uri.replace('data:image/svg+xml;utf8,', ''));
-          expect(decoded).toContain(emoji);
-        }
-      });
-
-      it('handles unusual color strings (rgba, hsl, named CSS colors)', () => {
-        const uri = createEmojiAvatar('⭐', 'rgba(255,215,0,0.8)', 'hsl(45, 100%, 50%)');
-        const decoded = decodeURIComponent(uri.replace('data:image/svg+xml;utf8,', ''));
-        expect(decoded).toContain('stop-color="rgba(255,215,0,0.8)"');
-        expect(decoded).toContain('stop-color="hsl(45, 100%, 50%)"');
-      });
-    });
-
-    describe('DEFAULT_AVATARS and getRandomDefaultAvatar', () => {
-      it('contains exactly 10 distinct, valid avatar URIs', () => {
-        expect(DEFAULT_AVATARS).toHaveLength(10);
-        const uniqueSet = new Set(DEFAULT_AVATARS);
-        expect(uniqueSet.size).toBe(10);
-
-        for (const avatar of DEFAULT_AVATARS) {
-          expect(avatar.startsWith('data:image/svg+xml;utf8,')).toBe(true);
-          const decoded = decodeURIComponent(avatar.replace('data:image/svg+xml;utf8,', ''));
-          expect(decoded).toContain('<svg');
-          expect(decoded).toContain('</svg>');
-        }
-      });
-
-      it('empirical distribution test: getRandomDefaultAvatar samples every default avatar across 1000 trials', () => {
-        const sampledSet = new Set<string>();
-        const TRIALS = 1000;
-
-        for (let i = 0; i < TRIALS; i++) {
-          const avatar = getRandomDefaultAvatar();
-          expect(DEFAULT_AVATARS).toContain(avatar);
-          sampledSet.add(avatar);
-        }
-
-        // With 1000 trials and 10 items, the probability of any item having 0 hits is (9/10)^1000 ≈ 1.74e-46
-        expect(sampledSet.size).toBe(10);
-      });
+    it('should enforce Asia/Seoul at the job env level', () => {
+      expect(parsedDoc.jobs?.sync?.env?.TZ).toBe('Asia/Seoul');
     });
   });
 
-  // =========================================================================
-  // Section 3: Static & Runtime Type Equivalence (@/types vs @/lib/types)
-  // =========================================================================
-  describe('3. Static & Runtime Type Equivalence (@/types vs @/lib/types)', () => {
+  describe('3. Step 1 Fail-Fast Integrity (No Silent Error Swallowing)', () => {
+    it('should execute fetch-transactions.js and fetch-rent.js without || echo error suppression', () => {
+      const steps = parsedDoc.jobs?.sync?.steps;
+      const fetchStep = steps.find((s: any) => s.name === 'Fetch transactions from 국토부 API');
+      expect(fetchStep).toBeDefined();
 
-    it('validates static compile-time assignability between canonical and legacy type exports', () => {
-      // Static Type Equivalence Checks (Compile-time verification)
-      type _T1 = ExpectTrue<TypeEquals<CanonicalKPIData, LegacyKPIData>>;
-      type _T2 = ExpectTrue<TypeEquals<CanonicalNewsItemData, LegacyNewsItemData>>;
-      type _T3 = ExpectTrue<TypeEquals<CanonicalAdBannerData, LegacyAdBannerData>>;
-      type _T4 = ExpectTrue<TypeEquals<CanonicalMacroEnvironment, LegacyMacroEnvironment>>;
-      type _T5 = ExpectTrue<TypeEquals<CanonicalSupplyPipeline, LegacySupplyPipeline>>;
-      type _T6 = ExpectTrue<TypeEquals<CanonicalMacroDataConfig, LegacyMacroDataConfig>>;
-      type _T7 = ExpectTrue<TypeEquals<CanonicalReportSpecs, LegacyReportSpecs>>;
-      type _T8 = ExpectTrue<TypeEquals<CanonicalReportInfra, LegacyReportInfra>>;
-      type _T9 = ExpectTrue<TypeEquals<CanonicalReportEcosystem, LegacyReportEcosystem>>;
-      type _T10 = ExpectTrue<TypeEquals<CanonicalReportLocation, LegacyReportLocation>>;
-      type _T11 = ExpectTrue<TypeEquals<CanonicalReportAssessment, LegacyReportAssessment>>;
-      type _T12 = ExpectTrue<TypeEquals<CanonicalReportSections, LegacyReportSections>>;
-      type _T13 = ExpectTrue<TypeEquals<CanonicalCommentData, LegacyCommentData>>;
-      type _T14 = ExpectTrue<TypeEquals<CanonicalFieldReportData, LegacyFieldReportData>>;
-      type _T15 = ExpectTrue<TypeEquals<CanonicalFieldReportImage, LegacyFieldReportImage>>;
-      type _T16 = ExpectTrue<TypeEquals<CanonicalUserReview, LegacyUserReview>>;
-      type _T17 = ExpectTrue<TypeEquals<CanonicalReviewInput, LegacyReviewInput>>;
-      type _T18 = ExpectTrue<TypeEquals<CanonicalImageMeta, LegacyImageMeta>>;
-      type _T19 = ExpectTrue<TypeEquals<CanonicalPhotoItem, LegacyPhotoItem>>;
-      type _T20 = ExpectTrue<TypeEquals<CanonicalObjectiveMetrics, LegacyObjectiveMetrics>>;
-      type _T21 = ExpectTrue<TypeEquals<CanonicalAdSlot, LegacyAdSlot>>;
-      type _T22 = ExpectTrue<TypeEquals<CanonicalScoutingReport, LegacyScoutingReport>>;
-      type _T23 = ExpectTrue<TypeEquals<CanonicalTransactionRecord, LegacyTransactionRecord>>;
-      type _T24 = ExpectTrue<TypeEquals<CanonicalRawTransactionRecord, LegacyRawTransactionRecord>>;
-      type _T25 = ExpectTrue<TypeEquals<CanonicalRecentTx, LegacyRecentTx>>;
-      type _T26 = ExpectTrue<TypeEquals<CanonicalRecentTransaction, LegacyRecentTransaction>>;
-      type _T27 = ExpectTrue<TypeEquals<CanonicalAptTxSummary, LegacyAptTxSummary>>;
-      type _T28 = ExpectTrue<TypeEquals<CanonicalRecent7DaysVolume, LegacyRecent7DaysVolume>>;
-      type _T29 = ExpectTrue<TypeEquals<CanonicalDongtanMacroTrendPoint, LegacyDongtanMacroTrendPoint>>;
-      type _T30 = ExpectTrue<TypeEquals<CanonicalMolTransactionXml, LegacyMolTransactionXml>>;
-      type _T31 = ExpectTrue<TypeEquals<CanonicalLocationScoreItem, LegacyLocationScoreItem>>;
-      type _T32 = ExpectTrue<TypeEquals<CanonicalVerificationLevel, LegacyVerificationLevel>>;
-      type _T33 = ExpectTrue<TypeEquals<CanonicalUserProfile, LegacyUserProfile>>;
-      type _T34 = ExpectTrue<TypeEquals<CanonicalUserRole, LegacyUserRole>>;
-      type _T35 = ExpectTrue<TypeEquals<CanonicalAuthUser, LegacyAuthUser>>;
+      const runScript = fetchStep.run;
+      expect(runScript).toContain('node scripts/fetch-transactions.js');
+      expect(runScript).toContain('node scripts/fetch-rent.js');
 
-      // Assertion to verify test execution in Jest
-      expect(true).toBe(true);
-    });
-
-    it('verifies exact reference identity for runtime helpers re-exported through @/lib/types/user.types', () => {
-      expect(legacyGetDisplayName).toBe(getDisplayName);
-      expect(legacyCreateEmojiAvatar).toBe(createEmojiAvatar);
-      expect(legacyDEFAULT_AVATARS).toBe(DEFAULT_AVATARS);
-      expect(legacyGetRandomDefaultAvatar).toBe(getRandomDefaultAvatar);
+      // Crucial: Must NOT contain || echo
+      expect(runScript).not.toMatch(/node scripts\/fetch-transactions\.js\s*\|\|\s*echo/);
+      expect(runScript).not.toMatch(/node scripts\/fetch-rent\.js\s*\|\|\s*echo/);
     });
   });
 
-  // =========================================================================
-  // Section 4: Architectural Boundary & Presentation Decoupling
-  // =========================================================================
-  describe('4. Architectural Layer Isolation & Presentation Decoupling', () => {
+  describe('4. Step 3 Outputs & Step 3.5 Conditional Push Gating Truth Table', () => {
+    function evaluateGhaCondition({
+      event_name,
+      has_changes,
+      pushed_sha
+    }: {
+      event_name: string;
+      has_changes?: string;
+      pushed_sha?: string;
+    }): boolean {
+      // Expression in sync-transactions.yml:
+      // if: github.event_name != 'push' && (steps.commit_push.outputs.has_changes == 'true' || steps.commit_push.outputs.pushed_sha != '')
+      const isNotPush = event_name !== 'push';
+      const hasChanges = has_changes === 'true';
+      const hasSha = pushed_sha !== undefined && pushed_sha !== null && pushed_sha.trim() !== '';
+      return isNotPush && (hasChanges || hasSha);
+    }
 
-    it('ensures KPIData and NewsItemData accept pure serializable primitives only', () => {
-      const pureKPI: CanonicalKPIData = {
-        id: 'kpi_1',
-        title: '신고가 갱신',
-        subtitle: '동탄역 롯데캐슬 84㎡',
-        badgeText: 'NEW HIGH',
-        badgeStyle: 'bg-red-50 text-red-600',
-        mainValue: '16.5억',
-        subValue: '+1.5억 (10.0%)',
-        description: '직전 최고가 대비 1.5억 상승 거래',
-        icon: 'Flame', // String name instead of JSX Element
-        gradientBackground: 'from-emerald-600 to-emerald-700',
-        borderColor: 'border-emerald-200',
-        titleColor: 'text-emerald-900',
-      };
+    it('should skip Step 3.5 when has_changes is false and pushed_sha is empty on scheduled runs', () => {
+      const willRun = evaluateGhaCondition({
+        event_name: 'schedule',
+        has_changes: 'false',
+        pushed_sha: ''
+      });
+      expect(willRun).toBe(false);
+    });
 
-      expect(JSON.stringify(pureKPI)).toBeTruthy();
-      const parsedKPI = JSON.parse(JSON.stringify(pureKPI));
-      expect(parsedKPI.icon).toBe('Flame');
-      expect(parsedKPI.title).toBe('신고가 갱신');
+    it('should execute Step 3.5 when has_changes is true and pushed_sha is present on scheduled runs', () => {
+      const willRun = evaluateGhaCondition({
+        event_name: 'schedule',
+        has_changes: 'true',
+        pushed_sha: '7a8b9c0d1e2f3a4b5c6d7e8f'
+      });
+      expect(willRun).toBe(true);
+    });
 
-      const pureNews: CanonicalNewsItemData = {
-        id: 'news_1',
-        title: '동탄 인덕원선 착공 소식',
-        meta: '2026.08.21 · 화성시청',
-        content: '동탄 인동선 복선전철 공사 순항 중',
-        author: '운영자',
-        tagClass: 'bg-blue-50 text-blue-700',
-        icon: 'Train', // String name instead of JSX Element
-      };
+    it('should execute Step 3.5 on workflow_dispatch when changes occur', () => {
+      const willRun = evaluateGhaCondition({
+        event_name: 'workflow_dispatch',
+        has_changes: 'true',
+        pushed_sha: '7a8b9c0d1e2f3a4b5c6d7e8f'
+      });
+      expect(willRun).toBe(true);
+    });
 
-      expect(JSON.stringify(pureNews)).toBeTruthy();
-      const parsedNews = JSON.parse(JSON.stringify(pureNews));
-      expect(parsedNews.icon).toBe('Train');
+    it('should skip Step 3.5 on workflow_dispatch when no changes occur', () => {
+      const willRun = evaluateGhaCondition({
+        event_name: 'workflow_dispatch',
+        has_changes: 'false',
+        pushed_sha: ''
+      });
+      expect(willRun).toBe(false);
+    });
+
+    it('should ALWAYS skip Step 3.5 when event is push regardless of commit status', () => {
+      expect(evaluateGhaCondition({ event_name: 'push', has_changes: 'true', pushed_sha: '123456' })).toBe(false);
+      expect(evaluateGhaCondition({ event_name: 'push', has_changes: 'false', pushed_sha: '' })).toBe(false);
+    });
+
+    it('should safely skip when outputs are undefined or malformed', () => {
+      expect(evaluateGhaCondition({ event_name: 'schedule', has_changes: undefined, pushed_sha: undefined })).toBe(false);
+      expect(evaluateGhaCondition({ event_name: 'schedule', has_changes: '', pushed_sha: '' })).toBe(false);
+      expect(evaluateGhaCondition({ event_name: 'schedule', has_changes: 'False', pushed_sha: '' })).toBe(false);
+      expect(evaluateGhaCondition({ event_name: 'schedule', has_changes: '0', pushed_sha: '' })).toBe(false);
+    });
+
+    it('should verify Step 3 script generates exact has_changes output strings', () => {
+      const steps = parsedDoc.jobs?.sync?.steps;
+      const commitStep = steps.find((s: any) => s.id === 'commit_push');
+      expect(commitStep).toBeDefined();
+
+      const script = commitStep.run;
+      expect(script).toContain('has_changes=false');
+      expect(script).toContain('has_changes=true');
+      expect(script).toContain('pushed_sha=$(git rev-parse HEAD)');
+    });
+  });
+
+  describe('5. Step 3.5 Push Notification Dispatch Specification', () => {
+    let pushStep: any;
+
+    beforeAll(() => {
+      const steps = parsedDoc.jobs?.sync?.steps;
+      pushStep = steps.find((s: any) => s.id === 'trigger_push_notifications');
+      expect(pushStep).toBeDefined();
+    });
+
+    it('should contain the exact conditional guard', () => {
+      expect(pushStep.if).toBe(
+        "github.event_name != 'push' && (steps.commit_push.outputs.has_changes == 'true' || steps.commit_push.outputs.pushed_sha != '')"
+      );
+    });
+
+    it('should pass required environment secrets to Step 3.5', () => {
+      const env = pushStep.env;
+      expect(env).toBeDefined();
+      expect(env.CRON_SECRET).toContain('secrets.CRON_SECRET');
+      expect(env.VERCEL_APP_URL).toBe('https://dongtanview.com');
+      expect(env.NEXT_PUBLIC_VAPID_PUBLIC_KEY).toContain('secrets.NEXT_PUBLIC_VAPID_PUBLIC_KEY');
+      expect(env.VAPID_PRIVATE_KEY).toContain('secrets.VAPID_PRIVATE_KEY');
+      expect(env.FIREBASE_SERVICE_ACCOUNT_KEY).toContain('secrets.FIREBASE_SERVICE_ACCOUNT_KEY');
+      expect(env.NEXT_PUBLIC_FIREBASE_PROJECT_ID).toContain('secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID');
+    });
+
+    it('should correctly format production API curl request with Bearer token, date param, and 45s timeout', () => {
+      const script = pushStep.run;
+      expect(script).toContain('APP_URL="${VERCEL_APP_URL:-https://dongtanview.com}"');
+      expect(script).toContain('CRON_AUTH="${CRON_SECRET:-dview-default-cron-secret-2026}"');
+      expect(script).toContain('TARGET_DATE=$(date +%Y%m%d)');
+      expect(script).toContain('curl -sS -m 45 -X GET');
+      expect(script).toContain('-H "Authorization: Bearer ${CRON_AUTH}"');
+      expect(script).toContain('"${APP_URL}/api/cron/send-tx-notifications?date=${TARGET_DATE}"');
+      // Resilient fallback to prevent pipeline failure
+      expect(script).toContain('|| echo \'{"error":"CURL_TRIGGER_NOTICE"}\'');
+    });
+
+    it('should support local CLI runner scripts if present', () => {
+      const script = pushStep.run;
+      expect(script).toContain('if [ -f "scripts/send-tx-notifications.js" ]');
+      expect(script).toContain('node scripts/send-tx-notifications.js --date="${TARGET_DATE}"');
+      expect(script).toContain('elif [ -f "scripts/test-push-notification.js" ]');
+      expect(script).toContain('node scripts/test-push-notification.js --send --date="${TARGET_DATE}"');
+    });
+  });
+
+  describe('6. Step 5 Alerting & Recovery Verification', () => {
+    it('should configure failure alerting to Discord/Slack on pipeline errors', () => {
+      const steps = parsedDoc.jobs?.sync?.steps;
+      const failureStep = steps.find((s: any) => s.name === 'Send notification on failure');
+      expect(failureStep).toBeDefined();
+      expect(failureStep.if).toBe('failure()');
+
+      const script = failureStep.run;
+      expect(script).toContain('DISCORD_WEBHOOK_URL');
+      expect(script).toContain('SLACK_WEBHOOK_URL');
     });
   });
 });

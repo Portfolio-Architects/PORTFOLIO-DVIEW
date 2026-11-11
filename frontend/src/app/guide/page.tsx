@@ -11,12 +11,13 @@ import {
   TOP_ACQUISITION_ENTRY_ROUTES,
   HIGH_CONVERSION_FLAGSHIP_APARTMENTS,
   buildGuideAptMiniPreview,
+  isTopLandingGuideSlug,
 } from '@/lib/data/guides';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
-import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 
 const GUIDE_HUB_OG_IMAGE =
   'https://dongtanview.com/api/og?title=' +
@@ -207,12 +208,20 @@ export default function GuideIndexPage() {
                   구글·ChatGPT 유입 1위 핵심 가이드 & 체류 상위 대장 단지 프리뷰
                 </h2>
               </div>
-              <Link
+              <GuideAptCtaLink
+                item={lakeEduPreview}
                 href={
                   lakeEduPreview?.href ||
                   `/apartment/${encodeURIComponent('동탄더샵레이크에듀타운')}`
                 }
-                data-testid="guide-index-lake-edutown-spotlight"
+                apartmentName={lakeEduPreview?.name || '동탄더샵레이크에듀타운'}
+                canonicalSlug={lakeEduPreview?.canonicalSlug || '동탄더샵레이크에듀타운'}
+                displayName={lakeEduPreview?.displayName || '동탄더샵레이크에듀타운'}
+                dong={lakeEduPreview?.dong || '산척동'}
+                guideSlug="guide-index"
+                placement="article_top"
+                sectionTitle="가이드 허브 상단 동탄더샵레이크에듀타운 바로가기"
+                dataTestId="guide-index-lake-edutown-spotlight"
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0 tabular-nums"
               >
                 <span>
@@ -221,7 +230,7 @@ export default function GuideIndexPage() {
                   })`}
                 </span>
                 <ArrowUpRight size={13} className="shrink-0" />
-              </Link>
+              </GuideAptCtaLink>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
@@ -293,6 +302,14 @@ export default function GuideIndexPage() {
                     <span className="font-extrabold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-0.5 rounded-full border border-emerald-500/20">
                       {article.category}
                     </span>
+                    {isTopLandingGuideSlug(article.slug) && (
+                      <span
+                        data-testid="guide-index-card-top3-badge"
+                        className="font-extrabold text-blue-700 dark:text-blue-300 bg-blue-500/10 px-2.5 py-0.5 rounded-full border border-blue-500/20"
+                      >
+                        신규 유입 TOP 3
+                      </span>
+                    )}
                     <span className="flex items-center gap-1">
                       {article.date}
                     </span>
@@ -346,10 +363,18 @@ export default function GuideIndexPage() {
                           preview?.canonicalSlug || resolveCanonicalAptSlug(aptName) || aptName;
                         const labelText = preview?.displayName || aptName;
                         return (
-                          <Link
+                          <GuideAptCtaLink
                             key={aptName}
+                            item={preview}
                             href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
-                            prefetch={false}
+                            apartmentName={preview?.name || aptName}
+                            canonicalSlug={canonicalSlug}
+                            displayName={labelText}
+                            dong={preview?.dong}
+                            guideSlug={article.slug}
+                            placement="article_bottom"
+                            sectionTitle="가이드 목록 카드 대표 단지 바로가기"
+                            dataTestId="guide-index-card-apt-cta-pill"
                             className="inline-flex items-center gap-1 text-[11px] font-bold text-blue-700 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800/50 px-2.5 py-1 rounded-lg hover:underline transition-colors tabular-nums"
                           >
                             <span>{labelText}</span>
@@ -358,7 +383,7 @@ export default function GuideIndexPage() {
                                 · {preview.latestPriceStr}
                               </span>
                             )}
-                          </Link>
+                          </GuideAptCtaLink>
                         );
                       })}
                     </div>
