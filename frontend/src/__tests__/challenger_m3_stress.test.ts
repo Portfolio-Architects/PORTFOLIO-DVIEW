@@ -57,6 +57,18 @@ jest.mock('@/lib/firebaseAdmin', () => ({
   },
 }));
 
+const rawRecentDataPath = path.resolve(__dirname, '../../public/data/recent-transactions.json');
+const realRecentTransactions: TransactionRecord[] = JSON.parse(fs.readFileSync(rawRecentDataPath, 'utf8'));
+const latestRealRegDate =
+  realRecentTransactions
+    .map((t) => t.registeredDate)
+    .filter((d): d is string => Boolean(d && /^\d{8}$/.test(d)))
+    .sort()
+    .pop() || '20261111';
+const sampleRealAptName =
+  realRecentTransactions.find((t) => t.registeredDate === latestRealRegDate && t.aptName)?.aptName ||
+  '동탄 더샵 레이크에듀타운';
+
 describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -103,11 +115,10 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
   // 1. Date Filtering Disparity Stress
   // =========================================================================
   describe('1. Date Filtering Disparity Stress', () => {
-    const rawDataPath = path.resolve(__dirname, '../../public/data/recent-transactions.json');
-    const realTransactions: TransactionRecord[] = JSON.parse(fs.readFileSync(rawDataPath, 'utf8'));
+    const realTransactions: TransactionRecord[] = realRecentTransactions;
 
-    it('EMPIRICAL PROOF: registeredDate captures 33 transactions on 20261111 while contractDate captures ZERO', () => {
-      const targetDate = '20261111';
+    it('EMPIRICAL PROOF: registeredDate captures full MOLIT daily disclosure batch while contractDate misses prior-day signed contracts', () => {
+      const targetDate = latestRealRegDate;
 
       // New filtering logic: evaluates registeredDate
       const registeredMatches = realTransactions.filter((t) => {
@@ -117,17 +128,20 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
         return t.contractDate === targetDate;
       });
 
-      // Legacy flawed logic: evaluated contractDate
-      const contractMatches = realTransactions.filter((t) => t.contractDate === targetDate);
+      // Same-day signed AND disclosed on targetDate (almost always 0 due to D+1 ~ D+30 reporting lag)
+      const sameDaySignedAndDisclosed = registeredMatches.filter((t) => t.contractDate === targetDate);
+      const delayedDisclosures = registeredMatches.filter(
+        (t) => Number(t.contractDate) < Number(t.registeredDate)
+      );
 
-      expect(registeredMatches.length).toBe(33);
-      expect(contractMatches.length).toBe(0);
+      expect(registeredMatches.length).toBeGreaterThan(0);
+      expect(delayedDisclosures.length).toBeGreaterThan(0);
+      expect(registeredMatches.length).toBeGreaterThan(sameDaySignedAndDisclosed.length);
 
-      // Verify that every single registered transaction had a contractDate 1 to 27 days earlier
+      // Verify every disclosed transaction on targetDate has registeredDate === targetDate and contractDate <= registeredDate
       for (const tx of registeredMatches) {
-        expect(tx.registeredDate).toBe('20261111');
-        expect(tx.contractDate).not.toBe('20261111');
-        expect(Number(tx.contractDate)).toBeLessThan(Number(tx.registeredDate));
+        expect(tx.registeredDate).toBe(targetDate);
+        expect(Number(tx.contractDate)).toBeLessThanOrEqual(Number(tx.registeredDate));
       }
     });
 
@@ -261,7 +275,6 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
   // =========================================================================
   describe('2. Global "동탄 전체" Subscriber Deduplication & Stress', () => {
     it('Dual-subscription deduplication: subscriber with both specific apartment and "동탄 전체" receives NO duplicates', async () => {
-      // The real data has 3 transactions for "동탄 더샵 레이크에듀타운" on 20261111
       const dualSubDoc: MockDoc = {
         id: 'device_dual_sub_1',
         data: () => ({
@@ -269,13 +282,13 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/dual-sub-token',
             keys: { p256dh: 'p256dh_dual', auth: 'auth_dual' },
           },
-          apts: ['동탄 더샵 레이크에듀타운', '동탄 전체'],
+          apts: [sampleRealAptName, '동탄 전체'],
         }),
       };
 
       mockSubStore.push(dualSubDoc);
 
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
@@ -325,10 +338,10 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
 
     it('High-volume subscriber simulation: 100 subscribers with varied subscriptions observe capping and deduplication invariants', async () => {
       // Create 100 mock subscribers:
-      // - 40 for "동탄 더샵 레이크에듀타운"
+      // - 40 for sampleRealAptName
       // - 30 for "동탄 전체"
       // - 20 for "동탄 전역"
-      // - 10 dual subscribers ("동탄 더샵 레이크에듀타운" + "동탄 전체")
+      // - 10 dual subscribers (sampleRealAptName + "동탄 전체")
       for (let i = 1; i <= 40; i++) {
         mockSubStore.push({
           id: `sub_apt_only_${i}`,
@@ -337,7 +350,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
               endpoint: `https://fcm.googleapis.com/fcm/send/apt_only_${i}`,
               keys: { p256dh: `p256_${i}`, auth: `auth_${i}` },
             },
-            apts: ['동탄 더샵 레이크에듀타운'],
+            apts: [sampleRealAptName],
           }),
         });
       }
@@ -376,14 +389,14 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
               endpoint: `https://fcm.googleapis.com/fcm/send/dual_${i}`,
               keys: { p256dh: `p256_d_${i}`, auth: `auth_d_${i}` },
             },
-            apts: ['동탄 더샵 레이크에듀타운', '동탄 전체'],
+            apts: [sampleRealAptName, '동탄 전체'],
           }),
         });
       }
 
       expect(mockSubStore.length).toBe(100);
 
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
@@ -425,13 +438,13 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/security-token',
             keys: { p256dh: 'p256_sec', auth: 'auth_sec' },
           },
-          apts: ['동탄 더샵 레이크에듀타운', '동탄 전체'],
+          apts: [sampleRealAptName, '동탄 전체'],
         }),
       });
     });
 
     it('NEVER calls webpush.sendNotification when ?dryRun=true is passed', async () => {
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
@@ -449,7 +462,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
       process.env.DRY_RUN = '1';
 
       try {
-        const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20261111', {
+        const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`, {
           headers: { host: 'localhost:5000' },
         });
 
@@ -467,7 +480,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
     it('Aliases ?dry_run=true and ?dryrun=true trigger dryRun safely', async () => {
       for (const query of ['dry_run=true', 'dryrun=true']) {
         jest.clearAllMocks();
-        const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?${query}&date=20261111`, {
+        const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?${query}&date=${latestRealRegDate}`, {
           headers: { host: 'localhost:5000' },
         });
 

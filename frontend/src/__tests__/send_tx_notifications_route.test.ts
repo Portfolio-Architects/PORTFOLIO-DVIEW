@@ -9,6 +9,8 @@
  */
 
 import { NextRequest } from 'next/server';
+import path from 'path';
+import fs from 'fs';
 import {
   selectGlobalHighlightTransactions,
   isValidPushSubscription,
@@ -18,6 +20,19 @@ import {
 } from '../app/api/cron/send-tx-notifications/route';
 import webpush from 'web-push';
 import { adminDb as db } from '@/lib/firebaseAdmin';
+
+const realRecentTransactions: TransactionRecord[] = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, '../../public/data/recent-transactions.json'), 'utf8')
+);
+const latestRealRegDate =
+  realRecentTransactions
+    .map((t) => t.registeredDate)
+    .filter((d): d is string => Boolean(d && /^\d{8}$/.test(d)))
+    .sort()
+    .pop() || '20261111';
+const sampleRealAptName =
+  realRecentTransactions.find((t) => t.registeredDate === latestRealRegDate && t.aptName)?.aptName ||
+  '동탄 더샵 레이크에듀타운';
 
 // Mock dependencies
 jest.mock('web-push', () => ({
@@ -393,7 +408,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/device1',
             keys: { p256dh: 'key1', auth: 'auth1' },
           },
-          apts: ['동탄 더샵 레이크에듀타운'],
+          apts: [sampleRealAptName],
         }),
       });
       mockPushSubscriptions.push({
@@ -407,7 +422,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
         }),
       });
 
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
@@ -433,7 +448,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/active-device',
             keys: { p256dh: 'p256-active', auth: 'auth-active' },
           },
-          apts: ['동탄 더샵 레이크에듀타운'],
+          apts: [sampleRealAptName],
         }),
       });
 
@@ -444,7 +459,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/expired-device',
             keys: { p256dh: 'p256-expired', auth: 'auth-expired' },
           },
-          apts: ['동탄 더샵 레이크에듀타운'],
+          apts: [sampleRealAptName],
         }),
       });
 
@@ -458,7 +473,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
         return Promise.resolve({ statusCode: 201 });
       });
 
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
@@ -483,7 +498,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/rate-limited',
             keys: { p256dh: 'p256-rl', auth: 'auth-rl' },
           },
-          apts: ['동탄 더샵 레이크에듀타운'],
+          apts: [sampleRealAptName],
         }),
       });
 
@@ -493,7 +508,7 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
         return Promise.reject(err);
       });
 
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
@@ -510,7 +525,6 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
     });
 
     it('should deduplicate when user is subscribed to both specific apartment and global', async () => {
-      // Device subscribed to both "동탄 더샵 레이크에듀타운" and "동탄 전체"
       mockPushSubscriptions.push({
         id: 'sub_double_listener',
         data: () => ({
@@ -518,11 +532,11 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
             endpoint: 'https://fcm.googleapis.com/fcm/send/dual-listener',
             keys: { p256dh: 'p256-dual', auth: 'auth-dual' },
           },
-          apts: ['동탄 더샵 레이크에듀타운', '동탄 전체'],
+          apts: [sampleRealAptName, '동탄 전체'],
         }),
       });
 
-      const req = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=20261111', {
+      const req = new NextRequest(`http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${latestRealRegDate}`, {
         headers: { host: 'localhost:5000' },
       });
 
