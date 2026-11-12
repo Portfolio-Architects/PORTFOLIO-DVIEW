@@ -132,13 +132,17 @@ export async function GET(req: NextRequest) {
     const isDryRunEnv = process.env.DRY_RUN === '1' || process.env.DRY_RUN === 'true';
     const isDryRun = isDryRunParam || isDryRunEnv;
 
-    // 2. Authorization Verification
+    // 2. Authorization Verification (supports Bearer CRON_SECRET, local dev, and native Vercel Cron when CRON_SECRET is unset)
     const authHeader = req.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || 'dview-default-cron-secret-2026';
+    const configuredSecret = process.env.CRON_SECRET?.trim();
+    const cronSecret = configuredSecret || 'dview-default-cron-secret-2026';
     const host = req.headers.get('host') || '';
     const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
     const queryAuth = url.searchParams.get('auth');
-    const isAuthorized = isLocal || authHeader === `Bearer ${cronSecret}` || queryAuth === cronSecret;
+    const ua = (req.headers.get('user-agent') || '').toLowerCase();
+    const xVercelCron = (req.headers.get('x-vercel-cron') || '').toLowerCase();
+    const isVercelNativeCron = !configuredSecret && (ua.startsWith('vercel-cron/') || xVercelCron === '1' || xVercelCron === 'true');
+    const isAuthorized = isLocal || authHeader === `Bearer ${cronSecret}` || queryAuth === cronSecret || isVercelNativeCron;
 
     if (!isAuthorized) {
       logger.warn('SendTxNotificationsAPI.GET', 'Unauthorized access attempt blocked');
@@ -186,6 +190,57 @@ export async function GET(req: NextRequest) {
       return t.contractDate === targetDate;
     });
 
+    // 5.1 Live Firestore Fallback if static JSON rebuild is still in progress at 07:00 KST
+    if (targetTx.length === 0) {
+      try {
+        const liveSnap = await firestore
+          .collection('transactions')
+          .where('registeredDate', '==', targetDate)
+          .get();
+        if (!liveSnap.empty) {
+          const liveItems: TransactionRecord[] = [];
+          for (const doc of liveSnap.docs) {
+            const d = doc.data() as Record<string, unknown>;
+            const dealType = String(d.dealType || '매매');
+            if (dealType === '전세' || dealType === '월세') continue;
+            const cancelDate = String(d.cancelDate || d.cdealDay || '').trim();
+            const cdealType = String(d.cdealType || '').trim();
+            if (cdealType === 'O' || cdealType === '해제' || (cancelDate && cancelDate !== '-' && cancelDate !== 'null')) continue;
+
+            const priceMan = Number(d.price || 0);
+            if (!priceMan || priceMan <= 0) continue;
+            const eok = Math.floor(priceMan / 10000);
+            const rem = priceMan % 10000;
+            const priceEok = eok === 0 ? `${priceMan.toLocaleString()}만` : rem === 0 ? `${eok}억` : `${eok}억 ${rem.toLocaleString()}만`;
+
+            liveItems.push({
+              aptName: String(d.aptName || ''),
+              txKey: String(d._key || doc.id || ''),
+              dong: String(d.dong || ''),
+              contractDate: String(d.contractDate || ''),
+              registeredDate: String(d.registeredDate || targetDate),
+              priceVal: priceMan / 10000,
+              priceEok,
+              area: Number(d.area || 0),
+              areaPyeong: Number(d.areaPyeong || 0),
+              floor: Number(d.floor || 0),
+              dealType,
+              isNewHigh: Boolean(d.isNewHigh),
+            });
+          }
+          if (liveItems.length > 0) {
+            targetTx = liveItems;
+            logger.info('SendTxNotificationsAPI.GET', 'Loaded today registered transactions from live Firestore fallback', {
+              targetDate,
+              count: liveItems.length,
+            });
+          }
+        }
+      } catch (liveErr) {
+        logger.warn('SendTxNotificationsAPI.GET', 'Live Firestore fallback skipped', { targetDate }, liveErr as Error);
+      }
+    }
+
     // Debug mode fallback slice
     if (targetTx.length === 0 && isDebug && !forceDate) {
       targetTx = allTx.slice(0, 3);
@@ -222,10 +277,40 @@ export async function GET(req: NextRequest) {
     // 7. Select Global Highlights for "동탄 전체" subscribers
     const globalHighlights = selectGlobalHighlightTransactions(targetTx);
 
-    // 8. Dispatch Preparation & Deduplication Invariants
+    // 8. Dispatch Preparation & Persistent Daily Deduplication Invariants
     const deliveredKeys = new Set<string>();
     const deviceSentCount = new Map<string, number>();
+    const persistedKeys = new Set<string>();
+    const persistedDeviceCounts = new Map<string, number>();
     const MAX_NOTIFICATIONS_PER_DEVICE = 2; // Strict anti-spam capping
+
+    if (!isDryRun) {
+      try {
+        const logDocRef = firestore.collection('push_dispatch_logs').doc(targetDate) as unknown as {
+          get?: () => Promise<{ exists?: boolean; data?: () => Record<string, unknown> | undefined }>;
+        };
+        if (typeof logDocRef?.get === 'function') {
+          const logSnap = await logDocRef.get();
+          if (logSnap?.exists && typeof logSnap.data === 'function') {
+            const logData = logSnap.data() || {};
+            const prevKeys = Array.isArray(logData.deliveredKeys) ? (logData.deliveredKeys as string[]) : [];
+            prevKeys.forEach((k) => {
+              deliveredKeys.add(k);
+              persistedKeys.add(k);
+            });
+            const prevCounts = (logData.deviceCounts as Record<string, number>) || {};
+            Object.entries(prevCounts).forEach(([docId, cnt]) => {
+              if (typeof cnt === 'number') {
+                deviceSentCount.set(docId, cnt);
+                persistedDeviceCounts.set(docId, cnt);
+              }
+            });
+          }
+        }
+      } catch (dedupReadErr) {
+        logger.warn('SendTxNotificationsAPI.GET', 'Skipped persistent deduplication read', { targetDate }, dedupReadErr as Error);
+      }
+    }
 
     interface DispatchTask {
       docId: string;
@@ -422,6 +507,8 @@ export async function GET(req: NextRequest) {
           try {
             await webpush.sendNotification(task.subscription, task.payload);
             totalNotificationsSent++;
+            persistedKeys.add(task.deliveryKey);
+            persistedDeviceCounts.set(task.docId, (persistedDeviceCounts.get(task.docId) || 0) + 1);
           } catch (err: unknown) {
             const errorObj = err as { statusCode?: number };
             const statusCode = typeof errorObj?.statusCode === 'number' ? errorObj.statusCode : undefined;
@@ -448,6 +535,27 @@ export async function GET(req: NextRequest) {
           }
         })
       );
+    }
+
+    if (totalNotificationsSent > 0) {
+      try {
+        const logDocRef = firestore.collection('push_dispatch_logs').doc(targetDate) as unknown as {
+          set?: (data: Record<string, unknown>, opts?: { merge?: boolean }) => Promise<unknown>;
+        };
+        if (typeof logDocRef?.set === 'function') {
+          await logDocRef.set(
+            {
+              targetDate,
+              deliveredKeys: Array.from(persistedKeys),
+              deviceCounts: Object.fromEntries(persistedDeviceCounts),
+              updatedAt: new Date().toISOString(),
+            },
+            { merge: true }
+          );
+        }
+      } catch (dedupWriteErr) {
+        logger.warn('SendTxNotificationsAPI.GET', 'Skipped persistent deduplication write', { targetDate }, dedupWriteErr as Error);
+      }
     }
 
     logger.info('SendTxNotificationsAPI.GET', 'Push notification run finished', {

@@ -295,8 +295,8 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    // 2. Determine months to sync (supports optional ?ym=YYYYMM or defaults to 3 months M~M-2)
-    const now = new Date();
+    // 2. Determine months to sync in KST (supports optional ?ym=YYYYMM; weekday 2 months M~M-1, Sunday 3 months M~M-2)
+    const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
     const monthsToSync = new Set<string>();
     const ymParam = (request.nextUrl.searchParams.get('ym') || '').trim();
     if (ymParam) {
@@ -307,9 +307,10 @@ export async function GET(request: NextRequest) {
       }
       validTokens.forEach((m) => monthsToSync.add(m));
     } else {
-      for (let i = 0; i < 3; i++) {
-        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-        monthsToSync.add(`${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}`);
+      const monthSpan = kstNow.getUTCDay() === 0 ? 3 : 2;
+      for (let i = 0; i < monthSpan; i++) {
+        const d = new Date(Date.UTC(kstNow.getUTCFullYear(), kstNow.getUTCMonth() - i, 1));
+        monthsToSync.add(`${d.getUTCFullYear()}${String(d.getUTCMonth() + 1).padStart(2, '0')}`);
       }
     }
 
@@ -848,28 +849,33 @@ export async function GET(request: NextRequest) {
       syncLog.push('Vercel Deploy Hook Skipped (skipDeploy=1)');
     }
 
-    // 6. Trigger Web Push Notifications for New Highs if there are new transactions
+    // 6. Trigger PWA Web Push Notifications (deferred before 07:00 KST to dedicated 07:00 KST cron)
     if (totalNew > 0) {
-      try {
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:5000';
-        const pushRes = await resilientFetch(`${appUrl}/api/push/notify-new-high`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({}),
-          timeoutMs: 5000,
-          retries: 2,
-        });
-        if (pushRes.ok) {
-          const pushResult = await pushRes.json();
-          syncLog.push(`Web Push Triggered: ${JSON.stringify(pushResult)}`);
-          logger.info('SyncTransactionsAPI.GET', 'Web Push Triggered successfully', { result: pushResult });
-        } else {
-          syncLog.push(`Web Push Trigger Failed: HTTP ${pushRes.status}`);
-          logger.warn('SyncTransactionsAPI.GET', 'Web Push Trigger Failed', { status: pushRes.status });
+      const currentKstHour = kstNow.getUTCHours();
+      if (currentKstHour < 7) {
+        syncLog.push(`Web Push Deferred to 07:00 KST morning cron (current KST hour: ${currentKstHour})`);
+      } else {
+        try {
+          const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com').replace(/\/$/, '');
+          const cronAuth = process.env.CRON_SECRET?.trim() || DEFAULT_CRON_SECRET;
+          const pushRes = await resilientFetch(`${appUrl}/api/cron/send-tx-notifications`, {
+            method: 'GET',
+            headers: { Authorization: `Bearer ${cronAuth}` },
+            timeoutMs: 8000,
+            retries: 1,
+          });
+          if (pushRes.ok) {
+            const pushResult = await pushRes.json();
+            syncLog.push(`Web Push Triggered: ${JSON.stringify(pushResult)}`);
+            logger.info('SyncTransactionsAPI.GET', 'Web Push Triggered successfully', { result: pushResult });
+          } else {
+            syncLog.push(`Web Push Trigger Failed: HTTP ${pushRes.status}`);
+            logger.warn('SyncTransactionsAPI.GET', 'Web Push Trigger Failed', { status: pushRes.status });
+          }
+        } catch (err) {
+          syncLog.push(`Web Push Trigger Error: ${(err as Error).message}`);
+          logger.error('SyncTransactionsAPI.GET', 'Web Push Trigger Error', {}, err as Error);
         }
-      } catch (err) {
-        syncLog.push(`Web Push Trigger Error: ${(err as Error).message}`);
-        logger.error('SyncTransactionsAPI.GET', 'Web Push Trigger Error', {}, err as Error);
       }
     }
 

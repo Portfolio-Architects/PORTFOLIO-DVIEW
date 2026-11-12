@@ -1541,15 +1541,33 @@ describe('D-VIEW Data Pipeline Integration Test Suite', () => {
       expect(workflowContent).not.toContain('12 9 * * *');
     });
 
-    it('should remove crons block from vercel.json and maintain valid configuration syntax', () => {
+    it('should configure Hobby-safe once-daily pre-07:00 KST crons in vercel.json without query strings', () => {
       const vercelJsonPath = path.resolve(__dirname, '../../vercel.json');
       expect(fs.existsSync(vercelJsonPath)).toBe(true);
 
       const vercelRaw = fs.readFileSync(vercelJsonPath, 'utf8');
       const vercelConfig = JSON.parse(vercelRaw);
 
-      // crons block must be completely removed
-      expect(vercelConfig.crons).toBeUndefined();
+      // Native Vercel crons must guarantee pre-07:00 KST sync + 07:00 KST push on Hobby plan
+      expect(Array.isArray(vercelConfig.crons)).toBe(true);
+      expect(vercelConfig.crons).toEqual([
+        { path: '/api/cron/sync-transactions', schedule: '35 20 * * *' },
+        { path: '/api/cron/sync-transactions-catchup', schedule: '15 21 * * *' },
+        { path: '/api/cron/send-tx-notifications', schedule: '0 22 * * *' },
+      ]);
+
+      for (const cron of vercelConfig.crons) {
+        // Hobby plan forbids query params in cron path and requires once-daily fixed hour/minute
+        expect(cron.path).not.toContain('?');
+        expect(cron.schedule).toMatch(/^\d{1,2} \d{1,2} \* \* \*$/);
+      }
+
+      // Catch-up route file must exist and delegate cleanly
+      const catchupRoutePath = path.resolve(
+        __dirname,
+        '../app/api/cron/sync-transactions-catchup/route.ts'
+      );
+      expect(fs.existsSync(catchupRoutePath)).toBe(true);
 
       // Core deployment settings must remain intact
       expect(vercelConfig.regions).toEqual(['icn1']);

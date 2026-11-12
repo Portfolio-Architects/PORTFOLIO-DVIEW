@@ -548,6 +548,126 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       expect(json.data.txAnalyzedCount).toBe(0);
       expect(json.data.sentCount).toBe(0);
     });
+
+    it('should authorize native Vercel Cron header when CRON_SECRET is unset and block it when CRON_SECRET is set', async () => {
+      const prevSecret = process.env.CRON_SECRET;
+      try {
+        delete process.env.CRON_SECRET;
+        const allowedReq = new NextRequest('https://dongtanview.com/api/cron/send-tx-notifications?dryRun=true&date=19990101', {
+          headers: {
+            host: 'dongtanview.com',
+            'user-agent': 'vercel-cron/1.0',
+          },
+        });
+        const allowedRes = await GET(allowedReq);
+        expect(allowedRes.status).toBe(200);
+
+        process.env.CRON_SECRET = 'custom-prod-secret';
+        const blockedReq = new NextRequest('https://dongtanview.com/api/cron/send-tx-notifications?dryRun=true&date=19990101', {
+          headers: {
+            host: 'dongtanview.com',
+            'user-agent': 'vercel-cron/1.0',
+          },
+        });
+        const blockedRes = await GET(blockedReq);
+        expect(blockedRes.status).toBe(401);
+      } finally {
+        if (prevSecret === undefined) {
+          delete process.env.CRON_SECRET;
+        } else {
+          process.env.CRON_SECRET = prevSecret;
+        }
+      }
+    });
+
+    it('should fall back to live Firestore transactions when static recent-transactions.json lacks today date and enforce persistent daily deduplication', async () => {
+      const persistedLogs = new Map<string, Record<string, unknown>>();
+      mockPushSubscriptions.push({
+        id: 'sub_live_fallback_1',
+        data: () => ({
+          subscription: {
+            endpoint: 'https://fcm.googleapis.com/fcm/send/live-fallback-device',
+            keys: { p256dh: 'p256-live', auth: 'auth-live' },
+          },
+          apts: ['동탄역 롯데캐슬'],
+        }),
+      });
+
+      (db?.collection as jest.Mock).mockImplementation((colName: string) => ({
+        where: jest.fn((field: string, op: string, value: unknown) => ({
+          get: jest.fn().mockImplementation(async () => {
+            if (colName === 'transactions' && field === 'registeredDate' && value === '20991231') {
+              return {
+                empty: false,
+                size: 1,
+                docs: [
+                  {
+                    id: '동탄역 롯데캐슬_209912_15_84.9_168000_25',
+                    data: () => ({
+                      aptName: '동탄역 롯데캐슬',
+                      _key: '동탄역 롯데캐슬_209912_15_84.9_168000_25',
+                      dong: '오산동',
+                      contractDate: '20991215',
+                      registeredDate: '20991231',
+                      price: 168000,
+                      area: 84.9,
+                      areaPyeong: 34,
+                      floor: 25,
+                      dealType: '중개거래',
+                      isNewHigh: true,
+                    }),
+                  },
+                ],
+              };
+            }
+            if (colName === 'push_subscriptions') {
+              const matched = mockPushSubscriptions.filter((doc) => {
+                const apts = doc.data().apts as string[] | undefined;
+                if (!Array.isArray(apts)) return false;
+                if (op === 'array-contains') return apts.includes(value as string);
+                if (op === 'array-contains-any') return apts.some((a) => (value as string[]).includes(a));
+                return false;
+              });
+              return { empty: matched.length === 0, size: matched.length, docs: matched };
+            }
+            return { empty: true, size: 0, docs: [] };
+          }),
+        })),
+        doc: jest.fn((docId: string) => ({
+          delete: mockDeleteDoc,
+          get: jest.fn().mockImplementation(async () => ({
+            exists: persistedLogs.has(docId),
+            data: () => persistedLogs.get(docId),
+          })),
+          set: jest.fn().mockImplementation(async (data: Record<string, unknown>) => {
+            persistedLogs.set(docId, data);
+          }),
+        })),
+      }));
+
+      (webpush.sendNotification as jest.Mock).mockResolvedValue({ statusCode: 201 });
+
+      // 1st invocation at 07:00 KST: loads from Firestore fallback, sends 1 push, persists log
+      const req1 = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20991231', {
+        headers: { host: 'localhost:5000' },
+      });
+      const res1 = await GET(req1);
+      const json1 = await res1.json();
+      expect(res1.status).toBe(200);
+      expect(json1.data.txAnalyzedCount).toBe(1);
+      expect(json1.data.sentCount).toBe(1);
+      expect(persistedLogs.has('20991231')).toBe(true);
+
+      // 2nd invocation later same day (e.g. delayed GitHub Actions run): deduplicated -> 0 sent!
+      const req2 = new NextRequest('http://localhost:5000/api/cron/send-tx-notifications?date=20991231', {
+        headers: { host: 'localhost:5000' },
+      });
+      const res2 = await GET(req2);
+      const json2 = await res2.json();
+      expect(res2.status).toBe(200);
+      expect(json2.data.sentCount).toBe(0);
+      expect(webpush.sendNotification).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('5. Service Worker URL Resolution Specification (sw.js push event contract)', () => {
