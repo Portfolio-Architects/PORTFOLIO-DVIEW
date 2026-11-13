@@ -257,11 +257,18 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
   });
 
   it('6. prevents corrupted price strings ("0억", "0만억", "5억3,559억", "9,991만억") on real monthly-rent complexes where aptSummary exists but pyeongSummaries is empty, and enforces sub-360px min-w-0 containment', async () => {
-    for (const [aptName, expectedRentStr] of [
-      ['동탄숨마데시앙', '5억3,559'],
-      ['동탄2롯데캐슬', '2억2,028'],
-      ['화성동탄2엘에이치35단지3511-15', '8,990만'],
+    const txSummaryRaw = JSON.parse(
+      fs.readFileSync(path.resolve(__dirname, '../../public/data/tx-summary.json'), 'utf8')
+    );
+    const txSummary = txSummaryRaw.summary || txSummaryRaw;
+
+    for (const aptName of [
+      '동탄숨마데시앙',
+      '동탄2롯데캐슬',
+      '화성동탄2엘에이치35단지3511-15',
     ] as const) {
+      const expectedRentStr = String(txSummary[aptName]?.latestRentDepositEok || '');
+      expect(expectedRentStr).toMatch(/^(\d+억([\d,]+)?|[\d,]+만)$/);
       const jsx = await ApartmentPage({
         params: Promise.resolve({ aptName: encodeURIComponent(aptName) }),
       });

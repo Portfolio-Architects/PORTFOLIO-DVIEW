@@ -947,7 +947,10 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         undefined,
         'https://dongtanview.com'
       );
-      expect(String(lotteMeta.title)).toContain('26억');
+      expect(lotteData.aptSummary?.latestPriceEok).toBeTruthy();
+      expect(String(lotteMeta.title).replace(/\s+/g, '')).toContain(
+        lotteData.aptSummary!.latestPriceEok
+      );
       expect(lotteData.pyeongSummaries.length).toBe(3);
       expect(String(lotteMeta.title)).not.toContain('평 외');
 
@@ -2047,6 +2050,11 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       const txSummary = await getTxSummaryData();
 
       // 1. Representative complexes: 동탄역 시범 리슈빌 & 동탄역 롯데캐슬
+      const richevilleRaw = txSummary['동탄역시범리슈빌아파트'];
+      expect(richevilleRaw).toBeDefined();
+      expect(richevilleRaw.latestPriceEok).toMatch(/^(\d+억([\d,]+)?|[\d,]+만)$/);
+      expect(richevilleRaw.latestRentDepositEok).toMatch(/^(\d+억([\d,]+)?|[\d,]+만)$/);
+
       const richeville = buildGuideAptMiniPreview('동탄역시범리슈빌아파트', txSummary);
       expect(richeville).not.toBeNull();
       expect(richeville?.displayName).toBe('동탄역 시범 리슈빌');
@@ -2054,14 +2062,28 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(richeville?.dong).toBe('청계동');
       expect(richeville?.zoneId).toBe('community');
       expect(richeville?.latestPrice).toBeGreaterThan(0);
-      expect(richeville?.latestPriceStr).toBe('16억8,000');
-      expect(richeville?.latestRentStr).toBe('7억1,455');
-      expect(richeville?.jeonseRatio).toBe(44);
-      expect(richeville?.perValue).toBe('2.28');
+      expect(richeville?.latestPriceStr).toBe(richevilleRaw.latestPriceEok);
+      expect(richeville?.latestRentStr).toBe(richevilleRaw.latestRentDepositEok);
+
+      const richevilleSalesBase =
+        richevilleRaw.avg1MPrice || richevilleRaw.avg3MPrice || richevilleRaw.latestPrice;
+      const richevilleRentBase =
+        richevilleRaw.avg1MRentDeposit ||
+        richevilleRaw.avg3MRentDeposit ||
+        richevilleRaw.latestRentDeposit ||
+        0;
+      expect(richeville?.jeonseRatio).toBe(
+        Math.round((richevilleRentBase / richevilleSalesBase) * 100)
+      );
+      expect(richeville?.perValue).toBe((richevilleSalesBase / richevilleRentBase).toFixed(2));
       expect(richeville?.txCount).toBeGreaterThanOrEqual(350);
       expect(richeville?.href).toBe(
         `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
       );
+
+      const lotteCastleRaw = txSummary['동탄역롯데캐슬'];
+      expect(lotteCastleRaw).toBeDefined();
+      expect(lotteCastleRaw.latestPriceEok).toMatch(/^(\d+억([\d,]+)?|[\d,]+만)$/);
 
       const lotteCastle = buildGuideAptMiniPreview('동탄역롯데캐슬', txSummary);
       expect(lotteCastle).not.toBeNull();
@@ -2069,7 +2091,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       expect(lotteCastle?.canonicalSlug).toBe('동탄역롯데캐슬');
       expect(lotteCastle?.dong).toBe('여울동');
       expect(lotteCastle?.zoneId).toBe('gbcx');
-      expect(lotteCastle?.latestPriceStr).toBe('26억2,000');
+      expect(lotteCastle?.latestPriceStr).toBe(lotteCastleRaw.latestPriceEok);
       expect(lotteCastle?.txCount).toBeGreaterThan(0);
 
       // Spaced alias resolution works identically
@@ -2242,8 +2264,8 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
         if (article.slug === 'dongtan-1-vs-2-comparison') {
           expect(bodyEl!.textContent).toContain('동탄역 시범 리슈빌');
           expect(bodyEl!.textContent).toContain('동탄역 롯데캐슬');
-          expect(bodyEl!.textContent).toContain('16억8,000');
-          expect(bodyEl!.textContent).toContain('26억2,000');
+          expect(bodyEl!.textContent).toContain(txSummary['동탄역시범리슈빌아파트'].latestPriceEok);
+          expect(bodyEl!.textContent).toContain(txSummary['동탄역롯데캐슬'].latestPriceEok);
 
           expect(bottomSection!.textContent).toContain('동탄역 시범 리슈빌');
           expect(bottomSection!.textContent).toContain('동탄역 롯데캐슬');
@@ -2366,7 +2388,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
           `/apartment/${encodeURIComponent('동탄역시범리슈빌아파트')}`
         );
         expect(cardEl.textContent).toContain('동탄역 시범 리슈빌');
-        expect(cardEl.textContent).toContain('16억8,000');
+        expect(cardEl.textContent).toContain(richeville.latestPriceStr);
         expect(cardEl.textContent).toContain('청계동');
 
         // Prevent jsdom navigation warning on anchor click while allowing React onClick handler to run
