@@ -239,12 +239,29 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
     }
   }
 
-  const baseSaleTxCount = Number(baseMarketStats?.saleTxCount || 0);
+  const byDong = byDongRaw?.byDong;
+  const rawAptCountFromMarketStats = Number(baseMarketStats?.apartmentCount || 0);
+  const aggregatedAptCount =
+    byDong && typeof byDong === 'object'
+      ? Object.values(byDong).reduce((n, list) => n + (Array.isArray(list) ? list.length : 0), 0)
+      : 0;
+  const derivedApartmentCount =
+    rawAptCountFromMarketStats > 0
+      ? rawAptCountFromMarketStats
+      : aggregatedAptCount > 0
+        ? aggregatedAptCount
+        : undefined;
+
+  const rawSaleTxCount = Number(baseMarketStats?.saleTxCount || 0);
+  const baseSaleTxCount =
+    rawSaleTxCount > 0
+      ? rawSaleTxCount
+      : Object.values(baseSummary).reduce((n, s) => n + (Number(s?.txCount) || 0), 0);
+
   const rawDocs = await loadCachedDeltaDocs(baselineRegisteredDate);
 
   // Build apartment name -> canonical txKey lookup
   const nameToTxKey = new Map<string, string>();
-  const byDong = byDongRaw?.byDong;
   if (byDong && typeof byDong === 'object') {
     for (const apts of Object.values(byDong)) {
       if (!Array.isArray(apts)) continue;
@@ -395,11 +412,17 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
     (max, t) => (t.contractDate > max ? t.contractDate : max),
     ''
   );
-  const baseContract = String(baseMarketStats?.latestContractDate || '');
+  let baseContract = cleanYmd(baseMarketStats?.latestContractDate);
+  if (!baseContract && Array.isArray(baseRecentTransactions)) {
+    for (const tx of baseRecentTransactions) {
+      const cDate = cleanYmd(tx?.contractDate);
+      if (cDate > baseContract) baseContract = cDate;
+    }
+  }
   const latestContractDate =
     maxDeltaContract && maxDeltaContract > baseContract
       ? maxDeltaContract
-      : (baseMarketStats?.latestContractDate ?? null);
+      : (baseContract || null);
 
   const combinedTodaySales = [
     ...deltaTransactions.filter((t) => cleanYmd(t.registeredDate) === todayYmd),
@@ -436,7 +459,7 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
     hasDelta,
     baselineRegisteredDate,
     marketStats: {
-      apartmentCount: baseMarketStats?.apartmentCount,
+      apartmentCount: derivedApartmentCount,
       saleTxCount: baseSaleTxCount + deltaTransactions.length,
       latestContractDate,
       latestRegisteredDate,

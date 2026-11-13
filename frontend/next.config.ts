@@ -263,6 +263,7 @@ const nextConfig: NextConfig = {
 
   outputFileTracingIncludes: {
     '/': [
+      './public/data/market-stats.json',
       './public/data/tx-summary.json',
       './public/data/macro-trend.json',
       './public/data/recent-transactions.json',
@@ -271,6 +272,25 @@ const nextConfig: NextConfig = {
       './public/data/location-scores.json',
     ],
     '/overview': [
+      './public/data/market-stats.json',
+      './public/data/tx-summary.json',
+      './public/data/macro-trend.json',
+      './public/data/recent-transactions.json',
+      './public/data/apartments-by-dong.json',
+      './public/data/type-map.json',
+      './public/data/location-scores.json',
+    ],
+    '/explore': [
+      './public/data/market-stats.json',
+      './public/data/tx-summary.json',
+      './public/data/macro-trend.json',
+      './public/data/recent-transactions.json',
+      './public/data/apartments-by-dong.json',
+      './public/data/type-map.json',
+      './public/data/location-scores.json',
+    ],
+    '/zone/[id]': [
+      './public/data/market-stats.json',
       './public/data/tx-summary.json',
       './public/data/macro-trend.json',
       './public/data/recent-transactions.json',
@@ -286,12 +306,19 @@ const nextConfig: NextConfig = {
       './public/data/jisan-status-list.json',
     ],
     '/api/dashboard-init': [
+      './public/data/market-stats.json',
       './public/data/tx-summary.json',
       './public/data/macro-trend.json',
       './public/data/recent-transactions.json',
       './public/data/apartments-by-dong.json',
       './public/data/type-map.json',
       './public/data/location-scores.json',
+    ],
+    '/api/transactions/live-delta': [
+      './public/data/market-stats.json',
+      './public/data/recent-transactions.json',
+      './public/data/tx-summary.json',
+      './public/data/apartments-by-dong.json',
     ],
     '/api/transaction-summary': [
       './public/data/tx-summary.json',

@@ -194,6 +194,8 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       expect(regularTx?.isNewHigh).toBe(false);
 
       expect(delta.marketStats?.latestRegisteredDate).toBe('20991231');
+      expect(delta.marketStats?.apartmentCount).toBeGreaterThan(0);
+      expect(delta.marketStats?.latestContractDate).toBe('20991230');
       expect(delta.marketStats?.saleTxCount).toBe(Number(realMarketStats.saleTxCount) + 2);
 
       // Cached second call should NOT re-query Firestore
@@ -442,6 +444,30 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       for (const line of commitLines) {
         expect(line).not.toContain('[vercel skip]');
       }
+    });
+  });
+
+  describe('5. Vercel Standalone File Tracing Guard (next.config.ts)', () => {
+    it('includes market-stats.json and required static baselines for live-delta and SSR/ISR routes', () => {
+      const nextConfigPath = path.resolve(__dirname, '../../next.config.ts');
+      const content = fs.readFileSync(nextConfigPath, 'utf8');
+
+      expect(content).toContain("'/api/transactions/live-delta'");
+      expect(content).toContain("'./public/data/market-stats.json'");
+      expect(content).toContain("'/explore'");
+      expect(content).toContain("'/zone/[id]'");
+    });
+
+    it('returns positive saleTxCount, apartmentCount, and non-null latestContractDate from live-delta route', async () => {
+      mockFirestoreGet.mockResolvedValue({ docs: [] });
+
+      const response = await liveDeltaRouteGet();
+      const body = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(body.marketStats?.saleTxCount).toBeGreaterThan(0);
+      expect(body.marketStats?.apartmentCount).toBeGreaterThan(0);
+      expect(body.marketStats?.latestContractDate).toBeTruthy();
     });
   });
 });
