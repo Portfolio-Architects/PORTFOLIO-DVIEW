@@ -6,7 +6,9 @@
  * 수동 호출도 가능: fetch('/api/cron/sync-transactions')
  */
 import { NextRequest } from 'next/server';
+import { revalidatePath } from 'next/cache';
 import { adminDb as db } from '@/lib/firebaseAdmin';
+import { invalidateLiveTransactionOverlayCache } from '@/lib/services/liveTransactionOverlay';
 import { sendMail } from '@/lib/utils/server/mailService';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
@@ -726,6 +728,30 @@ export async function GET(request: NextRequest) {
         syncLog.push(`${ym}: ${written}건 동기화 (매매+전월세), 신규/변경 거래: ${newTransactionsOfMonth.length}건`);
       } else {
         syncLog.push(`${ym}: 0건`);
+      }
+    }
+
+    if (totalNew > 0) {
+      try {
+        await invalidateLiveTransactionOverlayCache();
+        revalidatePath('/');
+        revalidatePath('/explore');
+        syncLog.push('Invalidated live transaction overlay cache and revalidated SSR paths (/, /explore)');
+      } catch (revalErr) {
+        logger.warn('SyncTransactionsAPI.GET', 'Live cache invalidation / revalidatePath warning', {}, revalErr as Error);
+      }
+
+      // Best-effort warm fetch of live-delta CDN cache immediately after Firestore commit
+      try {
+        const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dongtanview.com').replace(/\/$/, '');
+        const todayKstYmd = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+        await resilientFetch(`${appUrl}/api/transactions/live-delta?d=${todayKstYmd}&warm=1`, {
+          method: 'GET',
+          timeoutMs: 3000,
+          retries: 0,
+        });
+      } catch {
+        // Non-blocking cache warm
       }
     }
 

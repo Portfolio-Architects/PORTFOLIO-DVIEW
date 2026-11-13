@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { staticDataService } from '@/lib/services/staticDataService';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
+import { useLiveTransactionDelta } from '@/hooks/useLiveTransactionDelta';
 
 export { TodayUpdatePillBadge } from './TodayUpdatePillBadge';
 export type { TodayUpdatePillBadgeProps } from './TodayUpdatePillBadge';
@@ -41,7 +42,12 @@ function useMarketStats(): MarketStats | null {
       shouldRetryOnError: false,
     }
   );
-  const data = mounted ? swrData : undefined;
+  const { data: liveDelta } = useLiveTransactionDelta(mounted);
+  const effectiveLiveStats =
+    liveDelta?.marketStats && Number.isFinite(liveDelta.marketStats.saleTxCount) && liveDelta.marketStats.saleTxCount > 0
+      ? (liveDelta.marketStats as MarketStats)
+      : undefined;
+  const data = mounted ? (effectiveLiveStats || swrData) : undefined;
   if (!data || !Number.isFinite(data.saleTxCount) || data.saleTxCount <= 0) return null;
   return data;
 }

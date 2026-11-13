@@ -26,6 +26,11 @@ import {
   computeRecent7DaysVolume,
   parsePeriodTransactions,
 } from '@/lib/services/staticDataService';
+import {
+  useLiveTransactionDelta,
+  mergeLiveDeltaRecentTransactions,
+  hasDeltaAlreadyInRecent,
+} from '@/hooks/useLiveTransactionDelta';
 
 export { FirestoreTransactionSchema };
 export type { FirestoreTransaction };
@@ -124,28 +129,56 @@ export function useTxData(
     }
   );
 
+  // 2-2. CDN-cached post-build server delta (0 browser Firestore reads)
+  const { data: liveDelta } = useLiveTransactionDelta(hasHydrated);
+
+  const effectiveFirestoreTxs = useMemo(() => {
+    const baseTxs = recentFirestoreTxs || [];
+    if (!liveDelta?.hasDelta || !liveDelta.rawDeltaDocs || liveDelta.rawDeltaDocs.length === 0) {
+      return baseTxs;
+    }
+    const isFromInitialSsr = !summaryData?.summary || summaryData.summary === initialTxSummary;
+    let alreadyInSsr = false;
+    if (isFromInitialSsr) {
+      if (liveDelta.deltaTransactions && liveDelta.deltaTransactions.length > 0) {
+        alreadyInSsr = hasDeltaAlreadyInRecent(initialRecentTransactions, liveDelta.deltaTransactions);
+      } else if (liveDelta.marketStats?.latestRegisteredDate && initialRecentTransactions) {
+        alreadyInSsr = initialRecentTransactions.some(
+          (r) => r.registeredDate === liveDelta.marketStats?.latestRegisteredDate
+        );
+      }
+    }
+    if (alreadyInSsr) {
+      return baseTxs;
+    }
+    return [...baseTxs, ...(liveDelta.rawDeltaDocs as unknown as FirestoreTransaction[])];
+  }, [recentFirestoreTxs, liveDelta, summaryData?.summary, initialRecentTransactions]);
+
   // 3. Static data + real-time Firestore data merged summary
   const mergedSummary = useMemo(() => {
     const activeSummary = (!hasHydrated ? initialTxSummary : summaryData?.summary) || initialTxSummary;
     if (!activeSummary) return undefined;
-    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeSummary;
-    return mergeTransactions(activeSummary, recentFirestoreTxs);
-  }, [hasHydrated, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
+    if (!effectiveFirestoreTxs || effectiveFirestoreTxs.length === 0) return activeSummary;
+    return mergeTransactions(activeSummary, effectiveFirestoreTxs);
+  }, [hasHydrated, summaryData?.summary, initialTxSummary, effectiveFirestoreTxs]);
 
   // 3-2. Static recent transactions + real-time Firestore data merged list
   const mergedRecentTxs = useMemo(() => {
     const activeRecent = (!hasHydrated ? initialRecentTransactions : recentTxData) || initialRecentTransactions || [];
-    if (!recentFirestoreTxs || recentFirestoreTxs.length === 0) return activeRecent;
     const targetAptKeys = new Set(Object.keys(summaryData?.summary || initialTxSummary || {}));
-    return mergeRecentTransactions(activeRecent, recentFirestoreTxs, targetAptKeys);
-  }, [hasHydrated, recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary]);
+    const afterFirestore =
+      recentFirestoreTxs && recentFirestoreTxs.length > 0
+        ? mergeRecentTransactions(activeRecent, recentFirestoreTxs, targetAptKeys)
+        : activeRecent;
+    return mergeLiveDeltaRecentTransactions(afterFirestore, liveDelta?.deltaTransactions);
+  }, [hasHydrated, recentTxData, initialRecentTransactions, recentFirestoreTxs, summaryData?.summary, initialTxSummary, liveDelta?.deltaTransactions]);
 
   // 4. 7-day transaction volume metric calculation
   const mergedRecent7DaysVolume = useMemo(() => {
     const activeVolume = (!hasHydrated ? initialRecent7DaysVolume : summaryData?.recent7DaysVolume) || initialRecent7DaysVolume;
     const activeSummary = (!hasHydrated ? initialTxSummary : summaryData?.summary) || initialTxSummary;
-    return computeRecent7DaysVolume(activeVolume, activeSummary, recentFirestoreTxs);
-  }, [hasHydrated, summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, recentFirestoreTxs]);
+    return computeRecent7DaysVolume(activeVolume, activeSummary, effectiveFirestoreTxs);
+  }, [hasHydrated, summaryData?.recent7DaysVolume, initialRecent7DaysVolume, summaryData?.summary, initialTxSummary, effectiveFirestoreTxs]);
 
   // 5. Macro trend data fetching (macro-trend.json)
   const hasMacroTrendFallback = !!(initialMacroTrend && initialMacroTrend.length > 0);
@@ -297,6 +330,7 @@ export function usePeriodTransactions(
     'all': `/data/transactions-all.json?v=${BUILD_VERSION}`,
   };
 
+  const { data: liveDelta } = useLiveTransactionDelta(hasHydrated);
   const chunkFiles = staticDataService.resolveYearlyChunkFiles(period);
   // Defer browser SWR key until after initial hydration so SSR and client initial render match 100%
   const swrKey = !hasHydrated
@@ -367,6 +401,10 @@ export function usePeriodTransactions(
       }
     }
 
+    if (hasHydrated && liveDelta?.deltaTransactions?.length) {
+      list = mergeLiveDeltaRecentTransactions(list, liveDelta.deltaTransactions);
+    }
+
     if (period === '1d') {
       return filterTransactionsByLatestDay(list);
     }
@@ -383,7 +421,7 @@ export function usePeriodTransactions(
       return filterTransactionsByDays(list, 365 * 3);
     }
     return list;
-  }, [hasHydrated, rawData, isRecentBased, fallbackRecentTransactions, period, useChunked]);
+  }, [hasHydrated, rawData, isRecentBased, fallbackRecentTransactions, period, useChunked, liveDelta]);
 
   return {
     transactions,

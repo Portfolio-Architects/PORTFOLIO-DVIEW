@@ -147,11 +147,10 @@ jobs:
               })();
             ')
             if [ "$ALREADY_LIVE" = "true" ]; then
-              git commit -m "data: auto-sync transactions via github actions ($TODAY) [vercel skip]"
-              git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true
-              git push
+              git reset --hard HEAD
+              git clean -fd
               echo "has_changes=false" >> "$GITHUB_OUTPUT"
-              echo "✅ Production already synced via early-morning Vercel Cron — archived to Git with [vercel skip]"
+              echo "✅ Production static files already reflect today's MOLIT batch — skipping redundant commit/push to preserve clean HEAD for Vercel Deploy Hooks"
             else
               git commit -m "data: auto-sync transactions via github actions ($TODAY)"
               git pull --rebase origin "${GITHUB_REF_NAME:-master}" || true

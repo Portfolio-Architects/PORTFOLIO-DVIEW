@@ -16,6 +16,10 @@ import type { ObjectiveMetrics } from '@/types/report';
 import { BUILD_VERSION } from '@/lib/build-version';
 import { usePreloadApartmentTx, getApartmentFileKey } from './usePreloadApartmentTx';
 import { apiClient } from '@/lib/api/apiClient';
+import {
+  useLiveTransactionDelta,
+  mergeLiveDeltaIntoApartmentRecords,
+} from '@/hooks/useLiveTransactionDelta';
 
 export interface TransactionRecord {
   no: number;
@@ -166,7 +170,24 @@ export function useApartmentDetails(
     }
   );
 
-  const records = Array.isArray(fullRecords) ? fullRecords : (Array.isArray(recentRecords) ? recentRecords : EMPTY_ARRAY);
+  // 3. Post-build Firestore delta merge (immediate pre-07:00 KST detail updates)
+  const { data: liveDelta } = useLiveTransactionDelta(Boolean(fileKey));
+
+  const records = useMemo(() => {
+    const baseRecords = Array.isArray(fullRecords)
+      ? fullRecords
+      : Array.isArray(recentRecords)
+        ? recentRecords
+        : EMPTY_ARRAY;
+    if (!fileKey || !liveDelta?.hasDelta || !liveDelta.rawDeltaDocs?.length) {
+      return baseRecords;
+    }
+    return mergeLiveDeltaIntoApartmentRecords(
+      baseRecords as unknown as Array<Record<string, unknown>>,
+      fileKey,
+      liveDelta.rawDeltaDocs
+    ) as unknown as RawTransactionRecord[];
+  }, [fullRecords, recentRecords, fileKey, liveDelta]);
   const isTxLoading = isRecentLoading && !recentRecords;
 
   const modalTransactions = useMemo(() => {

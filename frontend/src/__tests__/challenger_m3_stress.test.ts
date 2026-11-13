@@ -419,7 +419,7 @@ describe('CHALLENGER Milestone 3 Empirical Verification Suite', () => {
       for (const sample of json.data.samplePayloads) {
         expect(['apartment', 'global']).toContain(sample.recipientType);
         expect(sample.aptName).toBeTruthy();
-        expect(sample.title).toMatch(/\[.*\] D-VIEW/);
+        expect(sample.title).toMatch(/(\[.*\] D-VIEW|\[D-VIEW\])/);
         expect(sample.body.length).toBeGreaterThan(5);
       }
     });

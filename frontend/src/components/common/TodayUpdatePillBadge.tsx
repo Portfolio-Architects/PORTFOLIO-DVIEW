@@ -9,6 +9,10 @@ import {
   evaluateTodayUpdateMetrics,
   TodayUpdateMetrics,
 } from '@/lib/todayUpdateEvaluator';
+import {
+  useLiveTransactionDelta,
+  mergeLiveDeltaRecentTransactions,
+} from '@/hooks/useLiveTransactionDelta';
 import type { MarketStats } from './MarketStatsSubtitle';
 
 export interface TodayUpdatePillBadgeProps {
@@ -48,6 +52,7 @@ export function TodayUpdatePillBadge({
   }, []);
 
   const shouldFetchStats = mounted && !propMetrics && !propMarketStats;
+  const { data: liveDelta } = useLiveTransactionDelta(shouldFetchStats);
   const { data: fetchedMarketStats } = useSWR<MarketStats>(
     shouldFetchStats ? `/data/market-stats.json?v=${BUILD_VERSION}` : null,
     (url: string) => staticDataService.fetchJson<MarketStats>(url),
@@ -59,14 +64,27 @@ export function TodayUpdatePillBadge({
     }
   );
 
-  const effectiveMarketStats = propMarketStats || fetchedMarketStats || null;
+  const effectiveMarketStats =
+    propMarketStats ||
+    (liveDelta?.marketStats && Number(liveDelta.marketStats.saleTxCount) > 0
+      ? (liveDelta.marketStats as MarketStats)
+      : null) ||
+    fetchedMarketStats ||
+    null;
+
+  const effectiveRecentTransactions =
+    propRecentTransactions && propRecentTransactions.length > 0
+      ? liveDelta?.deltaTransactions?.length
+        ? mergeLiveDeltaRecentTransactions(propRecentTransactions as never, liveDelta.deltaTransactions)
+        : propRecentTransactions
+      : liveDelta?.deltaTransactions || [];
 
   // Zero-CLS Pre-reserved Shimmer Skeleton (h-[26px])
   if (
     !mounted ||
     (!propMetrics &&
       !effectiveMarketStats &&
-      (!propRecentTransactions || propRecentTransactions.length === 0))
+      (!effectiveRecentTransactions || effectiveRecentTransactions.length === 0))
   ) {
     return (
       <div
@@ -80,7 +98,7 @@ export function TodayUpdatePillBadge({
   const metrics =
     propMetrics ||
     evaluateTodayUpdateMetrics(
-      propRecentTransactions || [],
+      effectiveRecentTransactions,
       effectiveMarketStats,
       new Date()
     );

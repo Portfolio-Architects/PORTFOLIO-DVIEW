@@ -109,6 +109,9 @@ const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
   '/api/push/notify-new-high',
   '/api/indexing/apartment',
   '/api/cron/sync-transactions',
+  '/api/cron/sync-transactions-catchup',
+  '/api/cron/send-tx-notifications',
+  '/api/transactions/live-delta',
 ]);
 
 const CANONICAL_APT_PATH_SET = new Set(

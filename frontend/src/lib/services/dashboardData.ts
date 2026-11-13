@@ -16,6 +16,10 @@ import type { InitialPageData } from '@/lib/validation/facade.schemas';
 import * as FavoriteRepo from '@/lib/repositories/favorite.repository';
 import * as ApartmentRepo from '@/lib/repositories/apartment.repository';
 import * as ReportRepo from '@/lib/repositories/report.repository';
+import {
+  applyLiveOverlayToDashboardData,
+  isLiveTxDeltaEnabled,
+} from '@/lib/services/liveTransactionOverlay';
 import { z } from 'zod';
 
 const PAGE_DATA_CACHE_TTL = 300; // 5 minutes in-memory cache for fresh real-time propagation
@@ -246,6 +250,10 @@ async function fetchFreshData(): Promise<InitialPageDataWithScores> {
     fetchTypeMap(),
     fetchLocationScores(),
   ]);
+
+  if (isLiveTxDeltaEnabled()) {
+    await withSsrRemoteBudget(applyLiveOverlayToDashboardData(result), ssrRemoteBudgetMs);
+  }
 
   // Derive fallback apartmentMeta from the single apartments-by-dong read if apartmentMeta was not populated from DB/cache
   if (Object.keys(result.apartmentMeta).length === 0) {
