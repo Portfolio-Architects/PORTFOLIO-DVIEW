@@ -1,12 +1,31 @@
 'use client';
 
 import React from 'react';
-import { Home, LayoutDashboard, Building2, BookOpen, BarChart3, MoreHorizontal, X } from 'lucide-react';
+import { Home, LayoutDashboard, Building2, BookOpen, BarChart3, MoreHorizontal, MessageSquare, ChevronRight, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { trackTabView } from '@/lib/utils/analytics';
+
+function useSafeRouter() {
+  try {
+    return useRouter();
+  } catch {
+    return null;
+  }
+}
+
+function isModifiedNavigationClick(e: React.MouseEvent): boolean {
+  return Boolean(
+    e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey ||
+      (typeof e.button === 'number' && e.button !== 0)
+  );
+}
 
 interface MobileDockProps {
-  activeTab?: 'imjang' | 'overview' | 'stats' | 'guide' | 'technovalley' | string;
+  activeTab?: 'imjang' | 'overview' | 'stats' | 'guide' | 'technovalley' | 'lounge' | string;
   onTabClick?: (tab: 'imjang' | 'overview' | 'stats' | 'guide' | 'technovalley' | any) => void;
 }
 
@@ -24,21 +43,26 @@ export const TABS: Array<{
 ];
 
 const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: MobileDockProps) {
-  const router = useRouter();
+  const router = useSafeRouter();
   const [shouldHide, setShouldHide] = React.useState(false);
   const [isMoreOpen, setIsMoreOpen] = React.useState(false);
   const initialHeightRef = React.useRef<number>(0);
   const moreMenuRef = React.useRef<HTMLDivElement | null>(null);
   const moreButtonRef = React.useRef<HTMLButtonElement | null>(null);
+  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+  const isMoreActive = isMoreOpen || activeTab === 'lounge';
 
   React.useEffect(() => {
     // Proactively prefetch core routes on mount
-    router.prefetch('/');
-    router.prefetch('/explore');
-    router.prefetch('/stats');
-    router.prefetch('/guide');
-    router.prefetch('/technovalley');
-  }, [router]);
+    router?.prefetch('/');
+    router?.prefetch('/explore');
+    router?.prefetch('/stats');
+    router?.prefetch('/guide');
+    router?.prefetch('/technovalley');
+    if (!isApprovalMode) {
+      router?.prefetch('/lounge');
+    }
+  }, [router, isApprovalMode]);
 
   React.useEffect(() => {
     if (!isMoreOpen || typeof document === 'undefined') return;
@@ -107,7 +131,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
         >
           <div className="flex items-center justify-between px-2 py-1 border-b border-slate-200/60 dark:border-slate-800">
             <span className="text-[11px] font-extrabold text-slate-500 dark:text-slate-400">
-              서비스 안내 및 정책
+              {isApprovalMode ? '서비스 안내 및 정책' : '커뮤니티 및 서비스 안내'}
             </span>
             <button
               type="button"
@@ -118,6 +142,38 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
               <X size={14} />
             </button>
           </div>
+          {!isApprovalMode && (
+            <div className="pb-1.5 mb-0.5 border-b border-slate-200/60 dark:border-slate-800">
+              <Link
+                href="/lounge"
+                data-testid="mobile-dock-lounge-link"
+                onClick={(e) => {
+                  setIsMoreOpen(false);
+                  if (isModifiedNavigationClick(e)) return;
+                  const currentNormalized = activeTab === 'explore' ? 'imjang' : activeTab || '';
+                  if (currentNormalized !== 'lounge') {
+                    trackTabView({
+                      tab_name: 'lounge',
+                      previous_tab: currentNormalized || undefined,
+                      surface: 'mobile_dock',
+                      trigger: 'tab_lounge',
+                    });
+                  }
+                }}
+                className={`flex items-center justify-between px-2.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors ${
+                  activeTab === 'lounge'
+                    ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400'
+                    : 'bg-slate-100/80 dark:bg-slate-800/70 text-slate-800 dark:text-slate-100 hover:bg-blue-50/70 dark:hover:bg-slate-800 hover:text-blue-600 dark:hover:text-blue-400'
+                }`}
+              >
+                <span className="inline-flex items-center gap-2">
+                  <MessageSquare size={15} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span>실시간 입주민 라운지</span>
+                </span>
+                <ChevronRight size={14} className="text-tertiary shrink-0" />
+              </Link>
+            </div>
+          )}
           <Link
             href="/about"
             onClick={() => setIsMoreOpen(false)}
@@ -163,14 +219,24 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
                 key={tab.id}
                 href={tab.href}
                 prefetch={true}
-                onMouseEnter={() => router.prefetch(tab.href)}
+                onMouseEnter={() => router?.prefetch(tab.href)}
                 onClick={(e) => {
                   setIsMoreOpen(false);
+                  if (isModifiedNavigationClick(e)) return;
+                  if (!isActive) {
+                    const currentNormalized = activeTab === 'explore' ? 'imjang' : activeTab || '';
+                    trackTabView({
+                      tab_name: tab.id,
+                      previous_tab: currentNormalized || undefined,
+                      surface: 'mobile_dock',
+                      trigger: `tab_${tab.id}`,
+                    });
+                  }
                   if (onTabClick) {
                     e.preventDefault();
                     onTabClick(tab.id);
                     try {
-                      router.replace(tab.href, { scroll: false });
+                      router?.replace(tab.href, { scroll: false });
                     } catch (err) {}
                   }
                 }}
@@ -190,14 +256,19 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             ref={moreButtonRef}
             type="button"
             data-testid="mobile-dock-more-button"
-            aria-label="정책 및 고객지원 더보기"
+            aria-label="더보기 및 라운지 메뉴"
             aria-expanded={isMoreOpen}
             onClick={() => setIsMoreOpen((prev) => !prev)}
             className={`group flex shrink-0 px-1.5 flex-col items-center justify-center min-h-[48px] rounded-[18px] transition-[transform,color,background-color] duration-200 ease-out active:scale-[0.94] transform-gpu select-none touch-manipulation relative cursor-pointer ${
-              isMoreOpen ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary hover:text-secondary'
+              isMoreActive ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary hover:text-secondary'
             }`}
           >
-            <MoreHorizontal size={17} strokeWidth={isMoreOpen ? 2.5 : 2} className="mb-0.5 relative z-10 sm:w-[19px] sm:h-[19px]" />
+            {activeTab === 'lounge' && !isMoreOpen && (
+              <div className={`absolute inset-0 rounded-[18px] transition-[transform,opacity] duration-200 ease-out transform-gpu ${
+                'bg-blue-50/90 dark:bg-blue-950/50 border border-blue-200/40 dark:border-blue-800/40'
+              }`} />
+            )}
+            <MoreHorizontal size={17} strokeWidth={isMoreActive ? 2.5 : 2} className="mb-0.5 relative z-10 sm:w-[19px] sm:h-[19px]" />
             <small className="text-[9.5px] xs:text-[10.5px] font-bold tracking-tight relative z-10 leading-none">더보기</small>
           </button>
         </div>

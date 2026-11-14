@@ -19,6 +19,8 @@ export interface Ga4CustomDimensionSpec {
   description: string;
   scope: 'EVENT';
   requiredCore: boolean;
+  legacyApiNames?: ReadonlyArray<`customEvent:${string}`>;
+  builtInApiName?: string;
 }
 
 export interface Ga4CustomMetricSpec {
@@ -49,7 +51,7 @@ export const DVIEW_GA4_CUSTOM_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionSpec> 
     apiName: 'customEvent:event_type',
     displayName: 'Ad Telemetry Event Type',
     description:
-      'Ad slot lifecycle event (VIEWABLE_IMPRESSION, IMPRESSION, UNFILLED, ADBLOCK_FALLBACK, FALLBACK_CLICK, CLICK)',
+      'Ad slot lifecycle event (VIEWABLE_IMPRESSION, IMPRESSION, UNFILLED, ADBLOCK_FALLBACK, FALLBACK_CLICK, CLICK, GUIDE_PREVIEW_CLICK)',
     scope: 'EVENT',
     requiredCore: true,
   },
@@ -78,12 +80,13 @@ export const DVIEW_GA4_CUSTOM_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionSpec> 
     requiredCore: false,
   },
   {
-    parameterName: 'campaign_id',
-    apiName: 'customEvent:campaign_id',
-    displayName: 'CPA Fallback Campaign ID',
+    parameterName: 'cpa_campaign_id',
+    apiName: 'customEvent:cpa_campaign_id',
+    displayName: 'CPA Campaign ID',
     description: 'Native CPA fallback campaign identifier when unfilled or ad-blocked',
     scope: 'EVENT',
     requiredCore: false,
+    legacyApiNames: ['customEvent:campaign_id'],
   },
   {
     parameterName: 'dong',
@@ -102,10 +105,11 @@ export const DVIEW_GA4_INTERACTION_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionS
   {
     parameterName: 'search_term',
     apiName: 'customEvent:search_term',
-    displayName: 'Search Term',
+    displayName: 'DVIEW Search Term',
     description: 'Normalized user search term (<=100 chars) for search_query and view_search_results',
     scope: 'EVENT',
     requiredCore: false,
+    builtInApiName: 'searchTerm',
   },
   {
     parameterName: 'surface',
@@ -155,6 +159,24 @@ export const DVIEW_GA4_INTERACTION_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionS
     scope: 'EVENT',
     requiredCore: false,
   },
+  {
+    parameterName: 'calculator_type',
+    apiName: 'customEvent:calculator_type',
+    displayName: 'Calculator Type',
+    description:
+      'Target diagnosis calculator type (mortgage, jeonse_safety, property_tax, sell_timing, compare, policy_loan)',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
+  {
+    parameterName: 'tab_name',
+    apiName: 'customEvent:tab_name',
+    displayName: 'Navigation Tab Name',
+    description:
+      'Selected navigation tab identifier for tab_view (overview, imjang, stats, guide, technovalley, lounge)',
+    scope: 'EVENT',
+    requiredCore: false,
+  },
 ] as const;
 
 export const DVIEW_GA4_CUSTOM_METRICS: ReadonlyArray<Ga4CustomMetricSpec> = [
@@ -182,16 +204,39 @@ export interface Ga4MetadataFieldLike {
   customDefinition?: boolean | null;
 }
 
+export interface Ga4LegacyDimensionAlias {
+  parameterName: string;
+  canonicalApiName: string;
+  activeLegacyApiName: string;
+}
+
 export interface Ga4CustomDimensionCoverage {
   coreComplete: boolean;
   allDimensionsComplete: boolean;
+  interactionComplete: boolean;
   allMetricsComplete: boolean;
   registeredCoreDimensions: string[];
   missingCoreDimensions: string[];
   registeredExtendedDimensions: string[];
   missingExtendedDimensions: string[];
+  registeredInteractionDimensions: string[];
+  missingInteractionDimensions: string[];
+  legacyAliasDimensions: Ga4LegacyDimensionAlias[];
   registeredMetrics: string[];
   missingMetrics: string[];
+}
+
+export function resolveInteractionDimensionApiName(
+  spec: Ga4CustomDimensionSpec,
+  registeredDimApiNames: ReadonlySet<string>
+): string | null {
+  if (registeredDimApiNames.has(spec.apiName)) {
+    return spec.apiName;
+  }
+  if (spec.builtInApiName && registeredDimApiNames.has(spec.builtInApiName)) {
+    return spec.builtInApiName;
+  }
+  return null;
 }
 
 /**
@@ -216,9 +261,24 @@ export function inspectGa4CustomDimensionCoverage(
   const missingCoreDimensions: string[] = [];
   const registeredExtendedDimensions: string[] = [];
   const missingExtendedDimensions: string[] = [];
+  const registeredInteractionDimensions: string[] = [];
+  const missingInteractionDimensions: string[] = [];
+  const legacyAliasDimensions: Ga4LegacyDimensionAlias[] = [];
 
   for (const spec of DVIEW_GA4_CUSTOM_DIMENSIONS) {
     const isRegistered = registeredDimApiNames.has(spec.apiName);
+    if (!isRegistered && spec.legacyApiNames) {
+      const activeLegacyApiName = spec.legacyApiNames.find((legacyName) =>
+        registeredDimApiNames.has(legacyName)
+      );
+      if (activeLegacyApiName) {
+        legacyAliasDimensions.push({
+          parameterName: spec.parameterName,
+          canonicalApiName: spec.apiName,
+          activeLegacyApiName,
+        });
+      }
+    }
     if (spec.requiredCore) {
       if (isRegistered) {
         registeredCoreDimensions.push(spec.parameterName);
@@ -229,6 +289,14 @@ export function inspectGa4CustomDimensionCoverage(
       registeredExtendedDimensions.push(spec.parameterName);
     } else {
       missingExtendedDimensions.push(spec.parameterName);
+    }
+  }
+
+  for (const spec of DVIEW_GA4_INTERACTION_DIMENSIONS) {
+    if (registeredDimApiNames.has(spec.apiName)) {
+      registeredInteractionDimensions.push(spec.parameterName);
+    } else {
+      missingInteractionDimensions.push(spec.parameterName);
     }
   }
 
@@ -247,11 +315,15 @@ export function inspectGa4CustomDimensionCoverage(
     coreComplete: missingCoreDimensions.length === 0,
     allDimensionsComplete:
       missingCoreDimensions.length === 0 && missingExtendedDimensions.length === 0,
+    interactionComplete: missingInteractionDimensions.length === 0,
     allMetricsComplete: missingMetrics.length === 0,
     registeredCoreDimensions,
     missingCoreDimensions,
     registeredExtendedDimensions,
     missingExtendedDimensions,
+    registeredInteractionDimensions,
+    missingInteractionDimensions,
+    legacyAliasDimensions,
     registeredMetrics,
     missingMetrics,
   };
@@ -298,6 +370,13 @@ export function buildAdTelemetryReportPlan(
     }
     if (registeredDimApiNames.has(spec.apiName)) {
       dimensions.push(spec.apiName);
+    } else if (spec.legacyApiNames) {
+      const legacyMatch = spec.legacyApiNames.find((legacyName) =>
+        registeredDimApiNames.has(legacyName)
+      );
+      if (legacyMatch) {
+        dimensions.push(legacyMatch);
+      }
     }
   }
 
@@ -311,7 +390,8 @@ export function buildAdTelemetryReportPlan(
   const mode: AdTelemetryReportMode = coverage.coreComplete
     ? 'FULL_SLOT_BREAKDOWN'
     : coverage.registeredCoreDimensions.length > 0 ||
-      coverage.registeredExtendedDimensions.length > 0
+      coverage.registeredExtendedDimensions.length > 0 ||
+      coverage.legacyAliasDimensions.length > 0
     ? 'PARTIAL_CUSTOM_BREAKDOWN'
     : 'PAGE_DEVICE_FALLBACK';
 
@@ -320,6 +400,51 @@ export function buildAdTelemetryReportPlan(
     dimensions,
     metrics,
     coverage,
+  };
+}
+
+export interface InteractionFunnelReportPlan {
+  dimensions: string[];
+  resolvedMap: Record<string, string>;
+}
+
+/**
+ * Resolves metadata-safe interaction & funnel dimensions (`search_term`, `surface`, `view_type`,
+ * `trigger`, `chapter_id`, `selected_apt`, `zone`, plus shared `apartment_name` / `dong`),
+ * falling back to built-in GA4 dimensions (e.g. `searchTerm`) when `customEvent:search_term` is
+ * unregistered and capping output at `MAX_GA4_REPORT_DIMENSIONS`.
+ */
+export function buildInteractionFunnelReportPlan(
+  metadataDimensions: ReadonlyArray<Ga4MetadataFieldLike> = []
+): InteractionFunnelReportPlan {
+  const registeredDimApiNames = new Set(
+    metadataDimensions
+      .map((d) => (typeof d.apiName === 'string' ? d.apiName.trim() : ''))
+      .filter((name) => name.length > 0)
+  );
+
+  const dimensions: string[] = [];
+  const resolvedMap: Record<string, string> = {};
+
+  const interactionSpecs: Ga4CustomDimensionSpec[] = [
+    ...DVIEW_GA4_INTERACTION_DIMENSIONS,
+    ...DVIEW_GA4_CUSTOM_DIMENSIONS.filter(
+      (d) => d.parameterName === 'apartment_name' || d.parameterName === 'dong'
+    ),
+  ];
+
+  for (const spec of interactionSpecs) {
+    const resolved = resolveInteractionDimensionApiName(spec, registeredDimApiNames);
+    if (!resolved) continue;
+    resolvedMap[spec.parameterName] = resolved;
+    if (dimensions.length < MAX_GA4_REPORT_DIMENSIONS && !dimensions.includes(resolved)) {
+      dimensions.push(resolved);
+    }
+  }
+
+  return {
+    dimensions,
+    resolvedMap,
   };
 }
 
@@ -332,6 +457,7 @@ export interface AdTelemetryPageDeviceBucket {
 export interface AdTelemetrySlotEventBucket {
   slotId: string;
   placementSlotId: string;
+  cpaCampaignId: string;
   eventType: string;
   apartmentName: string;
   userAgentCategory: string;
@@ -344,6 +470,7 @@ export interface AdTelemetryReportSummary {
   viewableImpressionEvents: number;
   unclassifiedHistoricalEvents: number;
   byEventType: Record<string, number>;
+  byCpaCampaign: Record<string, number>;
   byPageAndDevice: AdTelemetryPageDeviceBucket[];
   bySlotAndEventType: AdTelemetrySlotEventBucket[];
 }
@@ -366,6 +493,7 @@ export function summarizeAdTelemetryReportRows(
   let unclassifiedHistoricalEvents = 0;
 
   const byEventType: Record<string, number> = {};
+  const byCpaCampaign: Record<string, number> = {};
   const pageDeviceMap = new Map<string, AdTelemetryPageDeviceBucket>();
   const slotEventMap = new Map<string, AdTelemetrySlotEventBucket>();
 
@@ -380,7 +508,14 @@ export function summarizeAdTelemetryReportRows(
     const deviceCategory = normalizeDimVal(row.deviceCategory);
     const slotId = normalizeDimVal(row['customEvent:slot_id']);
     const placementSlotId = normalizeDimVal(row['customEvent:placement_slot_id']);
-    const eventType = normalizeDimVal(row['customEvent:event_type']);
+    const canonicalCpa = normalizeDimVal(row['customEvent:cpa_campaign_id']);
+    const legacyCpa = normalizeDimVal(row['customEvent:campaign_id']);
+    const cpaCampaignId = canonicalCpa !== '(not set)' ? canonicalCpa : legacyCpa;
+    const rawEventType = normalizeDimVal(row['customEvent:event_type']);
+    const eventType =
+      rawEventType === 'CLICK' && slotId.startsWith('guide_')
+        ? 'GUIDE_PREVIEW_CLICK'
+        : rawEventType;
     const apartmentName = normalizeDimVal(row['customEvent:apartment_name']);
     const userAgentCategory = normalizeDimVal(row['customEvent:user_agent_category']);
 
@@ -394,6 +529,9 @@ export function summarizeAdTelemetryReportRows(
       unclassifiedHistoricalEvents += count;
     }
     byEventType[eventType] = (byEventType[eventType] ?? 0) + count;
+    if (cpaCampaignId !== '(not set)') {
+      byCpaCampaign[cpaCampaignId] = (byCpaCampaign[cpaCampaignId] ?? 0) + count;
+    }
 
     const pdKey = `${pagePath}\u0000${deviceCategory}`;
     const existingPd = pageDeviceMap.get(pdKey);
@@ -411,10 +549,12 @@ export function summarizeAdTelemetryReportRows(
       'customEvent:slot_id' in row ||
       'customEvent:event_type' in row ||
       'customEvent:apartment_name' in row ||
-      'customEvent:user_agent_category' in row;
+      'customEvent:user_agent_category' in row ||
+      'customEvent:cpa_campaign_id' in row ||
+      'customEvent:campaign_id' in row;
 
     if (hasAnySlotDimension) {
-      const seKey = `${slotId}\u0000${placementSlotId}\u0000${eventType}\u0000${apartmentName}\u0000${userAgentCategory}`;
+      const seKey = `${slotId}\u0000${placementSlotId}\u0000${cpaCampaignId}\u0000${eventType}\u0000${apartmentName}\u0000${userAgentCategory}`;
       const existingSe = slotEventMap.get(seKey);
       if (existingSe) {
         existingSe.eventCount += count;
@@ -422,6 +562,7 @@ export function summarizeAdTelemetryReportRows(
         slotEventMap.set(seKey, {
           slotId,
           placementSlotId,
+          cpaCampaignId,
           eventType,
           apartmentName,
           userAgentCategory,
@@ -444,6 +585,7 @@ export function summarizeAdTelemetryReportRows(
     viewableImpressionEvents,
     unclassifiedHistoricalEvents,
     byEventType,
+    byCpaCampaign,
     byPageAndDevice,
     bySlotAndEventType,
   };
@@ -657,8 +799,12 @@ async function listPaginatedParameterNames(
   listField: 'customDimensions' | 'customMetrics',
   accessToken: string,
   fetchFn: typeof fetch
-): Promise<{ ok: true; parameterNames: Set<string> } | { ok: false; error: ParsedAdminApiError }> {
+): Promise<
+  | { ok: true; parameterNames: Set<string>; displayNamesLower: Set<string> }
+  | { ok: false; error: ParsedAdminApiError }
+> {
   const parameterNames = new Set<string>();
+  const displayNamesLower = new Set<string>();
   let pageToken = '';
 
   for (let page = 0; page < MAX_PAGINATION_PAGES; page++) {
@@ -690,12 +836,17 @@ async function listPaginatedParameterNames(
     >;
     const items = Array.isArray(record[listField]) ? record[listField] : [];
     for (const item of items) {
-      if (
-        typeof item === 'object' &&
-        item !== null &&
-        typeof (item as { parameterName?: unknown }).parameterName === 'string'
-      ) {
-        parameterNames.add((item as { parameterName: string }).parameterName.trim());
+      if (typeof item === 'object' && item !== null) {
+        const typedItem = item as { parameterName?: unknown; displayName?: unknown };
+        if (typeof typedItem.parameterName === 'string') {
+          parameterNames.add(typedItem.parameterName.trim());
+        }
+        if (listField === 'customDimensions' && typeof typedItem.displayName === 'string') {
+          const dn = typedItem.displayName.trim().toLowerCase();
+          if (dn.length > 0) {
+            displayNamesLower.add(dn);
+          }
+        }
       }
     }
 
@@ -707,7 +858,7 @@ async function listPaginatedParameterNames(
     pageToken = next;
   }
 
-  return { ok: true, parameterNames };
+  return { ok: true, parameterNames, displayNamesLower };
 }
 
 /**
@@ -949,7 +1100,13 @@ export async function syncGa4CustomDefinitions(
   }
 
   const createdDimensions: string[] = [];
-  for (const spec of missingDimensions) {
+  const extraNotes: string[] = [];
+  const existingDisplayNamesLower = dimsListRes.displayNamesLower;
+
+  const postDimension = async (
+    spec: Ga4CustomDimensionSpec,
+    displayName: string
+  ): Promise<{ ok: true } | { ok: false; parsedErr: ParsedAdminApiError }> => {
     const createRes = await fetchFn(`${baseAdminUrl}/customDimensions`, {
       method: 'POST',
       headers: {
@@ -959,21 +1116,62 @@ export async function syncGa4CustomDefinitions(
       },
       body: JSON.stringify({
         parameterName: spec.parameterName,
-        displayName: spec.displayName,
+        displayName,
         description: spec.description,
         scope: spec.scope,
       }),
     });
-
     const body = await readSafeJson(createRes);
     if (createRes.ok) {
+      return { ok: true };
+    }
+    return { ok: false, parsedErr: classifyAdminApiError(createRes.status, body) };
+  };
+
+  for (const spec of missingDimensions) {
+    const disambiguatedName = `${spec.displayName} (${spec.parameterName})`.slice(0, 82);
+    const effectiveDisplayName = existingDisplayNamesLower.has(
+      spec.displayName.trim().toLowerCase()
+    )
+      ? disambiguatedName
+      : spec.displayName;
+
+    let attempt = await postDimension(spec, effectiveDisplayName);
+    let finalDisplayName = effectiveDisplayName;
+
+    if (!attempt.ok) {
+      const lowerErrMsg = attempt.parsedErr.message.toLowerCase();
+      const isDisplayNameCollision =
+        (lowerErrMsg.includes('display_name') || lowerErrMsg.includes('display name')) &&
+        finalDisplayName !== disambiguatedName;
+
+      if (isDisplayNameCollision) {
+        finalDisplayName = disambiguatedName;
+        attempt = await postDimension(spec, finalDisplayName);
+      }
+    }
+
+    if (attempt.ok) {
+      existingDisplayNamesLower.add(finalDisplayName.trim().toLowerCase());
       createdDimensions.push(spec.parameterName);
       continue;
     }
 
-    const parsedErr = classifyAdminApiError(createRes.status, body);
-    if (parsedErr.isAlreadyExists) {
+    const parsedErr = attempt.parsedErr;
+    const lowerErrMsg = parsedErr.message.toLowerCase();
+    const isDisplayNameError =
+      lowerErrMsg.includes('display_name') || lowerErrMsg.includes('display name');
+
+    if (parsedErr.isAlreadyExists && !isDisplayNameError) {
       alreadyExistingDimensions.push(spec.parameterName);
+      continue;
+    }
+
+    if (parsedErr.status === 400 && spec.builtInApiName) {
+      alreadyExistingDimensions.push(spec.parameterName);
+      extraNotes.push(
+        `"${spec.parameterName}" 파라미터는 GA4 기본 측정기준(${spec.builtInApiName})으로 자동 매핑되어 별도 생성 없이 조회 가능합니다.`
+      );
       continue;
     }
 
@@ -1022,6 +1220,13 @@ export async function syncGa4CustomDefinitions(
     });
   }
 
+  const remediationSteps = [...extraNotes];
+  if (createdDimensions.length > 0 || createdMetrics.length > 0) {
+    remediationSteps.push(
+      '신규 등록된 GA4 맞춤 측정기준·측정항목은 GA4 스키마 전파 후(최대 24~48시간) Data API 리포트에 집계됩니다.'
+    );
+  }
+
   return {
     ok: true,
     status: 'SYNCED',
@@ -1034,11 +1239,6 @@ export async function syncGa4CustomDefinitions(
     alreadyExistingMetrics,
     createdMetrics,
     plannedMetrics: [],
-    remediationSteps:
-      createdDimensions.length > 0 || createdMetrics.length > 0
-        ? [
-            '신규 등록된 GA4 맞춤 측정기준·측정항목은 GA4 스키마 전파 후(최대 24~48시간) Data API 리포트에 집계됩니다.',
-          ]
-        : [],
+    remediationSteps,
   };
 }

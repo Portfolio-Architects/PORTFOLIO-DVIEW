@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X } from 'lucide-react';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
 
 export const MOBILE_ANCHOR_SLOT_ENV_KEY = 'NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR';
 export const MOBILE_ANCHOR_REFRESH_SLOT_ID = 'mobile_sticky_anchor';
+export const MOBILE_ANCHOR_MEDIA_QUERY = '(max-width: 767px)';
 
 export interface MobileStickyAnchorAdProps {
   refreshSlotId?: string;
@@ -14,9 +15,11 @@ export interface MobileStickyAnchorAdProps {
 }
 
 /**
- * MobileStickyAnchorAd (P1-1):
+ * MobileStickyAnchorAd (P1-1 / P0-1 Desktop Zero-Mount Guard):
  * Mobile-only sticky bottom anchor ad banner bound to NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR
  * (resolved automatically via AdSlot format="horizontal-strip").
+ * - Conditionally mounts ONLY when viewport matches `(max-width: 767px)` so `<AdSlot>` never
+ *   executes `adsbygoogle.push({})` at width `0px` on desktop (`>= 768px`) viewports.
  * - Positioned above MobileDock (bottom-[calc(env(safe-area-inset-bottom)+68px)], z-[9990], md:hidden)
  *   to guarantee zero overlap with MobileDock (z-[10000]).
  * - Automatically hides when virtual keyboard is open (visualViewport height < 75%) or dismissed.
@@ -26,15 +29,78 @@ export function MobileStickyAnchorAd({
   refreshSlotId = MOBILE_ANCHOR_REFRESH_SLOT_ID,
   className = '',
 }: MobileStickyAnchorAdProps) {
+  const [isMobileViewport, setIsMobileViewport] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
   const [isDocumentHidden, setIsDocumentHidden] = useState<boolean>(false);
+  const wasMobileViewportRef = useRef<boolean>(false);
 
   const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
   const anchorSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR?.trim() || '';
 
   useEffect(() => {
-    if (typeof document === 'undefined') return;
+    if (typeof window === 'undefined' || isApprovalMode || isDismissed) return;
+
+    const syncViewportMatch = (matches: boolean) => {
+      if (wasMobileViewportRef.current && !matches) {
+        adRefreshManager.unobserve(refreshSlotId);
+      }
+      if (!matches) {
+        setIsKeyboardOpen(false);
+      }
+      wasMobileViewportRef.current = matches;
+      setIsMobileViewport(matches);
+    };
+
+    const cleanupObservedSlot = () => {
+      if (wasMobileViewportRef.current) {
+        adRefreshManager.unobserve(refreshSlotId);
+        wasMobileViewportRef.current = false;
+      }
+    };
+
+    if (typeof window.matchMedia !== 'function') {
+      const checkFallbackWidth = () => {
+        syncViewportMatch(window.innerWidth <= 767);
+      };
+      checkFallbackWidth();
+      window.addEventListener('resize', checkFallbackWidth, { passive: true });
+      return () => {
+        window.removeEventListener('resize', checkFallbackWidth);
+        cleanupObservedSlot();
+      };
+    }
+
+    const mql = window.matchMedia(MOBILE_ANCHOR_MEDIA_QUERY);
+    syncViewportMatch(Boolean(mql.matches));
+
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      syncViewportMatch(Boolean(event.matches));
+    };
+
+    if (typeof mql.addEventListener === 'function') {
+      mql.addEventListener('change', handleMediaChange);
+      return () => {
+        mql.removeEventListener('change', handleMediaChange);
+        cleanupObservedSlot();
+      };
+    }
+
+    if (typeof mql.addListener === 'function') {
+      mql.addListener(handleMediaChange);
+      return () => {
+        mql.removeListener(handleMediaChange);
+        cleanupObservedSlot();
+      };
+    }
+
+    return cleanupObservedSlot;
+  }, [isApprovalMode, isDismissed, refreshSlotId]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || isApprovalMode || isDismissed || !isMobileViewport) {
+      return;
+    }
 
     const syncVisibilityState = () => {
       const hidden = Boolean(document.hidden);
@@ -47,10 +113,18 @@ export function MobileStickyAnchorAd({
     return () => {
       document.removeEventListener('visibilitychange', syncVisibilityState);
     };
-  }, []);
+  }, [isApprovalMode, isDismissed, isMobileViewport]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.visualViewport) return;
+    if (
+      typeof window === 'undefined' ||
+      !window.visualViewport ||
+      isApprovalMode ||
+      isDismissed ||
+      !isMobileViewport
+    ) {
+      return;
+    }
 
     const handleViewportResize = () => {
       if (!window.visualViewport) return;
@@ -58,18 +132,19 @@ export function MobileStickyAnchorAd({
       setIsKeyboardOpen(isKbd);
     };
 
+    handleViewportResize();
     window.visualViewport.addEventListener('resize', handleViewportResize);
     return () => {
       window.visualViewport?.removeEventListener('resize', handleViewportResize);
     };
-  }, []);
+  }, [isApprovalMode, isDismissed, isMobileViewport]);
 
   const handleDismiss = useCallback(() => {
     setIsDismissed(true);
     adRefreshManager.unobserve(refreshSlotId);
   }, [refreshSlotId]);
 
-  if (isApprovalMode || isDismissed) {
+  if (isApprovalMode || isDismissed || !isMobileViewport) {
     return null;
   }
 

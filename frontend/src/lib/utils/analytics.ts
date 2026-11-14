@@ -8,6 +8,13 @@ import {
   resolveCanonicalAptSlug,
   stripApartmentNoiseQueryParams,
 } from '@/lib/utils/apartmentMapping';
+import {
+  normalizeGa4DataLayerBootstrapOrder,
+  resetPreConfigDataLayerNormalizationState,
+  schedulePreConfigDataLayerNormalization,
+} from '@/lib/utils/ga4DataLayerBootstrap';
+
+export { normalizeGa4DataLayerBootstrapOrder, schedulePreConfigDataLayerNormalization };
 
 const MAX_SEARCH_TERM_LENGTH = 100;
 
@@ -27,8 +34,19 @@ interface SearchQueryDedupRecord {
   dataLayerRef: unknown;
 }
 
+interface TabViewDedupRecord {
+  tabName: string;
+  surface: string;
+  trigger: string;
+  timestamp: number;
+  dataLayerRef: unknown;
+}
+
+const TAB_VIEW_CASCADE_DEDUP_MS = 300;
+
 let lastApartmentViewRecord: ApartmentViewDedupRecord | null = null;
 let lastSearchQueryRecord: SearchQueryDedupRecord | null = null;
+let lastTabViewRecord: TabViewDedupRecord | null = null;
 
 function normalizeAptIdentity(name: string, dong?: string, canonicalSlug?: string): string {
   const candidate = (canonicalSlug || name || '').trim();
@@ -47,6 +65,8 @@ function getCurrentDataLayerRef(): unknown {
 export function resetAnalyticsInteractionState(): void {
   lastApartmentViewRecord = null;
   lastSearchQueryRecord = null;
+  lastTabViewRecord = null;
+  resetPreConfigDataLayerNormalizationState();
 }
 
 function normalizeApartmentViewPayload(
@@ -187,7 +207,7 @@ function shouldSuppressSearchQueryCascade(
     return false;
   }
   const elapsed = Date.now() - lastSearchQueryRecord.timestamp;
-  if (elapsed < 0 || elapsed >= 1500) {
+  if (elapsed < 0 || elapsed >= 2500) {
     return false;
   }
 
@@ -197,9 +217,114 @@ function shouldSuppressSearchQueryCascade(
     lastSearchQueryRecord.trigger === 'recommended_keyword' ||
     lastSearchQueryRecord.trigger === 'brand_suggestion' ||
     lastSearchQueryRecord.trigger === 'search_shortcut' ||
-    lastSearchQueryRecord.trigger === 'combobox_select';
+    lastSearchQueryRecord.trigger === 'combobox_select' ||
+    lastSearchQueryRecord.trigger === 'enter_no_match';
 
   return isPassiveFollowup && wasExplicitSelection;
+}
+
+function remapReservedCampaignParams(
+  params?: Record<string, unknown>,
+  eventName?: string
+): Record<string, unknown> | undefined {
+  if (!params || typeof params !== 'object' || Array.isArray(params)) {
+    return params;
+  }
+  const hasReservedSource = 'source' in params;
+  const hasReservedMedium = 'medium' in params;
+  const hasReservedCampaign = 'campaign' in params;
+  const hasReservedCampaignId = 'campaign_id' in params;
+  const hasReservedTerm = 'term' in params;
+  const hasReservedContent = 'content' in params;
+  if (
+    !hasReservedSource &&
+    !hasReservedMedium &&
+    !hasReservedCampaign &&
+    !hasReservedCampaignId &&
+    !hasReservedTerm &&
+    !hasReservedContent
+  ) {
+    return params;
+  }
+
+  const remapped: Record<string, unknown> = { ...params };
+
+  if (hasReservedSource) {
+    const rawSource = typeof params.source === 'string' ? params.source.trim() : '';
+    const existingSurface = typeof params.surface === 'string' ? params.surface.trim() : '';
+    const existingTrigger = typeof params.trigger === 'string' ? params.trigger.trim() : '';
+    if (rawSource) {
+      if (!existingSurface) {
+        remapped.surface = rawSource;
+      } else if (existingSurface !== rawSource && !existingTrigger) {
+        remapped.trigger = rawSource;
+      }
+    }
+    delete remapped.source;
+  }
+
+  if (hasReservedMedium) {
+    const rawMedium = typeof params.medium === 'string' ? params.medium.trim() : '';
+    if (
+      rawMedium &&
+      typeof remapped.method === 'undefined' &&
+      typeof remapped.share_medium === 'undefined' &&
+      typeof remapped.interaction_medium === 'undefined'
+    ) {
+      remapped.interaction_medium = rawMedium;
+    }
+    delete remapped.medium;
+  }
+
+  if (hasReservedCampaign) {
+    const rawCampaign = typeof params.campaign === 'string' ? params.campaign.trim() : '';
+    if (rawCampaign) {
+      const isShareEvent = typeof eventName === 'string' && eventName.startsWith('share_');
+      if (isShareEvent && typeof remapped.share_campaign === 'undefined') {
+        remapped.share_campaign = rawCampaign;
+      } else if (
+        !isShareEvent &&
+        typeof remapped.share_campaign === 'undefined' &&
+        typeof remapped.interaction_campaign === 'undefined'
+      ) {
+        remapped.interaction_campaign = rawCampaign;
+      }
+    }
+    delete remapped.campaign;
+  }
+
+  if (hasReservedCampaignId) {
+    const rawCampaignId = typeof params.campaign_id === 'string' ? params.campaign_id.trim() : '';
+    if (rawCampaignId && typeof remapped.cpa_campaign_id === 'undefined') {
+      remapped.cpa_campaign_id = rawCampaignId;
+    }
+    delete remapped.campaign_id;
+  }
+
+  if (hasReservedTerm) {
+    const rawTerm = typeof params.term === 'string' ? params.term.trim() : '';
+    if (rawTerm) {
+      const hasSearchTerm =
+        (typeof remapped.search_term === 'string' && remapped.search_term.trim().length > 0) ||
+        (typeof remapped.query === 'string' && remapped.query.trim().length > 0);
+      if (eventName === 'search_query' && !hasSearchTerm) {
+        remapped.search_term = rawTerm;
+      } else if (typeof remapped.interaction_term === 'undefined') {
+        remapped.interaction_term = rawTerm;
+      }
+    }
+    delete remapped.term;
+  }
+
+  if (hasReservedContent) {
+    const rawContent = typeof params.content === 'string' ? params.content.trim() : '';
+    if (rawContent && typeof remapped.interaction_content === 'undefined') {
+      remapped.interaction_content = rawContent;
+    }
+    delete remapped.content;
+  }
+
+  return remapped;
 }
 
 function sanitizeEventParams(params?: Record<string, unknown>): Record<string, unknown> {
@@ -266,13 +391,13 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
   const normalizedEventName = eventName.trim();
   if (!normalizedEventName) return;
 
-  let effectiveParams = params;
+  let effectiveParams = remapReservedCampaignParams(params, normalizedEventName);
   if (normalizedEventName === 'apartment_view') {
-    const normalizedApt = normalizeApartmentViewPayload(params);
+    const normalizedApt = normalizeApartmentViewPayload(effectiveParams);
     if (!normalizedApt) return;
     effectiveParams = normalizedApt;
   } else if (normalizedEventName === 'search_query') {
-    const normalizedSearch = normalizeSearchQueryPayload(params);
+    const normalizedSearch = normalizeSearchQueryPayload(effectiveParams);
     if (!normalizedSearch) return;
     effectiveParams = normalizedSearch;
   }
@@ -298,6 +423,7 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
     try {
       window.dataLayer = window.dataLayer || [];
       const dataLayer = window.dataLayer;
+      normalizeGa4DataLayerBootstrapOrder(dataLayer);
 
       const beforeLength = Array.isArray(dataLayer) ? dataLayer.length : -1;
       let pushedViaSendGA = false;
@@ -375,6 +501,8 @@ export function trackEvent(eventName: string, params?: Record<string, unknown>) 
           pushGtagArguments(dataLayer, 'event', normalizedEventName, sanitizedParams);
         }
       }
+
+      schedulePreConfigDataLayerNormalization(window.dataLayer);
     } catch (err) {
       logger.error('analytics.trackEvent', 'Failed to send GA event', undefined, err);
     }
@@ -412,13 +540,29 @@ export interface SearchQueryEventParams {
   [key: string]: unknown;
 }
 
+export interface TabViewEventParams {
+  tab_name: string;
+  previous_tab?: string;
+  surface: string;
+  trigger?: string;
+  [key: string]: unknown;
+}
+
+function normalizeCanonicalTabName(rawTab?: string): string {
+  if (typeof rawTab !== 'string') return '';
+  const trimmed = rawTab.trim();
+  if (!trimmed) return '';
+  return trimmed === 'explore' ? 'imjang' : trimmed;
+}
+
 /**
  * Dispatches GA4 `apartment_view` event with standardized parameters (`apartment_name`, `apt_name`, `surface`, `view_type`, `dong`)
  * and cross-surface parent-child cascade deduplication.
  * Aligns with the core GA4 custom dimension `customEvent:apartment_name` and legacy `apt_name` conventions.
  */
 export function trackApartmentView(params: ApartmentViewEventParams): boolean {
-  const payload = normalizeApartmentViewPayload(params);
+  const remappedParams = remapReservedCampaignParams(params, 'apartment_view');
+  const payload = normalizeApartmentViewPayload(remappedParams);
   if (!payload) return false;
 
   const rawName = payload.apartment_name as string;
@@ -450,7 +594,8 @@ export function trackApartmentView(params: ApartmentViewEventParams): boolean {
  * and deduplicates passive debounce follow-ups after explicit shortcut/keyword selection.
  */
 export function trackSearchQuery(params: SearchQueryEventParams): boolean {
-  const payload = normalizeSearchQueryPayload(params);
+  const remappedParams = remapReservedCampaignParams(params, 'search_query');
+  const payload = normalizeSearchQueryPayload(remappedParams);
   if (!payload) return false;
 
   const safeTerm = payload.search_term as string;
@@ -468,6 +613,69 @@ export function trackSearchQuery(params: SearchQueryEventParams): boolean {
     trigger,
     timestamp: Date.now(),
     dataLayerRef: getCurrentDataLayerRef(),
+  };
+  return true;
+}
+
+/**
+ * Dispatches GA4 `tab_view` event ONLY for genuine user tab switches with standardized dimensions:
+ * - `tab_name` (synced as `customEvent:tab_name`)
+ * - `surface` (`gnb_header`, `mobile_dock`, `dashboard_tab`, `popstate_navigation`) — immediately visible via propagated `customEvent:surface`
+ * - `trigger` (`tab_<tab_name>`) — immediately visible via propagated `customEvent:trigger` (0-hour propagation lag)
+ * Suppresses same-tab clicks and parent-child synchronous cascade duplicates within 300ms.
+ */
+export function trackTabView(params: TabViewEventParams): boolean {
+  if (!params || typeof params !== 'object' || Array.isArray(params)) return false;
+
+  const safeTabName = normalizeCanonicalTabName(params.tab_name);
+  if (!safeTabName) return false;
+
+  const safePreviousTab = normalizeCanonicalTabName(params.previous_tab);
+  if (safePreviousTab && safePreviousTab === safeTabName) {
+    return false;
+  }
+
+  const safeSurface =
+    typeof params.surface === 'string' && params.surface.trim()
+      ? params.surface.trim()
+      : 'dashboard_tab';
+  const safeTrigger =
+    typeof params.trigger === 'string' && params.trigger.trim()
+      ? params.trigger.trim()
+      : `tab_${safeTabName}`;
+
+  const now = Date.now();
+  const currentDlRef = getCurrentDataLayerRef();
+  if (
+    lastTabViewRecord &&
+    lastTabViewRecord.dataLayerRef === currentDlRef &&
+    lastTabViewRecord.tabName === safeTabName &&
+    now - lastTabViewRecord.timestamp >= 0 &&
+    now - lastTabViewRecord.timestamp < TAB_VIEW_CASCADE_DEDUP_MS
+  ) {
+    return false;
+  }
+
+  const remappedParams = remapReservedCampaignParams(params, 'tab_view') || {};
+  const payload: Record<string, unknown> = {
+    ...remappedParams,
+    tab_name: safeTabName,
+    surface: safeSurface,
+    trigger: safeTrigger,
+  };
+  if (safePreviousTab) {
+    payload.previous_tab = safePreviousTab;
+  } else {
+    delete payload.previous_tab;
+  }
+
+  analyticsSelf.trackEvent('tab_view', payload);
+  lastTabViewRecord = {
+    tabName: safeTabName,
+    surface: safeSurface,
+    trigger: safeTrigger,
+    timestamp: now,
+    dataLayerRef: currentDlRef,
   };
   return true;
 }

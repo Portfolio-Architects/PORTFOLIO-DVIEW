@@ -67,7 +67,7 @@ export function recordGuideAptPreviewClick(params: {
   });
 
   sendTelemetry({
-    eventType: 'CLICK',
+    eventType: 'GUIDE_PREVIEW_CLICK',
     slotId: `guide_${guideSlug}_${placement}_${safeSlug}`,
     placementSlotId: `guide_${placement}`,
     apartmentName: safeSlug,

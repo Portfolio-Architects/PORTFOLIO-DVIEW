@@ -86,11 +86,11 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         const labels = links.map((l) => l.textContent?.trim());
         expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
 
-        // Zero trace of obsolete /mbti, /office, /admin, /lounge
+        // Zero trace of obsolete /mbti, /office, /admin in primary links, while right utility button links to /lounge
         expect(within(container).queryByText(/MBTI/i)).toBeNull();
         expect(within(container).queryByText(/사무실/)).toBeNull();
         expect(within(container).queryByText(/관리자/)).toBeNull();
-        expect(within(container).queryByText(/라운지/)).toBeNull();
+        expect(within(container).getByTestId('header-lounge-link')).toHaveAttribute('data-href', '/lounge');
       }
     );
 

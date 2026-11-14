@@ -33,16 +33,21 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.DVIEW_AD_TELEMETRY_CUSTOM_METRICS = exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS = exports.Ga4AdTelemetryReportInputSchema = exports.Ga4SyncCustomDimensionsInputSchema = exports.Ga4AdminInfoInputSchema = exports.Ga4DviewFunnelInputSchema = exports.Ga4GetMetadataInputSchema = exports.Ga4RunRealtimeReportInputSchema = exports.Ga4RunReportInputSchema = exports.FaultVectorSchema = exports.GaCredentialsSchema = void 0;
+exports.Ga4HttpError = exports.DVIEW_AD_TELEMETRY_CUSTOM_METRICS = exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS = exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS = exports.Ga4AdTelemetryReportInputSchema = exports.Ga4SyncCustomDimensionsInputSchema = exports.Ga4AdminInfoInputSchema = exports.Ga4DviewFunnelInputSchema = exports.Ga4GetMetadataInputSchema = exports.Ga4RunRealtimeReportInputSchema = exports.Ga4RunReportInputSchema = exports.FaultVectorSchema = exports.GaCredentialsSchema = void 0;
 exports.loadGaCredentials = loadGaCredentials;
+exports.ipv4HttpsRequest = ipv4HttpsRequest;
+exports.getGa4AccessToken = getGa4AccessToken;
 const index_js_1 = require("@modelcontextprotocol/sdk/server/index.js");
 const stdio_js_1 = require("@modelcontextprotocol/sdk/server/stdio.js");
 const types_js_1 = require("@modelcontextprotocol/sdk/types.js");
-const data_1 = require("@google-analytics/data");
-const google_auth_library_1 = require("google-auth-library");
+const crypto = __importStar(require("crypto"));
+const dns = __importStar(require("dns"));
 const fs = __importStar(require("fs"));
+const https = __importStar(require("https"));
 const path = __importStar(require("path"));
+const zlib = __importStar(require("zlib"));
 const zod_1 = require("zod");
+dns.setDefaultResultOrder("ipv4first");
 // ============================================================================
 // 1. Runtime Schemas & Types (HODEP v2.2 Rule 8: Zero Unchecked Casts)
 // ============================================================================
@@ -106,6 +111,7 @@ exports.Ga4SyncCustomDimensionsInputSchema = zod_1.z.object({
     propertyId: zod_1.z.string().regex(/^\d+$/).optional(),
     dryRun: zod_1.z.boolean().default(false),
     includeExtendedDimensions: zod_1.z.boolean().default(true),
+    includeInteractionDimensions: zod_1.z.boolean().default(true),
     includeMetrics: zod_1.z.boolean().default(true),
 });
 exports.Ga4AdTelemetryReportInputSchema = zod_1.z.object({
@@ -127,7 +133,7 @@ exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS = [
         parameterName: "event_type",
         apiName: "customEvent:event_type",
         displayName: "Ad Telemetry Event Type",
-        description: "Ad slot lifecycle event (VIEWABLE_IMPRESSION, IMPRESSION, UNFILLED, ADBLOCK_FALLBACK, FALLBACK_CLICK, CLICK)",
+        description: "Ad slot lifecycle event (VIEWABLE_IMPRESSION, IMPRESSION, UNFILLED, ADBLOCK_FALLBACK, FALLBACK_CLICK, CLICK, GUIDE_PREVIEW_CLICK)",
         scope: "EVENT",
         requiredCore: true,
     },
@@ -156,18 +162,94 @@ exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS = [
         requiredCore: false,
     },
     {
-        parameterName: "campaign_id",
-        apiName: "customEvent:campaign_id",
-        displayName: "CPA Fallback Campaign ID",
+        parameterName: "cpa_campaign_id",
+        apiName: "customEvent:cpa_campaign_id",
+        displayName: "CPA Campaign ID",
         description: "Native CPA fallback campaign identifier when unfilled or ad-blocked",
         scope: "EVENT",
         requiredCore: false,
+        legacyApiNames: ["customEvent:campaign_id"],
     },
     {
         parameterName: "dong",
         apiName: "customEvent:dong",
         displayName: "Legal Dong",
         description: "Hwaseong Dongtan legal or administrative dong context",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+];
+exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS = [
+    {
+        parameterName: "search_term",
+        apiName: "customEvent:search_term",
+        displayName: "DVIEW Search Term",
+        description: "Normalized user search term (<=100 chars) for search_query and view_search_results",
+        scope: "EVENT",
+        requiredCore: false,
+        builtInApiName: "searchTerm",
+    },
+    {
+        parameterName: "surface",
+        apiName: "customEvent:surface",
+        displayName: "Interaction Surface",
+        description: "Originating UI surface for apartment_view or search_query",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "view_type",
+        apiName: "customEvent:view_type",
+        displayName: "Apartment View Type",
+        description: "Presentation mode for apartment_view (modal, detail_page, chart_preview, mobile_drawer, shortcut)",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "trigger",
+        apiName: "customEvent:trigger",
+        displayName: "Interaction Trigger",
+        description: "Specific user gesture or entry trigger for apartment_view or search_query",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "chapter_id",
+        apiName: "customEvent:chapter_id",
+        displayName: "Modal Chapter ID",
+        description: "Selected chapter/tab identifier inside ApartmentModal",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "selected_apt",
+        apiName: "customEvent:selected_apt",
+        displayName: "Search Selected Apartment",
+        description: "Apartment complex selected directly from a search suggestion or autocomplete match",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "zone",
+        apiName: "customEvent:zone",
+        displayName: "Living Zone Key",
+        description: "Dongtan living zone identifier for donut fullscreen modal interactions",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "calculator_type",
+        apiName: "customEvent:calculator_type",
+        displayName: "Calculator Type",
+        description: "Target diagnosis calculator type (mortgage, jeonse_safety, property_tax, sell_timing, compare, policy_loan)",
+        scope: "EVENT",
+        requiredCore: false,
+    },
+    {
+        parameterName: "tab_name",
+        apiName: "customEvent:tab_name",
+        displayName: "Navigation Tab Name",
+        description: "Selected navigation tab identifier for tab_view (overview, imjang, stats, guide, technovalley, lounge)",
         scope: "EVENT",
         requiredCore: false,
     },
@@ -201,8 +283,21 @@ function computeCustomDimensionCoverage(metadataDimensions = [], metadataMetrics
     const missingCoreDimensions = [];
     const registeredExtendedDimensions = [];
     const missingExtendedDimensions = [];
+    const registeredInteractionDimensions = [];
+    const missingInteractionDimensions = [];
+    const legacyAliasDimensions = [];
     for (const spec of exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS) {
         const exists = dimSet.has(spec.apiName);
+        if (!exists && spec.legacyApiNames) {
+            const legacyMatch = spec.legacyApiNames.find((l) => dimSet.has(l));
+            if (legacyMatch) {
+                legacyAliasDimensions.push({
+                    parameterName: spec.parameterName,
+                    canonicalApiName: spec.apiName,
+                    activeLegacyApiName: legacyMatch,
+                });
+            }
+        }
         if (spec.requiredCore) {
             if (exists)
                 registeredCoreDimensions.push(spec.parameterName);
@@ -216,6 +311,12 @@ function computeCustomDimensionCoverage(metadataDimensions = [], metadataMetrics
             missingExtendedDimensions.push(spec.parameterName);
         }
     }
+    for (const spec of exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS) {
+        if (dimSet.has(spec.apiName))
+            registeredInteractionDimensions.push(spec.parameterName);
+        else
+            missingInteractionDimensions.push(spec.parameterName);
+    }
     const registeredMetrics = [];
     const missingMetrics = [];
     for (const met of exports.DVIEW_AD_TELEMETRY_CUSTOM_METRICS) {
@@ -227,11 +328,15 @@ function computeCustomDimensionCoverage(metadataDimensions = [], metadataMetrics
     return {
         coreComplete: missingCoreDimensions.length === 0,
         allDimensionsComplete: missingCoreDimensions.length === 0 && missingExtendedDimensions.length === 0,
+        interactionComplete: missingInteractionDimensions.length === 0,
         allMetricsComplete: missingMetrics.length === 0,
         registeredCoreDimensions,
         missingCoreDimensions,
         registeredExtendedDimensions,
         missingExtendedDimensions,
+        registeredInteractionDimensions,
+        missingInteractionDimensions,
+        legacyAliasDimensions,
         registeredMetrics,
         missingMetrics,
     };
@@ -305,14 +410,359 @@ function loadGaCredentials() {
     return null;
 }
 const cachedCredentials = loadGaCredentials();
-const analyticsDataClient = cachedCredentials
-    ? new data_1.BetaAnalyticsDataClient({
-        credentials: {
-            client_email: cachedCredentials.clientEmail,
-            private_key: cachedCredentials.privateKey,
+// ============================================================================
+// 2b. Pure IPv4 (family: 4) HTTPS REST & Cached OAuth2 RS256 Transport
+// ============================================================================
+const DEFAULT_CONNECT_TIMEOUT_MS = 3500;
+const DEFAULT_READ_TIMEOUT_MS = Number(process.env.GA4_REST_TIMEOUT_MS) > 0
+    ? Number(process.env.GA4_REST_TIMEOUT_MS)
+    : 25000;
+const ipv4KeepAliveAgent = new https.Agent({
+    keepAlive: true,
+    family: 4,
+    maxSockets: 6,
+    keepAliveMsecs: 10000,
+});
+class Ga4HttpError extends Error {
+    status;
+    elapsedMs;
+    responseText;
+    constructor(message, status, elapsedMs, responseText) {
+        super(message);
+        this.name = "Ga4HttpError";
+        this.status = status;
+        this.elapsedMs = elapsedMs;
+        this.responseText = responseText;
+    }
+}
+exports.Ga4HttpError = Ga4HttpError;
+function decompressResponseBuffer(buf, contentEncoding) {
+    const enc = (Array.isArray(contentEncoding)
+        ? contentEncoding[0] ?? ""
+        : contentEncoding ?? "")
+        .toLowerCase()
+        .trim();
+    if (enc === "gzip") {
+        return zlib.gunzipSync(buf).toString("utf8");
+    }
+    if (enc === "deflate") {
+        return zlib.inflateSync(buf).toString("utf8");
+    }
+    return buf.toString("utf8");
+}
+function executeSingleIpv4Request(urlStr, options, useKeepAliveAgent) {
+    return new Promise((resolve) => {
+        const t0 = Date.now();
+        const url = new URL(urlStr);
+        const method = options.method ?? "GET";
+        const connectTimeoutMs = options.connectTimeoutMs ?? DEFAULT_CONNECT_TIMEOUT_MS;
+        const readTimeoutMs = options.readTimeoutMs ?? DEFAULT_READ_TIMEOUT_MS;
+        const bodyBuf = options.body !== undefined && options.body.length > 0
+            ? Buffer.from(options.body, "utf8")
+            : undefined;
+        const headers = {
+            "Accept-Encoding": "identity",
+            ...(options.headers ?? {}),
+        };
+        if (!useKeepAliveAgent) {
+            headers["Connection"] = "close";
+        }
+        if (bodyBuf) {
+            headers["Content-Length"] = String(bodyBuf.byteLength);
+        }
+        else if (method === "POST" && !headers["Content-Length"]) {
+            headers["Content-Length"] = "0";
+        }
+        let settled = false;
+        let tlsConnected = false;
+        let headersReceived = false;
+        let readTimer = null;
+        let connectTimer = null;
+        const cleanupTimers = () => {
+            if (connectTimer) {
+                clearTimeout(connectTimer);
+                connectTimer = null;
+            }
+            if (readTimer) {
+                clearTimeout(readTimer);
+                readTimer = null;
+            }
+        };
+        const finish = (result) => {
+            if (settled)
+                return;
+            settled = true;
+            cleanupTimers();
+            resolve(result);
+        };
+        const req = https.request({
+            protocol: url.protocol,
+            hostname: url.hostname,
+            servername: url.hostname,
+            port: url.port ? Number(url.port) : 443,
+            path: `${url.pathname}${url.search}`,
+            method,
+            family: 4,
+            agent: useKeepAliveAgent ? ipv4KeepAliveAgent : false,
+            headers,
+        }, (res) => {
+            headersReceived = true;
+            tlsConnected = true;
+            if (connectTimer) {
+                clearTimeout(connectTimer);
+                connectTimer = null;
+            }
+            const chunks = [];
+            res.on("data", (chunk) => {
+                chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk);
+            });
+            res.on("end", () => {
+                const status = res.statusCode ?? 500;
+                let text = "";
+                try {
+                    text = decompressResponseBuffer(Buffer.concat(chunks), res.headers["content-encoding"]);
+                }
+                catch {
+                    text = Buffer.concat(chunks).toString("utf8");
+                }
+                finish({
+                    response: {
+                        ok: status >= 200 && status < 300,
+                        status,
+                        headers: res.headers,
+                        text,
+                        elapsedMs: Date.now() - t0,
+                    },
+                    tlsConnected,
+                    reusedSocket: Boolean(req.reusedSocket),
+                });
+            });
+        });
+        const armReadTimer = () => {
+            if (readTimer)
+                return;
+            readTimer = setTimeout(() => {
+                const err = new Error(`READ_TIMEOUT after ${Date.now() - t0}ms (${url.hostname}${url.pathname})`);
+                req.destroy(err);
+                finish({
+                    error: err,
+                    tlsConnected: true,
+                    reusedSocket: Boolean(req.reusedSocket),
+                });
+            }, readTimeoutMs);
+        };
+        connectTimer = setTimeout(() => {
+            if (!tlsConnected) {
+                const err = new Error(`CONNECT_TIMEOUT after ${Date.now() - t0}ms (${url.hostname}${url.pathname})`);
+                req.destroy(err);
+                finish({
+                    error: err,
+                    tlsConnected: false,
+                    reusedSocket: Boolean(req.reusedSocket),
+                });
+            }
+        }, connectTimeoutMs);
+        req.on("socket", (sock) => {
+            const tlsSocket = sock;
+            if (req.reusedSocket && tlsSocket.encrypted && !tlsSocket.connecting) {
+                tlsConnected = true;
+                if (connectTimer) {
+                    clearTimeout(connectTimer);
+                    connectTimer = null;
+                }
+                armReadTimer();
+            }
+            else {
+                sock.once("secureConnect", () => {
+                    tlsConnected = true;
+                    if (connectTimer) {
+                        clearTimeout(connectTimer);
+                        connectTimer = null;
+                    }
+                    armReadTimer();
+                });
+            }
+        });
+        req.on("error", (err) => {
+            finish({
+                error: err instanceof Error ? err : new Error(String(err)),
+                tlsConnected: tlsConnected || headersReceived,
+                reusedSocket: Boolean(req.reusedSocket),
+            });
+        });
+        if (bodyBuf) {
+            req.write(bodyBuf);
+        }
+        req.end();
+    });
+}
+/**
+ * Executes an IPv4-enforced (`family: 4`) HTTPS request with two-tier timeouts.
+ * Only retries once on a fresh non-pooled socket if failure occurred BEFORE TLS/headers
+ * (connect timeout or stale keep-alive socket reset), avoiding duplicate GA4 :runReport executions.
+ */
+async function ipv4HttpsRequest(urlStr, options = {}) {
+    const first = await executeSingleIpv4Request(urlStr, options, true);
+    if (first.response) {
+        return first.response;
+    }
+    const firstErr = first.error ?? new Error("Unknown IPv4 HTTPS request error");
+    const isPreTlsFailure = !first.tlsConnected;
+    const isStaleKeepAliveReset = first.reusedSocket &&
+        /ECONNRESET|socket hang up|EPIPE|ECONNABORTED/i.test(firstErr.message);
+    if (!isPreTlsFailure && !isStaleKeepAliveReset) {
+        throw firstErr;
+    }
+    const second = await executeSingleIpv4Request(urlStr, options, false);
+    if (second.response) {
+        return second.response;
+    }
+    throw second.error ?? firstErr;
+}
+const oauthTokenCache = new Map();
+/**
+ * Mints and caches an OAuth2 Bearer access token using RS256 JWT over IPv4 REST.
+ */
+async function getGa4AccessToken(creds, scopes) {
+    const normalizedScopes = Array.from(new Set(scopes.map((s) => s.trim()).filter((s) => s.length > 0))).sort();
+    const scopeKey = normalizedScopes.join(" ");
+    const cacheKey = `${creds.clientEmail}\u0000${scopeKey}`;
+    const nowMs = Date.now();
+    const existing = oauthTokenCache.get(cacheKey);
+    if (existing && existing.expiresAtMs - nowMs > 60_000) {
+        return existing.accessToken;
+    }
+    const iat = Math.floor(nowMs / 1000) - 10;
+    const exp = iat + 3600;
+    const headerB64 = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url");
+    const payloadB64 = Buffer.from(JSON.stringify({
+        iss: creds.clientEmail,
+        scope: scopeKey,
+        aud: "https://oauth2.googleapis.com/token",
+        iat,
+        exp,
+    })).toString("base64url");
+    const signInput = `${headerB64}.${payloadB64}`;
+    const signer = crypto.createSign("RSA-SHA256");
+    signer.update(signInput);
+    const signatureB64 = signer.sign(creds.privateKey, "base64url");
+    const assertion = `${signInput}.${signatureB64}`;
+    const body = new URLSearchParams({
+        grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        assertion,
+    }).toString();
+    const res = await ipv4HttpsRequest("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body,
+    });
+    if (!res.ok) {
+        throw new Ga4HttpError(`OAuth token exchange HTTP ${res.status}: ${res.text.slice(0, 300)}`, res.status, res.elapsedMs, res.text);
+    }
+    const parsed = JSON.parse(res.text);
+    if (typeof parsed.access_token !== "string" || !parsed.access_token) {
+        throw new Error("OAuth token response missing access_token");
+    }
+    const expiresInSec = typeof parsed.expires_in === "number" && parsed.expires_in > 0
+        ? parsed.expires_in
+        : 3600;
+    oauthTokenCache.set(cacheKey, {
+        accessToken: parsed.access_token,
+        expiresAtMs: nowMs + expiresInSec * 1000,
+    });
+    return parsed.access_token;
+}
+const GA4_READONLY_SCOPES = [
+    "https://www.googleapis.com/auth/analytics.readonly",
+];
+function parseGa4RestJson(res, label) {
+    const trimmed = res.text.trim();
+    const isHtml = trimmed.startsWith("<!DOCTYPE") ||
+        trimmed.startsWith("<html") ||
+        trimmed.startsWith("<HTML");
+    if (!res.ok) {
+        if (isHtml) {
+            throw new Ga4HttpError(`${label} HTTP ${res.status} (Upstream Google ESF HTML error in ${res.elapsedMs}ms)`, res.status, res.elapsedMs, trimmed.slice(0, 300));
+        }
+        let detail = trimmed.slice(0, 350);
+        try {
+            const errJson = JSON.parse(trimmed);
+            if (errJson.error?.message) {
+                detail = errJson.error.status
+                    ? `${errJson.error.status}: ${errJson.error.message}`
+                    : errJson.error.message;
+            }
+        }
+        catch {
+            // keep raw snippet
+        }
+        throw new Ga4HttpError(`${label} HTTP ${res.status}: ${detail}`, res.status, res.elapsedMs, res.text);
+    }
+    return (trimmed ? JSON.parse(trimmed) : {});
+}
+async function ga4RestGetMetadata(creds, propertyId) {
+    const token = await getGa4AccessToken(creds, GA4_READONLY_SCOPES);
+    const res = await ipv4HttpsRequest(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}/metadata`, {
+        method: "GET",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            Accept: "application/json",
         },
-    })
-    : null;
+    });
+    return parseGa4RestJson(res, "getMetadata");
+}
+async function ga4RestRunReport(creds, propertyId, body) {
+    const token = await getGa4AccessToken(creds, GA4_READONLY_SCOPES);
+    // REST v1beta takes property in the URL path; omit empty dimensions/optional fields
+    const payload = {
+        dateRanges: body.dateRanges,
+        metrics: body.metrics,
+    };
+    if (body.dimensions && body.dimensions.length > 0) {
+        payload.dimensions = body.dimensions;
+    }
+    if (body.dimensionFilter !== undefined) {
+        payload.dimensionFilter = body.dimensionFilter;
+    }
+    if (body.orderBys && body.orderBys.length > 0) {
+        payload.orderBys = body.orderBys;
+    }
+    if (body.limit !== undefined) {
+        payload.limit = body.limit;
+    }
+    const res = await ipv4HttpsRequest(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    return parseGa4RestJson(res, "runReport");
+}
+async function ga4RestRunRealtimeReport(creds, propertyId, body) {
+    const token = await getGa4AccessToken(creds, GA4_READONLY_SCOPES);
+    const payload = {
+        metrics: body.metrics,
+    };
+    if (body.dimensions && body.dimensions.length > 0) {
+        payload.dimensions = body.dimensions;
+    }
+    if (body.limit !== undefined) {
+        payload.limit = body.limit;
+    }
+    const res = await ipv4HttpsRequest(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runRealtimeReport`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+            Accept: "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+    return parseGa4RestJson(res, "runRealtimeReport");
+}
 /**
  * Formats a report response into a deterministic array of key-value records.
  * Complexity: Time O(N * M) where N = rows, M = dimensions + metrics; Space O(N * M); Side-effects: False.
@@ -511,7 +961,7 @@ server.setRequestHandler(types_js_1.ListToolsRequestSchema, async () => {
             },
             {
                 name: "ga4_sync_custom_dimensions",
-                description: "Idempotently register DVIEW ad_telemetry event-scoped custom dimensions (slot_id, event_type, apartment_name, user_agent_category, placement_slot_id, campaign_id, dong) and custom metrics (dwell_time_ms, intersection_ratio) via Google Analytics Admin API v1beta.",
+                description: "Idempotently register DVIEW event-scoped custom dimensions (ad_telemetry: slot_id, event_type, apartment_name, user_agent_category, placement_slot_id, cpa_campaign_id, dong; interaction/funnel: search_term, surface, view_type, trigger, chapter_id, selected_apt, zone, calculator_type, tab_name) and custom metrics (dwell_time_ms, intersection_ratio) via Google Analytics Admin API v1beta.",
                 inputSchema: {
                     type: "object",
                     properties: {
@@ -525,7 +975,11 @@ server.setRequestHandler(types_js_1.ListToolsRequestSchema, async () => {
                         },
                         includeExtendedDimensions: {
                             type: "boolean",
-                            description: "Include placement_slot_id, campaign_id, and dong in addition to the 4 core dimensions (default: true)",
+                            description: "Include placement_slot_id, cpa_campaign_id, and dong in addition to the 4 core dimensions (default: true)",
+                        },
+                        includeInteractionDimensions: {
+                            type: "boolean",
+                            description: "Include search_term, surface, view_type, trigger, chapter_id, selected_apt, zone, calculator_type, and tab_name for search & funnel analytics (default: true)",
                         },
                         includeMetrics: {
                             type: "boolean",
@@ -563,7 +1017,7 @@ server.setRequestHandler(types_js_1.ListToolsRequestSchema, async () => {
     };
 });
 server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
-    if (!cachedCredentials || !analyticsDataClient) {
+    if (!cachedCredentials) {
         return buildFaultResponse({
             faultVector: [
                 "ERR_GA4_CREDENTIALS_MISSING",
@@ -592,8 +1046,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const { propertyId = cachedCredentials.propertyId, startDate, endDate, dimensions, metrics, dimensionFilterField, dimensionFilterValue, orderByMetric, orderDesc, limit, } = parsed.data;
-            const [response] = await analyticsDataClient.runReport({
-                property: `properties/${propertyId}`,
+            const response = await ga4RestRunReport(cachedCredentials, propertyId, {
                 dateRanges: [{ startDate, endDate }],
                 dimensions: dimensions.map((name) => ({ name })),
                 metrics: metrics.map((name) => ({ name })),
@@ -649,8 +1102,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const { propertyId = cachedCredentials.propertyId, dimensions, metrics, limit, } = parsed.data;
-            const [response] = await analyticsDataClient.runRealtimeReport({
-                property: `properties/${propertyId}`,
+            const response = await ga4RestRunRealtimeReport(cachedCredentials, propertyId, {
                 dimensions: dimensions.map((name) => ({ name })),
                 metrics: metrics.map((name) => ({ name })),
                 limit,
@@ -686,9 +1138,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const { propertyId = cachedCredentials.propertyId, searchQuery, includeDimensions, includeMetrics, customOnly, limit, } = parsed.data;
-            const [metadata] = await analyticsDataClient.getMetadata({
-                name: `properties/${propertyId}/metadata`,
-            });
+            const metadata = await ga4RestGetMetadata(cachedCredentials, propertyId);
             const queryLower = searchQuery ? searchQuery.toLowerCase() : "";
             const allDimensions = metadata.dimensions || [];
             const allMetrics = metadata.metrics || [];
@@ -764,9 +1214,10 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const { propertyId = cachedCredentials.propertyId, startDate, endDate, topPagesLimit, } = parsed.data;
-            const [overviewRes, dailyRes, pagesRes, eventsRes, metadataRes] = await Promise.all([
-                analyticsDataClient.runReport({
-                    property: `properties/${propertyId}`,
+            // Batch A & Batch B stay within GA4's concurrent-requests quota limit
+            const [metadataRes, overviewRes, dailyRes] = await Promise.all([
+                ga4RestGetMetadata(cachedCredentials, propertyId),
+                ga4RestRunReport(cachedCredentials, propertyId, {
                     dateRanges: [{ startDate, endDate }],
                     metrics: [
                         { name: "activeUsers" },
@@ -778,8 +1229,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                         { name: "eventCount" },
                     ],
                 }),
-                analyticsDataClient.runReport({
-                    property: `properties/${propertyId}`,
+                ga4RestRunReport(cachedCredentials, propertyId, {
                     dateRanges: [{ startDate, endDate }],
                     dimensions: [{ name: "date" }],
                     metrics: [
@@ -789,8 +1239,9 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                     ],
                     orderBys: [{ dimension: { dimensionName: "date" }, desc: false }],
                 }),
-                analyticsDataClient.runReport({
-                    property: `properties/${propertyId}`,
+            ]);
+            const [pagesRes, eventsRes] = await Promise.all([
+                ga4RestRunReport(cachedCredentials, propertyId, {
                     dateRanges: [{ startDate, endDate }],
                     dimensions: [{ name: "pagePath" }],
                     metrics: [
@@ -798,28 +1249,119 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                         { name: "activeUsers" },
                         { name: "averageSessionDuration" },
                     ],
-                    orderBys: [
-                        { metric: { metricName: "screenPageViews" }, desc: true },
-                    ],
+                    orderBys: [{ metric: { metricName: "screenPageViews" }, desc: true }],
                     limit: topPagesLimit,
                 }),
-                analyticsDataClient.runReport({
-                    property: `properties/${propertyId}`,
+                ga4RestRunReport(cachedCredentials, propertyId, {
                     dateRanges: [{ startDate, endDate }],
                     dimensions: [{ name: "eventName" }],
                     metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
                     orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
                     limit: 50,
                 }),
-                analyticsDataClient.getMetadata({
-                    name: `properties/${propertyId}/metadata`,
-                }),
             ]);
-            const overviewRows = normalizeReportRows(overviewRes[0].dimensionHeaders, overviewRes[0].metricHeaders, overviewRes[0].rows);
-            const dailyTrend = normalizeReportRows(dailyRes[0].dimensionHeaders, dailyRes[0].metricHeaders, dailyRes[0].rows);
-            const topPages = normalizeReportRows(pagesRes[0].dimensionHeaders, pagesRes[0].metricHeaders, pagesRes[0].rows);
-            const eventBreakdown = normalizeReportRows(eventsRes[0].dimensionHeaders, eventsRes[0].metricHeaders, eventsRes[0].rows);
-            const adTelemetryCustomDimensionCoverage = computeCustomDimensionCoverage(metadataRes[0].dimensions || [], metadataRes[0].metrics || []);
+            const overviewRows = normalizeReportRows(overviewRes.dimensionHeaders, overviewRes.metricHeaders, overviewRes.rows);
+            const dailyTrend = normalizeReportRows(dailyRes.dimensionHeaders, dailyRes.metricHeaders, dailyRes.rows);
+            const topPages = normalizeReportRows(pagesRes.dimensionHeaders, pagesRes.metricHeaders, pagesRes.rows);
+            const eventBreakdown = normalizeReportRows(eventsRes.dimensionHeaders, eventsRes.metricHeaders, eventsRes.rows);
+            const customDimensionCoverage = computeCustomDimensionCoverage(metadataRes.dimensions || [], metadataRes.metrics || []);
+            const registeredMetaDimNames = new Set((metadataRes.dimensions || [])
+                .map((d) => (typeof d.apiName === "string" ? d.apiName.trim() : ""))
+                .filter((s) => s.length > 0));
+            const resolveDim = (spec) => {
+                if (registeredMetaDimNames.has(spec.apiName))
+                    return spec.apiName;
+                if (spec.builtInApiName && registeredMetaDimNames.has(spec.builtInApiName)) {
+                    return spec.builtInApiName;
+                }
+                return null;
+            };
+            const searchTermSpec = exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS.find((d) => d.parameterName === "search_term");
+            const surfaceSpec = exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS.find((d) => d.parameterName === "surface");
+            const viewTypeSpec = exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS.find((d) => d.parameterName === "view_type");
+            const triggerSpec = exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS.find((d) => d.parameterName === "trigger");
+            const tabNameSpec = exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS.find((d) => d.parameterName === "tab_name");
+            const searchQueryDims = [];
+            const resolvedSearchTermDim = searchTermSpec ? resolveDim(searchTermSpec) : null;
+            const resolvedSurfaceDim = surfaceSpec ? resolveDim(surfaceSpec) : null;
+            const resolvedViewTypeDim = viewTypeSpec ? resolveDim(viewTypeSpec) : null;
+            const resolvedTriggerDim = triggerSpec ? resolveDim(triggerSpec) : null;
+            const resolvedTabNameDim = tabNameSpec ? resolveDim(tabNameSpec) : null;
+            if (resolvedSearchTermDim)
+                searchQueryDims.push(resolvedSearchTermDim);
+            if (resolvedSurfaceDim)
+                searchQueryDims.push(resolvedSurfaceDim);
+            const aptViewDims = [];
+            if (resolvedSurfaceDim)
+                aptViewDims.push(resolvedSurfaceDim);
+            if (resolvedViewTypeDim)
+                aptViewDims.push(resolvedViewTypeDim);
+            if (registeredMetaDimNames.has("customEvent:apartment_name")) {
+                aptViewDims.push("customEvent:apartment_name");
+            }
+            const tabViewDims = [];
+            if (resolvedTabNameDim)
+                tabViewDims.push(resolvedTabNameDim);
+            if (resolvedSurfaceDim)
+                tabViewDims.push(resolvedSurfaceDim);
+            if (resolvedTriggerDim)
+                tabViewDims.push(resolvedTriggerDim);
+            const [searchRes, aptViewRes, tabViewRes] = await Promise.all([
+                searchQueryDims.length > 0
+                    ? ga4RestRunReport(cachedCredentials, propertyId, {
+                        dateRanges: [{ startDate, endDate }],
+                        dimensions: searchQueryDims.map((name) => ({ name })),
+                        metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+                        dimensionFilter: {
+                            filter: {
+                                fieldName: "eventName",
+                                stringFilter: { matchType: "EXACT", value: "search_query" },
+                            },
+                        },
+                        orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+                        limit: 30,
+                    })
+                    : Promise.resolve(null),
+                aptViewDims.length > 0
+                    ? ga4RestRunReport(cachedCredentials, propertyId, {
+                        dateRanges: [{ startDate, endDate }],
+                        dimensions: aptViewDims.map((name) => ({ name })),
+                        metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+                        dimensionFilter: {
+                            filter: {
+                                fieldName: "eventName",
+                                stringFilter: { matchType: "EXACT", value: "apartment_view" },
+                            },
+                        },
+                        orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+                        limit: 30,
+                    })
+                    : Promise.resolve(null),
+                tabViewDims.length > 0
+                    ? ga4RestRunReport(cachedCredentials, propertyId, {
+                        dateRanges: [{ startDate, endDate }],
+                        dimensions: tabViewDims.map((name) => ({ name })),
+                        metrics: [{ name: "eventCount" }, { name: "totalUsers" }],
+                        dimensionFilter: {
+                            filter: {
+                                fieldName: "eventName",
+                                stringFilter: { matchType: "EXACT", value: "tab_view" },
+                            },
+                        },
+                        orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+                        limit: 30,
+                    })
+                    : Promise.resolve(null),
+            ]);
+            const topSearchTerms = searchRes
+                ? normalizeReportRows(searchRes.dimensionHeaders, searchRes.metricHeaders, searchRes.rows)
+                : [];
+            const apartmentViewsBySurfaceAndType = aptViewRes
+                ? normalizeReportRows(aptViewRes.dimensionHeaders, aptViewRes.metricHeaders, aptViewRes.rows)
+                : [];
+            const tabViewsBySurfaceAndTrigger = tabViewRes
+                ? normalizeReportRows(tabViewRes.dimensionHeaders, tabViewRes.metricHeaders, tabViewRes.rows)
+                : [];
             return {
                 content: [
                     {
@@ -837,10 +1379,21 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                                 engagementRate: 0,
                                 eventCount: 0,
                             },
-                            adTelemetryCustomDimensionCoverage,
+                            adTelemetryCustomDimensionCoverage: customDimensionCoverage,
+                            customDimensionCoverage,
                             dailyTrend,
                             topPages,
                             eventBreakdown,
+                            interactionDimensionsResolved: {
+                                search_term: resolvedSearchTermDim,
+                                surface: resolvedSurfaceDim,
+                                view_type: resolvedViewTypeDim,
+                                trigger: resolvedTriggerDim,
+                                tab_name: resolvedTabNameDim,
+                            },
+                            topSearchTerms,
+                            apartmentViewsBySurfaceAndType,
+                            tabViewsBySurfaceAndTrigger,
                         }, null, 2),
                     },
                 ],
@@ -862,16 +1415,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const propertyId = parsed.data.propertyId ?? cachedCredentials.propertyId;
-            const auth = new google_auth_library_1.GoogleAuth({
-                credentials: {
-                    client_email: cachedCredentials.clientEmail,
-                    private_key: cachedCredentials.privateKey,
-                },
-                scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
-            });
-            const client = await auth.getClient();
-            const tokenResponse = await client.getAccessToken();
-            const accessToken = tokenResponse.token;
+            const accessToken = await getGa4AccessToken(cachedCredentials, GA4_READONLY_SCOPES);
             if (!accessToken) {
                 return buildFaultResponse({
                     faultVector: [
@@ -883,21 +1427,23 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const [propRes, streamsRes] = await Promise.all([
-                fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`, {
+                ipv4HttpsRequest(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`, {
+                    method: "GET",
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         Accept: "application/json",
                     },
                 }),
-                fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams`, {
+                ipv4HttpsRequest(`https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}/dataStreams`, {
+                    method: "GET",
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
                         Accept: "application/json",
                     },
                 }),
             ]);
-            const readSafeTextAndJson = async (res) => {
-                const text = await res.text();
+            const readSafeTextAndJson = (res) => {
+                const text = res.text;
                 if (!text)
                     return { text: "", json: {} };
                 try {
@@ -910,10 +1456,8 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                     return { text, json: {} };
                 }
             };
-            const [propPayload, streamsPayload] = await Promise.all([
-                readSafeTextAndJson(propRes),
-                readSafeTextAndJson(streamsRes),
-            ]);
+            const propPayload = readSafeTextAndJson(propRes);
+            const streamsPayload = readSafeTextAndJson(streamsRes);
             if (!propRes.ok) {
                 const lowerText = propPayload.text.toLowerCase();
                 const urlMatch = propPayload.text.match(/https:\/\/console\.developers\.google\.com\/apis\/api\/analyticsadmin\.googleapis\.com\/overview\?project=\d+/);
@@ -987,17 +1531,10 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                     recoveryInvariant: "Provide valid sync parameters.",
                 });
             }
-            const { propertyId = cachedCredentials.propertyId, dryRun, includeExtendedDimensions, includeMetrics, } = parsed.data;
-            const auth = new google_auth_library_1.GoogleAuth({
-                credentials: {
-                    client_email: cachedCredentials.clientEmail,
-                    private_key: cachedCredentials.privateKey,
-                },
-                scopes: ["https://www.googleapis.com/auth/analytics.edit"],
-            });
-            const client = await auth.getClient();
-            const tokenResponse = await client.getAccessToken();
-            const accessToken = tokenResponse.token;
+            const { propertyId = cachedCredentials.propertyId, dryRun, includeExtendedDimensions, includeInteractionDimensions, includeMetrics, } = parsed.data;
+            const accessToken = await getGa4AccessToken(cachedCredentials, [
+                "https://www.googleapis.com/auth/analytics.edit",
+            ]);
             if (!accessToken) {
                 return buildFaultResponse({
                     faultVector: [
@@ -1009,36 +1546,49 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const baseAdminUrl = `https://analyticsadmin.googleapis.com/v1beta/properties/${propertyId}`;
-            const targetDims = exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS.filter((d) => d.requiredCore || includeExtendedDimensions);
+            const targetDims = [
+                ...exports.DVIEW_AD_TELEMETRY_CUSTOM_DIMENSIONS.filter((d) => d.requiredCore || includeExtendedDimensions),
+                ...(includeInteractionDimensions
+                    ? exports.DVIEW_INTERACTION_CUSTOM_DIMENSIONS
+                    : []),
+            ];
             const targetMetrics = includeMetrics
                 ? [...exports.DVIEW_AD_TELEMETRY_CUSTOM_METRICS]
                 : [];
             const fetchPaginatedNames = async (endpoint, key) => {
                 const names = new Set();
+                const displayNamesLower = new Set();
                 let pageToken = "";
                 for (let page = 0; page < 20; page++) {
                     const url = new URL(endpoint);
                     url.searchParams.set("pageSize", "200");
                     if (pageToken)
                         url.searchParams.set("pageToken", pageToken);
-                    const res = await fetch(url.toString(), {
+                    const res = await ipv4HttpsRequest(url.toString(), {
+                        method: "GET",
                         headers: {
                             Authorization: `Bearer ${accessToken}`,
                             Accept: "application/json",
                         },
                     });
-                    const bodyText = await res.text();
+                    const bodyText = res.text;
                     if (!res.ok) {
                         return { ok: false, status: res.status, bodyText };
                     }
                     const json = (bodyText ? JSON.parse(bodyText) : {});
                     const list = Array.isArray(json[key]) ? json[key] : [];
                     for (const item of list) {
-                        if (typeof item === "object" &&
-                            item !== null &&
-                            typeof item.parameterName ===
-                                "string") {
-                            names.add(item.parameterName.trim());
+                        if (typeof item === "object" && item !== null) {
+                            const typedItem = item;
+                            if (typeof typedItem.parameterName === "string") {
+                                names.add(typedItem.parameterName.trim());
+                            }
+                            if (key === "customDimensions" &&
+                                typeof typedItem.displayName === "string") {
+                                const dn = typedItem.displayName.trim().toLowerCase();
+                                if (dn.length > 0)
+                                    displayNamesLower.add(dn);
+                            }
                         }
                     }
                     const next = typeof json.nextPageToken === "string"
@@ -1048,7 +1598,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                         break;
                     pageToken = next;
                 }
-                return { ok: true, names };
+                return { ok: true, names, displayNamesLower };
             };
             const buildAdminFault = (status, bodyText) => {
                 const lower = bodyText.toLowerCase();
@@ -1140,8 +1690,10 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 };
             }
             const createdDimensions = [];
-            for (const dim of missingDims) {
-                const res = await fetch(`${baseAdminUrl}/customDimensions`, {
+            const builtInMappedNotes = [];
+            const existingDisplayNamesLower = dimsList.displayNamesLower;
+            const postCustomDimension = async (dim, displayName) => {
+                const res = await ipv4HttpsRequest(`${baseAdminUrl}/customDimensions`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -1150,26 +1702,49 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                     },
                     body: JSON.stringify({
                         parameterName: dim.parameterName,
-                        displayName: dim.displayName,
+                        displayName,
                         description: dim.description,
                         scope: dim.scope,
                     }),
                 });
-                const bodyText = await res.text();
-                if (res.ok) {
+                return { ok: res.ok, status: res.status, bodyText: res.text };
+            };
+            for (const dim of missingDims) {
+                const disambiguatedName = `${dim.displayName} (${dim.parameterName})`.slice(0, 82);
+                let effectiveDisplayName = existingDisplayNamesLower.has(dim.displayName.trim().toLowerCase())
+                    ? disambiguatedName
+                    : dim.displayName;
+                let postRes = await postCustomDimension(dim, effectiveDisplayName);
+                if (!postRes.ok) {
+                    const lowerErr = postRes.bodyText.toLowerCase();
+                    const isDisplayNameErr = lowerErr.includes("display_name") || lowerErr.includes("display name");
+                    if (isDisplayNameErr && effectiveDisplayName !== disambiguatedName) {
+                        effectiveDisplayName = disambiguatedName;
+                        postRes = await postCustomDimension(dim, effectiveDisplayName);
+                    }
+                }
+                if (postRes.ok) {
+                    existingDisplayNamesLower.add(effectiveDisplayName.trim().toLowerCase());
                     createdDimensions.push(dim.parameterName);
+                    continue;
                 }
-                else if (res.status === 409 ||
-                    bodyText.toLowerCase().includes("already_exists")) {
+                const lowerBody = postRes.bodyText.toLowerCase();
+                const isDisplayNameError = lowerBody.includes("display_name") || lowerBody.includes("display name");
+                if ((postRes.status === 409 || lowerBody.includes("already_exists")) &&
+                    !isDisplayNameError) {
                     alreadyExistingDimensions.push(dim.parameterName);
+                    continue;
                 }
-                else {
-                    return buildAdminFault(res.status, bodyText);
+                if (postRes.status === 400 && dim.builtInApiName) {
+                    alreadyExistingDimensions.push(dim.parameterName);
+                    builtInMappedNotes.push(`${dim.parameterName} mapped to built-in GA4 dimension (${dim.builtInApiName}).`);
+                    continue;
                 }
+                return buildAdminFault(postRes.status, postRes.bodyText);
             }
             const createdMetrics = [];
             for (const met of missingMetrics) {
-                const res = await fetch(`${baseAdminUrl}/customMetrics`, {
+                const res = await ipv4HttpsRequest(`${baseAdminUrl}/customMetrics`, {
                     method: "POST",
                     headers: {
                         Authorization: `Bearer ${accessToken}`,
@@ -1184,7 +1759,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                         measurementUnit: met.measurementUnit,
                     }),
                 });
-                const bodyText = await res.text();
+                const bodyText = res.text;
                 if (res.ok) {
                     createdMetrics.push(met.parameterName);
                 }
@@ -1208,6 +1783,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                             createdDimensions,
                             alreadyExistingMetrics,
                             createdMetrics,
+                            builtInMappedNotes,
                         }, null, 2),
                     },
                 ],
@@ -1229,9 +1805,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 });
             }
             const { propertyId = cachedCredentials.propertyId, startDate, endDate, limit, } = parsed.data;
-            const [metadata] = await analyticsDataClient.getMetadata({
-                name: `properties/${propertyId}/metadata`,
-            });
+            const metadata = await ga4RestGetMetadata(cachedCredentials, propertyId);
             const metaDims = metadata.dimensions || [];
             const metaMetrics = metadata.metrics || [];
             const coverage = computeCustomDimensionCoverage(metaDims, metaMetrics);
@@ -1248,6 +1822,12 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 if (registeredDimNames.has(spec.apiName)) {
                     dimensionsQueried.push(spec.apiName);
                 }
+                else if (spec.legacyApiNames) {
+                    const legacyMatch = spec.legacyApiNames.find((l) => registeredDimNames.has(l));
+                    if (legacyMatch) {
+                        dimensionsQueried.push(legacyMatch);
+                    }
+                }
             }
             const metricsQueried = ["eventCount", "totalUsers"];
             for (const met of exports.DVIEW_AD_TELEMETRY_CUSTOM_METRICS) {
@@ -1258,11 +1838,11 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
             const mode = coverage.coreComplete
                 ? "FULL_SLOT_BREAKDOWN"
                 : coverage.registeredCoreDimensions.length > 0 ||
-                    coverage.registeredExtendedDimensions.length > 0
+                    coverage.registeredExtendedDimensions.length > 0 ||
+                    coverage.legacyAliasDimensions.length > 0
                     ? "PARTIAL_CUSTOM_BREAKDOWN"
                     : "PAGE_DEVICE_FALLBACK";
-            const [response] = await analyticsDataClient.runReport({
-                property: `properties/${propertyId}`,
+            const response = await ga4RestRunReport(cachedCredentials, propertyId, {
                 dateRanges: [{ startDate, endDate }],
                 dimensions: dimensionsQueried.map((name) => ({ name })),
                 metrics: metricsQueried.map((name) => ({ name })),
@@ -1290,6 +1870,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
             let viewableImpressionEvents = 0;
             let unclassifiedHistoricalEvents = 0;
             const byEventType = {};
+            const byCpaCampaign = {};
             const pageDeviceMap = new Map();
             const slotEventMap = new Map();
             for (const row of rows) {
@@ -1301,7 +1882,13 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 const deviceCategory = normalizeDimVal(row.deviceCategory);
                 const slotId = normalizeDimVal(row["customEvent:slot_id"]);
                 const placementSlotId = normalizeDimVal(row["customEvent:placement_slot_id"]);
-                const evType = normalizeDimVal(row["customEvent:event_type"]);
+                const canonicalCpa = normalizeDimVal(row["customEvent:cpa_campaign_id"]);
+                const legacyCpa = normalizeDimVal(row["customEvent:campaign_id"]);
+                const cpaCampaignId = canonicalCpa !== "(not set)" ? canonicalCpa : legacyCpa;
+                const rawEvType = normalizeDimVal(row["customEvent:event_type"]);
+                const evType = rawEvType === "CLICK" && slotId.startsWith("guide_")
+                    ? "GUIDE_PREVIEW_CLICK"
+                    : rawEvType;
                 const apartmentName = normalizeDimVal(row["customEvent:apartment_name"]);
                 const userAgentCategory = normalizeDimVal(row["customEvent:user_agent_category"]);
                 if (evType === "IMPRESSION") {
@@ -1314,6 +1901,10 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                     unclassifiedHistoricalEvents += count;
                 }
                 byEventType[evType] = (byEventType[evType] ?? 0) + count;
+                if (cpaCampaignId !== "(not set)") {
+                    byCpaCampaign[cpaCampaignId] =
+                        (byCpaCampaign[cpaCampaignId] ?? 0) + count;
+                }
                 const pdKey = `${pagePath}\u0000${deviceCategory}`;
                 const existingPd = pageDeviceMap.get(pdKey);
                 if (existingPd) {
@@ -1329,9 +1920,11 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                 const hasAnySlotDimension = "customEvent:slot_id" in row ||
                     "customEvent:event_type" in row ||
                     "customEvent:apartment_name" in row ||
-                    "customEvent:user_agent_category" in row;
+                    "customEvent:user_agent_category" in row ||
+                    "customEvent:cpa_campaign_id" in row ||
+                    "customEvent:campaign_id" in row;
                 if (hasAnySlotDimension) {
-                    const seKey = `${slotId}\u0000${placementSlotId}\u0000${evType}\u0000${apartmentName}\u0000${userAgentCategory}`;
+                    const seKey = `${slotId}\u0000${placementSlotId}\u0000${cpaCampaignId}\u0000${evType}\u0000${apartmentName}\u0000${userAgentCategory}`;
                     const existingSe = slotEventMap.get(seKey);
                     if (existingSe) {
                         existingSe.eventCount += count;
@@ -1340,6 +1933,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                         slotEventMap.set(seKey, {
                             slotId,
                             placementSlotId,
+                            cpaCampaignId,
                             eventType: evType,
                             apartmentName,
                             userAgentCategory,
@@ -1367,6 +1961,7 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
                                 viewableImpressionEvents,
                                 unclassifiedHistoricalEvents,
                                 byEventType,
+                                byCpaCampaign,
                                 byPageAndDevice,
                                 bySlotAndEventType,
                             },
@@ -1384,9 +1979,22 @@ server.setRequestHandler(types_js_1.CallToolRequestSchema, async (request) => {
     }
     catch (err) {
         const message = err instanceof Error ? err.message : String(err);
+        let faultCode = "ERR_GA4_EXECUTION_FAILURE";
+        let recoveryInvariant = "Verify GA4 metric/dimension names via ga4_get_metadata and check network connectivity.";
+        if (/CONNECT_TIMEOUT|READ_TIMEOUT/i.test(message)) {
+            faultCode = "ERR_GA4_TIMEOUT";
+            recoveryInvariant =
+                "GA4 IPv4 HTTPS request timed out waiting for connect/TLS or upstream response; retry with a narrower date range or limit.";
+        }
+        else if (err instanceof Ga4HttpError &&
+            (err.status === 502 || err.status === 503 || err.status === 504)) {
+            faultCode = "ERR_GA4_UPSTREAM_UNAVAILABLE";
+            recoveryInvariant =
+                "Google Analytics Data API upstream returned a transient 502/503/504 error over IPv4; retry shortly or narrow the query scope.";
+        }
         return buildFaultResponse({
-            faultVector: ["ERR_GA4_EXECUTION_FAILURE", toolName, message],
-            recoveryInvariant: "Verify GA4 metric/dimension names via ga4_get_metadata and check network connectivity.",
+            faultVector: [faultCode, toolName, message],
+            recoveryInvariant,
         });
     }
 });
@@ -1395,7 +2003,9 @@ async function main() {
     await server.connect(transport);
     console.error("GA4 MCP server running on stdio");
 }
-main().catch((error) => {
-    console.error("GA4 MCP Server fatal error:", error);
-    process.exit(1);
-});
+if (process.env.GA4_MCP_DISABLE_AUTOSTART !== "1") {
+    main().catch((error) => {
+        console.error("GA4 MCP Server fatal error:", error);
+        process.exit(1);
+    });
+}

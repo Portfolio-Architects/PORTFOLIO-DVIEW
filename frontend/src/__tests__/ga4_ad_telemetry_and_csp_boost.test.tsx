@@ -28,10 +28,12 @@ import { adRefreshManager } from '@/lib/ads/adRefreshManager';
 import * as AdBlockDetectorHook from '@/hooks/useAdBlockDetector';
 import {
   DVIEW_GA4_CUSTOM_DIMENSIONS,
+  DVIEW_GA4_INTERACTION_DIMENSIONS,
   DVIEW_GA4_CUSTOM_METRICS,
   MAX_GA4_REPORT_DIMENSIONS,
   inspectGa4CustomDimensionCoverage,
   buildAdTelemetryReportPlan,
+  buildInteractionFunnelReportPlan,
   summarizeAdTelemetryReportRows,
   syncGa4CustomDefinitions,
 } from '@/lib/services/ga4CustomDimensions';
@@ -264,12 +266,13 @@ describe('2. Unified GA4 ad_telemetry Dispatcher & Real @next/third-parties/goog
     const tuple = Array.from(dl![0]);
     expect(tuple[0]).toBe('event');
     expect(tuple[1]).toBe('ad_telemetry');
+    expect('campaign_id' in (tuple[2] as Record<string, unknown>)).toBe(false);
     expect(tuple[2]).toEqual({
       event_category: 'VIEWABLE_IMPRESSION',
       event_label: '6782594447',
       slot_id: '6782594447',
       placement_slot_id: 'article_mid',
-      campaign_id: 'mortgage-refinance',
+      cpa_campaign_id: 'mortgage-refinance',
       event_type: 'VIEWABLE_IMPRESSION',
       apartment_name: '동탄역롯데캐슬',
       dong: '오산동',
@@ -278,6 +281,39 @@ describe('2. Unified GA4 ad_telemetry Dispatcher & Real @next/third-parties/goog
       user_agent_category: 'MOBILE_WEB',
       timestamp: '2026-10-31T12:00:00.000Z',
     });
+  });
+
+  it('hoists delayed _next-ga-init js and config commands ahead of pre-hydrated ad_telemetry Arguments in window.dataLayer', async () => {
+    dispatchGa4AdTelemetry({
+      eventType: 'ADBLOCK_FALLBACK',
+      slotId: '6782594447',
+      placementSlotId: 'dashboard_bottom',
+      campaignId: 'corporate-relocation',
+      apartmentName: 'GLOBAL',
+      timestamp: '2026-11-12T12:00:00.000Z',
+    });
+
+    const initScript = document.createElement('script');
+    initScript.id = '_next-ga-init';
+    initScript.innerHTML = `
+      window['dataLayer'] = window['dataLayer'] || [];
+      function gtag(){window['dataLayer'].push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y17BHJ77W6');
+    `;
+    document.body.appendChild(initScript);
+    await Promise.resolve();
+
+    const dl = (window as unknown as { dataLayer?: Array<ArrayLike<unknown>> }).dataLayer || [];
+    expect(Object.prototype.hasOwnProperty.call(dl, 'push')).toBe(false);
+    const entries = dl.map((item) => Array.from(item));
+    expect(entries).toHaveLength(3);
+    expect(entries[0][0]).toBe('js');
+    expect(entries[1]).toEqual(['config', 'G-Y17BHJ77W6']);
+    expect(entries[2][0]).toBe('event');
+    expect(entries[2][1]).toBe('ad_telemetry');
+    expect((entries[2][2] as Record<string, unknown>).cpa_campaign_id).toBe('corporate-relocation');
+    expect('campaign_id' in (entries[2][2] as Record<string, unknown>)).toBe(false);
   });
 
   it('integrates cleanly with real <GoogleAnalytics gaId="G-Y17BHJ77W6" /> without duplicate events and strips placementSlotId from /api/ads/click wire payload', () => {
@@ -1056,7 +1092,7 @@ describe('4. GA4 Custom Dimensions & Metrics Service Unit & Adversarial Verifica
       'apartment_name',
       'user_agent_category',
       'placement_slot_id',
-      'campaign_id',
+      'cpa_campaign_id',
       'dong',
     ]);
     expect(createdDimPayloads).toHaveLength(0);
@@ -1076,7 +1112,7 @@ describe('4. GA4 Custom Dimensions & Metrics Service Unit & Adversarial Verifica
       'apartment_name',
       'user_agent_category',
       'placement_slot_id',
-      'campaign_id',
+      'cpa_campaign_id',
     ]);
     expect(syncRes.alreadyExistingDimensions).toEqual(['slot_id', 'dong']);
     expect(syncRes.createdMetrics).toEqual(['dwell_time_ms', 'intersection_ratio']);
@@ -1194,5 +1230,195 @@ describe('4. GA4 Custom Dimensions & Metrics Service Unit & Adversarial Verifica
       'apartment_name',
       'user_agent_category',
     ]);
+    expect(cov.interactionComplete).toBe(false);
+    expect(cov.missingInteractionDimensions).toEqual(
+      DVIEW_GA4_INTERACTION_DIMENSIONS.map((d) => d.parameterName)
+    );
+  });
+
+  it('resolves legacy customEvent:campaign_id alias in buildAdTelemetryReportPlan & summarizeAdTelemetryReportRows and prefers canonical customEvent:cpa_campaign_id when both exist', () => {
+    // 1. Live Property 527874632 state: legacy customEvent:campaign_id present, canonical customEvent:cpa_campaign_id missing
+    const legacyMetadataDims = [
+      { apiName: 'customEvent:slot_id' },
+      { apiName: 'customEvent:event_type' },
+      { apiName: 'customEvent:apartment_name' },
+      { apiName: 'customEvent:user_agent_category' },
+      { apiName: 'customEvent:placement_slot_id' },
+      { apiName: 'customEvent:campaign_id' },
+      { apiName: 'customEvent:dong' },
+    ];
+    const legacyPlan = buildAdTelemetryReportPlan(legacyMetadataDims, []);
+    expect(legacyPlan.mode).toBe('FULL_SLOT_BREAKDOWN');
+    expect(legacyPlan.coverage.missingExtendedDimensions).toEqual(['cpa_campaign_id']);
+    expect(legacyPlan.coverage.legacyAliasDimensions).toEqual([
+      {
+        parameterName: 'cpa_campaign_id',
+        canonicalApiName: 'customEvent:cpa_campaign_id',
+        activeLegacyApiName: 'customEvent:campaign_id',
+      },
+    ]);
+    expect(legacyPlan.dimensions).toContain('customEvent:campaign_id');
+    expect(legacyPlan.dimensions.length).toBeLessThanOrEqual(MAX_GA4_REPORT_DIMENSIONS);
+
+    // 2. Dual state during migration: canonical cpa_campaign_id + legacy campaign_id both registered -> prefer canonical only
+    const bothPlan = buildAdTelemetryReportPlan(
+      [...legacyMetadataDims, { apiName: 'customEvent:cpa_campaign_id' }],
+      []
+    );
+    expect(bothPlan.coverage.allDimensionsComplete).toBe(true);
+    expect(bothPlan.coverage.legacyAliasDimensions).toEqual([]);
+    expect(bothPlan.dimensions).toContain('customEvent:cpa_campaign_id');
+    expect(bothPlan.dimensions).not.toContain('customEvent:campaign_id');
+
+    // 3. summarizeAdTelemetryReportRows merges historical campaign_id and canonical cpa_campaign_id rows uniformly
+    const mergedSummary = summarizeAdTelemetryReportRows([
+      {
+        pagePath: '/',
+        deviceCategory: 'desktop',
+        'customEvent:slot_id': '6782594447',
+        'customEvent:placement_slot_id': 'dashboard_bottom',
+        'customEvent:event_type': 'ADBLOCK_FALLBACK',
+        'customEvent:apartment_name': 'GLOBAL',
+        'customEvent:user_agent_category': 'DESKTOP',
+        'customEvent:campaign_id': 'mortgage-refinance',
+        eventCount: 3,
+      },
+      {
+        pagePath: '/',
+        deviceCategory: 'mobile',
+        'customEvent:slot_id': '6782594447',
+        'customEvent:placement_slot_id': 'dashboard_bottom',
+        'customEvent:event_type': 'FALLBACK_CLICK',
+        'customEvent:apartment_name': 'GLOBAL',
+        'customEvent:user_agent_category': 'MOBILE_WEB',
+        'customEvent:cpa_campaign_id': 'corporate-relocation',
+        eventCount: 2,
+      },
+    ]);
+    expect(mergedSummary.byCpaCampaign).toEqual({
+      'mortgage-refinance': 3,
+      'corporate-relocation': 2,
+    });
+    expect(mergedSummary.bySlotAndEventType[0].cpaCampaignId).toBe('mortgage-refinance');
+    expect(mergedSummary.bySlotAndEventType[1].cpaCampaignId).toBe('corporate-relocation');
+  });
+
+  it('disambiguates displayName collisions and continues provisioning surface/view_type when search_term hits GA4 predefined-parameter HTTP 400', async () => {
+    const postedPayloads: Array<{ parameterName: string; displayName: string }> = [];
+    const mockFetch: typeof fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = new URL(typeof input === 'string' ? input : input.toString());
+      const method = (init?.method || 'GET').toUpperCase();
+
+      if (method === 'GET' && url.pathname.endsWith('/customDimensions')) {
+        return new Response(
+          JSON.stringify({
+            customDimensions: [
+              { parameterName: 'slot_id', displayName: 'Ad Slot ID' },
+              { parameterName: 'event_type', displayName: 'Ad Telemetry Event Type' },
+              { parameterName: 'apartment_name', displayName: 'Apartment Name' },
+              { parameterName: 'user_agent_category', displayName: 'User Agent Category' },
+              { parameterName: 'placement_slot_id', displayName: 'Ad Placement Slot Key' },
+              { parameterName: 'campaign_id', displayName: 'CPA Fallback Campaign ID' },
+              { parameterName: 'dong', displayName: 'Legal Dong' },
+            ],
+          }),
+          { status: 200 }
+        );
+      }
+
+      if (method === 'GET' && url.pathname.endsWith('/customMetrics')) {
+        return new Response(
+          JSON.stringify({
+            customMetrics: [
+              { parameterName: 'dwell_time_ms' },
+              { parameterName: 'intersection_ratio' },
+            ],
+          }),
+          { status: 200 }
+        );
+      }
+
+      if (method === 'POST' && url.pathname.endsWith('/customDimensions')) {
+        const body = JSON.parse(String(init?.body || '{}')) as {
+          parameterName: string;
+          displayName: string;
+        };
+        postedPayloads.push(body);
+        if (body.parameterName === 'search_term') {
+          return new Response(
+            JSON.stringify({
+              error: {
+                code: 400,
+                status: 'INVALID_ARGUMENT',
+                message: 'Parameter name search_term is reserved for built-in dimension searchTerm.',
+              },
+            }),
+            { status: 400 }
+          );
+        }
+        return new Response(JSON.stringify(body), { status: 200 });
+      }
+
+      return new Response('Not Found', { status: 404 });
+    }) as unknown as typeof fetch;
+
+    const res = await syncGa4CustomDefinitions({
+      propertyId: '527874632',
+      clientEmail: 'sa@test.iam.gserviceaccount.com',
+      privateKey: 'mock-key',
+      includeInteractionDimensions: true,
+      fetchFn: mockFetch,
+      getAccessTokenFn: async () => 'mock-token',
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.status).toBe('SYNCED');
+    expect(res.createdDimensions).toEqual([
+      'cpa_campaign_id',
+      'surface',
+      'view_type',
+      'trigger',
+      'chapter_id',
+      'selected_apt',
+      'zone',
+      'calculator_type',
+      'tab_name',
+    ]);
+    expect(res.alreadyExistingDimensions).toEqual([
+      'slot_id',
+      'event_type',
+      'apartment_name',
+      'user_agent_category',
+      'placement_slot_id',
+      'dong',
+      'search_term',
+    ]);
+    expect(postedPayloads.find((p) => p.parameterName === 'cpa_campaign_id')?.displayName).toBe(
+      'CPA Campaign ID'
+    );
+    expect(res.remediationSteps.some((s) => s.includes('searchTerm'))).toBe(true);
+  });
+
+  it('buildInteractionFunnelReportPlan resolves built-in searchTerm fallback before customEvent:search_term propagates', () => {
+    const preSyncPlan = buildInteractionFunnelReportPlan([
+      { apiName: 'searchTerm' },
+      { apiName: 'customEvent:apartment_name' },
+    ]);
+    expect(preSyncPlan.resolvedMap).toEqual({
+      search_term: 'searchTerm',
+      apartment_name: 'customEvent:apartment_name',
+    });
+    expect(preSyncPlan.dimensions).toEqual(['searchTerm', 'customEvent:apartment_name']);
+
+    const fullInteractionPlan = buildInteractionFunnelReportPlan([
+      { apiName: 'searchTerm' },
+      ...DVIEW_GA4_INTERACTION_DIMENSIONS.map((d) => ({ apiName: d.apiName })),
+      { apiName: 'customEvent:apartment_name' },
+      { apiName: 'customEvent:dong' },
+    ]);
+    expect(fullInteractionPlan.resolvedMap.search_term).toBe('customEvent:search_term');
+    expect(fullInteractionPlan.resolvedMap.surface).toBe('customEvent:surface');
+    expect(fullInteractionPlan.resolvedMap.view_type).toBe('customEvent:view_type');
+    expect(fullInteractionPlan.dimensions.length).toBeLessThanOrEqual(MAX_GA4_REPORT_DIMENSIONS);
   });
 });

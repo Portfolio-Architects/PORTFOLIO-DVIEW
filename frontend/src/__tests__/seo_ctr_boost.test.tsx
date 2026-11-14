@@ -2358,7 +2358,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
       sectionRender.unmount();
     });
 
-    it('emits virtual pageview and ad_telemetry CLICK with apartment_name and dong when a GuideAptPreviewCard is clicked, and suppresses virtual pageview on modified/new-tab clicks', async () => {
+    it('emits virtual pageview and ad_telemetry GUIDE_PREVIEW_CLICK with apartment_name and dong when a GuideAptPreviewCard is clicked, and suppresses virtual pageview on modified/new-tab clicks', async () => {
       const txSummary = await getTxSummaryData();
       const richeville = buildGuideAptMiniPreview('동탄역시범리슈빌아파트', txSummary)!;
       expect(richeville).not.toBeNull();
@@ -2425,14 +2425,14 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
           })
         );
 
-        // 3. ad_telemetry CLICK event dispatched with apartment_name & dong
+        // 3. ad_telemetry GUIDE_PREVIEW_CLICK event dispatched with apartment_name & dong (decoupled from pure ad CLICK)
         expect(gtagMock).toHaveBeenCalledWith(
           'event',
           'ad_telemetry',
           expect.objectContaining({
             slot_id:
               'guide_dongtan-1-vs-2-comparison_zone_section_동탄역시범리슈빌아파트',
-            event_type: 'CLICK',
+            event_type: 'GUIDE_PREVIEW_CLICK',
             placement_slot_id: 'guide_zone_section',
             apartment_name: '동탄역시범리슈빌아파트',
             dong: '청계동',
@@ -2456,7 +2456,7 @@ describe('SEO CTR Boost Pipeline & Real-Data SERP Optimization Suite', () => {
           'event',
           'ad_telemetry',
           expect.objectContaining({
-            event_type: 'CLICK',
+            event_type: 'GUIDE_PREVIEW_CLICK',
             apartment_name: '동탄역시범리슈빌아파트',
           })
         );

@@ -87,7 +87,11 @@ export async function POST(request: NextRequest) {
     const isBeaconPayload = 'slotId' in data;
     const slotId = isBeaconPayload ? data.slotId : data.adId;
     const adId = slotId;
-    const eventType = data.eventType;
+    const rawEventType = data.eventType;
+    const eventType =
+      rawEventType === 'CLICK' && slotId.startsWith('guide_')
+        ? 'GUIDE_PREVIEW_CLICK'
+        : rawEventType;
     const campaignId = data.campaignId;
     const apartmentName = data.apartmentName;
     const dong = data.dong;
@@ -96,6 +100,22 @@ export async function POST(request: NextRequest) {
     const intersectionRatio = isBeaconPayload ? data.intersectionRatio : 0;
     const userAgentCategory = isBeaconPayload ? data.userAgentCategory : 'DESKTOP';
     const persistedId = `telemetry_${slotId}_${Date.now()}`;
+
+    if (eventType === 'GUIDE_PREVIEW_CLICK') {
+      return apiSuccess(
+        {
+          message: 'Internal guide preview click ignored for ad_clicks',
+          slotId,
+          eventType,
+          persistedId: 'guide_preview_ignored',
+          ...(campaignId ? { campaignId } : {}),
+        },
+        {
+          message: 'Internal guide preview click ignored for ad_clicks',
+          persistedId: 'guide_preview_ignored',
+        }
+      );
+    }
 
     if (isRequestFromExcludedAdmin(request)) {
       return apiSuccess(

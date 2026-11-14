@@ -72,6 +72,24 @@ describe('Phase 1 (P1): Performance & Monetization Acceleration Suite', () => {
   });
 
   describe('P1-1: MobileStickyAnchorAd Component & RootLayout Mounting', () => {
+    const originalInnerWidth = window.innerWidth;
+
+    beforeEach(() => {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        writable: true,
+        value: 390,
+      });
+    });
+
+    afterEach(() => {
+      Object.defineProperty(window, 'innerWidth', {
+        configurable: true,
+        writable: true,
+        value: originalInnerWidth,
+      });
+    });
+
     it('mounts MobileStickyAnchorAd in src/app/layout.tsx and binds NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR without hardcoded slotId prop', () => {
       const layoutPath = path.resolve(__dirname, '../app/layout.tsx');
       const layoutSrc = fs.readFileSync(layoutPath, 'utf-8');

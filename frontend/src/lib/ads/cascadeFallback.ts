@@ -1,5 +1,9 @@
 import { z } from 'zod';
 import { isAdminTrackingExcludedClient } from '@/lib/utils/adminExclusion';
+import {
+  normalizeGa4DataLayerBootstrapOrder,
+  schedulePreConfigDataLayerNormalization,
+} from '@/lib/utils/ga4DataLayerBootstrap';
 
 export const CASCADE_TIMEOUT_MS = 3000;
 export const MAX_FALLBACK_TRANSITION_MS = 50;
@@ -50,6 +54,7 @@ export const AdTelemetryEventTypeSchema = z.enum([
   'UNFILLED',
   'ADBLOCK_FALLBACK',
   'FALLBACK_CLICK',
+  'GUIDE_PREVIEW_CLICK',
 ]);
 
 export type AdTelemetryEventType = z.infer<typeof AdTelemetryEventTypeSchema>;
@@ -509,6 +514,9 @@ const IS_TEST_RUNTIME =
  * closed-loop beacon transport.
  */
 function shouldDispatchServerAdBeacon(eventType: AdTelemetryEventType): boolean {
+  if (eventType === 'GUIDE_PREVIEW_CLICK') {
+    return false;
+  }
   if (eventType === 'CLICK' || eventType === 'FALLBACK_CLICK') {
     return true;
   }
@@ -647,6 +655,7 @@ export const AdTelemetryClosedLoopEventSchema = z.object({
     'UNFILLED',
     'ADBLOCK_FALLBACK',
     'FALLBACK_CLICK',
+    'GUIDE_PREVIEW_CLICK',
   ]),
   slotId: z.string().min(1),
   apartmentName: z.string().default('GLOBAL'),
@@ -717,8 +726,11 @@ function normalizeGa4ParamString(
 /**
  * Dispatches GA4 custom event (`ad_telemetry`) with guaranteed custom dimensions
  * (`slot_id`, `event_type`, `apartment_name`, `user_agent_category`, plus optional
- * `placement_slot_id` and `campaign_id`). Falls back to queuing genuine `[object Arguments]`
- * into `window.dataLayer` when invoked prior to `_next-ga-init` defining `window.gtag`.
+ * `placement_slot_id` and `cpa_campaign_id`). Uses `cpa_campaign_id` rather than
+ * `gtag.js`-reserved `campaign_id` (`&ci=`) so passive slot telemetry never overrides
+ * GA4 session source/medium attribution into `(not set)` / `Unassigned`. Falls back to
+ * queuing genuine `[object Arguments]` into `window.dataLayer` when invoked prior to
+ * `_next-ga-init` defining `window.gtag`, automatically normalizing `js -> config -> event*` order.
  */
 export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): boolean {
   if (typeof window === 'undefined' || isAdminTrackingExcluded()) {
@@ -762,7 +774,7 @@ export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): bo
 
   const safeCampaignId = normalizeGa4ParamString(parsed.data.campaignId, '');
   if (safeCampaignId) {
-    gaParams.campaign_id = safeCampaignId;
+    gaParams.cpa_campaign_id = safeCampaignId;
   }
   const safePlacementSlotId = normalizeGa4ParamString(eventInput.placementSlotId, '');
   if (safePlacementSlotId) {
@@ -770,9 +782,16 @@ export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): bo
   }
 
   try {
-    const gtagFn = (window as unknown as { gtag?: (...args: unknown[]) => void }).gtag;
+    const win = window as unknown as {
+      gtag?: (...args: unknown[]) => void;
+      dataLayer?: unknown[];
+    };
+    normalizeGa4DataLayerBootstrapOrder(win.dataLayer);
+
+    const gtagFn = win.gtag;
     if (typeof gtagFn === 'function') {
       gtagFn('event', 'ad_telemetry', gaParams);
+      schedulePreConfigDataLayerNormalization(win.dataLayer);
       return true;
     }
 
@@ -782,11 +801,14 @@ export function dispatchGa4AdTelemetry(eventInput: ClosedLoopTelemetryInput): bo
 
     if (
       (process.env.NODE_ENV === 'production' &&
-        (Boolean(process.env.NEXT_PUBLIC_GA_ID) ||
-          Array.isArray((window as unknown as { dataLayer?: unknown[] }).dataLayer))) ||
+        (Boolean(process.env.NEXT_PUBLIC_GA_ID) || Array.isArray(win.dataLayer))) ||
       hasNextGaScript
     ) {
-      return enqueueDataLayerGtagEvent('ad_telemetry', gaParams);
+      const queued = enqueueDataLayerGtagEvent('ad_telemetry', gaParams);
+      if (queued) {
+        schedulePreConfigDataLayerNormalization(win.dataLayer);
+      }
+      return queued;
     }
   } catch {
     // Swallow synchronous GA4 exception (Delta Jank = 0ms)

@@ -85,6 +85,68 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
     }
   });
 
+  it('auto-normalizes js -> config -> event* bootstrap order and prevents reserved campaign_id leak when child effects & ad_telemetry fire before _next-ga-init', async () => {
+    const { dispatchGa4AdTelemetry } = await import('@/lib/ads/cascadeFallback');
+
+    // 1. Pre-config Selective Hydration race: child mount effects & AdSlot telemetry fire BEFORE _next-ga-init
+    trackEvent('tab_view', { tab_name: 'overview' });
+    dispatchGa4AdTelemetry({
+      eventType: 'IMPRESSION',
+      slotId: '6782594447',
+      placementSlotId: 'dashboard_bottom',
+      campaignId: 'corporate-relocation',
+      apartmentName: 'GLOBAL',
+      dong: '오산동',
+      dwellTimeMs: 0,
+      intersectionRatio: 0.8,
+      userAgentCategory: 'DESKTOP',
+      timestamp: '2026-11-12T12:00:00.000Z',
+    });
+    syncShallowApartmentOpen('동탄역 롯데캐슬', { dong: '오산동' });
+
+    const preInitDlRef = window.dataLayer;
+    expect(Array.isArray(preInitDlRef)).toBe(true);
+    expect(preInitDlRef).toHaveLength(3);
+
+    // 2. _next-ga-init arrives later and pushes ['js', Date] + ['config', 'G-Y17BHJ77W6']
+    const initScript = document.createElement('script');
+    initScript.id = '_next-ga-init';
+    initScript.innerHTML = `
+      window['dataLayer'] = window['dataLayer'] || [];
+      function gtag(){window['dataLayer'].push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-Y17BHJ77W6');
+    `;
+    try {
+      document.body.appendChild(initScript);
+      await Promise.resolve();
+
+      expect(window.dataLayer).toBe(preInitDlRef);
+      expect(Object.prototype.hasOwnProperty.call(window.dataLayer, 'push')).toBe(false);
+
+      const rawEntries = window.dataLayer as unknown as Array<ArrayLike<unknown>>;
+      expect(rawEntries).toHaveLength(5);
+      for (const item of rawEntries) {
+        expect(Object.prototype.toString.call(item)).toBe('[object Arguments]');
+      }
+
+      const entries = rawEntries.map((item) => Array.from(item));
+      expect(entries[0][0]).toBe('js');
+      expect(entries[0][1]).toBeInstanceOf(Date);
+      expect(entries[1]).toEqual(['config', 'G-Y17BHJ77W6']);
+      expect(entries[2]).toEqual(['event', 'tab_view', { tab_name: 'overview' }]);
+      expect(entries[3][0]).toBe('event');
+      expect(entries[3][1]).toBe('ad_telemetry');
+      const adTelemetryParams = entries[3][2] as Record<string, unknown>;
+      expect(adTelemetryParams.cpa_campaign_id).toBe('corporate-relocation');
+      expect('campaign_id' in adTelemetryParams).toBe(false);
+      expect(entries[4][0]).toBe('event');
+      expect(entries[4][1]).toBe('page_view');
+    } finally {
+      initScript.remove();
+    }
+  });
+
   it('pushes gtag.js-compatible 3-arg Arguments tuples ("event", eventName, params) into window.dataLayer for all D-VIEW funnel events without duplicates', () => {
     // 1. Mount real <GoogleAnalytics> from @next/third-parties/google
     render(<GoogleAnalytics gaId="G-Y17BHJ77W6" />);
@@ -249,7 +311,7 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
         {
           apt_name: '동탄역 롯데캐슬',
           method: 'copy_summary',
-          campaign: 'apt_ssr_report',
+          share_campaign: 'apt_ssr_report',
           surface: 'report_share_bar',
         },
       ]);
@@ -259,7 +321,7 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
         {
           apt_name: '동탄역 롯데캐슬',
           method: 'copy_summary',
-          campaign: 'apt_ssr_report',
+          share_campaign: 'apt_ssr_report',
           surface: 'report_share_bar',
         },
       ]);
@@ -270,7 +332,8 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
           report_title: '스트레스 DSR 한도 가이드',
           canonical_path: '/guide/stress-dsr-valuation-guide',
           method: 'webshare',
-          campaign: 'guide_stress_dsr',
+          share_campaign: 'guide_stress_dsr',
+          surface: 'report_share_bar',
         },
       ]);
     } finally {
@@ -283,7 +346,7 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
     }
   });
 
-  it('guards RootLayout GoogleAnalytics placement before {children} and dispatches debounced search_apartment from MacroChartSection', async () => {
+  it('guards RootLayout GoogleAnalytics placement before {children} and dispatches debounced search_query from MacroChartSection without legacy search_apartment', async () => {
     const fs = await import('fs');
     const path = await import('path');
     const { fireEvent, act } = await import('@testing-library/react');
@@ -300,7 +363,7 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
     expect(childrenIndex).toBeGreaterThan(-1);
     expect(gaIndex).toBeLessThan(childrenIndex);
 
-    // 2. MacroChartSection debounced search_apartment integration
+    // 2. MacroChartSection debounced search_query integration (unified from legacy search_apartment)
     jest.useFakeTimers();
     try {
       render(
@@ -347,8 +410,19 @@ describe('GA4 Real @next/third-parties/google dataLayer Funnel Integration (Unmo
         Array.from(e)
       );
       expect(entries).toEqual([
-        ['event', 'search_apartment', { query: '롯데캐슬', surface: 'dashboard_chart' }],
+        [
+          'event',
+          'search_query',
+          {
+            search_term: '롯데캐슬',
+            query: '롯데캐슬',
+            surface: 'dashboard_chart',
+            trigger: 'debounce',
+            results_count: 1,
+          },
+        ],
       ]);
+      expect(entries.filter((e) => e[1] === 'search_apartment')).toHaveLength(0);
     } finally {
       jest.useRealTimers();
     }

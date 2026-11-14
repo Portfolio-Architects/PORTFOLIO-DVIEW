@@ -17,6 +17,7 @@ import { ViewedAptsSchema } from '@/lib/validation/facade.schemas';
 import {
   trackEvent,
   trackApartmentView,
+  trackTabView,
   resetAnalyticsInteractionState,
 } from '@/lib/utils/analytics';
 import {
@@ -45,7 +46,7 @@ export const MacroDashboardSkeleton = () => (
       <div className="w-72 sm:w-96 h-4 bg-black/5 dark:bg-surface/5 rounded-lg" />
     </div>
 
-    {/* Content Grid Skeleton matching MacroDashboardClient 5-Zone Geometry */}
+    {/* Content Grid Skeleton matching MacroDashboardClient Geometry */}
     <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full min-h-[85vh] min-h-[800px]">
       {/* ═══ Zone 2A: 6:6 Circular Donut Navigator + Connected 4-Card | Trend Chart Hero Skeleton ═══ */}
       <div
@@ -728,15 +729,16 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
   const [mobileModalOpen, setMobileModalOpen] = useState(false);
+  const prevActiveTabRef = useRef<'overview' | 'imjang'>(resolvedInitialTab);
 
-  // Scroll to top when tab changes & track event
+  // Scroll to top only when activeTab genuinely changes (never emit automatic tab_view on mount)
   useEffect(() => {
     if (typeof window === 'undefined' || isInlineApartmentPage) return;
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (mounted) {
-      trackEvent('tab_view', { tab_name: activeTab });
+    if (prevActiveTabRef.current !== activeTab) {
+      prevActiveTabRef.current = activeTab;
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
-  }, [activeTab, isInlineApartmentPage, mounted]);
+  }, [activeTab, isInlineApartmentPage]);
 
   const getCanonicalAptSlug = useCallback(
     (aptName?: string, dongHint?: string, txKeyHint?: string): string => {
@@ -1403,21 +1405,42 @@ const DashboardClient = React.memo(function DashboardClient({
 
 
   const handleTabChange = useCallback((tab: string) => {
-    const targetTab = tab as 'overview' | 'imjang' | 'stats' | 'guide' | 'technovalley';
+    const targetTab = (tab === 'explore' ? 'imjang' : tab) as
+      | 'overview'
+      | 'imjang'
+      | 'stats'
+      | 'guide'
+      | 'technovalley'
+      | 'lounge';
+    const currentTab = isInlineApartmentPage ? 'imjang' : activeTab;
+
+    if (targetTab !== currentTab) {
+      trackTabView({
+        tab_name: targetTab,
+        previous_tab: currentTab,
+        surface: 'dashboard_tab',
+        trigger: `tab_${targetTab}`,
+      });
+    }
+
     if (targetTab === 'overview' || targetTab === 'imjang') {
       setActiveTab(targetTab);
-    } else {
-      trackEvent('tab_view', { tab_name: targetTab });
     }
     let href = '/';
     if (targetTab === 'imjang') href = '/explore';
     else if (targetTab === 'stats') href = '/stats';
     else if (targetTab === 'guide') href = '/guide';
     else if (targetTab === 'technovalley') href = '/technovalley';
+    else if (targetTab === 'lounge') href = '/lounge';
     else if (targetTab === 'overview') href = '/';
-    window.history.pushState(null, '', href);
-    try { router.replace(href, { scroll: false }); } catch (err) {}
-  }, [router]);
+
+    if (targetTab !== currentTab || window.location.pathname !== href) {
+      if (window.location.pathname !== href) {
+        window.history.pushState(null, '', href);
+      }
+      try { router.replace(href, { scroll: false }); } catch (err) {}
+    }
+  }, [activeTab, isInlineApartmentPage, router]);
 
   // Note: Unused apartment calculations removed to offload CPU and keep bundle thin (TossApartmentExploreClient handles explore view now)
 
@@ -1550,6 +1573,7 @@ const DashboardClient = React.memo(function DashboardClient({
                       onOpenCompare={(aptName, targetAptName) => {
                         trackEvent('open_calculator', {
                           calculator_type: 'compare',
+                          apartment_name: aptName,
                           apt_name: aptName,
                           target_apt_name: targetAptName,
                           surface: 'apartment_inline_page',
@@ -1559,6 +1583,7 @@ const DashboardClient = React.memo(function DashboardClient({
                       onOpenJeonseSafety={(aptName) => {
                         trackEvent('open_calculator', {
                           calculator_type: 'jeonse_safety',
+                          apartment_name: aptName,
                           apt_name: aptName,
                           surface: 'apartment_inline_page',
                         });
@@ -1567,6 +1592,7 @@ const DashboardClient = React.memo(function DashboardClient({
                       onOpenMortgage={(aptName, priceWon) => {
                         trackEvent('open_calculator', {
                           calculator_type: 'mortgage',
+                          apartment_name: aptName,
                           apt_name: aptName,
                           surface: 'apartment_inline_page',
                         });
@@ -1575,6 +1601,7 @@ const DashboardClient = React.memo(function DashboardClient({
                       onOpenTaxCalculator={(aptName) => {
                         trackEvent('open_calculator', {
                           calculator_type: 'property_tax',
+                          apartment_name: aptName,
                           apt_name: aptName,
                           surface: 'apartment_inline_page',
                         });
@@ -1583,6 +1610,7 @@ const DashboardClient = React.memo(function DashboardClient({
                       onOpenSellTimingCalculator={(aptName) => {
                         trackEvent('open_calculator', {
                           calculator_type: 'sell_timing',
+                          apartment_name: aptName,
                           apt_name: aptName,
                           surface: 'apartment_inline_page',
                         });
@@ -1627,6 +1655,7 @@ const DashboardClient = React.memo(function DashboardClient({
                     onOpenCompare={(aptName, targetAptName) => {
                       trackEvent('open_calculator', {
                         calculator_type: 'compare',
+                        apartment_name: aptName,
                         apt_name: aptName,
                         target_apt_name: targetAptName,
                         surface: 'apartment_modal',
@@ -1636,6 +1665,7 @@ const DashboardClient = React.memo(function DashboardClient({
                     onOpenJeonseSafety={(aptName) => {
                       trackEvent('open_calculator', {
                         calculator_type: 'jeonse_safety',
+                        apartment_name: aptName,
                         apt_name: aptName,
                         surface: 'apartment_modal',
                       });
@@ -1644,6 +1674,7 @@ const DashboardClient = React.memo(function DashboardClient({
                     onOpenMortgage={(aptName, priceWon) => {
                       trackEvent('open_calculator', {
                         calculator_type: 'mortgage',
+                        apartment_name: aptName,
                         apt_name: aptName,
                         surface: 'apartment_modal',
                       });
@@ -1652,6 +1683,7 @@ const DashboardClient = React.memo(function DashboardClient({
                     onOpenTaxCalculator={(aptName) => {
                       trackEvent('open_calculator', {
                         calculator_type: 'property_tax',
+                        apartment_name: aptName,
                         apt_name: aptName,
                         surface: 'apartment_modal',
                       });
@@ -1660,6 +1692,7 @@ const DashboardClient = React.memo(function DashboardClient({
                     onOpenSellTimingCalculator={(aptName) => {
                       trackEvent('open_calculator', {
                         calculator_type: 'sell_timing',
+                        apartment_name: aptName,
                         apt_name: aptName,
                         surface: 'apartment_modal',
                       });

@@ -234,7 +234,7 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
       });
     });
 
-    it('verifies obsolete routes (/mbti, /techno, /lounge, /admin) are 100% absent from navigation', () => {
+    it('verifies obsolete routes (/mbti, /techno, /admin) are 100% absent from canonical 5-link navigation', () => {
       const { container: headerContainer } = render(<LoungeHeader activeTab="overview" />);
       const { container: dockContainer } = render(<MobileDock activeTab="overview" />);
 
@@ -247,9 +247,9 @@ describe('Milestone 1 Challenger 2: Empirical Redirects & Navigation Sync Challe
         expect(hrefs.some((h) => h.includes('admin'))).toBe(false);
 
         expect(within(container).queryByText(/MBTI/i)).toBeNull();
-        expect(within(container).queryByText(/라운지/)).toBeNull();
         expect(within(container).queryByText(/관리자/)).toBeNull();
       });
+      expect(within(headerContainer).getByTestId('header-lounge-link')).toHaveAttribute('data-href', '/lounge');
     });
 
     it('simulates rapid tab clicks across all tabs on both LoungeHeader and MobileDock', () => {

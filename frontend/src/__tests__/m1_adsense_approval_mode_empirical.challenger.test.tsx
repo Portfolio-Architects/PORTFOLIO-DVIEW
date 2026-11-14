@@ -349,10 +349,12 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       });
     });
 
-    it('P1-2 & P1-3. LoungeHeader (/about, /contact + 20개 심층 분석 badge) and MobileDock (더보기 popup menu + Escape/outside dismissal) preserve 5-link and 5-span invariants', () => {
+    it('P1-2 & P1-3. LoungeHeader and MobileDock switch cleanly between Approval Mode (/about, /contact) and Normal Mode (/lounge) while preserving 5-link and 5-span invariants', () => {
       const ActualLoungeHeader = jest.requireActual('@/components/LoungeHeader').default;
       const ActualMobileDock = jest.requireActual('@/components/pwa/MobileDock').default;
 
+      // 1) AdSense Approval Mode = true -> Policy & Support links shown, Lounge hidden
+      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'true';
       const { container: headerContainer, unmount: unmountHeader } = render(<ActualLoungeHeader activeTab="overview" />);
       const headerNav = headerContainer.querySelector('nav[aria-label="메인 메뉴"]');
       expect(headerNav?.className).toContain('justify-start');
@@ -365,6 +367,7 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(policyGroup?.className).toContain('ml-auto');
       expect(headerContainer.querySelector('[data-testid="header-about-link"]')?.getAttribute('data-href')).toBe('/about');
       expect(headerContainer.querySelector('[data-testid="header-contact-link"]')?.getAttribute('data-href')).toBe('/contact');
+      expect(headerContainer.querySelector('[data-testid="header-lounge-link"]')).toBeNull();
       unmountHeader();
 
       const { container: dockContainer, unmount: unmountDock } = render(<ActualMobileDock activeTab="overview" />);
@@ -374,11 +377,12 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(moreBtn).not.toBeNull();
       expect(dockContainer.querySelector('[data-testid="mobile-dock-more-menu"]')).toBeNull();
 
-      // Open 더보기 menu and verify /about, /contact, /terms, /privacy links and 320px viewport guard
+      // Open 더보기 menu in Approval Mode and verify /about, /contact, /terms, /privacy links (no /lounge)
       fireEvent.click(moreBtn!);
       const moreMenu = dockContainer.querySelector('[data-testid="mobile-dock-more-menu"]');
       expect(moreMenu).not.toBeNull();
       expect(moreMenu?.className).toContain('max-w-[calc(100vw-24px)]');
+      expect(moreMenu?.querySelector('[data-testid="mobile-dock-lounge-link"]')).toBeNull();
       expect(moreMenu?.querySelector('a[href="/about"]')).not.toBeNull();
       expect(moreMenu?.querySelector('a[href="/contact"]')).not.toBeNull();
       expect(moreMenu?.querySelector('a[href="/terms"]')).not.toBeNull();
@@ -394,6 +398,24 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       fireEvent.mouseDown(document.body);
       expect(dockContainer.querySelector('[data-testid="mobile-dock-more-menu"]')).toBeNull();
       unmountDock();
+
+      // 2) Normal Mode = false -> Real-time Resident Lounge (/lounge) shown in Header & MobileDock 더보기 menu
+      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'false';
+      const { container: normalHeader, unmount: unmountNormalHeader } = render(<ActualLoungeHeader activeTab="lounge" />);
+      expect(normalHeader.querySelectorAll('a').length).toBe(5);
+      expect(normalHeader.querySelector('[data-testid="nav-right-policy-group"]')).toBeNull();
+      const loungeHeaderBtn = normalHeader.querySelector('[data-testid="header-lounge-link"]');
+      expect(loungeHeaderBtn).not.toBeNull();
+      expect(loungeHeaderBtn?.getAttribute('data-href')).toBe('/lounge');
+      expect(loungeHeaderBtn?.getAttribute('aria-current')).toBe('page');
+      unmountNormalHeader();
+
+      const { container: normalDock, unmount: unmountNormalDock } = render(<ActualMobileDock activeTab="lounge" />);
+      expect(normalDock.querySelectorAll('nav a').length).toBe(5);
+      fireEvent.click(normalDock.querySelector('[data-testid="mobile-dock-more-button"]')!);
+      const normalMoreMenu = normalDock.querySelector('[data-testid="mobile-dock-more-menu"]');
+      expect(normalMoreMenu?.querySelector('[data-testid="mobile-dock-lounge-link"]')?.getAttribute('href')).toBe('/lounge');
+      unmountNormalDock();
     });
 
     it('P1-4. /news page renders SSR H1 tag and >1,500 chars editorial guide while NewsClient removes legacy /overview?tab=* links and avoids duplicate H1', async () => {

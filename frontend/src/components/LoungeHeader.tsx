@@ -3,6 +3,8 @@
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { MessageSquare } from 'lucide-react';
+import { trackTabView } from '@/lib/utils/analytics';
 
 
 function useSafeRouter() {
@@ -13,9 +15,30 @@ function useSafeRouter() {
   }
 }
 
+function normalizeHeaderTab(tab?: string): string {
+  if (!tab) return 'overview';
+  return tab === 'explore' ? 'imjang' : tab;
+}
+
+function isModifiedNavigationClick(e: React.MouseEvent): boolean {
+  return Boolean(
+    e.metaKey ||
+      e.ctrlKey ||
+      e.shiftKey ||
+      e.altKey ||
+      (typeof e.button === 'number' && e.button !== 0)
+  );
+}
+
 const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', onTabChange }: { activeTab?: string, onTabChange?: (tab: string) => void }) {
   const router = useSafeRouter();
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastResolvedTabRef = useRef<string>(normalizeHeaderTab(activeTab));
+  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+
+  useEffect(() => {
+    lastResolvedTabRef.current = normalizeHeaderTab(activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     // Proactively prefetch core routes on mount
@@ -24,16 +47,38 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
     router?.prefetch('/stats');
     router?.prefetch('/guide');
     router?.prefetch('/technovalley');
+    if (!isApprovalMode) {
+      router?.prefetch('/lounge');
+    }
 
-    const handlePopState = () => {
-      if (!onTabChange || typeof window === 'undefined') return;
+    const handlePopState = (event?: Event) => {
+      if (typeof window === 'undefined') return;
       const path = window.location.pathname;
-      if (path === '/') onTabChange('overview');
-      else if (path === '/explore') onTabChange('imjang');
-      else if (path === '/stats' || path.startsWith('/stats/')) onTabChange('stats');
-      else if (path === '/guide' || path.startsWith('/guide/')) onTabChange('guide');
-      else if (path === '/technovalley' || path.startsWith('/technovalley/')) onTabChange('technovalley');
-      else onTabChange('overview');
+      let matchedTab: string | null = null;
+      if (path === '/' || path === '/overview' || path === '/mbti') matchedTab = 'overview';
+      else if (path === '/explore') matchedTab = 'imjang';
+      else if (path === '/stats' || path.startsWith('/stats/')) matchedTab = 'stats';
+      else if (path === '/guide' || path.startsWith('/guide/')) matchedTab = 'guide';
+      else if (path === '/technovalley' || path.startsWith('/technovalley/')) matchedTab = 'technovalley';
+      else if (path === '/lounge' || path.startsWith('/lounge/')) matchedTab = 'lounge';
+
+      if (matchedTab !== null) {
+        const prevNormalized = lastResolvedTabRef.current;
+        const nextNormalized = normalizeHeaderTab(matchedTab);
+        lastResolvedTabRef.current = nextNormalized;
+
+        if (event?.type === 'popstate' && nextNormalized !== prevNormalized) {
+          trackTabView({
+            tab_name: nextNormalized,
+            previous_tab: prevNormalized,
+            surface: 'popstate_navigation',
+            trigger: `tab_${nextNormalized}`,
+          });
+        }
+      }
+      if (onTabChange) {
+        onTabChange(matchedTab ?? 'overview');
+      }
     };
 
     window.addEventListener('popstate', handlePopState);
@@ -44,9 +89,23 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
       window.removeEventListener('hashchange', handlePopState);
       if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
     };
-  }, [router, onTabChange]);
+  }, [router, onTabChange, isApprovalMode]);
 
-  const handleNavClick = (e: React.MouseEvent, href: string, tab: string) => {
+  const handleNavClick = (e: React.MouseEvent, href: string, tab: string): boolean => {
+    if (isModifiedNavigationClick(e)) {
+      return false;
+    }
+    const currentNormalized = normalizeHeaderTab(activeTab);
+    const targetNormalized = normalizeHeaderTab(tab);
+    lastResolvedTabRef.current = targetNormalized;
+    if (targetNormalized !== currentNormalized) {
+      trackTabView({
+        tab_name: targetNormalized,
+        previous_tab: currentNormalized,
+        surface: 'gnb_header',
+        trigger: `tab_${targetNormalized}`,
+      });
+    }
     if (onTabChange) {
       e.preventDefault();
       window.history.pushState(null, '', href);
@@ -55,6 +114,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
         router?.replace(href, { scroll: false });
       } catch (err) {}
     }
+    return true;
   };
 
   return (
@@ -77,7 +137,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                   prefetch={true}
                   onMouseEnter={() => router?.prefetch('/')}
                   onClick={(e) => {
-                    handleNavClick(e, '/', 'overview');
+                    if (!handleNavClick(e, '/', 'overview')) return;
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
                     scrollTimeoutRef.current = setTimeout(() => window.scrollTo({ top: 0, behavior: 'instant' }), 50);
                   }}
@@ -153,30 +213,64 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 </Link>
               </div>
 
-              {/* Right Group: Policy & Support Quick Access (/about, /contact) */}
-              <div data-testid="nav-right-policy-group" className="hidden lg:flex shrink-0 items-center gap-1.5 ml-auto">
-                <button
-                  type="button"
-                  data-testid="header-about-link"
-                  data-href="/about"
-                  onMouseEnter={() => router?.prefetch('/about')}
-                  onClick={() => router?.push('/about')}
-                  className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-                >
-                  서비스 안내
-                </button>
-                <span className="text-slate-300 dark:text-slate-700 text-[11px] select-none" aria-hidden="true">|</span>
-                <button
-                  type="button"
-                  data-testid="header-contact-link"
-                  data-href="/contact"
-                  onMouseEnter={() => router?.prefetch('/contact')}
-                  onClick={() => router?.push('/contact')}
-                  className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
-                >
-                  고객지원
-                </button>
-              </div>
+              {/* Right Group: Real-time Resident Lounge (/lounge) or Policy & Support in AdSense Approval Mode */}
+              {isApprovalMode ? (
+                <div data-testid="nav-right-policy-group" className="hidden lg:flex shrink-0 items-center gap-1.5 ml-auto">
+                  <button
+                    type="button"
+                    data-testid="header-about-link"
+                    data-href="/about"
+                    onMouseEnter={() => router?.prefetch('/about')}
+                    onClick={() => router?.push('/about')}
+                    className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                  >
+                    서비스 안내
+                  </button>
+                  <span className="text-slate-300 dark:text-slate-700 text-[11px] select-none" aria-hidden="true">|</span>
+                  <button
+                    type="button"
+                    data-testid="header-contact-link"
+                    data-href="/contact"
+                    onMouseEnter={() => router?.prefetch('/contact')}
+                    onClick={() => router?.push('/contact')}
+                    className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                  >
+                    고객지원
+                  </button>
+                </div>
+              ) : (
+                <div data-testid="nav-right-lounge-group" className="flex shrink-0 items-center ml-auto">
+                  <button
+                    type="button"
+                    data-testid="header-lounge-link"
+                    data-href="/lounge"
+                    aria-current={activeTab === 'lounge' ? 'page' : undefined}
+                    onMouseEnter={() => router?.prefetch('/lounge')}
+                    onClick={(e) => {
+                      if (isModifiedNavigationClick(e)) return;
+                      const currentNormalized = normalizeHeaderTab(activeTab);
+                      lastResolvedTabRef.current = 'lounge';
+                      if (currentNormalized !== 'lounge') {
+                        trackTabView({
+                          tab_name: 'lounge',
+                          previous_tab: currentNormalized,
+                          surface: 'gnb_header',
+                          trigger: 'tab_lounge',
+                        });
+                      }
+                      router?.push('/lounge');
+                    }}
+                    className={`inline-flex items-center gap-1.5 px-3 lg:px-3.5 py-2 text-[12.5px] lg:text-[13px] font-extrabold rounded-[12px] transition-colors duration-150 cursor-pointer ${
+                      activeTab === 'lounge'
+                        ? 'bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 border border-blue-200/80 dark:border-blue-800/70 shadow-xs'
+                        : 'bg-slate-100/90 hover:bg-slate-200/75 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 text-slate-700 hover:text-blue-600 dark:text-slate-200 dark:hover:text-blue-400 border border-slate-200/70 dark:border-slate-700/60'
+                    }`}
+                  >
+                    <MessageSquare size={14} strokeWidth={2.25} className="text-blue-600 dark:text-blue-400 shrink-0" />
+                    <span className="whitespace-nowrap">실시간 입주민 라운지</span>
+                  </button>
+                </div>
+              )}
             </nav>
             
           </div>

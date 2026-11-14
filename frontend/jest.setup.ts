@@ -52,16 +52,27 @@ if (typeof window !== 'undefined') {
   }
 
   if (!window.matchMedia) {
-    window.matchMedia = (query: string) => ({
-      matches: false,
-      media: query,
-      onchange: null,
-      addListener: () => {},
-      removeListener: () => {},
-      addEventListener: () => {},
-      removeEventListener: () => {},
-      dispatchEvent: () => false,
-    });
+    window.matchMedia = (query: string) => {
+      const trimmed = query.trim();
+      const maxMatch = trimmed.match(/^\(max-width:\s*(\d+(?:\.\d+)?)px\)$/i);
+      const minMatch = trimmed.match(/^\(min-width:\s*(\d+(?:\.\d+)?)px\)$/i);
+      const currentWidth = typeof window.innerWidth === 'number' ? window.innerWidth : 1024;
+      const matches = maxMatch
+        ? currentWidth <= parseFloat(maxMatch[1])
+        : minMatch
+        ? currentWidth >= parseFloat(minMatch[1])
+        : false;
+      return {
+        matches,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      };
+    };
   }
 }
 
