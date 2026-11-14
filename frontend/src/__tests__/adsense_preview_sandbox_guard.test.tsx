@@ -332,4 +332,37 @@ describe('AdSense Preview Sandboxed Iframe & Frame-Ancestors Guard', () => {
       delete window.__DVIEW_SSR_SNAPSHOT__;
     }
   });
+
+  it('7. PreHydrationInlineScript (#dview-preview-snap-trigger) renders on the client with type="application/json" and zero React 19 script-tag console errors', () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const PreHydrationInlineScript = require('@/components/common/PreHydrationInlineScript').default;
+    const snapSpy = jest.fn();
+    (window as Window & { __dviewCapturePreviewSnap?: () => void }).__dviewCapturePreviewSnap = snapSpy;
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      const { container, unmount } = render(
+        <PreHydrationInlineScript
+          id="dview-preview-snap-trigger"
+          runCapturePreviewOnMount
+          code="try{if(window.__dviewCapturePreviewSnap)window.__dviewCapturePreviewSnap();}catch(_){}"
+        />
+      );
+
+      const scriptEl = container.querySelector('#dview-preview-snap-trigger');
+      expect(scriptEl).not.toBeNull();
+      expect(scriptEl?.getAttribute('type')).toBe('application/json');
+      expect(snapSpy).toHaveBeenCalledTimes(1);
+
+      const scriptTagErrors = errorSpy.mock.calls
+        .map((args) => args.map(String).join(' '))
+        .filter((msg) => /Encountered a script tag while rendering React component/i.test(msg));
+      expect(scriptTagErrors).toEqual([]);
+
+      unmount();
+    } finally {
+      errorSpy.mockRestore();
+      delete (window as Window & { __dviewCapturePreviewSnap?: () => void }).__dviewCapturePreviewSnap;
+    }
+  });
 });

@@ -1510,3 +1510,27 @@ export function stripApartmentNoiseQueryParams(search: string | null | undefined
   const nextQuery = params.toString();
   return nextQuery ? `?${nextQuery}` : '';
 }
+
+/**
+ * Checks whether an apartment name matches any saved favorite entry,
+ * accounting for whitespace differences and canonical RTMS/display name aliases.
+ */
+export function isApartmentInFavorites(
+  favorites: Set<string> | Iterable<string> | undefined | null,
+  aptName: string | undefined | null,
+  nameMapping?: Record<string, string>
+): boolean {
+  if (!favorites || !aptName) return false;
+  if (favorites instanceof Set && favorites.has(aptName)) return true;
+  const targetNorm = normalizeAptName(aptName);
+  for (const item of favorites) {
+    if (
+      item === aptName ||
+      normalizeAptName(item) === targetNorm ||
+      isSameApartment(item, aptName, nameMapping)
+    ) {
+      return true;
+    }
+  }
+  return false;
+}

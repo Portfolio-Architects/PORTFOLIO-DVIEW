@@ -25,6 +25,7 @@ import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
 import { safeReload } from '@/lib/utils/safeReload';
 import { buildPreHydrationAdminGuardScript } from '@/lib/utils/adminExclusion';
+import PreHydrationInlineScript from '@/components/common/PreHydrationInlineScript';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
 import MobileStickyAnchorAd from '@/components/layout/MobileStickyAnchorAd';
@@ -129,8 +130,8 @@ export default function RootLayout({
   return (
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head suppressHydrationWarning>
-        <script id="dview-preview-iframe-shield" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PREVIEW_IFRAME_SHIELD_SCRIPT }} />
-        <script id="dview-ga-admin-guard" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID) }} />
+        <PreHydrationInlineScript id="dview-preview-iframe-shield" nonce={nonce} code={PREVIEW_IFRAME_SHIELD_SCRIPT} />
+        <PreHydrationInlineScript id="dview-ga-admin-guard" nonce={nonce} code={buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID)} />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />
@@ -194,13 +195,11 @@ export default function RootLayout({
                   <MobileStickyAnchorAd />
                 </PWAProvider>
                 <div id="modal-root" />
-                <script
+                <PreHydrationInlineScript
                   id="dview-preview-snap-trigger"
                   nonce={nonce}
-                  suppressHydrationWarning
-                  dangerouslySetInnerHTML={{
-                    __html: 'try{if(window.__dviewCapturePreviewSnap)window.__dviewCapturePreviewSnap();}catch(_){}',
-                  }}
+                  runCapturePreviewOnMount
+                  code="try{if(window.__dviewCapturePreviewSnap)window.__dviewCapturePreviewSnap();}catch(_){}"
                 />
               </AuthProvider>
             </SettingsProvider>

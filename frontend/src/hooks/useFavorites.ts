@@ -9,8 +9,10 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import type { User } from 'firebase/auth';
 import { logger } from '@/lib/services/logger';
 import { z } from 'zod';
-import { normalizeAptName, isSameApartment } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, isSameApartment, isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import { apiClient } from '@/lib/api/apiClient';
+
+export { isApartmentInFavorites };
 
 const FavoriteCountsResponseSchema = z.object({
   counts: z.record(z.string(), z.number()).optional().catch(undefined),
@@ -19,30 +21,6 @@ const FavoriteCountsResponseSchema = z.object({
 const CLIENT_FAV_COUNTS_TTL_MS = 300_000; // 5 minutes
 let clientFavoriteCountsCache: { counts: Record<string, number>; expiresAt: number } | null = null;
 let clientFavoriteCountsInFlight: Promise<unknown> | null = null;
-
-/**
- * Checks whether an apartment name matches any saved favorite entry,
- * accounting for whitespace differences and canonical RTMS/display name aliases.
- */
-export function isApartmentInFavorites(
-  favorites: Set<string> | Iterable<string> | undefined | null,
-  aptName: string | undefined | null,
-  nameMapping?: Record<string, string>
-): boolean {
-  if (!favorites || !aptName) return false;
-  if (favorites instanceof Set && favorites.has(aptName)) return true;
-  const targetNorm = normalizeAptName(aptName);
-  for (const item of favorites) {
-    if (
-      item === aptName ||
-      normalizeAptName(item) === targetNorm ||
-      isSameApartment(item, aptName, nameMapping)
-    ) {
-      return true;
-    }
-  }
-  return false;
-}
 
 export interface UseFavoritesOptions {
   fetchGlobalCounts?: boolean;

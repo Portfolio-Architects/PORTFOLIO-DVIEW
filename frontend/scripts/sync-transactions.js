@@ -1219,8 +1219,21 @@ async function main() {
     transactionsAll,
   });
 
-  // 헤더 서브타이틀용 경량 실시간 지표 (국토부 매매 실거래 누적 건수 / 최신 계약일) - 실제 집계값만 기록
+  // 헤더 서브타이틀용 경량 실시간 지표 (국토부 매매 실거래 누적 건수 / 최신 등록일·당일 신규·신고가 집계) - 실제 집계값만 기록
   try {
+    const latestRegisteredDate =
+      recentTransactions
+        .map((t) => String((t && (t.registeredDate || t.contractDate)) || ''))
+        .filter((d) => /^\d{8}$/.test(d))
+        .sort()
+        .pop() || null;
+    const latestBatchSales = latestRegisteredDate
+      ? recentTransactions.filter(
+          (t) =>
+            String((t && t.registeredDate) || '').replace(/\D/g, '').slice(0, 8) ===
+            latestRegisteredDate
+        )
+      : [];
     const marketStats = {
       apartmentCount: (() => {
         try {
@@ -1233,7 +1246,9 @@ async function main() {
       })(),
       saleTxCount: Object.values(summaries).reduce((n, s) => n + (Number(s && s.txCount) || 0), 0),
       latestContractDate: recentTransactions.map((t) => String((t && t.contractDate) || '')).filter(Boolean).sort().pop() || null,
-      latestRegisteredDate: recentTransactions.map((t) => String((t && (t.registeredDate || t.contractDate)) || '')).filter((d) => /^\d{8}$/.test(d)).sort().pop() || null,
+      latestRegisteredDate,
+      todayRegisteredCount: latestBatchSales.length,
+      todayNewHighCount: latestBatchSales.filter((t) => Boolean(t && (t.isNewHigh || t.type === 'high'))).length,
     };
     fs.writeFileSync(MARKET_STATS_OUTPUT_PATH, JSON.stringify(marketStats, null, 2));
   } catch (statsErr) {

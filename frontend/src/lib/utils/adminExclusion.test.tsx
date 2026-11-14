@@ -242,4 +242,182 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
     fireEvent.click(closeBtn);
     expect(screen.queryByTestId('dview-admin-exclusion-toast')).not.toBeInTheDocument();
   });
+
+  it('synchronizes ga-disable across cross-tab storage, foreground visibilitychange/focus, pageshow, pushState, and blocks GA4 leakage during ?dview_admin=status (status_off) inspection', () => {
+    jest.useFakeTimers();
+    try {
+      // 0. Pre-hydration <head> script on ?dview_admin=status (unexcluded device) must suppress GA4 for the diagnostic pageview without persisting storage/cookie
+      window.history.replaceState(null, '', '/?dview_admin=status');
+      const headScript = buildPreHydrationAdminGuardScript('G-Y17BHJ77W6');
+      vm.runInNewContext(headScript, {
+        window,
+        document,
+        URLSearchParams,
+      });
+      expect(window.__dviewAdminNotice).toBe('status_off');
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+      expect(localStorage.getItem(ADMIN_STORAGE_KEY)).toBeNull();
+      expect(hasAdminExclusionCookie(document.cookie)).toBe(false);
+      delete window.__dviewAdminNotice;
+      delete window['ga-disable-G-Y17BHJ77W6'];
+
+      // 1. Mount on an unexcluded browser checking ?dview_admin=status -> shows status_off toast, holds ga-disable=true for this diagnostic load without writing storage/cookie, and allows 1-click enable
+      window.history.replaceState(null, '', '/?Dview_Admin=status');
+      render(<SiteTracker />);
+
+      expect(screen.getByText('관리자 제외 비활성 상태')).toBeInTheDocument();
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+      expect(localStorage.getItem(ADMIN_STORAGE_KEY)).toBeNull();
+      expect(hasAdminExclusionCookie(document.cookie)).toBe(false);
+
+      const enableBtn = screen.getByTestId('dview-admin-enable-btn');
+      fireEvent.click(enableBtn);
+
+      expect(screen.getByText('관리자 기기 등록 완료')).toBeInTheDocument();
+      expect(localStorage.getItem(ADMIN_STORAGE_KEY)).toBe('true');
+      expect(hasAdminExclusionCookie(document.cookie)).toBe(true);
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+
+      act(() => {
+        jest.advanceTimersByTime(4600);
+      });
+      expect(screen.queryByTestId('dview-admin-exclusion-toast')).not.toBeInTheDocument();
+
+      // 2. Simulate long-lived background tab where ga-disable flag & cookie were cleared while localStorage remained 'true'
+      delete window['ga-disable-G-Y17BHJ77W6'];
+      document.cookie = `${ADMIN_COOKIE_NAME}=; path=/; max-age=0`;
+      expect(hasAdminExclusionCookie(document.cookie)).toBe(false);
+      act(() => {
+        window.dispatchEvent(new Event('storage'));
+      });
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+      expect(hasAdminExclusionCookie(document.cookie)).toBe(true);
+
+      // 3. Simulate foreground wakeup (visibilitychange, focus) and bfcache restore (pageshow)
+      delete window['ga-disable-G-Y17BHJ77W6'];
+      Object.defineProperty(document, 'visibilityState', {
+        value: 'visible',
+        configurable: true,
+      });
+      act(() => {
+        document.dispatchEvent(new Event('visibilitychange'));
+      });
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+
+      delete window['ga-disable-G-Y17BHJ77W6'];
+      act(() => {
+        window.dispatchEvent(new Event('focus'));
+      });
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+
+      delete window['ga-disable-G-Y17BHJ77W6'];
+      act(() => {
+        window.dispatchEvent(new Event('pageshow'));
+      });
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+
+      // 4. Client-side SPA navigation via history.pushState with mixed-case ?DVIEW_ADMIN=0 & ?DVIEW_ADMIN=1
+      act(() => {
+        window.history.pushState(null, '', '/?DVIEW_ADMIN=0');
+      });
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(false);
+      expect(localStorage.getItem(ADMIN_STORAGE_KEY)).toBeNull();
+      expect(window.location.search).toBe('');
+
+      act(() => {
+        window.history.pushState(null, '', '/?DVIEW_ADMIN=1');
+      });
+      expect(window['ga-disable-G-Y17BHJ77W6']).toBe(true);
+      expect(localStorage.getItem(ADMIN_STORAGE_KEY)).toBe('true');
+      expect(window.location.search).toBe('');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('prevents React 19 <head> hydration mismatch when AdSense prepends show_ads_impl script before inline <head> scripts', async () => {
+    const ReactDOMClient = await import('react-dom/client');
+    const shieldCode = '(function(){window.__shieldRan=true;})();';
+    const scriptCode = buildPreHydrationAdminGuardScript('G-Y17BHJ77W6');
+
+    const originalHeadHtml = document.head.innerHTML;
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    try {
+      // 1. Simulate SSR <head> output from RootLayout
+      document.head.innerHTML = '';
+
+      const shieldEl = document.createElement('script');
+      shieldEl.id = 'dview-preview-iframe-shield';
+      shieldEl.innerHTML = shieldCode;
+      document.head.appendChild(shieldEl);
+
+      const guardEl = document.createElement('script');
+      guardEl.id = 'dview-ga-admin-guard';
+      guardEl.innerHTML = scriptCode;
+      document.head.appendChild(guardEl);
+
+      // 2. Execute pre-hydration inline guard synchronously as browser HTML parser does
+      vm.runInNewContext(scriptCode, {
+        window,
+        document,
+        URL,
+        URLSearchParams,
+      });
+
+      // 3. Simulate Google AdSense adsbygoogle.js executing before React hydration:
+      //    const s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(showAdsImpl, s);
+      //    Note: dynamically created <script> has IDL .async === true, while hasAttribute('async') === false.
+      const showAdsImpl = document.createElement('script');
+      showAdsImpl.src =
+        'https://pagead2.googlesyndication.com/pagead/managed/js/adsense/m202611110101/show_ads_impl_fy2021.js';
+      showAdsImpl.setAttribute('fetchpriority', 'high');
+      const firstScript = document.head.getElementsByTagName('script')[0];
+      firstScript.parentNode!.insertBefore(showAdsImpl, firstScript);
+
+      expect(document.head.firstElementChild).toBe(showAdsImpl);
+      expect(showAdsImpl.hasAttribute('async')).toBe(true);
+
+      // Also verify deferred script (explicitly defer) is NOT marked async
+      const deferredScript = document.createElement('script');
+      deferredScript.src = 'https://example.com/deferred.js';
+      deferredScript.defer = true;
+      document.head.appendChild(deferredScript);
+      expect(deferredScript.hasAttribute('async')).toBe(false);
+      document.head.removeChild(deferredScript);
+
+      // 4. Hydrate <head> with React 19 hydrateRoot and assert zero hydration mismatch errors
+      let root: ReturnType<typeof ReactDOMClient.hydrateRoot> | null = null;
+      await act(async () => {
+        root = ReactDOMClient.hydrateRoot(
+          document.head,
+          <>
+            <script
+              id="dview-preview-iframe-shield"
+              suppressHydrationWarning
+              dangerouslySetInnerHTML={{ __html: shieldCode }}
+            />
+            <script
+              id="dview-ga-admin-guard"
+              suppressHydrationWarning
+              dangerouslySetInnerHTML={{ __html: scriptCode }}
+            />
+          </>
+        );
+      });
+
+      const hydrationErrors = errorSpy.mock.calls
+        .map((args) => args.map(String).join(' '))
+        .filter((msg) => /hydrat|mismatch|didn't match/i.test(msg));
+      expect(hydrationErrors).toEqual([]);
+
+      if (root) {
+        act(() => {
+          (root as ReturnType<typeof ReactDOMClient.hydrateRoot>).unmount();
+        });
+      }
+    } finally {
+      errorSpy.mockRestore();
+      document.head.innerHTML = originalHeadHtml;
+    }
+  });
 });

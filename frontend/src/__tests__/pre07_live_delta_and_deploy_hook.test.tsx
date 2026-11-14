@@ -332,7 +332,7 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       render(
         <>
           <MarketStatsStrong />
-          <MarketStatsLight text="테스트 문구" />
+          <MarketStatsLight />
           <TodayUpdatePillBadge />
         </>,
         { wrapper }
@@ -345,7 +345,10 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       });
 
       expect(screen.getByText(/66,302건/)).toBeInTheDocument();
-      expect(screen.getByText(/오늘 아침 7시 갱신/)).toBeInTheDocument();
+      const ticker = screen.getByTestId('market-stats-today-ticker');
+      expect(ticker).toHaveTextContent('오늘 신규 2건');
+      expect(ticker).toHaveTextContent('신고가 1건');
+      expect(ticker).toHaveTextContent(`(${todayMmDd} 07:00)`);
 
       // usePeriodTransactions('1d') immediately includes today's 2 new transactions on top of yesterday's fallback
       const yesterdayFallback: RecentTransaction[] = [

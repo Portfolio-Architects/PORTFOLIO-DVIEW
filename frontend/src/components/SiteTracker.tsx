@@ -1,11 +1,13 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ShieldCheck, ShieldOff, X } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 import {
   type AdminToggleNotice,
+  applyGaDisableFlag,
   isAdminTrackingExcludedClient,
+  setAdminTrackingExclusion,
   syncAdminTrackingStateClient,
 } from '@/lib/utils/adminExclusion';
 
@@ -42,35 +44,138 @@ const NOTICE_MESSAGES: Record<
  */
 const SiteTracker = React.memo(function SiteTracker() {
   const [notice, setNotice] = useState<AdminToggleNotice | null>(null);
+  const dismissTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const diagnosticHoldRef = useRef<boolean>(false);
+
+  const clearDismissTimer = useCallback(() => {
+    if (dismissTimerRef.current) {
+      clearTimeout(dismissTimerRef.current);
+      dismissTimerRef.current = null;
+    }
+  }, []);
+
+  const showNotice = useCallback(
+    (nextNotice: AdminToggleNotice) => {
+      clearDismissTimer();
+      setNotice(nextNotice);
+      const delayMs = nextNotice === 'status_off' ? 8000 : 4500;
+      dismissTimerRef.current = setTimeout(() => {
+        setNotice(null);
+        dismissTimerRef.current = null;
+      }, delayMs);
+    },
+    [clearDismissTimer]
+  );
+
+  const handleEnableExclusionFromToast = useCallback(() => {
+    try {
+      diagnosticHoldRef.current = false;
+      setAdminTrackingExclusion(true, process.env.NEXT_PUBLIC_GA_ID);
+      showNotice('enabled');
+    } catch (e) {
+      logger.warn('SiteTracker', 'Failed to enable admin exclusion from toast', undefined, e);
+    }
+  }, [showNotice]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    let dismissTimer: ReturnType<typeof setTimeout> | null = null;
+    const syncGaFlagOnly = () => {
+      try {
+        const excluded = isAdminTrackingExcludedClient();
+        if (excluded) {
+          diagnosticHoldRef.current = false;
+          setAdminTrackingExclusion(true, process.env.NEXT_PUBLIC_GA_ID);
+        } else if (diagnosticHoldRef.current) {
+          applyGaDisableFlag(true, process.env.NEXT_PUBLIC_GA_ID);
+        } else {
+          applyGaDisableFlag(false, process.env.NEXT_PUBLIC_GA_ID);
+        }
+      } catch (e) {
+        logger.warn('SiteTracker', 'Failed to sync GA disable flag', undefined, e);
+      }
+    };
 
+    const syncFullAdminState = () => {
+      try {
+        const toggleResult = syncAdminTrackingStateClient(process.env.NEXT_PUBLIC_GA_ID);
+        if (toggleResult) {
+          diagnosticHoldRef.current = toggleResult === 'status_off';
+          showNotice(toggleResult);
+        } else {
+          syncGaFlagOnly();
+        }
+      } catch (e) {
+        logger.warn('SiteTracker', 'SiteTracker error', undefined, e);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+        syncGaFlagOnly();
+      }
+    };
+
+    let wrappedPushState: History['pushState'] | null = null;
+    let originalPushState: History['pushState'] | null = null;
     try {
-      const toggleResult = syncAdminTrackingStateClient(process.env.NEXT_PUBLIC_GA_ID);
-      if (toggleResult) {
-        setNotice(toggleResult);
-        dismissTimer = setTimeout(() => {
-          setNotice(null);
-        }, 4500);
-      }
-
-      // Synchronize admin exclusion flag on mount
-      if (isAdminTrackingExcludedClient()) {
-        return () => {
-          if (dismissTimer) clearTimeout(dismissTimer);
+      if (window.history && typeof window.history.pushState === 'function') {
+        originalPushState = window.history.pushState;
+        const capturedOriginal = originalPushState;
+        wrappedPushState = (...args: Parameters<History['pushState']>) => {
+          const result = capturedOriginal.apply(window.history, args);
+          const nextUrl = args[2];
+          if (
+            typeof nextUrl !== 'undefined' &&
+            nextUrl !== null &&
+            /(?:^|[?&])dview_admin(?:=|$|#)/i.test(String(nextUrl))
+          ) {
+            syncFullAdminState();
+          }
+          return result;
         };
+        window.history.pushState = wrappedPushState;
       }
-    } catch (e) {
-      logger.warn('SiteTracker', 'SiteTracker error', undefined, e);
+    } catch {
+      wrappedPushState = null;
+      originalPushState = null;
+    }
+
+    syncFullAdminState();
+
+    window.addEventListener('storage', syncGaFlagOnly);
+    window.addEventListener('pageshow', syncGaFlagOnly);
+    window.addEventListener('focus', syncGaFlagOnly);
+    window.addEventListener('popstate', syncFullAdminState);
+    window.addEventListener('hashchange', syncFullAdminState);
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibilityChange);
     }
 
     return () => {
-      if (dismissTimer) clearTimeout(dismissTimer);
+      clearDismissTimer();
+      if (
+        wrappedPushState &&
+        originalPushState &&
+        window.history &&
+        window.history.pushState === wrappedPushState
+      ) {
+        try {
+          window.history.pushState = originalPushState;
+        } catch {
+          // Ignore read-only history restoration errors
+        }
+      }
+      window.removeEventListener('storage', syncGaFlagOnly);
+      window.removeEventListener('pageshow', syncGaFlagOnly);
+      window.removeEventListener('focus', syncGaFlagOnly);
+      window.removeEventListener('popstate', syncFullAdminState);
+      window.removeEventListener('hashchange', syncFullAdminState);
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      }
     };
-  }, []);
+  }, [clearDismissTimer, showNotice]);
 
   if (!notice) {
     return null;
@@ -102,10 +207,24 @@ const SiteTracker = React.memo(function SiteTracker() {
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-slate-50">{info.title}</p>
           <p className="mt-0.5 text-xs leading-relaxed text-slate-300">{info.subtitle}</p>
+          {notice === 'status_off' && (
+            <button
+              type="button"
+              data-testid="dview-admin-enable-btn"
+              onClick={handleEnableExclusionFromToast}
+              className="mt-2 inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1 text-xs font-semibold text-white transition-colors hover:bg-emerald-500 cursor-pointer"
+            >
+              <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>이 기기 제외 등록</span>
+            </button>
+          )}
         </div>
         <button
           type="button"
-          onClick={() => setNotice(null)}
+          onClick={() => {
+            clearDismissTimer();
+            setNotice(null);
+          }}
           aria-label="알림 닫기"
           className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-800 hover:text-slate-100"
         >
