@@ -4,6 +4,22 @@ import { useEffect } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { logger } from '@/lib/services/logger';
 
+export interface SsrPreviewSnapshot {
+  headHtml: string;
+  bodyHtml: string;
+  mainHtml?: string;
+  bodyClass: string;
+  htmlClass: string;
+}
+
+declare global {
+  interface Window {
+    __DVIEW_EMBEDDED_PREVIEW__?: boolean;
+    __DVIEW_SSR_SNAPSHOT__?: SsrPreviewSnapshot;
+    __dviewCapturePreviewSnap?: () => void;
+  }
+}
+
 export default function GlobalError({
   error,
   reset,
@@ -16,6 +32,27 @@ export default function GlobalError({
       logger.error('app.GlobalError', 'Global error occurred', undefined, error);
     }
   }, [error]);
+
+  const previewSnapshot =
+    typeof window !== 'undefined' && window.__DVIEW_EMBEDDED_PREVIEW__
+      ? window.__DVIEW_SSR_SNAPSHOT__
+      : undefined;
+
+  if (previewSnapshot && previewSnapshot.bodyHtml) {
+    return (
+      <html lang="ko" className={previewSnapshot.htmlClass} suppressHydrationWarning>
+        <head
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: previewSnapshot.headHtml }}
+        />
+        <body
+          className={previewSnapshot.bodyClass}
+          suppressHydrationWarning
+          dangerouslySetInnerHTML={{ __html: previewSnapshot.bodyHtml }}
+        />
+      </html>
+    );
+  }
 
   return (
     <html lang="ko">

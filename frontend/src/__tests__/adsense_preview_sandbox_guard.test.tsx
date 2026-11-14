@@ -191,11 +191,145 @@ describe('AdSense Preview Sandboxed Iframe & Frame-Ancestors Guard', () => {
     expect(attackerApiRes.status).toBe(403);
   });
 
-  it('5. global-error.tsx preserves google-adsense-account meta tag in <head> as fallback safety net', () => {
+  it('5. global-error.tsx preserves google-adsense-account meta tag in <head> and degrades gracefully to captured SSR HTML inside embedded preview iframes', () => {
     const globalErrorPath = path.resolve(process.cwd(), 'src', 'app', 'global-error.tsx');
     const source = fs.readFileSync(globalErrorPath, 'utf-8');
     expect(source).toContain('<meta');
     expect(source).toContain('name="google-adsense-account"');
     expect(source).toContain('ca-pub-1103228112872356');
+    expect(source).toContain('__DVIEW_EMBEDDED_PREVIEW__');
+    expect(source).toContain('__DVIEW_SSR_SNAPSHOT__');
+
+    const layoutPath = path.resolve(process.cwd(), 'src', 'app', 'layout.tsx');
+    const layoutSource = fs.readFileSync(layoutPath, 'utf-8');
+    expect(layoutSource).toContain('id="dview-preview-iframe-shield"');
+    expect(layoutSource).toContain('id="dview-preview-snap-trigger"');
+    expect(layoutSource).toContain('Node.prototype.removeChild');
+    expect(layoutSource).toContain('window.history.replaceState');
+  });
+
+  it('6. dview-preview-iframe-shield neutralizes cross-origin history SecurityError + DOM reparenting errors and GlobalError/Error render preserved SSR snapshot inside embedded preview', () => {
+    const layoutPath = path.resolve(process.cwd(), 'src', 'app', 'layout.tsx');
+    const layoutSource = fs.readFileSync(layoutPath, 'utf-8');
+    const match = layoutSource.match(/const PREVIEW_IFRAME_SHIELD_SCRIPT = `([\s\S]*?)`;/);
+    expect(match).not.toBeNull();
+    const shieldCode = match![1];
+
+    const historyCalls: Array<[unknown, string, unknown]> = [];
+    const mockHistory = {
+      replaceState(state: unknown, title: string, url?: unknown) {
+        if (url !== undefined) {
+          throw makeSecurityError('replaceState');
+        }
+        historyCalls.push([state, title, url]);
+      },
+      pushState(state: unknown, title: string, url?: unknown) {
+        if (url !== undefined) {
+          throw makeSecurityError('pushState');
+        }
+        historyCalls.push([state, title, url]);
+      },
+    };
+
+    function FakeNode(this: { children: unknown[]; parentNode: unknown }) {
+      this.children = [];
+      this.parentNode = null;
+    }
+    FakeNode.prototype.removeChild = function (child: { parentNode: unknown }) {
+      if (child.parentNode !== this) {
+        throw new Error("Failed to execute 'removeChild' on 'Node'");
+      }
+      return child;
+    };
+    FakeNode.prototype.appendChild = function (child: { parentNode: unknown }) {
+      child.parentNode = this;
+      this.children.push(child);
+      return child;
+    };
+    FakeNode.prototype.insertBefore = function (
+      newNode: { parentNode: unknown },
+      refNode: { parentNode: unknown } | null
+    ) {
+      if (refNode && refNode.parentNode !== this) {
+        throw new Error("Failed to execute 'insertBefore' on 'Node'");
+      }
+      newNode.parentNode = this;
+      this.children.push(newNode);
+      return newNode;
+    };
+
+    const longSsrBody = `<div id="dview-main-content"><h1>동탄 아파트 실거래가 D-VIEW</h1>${'<span>데이터</span>'.repeat(80)}</div>`;
+    const fakeClone = {
+      innerHTML: longSsrBody,
+      querySelectorAll: () => [],
+      querySelector: () => ({ innerHTML: '<h1>동탄 아파트 실거래가 D-VIEW</h1>' }),
+    };
+    const sandboxWindow: Record<string, unknown> = {
+      self: {},
+      top: {}, // different reference -> isIframe === true
+      location: {
+        hostname: 'abc-apidata.googleusercontent.com',
+        origin: 'https://abc-apidata.googleusercontent.com',
+      },
+      history: mockHistory,
+    };
+    const sandboxDoc = {
+      readyState: 'complete',
+      documentElement: { className: '__variable_pretendard' },
+      head: {
+        querySelectorAll: () => [
+          { outerHTML: '<base href="https://dongtanview.com/">' },
+          { outerHTML: '<meta name="google-adsense-account" content="ca-pub-1103228112872356">' },
+        ],
+      },
+      body: {
+        innerHTML: longSsrBody,
+        className: 'antialiased bg-body',
+        cloneNode: () => fakeClone,
+      },
+      addEventListener: jest.fn(),
+    };
+
+    vm.runInNewContext(shieldCode, {
+      window: sandboxWindow,
+      document: sandboxDoc,
+      Node: FakeNode,
+    });
+
+    expect(sandboxWindow.__DVIEW_EMBEDDED_PREVIEW__).toBe(true);
+    expect(sandboxWindow.__DVIEW_SSR_SNAPSHOT__).toBeDefined();
+
+    // Cross-origin URL in replaceState should NOT throw; falls back to URL-less replaceState
+    expect(() =>
+      (sandboxWindow.history as typeof mockHistory).replaceState({ idx: 0 }, '', '/')
+    ).not.toThrow();
+    expect(historyCalls).toHaveLength(1);
+
+    // Detached/reparented nodes caused by AdSense Preview overlay injection should NOT throw
+    const parent = new (FakeNode as unknown as new () => {
+      removeChild: (c: unknown) => unknown;
+      insertBefore: (n: unknown, r: unknown) => unknown;
+      children: unknown[];
+    })();
+    const detachedRef = { parentNode: null };
+    const newNode = { parentNode: null };
+    expect(() => parent.removeChild(detachedRef)).not.toThrow();
+    expect(() => parent.insertBefore(newNode, detachedRef)).not.toThrow();
+    expect(parent.children).toContain(newNode);
+
+    // Verify Route Error boundary renders preserved mainHtml inside embedded preview
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const RouteError = require('@/app/error').default;
+    window.__DVIEW_EMBEDDED_PREVIEW__ = true;
+    window.__DVIEW_SSR_SNAPSHOT__ = sandboxWindow.__DVIEW_SSR_SNAPSHOT__ as Window['__DVIEW_SSR_SNAPSHOT__'];
+    try {
+      const { unmount } = render(<RouteError error={new Error('Preview hydration glitch')} />);
+      expect(screen.getByText('동탄 아파트 실거래가 D-VIEW')).toBeInTheDocument();
+      expect(screen.queryByText('페이지를 불러올 수 없어요')).not.toBeInTheDocument();
+      unmount();
+    } finally {
+      delete window.__DVIEW_EMBEDDED_PREVIEW__;
+      delete window.__DVIEW_SSR_SNAPSHOT__;
+    }
   });
 });

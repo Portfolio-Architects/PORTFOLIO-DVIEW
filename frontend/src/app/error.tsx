@@ -18,6 +18,20 @@ export default function Error({
     }
   }, [error]);
 
+  const previewMainHtml =
+    typeof window !== 'undefined' && window.__DVIEW_EMBEDDED_PREVIEW__
+      ? window.__DVIEW_SSR_SNAPSHOT__?.mainHtml
+      : undefined;
+
+  if (previewMainHtml) {
+    return (
+      <div
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: previewMainHtml }}
+      />
+    );
+  }
+
   return (
     <div className="min-h-[60vh] flex items-center justify-center px-4">
       <div className="max-w-md w-full text-center">

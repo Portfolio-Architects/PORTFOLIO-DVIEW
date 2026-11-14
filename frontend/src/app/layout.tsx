@@ -117,6 +117,8 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
+const PREVIEW_IFRAME_SHIELD_SCRIPT = `(function(){try{var isIframe=false;try{isIframe=window.self!==window.top;}catch(e){isIframe=true;}var host='';var origin='';try{host=(window.location&&window.location.hostname)||'';origin=(window.location&&window.location.origin)||'';}catch(e){}var isProxy=Boolean(!host||origin==='null'||host.indexOf('googleusercontent.com')!==-1||host.indexOf('googlesyndication.com')!==-1||host.indexOf('google.com')!==-1||host.indexOf('doubleclick.net')!==-1);if(!isIframe&&!isProxy)return;window.__DVIEW_EMBEDDED_PREVIEW__=true;if(window.history){var op=window.history.pushState;if(typeof op==='function'){window.history.pushState=function(s,t,u){try{return op.call(this,s,t,u);}catch(e){try{return op.call(this,s,t);}catch(_){}}};}var or=window.history.replaceState;if(typeof or==='function'){window.history.replaceState=function(s,t,u){try{return or.call(this,s,t,u);}catch(e){try{return or.call(this,s,t);}catch(_){}}};}}if(typeof Node!=='undefined'&&Node.prototype){var orc=Node.prototype.removeChild;Node.prototype.removeChild=function(c){if(c&&c.parentNode!==this)return c;return orc.apply(this,arguments);};var oib=Node.prototype.insertBefore;Node.prototype.insertBefore=function(n,r){if(r&&r.parentNode!==this)return this.appendChild(n);return oib.apply(this,arguments);};}var snap=function(){try{if(document.body&&!window.__DVIEW_SSR_SNAPSHOT__){var bh=document.body.innerHTML||'';if(bh.length>400&&bh.indexOf('앗, 문제가 발생했어요')===-1&&bh.indexOf('페이지를 불러올 수 없어요')===-1){var hh='';var hn=document.head?document.head.querySelectorAll('base,meta,link[rel="stylesheet"],link[rel="preload"][as="font"],style'):[];for(var i=0;i<hn.length;i++){hh+=hn[i].outerHTML;}var clone=document.body.cloneNode(true);var sc=clone.querySelectorAll('script');for(var j=0;j<sc.length;j++){if(sc[j].parentNode)sc[j].parentNode.removeChild(sc[j]);}var mc=clone.querySelector('#dview-main-content');window.__DVIEW_SSR_SNAPSHOT__={headHtml:hh,bodyHtml:clone.innerHTML,mainHtml:mc?mc.innerHTML:'',bodyClass:document.body.className||'antialiased',htmlClass:document.documentElement.className||''};}}}catch(_){}};window.__dviewCapturePreviewSnap=snap;if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',snap,{once:true});}else{snap();}}catch(_){}})();`;
+
 export default function RootLayout({
   children,
 }: {
@@ -126,8 +128,9 @@ export default function RootLayout({
 
   return (
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
-      <head>
-        <script id="dview-ga-admin-guard" nonce={nonce} dangerouslySetInnerHTML={{ __html: buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID) }} />
+      <head suppressHydrationWarning>
+        <script id="dview-preview-iframe-shield" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: PREVIEW_IFRAME_SHIELD_SCRIPT }} />
+        <script id="dview-ga-admin-guard" nonce={nonce} suppressHydrationWarning dangerouslySetInnerHTML={{ __html: buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID) }} />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />
@@ -146,7 +149,7 @@ export default function RootLayout({
           />
         )}
       </head>
-      <body className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 selection:bg-blue-600/15 selection:text-blue-600 dark:selection:bg-blue-500/25 dark:selection:text-blue-400">
+      <body suppressHydrationWarning className="antialiased min-h-screen flex flex-col bg-body text-primary relative transition-colors duration-200 selection:bg-blue-600/15 selection:text-blue-600 dark:selection:bg-blue-500/25 dark:selection:text-blue-400">
         <Script 
           src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.2/kakao.min.js" 
           strategy="lazyOnload" 
@@ -180,7 +183,7 @@ export default function RootLayout({
                       </linearGradient>
                     </defs>
                   </svg>
-                  <div className="flex-1 flex flex-col">
+                  <div id="dview-main-content" className="flex-1 flex flex-col">
                     {children}
                   </div>
                   <Footer />
@@ -191,6 +194,14 @@ export default function RootLayout({
                   <MobileStickyAnchorAd />
                 </PWAProvider>
                 <div id="modal-root" />
+                <script
+                  id="dview-preview-snap-trigger"
+                  nonce={nonce}
+                  suppressHydrationWarning
+                  dangerouslySetInnerHTML={{
+                    __html: 'try{if(window.__dviewCapturePreviewSnap)window.__dviewCapturePreviewSnap();}catch(_){}',
+                  }}
+                />
               </AuthProvider>
             </SettingsProvider>
           </SWRProvider>
