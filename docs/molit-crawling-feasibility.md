@@ -6,7 +6,8 @@
 - **문서 버전**: v1.0 (Production Engineering Final)
 - **발행 일자**: 2026년 11월 4일
 - **대상 서비스**: 디뷰(DVIEW) 동탄 부동산 실거래가 및 AI 가치 분석 플랫폼
-- **준수 규정**: DVIEW Response Standard Protocol (DRSP v1.0), Strict Real Data Only (`DVIEW_strict-real-data-only.md`)
+- **준수 규정**: [`DVIEW_DRSP.md`](../.agent/rules/DVIEW_DRSP.md) (DRSP v1.0), Strict Real Data Only ([`DVIEW_strict-real-data-only.md`](../.agent/rules/DVIEW_strict-real-data-only.md))
+- **상위 리포트 및 연계 스킬**: [`DVIEW_PORTFOLIO DVIEW - Engineering Report.md`](../DVIEW_PORTFOLIO%20DVIEW%20-%20Engineering%20Report.md) · [`dview-real-data-pipeline`](../.agent/skills/dview-real-data-pipeline/SKILL.md)
 - **작성 주체**: DVIEW Data Platform Engineering Team
 
 ---

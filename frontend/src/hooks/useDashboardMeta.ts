@@ -15,6 +15,8 @@ import type { FieldReportData } from '@/types/report';
 import type { DongtanMacroTrendPoint, AptTxSummary, Recent7DaysVolume, RecentTransaction, LocationScoreItem } from '@/types/transaction';
 import { z } from 'zod';
 import { apiClient } from '@/lib/api/apiClient';
+import { BUILD_VERSION } from '@/lib/build-version';
+import { staticDataService } from '@/lib/services/staticDataService';
 
 const TypeMapEntrySchema = z.object({
   aptName: z.string().catch(''),
@@ -35,6 +37,8 @@ const DashboardInitResponseSchema = z.object({
 }).passthrough();
 
 export interface DashboardInitialDataLocal {
+  isSlimmedSsr?: boolean;
+  publicRentalNames?: string[];
   typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
   apartmentMeta?: Record<string, Partial<DongApartment> & { dong?: string; txKey?: string; isPublicRental?: boolean }>;
   favoriteCounts?: Record<string, number>;
@@ -110,17 +114,16 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
   });
 
   const [publicRentalSet, setPublicRentalSet] = useState<Set<string>>(() => {
+    const rentals = new Set<string>(initialDashboardData?.publicRentalNames || []);
     if (initialDashboardData?.apartmentMeta) {
-      const rentals = new Set<string>();
       for (const [name, meta] of Object.entries(initialDashboardData.apartmentMeta)) {
         if (!meta || typeof meta !== 'object') continue;
         const rec = meta as Record<string, unknown>;
         if (!rec.dong && !rec.txKey && !rec.isPublicRental) continue;
         if (rec.isPublicRental) rentals.add(name);
       }
-      return rentals;
     }
-    return new Set();
+    return rentals;
   });
 
   const triggerFetch = useCallback(() => {
@@ -128,19 +131,50 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
   }, []);
 
   const hasSheetData = !!(initialDashboardData?.sheetApartments && Object.keys(initialDashboardData.sheetApartments).length > 0);
+  const isSlimmedSsr = Boolean(initialDashboardData?.isSlimmedSsr);
 
-  // Fetch combined sheet apartments and typeMap on demand (Lazy Fetching)
+  // Fetch combined sheet apartments and typeMap on demand (Static CDN first when slimmed SSR, API fallback otherwise)
   useEffect(() => {
     if (hasSheetData || !startFetch) return;
 
     const controller = new AbortController();
     setIsLoading(true);
 
-    apiClient
-      .get<{
+    const loadMetaPayload = async (): Promise<{
+      sheetApartments?: Record<string, DongApartment[]>;
+      typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
+    }> => {
+      if (isSlimmedSsr) {
+        const [byDongRaw, typeMapRaw] = await Promise.all([
+          staticDataService
+            .fetchJson<{ byDong?: Record<string, DongApartment[]>; sheetApartments?: Record<string, DongApartment[]> }>(
+              `/data/apartments-by-dong.json?v=${BUILD_VERSION}`,
+              controller.signal
+            )
+            .catch(() => null),
+          staticDataService
+            .fetchJson<{ aptName: string; area: number | string; typeM2: string; typePyeong: string }[]>(
+              `/data/type-map.json?v=${BUILD_VERSION}`,
+              controller.signal
+            )
+            .catch(() => null),
+        ]);
+        const resolvedSheet = byDongRaw?.byDong || byDongRaw?.sheetApartments;
+        if (resolvedSheet || Array.isArray(typeMapRaw)) {
+          return {
+            sheetApartments: resolvedSheet,
+            typeMap: Array.isArray(typeMapRaw) ? typeMapRaw : undefined,
+          };
+        }
+      }
+
+      return apiClient.get<{
         sheetApartments?: Record<string, DongApartment[]>;
         typeMap?: { aptName: string; area: number | string; typeM2: string; typePyeong: string }[];
-      }>('/api/explore/search-data', { signal: controller.signal })
+      }>('/api/explore/search-data', { signal: controller.signal });
+    };
+
+    loadMetaPayload()
       .then((data) => {
         if (!isMountedRef.current || controller.signal.aborted) return;
 
@@ -199,13 +233,13 @@ export function useDashboardMeta(initialDashboardData?: DashboardInitialDataLoca
     return () => {
       controller.abort();
     };
-  }, [hasSheetData, startFetch]);
+  }, [hasSheetData, isSlimmedSsr, startFetch]);
 
   const hasInitialTypeMap = !!(initialDashboardData?.typeMap && initialDashboardData.typeMap.length > 0);
   const hasInitialApartmentMeta = !!(
     initialDashboardData?.apartmentMeta && Object.keys(initialDashboardData.apartmentMeta).length > 0
   );
-  const shouldFetchInit = !hasInitialTypeMap && !hasInitialApartmentMeta && !startFetch;
+  const shouldFetchInit = !isSlimmedSsr && !hasInitialTypeMap && !hasInitialApartmentMeta && !startFetch;
 
   const { data: initData, error: initError } = useSWR(
     shouldFetchInit ? '/api/dashboard-init' : null,

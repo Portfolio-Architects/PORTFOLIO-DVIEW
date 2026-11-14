@@ -6,7 +6,13 @@ import { X, Search, Check, Share2, ArrowLeft, RefreshCw, Calculator, MessageSqua
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
-import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import {
+  findTxKey,
+  normalizeAptName,
+  getDisplayAptName,
+  isSameApartment,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
 import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { shareTaxToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
@@ -20,32 +26,34 @@ interface PropertyTaxCalculatorProps {
   isOpen: boolean;
   onClose: () => void;
   initialAptName?: string;
+  initialPriceManwon?: number;
+  initialAreaOver85?: boolean;
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
   nameMapping: Record<string, string>;
 }
 
-function getEstimatedMarketPrice(apt: DongApartment, txSummaryData: Record<string, AptTxSummary>, nameMapping: Record<string, string>) {
+// Helper: Retrieve 100% verified MOLIT transaction price (strictly no dong-level mock/estimated fallbacks)
+function getVerifiedMarketPrice(
+  apt: DongApartment,
+  txSummaryData: Record<string, AptTxSummary>,
+  nameMapping: Record<string, string>
+): number {
   const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
   const summary = txKey ? txSummaryData[txKey] : null;
   if (summary) {
     const val = summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0;
     if (val > 0) return val;
   }
-  
-  // Fallback estimate by dong
-  const dong = apt.dong || '';
-  if (dong.includes('오산동')) return 95000;
-  if (dong.includes('청계동')) return 85000;
-  if (dong.includes('송동') || dong.includes('산척동')) return 75000;
-  if (dong.includes('목동') || dong.includes('영천동')) return 60000;
-  return 55000;
+  return 0;
 }
 
 const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   isOpen,
   onClose,
   initialAptName,
+  initialPriceManwon,
+  initialAreaOver85,
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -91,8 +99,10 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
 
   const [recentApts, setRecentApts] = useState<RecentApartmentItem[]>([]);
 
-  // Selected apartment state
+  // Selected apartment & standalone budget state
   const [selectedApt, setSelectedApt] = useState<DongApartment | null>(null);
+  const [isStandaloneBudgetMode, setIsStandaloneBudgetMode] = useState<boolean>(false);
+  const userPickedAptInSessionRef = useRef<boolean>(false);
 
   // Search input & focus state
   const [searchQuery, setSearchQuery] = useState('');
@@ -184,82 +194,174 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
     }
   };
 
-  const handleAptSelect = (apt: DongApartment) => {
+  const handleAptSelect = (
+    apt: DongApartment,
+    overridePriceManwon?: number,
+    isInitialSync = false
+  ) => {
+    if (!isInitialSync) {
+      userPickedAptInSessionRef.current = true;
+      if (calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
+        calculateTimeoutRef.current = null;
+      }
+      setIsCalculating(false);
+    }
+    setIsStandaloneBudgetMode(false);
     setSelectedApt(apt);
     setSearchQuery(getDisplayAptName(apt.name));
     setIsFocused(false);
     setShowResult(false);
     setRecentApts(addRecentApartment({ name: apt.name, dong: apt.dong }));
 
-    const price = getEstimatedMarketPrice(apt, txSummaryData, nameMapping);
-    setAcquisitionPrice(price);
+    if (
+      typeof overridePriceManwon === 'number' &&
+      Number.isFinite(overridePriceManwon) &&
+      overridePriceManwon > 0
+    ) {
+      setAcquisitionPrice(Math.round(overridePriceManwon));
+    } else {
+      const price = getVerifiedMarketPrice(apt, txSummaryData, nameMapping);
+      setAcquisitionPrice(price);
+    }
   };
 
-  // Load and map quiz answers on modal mount/open
+  // Load and map quiz answers & initial area on modal open; deterministically reset all state on close
   useEffect(() => {
     if (isOpen) {
+      let quizFound = false;
+      let nextOwnedHouses = 1;
+      let nextExclusiveArea: '85under' | '85over' = '85under';
+
       try {
         const answers = localCache.get('drive_quiz_answers', QuizAnswerSchema, null);
         if (answers) {
-          setHasQuizAnswers(true);
-          
-          // 1. Map ownedHouses: if investmentStyle is 'gap', set to 2, else 1
-          if (answers.investmentStyle === 'gap') {
-            setOwnedHouses(2);
-          } else {
-            setOwnedHouses(1);
-          }
+          quizFound = true;
+          nextOwnedHouses = answers.investmentStyle === 'gap' ? 2 : 1;
 
-          // 2. Map exclusiveArea: if large family and high budget, set to 85over
           const isLargeFamily = answers.family === 'middleHigh' || answers.family === 'elementary';
           const isHighBudget = answers.budget === '12eok' || answers.budget === 'unlimited';
-          if (isLargeFamily && isHighBudget) {
-            setExclusiveArea('85over');
-          } else {
-            setExclusiveArea('85under');
-          }
-
-          // 3. Zero-click simulation if initialAptName is present
-          if (initialAptName) {
-            setIsCalculating(true);
-            if (calculateTimeoutRef.current) {
-              clearTimeout(calculateTimeoutRef.current);
-            }
-            calculateTimeoutRef.current = setTimeout(() => {
-              if (mountedRef.current) {
-                setIsCalculating(false);
-                setShowResult(true);
-              }
-              calculateTimeoutRef.current = null;
-            }, 1200);
-            return () => {
-              if (calculateTimeoutRef.current) {
-                clearTimeout(calculateTimeoutRef.current);
-                calculateTimeoutRef.current = null;
-              }
-            };
-          }
+          nextExclusiveArea = isLargeFamily && isHighBudget ? '85over' : '85under';
         }
       } catch (e) {
         logger.warn('PropertyTaxCalculator', 'Failed to parse quiz answers', undefined, e);
       }
+
+      if (initialAreaOver85 === true) {
+        nextExclusiveArea = '85over';
+      } else if (initialAreaOver85 === false) {
+        nextExclusiveArea = '85under';
+      } else if (!quizFound) {
+        nextExclusiveArea = '85under';
+      }
+
+      setHasQuizAnswers(quizFound);
+      setOwnedHouses(nextOwnedHouses);
+      setExclusiveArea(nextExclusiveArea);
+
+      // Zero-click simulation if quiz answers + initialAptName are both present
+      if (quizFound && initialAptName) {
+        setIsCalculating(true);
+        if (calculateTimeoutRef.current) {
+          clearTimeout(calculateTimeoutRef.current);
+        }
+        calculateTimeoutRef.current = setTimeout(() => {
+          if (mountedRef.current) {
+            setIsCalculating(false);
+            setShowResult(true);
+          }
+          calculateTimeoutRef.current = null;
+        }, 1200);
+        return () => {
+          if (calculateTimeoutRef.current) {
+            clearTimeout(calculateTimeoutRef.current);
+            calculateTimeoutRef.current = null;
+          }
+        };
+      }
     } else {
-      // Reset state on close
+      // Reset all session state cleanly on close to prevent cross-open leaks
+      if (calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
+        calculateTimeoutRef.current = null;
+      }
+      userPickedAptInSessionRef.current = false;
       setShowResult(false);
       setIsCalculating(false);
       setHasQuizAnswers(false);
+      setSelectedApt(null);
+      setIsStandaloneBudgetMode(false);
+      setSearchQuery('');
+      setIsFocused(false);
+      setAcquisitionPrice(0);
+      setInputValue('');
+      setOwnedHouses(1);
+      setExclusiveArea('85under');
+      setIsCopied(false);
     }
-  }, [isOpen, initialAptName]);
+  }, [isOpen, initialAptName, initialAreaOver85]);
 
-  // Set initial apartment if passed
   useEffect(() => {
-    if (initialAptName && isOpen) {
-      const matched = allApartments.find(a => normalizeAptName(a.name) === normalizeAptName(initialAptName));
-      if (matched) {
-        handleAptSelect(matched);
+    userPickedAptInSessionRef.current = false;
+    if (isOpen) {
+      setShowResult(false);
+      if (!initialAptName && calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
+        calculateTimeoutRef.current = null;
+        setIsCalculating(false);
       }
     }
-  }, [initialAptName, allApartments, isOpen]);
+  }, [initialAptName, initialPriceManwon, isOpen]);
+
+  // Set initial apartment or standalone initial price if passed
+  useEffect(() => {
+    if (!isOpen || userPickedAptInSessionRef.current) return;
+
+    const hasValidInitialPrice =
+      typeof initialPriceManwon === 'number' &&
+      Number.isFinite(initialPriceManwon) &&
+      initialPriceManwon > 0;
+
+    if (initialAptName) {
+      setIsStandaloneBudgetMode(false);
+      const targetNorm = normalizeAptName(initialAptName);
+      const canonicalSlug = resolveCanonicalAptSlug(initialAptName);
+      const canonicalNorm = normalizeAptName(canonicalSlug);
+      const matched = allApartments.find((a) => {
+        const aptNorm = normalizeAptName(a.name);
+        return (
+          aptNorm === targetNorm ||
+          (canonicalNorm && aptNorm === canonicalNorm) ||
+          isSameApartment(a.name, initialAptName, nameMapping)
+        );
+      });
+      if (matched) {
+        handleAptSelect(matched, initialPriceManwon, true);
+      } else if (hasValidInitialPrice) {
+        handleAptSelect(
+          { name: getDisplayAptName(canonicalSlug || initialAptName), dong: '동탄' },
+          initialPriceManwon,
+          true
+        );
+      } else {
+        setSelectedApt(null);
+        setSearchQuery('');
+        setAcquisitionPrice(0);
+        setInputValue('');
+      }
+    } else if (hasValidInitialPrice) {
+      setSelectedApt(null);
+      setIsStandaloneBudgetMode(true);
+      setSearchQuery('');
+      setAcquisitionPrice(Math.round(initialPriceManwon!));
+    } else {
+      setSelectedApt(null);
+      setIsStandaloneBudgetMode(false);
+      setSearchQuery('');
+      setAcquisitionPrice(0);
+      setInputValue('');
+    }
+  }, [initialAptName, initialPriceManwon, allApartments, nameMapping, isOpen]);
 
   // Sync inputValue when acquisitionPrice changes from slider, external initial load, or select
   useEffect(() => {
@@ -426,7 +528,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   }, [taxResults, acquisitionPrice]);
 
   const handleStartSimulate = () => {
-    if (!selectedApt || acquisitionPrice <= 0) return;
+    if (acquisitionPrice <= 0) return;
     setIsCalculating(true);
     if (calculateTimeoutRef.current) {
       clearTimeout(calculateTimeoutRef.current);
@@ -452,12 +554,14 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   };
 
   const handleShare = () => {
-    if (!selectedApt || !taxResults) return;
-    const aptLabel = getDisplayAptName(selectedApt.name);
+    if (!taxResults || acquisitionPrice <= 0) return;
+    const aptLabel = selectedApt
+      ? `${getDisplayAptName(selectedApt.name)} (${selectedApt.dong})`
+      : '선택 예산 기준 시뮬레이션 (단지 미선택)';
     const housesStr = `${ownedHouses}주택`;
     const areaStr = exclusiveArea === '85under' ? '85㎡ 이하' : '85㎡ 초과';
     const text = `[D-VIEW 취득세 및 중개보수 보고서]
-단지명: ${aptLabel} (${selectedApt.dong})
+단지명: ${aptLabel}
 매매가액: ${formatEokMan(acquisitionPrice)}
 
 진단 결과 (${housesStr} | ${areaStr})
@@ -492,10 +596,12 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
   };
 
   const handleKakaoShare = () => {
-    if (!selectedApt || !taxResults) return;
+    if (!taxResults || acquisitionPrice <= 0) return;
     shareTaxToKakao({
-      aptName: getDisplayAptName(selectedApt.name),
-      dong: selectedApt.dong,
+      aptName: selectedApt
+        ? getDisplayAptName(selectedApt.name)
+        : '선택 예산 기준 시뮬레이션 (단지 미선택)',
+      dong: selectedApt?.dong || '예산 시뮬레이션',
       marketPrice: acquisitionPrice,
       ownedHouses,
       exclusiveArea,
@@ -567,19 +673,29 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                     onChange={(e) => {
                       setSearchQuery(e.target.value);
                       setIsFocused(true);
-                      if (selectedApt) setSelectedApt(null);
+                      if (selectedApt) {
+                        setSelectedApt(null);
+                        setIsStandaloneBudgetMode(false);
+                        setAcquisitionPrice(0);
+                        setInputValue('');
+                      }
                     }}
                     onFocus={() => setIsFocused(true)}
                     className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2.5 pl-9 pr-8 text-[13.5px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
                   />
                   {searchQuery && (
                     <button
+                      type="button"
+                      aria-label="검색어 지우기"
                       onClick={() => {
                         setSearchQuery('');
                         setSelectedApt(null);
+                        setIsStandaloneBudgetMode(false);
+                        setAcquisitionPrice(0);
+                        setInputValue('');
                         setIsFocused(true);
                       }}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary cursor-pointer"
                     >
                       <X size={14} />
                     </button>
@@ -587,15 +703,16 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
 
                 </div>
                 <div>
-                  {(isFocused || !selectedApt) && (
+                  {(isFocused || (!selectedApt && acquisitionPrice === 0)) && (
                     <div className="absolute left-0 right-0 top-full mt-1.5 bg-surface border border-border shadow-2xl rounded-xl z-50 overflow-y-auto overscroll-contain max-h-[200px] py-1">
                       {filteredApts.length > 0 ? (
                         filteredApts.map(apt => (
                           <button
                             key={apt.name}
+                            type="button"
                             onMouseDown={(e) => e.preventDefault()}
                             onClick={() => handleAptSelect(apt)}
-                            className="w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body text-secondary flex items-center justify-between"
+                            className="w-full text-left px-4 py-2.5 text-[13px] font-bold hover:bg-body text-secondary flex items-center justify-between cursor-pointer"
                           >
                             <span>{getDisplayAptName(apt.name)}</span>
                             <span className="text-[10px] text-tertiary px-1.5 py-0.5 bg-body rounded">{apt.dong}</span>
@@ -609,8 +726,34 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                 </div>
               </div>
 
-              {selectedApt && (
+              {(selectedApt || acquisitionPrice > 0) && (
                 <div className="space-y-4 animate-in fade-in duration-300">
+                  {!selectedApt && isStandaloneBudgetMode && acquisitionPrice > 0 && (
+                    <div
+                      data-testid="tax-standalone-budget-banner"
+                      className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs tabular-nums"
+                    >
+                      <span className="font-extrabold text-secondary">
+                        선택 예산 기준 시뮬레이션 (단지 미선택)
+                      </span>
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                        예산 {formatEokMan(acquisitionPrice)}
+                      </span>
+                    </div>
+                  )}
+                  {selectedApt && acquisitionPrice === 0 && (
+                    <div
+                      data-testid="tax-no-real-tx-banner"
+                      className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] px-3.5 py-2.5 flex items-center justify-between gap-2 text-xs"
+                    >
+                      <span className="font-bold text-secondary">
+                        등록된 실거래 내역이 없습니다. 아래에 매매 가액을 직접 입력해 계산할 수 있습니다.
+                      </span>
+                      <span className="text-[10.5px] font-bold px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300 shrink-0">
+                        실거래 미신고
+                      </span>
+                    </div>
+                  )}
                   {/* Acquisition Price Input */}
                   <div className="space-y-1.5">
                     <span className="text-[12px] font-bold text-secondary">2. 매매 가액 입력</span>
@@ -722,7 +865,7 @@ const PropertyTaxCalculator = React.memo(function PropertyTaxCalculator({
                   <button
                     onClick={handleStartSimulate}
                     disabled={isCalculating || acquisitionPrice <= 0}
-                    className="w-full bg-blue-600 hover:bg-[#046862] text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 mt-4 disabled:opacity-50"
                   >
                     {isCalculating ? (
                       <>

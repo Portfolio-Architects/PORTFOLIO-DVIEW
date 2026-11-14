@@ -78,6 +78,7 @@ const STATIC_CSP_HEADER = `
 // 자체적으로 Rate Limit를 수행하거나 CDN 캐시로 서빙되는 읽기 전용 API 경로는 프록시 단 중복 Redis 호출 생략
 const PROXY_RATELIMIT_EXEMPT_API_PATHS = new Set([
   '/api/og',
+  '/api/proxy-image',
   '/api/dashboard-init',
   '/api/macro/rates',
   '/api/macro/news',
@@ -200,17 +201,29 @@ export async function proxy(request: NextRequest) {
     const origin = request.headers.get('origin') || '';
     const referer = request.headers.get('referer') || '';
 
-    // Origin / Referer validation (Prevent unauthorized external scraping)
-    const hasAllowedOrigin = proxyConfig.allowedOrigins.some(allowed => 
-      origin.includes(allowed) || referer.includes(allowed)
-    );
+    // Origin validation (strict hostname matching; spoofed Referer query strings must never override untrusted Origin)
+    if (origin) {
+      let hasAllowedOrigin = false;
+      try {
+        const parsedOrigin = new URL(origin);
+        const hostname = parsedOrigin.hostname.toLowerCase();
+        hasAllowedOrigin = proxyConfig.allowedOrigins.some((allowed) => {
+          const cleanAllowed = allowed.replace(/:$/, '').toLowerCase();
+          if (cleanAllowed === 'localhost' || cleanAllowed === '127.0.0.1') {
+            return hostname === cleanAllowed;
+          }
+          return hostname === cleanAllowed || hostname.endsWith(`.${cleanAllowed}`);
+        });
+      } catch {
+        hasAllowedOrigin = false;
+      }
 
-    // Block request if origin exists but is not in the whitelist
-    if (origin && !hasAllowedOrigin) {
-      return new NextResponse(
-        JSON.stringify({ error: 'Forbidden: Unauthorized cross-origin request' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
+      if (!hasAllowedOrigin) {
+        return new NextResponse(
+          JSON.stringify({ error: 'Forbidden: Unauthorized cross-origin request' }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     if (ratelimit && !isProxyRateLimitExemptApiPath(pathname)) {

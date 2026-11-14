@@ -488,14 +488,14 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
         expect(onTabChange).toHaveBeenCalledWith('stats');
       });
 
-      test('T1.2.2: LoungeHeader proactively prefetches /stats upon component mount', () => {
+      test('T1.2.2: LoungeHeader suppresses automatic /stats .rsc prefetch upon component mount', () => {
         render(<LoungeHeader activeTab="overview" />);
-        expect(mockPrefetch).toHaveBeenCalledWith('/stats');
+        expect(mockPrefetch).not.toHaveBeenCalled();
       });
 
-      test('T1.2.3: MobileDock proactively prefetches /stats upon component mount', () => {
+      test('T1.2.3: MobileDock suppresses automatic /stats .rsc prefetch upon component mount', () => {
         render(<MobileDock activeTab="overview" />);
-        expect(mockPrefetch).toHaveBeenCalledWith('/stats');
+        expect(mockPrefetch).not.toHaveBeenCalled();
       });
 
       test('T1.2.4: next.config.ts does not contain permanent redirect from /stats to /', () => {

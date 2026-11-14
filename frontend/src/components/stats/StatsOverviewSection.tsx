@@ -352,7 +352,7 @@ export function StatsOverviewSection({
               </h2>
             </div>
             <span className="px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11px] font-bold text-slate-600 dark:text-slate-300 shrink-0">
-              실거래 표본: <span className="text-emerald-600 dark:text-emerald-400 font-extrabold font-mono tabular-nums">{statsData.totalVolume.toLocaleString()}건</span>
+              실거래 표본: <span className="text-emerald-600 dark:text-emerald-400 font-extrabold tabular-nums">{statsData.totalVolume.toLocaleString()}건</span>
             </span>
           </div>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium hidden lg:inline-block shrink-0">

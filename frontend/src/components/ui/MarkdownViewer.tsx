@@ -33,6 +33,7 @@ const defaultComponents: Components = {
     return (
       <Link 
         href={href} 
+        prefetch={false}
         className="text-toss-blue hover:underline font-medium break-all"
       >
         {children}

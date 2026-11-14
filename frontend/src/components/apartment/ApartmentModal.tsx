@@ -53,6 +53,7 @@ import { ApartmentLandingRetentionStrip } from './ApartmentLandingRetentionStrip
 import { ApartmentModalTransactionsTable } from './ApartmentModalTransactionsTable';
 import { ApartmentModalKakaoCard } from './ApartmentModalKakaoCard';
 import { MortgageLdiSentinelCard } from './chapters/MortgageLdiSentinelCard';
+import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
 
 const JeonseSafetySkeleton = () => (
   <div className="w-full flex flex-col gap-4 mt-4 h-[300px]">
@@ -374,8 +375,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
   onSelectApartment?: (aptName: string, dong?: string) => void;
   onOpenCompare?: (aptName: string, targetAptName?: string) => void;
   onOpenJeonseSafety?: (aptName: string) => void;
-  onOpenMortgage?: (aptName: string, priceWon?: number) => void;
-  onOpenTaxCalculator?: (aptName: string) => void;
+  onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
+  onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
   onOpenSellTimingCalculator?: (aptName: string) => void;
   isTxLoading?: boolean;
   sheetApartments?: Record<string, import('@/lib/dong-apartments').DongApartment[]>;
@@ -1337,7 +1338,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
       <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-3 py-3 md:px-6 md:py-4'} flex flex-col gap-8 w-full`}>
-        <div className="-mb-4 w-full">
+        <div className="-mb-4 w-full space-y-2.5">
           <ApartmentLandingRetentionStrip
             currentAptName={report.apartmentName}
             currentDong={report.dong || '동탄'}
@@ -1348,6 +1349,27 @@ const ApartmentModal = React.memo(function ApartmentModal({
             onSelectPeer={handleRecircSelectApartment}
             onOpenCompare={handleRecircOpenCompare}
             onOpenPushModal={() => setIsPushModalOpen(true)}
+          />
+          <InlineMortgageDsrBridge
+            apartmentName={displayAptName}
+            canonicalSlug={canonicalAptSlug}
+            dong={report.dong || undefined}
+            benchmarkPriceManwon={jeonseSafetyData?.latestPrice || txSummary?.latestPrice || 0}
+            surface={inline ? 'apartment_inline_top' : 'apartment_modal_top'}
+            trigger={inline ? 'apartment_inline_top_bridge' : 'apartment_modal_top_bridge'}
+            compact
+            onOpenMortgage={
+              onOpenMortgage
+                ? (bridgedApt, priceWon, trig) =>
+                    onOpenMortgage(bridgedApt ? report.apartmentName : '', priceWon, trig)
+                : undefined
+            }
+            onOpenTaxCalculator={
+              onOpenTaxCalculator
+                ? (bridgedApt, trig) =>
+                    onOpenTaxCalculator(bridgedApt ? report.apartmentName : '', trig)
+                : undefined
+            }
           />
         </div>
 

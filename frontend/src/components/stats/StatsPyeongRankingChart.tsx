@@ -135,7 +135,7 @@ export function StatsPyeongRankingChart({
         {/* Action Controls: Explore Tab Link + Clean Segmented View Toggle */}
         <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
           <Link
-            href="/explore?category=rank-price"
+            href="/explore?category=rank-price" prefetch={false}
             className="inline-flex items-center px-2.5 py-1.5 rounded-lg bg-blue-50/80 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-xs font-bold transition-colors shrink-0"
           >
             <span>아파트 탐색에서 전체 보기</span>

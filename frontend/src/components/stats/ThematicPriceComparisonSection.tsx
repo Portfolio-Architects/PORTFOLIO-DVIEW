@@ -154,7 +154,7 @@ function GroupSummaryCard({
           <span className="text-tertiary font-semibold">대표 최고가 단지</span>
           {group.maxPriceComplexSlug ? (
             <Link
-              href={`/apartment/${encodeURIComponent(group.maxPriceComplexSlug)}`}
+              href={`/apartment/${encodeURIComponent(group.maxPriceComplexSlug)}`} prefetch={false}
               onClick={() =>
                 onComplexClick(
                   group.maxPriceComplexSlug,
@@ -175,7 +175,7 @@ function GroupSummaryCard({
           <span className="text-tertiary font-semibold">실속 진입 단지</span>
           {group.minPriceComplexSlug ? (
             <Link
-              href={`/apartment/${encodeURIComponent(group.minPriceComplexSlug)}`}
+              href={`/apartment/${encodeURIComponent(group.minPriceComplexSlug)}`} prefetch={false}
               onClick={() =>
                 onComplexClick(
                   group.minPriceComplexSlug,
@@ -295,7 +295,7 @@ function TierBreakdownBlock({
                   {tier.samples.map((sample) => (
                     <Link
                       key={`${tier.tierId}-${sample.name}`}
-                      href={`/apartment/${encodeURIComponent(sample.canonicalSlug)}`}
+                      href={`/apartment/${encodeURIComponent(sample.canonicalSlug)}`} prefetch={false}
                       onClick={() =>
                         onComplexClick(
                           sample.canonicalSlug,
@@ -376,7 +376,7 @@ function RivalMatchupsBlock({
               <div className="grid grid-cols-2 gap-2 pt-1">
                 {/* Left Complex */}
                 <Link
-                  href={`/apartment/${encodeURIComponent(m.leftComplex.canonicalSlug)}`}
+                  href={`/apartment/${encodeURIComponent(m.leftComplex.canonicalSlug)}`} prefetch={false}
                   onClick={() =>
                     onComplexClick(
                       m.leftComplex.canonicalSlug,
@@ -406,7 +406,7 @@ function RivalMatchupsBlock({
 
                 {/* Right Complex */}
                 <Link
-                  href={`/apartment/${encodeURIComponent(m.rightComplex.canonicalSlug)}`}
+                  href={`/apartment/${encodeURIComponent(m.rightComplex.canonicalSlug)}`} prefetch={false}
                   onClick={() =>
                     onComplexClick(
                       m.rightComplex.canonicalSlug,
@@ -437,7 +437,7 @@ function RivalMatchupsBlock({
             </div>
 
             <Link
-              href={`/guide/${m.relatedGuideSlug}`}
+              href={`/guide/${m.relatedGuideSlug}`} prefetch={false}
               onClick={() =>
                 onGuideClick(m.relatedGuideSlug, m.relatedGuideTitle, `matchup_${m.matchupId}`)
               }
@@ -480,7 +480,7 @@ function GuideRecirculationBlock({
           </h3>
         </div>
         <Link
-          href="/guide"
+          href="/guide" prefetch={false}
           className="text-xs font-extrabold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
         >
           <span>20개 비교 가이드 전체보기</span>
@@ -492,7 +492,7 @@ function GuideRecirculationBlock({
         {guides.map((g) => (
           <Link
             key={g.slug}
-            href={`/guide/${g.slug}`}
+            href={`/guide/${g.slug}`} prefetch={false}
             onClick={() => onGuideClick(g.slug, g.title, `bottom_bridge_${topicId}`)}
             className="p-4 rounded-xl bg-white dark:bg-[#202027] border border-[#f2f4f6] dark:border-slate-800 hover:border-blue-500/40 transition-all flex flex-col justify-between gap-3 group"
           >
@@ -648,7 +648,7 @@ export function ThematicPriceComparisonSection({
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               {primaryGuide && (
                 <Link
-                  href={`/guide/${primaryGuide.slug}`}
+                  href={`/guide/${primaryGuide.slug}`} prefetch={false}
                   data-testid="school-stats-to-guide-cta"
                   onClick={() =>
                     handleGuideBridgeClick(
@@ -837,7 +837,7 @@ export function ThematicPriceComparisonSection({
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
                     <span className="text-tertiary">대표 대장</span>
                     <Link
-                      href={`/apartment/${encodeURIComponent(z.flagshipComplexSlug)}`}
+                      href={`/apartment/${encodeURIComponent(z.flagshipComplexSlug)}`} prefetch={false}
                       onClick={() =>
                         handleComplexClick(
                           z.flagshipComplexSlug,
@@ -919,7 +919,7 @@ export function ThematicPriceComparisonSection({
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               {primaryGuide && (
                 <Link
-                  href={`/guide/${primaryGuide.slug}`}
+                  href={`/guide/${primaryGuide.slug}`} prefetch={false}
                   data-testid="lake-stats-to-guide-cta"
                   onClick={() =>
                     handleGuideBridgeClick(
@@ -1128,7 +1128,7 @@ export function ThematicPriceComparisonSection({
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             {primaryGuide && (
               <Link
-                href={`/guide/${primaryGuide.slug}`}
+                href={`/guide/${primaryGuide.slug}`} prefetch={false}
                 data-testid="age-stats-to-guide-cta"
                 onClick={() =>
                   handleGuideBridgeClick(primaryGuide.slug, primaryGuide.title, 'age_hero_cta')

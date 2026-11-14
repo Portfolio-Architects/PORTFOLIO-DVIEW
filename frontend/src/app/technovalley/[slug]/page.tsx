@@ -7,6 +7,8 @@ import TechnoValleyClient from '../TechnoValleyClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import TechnoValleyBounceDefenseBridge from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
+import { selectPeerTechnoValleyJisans } from '@/lib/utils/technovalleyPeerUtils';
 import {
   TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS,
   TOP_ACQUISITION_ENTRY_ROUTES,
@@ -96,6 +98,12 @@ export default async function TechnoValleyDetailPage(
   const matchedTransactions = matchJisanOfficeTransactions(selectedJisan, rawOfficeTransactions);
   const latestMatchedTx = matchedTransactions.length > 0 ? matchedTransactions[0] : null;
   const taxBenefitSummary = buildJisanTaxBenefitSummary(selectedJisan, matchedTransactions);
+  const peerItems = selectPeerTechnoValleyJisans(
+    selectedJisan,
+    jisanList,
+    rawOfficeTransactions,
+    4
+  );
 
   const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl, selectedJisan);
   const commuterPreviewItems: GuideAptMiniPreviewItem[] = TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS.slice(
@@ -228,6 +236,14 @@ export default async function TechnoValleyDetailPage(
                 </p>
               </div>
             </div>
+
+            <TechnoValleyBounceDefenseBridge
+              currentJisan={selectedJisan}
+              hasCurrentRealTx={Boolean(latestMatchedTx)}
+              initialBenchmarkManwon={taxBenefitSummary.benchmarkPriceManwon}
+              peers={peerItems}
+              surface="technovalley_detail_ssr"
+            />
           </div>
 
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
@@ -290,7 +306,7 @@ export default async function TechnoValleyDetailPage(
                 </p>
               </div>
               <Link
-                href="/guide/dongtan-1-vs-2-comparison"
+                href="/guide/dongtan-1-vs-2-comparison" prefetch={false}
                 className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors w-fit shrink-0"
               >
                 <span>동탄1 vs 동탄2 입지 비교 가이드</span>
@@ -314,7 +330,7 @@ export default async function TechnoValleyDetailPage(
               {TOP_ACQUISITION_ENTRY_ROUTES.map((route) => (
                 <Link
                   key={`tv-detail-route-${route.id}`}
-                  href={route.href}
+                  href={route.href} prefetch={false}
                   className="p-3 rounded-xl bg-body hover:bg-emerald-500/5 border border-border/60 hover:border-emerald-500/40 transition-colors flex flex-col justify-between gap-1"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -355,7 +371,10 @@ export default async function TechnoValleyDetailPage(
 
       <TechnoValleyClient
         selectedJisan={selectedJisan}
+        jisanList={jisanList}
         initialTransactions={matchedTransactions}
+        initialPeerItems={peerItems}
+        suppressHeroBridge={true}
         hideHeader={true}
       />
     </div>

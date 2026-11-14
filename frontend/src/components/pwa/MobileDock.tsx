@@ -53,18 +53,6 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
   const isMoreActive = isMoreOpen || activeTab === 'lounge';
 
   React.useEffect(() => {
-    // Proactively prefetch core routes on mount
-    router?.prefetch('/');
-    router?.prefetch('/explore');
-    router?.prefetch('/stats');
-    router?.prefetch('/guide');
-    router?.prefetch('/technovalley');
-    if (!isApprovalMode) {
-      router?.prefetch('/lounge');
-    }
-  }, [router, isApprovalMode]);
-
-  React.useEffect(() => {
     if (!isMoreOpen || typeof document === 'undefined') return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -146,6 +134,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
             <div className="pb-1.5 mb-0.5 border-b border-slate-200/60 dark:border-slate-800">
               <Link
                 href="/lounge"
+                prefetch={false}
                 data-testid="mobile-dock-lounge-link"
                 onClick={(e) => {
                   setIsMoreOpen(false);
@@ -176,6 +165,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
           )}
           <Link
             href="/about"
+            prefetch={false}
             onClick={() => setIsMoreOpen(false)}
             className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -183,6 +173,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
           </Link>
           <Link
             href="/contact"
+            prefetch={false}
             onClick={() => setIsMoreOpen(false)}
             className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -190,6 +181,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
           </Link>
           <Link
             href="/terms"
+            prefetch={false}
             onClick={() => setIsMoreOpen(false)}
             className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -197,6 +189,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
           </Link>
           <Link
             href="/privacy"
+            prefetch={false}
             onClick={() => setIsMoreOpen(false)}
             className="px-2.5 py-2 rounded-xl text-[12.5px] font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
           >
@@ -218,8 +211,7 @@ const MobileDock = React.memo(function MobileDock({ activeTab, onTabClick }: Mob
               <Link
                 key={tab.id}
                 href={tab.href}
-                prefetch={true}
-                onMouseEnter={() => router?.prefetch(tab.href)}
+                prefetch={false}
                 onClick={(e) => {
                   setIsMoreOpen(false);
                   if (isModifiedNavigationClick(e)) return;

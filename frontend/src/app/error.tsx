@@ -54,7 +54,7 @@ export default function Error({
             다시 시도
           </button>
           <Link
-            href="/"
+            href="/" prefetch={false}
             className="flex items-center gap-2 px-6 py-3 bg-body text-secondary rounded-xl font-bold text-[14px] hover:bg-[#e5e8eb] transition-colors"
           >
             <Home size={16} />

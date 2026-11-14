@@ -1246,7 +1246,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                       index={index} 
                       handleSelectApt={handleSelectApt} 
                       currentCategory={currentCategory}
-                      photoCount={fieldReportsMap.get(item.apt.name)?.images?.length || 0}
+                      photoCount={
+                        fieldReportsMap.get(item.apt.name)?.photoCount ??
+                        fieldReportsMap.get(item.apt.name)?.images?.length ??
+                        0
+                      }
                       views={fieldReportsMap.get(item.apt.name)?.viewCount || 0}
                       maxPyeongPrice={pyeongSummary.maxPyeongPrice}
                       preloadApartmentTx={preloadApartmentTx}

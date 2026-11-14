@@ -4,7 +4,7 @@ import { X, Upload, Image as ImageIcon, Camera, Loader2, CheckCircle2 } from 'lu
 import { db } from '@/lib/firebaseConfig';
 import { logger } from '@/lib/services/logger';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { uploadImage } from '@/lib/services/storage.service';
+import { uploadImage, ALLOWED_RASTER_IMAGE_MIME_TYPES } from '@/lib/services/storage.service';
 import { throttle } from '@/lib/utils/firestoreThrottle';
 
 import Image from 'next/image';
@@ -161,7 +161,12 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
     
     const selected = e.dataTransfer.files?.[0];
     if (selected && selected.type.startsWith('image/')) {
-      if (selected.size > 10 * 1024 * 1024) {
+      const normalizedMime = selected.type.split(';')[0].trim().toLowerCase();
+      if (!ALLOWED_RASTER_IMAGE_MIME_TYPES.has(normalizedMime)) {
+        alert('SVG 등 벡터 파일은 업로드할 수 없습니다. JPG, PNG, WebP, HEIC 등 일반 사진 파일만 지원합니다.');
+        return;
+      }
+      if (selected.size <= 0 || selected.size > 10 * 1024 * 1024) {
         alert('이미지 크기는 10MB 이하여야 합니다.');
         return;
       }
@@ -172,7 +177,12 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selected = e.target.files?.[0];
     if (selected && selected.type.startsWith('image/')) {
-      if (selected.size > 10 * 1024 * 1024) {
+      const normalizedMime = selected.type.split(';')[0].trim().toLowerCase();
+      if (!ALLOWED_RASTER_IMAGE_MIME_TYPES.has(normalizedMime)) {
+        alert('SVG 등 벡터 파일은 업로드할 수 없습니다. JPG, PNG, WebP, HEIC 등 일반 사진 파일만 지원합니다.');
+        return;
+      }
+      if (selected.size <= 0 || selected.size > 10 * 1024 * 1024) {
         alert('이미지 크기는 10MB 이하여야 합니다.');
         return;
       }
@@ -284,7 +294,7 @@ export const PhotoUploadModal = React.memo(function PhotoUploadModal({ isOpen, o
                 <label className="text-[14px] font-bold text-secondary">사진 등록 (필수)</label>
                 <input 
                   type="file" 
-                  accept="image/*" 
+                  accept="image/jpeg,image/png,image/webp,image/gif,image/avif,image/heic,image/heif" 
                   className="hidden" 
                   ref={fileInputRef}
                   onChange={handleFileChange}

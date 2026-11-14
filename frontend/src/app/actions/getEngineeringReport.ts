@@ -1,51 +1,54 @@
 'use server';
 
-import fs from 'fs';
-import path from 'path';
+import { existsSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 import { logger } from '@/lib/services/logger';
+import {
+  parseEngineeringReportMarkdown,
+  type ParsedEngineeringReport,
+} from '@/lib/utils/engineeringReportParser';
 
 export async function getEngineeringReport() {
   let markdownContent = '';
-  const reportMetadata = { date: '', grade: '', branch: '', status: '' };
-  
+  let reportMetadata = { date: '', grade: '', branch: '', status: '' };
+
   try {
-    let filePath = path.join(process.cwd(), '..', 'DVIEW_PORTFOLIO DVIEW - Engineering Report.md');
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), '..', 'PORTFOLIO DVIEW - Engineering Report.md');
-    }
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), 'DVIEW_PORTFOLIO DVIEW - Engineering Report.md');
-    }
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), 'PORTFOLIO DVIEW - Engineering Report.md');
-    }
-    if (!fs.existsSync(filePath)) {
-      filePath = path.join(process.cwd(), 'src', 'data', 'engineering-report.md');
-    }
-    const rawContent = fs.readFileSync(filePath, 'utf8');
+    const bundledFallbackPath = join(process.cwd(), 'src', 'data', 'engineering-report.md');
+    const priorityCandidates = [
+      join(process.cwd(), '..', 'DVIEW_PORTFOLIO DVIEW - Engineering Report.md'),
+      join(process.cwd(), '..', 'PORTFOLIO DVIEW - Engineering Report.md'),
+      join(process.cwd(), 'DVIEW_PORTFOLIO DVIEW - Engineering Report.md'),
+      join(process.cwd(), 'PORTFOLIO DVIEW - Engineering Report.md'),
+      join(process.cwd(), 'frontend', 'src', 'data', 'engineering-report.md'),
+    ];
 
-    const lines = rawContent.split('\n');
-    const contentLines = [];
-    
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      if (line.trim().startsWith('> **Date**:')) {
-        const parts = line.replace('> ', '').split(' | ');
-        parts.forEach(part => {
-          if (part.includes('**Date**:')) reportMetadata.date = part.replace('**Date**:', '').trim();
-          if (part.includes('**Grade**:')) reportMetadata.grade = part.replace('**Grade**:', '').trim();
-          if (part.includes('**Branch**:')) reportMetadata.branch = part.replace('**Branch**:', '').trim();
-          if (part.includes('**Status**:')) reportMetadata.status = part.replace('**Status**:', '').trim();
-        });
-      } else if (/^#\s*.*PORTFOLIO DVIEW/.test(line.trim())) {
+    let selectedParsed: ParsedEngineeringReport | null = null;
+
+    for (const candidatePath of priorityCandidates) {
+      if (!existsSync(candidatePath)) {
         continue;
-      } else {
-        contentLines.push(line);
       }
+      const candidateRaw = readFileSync(candidatePath, 'utf8');
+      const candidateParsed = parseEngineeringReportMarkdown(candidateRaw);
+      if (candidateParsed.isContractValid) {
+        selectedParsed = candidateParsed;
+        break;
+      }
+      logger.warn(
+        'getEngineeringReportAction',
+        'Skipping engineering report candidate with invalid metadata/title contract',
+        { candidatePath }
+      );
     }
-    markdownContent = contentLines.join('\n').trim();
 
+    if (!selectedParsed) {
+      const fallbackRaw = readFileSync(bundledFallbackPath, 'utf8');
+      selectedParsed = parseEngineeringReportMarkdown(fallbackRaw);
+    }
+
+    reportMetadata = selectedParsed.metadata;
+    markdownContent = selectedParsed.markdownContent;
   } catch (error) {
     markdownContent = '# 리포트를 불러올 수 없습니다.\n파일 경로를 확인해주세요.';
     logger.error('getEngineeringReportAction', 'Error reading engineering report', {}, error as Error);

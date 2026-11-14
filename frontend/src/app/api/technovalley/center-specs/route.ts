@@ -4,9 +4,15 @@ import { fetchSheetJisanStatus, JisanStatusItem } from '@/lib/services/googleShe
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { resilientFetch } from '@/lib/api/resilientFetch';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import { serverLruCache } from '@/lib/utils/server/lruCache';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+
+const CENTER_SPECS_CACHE_PREFIX = 'api:technovalley:center-specs';
+const CENTER_SPECS_EDGE_CACHE = 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=86400';
+const CENTER_SPECS_FALLBACK_CACHE = 'public, max-age=300, s-maxage=600, stale-while-revalidate=3600';
+const CENTER_SPECS_BYPASS_CACHE = 'no-store, no-cache, must-revalidate, max-age=0';
 
 export interface CenterSpecItem {
   landArea: string;
@@ -84,10 +90,25 @@ export async function GET(request: NextRequest) {
     return rateLimitResult.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
   }
 
+  const refreshParam = request.nextUrl.searchParams.get('refresh');
+  const isRefresh = refreshParam === '1' || refreshParam === 'true';
   const serviceKey = process.env.BUILDING_API_KEY || process.env.PUBLIC_DATA_API_KEY || '';
+  const cacheKey = `${CENTER_SPECS_CACHE_PREFIX}:${serviceKey ? 'live' : 'curated'}`;
+
+  if (!isRefresh && process.env.NODE_ENV !== 'test') {
+    const cachedMeta = serverLruCache.get<Record<string, unknown>>(cacheKey);
+    if (cachedMeta) {
+      return apiSuccess(null, cachedMeta, {
+        status: 200,
+        headers: {
+          'Cache-Control': CENTER_SPECS_EDGE_CACHE,
+        },
+      });
+    }
+  }
 
   // Load Google Sheet SSOT items
-  const sheetItems: JisanStatusItem[] = await fetchSheetJisanStatus().catch(() => []);
+  const sheetItems: JisanStatusItem[] = await fetchSheetJisanStatus(isRefresh).catch(() => []);
   const sheetMap: Record<string, JisanStatusItem> = {};
   sheetItems.forEach((item: JisanStatusItem) => {
     sheetMap[item.name] = item;
@@ -108,18 +129,22 @@ export async function GET(request: NextRequest) {
         builder: sheetInfo?.builder || ''
       };
     }
+    const curatedMeta = {
+      source: 'curated-cache',
+      centers: mergedCurated,
+      sheetTotalCount: sheetItems.length,
+      message: '한국산업단지공단 지산현황 고증 캐시 및 구글 시트 SSOT 데이터를 반환했습니다.'
+    };
+    if (!isRefresh && process.env.NODE_ENV !== 'test') {
+      serverLruCache.set(cacheKey, curatedMeta, 5 * 60 * 1000);
+    }
     return apiSuccess(
       null,
-      {
-        source: 'curated-cache',
-        centers: mergedCurated,
-        sheetTotalCount: sheetItems.length,
-        message: '한국산업단지공단 지산현황 고증 캐시 및 구글 시트 SSOT 데이터를 반환했습니다.'
-      },
+      curatedMeta,
       {
         status: 200,
         headers: {
-          'Cache-Control': 'public, max-age=3600, stale-while-revalidate=600'
+          'Cache-Control': isRefresh ? CENTER_SPECS_BYPASS_CACHE : CENTER_SPECS_EDGE_CACHE
         }
       }
     );
@@ -224,14 +249,24 @@ export async function GET(request: NextRequest) {
       logger.error('GET /api/technovalley/center-specs', 'Failed to fetch factories for tenant mapping, keeping curated fallback', {}, factErr);
     }
 
+    const liveMeta = {
+      source: 'live-api',
+      centers: liveSpecs,
+      message: '공공데이터포털 실시간 지식산업센터 및 입주기업 API 동기화 완료'
+    };
+    if (!isRefresh && process.env.NODE_ENV !== 'test') {
+      serverLruCache.set(cacheKey, liveMeta, 5 * 60 * 1000);
+    }
+
     return apiSuccess(
       null,
+      liveMeta,
       {
-        source: 'live-api',
-        centers: liveSpecs,
-        message: '공공데이터포털 실시간 지식산업센터 및 입주기업 API 동기화 완료'
-      },
-      { status: 200 }
+        status: 200,
+        headers: {
+          'Cache-Control': isRefresh ? CENTER_SPECS_BYPASS_CACHE : CENTER_SPECS_EDGE_CACHE
+        }
+      }
     );
 
   } catch (err) {
@@ -244,7 +279,12 @@ export async function GET(request: NextRequest) {
         message: '실시간 API 호출 실패로 로컬 고증 지산현황 및 입주기업 캐시 데이터를 반환했습니다.',
         error: err instanceof Error ? err.message : String(err)
       },
-      { status: 200 }
+      {
+        status: 200,
+        headers: {
+          'Cache-Control': isRefresh ? CENTER_SPECS_BYPASS_CACHE : CENTER_SPECS_FALLBACK_CACHE
+        }
+      }
     );
   }
 }

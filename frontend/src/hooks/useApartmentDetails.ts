@@ -378,14 +378,50 @@ export function useApartmentDetails(
     const matchKey = findTxKey(raw.apartmentName, locationScores, nameMapping, false, raw.dong);
     const locScore = (matchKey ? locationScores[matchKey] : {}) as LocationScoreItem;
 
+    const isStubReport = Boolean(raw.id && raw.id.startsWith('stub-'));
+    const fallbackNormalized: Record<string, unknown> = fallback ? { ...fallback } : {};
+    if (typeof fallbackNormalized.yearBuilt === 'string') {
+      const parsedYear = Number(fallbackNormalized.yearBuilt);
+      fallbackNormalized.yearBuilt = Number.isFinite(parsedYear) ? parsedYear : 0;
+    }
+
+    const baseResolvedMetrics: Record<string, unknown> = {
+      ...fallbackNormalized,
+      ...locScore,
+    };
+
     const mergedMetrics = {
-      ...(fallback || {}),
+      ...fallbackNormalized,
       ...(selectedReport.metrics || {}),
       ...locScore,
     } as Record<string, unknown>;
+
+    // Prevent synthetic `stub-...` placeholder 0 / '' defaults on selectedReport.metrics
+    // from clobbering real values once `/data/apartments-by-dong.json` & `/data/location-scores.json` arrive
+    if (selectedReport.id?.startsWith('stub-') && selectedReport.metrics) {
+      for (const [k, baseVal] of Object.entries(baseResolvedMetrics)) {
+        const stubVal = (selectedReport.metrics as unknown as Record<string, unknown>)[k];
+        if (
+          (stubVal === 0 || stubVal === '') &&
+          baseVal !== undefined &&
+          baseVal !== null &&
+          baseVal !== '' &&
+          baseVal !== 0
+        ) {
+          mergedMetrics[k] = baseVal;
+        }
+      }
+    }
+
     if (raw.metrics) {
       for (const [k, v] of Object.entries(raw.metrics)) {
         if (v !== undefined && v !== null && v !== '') {
+          if (isStubReport && v === 0) {
+            const existing = mergedMetrics[k];
+            if (typeof existing === 'number' && existing > 0) {
+              continue;
+            }
+          }
           // Strongly protect Categories maps (restaurantCategories, academyCategories)
           if (k.endsWith('Categories')) {
             const hasExisting = mergedMetrics[k] && typeof mergedMetrics[k] === 'object' && Object.keys(mergedMetrics[k]).length > 0;

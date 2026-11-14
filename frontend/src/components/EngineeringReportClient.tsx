@@ -1,10 +1,9 @@
 'use client';
 
 import React, { useRef, useState, useEffect } from 'react';
-import ReactMarkdown from 'react-markdown';
+import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import Link from 'next/link';
-import { ArrowLeft, Download, Copy, Database, Check } from 'lucide-react';
 import { safeHtml2canvas } from '@/lib/utils/html2canvasPatch';
 import { logger } from '@/lib/services/logger';
 
@@ -21,9 +20,98 @@ interface Props {
   contentRef?: React.RefObject<HTMLDivElement | null>;
 }
 
-const EngineeringReportClient = React.memo(function EngineeringReportClient({ metadata, markdownContent, contentRef }: Props) {
-  const [isExporting, setIsExporting] = useState(false);
-  const [copied, setCopied] = useState(false);
+const REPO_FILE_EXTENSION_REGEX = /\.(?:md|ts|tsx|js|jsx|mjs|cjs|json|ya?ml|example)$/i;
+
+function safeDecodeHref(href: string): string {
+  try {
+    return decodeURIComponent(href);
+  } catch {
+    return href;
+  }
+}
+
+/**
+ * Identifies Markdown link targets that reference repository-internal documentation or source files
+ * (e.g. `./DVIEW_DESIGN.md`, `../../../docs/adsense-approval-report.md`, `./frontend/src/...`)
+ * rather than navigable Next.js HTTP routes, preventing broken 404 anchors in the rendered DOM.
+ */
+export function isRepoWorkspaceFileHref(href?: string): boolean {
+  if (!href) return true;
+  const trimmed = href.trim();
+  if (!trimmed) return true;
+
+  if (
+    trimmed.startsWith('http://') ||
+    trimmed.startsWith('https://') ||
+    trimmed.startsWith('mailto:') ||
+    trimmed.startsWith('tel:') ||
+    trimmed.startsWith('#')
+  ) {
+    return false;
+  }
+
+  if (trimmed.startsWith('./') || trimmed.startsWith('../')) {
+    return true;
+  }
+
+  const withoutHashOrQuery = trimmed.split('#')[0].split('?')[0];
+  if (REPO_FILE_EXTENSION_REGEX.test(withoutHashOrQuery)) {
+    return true;
+  }
+
+  // Valid Next.js internal routes always start with `/`
+  return !trimmed.startsWith('/');
+}
+
+export const ENGINEERING_REPORT_MARKDOWN_COMPONENTS: Components = {
+  a: ({ href, children }) => {
+    const rawHref = typeof href === 'string' ? href.trim() : '';
+
+    if (isRepoWorkspaceFileHref(rawHref)) {
+      const normalizedLabel = safeDecodeHref(rawHref).replace(/^(?:\.\.\/)+/, './');
+      return (
+        <span
+          data-repo-doc-ref={normalizedLabel}
+          title={normalizedLabel ? `저장소 문서/코드 참조: ${normalizedLabel}` : undefined}
+          className="inline-flex items-center rounded-md bg-[#f2f4f6] px-1.5 py-0.5 text-[0.9em] font-semibold text-[#3182f6] dark:bg-[#202027] dark:text-blue-400"
+        >
+          {children}
+        </span>
+      );
+    }
+
+    if (rawHref.startsWith('#')) {
+      return (
+        <a href={rawHref} className="text-blue-600 hover:underline dark:text-blue-400">
+          {children}
+        </a>
+      );
+    }
+
+    if (rawHref.startsWith('/')) {
+      return (
+        <Link href={rawHref} prefetch={false} className="text-blue-600 hover:underline dark:text-blue-400">
+          {children}
+        </Link>
+      );
+    }
+
+    return (
+      <a
+        href={rawHref}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="text-blue-600 hover:underline dark:text-blue-400"
+      >
+        {children}
+      </a>
+    );
+  },
+};
+
+const EngineeringReportClient = React.memo(function EngineeringReportClient({ markdownContent, contentRef }: Props) {
+  const [, setIsExporting] = useState(false);
+  const [, setCopied] = useState(false);
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const mountedRef = useRef(true);
 
@@ -88,6 +176,9 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
     }
   };
 
+  void handleExportPDF;
+  void handleCopyMD;
+
   return (
     <div className="w-full relative flex flex-col min-h-screen">
       <main className="w-full max-w-[1400px] mx-auto pb-20">
@@ -102,8 +193,11 @@ const EngineeringReportClient = React.memo(function EngineeringReportClient({ me
             </div>
           </div>
 
-          <article className="prose prose-sm sm:prose-base max-w-none prose-headings:font-black prose-h1:text-[24px] prose-h2:text-[20px] prose-h3:text-[18px] prose-h4:text-[16px] prose-p:text-[#4e5968] prose-p:leading-relaxed prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-li:text-[#4e5968] prose-strong:text-[#191f28] prose-img:rounded-xl">
-            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <article className="prose prose-sm sm:prose-base max-w-none tabular-nums prose-headings:font-black prose-h1:text-[24px] prose-h2:text-[20px] prose-h3:text-[18px] prose-h4:text-[16px] prose-p:text-[#4e5968] prose-p:leading-relaxed prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-li:text-[#4e5968] prose-strong:text-[#191f28] prose-img:rounded-xl">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={ENGINEERING_REPORT_MARKDOWN_COMPONENTS}
+            >
               {markdownContent}
             </ReactMarkdown>
           </article>

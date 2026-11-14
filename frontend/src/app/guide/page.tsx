@@ -165,19 +165,19 @@ export default function GuideIndexPage() {
 
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <Link
-                href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison" prefetch={false}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors"
               >
                 <span>동탄1 vs 동탄2 집값 통계 비교</span>
               </Link>
               <Link
-                href="/explore"
+                href="/explore" prefetch={false}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-colors"
               >
                 <span>184개 단지 탐색</span>
               </Link>
               <Link
-                href="/technovalley"
+                href="/technovalley" prefetch={false}
                 className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition-colors"
               >
                 <span>지식산업센터 카탈로그</span>
@@ -237,7 +237,7 @@ export default function GuideIndexPage() {
               {TOP_ACQUISITION_ENTRY_ROUTES.map((route) => (
                 <Link
                   key={`guide-hub-route-${route.id}`}
-                  href={route.href}
+                  href={route.href} prefetch={false}
                   className="p-3.5 rounded-xl bg-body hover:bg-emerald-500/5 border border-border/60 hover:border-emerald-500/40 transition-colors flex flex-col justify-between gap-1.5"
                 >
                   <div className="flex items-center justify-between gap-2">
@@ -322,7 +322,7 @@ export default function GuideIndexPage() {
 
                   {/* Title */}
                   <h2 className="text-xl sm:text-2xl font-black text-primary tracking-tight group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    <Link href={`/guide/${article.slug}`}>
+                    <Link href={`/guide/${article.slug}`} prefetch={false}>
                       {article.title}
                     </Link>
                   </h2>
@@ -406,7 +406,7 @@ export default function GuideIndexPage() {
                 <div className="mt-5 pt-4 border-t border-border/60 flex items-center justify-between">
                   <span className="text-[12px] text-tertiary font-medium">실증 공공데이터 기반 리서치</span>
                   <Link
-                    href={`/guide/${article.slug}`}
+                    href={`/guide/${article.slug}`} prefetch={false}
                     className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-extrabold text-[13px] sm:text-[14px] hover:underline"
                   >
                     전문 읽기
@@ -428,13 +428,13 @@ export default function GuideIndexPage() {
             </div>
             <div className="flex flex-wrap gap-3 shrink-0">
               <Link
-                href="/explore"
+                href="/explore" prefetch={false}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-bold transition-colors"
               >
                 <span>184개 단지 탐색</span>
               </Link>
               <Link
-                href="/technovalley"
+                href="/technovalley" prefetch={false}
                 className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[13px] font-bold transition-colors"
               >
                 <span>지식산업센터 카탈로그</span>

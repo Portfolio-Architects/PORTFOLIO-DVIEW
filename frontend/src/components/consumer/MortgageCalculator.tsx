@@ -7,7 +7,13 @@ import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'rec
 import { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary } from '@/types/transaction';
 import type { FieldReportData } from '@/types/report';
-import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import {
+  findTxKey,
+  normalizeAptName,
+  getDisplayAptName,
+  isSameApartment,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
 import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { shareMortgageToKakao } from '@/lib/utils/kakaoShare';
 import { localCache } from '@/lib/utils/localCache';
@@ -22,28 +28,34 @@ interface MortgageCalculatorProps {
   isOpen: boolean;
   onClose: () => void;
   initialAptName?: string;
+  initialPriceManwon?: number;
+  initialAnnualIncomeManwon?: number;
   sheetApartments: Record<string, DongApartment[]>;
   txSummaryData: Record<string, AptTxSummary>;
   nameMapping: Record<string, string>;
   fieldReportsMap: Map<string, FieldReportData>;
 }
 
-// Helper: Estimate market price
-function getEstimatedMarketPrice(apt: DongApartment, txSummaryData: Record<string, AptTxSummary>, nameMapping: Record<string, string>) {
+// Helper: Retrieve 100% verified MOLIT transaction price (strictly no dong-level mock/estimated fallbacks)
+function getVerifiedMarketPriceInfo(
+  apt: DongApartment,
+  txSummaryData: Record<string, AptTxSummary>,
+  nameMapping: Record<string, string>
+): { priceManwon: number; basisLabel: string } {
   const txKey = findTxKey(apt.name, txSummaryData, nameMapping);
   const summary = txKey ? txSummaryData[txKey] : null;
   if (summary) {
-    const val = summary.avg3MPrice || summary.avg1MPrice || summary.latestPrice || 0;
-    if (val > 0) return val;
+    if (summary.avg3MPrice && summary.avg3MPrice > 0) {
+      return { priceManwon: summary.avg3MPrice, basisLabel: '최근 3M 매매 평균시세' };
+    }
+    if (summary.avg1MPrice && summary.avg1MPrice > 0) {
+      return { priceManwon: summary.avg1MPrice, basisLabel: '최근 1M 매매 평균시세' };
+    }
+    if (summary.latestPrice && summary.latestPrice > 0) {
+      return { priceManwon: summary.latestPrice, basisLabel: '최근 실거래 매매가' };
+    }
   }
-  
-  // Fallback estimate by dong
-  const dong = apt.dong || '';
-  if (dong.includes('오산동')) return 95000;
-  if (dong.includes('청계동')) return 85000;
-  if (dong.includes('송동') || dong.includes('산척동')) return 75000;
-  if (dong.includes('목동') || dong.includes('영천동')) return 60000;
-  return 55000;
+  return { priceManwon: 0, basisLabel: '등록된 실거래 내역이 없습니다.' };
 }
 
 // Helper: Estimate acquisition tax & broker fee (roughly)
@@ -104,6 +116,8 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   isOpen,
   onClose,
   initialAptName,
+  initialPriceManwon,
+  initialAnnualIncomeManwon,
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -151,8 +165,11 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   const [selectedRegion, setSelectedRegion] = useState<(typeof REGION_TABS)[number]['id']>('all');
   const [recentApts, setRecentApts] = useState<RecentApartmentItem[]>([]);
 
-  // Selected apartment state
+  // Selected apartment & standalone budget simulation state
   const [selectedApt, setSelectedApt] = useState<DongApartment | null>(null);
+  const [standaloneBudgetManwon, setStandaloneBudgetManwon] = useState<number>(0);
+  const [useInitialPriceOverride, setUseInitialPriceOverride] = useState<boolean>(false);
+  const userPickedAptInSessionRef = useRef<boolean>(false);
 
   // Search input & focus state
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,57 +215,95 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
     };
   }, []);
 
-  // Load and map quiz answers on modal open
+  // Load and map quiz answers & initial income on modal open; deterministically reset all session state on close
   useEffect(() => {
     if (isOpen) {
+      let quizFound = false;
+      let nextHousehold: 'single' | 'newborn' | 'newlyweds' | 'firsttime' | 'normal' = 'normal';
+      let nextChildren = 0;
+      let nextIncome = '7500';
+      let nextAssets = '3.5';
+
       try {
         const answers = localCache.get('drive_quiz_answers', QuizAnswerSchema, null);
         if (answers) {
-          setHasQuizAnswers(true);
-          
+          quizFound = true;
+
           // 1. Map householdType & childrenCount
           if (answers.family === 'baby') {
-            setHouseholdType('newborn');
-            setChildrenCount(1);
+            nextHousehold = 'newborn';
+            nextChildren = 1;
           } else if (answers.family === 'none') {
-            setHouseholdType('single');
-            setChildrenCount(0);
+            nextHousehold = 'single';
+            nextChildren = 0;
           } else if (answers.family === 'elementary') {
-            setHouseholdType('normal');
-            setChildrenCount(1);
+            nextHousehold = 'normal';
+            nextChildren = 1;
           } else if (answers.family === 'middleHigh') {
-            setHouseholdType('normal');
-            setChildrenCount(2);
+            nextHousehold = 'normal';
+            nextChildren = 2;
           }
 
           // 2. Map annualIncome & netAssets based on budget
           if (answers.budget === '3eok') {
-            setAnnualIncome('4500');
-            setNetAssets('1.5');
+            nextIncome = '4500';
+            nextAssets = '1.5';
           } else if (answers.budget === '5eok') {
-            setAnnualIncome('6500');
-            setNetAssets('2.2');
+            nextIncome = '6500';
+            nextAssets = '2.2';
           } else if (answers.budget === '8eok') {
-            setAnnualIncome('8500');
-            setNetAssets('3.5');
+            nextIncome = '8500';
+            nextAssets = '3.5';
           } else if (answers.budget === '12eok') {
-            setAnnualIncome('11000');
-            setNetAssets('5.5');
+            nextIncome = '11000';
+            nextAssets = '5.5';
           } else if (answers.budget === 'unlimited') {
-            setAnnualIncome('15000');
-            setNetAssets('8.0');
+            nextIncome = '15000';
+            nextAssets = '8.0';
           }
         }
       } catch (e) {
         logger.warn('MortgageCalculator', 'Failed to parse quiz answers', undefined, e);
       }
+
+      if (
+        typeof initialAnnualIncomeManwon === 'number' &&
+        Number.isFinite(initialAnnualIncomeManwon) &&
+        initialAnnualIncomeManwon > 0
+      ) {
+        nextIncome = String(Math.round(initialAnnualIncomeManwon));
+      }
+
+      setHasQuizAnswers(quizFound);
+      setHouseholdType(nextHousehold);
+      setChildrenCount(nextChildren);
+      setAnnualIncome(nextIncome);
+      setNetAssets(nextAssets);
     } else {
-      // Reset state on close
+      // Reset all session state cleanly on close to prevent cross-open leaks
+      if (calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
+        calculateTimeoutRef.current = null;
+      }
+      userPickedAptInSessionRef.current = false;
       setStep(1);
+      setSelectedApt(null);
+      setStandaloneBudgetManwon(0);
+      setUseInitialPriceOverride(false);
+      setSearchQuery('');
+      setIsFocused(false);
+      setSelectedRegion('all');
+      setHouseholdType('normal');
+      setAnnualIncome('7500');
+      setNetAssets('3.5');
+      setChildrenCount(0);
+      setMaturityYears(30);
+      setSelectedCandidateName(null);
       setHasQuizAnswers(false);
       setIsCalculating(false);
+      setIsCopied(false);
     }
-  }, [isOpen]);
+  }, [isOpen, initialAnnualIncomeManwon]);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -309,22 +364,81 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
     }
   }, [isOpen]);
 
-  const handleAptSelect = (apt: DongApartment) => {
+  const handleAptSelect = (apt: DongApartment, preserveInitialPrice = false) => {
+    if (!preserveInitialPrice) {
+      userPickedAptInSessionRef.current = true;
+    }
+    setStandaloneBudgetManwon(0);
     setSelectedApt(apt);
+    setUseInitialPriceOverride(
+      preserveInitialPrice &&
+        typeof initialPriceManwon === 'number' &&
+        Number.isFinite(initialPriceManwon) &&
+        initialPriceManwon > 0
+    );
     setSearchQuery(getDisplayAptName(apt.name));
     setIsFocused(false);
     setRecentApts(addRecentApartment({ name: apt.name, dong: apt.dong }));
   };
 
-  // Set initial apartment if passed
   useEffect(() => {
-    if (initialAptName && isOpen) {
-      const matched = allApartments.find(a => normalizeAptName(a.name) === normalizeAptName(initialAptName));
-      if (matched) {
-        handleAptSelect(matched);
+    userPickedAptInSessionRef.current = false;
+    if (isOpen) {
+      if (calculateTimeoutRef.current) {
+        clearTimeout(calculateTimeoutRef.current);
+        calculateTimeoutRef.current = null;
       }
+      setIsCalculating(false);
+      setStep(1);
     }
-  }, [initialAptName, allApartments, isOpen]);
+  }, [initialAptName, initialPriceManwon, isOpen]);
+
+  // Set initial apartment (resolving canonical RTMS/display aliases) or enter standalone budget simulation mode
+  useEffect(() => {
+    if (!isOpen || userPickedAptInSessionRef.current) return;
+
+    const hasValidInitialPrice =
+      typeof initialPriceManwon === 'number' &&
+      Number.isFinite(initialPriceManwon) &&
+      initialPriceManwon > 0;
+
+    if (initialAptName) {
+      setStandaloneBudgetManwon(0);
+      const targetNorm = normalizeAptName(initialAptName);
+      const canonicalSlug = resolveCanonicalAptSlug(initialAptName);
+      const canonicalNorm = normalizeAptName(canonicalSlug);
+      const matched = allApartments.find((a) => {
+        const aptNorm = normalizeAptName(a.name);
+        return (
+          aptNorm === targetNorm ||
+          (canonicalNorm && aptNorm === canonicalNorm) ||
+          isSameApartment(a.name, initialAptName, nameMapping)
+        );
+      });
+      if (matched) {
+        handleAptSelect(matched, true);
+      } else if (hasValidInitialPrice) {
+        handleAptSelect(
+          { name: getDisplayAptName(canonicalSlug || initialAptName), dong: '동탄' },
+          true
+        );
+      } else {
+        setSelectedApt(null);
+        setSearchQuery('');
+        setUseInitialPriceOverride(false);
+      }
+    } else if (hasValidInitialPrice) {
+      setSelectedApt(null);
+      setSearchQuery('');
+      setUseInitialPriceOverride(false);
+      setStandaloneBudgetManwon(Math.round(initialPriceManwon!));
+    } else {
+      setSelectedApt(null);
+      setSearchQuery('');
+      setUseInitialPriceOverride(false);
+      setStandaloneBudgetManwon(0);
+    }
+  }, [initialAptName, initialPriceManwon, allApartments, nameMapping, isOpen]);
 
   const formatEokMan = (manWon: number) => {
     const eok = Math.floor(manWon / 10000);
@@ -437,20 +551,66 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
     }));
   }, [searchQuery, allApartments, selectedRegion, selectedApt]);
 
-  // Retrieve market price
-  const marketPrice = useMemo(() => {
-    if (!selectedApt) return 0;
-    return getEstimatedMarketPrice(selectedApt, txSummaryData, nameMapping);
+  const verifiedAptPriceInfo = useMemo(() => {
+    if (!selectedApt) return null;
+    return getVerifiedMarketPriceInfo(selectedApt, txSummaryData, nameMapping);
   }, [selectedApt, txSummaryData, nameMapping]);
+
+  // Retrieve market price (in Man-won: verified MOLIT apartment price or standalone budget simulation)
+  const { marketPrice, priceBasisLabel } = useMemo(() => {
+    if (selectedApt) {
+      if (
+        useInitialPriceOverride &&
+        typeof initialPriceManwon === 'number' &&
+        Number.isFinite(initialPriceManwon) &&
+        initialPriceManwon > 0
+      ) {
+        const roundedInitial = Math.round(initialPriceManwon);
+        if (verifiedAptPriceInfo && verifiedAptPriceInfo.priceManwon === roundedInitial) {
+          return {
+            marketPrice: roundedInitial,
+            priceBasisLabel: verifiedAptPriceInfo.basisLabel,
+          };
+        }
+        return {
+          marketPrice: roundedInitial,
+          priceBasisLabel: '국토부 실거래 기준 매매가',
+        };
+      }
+      return {
+        marketPrice: verifiedAptPriceInfo?.priceManwon ?? 0,
+        priceBasisLabel: verifiedAptPriceInfo?.basisLabel ?? '등록된 실거래 내역이 없습니다.',
+      };
+    }
+    if (standaloneBudgetManwon > 0) {
+      return {
+        marketPrice: standaloneBudgetManwon,
+        priceBasisLabel: '선택 예산 기준 시뮬레이션 (단지 미선택)',
+      };
+    }
+    return {
+      marketPrice: 0,
+      priceBasisLabel: '위 목록에서 단지를 선택해 주세요',
+    };
+  }, [
+    selectedApt,
+    standaloneBudgetManwon,
+    useInitialPriceOverride,
+    initialPriceManwon,
+    verifiedAptPriceInfo,
+  ]);
+
+  const isStandaloneBudgetMode = !selectedApt && standaloneBudgetManwon > 0;
+  const hasSimulationTarget = marketPrice > 0;
 
   // Reset manual candidate selection when core inputs change
   useEffect(() => {
     setSelectedCandidateName(null);
-  }, [selectedApt, householdType, annualIncome, netAssets, childrenCount]);
+  }, [selectedApt, standaloneBudgetManwon, householdType, annualIncome, netAssets, childrenCount]);
 
   // Run calculation logic (Macro-linked rates + Stress DSR + Dynamic Ranking)
   const loanResults = useMemo(() => {
-    if (!selectedApt || marketPrice === 0) return null;
+    if (!hasSimulationTarget || marketPrice === 0) return null;
 
     const incomeVal = parseInt(annualIncome.replace(/,/g, ''), 10) || 7500; // Man-won
     const assetsEok = parseFloat(netAssets.replace(/,/g, '')) || 0; // Eok
@@ -680,10 +840,14 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
 
     return {
       loanType: activeCandidate.loanType,
+      isPolicy: activeCandidate.isPolicy,
       bestProduct: primaryCandidate.name,
       activeProduct: activeCandidate.name,
       rateTypeLabel: activeCandidate.rateTypeLabel,
       matchBadge: activeCandidate.matchBadge,
+      ltvLimit: activeCandidate.ltvLimit,
+      dsrLimit: activeCandidate.dsrLimit,
+      commercialDsr40Limit: commPeriodicDsr,
       maxLoanAmount: activeCandidate.maxLoanAmount,
       finalRate: activeCandidate.finalRate,
       primaryMaxLoanAmount: primaryCandidate.maxLoanAmount,
@@ -702,7 +866,22 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
         baseDate,
       },
     };
-  }, [selectedApt, marketPrice, householdType, annualIncome, netAssets, childrenCount, selectedCandidateName]);
+  }, [
+    hasSimulationTarget,
+    marketPrice,
+    householdType,
+    annualIncome,
+    netAssets,
+    childrenCount,
+    selectedCandidateName,
+  ]);
+
+  // Sync default maturity years with matched product (40Y long-term mortgage vs 30Y standard)
+  const activeProductName = loanResults?.activeProduct ?? null;
+  useEffect(() => {
+    if (!activeProductName) return;
+    setMaturityYears(activeProductName.includes('40년') ? 40 : 30);
+  }, [activeProductName]);
 
   // Calculate monthly repayment & chart points
   const repaymentDetails = useMemo(() => {
@@ -778,7 +957,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   }, [loanResults, maturityYears]);
 
   const handleNextStep = () => {
-    if (step === 1 && !selectedApt) return;
+    if (step === 1 && !hasSimulationTarget) return;
     setStep(prev => prev + 1);
   };
 
@@ -802,11 +981,14 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   };
 
   const handleShare = () => {
-    if (!selectedApt || !loanResults || !repaymentDetails) return;
-    const aptLabel = getDisplayAptName(selectedApt.name);
+    if (!hasSimulationTarget || !loanResults || !repaymentDetails) return;
+    const aptLabel = selectedApt
+      ? `${getDisplayAptName(selectedApt.name)} (${selectedApt.dong})`
+      : '선택 예산 기준 시뮬레이션 (단지 미선택)';
+    const priceLabel = selectedApt ? '최근 매매 평균시세' : '선택 예산 기준가';
     const text = `[D-VIEW 내 집 마련 자금 조달 보고서]
-단지명: ${aptLabel} (${selectedApt.dong})
-최근 매매 평균시세: ${(marketPrice / 10000).toFixed(1)}억원
+단지명: ${aptLabel}
+${priceLabel}: ${(marketPrice / 10000).toFixed(1)}억원
 
 추천 대출 상품: [${loanResults.bestProduct}]
 - 최대 한도: ${(loanResults.maxLoanAmount / 10000).toFixed(2)}억원
@@ -839,10 +1021,12 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
   };
 
   const handleKakaoShare = () => {
-    if (!selectedApt || !loanResults || !repaymentDetails) return;
+    if (!hasSimulationTarget || !loanResults || !repaymentDetails) return;
     shareMortgageToKakao({
-      aptName: getDisplayAptName(selectedApt.name),
-      dong: selectedApt.dong,
+      aptName: selectedApt
+        ? getDisplayAptName(selectedApt.name)
+        : '선택 예산 기준 시뮬레이션 (단지 미선택)',
+      dong: selectedApt?.dong || '예산 시뮬레이션',
       marketPrice: marketPrice,
       bestProduct: loanResults.bestProduct,
       maxLoanAmount: loanResults.maxLoanAmount,
@@ -925,7 +1109,10 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       onChange={(e) => {
                         setSearchQuery(e.target.value);
                         setIsFocused(true);
-                        if (selectedApt) setSelectedApt(null);
+                        if (selectedApt) {
+                          setSelectedApt(null);
+                          setUseInitialPriceOverride(false);
+                        }
                       }}
                       onFocus={() => setIsFocused(true)}
                       className="w-full bg-body border border-transparent focus:border-blue-600 focus:bg-surface rounded-xl py-2 pl-9 pr-8 text-[13px] font-bold text-primary outline-none transition-all placeholder:text-tertiary"
@@ -937,6 +1124,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                         onClick={() => {
                           setSearchQuery('');
                           setSelectedApt(null);
+                          setUseInitialPriceOverride(false);
                           setIsFocused(true);
                         }}
                         className="absolute right-3 top-1/2 -translate-y-1/2 text-tertiary hover:text-secondary cursor-pointer"
@@ -1043,7 +1231,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                       filteredApts.map((apt) => {
                         const isSelected =
                           selectedApt && normalizeAptName(selectedApt.name) === normalizeAptName(apt.name);
-                        const estPrice = getEstimatedMarketPrice(apt, txSummaryData, nameMapping);
+                        const verifiedInfo = getVerifiedMarketPriceInfo(apt, txSummaryData, nameMapping);
                         return (
                           <button
                             key={apt.name}
@@ -1063,8 +1251,16 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                                 {apt.dong}
                               </span>
                             </div>
-                            <span className="text-[11.5px] font-black text-primary tabular-nums shrink-0 ml-2">
-                              {(estPrice / 10000).toFixed(1)}억
+                            <span
+                              className={`text-[11.5px] tabular-nums shrink-0 ml-2 ${
+                                verifiedInfo.priceManwon > 0
+                                  ? 'font-black text-primary'
+                                  : 'font-bold text-tertiary text-[10.5px]'
+                              }`}
+                            >
+                              {verifiedInfo.priceManwon > 0
+                                ? `${(verifiedInfo.priceManwon / 10000).toFixed(1)}억`
+                                : '실거래 없음'}
                             </span>
                           </button>
                         );
@@ -1077,32 +1273,136 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   </div>
                 </div>
 
-                {/* Fixed-slot Market Price Card */}
-                <div className="bg-body px-4 py-3 rounded-xl border border-border flex items-center justify-between gap-3 min-h-[64px]">
-                  <div>
-                    <p className="text-[10.5px] text-tertiary font-bold">최근 3M 매매 평균시세</p>
-                    {selectedApt ? (
+                {/* Fixed-slot Market Price / Standalone Budget Card */}
+                <div
+                  data-testid="mortgage-price-basis-card"
+                  className="bg-body px-4 py-3 rounded-xl border border-border flex items-center justify-between gap-3 min-h-[64px]"
+                >
+                  <div className="min-w-0">
+                    <p className="text-[10.5px] text-tertiary font-bold">
+                      {isStandaloneBudgetMode
+                        ? '선택 예산 기준 시뮬레이션 (단지 미선택)'
+                        : selectedApt
+                          ? marketPrice > 0
+                            ? priceBasisLabel
+                            : '국토교통부 매매 실거래 조회 결과'
+                          : '최근 3M 매매 평균시세'}
+                    </p>
+                    {isStandaloneBudgetMode || (selectedApt && marketPrice > 0) ? (
                       <p className="text-[15px] text-primary font-black mt-0.5 tabular-nums">
                         {(marketPrice / 10000).toFixed(1)}억원
                       </p>
+                    ) : selectedApt ? (
+                      <div className="mt-0.5 space-y-1.5">
+                        <p className="text-[12.5px] text-secondary font-bold">
+                          등록된 실거래 내역이 없습니다.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <span className="text-[10px] font-semibold text-tertiary">
+                            예산 기준 시뮬레이션:
+                          </span>
+                          {[60000, 90000, 120000].map((presetManwon) => (
+                            <button
+                              key={presetManwon}
+                              type="button"
+                              onClick={() => {
+                                userPickedAptInSessionRef.current = true;
+                                setSelectedApt(null);
+                                setSearchQuery('');
+                                setUseInitialPriceOverride(false);
+                                setStandaloneBudgetManwon(presetManwon);
+                              }}
+                              className="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-[10.5px] font-extrabold text-slate-700 dark:text-slate-200 hover:bg-slate-300/80 dark:hover:bg-slate-700 cursor-pointer tabular-nums"
+                            >
+                              {presetManwon / 10000}억
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     ) : (
                       <p className="text-[12.5px] text-tertiary font-bold mt-0.5">
                         위 목록에서 단지를 선택해 주세요
                       </p>
                     )}
+                    {isStandaloneBudgetMode && (
+                      <p className="text-[10px] text-tertiary font-semibold mt-0.5">
+                        위 목록에서 단지를 선택하면 해당 단지의 국토부 실거래가로 즉시 전환됩니다.
+                      </p>
+                    )}
                   </div>
-                  <span className="text-[10.5px] font-bold bg-[#e8f3ff] text-blue-600 px-2 py-0.5 rounded-md shrink-0">
-                    D-VIEW 실거래 기준
+                  <span
+                    className={`text-[10.5px] font-bold px-2 py-0.5 rounded-md shrink-0 ${
+                      isStandaloneBudgetMode || (selectedApt && marketPrice === 0)
+                        ? 'bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                        : 'bg-[#e8f3ff] text-blue-600'
+                    }`}
+                  >
+                    {isStandaloneBudgetMode
+                      ? '선택 예산 기준'
+                      : selectedApt && marketPrice === 0
+                        ? '실거래 미신고'
+                        : 'D-VIEW 실거래 기준'}
                   </span>
                 </div>
+
+                {/* Immediate LTV / DSR 40% / Monthly Payment Live Summary */}
+                {hasSimulationTarget && loanResults && repaymentDetails && (
+                  <div
+                    data-testid="mortgage-step1-live-summary"
+                    className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3 sm:p-3.5 space-y-2.5 tabular-nums"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[11px] font-extrabold text-secondary">
+                        {isStandaloneBudgetMode
+                          ? `연소득 ${formatEokMan(parseInt(annualIncome.replace(/,/g, ''), 10) || 7500)} 기준 즉시 한도·상환 프리뷰`
+                          : `${getDisplayAptName(selectedApt!.name)} · 연소득 ${formatEokMan(parseInt(annualIncome.replace(/,/g, ''), 10) || 7500)} 즉시 프리뷰`}
+                      </span>
+                      <button
+                        type="button"
+                        data-testid="mortgage-jump-step4-btn"
+                        onClick={() => setStep(4)}
+                        className="text-[11px] font-extrabold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
+                      >
+                        상세 상환 리포트 바로보기
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+                      <div className="min-w-0 rounded-xl bg-surface dark:bg-[#202027] p-2 sm:p-2.5">
+                        <span className="block text-[10px] font-bold text-tertiary truncate">LTV 한도</span>
+                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-primary truncate">
+                          {(loanResults.ltvLimit / 10000).toFixed(1)}억원
+                        </strong>
+                      </div>
+                      <div className="min-w-0 rounded-xl bg-surface dark:bg-[#202027] p-2 sm:p-2.5">
+                        <span className="block text-[10px] font-bold text-tertiary truncate">DSR 40% 한도</span>
+                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-emerald-700 dark:text-emerald-300 truncate">
+                          {(
+                            (loanResults.isPolicy
+                              ? loanResults.commercialDsr40Limit
+                              : loanResults.dsrLimit) / 10000
+                          ).toFixed(1)}
+                          억원
+                        </strong>
+                      </div>
+                      <div className="min-w-0 rounded-xl bg-surface dark:bg-[#202027] p-2 sm:p-2.5">
+                        <span className="block text-[10px] font-bold text-tertiary truncate">
+                          월 상환액 ({loanResults.finalRate.toFixed(2)}%)
+                        </span>
+                        <strong className="mt-0.5 block text-[12px] sm:text-[13px] font-black text-blue-600 dark:text-blue-400 truncate">
+                          {(repaymentDetails.monthlyPayment / 10000).toFixed(1)}만원
+                        </strong>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex flex-col gap-2 pt-1">
                 <button
                   type="button"
                   onClick={handleNextStep}
-                  disabled={!selectedApt}
-                  className="w-full bg-blue-600 hover:bg-[#046862] disabled:opacity-40 disabled:pointer-events-none text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1"
+                  disabled={!hasSimulationTarget}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:pointer-events-none text-white py-3.5 rounded-xl text-[14px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1"
                 >
                   <span>다음 단계 (가구 요건)</span>
                 </button>
@@ -1111,14 +1411,14 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   <button
                     type="button"
                     onClick={() => {
-                      if (!selectedApt) return;
+                      if (!hasSimulationTarget) return;
                       setIsCalculating(true);
                       calculateTimeoutRef.current = setTimeout(() => {
                         setIsCalculating(false);
                         setStep(4);
                       }, 1200);
                     }}
-                    disabled={isCalculating || !selectedApt}
+                    disabled={isCalculating || !hasSimulationTarget}
                     className="w-full bg-slate-900/95 dark:bg-blue-950/20 hover:bg-slate-800 dark:hover:bg-blue-950/45 disabled:opacity-40 text-blue-600 dark:text-blue-400 border border-blue-600/40 py-3 rounded-xl text-[13.5px] font-black active:scale-[0.98] transition-all cursor-pointer flex items-center justify-center gap-1.5"
                   >
                     <Sparkles size={14} className="fill-blue-600/30 text-blue-600 dark:text-blue-400" />
@@ -1174,7 +1474,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 </button>
                 <button
                   onClick={handleNextStep}
-                  className="flex-[2] bg-blue-600 hover:bg-[#046862] text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
+                  className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-[13px] font-black shadow-sm transition-all cursor-pointer border-none"
                 >
                   <span>다음 단계 (소득/자산)</span>
                 </button>
@@ -1347,7 +1647,7 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                 <button
                   onClick={handleStartSimulate}
                   disabled={isCalculating || !annualIncome}
-                  className="flex-[2] bg-blue-600 hover:bg-[#046862] text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
+                  className="flex-[2] bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl text-[13.5px] font-black shadow-lg shadow-blue-500/10 active:scale-[0.98] transition-all cursor-pointer border-none flex items-center justify-center gap-1.5 disabled:opacity-50"
                 >
                   {isCalculating ? (
                     <>
@@ -1485,7 +1785,9 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
 
                   <div className="grid grid-cols-2 gap-2 text-[12px] font-bold text-secondary bg-white dark:bg-slate-900/70 p-3.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
                     <div className="flex justify-between items-center col-span-2 border-b border-slate-200/60 dark:border-slate-800 pb-2 mb-0.5">
-                      <span className="text-tertiary">대상 단지 매매가</span>
+                      <span className="text-tertiary">
+                        {selectedApt ? '대상 단지 매매가' : '선택 예산 기준 시뮬레이션 (단지 미선택)'}
+                      </span>
                       <span className="text-primary tabular-nums">{(marketPrice / 10000).toFixed(1)}억원</span>
                     </div>
                     <div className="flex justify-between items-center col-span-2">
@@ -1515,11 +1817,11 @@ const MortgageCalculator = React.memo(function MortgageCalculator({
                   <div className="flex items-center justify-between">
                     <h4 className="text-[12.5px] font-extrabold text-primary">월 고정 상환액 시뮬레이션</h4>
                     <div className="flex bg-white dark:bg-slate-900 rounded-lg p-0.5 border border-slate-200/70 dark:border-slate-800">
-                      {[10, 20, 30].map(y => (
+                      {[10, 20, 30, 40].map(y => (
                         <button
                           key={y}
                           onClick={() => setMaturityYears(y)}
-                          className={`px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all cursor-pointer tabular-nums ${
+                          className={`px-2 sm:px-2.5 py-1 text-[11px] font-extrabold rounded-md transition-all cursor-pointer tabular-nums ${
                             maturityYears === y ? 'bg-blue-600 text-white shadow-sm' : 'text-tertiary hover:text-secondary'
                           }`}
                         >

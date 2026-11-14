@@ -37,6 +37,12 @@ import {
   syncShallowModalCloseToDashboard,
 } from '@/lib/ads/recirculationEngine';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
+import type { OpenCalculatorModalEventDetail } from '@/components/finance/InlineMortgageDsrBridge';
+import {
+  consumePendingCalculatorContext,
+  parseCalculatorQueryOverrides,
+  type PendingCalculatorContextPayload,
+} from '@/lib/utils/pendingCalculatorContext';
 
 const ExploreListSkeleton = () => (
   <div className="flex flex-col w-full bg-transparent">
@@ -258,9 +264,21 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
   const [isMortgageOpen, setIsMortgageOpen] = useState(false);
   const [mortgageInitialApt, setMortgageInitialApt] = useState<string | undefined>(undefined);
+  const [mortgageInitialPriceManwon, setMortgageInitialPriceManwon] = useState<
+    number | undefined
+  >(undefined);
+  const [mortgageInitialIncomeManwon, setMortgageInitialIncomeManwon] = useState<
+    number | undefined
+  >(undefined);
 
   const [isTaxCalcOpen, setIsTaxCalcOpen] = useState(false);
   const [taxCalcInitialApt, setTaxCalcInitialApt] = useState<string | undefined>(undefined);
+  const [taxCalcInitialPriceManwon, setTaxCalcInitialPriceManwon] = useState<number | undefined>(
+    undefined
+  );
+  const [taxCalcInitialAreaOver85, setTaxCalcInitialAreaOver85] = useState<boolean | undefined>(
+    undefined
+  );
 
   const [isSellTimingOpen, setIsSellTimingOpen] = useState(false);
   const [sellTimingInitialApt, setSellTimingInitialApt] = useState<string | undefined>(undefined);
@@ -268,7 +286,9 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
   const { txSummary = EMPTY_OBJECT } = useTxData(
     initialDashboardData?.macroTrend,
     initialDashboardData?.txSummary,
-    initialDashboardData?.recent7DaysVolume
+    initialDashboardData?.recent7DaysVolume,
+    undefined,
+    { revalidateStaticOnMount: Boolean(initialDashboardData?.isSlimmedSsr) }
   );
   const { locationScores = EMPTY_OBJECT } = useLocationScores();
 
@@ -435,13 +455,16 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     if (typeof window === 'undefined') return;
     const handlePopState = () => {
       const pathname = window.location.pathname || '/explore';
+      const hasCalcQuery = new URLSearchParams(window.location.search || '').has('calc');
       if (pathname.startsWith('/apartment/')) {
         const aptParam = decodeSafeAptParam(pathname.slice('/apartment/'.length));
-        setIsCompareOpen(false);
-        setIsMortgageOpen(false);
-        setIsTaxCalcOpen(false);
-        setIsJeonseSafetyOpen(false);
-        setIsSellTimingOpen(false);
+        if (!hasCalcQuery) {
+          setIsCompareOpen(false);
+          setIsMortgageOpen(false);
+          setIsTaxCalcOpen(false);
+          setIsJeonseSafetyOpen(false);
+          setIsSellTimingOpen(false);
+        }
         if (aptParam) {
           const { sheetApartments: apartments, fieldReportsMap: reportsMap, nameMapping: mapping } = hashStateRef.current;
           const allApts = apartments ? (Object.values(apartments).flat() as DongApartment[]) : [];
@@ -492,7 +515,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         return;
       }
 
-      if (!window.location.hash && pathname.startsWith('/explore')) {
+      if (!window.location.hash && !hasCalcQuery && pathname.startsWith('/explore')) {
         const returnPath = `${pathname}${window.location.search || ''}`;
         returnExplorePathRef.current = returnPath;
         syncShallowModalCloseToDashboard(returnPath);
@@ -574,6 +597,38 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     }
   }, [sheetApartments, nameMapping, handleAptClick]);
 
+  const filterCompatiblePendingContext = useCallback(
+    (
+      ctx: PendingCalculatorContextPayload | null,
+      targetAptName?: string,
+      allowDeepLinkEscalation = false
+    ): PendingCalculatorContextPayload | null => {
+      if (!ctx) return null;
+      if (!allowDeepLinkEscalation && ctx.alreadyTrackedOpen) {
+        return null;
+      }
+      const trimmedTarget = targetAptName?.trim() || '';
+      const trimmedCtxApt = (ctx.aptName || ctx.canonicalSlug || '').trim();
+
+      if (trimmedTarget) {
+        if (!trimmedCtxApt) return null;
+        const normTarget = normalizeAptName(trimmedTarget);
+        const normCtx = normalizeAptName(trimmedCtxApt);
+        const canonTarget = normalizeAptName(resolveCanonicalAptSlug(trimmedTarget));
+        const canonCtx = normalizeAptName(resolveCanonicalAptSlug(trimmedCtxApt));
+        const isMatch =
+          (normTarget !== '' && normTarget === normCtx) ||
+          (canonTarget !== '' && canonTarget === canonCtx) ||
+          isSameApartment(trimmedTarget, trimmedCtxApt, nameMapping);
+        return isMatch ? ctx : null;
+      }
+
+      if (trimmedCtxApt) return null;
+      return ctx;
+    },
+    [nameMapping]
+  );
+
   const handleOpenCompare = useCallback(() => {
     setCompareInitialApt(undefined);
     setCompareSecondApt(undefined);
@@ -585,20 +640,370 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
     setIsJeonseSafetyOpen(true);
   }, []);
 
-  const handleOpenMortgage = useCallback((aptName?: string) => {
-    setMortgageInitialApt(aptName);
-    setIsMortgageOpen(true);
+  const handleOpenMortgage = useCallback(
+    (
+      aptName?: string,
+      priceWon?: number,
+      preConsumedCtx?: PendingCalculatorContextPayload | null
+    ) => {
+      const pendingCtx =
+        preConsumedCtx !== undefined
+          ? preConsumedCtx
+          : filterCompatiblePendingContext(consumePendingCalculatorContext(), aptName, false);
+      const resolvedApt = aptName || pendingCtx?.aptName || undefined;
+      const resolvedPriceManwon =
+        typeof priceWon === 'number' && Number.isFinite(priceWon) && priceWon > 0
+          ? Math.round(priceWon / 10_000)
+          : pendingCtx?.priceManwon &&
+              Number.isFinite(pendingCtx.priceManwon) &&
+              pendingCtx.priceManwon > 0
+            ? Math.round(pendingCtx.priceManwon)
+            : undefined;
+
+      setIsCompareOpen(false);
+      setIsTaxCalcOpen(false);
+      setIsJeonseSafetyOpen(false);
+      setIsSellTimingOpen(false);
+      setMortgageInitialApt(resolvedApt);
+      setMortgageInitialPriceManwon(resolvedPriceManwon);
+      setMortgageInitialIncomeManwon(pendingCtx?.annualIncomeManwon);
+      setIsMortgageOpen(true);
+    },
+    [filterCompatiblePendingContext]
+  );
+
+  const handleCloseMortgage = useCallback(() => {
+    setIsMortgageOpen(false);
+    setMortgageInitialApt(undefined);
+    setMortgageInitialPriceManwon(undefined);
+    setMortgageInitialIncomeManwon(undefined);
   }, []);
 
-  const handleOpenTaxCalculator = useCallback((aptName?: string) => {
-    setTaxCalcInitialApt(aptName);
-    setIsTaxCalcOpen(true);
+  const handleOpenTaxCalculator = useCallback(
+    (
+      aptName?: string,
+      priceWon?: number,
+      preConsumedCtx?: PendingCalculatorContextPayload | null
+    ) => {
+      const pendingCtx =
+        preConsumedCtx !== undefined
+          ? preConsumedCtx
+          : filterCompatiblePendingContext(consumePendingCalculatorContext(), aptName, false);
+      const resolvedApt = aptName || pendingCtx?.aptName || undefined;
+      const resolvedPriceManwon =
+        typeof priceWon === 'number' && Number.isFinite(priceWon) && priceWon > 0
+          ? Math.round(priceWon / 10_000)
+          : pendingCtx?.priceManwon &&
+              Number.isFinite(pendingCtx.priceManwon) &&
+              pendingCtx.priceManwon > 0
+            ? Math.round(pendingCtx.priceManwon)
+            : undefined;
+
+      setIsCompareOpen(false);
+      setIsMortgageOpen(false);
+      setIsJeonseSafetyOpen(false);
+      setIsSellTimingOpen(false);
+      setTaxCalcInitialApt(resolvedApt);
+      setTaxCalcInitialPriceManwon(resolvedPriceManwon);
+      setTaxCalcInitialAreaOver85(pendingCtx?.areaOver85);
+      setIsTaxCalcOpen(true);
+    },
+    [filterCompatiblePendingContext]
+  );
+
+  const handleCloseTaxCalculator = useCallback(() => {
+    setIsTaxCalcOpen(false);
+    setTaxCalcInitialApt(undefined);
+    setTaxCalcInitialPriceManwon(undefined);
+    setTaxCalcInitialAreaOver85(undefined);
   }, []);
 
   const handleOpenSellTimingCalculator = useCallback((aptName?: string) => {
     setSellTimingInitialApt(aptName);
     setIsSellTimingOpen(true);
   }, []);
+
+  const handleCatalogOpenCompare = useCallback(() => {
+    trackEvent('open_calculator', {
+      calculator_type: 'compare',
+      surface: 'explore_catalog',
+      trigger: 'explore_quick_pill',
+    });
+    handleOpenCompare();
+  }, [handleOpenCompare]);
+
+  const handleCatalogOpenJeonseSafety = useCallback(
+    (aptName?: string) => {
+      trackEvent('open_calculator', {
+        calculator_type: 'jeonse_safety',
+        apartment_name: aptName,
+        apt_name: aptName,
+        surface: 'explore_catalog',
+        trigger: 'explore_quick_pill',
+      });
+      handleOpenJeonseSafety(aptName);
+    },
+    [handleOpenJeonseSafety]
+  );
+
+  const handleCatalogOpenMortgage = useCallback(
+    (aptName?: string) => {
+      trackEvent('open_calculator', {
+        calculator_type: 'mortgage',
+        apartment_name: aptName,
+        apt_name: aptName,
+        surface: 'explore_catalog',
+        trigger: 'explore_quick_pill',
+      });
+      handleOpenMortgage(aptName);
+    },
+    [handleOpenMortgage]
+  );
+
+  const handleCatalogOpenTaxCalculator = useCallback(
+    (aptName?: string) => {
+      trackEvent('open_calculator', {
+        calculator_type: 'property_tax',
+        apartment_name: aptName,
+        apt_name: aptName,
+        surface: 'explore_catalog',
+        trigger: 'explore_quick_pill',
+      });
+      handleOpenTaxCalculator(aptName);
+    },
+    [handleOpenTaxCalculator]
+  );
+
+  const handleCatalogOpenSellTiming = useCallback(
+    (aptName?: string) => {
+      trackEvent('open_calculator', {
+        calculator_type: 'sell_timing',
+        apartment_name: aptName,
+        apt_name: aptName,
+        surface: 'explore_catalog',
+        trigger: 'explore_quick_pill',
+      });
+      handleOpenSellTimingCalculator(aptName);
+    },
+    [handleOpenSellTimingCalculator]
+  );
+
+  const handledQueryCalcRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.__dviewDashboardCalcHostActive = true;
+
+    const handleDirectModalEvent = (e: Event) => {
+      const custom = e as CustomEvent<OpenCalculatorModalEventDetail>;
+      const detail = custom.detail;
+      if (!detail) return;
+
+      const targetApt = detail.aptName || undefined;
+      const compatibleCtx = filterCompatiblePendingContext(
+        consumePendingCalculatorContext(),
+        targetApt,
+        true
+      );
+      const effectiveCtx: PendingCalculatorContextPayload = {
+        ...(compatibleCtx || { timestamp: Date.now() }),
+        ...(typeof detail.annualIncomeManwon === 'number'
+          ? { annualIncomeManwon: detail.annualIncomeManwon }
+          : {}),
+        ...(typeof detail.areaOver85 === 'boolean'
+          ? { areaOver85: detail.areaOver85 }
+          : {}),
+      };
+      const trackedApt = targetApt || selectedReport?.apartmentName || undefined;
+
+      if (!detail.alreadyTrackedOpen && !compatibleCtx?.alreadyTrackedOpen) {
+        trackEvent('open_calculator', {
+          calculator_type: detail.calcType,
+          apartment_name: trackedApt,
+          apt_name: trackedApt,
+          surface: detail.surface,
+          trigger: detail.trigger,
+        });
+      }
+
+      if (detail.calcType === 'property_tax') {
+        handleOpenTaxCalculator(targetApt, detail.priceWon, effectiveCtx);
+      } else {
+        handleOpenMortgage(targetApt, detail.priceWon, effectiveCtx);
+      }
+    };
+
+    window.addEventListener('dview:open_calculator_modal', handleDirectModalEvent);
+    return () => {
+      window.__dviewDashboardCalcHostActive = false;
+      window.removeEventListener('dview:open_calculator_modal', handleDirectModalEvent);
+    };
+  }, [
+    filterCompatiblePendingContext,
+    selectedReport?.apartmentName,
+    handleOpenMortgage,
+    handleOpenTaxCalculator,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.location) return;
+
+    const syncCalcFromLocation = () => {
+      const rawSearch = window.location.search || '';
+      if (!rawSearch) {
+        handledQueryCalcRef.current = null;
+        return;
+      }
+      let sp: URLSearchParams;
+      let calcParam: string | null = null;
+      try {
+        sp = new URLSearchParams(rawSearch);
+        calcParam = sp.get('calc');
+      } catch {
+        handledQueryCalcRef.current = null;
+        return;
+      }
+      if (!calcParam) {
+        handledQueryCalcRef.current = null;
+        return;
+      }
+      const normalizedCalc = calcParam.trim().toLowerCase();
+      if (
+        normalizedCalc !== 'mortgage' &&
+        normalizedCalc !== 'property_tax' &&
+        normalizedCalc !== 'tax' &&
+        normalizedCalc !== 'jeonse_safety' &&
+        normalizedCalc !== 'sell_timing'
+      ) {
+        return;
+      }
+
+      const dedupeKey = `${window.location.pathname}?calc=${normalizedCalc}`;
+      if (handledQueryCalcRef.current === dedupeKey) return;
+
+      const pathname = window.location.pathname || '/explore';
+      const hashStr = window.location.hash || '';
+      const hashAptMatch = hashStr.match(/[#&]apt=([^&]+)/);
+      const urlTargetApt = pathname.startsWith('/apartment/')
+        ? decodeSafeAptParam(pathname.slice('/apartment/'.length)) || undefined
+        : hashAptMatch
+          ? decodeSafeAptParam(hashAptMatch[1]) || selectedReport?.apartmentName || undefined
+          : undefined;
+
+      const rawPendingCtx = consumePendingCalculatorContext();
+      const queryOverrides = parseCalculatorQueryOverrides(sp);
+      const targetApt =
+        urlTargetApt ||
+        (queryOverrides.priceManwon !== undefined ? undefined : rawPendingCtx?.aptName || undefined);
+      const compatiblePendingCtx = filterCompatiblePendingContext(
+        rawPendingCtx,
+        targetApt,
+        true
+      );
+
+      const mergedCtx: PendingCalculatorContextPayload | null =
+        compatiblePendingCtx ||
+        queryOverrides.priceManwon !== undefined ||
+        queryOverrides.annualIncomeManwon !== undefined ||
+        queryOverrides.areaOver85 !== undefined
+          ? {
+              ...(compatiblePendingCtx || { timestamp: Date.now() }),
+              ...(queryOverrides.priceManwon !== undefined
+                ? { priceManwon: queryOverrides.priceManwon }
+                : {}),
+              ...(queryOverrides.annualIncomeManwon !== undefined
+                ? { annualIncomeManwon: queryOverrides.annualIncomeManwon }
+                : {}),
+              ...(queryOverrides.areaOver85 !== undefined
+                ? { areaOver85: queryOverrides.areaOver85 }
+                : {}),
+            }
+          : null;
+
+      const shouldSkipOpenTrack = Boolean(compatiblePendingCtx?.alreadyTrackedOpen);
+      handledQueryCalcRef.current = dedupeKey;
+
+      if (normalizedCalc === 'mortgage') {
+        if (!shouldSkipOpenTrack) {
+          trackEvent('open_calculator', {
+            calculator_type: 'mortgage',
+            apartment_name: targetApt,
+            apt_name: targetApt,
+            surface: 'explore_deep_link',
+            trigger: 'url_query_deep_link',
+          });
+        }
+        handleOpenMortgage(targetApt, undefined, mergedCtx);
+      } else if (normalizedCalc === 'property_tax' || normalizedCalc === 'tax') {
+        if (!shouldSkipOpenTrack) {
+          trackEvent('open_calculator', {
+            calculator_type: 'property_tax',
+            apartment_name: targetApt,
+            apt_name: targetApt,
+            surface: 'explore_deep_link',
+            trigger: 'url_query_deep_link',
+          });
+        }
+        handleOpenTaxCalculator(targetApt, undefined, mergedCtx);
+      } else if (normalizedCalc === 'jeonse_safety') {
+        if (!shouldSkipOpenTrack) {
+          trackEvent('open_calculator', {
+            calculator_type: 'jeonse_safety',
+            apartment_name: targetApt,
+            apt_name: targetApt,
+            surface: 'explore_deep_link',
+            trigger: 'url_query_deep_link',
+          });
+        }
+        handleOpenJeonseSafety(targetApt);
+      } else if (normalizedCalc === 'sell_timing') {
+        if (!shouldSkipOpenTrack) {
+          trackEvent('open_calculator', {
+            calculator_type: 'sell_timing',
+            apartment_name: targetApt,
+            apt_name: targetApt,
+            surface: 'explore_deep_link',
+            trigger: 'url_query_deep_link',
+          });
+        }
+        handleOpenSellTimingCalculator(targetApt);
+      }
+
+      try {
+        if (window.history && typeof window.history.replaceState === 'function') {
+          sp.delete('calc');
+          sp.delete('price');
+          sp.delete('income');
+          sp.delete('over85');
+          const rawNextSearch = sp.toString() ? `?${sp.toString()}` : '';
+          const nextSearch = window.location.pathname.startsWith('/apartment/')
+            ? stripApartmentNoiseQueryParams(rawNextSearch)
+            : rawNextSearch;
+          window.history.replaceState(
+            window.history.state,
+            '',
+            `${window.location.pathname}${nextSearch}${window.location.hash || ''}`
+          );
+          handledQueryCalcRef.current = null;
+        }
+      } catch {
+        // Ignore history restrictions in sandboxed environments
+      }
+    };
+
+    syncCalcFromLocation();
+    window.addEventListener('popstate', syncCalcFromLocation);
+    return () => {
+      window.removeEventListener('popstate', syncCalcFromLocation);
+    };
+  }, [
+    filterCompatiblePendingContext,
+    selectedReport?.apartmentName,
+    handleOpenMortgage,
+    handleOpenTaxCalculator,
+    handleOpenJeonseSafety,
+    handleOpenSellTimingCalculator,
+  ]);
 
   const isSplitDetailOpen = Boolean(selectedReport && mobileModalOpen);
 
@@ -641,11 +1046,11 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                         publicRentalSet={publicRentalSet}
                         typeMap={typeMap}
                         handleSelectApt={handleAptClickByName}
-                        onOpenCompare={handleOpenCompare}
-                        onOpenJeonseSafety={handleOpenJeonseSafety}
-                        onOpenMortgage={handleOpenMortgage}
-                        onOpenTaxCalculator={handleOpenTaxCalculator}
-                        onOpenSellTimingCalculator={handleOpenSellTimingCalculator}
+                        onOpenCompare={handleCatalogOpenCompare}
+                        onOpenJeonseSafety={handleCatalogOpenJeonseSafety}
+                        onOpenMortgage={handleCatalogOpenMortgage}
+                        onOpenTaxCalculator={handleCatalogOpenTaxCalculator}
+                        onOpenSellTimingCalculator={handleCatalogOpenSellTiming}
                         onSearchFocus={triggerFetch}
                         preloadApartmentTx={preloadApartmentTx}
                         isSplitMode={isSplitDetailOpen}
@@ -725,25 +1130,27 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                         surface: 'explore_modal',
                       });
                     }}
-                    onOpenMortgage={(aptName) => {
-                      setMortgageInitialApt(aptName);
-                      setIsMortgageOpen(true);
+                    onOpenMortgage={(aptName, priceWon, trigger) => {
+                      const trackedApt = aptName || selectedReport.apartmentName;
                       trackEvent('open_calculator', {
                         calculator_type: 'mortgage',
-                        apartment_name: aptName,
-                        apt_name: aptName,
+                        apartment_name: trackedApt,
+                        apt_name: trackedApt,
                         surface: 'explore_modal',
+                        trigger: trigger || 'header_tool_menu',
                       });
+                      handleOpenMortgage(aptName || undefined, priceWon);
                     }}
-                    onOpenTaxCalculator={(aptName) => {
-                      setTaxCalcInitialApt(aptName);
-                      setIsTaxCalcOpen(true);
+                    onOpenTaxCalculator={(aptName, trigger) => {
+                      const trackedApt = aptName || selectedReport.apartmentName;
                       trackEvent('open_calculator', {
                         calculator_type: 'property_tax',
-                        apartment_name: aptName,
-                        apt_name: aptName,
+                        apartment_name: trackedApt,
+                        apt_name: trackedApt,
                         surface: 'explore_modal',
+                        trigger: trigger || 'header_tool_menu',
                       });
+                      handleOpenTaxCalculator(aptName || undefined);
                     }}
                     onOpenSellTimingCalculator={(aptName) => {
                       setSellTimingInitialApt(aptName);
@@ -907,7 +1314,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                       다시 시도
                     </button>
                     <button
-                      onClick={() => setIsMortgageOpen(false)}
+                      onClick={handleCloseMortgage}
                       className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
                     >
                       닫기
@@ -920,8 +1327,10 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         >
           <MortgageCalculator
             isOpen={isMortgageOpen}
-            onClose={() => setIsMortgageOpen(false)}
+            onClose={handleCloseMortgage}
             initialAptName={mortgageInitialApt}
+            initialPriceManwon={mortgageInitialPriceManwon}
+            initialAnnualIncomeManwon={mortgageInitialIncomeManwon}
             sheetApartments={sheetApartments}
             txSummaryData={txSummary}
             nameMapping={nameMapping || {}}
@@ -959,7 +1368,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                       다시 시도
                     </button>
                     <button
-                      onClick={() => setIsTaxCalcOpen(false)}
+                      onClick={handleCloseTaxCalculator}
                       className="px-4 py-2.5 bg-body hover:bg-border/30 text-secondary font-bold text-[12px] rounded-xl border border-border/20 transition-all cursor-pointer"
                     >
                       닫기
@@ -972,8 +1381,10 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
         >
           <PropertyTaxCalculator
             isOpen={isTaxCalcOpen}
-            onClose={() => setIsTaxCalcOpen(false)}
+            onClose={handleCloseTaxCalculator}
             initialAptName={taxCalcInitialApt}
+            initialPriceManwon={taxCalcInitialPriceManwon}
+            initialAreaOver85={taxCalcInitialAreaOver85}
             sheetApartments={sheetApartments}
             txSummaryData={txSummary}
             nameMapping={nameMapping || {}}

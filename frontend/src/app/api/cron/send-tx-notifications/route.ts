@@ -137,7 +137,10 @@ export async function GET(req: NextRequest) {
     const configuredSecret = process.env.CRON_SECRET?.trim();
     const cronSecret = configuredSecret || 'dview-default-cron-secret-2026';
     const host = req.headers.get('host') || '';
-    const isLocal = host.includes('localhost') || host.includes('127.0.0.1');
+    const hostname = host.split(':')[0].trim().toLowerCase();
+    const isLocal =
+      process.env.NODE_ENV !== 'production' &&
+      (hostname === 'localhost' || hostname === '127.0.0.1');
     const queryAuth = url.searchParams.get('auth');
     const ua = (req.headers.get('user-agent') || '').toLowerCase();
     const xVercelCron = (req.headers.get('x-vercel-cron') || '').toLowerCase();

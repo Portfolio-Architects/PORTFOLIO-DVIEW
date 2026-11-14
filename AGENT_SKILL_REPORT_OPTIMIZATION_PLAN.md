@@ -441,28 +441,28 @@ graph TB
   - Ad Money v5.1 보더리스, `#f9fafb` 서피스 동형화, Pretendard `tabular-nums` 폰트 검증 체크리스트 수록
 
 ### 6.3 Phase 3: 엔지니어링 리포트 런타임 계약 수호 및 상호 링크 그물망 완성
-- [ ] **`DVIEW_PORTFOLIO DVIEW - Engineering Report.md` 링크 및 계약 교정**:
+- [x] **`DVIEW_PORTFOLIO DVIEW - Engineering Report.md` 링크 및 계약 교정**:
   - 상단 메타데이터(`> **Date**: ... | **Grade**: ... | **Branch**: ... | **Status**: ...`) 보존 확인
   - 본문 내 `AGENT.md` → `DVIEW_AGENT.md` 링크 교정
   - `PROJECT.md` → `DVIEW_PROJECT.md` 링크 교정
   - `PORTFOLIO DVIEW - Patch History.md` → `DVIEW_PORTFOLIO DVIEW - Patch History.md` 링크 교정
   - `docs/adsense-approval-report.md` 및 `docs/molit-crawling-feasibility.md` 부록 링크 추가
-- [ ] **엔지니어링 리포트 이중 소스 동기화 확립**:
+- [x] **엔지니어링 리포트 이중 소스 동기화 확립**:
   - 루트 리포트와 `frontend/src/data/engineering-report.md` 내용 1:1 동기화
   - `package.json`의 빌드 전 스크립트 또는 배포 파이프라인에 동기화 절차 명시
-- [ ] **`DVIEW_PORTFOLIO DVIEW - Patch History.md` 아카이브 분리 (선택 권장)**:
+- [x] **`DVIEW_PORTFOLIO DVIEW - Patch History.md` 아카이브 분리 (선택 권장)**:
   - 296KB 대형 파일에서 Phase 128~999 내역을 `docs/archive/patch-history-v1.md`로 이관
   - 활성 파일에는 최신 Phase 1000~1004 및 마스터 인덱스만 유지하여 토큰 90% 절감
-- [ ] **`frontend/docs/` 파일 위치 통합**:
+- [x] **`frontend/docs/` 파일 위치 통합**:
   - `frontend/docs/DVIEW_firebase-custom-auth-domain.md`를 루트 `docs/firebase-custom-auth-domain.md`로 정리 및 인덱싱
 
 ### 6.4 Phase 4: 보안 정책 실사화, 데드엔드 수록 및 토큰 효율화 감사
-- [ ] **`DVIEW_SECURITY.md` 실사화 개편**:
+- [x] **`DVIEW_SECURITY.md` 실사화 개편**:
   - 플레이스홀더 템플릿 제거
-  - Firebase Rules, AdminGuard, API 키 환경변수 격리, AdSense 컴플라이언스 내용 완비
-- [ ] **`DEAD_ENDS.md` 실패 지식 수록**:
+  - Firebase Rules, 관리자 공격 표면 제거(`admin.config.ts`)·프리하이드레이션 가드(`adminExclusion.ts`)·미들웨어(`proxy.ts`), API 키 환경변수 격리, AdSense 컴플라이언스 내용 완비
+- [x] **`DEAD_ENDS.md` 실패 지식 수록**:
   - 공공 웹 크롤링 차단, 상업용 임대료 추정 실패, 모노스페이스 폰트 레이아웃 왜곡, 매 커밋 리포트 강제 수정 무한 루프, 거대 모놀리식 상태 등 5대 실패 사례 및 교훈 기록
-- [ ] **최종 무결성 전수 검증**:
+- [x] **최종 무결성 전수 검증**:
   - `npx tsc --noEmit` 실행하여 타입 0 에러 확인
   - Jest 단위/통합 테스트 스위트 실행
   - 마크다운 내부 링크 깨짐(Broken Links) 0건 확인

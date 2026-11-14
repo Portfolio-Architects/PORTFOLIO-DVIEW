@@ -2,45 +2,192 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users can only read and write their own profile.
-    match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
-      allow write: if request.auth != null && (request.auth.uid == userId || request.auth.token.admin == true);
-    }
-    
-    // Field Reports: Read public, create authenticated, update/delete owner or admin
-    match /field_reports/{reportId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update: if (request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true))
-                    || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'views', 'likes']));
-      allow delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
-      
-      // Nested Comments: Read public, create authenticated, update/delete owner or admin
-      match /comments/{commentId} {
-        allow read: if true;
-        allow create: if request.auth != null;
-        allow update, delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
-      }
-    }
-    
-    // Reviews: Read public, create authenticated, update/delete owner or admin
-    match /reviews/{reviewId} {
-      allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && (request.auth.uid == resource.data.authorUid || request.auth.token.admin == true);
-    }
-    
-    // Ad Inquiries: Public create, admin read/write
-    match /ad_inquiries/{inquiryId} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
+    function isSignedIn() {
+      return request.auth != null;
     }
 
-    // Default rule for all other collections: Read public, restrict writes to admins
-    match /{document=**} {
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
+    }
+
+    function isValidCounterField(field) {
+      return !(field in request.resource.data)
+        || (
+          request.resource.data[field] is int
+          && request.resource.data[field] >= 0
+          && (
+            !(field in resource.data)
+            || !(resource.data[field] is int)
+            || (
+              request.resource.data[field] - resource.data[field] >= -1
+              && request.resource.data[field] - resource.data[field] <= 1
+            )
+          )
+        );
+    }
+
+    // Users: strictly owner or admin read/write (no global wildcard read override)
+    match /users/{userId} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+      allow write: if isSignedIn() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Field Reports: public read, authenticated create, owner/admin write, or bounded integer counter delta
+    match /field_reports/{reportId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.token.admin == true;
+      allow create: if isSignedIn()
+                    && (!('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin()))
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentCount', 'views', 'viewCount', 'likes'])
+                      && isValidCounterField('commentCount')
+                      && isValidCounterField('views')
+                      && isValidCounterField('viewCount')
+                      && isValidCounterField('likes')
+                    );
+      allow delete: if isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin());
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isSignedIn()
+                      && (!('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid || isAdmin());
+        allow update, delete: if isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin());
+      }
+    }
+
+    // Scouting Reports: public read, owner/admin write, or bounded view/like counter increment
+    match /scoutingReports/{reportId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                    && (!('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin()))
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewCount', 'views', 'likes'])
+                      && isValidCounterField('viewCount')
+                      && isValidCounterField('views')
+                      && isValidCounterField('likes')
+                    );
+      allow delete: if isAdmin();
+    }
+
+    // User Reviews (active 'user_reviews' & legacy 'reviews'): public read, owner/admin write, or bounded like delta
+    match /user_reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                    && (!('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin()))
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                      && isValidCounterField('likes')
+                    );
+      allow delete: if isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin());
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isSignedIn()
+                    && (!('authorUid' in request.resource.data) || request.resource.data.authorUid == request.auth.uid || isAdmin());
+      allow update: if (isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin()))
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes'])
+                      && isValidCounterField('likes')
+                    );
+      allow delete: if isSignedIn() && (request.auth.uid == resource.data.authorUid || isAdmin());
+    }
+
+    // Write-Only Intake Queues (active 'adInquiries', legacy 'ad_inquiries', 'pending_photos', 'sell_diagnosis_logs')
+    match /adInquiries/{inquiryId} {
+      allow create: if request.resource.data.keys().size() <= 20
+                    && request.resource.data.keys().hasAll(['companyName', 'contactInfo', 'message'])
+                    && request.resource.data.companyName is string
+                    && request.resource.data.companyName.size() <= 200
+                    && request.resource.data.contactInfo is string
+                    && request.resource.data.contactInfo.size() <= 320
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /ad_inquiries/{inquiryId} {
+      allow create: if request.resource.data.keys().size() <= 20
+                    && (!('companyName' in request.resource.data) || (request.resource.data.companyName is string && request.resource.data.companyName.size() <= 200))
+                    && (!('contactInfo' in request.resource.data) || (request.resource.data.contactInfo is string && request.resource.data.contactInfo.size() <= 320))
+                    && (!('message' in request.resource.data) || (request.resource.data.message is string && request.resource.data.message.size() <= 5000));
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /pending_photos/{photoId} {
+      allow create: if request.resource.data.keys().size() <= 20
+                    && request.resource.data.url is string
+                    && request.resource.data.url.size() <= 2048
+                    && request.resource.data.url.matches('https://(firebasestorage\\.googleapis\\.com|storage\\.googleapis\\.com)/.*')
+                    && request.resource.data.apartmentName is string
+                    && request.resource.data.apartmentName.size() <= 200
+                    && (!('caption' in request.resource.data) || (request.resource.data.caption is string && request.resource.data.caption.size() <= 500));
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /sell_diagnosis_logs/{logId} {
+      allow create: if request.resource.data.keys().size() <= 25;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Explicit Public Read-Only Market, Catalog & Aggregate Telemetry Collections
+    match /transactions/{txId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /transactionSync/{syncId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /apartments/{aptId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /local_notices/{noticeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /daily_stats/{dateStr} {
+      allow read: if true;
+      allow write: if isAdmin();
+
+      match /content_views/{contentId} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+
+    match /favoriteCounts/{aptId} {
+      allow read: if true;
+      allow create: if isAdmin()
+                    || (
+                      request.resource.data.keys().hasOnly(['aptName', 'count'])
+                      && request.resource.data.aptName is string
+                      && request.resource.data.count == 1
+                    );
+      allow update: if isAdmin()
+                    || (
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['count'])
+                      && isValidCounterField('count')
+                    );
+      allow delete: if isAdmin();
+    }
+
+    // Default-Deny for all unlisted & server-managed collections
+    // (board_posts, board_comments, board_likes, board_author_profiles, push_subscriptions, subscriptions, ad_clicks, etc.)
+    match /{document=**} {
+      allow read, write: if isAdmin();
     }
   }
 }

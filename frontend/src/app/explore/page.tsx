@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { Suspense } from 'react';
 import { getInitialData } from '@/lib/services/dashboardData';
+import { toSlimExploreInitialData } from '@/lib/services/slimInitialPayload';
 import ExploreClient from './ExploreClient';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
@@ -236,7 +237,7 @@ async function ExploreDataLoader() {
 
   return (
     <>
-      <ExploreClient initialDashboardData={initialData} />
+      <ExploreClient initialDashboardData={toSlimExploreInitialData(initialData)} />
       {/* SSR SEO Semantic HTML Block (Visible Directory Section — B9 Anti-Cloaking) */}
       <section
         id="explore-ssr-semantic-catalog"

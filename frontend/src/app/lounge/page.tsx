@@ -48,7 +48,7 @@ export default function LoungePage() {
       <section className="w-full bg-slate-50/70 dark:bg-slate-900/40 border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 py-3 flex items-center gap-1.5 text-xs text-tertiary">
           <Link
-            href="/"
+            href="/" prefetch={false}
             className="hover:text-primary transition-colors font-medium"
           >
             홈

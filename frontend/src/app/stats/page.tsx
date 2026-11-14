@@ -352,7 +352,7 @@ export default function StatsPage() {
                 {delta.weightedPricePremiumPercent}%).
               </p>
               <Link
-                href="/guide/dongtan-1-vs-2-comparison"
+                href="/guide/dongtan-1-vs-2-comparison" prefetch={false}
                 className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
                 동탄1 vs 동탄2 심층 비교 분석글 보기
@@ -377,7 +377,7 @@ export default function StatsPage() {
                 {initialSchoolData.delta.academyPricePremiumPercent}%).
               </p>
               <Link
-                href="/guide/dongtan-school-zone-top-apartments"
+                href="/guide/dongtan-school-zone-top-apartments" prefetch={false}
                 className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
                 동탄 초품아·학군 심층 비교 가이드 보기
@@ -400,7 +400,7 @@ export default function StatsPage() {
                 {initialLakeData.delta.waterfrontVsHinterlandPremiumPercent}%).
               </p>
               <Link
-                href="/guide/dongtan-lake-vs-station-comparison"
+                href="/guide/dongtan-lake-vs-station-comparison" prefetch={false}
                 className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
                 호수공원 vs 동탄역 비교 가이드 보기
@@ -425,7 +425,7 @@ export default function StatsPage() {
                 {initialAgeData.delta.newVsOldPricePremiumPercent}%).
               </p>
               <Link
-                href="/guide/dongtan-reconstruction-remodeling-1st-new-town-outlook"
+                href="/guide/dongtan-reconstruction-remodeling-1st-new-town-outlook" prefetch={false}
                 className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
               >
                 연식·리모델링 전망 가이드 보기

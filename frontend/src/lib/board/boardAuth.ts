@@ -5,6 +5,14 @@ export const AUTHOR_TOKEN_COOKIE_NAME = 'dview_author_token';
 export const AUTHOR_TOKEN_HEADER_NAME = 'x-author-token';
 export const AUTHOR_TOKEN_HEADER_ALT = 'x-dview-author-token';
 
+function safeDecodeCookieValue(raw: string): string {
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 /**
  * 256비트 암호학적 난수 작성자 토큰 생성
  */
@@ -19,7 +27,11 @@ export function hashAuthorToken(token: string): string {
   if (!token || typeof token !== 'string') {
     throw new Error('Valid author token string is required for hashing');
   }
-  return crypto.createHash('sha256').update(token.trim()).digest('hex');
+  const trimmed = token.trim();
+  if (!trimmed) {
+    throw new Error('Valid author token string is required for hashing');
+  }
+  return crypto.createHash('sha256').update(trimmed).digest('hex');
 }
 
 /**
@@ -44,9 +56,13 @@ export function extractAuthorToken(
 
   // 2. Check NextRequest cookies or standard Cookie header
   if ('cookies' in request && typeof request.cookies?.get === 'function') {
-    const cookieVal = request.cookies.get(AUTHOR_TOKEN_COOKIE_NAME)?.value;
-    if (cookieVal && cookieVal.trim().length > 0) {
-      return cookieVal.trim();
+    try {
+      const cookieVal = request.cookies.get(AUTHOR_TOKEN_COOKIE_NAME)?.value;
+      if (cookieVal && cookieVal.trim().length > 0) {
+        return cookieVal.trim();
+      }
+    } catch {
+      // Fall through to raw Cookie header parsing
     }
   }
 
@@ -56,7 +72,10 @@ export function extractAuthorToken(
     for (const cookie of cookies) {
       if (cookie.startsWith(`${AUTHOR_TOKEN_COOKIE_NAME}=`)) {
         const val = cookie.substring(`${AUTHOR_TOKEN_COOKIE_NAME}=`.length).trim();
-        if (val) return decodeURIComponent(val);
+        if (val) {
+          const decoded = safeDecodeCookieValue(val).trim();
+          if (decoded) return decoded;
+        }
       }
     }
   }
@@ -84,7 +103,7 @@ export function getOrCreateAuthorToken(
 }
 
 /**
- * 작성자 본인 여부 확인 (게시글/댓글 삭제 권한 판정)
+ * 작성자 본인 여부 확인 (상수 시간 SHA-256 다이제스트 비교)
  */
 export function canDelete(
   authorTokenHash: string | null | undefined,
@@ -93,5 +112,10 @@ export function canDelete(
   if (!authorTokenHash || !item || !item.authorTokenHash) {
     return false;
   }
-  return authorTokenHash === item.authorTokenHash;
+  const a = Buffer.from(authorTokenHash, 'utf8');
+  const b = Buffer.from(item.authorTokenHash, 'utf8');
+  if (a.length !== b.length) {
+    return false;
+  }
+  return crypto.timingSafeEqual(a, b);
 }

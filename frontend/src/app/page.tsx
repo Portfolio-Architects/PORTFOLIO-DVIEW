@@ -5,6 +5,7 @@ import { Metadata } from 'next';
 import { ChevronDown, TrendingUp, Activity, ShieldCheck } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
+import { toSlimDashboardInitialData } from '@/lib/services/slimInitialPayload';
 import { getTxSummaryData, resolveCanonicalAptSlug } from '@/lib/services/apartmentPageService';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
@@ -315,7 +316,10 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
 
   return (
     <>
-      <DashboardClient initialDashboardData={initialData} initialTab={initialTab} />
+      <DashboardClient
+        initialDashboardData={toSlimDashboardInitialData(initialData)}
+        initialTab={initialTab}
+      />
       <section
         id="home-ssr-semantic-catalog"
         aria-label="동탄 대장 아파트 랭킹 및 최신 실거래 내역"

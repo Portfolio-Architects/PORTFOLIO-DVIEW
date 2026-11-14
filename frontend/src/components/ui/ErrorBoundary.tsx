@@ -120,7 +120,7 @@ export class ErrorBoundary extends Component<Props, State> {
           </div>
 
           {this.state.showDetails && (
-            <div className="p-3 bg-slate-950 text-red-400 dark:text-red-300 font-mono text-[9.5px] rounded-xl overflow-x-auto max-h-[120px] whitespace-pre select-text leading-normal border border-slate-800">
+            <div className="p-3 bg-slate-950 text-red-400 dark:text-red-300 tabular-nums text-[9.5px] rounded-xl overflow-x-auto max-h-[120px] whitespace-pre select-text leading-normal border border-slate-800">
               {this.state.error.name}: {this.state.error.message}
               {"\n"}
               {this.state.error.stack}

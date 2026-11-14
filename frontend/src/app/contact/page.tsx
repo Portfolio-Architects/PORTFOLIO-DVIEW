@@ -114,7 +114,7 @@ export default async function ContactPage() {
         <div className="max-w-[880px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link 
-              href="/" 
+              href="/" prefetch={false} 
               className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-surface/5 text-secondary transition-colors"
               aria-label="홈으로 이동"
             >
@@ -122,7 +122,7 @@ export default async function ContactPage() {
             </Link>
             <h1 className="font-extrabold text-primary text-[17px] sm:text-lg tracking-tight">문의하기</h1>
           </div>
-          <Link href="/" className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px] sm:text-sm hover:underline">
+          <Link href="/" prefetch={false} className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px] sm:text-sm hover:underline">
             대시보드로 돌아가기
           </Link>
         </div>

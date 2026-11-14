@@ -41,16 +41,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
   }, [activeTab]);
 
   useEffect(() => {
-    // Proactively prefetch core routes on mount
-    router?.prefetch('/');
-    router?.prefetch('/explore');
-    router?.prefetch('/stats');
-    router?.prefetch('/guide');
-    router?.prefetch('/technovalley');
-    if (!isApprovalMode) {
-      router?.prefetch('/lounge');
-    }
-
     const handlePopState = (event?: Event) => {
       if (typeof window === 'undefined') return;
       const path = window.location.pathname;
@@ -134,8 +124,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 {/* 1. 아파트 랩 */}
                 <Link
                   href="/"
-                  prefetch={true}
-                  onMouseEnter={() => router?.prefetch('/')}
+                  prefetch={false}
                   onClick={(e) => {
                     if (!handleNavClick(e, '/', 'overview')) return;
                     if (scrollTimeoutRef.current) clearTimeout(scrollTimeoutRef.current);
@@ -153,8 +142,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 {/* 2. 아파트 탐색 */}
                 <Link
                   href="/explore"
-                  prefetch={true}
-                  onMouseEnter={() => router?.prefetch('/explore')}
+                  prefetch={false}
                   onClick={(e) => handleNavClick(e, '/explore', 'imjang')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'imjang' || activeTab === 'explore'
@@ -168,8 +156,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 {/* 3. 아파트 통계 */}
                 <Link
                   href="/stats"
-                  prefetch={true}
-                  onMouseEnter={() => router?.prefetch('/stats')}
+                  prefetch={false}
                   onClick={(e) => handleNavClick(e, '/stats', 'stats')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'stats'
@@ -183,10 +170,8 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 {/* 4. 부동산 가이드 */}
                 <Link
                   href="/guide"
-                  prefetch={true}
+                  prefetch={false}
                   title="동탄 부동산 20개 심층 비교 분석 가이드"
-
-                  onMouseEnter={() => router?.prefetch('/guide')}
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'
@@ -200,8 +185,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 {/* 5. 테크노밸리 랩 */}
                 <Link
                   href="/technovalley"
-                  prefetch={true}
-                  onMouseEnter={() => router?.prefetch('/technovalley')}
+                  prefetch={false}
                   onClick={(e) => handleNavClick(e, '/technovalley', 'technovalley')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'technovalley'
@@ -220,7 +204,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     type="button"
                     data-testid="header-about-link"
                     data-href="/about"
-                    onMouseEnter={() => router?.prefetch('/about')}
                     onClick={() => router?.push('/about')}
                     className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   >
@@ -231,7 +214,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     type="button"
                     data-testid="header-contact-link"
                     data-href="/contact"
-                    onMouseEnter={() => router?.prefetch('/contact')}
                     onClick={() => router?.push('/contact')}
                     className="px-3 py-1.5 text-[12px] font-bold text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
                   >
@@ -245,7 +227,6 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                     data-testid="header-lounge-link"
                     data-href="/lounge"
                     aria-current={activeTab === 'lounge' ? 'page' : undefined}
-                    onMouseEnter={() => router?.prefetch('/lounge')}
                     onClick={(e) => {
                       if (isModifiedNavigationClick(e)) return;
                       const currentNormalized = normalizeHeaderTab(activeTab);

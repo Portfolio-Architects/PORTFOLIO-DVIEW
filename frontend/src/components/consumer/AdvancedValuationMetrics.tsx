@@ -678,7 +678,7 @@ const AdvancedValuationMetrics = React.memo(function AdvancedValuationMetrics({
                     </p>
                   </div>
                   <Link
-                    href="/guide/stress-dsr-valuation-guide"
+                    href="/guide/stress-dsr-valuation-guide" prefetch={false}
                     className="w-full sm:w-auto text-center px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-surface font-extrabold text-[12.5px] rounded-xl transition-all cursor-pointer whitespace-nowrap active:scale-[0.98]"
                   >
                     스트레스 DSR 대출 가이드 보기

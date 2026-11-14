@@ -20,6 +20,7 @@ import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import PreGaCanonicalSync from '@/components/common/PreGaCanonicalSync';
+import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
 import type { DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
@@ -503,6 +504,21 @@ export default async function ApartmentPage(props: {
                   )}
                 </div>
               </div>
+            </div>
+
+            <div className="mt-3">
+              <InlineMortgageDsrBridge
+                apartmentName={decodedName}
+                canonicalSlug={canonicalSlug}
+                dong={aptDong || undefined}
+                benchmarkPriceManwon={
+                  aptSummary?.latestPrice ||
+                  (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0)
+                }
+                surface="apartment_ssr_top"
+                trigger="apartment_ssr_price_strip"
+                compact
+              />
             </div>
 
             {/* Layer 2: Progressive SEO Accordion for AI Market Briefing */}

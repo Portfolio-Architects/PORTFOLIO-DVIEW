@@ -1616,7 +1616,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
       </div>
 
       {/* 과밀억제권역 기업 동탄 이전 세제 시뮬레이터 (Full Width) */}
-      <div id="tax-simulator" className="lg:col-span-12 mt-6">
+      <div id="tax-simulator" className="lg:col-span-12 mt-6 scroll-mt-20 sm:scroll-mt-24">
         <ErrorBoundary name="세제 시뮬레이터">
           <RelocationTaxSimulator />
         </ErrorBoundary>
@@ -1650,7 +1650,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                     <li>전용면적 로그 비례 <strong>연속형 면적 가중</strong> 적용</li>
                     <li>실질 공간 점유 비중 기반의 1차 기초 산출</li>
                   </ul>
-                  <div className="pt-2 text-[10px] font-mono text-emerald-700 bg-emerald-600/10 p-2 rounded-lg text-center font-bold">
+                  <div className="pt-2 text-[10px] tabular-nums text-emerald-700 bg-emerald-600/10 p-2 rounded-lg text-center font-bold">
                     w(s) = log-proportional weight
                   </div>
                 </div>
@@ -1667,7 +1667,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                     <li><strong>대칭형 매크로 보정치(macroBonus)</strong> 가동</li>
                     <li>경기 변동에 따른 공실률 양/음수 보정</li>
                   </ul>
-                  <div className="pt-2 text-[10px] font-mono text-hs-blue bg-hs-blue/10 p-2 rounded-lg text-center font-bold">
+                  <div className="pt-2 text-[10px] tabular-nums text-hs-blue bg-hs-blue/10 p-2 rounded-lg text-center font-bold">
                     growthRate = net job delta
                   </div>
                 </div>
@@ -1684,7 +1684,7 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
                     <li>기축 <strong>자연 퇴거율(Dynamic Turnover)</strong> 결합</li>
                     <li>연식별 지수 감쇄 및 연면적(GFA) 스케일러 조율</li>
                   </ul>
-                  <div className="pt-2 text-[10px] font-mono text-slate-600 bg-slate-600/10 dark:bg-slate-600/20 p-2 rounded-lg text-center font-bold">
+                  <div className="pt-2 text-[10px] tabular-nums text-slate-600 bg-slate-600/10 dark:bg-slate-600/20 p-2 rounded-lg text-center font-bold">
                     decay = exp(-0.15 * age)
                   </div>
                 </div>

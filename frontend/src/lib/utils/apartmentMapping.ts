@@ -752,8 +752,11 @@ export function getAreaType(aptName: string, areaStr: string): string | null {
   return typeMap[vAreaStr] || null;
 }
 
-// A module-level cache to avoid repeating findTxKey scans on every transaction lookup
-const resolvedAptEntryCache = new Map<string, Record<string, TypeMapEntry> | null>();
+// Scoped per `typeMap` reference so upgrading from seed `typeMap` -> full `/data/type-map.json` never serves stale entries
+const resolvedAptEntryCache = new WeakMap<
+  object,
+  Map<string, Record<string, TypeMapEntry> | null>
+>();
 
 /**
  * 4단계 캐스케이딩 매칭과 numeric tolerance를 결합하여
@@ -781,8 +784,14 @@ export function findTypeMapEntry(
 
   if (!typeMap || typeof typeMap !== 'object' || !vAptName || !vArea) return null;
 
-  // Cache lookups using vAptName as key
-  let aptEntry = resolvedAptEntryCache.get(vAptName);
+  let perMapCache = resolvedAptEntryCache.get(typeMap);
+  if (!perMapCache) {
+    perMapCache = new Map<string, Record<string, TypeMapEntry> | null>();
+    resolvedAptEntryCache.set(typeMap, perMapCache);
+  }
+
+  // Cache lookups using vAptName as key within the current typeMap instance
+  let aptEntry = perMapCache.get(vAptName);
 
   if (aptEntry === undefined) {
     const normApt = normalizeAptName(vAptName);
@@ -810,7 +819,7 @@ export function findTypeMapEntry(
     }
     
     if (aptEntry !== null) {
-      resolvedAptEntryCache.set(vAptName, aptEntry);
+      perMapCache.set(vAptName, aptEntry);
     }
   }
 

@@ -39,6 +39,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
+import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
@@ -276,12 +277,16 @@ export function renderGuideBodyContent(
   let emittedZonePreviewCount = 0;
   const emittedHeadings = new Set<string>();
 
-  const renderMidConversionActionBar = (sectionPreview?: ResolvedGuideZoneSectionPreview) => {
+  const renderMidConversionActionBar = (
+    sectionPreview?: ResolvedGuideZoneSectionPreview,
+    includeFinanceBridge: boolean = false
+  ) => {
     const midRepApts = resolveMidSectionRepresentativeAptCtas(
       sectionPreview?.items,
       options?.featuredAptRows,
       3
     );
+    const midCalcApt = midRepApts[0] || lakeEduTownPreview;
     const barSectionTitle =
       sectionPreview?.sectionTitle || '리포트 중간 핵심 전환 대표 단지 바로가기';
 
@@ -375,6 +380,20 @@ export function renderGuideBodyContent(
             ))}
           </div>
         )}
+
+        {includeFinanceBridge && (
+          <InlineMortgageDsrBridge
+            apartmentName={midCalcApt?.displayName}
+            canonicalSlug={midCalcApt?.canonicalSlug}
+            dong={midCalcApt?.dong}
+            benchmarkPriceManwon={midCalcApt?.latestPrice}
+            guideSlug={guideSlug}
+            surface="guide_mid_conversion"
+            trigger="guide_mid_conversion_bridge"
+            defaultFocus={guideSlug.includes('tax') ? 'tax' : 'mortgage'}
+            compact
+          />
+        )}
       </div>
     );
   };
@@ -457,7 +476,7 @@ export function renderGuideBodyContent(
         </div>
 
         {/* Mid-Article High-Dwell Conversion Action Bar */}
-        {renderMidConversionActionBar(currentPreview)}
+        {renderMidConversionActionBar(currentPreview, isFirstZonePreview)}
 
         {/* In-Body Mid-Section Zero-CLS AdSlot for Active-View Fill Rate */}
         {isFirstZonePreview &&
@@ -684,7 +703,7 @@ export function renderGuideBodyContent(
         aria-label="리포트 중간 핵심 전환 및 실거래 바로가기"
         className="not-prose my-6 rounded-2xl border border-emerald-500/25 dark:border-emerald-500/30 bg-emerald-500/[0.03] dark:bg-emerald-950/15 p-4 sm:p-5 space-y-3.5"
       >
-        {renderMidConversionActionBar()}
+        {renderMidConversionActionBar(undefined, true)}
         {renderInBodyAdSlot(
           lakeEduTownPreview?.canonicalSlug || '동탄더샵레이크에듀타운',
           lakeEduTownPreview?.dong
@@ -837,15 +856,15 @@ export default async function GuideArticlePage(props: {
           {/* Sub-Navigation & Breadcrumb Control Bar */}
           <div className="w-full p-2.5 sm:p-3.5 rounded-2xl bg-surface border border-border/80 shadow-2xs flex flex-wrap items-center justify-between gap-3">
             <nav aria-label="브레드크럼" className="flex items-center gap-1.5 text-[12px] text-tertiary">
-              <Link href="/" className="hover:text-primary transition-colors">홈</Link>
+              <Link href="/" prefetch={false} className="hover:text-primary transition-colors">홈</Link>
               <ChevronRight size={12} />
-              <Link href="/guide" className="hover:text-primary transition-colors">부동산 가이드</Link>
+              <Link href="/guide" prefetch={false} className="hover:text-primary transition-colors">부동산 가이드</Link>
               <ChevronRight size={12} />
               <span className="text-secondary font-semibold truncate max-w-[220px] sm:max-w-[360px]">{article.category}</span>
             </nav>
 
             <Link
-              href="/guide"
+              href="/guide" prefetch={false}
               aria-label="가이드 목록으로 이동"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-body hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/60 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition-colors shrink-0"
             >
@@ -989,6 +1008,29 @@ export default async function GuideArticlePage(props: {
                   </div>
                 </div>
               )}
+
+              {/* Above-the-Fold 1-Line DSR 40% & Mortgage / Tax Conversion Bridge */}
+              {(() => {
+                const primaryCalcApt =
+                  topRepAptCtas[0] ||
+                  featuredAptRows[0] ||
+                  clusterFlagshipAptRows[0] ||
+                  lakeEduTownPreview;
+                return (
+                  <div className="pt-2">
+                    <InlineMortgageDsrBridge
+                      apartmentName={primaryCalcApt?.displayName}
+                      canonicalSlug={primaryCalcApt?.canonicalSlug}
+                      dong={primaryCalcApt?.dong}
+                      benchmarkPriceManwon={primaryCalcApt?.latestPrice}
+                      guideSlug={article.slug}
+                      surface="guide_top_summary"
+                      trigger="guide_top_takeaways_bridge"
+                      defaultFocus={article.slug.includes('tax') ? 'tax' : 'mortgage'}
+                    />
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Top-of-Article Flagship Complex Quick-Jump & Rival Matchup CTA */}
@@ -1778,19 +1820,19 @@ export default async function GuideArticlePage(props: {
               </div>
               <div className="flex flex-wrap items-center gap-3">
                 <Link
-                  href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                  href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison" prefetch={false}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12.5px] font-bold transition-colors"
                 >
                   <span>동탄1 vs 동탄2 집값 통계</span>
                 </Link>
                 <Link
-                  href="/explore"
+                  href="/explore" prefetch={false}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[12.5px] font-bold transition-colors"
                 >
                   <span>단지별 실거래가 탐색</span>
                 </Link>
                 <Link
-                  href="/technovalley"
+                  href="/technovalley" prefetch={false}
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-[12.5px] font-bold transition-colors"
                 >
                   <span>지식산업센터 세제 분석</span>
@@ -1806,7 +1848,7 @@ export default async function GuideArticlePage(props: {
               {otherArticles.map((nextArt) => (
                 <Link
                   key={nextArt.slug}
-                  href={`/guide/${nextArt.slug}`}
+                  href={`/guide/${nextArt.slug}`} prefetch={false}
                   className="bg-surface border border-border/80 rounded-2xl p-5 shadow-xs hover:border-emerald-500/40 hover:shadow-md transition-all duration-200 group flex flex-col justify-between"
                 >
                   <div>

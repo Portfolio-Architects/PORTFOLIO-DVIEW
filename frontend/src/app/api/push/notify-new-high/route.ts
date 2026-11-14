@@ -39,6 +39,35 @@ export function isEligibleSaleForNewHigh(tx: Record<string, unknown> | null | un
   return true;
 }
 
+export function isAuthorizedNotifyNewHighRequest(req: NextRequest): boolean {
+  const authHeader = req.headers.get('authorization');
+  const configuredSecret = process.env.CRON_SECRET?.trim();
+  const configuredBuildingKey = process.env.BUILDING_API_KEY?.trim();
+  const apiKeyHeader = req.headers.get('x-building-api-key')?.trim();
+
+  const rawHost = req.headers.get('host') || req.nextUrl.hostname || '';
+  const hostname = rawHost.split(':')[0].trim().toLowerCase();
+  const isLocal =
+    process.env.NODE_ENV !== 'production' &&
+    (hostname === 'localhost' || hostname === '127.0.0.1');
+  if (isLocal) return true;
+
+  if (configuredSecret && authHeader === `Bearer ${configuredSecret}`) {
+    return true;
+  }
+  if (configuredBuildingKey && apiKeyHeader === configuredBuildingKey) {
+    return true;
+  }
+
+  const ua = (req.headers.get('user-agent') || '').toLowerCase();
+  const xVercelCron = (req.headers.get('x-vercel-cron') || '').toLowerCase();
+  return (
+    !configuredSecret &&
+    !configuredBuildingKey &&
+    (ua.startsWith('vercel-cron/') || xVercelCron === '1' || xVercelCron === 'true')
+  );
+}
+
 export async function POST(req: NextRequest) {
   try {
     const rateLimit = await checkRateLimit(req, {
@@ -47,6 +76,11 @@ export async function POST(req: NextRequest) {
     });
     if (!rateLimit.success) {
       return rateLimit.response || apiError('RATE_LIMIT_EXCEEDED', 'Too Many Requests', 429);
+    }
+
+    if (!isAuthorizedNotifyNewHighRequest(req)) {
+      logger.warn('NotifyNewHighAPI.POST', 'Unauthorized access attempt blocked');
+      return apiError('UNAUTHORIZED', 'Unauthorized', 401);
     }
 
     // 1. Firebase Admin and VAPID Keys Check

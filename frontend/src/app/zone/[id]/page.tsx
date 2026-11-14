@@ -280,7 +280,7 @@ export default async function ZoneDetailPage(props: { params: Promise<{ id: stri
                         <th scope="row" className="p-3.5 font-bold text-primary whitespace-nowrap">
                           {hasDetailPage ? (
                             <Link
-                              href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
+                              href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}
                               className="hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                             >
                               {apt.name}

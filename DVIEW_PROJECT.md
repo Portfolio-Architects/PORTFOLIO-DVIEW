@@ -1,5 +1,7 @@
 # Project: DVIEW Platform Production Monetization & Pipeline Enhancement (R1~R6)
 
+> **상위 SSOT 및 상호 참조**: [`DVIEW_AGENT.md`](./DVIEW_AGENT.md) · [`DVIEW_DESIGN.md`](./DVIEW_DESIGN.md) · [`DVIEW_SECURITY.md`](./DVIEW_SECURITY.md) · [`DEAD_ENDS.md`](./DEAD_ENDS.md) · [`DVIEW_PORTFOLIO DVIEW - Engineering Report.md`](./DVIEW_PORTFOLIO%20DVIEW%20-%20Engineering%20Report.md) · [`DVIEW_PORTFOLIO DVIEW - Patch History.md`](./DVIEW_PORTFOLIO%20DVIEW%20-%20Patch%20History.md)
+
 ## Architecture
 - **Real-Time Data Pipeline Architecture** (`frontend/scripts/`, `frontend/src/app/api/cron/`):
   - 실거래가 국토부 등록일자(`registeredDate: YYYYMMDD`, `registeredDateLabel: MM.DD`) 도입 및 스키마 확장 (`transaction.ts`).
@@ -15,7 +17,7 @@
   - `explore/page.tsx`, `overview/page.tsx` 내 SSR 데이터 블록 `aria-hidden="true"` 마스킹 전면 제거 및 표준 시맨틱 섹션/테이블 아키텍처 전환 (Mediapartners-Google 색인 보장, Cloaking 방지).
 - **Performance & Invariant Guardrails**:
   - 메인 스레드 TBT/INP 최적화: `ApartmentModal.tsx` 8개 챕터 지연 마운트, `MacroDashboardClient.tsx` 연산 메모이제이션.
-  - `DESIGN.md` 3대 불변식 보존: `body.is-scrolling` 120fps 스크롤 백드롭 필터 억제, `lg:h-[566px]` 히어로 2열 높이 대칭 편차 $\Delta H = [0, \pm 0, \text{px}]$, Zero-CLS ($CLS < 0.001$).
+  - [`DVIEW_DESIGN.md`](./DVIEW_DESIGN.md) 핵심 불변식 보존: `body.is-scrolling` 120fps 스크롤 백드롭 필터 억제, 히어로 2열 높이 대칭 편차 $\Delta H = [0, \pm 0, \text{px}]$, Zero-CLS ($CLS < 0.001$).
   - TypeScript, ESLint, 전체 Jest 테스트 스위트, 프로덕션 빌드 종료 코드 `[0, ±0, code]`.
 
 ## Feature Inventory

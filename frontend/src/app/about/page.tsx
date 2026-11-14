@@ -111,7 +111,7 @@ export default async function AboutPage() {
         <div className="max-w-[1000px] mx-auto px-4 sm:px-6 h-14 sm:h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Link 
-              href="/" 
+              href="/" prefetch={false} 
               className="p-2 rounded-full hover:bg-black/5 dark:hover:bg-surface/5 text-secondary transition-colors"
               aria-label="홈으로 이동"
             >
@@ -119,7 +119,7 @@ export default async function AboutPage() {
             </Link>
             <span className="font-extrabold text-primary text-[17px] sm:text-lg tracking-tight">D-VIEW (디뷰 · 동뷰 · 동탄뷰) 소개</span>
           </div>
-          <Link href="/" className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px] sm:text-sm hover:underline">
+          <Link href="/" prefetch={false} className="text-emerald-600 dark:text-emerald-400 font-bold text-[13px] sm:text-sm hover:underline">
             대시보드로 돌아가기
           </Link>
         </div>

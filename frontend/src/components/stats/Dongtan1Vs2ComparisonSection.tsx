@@ -128,7 +128,7 @@ export function Dongtan1Vs2ComparisonSection({
           {/* Primary Bidirectional Link to Comparison Guide */}
           {primaryGuide && (
             <Link
-              href={`/guide/${primaryGuide.slug}`}
+              href={`/guide/${primaryGuide.slug}`} prefetch={false}
               data-testid="stats-to-guide-hero-cta"
               onClick={() =>
                 handleGuideBridgeClick(primaryGuide.slug, primaryGuide.title, 'hero_top_cta')
@@ -246,7 +246,7 @@ export function Dongtan1Vs2ComparisonSection({
                 <span className="text-tertiary font-semibold">최고가 대장 단지</span>
                 {dongtan1.maxPriceComplexSlug ? (
                   <Link
-                    href={`/apartment/${encodeURIComponent(dongtan1.maxPriceComplexSlug)}`}
+                    href={`/apartment/${encodeURIComponent(dongtan1.maxPriceComplexSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         dongtan1.maxPriceComplexSlug,
@@ -271,7 +271,7 @@ export function Dongtan1Vs2ComparisonSection({
                 <span className="text-tertiary font-semibold">최소 예산 진입 단지</span>
                 {dongtan1.minPriceComplexSlug ? (
                   <Link
-                    href={`/apartment/${encodeURIComponent(dongtan1.minPriceComplexSlug)}`}
+                    href={`/apartment/${encodeURIComponent(dongtan1.minPriceComplexSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         dongtan1.minPriceComplexSlug,
@@ -404,7 +404,7 @@ export function Dongtan1Vs2ComparisonSection({
                 <span className="text-tertiary font-semibold">최고가 대장 단지</span>
                 {dongtan2.maxPriceComplexSlug ? (
                   <Link
-                    href={`/apartment/${encodeURIComponent(dongtan2.maxPriceComplexSlug)}`}
+                    href={`/apartment/${encodeURIComponent(dongtan2.maxPriceComplexSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         dongtan2.maxPriceComplexSlug,
@@ -429,7 +429,7 @@ export function Dongtan1Vs2ComparisonSection({
                 <span className="text-tertiary font-semibold">최소 예산 진입 단지</span>
                 {dongtan2.minPriceComplexSlug ? (
                   <Link
-                    href={`/apartment/${encodeURIComponent(dongtan2.minPriceComplexSlug)}`}
+                    href={`/apartment/${encodeURIComponent(dongtan2.minPriceComplexSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         dongtan2.minPriceComplexSlug,
@@ -474,7 +474,7 @@ export function Dongtan1Vs2ComparisonSection({
             </p>
           </div>
           <Link
-            href="/guide/dongtan-budget-tier-ranking"
+            href="/guide/dongtan-budget-tier-ranking" prefetch={false}
             onClick={() =>
               handleGuideBridgeClick(
                 'dongtan-budget-tier-ranking',
@@ -543,7 +543,7 @@ export function Dongtan1Vs2ComparisonSection({
                   {b.dongtan1Samples.map((s) => (
                     <Link
                       key={`d1-${s.name}`}
-                      href={`/apartment/${encodeURIComponent(s.canonicalSlug)}`}
+                      href={`/apartment/${encodeURIComponent(s.canonicalSlug)}`} prefetch={false}
                       onClick={() =>
                         handleComplexClick(s.canonicalSlug, s.name, s.dong, `bracket_${b.bracketId}`)
                       }
@@ -556,7 +556,7 @@ export function Dongtan1Vs2ComparisonSection({
                   {b.dongtan2Samples.map((s) => (
                     <Link
                       key={`d2-${s.name}`}
-                      href={`/apartment/${encodeURIComponent(s.canonicalSlug)}`}
+                      href={`/apartment/${encodeURIComponent(s.canonicalSlug)}`} prefetch={false}
                       onClick={() =>
                         handleComplexClick(s.canonicalSlug, s.name, s.dong, `bracket_${b.bracketId}`)
                       }
@@ -616,7 +616,7 @@ export function Dongtan1Vs2ComparisonSection({
                 <div className="grid grid-cols-2 gap-2.5">
                   {/* Dongtan 1 Side */}
                   <Link
-                    href={`/apartment/${encodeURIComponent(m.dongtan1Complex.canonicalSlug)}`}
+                    href={`/apartment/${encodeURIComponent(m.dongtan1Complex.canonicalSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         m.dongtan1Complex.canonicalSlug,
@@ -647,7 +647,7 @@ export function Dongtan1Vs2ComparisonSection({
 
                   {/* Dongtan 2 Side */}
                   <Link
-                    href={`/apartment/${encodeURIComponent(m.dongtan2Complex.canonicalSlug)}`}
+                    href={`/apartment/${encodeURIComponent(m.dongtan2Complex.canonicalSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         m.dongtan2Complex.canonicalSlug,
@@ -680,7 +680,7 @@ export function Dongtan1Vs2ComparisonSection({
 
               <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                 <Link
-                  href={`/guide/${m.relatedGuideSlug}`}
+                  href={`/guide/${m.relatedGuideSlug}`} prefetch={false}
                   onClick={() =>
                     handleGuideBridgeClick(
                       m.relatedGuideSlug,
@@ -755,7 +755,7 @@ export function Dongtan1Vs2ComparisonSection({
                 <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
                   <span className="text-tertiary font-medium">최고가 단지</span>
                   <Link
-                    href={`/apartment/${encodeURIComponent(d.flagshipComplexSlug)}`}
+                    href={`/apartment/${encodeURIComponent(d.flagshipComplexSlug)}`} prefetch={false}
                     onClick={() =>
                       handleComplexClick(
                         d.flagshipComplexSlug,
@@ -794,7 +794,7 @@ export function Dongtan1Vs2ComparisonSection({
             </p>
           </div>
           <Link
-            href="/guide"
+            href="/guide" prefetch={false}
             className="inline-flex items-center gap-1 text-xs font-bold text-secondary hover:text-blue-600 dark:hover:text-blue-400 shrink-0"
           >
             <span>가이드 전체 보기</span>
@@ -805,7 +805,7 @@ export function Dongtan1Vs2ComparisonSection({
         {/* Featured Primary Comparison Guide */}
         {primaryGuide && (
           <Link
-            href={`/guide/${primaryGuide.slug}`}
+            href={`/guide/${primaryGuide.slug}`} prefetch={false}
             data-testid={`comparison-guide-card-${primaryGuide.slug}`}
             onClick={() =>
               handleGuideBridgeClick(
@@ -842,7 +842,7 @@ export function Dongtan1Vs2ComparisonSection({
           {secondaryGuides.map((guide) => (
             <Link
               key={guide.slug}
-              href={`/guide/${guide.slug}`}
+              href={`/guide/${guide.slug}`} prefetch={false}
               data-testid={`comparison-guide-card-${guide.slug}`}
               onClick={() =>
                 handleGuideBridgeClick(guide.slug, guide.title, 'recirculation_secondary_grid')

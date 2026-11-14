@@ -13,6 +13,8 @@ import TechnoValleyClient from './TechnoValleyClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
 import GuideAptPreviewCard from '@/components/guide/GuideAptPreviewCard';
+import TechnoValleyBounceDefenseBridge from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
+import { selectPeerTechnoValleyJisans } from '@/lib/utils/technovalleyPeerUtils';
 import {
   TECHNOVALLEY_COMMUTER_PREVIEW_APARTMENTS,
   TOP_ACQUISITION_ENTRY_ROUTES,
@@ -84,16 +86,14 @@ export default async function TechnoValleyPage(
   const jsonLd = buildTechnoValleyJsonLd(jisanList, baseUrl, selectedJisan);
 
   let rawOfficeTransactions: JisanOfficeTransactionItem[] = [];
-  if (selectedJisan) {
-    if (Array.isArray(props?.initialTransactions)) {
-      rawOfficeTransactions = props.initialTransactions;
-    } else if (process.env.NODE_ENV !== 'test') {
-      try {
-        const { getOfficeTransactions } = await import('@/lib/services/officeTx.service');
-        rawOfficeTransactions = await getOfficeTransactions('41591', 'all');
-      } catch {
-        rawOfficeTransactions = [];
-      }
+  if (Array.isArray(props?.initialTransactions)) {
+    rawOfficeTransactions = props.initialTransactions;
+  } else if (process.env.NODE_ENV !== 'test') {
+    try {
+      const { getOfficeTransactions } = await import('@/lib/services/officeTx.service');
+      rawOfficeTransactions = await getOfficeTransactions('41591', 'all');
+    } catch {
+      rawOfficeTransactions = [];
     }
   }
   const matchedTransactions = selectedJisan
@@ -103,6 +103,12 @@ export default async function TechnoValleyPage(
   const taxBenefitSummary = selectedJisan
     ? buildJisanTaxBenefitSummary(selectedJisan, matchedTransactions)
     : null;
+  const peerItems = selectPeerTechnoValleyJisans(
+    selectedJisan,
+    jisanList,
+    rawOfficeTransactions,
+    4
+  );
   const selectedSlug = selectedJisan ? formatTechnoValleyJisanSlug(selectedJisan.name) : '';
 
   const completedCount = jisanList.filter(
@@ -258,6 +264,14 @@ export default async function TechnoValleyPage(
                 </p>
               </div>
             </div>
+
+            <TechnoValleyBounceDefenseBridge
+              currentJisan={selectedJisan}
+              hasCurrentRealTx={Boolean(latestMatchedTx)}
+              initialBenchmarkManwon={taxBenefitSummary.benchmarkPriceManwon}
+              peers={peerItems}
+              surface="technovalley_query_ssr"
+            />
           </div>
         </section>
       )}
@@ -267,6 +281,8 @@ export default async function TechnoValleyPage(
         selectedJisan={selectedJisan}
         jisanList={jisanList}
         initialTransactions={selectedJisan ? matchedTransactions : undefined}
+        initialPeerItems={peerItems}
+        suppressHeroBridge={Boolean(selectedJisan)}
         hideHeader={true}
       />
 

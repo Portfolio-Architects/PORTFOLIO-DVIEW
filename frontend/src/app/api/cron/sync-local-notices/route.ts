@@ -879,7 +879,7 @@ export async function GET(request: NextRequest) {
                 <p style="font-size: 13px; color: #64748b; margin-bottom: 24px;">
                   화성시청 웹사이트 등 하이퍼로컬 소스 스크래핑 과정에서 오류가 검출되었습니다.
                 </p>
-                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 24px; font-family: monospace; font-size: 12px; color: #334155; max-height: 250px; overflow-y: auto;">
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; border-radius: 16px; padding: 20px; margin-bottom: 24px; font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif; font-variant-numeric: tabular-nums; font-size: 12px; color: #334155; max-height: 250px; overflow-y: auto;">
                   ${scrapeErrors.map(err => `• ${err}`).join('<br />')}
                 </div>
                 <p style="font-size: 12px; color: #94a3b8; line-height: 1.5;">

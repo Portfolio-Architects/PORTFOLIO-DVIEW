@@ -1,12 +1,18 @@
 # Firebase Auth 커스텀 도메인(Custom Domain) 설정 가이드
 
+> **문서 관리 및 상위 SSOT 연계**
+> - **대상 서비스**: 디뷰 (DVIEW · [https://dongtanview.com](https://dongtanview.com))
+> - **상위 기술 리포트**: [`DVIEW_PORTFOLIO DVIEW - Engineering Report.md`](../DVIEW_PORTFOLIO%20DVIEW%20-%20Engineering%20Report.md)
+> - **에이전트 행동 강령**: [`DVIEW_AGENT.md`](../DVIEW_AGENT.md) · [`DVIEW_DRSP.md`](../.agent/rules/DVIEW_DRSP.md)
+> - **환경변수 템플릿**: [`frontend/.env.example`](../frontend/.env.example) (`NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`)
+
 본 문서는 로그인 팝업 및 리디렉션 과정에서 Firebase 기본 호스팅 도메인(`[project-id].firebaseapp.com`)이 노출되는 것을 방지하고, 서비스의 신뢰성과 보안성을 강화하기 위해 커스텀 도메인(`auth.yourdomain.com` 또는 `yourdomain.com`)을 Firebase Auth에 매핑하는 방법을 설명합니다.
 
 ---
 
 ## 1. 개요 및 목적
 
-Firebase Auth의 `signInWithPopup` 또는 `signInWithRedirect` 메서드를 사용하는 소셜 로그인(구글 로그인 등)은 로그인 단계에서 사용자를 인증 공급자 페이지로 보낸 후, Firebase가 관리하는 호스팅 도메인을 통해 인증 토큰을 전달받습니다. 
+Firebase Auth의 `signInWithPopup` 또는 `signInWithRedirect` 메서드를 사용하는 소셜 로그인(구글 로그인 등)은 로그인 단계에서 사용자를 인증 공급자 페이지로 보낸 후, Firebase가 관리하는 호스팅 도메인을 통해 인증 토큰을 전달받습니다.
 
 이때 브라우저 주소창에 `[project-id].firebaseapp.com` 형태의 주소가 노출될 경우, 사용자는 다음과 같은 우려를 할 수 있습니다.
 - "내가 접속한 서비스와 주소가 다른데 피싱 사이트가 아닌가?"

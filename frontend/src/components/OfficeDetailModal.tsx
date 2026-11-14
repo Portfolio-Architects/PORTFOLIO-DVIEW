@@ -790,7 +790,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
                   </div>
 
                   <Link
-                    href="/contact"
+                    href="/contact" prefetch={false}
                     onClick={() => showToast('공동임차 매칭 고객지원 페이지로 이동합니다.')}
                     className="w-full py-3.5 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black text-xs rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
                   >
@@ -851,7 +851,7 @@ export default function OfficeDetailModal({ building, onClose }: OfficeDetailMod
           </div>
 
           <Link
-            href="/contact"
+            href="/contact" prefetch={false}
             onClick={() => showToast('공식 고객지원 문의 페이지로 이동합니다.')}
             className="py-3.5 px-6 sm:px-8 bg-blue-600 hover:bg-[#04635e] dark:bg-blue-600 dark:hover:bg-blue-700 text-white font-black text-xs sm:text-sm rounded-xl shadow-lg shadow-blue-600/25 transition-all flex items-center justify-center gap-2 active:scale-[0.98] cursor-pointer"
           >

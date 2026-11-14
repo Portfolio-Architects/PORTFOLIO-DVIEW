@@ -200,6 +200,7 @@ interface MacroDashboardProps {
   preloadApartmentTx?: (apartmentName: string, dong: string) => void;
   favoriteCounts?: Record<string, number>;
   isSplitMode?: boolean;
+  isSlimmedSsr?: boolean;
 }
 
 const fetcher = async (url: string) => {
@@ -654,6 +655,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   preloadApartmentTx,
   favoriteCounts,
   isSplitMode = false,
+  isSlimmedSsr = false,
 }: MacroDashboardProps) {
   const { areaUnit } = useSettingsValues();
   const { user, isLoading: authLoading, handleLogin } = useAuth();
@@ -845,10 +847,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     availableApts,
   } = useMacroFilters({ sheetApartments });
 
+  const periodTxOptions = useMemo(
+    () => (isSlimmedSsr ? { chunked: true, revalidateStaticOnMount: true } : { chunked: true }),
+    [isSlimmedSsr]
+  );
+
   const { transactions: timelinePeriodTransactions, isLoading: isTimelinePeriodLoading } = usePeriodTransactions(
     periodFilter,
     recentTransactions,
-    { chunked: true }
+    periodTxOptions
   );
 
   const { locationScores } = useLocationScores(initialLocationScores);
@@ -2451,7 +2458,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
               </p>
             </div>
             <Link
-              href="/guide"
+              href="/guide" prefetch={false}
               className="text-[11.5px] font-bold text-secondary hover:text-primary inline-flex items-center gap-1 transition-colors shrink-0"
             >
               <span>전체 리포트</span>
@@ -2466,7 +2473,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             {topGuides.map((guide) => (
               <Link
                 key={guide.slug}
-                href={`/guide/${guide.slug}`}
+                href={`/guide/${guide.slug}`} prefetch={false}
                 data-testid={`guide-card-${guide.slug}`}
                 onClick={() => {
                   trackEvent('guide_card_click', {
@@ -2568,7 +2575,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   D-VIEW 인증 입주민 & 실투자자 전용
                 </span>
                 <Link
-                  href="/lounge"
+                  href="/lounge" prefetch={false}
                   data-testid="lounge-link-btn"
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
                 >

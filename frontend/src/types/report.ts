@@ -226,6 +226,7 @@ export interface FieldReportData {
   thumbnail?: string;
   thumbnailUrl?: string;
   imageUrl?: string;
+  photoCount?: number;
   images?: (Required<Pick<ImageMeta, 'url' | 'caption' | 'locationTag' | 'isPremium'>> & Pick<ImageMeta, 'uploaderName' | 'capturedAt'>)[];
   scoutingDate?: string;
   createdAt?: number | string | unknown;

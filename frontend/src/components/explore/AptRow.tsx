@@ -73,11 +73,11 @@ export const AptRow = memo(({
       return (
         <div className="flex flex-col items-start md:items-end">
           <span className="text-[11px] font-bold text-tertiary">3.3㎡당 평단가</span>
-          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 font-mono tabular-nums mt-0.5">
+          <span className="text-sm md:text-base font-black text-blue-600 dark:text-blue-400 tabular-nums mt-0.5">
             {item.pyeongPrice > 0 ? `${item.formattedPyeong}/평` : '-'}
           </span>
           {eq34PriceMan > 0 && (
-            <span className="text-[11px] font-semibold text-secondary font-mono tabular-nums mt-0.5">
+            <span className="text-[11px] font-semibold text-secondary tabular-nums mt-0.5">
               34평 환산 {formattedEq34}
             </span>
           )}
@@ -132,7 +132,7 @@ export const AptRow = memo(({
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
           {/* Rank Badge */}
-          <div className={`w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 text-base md:text-lg font-black font-mono tabular-nums ${getRankBadgeStyle(index)}`}>
+          <div className={`w-11 h-11 md:w-12 md:h-12 rounded-xl flex items-center justify-center shrink-0 text-base md:text-lg font-black tabular-nums ${getRankBadgeStyle(index)}`}>
             {index + 1}
           </div>
 
@@ -168,7 +168,7 @@ export const AptRow = memo(({
                     style={{ width: `${relativePyeongPct}%` }}
                   />
                 </div>
-                <span className="text-[10.5px] font-mono tabular-nums font-semibold text-tertiary shrink-0">
+                <span className="text-[10.5px] tabular-nums font-semibold text-tertiary shrink-0">
                   {index === 0 && relativePyeongPct === 100
                     ? '1위 기준 (100%)'
                     : `1위 대비 ${relativePyeongPct}%`}
@@ -179,17 +179,17 @@ export const AptRow = memo(({
             <div className="flex flex-wrap items-center gap-2 mt-2 text-[11px] font-bold text-tertiary select-none">
               {item.totalPrice > 0 && (
                 <span className="bg-surface px-2.5 py-1 rounded-lg text-secondary">
-                  평당 <strong className="text-primary font-black font-mono tabular-nums">{item.formattedPyeong}</strong> · 평균 매매 <strong className="text-secondary font-black font-mono tabular-nums">{item.formattedPrice}</strong>
+                  평당 <strong className="text-primary font-black tabular-nums">{item.formattedPyeong}</strong> · 평균 매매 <strong className="text-secondary font-black tabular-nums">{item.formattedPrice}</strong>
                 </span>
               )}
               {item.jeonsePrice > 0 && (
                 <span className="bg-surface px-2.5 py-1 rounded-lg text-secondary">
-                  전세 <strong className="text-secondary font-black font-mono tabular-nums">{item.formattedJeonse}</strong> (전세가율 {item.formattedRatio})
+                  전세 <strong className="text-secondary font-black tabular-nums">{item.formattedJeonse}</strong> (전세가율 {item.formattedRatio})
                 </span>
               )}
               {item.volume3M > 0 && (
                 <span className="bg-surface px-2.5 py-1 rounded-lg text-secondary">
-                  3개월 거래 <strong className="text-secondary font-black font-mono tabular-nums">{item.formattedVolume}</strong> (회전율 {item.formattedTurnover || '0%'})
+                  3개월 거래 <strong className="text-secondary font-black tabular-nums">{item.formattedVolume}</strong> (회전율 {item.formattedTurnover || '0%'})
                 </span>
               )}
               {item.totalPrice === 0 && item.jeonsePrice === 0 && item.volume3M === 0 && (

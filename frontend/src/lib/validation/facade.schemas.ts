@@ -573,6 +573,7 @@ export const FieldReportSchema = z.object({
   commentCount: z.number().int().nonnegative().default(0),
   imageUrl: z.string().optional(),
   thumbnail: z.string().optional(),
+  photoCount: z.number().int().nonnegative().optional(),
   images: z.array(FieldReportImageSchema).optional(),
   metrics: z.custom<ObjectiveMetrics>().optional(),
   scoutingDate: z.string().optional(),

@@ -95,7 +95,7 @@ export function GuideStatsComparisonBridge({
         </div>
 
         <Link
-          href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+          href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison" prefetch={false}
           data-testid="guide-to-stats-primary-cta"
           onClick={() =>
             handleStatsClick('dongtan-1-vs-2-comparison', '동탄1 vs 동탄2 집값 통계 비교 보러가기')
@@ -208,7 +208,7 @@ export function GuideStatsComparisonBridge({
               {delta.pyeongPriceDiffManwon.toLocaleString('ko-KR')}만원 격차
             </span>
             <Link
-              href="/stats?topic=dongtan-station-distance"
+              href="/stats?topic=dongtan-station-distance" prefetch={false}
               onClick={() =>
                 handleStatsClick('dongtan-station-distance', '동탄역 거리별 회귀분석 보기')
               }
@@ -227,7 +227,7 @@ export function GuideStatsComparisonBridge({
         className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1"
       >
         <Link
-          href="/stats?topic=school-district-premium#school-district-premium"
+          href="/stats?topic=school-district-premium#school-district-premium" prefetch={false}
           onClick={() =>
             handleStatsClick('school-district-premium', '초품아·학원가 집값 격차 리포트')
           }
@@ -246,7 +246,7 @@ export function GuideStatsComparisonBridge({
         </Link>
 
         <Link
-          href="/stats?topic=lake-park-view-premium#lake-park-view-premium"
+          href="/stats?topic=lake-park-view-premium#lake-park-view-premium" prefetch={false}
           onClick={() =>
             handleStatsClick('lake-park-view-premium', '동탄호수공원 조망권 집값 격차 리포트')
           }
@@ -265,7 +265,7 @@ export function GuideStatsComparisonBridge({
         </Link>
 
         <Link
-          href="/stats?topic=building-age-depreciation#building-age-depreciation"
+          href="/stats?topic=building-age-depreciation#building-age-depreciation" prefetch={false}
           onClick={() =>
             handleStatsClick('building-age-depreciation', '연식별 감가상각·방어율 비교 리포트')
           }
@@ -290,7 +290,7 @@ export function GuideStatsComparisonBridge({
             아파트 통계 탭에서 초품아·호수공원·연식별·동탄1 vs 동탄2 평형별 집값과 단지를 즉시 비교할 수 있습니다.
           </span>
           <Link
-            href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+            href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison" prefetch={false}
             onClick={() =>
               handleStatsClick('dongtan-1-vs-2-comparison', '평형별·예산대별 집값 비교표 열기')
             }

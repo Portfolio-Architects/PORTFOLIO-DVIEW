@@ -37,11 +37,16 @@ export type { FirestoreTransaction };
 
 const staticJsonFetcher = <T>(url: string): Promise<T> => staticDataService.fetchJson<T>(url);
 
+export interface UseTxDataOptions {
+  revalidateStaticOnMount?: boolean;
+}
+
 export function useTxData(
   initialMacroTrend?: DongtanMacroTrendPoint[],
   initialTxSummary?: Record<string, AptTxSummary>,
   initialRecent7DaysVolume?: Recent7DaysVolume,
-  initialRecentTransactions?: RecentTransaction[]
+  initialRecentTransactions?: RecentTransaction[],
+  options?: UseTxDataOptions
 ) {
   const [shouldFetch, setShouldFetch] = useState(false);
   const [hasHydrated, setHasHydrated] = useState(false);
@@ -78,8 +83,11 @@ export function useTxData(
 
   const isBrowser = typeof window !== 'undefined';
 
+  const revalidateStaticOnMount = Boolean(options?.revalidateStaticOnMount);
+
   // 1. Static summary data fetching (tx-summary.json) — gated behind hasHydrated for SSR hydration parity
   const hasTxSummaryFallback = !!(initialTxSummary && Object.keys(initialTxSummary).length > 0);
+  const shouldRevalidateSummary = !hasTxSummaryFallback || revalidateStaticOnMount;
   const { data: summaryData, error: summaryError, isLoading: isSummaryLoading } = useSWR<{
     summary: Record<string, AptTxSummary>;
     recent7DaysVolume?: {
@@ -95,22 +103,23 @@ export function useTxData(
         ? { summary: initialTxSummary, recent7DaysVolume: initialRecent7DaysVolume }
         : undefined,
     revalidateOnFocus: false,
-    revalidateIfStale: !hasTxSummaryFallback,
-    revalidateOnMount: !hasTxSummaryFallback,
+    revalidateIfStale: shouldRevalidateSummary,
+    revalidateOnMount: shouldRevalidateSummary,
     revalidateOnReconnect: false,
     dedupingInterval: 300000,
   });
 
   // 1-2. Recent transactions list fetching (recent-transactions.json)
   const hasRecentTxFallback = !!(initialRecentTransactions && initialRecentTransactions.length > 0);
+  const shouldRevalidateRecent = !hasRecentTxFallback || revalidateStaticOnMount;
   const { data: recentTxData, error: recentTxError, isLoading: isRecentTxLoading } = useSWR<RecentTransaction[]>(
     hasHydrated ? `/data/recent-transactions.json?v=${BUILD_VERSION}` : null,
     staticJsonFetcher,
     {
       fallbackData: hasRecentTxFallback ? initialRecentTransactions : undefined,
       revalidateOnFocus: false,
-      revalidateIfStale: !hasRecentTxFallback,
-      revalidateOnMount: !hasRecentTxFallback,
+      revalidateIfStale: shouldRevalidateRecent,
+      revalidateOnMount: shouldRevalidateRecent,
       revalidateOnReconnect: false,
       dedupingInterval: 300000,
     }
@@ -299,6 +308,7 @@ function filterTransactionsByDays(txs: RecentTransaction[], days: number): Recen
 
 export interface UsePeriodTransactionsOptions {
   chunked?: boolean;
+  revalidateStaticOnMount?: boolean;
 }
 
 /**
@@ -317,8 +327,10 @@ export function usePeriodTransactions(
   }, []);
 
   const useChunked = Boolean(options?.chunked);
+  const revalidateStaticOnMount = Boolean(options?.revalidateStaticOnMount);
   const isRecentBased = period === '1d' || period === '7d' || period === '30d' || period === '90d';
   const hasRecentFallback = !!(isRecentBased && fallbackRecentTransactions && fallbackRecentTransactions.length > 0);
+  const shouldRevalidatePeriod = !hasRecentFallback || (isRecentBased && revalidateStaticOnMount);
 
   const periodPathMap: Record<TimelinePeriod, string> = {
     '1d': `/data/recent-transactions.json?v=${BUILD_VERSION}`,
@@ -348,8 +360,8 @@ export function usePeriodTransactions(
     {
       fallbackData: isRecentBased ? fallbackRecentTransactions : undefined,
       revalidateOnFocus: false,
-      revalidateIfStale: !hasRecentFallback,
-      revalidateOnMount: !hasRecentFallback,
+      revalidateIfStale: shouldRevalidatePeriod,
+      revalidateOnMount: shouldRevalidatePeriod,
       revalidateOnReconnect: false,
       dedupingInterval: 3600000, // 1 hour memory cache
     }

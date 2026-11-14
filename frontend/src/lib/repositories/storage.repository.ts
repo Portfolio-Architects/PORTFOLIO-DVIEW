@@ -3,14 +3,26 @@
  * @description Data Access Layer for Firebase Storage operations.
  * Architecture Layer: Repository (Raw SDK file I/O only)
  */
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+  type UploadMetadata,
+} from 'firebase/storage';
 import { storage } from '@/lib/firebaseConfig';
 import { logger } from '@/lib/services/logger';
 
-export async function uploadRawBytes(filePath: string, blob: Blob): Promise<string> {
+export async function uploadRawBytes(
+  filePath: string,
+  blob: Blob,
+  metadata?: UploadMetadata
+): Promise<string> {
   try {
     const storageRef = ref(storage, filePath);
-    const snapshot = await uploadBytes(storageRef, blob);
+    const snapshot = metadata
+      ? await uploadBytes(storageRef, blob, metadata)
+      : await uploadBytes(storageRef, blob);
     return await getDownloadURL(snapshot.ref);
   } catch (error) {
     logger.error('storage.repository.uploadRawBytes', 'Failed to upload bytes to Firebase Storage', { filePath }, error as Error);

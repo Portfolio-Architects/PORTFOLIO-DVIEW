@@ -19,7 +19,7 @@ export default function NotFound() {
           주소가 변경되었을 수 있습니다.
         </p>
         <Link
-          href="/"
+          href="/" prefetch={false}
           className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 dark:bg-blue-600 text-white rounded-xl font-bold text-[14px] hover:bg-blue-700 dark:hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/20"
         >
           <Home size={16} />

@@ -4,7 +4,8 @@
 > - **대상 서비스**: 디뷰 (D-VIEW · [https://dongtanview.com](https://dongtanview.com))  
 > - **문서 버전**: v1.2 (P0·P1 구현 배포 및 3단계 라이브 인프라 전수 실증 검증 완료판)  
 > - **작성 일자**: 2026-11-05 (최종 실증 업데이트)  
-> - **적용 표준**: DVIEW DRSP v1.0, Ad Money v5.0 디자인 시스템, Google Publisher Policies (구글 게시자 정책)  
+> - **적용 표준**: [`DVIEW_DRSP.md`](../.agent/rules/DVIEW_DRSP.md) (DRSP v1.0), [`DVIEW_DESIGN.md`](../DVIEW_DESIGN.md) (Ad Money 디자인 시스템), Google Publisher Policies (구글 게시자 정책)  
+> - **상위 리포트 및 연계 스킬**: [`DVIEW_PORTFOLIO DVIEW - Engineering Report.md`](../DVIEW_PORTFOLIO%20DVIEW%20-%20Engineering%20Report.md) · [`dview-adsense-telemetry`](../.agent/skills/dview-adsense-telemetry/SKILL.md)  
 > - **문서 목적**: 구글 애드센스(Google AdSense) 승인 심사 통과를 위한 사이트 전수 정밀 진단, 정책 대비 갭(Gap) 분석 및 심사 신청 전 즉시 실행 체크리스트 제공
 
 ---

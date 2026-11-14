@@ -611,13 +611,9 @@ describe('Tier 1: Feature Coverage (Category-Partition) Suite [F1 ~ F7]', () => 
   // F6: Test Suite Regression Remediation
   // ==========================================================================
   describe('F6: Test Suite Regression Remediation', () => {
-    test('F6.1: LoungeHeader prefetches canonical routes including /guide and /technovalley', () => {
+    test('F6.1: LoungeHeader blocks automatic .rsc background prefetches on mount', () => {
       render(<LoungeHeader />);
-      expect(mockPrefetch).toHaveBeenCalledWith('/');
-      expect(mockPrefetch).toHaveBeenCalledWith('/explore');
-      expect(mockPrefetch).toHaveBeenCalledWith('/stats');
-      expect(mockPrefetch).toHaveBeenCalledWith('/guide');
-      expect(mockPrefetch).toHaveBeenCalledWith('/technovalley');
+      expect(mockPrefetch).not.toHaveBeenCalled();
     });
 
     test('F6.2: Route navigation link click invokes onTabChange callback', () => {

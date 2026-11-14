@@ -289,6 +289,9 @@ const nextConfig: NextConfig = {
   },
 
   outputFileTracingIncludes: {
+    '/*': [
+      './src/data/engineering-report.md',
+    ],
     '/': [
       './public/data/market-stats.json',
       './public/data/tx-summary.json',

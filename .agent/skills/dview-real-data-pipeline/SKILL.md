@@ -80,8 +80,8 @@ enforces:
 
 ## 4. 절대 무결성 가드 및 서킷 브레이커 (Stop-the-Line)
 
-1. **Strict Real Data Only (가짜·추정 데이터 전면 금지)**:
-   - 국토교통부 OpenAPI 응답 지연, 인증키 오류, 또는 특정 기간 거래 0건 발생 시 **절대로 임의의 샘플·추정치·보간 시세·Mock JSON을 생성하거나 주입하지 않고 즉시 작업을 중단(Stop-the-Line)**한 뒤 원인을 보고합니다.
+1. **Strict Real Data Only (가짜·추정 데이터 전면 금지 — [`DEAD_ENDS.md`](../../../DEAD_ENDS.md) DE-01·DE-02 참조)**:
+   - 국토교통부 웹 직접 스크래핑(`rtms.molit.go.kr`)은 절대 시도하지 않으며, OpenAPI 응답 지연·인증키 오류·특정 기간 거래 0건 발생 시에도 **절대로 임의의 샘플·추정치·보간 시세·Mock JSON을 생성하거나 주입하지 않고 즉시 작업을 중단(Stop-the-Line)**한 뒤 원인을 보고합니다.
    - **상업·업무용(동탄테크노밸리 지식산업센터) 스코프 ([`officeTx.repository.ts`](../../../frontend/src/lib/repositories/officeTx.repository.ts))**: 국가 공식 신고 제도가 없는 상업용 임대차(전월세) 추정 데이터는 일체 생성·표시하지 않으며, 오직 국토부 상업·업무용 매매 실거래가(`RTMSDataSvcNrgTrade`, `PUBLIC_DATA_PORTAL_KEY`) 공식 데이터만 취급합니다. 실거래가 없는 경우 `"등록된 실거래 내역이 없습니다."`만 정직하게 노출합니다.
 2. **2중 서킷 브레이커 기준 (`verifySummaryIntegrity` 보존)**:
    - **절대 임계치 가드 (`ABSOLUTE_THRESHOLD_BREACH`)**: 감지 단지 수 `< 120개`(실제 184개), 매매 거래 `< 40,000건`, 전월세 거래 `< 60,000건` 중 하나라도 미달하면 프로덕션 정적 캐시 덮어쓰기를 즉시 차단합니다.

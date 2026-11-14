@@ -15,6 +15,11 @@ import {
 import PageHeroHeader from '@/components/PageHeroHeader';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
+import TechnoValleyBounceDefenseBridge from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
+import {
+  selectPeerTechnoValleyJisans,
+  type TechnoValleyPeerJisanItem,
+} from '@/lib/utils/technovalleyPeerUtils';
 import dynamic from 'next/dynamic';
 import type {
   TechnoValleyJisan,
@@ -188,6 +193,8 @@ export interface TechnoValleyClientProps {
   selectedJisan?: TechnoValleyJisan | null;
   jisanList?: readonly TechnoValleyJisan[];
   initialTransactions?: JisanOfficeTransactionItem[];
+  initialPeerItems?: readonly TechnoValleyPeerJisanItem[];
+  suppressHeroBridge?: boolean;
   hideHeader?: boolean;
 }
 
@@ -221,17 +228,13 @@ export default function TechnoValleyClient({
   selectedJisan,
   jisanList,
   initialTransactions,
+  initialPeerItems,
+  suppressHeroBridge = false,
   hideHeader = false,
 }: TechnoValleyClientProps = {}) {
-  const [clientQueryJisan, setClientQueryJisan] = useState<TechnoValleyJisan | null>(() => {
-    if (selectedJisan || typeof window === 'undefined' || !jisanList?.length) return null;
-    try {
-      const param = new URLSearchParams(window.location.search).get('jisan');
-      return resolveClientQueryJisan(jisanList, param);
-    } catch {
-      return null;
-    }
-  });
+  // Initialize null so client hydration matches force-static SSR HTML 1:1,
+  // then resolve ?jisan= on mount and browser history navigation without hydration mismatch.
+  const [clientQueryJisan, setClientQueryJisan] = useState<TechnoValleyJisan | null>(null);
 
   useEffect(() => {
     if (selectedJisan) {
@@ -239,22 +242,34 @@ export default function TechnoValleyClient({
       return;
     }
     if (typeof window === 'undefined' || !jisanList?.length) return;
-    try {
-      const param = new URLSearchParams(window.location.search).get('jisan');
-      setClientQueryJisan(resolveClientQueryJisan(jisanList, param));
-    } catch {
-      setClientQueryJisan(null);
-    }
+
+    const syncFromLocation = () => {
+      try {
+        const param = new URLSearchParams(window.location.search).get('jisan');
+        setClientQueryJisan(resolveClientQueryJisan(jisanList, param));
+      } catch {
+        setClientQueryJisan(null);
+      }
+    };
+
+    syncFromLocation();
+    window.addEventListener('popstate', syncFromLocation);
+    return () => {
+      window.removeEventListener('popstate', syncFromLocation);
+    };
   }, [selectedJisan, jisanList]);
 
   const effectiveSelectedJisan = selectedJisan ?? clientQueryJisan ?? null;
   const hasServerInitialTransactions = initialTransactions !== undefined;
   const resolvedInitialTransactions = initialTransactions ?? EMPTY_TRANSACTIONS;
   const [fetchedTxs, setFetchedTxs] = useState<JisanOfficeTransactionItem[]>(EMPTY_TRANSACTIONS);
+  const [fetchedAllRawTxs, setFetchedAllRawTxs] =
+    useState<JisanOfficeTransactionItem[]>(EMPTY_TRANSACTIONS);
 
   useEffect(() => {
     if (!effectiveSelectedJisan || hasServerInitialTransactions) {
       setFetchedTxs((prev) => (prev.length === 0 ? prev : EMPTY_TRANSACTIONS));
+      setFetchedAllRawTxs((prev) => (prev.length === 0 ? prev : EMPTY_TRANSACTIONS));
       return;
     }
     if (typeof window === 'undefined' || typeof window.fetch !== 'function') return;
@@ -276,6 +291,7 @@ export default function TechnoValleyClient({
             : Array.isArray(payload.data)
               ? payload.data
               : [];
+          setFetchedAllRawTxs(rawList);
           setFetchedTxs(filterTransactionsForJisan(effectiveSelectedJisan, rawList));
         }
       )
@@ -294,6 +310,36 @@ export default function TechnoValleyClient({
     }
     return fetchedTxs;
   }, [effectiveSelectedJisan, hasServerInitialTransactions, resolvedInitialTransactions, fetchedTxs]);
+
+  const peerItems = useMemo<readonly TechnoValleyPeerJisanItem[]>(() => {
+    if (!effectiveSelectedJisan && initialPeerItems && initialPeerItems.length > 0) {
+      return initialPeerItems;
+    }
+    if (
+      selectedJisan &&
+      effectiveSelectedJisan === selectedJisan &&
+      initialPeerItems &&
+      initialPeerItems.length > 0
+    ) {
+      return initialPeerItems;
+    }
+    if (!jisanList || jisanList.length === 0) return initialPeerItems ?? [];
+    const txPool =
+      fetchedAllRawTxs.length > 0
+        ? fetchedAllRawTxs
+        : hasServerInitialTransactions
+          ? resolvedInitialTransactions
+          : undefined;
+    return selectPeerTechnoValleyJisans(effectiveSelectedJisan, jisanList, txPool, 4);
+  }, [
+    effectiveSelectedJisan,
+    selectedJisan,
+    initialPeerItems,
+    jisanList,
+    fetchedAllRawTxs,
+    hasServerInitialTransactions,
+    resolvedInitialTransactions,
+  ]);
 
   const latestSaleTx = matchedTxs.length > 0 ? matchedTxs[0] : null;
   const benchmarkPriceManwon =
@@ -475,6 +521,32 @@ export default function TechnoValleyClient({
                   </div>
                 </div>
               </div>
+
+              {!suppressHeroBridge && (
+                <TechnoValleyBounceDefenseBridge
+                  currentJisan={effectiveSelectedJisan}
+                  hasCurrentRealTx={Boolean(latestSaleTx)}
+                  initialBenchmarkManwon={benchmarkPriceManwon}
+                  peers={peerItems}
+                  surface="technovalley_client_query"
+                />
+              )}
+            </section>
+          )}
+
+          {!effectiveSelectedJisan && !suppressHeroBridge && peerItems.length > 0 && (
+            <section
+              data-testid="technovalley-hub-bounce-defense-strip"
+              aria-label="동탄테크노밸리 핵심 지식산업센터 실거래 비교 및 세제 시뮬레이터 바로가기"
+              className="mb-6"
+            >
+              <TechnoValleyBounceDefenseBridge
+                currentJisan={null}
+                hasCurrentRealTx={false}
+                initialBenchmarkManwon={30000}
+                peers={peerItems}
+                surface="technovalley_hub_top"
+              />
             </section>
           )}
 
