@@ -24,7 +24,17 @@ function openDB(): Promise<IDBDatabase> {
       reject(new Error('IndexedDB is only available in the browser'));
       return;
     }
-    const request = indexedDB.open(DB_NAME, 1);
+    let request: IDBOpenDBRequest;
+    try {
+      if (typeof indexedDB === 'undefined') {
+        reject(new Error('IndexedDB is unavailable in this context'));
+        return;
+      }
+      request = indexedDB.open(DB_NAME, 1);
+    } catch (err) {
+      reject(err instanceof Error ? err : new Error(String(err)));
+      return;
+    }
     request.onupgradeneeded = (e: IDBVersionChangeEvent) => {
       const target = e.target as IDBOpenDBRequest;
       const db = target.result;

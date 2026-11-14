@@ -87,10 +87,19 @@ export function useBoardAuthor(): UseBoardAuthorReturn {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    let token = localStorage.getItem(AUTHOR_TOKEN_STORAGE_KEY);
+    let token: string | null = null;
+    try {
+      token = localStorage.getItem(AUTHOR_TOKEN_STORAGE_KEY);
+    } catch {
+      token = null;
+    }
     if (!token || token.trim().length === 0) {
       token = generateClientAuthorToken();
-      localStorage.setItem(AUTHOR_TOKEN_STORAGE_KEY, token);
+      try {
+        localStorage.setItem(AUTHOR_TOKEN_STORAGE_KEY, token);
+      } catch {
+        // Ignore storage write errors in sandboxed iframes
+      }
     }
     setAuthorToken(token);
     authorTokenRef.current = token;
@@ -193,7 +202,11 @@ export function useBoardAuthor(): UseBoardAuthorReturn {
 
           setProfile(updated);
           if (typeof window !== 'undefined') {
-            localStorage.setItem(AUTHOR_PROFILE_STORAGE_KEY, JSON.stringify(updated));
+            try {
+              localStorage.setItem(AUTHOR_PROFILE_STORAGE_KEY, JSON.stringify(updated));
+            } catch {
+              // Ignore storage write errors in sandboxed iframes
+            }
           }
         } else {
           // No profile yet
@@ -210,7 +223,11 @@ export function useBoardAuthor(): UseBoardAuthorReturn {
           };
           setProfile(emptyProfile);
           if (typeof window !== 'undefined') {
-            localStorage.removeItem(AUTHOR_PROFILE_STORAGE_KEY);
+            try {
+              localStorage.removeItem(AUTHOR_PROFILE_STORAGE_KEY);
+            } catch {
+              // Ignore storage write errors in sandboxed iframes
+            }
           }
         }
       }
@@ -292,7 +309,11 @@ export function useBoardAuthor(): UseBoardAuthorReturn {
 
           setProfile(updated);
           if (typeof window !== 'undefined') {
-            localStorage.setItem(AUTHOR_PROFILE_STORAGE_KEY, JSON.stringify(updated));
+            try {
+              localStorage.setItem(AUTHOR_PROFILE_STORAGE_KEY, JSON.stringify(updated));
+            } catch {
+              // Ignore storage write errors in sandboxed iframes
+            }
           }
         }
 
@@ -366,7 +387,11 @@ export function useBoardAuthor(): UseBoardAuthorReturn {
               gpsVerifiedAt: Date.now(),
             };
             if (typeof window !== 'undefined') {
-              localStorage.setItem(AUTHOR_PROFILE_STORAGE_KEY, JSON.stringify(updated));
+              try {
+                localStorage.setItem(AUTHOR_PROFILE_STORAGE_KEY, JSON.stringify(updated));
+              } catch {
+                // Ignore storage write errors in sandboxed iframes
+              }
             }
             return updated;
           });

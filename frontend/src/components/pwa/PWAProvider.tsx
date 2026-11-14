@@ -53,6 +53,71 @@ const PWAContext = createContext<PWAContextType>({
 
 export const usePWA = () => useContext(PWAContext);
 
+function safeSessionGet(key: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.sessionStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSessionSet(key: string, value: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem(key, value);
+  } catch {
+    // Ignore SecurityError in sandboxed/third-party iframes (e.g. Google AdSense Preview)
+  }
+}
+
+function safeSessionRemove(key: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.removeItem(key);
+  } catch {
+    // Ignore SecurityError in sandboxed/third-party iframes
+  }
+}
+
+function safeLocalGet(key: string): string | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeLocalSet(key: string, value: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Ignore SecurityError in sandboxed/third-party iframes
+  }
+}
+
+function safeLocalRemove(key: string): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Ignore SecurityError in sandboxed/third-party iframes
+  }
+}
+
+function getSafeServiceWorkerContainer(): ServiceWorkerContainer | null {
+  if (typeof window === 'undefined' || typeof navigator === 'undefined') return null;
+  try {
+    if (!('serviceWorker' in navigator)) return null;
+    return navigator.serviceWorker ?? null;
+  } catch {
+    // Accessing navigator.serviceWorker in opaque/sandboxed iframes throws SecurityError
+    return null;
+  }
+}
+
 function urlBase64ToUint8Array(base64String: string) {
   const padding = '='.repeat((4 - base64String.length % 4) % 4);
   const base64 = (base64String + padding)
@@ -128,11 +193,11 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // Clear SW update reload flags after page loads
     if (typeof window !== 'undefined') {
-      if (sessionStorage.getItem('dview_sw_reloading') === 'true' || sessionStorage.getItem('dview_sw_update_in_progress') === 'true') {
+      if (safeSessionGet('dview_sw_reloading') === 'true' || safeSessionGet('dview_sw_update_in_progress') === 'true') {
         logger.info('PWAProvider', 'Detected SW update state on mount. Clearing flags in 2 seconds.');
         setTimeout(() => {
-          sessionStorage.removeItem('dview_sw_reloading');
-          sessionStorage.removeItem('dview_sw_update_in_progress');
+          safeSessionRemove('dview_sw_reloading');
+          safeSessionRemove('dview_sw_update_in_progress');
         }, 2000);
       }
     }
@@ -194,16 +259,17 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     }
 
     // Clear old SWR localStorage cache to ensure returning users get fresh data
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('dview-swr-cache');
-      }
-    } catch {}
+    safeLocalRemove('dview-swr-cache');
 
     // iOS detection and manual installation guide eligibility
     const ua = window.navigator.userAgent.toLowerCase();
     const isIphone = ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod');
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    let isStandalone = false;
+    try {
+      isStandalone = Boolean(window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone);
+    } catch {
+      isStandalone = false;
+    }
 
     if (isIphone) {
       setIsIOS(true);
@@ -236,8 +302,13 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       process.env.NODE_ENV === 'development'
     );
 
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+    const swContainer = getSafeServiceWorkerContainer();
+    if (swContainer) {
+      try {
+        swContainer.addEventListener('controllerchange', handleControllerChange);
+      } catch (err) {
+        logger.warn('PWAProvider', 'Failed to attach controllerchange listener', undefined, err);
+      }
     }
 
     // Online status restoration manual queue replay
@@ -256,7 +327,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     // Service Worker message handler for cache expiration detection
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data && event.data.type === 'CACHE_EXPIRED_WARNING') {
-        if (sessionStorage.getItem('dview_cache_expired_warned') === 'true') {
+        if (safeSessionGet('dview_cache_expired_warned') === 'true') {
           return;
         }
         if (typeof window !== 'undefined' && !navigator.onLine) {
@@ -265,8 +336,12 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         }
       }
     };
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
+    if (swContainer) {
+      try {
+        swContainer.addEventListener('message', handleServiceWorkerMessage);
+      } catch (err) {
+        logger.warn('PWAProvider', 'Failed to attach message listener', undefined, err);
+      }
     }
 
     // 1. A2HS Logic
@@ -282,8 +357,8 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       setShowCustomA2HSModal(false);
 
       // Add PWA reward passes to localStorage
-      const currentPasses = Number(localStorage.getItem('dview_free_passes') || '0');
-      localStorage.setItem('dview_free_passes', (currentPasses + 3).toString());
+      const currentPasses = Number(safeLocalGet('dview_free_passes') || '0');
+      safeLocalSet('dview_free_passes', (currentPasses + 3).toString());
 
       setToastMessage('홈화면 앱 설치 완료! 모바일에서 더 빠르고 편하게 분석 리포트를 확인해 보세요.');
       if (installRewardTimeoutRef.current) clearTimeout(installRewardTimeoutRef.current);
@@ -298,24 +373,28 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     window.addEventListener('appinstalled', handleAppInstalled);
 
     // 2. Web Push Support Check
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window) {
+    if (swContainer && typeof window !== 'undefined' && 'PushManager' in window) {
       if (pushSupportTimeoutRef.current) clearTimeout(pushSupportTimeoutRef.current);
       pushSupportTimeoutRef.current = setTimeout(() => {
         if (isMounted) setIsPushSupported(true);
       }, 0);
       // Check existing subscription
-      navigator.serviceWorker.ready.then((reg) => {
-        if (!isMounted) return;
-        if (reg && reg.pushManager) {
-          reg.pushManager.getSubscription().then((sub) => {
-            if (isMounted && sub) setPushSubscription(sub);
-          }).catch((err) => {
-            logger.warn('PWAProvider', 'getSubscription failed', undefined, err);
-          });
-        }
-      }).catch((err) => {
-        logger.warn('PWAProvider', 'serviceWorker.ready failed', undefined, err);
-      });
+      try {
+        swContainer.ready.then((reg) => {
+          if (!isMounted) return;
+          if (reg && reg.pushManager) {
+            reg.pushManager.getSubscription().then((sub) => {
+              if (isMounted && sub) setPushSubscription(sub);
+            }).catch((err) => {
+              logger.warn('PWAProvider', 'getSubscription failed', undefined, err);
+            });
+          }
+        }).catch((err) => {
+          logger.warn('PWAProvider', 'serviceWorker.ready failed', undefined, err);
+        });
+      } catch (err) {
+        logger.warn('PWAProvider', 'serviceWorker.ready access failed', undefined, err);
+      }
     }
 
     let registeredReg: ServiceWorkerRegistration | null = null;
@@ -340,7 +419,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     };
 
     // SW Update monitor
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator && !isDevEnv) {
+    if (swContainer && !isDevEnv) {
       let isConfigured = false;
       const setupMonitor = (reg: ServiceWorkerRegistration) => {
         if (!isMounted || isConfigured) return;
@@ -363,21 +442,25 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         }
       };
 
-      // Immediately check for registration
-      navigator.serviceWorker.getRegistration().then((reg) => {
-        if (reg) {
-          setupMonitor(reg);
-        }
-      }).catch((err) => {
-        logger.warn('PWAProvider', 'getRegistration failed in update monitor', undefined, err);
-      });
+      try {
+        // Immediately check for registration
+        swContainer.getRegistration().then((reg) => {
+          if (reg) {
+            setupMonitor(reg);
+          }
+        }).catch((err) => {
+          logger.warn('PWAProvider', 'getRegistration failed in update monitor', undefined, err);
+        });
 
-      // Fallback via ready promise
-      navigator.serviceWorker.ready.then((reg) => {
-        setupMonitor(reg);
-      }).catch((err) => {
-        logger.warn('PWAProvider', 'serviceWorker.ready failed in update monitor', undefined, err);
-      });
+        // Fallback via ready promise
+        swContainer.ready.then((reg) => {
+          setupMonitor(reg);
+        }).catch((err) => {
+          logger.warn('PWAProvider', 'serviceWorker.ready failed in update monitor', undefined, err);
+        });
+      } catch (err) {
+        logger.warn('PWAProvider', 'SW update monitor initialization failed', undefined, err);
+      }
     }
 
     return () => {
@@ -395,10 +478,10 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         registeredWorker.removeEventListener('statechange', handleStateChange);
       }
 
-      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+      if (swContainer) {
         try {
-          navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
-          navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+          swContainer.removeEventListener('controllerchange', handleControllerChange);
+          swContainer.removeEventListener('message', handleServiceWorkerMessage);
         } catch (err) {
           logger.warn('PWAProvider', 'Cleanup failed for serviceWorker listeners', undefined, err);
         }
@@ -430,7 +513,8 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const subscribeToPush = async (uid?: string | null, aptName?: string) => {
     if (typeof window === 'undefined') return false;
 
-    if (!isPushSupported || typeof Notification === 'undefined' || !('serviceWorker' in navigator)) {
+    const swContainer = getSafeServiceWorkerContainer();
+    if (!isPushSupported || typeof Notification === 'undefined' || !swContainer) {
       throw new Error('UNSUPPORTED_BROWSER');
     }
     try {
@@ -448,7 +532,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         throw new Error('PERMISSION_DENIED');
       }
       
-      const reg = await navigator.serviceWorker.ready;
+      const reg = await swContainer.ready;
       if (!reg || !reg.pushManager) {
         throw new Error('REGISTRATION_FAILED');
       }
@@ -663,7 +747,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
               
               <button
                 onClick={() => {
-                  sessionStorage.setItem('dview_cache_expired_warned', 'true');
+                  safeSessionSet('dview_cache_expired_warned', 'true');
                   setShowCacheExpiredModal(false);
                 }}
                 className="w-full bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-[13px] font-bold py-2.5 px-4 rounded-[14px] transition-colors cursor-pointer"

@@ -26,7 +26,12 @@ const proxyConfig = ProxyConfigSchema.parse({
     '127.0.0.1:',
     'vercel.app',
     'dview.kr',
-    'dongtanview.com'
+    'dongtanview.com',
+    'adsense.google.com',
+    'google.com',
+    'googleusercontent.com',
+    'googlesyndication.com',
+    'doubleclick.net',
   ]
 });
 
@@ -66,7 +71,7 @@ const STATIC_CSP_HEADER = `
   object-src 'none';
   base-uri 'self';
   form-action 'self' https://sharer.kakao.com https://*.kakao.com;
-  frame-ancestors 'none';
+  frame-ancestors 'self' https://adsense.google.com https://*.google.com https://*.googlesyndication.com https://googleads.g.doubleclick.net https://*.googleusercontent.com;
   upgrade-insecure-requests;
 `.replace(/\s+/g, ' ').trim();
 
@@ -260,9 +265,8 @@ export async function proxy(request: NextRequest) {
     response = NextResponse.next();
   }
 
-  // 공통 보안 헤더
+  // 공통 보안 헤더 (CSP frame-ancestors에서 AdSense 미리보기 도메인만 허용하며 X-Frame-Options: DENY 충돌 제거)
   response.headers.set('Content-Security-Policy', STATIC_CSP_HEADER);
-  response.headers.set('X-Frame-Options', 'DENY'); // Clickjacking 원천 차단
   response.headers.set('X-Content-Type-Options', 'nosniff'); // MIME 타입 변조 방지 
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin'); // 리퍼러 보호
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(self)'); // 하드웨어 권한 탈취 방지

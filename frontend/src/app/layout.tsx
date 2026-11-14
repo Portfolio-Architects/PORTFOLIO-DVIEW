@@ -30,8 +30,12 @@ import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
 import MobileStickyAnchorAd from '@/components/layout/MobileStickyAnchorAd';
 import { logger } from '@/lib/services/logger';
 
-const CustomA2HSModal = dynamic(() => import('@/components/pwa/CustomA2HSModal'));
-const WelcomeModal = dynamic(() => import('@/components/ui/WelcomeModal'));
+const CustomA2HSModal = dynamic(() =>
+  import('@/components/pwa/CustomA2HSModal').catch(() => ({ default: () => null }))
+);
+const WelcomeModal = dynamic(() =>
+  import('@/components/ui/WelcomeModal').catch(() => ({ default: () => null }))
+);
 
 
 const ROOT_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('D-VIEW (디뷰 · 동뷰 · 동탄뷰)')}&subtitle=${encodeURIComponent('동탄 184개 아파트 시세·실거래가·집값 추이 그래프 및 입지 비교')}`;
@@ -132,12 +136,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
         <meta name="naver-site-verification" content="e0240efa3f3f36785b2ca54faa765e9058f3707a" />
         <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'} />
-        {/* Google AdSense (Conditionally loaded with strategy="afterInteractive") */}
-        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID && (
-          <Script
+        {/* Google AdSense — Direct SSR <head> async script for immediate crawler & Ad Settings Preview detection */}
+        {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'production') && (
+          <script
             id="google-adsense"
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID}`}
-            strategy="afterInteractive"
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'}`}
             crossOrigin="anonymous"
           />
         )}

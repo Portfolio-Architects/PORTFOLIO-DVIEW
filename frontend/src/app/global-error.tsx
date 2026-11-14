@@ -19,6 +19,12 @@ export default function GlobalError({
 
   return (
     <html lang="ko">
+      <head>
+        <meta
+          name="google-adsense-account"
+          content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'}
+        />
+      </head>
       <body className="antialiased">
         <div style={{
           minHeight: '100vh',

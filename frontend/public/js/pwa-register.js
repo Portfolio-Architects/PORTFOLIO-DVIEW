@@ -1,5 +1,5 @@
-if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker) {
-  try {
+try {
+  if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker) {
     var isDev = window.location.hostname === 'localhost' || 
                 window.location.hostname === '127.0.0.1' || 
                 window.location.hostname.indexOf('192.168.') === 0 ||
@@ -23,7 +23,7 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
         console.warn('Failed to get service worker registrations:', err);
       });
 
-      if (typeof window.caches !== 'undefined' && window.caches.keys) {
+      if (typeof window.caches !== 'undefined' && window.caches && window.caches.keys) {
         window.caches.keys().then(function(keys) {
           keys.forEach(function(key) {
             window.caches.delete(key);
@@ -35,10 +35,14 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
       }
     } else {
       var registerSW = function() {
-        if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
-          navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function(err) {
-            console.log('ServiceWorker registration failed: ', err);
-          });
+        try {
+          if (navigator.serviceWorker && typeof navigator.serviceWorker.register === 'function') {
+            navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(function(err) {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+          }
+        } catch (swErr) {
+          console.warn('ServiceWorker registration blocked by sandbox:', swErr);
         }
       };
 
@@ -48,7 +52,7 @@ if (typeof window !== 'undefined' && typeof navigator !== 'undefined' && 'servic
         document.addEventListener('DOMContentLoaded', registerSW);
       }
     }
-  } catch (globalErr) {
-    console.warn('PWA service worker registration guard caught error:', globalErr);
   }
+} catch (globalErr) {
+  console.warn('PWA service worker registration guard caught error:', globalErr);
 }

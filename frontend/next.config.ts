@@ -152,6 +152,10 @@ const nextConfig: NextConfig = {
             key: 'Cache-Control',
             value: 'public, max-age=31536000, immutable',
           },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
         ],
       },
       {
@@ -190,6 +194,10 @@ const nextConfig: NextConfig = {
               ? 'no-store, no-cache, must-revalidate, max-age=0'
               : 'public, max-age=900, stale-while-revalidate=3600',
           },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
         ],
       },
       {
@@ -201,15 +209,15 @@ const nextConfig: NextConfig = {
               ? 'no-store, no-cache, must-revalidate, max-age=0'
               : 'public, max-age=900, stale-while-revalidate=3600',
           },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
         ],
       },
       {
         source: '/:path*',
         headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
           {
             key: 'X-Content-Type-Options',
             value: 'nosniff',
@@ -251,7 +259,7 @@ const nextConfig: NextConfig = {
                     "object-src 'none'",
                     "base-uri 'self'",
                     "form-action 'self' https://sharer.kakao.com https://*.kakao.com",
-                    "frame-ancestors 'none'",
+                    "frame-ancestors 'self' https://adsense.google.com https://*.google.com https://*.googlesyndication.com https://googleads.g.doubleclick.net https://*.googleusercontent.com",
                     "upgrade-insecure-requests",
                   ].join('; ') + ';',
                 },

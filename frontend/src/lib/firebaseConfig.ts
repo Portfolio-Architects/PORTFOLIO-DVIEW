@@ -48,15 +48,66 @@ const app = getApps().length === 0 && configValidation.success
   ? initializeApp(configValidation.data) 
   : (getApps().length > 0 ? getApps()[0] : null);
 
-export const db = (app ? initializeFirestore(app, { 
-  ...(typeof window !== 'undefined' ? { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) } : {}),
-  ignoreUndefinedProperties: true,
-  experimentalForceLongPolling: true
-}) : null) as unknown as ReturnType<typeof initializeFirestore>;
+function canUseBrowserPersistence(): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const probeKey = '__dview_fb_probe__';
+    window.localStorage.setItem(probeKey, '1');
+    window.localStorage.removeItem(probeKey);
+    if (typeof window.indexedDB === 'undefined' || window.indexedDB === null) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
-export const auth = (app ? getAuth(app) : null) as unknown as ReturnType<typeof getAuth>;
+export const db = (() => {
+  if (!app) return null;
+  try {
+    const usePersistentCache = canUseBrowserPersistence();
+    return initializeFirestore(app, {
+      ...(usePersistentCache
+        ? { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }
+        : {}),
+      ignoreUndefinedProperties: true,
+      experimentalForceLongPolling: true,
+    });
+  } catch (err) {
+    logger.warn('firebaseConfig.firestore', 'Falling back to memory Firestore cache due to sandbox restriction', {}, err);
+    try {
+      return initializeFirestore(app, {
+        ignoreUndefinedProperties: true,
+        experimentalForceLongPolling: true,
+      });
+    } catch {
+      return null;
+    }
+  }
+})() as unknown as ReturnType<typeof initializeFirestore>;
+
+export const auth = (() => {
+  if (!app) return null;
+  try {
+    return getAuth(app);
+  } catch (err) {
+    logger.warn('firebaseConfig.auth', 'Firebase Auth unavailable in restricted sandbox', {}, err);
+    return null;
+  }
+})() as unknown as ReturnType<typeof getAuth>;
+
 export const googleProvider = new GoogleAuthProvider();
-export const storage = (app ? getStorage(app) : null) as unknown as ReturnType<typeof getStorage>;
+
+export const storage = (() => {
+  if (!app) return null;
+  try {
+    return getStorage(app);
+  } catch (err) {
+    logger.warn('firebaseConfig.storage', 'Firebase Storage unavailable in restricted sandbox', {}, err);
+    return null;
+  }
+})() as unknown as ReturnType<typeof getStorage>;
 
 // Firebase App Check Initialization (reCAPTCHA Enterprise for S+ security rating)
 if (typeof window !== 'undefined' && app) {

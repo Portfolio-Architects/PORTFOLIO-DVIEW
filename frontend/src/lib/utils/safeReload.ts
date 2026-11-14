@@ -50,9 +50,19 @@ export function safeReload(componentName: string) {
     }
 
     const key = `chunk_retry_${componentName}`;
-    const retried = sessionStorage.getItem(key);
+    let retried: string | null = null;
+    try {
+      retried = sessionStorage.getItem(key);
+    } catch {
+      // Storage blocked in sandboxed iframe — do not enter infinite reload loop
+      return;
+    }
     if (!retried) {
-      sessionStorage.setItem(key, 'true');
+      try {
+        sessionStorage.setItem(key, 'true');
+      } catch {
+        return;
+      }
       logger.warn('safeReload', `[safeReload] Hard page reload initiated by: ${componentName}`);
       window.location.reload();
     } else {

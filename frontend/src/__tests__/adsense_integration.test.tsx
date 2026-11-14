@@ -133,14 +133,16 @@ describe('Google AdSense Integration Suite', () => {
       expect(layoutContent).toContain('rel="dns-prefetch" href="https://pagead2.googlesyndication.com"');
     });
 
-    it('verifies src/app/layout.tsx conditionally loads AdSense Script with strategy="afterInteractive"', () => {
+    it('verifies src/app/layout.tsx emits direct SSR <head> async AdSense script for immediate crawler & Ad Settings Preview detection', () => {
       const layoutPath = path.resolve(__dirname, '../app/layout.tsx');
       const layoutContent = fs.readFileSync(layoutPath, 'utf-8');
 
       expect(layoutContent).toContain('process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID');
+      expect(layoutContent).toContain('<script');
       expect(layoutContent).toContain('id="google-adsense"');
-      expect(layoutContent).toContain('strategy="afterInteractive"');
+      expect(layoutContent).toContain('async');
       expect(layoutContent).toContain('crossOrigin="anonymous"');
+      expect(layoutContent).toContain('https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=');
     });
 
     it('verifies frontend/.env.example documents NEXT_PUBLIC_ADSENSE_CLIENT_ID with comments', () => {
