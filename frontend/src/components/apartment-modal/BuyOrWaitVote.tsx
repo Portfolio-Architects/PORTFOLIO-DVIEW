@@ -320,7 +320,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
           <h3 className="text-[13.5px] font-black text-primary tracking-tight">실수요자 실시간 매수 심리</h3>
         </div>
         {!(isLoading && !data && !error) && !error && (
-          <span className="text-[11px] font-bold text-tertiary">
+          <span className="text-[11px] font-bold text-tertiary tabular-nums">
             총 {totalVotes.toLocaleString()}명 참여
           </span>
         )}
@@ -382,7 +382,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
         </div>
       ) : (
         <div className="flex flex-col gap-3">
-          <div className="w-full h-8 bg-black/5 dark:bg-surface/10 rounded-xl overflow-hidden flex relative">
+          <div className="w-full h-8 bg-black/5 dark:bg-surface/10 rounded-xl overflow-hidden flex relative tabular-nums">
             <div
               style={{ width: `${animatedBuyPercent}%` }}
               className="h-full bg-gradient-to-r from-emerald-400 to-emerald-500 flex items-center pl-3"
@@ -401,7 +401,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] font-bold text-tertiary px-1">
+          <div className="flex items-center justify-between text-[11px] font-bold text-tertiary px-1 tabular-nums">
             <span className="flex items-center gap-1">
               {userVote === 'buy' && <Check size={12} className="text-emerald-500" />}
               매수 찬성 {buyCount}명
@@ -425,7 +425,7 @@ const BuyOrWaitVote = React.memo(function BuyOrWaitVote({
                 가치-심리 매칭 분석
               </span>
             </div>
-            <p className="text-[12px] font-medium text-secondary leading-relaxed break-keep">
+            <p className="text-[12px] font-medium text-secondary leading-relaxed break-keep tabular-nums">
               {(() => {
                 if (valuationStatus === 'undervalued') {
                   return buyPercent >= 50

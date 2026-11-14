@@ -364,8 +364,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
       <div className="w-full flex flex-col bg-transparent pb-16 min-h-screen">
         <PageHeroHeader
           title="D-VIEW 동탄 소식"
-          subtitleStrong="동탄 시정·부동산·교통 뉴스"
-          subtitleLight="화성시 고시공고와 GTX·트램 소식을 한곳에 모아보기"
+          subtitleStrong="화성시 고시공고 · GTX·트램 교통 소식"
           isTitleDiv={true}
         />
 

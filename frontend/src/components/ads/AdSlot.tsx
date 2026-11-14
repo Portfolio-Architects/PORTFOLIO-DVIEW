@@ -635,6 +635,7 @@ export function AdSlot({
       data-slot-format={format}
       data-refresh-key={effectiveRefreshKey}
       data-cascade-status={cascadeStatus}
+      style={{ contain: 'layout paint' }}
       className={`w-full relative overflow-hidden flex flex-col justify-center items-center transition-all ${minHeightClass} ${className}`}
     >
       <span

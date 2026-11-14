@@ -214,7 +214,7 @@ export const AptRow = memo(({
                   trackEvent('watchlist_toggle_favorite', {
                     apt_name: item.apt.name,
                     is_favorite: !isFavorite,
-                    source: 'explore_list',
+                    surface: 'explore_list',
                   });
                   onToggleFavorite(item.apt.name);
                 }}

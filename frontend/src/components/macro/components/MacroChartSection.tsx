@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { ArrowRight, Check, ChevronDown, Clock, Search, Star, X } from 'lucide-react';
-import { findTxKey, getDisplayAptName, normalizeAptName } from '@/lib/utils/apartmentMapping';
-import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
+import { findTxKey, getDisplayAptName, normalizeAptName, isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
+import { useFavorites } from '@/hooks/useFavorites';
 import {
   filterAndRankApartments,
   getHighlightSegments,
@@ -80,7 +80,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   selectedTimelineApt,
   setSelectedTimelineApt,
   preloadApartmentModal,
-  defaultTimelineApts,
+  defaultTimelineApts = [],
   sheetApartments,
   txSummaryData,
   nameMapping,
@@ -115,12 +115,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
   const listboxRef = useRef<HTMLDivElement>(null);
   const lastTrackedSearchQueryRef = useRef<string>('');
   const searchMatchCountRef = useRef<number>(0);
-  const onSelectAptRef = useRef(onSelectApt);
   const isImeComposingRef = useRef<boolean>(false);
-
-  useEffect(() => {
-    onSelectAptRef.current = onSelectApt;
-  }, [onSelectApt]);
 
   useEffect(() => {
     if (mounted) {
@@ -277,19 +272,17 @@ export const MacroChartSection = React.memo(function MacroChartSection({
     }
     if (!mounted) return;
 
+    const normalizedSearch = trimmedSearch.slice(0, 100);
     const timer = setTimeout(() => {
-      if (lastTrackedSearchQueryRef.current !== trimmedSearch) {
-        lastTrackedSearchQueryRef.current = trimmedSearch;
-        trackEvent('search_apartment', { query: trimmedSearch, surface: 'dashboard_chart' });
-        if (onSelectAptRef.current) {
-          trackSearchQuery({
-            search_term: trimmedSearch,
-            query: trimmedSearch,
-            surface: 'dashboard_chart',
-            trigger: 'debounce',
-            results_count: searchMatchCountRef.current,
-          });
-        }
+      if (lastTrackedSearchQueryRef.current !== normalizedSearch) {
+        lastTrackedSearchQueryRef.current = normalizedSearch;
+        trackSearchQuery({
+          search_term: trimmedSearch,
+          query: trimmedSearch,
+          surface: 'dashboard_chart',
+          trigger: 'debounce',
+          results_count: searchMatchCountRef.current,
+        });
       }
     }, 1000);
 
@@ -429,10 +422,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
     (apt: EnrichedCatalogApt, isCrossDong = false) => {
       const activeSearch = searchQuery.trim();
       if (activeSearch) {
-        if (lastTrackedSearchQueryRef.current !== activeSearch) {
-          lastTrackedSearchQueryRef.current = activeSearch;
-          trackEvent('search_apartment', { query: activeSearch, surface: 'dashboard_chart' });
-        }
+        lastTrackedSearchQueryRef.current = activeSearch.slice(0, 100);
         trackSearchQuery({
           search_term: activeSearch,
           query: activeSearch,
@@ -521,7 +511,9 @@ export const MacroChartSection = React.memo(function MacroChartSection({
         e.preventDefault();
         if (navigableItems.length === 0) {
           const activeSearch = searchQuery.trim();
-          if (activeSearch) {
+          const normalizedNoMatch = activeSearch.slice(0, 100);
+          if (normalizedNoMatch && lastTrackedSearchQueryRef.current !== normalizedNoMatch) {
+            lastTrackedSearchQueryRef.current = normalizedNoMatch;
             trackSearchQuery({
               search_term: activeSearch,
               query: activeSearch,
@@ -650,7 +642,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
               trackEvent('watchlist_toggle_favorite', {
                 apt_name: apt.name,
                 is_favorite: !isRowFavorite,
-                source: 'chart_combobox',
+                surface: 'chart_combobox',
               });
               effectiveToggleFavorite(apt.name);
             }}
@@ -718,7 +710,7 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                         trackEvent('watchlist_toggle_favorite', {
                           apt_name: selectedTimelineApt,
                           is_favorite: !isSelectedAptFavorite,
-                          source: 'chart_header',
+                          surface: 'chart_header',
                         });
                         effectiveToggleFavorite(selectedTimelineApt);
                       }}
@@ -767,11 +759,19 @@ export const MacroChartSection = React.memo(function MacroChartSection({
             </div>
 
             {/* Filter Bar: Region Select + Unified Searchable Apartment Combobox */}
-            {isDefaultAptSettingUp ? (
-              <div className="w-full h-[34px] sm:h-[36px] bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800/50 dark:to-slate-800/30 rounded-[10px] animate-pulse" />
+            {!mounted || isDefaultAptSettingUp ? (
+              <div
+                key="chart-filter-skeleton"
+                className="w-full h-[36px] sm:h-[38px] pt-0.5 shrink-0"
+                aria-hidden="true"
+              >
+                <div className="w-full h-full bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-800/50 dark:to-slate-800/30 rounded-[10px] animate-pulse" />
+              </div>
             ) : (
-              mounted && (
-                <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full min-w-0 pt-0.5">
+              <div
+                key="chart-filter-ready"
+                className="flex items-center gap-2 flex-wrap sm:flex-nowrap w-full min-w-0 pt-0.5"
+              >
                   {/* 1. Dong (Region) Filter */}
                   <div className="flex items-center gap-1 shrink-0">
                     <select
@@ -1040,7 +1040,6 @@ export const MacroChartSection = React.memo(function MacroChartSection({
                     )}
                   </div>
                 </div>
-              )
             )}
           </div>
 

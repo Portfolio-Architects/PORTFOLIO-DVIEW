@@ -6,10 +6,11 @@ import {
   PolicyLoanType,
 } from '@/lib/utils/policyLoanCalculators';
 import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
+import { trackEvent } from '@/lib/utils/analytics';
 
 export interface PolicyLoanQuickWidgetProps {
-  onOpenMortgageModal?: () => void;
-  onOpenMortgage?: () => void;
+  onOpenMortgageModal?: (aptName?: string, priceWon?: number) => void;
+  onOpenMortgage?: (aptName?: string, priceWon?: number) => void;
   initialHomePriceWon?: number;
   apartmentName?: string | null;
 }
@@ -18,7 +19,7 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
   onOpenMortgageModal,
   onOpenMortgage,
   initialHomePriceWon,
-  apartmentName: _apartmentName,
+  apartmentName,
 }: PolicyLoanQuickWidgetProps) {
   const [loanType, setLoanType] = useState<PolicyLoanType>('NEWBORN');
   const [homePriceWon, setHomePriceWon] = useState<number>(initialHomePriceWon || 700_000_000); // 7억 기본
@@ -30,7 +31,32 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
     }
   }, [initialHomePriceWon]);
 
-  const handleOpen = onOpenMortgageModal || onOpenMortgage;
+  const resolvedAptName =
+    typeof apartmentName === 'string' && apartmentName.trim().length > 0
+      ? apartmentName.trim()
+      : undefined;
+
+  const trackQuickInteract = (trigger: string, extra?: Record<string, unknown>) => {
+    trackEvent('finance_quick_interact', {
+      calculator_type: 'policy_loan',
+      surface: 'finance_quick_widget',
+      trigger,
+      apartment_name: resolvedAptName,
+      apt_name: resolvedAptName,
+      ...extra,
+    });
+  };
+
+  const openCallback = onOpenMortgageModal || onOpenMortgage;
+  const handleOpen = openCallback
+    ? () => {
+        if (resolvedAptName !== undefined) {
+          openCallback(resolvedAptName, homePriceWon > 0 ? homePriceWon : undefined);
+        } else {
+          openCallback();
+        }
+      }
+    : undefined;
 
   const result = useMemo(() => {
     return calculatePolicyLoan({
@@ -66,21 +92,30 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
         <div className={getToggleTrackClass('grid grid-cols-3 w-full mb-3.5')}>
           <button
             type="button"
-            onClick={() => setLoanType('NEWBORN')}
+            onClick={() => {
+              trackQuickInteract('loan_tab_newborn', { loan_type: 'NEWBORN' });
+              setLoanType('NEWBORN');
+            }}
             className={getToggleBtnClass({ active: loanType === 'NEWBORN' })}
           >
             신생아 특례
           </button>
           <button
             type="button"
-            onClick={() => setLoanType('DIDIMDOL')}
+            onClick={() => {
+              trackQuickInteract('loan_tab_didimdol', { loan_type: 'DIDIMDOL' });
+              setLoanType('DIDIMDOL');
+            }}
             className={getToggleBtnClass({ active: loanType === 'DIDIMDOL' })}
           >
             디딤돌 대출
           </button>
           <button
             type="button"
-            onClick={() => setLoanType('BOGEUMJARI')}
+            onClick={() => {
+              trackQuickInteract('loan_tab_bogeumjari', { loan_type: 'BOGEUMJARI' });
+              setLoanType('BOGEUMJARI');
+            }}
             className={getToggleBtnClass({ active: loanType === 'BOGEUMJARI' })}
           >
             보금자리론
@@ -97,7 +132,13 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
                 <button
                   key={price}
                   type="button"
-                  onClick={() => setHomePriceWon(price)}
+                  onClick={() => {
+                    trackQuickInteract(`price_preset_${price / 100_000_000}eok`, {
+                      home_price_won: price,
+                      loan_type: loanType,
+                    });
+                    setHomePriceWon(price);
+                  }}
                   className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     homePriceWon === price
                       ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
@@ -118,7 +159,13 @@ export const PolicyLoanQuickWidget = React.memo(function PolicyLoanQuickWidget({
                 <button
                   key={inc}
                   type="button"
-                  onClick={() => setAnnualIncomeWon(inc)}
+                  onClick={() => {
+                    trackQuickInteract(`income_preset_${inc / 1_000_000}m`, {
+                      annual_income_won: inc,
+                      loan_type: loanType,
+                    });
+                    setAnnualIncomeWon(inc);
+                  }}
                   className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     annualIncomeWon === inc
                       ? 'bg-blue-600 text-white border-blue-600 shadow-xs'

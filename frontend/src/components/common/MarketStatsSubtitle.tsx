@@ -57,11 +57,16 @@ function formatContractDate(yyyymmdd: string | null): string | null {
   return `${Number(yyyymmdd.slice(4, 6))}월 ${Number(yyyymmdd.slice(6, 8))}일`;
 }
 
+function formatShortDotDate(yyyymmdd: string | null): string | null {
+  if (!yyyymmdd || !/^\d{8}$/.test(yyyymmdd)) return null;
+  return `${yyyymmdd.slice(4, 6)}.${yyyymmdd.slice(6, 8)}`;
+}
+
 function StatSkeleton({ widthClass }: { widthClass: string }) {
   return (
     <span
       aria-hidden="true"
-      className={`inline-block h-3 ${widthClass} rounded bg-slate-200 dark:bg-slate-700 align-middle animate-pulse`}
+      className={`inline-block h-3.5 ${widthClass} rounded bg-slate-200/70 dark:bg-slate-800/70 align-middle animate-pulse`}
     />
   );
 }
@@ -84,37 +89,110 @@ export function MarketStatsStrong() {
   );
 }
 
-/** subtitleLight 용: 구분선 + 행동 유도 문구 + (넓은 화면) 최신 국토부 등록 반영일 */
-export function MarketStatsLight({ text }: { text: string }) {
+/**
+ * subtitleLight 용 통합 실시간 실거래 티커 바:
+ * - 당일 07:00 신규 등록분 존재 시: "| ● 오늘 신규 36건 · 신고가 15건 (11.14 07:00)"
+ * - 주말/공휴일 등 과거 등록일 기준 시: "| 11월 13일 국토부 등록 반영"
+ * - 마운트/로딩 전: Zero-CLS 폭 예약 스켈레톤
+ */
+export function MarketStatsLight({ text }: { text?: string } = {}) {
   const stats = useMarketStats();
   const registeredLabel = formatContractDate(stats?.latestRegisteredDate ?? null);
+  const shortRegLabel = formatShortDotDate(stats?.latestRegisteredDate ?? null);
   const contractFallbackLabel = formatContractDate(stats?.latestContractDate ?? null);
 
   const todayYmdKST = getTodayYmdKST();
-  const isTodayBatch = stats?.latestRegisteredDate === todayYmdKST;
+  const isTodayBatch = Boolean(stats?.latestRegisteredDate && stats.latestRegisteredDate === todayYmdKST);
+  const todayRegisteredCount =
+    isTodayBatch && typeof stats?.todayRegisteredCount === 'number' && stats.todayRegisteredCount > 0
+      ? stats.todayRegisteredCount
+      : 0;
+  const todayNewHighCount =
+    isTodayBatch && typeof stats?.todayNewHighCount === 'number' && stats.todayNewHighCount > 0
+      ? stats.todayNewHighCount
+      : 0;
 
-  const suffixText = isTodayBatch && registeredLabel
-    ? ` · 오늘 아침 7시 갱신 (${registeredLabel})`
-    : registeredLabel
-      ? ` · ${registeredLabel} 국토부 등록 반영`
-      : contractFallbackLabel
-        ? ` · ${contractFallbackLabel} 거래 반영`
-        : '';
+  const trimmedText = typeof text === 'string' ? text.trim() : '';
 
-  return (
-    <>
-      <span className="hidden sm:inline text-slate-300 dark:text-slate-600 mr-1.5">—</span>
-      {text}
-      <span className="hidden lg:inline-block min-w-[11.5rem] text-slate-500 dark:text-slate-400 tabular-nums">
-        {isTodayBatch && registeredLabel ? (
-          <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            {suffixText}
+  let statusNode: React.ReactNode = null;
+  if (!stats) {
+    statusNode = <StatSkeleton widthClass="w-36 sm:w-44" />;
+  } else if (isTodayBatch && todayRegisteredCount > 0) {
+    statusNode = (
+      <span
+        data-testid="market-stats-today-ticker"
+        className="inline-flex flex-wrap items-center gap-1.5 tabular-nums"
+      >
+        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+        <span className="font-bold text-emerald-700 dark:text-emerald-400">
+          오늘 신규 {todayRegisteredCount.toLocaleString('ko-KR')}건
+        </span>
+        {todayNewHighCount > 0 && (
+          <>
+            <span aria-hidden="true" className="text-slate-300 dark:text-slate-600">
+              ·
+            </span>
+            <span className="font-extrabold text-brand-red">
+              신고가 {todayNewHighCount.toLocaleString('ko-KR')}건
+            </span>
+          </>
+        )}
+        {shortRegLabel && (
+          <span className="text-tertiary font-medium text-[12px] sm:text-[13px]">
+            ({shortRegLabel} 07:00)
           </span>
-        ) : (
-          suffixText
         )}
       </span>
-    </>
+    );
+  } else if (isTodayBatch) {
+    statusNode = (
+      <span
+        data-testid="market-stats-today-ticker"
+        className="inline-flex items-center gap-1.5 tabular-nums"
+      >
+        <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+        <span className="font-bold text-emerald-700 dark:text-emerald-400">
+          오늘 07:00 실거래 갱신
+        </span>
+        {shortRegLabel && (
+          <span className="text-tertiary font-medium text-[12px] sm:text-[13px]">
+            ({shortRegLabel})
+          </span>
+        )}
+      </span>
+    );
+  } else if (registeredLabel) {
+    statusNode = (
+      <span className="text-tertiary font-medium tabular-nums">
+        {registeredLabel} 국토부 등록 반영
+      </span>
+    );
+  } else if (contractFallbackLabel) {
+    statusNode = (
+      <span className="text-tertiary font-medium tabular-nums">
+        {contractFallbackLabel} 거래 반영
+      </span>
+    );
+  }
+
+  if (!trimmedText && !statusNode) {
+    return null;
+  }
+
+  return (
+    <span className="inline-flex flex-wrap items-center gap-x-2.5 gap-y-1 min-h-[20px]">
+      <span
+        aria-hidden="true"
+        className="hidden sm:inline-block w-px h-3 bg-slate-200 dark:bg-slate-700 shrink-0"
+      />
+      {trimmedText ? <span className="text-secondary">{trimmedText}</span> : null}
+      {trimmedText && statusNode ? (
+        <span
+          aria-hidden="true"
+          className="inline-block w-px h-3 bg-slate-200 dark:bg-slate-700 shrink-0"
+        />
+      ) : null}
+      {statusNode}
+    </span>
   );
 }

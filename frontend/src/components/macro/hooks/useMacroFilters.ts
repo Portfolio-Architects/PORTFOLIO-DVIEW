@@ -19,13 +19,57 @@ export type TradeTypeFilterType = 'all' | 'high' | 'rising' | 'flat' | 'falling'
 export type QuickFilterChipType = 'all' | 'dongtan1' | 'dongtan2' | 'high' | 'pyeong30' | 'billion10' | 'landmark';
 
 /**
- * 4-Way Multi-Sort Orders:
- * - latest: 최신 계약순 (기본 계약일자 내림차순)
+ * 4-Way Multi-Sort Orders (applied within each registration-date group):
+ * - latest: 평당가 높은순 (기본값 — 각 등록일 그룹 내 평당 가격 상위순)
  * - price_desc: 실거래가 높은순 (거래가격 내림차순)
  * - delta_desc: 상승률 높은순 (상승률/변동액 내림차순)
  * - area_desc: 전용면적순 (전용면적/평형 내림차순)
  */
 export type TimelineSortOrder = 'latest' | 'price_desc' | 'delta_desc' | 'area_desc';
+
+export function getTimelineItemPyeongPrice(item: {
+  priceVal?: number;
+  areaPyeong?: number;
+  area?: number;
+}): { roundedMan: number; exactMan: number } {
+  const priceVal = typeof item.priceVal === 'number' && Number.isFinite(item.priceVal) ? item.priceVal : 0;
+  const pyeong =
+    typeof item.areaPyeong === 'number' && item.areaPyeong > 0
+      ? item.areaPyeong
+      : typeof item.area === 'number' && item.area > 0
+        ? item.area / 3.3058
+        : 0;
+  if (priceVal <= 0 || pyeong <= 0) {
+    return { roundedMan: 0, exactMan: 0 };
+  }
+  const exactMan = (priceVal * 10000) / pyeong;
+  return {
+    roundedMan: Math.round(exactMan),
+    exactMan,
+  };
+}
+
+export function compareTimelineItemsByPyeongPriceDesc<
+  T extends {
+    priceVal: number;
+    areaPyeong?: number;
+    area?: number;
+    contractDate?: string;
+  },
+>(a: T, b: T): number {
+  const bPyeong = getTimelineItemPyeongPrice(b);
+  const aPyeong = getTimelineItemPyeongPrice(a);
+  if (bPyeong.roundedMan !== aPyeong.roundedMan) {
+    return bPyeong.roundedMan - aPyeong.roundedMan;
+  }
+  if (Math.abs(bPyeong.exactMan - aPyeong.exactMan) > 0.0001) {
+    return bPyeong.exactMan - aPyeong.exactMan;
+  }
+  if (b.priceVal !== a.priceVal) {
+    return b.priceVal - a.priceVal;
+  }
+  return (b.contractDate || '').localeCompare(a.contractDate || '');
+}
 
 /**
  * Timeline Layout View Modes:

@@ -597,7 +597,6 @@ const OfficeExplorerClient = React.memo(function OfficeExplorerClient() {
       <PageHeroHeader 
         title="D-VIEW 사무실 탐색"
         subtitleStrong="지식산업센터 사무실 · 국토부 매매 실거래 기준"
-        subtitleLight="공실 현황과 입주 혜택을 한 번에 비교해 우리 회사에 맞는 곳 찾기"
       />
 
       <div className="w-full max-w-full overflow-x-clip min-w-0 box-border px-3 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-[85vh] min-h-[800px] flex flex-col gap-6 sm:gap-8">

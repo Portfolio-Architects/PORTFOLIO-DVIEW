@@ -391,8 +391,14 @@ describe('Single-View "실거래 체결 온도" Circular Donut Navigator + 3-Way
   it('renders single "실거래 체결 온도" view with 4 temperature slices (high, rising, flat, falling), count (share%) · 평균 X.X억 legend, and bullish energy HUD', () => {
     render(<ConnectedHeroLeftHarness />);
 
-    // Header shows "실거래 체결 온도" and total count
-    expect(screen.getByText('실거래 체결 온도')).toBeInTheDocument();
+    // Header shows "실거래 체결 온도", while total count lives inside the Donut Center capsule (no duplicate header badge)
+    const heading = screen.getByText('실거래 체결 온도');
+    expect(heading).toBeInTheDocument();
+    expect(heading.parentElement).not.toHaveTextContent('총 9건');
+
+    const centerCapsule = screen.getByTestId('donut-center-total-capsule');
+    expect(screen.getByTestId('donut-chart-box')).toContainElement(centerCapsule);
+    expect(centerCapsule).toHaveTextContent('총 9건');
     expect(screen.getByText('총 9건')).toBeInTheDocument();
 
     // Center HUD displays bullish energy share and high/falling counts
@@ -477,38 +483,77 @@ describe('Single-View "실거래 체결 온도" Circular Donut Navigator + 3-Way
     expect(screen.getByText('총 4건')).toBeInTheDocument();
     expect(screen.getAllByText('66.7%').length).toBeGreaterThanOrEqual(1);
 
-    // Link 2: Click "보합권 체결" on left donut -> right timeline tradeTypeFilter dropdown becomes "flat" and filters timeline to 동탄역 시범 더샵 센트럴시티
+    // Link 2: Click "보합권 체결" on left donut -> right timeline shows active "보합 거래" chip in compactHeroMode and filters timeline to 동탄역 시범 더샵 센트럴시티
     fireEvent.click(screen.getByTestId('donut-legend-flat'));
-    const tradeTypeSelect = screen.getByTestId('timeline-tradetype-select') as HTMLSelectElement;
-    expect(tradeTypeSelect.value).toBe('flat');
+    expect(screen.getByTestId('timeline-active-tradetype-chip')).toHaveTextContent('보합 거래');
     expect(screen.getByTestId('timeline-card-동탄역 시범 더샵 센트럴시티')).toBeInTheDocument();
     expect(screen.queryByTestId('timeline-card-동탄역 롯데캐슬')).not.toBeInTheDocument();
 
-    // Change tradeTypeFilter dropdown on right timeline to "high" -> left donut active slice updates to "신고가 돌파"
-    fireEvent.change(tradeTypeSelect, { target: { value: 'high' } });
+    // Click one-click [신고가만] chip on right timeline -> left donut active slice updates to "신고가 돌파"
+    const newHighChip = screen.getByTestId('timeline-newhigh-chip');
+    fireEvent.click(newHighChip);
     expect(screen.getByTestId('donut-legend-high')).toHaveAttribute('aria-pressed', 'true');
+    expect(newHighChip).toHaveAttribute('aria-pressed', 'true');
     const highTimelineCard = screen.getByTestId('timeline-card-동탄역 롯데캐슬');
     expect(highTimelineCard).toBeInTheDocument();
 
     // Clicking a transaction card inside MacroTimelineView must NOT wipe out the active donut slice or tradeTypeFilter
     fireEvent.click(highTimelineCard);
     expect(screen.getByTestId('donut-legend-high')).toHaveAttribute('aria-pressed', 'true');
-    expect(tradeTypeSelect.value).toBe('high');
+    expect(screen.getByTestId('timeline-newhigh-chip')).toHaveAttribute('aria-pressed', 'true');
 
-    // Reset slice selection -> tradeTypeSelect returns to "all"
+    // Reset slice selection -> [신고가만] chip returns to unpressed
     fireEvent.click(screen.getByTestId('donut-reset-selection'));
-    expect(tradeTypeSelect.value).toBe('all');
+    expect(screen.getByTestId('timeline-newhigh-chip')).toHaveAttribute('aria-pressed', 'false');
 
-    // Link 3: Select registered date "2026.10.31 (토)" on right timeline dropdown (even in compactHeroMode) -> left donut and 4 metric cards recalculate to only the 2 transactions registered on 2026.10.31
+    // Link 3: In default compactHeroMode, '전체 날짜' dropdown is hidden; expanding via '자세히 보기' reveals it and syncs to left donut & 4 metric cards
     expect(screen.queryByTestId('timeline-date-jump-bar')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-date-select')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId('timeline-inline-expand-btn'));
     const dateSelect = screen.getByTestId('timeline-date-select') as HTMLSelectElement;
     fireEvent.change(dateSelect, { target: { value: '2026.10.31 (토)' } });
     expect(screen.getByText('총 2건')).toBeInTheDocument();
+    expect(screen.getByText('10.31')).toBeInTheDocument();
     expect(screen.getByTestId('donut-selected-date-badge')).toHaveTextContent('2026.10.31 (토) 등재');
 
     // Clearing the selected date badge restores all 4 transactions
     fireEvent.click(screen.getByTestId('donut-selected-date-badge'));
     expect(screen.getByText('총 4건')).toBeInTheDocument();
+  });
+
+  it('displays "총 N건 · MM.DD" inside donut center for 1d period and compacts to "총 N건" for multi-day periods to prevent ring collision', () => {
+    const { rerender } = render(
+      <AptDonutSection
+        variant="navigator"
+        initialMode="energy"
+        period="1d"
+        mounted={true}
+        recentTransactions={REAL_SHAPE_TRANSACTIONS}
+        txSummaryData={MOCK_SUMMARY}
+      />
+    );
+
+    const capsule1d = screen.getByTestId('donut-center-total-capsule');
+    expect(capsule1d).toHaveTextContent('총 1건');
+    expect(capsule1d).toHaveTextContent('10.28');
+
+    rerender(
+      <AptDonutSection
+        variant="navigator"
+        initialMode="energy"
+        period="90d"
+        mounted={true}
+        recentTransactions={REAL_SHAPE_TRANSACTIONS}
+        txSummaryData={MOCK_SUMMARY}
+      />
+    );
+
+    const capsule90d = screen.getByTestId('donut-center-total-capsule');
+    expect(capsule90d).toHaveTextContent('총 9건');
+    // Visible sub-span omits multi-day "~" range to protect inner ring clearance, while sr-only retains it
+    expect(screen.queryByText('10.20~10.28')).not.toBeInTheDocument();
+    expect(capsule90d).toHaveTextContent('최근 90일 10.20~10.28');
   });
 
   it('maintains strict Ad Money Design System invariants (zero Unicode emojis, zero legacy monospace fonts)', () => {

@@ -22,6 +22,7 @@ import { PolicyLoanQuickWidget } from '@/components/finance/PolicyLoanQuickWidge
 import { JeonseGuaranteeQuickPreview } from '@/components/finance/JeonseGuaranteeQuickPreview';
 import { HighCpcFinanceSection } from '@/components/finance/HighCpcFinanceSection';
 import { RealtimeRankingBoard } from '@/components/ranking/RealtimeRankingBoard';
+import * as analytics from '@/lib/utils/analytics';
 
 describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test Suite', () => {
   // =========================================================================
@@ -355,6 +356,175 @@ describe('AdSense High-CPC Finance & Realtime Ranking 4-Tier Comprehensive Test 
       expect(result.newHighList[0].apartmentName).toBe('동탄역 롯데캐슬');
       expect(result.optimalGapList.length).toBeGreaterThanOrEqual(1);
       expect(result.weeklySurgeList[0].metricValue).toContain('건');
+    });
+  });
+
+  // =========================================================================
+  // TIER 5: GA4 Quick Interaction Telemetry & Selected Apartment Auto-Binding
+  // =========================================================================
+  describe('Tier 5: GA4 Quick Interaction Telemetry & Selected Apartment Auto-Binding', () => {
+    it('5.1 emits finance_quick_interact on policy loan tab switch, price preset, and income preset with benchmark apartment', () => {
+      const trackSpy = jest.spyOn(analytics, 'trackEvent');
+      render(
+        <PolicyLoanQuickWidget
+          apartmentName="동탄역 롯데캐슬"
+          initialHomePriceWon={2_620_000_000}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '디딤돌 대출' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'policy_loan',
+          surface: 'finance_quick_widget',
+          trigger: 'loan_tab_didimdol',
+          loan_type: 'DIDIMDOL',
+          apartment_name: '동탄역 롯데캐슬',
+          apt_name: '동탄역 롯데캐슬',
+        })
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '보금자리론' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'policy_loan',
+          trigger: 'loan_tab_bogeumjari',
+          loan_type: 'BOGEUMJARI',
+        })
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '5억' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'policy_loan',
+          trigger: 'price_preset_5eok',
+          home_price_won: 500_000_000,
+          loan_type: 'BOGEUMJARI',
+        })
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '13천만' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'policy_loan',
+          trigger: 'income_preset_130m',
+          annual_income_won: 130_000_000,
+        })
+      );
+
+      trackSpy.mockRestore();
+    });
+
+    it('5.2 emits finance_quick_interact on jeonse price/deposit/mortgage presets and HUG guide accordion open (once per open)', () => {
+      const trackSpy = jest.spyOn(analytics, 'trackEvent');
+      render(
+        <JeonseGuaranteeQuickPreview
+          apartmentName="동탄역 롯데캐슬"
+          initialEstimatedPriceWon={800_000_000}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '6억' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'jeonse_safety',
+          surface: 'finance_quick_widget',
+          trigger: 'price_preset_6eok',
+          estimated_price_won: 600_000_000,
+          apartment_name: '동탄역 롯데캐슬',
+        })
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '3억' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'jeonse_safety',
+          trigger: 'deposit_preset_3eok',
+          jeonse_deposit_won: 300_000_000,
+        })
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: '5천만' }));
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'jeonse_safety',
+          trigger: 'mortgage_preset_50m',
+          senior_mortgage_won: 50_000_000,
+        })
+      );
+
+      const summaryEl = screen.getByTestId('hug-guide-accordion-summary');
+      const detailsEl = summaryEl.closest('details')!;
+      expect(detailsEl.open).toBe(false);
+
+      fireEvent.click(summaryEl);
+      expect(trackSpy).toHaveBeenLastCalledWith(
+        'finance_quick_interact',
+        expect.objectContaining({
+          calculator_type: 'jeonse_safety',
+          trigger: 'hug_guide_accordion_open',
+          apartment_name: '동탄역 롯데캐슬',
+        })
+      );
+
+      // Simulate open state and closing click -> should NOT re-fire open event
+      detailsEl.open = true;
+      const callCountAfterOpen = trackSpy.mock.calls.length;
+      fireEvent.click(summaryEl);
+      expect(trackSpy.mock.calls.length).toBe(callCountAfterOpen);
+
+      trackSpy.mockRestore();
+    });
+
+    it('5.3 forwards selected apartmentName, defaultPriceWon, and distinct trigger tags across HighCpcFinanceSection buttons and CTAs', () => {
+      const mockMortgage = jest.fn();
+      const mockJeonse = jest.fn();
+      const mockTax = jest.fn();
+      const mockSellTiming = jest.fn();
+
+      render(
+        <HighCpcFinanceSection
+          apartmentName="동탄역 롯데캐슬"
+          defaultPriceWon={2_620_000_000}
+          onOpenMortgageModal={mockMortgage}
+          onOpenJeonseSafetyModal={mockJeonse}
+          onOpenTaxCalculator={mockTax}
+          onOpenSellTiming={mockSellTiming}
+        />
+      );
+
+      fireEvent.click(screen.getByTestId('open-mortgage-modal-btn'));
+      expect(mockMortgage).toHaveBeenLastCalledWith(
+        '동탄역 롯데캐슬',
+        2_620_000_000,
+        'finance_header_btn'
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /정밀 정책자금 한도 계산기 열기/ }));
+      expect(mockMortgage).toHaveBeenLastCalledWith(
+        '동탄역 롯데캐슬',
+        2_620_000_000,
+        'policy_widget_cta'
+      );
+
+      fireEvent.click(screen.getByTestId('open-jeonse-safety-modal-btn'));
+      expect(mockJeonse).toHaveBeenLastCalledWith('동탄역 롯데캐슬', 'finance_header_btn');
+
+      fireEvent.click(screen.getByRole('button', { name: /내 전세 계약서 안심 4단계 정밀진단/ }));
+      expect(mockJeonse).toHaveBeenLastCalledWith('동탄역 롯데캐슬', 'jeonse_widget_cta');
+
+      fireEvent.click(screen.getByTestId('open-tax-modal-btn'));
+      expect(mockTax).toHaveBeenLastCalledWith('동탄역 롯데캐슬', 'finance_header_btn');
+
+      fireEvent.click(screen.getByTestId('open-sell-timing-modal-btn'));
+      expect(mockSellTiming).toHaveBeenLastCalledWith('동탄역 롯데캐슬', 'finance_header_btn');
     });
   });
 });

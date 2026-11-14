@@ -503,6 +503,16 @@ describe('AptMetricCards Test Suite', () => {
 
       fireEvent.click(newHighCard);
       expect(mockSelectComplex).toHaveBeenCalledWith('yeoul_lotte', '동탄역롯데캐슬');
+
+      // Narrow-view full-width apartment name invariant:
+      // Row 1 holds badge + metric value, while Row 2 dedicates 100% width solely to aptName
+      [newHighCard, optimalGapCard, volumeSurgeCard, urgentBargainCard].forEach((card) => {
+        const topRow = card.firstElementChild as HTMLElement;
+        const bottomRow = card.lastElementChild as HTMLElement;
+        expect(topRow.className).toContain('justify-between');
+        expect(bottomRow.children).toHaveLength(1);
+        expect(bottomRow.firstElementChild?.className).toContain('w-full');
+      });
     });
   });
 });

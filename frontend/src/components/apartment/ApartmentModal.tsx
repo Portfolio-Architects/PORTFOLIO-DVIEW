@@ -49,6 +49,7 @@ import {
 
 import { useApartmentModalState } from './hooks/useApartmentModalState';
 import { ApartmentModalHeader } from './ApartmentModalHeader';
+import { ApartmentLandingRetentionStrip } from './ApartmentLandingRetentionStrip';
 import { ApartmentModalTransactionsTable } from './ApartmentModalTransactionsTable';
 import { ApartmentModalKakaoCard } from './ApartmentModalKakaoCard';
 import { MortgageLdiSentinelCard } from './chapters/MortgageLdiSentinelCard';
@@ -107,7 +108,7 @@ const TransactionTableSkeleton = () => (
 const TransactionChartSkeleton = () => (
   <div className="w-full h-[470px] md:h-[530px] flex flex-col gap-6 p-6 border border-border/40 rounded-[20px]">
     <div className="flex justify-between items-center">
-      <div className="h-6 w-32 rounded bg-slate-250 dark:bg-slate-800 animate-shimmer" />
+      <div className="h-6 w-32 rounded bg-slate-200 dark:bg-slate-800 animate-shimmer" />
       <div className="flex gap-2">
         <div className="h-8 w-16 rounded-lg bg-slate-200 dark:bg-slate-800 animate-shimmer" />
         <div className="h-8 w-16 rounded-lg bg-slate-200 dark:bg-slate-800 animate-shimmer" />
@@ -1336,6 +1337,20 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
       <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-3 py-3 md:px-6 md:py-4'} flex flex-col gap-8 w-full`}>
+        <div className="-mb-4 w-full">
+          <ApartmentLandingRetentionStrip
+            currentAptName={report.apartmentName}
+            currentDong={report.dong || '동탄'}
+            targets={recirculationTargets}
+            txSummaryData={effectiveTxSummaryMap}
+            nameMapping={nameMapping}
+            inline={inline}
+            onSelectPeer={handleRecircSelectApartment}
+            onOpenCompare={handleRecircOpenCompare}
+            onOpenPushModal={() => setIsPushModalOpen(true)}
+          />
+        </div>
+
         {/* Chapter 01: 개요 및 실거래 궤적 (Overview & Price) */}
         <section
           id="chapter-01-overview"
@@ -1364,7 +1379,6 @@ const ApartmentModal = React.memo(function ApartmentModal({
               loadAllTransactions={loadAllTransactions}
               renderTransactionTable={renderTransactionTableNode}
               renderTransactionChart={renderTransactionChartNode}
-              renderTransactionSummaryMetrics={() => null}
             />
           </ErrorBoundary>
         </section>
@@ -1382,13 +1396,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 거래량 및 회전율 분석
               </h2>
               {txSummary && (
-                <span className="text-[12px] sm:text-[13px] font-medium text-tertiary">
+                <span className="text-[12px] sm:text-[13px] font-medium text-tertiary tabular-nums">
                   최근 3개월 {txSummary.avg3MTxCount || 0}건 거래
                 </span>
               )}
             </div>
-            {isChapterMounted('chapter-02-volume') ? (
-              <ErrorBoundary name="거래량 회전율 분석">
+            {isChapterMounted('chapter-02-volume') && (!isTxLoading || filteredTransactions.length > 0) ? (
+              <ErrorBoundary key="ch02-ready" name="거래량 회전율 분석">
                 <TransactionSummaryMetrics 
                   transactions={filteredTransactions} 
                   apartmentName={report.apartmentName}
@@ -1398,7 +1412,10 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 />
               </ErrorBoundary>
             ) : (
-              <div className="w-full h-48 rounded-[20px] border border-border/40 animate-shimmer flex items-center justify-center">
+              <div
+                key="ch02-loading"
+                className="w-full h-[520px] sm:h-[430px] rounded-[20px] border border-border/40 animate-shimmer flex items-center justify-center"
+              >
                 <span className="text-tertiary text-[12px] font-bold">거래량 분석 로딩 중...</span>
               </div>
             )}
@@ -1444,7 +1461,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
             </div>
 
             {isChapterMounted('chapter-03-gap') ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
+              <div key="ch03-ready" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
                 <div className="bg-elevated rounded-2xl p-4.5 flex flex-col justify-between">
                   <span className="text-[12px] font-bold text-tertiary">실구매 필요차액 (매매-전세 갭)</span>
                   <div className="mt-2 text-right">
@@ -1480,7 +1497,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 </div>
               </div>
             ) : (
-              <div className="w-full h-28 rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center">
+              <div key="ch03-loading" className="w-full h-28 rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center">
                 <span className="text-tertiary text-[12px] font-bold">갭투자 매트릭스 산정 중...</span>
               </div>
             )}
@@ -1555,7 +1572,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 <div className="bg-surface py-5 md:py-6 border-b border-border">
                   <div className="flex flex-col w-full">
                     <h2 className="text-[18px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-                      <ShieldAlert size={18} className="text-blue-600 dark:text-blue-400"/> 전세 안전성 진단 리포트 & 주담대 LDI
+                      <ShieldAlert size={18} className="text-blue-600 dark:text-blue-400"/> 전세 안전진단 · 주담대 LDI
                     </h2>
                     <div className="relative w-full">
                       <div>
@@ -1700,14 +1717,14 @@ const ApartmentModal = React.memo(function ApartmentModal({
                 return (
                   <div className="bg-surface py-5 md:py-6 border-b border-border overflow-hidden relative">
                     <div className="absolute top-6 md:top-8 right-6 md:right-8 flex items-center gap-2 md:gap-3 z-10">
-                      <span className="text-[13px] font-bold text-tertiary">{report.images.length}장</span>
+                      <span className="text-[13px] font-bold text-tertiary tabular-nums">{report.images.length}장</span>
                       <button 
                         onClick={(e) => {
                           e.preventDefault();
                           e.stopPropagation();
                           setIsUploadModalOpen(true);
                         }}
-                        className="text-[13px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-[#042820] px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-[#063b2f] transition-colors"
+                        className="text-[13px] font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-3 py-1.5 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-colors"
                       >
                         + 사진 추가
                       </button>
@@ -1745,7 +1762,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
                         e.stopPropagation();
                         setIsUploadModalOpen(true);
                       }}
-                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-blue-600 hover:shadow-[0_4px_12px_rgba(0,130,98,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
+                      className="group relative z-10 flex items-center gap-2 bg-primary text-surface text-[15px] font-bold px-6 py-3.5 rounded-xl hover:bg-blue-600 hover:shadow-[0_4px_12px_rgba(49,130,246,0.3)] transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer"
                     >
                       <span>우리 단지 첫 번째 앰배서더 되기</span>
                       <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-400 group-hover:bg-surface animate-pulse" />
@@ -1820,7 +1837,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
   if (inline) {
     return (
-      <div data-testid="apartment-inline-report" className="w-full flex flex-col">
+      <div key="apartment-inline-report" data-testid="apartment-inline-report" className="w-full flex flex-col">
         {content}
         {showScrollTop && (
           <button

@@ -374,7 +374,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 </td>
                 {metrics.periodData.map(p => (
                   <td key={`price-${p.key}`} className="py-3.5 px-3 text-center whitespace-nowrap">
-                    <span className="text-[14px] md:text-[16px] font-bold md:font-extrabold text-primary tracking-tight">{p.avgPriceEok}</span>
+                    <span className="text-[14px] md:text-[16px] font-bold md:font-extrabold text-primary tracking-tight tabular-nums">{p.avgPriceEok}</span>
                   </td>
                 ))}
               </tr>
@@ -388,7 +388,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 {metrics.periodData.map(p => (
                   <td key={`perpyeong-${p.key}`} className="py-3.5 px-3 text-center">
                     <div className="flex items-center justify-center gap-0.5 whitespace-nowrap">
-                      <span className="text-[13px] md:text-[14px] font-bold text-secondary tracking-tight">{p.perPyeongEok}</span>
+                      <span className="text-[13px] md:text-[14px] font-bold text-secondary tracking-tight tabular-nums">{p.perPyeongEok}</span>
                       <span className="text-[11px] md:text-[12px] text-tertiary font-medium tracking-tight">/평</span>
                     </div>
                   </td>
@@ -403,7 +403,7 @@ export const TransactionSummaryMetrics = React.memo(function TransactionSummaryM
                 </td>
                 {metrics.periodData.map(p => (
                   <td key={`count-${p.key}`} className="py-3.5 px-3 text-center whitespace-nowrap">
-                    <span className="text-[13px] md:text-[14px] font-medium text-tertiary">{p.count}건</span>
+                    <span className="text-[13px] md:text-[14px] font-medium text-tertiary tabular-nums">{p.count}건</span>
                   </td>
                 ))}
               </tr>

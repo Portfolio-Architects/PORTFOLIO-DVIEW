@@ -1,13 +1,12 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
-import { useDebounce } from '@/hooks/useDebounce';
 import { Search, ArrowUp, ArrowDown, ChevronDown, Star, X } from 'lucide-react';
-import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/hooks/useFavorites';
 import { z } from 'zod';
 import { logger } from '@/lib/services/logger';
 import { DONGS } from '@/lib/dongs';
-import { findTxKey, resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import { findTxKey, resolveCanonicalAptSlug, isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import {
   filterAndRankApartments,
   findTokenMatchIndex,
@@ -305,7 +304,7 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
     ...DONGS.map(d => ({ id: `dong-${d.name}`, label: d.name }))
   ], []);
   const deferredSearchQuery = useDeferredValue(searchQuery);
-  const debouncedSearchQueryForAnalytics = useDebounce(searchQuery, 1000);
+  const lastTrackedExploreSearchRef = useRef<string>('');
 
   // 카테고리나 검색어 변경 시 노출 갯수를 15개로 초기화하여 CLS 방지
   useEffect(() => {
@@ -313,15 +312,35 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
   }, [currentCategory, deferredSearchQuery]);
 
   useEffect(() => {
-    if (mounted && debouncedSearchQueryForAnalytics.trim()) {
-      trackEvent('search_apartment', { query: debouncedSearchQueryForAnalytics });
-      trackSearchQuery({
-        search_term: debouncedSearchQueryForAnalytics.trim(),
-        query: debouncedSearchQueryForAnalytics.trim(),
-        surface: 'explore_catalog',
-      });
+    const trimmedQuery = searchQuery.trim();
+    if (!trimmedQuery) {
+      lastTrackedExploreSearchRef.current = '';
+      return;
     }
-  }, [debouncedSearchQueryForAnalytics, mounted]);
+    if (!mounted) return;
+
+    const normalizedQuery = trimmedQuery.slice(0, 100);
+    const timer = setTimeout(() => {
+      if (lastTrackedExploreSearchRef.current !== normalizedQuery) {
+        lastTrackedExploreSearchRef.current = normalizedQuery;
+        const searchPayload = {
+          search_term: normalizedQuery,
+          query: normalizedQuery,
+          surface: 'explore_catalog',
+          trigger: 'debounce',
+        };
+        if (typeof trackSearchQuery === 'function') {
+          trackSearchQuery(searchPayload);
+        } else {
+          trackEvent('search_query', searchPayload);
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery, mounted]);
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -917,6 +936,11 @@ const TossApartmentExploreClient = React.memo(function TossApartmentExploreClien
                 if (onSearchFocus) onSearchFocus();
               }}
               onKeyDown={(e) => {
+                const nativeEvt = e.nativeEvent as KeyboardEvent & {
+                  isComposing?: boolean;
+                  keyCode?: number;
+                };
+                if (nativeEvt?.isComposing || e.keyCode === 229) return;
                 if (e.key === 'Escape' || e.key === 'Enter') {
                   setIsSearchFocused(false);
                 }

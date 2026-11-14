@@ -107,7 +107,6 @@ const ReportClient = React.memo(function ReportClient({ fetchReport }: ReportCli
       <PageHeroHeader 
         title="리포트"
         subtitleStrong="동탄뷰 서비스 개발 및 개선 일지"
-        subtitleLight="지속적인 성능 최적화와 새로운 기능 추가 소식을 알려드립니다"
         rightSideContent={
           engReportData ? (
             <div className="flex flex-col items-end gap-3">

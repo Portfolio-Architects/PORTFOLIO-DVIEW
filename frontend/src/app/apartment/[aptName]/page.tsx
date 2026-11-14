@@ -1,7 +1,20 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import { redirect, permanentRedirect } from 'next/navigation';
-import { BarChart3, HelpCircle, Building2, MapPin, ArrowRight, BookOpen, GraduationCap } from 'lucide-react';
+import {
+  BarChart3,
+  HelpCircle,
+  Building2,
+  MapPin,
+  ArrowRight,
+  BookOpen,
+  GraduationCap,
+  ChevronDown,
+  TrainFront,
+  ShieldCheck,
+  AlertTriangle,
+  TrendingUp,
+} from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import LoungeHeader from '@/components/LoungeHeader';
 import { AdSlot } from '@/components/ads/AdSlot';
@@ -12,6 +25,14 @@ import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
 import { dongToZoneId, getZoneById } from '@/lib/zones';
 import { getRelatedGuidesForApartment } from '@/lib/data/guides';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionChevronClass,
+  getSeoAccordionBodyClass,
+  getVisualSignalPillClass,
+  type VisualSignalTone,
+} from '@/lib/design-system/copyDiet';
 import {
   decodeAptName,
   formatPriceEok,
@@ -288,6 +309,24 @@ export default async function ApartmentPage(props: {
       ? `현재 전세가율은 ${ratioPercent.toFixed(1)}%(실거주 PER ${realPer}배)로 GTX-A 역세권·호수공원 조망 또는 신축 기대감 등 미래 가치 프리미엄이 매매가에 선반영된 구조입니다. 전세 보증금 안전 마진(${formatPriceEok(safetyMarginManwon)})이 매우 넓어 임차인 보증금 미반환 위험이 극히 낮습니다.`
       : `최근 실거래 매매가(${formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok)})와 평형별 전월세 계약을 종합할 때, 자기자본 대비 대출 원리금 상환 비율(DSR 40%)을 중심으로 매수 타당성을 점검하는 것이 유효합니다.`;
 
+  const latestSalePriceStr = formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok);
+  const latestRentPriceStr = formatSummaryPriceField(
+    aptSummary?.latestRentDeposit,
+    aptSummary?.latestRentDepositEok
+  );
+  const jeonseTone: VisualSignalTone =
+    ratioPercent <= 0 ? 'neutral' : ratioPercent < 60 ? 'safe' : ratioPercent < 70 ? 'down' : 'up';
+  const jeonseStatusLabel =
+    ratioPercent <= 0 ? '산출 대기' : ratioPercent < 60 ? '안전 구간' : ratioPercent < 70 ? '적정 구간' : '주의 구간';
+  const subwayWalkMinutes =
+    typeof locationScore?.distanceToSubway === 'number' && locationScore.distanceToSubway > 0
+      ? Math.max(1, Math.round(locationScore.distanceToSubway / 70))
+      : null;
+  const elemWalkMinutes =
+    typeof locationScore?.distanceToElementary === 'number' && locationScore.distanceToElementary > 0
+      ? Math.max(1, Math.round(locationScore.distanceToElementary / 70))
+      : null;
+
   return (
     <>
       <PreGaCanonicalSync canonicalPath={canonicalPath} />
@@ -311,21 +350,175 @@ export default async function ApartmentPage(props: {
         data-testid="apt-ssr-comprehensive-report"
         className="w-full max-w-[2000px] mx-auto px-2 sm:px-6 md:px-10 lg:px-16 py-8 my-6 overflow-x-clip"
       >
-        <div className="bg-surface border border-border/80 rounded-3xl p-2 sm:p-10 shadow-sm space-y-10 min-w-0">
+        <div className="bg-surface rounded-3xl p-2 sm:p-8 space-y-8 min-w-0">
           
-          {/* Header Summary */}
+          {/* Header Summary + Layer 1 3-Second Visual Signal Strip */}
           <div className="border-b border-border/60 pb-6">
-            <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold px-3 py-1 rounded-full mb-3 border border-emerald-500/20">
+            <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold px-3 py-1 rounded-full mb-3">
               <BarChart3 size={13} className="shrink-0" />
               <span>D-VIEW 부동산 데이터 랩스 정밀 진단</span>
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-primary tracking-tight line-clamp-2 sm:line-clamp-1">
               {decodedName} 아파트 실거래가 및 입지 심층 분석 리포트
             </h1>
-            <p className="mt-3 text-secondary text-[14px] sm:text-[15.5px] leading-relaxed max-w-[900px] font-medium">
-              {aiBriefing}
-            </p>
-            <div className="mt-5">
+
+            {/* Layer 1: 3-Second Visual Decision KPI & Signal Strip */}
+            <div
+              data-testid="apt-visual-signal-strip"
+              className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 min-w-0"
+            >
+              {/* Card 1: Latest Real Sale Price */}
+              <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+                <span className="text-[11px] font-bold text-tertiary truncate">최근 실거래</span>
+                <div className="text-base sm:text-lg font-black text-primary tabular-nums truncate">
+                  {latestSalePriceStr}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={getVisualSignalPillClass('safe', 'tabular-nums')}>
+                    <TrendingUp size={11} className="shrink-0" />
+                    <span>
+                      {pageData.tradeSummary?.perPyeongStr &&
+                      pageData.tradeSummary.perPyeongStr.length <= 7
+                        ? `평당 ${pageData.tradeSummary.perPyeongStr}`
+                        : pageData.tradeSummary?.perPyeongStr
+                        ? '평당가 기준'
+                        : '전월세 참고'}
+                    </span>
+                  </span>
+                  {(!pageData.tradeSummary?.perPyeongStr ||
+                    pageData.tradeSummary.perPyeongStr.length > 7) && (
+                    <span className="text-[11px] font-semibold text-secondary tabular-nums truncate">
+                      {pageData.tradeSummary?.perPyeongStr || latestRentPriceStr}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Card 2: Jeonse Ratio 3-Step Visual Gauge & Safety Badge */}
+              <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="text-[11px] font-bold text-tertiary truncate">전세가율 진단</span>
+                  <span className={getVisualSignalPillClass(jeonseTone)}>
+                    {ratioPercent >= 70 ? (
+                      <AlertTriangle size={11} className="shrink-0" />
+                    ) : (
+                      <ShieldCheck size={11} className="shrink-0" />
+                    )}
+                    <span>{jeonseStatusLabel}</span>
+                  </span>
+                </div>
+                <div className="text-base sm:text-lg font-black text-primary tabular-nums truncate">
+                  {ratioPercent > 0 ? `${ratioPercent.toFixed(1)}%` : '정보 없음'}
+                </div>
+                <div
+                  data-testid="apt-jeonse-3step-gauge"
+                  className="grid grid-cols-3 gap-1 h-1.5 w-full"
+                >
+                  <span
+                    className={`rounded-full ${
+                      ratioPercent > 0
+                        ? 'bg-emerald-600 dark:bg-emerald-400'
+                        : 'bg-slate-200 dark:bg-slate-800'
+                    }`}
+                  />
+                  <span
+                    className={`rounded-full ${
+                      ratioPercent >= 60
+                        ? 'bg-blue-600 dark:bg-blue-400'
+                        : 'bg-slate-200 dark:bg-slate-800'
+                    }`}
+                  />
+                  <span
+                    className={`rounded-full ${
+                      ratioPercent >= 70 ? 'bg-brand-red' : 'bg-slate-200 dark:bg-slate-800'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Card 3: Subway & Elementary School Walking Spec Chips */}
+              <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 flex flex-col justify-between gap-1.5 min-w-0">
+                <div className="flex items-center justify-between gap-1.5">
+                  <span className="text-[11px] font-bold text-tertiary truncate">교통 · 초등학군</span>
+                  <span
+                    className={getVisualSignalPillClass(
+                      subwayWalkMinutes && subwayWalkMinutes <= 10
+                        ? 'down'
+                        : elemWalkMinutes && elemWalkMinutes <= 7
+                        ? 'safe'
+                        : 'neutral',
+                      'tabular-nums shrink-0'
+                    )}
+                  >
+                    {subwayWalkMinutes ? (
+                      <TrainFront size={11} className="shrink-0" />
+                    ) : (
+                      <GraduationCap size={11} className="shrink-0" />
+                    )}
+                    <span>
+                      {subwayWalkMinutes
+                        ? `역 도보 ${subwayWalkMinutes}분`
+                        : elemWalkMinutes
+                        ? `초교 ${elemWalkMinutes}분`
+                        : '입지 스펙'}
+                    </span>
+                  </span>
+                </div>
+                <div className="text-sm sm:text-base font-black text-primary truncate">
+                  {locationScore?.nearestStationName
+                    ? `${locationScore.nearestStationName}역`
+                    : locationScore?.nearestSchoolNames?.elementary || '역세권 정보 없음'}
+                </div>
+                <span className="text-[11px] font-semibold text-secondary tabular-nums truncate">
+                  {locationScore?.nearestSchoolNames?.elementary
+                    ? `${locationScore.nearestSchoolNames.elementary}${
+                        elemWalkMinutes ? ` · 도보 ${elemWalkMinutes}분` : ''
+                      }`
+                    : '학군 정보 없음'}
+                </span>
+              </div>
+
+              {/* Card 4: Scale & Building Age Spec */}
+              <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 flex flex-col justify-between gap-2 min-w-0">
+                <span className="text-[11px] font-bold text-tertiary truncate">세대 · 준공연식</span>
+                <div className="text-base sm:text-lg font-black text-primary tabular-nums truncate">
+                  {householdCountNum > 0
+                    ? `${householdCountNum.toLocaleString('ko-KR')}세대`
+                    : `매매 ${totalSalesTxCount.toLocaleString('ko-KR')}건`}
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className={getVisualSignalPillClass('neutral', 'tabular-nums')}>
+                    <span>
+                      {yearBuiltNum > 0 && buildingAge !== null
+                        ? `준공 ${buildingAge}년차`
+                        : aptDong && aptDong.length <= 6
+                        ? `동탄 ${aptDong}`
+                        : '실거래 기준'}
+                    </span>
+                  </span>
+                  {yearBuiltNum > 0 && (
+                    <span className="text-[11px] font-semibold text-tertiary tabular-nums">
+                      {yearBuiltNum}년
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Layer 2: Progressive SEO Accordion for AI Market Briefing */}
+            <details className={getSeoAccordionClass('mt-3.5 bg-[#f9fafb] dark:bg-[#17171c]')}>
+              <summary className={getSeoAccordionSummaryClass()}>
+                <span>실거래 · 입지 핵심 브리핑 더보기</span>
+                <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+              </summary>
+              <div className={getSeoAccordionBodyClass()}>
+                <p className="text-secondary text-[13px] sm:text-[14px] leading-relaxed font-medium tabular-nums">
+                  {aiBriefing}
+                </p>
+              </div>
+            </details>
+
+            <div className="mt-4">
               <ReportShareBar
                 title={`${decodedName} 실거래가 및 입지 심층 분석 리포트`}
                 summaryLines={[
@@ -345,65 +538,96 @@ export default async function ApartmentPage(props: {
           <section
             id="chapter-01-dynamic-narrative-ssr"
             aria-label={`${decodedName} 단지별 입지·수급·밸류에이션 3대 핵심 해설`}
-            className="space-y-4"
+            className="space-y-3.5"
           >
-            <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
-              <span className="w-2 h-5 bg-emerald-500 rounded-full" />
-              {decodedName} 입지 포지셔닝 및 실거래 밸류에이션 심층 해설
-            </h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-[13px] text-secondary">
-              <article className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl space-y-2">
-                <h3 className="text-sm font-extrabold text-primary">
-                  1. {parentZone ? `${parentZone.name}(${aptDong || parentZone.dongLabel})` : `동탄 ${aptDong || '핵심 권역'}`} 입지 포지셔닝
-                </h3>
-                <p className="leading-relaxed">
-                  {parentZone
-                    ? `${decodedName} 단지는 ${parentZone.name}(${parentZone.dongLabel}) 권역에 속하며, ${parentZone.description}`
-                    : `${decodedName} 단지는 화성시 동탄 ${aptDong || '신도시'} 생활권 내에 위치하여 광역 교통망과 중심 상업·교육 인프라를 공유합니다.`}
-                </p>
-              </article>
-
-              <article className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl space-y-2">
-                <h3 className="text-sm font-extrabold text-primary">
-                  2. 연식·세대 규모 및 주력 평형 수급 구조
-                </h3>
-                <p className="leading-relaxed tabular-nums">
-                  {ageLifecycleComment} {scaleLiquidityComment}{' '}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
+                <span className="w-2 h-5 bg-emerald-500 rounded-full" />
+                입지 · 수급 · 밸류에이션 요약
+              </h2>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className={getVisualSignalPillClass('neutral')}>
+                  {aptDong && aptDong.length <= 6 ? `동탄 ${aptDong}` : '동탄 권역'}
+                </span>
+                <span className={getVisualSignalPillClass('down', 'tabular-nums')}>
                   {dominantPyeong
-                    ? `단지 내 최다 거래 주력 평형은 ${dominantPyeong.pyeong}평형(전용 ${dominantPyeong.areaM2}㎡, 매매 ${dominantPyeong.salesCount}건·전세 ${dominantPyeong.rentCount}건)으로 최근 실거래가 ${dominantPyeong.latestPriceStr}, 평균가 ${dominantPyeong.avgPriceStr}를 기록 중입니다.`
-                    : ''}
-                </p>
-              </article>
-
-              <article className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl space-y-2">
-                <h3 className="text-sm font-extrabold text-primary">
-                  3. 실거주 PER 및 전세 안전 마진 진단
-                </h3>
-                <p className="leading-relaxed tabular-nums">
-                  {jeonsePerComment}
-                </p>
-              </article>
+                    ? `주력 ${dominantPyeong.pyeong}평형`
+                    : `매매 ${totalSalesTxCount}건`}
+                </span>
+                {realPer && (
+                  <span className={getVisualSignalPillClass(jeonseTone, 'tabular-nums')}>
+                    {String(realPer).length <= 5 ? `PER ${realPer}배` : 'PER 산출'}
+                  </span>
+                )}
+                {dominantPyeong && (
+                  <span className="text-[11.5px] font-bold text-secondary tabular-nums">
+                    평균 {dominantPyeong.avgPriceStr}
+                  </span>
+                )}
+              </div>
             </div>
+
+            <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+              <summary className={getSeoAccordionSummaryClass()}>
+                <span>밸류에이션 산출 기준 · 입지 해설 더보기</span>
+                <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+              </summary>
+              <div className={getSeoAccordionBodyClass('space-y-3')}>
+                <h3 className="text-xs sm:text-sm font-extrabold text-primary">
+                  {decodedName} 입지 포지셔닝 및 실거래 밸류에이션 심층 해설
+                </h3>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-[13px] text-secondary">
+                  <article className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl space-y-2">
+                    <h3 className="text-sm font-extrabold text-primary">
+                      1. {parentZone ? `${parentZone.name}(${aptDong || parentZone.dongLabel})` : `동탄 ${aptDong || '핵심 권역'}`} 입지 포지셔닝
+                    </h3>
+                    <p className="leading-relaxed">
+                      {parentZone
+                        ? `${decodedName} 단지는 ${parentZone.name}(${parentZone.dongLabel}) 권역에 속하며, ${parentZone.description}`
+                        : `${decodedName} 단지는 화성시 동탄 ${aptDong || '신도시'} 생활권 내에 위치하여 광역 교통망과 중심 상업·교육 인프라를 공유합니다.`}
+                    </p>
+                  </article>
+
+                  <article className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl space-y-2">
+                    <h3 className="text-sm font-extrabold text-primary">
+                      2. 연식·세대 규모 및 주력 평형 수급 구조
+                    </h3>
+                    <p className="leading-relaxed tabular-nums">
+                      {ageLifecycleComment} {scaleLiquidityComment}{' '}
+                      {dominantPyeong
+                        ? `단지 내 최다 거래 주력 평형은 ${dominantPyeong.pyeong}평형(전용 ${dominantPyeong.areaM2}㎡, 매매 ${dominantPyeong.salesCount}건·전세 ${dominantPyeong.rentCount}건)으로 최근 실거래가 ${dominantPyeong.latestPriceStr}, 평균가 ${dominantPyeong.avgPriceStr}를 기록 중입니다.`
+                        : ''}
+                    </p>
+                  </article>
+
+                  <article className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl space-y-2">
+                    <h3 className="text-sm font-extrabold text-primary">
+                      3. 실거주 PER 및 전세 안전 마진 진단
+                    </h3>
+                    <p className="leading-relaxed tabular-nums">
+                      {jeonsePerComment}
+                    </p>
+                  </article>
+                </div>
+              </div>
+            </details>
 
             {relatedGuides.length > 0 && (
               <div
                 data-testid="apt-top-guide-anchor-card"
-                className="rounded-2xl bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/25 dark:border-emerald-500/30 p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3"
+                className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-3"
               >
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
                     <BookOpen size={13} className="shrink-0" />
                     <span>
                       {hasDirectGuideMatch
-                        ? `${decodedName} 직접 수록 심층 비교 가이드 연결`
-                        : `${matchedGuideZone?.name || parentZone?.name || aptDong} 권역 맞춤 비교 가이드 연결`}
+                        ? `${decodedName} 수록 1:1 비교 가이드`
+                        : `${matchedGuideZone?.name || parentZone?.name || aptDong} 권역 1:1 비교 가이드`}
                     </span>
                   </div>
                   <p className="text-xs sm:text-[13px] font-extrabold text-primary">
                     {relatedGuides[0].title}
-                  </p>
-                  <p className="text-[11.5px] text-secondary leading-relaxed">
-                    본 단지가 속한 생활권의 경쟁 단지 1:1 실거래가·평당가·전세가율·학군 비교 분석 리포트와 양방향으로 연동되어 있습니다.
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -426,79 +650,111 @@ export default async function ApartmentPage(props: {
             )}
           </section>
 
-          {/* School & Infrastructure Location Analytics */}
+          {/* School & Infrastructure Location Analytics (Visual Signal Spec Cards) */}
           {locationScore && (
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
                 <span className="w-2 h-5 bg-emerald-500 rounded-full" />
-                {decodedName} 학군 및 교통 입지 인프라 팩트체크
+                학군 · 교통 인프라 스펙
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-[13px] text-secondary">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[13px] text-secondary">
                 {locationScore.nearestSchoolNames?.elementary && (
-                  <div className="bg-body p-4 rounded-2xl border border-border/50">
-                    <span className="text-[11px] font-bold text-tertiary block mb-1">배정 초등학교</span>
-                    <strong className="text-primary text-[14px]">{locationScore.nearestSchoolNames.elementary}</strong>
-                    <p className="mt-1 text-tertiary tabular-nums">단지 기준 약 {locationScore.distanceToElementary || 0}m (도보 {Math.round((locationScore.distanceToElementary || 0) / 70) || 1}분)</p>
+                  <div className="bg-[#f9fafb] dark:bg-[#17171c] p-4 rounded-2xl flex flex-col justify-between gap-2">
+                    <span className="text-[11px] font-bold text-tertiary">배정 초등학교</span>
+                    <strong className="text-primary text-[14px] truncate">{locationScore.nearestSchoolNames.elementary}</strong>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={getVisualSignalPillClass('safe', 'tabular-nums w-fit')}>
+                        <GraduationCap size={11} className="shrink-0" />
+                        <span>도보 {Math.round((locationScore.distanceToElementary || 0) / 70) || 1}분</span>
+                      </span>
+                      <span className="text-[11px] font-bold text-tertiary tabular-nums">
+                        {Math.round(locationScore.distanceToElementary || 0)}m
+                      </span>
+                    </div>
                   </div>
                 )}
                 {locationScore.nearestSchoolNames?.middle && (
-                  <div className="bg-body p-4 rounded-2xl border border-border/50">
-                    <span className="text-[11px] font-bold text-tertiary block mb-1">인근 중학교</span>
-                    <strong className="text-primary text-[14px]">{locationScore.nearestSchoolNames.middle}</strong>
-                    <p className="mt-1 text-tertiary">동탄 학군 내 배정 권역</p>
+                  <div className="bg-[#f9fafb] dark:bg-[#17171c] p-4 rounded-2xl flex flex-col justify-between gap-2">
+                    <span className="text-[11px] font-bold text-tertiary">인근 중학교</span>
+                    <strong className="text-primary text-[14px] truncate">{locationScore.nearestSchoolNames.middle}</strong>
+                    <span className={getVisualSignalPillClass('neutral', 'w-fit')}>
+                      <GraduationCap size={11} className="shrink-0" />
+                      <span>배정 학군권</span>
+                    </span>
                   </div>
                 )}
                 {locationScore.nearestSchoolNames?.high && (
-                  <div className="bg-body p-4 rounded-2xl border border-border/50">
-                    <span className="text-[11px] font-bold text-tertiary block mb-1">인근 고등학교</span>
-                    <strong className="text-primary text-[14px]">{locationScore.nearestSchoolNames.high}</strong>
-                    <p className="mt-1 text-tertiary">도보 및 대중교통 통학권</p>
+                  <div className="bg-[#f9fafb] dark:bg-[#17171c] p-4 rounded-2xl flex flex-col justify-between gap-2">
+                    <span className="text-[11px] font-bold text-tertiary">인근 고등학교</span>
+                    <strong className="text-primary text-[14px] truncate">{locationScore.nearestSchoolNames.high}</strong>
+                    <span className={getVisualSignalPillClass('neutral', 'w-fit')}>
+                      <GraduationCap size={11} className="shrink-0" />
+                      <span>통학 생활권</span>
+                    </span>
                   </div>
                 )}
                 {locationScore.nearestStationName && (
-                  <div className="bg-body p-4 rounded-2xl border border-border/50">
-                    <span className="text-[11px] font-bold text-tertiary block mb-1">대중교통 / 지하철</span>
-                    <strong className="text-primary text-[14px]">{locationScore.nearestStationLine || '지하철'} {locationScore.nearestStationName}역</strong>
-                    <p className="mt-1 text-tertiary tabular-nums">단지 기준 약 {locationScore.distanceToSubway || 0}m (도보 {Math.round((locationScore.distanceToSubway || 0) / 70) || 1}분)</p>
+                  <div className="bg-[#f9fafb] dark:bg-[#17171c] p-4 rounded-2xl flex flex-col justify-between gap-2">
+                    <span className="text-[11px] font-bold text-tertiary">대중교통 · 철도</span>
+                    <strong className="text-primary text-[14px] truncate">
+                      {locationScore.nearestStationLine || '지하철'} {locationScore.nearestStationName}역
+                    </strong>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={getVisualSignalPillClass('down', 'tabular-nums w-fit')}>
+                        <TrainFront size={11} className="shrink-0" />
+                        <span>도보 {Math.round((locationScore.distanceToSubway || 0) / 70) || 1}분</span>
+                      </span>
+                      <span className="text-[11px] font-bold text-tertiary tabular-nums">
+                        {Math.round(locationScore.distanceToSubway || 0)}m
+                      </span>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           )}
 
-          {/* On-site Scouting Assessment */}
+          {/* On-site Scouting Assessment (Layer 2 Progressive SEO Accordion) */}
           {matchedReportData?.sections && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
                 <span className="w-2 h-5 bg-emerald-500 rounded-full" />
-                현장 임장 검증 및 정성 평가 종합
+                현장 임장 정성 평가
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px] text-secondary">
-                {matchedReportData.sections.assessment?.synthesis && (
-                  <div className="bg-body p-5 rounded-2xl border border-border/50 col-span-1 md:col-span-2">
-                    <h3 className="text-sm font-extrabold text-primary mb-2">단지 종합 가치 평가</h3>
-                    <p className="leading-relaxed font-medium">{matchedReportData.sections.assessment.synthesis}</p>
+              <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+                <summary className={getSeoAccordionSummaryClass()}>
+                  <span>현장 임장 검증 · 정성 해설 더보기</span>
+                  <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+                </summary>
+                <div className={getSeoAccordionBodyClass()}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[13px] text-secondary">
+                    {matchedReportData.sections.assessment?.synthesis && (
+                      <div className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl col-span-1 md:col-span-2">
+                        <h3 className="text-sm font-extrabold text-primary mb-1.5">단지 종합 가치 평가</h3>
+                        <p className="leading-relaxed font-medium">{matchedReportData.sections.assessment.synthesis}</p>
+                      </div>
+                    )}
+                    {matchedReportData.sections.ecosystem?.schoolText && (
+                      <div className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl">
+                        <h3 className="text-sm font-extrabold text-primary mb-1.5">학군 및 교육 환경</h3>
+                        <p className="leading-relaxed font-medium">{matchedReportData.sections.ecosystem.schoolText}</p>
+                      </div>
+                    )}
+                    {matchedReportData.sections.location?.trafficText && (
+                      <div className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl">
+                        <h3 className="text-sm font-extrabold text-primary mb-1.5">교통 및 도로 인프라</h3>
+                        <p className="leading-relaxed font-medium">{matchedReportData.sections.location.trafficText}</p>
+                      </div>
+                    )}
+                    {matchedReportData.sections.infra?.parkingText && (
+                      <div className="bg-surface dark:bg-[#1e1e24] p-4 rounded-2xl col-span-1 md:col-span-2">
+                        <h3 className="text-sm font-extrabold text-primary mb-1.5">주차 공간 및 입주민 편의 시설</h3>
+                        <p className="leading-relaxed font-medium">{matchedReportData.sections.infra.parkingText}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-                {matchedReportData.sections.ecosystem?.schoolText && (
-                  <div className="bg-body p-5 rounded-2xl border border-border/50">
-                    <h3 className="text-sm font-extrabold text-primary mb-2">학군 및 교육 환경</h3>
-                    <p className="leading-relaxed font-medium">{matchedReportData.sections.ecosystem.schoolText}</p>
-                  </div>
-                )}
-                {matchedReportData.sections.location?.trafficText && (
-                  <div className="bg-body p-5 rounded-2xl border border-border/50">
-                    <h3 className="text-sm font-extrabold text-primary mb-2">교통 및 도로 인프라</h3>
-                    <p className="leading-relaxed font-medium">{matchedReportData.sections.location.trafficText}</p>
-                  </div>
-                )}
-                {matchedReportData.sections.infra?.parkingText && (
-                  <div className="bg-body p-5 rounded-2xl border border-border/50 col-span-1 md:col-span-2">
-                    <h3 className="text-sm font-extrabold text-primary mb-2">주차 공간 및 입주민 편의 시설</h3>
-                    <p className="leading-relaxed font-medium">{matchedReportData.sections.infra.parkingText}</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              </details>
             </div>
           )}
 
@@ -506,14 +762,12 @@ export default async function ApartmentPage(props: {
           <div id="chapter-02-pyeong-ssr" className="space-y-4 min-w-0">
             <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
               <span className="w-2 h-5 bg-emerald-500 rounded-full" />
-              {decodedName} 평형별 실거래가 및 전세가율 현황표
+              평형별 실거래가 · 전세가율
             </h2>
             {pyeongSummaries.length > 0 ? (
-              <div className="overflow-x-auto rounded-2xl border border-border/60">
+              <div className="overflow-x-auto rounded-2xl bg-[#f9fafb] dark:bg-[#17171c]">
                 <table className="w-full text-left text-[13px] text-secondary">
-                  <caption className="sr-only">
-                    {decodedName} 평형별 전용면적, 최근 실거래가, 평균 매매가, 최고가, 최근 전세가, 전세가율 및 거래량 현황표
-                  </caption>
+                  <caption className="sr-only">{decodedName} 평형별 실거래가 · 전세가율 현황표</caption>
                   <thead className="bg-body text-primary font-bold border-b border-border/60">
                     <tr>
                       <th scope="col" className="p-3.5 whitespace-nowrap">평형</th>
@@ -573,20 +827,20 @@ export default async function ApartmentPage(props: {
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
                 <span className="w-2 h-5 bg-emerald-500 rounded-full" />
-                {decodedName} 주택담보대출 상환 시뮬레이션 및 스트레스 DSR 진단
+                주담대 상환 · DSR 한도 진단
               </h2>
-              <p className="mt-2 text-[13px] text-tertiary font-medium tabular-nums">
-                대출원금 {formatWon(mortgageSsr.principalWon)}, 30년 만기, 기준금리 4.0%를 가정한 상환방식별 원리금 및 스트레스 DSR 40% 규제 분석표입니다.
+              <p className="mt-1.5 text-[12.5px] text-tertiary font-medium tabular-nums">
+                원금 {formatWon(mortgageSsr.principalWon)} · 30년 만기 · 금리 4.0% 가정 시뮬레이션 (차주별 한도 상이)
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Amortization Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">1. 상환 방식별 월 납부액 비교</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">{decodedName} 원리금균등 분할상환 및 원금균등 분할상환 상환 방식별 월 납부액 비교표</caption>
+                    <caption className="sr-only">{decodedName} 상환 방식별 월 납부액 비교표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">방식</th>
@@ -614,11 +868,11 @@ export default async function ApartmentPage(props: {
               </div>
 
               {/* DSR Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">2. 연소득별 스트레스 DSR 40% 한도표</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">{decodedName} 차주 연소득별 스트레스 DSR 40% 규제 대출한도표</caption>
+                    <caption className="sr-only">{decodedName} 연소득별 스트레스 DSR 40% 한도표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">차주 연소득</th>
@@ -640,13 +894,13 @@ export default async function ApartmentPage(props: {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               {/* Rate Shock Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">3. 금리 변동 시나리오별 상환 부담표</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">{decodedName} 금리 변동 시나리오별 월 원리금 상환액 및 추가 이자 부담표</caption>
+                    <caption className="sr-only">{decodedName} 금리 변동 시나리오별 월 상환 부담표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">금리 변동 시나리오</th>
@@ -670,11 +924,11 @@ export default async function ApartmentPage(props: {
               </div>
 
               {/* Reverse Jeonse Shortfall Table */}
-              <div className="bg-body p-5 rounded-2xl border border-border/50 min-w-0">
+              <div className="bg-[#f9fafb] dark:bg-[#17171c] p-5 rounded-2xl min-w-0">
                 <h3 className="text-sm font-extrabold text-primary mb-3">4. 전세보증금 반환대출(역전세) 결손액 진단표</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-[12px] text-secondary">
-                    <caption className="sr-only">{decodedName} 전세보증금 반환대출(역전세) 결손액 진단표</caption>
+                    <caption className="sr-only">{decodedName} 역전세 보증금 반환 결손액 진단표</caption>
                     <thead className="border-b border-border/60 font-bold text-primary">
                       <tr>
                         <th className="pb-2">전세가 하락률</th>
@@ -696,26 +950,31 @@ export default async function ApartmentPage(props: {
               </div>
             </div>
 
-            {/* FAQ Accordion / List */}
-            <div className="bg-body p-5 sm:p-6 rounded-2xl border border-border/50 space-y-3">
-              <h3 className="text-sm font-extrabold text-primary mb-2 flex items-center gap-1.5">
-                <HelpCircle size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>자주 묻는 금융 및 부동산 질문 (FAQ)</span>
-              </h3>
-              <dl className="space-y-3 text-[13px]">
-                {mortgageSsr.faqList.map((faq) => (
-                  <div key={faq.question} className="border-b border-border/40 pb-3 last:border-0 last:pb-0">
-                    <dt className="font-bold text-primary flex items-start gap-2">
-                      <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">Q.</span>
-                      {faq.question}
-                    </dt>
-                    <dd className="mt-1 text-secondary pl-5 leading-relaxed font-medium">
-                      {faq.answer}
-                    </dd>
-                  </div>
-                ))}
-              </dl>
-            </div>
+            {/* Layer 2 Progressive SEO Accordion: Mortgage & Real Estate FAQ */}
+            <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+              <summary className={getSeoAccordionSummaryClass()}>
+                <span className="inline-flex items-center gap-1.5">
+                  <HelpCircle size={15} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span>주담대 · 전세 안전 FAQ 4선 더보기</span>
+                </span>
+                <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+              </summary>
+              <div className={getSeoAccordionBodyClass()}>
+                <dl className="space-y-3 text-[13px]">
+                  {mortgageSsr.faqList.map((faq) => (
+                    <div key={faq.question} className="border-b border-border/40 pb-3 last:border-0 last:pb-0">
+                      <dt className="font-bold text-primary flex items-start gap-2">
+                        <span className="text-emerald-600 dark:text-emerald-400 font-extrabold">Q.</span>
+                        {faq.question}
+                      </dt>
+                      <dd className="mt-1 text-secondary pl-5 leading-relaxed font-medium">
+                        {faq.answer}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            </details>
 
           </section>
 
@@ -746,12 +1005,10 @@ export default async function ApartmentPage(props: {
               <div>
                 <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
                   <MapPin size={18} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span>
-                    {aptDong ? `동탄 ${aptDong}` : '동탄 권역'} 평당가 유사 단지 및 인접 학군 경쟁 단지 비교
-                  </span>
+                  <span>인근 유사 평당가 · 학군 비교</span>
                 </h2>
                 <p className="mt-1 text-xs sm:text-[13px] text-slate-600 dark:text-slate-400 font-medium">
-                  같은 동(권역) 내 평당가 유사 단지 TOP 5와 배정 초등학교·중학교 학군 경쟁 단지의 국토교통부 최신 실거래가를 1:1로 비교해 보세요.
+                  동일 권역 평당가 근접 TOP 5 · 배정 학군 경쟁 단지 1:1 시세
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2 shrink-0">

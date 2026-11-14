@@ -86,7 +86,7 @@ const TransactionChartTooltip = React.memo(({ active, payload }: TransactionChar
   const ratioValue = (hasRatio && item?.jeonseAvg != null && item?.saleAvg != null) ? ((item.jeonseAvg / item.saleAvg) * 100).toFixed(1) : null;
 
   return (
-    <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px]">
+    <div className="bg-surface/95 border border-border p-3 sm:p-4 rounded-2xl shadow-xl backdrop-blur-md min-w-[150px] tabular-nums">
       <div className="text-tertiary text-[12px] font-bold mb-2">
         {item?.ts ? `${new Date(item.ts).getFullYear()}년 ${String(new Date(item.ts).getMonth() + 1).padStart(2, '0')}월` : ''}
       </div>
@@ -165,7 +165,7 @@ const ScatterCustomizedDots = React.memo(({
               r={isHov ? 5.5 : 3.5}
               fill={floorColor}
               opacity={d.isOutlier ? 0.1 : (isHov ? 1 : 0.4)}
-              stroke={isHov ? '#fbbf24' : 'none'}
+              stroke={isHov ? '#3182f6' : 'none'}
               strokeWidth={isHov ? 2 : 0}
               style={{ pointerEvents: 'none', transition: 'r 0.15s, opacity 0.15s' }}
             />
@@ -713,7 +713,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                   const ratio = Math.max(0, Math.min(100, (currentPrice / maxPrice) * 100));
                   return (
                     <div className="flex flex-col gap-1 mt-1">
-                      <div className="flex justify-between text-[12px] sm:text-[13px] font-bold">
+                      <div className="flex justify-between text-[12px] sm:text-[13px] font-bold tabular-nums">
                         <span className="text-tertiary">최고 평균가 {formatAvgPriceEok(maxPrice)}</span>
                         <span className={dropRatio > 0 ? "text-[#d33340] dark:text-red-300" : "text-blue-600 dark:text-blue-400"}>
                           최근 1개월 {formatAvgPriceEok(currentPrice)} ({dropRatio > 0 ? `-${dropRatio.toFixed(1)}%` : `+${Math.abs(dropRatio).toFixed(1)}%`})
@@ -774,15 +774,15 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
                 key={item.label} 
                 className={`flex flex-col px-3 py-2.5 sm:px-4 sm:py-3.5 flex-1 relative rounded-xl border transition-all duration-200 ${
                   isTarget 
-                    ? 'bg-surface border-blue-600 shadow-[0_4px_12px_rgba(5,126,119,0.08)] ring-1 ring-blue-600/10 z-10' 
+                    ? 'bg-surface border-blue-600 shadow-[0_4px_12px_rgba(49,130,246,0.08)] ring-1 ring-blue-600/10 z-10' 
                     : 'bg-surface border-border/60 hover:bg-body/30'
                 }`}
               >
                 <div className={`text-[11px] sm:text-[12.5px] font-bold mb-1 flex items-center justify-between w-full whitespace-nowrap gap-1.5 ${isTarget ? 'text-blue-600 dark:text-blue-400' : 'text-tertiary'}`}>
                   <span>{item.label} 평균</span>
-                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-blue-600 rounded-full animate-pulse shadow-[0_0_6px_rgba(5,126,119,0.3)]" />}
+                  {isTarget && <div className="w-1.5 h-1.5 shrink-0 bg-blue-600 rounded-full animate-pulse shadow-[0_0_6px_rgba(49,130,246,0.3)]" />}
                 </div>
-                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap ${isTarget ? 'text-blue-600 dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
+                <span className={`text-[14.5px] sm:text-[17px] whitespace-nowrap tabular-nums ${isTarget ? 'text-blue-600 dark:text-blue-400 font-black tracking-tight' : 'text-primary font-extrabold'}`}>
                   {formatAvgPriceEok(item.val)}
                 </span>
               </div>
@@ -878,7 +878,7 @@ export const TransactionChartSection = React.memo(function TransactionChartSecti
             const { d, typeName, floorColor } = hoveredDotInfo;
             return (
               <div 
-                className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-20 whitespace-nowrap text-left"
+                className="absolute bg-surface border border-border rounded-xl px-3.5 py-2.5 shadow-lg pointer-events-none z-20 whitespace-nowrap text-left tabular-nums"
                 style={{
                   left: hoveredDot.x, top: hoveredDot.y,
                   transform: 'translate(-50%, -100%) translateY(-10px)',

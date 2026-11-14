@@ -1,9 +1,15 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { logger } from '@/lib/services/logger';
-import { MapPin, Check, Share } from 'lucide-react';
+import { MapPin, Check, Share, ChevronDown } from 'lucide-react';
 import { calculateInfraScore } from '@/lib/utils/scoring';
 import { safeReload } from '@/lib/utils/safeReload';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionBodyClass,
+  getSeoAccordionChevronClass,
+} from '@/lib/design-system/copyDiet';
 
 const AnchorTenantSkeleton = () => (
   <div className="bg-surface rounded-3xl p-6 md:p-8 shadow-sm border border-border animate-pulse">
@@ -111,10 +117,10 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
         {(() => {
           const infraScoreInfo = calculateInfraScore(report.metrics);
           const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-            S: { bg: 'bg-[#e6f7f3]', text: 'text-blue-600 dark:text-blue-400', border: 'border-[#a7f3d0]/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
-            A: { bg: 'bg-[#f0f9ff]', text: 'text-[#0284c7]', border: 'border-[#bae6fd]/50', descBg: 'bg-[#0284c7]/5', scoreText: 'text-[#0284c7]' },
+            S: { bg: 'bg-emerald-50 dark:bg-emerald-950/40', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200 dark:border-emerald-800/50', descBg: 'bg-emerald-500/5', scoreText: 'text-emerald-600 dark:text-emerald-400' },
+            A: { bg: 'bg-blue-50 dark:bg-blue-950/40', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200 dark:border-blue-800/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
             B: { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600' },
-            C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
+            C: { bg: 'bg-slate-50 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-300', border: 'border-slate-200 dark:border-slate-700/60', descBg: 'bg-slate-500/5', scoreText: 'text-slate-600 dark:text-slate-300' }
           };
           const colors = scoreColors[infraScoreInfo.grade] || scoreColors.C;
           
@@ -127,14 +133,14 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
                     copiedStatus === 'infra-link'
                       ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                      : 'bg-[#f0f9ff] dark:bg-[#0284c7]/10 hover:bg-[#e0f2fe] dark:hover:bg-[#0284c7]/20 active:bg-[#bae6fd] text-[#0284c7] border-[#0284c7]/20'
+                      : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100/80 dark:hover:bg-blue-900/40 active:bg-blue-200/70 text-blue-600 dark:text-blue-400 border-blue-200/70 dark:border-blue-800/50'
                   }`}
                   title="생활 인프라 분석 결과 카카오톡 공유하기"
                 >
                   {copiedStatus === 'infra-link' ? (
                     <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
                   ) : (
-                    <Share size={12} strokeWidth={2.5} className={copiedStatus === 'infra-link' ? 'text-emerald-500/80' : 'text-[#0284c7]/80'} />
+                    <Share size={12} strokeWidth={2.5} className={copiedStatus === 'infra-link' ? 'text-emerald-500/80' : 'text-blue-600/80 dark:text-blue-400/80'} />
                   )}
                   <span>{copiedStatus === 'infra-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
                 </button>
@@ -151,18 +157,26 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                 <div className="flex-1 w-full text-center md:text-left">
                   <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
                     <span className="text-[16px] font-bold text-secondary">종합 생활 인프라 지수:</span>
-                    <div className="flex items-baseline justify-center gap-0.5">
+                    <div className="flex items-baseline justify-center gap-0.5 tabular-nums">
                       <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{infraScoreInfo.score}</span>
                       <span className="text-[14px] font-bold text-secondary mt-auto pb-0.5">/ 100 점</span>
                     </div>
                   </div>
+                  <p className="text-[12.5px] font-bold text-secondary mb-2">
+                    지하철 · 트램 접근성 · 500m 앵커 상권 밀집도 종합
+                  </p>
                   
-                  <div className={`p-4 rounded-xl ${colors.descBg} border border-toss-blue/10 text-left`}>
-                    <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 단지 생활권 리포트</p>
-                    <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
-                      {infraScoreInfo.description} (지하철·트램역까지의 대중교통 접근성과 스타벅스·올리브영·다이소·배스킨라빈스 등 생활 편의시설 밀집도를 가중 평균하여 연산한 지표입니다.)
-                    </p>
-                  </div>
+                  <details className={getSeoAccordionClass(`${colors.descBg} border border-toss-blue/10 text-left`)}>
+                    <summary className={getSeoAccordionSummaryClass()}>
+                      <span>생활 인프라 산정 기준 더보기</span>
+                      <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                    </summary>
+                    <div className={getSeoAccordionBodyClass()}>
+                      <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
+                        {infraScoreInfo.description} (지하철·트램역까지의 대중교통 접근성과 스타벅스·올리브영·다이소·배스킨라빈스 등 생활 편의시설 밀집도를 가중 평균하여 연산한 지표입니다.)
+                      </p>
+                    </div>
+                  </details>
                 </div>
               </div>
             </div>
@@ -179,7 +193,7 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
               {[
                 { label: report.metrics.nearestStationLine || 'GTX-A / SRT', dist: report.metrics.distanceToSubway, name: report.metrics.nearestStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eef6ff', bgTo: '#dbeafe' },
                 { label: report.metrics.nearestIndeokwonLine || '인덕원선', dist: report.metrics.distanceToIndeokwon, name: report.metrics.nearestIndeokwonStationName, coords: report.metrics.nearestStationCoords, color: '#2563eb', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
-                { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#0284c7', bgFrom: '#f0f9ff', bgTo: '#e0f2fe' },
+                { label: report.metrics.nearestTramLine || '동탄트램', dist: report.metrics.distanceToTram, name: report.metrics.nearestTramStationName, coords: report.metrics.nearestTramCoords, color: '#3182f6', bgFrom: '#eff6ff', bgTo: '#dbeafe' },
               ].filter(s => s.dist != null && s.dist > 0).map(station => {
                 const dist = station.dist ?? 0;
                 const percent = Math.min((dist / 1200) * 100, 100);
@@ -191,10 +205,10 @@ const InfraAnalysisSection = React.memo(function InfraAnalysisSection({
                           {station.label}
                         </span>
                         {dist <= 400 && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#e0f2fe] text-[#0369a1] dark:bg-[#0369a1]/30 dark:text-[#7dd3fc] shrink-0 leading-none">초역세</span>
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 shrink-0 leading-none">초역세</span>
                         )}
                         {dist > 400 && dist <= 800 && (
-                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-[#f0fdf4] text-[#166534] dark:bg-[#166534]/30 dark:text-[#86efac] shrink-0 leading-none">역세권</span>
+                          <span className="text-[9px] font-black px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 shrink-0 leading-none">역세권</span>
                         )}
                       </div>
                       {dist <= 400 ? (

@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
+import MobileDock from '@/components/pwa/MobileDock';
 import LoungeBoardView from '@/components/board/LoungeBoardView';
 import { AdSlot } from '@/components/ads/AdSlot';
 
@@ -40,8 +41,8 @@ export default function LoungePage() {
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-surface dark:bg-slate-950 text-primary">
-      {/* 5 Canonical Header Tabs Preserved */}
-      <LoungeHeader activeTab="" />
+      {/* 5 Canonical Header Tabs + Right Resident Lounge Active State */}
+      <LoungeHeader activeTab="lounge" />
 
       {/* Hero / Breadcrumb Bar */}
       <section className="w-full bg-slate-50/70 dark:bg-slate-900/40 border-b border-slate-200/60 dark:border-slate-800/60">
@@ -58,7 +59,7 @@ export default function LoungePage() {
       </section>
 
       {/* Main Board View Feed */}
-      <main id="main-content" className="flex-1 w-full">
+      <main id="main-content" className="flex-1 w-full pb-24 md:pb-0">
         <LoungeBoardView />
 
         {/* Pre-reserved Zero-CLS AdSlot Container */}
@@ -77,6 +78,8 @@ export default function LoungePage() {
           </div>
         )}
       </main>
+
+      <MobileDock activeTab="lounge" />
     </div>
   );
 }

@@ -595,21 +595,30 @@ export const ZoneDonutFullscreenModal = React.memo(function ZoneDonutFullscreenM
   }, [selectedZoneKey]);
 
   const trimmedFullscreenSearch = searchQuery.trim();
+  const lastTrackedFullscreenSearchRef = useRef<string>('');
 
   useEffect(() => {
-    if (!isOpen || !trimmedFullscreenSearch) return;
+    if (!trimmedFullscreenSearch) {
+      lastTrackedFullscreenSearchRef.current = '';
+      return;
+    }
+    if (!isOpen) return;
 
+    const normalizedQuery = trimmedFullscreenSearch.slice(0, 100);
     const timer = setTimeout(() => {
-      const searchPayload = {
-        search_term: trimmedFullscreenSearch,
-        query: trimmedFullscreenSearch,
-        surface: 'donut_fullscreen_modal',
-        zone: selectedZoneKeyRef.current,
-      };
-      if (typeof trackSearchQuery === 'function') {
-        trackSearchQuery(searchPayload);
-      } else {
-        trackEvent('search_query', searchPayload);
+      if (lastTrackedFullscreenSearchRef.current !== normalizedQuery) {
+        lastTrackedFullscreenSearchRef.current = normalizedQuery;
+        const searchPayload = {
+          search_term: normalizedQuery,
+          query: normalizedQuery,
+          surface: 'donut_fullscreen_modal',
+          zone: selectedZoneKeyRef.current,
+        };
+        if (typeof trackSearchQuery === 'function') {
+          trackSearchQuery(searchPayload);
+        } else {
+          trackEvent('search_query', searchPayload);
+        }
       }
     }, 1000);
 

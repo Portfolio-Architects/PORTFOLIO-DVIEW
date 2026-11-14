@@ -2,12 +2,21 @@ import { Suspense } from 'react';
 import Script from 'next/script';
 import Link from 'next/link';
 import { Metadata } from 'next';
+import { ChevronDown, TrendingUp, Activity, ShieldCheck } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { getTxSummaryData, resolveCanonicalAptSlug } from '@/lib/services/apartmentPageService';
 import { getMainPageSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import { ZONES } from '@/lib/zones';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionChevronClass,
+  getSeoAccordionBodyClass,
+  getVisualSignalPillClass,
+  truncateToCopyBudget,
+} from '@/lib/design-system/copyDiet';
 
 interface HomeTransactionRecord {
   apartmentName?: string;
@@ -15,9 +24,13 @@ interface HomeTransactionRecord {
   txKey?: string;
   dong?: string;
   price?: number;
+  priceVal?: number;
+  priceEok?: string;
   areaPyeong?: number;
   floor?: number | string;
   dealType?: string;
+  date?: string;
+  contractDate?: string;
   contractYm?: string | number;
   contractDay?: string | number;
   registeredDate?: string;
@@ -248,6 +261,34 @@ const formatPrice = (val: number) => {
   return `${eok}억 ${remainder.toLocaleString()}만원`;
 };
 
+const formatHomeTxPrice = (tx: HomeTransactionRecord) => {
+  if (typeof tx.price === 'number' && tx.price > 0) return formatPrice(tx.price);
+  if (typeof tx.priceVal === 'number' && Number.isFinite(tx.priceVal) && tx.priceVal > 0) {
+    return formatPrice(Math.round(tx.priceVal * 10000));
+  }
+  if (tx.priceEok && tx.priceEok.trim() && tx.priceEok !== '0만') {
+    const trimmed = tx.priceEok.trim();
+    if (trimmed.endsWith('원')) return trimmed;
+    if (trimmed.endsWith('만') || trimmed.endsWith('억')) return `${trimmed}원`;
+    return `${trimmed}만원`;
+  }
+  return '정보 없음';
+};
+
+const formatHomeTxDate = (tx: HomeTransactionRecord) => {
+  if (tx.contractYm && tx.contractDay) {
+    const ym = String(tx.contractYm).replace(/\D/g, '');
+    const day = String(tx.contractDay).replace(/\D/g, '').padStart(2, '0');
+    return ym.length === 6 ? `${ym.slice(0, 4)}.${ym.slice(4, 6)}.${day}` : `${tx.contractYm}.${tx.contractDay}`;
+  }
+  const rawDate = tx.contractDate || tx.registeredDate || '';
+  const digits = rawDate.replace(/\D/g, '');
+  if (digits.length === 8) {
+    return `${digits.slice(0, 4)}.${digits.slice(4, 6)}.${digits.slice(6, 8)}`;
+  }
+  return rawDate || tx.date || '-';
+};
+
 async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: 'overview' | 'imjang' }) {
   const initialData = await getInitialData();
   const txSummary = initialData.txSummary || {};
@@ -280,84 +321,153 @@ async function DashboardDataLoader({ initialTab = 'overview' }: { initialTab?: '
         aria-label="동탄 대장 아파트 랭킹 및 최신 실거래 내역"
         className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-2"
       >
-        <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-5 sm:p-7 space-y-5">
-          <header className="space-y-1.5 border-b border-slate-200/60 dark:border-slate-800/60 pb-4">
-            <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
-              동탄 아파트 시세·실거래가·집값 추이 그래프 대시보드 - D-VIEW
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-              국토교통부 실거래가 공개시스템 공식 데이터 기반 동탄 1·2신도시 184개 아파트 시세, 평형별 집값 추이 그래프, 전세가율 및 주거 가치 분석 리포트 플랫폼
-            </p>
+        <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-6 space-y-3.5">
+          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
+                대장 시세 · 최신 실거래 요약
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
+                184개 단지 국토부 실거래가 · 전세가율 일일 동기화
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
+              {top10Leaderboard[0] && (
+                <div className="inline-flex items-center gap-1.5">
+                  <span className={getVisualSignalPillClass('safe')}>
+                    <TrendingUp size={12} className="shrink-0" />
+                    <span>대장 #1</span>
+                  </span>
+                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 tabular-nums">
+                    {top10Leaderboard[0].name} {formatPrice(top10Leaderboard[0].latestPrice)}
+                  </span>
+                </div>
+              )}
+              <span className={getVisualSignalPillClass('neutral', 'tabular-nums')}>
+                <Activity size={12} className="shrink-0" />
+                <span>최근 등록 {Math.min(recentTxs.length, 15)}건</span>
+              </span>
+              <span className={getVisualSignalPillClass('down')}>
+                <ShieldCheck size={12} className="shrink-0" />
+                <span>국토부 공식</span>
+              </span>
+            </div>
           </header>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {top10Leaderboard.length > 0 && (
-              <section className="rounded-xl bg-white dark:bg-[#1e1e24] p-4 sm:p-5 space-y-3">
-                <h3 className="text-xs sm:text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
-                  동탄 시세 리더 아파트 TOP 10 (대장 단지 랭킹)
-                </h3>
-                <ol className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 tabular-nums">
-                  {top10Leaderboard.map((apt, index) => (
-                    <li key={apt.name} className="leading-relaxed">
-                      <strong className="font-bold text-slate-900 dark:text-slate-100">
-                        {index + 1}위:{' '}
-                        <Link
-                          href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
-                          prefetch={false}
-                          className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
-                        >
-                          {apt.name}
-                        </Link>
-                      </strong>{' '}
-                      ({apt.dong}) - 최근 실거래가: {formatPrice(apt.latestPrice)}
-                      {apt.jeonseRatio > 0 ? ` (전세가율 약 ${apt.jeonseRatio}%)` : ''}
-                    </li>
-                  ))}
-                </ol>
-              </section>
-            )}
-            {recentTxs.length > 0 && (
-              <section className="rounded-xl bg-white dark:bg-[#1e1e24] p-4 sm:p-5 space-y-3">
-                <h3 className="text-xs sm:text-sm font-extrabold text-blue-700 dark:text-blue-400">
-                  최근 동탄 아파트 실거래 등록 내역 (최신 15건)
-                </h3>
-                <ul className="space-y-1.5 text-xs text-slate-700 dark:text-slate-300 tabular-nums">
-                  {recentTxs.slice(0, 15).map((tx, idx) => {
-                    const displayTxAptName = tx.apartmentName || tx.aptName || '';
-                    const canonicalTxSlug = displayTxAptName
-                      ? resolveCanonicalAptSlug(displayTxAptName, {
-                          txKey: tx.txKey,
-                          dong: tx.dong,
-                          txMap: txSummary,
-                          sheetApartments: initialData.sheetApartments,
-                        }) || displayTxAptName
-                      : '';
-                    return (
-                      <li key={idx} className="leading-relaxed">
-                        <strong className="font-bold text-slate-900 dark:text-slate-100">
-                          {displayTxAptName ? (
-                            <Link
-                              href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`}
-                              prefetch={false}
-                              className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
-                            >
-                              {displayTxAptName}
-                            </Link>
-                          ) : (
-                            '아파트'
-                          )}
-                        </strong>{' '}
-                        (
-                        {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평형` : ''}, {tx.floor ? `${tx.floor}층` : ''}) -{' '}
-                        {tx.dealType || '매매'} {formatPrice(tx.price || 0)}
-                        {tx.contractYm && tx.contractDay ? ` (계약일: ${tx.contractYm}.${tx.contractDay})` : ''}
-                        {tx.registeredDate ? ` [등록일: ${tx.registeredDate}]` : ''}
-                      </li>
-                    );
-                  })}
-                </ul>
-              </section>
-            )}
-          </div>
+
+          <details className={getSeoAccordionClass('bg-white dark:bg-[#1e1e24]')}>
+            <summary className={getSeoAccordionSummaryClass()}>
+              <span>TOP 10 랭킹 · 최신 실거래 더보기</span>
+              <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+            </summary>
+            <div className={getSeoAccordionBodyClass('space-y-4')}>
+              {top10Leaderboard.length === 0 && recentTxs.length === 0 ? (
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  등록된 실거래 내역이 없습니다.
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  {top10Leaderboard.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                        <caption className="text-left text-xs font-extrabold text-emerald-700 dark:text-emerald-400 pb-2">
+                          동탄 시세 리더 TOP 10 대장 랭킹
+                        </caption>
+                        <thead className="border-b border-slate-200/70 dark:border-slate-800 font-bold text-slate-900 dark:text-slate-100">
+                          <tr>
+                            <th scope="col" className="py-2 pr-2 whitespace-nowrap">순위 · 단지</th>
+                            <th scope="col" className="py-2 px-2 whitespace-nowrap">법정동</th>
+                            <th scope="col" className="py-2 px-2 whitespace-nowrap">최근 실거래</th>
+                            <th scope="col" className="py-2 pl-2 whitespace-nowrap">전세가율</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/50 dark:divide-slate-800/60 tabular-nums">
+                          {top10Leaderboard.map((apt, index) => (
+                            <tr key={apt.name}>
+                              <th scope="row" className="py-2 pr-2 font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                                #{index + 1}{' '}
+                                <Link
+                                  href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
+                                  prefetch={false}
+                                  className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                                >
+                                  {apt.name}
+                                </Link>
+                              </th>
+                              <td className="py-2 px-2 whitespace-nowrap">{apt.dong || '-'}</td>
+                              <td className="py-2 px-2 font-extrabold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                                {formatPrice(apt.latestPrice)}
+                              </td>
+                              <td className="py-2 pl-2 whitespace-nowrap">
+                                {apt.jeonseRatio > 0 ? `${apt.jeonseRatio}%` : '-'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                  {recentTxs.length > 0 && (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+                        <caption className="text-left text-xs font-extrabold text-blue-700 dark:text-blue-400 pb-2">
+                          최근 실거래 등록 내역 (최신 15건)
+                        </caption>
+                        <thead className="border-b border-slate-200/70 dark:border-slate-800 font-bold text-slate-900 dark:text-slate-100">
+                          <tr>
+                            <th scope="col" className="py-2 pr-2 whitespace-nowrap">단지명</th>
+                            <th scope="col" className="py-2 px-2 whitespace-nowrap">평형 · 층</th>
+                            <th scope="col" className="py-2 px-2 whitespace-nowrap">거래금액</th>
+                            <th scope="col" className="py-2 pl-2 whitespace-nowrap">계약일</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/50 dark:divide-slate-800/60 tabular-nums">
+                          {recentTxs.slice(0, 15).map((tx, idx) => {
+                            const displayTxAptName = tx.apartmentName || tx.aptName || '';
+                            const canonicalTxSlug = displayTxAptName
+                              ? resolveCanonicalAptSlug(displayTxAptName, {
+                                  txKey: tx.txKey,
+                                  dong: tx.dong,
+                                  txMap: txSummary,
+                                  sheetApartments: initialData.sheetApartments,
+                                }) || displayTxAptName
+                              : '';
+                            return (
+                              <tr key={idx}>
+                                <th scope="row" className="py-2 pr-2 font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                                  {displayTxAptName ? (
+                                    <Link
+                                      href={`/apartment/${encodeURIComponent(canonicalTxSlug)}`}
+                                      prefetch={false}
+                                      className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                                    >
+                                      {displayTxAptName}
+                                    </Link>
+                                  ) : (
+                                    '아파트'
+                                  )}
+                                </th>
+                                <td className="py-2 px-2 whitespace-nowrap">
+                                  {tx.areaPyeong ? `${Math.round(tx.areaPyeong)}평` : '-'}
+                                  {tx.floor ? ` · ${tx.floor}층` : ''}
+                                </td>
+                                <td className="py-2 px-2 font-bold text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                                  {tx.dealType || '매매'} {formatHomeTxPrice(tx)}
+                                </td>
+                                <td className="py-2 pl-2 whitespace-nowrap text-slate-500 dark:text-slate-400">
+                                  {formatHomeTxDate(tx)}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </details>
         </div>
       </section>
     </>
@@ -401,96 +511,103 @@ export default async function HomePage() {
         aria-label="동탄 신도시 부동산 시장 심층 분석 및 밸류에이션 가이드"
         className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pb-12 pt-4"
       >
-        <div className="rounded-2xl bg-elevated/50 dark:bg-elevated/30 border border-border/30 p-5 sm:p-7 space-y-6 transition-colors">
+        <div className="rounded-2xl bg-elevated/50 dark:bg-elevated/30 p-5 sm:p-7 space-y-5 transition-colors">
           {/* Visual & Contextual Interlinking Bridge from Upper Lab to 20 Comparison Guides */}
           <div
             id="home-lab-to-guide-interlink"
             data-testid="home-lab-to-guide-interlink"
-            className="rounded-xl bg-body/80 dark:bg-body/40 border border-emerald-500/25 dark:border-emerald-500/30 p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5"
+            className="rounded-xl bg-body/80 dark:bg-body/40 p-4 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5"
           >
-            <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
-                <span>E-E-A-T 전문가 심층 비교 리포트 연동</span>
+            <div className="space-y-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className={getVisualSignalPillClass('safe')}>20편 맞대결</span>
+                <span className={getVisualSignalPillClass('neutral')}>평당가 · 전세가율</span>
+                <span className={getVisualSignalPillClass('down')}>DSR 40% 한도</span>
               </div>
               <h3 className="text-xs sm:text-sm font-black text-primary">
-                상단 실거래 랭킹 단지의 1:1 맞대결 입지·학군·전세가율 심층 비교 가이드 (총 20편)
+                실거래 대장 1:1 비교 가이드 20편
               </h3>
-              <p className="text-[11.5px] sm:text-xs text-secondary leading-relaxed">
-                단순 실거래 수치 나열을 넘어, 동탄역·호수공원·광비콤·신주거문화타운 핵심 대장 단지 간 평당가 격차 원인과 스트레스 DSR 대출 한도를 애널리스트 시각으로 비교 해설합니다.
-              </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <a
                 href="#home-guide-4col-grid"
                 className="inline-flex items-center px-3 py-1.5 rounded-lg bg-surface hover:bg-elevated border border-border/60 text-primary text-[11px] font-extrabold transition-colors"
               >
-                하단 20편 가이드 그리드 바로가기
+                하단 20편 가이드 바로가기
               </a>
               <Link
                 href="/guide"
                 prefetch={false}
                 className="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
               >
-                20편 심층 비교 가이드 전체 열람
+                20편 비교 가이드 전체보기
               </Link>
             </div>
           </div>
 
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border/40 pb-5">
-            <div className="space-y-1.5 max-w-3xl">
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold">
-                <span>D-VIEW 부동산 데이터 랩스 공식 분석 브리핑</span>
+          {/* Layer 2 Progressive SEO Accordion: Valuation Methodology & Market Commentary */}
+          <details className={getSeoAccordionClass('bg-body/70 dark:bg-body/30')}>
+            <summary className={getSeoAccordionSummaryClass()}>
+              <span>밸류에이션 방법론 · 산출 기준 더보기</span>
+              <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+            </summary>
+            <div className={getSeoAccordionBodyClass('space-y-4')}>
+              <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 border-b border-border/40 pb-4">
+                <div className="space-y-1.5 max-w-3xl">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 text-xs font-extrabold">
+                    <span>D-VIEW 부동산 데이터 랩스 공식 분석 브리핑</span>
+                  </div>
+                  <h2 className="text-base sm:text-lg font-black text-primary tracking-tight">
+                    동탄 아파트 시세·집값 추이 그래프 밸류에이션 방법론 및 권역별 심층 리포트
+                  </h2>
+                  <p className="text-xs sm:text-sm text-secondary leading-relaxed">
+                    D-VIEW(디뷰 · 동뷰 · 동탄뷰)는 국토교통부 실거래가 공개시스템의 100% 검증된 매매·전월세 신고 데이터를 매일 동기화하여, 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프·전세가율과 56개 동탄테크노밸리 지식산업센터의 내재 가치를 정량 분석합니다.
+                  </p>
+                </div>
+                <Link
+                  href="/guide"
+                  prefetch={false}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-xs font-extrabold transition-colors shrink-0 self-start lg:self-auto cursor-pointer"
+                >
+                  <span>전체 심층 리포트 열람</span>
+                </Link>
               </div>
-              <h2 className="text-lg sm:text-xl font-black text-primary tracking-tight">
-                동탄 아파트 시세·집값 추이 그래프 밸류에이션 방법론 및 권역별 심층 리포트
-              </h2>
-              <p className="text-xs sm:text-sm text-secondary leading-relaxed">
-                D-VIEW(디뷰 · 동뷰 · 동탄뷰)는 국토교통부 실거래가 공개시스템의 100% 검증된 매매·전월세 신고 데이터를 매일 동기화하여, 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프·전세가율과 56개 동탄테크노밸리 지식산업센터의 내재 가치를 정량 분석합니다.
-              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
+                <article className="rounded-xl bg-surface/80 dark:bg-surface/40 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
+                    <h3>실거주 PER 및 전세가율 하방 경직성</h3>
+                  </div>
+                  <p className="text-xs text-secondary leading-relaxed">
+                    단지별 매매가를 전세가로 나눈 실거주 PER(Price-to-Jeonse Ratio) 지표를 통해 실수요 지지력을 계측합니다. 반송동·능동 중심의 동탄1신도시는 완성된 학원가와 중심 상권을 기반으로 65~74% 구간의 전세가율 지지대를 형성하며, 청계동·오산동·송동 중심의 동탄2신도시는 GTX-A 동탄역 직결 수혜와 신축 선호도에 따른 상방 탄력성을 나타냅니다.
+                  </p>
+                </article>
+
+                <article className="rounded-xl bg-surface/80 dark:bg-surface/40 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-extrabold text-xs sm:text-sm">
+                    <h3>스트레스 DSR 40% 한도 및 주담대 감응도</h3>
+                  </div>
+                  <p className="text-xs text-secondary leading-relaxed">
+                    차주 단위 DSR 40% 규제 및 스트레스 가산금리 적용 환경에서는 가구 합산 소득 대비 원리금 상환 비율이 매수 가능 가격대의 상한선을 결정합니다. D-VIEW 단지 상세 리포트는 실거래가 대비 LTV·DSR 한도와 HUG 전세보증금 반환보증(공시가격 126% 룰) 안전 마진을 동시에 산출하여 자금 조달 리스크를 사전에 진단합니다.
+                  </p>
+                </article>
+
+                <article className="rounded-xl bg-surface/80 dark:bg-surface/40 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
+                    <h3>광역 교통망(GTX-A·트램·동인선) 입지 점수</h3>
+                  </div>
+                  <p className="text-xs text-secondary leading-relaxed">
+                    동탄역 복합환승센터(GTX-A·SRT), 동탄 도시철도 트램 1·2호선 정거장, 동탄인덕원선 역세권 도보 실거리와 초·중·고 학군 및 학원가 밀집도를 종합한 5대 입지 스코어링 모델을 적용합니다. 각 단지의 실거래 시계열 추이와 입지 점수 대비 저평가 여부를 탐색 메뉴와 아파트 통계 리포트에서 비교할 수 있습니다.
+                  </p>
+                </article>
+              </div>
             </div>
-            <Link
-              href="/guide"
-              prefetch={false}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400 text-white text-xs sm:text-sm font-extrabold transition-colors shrink-0 self-start lg:self-auto cursor-pointer"
-            >
-              <span>전체 심층 리포트 열람</span>
-            </Link>
-          </div>
-
-          {/* 3-Column Methodology & Fundamental Commentary */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-            <article className="rounded-xl bg-body/70 dark:bg-body/30 p-4 space-y-2 border border-border/30">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
-                <h3>실거주 PER 및 전세가율 하방 경직성</h3>
-              </div>
-              <p className="text-xs text-secondary leading-relaxed">
-                단지별 매매가를 전세가로 나눈 실거주 PER(Price-to-Jeonse Ratio) 지표를 통해 실수요 지지력을 계측합니다. 반송동·능동 중심의 동탄1신도시는 완성된 학원가와 중심 상권을 기반으로 65~74% 구간의 전세가율 지지대를 형성하며, 청계동·오산동·송동 중심의 동탄2신도시는 GTX-A 동탄역 직결 수혜와 신축 선호도에 따른 상방 탄력성을 나타냅니다.
-              </p>
-            </article>
-
-            <article className="rounded-xl bg-body/70 dark:bg-body/30 p-4 space-y-2 border border-border/30">
-              <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400 font-extrabold text-xs sm:text-sm">
-                <h3>스트레스 DSR 40% 한도 및 주담대 감응도</h3>
-              </div>
-              <p className="text-xs text-secondary leading-relaxed">
-                차주 단위 DSR 40% 규제 및 스트레스 가산금리 적용 환경에서는 가구 합산 소득 대비 원리금 상환 비율이 매수 가능 가격대의 상한선을 결정합니다. D-VIEW 단지 상세 리포트는 실거래가 대비 LTV·DSR 한도와 HUG 전세보증금 반환보증(공시가격 126% 룰) 안전 마진을 동시에 산출하여 자금 조달 리스크를 사전에 진단합니다.
-              </p>
-            </article>
-
-            <article className="rounded-xl bg-body/70 dark:bg-body/30 p-4 space-y-2 border border-border/30">
-              <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400 font-extrabold text-xs sm:text-sm">
-                <h3>광역 교통망(GTX-A·트램·동인선) 입지 점수</h3>
-              </div>
-              <p className="text-xs text-secondary leading-relaxed">
-                동탄역 복합환승센터(GTX-A·SRT), 동탄 도시철도 트램 1·2호선 정거장, 동탄인덕원선 역세권 도보 실거리와 초·중·고 학군 및 학원가 밀집도를 종합한 5대 입지 스코어링 모델을 적용합니다. 각 단지의 실거래 시계열 추이와 입지 점수 대비 저평가 여부를 탐색 메뉴와 아파트 통계 리포트에서 비교할 수 있습니다.
-              </p>
-            </article>
-          </div>
+          </details>
 
           {/* 7 Investment Zones Direct Crawl & User Navigation Grid */}
           <div className="space-y-2.5">
             <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-              동탄 7대 핵심 권역별 아파트 실거래가 및 입지 리포트
+              7대 권역별 실거래 · 입지
             </h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2">
               {ZONES.map((zone) => (
@@ -498,7 +615,7 @@ export default async function HomePage() {
                   key={zone.id}
                   href={`/zone/${zone.id}`}
                   prefetch={false}
-                  className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 border border-border/30 hover:border-emerald-500/40 p-3 flex flex-col justify-between gap-1 transition-all"
+                  className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 p-3 flex flex-col justify-between gap-1 transition-all"
                 >
                   <div className="space-y-0.5">
                     <span className="text-[10px] font-extrabold text-emerald-700 dark:text-emerald-400 block truncate">
@@ -508,7 +625,7 @@ export default async function HomePage() {
                       {zone.name}
                     </h4>
                     <p className="text-[11px] text-tertiary line-clamp-1 leading-normal">
-                      {zone.description}
+                      {truncateToCopyBudget(zone.description, 'cardDescription')}
                     </p>
                   </div>
                 </Link>
@@ -521,7 +638,7 @@ export default async function HomePage() {
             <div className="space-y-2.5">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-                  동탄 실거래 시세 리더 대장 단지 TOP 10 심층 리포트
+                  시세 리더 TOP 10 단지
                 </h3>
                 <Link
                   href="/explore"
@@ -537,7 +654,7 @@ export default async function HomePage() {
                     key={apt.name}
                     href={`/apartment/${encodeURIComponent(apt.canonicalSlug)}`}
                     prefetch={false}
-                    className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 border border-border/30 hover:border-blue-500/40 p-2.5 flex flex-col justify-between gap-1 transition-all"
+                    className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 p-2.5 flex flex-col justify-between gap-1 transition-all"
                   >
                     <div className="flex items-center justify-between gap-1 text-[10px] font-bold text-tertiary">
                       <span className="tabular-nums text-emerald-700 dark:text-emerald-400">
@@ -561,14 +678,14 @@ export default async function HomePage() {
           <div id="home-guide-4col-grid" className="space-y-2.5 scroll-mt-20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-                필독 동탄 부동산 분석 칼럼 및 밸류에이션 가이드 (20편 전수 수록)
+                밸류에이션 비교 가이드 20편
               </h3>
               <div className="flex flex-wrap items-center gap-3 text-[11px] font-extrabold">
                 <a
                   href="#home-ssr-semantic-catalog"
                   className="text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                 >
-                  상단 실거래 분석 랩으로 이동
+                  상단 실거래 랩으로 이동
                 </a>
                 <Link
                   href="/guide"
@@ -579,13 +696,13 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-2.5">
               {GUIDE_ARTICLES.map((article) => (
                 <Link
                   key={article.slug}
                   href={`/guide/${article.slug}`}
                   prefetch={false}
-                  className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 border border-border/30 hover:border-emerald-500/40 p-3.5 flex flex-col justify-between gap-2.5 transition-all"
+                  className="group rounded-xl bg-body/60 dark:bg-body/25 hover:bg-body dark:hover:bg-body/50 p-3 flex flex-col justify-between gap-2 transition-all"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between gap-2 text-[11px] text-tertiary">
@@ -594,15 +711,12 @@ export default async function HomePage() {
                         {article.readingTime}
                       </span>
                     </div>
-                    <h4 className="text-xs sm:text-[13px] font-black text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors leading-snug">
+                    <h4 className="text-xs sm:text-[13px] font-black text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-400 transition-colors line-clamp-2 leading-snug">
                       {article.title}
                     </h4>
-                    <p className="text-[11px] text-secondary line-clamp-2 leading-relaxed">
-                      {article.description}
-                    </p>
                   </div>
                   <div className="inline-flex items-center gap-1 text-[11px] font-extrabold text-blue-600 dark:text-blue-400">
-                    <span>칼럼 전문 읽기</span>
+                    <span>비교 리포트 보기</span>
                   </div>
                 </Link>
               ))}
@@ -613,14 +727,14 @@ export default async function HomePage() {
           <section
             id="notification"
             aria-label="동탄 아파트 실거래가 동기화 및 알림 구독 안내"
-            className="scroll-mt-20 rounded-xl bg-body/60 dark:bg-body/25 border border-border/30 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            className="scroll-mt-20 rounded-xl bg-body/60 dark:bg-body/25 p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
           >
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-                국토교통부 실거래가 동기화 및 관심 단지 알림 안내
+                실거래 동기화 · 관심단지 알림
               </h3>
-              <p className="text-[11px] sm:text-xs text-secondary leading-relaxed">
-                동탄 1·2신도시 184개 아파트 단지의 국토교통부 매매·전월세 실거래 내역은 매일 자동 동기화되며, 단지 탐색 및 상세 리포트에서 관심 단지를 등록해 최신 거래 변동을 확인할 수 있습니다.
+              <p className="text-[11px] sm:text-xs text-secondary">
+                184단지 국토부 실거래 일일 반영 · 관심단지 변동 확인
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-2 shrink-0">

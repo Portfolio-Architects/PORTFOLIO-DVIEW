@@ -66,7 +66,7 @@ function ExploreSkeleton() {
         <PageHeroHeader 
           title="D-VIEW 아파트 탐색"
           subtitleStrong={<MarketStatsStrong />}
-          subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
+          subtitleLight={<MarketStatsLight />}
         />
         <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col animate-pulse">
           <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">

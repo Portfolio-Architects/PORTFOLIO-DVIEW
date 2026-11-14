@@ -324,7 +324,7 @@ export { TimelineItemCard, TimelineItemCardProps };
     areaLabelPyeong: '34평형',
   };
 
-  it('renders [오늘 등록] emerald badge when item is registered today', () => {
+  it('does NOT render redundant [오늘 등록] capsule badge even when item is registered today', () => {
     const TimelineItemCard = getComponent();
     const item = {
       ...sampleItem,
@@ -343,15 +343,11 @@ export { TimelineItemCard, TimelineItemCardProps };
       />
     );
 
-    const todayBadge = screen.getByTestId('timeline-today-registered-badge');
-    expect(todayBadge).toBeInTheDocument();
-    expect(todayBadge).toHaveTextContent('오늘 등록');
-    expect(todayBadge).toHaveClass('bg-emerald-50');
-    expect(todayBadge).toHaveClass('text-emerald-700');
-    expect(todayBadge).toHaveClass('tabular-nums');
+    expect(screen.queryByTestId('timeline-today-registered-badge')).toBeNull();
+    expect(screen.queryByText('오늘 등록')).toBeNull();
   });
 
-  it('coexists harmoniously with [신고가] badge on the same item without breaking layout', () => {
+  it('renders [신고가] badge cleanly without [오늘 등록] capsule clutter on today high item', () => {
     const TimelineItemCard = getComponent();
     const item = {
       ...sampleItem,
@@ -370,8 +366,8 @@ export { TimelineItemCard, TimelineItemCardProps };
       />
     );
 
-    expect(screen.getByTestId('timeline-today-registered-badge')).toBeInTheDocument();
-    expect(screen.getByText('오늘 등록')).toBeInTheDocument();
+    expect(screen.queryByTestId('timeline-today-registered-badge')).toBeNull();
+    expect(screen.queryByText('오늘 등록')).toBeNull();
     expect(screen.getByText('신고가')).toBeInTheDocument();
   });
 

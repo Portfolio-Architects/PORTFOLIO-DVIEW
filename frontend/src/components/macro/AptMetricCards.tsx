@@ -29,11 +29,11 @@ function formatCompactSpecMeta(item: ComplexStatItem, preferMaxPyeong = false): 
       ? Math.round(rawArea / 3.30578)
       : 0;
 
-  if (pyeong > 0) {
+  if ( pyeong > 0 ) {
     parts.push(`${pyeong}평`);
   }
 
-  return parts.join(' · ');
+  return parts.join('·');
 }
 
 export const formatCleanDate = (dateStr?: string, contractDate?: string): string => {
@@ -258,11 +258,11 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                   onSelectApt?.(item.aptName, item.dong);
                 }
               }}
-              className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+              className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
             >
-              {/* Row 1: Rank badge + Dong/Pyeong (left) | Momentum Badge or Date (right) */}
-              <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0">
-                <div className="flex items-center gap-1.5 min-w-0 overflow-hidden">
+              {/* Row 1: Rank + Dong/Pyeong (left) | Momentum + Price (right) */}
+              <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
+                <div className="flex items-center gap-1 min-w-0 overflow-hidden">
                   <span
                     className="text-[10px] font-bold px-1.5 py-0.5 rounded shrink-0 leading-none tabular-nums"
                     style={{
@@ -272,52 +272,55 @@ export const AptMetricCards = React.memo(function AptMetricCards({
                   >
                     #{idx + 1}
                   </span>
-                  <span className="text-[10.5px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
+                  <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
                     {[item.dong, item.areaPyeong ? `${Math.round(item.areaPyeong)}평` : '']
                       .filter(Boolean)
-                      .join(' · ')}
+                      .join('·')}
                   </span>
                 </div>
-                {item.isNewHigh ? (
-                  <span className="text-[9.5px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
-                    신고가
-                  </span>
-                ) : hasDelta && item.delta !== 0 && deltaFormatted ? (
+                <div className="flex items-center gap-1 shrink-0">
+                  {item.isNewHigh ? (
+                    <span className="text-[9.5px] font-bold text-red-600 dark:text-red-400 bg-red-500/10 px-1.5 py-0.5 rounded shrink-0 leading-none whitespace-nowrap">
+                      신고가
+                    </span>
+                  ) : hasDelta && item.delta !== 0 && deltaFormatted ? (
+                    <span
+                      className={`text-[10px] font-semibold tabular-nums leading-none whitespace-nowrap shrink-0 ${
+                        item.delta > 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
+                      }`}
+                    >
+                      {item.delta > 0 ? `+${deltaFormatted}` : `-${deltaFormatted}`}
+                    </span>
+                  ) : cleanDate ? (
+                    <span className="text-[10px] font-medium text-tertiary tabular-nums shrink-0 leading-none whitespace-nowrap">
+                      {cleanDate}
+                    </span>
+                  ) : null}
                   <span
-                    className={`text-[10px] font-semibold tabular-nums leading-none whitespace-nowrap shrink-0 ${
-                      item.delta > 0 ? 'text-red-600 dark:text-red-400' : 'text-blue-600 dark:text-blue-400'
+                    className={`text-[12.5px] sm:text-[13px] xl:text-[14px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 ${
+                      isRising
+                        ? 'text-red-600 dark:text-red-400'
+                        : isFalling
+                          ? 'text-blue-600 dark:text-blue-400'
+                          : 'text-slate-900 dark:text-white'
                     }`}
                   >
-                    {item.delta > 0 ? `+${deltaFormatted}` : `-${deltaFormatted}`}
+                    {item.priceEok}
                   </span>
-                ) : cleanDate ? (
-                  <span className="text-[10px] font-medium text-tertiary tabular-nums shrink-0 leading-none whitespace-nowrap">
-                    {cleanDate}
-                  </span>
-                ) : null}
+                </div>
               </div>
 
-              {/* Row 2: Apartment Name (left) | Price (right) */}
-              <div className="flex items-baseline justify-between gap-2 min-w-0 w-full mt-auto shrink-0 overflow-hidden">
+              {/* Row 2: Full-Width Apartment Name */}
+              <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
                 <span
-                  className={`text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors ${
+                  title={item.displayAptName || item.aptName}
+                  className={`w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors ${
                     isRising
                       ? 'group-hover:text-red-600 dark:group-hover:text-red-400'
                       : 'group-hover:text-blue-600 dark:group-hover:text-blue-400'
                   }`}
                 >
                   {item.displayAptName || item.aptName}
-                </span>
-                <span
-                  className={`text-[13px] sm:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 ${
-                    isRising
-                      ? 'text-red-600 dark:text-red-400'
-                      : isFalling
-                        ? 'text-blue-600 dark:text-blue-400'
-                        : 'text-slate-900 dark:text-white'
-                  }`}
-                >
-                  {item.priceEok}
                 </span>
               </div>
             </div>
@@ -382,23 +385,28 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               handleInsightClick(newHighComplex);
             }
           }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
         >
-          <div className="flex items-center gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shrink-0 leading-none whitespace-nowrap">
-              최고 거래가
-            </span>
-            <span className="text-[10.5px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
-              {newHighComplex ? formatCompactSpecMeta(newHighComplex) : ''}
+          <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
+            <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 shrink-0 leading-none whitespace-nowrap">
+                최고 거래가
+              </span>
+              <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
+                {newHighComplex ? formatCompactSpecMeta(newHighComplex) : ''}
+              </span>
+            </div>
+            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-blue-600 dark:text-blue-400">
+              {newHighComplex?.highestPrice ? formatStatsPriceEok(newHighComplex.highestPrice) : '-'}
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between gap-2 min-w-0 w-full mt-auto shrink-0 overflow-hidden">
-            <span className="text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+          <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
+            <span
+              title={newHighComplex?.aptName || undefined}
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400"
+            >
               {newHighComplex?.aptName || '해당 없음'}
-            </span>
-            <span className="text-[13px] sm:text-[15px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-blue-600 dark:text-blue-400">
-              {newHighComplex?.highestPrice ? formatStatsPriceEok(newHighComplex.highestPrice) : '-'}
             </span>
           </div>
         </div>
@@ -417,23 +425,28 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               handleInsightClick(optimalGapComplex);
             }
           }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
         >
-          <div className="flex items-center gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 shrink-0 leading-none whitespace-nowrap">
-              최고 평당가
-            </span>
-            <span className="text-[10.5px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
-              {optimalGapComplex ? formatCompactSpecMeta(optimalGapComplex, true) : ''}
+          <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
+            <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 shrink-0 leading-none whitespace-nowrap">
+                최고 평당가
+              </span>
+              <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
+                {optimalGapComplex ? formatCompactSpecMeta(optimalGapComplex, true) : ''}
+              </span>
+            </div>
+            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-emerald-600 dark:text-emerald-400">
+              {topPyeongPrice > 0 ? `${topPyeongPrice.toLocaleString()}만/평` : '-'}
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between gap-2 min-w-0 w-full mt-auto shrink-0 overflow-hidden">
-            <span className="text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400">
+          <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
+            <span
+              title={optimalGapComplex?.aptName || undefined}
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400"
+            >
               {optimalGapComplex?.aptName || '해당 없음'}
-            </span>
-            <span className="text-[13px] sm:text-[15px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-emerald-600 dark:text-emerald-400">
-              {topPyeongPrice > 0 ? `${topPyeongPrice.toLocaleString()}만/평` : '-'}
             </span>
           </div>
         </div>
@@ -452,23 +465,28 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               handleInsightClick(volumeSurgeComplex);
             }
           }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
         >
-          <div className="flex items-center gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shrink-0 leading-none whitespace-nowrap">
-              거래량 최다
-            </span>
-            <span className="text-[10.5px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
-              {volumeSurgeComplex?.dong || ''}
+          <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
+            <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 shrink-0 leading-none whitespace-nowrap">
+                거래량 최다
+              </span>
+              <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
+                {volumeSurgeComplex?.dong || ''}
+              </span>
+            </div>
+            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-blue-600 dark:text-blue-400">
+              {volumeSurgeComplex?.txCount ? `${volumeSurgeComplex.txCount}건` : '-'}
             </span>
           </div>
 
-          <div className="flex items-baseline justify-between gap-2 min-w-0 w-full mt-auto shrink-0 overflow-hidden">
-            <span className="text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400">
+          <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
+            <span
+              title={volumeSurgeComplex?.aptName || undefined}
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-blue-600 dark:group-hover:text-blue-400"
+            >
               {volumeSurgeComplex?.aptName || '해당 없음'}
-            </span>
-            <span className="text-[13px] sm:text-[15px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-blue-600 dark:text-blue-400">
-              {volumeSurgeComplex?.txCount ? `${volumeSurgeComplex.txCount}건` : '-'}
             </span>
           </div>
         </div>
@@ -487,25 +505,30 @@ export const AptMetricCards = React.memo(function AptMetricCards({
               handleInsightClick(urgentBargainComplex);
             }
           }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
         >
-          <div className="flex items-center gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
-            <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 shrink-0 leading-none whitespace-nowrap">
-              직전가 대비 하락
-            </span>
-            <span className="text-[10.5px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
-              {urgentBargainComplex?.dong || ''}
-            </span>
-          </div>
-
-          <div className="flex items-baseline justify-between gap-2 min-w-0 w-full mt-auto shrink-0 overflow-hidden">
-            <span className="text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-red-600 dark:group-hover:text-red-400">
-              {urgentBargainComplex?.aptName || '해당 없음'}
-            </span>
-            <span className="text-[13px] sm:text-[15px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-red-600 dark:text-red-400">
+          <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
+            <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+              <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-full bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 shrink-0 leading-none whitespace-nowrap">
+                직전가 대비 하락
+              </span>
+              <span className="text-[10px] font-medium text-tertiary truncate leading-none whitespace-nowrap">
+                {urgentBargainComplex?.dong || ''}
+              </span>
+            </div>
+            <span className="text-[13px] xl:text-[14.5px] font-extrabold tabular-nums tracking-tight leading-none whitespace-nowrap shrink-0 text-red-600 dark:text-red-400">
               {urgentBargainComplex?.urgentSaleDiscountRate
                 ? `-${urgentBargainComplex.urgentSaleDiscountRate}%`
                 : '-'}
+            </span>
+          </div>
+
+          <div className="flex items-center min-w-0 w-full mt-auto shrink-0 overflow-hidden">
+            <span
+              title={urgentBargainComplex?.aptName || undefined}
+              className="w-full text-[12.5px] sm:text-[13.5px] font-bold text-primary truncate leading-tight transition-colors group-hover:text-red-600 dark:group-hover:text-red-400"
+            >
+              {urgentBargainComplex?.aptName || '해당 없음'}
             </span>
           </div>
         </div>

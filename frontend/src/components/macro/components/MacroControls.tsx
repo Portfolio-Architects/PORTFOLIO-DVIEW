@@ -37,18 +37,27 @@ export const TIMELINE_SORT_OPTIONS: Array<{
   value: TimelineSortOrder;
   label: string;
 }> = [
-  { value: 'latest', label: '최신 등록순' },
+  { value: 'latest', label: '평당가 높은순' },
   { value: 'price_desc', label: '실거래가 높은순' },
   { value: 'delta_desc', label: '상승률 높은순' },
   { value: 'area_desc', label: '전용면적순' },
+];
+
+export const TIMELINE_COMPACT_SORT_OPTIONS: Array<{
+  value: TimelineSortOrder;
+  label: string;
+}> = [
+  { value: 'latest', label: '평당가순' },
+  { value: 'price_desc', label: '고가순' },
+  { value: 'delta_desc', label: '상승률순' },
 ];
 
 export interface TimelineFilterControlsProps {
   // Legacy Props (100% backward compatible)
   timelineDongFilter?: string;
   setTimelineDongFilter?: (dong: string) => void;
-  timelineAptFilter: string;
-  setTimelineAptFilter: (apt: string) => void;
+  timelineAptFilter?: string;
+  setTimelineAptFilter?: (apt: string) => void;
   availableDongs: string[];
   availableApts: string[];
   regionFilter?: RegionFilterType;
@@ -75,12 +84,17 @@ export interface TimelineFilterControlsProps {
   availableDates?: Array<{ dateKey: string; label: string; count: number }>;
   selectedDate?: string | null;
   onSelectDate?: (date: string | null) => void;
+
+  // UX Diet & Dual-Zone Separation Props
+  compactMode?: boolean;
+  useSegmentedSort?: boolean;
+  hideTradeTypeSelect?: boolean;
 }
 
 export const TimelineFilterControls = React.memo(function TimelineFilterControls({
   timelineDongFilter = "전체",
   setTimelineDongFilter,
-  timelineAptFilter,
+  timelineAptFilter = "전체",
   setTimelineAptFilter,
   availableDongs,
   availableApts,
@@ -106,6 +120,9 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
   availableDates,
   selectedDate = null,
   onSelectDate,
+  compactMode = false,
+  useSegmentedSort = false,
+  hideTradeTypeSelect = false,
 }: TimelineFilterControlsProps) {
   const currentRegion = regionFilter !== "all" ? regionFilter : (timelineDongFilter !== "전체" ? timelineDongFilter : "all");
 
@@ -302,37 +319,27 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
           </div>
         </div>
 
-        {/* Row 2: 5-Column Uniformly Aligned Dropdown Filters */}
+        {/* Row 2: Dual-Zone Toolbar — Left (Core Filters) + Right (Separated Sort) */}
         <div
           data-testid="timeline-dropdown-filters-wrapper"
           className={`grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-1.5 w-full min-w-0 ${
             isMobileFiltersExpanded ? 'grid' : 'hidden sm:flex'
           }`}
         >
-          {/* Multi-Sort Selector */}
-          {setSortOrder && (
-            <select
-              value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as TimelineSortOrder)}
-              aria-label="정렬 기준 선택"
-              className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
-            >
-              {TIMELINE_SORT_OPTIONS.map((opt) => (
-                <option key={opt.value} value={opt.value}>
-                  {opt.label}
-                </option>
-              ))}
-            </select>
-          )}
-
-          {/* Region / Dong Dropdown */}
+          {/* 1. Region / Dong Dropdown */}
           <select
             value={currentRegion}
             onChange={(e) => handleRegionChange(e.target.value)}
             aria-label="권역 및 법정동 선택"
-            className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
+            className={getControlSelectClass({
+              active: currentRegion !== 'all',
+              extraClass:
+                compactMode || useSegmentedSort
+                  ? 'w-full sm:w-auto sm:min-w-[100px] sm:max-w-[144px] min-w-0 truncate'
+                  : 'w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate',
+            })}
           >
-            <option value="all">전체 권역/동</option>
+            <option value="all">전체 지역</option>
             <optgroup label="권역 그룹">
               <option value="dongtan1">동탄1 권역</option>
               <option value="dongtan2">동탄2 권역</option>
@@ -346,14 +353,20 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             </optgroup>
           </select>
 
-          {/* Pyeong Dropdown */}
+          {/* 2. Pyeong Dropdown */}
           {setPyeongFilter && (
             <select
               value={pyeongFilter}
               onChange={(e) => setPyeongFilter(e.target.value as PyeongFilterType)}
               aria-label="평형대 선택"
               data-testid="timeline-pyeong-select"
-              className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
+              className={getControlSelectClass({
+                active: pyeongFilter !== 'all',
+                extraClass:
+                  compactMode || useSegmentedSort
+                    ? 'w-full sm:w-auto sm:min-w-[100px] sm:max-w-[140px] min-w-0 truncate'
+                    : 'w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate',
+              })}
             >
               <option value="all">전체 평형</option>
               <option value="under20">20평 미만</option>
@@ -363,54 +376,161 @@ export const TimelineFilterControls = React.memo(function TimelineFilterControls
             </select>
           )}
 
-          {/* Trade Type Dropdown */}
-          {setTradeTypeFilter && (
-            <select
-              value={tradeTypeFilter}
-              onChange={(e) => setTradeTypeFilter(e.target.value as TradeTypeFilterType)}
-              aria-label="거래 유형 선택"
-              data-testid="timeline-tradetype-select"
-              className={getControlSelectClass('w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
-            >
-              <option value="all">전체 유형</option>
-              <option value="high">신고가 거래</option>
-              <option value="rising">상승 거래</option>
-              <option value="flat">보합 거래</option>
-              <option value="falling">하락 거래</option>
-            </select>
-          )}
+          {/* 3. One-Click [신고가만] Toggle Chip (in compactMode) OR Trade Type Select (in full/standalone mode) */}
+          {compactMode
+            ? setTradeTypeFilter && (
+                <>
+                  <button
+                    type="button"
+                    data-testid="timeline-newhigh-chip"
+                    aria-pressed={tradeTypeFilter === 'high'}
+                    onClick={() => setTradeTypeFilter(tradeTypeFilter === 'high' ? 'all' : 'high')}
+                    className={`h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] text-[12px] sm:text-[13px] inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer whitespace-nowrap shrink-0 tabular-nums ${
+                      tradeTypeFilter !== 'all' && tradeTypeFilter !== 'high'
+                        ? 'w-full sm:w-auto'
+                        : 'col-span-2 sm:col-span-1 w-full sm:w-auto'
+                    } ${
+                      tradeTypeFilter === 'high'
+                        ? 'bg-brand-red-light text-brand-red ring-1 ring-inset ring-brand-red/30 font-black shadow-2xs'
+                        : 'bg-elevated hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary hover:text-primary font-extrabold'
+                    }`}
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand-red shrink-0" />
+                    <span>신고가만</span>
+                  </button>
 
-          {/* Date Dropdown (replaces Apt Dropdown when onSelectDate is provided) or Legacy Apt Dropdown */}
-          {onSelectDate ? (
-            <select
-              value={selectedDate ?? ''}
-              onChange={(e) => onSelectDate(e.target.value ? e.target.value : null)}
-              aria-label="거래 일자 선택"
-              data-testid="timeline-date-select"
-              className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate tabular-nums')}
-            >
-              <option value="">전체 날짜</option>
-              {(availableDates || []).map((d) => (
-                <option key={d.dateKey} value={d.dateKey}>
-                  {`${d.label} · ${d.count}건`}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <select
-              value={timelineAptFilter}
-              onChange={(e) => setTimelineAptFilter(e.target.value)}
-              aria-label="단지 선택"
-              className={getControlSelectClass('col-span-2 sm:col-span-1 w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate')}
-            >
-              <option value="전체">전체 단지</option>
-              {availableApts.map((apt) => (
-                <option key={apt} value={apt}>
-                  {getDisplayAptName(apt).length > 10 ? getDisplayAptName(apt).substring(0, 10) + "..." : getDisplayAptName(apt)}
-                </option>
-              ))}
-            </select>
-          )}
+                  {tradeTypeFilter !== 'all' && tradeTypeFilter !== 'high' && (
+                    <button
+                      type="button"
+                      data-testid="timeline-active-tradetype-chip"
+                      onClick={() => setTradeTypeFilter('all')}
+                      aria-label="선택된 거래 온도 필터 해제"
+                      className="h-[34px] sm:h-[36px] px-2.5 rounded-[10px] bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 ring-1 ring-inset ring-blue-500/25 dark:ring-blue-400/30 text-[12px] sm:text-[12.5px] font-black inline-flex items-center justify-center gap-1 transition-colors cursor-pointer whitespace-nowrap shrink-0 w-full sm:w-auto"
+                    >
+                      <span>
+                        {tradeTypeFilter === 'rising'
+                          ? '상승 거래'
+                          : tradeTypeFilter === 'flat'
+                            ? '보합 거래'
+                            : '하락 거래'}
+                      </span>
+                      <X size={12} className="shrink-0 opacity-75" />
+                    </button>
+                  )}
+                </>
+              )
+            : !hideTradeTypeSelect &&
+              setTradeTypeFilter && (
+                <select
+                  value={tradeTypeFilter}
+                  onChange={(e) => setTradeTypeFilter(e.target.value as TradeTypeFilterType)}
+                  aria-label="거래 유형 선택"
+                  data-testid="timeline-tradetype-select"
+                  className={getControlSelectClass({
+                    active: tradeTypeFilter !== 'all',
+                    extraClass: 'w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate',
+                  })}
+                >
+                  <option value="all">가격 변동 전체</option>
+                  <option value="high">신고가 거래</option>
+                  <option value="rising">상승 거래</option>
+                  <option value="flat">보합 거래</option>
+                  <option value="falling">하락 거래</option>
+                </select>
+              )}
+
+          {/* 4. Date Dropdown (hidden in compactMode; revealed in '자세히 보기' expanded or standalone mode) */}
+          {!compactMode &&
+            (onSelectDate ? (
+              <select
+                value={selectedDate ?? ''}
+                onChange={(e) => onSelectDate(e.target.value ? e.target.value : null)}
+                aria-label="거래 일자 선택"
+                data-testid="timeline-date-select"
+                className={getControlSelectClass({
+                  active: Boolean(selectedDate),
+                  extraClass: useSegmentedSort
+                    ? 'col-span-2 sm:col-span-1 w-full sm:w-auto sm:min-w-[100px] sm:max-w-[180px] min-w-0 truncate tabular-nums'
+                    : 'col-span-2 sm:col-span-1 w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate tabular-nums',
+                })}
+              >
+                <option value="">전체 날짜</option>
+                {(availableDates || []).map((d) => (
+                  <option key={d.dateKey} value={d.dateKey}>
+                    {`${d.label} · ${d.count}건`}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              setTimelineAptFilter && (
+                <select
+                  value={timelineAptFilter}
+                  onChange={(e) => setTimelineAptFilter(e.target.value)}
+                  aria-label="단지 선택"
+                  className={getControlSelectClass({
+                    active: timelineAptFilter !== '전체',
+                    extraClass: 'col-span-2 sm:col-span-1 w-full sm:flex-1 sm:min-w-[100px] min-w-0 truncate',
+                  })}
+                >
+                  <option value="전체">전체 단지</option>
+                  {availableApts.map((apt) => (
+                    <option key={apt} value={apt}>
+                      {getDisplayAptName(apt).length > 10 ? getDisplayAptName(apt).substring(0, 10) + "..." : getDisplayAptName(apt)}
+                    </option>
+                  ))}
+                </select>
+              )
+            ))}
+
+          {/* 5. Visually Separated Right-Aligned Sort Control */}
+          {setSortOrder &&
+            (compactMode || useSegmentedSort ? (
+              <div
+                role="group"
+                aria-label="정렬 기준 선택"
+                data-testid="timeline-sort-segmented"
+                className={getToggleTrackClass(
+                  'col-span-2 sm:col-span-1 sm:ml-auto w-full sm:w-auto h-[34px] sm:h-[36px] flex sm:inline-flex items-center'
+                )}
+              >
+                {TIMELINE_COMPACT_SORT_OPTIONS.map((opt) => {
+                  const isSelected = sortOrder === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      data-testid={`timeline-sort-btn-${opt.value}`}
+                      aria-pressed={isSelected}
+                      onClick={() => setSortOrder(opt.value)}
+                      className={getToggleBtnClass({
+                        active: isSelected,
+                        size: 'sm',
+                        tone: 'neutral',
+                        extraClass: 'flex-1 sm:flex-initial px-2 sm:px-2.5 text-[11.5px] sm:text-[12px] tabular-nums',
+                      })}
+                    >
+                      {opt.label}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <select
+                value={sortOrder}
+                onChange={(e) => setSortOrder(e.target.value as TimelineSortOrder)}
+                aria-label="정렬 기준 선택"
+                className={getControlSelectClass({
+                  active: sortOrder !== 'latest',
+                  extraClass: 'col-span-2 sm:col-span-1 sm:ml-auto w-full sm:w-auto sm:min-w-[100px] min-w-0 truncate',
+                })}
+              >
+                {TIMELINE_SORT_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+            ))}
         </div>
       </div>
     </div>

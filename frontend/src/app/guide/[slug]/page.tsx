@@ -830,7 +830,7 @@ export default async function GuideArticlePage(props: {
           title="D-VIEW 부동산 가이드"
           compactTitle={article.title}
           subtitleStrong={<MarketStatsStrong />}
-          subtitleLight={<MarketStatsLight text={`${article.category} · ${article.title}`} />}
+          subtitleLight={<MarketStatsLight />}
         />
 
         <div className="flex flex-col px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-6 md:pb-8 lg:pb-10 w-full max-w-full min-w-0 gap-6 box-border">

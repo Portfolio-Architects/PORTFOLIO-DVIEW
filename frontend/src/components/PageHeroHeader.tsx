@@ -6,7 +6,7 @@ import Image from "next/image";
 export interface PageHeroHeaderProps {
   readonly title: string;
   readonly subtitleStrong: string | React.ReactNode;
-  readonly subtitleLight: string | React.ReactNode;
+  readonly subtitleLight?: string | React.ReactNode;
   readonly rightContent?: React.ReactNode;
   readonly rightSideContent?: React.ReactNode;
   readonly compactTitle?: string;
@@ -89,23 +89,28 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
               {rightContent}
             </div>
 
-            {/* Subtitle */}
+            {/* Subtitle / Unified Data Ticker Bar */}
             <div className="flex flex-col justify-end mb-0 sm:mb-0 min-w-0 max-w-full">
               <div className="flex w-full min-w-0 max-w-full">
-                <div className="flex flex-col sm:flex-row sm:items-baseline justify-start flex-1 gap-1 sm:gap-2 min-w-0 max-w-full">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-start flex-1 gap-1 sm:gap-2.5 min-w-0 max-w-full">
                   <strong className="text-primary text-[13px] sm:text-[15px] font-extrabold leading-snug break-keep sm:whitespace-nowrap shrink-0">
                     {subtitleStrong}
                   </strong>
-                  <div className="text-tertiary font-medium text-[13px] sm:text-[15px] leading-snug break-keep whitespace-normal min-w-0 shrink sm:shrink-0 mt-0.5 sm:mt-0">
-                    {typeof subtitleLight === 'string' ? (
-                      <>
-                        <span className="hidden sm:inline text-[#d1d6db] mr-1.5">—</span>
-                        {subtitleLight}
-                      </>
-                    ) : (
-                      subtitleLight
-                    )}
-                  </div>
+                  {subtitleLight ? (
+                    <div className="text-tertiary font-medium text-[12.5px] sm:text-[14px] leading-snug break-keep whitespace-normal min-w-0 shrink sm:shrink-0">
+                      {typeof subtitleLight === 'string' ? (
+                        <span className="inline-flex items-center gap-2.5">
+                          <span
+                            aria-hidden="true"
+                            className="hidden sm:inline-block w-px h-3 bg-slate-200 dark:bg-slate-700 shrink-0"
+                          />
+                          <span>{subtitleLight}</span>
+                        </span>
+                      ) : (
+                        subtitleLight
+                      )}
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </div>

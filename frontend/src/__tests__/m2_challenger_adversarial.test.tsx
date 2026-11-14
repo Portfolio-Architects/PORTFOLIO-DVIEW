@@ -477,19 +477,12 @@ describe('Milestone 2 Empirical Challenger: Adversarial Stress Test Suite', () =
         />
       );
 
-      // Today date group header must display [오늘 신규 반영] badge
-      const todayBadge = screen.getByTestId('timeline-group-today-badge');
-      expect(todayBadge).toBeInTheDocument();
-      expect(todayBadge).toHaveTextContent('오늘 신규 반영');
+      // Today date group header must display emerald dot without redundant [오늘 신규 반영] / [오늘 등록] capsules
+      expect(screen.queryByTestId('timeline-group-today-badge')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-today-registered-badge')).not.toBeInTheDocument();
 
-      // Today date group header must display emerald dot
       const emeraldDots = container.querySelectorAll('.bg-emerald-500.ring-4');
       expect(emeraldDots.length).toBeGreaterThanOrEqual(1);
-
-      // Today item must display [오늘 등록] inline badge
-      const todayItemBadges = screen.getAllByTestId('timeline-today-registered-badge');
-      expect(todayItemBadges.length).toBeGreaterThanOrEqual(1);
-      expect(todayItemBadges[0]).toHaveTextContent('오늘 등록');
     });
   });
 

@@ -1329,7 +1329,7 @@ export const AptDonutSection = React.memo(function AptDonutSection({
           <h3 className="text-[14px] sm:text-[15px] font-black text-primary tracking-tight whitespace-nowrap">
             {isNavigator ? (mode === 'zone' ? '권역별 거래·평균가' : '실거래 체결 온도') : '실거래 비중'}
           </h3>
-          {effectiveTotalCount > 0 && (
+          {mode !== 'energy' && effectiveTotalCount > 0 && (
             <span className="px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-[10.5px] sm:text-[11.5px] font-extrabold text-secondary shrink-0 tabular-nums whitespace-nowrap">
               총 {effectiveTotalCount.toLocaleString()}건
             </span>
@@ -1423,20 +1423,20 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 }`
           }`}
         >
-          {mounted ? (
-            <div
-              ref={chartBoxRef}
-              data-testid="donut-chart-box"
-              onMouseLeave={handleSliceMouseLeave}
-              style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`relative shrink-0 flex items-center justify-center transition-opacity duration-200 ${
-                isSplitMode
-                  ? 'w-[196px] h-[196px] sm:w-[204px] sm:h-[204px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
-                  : isNavigator
-                    ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
-                    : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
-              } ${isPeriodLoading ? 'opacity-50' : 'opacity-100'}`}
-            >
+          <div
+            ref={chartBoxRef}
+            data-testid="donut-chart-box"
+            onMouseLeave={handleSliceMouseLeave}
+            style={{ maxWidth: chartSize, maxHeight: chartSize }}
+            className={`relative shrink-0 flex items-center justify-center transition-opacity duration-200 ${
+              isSplitMode
+                ? 'w-[196px] h-[196px] sm:w-[204px] sm:h-[204px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
+                : isNavigator
+                  ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
+                  : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
+            } ${isPeriodLoading ? 'opacity-50' : 'opacity-100'}`}
+          >
+            {mounted ? (
               <DonutPieCanvas
                 effectiveTotalCount={effectiveTotalCount}
                 pieRenderData={pieRenderData}
@@ -1444,102 +1444,106 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 onSliceMouseLeave={handleSliceMouseLeave}
                 onSliceClick={handleSliceClick}
               />
+            ) : (
+              <div
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full border-4 border-dashed border-border animate-pulse pointer-events-none"
+              />
+            )}
 
-              {/* Center Info Overlay */}
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none">
-                {displaySector ? (
-                  <>
-                    <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
-                      {displaySector.name}
-                    </span>
-                    <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-primary leading-tight mt-0.5 tabular-nums whitespace-nowrap">
-                      {isNavigator
-                        ? `${displaySector.count.toLocaleString()}건`
-                        : `${displaySector.value.toFixed(1)}%`}
-                    </span>
-                    <div className="flex items-center gap-1 mt-0.5">
-                      <span
-                        className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap"
-                        style={{ color: displaySector.color, backgroundColor: `${displaySector.color}18` }}
-                      >
-                        {isNavigator
-                          ? `${displaySector.value.toFixed(1)}%${displaySector.avgPriceLabel ? ` · ${displaySector.avgPriceLabel.replace('평균 ', '')}` : ''}`
-                          : `${displaySector.count.toLocaleString()}건`}
-                      </span>
-                    </div>
-                  </>
-                ) : mode === 'energy' ? (
-                  <>
-                    <span className="text-[10.5px] xl:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
-                      {energyMetrics.bullishPct >= 50 ? '상승 에너지 우위' : '급매·매수 우위'}
-                    </span>
+            {/* Center Info Overlay */}
+            <div
+              key={isPeriodLoading ? 'donut-center-loading' : 'donut-center-ready'}
+              className="absolute inset-0 flex flex-col items-center justify-center text-center pointer-events-none select-none"
+            >
+              {displaySector ? (
+                <>
+                  <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                    {displaySector.name}
+                  </span>
+                  <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-primary leading-tight mt-0.5 tabular-nums whitespace-nowrap">
+                    {isNavigator
+                      ? `${displaySector.count.toLocaleString()}건`
+                      : `${displaySector.value.toFixed(1)}%`}
+                  </span>
+                  <div className="flex items-center gap-1 mt-0.5">
                     <span
-                      className={`text-[20px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums whitespace-nowrap ${
-                        energyMetrics.bullishPct >= 50
-                          ? 'text-red-600 dark:text-red-400'
-                          : 'text-blue-600 dark:text-blue-400'
-                      }`}
+                      className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap"
+                      style={{ color: displaySector.color, backgroundColor: `${displaySector.color}18` }}
                     >
-                      {isPeriodLoading ? (
-                        <span className="text-[14px] font-bold text-tertiary animate-pulse">조회 중...</span>
-                      ) : (
-                        `${energyMetrics.bullishPct.toFixed(1)}%`
-                      )}
+                      {isNavigator
+                        ? `${displaySector.value.toFixed(1)}%${displaySector.avgPriceLabel ? ` · ${displaySector.avgPriceLabel.replace('평균 ', '')}` : ''}`
+                        : `${displaySector.count.toLocaleString()}건`}
                     </span>
-                    <span className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100/90 dark:bg-slate-800/90 tabular-nums whitespace-nowrap">
-                      <span className="text-[10px] xl:text-[10.5px] font-bold text-slate-500 dark:text-slate-400">
-                        {centerPeriodInfo.periodText}
-                      </span>
-                      {centerPeriodInfo.dateText && (
-                        <>
-                          <span className="text-[9px] text-slate-300 dark:text-slate-600">·</span>
-                          <span className="text-[11px] xl:text-[11.5px] font-black text-slate-900 dark:text-white tracking-tight">
-                            {centerPeriodInfo.dateText}
-                          </span>
-                        </>
-                      )}
-                      <span className="sr-only">신고가 {energyMetrics.highCount} · 급매 {energyMetrics.fallingCount}건</span>
+                  </div>
+                </>
+              ) : mode === 'energy' ? (
+                <>
+                  <span className="text-[10.5px] xl:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
+                    {energyMetrics.bullishPct >= 50 ? '상승 에너지 우위' : '급매·매수 우위'}
+                  </span>
+                  <span
+                    className={`text-[20px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums whitespace-nowrap ${
+                      energyMetrics.bullishPct >= 50
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-blue-600 dark:text-blue-400'
+                    }`}
+                  >
+                    {isPeriodLoading ? (
+                      <span className="text-[14px] font-bold text-tertiary animate-pulse">조회 중...</span>
+                    ) : (
+                      `${energyMetrics.bullishPct.toFixed(1)}%`
+                    )}
+                  </span>
+                  <span
+                    data-testid="donut-center-total-capsule"
+                    className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100/90 dark:bg-slate-800/90 tabular-nums whitespace-nowrap"
+                  >
+                    <span className="text-[10.5px] xl:text-[11px] font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
+                      총 {effectiveTotalCount.toLocaleString()}건
                     </span>
-                  </>
-                ) : (
-                  <>
-                    <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
-                      {mode === 'zone' && budget !== 'all'
-                        ? `${BUDGET_LABELS[budget]} 거래`
-                        : `${PERIOD_LABELS[period]} 거래`}
-                      <span className="sr-only">총 실거래</span>
-                    </span>
-                    <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5 tabular-nums whitespace-nowrap">
-                      {isPeriodLoading ? (
-                        <span className="text-[14px] font-bold text-tertiary animate-pulse">조회 중...</span>
-                      ) : (
-                        `${effectiveTotalCount.toLocaleString()}건`
-                      )}
-                    </span>
-                    {isNavigator && overallAvgPriceLabel && (
-                      <span className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full mt-0.5 tabular-nums truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
-                        전체 {overallAvgPriceLabel}
-                      </span>
+                    {centerPeriodInfo.dateText && !centerPeriodInfo.dateText.includes('~') && (
+                      <>
+                        <span className="text-[9px] text-slate-300 dark:text-slate-600" aria-hidden="true">·</span>
+                        <span className="text-[10px] xl:text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 tracking-tight">
+                          {centerPeriodInfo.dateText}
+                        </span>
+                      </>
                     )}
                     <span className="sr-only">
-                      {PERIOD_LABELS[period]} 기준
+                      {centerPeriodInfo.periodText}
+                      {centerPeriodInfo.dateText ? ` ${centerPeriodInfo.dateText}` : ''}
                     </span>
-                  </>
-                )}
-              </div>
+                    <span className="sr-only">신고가 {energyMetrics.highCount} · 급매 {energyMetrics.fallingCount}건</span>
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
+                    {mode === 'zone' && budget !== 'all'
+                      ? `${BUDGET_LABELS[budget]} 거래`
+                      : `${PERIOD_LABELS[period]} 거래`}
+                    <span className="sr-only">총 실거래</span>
+                  </span>
+                  <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5 tabular-nums whitespace-nowrap">
+                    {isPeriodLoading ? (
+                      <span className="text-[14px] font-bold text-tertiary animate-pulse">조회 중...</span>
+                    ) : (
+                      `${effectiveTotalCount.toLocaleString()}건`
+                    )}
+                  </span>
+                  {isNavigator && overallAvgPriceLabel && (
+                    <span className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full mt-0.5 tabular-nums truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                      전체 {overallAvgPriceLabel}
+                    </span>
+                  )}
+                  <span className="sr-only">
+                    {PERIOD_LABELS[period]} 기준
+                  </span>
+                </>
+              )}
             </div>
-          ) : (
-            <div
-              style={{ maxWidth: chartSize, maxHeight: chartSize }}
-              className={`shrink-0 ${
-                isSplitMode
-                  ? 'w-[196px] h-[196px] sm:w-[204px] sm:h-[204px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
-                  : isNavigator
-                    ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
-                    : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
-              } rounded-full border-4 border-dashed border-border animate-pulse`}
-            />
-          )}
+          </div>
         </div>
 
         {/* Right: Compact Category Breakdown Legend (narrowed fixed/constrained width so rows stay tight & readable) */}
@@ -1629,7 +1633,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-1 xl:gap-1.5 shrink-0 ml-auto pl-1">
+                  <div
+                    key={`sector-stats-${sector.count}-${sector.avgPriceLabel || ''}`}
+                    className="flex items-center gap-1 xl:gap-1.5 shrink-0 ml-auto pl-1"
+                  >
                     {isNavigator ? (
                       <div className="flex items-baseline gap-1">
                         <span className="text-[12px] xl:text-[13px] font-extrabold text-slate-900 dark:text-white whitespace-nowrap tabular-nums tracking-tight">

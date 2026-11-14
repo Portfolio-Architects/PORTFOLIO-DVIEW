@@ -1,9 +1,9 @@
 import React, { useEffect, useLayoutEffect, useState, useCallback, useMemo, useRef } from 'react';
 import { ChevronDown, ChevronUp, ExternalLink, Maximize2, Minimize2, Plus, RotateCcw, Search, Star, X } from 'lucide-react';
-import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/hooks/useFavorites';
 import { trackEvent, trackSearchQuery } from '@/lib/utils/analytics';
 import { useInView } from 'react-intersection-observer';
-import { normalizeAptName, isSameApartment, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import { normalizeAptName, isSameApartment, getDisplayAptName, isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { getRecentApartments } from '@/lib/utils/recentApartments';
 import { buildInitialApartments, type DongApartment } from '@/lib/dong-apartments';
@@ -351,25 +351,13 @@ function DefaultTimelineCard({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-[12px] font-extrabold text-primary truncate">{displayName}</span>
-            {(() => {
-              const reg = String(item.registeredDate || '').replace(/[^0-9]/g, '').slice(0, 8);
-              const isToday = Boolean(item.isTodayRegistered ?? (reg.length === 8 && reg === getTodayYmdKST()));
-              return isToday ? (
-                <span
-                  data-testid="timeline-today-registered-badge"
-                  className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[9.5px] font-black shrink-0 tabular-nums whitespace-nowrap leading-none"
-                >
-                  오늘 등록
-                </span>
-              ) : null;
-            })()}
             {item.type === 'high' && (
               <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 text-[9.5px] font-black">
                 신고가
               </span>
             )}
           </div>
-          <span className="text-[10px] text-tertiary">
+          <span className="text-[10px] text-tertiary tabular-nums">
             {item.dong} · {item.floor}층 · {item.areaPyeong ? `${item.areaPyeong}평` : `${item.area}㎡`}
             {(() => {
               const cDate = item.contractDate || item.date;
@@ -393,6 +381,7 @@ function DefaultTimelineCard({
                 trackEvent('watchlist_toggle_favorite', {
                   apt_name: item.aptName,
                   is_favorite: willBeFav,
+                  surface: 'timeline',
                   source: 'timeline',
                 });
                 onToggleFavorite(item.aptName);
@@ -425,7 +414,7 @@ function DefaultTimelineCard({
         </div>
       </div>
 
-      <div className="flex items-baseline justify-between pt-1 border-t border-border/40">
+      <div className="flex items-baseline justify-between pt-1 border-t border-border/40 tabular-nums">
         <span className="text-[13px] font-black text-primary">{item.priceEok}</span>
         {item.delta !== undefined && item.delta !== 0 && (
           <span
@@ -474,25 +463,13 @@ function DefaultTimelineRow({
         <div className="flex flex-col min-w-0">
           <div className="flex items-center gap-1.5">
             <span className="text-[11.5px] font-bold text-primary truncate">{displayName}</span>
-            {(() => {
-              const reg = String(item.registeredDate || '').replace(/[^0-9]/g, '').slice(0, 8);
-              const isToday = Boolean(item.isTodayRegistered ?? (reg.length === 8 && reg === getTodayYmdKST()));
-              return isToday ? (
-                <span
-                  data-testid="timeline-row-today-badge"
-                  className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider tabular-nums leading-none whitespace-nowrap"
-                >
-                  오늘 등록
-                </span>
-              ) : null;
-            })()}
             {item.type === 'high' && (
               <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-600 dark:bg-red-950/50 dark:text-red-400 text-[9px] font-black">
                 신고가
               </span>
             )}
           </div>
-          <span className="text-[9.5px] text-tertiary">
+          <span className="text-[9.5px] text-tertiary tabular-nums">
             {item.dong} · {item.floor}층 · {item.areaPyeong ? `${item.areaPyeong}평` : `${item.area}㎡`}
             {(() => {
               const cDate = item.contractDate || item.date;
@@ -507,7 +484,7 @@ function DefaultTimelineRow({
       </div>
 
       <div className="flex items-center gap-3 shrink-0">
-        <div className="text-right">
+        <div className="text-right tabular-nums">
           <div className="text-[12px] font-black text-primary">{item.priceEok}</div>
           {item.delta !== undefined && item.delta !== 0 && (
             <div
@@ -532,6 +509,7 @@ function DefaultTimelineRow({
                 trackEvent('watchlist_toggle_favorite', {
                   apt_name: item.aptName,
                   is_favorite: willBeFav,
+                  surface: 'timeline',
                   source: 'timeline',
                 });
                 onToggleFavorite(item.aptName);
@@ -820,6 +798,8 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
       trackEvent('watchlist_toggle_favorite', {
         apt_name: aptName,
         is_favorite: willBeFav,
+        surface: 'timeline_favorites_add',
+        trigger: source,
         source,
       });
       effectiveToggleFavorite(aptName);
@@ -1414,6 +1394,9 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             availableDates={availableDateOptions}
             selectedDate={selectedDateJump}
             onSelectDate={handleSelectDate}
+            compactMode={Boolean(compactHeroMode && !effectiveInlineExpanded)}
+            useSegmentedSort={Boolean(compactHeroMode)}
+            hideTradeTypeSelect={Boolean(effectiveInlineExpanded)}
           />
 
           {/* Inline 4-Card Statistical Briefing Strip (Soft-Surface Bento when Inline Expanded) */}
@@ -2139,24 +2122,15 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
                         <span className="px-1.5 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-800/40 text-[9.5px] font-extrabold shrink-0">
                           국토부 등록일
                         </span>
-                        {isGroupToday && (
-                          <span
-                            data-testid="timeline-group-today-badge"
-                            className="px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[9.5px] font-black shrink-0 tracking-wider flex items-center gap-1 tabular-nums"
-                          >
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                            오늘 신규 반영
-                          </span>
-                        )}
                       </h3>
                       {isCollapsed && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-tertiary">
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-tertiary tabular-nums">
                           접힘 ({groupItemCount}건)
                         </span>
                       )}
                     </div>
 
-                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                    <div className="flex items-center gap-1.5 shrink-0 flex-wrap tabular-nums">
                       {showHighestPriceBadge && highestApt && (
                         <span
                           data-testid={`highest-price-badge-${group.dateStr}`}
@@ -2280,7 +2254,7 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
             <div ref={sentinelRef} className="w-full py-3 flex flex-col items-center justify-center gap-2 [overflow-anchor:none]">
               <div
                 data-testid="timeline-load-more-progress"
-                className="w-full flex items-center justify-between text-[10.5px] font-bold text-tertiary px-1"
+                className="w-full flex items-center justify-between text-[10.5px] font-bold text-tertiary px-1 tabular-nums"
               >
                 <span>
                   {`현재 ${Math.min(effectiveVisibleCount, effectiveTotalCount)} / ${effectiveTotalCount}건 표시 중`}

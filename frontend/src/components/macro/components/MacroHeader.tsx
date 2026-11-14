@@ -1,6 +1,6 @@
 import React from 'react';
 import PageHeroHeader from '@/components/PageHeroHeader';
-import { MarketStatsStrong, MarketStatsLight, TodayUpdatePillBadge } from '@/components/common/MarketStatsSubtitle';
+import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 
 export interface MacroHeaderProps {
   macroTrendJsonLd: string | null;
@@ -23,13 +23,9 @@ export const MacroHeader = React.memo(function MacroHeader({
         title="D-VIEW 동탄 아파트 랩"
         compactTitle="D-VIEW 동탄 아파트 랩"
         subtitleStrong={<MarketStatsStrong />}
-        subtitleLight={<MarketStatsLight text="내 한도로 살 수 있는 단지와 갈아타기 손익까지" />}
+        subtitleLight={<MarketStatsLight />}
         isSplitMode={isSplitMode}
-        rightContent={
-          <div className="hidden sm:flex items-center gap-2 h-[26px]">
-            <TodayUpdatePillBadge />
-          </div>
-        }
+        rightContent={null}
         rightSideContent={null}
       />
     </>

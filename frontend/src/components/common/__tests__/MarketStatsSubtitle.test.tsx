@@ -16,35 +16,47 @@ describe('MarketStatsSubtitle', () => {
     jest.clearAllMocks();
   });
 
-  it('prefers latestRegisteredDate and displays "국토부 등록 반영" matching timeline registration date for past dates', async () => {
+  it('renders unified today live ticker with new registrations and new high counts without em-dash or duplicate chrome', async () => {
+    const todayYmd = getTodayYmdKST();
+    const mm = todayYmd.slice(4, 6);
+    const dd = todayYmd.slice(6, 8);
+
     (staticDataService.fetchJson as jest.Mock).mockResolvedValue({
       apartmentCount: 183,
-      saleTxCount: 65500,
-      latestContractDate: '20261030',
-      latestRegisteredDate: '20261101',
+      saleTxCount: 66336,
+      latestContractDate: todayYmd,
+      latestRegisteredDate: todayYmd,
+      todayRegisteredCount: 36,
+      todayNewHighCount: 15,
     });
 
-    render(
+    const { container } = render(
       <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
         <div>
           <MarketStatsStrong />
-          <MarketStatsLight text="내 한도로 살 수 있는 단지와 갈아타기 손익까지" />
+          <MarketStatsLight />
         </div>
       </SWRConfig>
     );
 
     await waitFor(() => {
       expect(screen.getByText('183')).toBeInTheDocument();
-      expect(screen.getByText('65,500건')).toBeInTheDocument();
-      expect(screen.getByText(/11월 1일 국토부 등록 반영/)).toBeInTheDocument();
+      expect(screen.getByText('66,336건')).toBeInTheDocument();
+      expect(screen.getByText('오늘 신규 36건')).toBeInTheDocument();
+      expect(screen.getByText('신고가 15건')).toBeInTheDocument();
+      expect(screen.getByText(`(${mm}.${dd} 07:00)`)).toBeInTheDocument();
     });
+
+    expect(container.textContent).not.toContain('—');
+    expect(container.textContent).not.toContain('오늘 아침 7시 갱신');
+    expect(screen.getByText('신고가 15건').className).toContain('text-brand-red');
+    expect(screen.getByText('신고가 15건').className).not.toContain('bg-red-500');
   });
 
-  it('displays "오늘 아침 7시 갱신" with emerald pulse when latestRegisteredDate is today (KST)', async () => {
+  it('displays truthful "오늘 07:00 실거래 갱신" without fabricating counts when latestRegisteredDate is today and count is omitted', async () => {
     const todayYmd = getTodayYmdKST();
-    const month = Number(todayYmd.slice(4, 6));
-    const day = Number(todayYmd.slice(6, 8));
-    const expectedLabel = `${month}월 ${day}일`;
+    const mm = todayYmd.slice(4, 6);
+    const dd = todayYmd.slice(6, 8);
 
     (staticDataService.fetchJson as jest.Mock).mockResolvedValue({
       apartmentCount: 185,
@@ -53,17 +65,48 @@ describe('MarketStatsSubtitle', () => {
       latestRegisteredDate: todayYmd,
     });
 
-    render(
+    const { container } = render(
       <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-        <MarketStatsLight text="내 한도로 살 수 있는 단지와 갈아타기 손익까지" />
+        <MarketStatsLight />
       </SWRConfig>
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText(new RegExp(`오늘 아침 7시 갱신 \\(${expectedLabel}\\)`))
-      ).toBeInTheDocument();
+      expect(screen.getByText('오늘 07:00 실거래 갱신')).toBeInTheDocument();
+      expect(screen.getByText(`(${mm}.${dd})`)).toBeInTheDocument();
     });
+
+    expect(container.textContent).not.toContain('0건');
+    expect(container.textContent).not.toContain('신규 1건');
+  });
+
+  it('prefers latestRegisteredDate, displays "국토부 등록 반영" on past dates, and ignores stale prior-day counts', async () => {
+    (staticDataService.fetchJson as jest.Mock).mockResolvedValue({
+      apartmentCount: 183,
+      saleTxCount: 65500,
+      latestContractDate: '20261030',
+      latestRegisteredDate: '20261101',
+      todayRegisteredCount: 28,
+      todayNewHighCount: 9,
+    });
+
+    const { container } = render(
+      <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+        <div>
+          <MarketStatsStrong />
+          <MarketStatsLight />
+        </div>
+      </SWRConfig>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('183')).toBeInTheDocument();
+      expect(screen.getByText('65,500건')).toBeInTheDocument();
+      expect(screen.getByText('11월 1일 국토부 등록 반영')).toBeInTheDocument();
+    });
+
+    expect(container.textContent).not.toContain('오늘 신규 28건');
+    expect(container.textContent).not.toContain('—');
   });
 
   it('falls back to latestContractDate with "거래 반영" when latestRegisteredDate is absent', async () => {
@@ -75,12 +118,12 @@ describe('MarketStatsSubtitle', () => {
 
     render(
       <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
-        <MarketStatsLight text="내 한도로 살 수 있는 단지와 갈아타기 손익까지" />
+        <MarketStatsLight />
       </SWRConfig>
     );
 
     await waitFor(() => {
-      expect(screen.getByText(/10월 30일 거래 반영/)).toBeInTheDocument();
+      expect(screen.getByText('10월 30일 거래 반영')).toBeInTheDocument();
     });
   });
 });

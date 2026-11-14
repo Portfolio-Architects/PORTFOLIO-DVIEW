@@ -33,6 +33,8 @@ export const DVIEW_CONTROL_CLASSES = {
     'dview-toggle-btn-inactive bg-transparent text-secondary hover:text-primary',
   select:
     'dview-control-select h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] bg-elevated hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-[12px] sm:text-[13px] font-extrabold text-secondary hover:text-primary transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-600/20',
+  selectActive:
+    'dview-control-select dview-control-select-active h-[34px] sm:h-[36px] px-2.5 sm:px-3 rounded-[10px] bg-blue-50 hover:bg-blue-100/80 dark:bg-blue-950/40 dark:hover:bg-blue-950/60 text-[12px] sm:text-[13px] font-black text-blue-600 dark:text-blue-400 ring-1 ring-inset ring-blue-500/25 dark:ring-blue-400/30 transition-colors cursor-pointer outline-none focus:ring-2 focus:ring-blue-600/20',
   input:
     'dview-control-input h-[34px] sm:h-[36px] rounded-[10px] bg-elevated dark:bg-[#202027] text-[12px] sm:text-[13px] font-bold text-primary placeholder:text-tertiary transition-colors outline-none focus:bg-surface dark:focus:bg-[#2c2c35] focus:ring-2 focus:ring-blue-600/20',
   pill:
@@ -81,11 +83,16 @@ export function getToggleBtnClass(
     .join(' ');
 }
 
-export function getControlSelectClass(extraClass = ''): string {
+export function getControlSelectClass(
+  optionsOrExtraClass: string | { active?: boolean; extraClass?: string } = ''
+): string {
+  const { active = false, extraClass = '' } =
+    typeof optionsOrExtraClass === 'string'
+      ? { active: false, extraClass: optionsOrExtraClass }
+      : optionsOrExtraClass;
+  const base = active ? DVIEW_CONTROL_CLASSES.selectActive : DVIEW_CONTROL_CLASSES.select;
   const trimmed = extraClass.trim();
-  return trimmed
-    ? `${DVIEW_CONTROL_CLASSES.select} ${trimmed}`
-    : DVIEW_CONTROL_CLASSES.select;
+  return trimmed ? `${base} ${trimmed}` : base;
 }
 
 export function getControlInputClass(extraClass = ''): string {

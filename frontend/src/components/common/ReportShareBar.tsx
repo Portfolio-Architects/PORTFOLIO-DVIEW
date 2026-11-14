@@ -58,7 +58,7 @@ function dispatchReportShareAnalytics(
     trackEvent('share_apartment', {
       apt_name: decodedAptName || canonicalAptSlug,
       method,
-      campaign,
+      share_campaign: campaign,
       surface: 'report_share_bar',
     });
     return;
@@ -67,7 +67,8 @@ function dispatchReportShareAnalytics(
     report_title: title,
     canonical_path: normalizedPath,
     method,
-    campaign,
+    share_campaign: campaign,
+    surface: 'report_share_bar',
   });
 }
 

@@ -182,9 +182,9 @@ describe('MacroTimelineView Component & Presentation Test Suite', () => {
         />
       );
 
-      const todayBadge = screen.getByTestId('timeline-group-today-badge');
-      expect(todayBadge).toBeInTheDocument();
-      expect(todayBadge).toHaveTextContent('오늘 신규 반영');
+      expect(screen.queryByTestId('timeline-group-today-badge')).not.toBeInTheDocument();
+      expect(screen.queryByText('오늘 신규 반영')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-today-registered-badge')).not.toBeInTheDocument();
 
       const emeraldDots = container.querySelectorAll('.bg-emerald-500.ring-4');
       expect(emeraldDots.length).toBeGreaterThanOrEqual(1);

@@ -830,11 +830,14 @@ describe('Milestone 3: Anonymous Board Frontend UI & Service Integration', () =>
   // 7. /lounge Page Entry Point & Pre-reserved Zero-CLS AdSlot
   // ============================================================================
   describe('/lounge Page Component Integration', () => {
-    it('renders LoungeHeader, Breadcrumb, LoungeBoardView, and Pre-reserved AdSlot', async () => {
+    it('renders LoungeHeader (activeTab="lounge"), Breadcrumb, LoungeBoardView, Pre-reserved AdSlot, and MobileDock', async () => {
       render(<LoungePage />);
 
-      // LoungeHeader navigation rendered
+      // LoungeHeader navigation rendered with active lounge button
       expect(screen.getByRole('banner')).toBeInTheDocument();
+      const headerLoungeBtn = screen.getByTestId('header-lounge-link');
+      expect(headerLoungeBtn).toHaveAttribute('aria-current', 'page');
+      expect(headerLoungeBtn).toHaveTextContent('실시간 입주민 라운지');
 
       // Breadcrumb rendered
       expect(screen.getByText('입주민 라운지')).toBeInTheDocument();
@@ -843,6 +846,12 @@ describe('Milestone 3: Anonymous Board Frontend UI & Service Integration', () =>
       const adContainer = screen.getByTestId('lounge-footer-ad-slot-container');
       expect(adContainer).toBeInTheDocument();
       expect(adContainer).toHaveClass('min-h-[140px]');
+
+      // MobileDock rendered with 더보기 lounge entry
+      const moreBtn = screen.getByTestId('mobile-dock-more-button');
+      expect(moreBtn).toBeInTheDocument();
+      fireEvent.click(moreBtn);
+      expect(screen.getByTestId('mobile-dock-lounge-link')).toHaveAttribute('href', '/lounge');
     });
   });
 });

@@ -162,7 +162,7 @@ const ApartmentSpecsSection = React.memo(function ApartmentSpecsSection({
             className={`bg-body p-3.5 sm:p-4 rounded-xl border border-border ${spec.className}`}
           >
             <p className="text-body-sm text-tertiary font-bold mb-1 whitespace-nowrap apt-spec-label">{spec.label}</p>
-            <div className="text-body-normal text-primary font-bold apt-spec-value">
+            <div className="text-body-normal text-primary font-bold tabular-nums apt-spec-value">
               {spec.value}
             </div>
           </div>

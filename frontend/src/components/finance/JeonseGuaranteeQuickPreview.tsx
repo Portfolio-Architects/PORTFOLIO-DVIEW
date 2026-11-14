@@ -1,13 +1,21 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from 'react';
+import { ChevronDown } from 'lucide-react';
 import {
   evaluateJeonseSafety,
 } from '@/lib/utils/jeonseSafetyCalculators';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionBodyClass,
+  getSeoAccordionChevronClass,
+} from '@/lib/design-system/copyDiet';
+import { trackEvent } from '@/lib/utils/analytics';
 
 export interface JeonseGuaranteeQuickPreviewProps {
-  onOpenJeonseSafetyModal?: () => void;
-  onOpenJeonseSafety?: () => void;
+  onOpenJeonseSafetyModal?: (aptName?: string) => void;
+  onOpenJeonseSafety?: (aptName?: string) => void;
   initialEstimatedPriceWon?: number;
   apartmentName?: string | null;
 }
@@ -16,7 +24,7 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
   onOpenJeonseSafetyModal,
   onOpenJeonseSafety,
   initialEstimatedPriceWon,
-  apartmentName: _apartmentName,
+  apartmentName,
 }: JeonseGuaranteeQuickPreviewProps) {
   const [estimatedPriceWon, setEstimatedPriceWon] = useState<number>(initialEstimatedPriceWon || 600_000_000); // 6억 기본
   const [jeonseDepositWon, setJeonseDepositWon] = useState<number>(
@@ -31,7 +39,32 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
     }
   }, [initialEstimatedPriceWon]);
 
-  const handleOpen = onOpenJeonseSafetyModal || onOpenJeonseSafety;
+  const resolvedAptName =
+    typeof apartmentName === 'string' && apartmentName.trim().length > 0
+      ? apartmentName.trim()
+      : undefined;
+
+  const trackQuickInteract = (trigger: string, extra?: Record<string, unknown>) => {
+    trackEvent('finance_quick_interact', {
+      calculator_type: 'jeonse_safety',
+      surface: 'finance_quick_widget',
+      trigger,
+      apartment_name: resolvedAptName,
+      apt_name: resolvedAptName,
+      ...extra,
+    });
+  };
+
+  const openCallback = onOpenJeonseSafetyModal || onOpenJeonseSafety;
+  const handleOpen = openCallback
+    ? () => {
+        if (resolvedAptName !== undefined) {
+          openCallback(resolvedAptName);
+        } else {
+          openCallback();
+        }
+      }
+    : undefined;
 
   const result = useMemo(() => {
     return evaluateJeonseSafety({
@@ -72,7 +105,12 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                 <button
                   key={price}
                   type="button"
-                  onClick={() => setEstimatedPriceWon(price)}
+                  onClick={() => {
+                    trackQuickInteract(`price_preset_${price / 100_000_000}eok`, {
+                      estimated_price_won: price,
+                    });
+                    setEstimatedPriceWon(price);
+                  }}
                   className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     estimatedPriceWon === price
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
@@ -93,7 +131,12 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                 <button
                   key={dep}
                   type="button"
-                  onClick={() => setJeonseDepositWon(dep)}
+                  onClick={() => {
+                    trackQuickInteract(`deposit_preset_${dep / 100_000_000}eok`, {
+                      jeonse_deposit_won: dep,
+                    });
+                    setJeonseDepositWon(dep);
+                  }}
                   className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     jeonseDepositWon === dep
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
@@ -114,7 +157,13 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
                 <button
                   key={mort}
                   type="button"
-                  onClick={() => setSeniorMortgageWon(mort)}
+                  onClick={() => {
+                    trackQuickInteract(
+                      mort === 0 ? 'mortgage_preset_none' : `mortgage_preset_${mort / 1_000_000}m`,
+                      { senior_mortgage_won: mort }
+                    );
+                    setSeniorMortgageWon(mort);
+                  }}
                   className={`px-2.5 py-0.5 rounded-lg text-[10.5px] font-bold border cursor-pointer transition-colors tabular-nums ${
                     seniorMortgageWon === mort
                       ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
@@ -157,9 +206,36 @@ export const JeonseGuaranteeQuickPreview = React.memo(function JeonseGuaranteeQu
             </span>
           </div>
 
-          <p className="text-[10.5px] text-slate-500 dark:text-slate-400 mt-2 leading-relaxed font-medium">
-            {result.diagnosisSummary}
+          <p className="text-[10.5px] text-slate-600 dark:text-slate-300 mt-2 leading-relaxed font-bold">
+            {estimatedPriceWon <= 0 || jeonseDepositWon <= 0
+              ? '시세 · 전세보증금 입력 대기'
+              : result.riskLevel === 'SAFE'
+              ? 'HUG 반환보증 가입 가능 · 역전세 저위험 구간'
+              : result.riskLevel === 'CAUTION'
+              ? '보증 가입 가능 · 선순위 근저당 감액 권장'
+              : 'HUG 126% 기준 초과 · 반환보증 거절 고위험'}
           </p>
+
+          <details className={getSeoAccordionClass('mt-2 bg-white/80 dark:bg-slate-900/80')}>
+            <summary
+              data-testid="hug-guide-accordion-summary"
+              onClick={(e) => {
+                const detailsEl = e.currentTarget.closest('details');
+                if (!detailsEl?.open) {
+                  trackQuickInteract('hug_guide_accordion_open', {
+                    risk_level: result.riskLevel,
+                  });
+                }
+              }}
+              className={getSeoAccordionSummaryClass('min-h-[34px] px-2.5 py-1.5 text-[10.5px]')}
+            >
+              <span>HUG 보증 산정 해설 더보기</span>
+              <ChevronDown size={13} className={getSeoAccordionChevronClass()} />
+            </summary>
+            <div className={getSeoAccordionBodyClass('px-2.5 py-2 text-[10.5px]')}>
+              <p>{result.diagnosisSummary}</p>
+            </div>
+          </details>
         </div>
       </div>
 

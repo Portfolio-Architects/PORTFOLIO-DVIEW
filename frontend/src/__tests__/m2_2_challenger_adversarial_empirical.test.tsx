@@ -92,7 +92,7 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
       expect(emptyBadge.className).toContain('text-slate-600');
     });
 
-    it('1.4 MacroHeader preserves PageHeroHeader h-[144px] and rightContent h-[26px] hidden sm:flex', () => {
+    it('1.4 MacroHeader preserves PageHeroHeader h-[144px] Zero-CLS container and unifies live ticker into subtitle without duplicate rightContent badge', () => {
       const { container } = render(<MacroHeader macroTrendJsonLd={null} />);
 
       // Verify the hero header container has h-[144px] shrink-0
@@ -100,9 +100,9 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
       expect(heroOuter).not.toBeNull();
       expect(heroOuter?.className).toContain('shrink-0');
 
-      // Verify rightContent container hides on mobile to prevent vertical stacking and CLS
-      const rightContentWrapper = container.querySelector('.hidden.sm\\:flex.items-center.gap-2.h-\\[26px\\]');
-      expect(rightContentWrapper).not.toBeNull();
+      // Verify duplicate top-right TodayUpdatePillBadge skeleton is eliminated in favor of the single-row ticker
+      expect(container.querySelector('[data-testid="today-update-pill-badge-skeleton"]')).toBeNull();
+      expect(container.textContent).not.toContain('—');
     });
   });
 
@@ -148,7 +148,7 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
       expect(mockSetPeriod).toHaveBeenCalledWith('1d');
     });
 
-    it('2.3 MacroTimelineView renders today sticky group badge [오늘 신규 반영] for today group', () => {
+    it('2.3 MacroTimelineView omits redundant [오늘 신규 반영] and [오늘 등록] capsules on today group', () => {
       const mockGroups: TimelineGroup[] = [
         {
           dateStr: TODAY_KST,
@@ -200,18 +200,13 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
         />
       );
 
-      // Verify today sticky header badge
-      const todayGroupBadge = screen.getByTestId('timeline-group-today-badge');
-      expect(todayGroupBadge).toBeInTheDocument();
-      expect(todayGroupBadge).toHaveTextContent('오늘 신규 반영');
-
-      // Verify inline [오늘 등록] badge on card
-      const itemBadges = screen.getAllByTestId('timeline-today-registered-badge');
-      expect(itemBadges).toHaveLength(1);
-      expect(itemBadges[0]).toHaveTextContent('오늘 등록');
+      expect(screen.queryByTestId('timeline-group-today-badge')).not.toBeInTheDocument();
+      expect(screen.queryByText('오늘 신규 반영')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-today-registered-badge')).not.toBeInTheDocument();
+      expect(screen.queryByText('오늘 등록')).not.toBeInTheDocument();
     });
 
-    it('2.4 Inline [오늘 등록] and [신고가] badges coexist without layout breakdown', () => {
+    it('2.4 Renders [신고가] badge cleanly without [오늘 등록] capsule on today new-high transaction', () => {
       const mockGroups: TimelineGroup[] = [
         {
           dateStr: TODAY_KST,
@@ -243,11 +238,7 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
         />
       );
 
-      const todayBadge = screen.getByTestId('timeline-today-registered-badge');
-      expect(todayBadge).toBeInTheDocument();
-      expect(todayBadge).toHaveTextContent('오늘 등록');
-
-      // In card view, 신고가 badge is present
+      expect(screen.queryByTestId('timeline-today-registered-badge')).not.toBeInTheDocument();
       expect(screen.getByText('신고가')).toBeInTheDocument();
     });
   });

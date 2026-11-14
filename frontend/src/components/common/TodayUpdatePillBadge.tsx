@@ -88,6 +88,7 @@ export function TodayUpdatePillBadge({
   ) {
     return (
       <div
+        key="today-badge-skeleton"
         data-testid="today-update-pill-badge-skeleton"
         aria-hidden="true"
         className={`h-[26px] min-w-[130px] sm:min-w-[160px] rounded-full bg-slate-200/70 dark:bg-slate-800/60 animate-pulse shrink-0 ${className}`}
@@ -126,6 +127,7 @@ export function TodayUpdatePillBadge({
 
     return (
       <div
+        key="today-badge-active"
         data-testid="today-update-pill-badge"
         {...interactiveProps}
         onClick={onClick}
@@ -142,7 +144,7 @@ export function TodayUpdatePillBadge({
         <span>{mainText}</span>
 
         {metrics.todayNewHighCount > 0 && (
-          <span className="ml-0.5 px-1.5 py-0.2 rounded bg-red-500 text-white text-[9.5px] font-black shrink-0">
+          <span className="ml-0.5 px-1.5 py-0.5 rounded bg-brand-red-light text-brand-red text-[10px] font-extrabold shrink-0">
             신고가 {metrics.todayNewHighCount}건
           </span>
         )}
@@ -157,6 +159,7 @@ export function TodayUpdatePillBadge({
 
   return (
     <div
+      key="today-badge-empty"
       data-testid="today-update-pill-badge-empty"
       {...interactiveProps}
       onClick={onClick}

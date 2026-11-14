@@ -1,7 +1,14 @@
 import React, { useMemo } from 'react';
 import Image from 'next/image';
-import { Building, Camera, Info, ShieldAlert, Radar, Lightbulb } from 'lucide-react';
+import { Building, Camera, Info, ShieldAlert, Radar, Lightbulb, ChevronDown } from 'lucide-react';
 import { FieldReportData } from '@/lib/DashboardFacade';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionBodyClass,
+  getSeoAccordionChevronClass,
+  truncateToCopyBudget,
+} from '@/lib/design-system/copyDiet';
 
 interface ScoutingReportDetailSectionProps {
   report: FieldReportData;
@@ -143,14 +150,26 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
           {(s.infra.gateText || s.infra.gateImg) && (
             <div className="flex flex-col md:flex-row gap-6">
               {s.infra.gateImg && (
-                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group">
+                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
                   <Image src={s.infra.gateImg} alt="진입로/문주" fill sizes="280px" className="object-cover" priority />
                   {renderWatermark()}
                 </div>
               )}
-              <div>
-                <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
-                <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.gateText || '사진만 제공됨'}</p>
+              <div className="flex-1 space-y-2.5">
+                <h4 className="text-[14px] font-bold text-primary bg-body inline-block px-3 py-1 rounded-lg">진입로 및 정문</h4>
+                {s.infra.gateText ? (
+                  <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+                    <summary className={getSeoAccordionSummaryClass()}>
+                      <span>진입로 · 문주 임장 상세 더보기</span>
+                      <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                    </summary>
+                    <div className={getSeoAccordionBodyClass()}>
+                      <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.gateText}</p>
+                    </div>
+                  </details>
+                ) : (
+                  <p className="text-[13px] text-tertiary font-medium">현장 실사 사진 제공</p>
+                )}
               </div>
             </div>
           )}
@@ -158,14 +177,26 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
           {(s.infra.landscapeText || s.infra.landscapeImg) && (
             <div className="flex flex-col md:flex-row-reverse gap-6 pt-6 border-t border-body">
               {s.infra.landscapeImg && (
-                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group">
+                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
                   <Image src={s.infra.landscapeImg} alt="조경/지형" fill sizes="280px" className="object-cover" />
                   {renderWatermark()}
                 </div>
               )}
-              <div>
-                <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
-                <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText || '사진만 제공됨'}</p>
+              <div className="flex-1 space-y-2.5">
+                <h4 className="text-[14px] font-bold text-primary bg-body inline-block px-3 py-1 rounded-lg">단지 조경 및 지형</h4>
+                {s.infra.landscapeText ? (
+                  <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+                    <summary className={getSeoAccordionSummaryClass()}>
+                      <span>조경 · 단지 단차 상세 더보기</span>
+                      <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                    </summary>
+                    <div className={getSeoAccordionBodyClass()}>
+                      <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.landscapeText}</p>
+                    </div>
+                  </details>
+                ) : (
+                  <p className="text-[13px] text-tertiary font-medium">현장 실사 사진 제공</p>
+                )}
               </div>
             </div>
           )}
@@ -173,14 +204,26 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
           {(s.infra.parkingText || s.infra.parkingImg) && (
             <div className="flex flex-col md:flex-row gap-6 pt-6 border-t border-body">
               {s.infra.parkingImg && (
-                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group">
+                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
                   <Image src={s.infra.parkingImg} alt="지하주차장" fill sizes="280px" className="object-cover" />
                   {renderWatermark()}
                 </div>
               )}
-              <div>
-                <h4 className="text-[15px] font-bold text-primary mb-2 bg-body inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
-                <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.parkingText || '사진만 제공됨'}</p>
+              <div className="flex-1 space-y-2.5">
+                <h4 className="text-[14px] font-bold text-primary bg-body inline-block px-3 py-1 rounded-lg">지하주차장 인프라</h4>
+                {s.infra.parkingText ? (
+                  <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+                    <summary className={getSeoAccordionSummaryClass()}>
+                      <span>지하주차장 동선 상세 더보기</span>
+                      <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                    </summary>
+                    <div className={getSeoAccordionBodyClass()}>
+                      <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{s.infra.parkingText}</p>
+                    </div>
+                  </details>
+                ) : (
+                  <p className="text-[13px] text-tertiary font-medium">현장 실사 사진 제공</p>
+                )}
               </div>
             </div>
           )}
@@ -194,19 +237,29 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
           className={`${inline ? 'bg-surface' : 'bg-surface/60 dark:bg-surface/35 backdrop-blur-md'} rounded-3xl p-6 md:p-8 shadow-sm border border-border scroll-mt-14`}
         >
           <h2 className="text-[20px] font-bold text-primary flex items-center gap-2 mb-6 border-b border-border pb-3">
-            <Info size={20} className="text-toss-blue"/> 생활 편의시설 및 거시 입지
+            <Info size={20} className="text-toss-blue"/> 생활 상권 · 거시 입지
           </h2>
           <div className="flex flex-col gap-8">
             <div className="flex flex-col md:flex-row gap-6">
               {s.ecosystem.commerceImg && (
-                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group">
+                <div className="relative w-full md:w-[280px] h-[200px] rounded-2xl overflow-hidden shadow-sm bg-body group shrink-0">
                   <Image src={s.ecosystem.commerceImg} alt="상권" fill sizes="280px" className="object-cover" />
                   {renderWatermark()}
                 </div>
               )}
-              <div>
-                <h4 className="text-[15px] font-bold text-primary mb-2 bg-[#f8f9fa] border border-border inline-block px-3 py-1 rounded-lg">동네 상권</h4>
-                <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+              <div className="flex-1 space-y-2.5">
+                <h4 className="text-[14px] font-bold text-primary bg-body border border-border/60 inline-block px-3 py-1 rounded-lg">동네 상권</h4>
+                {s.ecosystem.commerceText && (
+                  <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+                    <summary className={getSeoAccordionSummaryClass()}>
+                      <span>인근 상권 임장 해설 더보기</span>
+                      <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                    </summary>
+                    <div className={getSeoAccordionBodyClass()}>
+                      <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{s.ecosystem.commerceText}</p>
+                    </div>
+                  </details>
+                )}
               </div>
             </div>
           </div>
@@ -222,24 +275,54 @@ const ScoutingReportDetailSection = React.memo(function ScoutingReportDetailSect
           <ShieldAlert size={20} className="text-toss-blue"/> 최종 매수 타당성 평가
         </h2>
         <div className="flex flex-col gap-4">
-          <div className="bg-primary p-6 rounded-2xl text-surface">
-            <h4 className="text-[13px] font-bold text-tertiary mb-2">교통 및 개발 호재</h4>
-            <p className="text-[15px] leading-relaxed whitespace-pre-wrap mb-4 pb-4 border-b border-white/10">{s.location.trafficText || '-'}</p>
-            <p className="text-[15px] leading-relaxed whitespace-pre-wrap">{s.location.developmentText || '-'}</p>
-          </div>
-          <div className="p-6 rounded-2xl border-2 border-[#191f28] bg-[#fdfdfd]">
-            <h4 className="text-[16px] font-extrabold text-primary mb-2 flex items-center gap-1.5">
-              <Lightbulb size={18} className="text-emerald-600 shrink-0" />
-              <span>최종 결론</span>
-            </h4>
-            <p className="text-[15px] text-secondary leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis || '-'}</p>
+          {(s.location.trafficText || s.location.developmentText) && (
+            <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+              <summary className={getSeoAccordionSummaryClass()}>
+                <span>교통망 · 개발 호재 상세 더보기</span>
+                <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+              </summary>
+              <div className={getSeoAccordionBodyClass('space-y-3')}>
+                {s.location.trafficText && (
+                  <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{s.location.trafficText}</p>
+                )}
+                {s.location.developmentText && (
+                  <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap pt-3 border-t border-border/50">{s.location.developmentText}</p>
+                )}
+              </div>
+            </details>
+          )}
+          <div className="p-5 sm:p-6 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-border/60 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-[15px] font-extrabold text-primary flex items-center gap-1.5">
+                <Lightbulb size={17} className="text-emerald-600 shrink-0" />
+                <span>종합 결론 요약</span>
+              </h4>
+              {s.assessment.synthesis && (
+                <span className="text-[12px] font-semibold text-secondary truncate max-w-[65%]">
+                  {truncateToCopyBudget(s.assessment.synthesis, 'cardDescription')}
+                </span>
+              )}
+            </div>
+            {s.assessment.synthesis && (
+              <details className={getSeoAccordionClass('bg-surface dark:bg-[#1e1e24]')}>
+                <summary className={getSeoAccordionSummaryClass()}>
+                  <span>종합 매수 타당성 전문 더보기</span>
+                  <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                </summary>
+                <div className={getSeoAccordionBodyClass()}>
+                  <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{s.assessment.synthesis}</p>
+                </div>
+              </details>
+            )}
             
             {s.assessment.probability && (
-              <div className="mt-6 p-4 bg-toss-blue-light rounded-xl flex items-start gap-3">
-                <Radar size={20} className="text-toss-blue shrink-0 mt-0.5" />
-                <div>
-                  <h5 className="text-[13px] font-bold text-toss-blue mb-1">향후 가격 전망</h5>
-                  <p className="text-[14px] text-primary leading-snug">{s.assessment.probability}</p>
+              <div className="p-4 bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/60 dark:border-blue-800/50 rounded-xl flex items-start gap-3">
+                <Radar size={18} className="text-toss-blue shrink-0 mt-0.5" />
+                <div className="min-w-0 flex-1">
+                  <h5 className="text-[12.5px] font-bold text-toss-blue mb-1">향후 가격 전망</h5>
+                  <p className="text-[13px] text-primary leading-snug">
+                    {truncateToCopyBudget(s.assessment.probability, 'inlineNotice')}
+                  </p>
                 </div>
               </div>
             )}

@@ -324,7 +324,7 @@ export default function TechnoValleyClient({
       ]
         .filter(Boolean)
         .join(' · ')
-    : '공실률·입주 동향부터 이전 시 세제 감면 혜택까지 한눈에';
+    : '국토부 상업·업무용 매매 실거래 기준';
 
   return (
     <>

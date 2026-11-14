@@ -629,7 +629,7 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                     <PageHeroHeader 
                       title="D-VIEW 아파트 탐색"
                       subtitleStrong={<MarketStatsStrong />}
-                      subtitleLight={<MarketStatsLight text="예산·학군·동탄역 거리로 조건에 맞는 단지만 걸러보기" />}
+                      subtitleLight={<MarketStatsLight />}
                       isSplitMode={isSplitDetailOpen}
                     />
                     <ErrorBoundary name="아파트 맞춤 탐색">
@@ -708,27 +708,52 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
                       setCompareInitialApt(aptName);
                       setCompareSecondApt(targetAptName);
                       setIsCompareOpen(true);
-                      trackEvent('open_calculator', { calculator_type: 'compare', apt_name: aptName });
+                      trackEvent('open_calculator', {
+                        calculator_type: 'compare',
+                        apartment_name: aptName,
+                        apt_name: aptName,
+                        surface: 'explore_modal',
+                      });
                     }}
                     onOpenJeonseSafety={(aptName) => {
                       setJeonseSafetyInitialApt(aptName);
                       setIsJeonseSafetyOpen(true);
-                      trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: aptName });
+                      trackEvent('open_calculator', {
+                        calculator_type: 'jeonse_safety',
+                        apartment_name: aptName,
+                        apt_name: aptName,
+                        surface: 'explore_modal',
+                      });
                     }}
                     onOpenMortgage={(aptName) => {
                       setMortgageInitialApt(aptName);
                       setIsMortgageOpen(true);
-                      trackEvent('open_calculator', { calculator_type: 'mortgage', apt_name: aptName });
+                      trackEvent('open_calculator', {
+                        calculator_type: 'mortgage',
+                        apartment_name: aptName,
+                        apt_name: aptName,
+                        surface: 'explore_modal',
+                      });
                     }}
                     onOpenTaxCalculator={(aptName) => {
                       setTaxCalcInitialApt(aptName);
                       setIsTaxCalcOpen(true);
-                      trackEvent('open_calculator', { calculator_type: 'property_tax', apt_name: aptName });
+                      trackEvent('open_calculator', {
+                        calculator_type: 'property_tax',
+                        apartment_name: aptName,
+                        apt_name: aptName,
+                        surface: 'explore_modal',
+                      });
                     }}
                     onOpenSellTimingCalculator={(aptName) => {
                       setSellTimingInitialApt(aptName);
                       setIsSellTimingOpen(true);
-                      trackEvent('open_calculator', { calculator_type: 'sell_timing', apt_name: aptName });
+                      trackEvent('open_calculator', {
+                        calculator_type: 'sell_timing',
+                        apartment_name: aptName,
+                        apt_name: aptName,
+                        surface: 'explore_modal',
+                      });
                     }}
                   />
                 </ErrorBoundary>

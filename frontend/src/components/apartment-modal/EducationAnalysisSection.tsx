@@ -1,9 +1,15 @@
 import React from 'react';
 import Image from 'next/image';
-import { GraduationCap, Check, Share, MapPin, Lightbulb } from 'lucide-react';
+import { GraduationCap, Check, Share, MapPin, Lightbulb, ChevronDown } from 'lucide-react';
 import { calculateEducationScore } from '@/lib/utils/scoring';
 import ChildcareDetailSection from './ChildcareDetailSection';
 import { FieldReportData } from '@/lib/DashboardFacade';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionBodyClass,
+  getSeoAccordionChevronClass,
+} from '@/lib/design-system/copyDiet';
 
 interface EducationAnalysisSectionProps {
   report: FieldReportData;
@@ -147,10 +153,10 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
             {(() => {
               const eduScoreInfo = calculateEducationScore(report.metrics);
               const scoreColors: Record<string, { bg: string; text: string; border: string; descBg: string; scoreText: string }> = {
-                S: { bg: 'bg-[#fdf2f8]', text: 'text-[#db2777]', border: 'border-[#fbcfe8]/50', descBg: 'bg-[#db2777]/5', scoreText: 'text-[#db2777]' },
-                A: { bg: 'bg-[#ecfdf5]', text: 'text-[#059669]', border: 'border-[#a7f3d0]/50', descBg: 'bg-[#059669]/5', scoreText: 'text-[#059669]' },
-                B: { bg: 'bg-[#fffbeb]', text: 'text-blue-600', border: 'border-[#fde68a]/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600' },
-                C: { bg: 'bg-[#f8fafc]', text: 'text-[#475569]', border: 'border-[#e2e8f0]/50', descBg: 'bg-[#475569]/5', scoreText: 'text-[#475569]' }
+                S: { bg: 'bg-blue-50 dark:bg-blue-950/30', text: 'text-blue-600 dark:text-blue-400', border: 'border-blue-200/60 dark:border-blue-800/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
+                A: { bg: 'bg-emerald-50 dark:bg-emerald-950/30', text: 'text-emerald-600 dark:text-emerald-400', border: 'border-emerald-200/60 dark:border-emerald-800/50', descBg: 'bg-emerald-600/5', scoreText: 'text-emerald-600 dark:text-emerald-400' },
+                B: { bg: 'bg-slate-50 dark:bg-slate-800/60', text: 'text-blue-600 dark:text-blue-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-blue-600/5', scoreText: 'text-blue-600 dark:text-blue-400' },
+                C: { bg: 'bg-slate-50 dark:bg-slate-800/60', text: 'text-slate-600 dark:text-slate-400', border: 'border-slate-200/60 dark:border-slate-700/50', descBg: 'bg-slate-500/5', scoreText: 'text-slate-600 dark:text-slate-400' }
               };
               const colors = scoreColors[eduScoreInfo.grade] || scoreColors.C;
               
@@ -163,14 +169,14 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                       className={`inline-flex items-center gap-1.5 px-3 py-1.5 font-bold text-[12px] rounded-xl transition-all border shadow-sm cursor-pointer transform duration-200 active:scale-[0.94] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1 ${
                         copiedStatus === 'edu-link'
                           ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
-                          : 'bg-[#fdf2f8] dark:bg-[#db2777]/10 hover:bg-[#fce7f3] dark:hover:bg-[#db2777]/20 active:bg-[#fbcfe8] text-[#db2777] border-[#db2777]/20'
+                          : 'bg-blue-50 dark:bg-blue-950/30 hover:bg-blue-100/70 dark:hover:bg-blue-900/40 text-blue-700 dark:text-blue-300 border-blue-200/80 dark:border-blue-800/60'
                       }`}
                       title="학군/육아 분석 결과 카카오톡 공유하기"
                     >
                       {copiedStatus === 'edu-link' ? (
                         <Check size={12} strokeWidth={2.5} className="text-emerald-500" />
                       ) : (
-                        <Share size={12} strokeWidth={2.5} className={copiedStatus === 'edu-link' ? 'text-emerald-500/80' : 'text-[#db2777]/80'} />
+                        <Share size={12} strokeWidth={2.5} className="text-blue-600 dark:text-blue-400" />
                       )}
                       <span>{copiedStatus === 'edu-link' ? '공유 링크 복사됨!' : '평가 결과 공유하기'}</span>
                     </button>
@@ -195,7 +201,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                             cx="50"
                             cy="50"
                             r="42"
-                            className={`${colors.text} transition-all duration-1000 ease-out`}
+                            className={`stroke-current ${colors.text} transition-all duration-1000 ease-out`}
                             strokeWidth="6"
                             fill="transparent"
                             strokeDasharray={2 * Math.PI * 42}
@@ -216,18 +222,26 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     <div className="flex-1 w-full text-center md:text-left">
                       <div className="flex flex-col md:flex-row md:items-baseline justify-center md:justify-start gap-1 mb-2">
                         <span className="text-[16px] font-bold text-secondary">종합 육아 환경 지수:</span>
-                        <div className="flex items-baseline justify-center gap-0.5">
+                        <div className="flex items-baseline justify-center gap-0.5 tabular-nums">
                           <span className={`text-[28px] font-black tracking-tight ${colors.scoreText}`}>{eduScoreInfo.score}</span>
                           <span className="text-[14px] font-bold text-secondary mt-auto pb-0.5">/ 100 점</span>
                         </div>
                       </div>
+                      <p className="text-[12.5px] font-bold text-secondary mb-2">
+                        초등학교 도보권 · 중·고교 접근성 · 500m 학원 밀집도 종합
+                      </p>
                       
-                      <div className={`p-4 rounded-xl ${colors.descBg} border border-blue-600/10 text-left`}>
-                        <p className="text-[14px] font-bold text-primary mb-1">D-VIEW 자녀양육 환경 리포트</p>
-                        <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
-                          {eduScoreInfo.description} (초등학교까지의 실제 도보 안심 통학 요건, 인근 중고교 접근성 및 500m 반경 내 교육 학원 인프라 밀집도를 종합 연산한 지표입니다.)
-                        </p>
-                      </div>
+                      <details className={getSeoAccordionClass(`${colors.descBg} border border-blue-600/10 text-left`)}>
+                        <summary className={getSeoAccordionSummaryClass()}>
+                          <span>육아 환경 산정 기준 · 해설 더보기</span>
+                          <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                        </summary>
+                        <div className={getSeoAccordionBodyClass()}>
+                          <p className="text-[13px] font-medium text-secondary leading-relaxed break-keep">
+                            {eduScoreInfo.description} (초등학교까지의 실제 도보 안심 통학 요건, 인근 중고교 접근성 및 500m 반경 내 교육 학원 인프라 밀집도를 종합 연산한 지표입니다.)
+                          </p>
+                        </div>
+                      </details>
                     </div>
                   </div>
                 </div>
@@ -250,10 +264,10 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     const percent = Math.min((dist / 1000) * 100, 100);
                     const grade = dist <= 300 ? 'excellent' : dist <= 700 ? 'good' : dist <= 1000 ? 'average' : 'far';
                     const gradeStyles = {
-                      excellent: { dot: 'bg-emerald-500', timeBadge: 'bg-[#f0fdfa] text-emerald-600', linkBadge: 'bg-surface border border-border text-secondary hover:text-emerald-600 hover:border-emerald-500/30 shadow-sm' },
-                      good: { dot: 'bg-[#22c55e]', timeBadge: 'bg-[#f0fdf4] text-[#16a34a]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#16a34a] hover:border-[#16a34a]/30 shadow-sm' },
-                      average: { dot: 'bg-[#f59e0b]', timeBadge: 'bg-[#fefce8] text-[#ca8a04]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#ca8a04] hover:border-[#ca8a04]/30 shadow-sm' },
-                      far: { dot: 'bg-[#ef4444]', timeBadge: 'bg-[#fef2f2] text-[#dc2626]', linkBadge: 'bg-surface border border-border text-secondary hover:text-[#dc2626] hover:border-[#dc2626]/30 shadow-sm' },
+                      excellent: { dot: 'bg-emerald-500', timeBadge: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-emerald-600 hover:border-emerald-500/30 shadow-sm' },
+                      good: { dot: 'bg-emerald-500', timeBadge: 'bg-emerald-50 dark:bg-emerald-950/30 text-emerald-700 dark:text-emerald-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-emerald-600 hover:border-emerald-500/30 shadow-sm' },
+                      average: { dot: 'bg-blue-500', timeBadge: 'bg-blue-50 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-blue-600 hover:border-blue-500/30 shadow-sm' },
+                      far: { dot: 'bg-red-500', timeBadge: 'bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-300', linkBadge: 'bg-surface border border-border text-secondary hover:text-red-600 hover:border-red-500/30 shadow-sm' },
                     };
                     const s = gradeStyles[grade];
                     
@@ -346,7 +360,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                             className={`h-full rounded-full transition-all duration-500 ease-out ${
                               grade === 'excellent' ? 'bg-emerald-500' :
                               grade === 'good' ? 'bg-emerald-500' :
-                              grade === 'average' ? 'bg-emerald-500' : 'bg-red-500'
+                              grade === 'average' ? 'bg-blue-500' : 'bg-red-500'
                             }`}
                             style={{ width: `${percent}%` }}
                           />
@@ -368,7 +382,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                           <a 
                             href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(school.name + ' 화성시')}`}
                             target="_blank" rel="noopener noreferrer"
-                            className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-[95] shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1`}
+                            className={`text-[11px] md:text-[12px] flex items-center justify-center gap-1 font-bold mt-3 md:mt-4 ${s.linkBadge} rounded-xl px-2.5 py-2 text-center transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] shadow-[0_2px_8px_rgba(0,0,0,0.02)] focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-1`}
                             title={`${school.name} 구글 지도에서 보기`}
                           >
                             <MapPin size={12} className="shrink-0 md:w-3.5 md:h-3.5" />
@@ -399,9 +413,23 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                       </div>
                     </div>
                   )}
-                  <div className="flex-1">
-                    <h4 className="text-[14px] font-bold mb-2 bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20 inline-block px-3 py-1 rounded-lg">학군 및 통학 안정성 평가</h4>
-                    <p className="text-[14px] text-secondary leading-relaxed whitespace-pre-wrap">{report.sections.ecosystem.schoolText}</p>
+                  <div className="flex-1 w-full space-y-2.5">
+                    <h4 className="text-[13px] font-bold bg-brand-blue-light text-brand-blue dark:bg-brand-blue-light/10 border border-brand-blue/20 inline-block px-3 py-1 rounded-lg">
+                      학군 · 통학로 보행 안정성 검증
+                    </h4>
+                    {report.sections.ecosystem.schoolText && (
+                      <details className={getSeoAccordionClass('bg-surface dark:bg-[#17171c]')}>
+                        <summary className={getSeoAccordionSummaryClass()}>
+                          <span>통학로 임장 상세 분석 더보기</span>
+                          <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                        </summary>
+                        <div className={getSeoAccordionBodyClass()}>
+                          <p className="text-[13.5px] text-secondary leading-relaxed whitespace-pre-wrap">
+                            {report.sections.ecosystem.schoolText}
+                          </p>
+                        </div>
+                      </details>
+                    )}
                   </div>
                 </div>
               </div>
@@ -422,7 +450,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                     <div>
                       <p className="text-[13px] font-bold text-secondary leading-none">500m 반경 교육시설</p>
                       <div className="flex items-baseline gap-0.5 mt-1.5">
-                        <span className="text-[26px] font-black text-primary tracking-tight leading-none">{report.metrics.academyDensity}</span>
+                        <span className="text-[26px] font-black text-primary tracking-tight leading-none tabular-nums">{report.metrics.academyDensity}</span>
                         <span className="text-[13px] font-bold text-secondary ml-1">개소 밀집</span>
                       </div>
                     </div>
@@ -435,11 +463,11 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                       let bg = 'bg-blue-600';
                       if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
                         tag = '예체능';
-                        color = '#004696'; // brand-blue
+                        color = '#3182f6'; // brand-blue
                         bg = 'bg-brand-blue';
                       } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
                         tag = '체육/활동';
-                        color = '#03c75a'; // brand-green
+                        color = '#059669'; // brand-green
                         bg = 'bg-brand-green';
                       } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
                         tag = '건강/취미';
@@ -493,7 +521,7 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                           {sortedTags.map(([tag, data]) => {
                             const percent = (data.count / totalAcademyCount) * 100;
                             return (
-                              <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary">
+                              <div key={tag} className="flex items-center gap-1.5 text-[11px] font-bold text-secondary tabular-nums">
                                 <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.color }} />
                                 <span>{tag}</span>
                                 <span className="text-primary">{data.count}개</span>
@@ -503,12 +531,32 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                           })}
                         </div>
 
-                        {/* AI 진단 코멘트 박스 */}
-                        <div className="mt-2.5 p-3.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl">
-                          <p className="text-[11.5px] font-extrabold text-blue-600 dark:text-blue-400 leading-relaxed break-keep flex items-center gap-1">
-                            <Lightbulb size={14} className="shrink-0 text-blue-600" />
-                            <span><strong>AI 학원가 진단:</strong> {aiComment}</span>
-                          </p>
+                        {/* AI 진단 요약 및 아코디언 */}
+                        <div className="mt-2.5 space-y-2">
+                          <div className="px-3.5 py-2.5 bg-emerald-50/40 dark:bg-emerald-950/10 border border-emerald-500/10 rounded-xl flex items-center gap-1.5 text-[12px] font-extrabold text-blue-600 dark:text-blue-400 tabular-nums">
+                            <Lightbulb size={14} className="shrink-0 text-blue-600 dark:text-blue-400" />
+                            <span>
+                              500m 내 {totalAcademyCount}개소 ·{' '}
+                              {totalAcademyCount >= 60
+                                ? '최상위 학원가 밀집권'
+                                : totalAcademyCount >= 30
+                                ? '우수 보습 학원권'
+                                : totalAcademyCount >= 10
+                                ? '기초 보습 · 예체능권'
+                                : '인근 대형 학원가 셔틀권'}
+                            </span>
+                          </div>
+                          <details className={getSeoAccordionClass('bg-surface dark:bg-[#17171c]')}>
+                            <summary className={getSeoAccordionSummaryClass()}>
+                              <span>학원가 업종 구성 해설 더보기</span>
+                              <ChevronDown size={15} className={getSeoAccordionChevronClass()} />
+                            </summary>
+                            <div className={getSeoAccordionBodyClass()}>
+                              <p className="text-[12.5px] font-medium text-secondary leading-relaxed break-keep">
+                                {aiComment}
+                              </p>
+                            </div>
+                          </details>
                         </div>
                       </div>
                     ) : null;
@@ -519,14 +567,14 @@ const EducationAnalysisSection = React.memo(function EducationAnalysisSection({
                       {Object.entries(report.metrics.academyCategories)
                         .sort(([,a], [,b]) => (b as number) - (a as number))
                         .map(([cat, cnt]) => {
-                          let theme = { bg: 'bg-[#f0fdfa]/50 text-emerald-600 border-[#ccfbf1]/40', tag: '학업' };
+                          let theme = { bg: 'bg-emerald-50/60 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200/50 dark:border-emerald-800/40', tag: '학업' };
                           
                           if (cat.includes('음악') || cat.includes('미술') || cat.includes('피아노') || cat.includes('예술') || cat.includes('그림') || cat.includes('무용') || cat.includes('서예')) {
-                            theme = { bg: 'bg-[#fdf2f8]/50 text-[#db2777] border-[#fbcfe8]/40', tag: '예체능' };
+                            theme = { bg: 'bg-blue-50/60 dark:bg-blue-950/20 text-blue-700 dark:text-blue-300 border-blue-200/50 dark:border-blue-800/40', tag: '예체능' };
                           } else if (cat.includes('태권도') || cat.includes('무술') || cat.includes('체육') || cat.includes('스포츠') || cat.includes('축구') || cat.includes('레크리에이션') || cat.includes('검도') || cat.includes('유도')) {
-                            theme = { bg: 'bg-[#fff7ed]/50 text-[#ea580c] border-[#ffedd5]/40', tag: '체육/활동' };
+                            theme = { bg: 'bg-emerald-50/40 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 border-emerald-200/40 dark:border-emerald-800/40', tag: '체육/활동' };
                           } else if (cat.includes('요가') || cat.includes('필라테스') || cat.includes('헬스') || cat.includes('취미') || cat.includes('바둑') || cat.includes('컴퓨터')) {
-                            theme = { bg: 'bg-[#f0f9ff]/50 text-[#0284c7] border-[#e0f2fe]/40', tag: '건강/취미' };
+                            theme = { bg: 'bg-slate-50 dark:bg-slate-800/50 text-slate-700 dark:text-slate-300 border-slate-200/60 dark:border-slate-700/50', tag: '건강/취미' };
                           }
                           
                           return (

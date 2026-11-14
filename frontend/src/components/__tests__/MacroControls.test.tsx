@@ -8,6 +8,7 @@ import {
   TimeframeSelector,
   FavoriteOrderEditor,
 } from '../macro/components/MacroControls';
+import { compareTimelineItemsByPyeongPriceDesc } from '../macro/hooks/useMacroFilters';
 
 describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
   const defaultProps = {
@@ -322,6 +323,105 @@ describe('MacroControls Component Suite - Comprehensive Unit Tests', () => {
         />
       );
       expect(screen.getByLabelText('모든 필터 초기화')).toBeInTheDocument();
+    });
+  });
+
+  describe('9. Compact Hero Filter Diet & Separated Sort UX', () => {
+    it('reduces 5 dropdowns into 2 core selects (지역·평형) + one-click [신고가만] chip + right-aligned segmented sort in compactMode', () => {
+      const setTradeTypeMock = jest.fn();
+      const setSortOrderMock = jest.fn();
+      const onSelectDateMock = jest.fn();
+
+      const { rerender } = render(
+        <TimelineFilterControls
+          {...defaultProps}
+          compactMode={true}
+          showQuickFilters={false}
+          pyeongFilter="all"
+          setPyeongFilter={jest.fn()}
+          tradeTypeFilter="all"
+          setTradeTypeFilter={setTradeTypeMock}
+          sortOrder="latest"
+          setSortOrder={setSortOrderMock}
+          availableDates={[{ dateKey: '2026-11-14', label: '2026.11.14 (토)', count: 5 }]}
+          selectedDate={null}
+          onSelectDate={onSelectDateMock}
+        />
+      );
+
+      // 1. Date & TradeType dropdowns are hidden in compact default screen
+      expect(screen.queryByTestId('timeline-date-select')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('timeline-tradetype-select')).not.toBeInTheDocument();
+
+      // 2. Core 2 dropdowns (지역, 평형) are rendered
+      const regionSelect = screen.getByLabelText('권역 및 법정동 선택');
+      const pyeongSelect = screen.getByTestId('timeline-pyeong-select');
+      expect(regionSelect).toBeInTheDocument();
+      expect(pyeongSelect).toBeInTheDocument();
+
+      // 3. One-click [신고가만] chip toggles high <-> all
+      const newHighChip = screen.getByTestId('timeline-newhigh-chip');
+      expect(newHighChip).toHaveTextContent('신고가만');
+      expect(newHighChip).toHaveAttribute('aria-pressed', 'false');
+      fireEvent.click(newHighChip);
+      expect(setTradeTypeMock).toHaveBeenCalledWith('high');
+
+      // 4. Segmented sort track renders [평당가순 · 고가순 · 상승률순] on the right
+      const segmentedSort = screen.getByTestId('timeline-sort-segmented');
+      expect(segmentedSort).toBeInTheDocument();
+      const defaultSortBtn = screen.getByTestId('timeline-sort-btn-latest');
+      expect(defaultSortBtn).toHaveTextContent('평당가순');
+      expect(defaultSortBtn).toHaveAttribute('aria-pressed', 'true');
+
+      fireEvent.click(screen.getByTestId('timeline-sort-btn-price_desc'));
+      expect(setSortOrderMock).toHaveBeenCalledWith('price_desc');
+
+      fireEvent.click(screen.getByTestId('timeline-sort-btn-delta_desc'));
+      expect(setSortOrderMock).toHaveBeenCalledWith('delta_desc');
+
+      // 5. Active state highlights selected filters and toggles [신고가만] off on second click
+      rerender(
+        <TimelineFilterControls
+          {...defaultProps}
+          compactMode={true}
+          showQuickFilters={false}
+          regionFilter="dongtan2"
+          pyeongFilter="30s"
+          setPyeongFilter={jest.fn()}
+          tradeTypeFilter="high"
+          setTradeTypeFilter={setTradeTypeMock}
+          sortOrder="price_desc"
+          setSortOrder={setSortOrderMock}
+          availableDates={[{ dateKey: '2026-11-14', label: '2026.11.14 (토)', count: 5 }]}
+          selectedDate={null}
+          onSelectDate={onSelectDateMock}
+        />
+      );
+
+      expect(screen.getByLabelText('권역 및 법정동 선택').className).toContain('text-blue-600');
+      expect(screen.getByTestId('timeline-pyeong-select').className).toContain('text-blue-600');
+      expect(screen.getByTestId('timeline-newhigh-chip')).toHaveAttribute('aria-pressed', 'true');
+
+      fireEvent.click(screen.getByTestId('timeline-newhigh-chip'));
+      expect(setTradeTypeMock).toHaveBeenCalledWith('all');
+    });
+
+    it('sorts daily registered transactions by price-per-pyeong descending (평당가 상위순) regardless of contractDate or raw total price', () => {
+      const sameDayRegistered = [
+        // 40평 13.2억 -> 평당 3,300만 (highest contractDate, middle total price, lowest 평당가)
+        { aptName: '동탄호수공원 아이파크', priceVal: 13.2, areaPyeong: 40, area: 101.9, contractDate: '20261113' },
+        // 25평 11.5억 -> 평당 4,600만 (lowest total price, older contractDate, 2nd highest 평당가)
+        { aptName: '동탄역시범우남퍼스트빌', priceVal: 11.5, areaPyeong: 25, area: 59.9, contractDate: '20261028' },
+        // 34평 16.5억 -> 평당 4,853만 (highest 평당가)
+        { aptName: '동탄역 롯데캐슬', priceVal: 16.5, areaPyeong: 34, area: 84.9, contractDate: '20261102' },
+      ];
+
+      const sorted = [...sameDayRegistered].sort(compareTimelineItemsByPyeongPriceDesc);
+      expect(sorted.map((it) => it.aptName)).toEqual([
+        '동탄역 롯데캐슬',
+        '동탄역시범우남퍼스트빌',
+        '동탄호수공원 아이파크',
+      ]);
     });
   });
 });

@@ -4,7 +4,8 @@ import {
   Calculator, ChevronDown, Radar, Shield, GraduationCap, ShieldAlert, Star
 } from 'lucide-react';
 import type { FieldReportData } from '@/types/report';
-import { useFavorites, isApartmentInFavorites } from '@/hooks/useFavorites';
+import { useFavorites } from '@/hooks/useFavorites';
+import { isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import { trackEvent } from '@/lib/utils/analytics';
 
 export interface ApartmentModalHeaderProps {
@@ -136,7 +137,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
               trackEvent('watchlist_toggle_favorite', {
                 apt_name: targetAptName,
                 is_favorite: !effectiveIsFavorite,
-                source: 'apartment_detail',
+                surface: 'apartment_detail',
               });
               effectiveToggleFavorite(targetAptName);
             }}

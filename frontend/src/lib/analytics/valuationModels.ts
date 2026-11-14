@@ -444,8 +444,8 @@ export function evaluatePERStatus(realEstatePER: number): PERStatusResult {
     return {
       category: 'growth',
       statusText: '성장구간 (미래 기대감 반영)',
-      statusColor: 'text-[#f59e0b]',
-      statusBg: 'bg-[#f59e0b]/10 border-[#f59e0b]/20',
+      statusColor: 'text-slate-700 dark:text-slate-300',
+      statusBg: 'bg-slate-500/10 border-slate-500/20',
       descriptionText: '좋은 학군이나 교통망 덕분에 나중에 집값이 오를 것이란\n기대감이 이미 현재 가격에 포함되어 있습니다.',
     };
   }
@@ -454,7 +454,7 @@ export function evaluatePERStatus(realEstatePER: number): PERStatusResult {
     category: 'speculative',
     statusText: '투자집중구간 (큰 수익 기대)',
     statusColor: 'text-toss-red',
-    statusBg: 'bg-toss-red/10 border-[#f04452]/20',
+    statusBg: 'bg-toss-red/10 border-toss-red/20',
     descriptionText: '재건축 등 호재를 노린 투자금이 몰린 곳으로,\n은행 금리가 오르면 가격이 급락할 수 있으니 주의하세요.',
   };
 }

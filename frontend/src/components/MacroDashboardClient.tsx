@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useDeferredValue, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useRef, useDeferredValue, useEffect, useCallback } from "react";
 import useSWR from "swr";
 import dynamic from "next/dynamic";
 import { safeReload } from "@/lib/utils/safeReload";
@@ -6,7 +6,7 @@ import { logger } from "@/lib/services/logger";
 import { preloadApartmentModal } from "@/components/common/ComponentPreloader";
 import type { DongApartment } from "@/lib/dong-apartments";
 import type { AptTxSummary, DongtanMacroTrendPoint, FieldReportData } from "@/types";
-import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, HARDCODED_MAPPING, resolveCanonicalAptSlug } from "@/lib/utils/apartmentMapping";
+import { normalizeAptName, sanitizeAptKey, findTxKey, findTypeMapEntry, getDisplayAptName, isSameApartment, isApartmentInFavorites, HARDCODED_MAPPING, resolveCanonicalAptSlug } from "@/lib/utils/apartmentMapping";
 import { matchesApartmentSearch } from "@/lib/utils/apartmentSearch";
 import { addRecentApartment } from "@/lib/utils/recentApartments";
 import { aggregateStats, resolveSummaryEntry } from "@/lib/analytics/statsEngine";
@@ -17,7 +17,13 @@ import { useLocationScores, usePeriodTransactions } from "@/hooks/useStaticData"
 import { BUILD_VERSION } from "@/lib/build-version";
 import { buildApartmentMacroChartData, filterChartTimeframe, type FormattedMacroPoint } from "@/lib/utils/macroChartTransform";
 
-import { useMacroFilters, DONGTAN1_DONGS, DONGTAN2_DONGS, LANDMARK_APTS } from "./macro/hooks/useMacroFilters";
+import {
+  useMacroFilters,
+  DONGTAN1_DONGS,
+  DONGTAN2_DONGS,
+  LANDMARK_APTS,
+  compareTimelineItemsByPyeongPriceDesc,
+} from "./macro/hooks/useMacroFilters";
 import { MacroHeader } from "./macro/components/MacroHeader";
 import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
@@ -28,16 +34,16 @@ import { AptMetricCards } from "./macro/AptMetricCards";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
 import { usePWA } from "@/components/pwa/PWAProvider";
 import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
-import { useDebounce } from '@/hooks/useDebounce';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
 import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
 import { AdSlot } from "@/components/ads/AdSlot";
 import Link from "next/link";
 import { Star, MessageSquare, Clock, ArrowRight } from "lucide-react";
-import { useFavorites, isApartmentInFavorites } from "@/hooks/useFavorites";
+import { useFavorites } from "@/hooks/useFavorites";
 import { TrafficNoticeBoard, type LocalNoticeItem } from "./macro/TrafficNoticeBoard";
 import { GUIDE_ARTICLES } from "@/lib/data/guides";
+import { truncateToCopyBudget } from "@/lib/design-system/copyDiet";
 
 
 
@@ -71,8 +77,8 @@ const MacroTrendChart = dynamic(() => import("@/components/macro/MacroTrendChart
         <div className="w-1.5 h-12 bg-emerald-500/60 rounded-full animate-bounce duration-500 delay-500" />
         <div className="w-1.5 h-8 bg-emerald-500/40 rounded-full animate-bounce duration-500 delay-600" />
       </div>
-      <span className="text-secondary text-[12.5px] font-extrabold mb-1.5 tracking-tight">관심 단지 정보를 분석하고 있습니다...</span>
-      <span className="text-[10px] text-tertiary font-bold opacity-75">내 자산 가치에 맞춘 전용 리포트를 생성하는 중입니다.</span>
+      <span className="text-secondary text-[12.5px] font-extrabold mb-1.5 tracking-tight">관심 단지 시세 데이터 로딩</span>
+      <span className="text-[10px] text-tertiary font-bold opacity-75">단지별 실거래 추이 차트 준비 중</span>
     </div>
   )
 });
@@ -176,9 +182,9 @@ interface MacroDashboardProps {
   onSelectApt?: (name: string, dong?: string) => void;
   onNavigateApartmentPage?: (name: string, dong?: string) => void;
   onOpenAdModal?: () => void;
-  onOpenCompare?: (aptName?: string) => void;
+  onOpenCompare?: (aptName?: string, targetAptName?: string) => void;
   onOpenJeonseSafety?: (aptName?: string) => void;
-  onOpenMortgage?: (aptName?: string) => void;
+  onOpenMortgage?: (aptName?: string, priceWon?: number) => void;
   onOpenTaxCalculator?: (aptName?: string) => void;
   onOpenSellTimingCalculator?: (aptName?: string) => void;
   recent7DaysVolume?: {
@@ -313,25 +319,6 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
   const isFalling = item.delta < 0;
   const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
-  const isToday = Boolean(
-    item.isTodayRegistered ?? (
-      item.registeredDate &&
-      String(item.registeredDate).replace(/[^0-9]/g, '').slice(0, 8) === (
-        (() => {
-          try {
-            return new Intl.DateTimeFormat('en-CA', {
-              timeZone: 'Asia/Seoul',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            }).format(new Date()).replace(/[^0-9]/g, '');
-          } catch {
-            return new Date().toISOString().slice(0, 10).replace(/[^0-9]/g, '');
-          }
-        })()
-      )
-    )
-  );
 
   return (
     <div
@@ -358,14 +345,6 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
             >
               {item.displayAptName || item.aptName}
             </span>
-            {isToday && (
-              <span
-                data-testid="timeline-today-registered-badge"
-                className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 shrink-0 whitespace-nowrap tracking-wider tabular-nums leading-none"
-              >
-                오늘 등록
-              </span>
-            )}
             {item.type === 'high' && (
               <span className="text-[8px] xs:text-[9px] sm:text-[9.5px] font-black px-1.5 py-0.5 rounded bg-red-500 text-white shadow-[0_0_8px_rgba(244,63,94,0.4)] shrink-0 whitespace-nowrap animate-pulse tracking-wider">
                 신고가
@@ -488,7 +467,7 @@ export const TimelineItemCard = React.memo(function TimelineItemCard({
               trackEvent('watchlist_toggle_favorite', {
                 apt_name: item.aptName,
                 is_favorite: willBeFav,
-                source: 'timeline',
+                surface: 'timeline',
               });
               onToggleFavorite(item.aptName);
             }}
@@ -549,25 +528,6 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
   const displayName = item.displayAptName || item.aptName;
   const pyeong = item.areaPyeong || (item.area ? item.area / 3.3058 : 34);
   const pyeongPriceMan = Math.round((item.priceVal * 10000) / pyeong);
-  const isToday = Boolean(
-    item.isTodayRegistered ?? (
-      item.registeredDate &&
-      String(item.registeredDate).replace(/[^0-9]/g, '').slice(0, 8) === (
-        (() => {
-          try {
-            return new Intl.DateTimeFormat('en-CA', {
-              timeZone: 'Asia/Seoul',
-              year: 'numeric',
-              month: '2-digit',
-              day: '2-digit',
-            }).format(new Date()).replace(/[^0-9]/g, '');
-          } catch {
-            return new Date().toISOString().slice(0, 10).replace(/[^0-9]/g, '');
-          }
-        })()
-      )
-    )
-  );
 
   return (
     <div
@@ -590,14 +550,6 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
             <span className="text-[12px] sm:text-[13px] font-extrabold text-primary truncate max-w-[180px] sm:max-w-[280px]">
               {displayName}
             </span>
-            {isToday && (
-              <span
-                data-testid="timeline-row-today-badge"
-                className="px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 dark:border-emerald-500/30 text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider tabular-nums leading-none"
-              >
-                오늘 등록
-              </span>
-            )}
             {item.type === 'high' && (
               <span className="px-1.5 py-0.2 rounded bg-red-500 text-white text-[8.5px] sm:text-[9px] font-black shrink-0 tracking-wider">
                 신고가
@@ -647,7 +599,7 @@ export const TimelineItemRow = React.memo(function TimelineItemRow({
               trackEvent('watchlist_toggle_favorite', {
                 apt_name: item.aptName,
                 is_favorite: willBeFav,
-                source: 'timeline',
+                surface: 'timeline',
               });
               onToggleFavorite(item.aptName);
             }}
@@ -690,7 +642,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   onSelectApt,
   onNavigateApartmentPage,
   onOpenAdModal: _onOpenAdModal,
-  onOpenCompare: _onOpenCompare,
+  onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
   onOpenTaxCalculator: _onOpenTaxCalculator,
@@ -1128,73 +1080,140 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     }
   }, []);
 
-  const debouncedTimelineSearch = useDebounce(searchQuery, 1000);
+  const lastTrackedTimelineSearchRef = useRef<string>('');
 
   useEffect(() => {
-    const query = debouncedTimelineSearch.trim();
-    if (mounted && query) {
-      trackEvent('search_apartment', { query, surface: 'dashboard_timeline' });
-      const searchPayload = {
-        search_term: query,
-        query,
-        surface: 'dashboard_timeline',
-      };
-      if (typeof trackSearchQuery === 'function') {
-        trackSearchQuery(searchPayload);
-      } else {
-        trackEvent('search_query', searchPayload);
-      }
+    const query = searchQuery.trim();
+    if (!query) {
+      lastTrackedTimelineSearchRef.current = '';
+      return;
     }
-  }, [debouncedTimelineSearch, mounted]);
+    if (!mounted) return;
 
-  const handleOpenCompare = useCallback((aptName?: string) => {
+    const normalizedQuery = query.slice(0, 100);
+    const timer = setTimeout(() => {
+      if (lastTrackedTimelineSearchRef.current !== normalizedQuery) {
+        lastTrackedTimelineSearchRef.current = normalizedQuery;
+        const searchPayload = {
+          search_term: normalizedQuery,
+          query: normalizedQuery,
+          surface: 'dashboard_timeline',
+          trigger: 'debounce',
+        };
+        if (typeof trackSearchQuery === 'function') {
+          trackSearchQuery(searchPayload);
+        } else {
+          trackEvent('search_query', searchPayload);
+        }
+      }
+    }, 1000);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [searchQuery, mounted]);
+
+  const handleOpenCompare = useCallback((aptName?: string, trigger?: string) => {
+    const safeAptName =
+      typeof aptName === 'string' && aptName.trim().length > 0 ? aptName.trim() : undefined;
+    const safeTrigger =
+      typeof trigger === 'string' && trigger.trim().length > 0 ? trigger.trim() : undefined;
     trackEvent('open_calculator', {
       calculator_type: 'compare',
-      apt_name: typeof aptName === 'string' ? aptName : undefined,
+      apartment_name: safeAptName,
+      apt_name: safeAptName,
       surface: 'dashboard',
+      trigger: safeTrigger,
     });
-    if (_onOpenCompare) {
-      _onOpenCompare(aptName);
+    if (onOpenCompare) {
+      onOpenCompare(safeAptName);
     } else {
       scrollToHighCpcFinanceSection();
     }
-  }, [_onOpenCompare, scrollToHighCpcFinanceSection]);
+  }, [onOpenCompare, scrollToHighCpcFinanceSection]);
 
-  const handleOpenJeonseSafety = useCallback((aptName?: string) => {
-    trackEvent('open_calculator', { calculator_type: 'jeonse_safety', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
+  const handleOpenJeonseSafety = useCallback((aptName?: string, trigger?: string) => {
+    const safeAptName =
+      typeof aptName === 'string' && aptName.trim().length > 0 ? aptName.trim() : undefined;
+    const safeTrigger =
+      typeof trigger === 'string' && trigger.trim().length > 0 ? trigger.trim() : undefined;
+    trackEvent('open_calculator', {
+      calculator_type: 'jeonse_safety',
+      apartment_name: safeAptName,
+      apt_name: safeAptName,
+      surface: 'dashboard',
+      trigger: safeTrigger,
+    });
     if (onOpenJeonseSafety) {
-      onOpenJeonseSafety(aptName);
+      onOpenJeonseSafety(safeAptName);
     } else {
       scrollToHighCpcFinanceSection();
     }
   }, [onOpenJeonseSafety, scrollToHighCpcFinanceSection]);
 
-  const handleOpenMortgage = useCallback((aptName?: string) => {
-    trackEvent('open_calculator', { calculator_type: 'mortgage', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
-    if (onOpenMortgage) {
-      onOpenMortgage(aptName);
-    } else {
-      scrollToHighCpcFinanceSection();
-    }
-  }, [onOpenMortgage, scrollToHighCpcFinanceSection]);
+  const handleOpenMortgage = useCallback(
+    (aptName?: string, priceWon?: number, trigger?: string) => {
+      const safeAptName =
+        typeof aptName === 'string' && aptName.trim().length > 0 ? aptName.trim() : undefined;
+      const safePriceWon =
+        typeof priceWon === 'number' && Number.isFinite(priceWon) && priceWon > 0
+          ? priceWon
+          : undefined;
+      const safeTrigger =
+        typeof trigger === 'string' && trigger.trim().length > 0 ? trigger.trim() : undefined;
+      trackEvent('open_calculator', {
+        calculator_type: 'mortgage',
+        apartment_name: safeAptName,
+        apt_name: safeAptName,
+        surface: 'dashboard',
+        trigger: safeTrigger,
+      });
+      if (onOpenMortgage) {
+        onOpenMortgage(safeAptName, safePriceWon);
+      } else {
+        scrollToHighCpcFinanceSection();
+      }
+    },
+    [onOpenMortgage, scrollToHighCpcFinanceSection]
+  );
 
-  const handleOpenSellTiming = useCallback((aptName?: string) => {
-    trackEvent('open_calculator', { calculator_type: 'sell_timing', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
+  const handleOpenSellTiming = useCallback((aptName?: string, trigger?: string) => {
+    const safeAptName =
+      typeof aptName === 'string' && aptName.trim().length > 0 ? aptName.trim() : undefined;
+    const safeTrigger =
+      typeof trigger === 'string' && trigger.trim().length > 0 ? trigger.trim() : undefined;
+    trackEvent('open_calculator', {
+      calculator_type: 'sell_timing',
+      apartment_name: safeAptName,
+      apt_name: safeAptName,
+      surface: 'dashboard',
+      trigger: safeTrigger,
+    });
     if (onOpenSellTimingCalculator) {
-      onOpenSellTimingCalculator(aptName);
+      onOpenSellTimingCalculator(safeAptName);
     } else if (_onOpenTaxCalculator) {
-      _onOpenTaxCalculator(aptName);
+      _onOpenTaxCalculator(safeAptName);
     } else {
       scrollToHighCpcFinanceSection();
     }
   }, [onOpenSellTimingCalculator, _onOpenTaxCalculator, scrollToHighCpcFinanceSection]);
 
-  const handleOpenTaxCalculator = useCallback((aptName?: string) => {
-    trackEvent('open_calculator', { calculator_type: 'property_tax', apt_name: typeof aptName === 'string' ? aptName : undefined, surface: 'dashboard' });
+  const handleOpenTaxCalculator = useCallback((aptName?: string, trigger?: string) => {
+    const safeAptName =
+      typeof aptName === 'string' && aptName.trim().length > 0 ? aptName.trim() : undefined;
+    const safeTrigger =
+      typeof trigger === 'string' && trigger.trim().length > 0 ? trigger.trim() : undefined;
+    trackEvent('open_calculator', {
+      calculator_type: 'property_tax',
+      apartment_name: safeAptName,
+      apt_name: safeAptName,
+      surface: 'dashboard',
+      trigger: safeTrigger,
+    });
     if (_onOpenTaxCalculator) {
-      _onOpenTaxCalculator(aptName);
+      _onOpenTaxCalculator(safeAptName);
     } else if (onOpenSellTimingCalculator) {
-      onOpenSellTimingCalculator(aptName);
+      onOpenSellTimingCalculator(safeAptName);
     } else {
       scrollToHighCpcFinanceSection();
     }
@@ -1573,11 +1592,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return Object.values(groups)
       .sort((a, b) => b.timestamp - a.timestamp)
       .map((group) => {
-        const sortedItems = [...group.items].sort((a, b) => {
-          const dateDiff = (b.contractDate || '').localeCompare(a.contractDate || '');
-          if (dateDiff !== 0) return dateDiff;
-          return b.priceVal - a.priceVal;
-        });
+        const sortedItems = [...group.items].sort(compareTimelineItemsByPyeongPriceDesc);
         const totalCount = sortedItems.length;
         const avgVal = totalCount > 0 ? (sortedItems.reduce((s, it) => s + it.priceVal, 0) / totalCount) : 0;
         const avgRoundedMan = Math.round(avgVal * 10000);
@@ -1728,10 +1743,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           if (sortOrder === 'area_desc') {
             return (b.area || b.areaPyeong) - (a.area || a.areaPyeong);
           }
-          // 'latest' or default: keep contractDate desc then priceVal desc
-          const dateDiff = (b.contractDate || '').localeCompare(a.contractDate || '');
-          if (dateDiff !== 0) return dateDiff;
-          return b.priceVal - a.priceVal;
+          // 'latest' (default): sort within each registration date group by price-per-pyeong descending (평당가 상위순)
+          return compareTimelineItemsByPyeongPriceDesc(a, b);
         });
 
         const totalCount = sortedItems.length;
@@ -2427,14 +2440,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-[15px] sm:text-[17px] font-black text-primary tracking-tight">
-                  동탄 신도시 심층 입지·단지 비교 리포트
+                  심층 입지 · 단지 비교 리포트
                 </h3>
                 <span className="px-2 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 text-[10px] font-extrabold border border-blue-200/60 dark:border-blue-800/50">
                   D-VIEW LABS
                 </span>
               </div>
               <p className="text-[11.5px] sm:text-[12px] text-tertiary font-medium mt-0.5">
-                실거래가 통계와 도시계획 데이터를 바탕으로 검증한 추천 비교 분석 리포트
+                실거래 통계 · 도시계획 데이터 기반 1:1 비교 리포트
               </p>
             </div>
             <Link
@@ -2479,7 +2492,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                   </h4>
 
                   <p className="text-[11.5px] text-secondary/80 line-clamp-2 leading-relaxed">
-                    {guide.description}
+                    {truncateToCopyBudget(guide.description, 'cardDescription')}
                   </p>
                 </div>
 
@@ -2535,7 +2548,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 </div>
 
                 <p className="text-[12.5px] text-secondary leading-relaxed font-medium">
-                  동탄1·2 신도시 단지별 실제 거주 후기, 학군 및 상권 평가, 급매물 정보와 갈아타기 전략을 이웃들과 자유롭게 공유하세요.
+                  동탄1·2 단지별 실거주 후기 · 학군 · 급매 · 갈아타기 실전 정보 교류
                 </p>
 
                 <div className="flex flex-col gap-2 pt-1">
