@@ -6,7 +6,7 @@ description: DVIEW 프로젝트 공공·공식 실제 데이터 전용 수칙
 # DVIEW Strict Real Data Only Rule (실제 데이터 전용 수칙)
 
 ## Core Directive
-- 디뷰(DVIEW) 서비스 전반에서 **추정값, 시범(샘플) 데이터, Mock 데이터, 임의 가공 시세 데이터는 절대로 사용하거나 표시하지 않습니다.**
+- 에이전트 행동 강령([`DVIEW_AGENT.md`](../../DVIEW_AGENT.md)), 응답 프로토콜([`DVIEW_DRSP.md`](./DVIEW_DRSP.md)) 및 실거래 파이프라인 표준 스킬([`dview-real-data-pipeline`](../skills/dview-real-data-pipeline/SKILL.md))에 따라, 디뷰(DVIEW) 서비스 전반에서 **추정값, 시범(샘플) 데이터, Mock 데이터, 임의 가공 시세 데이터는 절대로 사용하거나 표시하지 않습니다.**
 - 국토교통부 등 공공기관의 100% 검증된 실제 공식 데이터만 수집 및 연동하여 제공합니다.
 
 ## Office/Commercial Transactions Scoping

@@ -18,11 +18,11 @@ description: DVIEW Response Standard Protocol (DRSP) - 디뷰 답변 출력 표�
 - 오류나 예외 상황이 발생했을 때는 암호 같은 결함 벡터 수식 대신, **원인이 무엇인지**와 **어떻게 해결했는지(또는 해결할 수 있는지)**를 일상적인 개발 용어로 알기 쉽게 안내합니다.
 - 사용자의 결정이 필요한 사항은 선택지와 장단점을 명확히 정리해 질문합니다.
 
-## 4. Strict Real Data Only (실제 데이터 전용 원칙)
+## 4. Strict Real Data Only (실제 데이터 전용 원칙 — [`DVIEW_strict-real-data-only.md`](./DVIEW_strict-real-data-only.md))
 - 디뷰(DVIEW) 서비스 전반에서 추정값, 시범(샘플) 데이터, Mock 데이터, 임의 가공 시세 데이터는 일체 사용하지 않으며, 국토교통부·화성시·DART 등 공공기관 및 공식 검증 데이터만 취급합니다.
 
 ## 5. Design System Invariants & Single Source of Truth (디자인 시스템 준수)
-- 프론트엔드 컴포넌트 생성 및 수정 시 루트 `DVIEW_DESIGN.md`에 정의된 **Ad Money (애드 머니) 디자인 시스템**(구글 애드센스 수익률 극대화 목적)을 단일 진실 공급원(SSOT)으로 참조하고 준수합니다.
+- 에이전트 행동 강령·토큰 다이어트·표준 워크플로우 기준은 루트 [`DVIEW_AGENT.md`](../../DVIEW_AGENT.md), 루트 워크플로우([`DVIEW_git-push.md`](../workflows/DVIEW_git-push.md), [`DVIEW_localhost-open.md`](../workflows/DVIEW_localhost-open.md)) 및 표준 스킬([`dview-design-compliance`](../skills/dview-design-compliance/SKILL.md), [`dview-adsense-telemetry`](../skills/dview-adsense-telemetry/SKILL.md))을 따르며, 프론트엔드 컴포넌트 생성 및 수정 시 루트 [`DVIEW_DESIGN.md`](../../DVIEW_DESIGN.md)에 정의된 **Ad Money v5.1 (애드 머니) 디자인 시스템**(구글 애드센스 수익률 극대화 목적)을 단일 진실 공급원(SSOT)으로 참조하고 준수합니다.
 - 임의 유니코드 이모티콘 사용을 금지하고 `lucide-react` SVG 아이콘 체계로 일원화합니다.
 - Slate 무채색 베이스(`slate-50`~`slate-950`) 및 Emerald/Blue 시맨틱 컬러 토큰 외 비표준 난색·과채도 배경 및 보더 적용을 배제합니다.
 - Zero-CLS 기하학($CLS < 0.001$) 유지 및 핵심 탐색 흐름과 결합된 네이티브 수익화 카드 아키텍처를 준수합니다.
