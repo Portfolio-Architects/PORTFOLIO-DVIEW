@@ -3,17 +3,33 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePWA } from './PWAProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { logger } from '@/lib/services/logger';
-import { X, BellRing, Sparkles, ShieldCheck, AlertTriangle } from 'lucide-react';
+import { trackEvent } from '@/lib/utils/analytics';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import { acquireBodyScrollLock } from '@/lib/utils/bodyScrollLock';
+import { X, BellRing, Sparkles, ShieldCheck, AlertTriangle, Smartphone } from 'lucide-react';
 
 interface PushSubscriptionModalProps {
   isOpen: boolean;
   onClose: () => void;
   aptName: string;
+  canonicalSlug?: string;
+  dong?: string;
+  guideSlug?: string;
 }
 
-const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen, onClose, aptName }: PushSubscriptionModalProps) {
-  const { subscribeToPush, showToast, isPushSupported } = usePWA();
+const PushSubscriptionModal = React.memo(function PushSubscriptionModal({
+  isOpen,
+  onClose,
+  aptName,
+  canonicalSlug,
+  dong,
+  guideSlug,
+}: PushSubscriptionModalProps) {
+  const { user } = useAuth();
+  const { subscribeToPush, showToast, isPushSupported, isIOS, isStandalone, triggerCustomA2HSModal } = usePWA();
+  const isIosBrowserNeedsA2hs = Boolean(isIOS && !isPushSupported && !isStandalone);
   const [submitting, setSubmitting] = React.useState(false);
   const [errorState, setErrorState] = React.useState<'denied' | 'unsupported' | 'failed' | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -33,11 +49,7 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
   useEffect(() => {
     if (!isOpen) return;
     setErrorState(null);
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
-    };
+    return acquireBodyScrollLock();
   }, [isOpen]);
 
   // Focus and Escape key management
@@ -64,15 +76,37 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
 
   if (!isOpen || !mounted) return null;
 
+  const trimmedCanonical = canonicalSlug?.trim() || '';
+  const subscriptionTarget = trimmedCanonical || aptName;
+  const resolvedCanonicalApt =
+    trimmedCanonical ||
+    (aptName && aptName !== '동탄 전체' && aptName !== '동탄 전역'
+      ? resolveCanonicalAptSlug(aptName, { dong }) || aptName
+      : '동탄 전체');
+
   const handleSubscribe = async () => {
     if (submitting) return;
     setSubmitting(true);
     setErrorState(null);
     try {
-      const success = await subscribeToPush(null, aptName);
+      const success = await subscribeToPush(user?.uid ?? null, subscriptionTarget);
       if (success && mountedRef.current) {
+        trackEvent('push_subscribe_success', {
+          surface: 'push_subscription_modal',
+          trigger: 'modal_submit_cta',
+          apt_name: aptName,
+          apartment_name: resolvedCanonicalApt,
+          ...(dong ? { dong } : {}),
+          ...(guideSlug ? { guide_slug: guideSlug } : {}),
+        });
         showToast(`${aptName}의 실거래가 변동 알림 신청이 완료되었습니다.`);
         onClose();
+      } else if (!success && mountedRef.current) {
+        const isPermissionDenied =
+          typeof window !== 'undefined' &&
+          typeof Notification !== 'undefined' &&
+          Notification.permission === 'denied';
+        setErrorState(isPermissionDenied ? 'denied' : 'failed');
       }
     } catch (err: unknown) {
       const errorMsg = err instanceof Error ? err.message : String(err);
@@ -206,6 +240,19 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
                 네트워크 연결이 일시적으로 끊겼거나 브라우저 내부 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.
               </p>
             </div>
+          ) : isIosBrowserNeedsA2hs && errorState !== 'unsupported' ? (
+            <div
+              data-testid="push-ios-a2hs-bridge"
+              className="bg-blue-50/80 dark:bg-blue-950/30 border border-blue-200/70 dark:border-blue-800/50 rounded-2xl p-4 mb-6 text-left"
+            >
+              <p className="text-[13px] font-extrabold text-blue-700 dark:text-blue-300 mb-1 flex items-center gap-1.5">
+                <Smartphone size={15} className="shrink-0" />
+                <span>아이폰·아이패드 Safari 홈 화면 추가 안내</span>
+              </p>
+              <p className="text-[12px] text-secondary font-bold leading-relaxed">
+                iOS Safari는 홈 화면에 앱 추가(1초) 완료 후 오전 7시 실거래 Web Push 알림이 활성화됩니다.
+              </p>
+            </div>
           ) : (!isPushSupported || errorState === 'unsupported') ? (
             <div className="bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 rounded-2xl p-4 mb-6 text-center">
               <p className="text-[12px] font-bold text-red-600 dark:text-red-400">
@@ -222,17 +269,40 @@ const PushSubscriptionModal = React.memo(function PushSubscriptionModal({ isOpen
             >
               취소
             </button>
-            <button
-              onClick={handleSubscribe}
-              disabled={!isPushSupported || submitting}
-              className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
-            >
-              {submitting ? (
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              ) : (
-                '실거래가 알림 신청하기'
-              )}
-            </button>
+            {isIosBrowserNeedsA2hs && errorState !== 'unsupported' ? (
+              <button
+                type="button"
+                data-testid="push-ios-a2hs-btn"
+                onClick={() => {
+                  trackEvent('a2hs_modal_open', {
+                    surface: 'push_subscription_modal',
+                    trigger: 'ios_safari_push_bridge',
+                    apt_name: aptName,
+                    apartment_name: resolvedCanonicalApt,
+                    ...(dong ? { dong } : {}),
+                    ...(guideSlug ? { guide_slug: guideSlug } : {}),
+                  });
+                  triggerCustomA2HSModal?.();
+                  onClose();
+                }}
+                className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <Smartphone size={15} className="shrink-0" />
+                <span>홈 화면 추가 후 알림 켜기</span>
+              </button>
+            ) : (
+              <button
+                onClick={handleSubscribe}
+                disabled={!isPushSupported || submitting}
+                className="flex-1 py-3.5 px-4 bg-blue-600 dark:bg-blue-600 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:text-slate-500 text-white font-black rounded-2xl hover:bg-blue-700 dark:hover:bg-blue-700 active:scale-[0.98] transition-all shadow-md text-[13.5px] cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                {submitting ? (
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  '실거래가 알림 신청하기'
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>

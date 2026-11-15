@@ -45,6 +45,7 @@ import {
   buildApartmentSeoMetadata,
   getDefaultApartmentMetadata,
   buildMortgageSsrData,
+  hasVerifiedApartmentSalePrice,
   resolveCanonicalAptSlug,
   selectApartmentComparisonPeers,
 } from '@/lib/services/apartmentPageService';
@@ -70,14 +71,18 @@ function formatSummaryPriceField(numManwon?: number, eokStr?: string): string {
 }
 
 export const dynamic = 'force-static';
-export const revalidate = 86400;
-export const dynamicParams = true;
+export const revalidate = false;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   const txSummary = await getTxSummaryData();
   const aptNames = Object.keys(txSummary || {});
   const canonicalSlugs = Array.from(
-    new Set(aptNames.map((name) => resolveCanonicalAptSlug(name, { txMap: txSummary }) || name))
+    new Set(
+      aptNames.map((name) =>
+        (resolveCanonicalAptSlug(name, { txMap: txSummary }) || name).normalize('NFC')
+      )
+    )
   );
   return canonicalSlugs.map((aptName) => ({
     aptName,
@@ -139,8 +144,9 @@ export default async function ApartmentPage(props: {
     } catch {
       // ignore malformed URI sequence
     }
-    if (rawDecodedOnce !== fastCanonicalSlug) {
-      permanentRedirect(`/apartment/${encodeURIComponent(fastCanonicalSlug)}`);
+    const nfcCanonicalSlug = fastCanonicalSlug.normalize('NFC');
+    if (rawDecodedOnce !== nfcCanonicalSlug) {
+      permanentRedirect(`/apartment/${encodeURIComponent(nfcCanonicalSlug)}`);
     }
   }
 
@@ -270,8 +276,16 @@ export default async function ApartmentPage(props: {
     pyeongSummaries.length > 0
       ? [...pyeongSummaries].sort((a, b) => b.salesCount + b.rentCount - (a.salesCount + a.rentCount))[0]
       : null;
-  const totalSalesTxCount =
-    pyeongSummaries.reduce((acc, p) => acc + (p.salesCount || 0), 0) || aptSummary?.txCount || 0;
+  const pyeongSalesTxCount = pyeongSummaries.reduce((acc, p) => acc + (p.salesCount || 0), 0);
+  const isApartmentIndexable = hasVerifiedApartmentSalePrice(aptSummary);
+  const hasVerifiedSalePrice = Boolean(
+    isApartmentIndexable ||
+      (pageData.analytics?.maxSalePrice && pageData.analytics.maxSalePrice > 0) ||
+      pyeongSalesTxCount > 0
+  );
+  const totalSalesTxCount = hasVerifiedSalePrice
+    ? pyeongSalesTxCount || aptSummary?.txCount || 0
+    : pyeongSalesTxCount;
   const totalRentTxCount = pyeongSummaries.reduce((acc, p) => acc + (p.rentCount || 0), 0);
 
   const ageLifecycleComment =
@@ -308,7 +322,9 @@ export default async function ApartmentPage(props: {
       ? `현재 전세가율은 ${ratioPercent.toFixed(1)}%(실거주 PER ${realPer}배)로 매매가와 전세가 간 안전 마진(${formatPriceEok(safetyMarginManwon)})이 균형 잡힌 표준 안정 구간입니다. 깡통전세 및 역전세 리스크가 낮고 실수요 하방 지지력이 견고하게 작동하는 밸류에이션 영역으로 평가됩니다.`
       : ratioPercent > 0
       ? `현재 전세가율은 ${ratioPercent.toFixed(1)}%(실거주 PER ${realPer}배)로 GTX-A 역세권·호수공원 조망 또는 신축 기대감 등 미래 가치 프리미엄이 매매가에 선반영된 구조입니다. 전세 보증금 안전 마진(${formatPriceEok(safetyMarginManwon)})이 매우 넓어 임차인 보증금 미반환 위험이 극히 낮습니다.`
-      : `최근 실거래 매매가(${formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok)})와 평형별 전월세 계약을 종합할 때, 자기자본 대비 대출 원리금 상환 비율(DSR 40%)을 중심으로 매수 타당성을 점검하는 것이 유효합니다.`;
+      : hasVerifiedSalePrice
+      ? `최근 실거래 매매가(${formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok)})와 평형별 전월세 계약을 종합할 때, 자기자본 대비 대출 원리금 상환 비율(DSR 40%)을 중심으로 매수 타당성을 점검하는 것이 유효합니다.`
+      : `국토교통부 신고 기준 현재 전월세 임대차 계약(최근 보증금 ${formatSummaryPriceField(aptSummary?.latestRentDeposit, aptSummary?.latestRentDepositEok)}) 중심으로 거래되고 있으며, 동일 생활권 전월세 시세 및 보증보험 가입 요건을 중심으로 거주 안정성을 점검하는 것이 유효합니다.`;
 
   const latestSalePriceStr = formatSummaryPriceField(aptSummary?.latestPrice, aptSummary?.latestPriceEok);
   const latestRentPriceStr = formatSummaryPriceField(
@@ -343,6 +359,7 @@ export default async function ApartmentPage(props: {
         preselectedAptName={decodedName}
         autoOpenPreselectedModal={false}
         hideHeader={true}
+        suppressInlineAds={!isApartmentIndexable}
       />
 
       {/* High-Value Comprehensive Apartment Analysis Report (Content-First Visible SSR Report for Users & Search Crawlers) */}
@@ -506,23 +523,25 @@ export default async function ApartmentPage(props: {
               </div>
             </div>
 
-            <div className="mt-3">
-              <InlineMortgageDsrBridge
-                apartmentName={decodedName}
-                canonicalSlug={canonicalSlug}
-                dong={aptDong || undefined}
-                benchmarkPriceManwon={
-                  aptSummary?.latestPrice ||
-                  (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0)
-                }
-                surface="apartment_ssr_top"
-                trigger="apartment_ssr_price_strip"
-                compact
-              />
-            </div>
+            {hasVerifiedSalePrice && (
+              <div className="mt-3">
+                <InlineMortgageDsrBridge
+                  apartmentName={decodedName}
+                  canonicalSlug={canonicalSlug}
+                  dong={aptDong || undefined}
+                  benchmarkPriceManwon={
+                    aptSummary?.latestPrice ||
+                    (pyeongSummaries.length > 0 ? pyeongSummaries[0].latestPrice : 0)
+                  }
+                  surface="apartment_ssr_top"
+                  trigger="apartment_ssr_price_strip"
+                  compact
+                />
+              </div>
+            )}
 
             {/* Layer 2: Progressive SEO Accordion for AI Market Briefing */}
-            <details className={getSeoAccordionClass('mt-3.5 bg-[#f9fafb] dark:bg-[#17171c]')}>
+            <details open data-editorial-open="true" className={getSeoAccordionClass('mt-3.5 bg-[#f9fafb] dark:bg-[#17171c]')}>
               <summary className={getSeoAccordionSummaryClass()}>
                 <span>실거래 · 입지 핵심 브리핑 더보기</span>
                 <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
@@ -539,10 +558,16 @@ export default async function ApartmentPage(props: {
                 title={`${decodedName} 실거래가 및 입지 심층 분석 리포트`}
                 summaryLines={[
                   aptDong ? `소속 행정동: 동탄 ${aptDong}` : `분석 대상: 동탄 ${decodedName}`,
-                  aptSummary?.latestPrice
+                  hasVerifiedSalePrice && aptSummary?.latestPrice
                     ? `최근 실거래 매매가: ${aptSummary.latestPriceEok || formatPriceEok(aptSummary.latestPrice)}`
-                    : `평형별 실거래가 및 전세가율 정밀 분석`,
-                  `30년 만기 원리금균등 월 납부액(LTV 70% 기준): ${formatWon(mortgageSsr.amortization.equalPi.monthlyPaymentWon)}`,
+                    : aptSummary?.latestRentDeposit
+                      ? `최근 실거래 보증금: ${aptSummary.latestRentDepositEok || formatPriceEok(aptSummary.latestRentDeposit)}`
+                      : `평형별 실거래가 및 전세가율 정밀 분석`,
+                  hasVerifiedSalePrice && mortgageSsr.principalWon > 0
+                    ? `30년 만기 원리금균등 월 납부액(LTV 70% 기준): ${formatWon(mortgageSsr.amortization.equalPi.monthlyPaymentWon)}`
+                    : mortgageSsr.principalWon > 0
+                      ? `전세대출 원리금 상환 시뮬레이션(보증금 80% 기준): 월 ${formatWon(mortgageSsr.amortization.equalPi.monthlyPaymentWon)}`
+                      : `국토교통부 매매·전월세 실거래 신고 집계 대기 중`,
                 ]}
                 canonicalPath={`/apartment/${encodeURIComponent(canonicalSlug)}`}
                 campaign="apt_ssr_report"
@@ -577,13 +602,15 @@ export default async function ApartmentPage(props: {
                 )}
                 {dominantPyeong && (
                   <span className="text-[11.5px] font-bold text-secondary tabular-nums">
-                    평균 {dominantPyeong.avgPriceStr}
+                    {dominantPyeong.salesCount > 0
+                      ? `평균 ${dominantPyeong.avgPriceStr}`
+                      : `전세 ${dominantPyeong.latestDepositStr}`}
                   </span>
                 )}
               </div>
             </div>
 
-            <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+            <details open data-editorial-open="true" className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
               <summary className={getSeoAccordionSummaryClass()}>
                 <span>밸류에이션 산출 기준 · 입지 해설 더보기</span>
                 <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
@@ -611,7 +638,9 @@ export default async function ApartmentPage(props: {
                     <p className="leading-relaxed tabular-nums">
                       {ageLifecycleComment} {scaleLiquidityComment}{' '}
                       {dominantPyeong
-                        ? `단지 내 최다 거래 주력 평형은 ${dominantPyeong.pyeong}평형(전용 ${dominantPyeong.areaM2}㎡, 매매 ${dominantPyeong.salesCount}건·전세 ${dominantPyeong.rentCount}건)으로 최근 실거래가 ${dominantPyeong.latestPriceStr}, 평균가 ${dominantPyeong.avgPriceStr}를 기록 중입니다.`
+                        ? dominantPyeong.salesCount > 0
+                          ? `단지 내 최다 거래 주력 평형은 ${dominantPyeong.pyeong}평형(전용 ${dominantPyeong.areaM2}㎡, 매매 ${dominantPyeong.salesCount}건·전세 ${dominantPyeong.rentCount}건)으로 최근 실거래가 ${dominantPyeong.latestPriceStr}, 평균 매매가 ${dominantPyeong.avgPriceStr} 수준을 기록 중입니다.`
+                          : `단지 내 최다 거래 주력 평형은 ${dominantPyeong.pyeong}평형(전용 ${dominantPyeong.areaM2}㎡, 전월세 ${dominantPyeong.rentCount}건)으로 최근 전월세 보증금 ${dominantPyeong.latestDepositStr} 수준에서 임대차 거래가 형성되어 있습니다.`
                         : ''}
                     </p>
                   </article>
@@ -737,7 +766,7 @@ export default async function ApartmentPage(props: {
                 <span className="w-2 h-5 bg-emerald-500 rounded-full" />
                 현장 임장 정성 평가
               </h2>
-              <details className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
+              <details open data-editorial-open="true" className={getSeoAccordionClass('bg-[#f9fafb] dark:bg-[#17171c]')}>
                 <summary className={getSeoAccordionSummaryClass()}>
                   <span>현장 임장 검증 · 정성 해설 더보기</span>
                   <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
@@ -821,8 +850,8 @@ export default async function ApartmentPage(props: {
             )}
           </div>
 
-          {/* Chapter 02 Post-Table Zero-CLS AdSlot (High-CPC Real Estate Valuation Context) */}
-          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          {/* Chapter 02 Post-Table Zero-CLS AdSlot (High-CPC Real Estate Valuation Context — omitted on noindex zero-sale pages) */}
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && isApartmentIndexable && (
             <div
               data-testid="ssr-adslot-ch02"
               className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden empty:hidden"
@@ -843,10 +872,14 @@ export default async function ApartmentPage(props: {
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold text-primary tracking-tight flex items-center gap-2">
                 <span className="w-2 h-5 bg-emerald-500 rounded-full" />
-                주담대 상환 · DSR 한도 진단
+                {hasVerifiedSalePrice ? '주담대 상환 · DSR 한도 진단' : '전세대출 상환 · DSR 한도 진단'}
               </h2>
               <p className="mt-1.5 text-[12.5px] text-tertiary font-medium tabular-nums">
-                원금 {formatWon(mortgageSsr.principalWon)} · 30년 만기 · 금리 4.0% 가정 시뮬레이션 (차주별 한도 상이)
+                {hasVerifiedSalePrice && mortgageSsr.principalWon > 0
+                  ? `원금 ${formatWon(mortgageSsr.principalWon)} · 30년 만기 · 금리 4.0% 가정 시뮬레이션 (차주별 한도 상이)`
+                  : mortgageSsr.principalWon > 0
+                    ? `전세대출 원금 ${formatWon(mortgageSsr.principalWon)} · 금리 4.0% 가정 시뮬레이션 (보증금 80% 기준)`
+                    : '국토교통부 매매·전월세 실거래 신고 확인 즉시 실거래 기반 상환액 반영 (현재 실거래 집계 대기 중)'}
               </p>
             </div>
 
@@ -994,8 +1027,8 @@ export default async function ApartmentPage(props: {
 
           </section>
 
-          {/* Chapter 05 Post-Mortgage Zero-CLS AdSlot (High-CPC Mortgage & DSR Context) */}
-          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          {/* Chapter 05 Post-Mortgage Zero-CLS AdSlot (High-CPC Mortgage & DSR Context — omitted on noindex zero-sale pages) */}
+          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && isApartmentIndexable && (
             <div
               data-testid="ssr-adslot-ch05"
               className="w-full min-h-[250px] rounded-2xl bg-elevated dark:bg-slate-900 transition-colors flex flex-col justify-center overflow-hidden empty:hidden"

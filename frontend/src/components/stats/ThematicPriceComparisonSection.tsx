@@ -483,7 +483,7 @@ function GuideRecirculationBlock({
           href="/guide" prefetch={false}
           className="text-xs font-extrabold text-blue-600 dark:text-blue-400 hover:underline inline-flex items-center gap-1"
         >
-          <span>20개 비교 가이드 전체보기</span>
+          <span>23개 비교 가이드 전체보기</span>
           <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>

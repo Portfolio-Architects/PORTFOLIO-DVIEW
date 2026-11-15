@@ -68,6 +68,7 @@ function ExploreSkeleton() {
           title="D-VIEW 아파트 탐색"
           subtitleStrong={<MarketStatsStrong />}
           subtitleLight={<MarketStatsLight />}
+          isTitleDiv={true}
         />
         <div className="w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-3 md:pt-5 pb-8 md:pb-4 bg-transparent flex-1 min-h-0 flex flex-col animate-pulse">
           <div className="flex w-full bg-surface md:rounded-2xl md:border md:border-border/80 md:shadow-sm items-stretch flex-1 min-h-0">
@@ -245,7 +246,7 @@ async function ExploreDataLoader() {
         className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl text-xs text-slate-600 dark:text-slate-400 tabular-nums"
       >
         <header>
-          <h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>
+          <h2 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h2>
           <p>동탄 1, 2신도시 전체 184개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
         </header>
         <div className="mt-3 max-h-64 overflow-y-auto">

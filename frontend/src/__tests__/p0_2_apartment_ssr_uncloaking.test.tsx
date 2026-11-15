@@ -220,17 +220,17 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
     expect(spacedContainer.querySelectorAll('ins.adsbygoogle').length).toBe(2);
     unmountSpaced();
 
-    // Edge Case B: Rent-only complex (0 sales, >0 rent)
+    // Edge Case B: Rent-only complex (0 sales, >0 rent — isolated via noindex, so 0 SSR AdSlots)
     const rentOnlyJsx = await ApartmentPage({
       params: Promise.resolve({ aptName: encodeURIComponent('서해더블루93-8') }),
     });
     const { container: rentContainer, unmount: unmountRent } = render(rentOnlyJsx);
     expect(rentContainer.querySelector('#apt-ssr-comprehensive-report')).not.toBeNull();
     expect(rentContainer.querySelectorAll('h1').length).toBe(1);
-    expect(rentContainer.querySelectorAll('ins.adsbygoogle').length).toBe(2);
+    expect(rentContainer.querySelectorAll('ins.adsbygoogle').length).toBe(0);
     unmountRent();
 
-    // Edge Case C: Non-existent ghost complex (0 pyeongSummaries)
+    // Edge Case C: Non-existent ghost complex (0 pyeongSummaries — isolated via noindex, so 0 SSR AdSlots)
     const ghostJsx = await ApartmentPage({
       params: Promise.resolve({ aptName: encodeURIComponent('존재하지않는가상단지') }),
     });
@@ -250,9 +250,10 @@ describe('P0-2: Apartment Detail SSR Uncloaking & Guardrail B Verification', () 
     expect(firstSrOnly?.tagName).toBe('CAPTION');
     expect(firstSrOnly?.textContent).toContain('존재하지않는가상단지');
 
-    // 4 financial tables + 2 AdSlots still render cleanly
+    // 4 financial tables render cleanly with 0 fabricated 3.5억 fallback and 0 SSR AdSlots on noindex page
     expect(ghostReport.querySelectorAll('table').length).toBe(4);
-    expect(ghostReport.querySelectorAll('ins.adsbygoogle').length).toBe(2);
+    expect(ghostReport.querySelectorAll('ins.adsbygoogle').length).toBe(0);
+    expect(ghostReport.textContent).not.toContain('350,000,000원');
     unmountGhost();
   });
 

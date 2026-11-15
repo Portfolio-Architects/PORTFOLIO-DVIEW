@@ -25,6 +25,7 @@ import Footer from '@/components/Footer';
 import dynamic from 'next/dynamic';
 import { safeReload } from '@/lib/utils/safeReload';
 import { buildPreHydrationAdminGuardScript } from '@/lib/utils/adminExclusion';
+import { buildPreHydrationAdSenseNoindexGuardScript } from '@/lib/ads/noindexAdGuard';
 import PreHydrationInlineScript from '@/components/common/PreHydrationInlineScript';
 import ScrollToTop from '@/components/ui/ScrollToTop';
 import ScrollOptimizer from '@/components/ui/ScrollOptimizer';
@@ -49,6 +50,9 @@ export const metadata: Metadata = {
   keywords: '동탄 아파트 시세, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄1신도시 동탄2신도시 비교, 동탄역 롯데캐슬, 동탄 전세가율, 동탄 학군지, 동탄 호수공원 아파트, 스트레스 DSR, 동탄테크노밸리 지식산업센터, D-VIEW, 디뷰, 동뷰, 동탄뷰',
   alternates: {
     canonical: '/',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   robots: {
     index: true,
@@ -132,6 +136,7 @@ export default function RootLayout({
       <head suppressHydrationWarning>
         <PreHydrationInlineScript id="dview-preview-iframe-shield" nonce={nonce} code={PREVIEW_IFRAME_SHIELD_SCRIPT} />
         <PreHydrationInlineScript id="dview-ga-admin-guard" nonce={nonce} code={buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID)} />
+        <PreHydrationInlineScript id="dview-adsense-noindex-guard" nonce={nonce} code={buildPreHydrationAdSenseNoindexGuardScript()} />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />
         <link rel="preconnect" href="https://firestore.googleapis.com" />
@@ -140,11 +145,12 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
         <meta name="naver-site-verification" content="e0240efa3f3f36785b2ca54faa765e9058f3707a" />
         <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'} />
-        {/* Google AdSense — Direct SSR <head> async script for immediate crawler & Ad Settings Preview detection */}
+        {/* Google AdSense — Direct SSR <head> async script (itemProp prevents React 19 resource hoisting ahead of #dview-adsense-noindex-guard) */}
         {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'production') && (
           <script
             id="google-adsense"
             async
+            itemProp="adsense-loader"
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'}`}
             crossOrigin="anonymous"
           />

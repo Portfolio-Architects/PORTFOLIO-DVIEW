@@ -337,13 +337,13 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(aptContainer.querySelector('#apt-related-guides-ssr')).not.toBeNull();
       unmountApt();
 
-      // 3) Sitemap priority >= 0.9 for /guide and all 20 guide articles
+      // 3) Sitemap priority >= 0.9 for /guide and all 23 guide articles
       const sitemapMod = await import('@/app/sitemap');
       const sitemapEntries = await sitemapMod.default();
       const guideHubEntry = sitemapEntries.find((e) => e.url.endsWith('/guide'));
       expect(guideHubEntry?.priority).toBeGreaterThanOrEqual(0.9);
       const guideArticleEntries = sitemapEntries.filter((e) => e.url.includes('/guide/'));
-      expect(guideArticleEntries.length).toBe(20);
+      expect(guideArticleEntries.length).toBe(23);
       guideArticleEntries.forEach((entry) => {
         expect(entry.priority).toBeGreaterThanOrEqual(0.9);
       });
@@ -496,6 +496,126 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(officeModalSource).not.toContain('/overview?tab=office');
       expect(officeModalSource).toContain('href="/contact"');
       expect(officeModalSource).toContain('맞춤 공실 / 임대 매칭 문의하기');
+    });
+  });
+
+  describe('Option A Editorial & Verified Flagship Concentration Mode (Low-Value Content Remediation)', () => {
+    const prevApprovalEnv = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE;
+    afterEach(() => {
+      if (prevApprovalEnv === undefined) {
+        delete process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE;
+      } else {
+        process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = prevApprovalEnv;
+      }
+    });
+
+    it('curates sitemap.xml to 79 elite URLs (9 core + 23 guides + 7 zones + 40 verified flagship apartments) in approval mode and restores 280 URLs when disabled', async () => {
+      const sitemapFn = (await import('@/app/sitemap')).default;
+      const { ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT } = await import('@/lib/services/apartmentPageService');
+
+      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'true';
+      const approvalRoutes = await sitemapFn({ id: 0 });
+      expect(ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT).toBe(40);
+      expect(approvalRoutes.length).toBe(79);
+      // Zero /technovalley/[slug] detail pages in approval mode (/technovalley hub remains)
+      expect(approvalRoutes.some((r) => r.url === 'https://dongtanview.com/technovalley')).toBe(true);
+      expect(approvalRoutes.some((r) => r.url.startsWith('https://dongtanview.com/technovalley/'))).toBe(false);
+      const aptRoutes = approvalRoutes.filter((r) => r.url.startsWith('https://dongtanview.com/apartment/'));
+      expect(aptRoutes.length).toBe(40);
+      // Zero-sale rental apartment is excluded from approval sitemap
+      expect(
+        aptRoutes.some((r) => decodeURIComponent(r.url).includes('화성동탄상록리슈빌아파트영구임대'))
+      ).toBe(false);
+      // Flagship benchmark apartment is included
+      expect(aptRoutes.some((r) => decodeURIComponent(r.url).includes('동탄역롯데캐슬'))).toBe(true);
+
+      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'false';
+      const fullRoutes = await sitemapFn({ id: 0 });
+      expect(fullRoutes.length).toBe(181);
+      expect(fullRoutes.some((r) => r.url.startsWith('https://dongtanview.com/technovalley/'))).toBe(false);
+      expect(
+        fullRoutes.some((r) => decodeURIComponent(r.url).includes('화성동탄상록리슈빌아파트영구임대'))
+      ).toBe(false);
+    });
+
+    it('emits robots noindex,follow on zero-sale/non-elite apartments and Jisan detail pages in approval mode while keeping flagship apartments and hubs indexed', async () => {
+      const {
+        buildApartmentSeoMetadata,
+        buildTechnoValleySeoMetadata,
+        getTechnoValleyJisanList,
+      } = await import('@/lib/services/apartmentPageService');
+
+      process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE = 'true';
+      const flagshipMeta = await buildApartmentSeoMetadata('동탄역롯데캐슬');
+      expect(flagshipMeta.robots).toEqual({ index: true, follow: true });
+
+      const rentalMeta = await buildApartmentSeoMetadata('화성동탄상록리슈빌아파트영구임대');
+      expect(rentalMeta.robots).toEqual({ index: false, follow: true });
+
+      const jisanList = await getTechnoValleyJisanList();
+      const hubMeta = buildTechnoValleySeoMetadata(jisanList, null);
+      expect(hubMeta.robots).toBeUndefined();
+
+      const detailMeta = buildTechnoValleySeoMetadata(jisanList, jisanList[0]?.name);
+      expect(detailMeta.robots).toEqual({ index: false, follow: true });
+    });
+
+    it('eliminates fake 9억 sale mortgage widget & broken Korean josa on zero-sale rental apartments while keeping editorial accordions open by default', async () => {
+      const ApartmentPage = (await import('@/app/apartment/[aptName]/page')).default;
+      const PageJsx = await ApartmentPage({
+        params: Promise.resolve({ aptName: '화성동탄상록리슈빌아파트영구임대' }),
+      });
+      const { container } = render(PageJsx);
+
+      // No InlineMortgageDsrBridge on zero-sale rental apartment
+      expect(container.querySelector('[data-testid="inline-mortgage-dsr-bridge"]')).toBeNull();
+      // No broken Korean josa ("평균가 정보 없음를") or fake 350,000,000원 LTV 70% mortgage
+      expect(container.textContent).not.toContain('정보 없음를');
+      expect(container.textContent).not.toContain('350,000,000원');
+      expect(container.textContent).toContain('전세대출 상환 · DSR 한도 진단');
+
+      // Editorial <details> are open by default for crawlers and readers
+      const editorialDetails = container.querySelectorAll('details[data-editorial-open="true"]');
+      expect(editorialDetails.length).toBeGreaterThanOrEqual(2);
+      editorialDetails.forEach((el) => {
+        expect(el.hasAttribute('open')).toBe(true);
+      });
+    });
+
+    it('enforces single H1 on /explore and /zone/[id] and enriches /contact SSR editorial support policy (>= 1,200 chars)', async () => {
+      const ContactPage = (await import('@/app/contact/page')).default;
+      const contactJsx = await ContactPage();
+      const { container: contactContainer } = render(contactJsx);
+      expect(contactContainer.querySelectorAll('h1').length).toBe(1);
+      expect((contactContainer.textContent || '').trim().length).toBeGreaterThanOrEqual(1200);
+
+      const exploreSource = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/app/explore/page.tsx'),
+        'utf-8'
+      );
+      expect(exploreSource).toContain('isTitleDiv={true}');
+      expect(exploreSource).not.toContain('<h1>동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h1>');
+
+      const zoneClientSource = fs.readFileSync(
+        path.resolve(process.cwd(), 'src/app/zone/[id]/ZoneDetailClient.tsx'),
+        'utf-8'
+      );
+      expect(zoneClientSource).not.toContain('<h1');
+    });
+
+    it('parses sitemap XML <loc> entries accurately in warm-sitemap-cache.js', () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { extractSitemapLocUrls } = require('../../scripts/warm-sitemap-cache.js');
+      const xml = `<?xml version="1.0" encoding="UTF-8"?>
+        <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+          <url><loc>https://dongtanview.com</loc></url>
+          <url><loc>https://dongtanview.com/apartment/%EB%8F%99%ED%83%84%EC%97%AD%EB%A1%AF%EB%8D%B0%EC%BA%90%EC%8A%AC</loc></url>
+          <url><loc>https://dongtanview.com</loc></url>
+        </urlset>`;
+      expect(extractSitemapLocUrls(xml)).toEqual([
+        'https://dongtanview.com',
+        'https://dongtanview.com/apartment/%EB%8F%99%ED%83%84%EC%97%AD%EB%A1%AF%EB%8D%B0%EC%BA%90%EC%8A%AC',
+      ]);
     });
   });
 });

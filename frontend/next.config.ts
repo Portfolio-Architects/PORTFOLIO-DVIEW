@@ -331,6 +331,12 @@ const nextConfig: NextConfig = {
     '/technovalley': [
       './public/data/jisan-status-list.json',
     ],
+    '/technovalley/[slug]': [
+      './public/data/jisan-status-list.json',
+      './public/data/tx-summary.json',
+      './public/data/location-scores.json',
+      './public/data/apartments-by-dong.json',
+    ],
     '/sitemap.xml': [
       './public/data/tx-summary.json',
       './public/data/jisan-status-list.json',

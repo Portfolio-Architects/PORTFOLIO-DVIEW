@@ -373,12 +373,14 @@ const DashboardClient = React.memo(function DashboardClient({
   initialTab = 'overview',
   autoOpenPreselectedModal = false,
   hideHeader = false,
+  suppressInlineAds = false,
 }: { 
   initialDashboardData?: DashboardInitialDataLocal, 
   preselectedAptName?: string,
   initialTab?: 'overview' | 'imjang' | 'mbti',
   autoOpenPreselectedModal?: boolean,
   hideHeader?: boolean,
+  suppressInlineAds?: boolean,
 }) {
   const router = useRouter();
   const kpis = initialDashboardData?.kpis || [];
@@ -1926,6 +1928,7 @@ const DashboardClient = React.memo(function DashboardClient({
                       user={user}
                       typeMap={typeMap}
                       inline={true}
+                      suppressAds={suppressInlineAds}
                       sheetApartments={sheetApartments}
                       nameMapping={nameMapping || {}}
                       txSummaryData={txSummary}

@@ -209,6 +209,15 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_EXPECTED_COMMIT_SHA: ${{ steps.commit_push.outputs.pushed_sha || '' }}
 
+      # Step 4.5: 프로덕션 Sitemap SSR/ISR Edge 캐시 프리워밍 (Cold-start HTTP 500 원천 차단)
+      - name: Warm up Sitemap SSR/ISR Edge Cache
+        if: always() && (github.event_name == 'push' || steps.commit_push.outputs.pushed_sha != '' || github.event_name == 'workflow_dispatch')
+        run: node scripts/warm-sitemap-cache.js
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_APP_URL: https://dongtanview.com
+          VERCEL_EXPECTED_COMMIT_SHA: ${{ steps.commit_push.outputs.pushed_sha || github.sha }}
+
       # Step 5: 실패 시 다채널 장애 통지 (Discord & Slack 듀얼 호환)
       - name: Send notification on failure
         if: failure()

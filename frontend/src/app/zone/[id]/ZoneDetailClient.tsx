@@ -298,7 +298,7 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
             전체 권역
           </button>
           <div className="w-px h-5 bg-[#e5e8eb]" />
-          <h1 className="text-[16px] font-extrabold text-primary truncate">{zone.name}</h1>
+          <span className="text-[16px] font-extrabold text-primary truncate">{zone.name}</span>
         </div>
       </header>
 

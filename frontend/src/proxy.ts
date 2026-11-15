@@ -9,6 +9,7 @@ import {
   resolveCanonicalAptSlug,
 } from '@/lib/utils/apartmentMapping';
 import { CANONICAL_TX_SUMMARY_MAP } from '@/lib/utils/canonicalAptCatalog';
+import { resolveTechnoValleyJisanCanonicalSlug } from '@/lib/utils/jisanSlugResolver';
 
 // Upstash 글로벌 Rate Limiter (Edge 호환)
 const RATE_LIMIT_POINTS = 60; // 분당 60회 허용
@@ -143,6 +144,23 @@ export async function proxy(request: NextRequest) {
       const query = search ? `?search=${encodeURIComponent(search)}` : '';
       return NextResponse.redirect(new URL(`/explore${query}`, request.url));
     }
+  }
+
+  // 0.55. 구형 /technovalley?jisan=... 중복 쿼리 URL → /technovalley/[slug] (불일치·빈값 시 /technovalley) HTTP 308 영구 리다이렉트
+  if (pathname === '/technovalley' && request.nextUrl.searchParams.has('jisan')) {
+    const rawJisan = request.nextUrl.searchParams.get('jisan');
+    const resolvedSlug = resolveTechnoValleyJisanCanonicalSlug(rawJisan);
+    const redirectUrl = request.nextUrl.clone();
+    redirectUrl.searchParams.delete('jisan');
+    for (const key of Array.from(redirectUrl.searchParams.keys())) {
+      if ((NOISE_APARTMENT_QUERY_PARAMS as readonly string[]).includes(key.toLowerCase())) {
+        redirectUrl.searchParams.delete(key);
+      }
+    }
+    redirectUrl.pathname = resolvedSlug
+      ? `/technovalley/${encodeURIComponent(resolvedSlug)}`
+      : '/technovalley';
+    return NextResponse.redirect(redirectUrl, 308);
   }
 
   // 0.6. 아파트 상세 비정규 URL 슬러그(공백·별칭·NFD·이중인코딩) 및 크롤러/번역 노이즈 쿼리(?hl=ko-KR 등) → 단일 정규 슬러그 HTTP 308 영구 리다이렉트
@@ -292,12 +310,16 @@ export async function proxy(request: NextRequest) {
   return response;
 }
 
-// 미들웨어 구동 범위: /apartment/:path* 매처를 제거하여 정적 ISR 상세 페이지 조회 시 불필요한 Node.js 프록시 Fluid CPU 기동을 원천 차단
+// 미들웨어 구동 범위: /apartment/:path* 매처를 제거하여 정적 SSG 상세 페이지 조회 시 불필요한 Node.js 프록시 Fluid CPU 기동을 원천 차단
 export const config = {
   matcher: [
     {
       source: '/',
       has: [{ type: 'query', key: 'tab', value: 'imjang' }],
+    },
+    {
+      source: '/technovalley',
+      has: [{ type: 'query', key: 'jisan' }],
     },
     '/api/bypass-notice',
   ],

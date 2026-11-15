@@ -14,9 +14,7 @@ export async function generateMetadata(props: Props): Promise<Metadata> {
     return {
       title: 'D-VIEW | 동탄 아파트 투자 권역 분석',
       description: '동탄 아파트 투자 권역별 실거래 시세, 전세가율, 인프라 요약을 확인하세요.',
-      alternates: {
-        canonical: `https://dongtanview.com/zone/${params.id}`,
-      },
+      robots: { index: false, follow: false },
     };
   }
 

@@ -524,12 +524,12 @@ export default async function HomePage() {
           >
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className={getVisualSignalPillClass('safe')}>20편 맞대결</span>
+                <span className={getVisualSignalPillClass('safe')}>{GUIDE_ARTICLES.length}편 맞대결</span>
                 <span className={getVisualSignalPillClass('neutral')}>평당가 · 전세가율</span>
                 <span className={getVisualSignalPillClass('down')}>DSR 40% 한도</span>
               </div>
               <h3 className="text-xs sm:text-sm font-black text-primary">
-                실거래 대장 1:1 비교 가이드 20편
+                실거래 대장 1:1 비교 가이드 {GUIDE_ARTICLES.length}편
               </h3>
             </div>
             <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -537,20 +537,20 @@ export default async function HomePage() {
                 href="#home-guide-4col-grid"
                 className="inline-flex items-center px-3 py-1.5 rounded-lg bg-surface hover:bg-elevated border border-border/60 text-primary text-[11px] font-extrabold transition-colors"
               >
-                하단 20편 가이드 바로가기
+                하단 {GUIDE_ARTICLES.length}편 가이드 바로가기
               </a>
               <Link
                 href="/guide"
                 prefetch={false}
                 className="inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors"
               >
-                20편 비교 가이드 전체보기
+                {GUIDE_ARTICLES.length}편 비교 가이드 전체보기
               </Link>
             </div>
           </div>
 
           {/* Layer 2 Progressive SEO Accordion: Valuation Methodology & Market Commentary */}
-          <details className={getSeoAccordionClass('bg-body/70 dark:bg-body/30')}>
+          <details open data-editorial-open="true" className={getSeoAccordionClass('bg-body/70 dark:bg-body/30')}>
             <summary className={getSeoAccordionSummaryClass()}>
               <span>밸류에이션 방법론 · 산출 기준 더보기</span>
               <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
@@ -682,7 +682,7 @@ export default async function HomePage() {
           <div id="home-guide-4col-grid" className="space-y-2.5 scroll-mt-20">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h3 className="text-xs sm:text-sm font-extrabold text-primary">
-                밸류에이션 비교 가이드 20편
+                밸류에이션 비교 가이드 {GUIDE_ARTICLES.length}편
               </h3>
               <div className="flex flex-wrap items-center gap-3 text-[11px] font-extrabold">
                 <a

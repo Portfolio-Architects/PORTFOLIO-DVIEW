@@ -31,7 +31,9 @@ import {
   type JisanOfficeTransactionItem,
 } from '@/lib/services/apartmentPageService';
 
-export const revalidate = 86400;
+export const dynamic = 'force-static';
+export const revalidate = false;
+export const dynamicParams = false;
 
 export interface TechnoValleyDetailPageProps {
   params: Promise<{ slug: string }>;

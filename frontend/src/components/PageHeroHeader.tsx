@@ -51,7 +51,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
     <>
       {/* Compact Dynamic Sticky Header (Mobile Only) */}
       <div
-        className={`fixed top-0 left-0 right-0 md:hidden z-30 bg-surface/95 backdrop-blur-md px-5 py-3 flex items-center justify-between transition-transform transition-opacity duration-300 ${
+        className={`fixed top-0 left-0 right-0 md:hidden z-30 h-12 bg-surface/95 backdrop-blur-md px-5 flex items-center justify-between transition-transform transition-opacity duration-300 ${
           isScrolled
             ? "opacity-100 shadow-[0_4px_12px_rgba(0,0,0,0.05)]"
             : "opacity-0 pointer-events-none"
@@ -61,7 +61,7 @@ const PageHeroHeader = React.memo(function PageHeroHeader({
           willChange: 'transform'
         }}
       >
-        <div className="text-[16px] font-extrabold text-primary tracking-tight">
+        <div className="text-[15px] font-extrabold text-primary tracking-tight truncate min-w-0">
           {compactTitle || title}
         </div>
       </div>

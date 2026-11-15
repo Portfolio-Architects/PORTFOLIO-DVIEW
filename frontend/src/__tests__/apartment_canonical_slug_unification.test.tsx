@@ -1008,12 +1008,15 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
       });
       expect(seoRec.targetRoute).toBe('/apartment/동탄역시범리슈빌아파트');
 
-      // 3) sitemap.ts emits 184 canonical /apartment/ URLs with zero '%20'
+      // 3) sitemap.ts emits 142 verified-sale canonical /apartment/ URLs (43 zero-sale complexes isolated via noindex) with zero '%20'
       const entries = await sitemap();
       const aptSitemapUrls = entries
         .map((e) => e.url)
         .filter((u) => u.includes('/apartment/'));
-      expect(aptSitemapUrls.length).toBe(Object.keys(REAL_TX_SUMMARY).length);
+      const verifiedSaleAptCount = Object.values(REAL_TX_SUMMARY).filter(
+        (s) => ((s as { latestPrice?: number })?.latestPrice || 0) > 0
+      ).length;
+      expect(aptSitemapUrls.length).toBe(verifiedSaleAptCount);
       for (const url of aptSitemapUrls) {
         expect(url).not.toContain('%20');
       }

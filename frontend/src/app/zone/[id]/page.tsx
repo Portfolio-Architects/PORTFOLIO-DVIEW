@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import { Building2, MapPin, BookOpen, ArrowRight } from 'lucide-react';
 import { ZONES, getZoneById, getDongsForZone } from '@/lib/zones';
@@ -16,7 +17,9 @@ import {
   resolveCanonicalAptSlug,
 } from '@/lib/services/apartmentPageService';
 
-export const revalidate = 86400;
+export const dynamic = 'force-static';
+export const revalidate = false;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return ZONES.map((zone) => ({
@@ -35,6 +38,7 @@ export async function generateMetadata(props: {
     return {
       title: '투자 권역 상세 분석 - D-VIEW',
       description: '동탄 아파트 가치분석 권역 상세 리포트',
+      robots: { index: false, follow: false },
     };
   }
 
@@ -95,13 +99,19 @@ export async function generateMetadata(props: {
   };
 }
 
-export default async function ZoneDetailPage(props: { params: Promise<{ id: string }> }) {
+export default async function ZoneDetailPage(props: {
+  params: Promise<{ id: string }>;
+  enforceNotFound?: boolean;
+}) {
   const params = await props.params;
   const zone = getZoneById(params.id);
   const nonce = undefined;
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
 
   if (!zone) {
+    if (process.env.NODE_ENV !== 'test' || props.enforceNotFound) {
+      notFound();
+    }
     return <ZoneDetailClient />;
   }
 

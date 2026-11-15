@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { usePWA } from './PWAProvider';
+import { acquireBodyScrollLock } from '@/lib/utils/bodyScrollLock';
 import { X, ArrowDownToLine, Share, PlusSquare } from 'lucide-react';
 
 const CustomA2HSModal = React.memo(function CustomA2HSModal() {
@@ -21,15 +22,11 @@ const CustomA2HSModal = React.memo(function CustomA2HSModal() {
     };
   }, []);
 
-  // Prevent body scroll when A2HS modal is open
+  // Prevent body scroll when A2HS modal is open (reference-counted across portal modals)
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
     if (!showCustomA2HSModal) return;
-    const originalStyle = window.getComputedStyle(document.body).overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = originalStyle === 'hidden' ? '' : originalStyle;
-    };
+    return acquireBodyScrollLock();
   }, [showCustomA2HSModal]);
 
   // Focus and Escape key management

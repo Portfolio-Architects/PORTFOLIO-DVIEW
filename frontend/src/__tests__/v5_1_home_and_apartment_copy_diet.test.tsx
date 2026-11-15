@@ -221,10 +221,11 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       expect(audit.illegalSrOnlyCount).toBe(0);
       expect(audit.illegalProseCloakingCount).toBe(0);
 
-      // Every <details> on HomePage is collapsed by default and uses dview-seo-accordion
+      // Editorial <details data-editorial-open="true"> are open by default for crawler/reader visibility; catalog <details> stay collapsed
       const detailsList = Array.from(container.querySelectorAll('details'));
       for (const detailsEl of detailsList) {
-        expect(detailsEl.hasAttribute('open')).toBe(false);
+        const expectedOpen = detailsEl.getAttribute('data-editorial-open') === 'true';
+        expect(detailsEl.hasAttribute('open')).toBe(expectedOpen);
         expect(detailsEl.className).toContain('dview-seo-accordion');
         const summary = detailsEl.querySelector('summary');
         expect(summary).not.toBeNull();
@@ -359,11 +360,12 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
         expect(checkCopyBudget(label, 'kpiLabel').withinBudget).toBe(true);
       }
 
-      // Every <details> is collapsed by default and <summary> fits accordionSummary (<=30 chars)
+      // Editorial <details data-editorial-open="true"> are open by default; FAQ <details> stay collapsed; all <summary> fit accordionSummary (<=30 chars)
       const detailsList = Array.from(report.querySelectorAll('details'));
       expect(detailsList.length).toBeGreaterThanOrEqual(3);
       for (const detailsEl of detailsList) {
-        expect(detailsEl.hasAttribute('open')).toBe(false);
+        const expectedOpen = detailsEl.getAttribute('data-editorial-open') === 'true';
+        expect(detailsEl.hasAttribute('open')).toBe(expectedOpen);
         expect(detailsEl.className).toContain('dview-seo-accordion');
         const summary = detailsEl.querySelector('summary');
         expect(summary).not.toBeNull();

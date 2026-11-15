@@ -268,10 +268,10 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
   });
 
   describe('4. /guide, /mbti, and /zone/[id] SSR Semantic & Accessibility Invariants', () => {
-    it('renders Zero-CLS AdSlots, 20 original long-form guides with 100% real-data apartment bindings, and recirculation links in /guide and /guide/[slug]', async () => {
+    it('renders Zero-CLS AdSlots, 23 original long-form guides with 100% real-data apartment bindings, and recirculation links in /guide and /guide/[slug]', async () => {
       const guideParams = await generateGuideStaticParams();
-      expect(guideParams).toHaveLength(20);
-      expect(GUIDE_ARTICLES).toHaveLength(20);
+      expect(guideParams).toHaveLength(23);
+      expect(GUIDE_ARTICLES).toHaveLength(23);
 
       const emojiRegex = /[\u{1F300}-\u{1FAFF}]/u;
 
@@ -346,16 +346,16 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
     });
   });
 
-  describe('5. Unified Sitemap (277 URLs) & Robots (0 404 URLs) Completeness Invariant', () => {
-    it('registers exact [277, ±0, 개] programmatic and core trust URLs in sitemap.ts (including Next.js 16 async Promise id)', async () => {
+  describe('5. Unified Sitemap (181 Verified URLs; 99 Empty/Zero-Sale Templates Isolated) & Robots Completeness Invariant', () => {
+    it('registers exact [181, ±0, 개] verified indexable URLs in sitemap.ts (excluding 56 Jisan details + 43 zero-sale apartments = 99 noindex templates)', async () => {
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(277);
+      expect(entries).toHaveLength(181);
 
       const asyncEntries = await sitemap({ id: Promise.resolve('0') });
-      expect(asyncEntries).toHaveLength(277);
+      expect(asyncEntries).toHaveLength(181);
 
       const defaultEntries = await sitemap();
-      expect(defaultEntries).toHaveLength(277);
+      expect(defaultEntries).toHaveLength(181);
 
       const aptUrls = entries.filter((e) => e.url.includes('/apartment/'));
       const jisanDetailUrls = entries.filter((e) => e.url.includes('/technovalley/'));
@@ -376,16 +376,11 @@ describe('Phase 3: Programmatic High-CPC RTB Semantic Injection & Full-Scale JSO
         ].includes(e.url)
       );
 
-      expect(aptUrls).toHaveLength(185);
-      expect(jisanDetailUrls).toHaveLength(56);
-      expect(
-        jisanDetailUrls.some(
-          (e) => e.url === `https://dongtanview.com/technovalley/${encodeURIComponent('(주)유앤미개발')}`
-        )
-      ).toBe(true);
+      expect(aptUrls).toHaveLength(142);
+      expect(jisanDetailUrls).toHaveLength(0);
       expect(mbtiUrls).toHaveLength(0);
       expect(zoneUrls).toHaveLength(7);
-      expect(guideUrls).toHaveLength(20);
+      expect(guideUrls).toHaveLength(23);
       expect(coreStaticUrls).toHaveLength(9);
 
       const emptyChunk = await sitemap({ id: 99 });

@@ -330,6 +330,7 @@ export function isSameApartment(
   return false;
 }
 
+
 const BRAND_NAMES = new Set([
   '롯데캐슬', '푸르지오', '자이', '아이파크', 'e편한세상', '이편한세상', '힐스테이트',
   '금강펜테리움', '반도유보라', '호반베르디움', '더샵', '래미안', '호반', '금강', '반도', '한화',
@@ -1543,3 +1544,46 @@ export function isApartmentInFavorites(
   }
   return false;
 }
+
+/**
+ * Resolves all canonical, display, and raw MOLIT apartment name aliases (max 10)
+ * for Firestore `push_subscriptions` `array-contains-any` matching at 07:00 KST dispatch.
+ */
+export function resolvePushSubscriptionAptAliases(
+  aptName: string,
+  options?: { txKey?: string; dong?: string }
+): string[] {
+  const trimmed = typeof aptName === 'string' ? aptName.trim() : '';
+  if (!trimmed) return [];
+
+  const aliasSet = new Set<string>([trimmed]);
+  const displayFromRaw = getDisplayAptName(trimmed);
+  if (displayFromRaw) aliasSet.add(displayFromRaw);
+
+  const resolvedCanonical =
+    resolveCanonicalAptSlug(trimmed, {
+      txKey: options?.txKey,
+      dong: options?.dong,
+    }) || '';
+
+  if (resolvedCanonical) {
+    aliasSet.add(resolvedCanonical);
+    const displayFromCanonical = getDisplayAptName(resolvedCanonical);
+    if (displayFromCanonical) aliasSet.add(displayFromCanonical);
+
+    for (const entry of CANONICAL_DONG_APT_LIST) {
+      if (
+        entry.txKey === resolvedCanonical ||
+        entry.name === trimmed ||
+        entry.rawTxKey === trimmed
+      ) {
+        if (entry.txKey) aliasSet.add(entry.txKey);
+        if (entry.name) aliasSet.add(entry.name);
+        if (entry.rawTxKey) aliasSet.add(entry.rawTxKey);
+      }
+    }
+  }
+
+  return Array.from(aliasSet).filter(Boolean).slice(0, 10);
+}
+

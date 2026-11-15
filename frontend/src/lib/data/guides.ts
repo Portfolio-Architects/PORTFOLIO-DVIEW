@@ -106,6 +106,8 @@ export const GUIDE_ARTICLES: GuideArticle[] = [
       'dongtan-indeogwon-line-station-impact-analysis',
       'dongtan-budget-tier-ranking',
       'dongtan-station-gbcx-vs-sibeom-comparison',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
+      'dongtan-middle-high-school-progression-12year-edu-belt-guide',
     ],
     date: '2026-10-10',
     updatedDate: '2026-10-31',
@@ -268,6 +270,7 @@ D-VIEW의 독자 밸류에이션 지표인 **실거주 PER(매매가 ÷ 전세�
       'dongtan-lake-vs-station-comparison',
       'dongtan-job-proximity-commuter-comparison',
       'dongtan-gyeongbu-underground-park-urban-renewal',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
     ],
     date: '2026-10-10',
     updatedDate: '2026-10-31',
@@ -429,6 +432,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
       'dongtan-apartments-per-valuation-methodology',
       'dongtan-jeonse-hug-126-safety-manual',
       'dongtan-acquisition-property-tax-2026-guide',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
     ],
     date: '2026-10-10',
     updatedDate: '2026-10-31',
@@ -574,6 +578,7 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
       'dongtan-lake-vs-station-comparison',
       'dongtan-school-zone-top-apartments',
       'dongtan-first-home-policy-loan-comparison',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
     ],
     date: '2026-10-24',
     updatedDate: '2026-10-31',
@@ -719,6 +724,8 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
       'dongtan-school-zone-top-apartments',
       'dongtan-budget-tier-ranking',
       'gtx-a-tram-rail-network',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
+      'dongtan-middle-high-school-progression-12year-edu-belt-guide',
     ],
     date: '2026-10-24',
     updatedDate: '2026-10-31',
@@ -855,6 +862,7 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
       'dongtan-1-vs-2-comparison',
       'dongtan-lake-vs-station-comparison',
       'dongtan-budget-tier-ranking',
+      'dongtan-middle-high-school-progression-12year-edu-belt-guide',
     ],
     date: '2026-10-24',
     updatedDate: '2026-10-31',
@@ -988,6 +996,9 @@ D-VIEW에 집계된 국토교통부 실거래 데이터를 기준으로 두 권�
       'dongtan-school-zone-top-apartments',
       'dongtan-budget-tier-ranking',
       'dongtan-gyeongbu-underground-park-urban-renewal',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
+      'dongtan-middle-high-school-progression-12year-edu-belt-guide',
     ],
     date: '2026-10-31',
     updatedDate: '2026-10-31',
@@ -1150,6 +1161,7 @@ D-VIEW에 등록된 화성시 건축물대장 및 GIS 입지 데이터를 대조
       'dongtan-budget-tier-ranking',
       'dongtan-technovalley-corporate-relocation-tax',
       'gtx-a-tram-rail-network',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
     ],
     date: '2026-10-31',
     updatedDate: '2026-10-31',
@@ -1782,6 +1794,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     topicClusterId: 'school-chopuma-cluster',
     relatedGuideSlugs: [
       'dongtan-school-zone-top-apartments',
+      'dongtan-middle-high-school-progression-12year-edu-belt-guide',
       'dongtan-1-vs-2-comparison',
       'dongtan-lake-vs-station-comparison',
       'dongtan-station-gbcx-vs-sibeom-comparison',
@@ -2020,6 +2033,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     relatedGuideSlugs: [
       'dongtan-1-vs-2-comparison',
       'gtx-a-tram-rail-network',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
       'dongtan-job-proximity-commuter-comparison',
       'dongtan-reconstruction-remodeling-1st-new-town-outlook',
       'dongtan-budget-tier-ranking',
@@ -2272,6 +2286,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
       'dongtan-1-vs-2-comparison',
       'dongtan-station-gbcx-vs-sibeom-comparison',
       'gtx-a-tram-rail-network',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
       'dongtan-yeoul-park-medical-welfare-zone-analysis',
       'dongtan-indeogwon-line-station-impact-analysis',
     ],
@@ -2512,6 +2527,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     topicClusterId: 'rail-urban-infra-cluster',
     relatedGuideSlugs: [
       'dongtan-gyeongbu-underground-park-urban-renewal',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
       'dongtan-lake-vs-station-comparison',
       'dongtan-station-gbcx-vs-sibeom-comparison',
       'dongtan-1-vs-2-comparison',
@@ -2635,6 +2651,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
     topicClusterId: 'vs-region-comparison',
     relatedGuideSlugs: [
       'dongtan-1-vs-2-comparison',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
       'dongtan-indeogwon-line-station-impact-analysis',
       'dongtan-school-zone-top-apartments',
       'dongtan-job-proximity-commuter-comparison',
@@ -2750,6 +2767,481 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
 ### 3. 준공 20년 차 진입에 따른 가치 재평가 로드맵
 
 동탄1신도시는 **(1) 전 세대 지하주차장 완비로 실거주 피로도가 낮고, (2) 솔빛·한빛·나루 학원가가 이미 완성되어 있으며, (3) 동탄인덕원선과 동탄 트램 개통이라는 대형 철도 호재가 남아 있는 상태**에서 준공 20년 차를 맞이합니다. 건물 감가상각이 멈추고 입지·토지 가치와 철도 개통 프리미엄이 반영되는 구간에 진입한 만큼, 올수리 컨디션의 대지지분 우수 단지를 선별하는 전략이 유효합니다.
+`
+  },
+  {
+    slug: 'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
+    title: '동탄역 4중 복합환승(GTX-A·SRT·트램·동인선) 및 삼성·서울역 직결 통근 시간·역세권 실거래 심층 비교',
+    seoTitle: 'GTX-A 삼성·서울역 직결 로드맵 및 동탄역 4중 환승 역세권 아파트 실거래가 비교 | D-VIEW',
+    subtitle: '현관문에서 강남·판교·광화문 사무실까지 문전 통근(Door-to-Door) 실계측 동선과 1·2차 환승권 실거래 분석',
+    description: 'GTX-A 동탄~수서 개통 이후 삼성역 무정차 통과·영동대로 복합환승센터 직결 로드맵과 SRT·동탄 트램 1·2호선·동탄인덕원선이 결합되는 동탄역 4중 복합환승체계를 분석하고, 도보 직결권과 트램·동인선 환승권 대표 단지의 국토교통부 실거래가·GIS 정거장 실거리를 대조합니다.',
+    seoDescription: 'GTX-A 삼성역·서울역 직결 로드맵과 동탄역 4중 복합환승(SRT·GTX-A·트램·동인선) 문전 통근 시간을 분석합니다. 동탄역롯데캐슬·예미지시그너스·더샵센트럴시티·동탄역푸르지오·능동마을이지더원 국토부 실거래가와 정거장 실거리를 비교하세요.',
+    category: '교통망 심층 분석',
+    topicClusterId: 'rail-urban-infra-cluster',
+    relatedGuideSlugs: [
+      'gtx-a-tram-rail-network',
+      'dongtan-indeogwon-line-station-impact-analysis',
+      'dongtan-gyeongbu-underground-park-urban-renewal',
+      'dongtan-job-proximity-commuter-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-yeoul-park-medical-welfare-zone-analysis',
+    ],
+    date: '2026-11-14',
+    updatedDate: '2026-11-14',
+    author: 'D-VIEW 교통 인프라 분석팀',
+    readingTime: '9분',
+    tags: [
+      'GTX-A삼성역',
+      'GTX-A직결',
+      '동탄역복합환승센터',
+      '동탄역통근시간',
+      '동탄트램환승',
+      '동탄인덕원선환승',
+      '동탄역세권실거래가',
+    ],
+    keyTakeaways: [
+      '동탄역은 GTX-A·SRT 지하 대심도 승강장과 경부고속도로 상부 동탄 트램 1·2호선·동탄인덕원선 종점부가 입체 연결되는 수도권 남부 유일의 4중 철도 환승 허브임',
+      '수서역 열차 주행 약 20분에 단지 보행 및 지하 승강장 이동 시간을 합산한 실질 문전 통근(Door-to-Door) 시간은 반경 500m 직결권과 버스·트램 연계권 간 편도 15~25분 격차가 발생함',
+      'GTX-A 삼성·서울역 직결 단계 진입 시 도보 1차 역세권(여울동 광비콤·청계동 시범 북측)뿐 아니라 동인선·트램 1회 환승권(반송동·능동·영천동)의 가격 동조화 탄력이 확대됨',
+    ],
+    featuredZones: ['gbcx', 'community', 'techno', 'metropolis'],
+    featuredApartments: [
+      '동탄역롯데캐슬',
+      '동탄역예미지시그너스',
+      '동탄역반도유보라아이비파크7.0',
+      '더샵센트럴시티',
+      '동탄역시범우남퍼스트빌아파트',
+      '동탄역시범한화꿈에그린프레스티지',
+      '동탄역푸르지오',
+      '시범한빛마을동탄아이파크',
+      '능동마을이지더원',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(1) 1차 도보 직결권',
+        sectionTitle: '동탄역 반경 500m 도보 직결권 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'gbcx',
+        apartments: [
+          '동탄역롯데캐슬',
+          '동탄역예미지시그너스',
+          '동탄역반도유보라아이비파크7.0',
+          '더샵센트럴시티',
+        ],
+      },
+      {
+        sectionHeadingMatch: '(2) 2차 환승 결절권',
+        sectionTitle: '시범·영천 트램 연계 및 동인선 직결 수혜 단지 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '동탄역시범우남퍼스트빌아파트',
+          '동탄역시범한화꿈에그린프레스티지',
+          '동탄역푸르지오',
+          '시범한빛마을동탄아이파크',
+          '능동마을이지더원',
+        ],
+      },
+    ],
+    headToHeadComparisons: [
+      {
+        title: '광비콤 직결 1선 vs 시범 도보 1선 맞대결: 동탄역롯데캐슬 vs 더샵센트럴시티',
+        subtitle: '동탄역 192m 복합환승 초역세권 대장 vs 동탄역 511m·화성청계초 87m 시범 대장 실거래 비교',
+        leftApt: '동탄역롯데캐슬',
+        leftLabel: '여울동 · 동탄역 192m·트램 176m',
+        rightApt: '더샵센트럴시티',
+        rightLabel: '청계동 · 동탄역 511m·청계초 87m',
+        verdict: '우천·폭설에도 백화점·역사 보행 축으로 직결되는 최단 통근 시간은 동탄역롯데캐슬이, 경부 지하화 상부 공원을 가로지르는 도보 역세권과 초품아 학군 결합 가치는 더샵센트럴시티가 우위입니다.',
+      },
+      {
+        title: '광비콤 실속 역세권 vs 영천동 트램 역세권: 동탄역반도유보라아이비파크7.0 vs 동탄역푸르지오',
+        subtitle: '여울동 광비콤 주상복합 도보권 vs 영천동 테크노밸리·트램 271m 아파트 대단지 비교',
+        leftApt: '동탄역반도유보라아이비파크7.0',
+        leftLabel: '여울동 · 광비콤 도보 역세권',
+        rightApt: '동탄역푸르지오',
+        rightLabel: '영천동 · 동탄역 991m·트램 271m',
+        verdict: '동탄역 도보 통근과 광비콤 상업 인프라 직결성은 반도유보라 7.0이 앞서며, 판교·기흥IC 접근성과 치동초·중·고 밀착 통학 및 판상형 아파트 구조는 동탄역푸르지오가 강점입니다.',
+      },
+      {
+        title: '동인선 반송 거점 vs 능동 거점 맞대결: 시범한빛마을동탄아이파크 vs 능동마을이지더원',
+        subtitle: '동인선 191m·반송 학원가 대단지 vs 동인선 154m·능동초고 밀착 실속 역세권 비교',
+        leftApt: '시범한빛마을동탄아이파크',
+        leftLabel: '반송동 · 동인선 191m·학원 233개',
+        rightApt: '능동마을이지더원',
+        rightLabel: '능동 · 동인선 154m·능동고 138m',
+        verdict: '북·남광장 상권과 반송동 학원가 밀도 및 중대형 수요층은 시범한빛마을동탄아이파크가, 7억 원대 진입 예산으로 확보하는 동인선 154m 초역세권 탄력성은 능동마을이지더원이 돋보입니다.',
+      },
+    ],
+    faqs: [
+      {
+        question: '동탄역 GTX-A 탑승 시 열차 시간 20분 외에 실제 문전 통근(Door-to-Door) 시간은 얼마나 걸리나요?',
+        answer: 'GTX-A 동탄역 승강장은 지하 대심도에 위치하므로 역사 출입구에서 게이트·에스컬레이터를 거쳐 승강장까지 약 6~8분이 소요됩니다. 따라서 동탄역 반경 200~500m 도보 단지는 현관에서 수서역 개찰구까지 약 32~38분, 버스·트램 환승 단지는 약 45~55분을 기준으로 통근 계획을 세우는 것이 정확합니다.',
+      },
+      {
+        question: 'GTX-A 서울역·삼성역 직결 단계가 진행되면 동탄 역세권 시세에는 어떤 영향이 있나요?',
+        answer: '현재 수서역 환승으로 접근하던 강남 테헤란로(GBD)와 서울역·광화문 도심권(CBD)이 단일 노선으로 연결되면 고소득 맞벌이 직주근접 수요 반경이 넓어집니다. 특히 동탄역 도보 1차 권역뿐 아니라 트램·동인선으로 동탄역과 1회 환승되는 2차 역세권 단지의 실수요 유입이 동반 확대됩니다.',
+      },
+      {
+        question: '경부고속도로 직선화·지하화 상부 연결도로 개통으로 가장 직접적인 보행 수혜를 입은 구역은 어디인가요?',
+        answer: '과거 지상 고속도로에 의해 단절되었던 동탄역 서측(여울동)과 동측(청계동 커뮤니티시범단지)이 상부 연결도로와 공원 보행 축으로 이어지면서 더샵센트럴시티(동탄역 511m), 동탄역시범우남퍼스트빌(585m) 등 시범단지 서측 블록의 도보 접근성이 크게 개선되었습니다.',
+      },
+      {
+        question: '역세권 단지의 신고가 및 급매 실거래 변동은 어떻게 가장 빠르게 확인할 수 있나요?',
+        answer: '국토교통부 실거래가 공개시스템에 신규 매매·전월세 계약이 등록되면 본 가이드 하단의 오전 7시 실거래 알림 카드에서 대표 단지를 선택해 매일 아침 07:00 KST 브라우저 푸시 브리핑으로 즉시 받아보실 수 있습니다.',
+      },
+    ],
+    content: `
+### 1. 동탄역 4중 복합환승 아키텍처와 GTX-A 직결 로드맵
+
+동탄역은 고속철도 **SRT**와 수도권광역급행철도 **GTX-A**가 지하 대심도에서 운행되고, 지상·반지하 환승 축에 **동탄 도시철도(트램 1·2호선)** 및 **동탄인덕원선(동인선)** 종점부가 결절되는 입체 복합환승 허브입니다. 노선 전체 정거장 개요는 [GTX-A 동탄역·동탄 트램 1·2호선 수혜 단지 총정리](/guide/gtx-a-tram-rail-network) 및 [동탄인덕원선(동인선) 정거장별 역세권 수혜 단지 분석](/guide/dongtan-indeogwon-line-station-impact-analysis)에서 함께 확인할 수 있습니다.
+
+실수요자가 역세권 아파트를 선별할 때는 단순 지도상 직선거리가 아니라 **현관문-역사 출입구 보행 시간 + 대심도 승강장 수직 이동 시간(약 6~8분) + 열차 주행 시간 + 도착역 환승 시간**을 합산한 **문전 통근(Door-to-Door) 소요 시간**으로 가치를 산정해야 합니다.
+
+| 통근 권역 구분 | 동탄역 실거리 / 접근 방식 | 수서역 문전 소요(편도) | 강남·판교 주요 업무지구 체감 동선 |
+| :--- | :--- | :--- | :--- |
+| **1차 초역세권 (여울동 광비콤)** | 192m ~ 470m / 평지·지하 도보 | **약 30 ~ 35분** | GTX-A 단일 탑승 후 수서·삼성 축 직결 수혜 극대화 |
+| **1차 도보 시범권 (청계동 서측)** | 511m ~ 793m / 경부 상부 보행축 | **약 36 ~ 42분** | 도보 역세권 + 시범단지 초품아·학원가 동시 확보 |
+| **2차 트램·동인선 환승권** | 900m+ / 트램·동인선 1~2정거장 | **약 45 ~ 52분** | 정시성 높은 궤도 환승으로 버스 배차 변동성 해소 |
+
+---
+
+### 2. GIS 정거장 실거리 기반 1차·2차 환승 수혜 단지 실거래 대조
+
+D-VIEW에 연동된 국토교통부 실거래 데이터와 GIS 정거장 실측 거리를 결합하면, 동탄역 접근 단계별 가격 계단(Price Tier)과 전세가율 구조가 명확히 구분됩니다. 경부 상부 공원화 수혜는 [경부고속도로 지하화·상부 공원 도시재생 리포트](/guide/dongtan-gyeongbu-underground-park-urban-renewal)를 참고하시기 바랍니다.
+
+#### (1) 1차 도보 직결권 (반경 500m 이내 · 광비콤 주상복합 및 청계 시범 북측)
+동탄역 출입구와 롯데백화점·스트리트몰 보행 데크를 신호 대기 최소화로 접근하는 최상위 직결 그룹입니다.
+- **동탄역롯데캐슬**(여울동): 동탄역 실거리 **192m**, 트램 예정 정거장 **176m**, 동인선 종점부 **239m**가 겹치는 4중 환승 핵심 단지로 국토부 실거래 상단 **26억 2,000만 원**(누적 179건)을 기록하며 동탄 전체 시세 기준점 역할을 수행합니다.
+- **동탄역예미지시그너스**(여울동, 동탄역 **470m**, 동인선 **405m**)와 **동탄역반도유보라아이비파크7.0**(여울동, 최근 매매 **14억 9,000만 원**, 누적 189건)은 14억~17억 원대 구간에서 초역세권 도보 통근을 구현하는 광비콤 주력 단지입니다.
+- **더샵센트럴시티**(청계동): 동탄역 실거리 **511m**, 트램 **453m**, 화성청계초 **87m** 입지로 경부고속도로 지하화 상부 연결도로 개통의 직접 수혜를 입으며 시범단지 내 최고가권(**21억 6,000만 원**, 누적 393건)을 유지하고 있습니다.
+
+#### (2) 2차 환승 결절권 (시범단지·영천동 트램 연계 및 동인선 반송·능동 직결축)
+초역세권 주상복합 대비 진입 자금 부담을 낮추면서 트램 1·2호선 또는 동탄인덕원선 1~2정거장 환승으로 동탄역 대심도 승강장에 연결되는 실속 직주근접 그룹입니다.
+- 청계동 **동탄역시범우남퍼스트빌아파트**(동탄역 **585m**, 누적 **1,000건 이상** 거래)와 **동탄역시범한화꿈에그린프레스티지**(동탄역 **793m**, 화성청계초 **199m**)는 풍부한 대단지 환금성과 도보·트램 이중 접근성을 제공합니다.
+- 영천동 **동탄역푸르지오**(동탄역 **991m**, 트램 **271m**, 치동초 **214m**)는 테크노밸리 배후 직주근접과 트램 역세권을 겸비하며, 반송동 **시범한빛마을동탄아이파크**(동인선 예정 정거장 **191m**)와 능동 **능동마을이지더원**(동인선 **154m**)은 인덕원·수원 축과 동탄역 종점 환승을 동시에 겨냥할 수 있는 대표 수혜 단지입니다.
+
+---
+
+### 3. 통근 축·자금 여력별 매수 점검 및 실거래 모니터링 전략
+
+1. **서울 강남·광화문 매일 출퇴근 맞벌이**: 대심도 승강장 이동 시간을 감안해 동탄역 실거리 600m 이내인 **동탄역롯데캐슬**, **동탄역예미지시그너스**, **더샵센트럴시티**, **동탄역시범우남퍼스트빌아파트**를 1순위로 비교하시기 바랍니다.
+2. **판교·수원·인덕원 복수 통근 및 7억~12억대 실속 진입**: 트램 반경 300m 이내인 **동탄역푸르지오** 또는 동인선 초역세권인 **시범한빛마을동탄아이파크**, **능동마을이지더원**의 전세가율 지지력을 대조하는 전략이 합리적입니다.
+3. **오전 7시 실거래 변동 알림 활용**: 철도 공정률 발표나 직결 일정 가시화 구간에는 호가보다 실거래 체결 속도가 먼저 움직이므로, 페이지 하단의 **오전 7시 실거래 알림 받기**에 관심 단지를 등록해 신규 신고가·전세가율 변동을 즉시 점검하시기 바랍니다.
+`
+  },
+  {
+    slug: 'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
+    title: '서울·분당·판교·영통 갈아타기 실수요자를 위한 동탄 5대 생활권 1:1 매칭 및 실거래가·전세가율 비교',
+    seoTitle: '서울·분당·판교·수원 영통 갈아타기 동탄 권역별 아파트 실거래가·전세가율 비교 | D-VIEW',
+    subtitle: '종전 거주지의 구축·전세 자금으로 진입 가능한 동탄 신축·준신축 권역별 주거 만족도 및 예산 매칭표',
+    description: '서울 동남권·마용성 전세 거주자, 성남 분당·판교 구축 갈아타기 수요자, 수원 영통·광교 학군 이동 수요자가 동탄 진입 시 가장 많이 비교하는 5대 핵심 생활권(광비콤·청계 시범·영천 테크노·호수공원·반송·목동)의 국토교통부 실거래가, 전세가율, 통근 및 학원가 인프라를 1:1 매칭합니다.',
+    seoDescription: '서울 전세 탈출 및 분당·판교·수원 영통 구축 갈아타기 실수요자를 위한 동탄 5대 생활권 매칭 가이드 — 더샵센트럴시티·동탄역센트럴자이·동탄더샵레이크에듀타운·솔빛마을서해그랑블·힐스테이트동탄 국토부 실거래가와 전세가율을 비교합니다.',
+    category: '입지 분석 리포트',
+    topicClusterId: 'vs-region-comparison',
+    relatedGuideSlugs: [
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+      'dongtan-budget-tier-ranking',
+      'stress-dsr-valuation-guide',
+      'dongtan-reconstruction-remodeling-1st-new-town-outlook',
+    ],
+    date: '2026-11-14',
+    updatedDate: '2026-11-14',
+    author: 'D-VIEW 부동산 데이터 랩스',
+    readingTime: '9분',
+    tags: [
+      '동탄갈아타기',
+      '분당동탄비교',
+      '영통동탄비교',
+      '서울전세탈출',
+      '동탄생활권비교',
+      '동탄전세가율',
+      '동탄실거래가비교',
+    ],
+    keyTakeaways: [
+      '서울 강남·송파 전세금(8억~13억 원대) 수준으로 동탄 진입 시 GTX-A·테크노밸리 통근권(영천동·청계동) 또는 호수공원 원스톱 학군 신축 등기 전환이 가능함',
+      '분당·수원 영통 30년 차 구축에서 평형 확대·지하주차장 직결 신축으로 이동하는 수요는 청계동 시범단지와 산척·송동 호수공원 권역의 실거주 만족도가 가장 높게 나타남',
+      '동탄 내부에서도 역세권 고탄력 권역(전세가율 35~45%)과 학군·실거주 안정 권역(전세가율 50~65%)의 자산 성격이 다르므로 가용 자기자본과 DSR 한도를 선행 대조해야 함',
+    ],
+    featuredZones: ['gbcx', 'community', 'techno', 'waterfront', 'metropolis', 'culture'],
+    featuredApartments: [
+      '동탄역롯데캐슬',
+      '더샵센트럴시티',
+      '동탄역시범우남퍼스트빌아파트',
+      '동탄역센트럴자이A-10',
+      '동탄더샵레이크에듀타운',
+      '동탄린스트라우스더레이크',
+      '솔빛마을서해그랑블',
+      '힐스테이트동탄',
+      '호반베르디움센트럴포레',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(1) 서울 강남(GBD)·판교 통근 맞벌이 매칭',
+        sectionTitle: '서울·판교 출퇴근 중심 광비콤·시범·영천 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '동탄역롯데캐슬',
+          '더샵센트럴시티',
+          '동탄역시범우남퍼스트빌아파트',
+          '동탄역센트럴자이A-10',
+        ],
+      },
+      {
+        sectionHeadingMatch: '(2) 분당·수원 영통 학령기 및 신축 실속 갈아타기 매칭',
+        sectionTitle: '호수공원·반송 학원가·목동 신축 대표 단지 실시간 실거래 프리뷰',
+        zoneId: 'waterfront',
+        apartments: [
+          '동탄더샵레이크에듀타운',
+          '동탄린스트라우스더레이크',
+          '솔빛마을서해그랑블',
+          '힐스테이트동탄',
+          '호반베르디움센트럴포레',
+        ],
+      },
+    ],
+    headToHeadComparisons: [
+      {
+        title: '판교·강남 통근 맞대결: 동탄역시범우남퍼스트빌 vs 동탄역센트럴자이A-10',
+        subtitle: '청계동 동탄역 도보 585m 시범 대단지 vs 영천동 테크노밸리·기흥IC 관문 브랜드 단지 비교',
+        leftApt: '동탄역시범우남퍼스트빌아파트',
+        leftLabel: '청계동 · 동탄역 585m·시범 학군',
+        rightApt: '동탄역센트럴자이A-10',
+        rightLabel: '영천동 · 테크노밸리·트램 410m',
+        verdict: 'GTX-A 도보 탑승과 시범단지 카림애비뉴 학원가 인프라는 시범우남퍼스트빌이, 경부고속도로 기흥동탄IC 자차 판교 출퇴근과 영천초 인접 신축 커뮤니티는 동탄역센트럴자이가 유리합니다.',
+      },
+      {
+        title: '분당·영통 학령기 갈아타기 맞대결: 동탄더샵레이크에듀타운 vs 솔빛마을서해그랑블',
+        subtitle: '산척동 호수공원 초·중·고 원스톱 신축 vs 반송동 학원 229개 밀집 중대형 대단지 비교',
+        leftApt: '동탄더샵레이크에듀타운',
+        leftLabel: '산척동 · 청림초·중·정현고 밀착',
+        rightApt: '솔빛마을서해그랑블',
+        rightLabel: '반송동 · 솔빛초·중·학원 229개',
+        verdict: '2019년 준공 신축 평면과 호수공원 산책로·초중고 연접 환경은 동탄더샵레이크에듀타운이, 검증된 200여 개 밀집 학원가와 넉넉한 중대형 평형 가성비는 솔빛마을서해그랑블이 강점입니다.',
+      },
+      {
+        title: '서울 신혼 전세 탈출 8억~9억대 맞대결: 힐스테이트동탄 vs 호반베르디움센트럴포레',
+        subtitle: '목동 트램 219m·학원 144개 브랜드 대단지 vs 왕배초·창의고 인접 실속 대단지 비교',
+        leftApt: '힐스테이트동탄',
+        leftLabel: '목동 · 한율초 244m·트램 219m',
+        rightApt: '호반베르디움센트럴포레',
+        rightLabel: '목동 · 왕배초 345m·창의고 313m',
+        verdict: '중동탄 중심 상권·학원가(144개) 접근성과 트램 역세권 가치는 힐스테이트동탄이, 7억~8억 원대 진입 예산과 정책 모기지 활용 여유는 호반베르디움센트럴포레가 우위입니다.',
+      },
+    ],
+    faqs: [
+      {
+        question: '서울 전세 거주자가 동탄 내집마련으로 이동할 때 가장 실패 확률이 낮은 권역은 어디인가요?',
+        answer: '서울 출퇴근 빈도가 주 3회 이상이라면 동탄역 GTX-A 접근성이 검증된 여울동 광비콤, 청계동 시범단지, 영천동 테크노밸리 권역을 우선 검토해야 통근 피로도를 줄일 수 있습니다. 재택 비중이 높거나 수원·용인·화성 직장인이라면 송동·산척동 호수공원과 목동 신축 타운의 주거비 대비 만족도가 높습니다.',
+      },
+      {
+        question: '분당·수원 영통 구축 아파트에서 동탄으로 갈아탈 때 체감되는 가장 큰 주거 차이는 무엇인가요?',
+        answer: '지상 차 없는 공원형 단지와 세대당 1.3~1.8대 수준의 지하주차장 엘리베이터 직결 구조, 광폭 4베이 판상형 수납 특화 평면, 그리고 단지 바로 옆 유·초·중·고 보행자 전용 통학로가 실거주 만족도를 크게 끌어올리는 요소입니다.',
+      },
+      {
+        question: '갈아타기 매수 시 스트레스 DSR 40% 한도와 취득세 예산은 어떻게 점검해야 하나요?',
+        answer: '종전 주택 처분 조건부 대출 여부와 보유 자금 구간에 따라 선택 가능한 평형이 달라지므로 D-VIEW 금융 계산기 및 스트레스 DSR·취득세 가이드에서 원리금 상환 비율과 부대비용(취득세·중개보수)을 계약 전 시뮬레이션하시기 바랍니다.',
+      },
+      {
+        question: '비교 중인 여러 생활권 대장 단지의 실거래 추이를 한눈에 추적하는 방법이 있나요?',
+        answer: '가이드 하단의 오전 7시 실거래 알림 카드에서 관심단지 담기(+ 버튼)를 누르고 아침 7시 알림을 켜 두면, 국토부 신규 계약 등록 시 매매가·전세가율 변화를 매일 아침 요약 브리핑으로 받아볼 수 있습니다.',
+      },
+    ],
+    content: `
+### 1. 외부 광역 수요(서울·분당·판교·영통)가 동탄으로 유입되는 구조적 배경
+
+수도권 남부에서 **GTX-A 광역철도(수서 20분)**, **삼성전자·테크노밸리 자족 일자리**, **2015~2024년식 대규모 신축 브랜드 타운**을 동시에 갖춘 도시는 동탄이 대표적입니다. 1동탄과 2동탄의 기초적인 도시 구조 차이는 [1동탄 vs 2동탄 차이 심층 비교 리포트](/guide/dongtan-1-vs-2-comparison)에서, 예산 구간별 전체 단지 순위는 [동탄 예산별(6억·9억·12억대) 아파트 실거래가 랭킹](/guide/dongtan-budget-tier-ranking)에서 함께 확인할 수 있습니다.
+
+종전 거주지 특성과 가구 생애주기에 따라 동탄 내부에서도 최적 매칭 생활권이 뚜렷하게 갈립니다.
+
+| 종전 거주지 및 이동 목적 | 동탄 1순위 매칭 권역 | 대표 비교 단지 | 핵심 이동 효용 |
+| :--- | :--- | :--- | :--- |
+| **서울 강남·송파 전세 탈출 맞벌이** | 광비콤(여울동) · 시범(청계동) | **동탄역롯데캐슬**, **더샵센트럴시티**, **동탄역시범우남퍼스트빌아파트** | GTX-A 수서 20분 통근 유지 + 신축 자가 전환 |
+| **판교·분당 IT·연구직 통근 가구** | 테크노밸리(영천동) · 시범(청계동) | **동탄역센트럴자이A-10**, **동탄역시범우남퍼스트빌아파트** | 기흥동탄IC·광역버스·GTX 복수 통근망 + 11자상가 학원가 |
+| **분당·영통 구축 -> 신축 학군 이동** | 호수공원(산척·송동) · 반송동 | **동탄더샵레이크에듀타운**, **동탄린스트라우스더레이크**, **솔빛마을서해그랑블** | 지하주차장 완비·수변 공원 조망·초중고 밀착 통학 |
+| **수원·용인·화성 신혼 첫 내집마련** | 중동탄(목동) 신축 브랜드 타운 | **힐스테이트동탄**, **호반베르디움센트럴포레** | 7억~9억대 정책대출 연계 가능 + 1,000세대급 신축 |
+
+---
+
+### 2. 출발 지역·가구 유형별 동탄 5대 생활권 실거래 및 입지 매칭
+
+대출 규제 및 실거주 PER 산식은 [2026 스트레스 DSR 40% & 실거주 PER 활용 가이드](/guide/stress-dsr-valuation-guide)와 [동탄역 vs 동탄호수공원 실거래가 비교](/guide/dongtan-lake-vs-station-comparison)를 병행 참조하시기 바랍니다.
+
+#### (1) 서울 강남(GBD)·판교 통근 맞벌이 매칭: 광비콤·시범단지·영천동 직주근접 축
+서울과 판교로 매일 출퇴근하는 가구에게는 **역사·IC 접근 시간의 확실성**과 **향후 상급지 환금성**이 최우선 기준입니다.
+- **동탄역롯데캐슬**(여울동, 동탄역 **192m**)과 **더샵센트럴시티**(청계동, 동탄역 **511m**, 화성청계초 **87m**), **동탄역시범우남퍼스트빌아파트**(청계동, 동탄역 **585m**)는 서울 주요 업무지구 통근 시간을 40분 내외로 방어하면서 시범 학원가(반경 77~168개)를 도보로 이용할 수 있는 검증된 상급지입니다.
+- 판교테크노밸리 자차·광역버스 통근 비중이 높다면 북동탄 관문인 영천동 **동탄역센트럴자이A-10**(영천초 **230m**, 트램 **410m**, 국토부 최근 실거래 **15억 3,000만 원**)이 경부 축 진·출입 시간을 크게 단축해 줍니다.
+
+#### (2) 분당·수원 영통 학령기 및 신축 실속 갈아타기 매칭: 호수공원·반송동·목동 축
+주차난과 배관 노후화가 심한 1기 신도시·택지지구 구축에서 쾌적한 교육·주거 환경으로 갈아타는 실수요층에게 선호도가 집중되는 권역입니다.
+- 산척동 **동탄더샵레이크에듀타운**(청림초 **248m**, 청림중 **361m**, 정현고 **255m**)과 송동 **동탄린스트라우스더레이크**(트램 **138m**, 학원 **115개**)는 75만㎡ 동탄호수공원 산책로와 레이크꼬모 상권을 앞마당처럼 누리는 남동탄 리딩 단지입니다.
+- 중·고등 입시 학원가 밀집도와 중대형 평형 여유를 중시한다면 반송동 **솔빛마을서해그랑블**(반경 학원 **229개**, 솔빛중 **276m**)이 탄탄한 전세가율 지지력을 보여주며, 8억~9억 원대 신축 브랜드 대단지를 찾는 신혼·초등 가구에게는 목동 **힐스테이트동탄**(한율초 **244m**, 학원 **144개**)과 **호반베르디움센트럴포레**(왕배초 **345m**, 창의고 **313m**)가 높은 거래 회전율을 기록하고 있습니다.
+
+---
+
+### 3. 갈아타기 계약 전 3단계 체크리스트 및 실시간 시세 알림 연동
+
+1. **매도·매수 타이밍 일치 및 거래 회전율 확인**: 갈아타기는 종전 주택 매도와 신규 주택 잔금 일정을 맞춰야 하므로 누적 실거래 건수가 300~1,000건 이상으로 풍부한 대단지를 중심으로 후보군을 압축해야 급매 처분 리스크가 낮습니다.
+2. **평일 출퇴근 시간대 실측 동선 점검**: GTX-A 수서행 열차 배차 시각과 단지 보행 동선, 학원 셔틀버스 정차 위치를 현장 답사로 반드시 대조하시기 바랍니다.
+3. **관심 후보 단지 오전 7시 실거래 푸시 구독**: 최종 후보 2~3개 단지를 하단 **오전 7시 실거래 알림 카드**에서 관심단지로 저장해 두면, 매수 타이밍 포착에 필요한 실거래 체결 데이터를 매일 아침 즉시 받아보실 수 있습니다.
+`
+  },
+  {
+    slug: 'dongtan-middle-high-school-progression-12year-edu-belt-guide',
+    title: '동탄 중학교 배정·고교 진학(동탄중앙고·정현고·반송고·창의고) 동선 및 12년 원스톱 학군지 실거래 분석',
+    seoTitle: '동탄 중학교 학군·고교 진학 동선 및 청계·산척·반송·목동 12년 학군지 실거래 비교 | D-VIEW',
+    subtitle: '초품아 이후 중·고등 도보 통학 반경과 카림애비뉴·솔빛·레이크·목동 학원가 결합 단지 실증 대조',
+    description: '초등학교 입학 이후 중학교 학군 배정과 일반고·특목고(동탄중앙고·정현고·호연고·반송고·창의고·동탄국제고) 진학기까지 이사 없이 거주 가능한 동탄 4대 12년 원스톱 학군 벨트를 GIS 초·중·고 실거리, 반경 내 학원 수, 국토교통부 실거래가·전세가율로 정밀 비교합니다.',
+    seoDescription: '동탄 중학교 학군 배정과 고등학교(동탄중앙고·정현고·반송고·창의고·동탄국제고) 통학 동선을 GIS 실거리로 분석합니다. 더샵센트럴시티·시범반도유보라4.0·동탄더샵레이크에듀타운·솔빛마을서해그랑블·한신더휴 국토부 실거래가를 비교하세요.',
+    category: '학군·초품아 리포트',
+    topicClusterId: 'school-chopuma-cluster',
+    relatedGuideSlugs: [
+      'dongtan-school-zone-top-apartments',
+      'dongtan-elementary-cho-pum-a-safety-index',
+      'dongtan-1-vs-2-comparison',
+      'dongtan-lake-vs-station-comparison',
+      'dongtan-station-gbcx-vs-sibeom-comparison',
+    ],
+    date: '2026-11-14',
+    updatedDate: '2026-11-14',
+    author: 'D-VIEW 교육·입지 분석팀',
+    readingTime: '9분',
+    tags: [
+      '동탄중학교학군',
+      '동탄고등학교진학',
+      '동탄중앙고',
+      '정현고',
+      '동탄국제고',
+      '청계중학군',
+      '동탄학원가비교',
+      '동탄12년학군',
+    ],
+    keyTakeaways: [
+      '초품아 단일 지표만 보고 매수하면 초등 고학년~중학교 진학 시점에 학원 라이딩 부담과 중·고교 원거리 통학 문제로 재이사 비용(취득세·중개보수)이 발생함',
+      '초·중·고 3개 학교가 모두 반경 150~870m 이내에 포진하고 도보권 학원이 55~229개 밀집한 12년 완결형 벨트는 청계 시범, 산척 에듀타운, 반송 솔빛·나루, 목동 한율·창의 축으로 압축됨',
+      '중·고등 학령기 정주율이 높은 학군 단지는 학기 교체기(11월~2월) 전세 수요가 집중되어 하락장에서도 전세가율 하방 경직성이 뚜렷하게 유지됨',
+    ],
+    featuredZones: ['community', 'waterfront', 'metropolis', 'culture'],
+    featuredApartments: [
+      '더샵센트럴시티',
+      '동탄역시범한화꿈에그린프레스티지',
+      '동탄역시범우남퍼스트빌아파트',
+      '시범반도유보라아이비파크4.0',
+      '동탄더샵레이크에듀타운',
+      '동탄레이크자연앤푸르지오',
+      '솔빛마을서해그랑블',
+      '나루마을신도브래뉴',
+      '한신더휴',
+    ],
+    zoneSectionPreviews: [
+      {
+        sectionHeadingMatch: '(1) 북동탄 청계중·동탄중',
+        sectionTitle: '북동탄 청계동 시범단지 (청계중·동탄중·동탄중앙고 축) 실시간 실거래 프리뷰',
+        zoneId: 'community',
+        apartments: [
+          '더샵센트럴시티',
+          '동탄역시범한화꿈에그린프레스티지',
+          '동탄역시범우남퍼스트빌아파트',
+          '시범반도유보라아이비파크4.0',
+        ],
+      },
+      {
+        sectionHeadingMatch: '(2) 남동탄 청림중·방교중',
+        sectionTitle: '남동탄 에듀타운·반송·목동 12년 학군 단지 실시간 실거래 프리뷰',
+        zoneId: 'waterfront',
+        apartments: [
+          '동탄더샵레이크에듀타운',
+          '동탄레이크자연앤푸르지오',
+          '솔빛마을서해그랑블',
+          '나루마을신도브래뉴',
+          '한신더휴',
+        ],
+      },
+    ],
+    headToHeadComparisons: [
+      {
+        title: '청계동 시범 12년 학군 맞대결: 동탄역시범한화꿈에그린 vs 시범반도유보라4.0',
+        subtitle: '청계초 199m·청계중 131m·중앙고 635m 대단지 vs 중앙초 263m·중앙고 414m·학원 168개 일체형 비교',
+        leftApt: '동탄역시범한화꿈에그린프레스티지',
+        leftLabel: '청계동 · 청계중 131m·1,817세대',
+        rightApt: '시범반도유보라아이비파크4.0',
+        rightLabel: '청계동 · 중앙고 414m·학원 168개',
+        verdict: '1,817세대 압도적 대단지 조경과 청계초·청계중 초근접 통학은 시범한화꿈에그린이, 카림애비뉴 복합상가 학원가(168개) 직결 동선과 동탄중앙고 도보 거리는 시범반도유보라 4.0이 우위입니다.',
+      },
+      {
+        title: '남동탄 수변 에듀타운 맞대결: 동탄더샵레이크에듀타운 vs 동탄레이크자연앤푸르지오',
+        subtitle: '산척동 청림초 248m·청림중 361m·정현고 255m vs 장지동 호연초 229m·호연고 401m 비교',
+        leftApt: '동탄더샵레이크에듀타운',
+        leftLabel: '산척동 · 초·중·정현고 361m 이내',
+        rightApt: '동탄레이크자연앤푸르지오',
+        rightLabel: '장지동 · 호연초 229m·호연고 401m',
+        verdict: '초·중·고 3개교가 모두 250~360m 이내에 밀집한 완결성과 레이크꼬모 학원가 접근성은 더샵레이크에듀타운이, 호수 남측 쾌적성과 합리적 진입 예산은 레이크자연앤푸르지오가 강점입니다.',
+      },
+      {
+        title: '동탄1 반송 명문학군 vs 동탄2 목동 신흥학군: 나루마을신도브래뉴 vs 한신더휴',
+        subtitle: '반석초 261m·솔빛중 423m·반송고 199m·동탄국제고 인접 vs 한율초 238m·목동중 215m·학원 118개 비교',
+        leftApt: '나루마을신도브래뉴',
+        leftLabel: '반송동 · 반송고 199m·학원 194개',
+        rightApt: '한신더휴',
+        rightLabel: '목동 · 한율초 238m·목동중 215m',
+        verdict: '반송고·동탄국제고 인접 면학 분위기와 반경 194개 성숙 학원가는 나루마을신도브래뉴가, 8억~9억 원대 2018년식 신축 평면과 초·중 240m 이내 밀착 통학은 목동 한신더휴가 돋보입니다.',
+      },
+    ],
+    faqs: [
+      {
+        question: '동탄에서 이사 없이 초등학교부터 고등학교까지 12년 도보 통학이 가능한 대표 구역은 어디인가요?',
+        answer: 'GIS 실측 거리 기준 초·중·고 3개교가 모두 도보권(약 100~750m)에 집적된 대표 구역은 청계동 시범단지(청계초·청계중·동탄중앙고), 산척동 에듀타운(청림초·청림중·정현고), 반송동 솔빛·나루마을(솔빛·반석초, 솔빛중, 반송고·동탄국제고), 목동 중심권(한율초·동탄목동중·창의고)입니다.',
+      },
+      {
+        question: '중·고등 자녀 가구가 아파트 선택 시 초품아 외에 반드시 확인해야 할 지표는 무엇인가요?',
+        answer: '중학교 이후에는 밤 10시 하원 동선의 안전성과 시간 효율이 핵심이므로 단지 반경 내 입시·보습 학원 수(100개 이상 여부)와 상가 보행로 조도, 고등학교 도보 소요 시간을 함께 점검해야 라이딩 피로도를 줄일 수 있습니다.',
+      },
+      {
+        question: '학군지 아파트 매수나 전세 계약에 가장 유리한 계절적 시기는 언제인가요?',
+        answer: '통상 수능 직후인 11월 중순부터 1월 사이에는 중·고교 진학 배정에 맞춘 학군 이동 수요가 집중되어 호가가 강세를 보이므로, 매수·임차 계획이 있다면 가을 학기 중(8~10월) 실거래 추이를 선제적으로 모니터링하는 것이 유리합니다.',
+      },
+      {
+        question: '목표 학군지 단지의 평형별 전세가와 매매 실거래 변동을 놓치지 않으려면 어떻게 해야 하나요?',
+        answer: '본 리포트 하단의 오전 7시 실거래 알림 카드에서 희망 학군 단지를 선택해 알림을 신청해 두면, 국토교통부 실거래 신고 등록 즉시 매일 아침 7시 푸시 알림으로 학기 전후 시세 흐름을 바로 파악할 수 있습니다.',
+      },
+    ],
+    content: `
+### 1. 초품아 그 이후: 왜 '12년 원스톱 초·중·고 학군 벨트'가 실거래 하방을 지키는가
+
+영유아·초등 저학년 시기에는 단지 내 초등학교 유무(초품아)가 최우선 기준이지만, 초등 5~6학년부터는 **중학교 학업 성취도**, **야간 자율학습·학원 하원 동선**, **인근 고등학교 통학 거리**가 실거주 기간을 결정합니다. 초등학교 통학 안전 지수 자체에 대한 세부 기준은 [동탄 초품아 아파트 무차도 통학 안전 지수 리포트](/guide/dongtan-elementary-cho-pum-a-safety-index)와 [동탄 학군지 TOP 4·초품아 실거래가 분석](/guide/dongtan-school-zone-top-apartments)에서 함께 대조할 수 있습니다.
+
+D-VIEW GIS 입지 데이터에서 확인되는 동탄 핵심 12년 학군 단지의 초·중·고 실측 거리 및 반경 학원 밀집도는 다음과 같습니다.
+
+| 단지명 (법정동) | 초등학교 실거리 | 중학교 실거리 | 고등학교 실거리 | 반경 학원 수 |
+| :--- | :--- | :--- | :--- | :--- |
+| **더샵센트럴시티** (청계동) | 화성청계초 **87m** | 청계중 **185m** | 동탄중앙고 **865m** | **122개** |
+| **동탄역시범한화꿈에그린프레스티지** (청계동) | 화성청계초 **199m** | 청계중 **131m** | 동탄중앙고 **635m** | **55개** |
+| **시범반도유보라아이비파크4.0** (청계동) | 동탄중앙초 **263m** | 동탄중 **448m** | 동탄중앙고 **414m** | **168개** |
+| **동탄더샵레이크에듀타운** (산척동) | 청림초 **248m** | 청림중 **361m** | 정현고 **255m** | **71개** |
+| **솔빛마을서해그랑블** (반송동) | 솔빛초 **329m** | 솔빛중 **276m** | 반송고 **868m** | **229개** |
+| **나루마을신도브래뉴** (반송동) | 반석초 **261m** | 솔빛중 **423m** | 반송고 **199m** | **194개** |
+| **한신더휴** (목동) | 한율초 **238m** | 동탄목동중 **215m** | 창의고 **830m** | **118개** |
+
+---
+
+### 2. 권역별 중·고교 진학 동선 및 대표 학군 단지 실거래 비교
+
+#### (1) 북동탄 청계중·동탄중 — 동탄중앙고 진학 핵심 벨트 (청계동 시범단지)
+북동탄 학군의 정점은 청계중·동탄중과 동탄중앙고, 그리고 카림애비뉴 대형 입시 학원가가 맞물리는 청계동 커뮤니티시범단지입니다.
+- **더샵센트럴시티**(화성청계초 **87m**, 청계중 **185m**)와 **동탄역시범한화꿈에그린프레스티지**(화성청계초 **199m**, 청계중 **131m**, 동탄중앙고 **635m**)는 초·중학교를 단지 앞 보행로로 통학하면서 동탄역 GTX-A 생활권까지 공유해 동탄 내 최상위 시세를 형성하고 있습니다.
+- **시범반도유보라아이비파크4.0**(동탄중앙초 **263m**, 동탄중앙고 **414m**)은 단지 하부 카림애비뉴 상권과 직결되어 반경 내 학원 **168개**를 엘리베이터 이동만으로 이용 가능한 독보적 면학 동선을 자랑하며, **동탄역시범우남퍼스트빌아파트**(화성청계초 **456m**, 청계중 **464m**)는 누적 1,000건 이상의 풍부한 거래 유동성으로 학기 전후 갈아타기 수요를 흡수합니다.
+
+#### (2) 남동탄 청림중·방교중 — 정현고·호연고 및 반송·목동 12년 학군 벨트
+예산 효율성과 균질한 면학 분위기를 중시하는 중·고등 학부모 수요는 남동탄 에듀타운, 동탄1 반송동, 중동탄 목동 축으로 폭넓게 분산됩니다.
+- 산척동 **동탄더샵레이크에듀타운**은 청림초(**248m**)·청림중(**361m**)·정현고(**255m**) 3개교가 모두 반경 360m 안에 모여 있는 보기 드문 12년 일체형 에듀타운이며, 장지동 **동탄레이크자연앤푸르지오**(호연초 **229m**, 호연고 **401m**) 역시 수변 정주 여건과 고교 근접성을 동시에 갖추고 있습니다.
+- 동탄1 반송동 **솔빛마을서해그랑블**(학원 **229개**, 솔빛중 **276m**)과 **나루마을신도브래뉴**(반송고 **199m**, 학원 **194개**, 동탄국제고 인접)는 이미 검증이 끝난 200여 개 입시 학원가 덕분에 라이딩 없는 자기주도 학습 동선이 완성되어 있으며, 중동탄 목동 **한신더휴**(한율초 **238m**, 동탄목동중 **215m**, 학원 **118개**)는 8억~9억 원대 신축 중·고교 학군 대안으로 실거래 지지력이 견고합니다.
+
+---
+
+### 3. 학령기 이사 비용을 아끼는 매수 의사결정 및 실거래 알림 활용법
+
+1. **초등 고학년 진입 전 12년 정주 단지 선점**: 중학교 배정 원서 접수 기준일 이전에 등기 및 전입 일정을 완료해야 하므로, 목표 단지의 최근 1·3개월 실거래 평균가와 전세가율을 미리 파악해 두어야 합니다.
+2. **야간 하원 보행 축 실사**: 밤 9~10시 학원가 종료 시간대에 상가 사거리에서 단지 정문까지 이어지는 보행자 도로의 유동 인구와 안전성을 직접 확인하시기 바랍니다.
+3. **오전 7시 실거래 알림 구독**: 학군지 단지는 방학 직전 단기 거래 집중 현상이 뚜렷하므로, 아래 **오전 7시 실거래 알림 받기**에서 희망 배정권 단지를 관심단지로 등록해 신규 계약 체결가를 매일 아침 확인하시기 바랍니다.
 `
   }
 ];
@@ -3833,6 +4325,12 @@ export function buildGuideArticleJsonLd(
     };
   });
 
+  const speakableSelectors = [
+    '#guide-key-takeaways',
+    '#guide-geo-fact-sheet',
+    ...(article.faqs && article.faqs.length > 0 ? ['#guide-faq-section'] : []),
+  ];
+
   const articleNode: Record<string, unknown> = {
     '@type': 'Article',
     '@id': `${currentUrl}#article`,
@@ -3854,6 +4352,17 @@ export function buildGuideArticleJsonLd(
     mainEntityOfPage: {
       '@type': 'WebPage',
       '@id': currentUrl,
+    },
+    isAccessibleForFree: true,
+    inLanguage: 'ko-KR',
+    speakable: {
+      '@type': 'SpeakableSpecification',
+      cssSelector: speakableSelectors,
+    },
+    isBasedOn: {
+      '@type': 'Dataset',
+      name: '국토교통부 실거래가 공개시스템 아파트 매매·전월세 실거래 데이터',
+      url: 'https://rt.molit.go.kr',
     },
     keywords: article.tags.join(','),
   };
@@ -3923,7 +4432,7 @@ export const TOP_POPULAR_GUIDE_SLUGS: readonly string[] = [
 ] as const;
 
 /**
- * Topic Clustering architecture grouping all 20 guides into 5 strategic semantic clusters.
+ * Topic Clustering architecture grouping all 23 guides into 5 strategic semantic clusters.
  */
 export const GUIDE_TOPIC_CLUSTERS: readonly GuideTopicCluster[] = [
   {
@@ -3939,6 +4448,7 @@ export const GUIDE_TOPIC_CLUSTERS: readonly GuideTopicCluster[] = [
       'dongtan-station-gbcx-vs-sibeom-comparison',
       'dongtan-new-town-culture-sin-dong-valuation',
       'dongtan-reconstruction-remodeling-1st-new-town-outlook',
+      'seoul-bundang-suwon-relocation-to-dongtan-zone-comparison',
     ],
     flagshipApartments: [
       '동탄역롯데캐슬',
@@ -3959,6 +4469,7 @@ export const GUIDE_TOPIC_CLUSTERS: readonly GuideTopicCluster[] = [
     guideSlugs: [
       'dongtan-school-zone-top-apartments',
       'dongtan-elementary-cho-pum-a-safety-index',
+      'dongtan-middle-high-school-progression-12year-edu-belt-guide',
     ],
     flagshipApartments: [
       '더샵센트럴시티',
@@ -3978,6 +4489,7 @@ export const GUIDE_TOPIC_CLUSTERS: readonly GuideTopicCluster[] = [
     guideSlugs: [
       'dongtan-indeogwon-line-station-impact-analysis',
       'gtx-a-tram-rail-network',
+      'dongtan-station-transfer-hub-gtx-a-samseong-commute-analysis',
       'dongtan-job-proximity-commuter-comparison',
       'dongtan-gyeongbu-underground-park-urban-renewal',
       'dongtan-yeoul-park-medical-welfare-zone-analysis',

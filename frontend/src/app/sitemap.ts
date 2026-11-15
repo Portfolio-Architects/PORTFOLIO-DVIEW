@@ -5,8 +5,9 @@ import { ZONES } from '@/lib/zones';
 import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import {
   getTxSummaryData,
-  getTechnoValleyJisanList,
-  formatTechnoValleyJisanSlug,
+  hasVerifiedApartmentSalePrice,
+  isAdSenseApprovalMode,
+  getAdSenseApprovalEliteAptSlugs,
 } from '@/lib/services/apartmentPageService';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
@@ -50,8 +51,8 @@ export function parseSitemapDate(
 }
 
 /**
- * Generates unified programmatic sitemap for D-VIEW (277 URLs).
- * @complexity Time: O(N), Space: O(N) where N = 277 programmatic entities
+ * Generates unified programmatic sitemap for D-VIEW (181 verified indexable URLs; 99 empty/zero-sale templates isolated via noindex).
+ * @complexity Time: O(N), Space: O(N) where N = 181 indexable entities
  * @sideEffects Read-only file cache and optional Firestore metadata read
  */
 export default async function sitemap(
@@ -90,7 +91,7 @@ export default async function sitemap(
     });
   });
 
-  // 1. Guide Articles (20 programmatic long-form comparison & valuation articles)
+  // 1. Guide Articles (23 programmatic long-form comparison & valuation articles)
   GUIDE_ARTICLES.forEach((article) => {
     routes.push({
       url: `${baseUrl}/guide/${article.slug}`,
@@ -110,27 +111,16 @@ export default async function sitemap(
     });
   });
 
-  // 3. TechnoValley Knowledge Industry Center Detail Routes (all 56 B2B centers via clean static paths)
-  try {
-    const jisanList = await getTechnoValleyJisanList();
-    jisanList.forEach((item) => {
-      const slug = formatTechnoValleyJisanSlug(item.name);
-      const rawJisanDate = item.completionDate || item.approvalDate || item.initialApprovalDate;
-      routes.push({
-        url: `${baseUrl}/technovalley/${encodeURIComponent(slug)}`,
-        lastModified: parseSitemapDate(rawJisanDate, staticFixedDate, nowDate),
-        changeFrequency: 'weekly',
-        priority: 0.85,
-      });
-    });
-  } catch (err) {
-    logger.error('Sitemap.technovalley', 'Failed to load TechnoValley Jisan list for sitemap', {}, err as Error);
-  }
+  const approvalMode = isAdSenseApprovalMode();
 
-  // 5. Apartment Routes (185 canonical apartments from tx-summary.json)
+  // 3. TechnoValley Knowledge Industry Center Detail Routes (56 B2B centers) are unconditionally isolated
+  // with `robots: noindex, follow` until MOLIT commercial real-transaction coverage exists (only `/technovalley` hub is indexed).
+
+  // 4. Apartment Routes (142 verified-sale complexes in standard mode; Top 40 flagship complexes in AdSense approval mode; 43 zero-sale complexes isolated via noindex)
   try {
     const txSummary = await getTxSummaryData();
     const aptNames = Object.keys(txSummary || {});
+    const eliteAptSlugs = approvalMode ? getAdSenseApprovalEliteAptSlugs(txSummary) : null;
 
     const reportsMap = new Map<string, string[]>();
     if (adminDb) {
@@ -163,18 +153,27 @@ export default async function sitemap(
     const seenCanonicalSlugs = new Set<string>();
     aptNames.forEach((aptName) => {
       const aptSummary = txSummary[aptName];
-      const canonicalSlug =
+      const canonicalSlug = (
         resolveCanonicalAptSlug(aptName, {
           txMap: txSummary,
           dong: aptSummary?.dong,
-        }) || aptName;
+        }) || aptName
+      ).normalize('NFC');
       if (seenCanonicalSlugs.has(canonicalSlug)) {
         return;
       }
       seenCanonicalSlugs.add(canonicalSlug);
 
+      const canonicalSummary = txSummary[canonicalSlug] || aptSummary;
+      if (!hasVerifiedApartmentSalePrice(canonicalSummary)) {
+        return;
+      }
+      if (eliteAptSlugs && !eliteAptSlugs.has(canonicalSlug)) {
+        return;
+      }
+
       const images = reportsMap.get(canonicalSlug) || reportsMap.get(aptName);
-      const lastModified = parseSitemapDate(aptSummary?.latestDate, nowDate);
+      const lastModified = parseSitemapDate(canonicalSummary?.latestDate, nowDate);
 
       const routeData: MetadataRoute.Sitemap[number] & { images?: string[] } = {
         url: `${baseUrl}/apartment/${encodeURIComponent(canonicalSlug)}`,

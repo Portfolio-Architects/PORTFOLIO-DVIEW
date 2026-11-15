@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, ReactNode, useRe
 import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offlineQueue';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { initSafeReloadDiagnostics } from '@/lib/utils/safeReload';
+import { isAppleTouchDevice } from '@/lib/utils/bodyScrollLock';
 import { logger } from '@/lib/services/logger';
 import { X } from 'lucide-react';
 
@@ -34,6 +35,7 @@ interface PWAContextType {
   unsubscribeFromPush: (aptName?: string | null) => Promise<boolean>;
   showToast: (message: string) => void;
   isIOS: boolean;
+  isStandalone: boolean;
 }
 
 const PWAContext = createContext<PWAContextType>({
@@ -49,6 +51,7 @@ const PWAContext = createContext<PWAContextType>({
   unsubscribeFromPush: async (aptName?: string | null) => false,
   showToast: () => {},
   isIOS: false,
+  isStandalone: false,
 });
 
 export const usePWA = () => useContext(PWAContext);
@@ -169,6 +172,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   const [isInstallable, setIsInstallable] = useState(false);
   const [showCustomA2HSModal, setShowCustomA2HSModal] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isStandalone, setIsStandalone] = useState(false);
   
   // Push Notification state
   const [isPushSupported, setIsPushSupported] = useState(false);
@@ -261,19 +265,24 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
     // Clear old SWR localStorage cache to ensure returning users get fresh data
     safeLocalRemove('dview-swr-cache');
 
-    // iOS detection and manual installation guide eligibility
-    const ua = window.navigator.userAgent.toLowerCase();
-    const isIphone = ua.includes('iphone') || ua.includes('ipad') || ua.includes('ipod');
-    let isStandalone = false;
+    // iOS / iPadOS detection and manual installation guide eligibility
+    const isAppleMobile = isAppleTouchDevice(
+      window.navigator.userAgent,
+      window.navigator.maxTouchPoints
+    );
+    let standaloneDetected = false;
     try {
-      isStandalone = Boolean(window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone);
+      standaloneDetected = Boolean(
+        window.matchMedia?.('(display-mode: standalone)')?.matches || window.navigator.standalone
+      );
     } catch {
-      isStandalone = false;
+      standaloneDetected = false;
     }
+    setIsStandalone(standaloneDetected);
 
-    if (isIphone) {
+    if (isAppleMobile) {
       setIsIOS(true);
-      if (!isStandalone) {
+      if (!standaloneDetected) {
         setIsInstallable(true);
       }
     }
@@ -505,7 +514,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
   };
 
   const triggerCustomA2HSModal = () => {
-    if (isInstallable && (deferredPrompt || isIOS)) {
+    if ((isInstallable && (deferredPrompt || isIOS)) || (isIOS && !isStandalone)) {
       setShowCustomA2HSModal(true);
     }
   };
@@ -691,6 +700,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
         unsubscribeFromPush,
         showToast,
         isIOS,
+        isStandalone,
       }}
     >
       <React.Suspense fallback={null}>

@@ -24,6 +24,7 @@ let clientFavoriteCountsInFlight: Promise<unknown> | null = null;
 
 export interface UseFavoritesOptions {
   fetchGlobalCounts?: boolean;
+  skipRemoteInTest?: boolean;
 }
 
 export function useFavorites(
@@ -35,6 +36,7 @@ export function useFavorites(
   const [favoriteCounts, setFavoriteCounts] = useState<Record<string, number>>(initialFavoriteCounts);
   const isMountedRef = useRef(true);
   const fetchGlobalCounts = options?.fetchGlobalCounts ?? false;
+  const skipRemoteInTest = options?.skipRemoteInTest ?? false;
 
   useEffect(() => {
     isMountedRef.current = true;
@@ -101,7 +103,7 @@ export function useFavorites(
   // Fetch global favorite counts only in test environment or when explicitly opted in
   useEffect(() => {
     const isTest = process.env.NODE_ENV === 'test';
-    if (!isTest && !fetchGlobalCounts) {
+    if ((!isTest && !fetchGlobalCounts) || skipRemoteInTest) {
       return;
     }
 
@@ -153,7 +155,7 @@ export function useFavorites(
     return () => {
       controller.abort();
     };
-  }, [fetchGlobalCounts]);
+  }, [fetchGlobalCounts, skipRemoteInTest]);
 
   const isFavorited = useCallback(
     (aptName: string, nameMapping?: Record<string, string>): boolean => {

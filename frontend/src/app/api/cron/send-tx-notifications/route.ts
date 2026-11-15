@@ -6,7 +6,10 @@ import fs from 'fs';
 import { logger } from '@/lib/services/logger';
 import { apiSuccess, apiError } from '@/lib/api/apiResponse';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
-import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
+import {
+  resolveCanonicalAptSlug,
+  resolvePushSubscriptionAptAliases,
+} from '@/lib/utils/apartmentMapping';
 import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
 
 export const runtime = 'nodejs';
@@ -328,13 +331,34 @@ export async function GET(req: NextRequest) {
 
     const dispatchQueue: DispatchTask[] = [];
 
-    // 8.1 Build tasks for apartment-specific subscribers
+    // 8.1 Build tasks for apartment-specific subscribers (matches canonical txKey, spaced displayName, and raw MOLIT aptName)
     for (const aptName of Object.keys(txByApt)) {
       const aptTransactions = txByApt[aptName];
-      const subSnapshot = await firestore
-        .collection('push_subscriptions')
-        .where('apts', 'array-contains', aptName)
-        .get();
+      const sampleTx = aptTransactions[0];
+      const aptAliases = resolvePushSubscriptionAptAliases(aptName, {
+        txKey: sampleTx?.txKey,
+        dong: sampleTx?.dong,
+      });
+
+      let subSnapshot;
+      if (aptAliases.length > 1) {
+        try {
+          subSnapshot = await firestore
+            .collection('push_subscriptions')
+            .where('apts', 'array-contains-any', aptAliases)
+            .get();
+        } catch {
+          subSnapshot = await firestore
+            .collection('push_subscriptions')
+            .where('apts', 'array-contains', aptName)
+            .get();
+        }
+      } else {
+        subSnapshot = await firestore
+          .collection('push_subscriptions')
+          .where('apts', 'array-contains', aptName)
+          .get();
+      }
 
       if (subSnapshot.empty) continue;
 

@@ -1,9 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import * as NextNavigation from 'next/navigation';
 import { X } from 'lucide-react';
 import { AdSlot } from '@/components/ads/AdSlot';
 import { adRefreshManager } from '@/lib/ads/adRefreshManager';
+import { isNoindexAdExcludedPath } from '@/lib/ads/noindexAdGuard';
+import { useDocumentNoindexMeta } from '@/lib/ads/useDocumentNoindexMeta';
+
+function useSafePathname(): string | null {
+  const hook = (NextNavigation as { usePathname?: () => string | null }).usePathname;
+  return typeof hook === 'function' ? hook() : null;
+}
 
 export const MOBILE_ANCHOR_SLOT_ENV_KEY = 'NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR';
 export const MOBILE_ANCHOR_REFRESH_SLOT_ID = 'mobile_sticky_anchor';
@@ -29,6 +37,8 @@ export function MobileStickyAnchorAd({
   refreshSlotId = MOBILE_ANCHOR_REFRESH_SLOT_ID,
   className = '',
 }: MobileStickyAnchorAdProps) {
+  const pathname = useSafePathname();
+  const hasClientNoindexMeta = useDocumentNoindexMeta(pathname);
   const [isMobileViewport, setIsMobileViewport] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isKeyboardOpen, setIsKeyboardOpen] = useState(false);
@@ -36,10 +46,18 @@ export function MobileStickyAnchorAd({
   const wasMobileViewportRef = useRef<boolean>(false);
 
   const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+  const isNoindexSuppressed = isNoindexAdExcludedPath(pathname) || hasClientNoindexMeta;
+  const isSuppressed = isApprovalMode || isNoindexSuppressed;
   const anchorSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ANCHOR?.trim() || '';
 
   useEffect(() => {
-    if (typeof window === 'undefined' || isApprovalMode || isDismissed) return;
+    if (typeof window === 'undefined' || isSuppressed || isDismissed) {
+      if (wasMobileViewportRef.current) {
+        adRefreshManager.unobserve(refreshSlotId);
+        wasMobileViewportRef.current = false;
+      }
+      return;
+    }
 
     const syncViewportMatch = (matches: boolean) => {
       if (wasMobileViewportRef.current && !matches) {
@@ -95,10 +113,10 @@ export function MobileStickyAnchorAd({
     }
 
     return cleanupObservedSlot;
-  }, [isApprovalMode, isDismissed, refreshSlotId]);
+  }, [isSuppressed, isDismissed, refreshSlotId]);
 
   useEffect(() => {
-    if (typeof document === 'undefined' || isApprovalMode || isDismissed || !isMobileViewport) {
+    if (typeof document === 'undefined' || isSuppressed || isDismissed || !isMobileViewport) {
       return;
     }
 
@@ -113,13 +131,13 @@ export function MobileStickyAnchorAd({
     return () => {
       document.removeEventListener('visibilitychange', syncVisibilityState);
     };
-  }, [isApprovalMode, isDismissed, isMobileViewport]);
+  }, [isSuppressed, isDismissed, isMobileViewport]);
 
   useEffect(() => {
     if (
       typeof window === 'undefined' ||
       !window.visualViewport ||
-      isApprovalMode ||
+      isSuppressed ||
       isDismissed ||
       !isMobileViewport
     ) {
@@ -137,14 +155,14 @@ export function MobileStickyAnchorAd({
     return () => {
       window.visualViewport?.removeEventListener('resize', handleViewportResize);
     };
-  }, [isApprovalMode, isDismissed, isMobileViewport]);
+  }, [isSuppressed, isDismissed, isMobileViewport]);
 
   const handleDismiss = useCallback(() => {
     setIsDismissed(true);
     adRefreshManager.unobserve(refreshSlotId);
   }, [refreshSlotId]);
 
-  if (isApprovalMode || isDismissed || !isMobileViewport) {
+  if (isSuppressed || isDismissed || !isMobileViewport) {
     return null;
   }
 

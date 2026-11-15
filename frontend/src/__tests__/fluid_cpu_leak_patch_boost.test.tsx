@@ -196,9 +196,9 @@ describe('Fluid Active CPU Leak Patch Verification Suite (Priorities 1-5)', () =
     });
   });
 
-  describe('Priority 2: Static JSON-backed ISR pages revalidate = 86400 (24 hours)', () => {
-    it('exports revalidate = 86400 across apartment detail, home, overview, explore, news, lounge, sitemap, and technovalley', () => {
-      expect(apartmentRevalidate).toBe(86400);
+  describe('Priority 2: Pure SSG apartment detail (revalidate = false) & Static JSON-backed ISR hubs revalidate = 86400', () => {
+    it('exports revalidate = false on apartment detail (Pure SSG) and revalidate = 86400 across home, overview, explore, news, lounge, sitemap, and technovalley', () => {
+      expect(apartmentRevalidate).toBe(false);
       expect(homeRevalidate).toBe(86400);
       expect(overviewRevalidate).toBe(86400);
       expect(overviewDynamic).toBe('force-static');

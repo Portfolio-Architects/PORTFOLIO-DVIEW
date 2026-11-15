@@ -87,7 +87,7 @@ const EMOJI_REGEX = /[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
 
 describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () => {
   describe('1. Sitemap (sitemap.ts) Real Transaction Date Parsing & Invariants', () => {
-    it('parses YYYYMMDD, YYYY-MM-DD, YYYY.MM.DD, and ISO dates into UTC Date objects, rejects impossible calendar rollover dates, caps future/invalid dates safely, and preserves 277 URLs', async () => {
+    it('parses YYYYMMDD, YYYY-MM-DD, YYYY.MM.DD, and ISO dates into UTC Date objects, rejects impossible calendar rollover dates, caps future/invalid dates safely, and preserves 280 URLs', async () => {
       const fallback = new Date('2026-06-26T00:00:00.000Z');
       const refNow = new Date('2026-11-07T12:00:00.000Z');
 
@@ -116,7 +116,7 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
       expect(nonZeroSitemap).toEqual([]);
 
       const entries = await sitemap({ id: 0 });
-      expect(entries).toHaveLength(277);
+      expect(entries).toHaveLength(181);
 
       const txSummary = await getTxSummaryData();
       const richeSummary = txSummary['동탄역시범리슈빌아파트'];
@@ -138,11 +138,20 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
         expectedRicheUtc.toISOString()
       );
 
-      // Verify TechnoValley Jisan entries parse real 8-digit completion/approval dates <= nowDate
+      // Verify TechnoValley Jisan detail pages (56 empty templates) are excluded from sitemap while parseSitemapDate handles all 56 8-digit dates <= nowDate
       const jisanList = await getTechnoValleyJisanList();
       expect(jisanList).toHaveLength(56);
       const jisanEntries = entries.filter((e) => e.url.includes('/technovalley/'));
-      expect(jisanEntries).toHaveLength(56);
+      expect(jisanEntries).toHaveLength(0);
+      for (const item of jisanList) {
+        const parsedJisanDate = parseSitemapDate(
+          item.completionDate || item.approvalDate || item.initialApprovalDate,
+          fallback,
+          refNow
+        );
+        expect(Number.isNaN(parsedJisanDate.getTime())).toBe(false);
+        expect(parsedJisanDate.getTime()).toBeLessThanOrEqual(refNow.getTime());
+      }
 
       const nowMs = Date.now() + 60_000;
       for (const entry of entries) {
@@ -281,7 +290,7 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
       expect(parsedLd.isPartOf).toEqual({ '@id': 'https://dongtanview.com/#website' });
       expect(parsedLd.breadcrumb?.['@type']).toBe('BreadcrumbList');
       expect(parsedLd.breadcrumb?.itemListElement).toHaveLength(2);
-      expect(parsedLd.hasPart).toHaveLength(20);
+      expect(parsedLd.hasPart).toHaveLength(23);
       unmount();
     });
   });
@@ -387,7 +396,7 @@ describe('GSC 50·100 Clicks Milestone SEO Enhancement Verification Suite', () =
           clusteredSlugs.add(gSlug);
         }
       }
-      expect(clusteredSlugs.size).toBe(20);
+      expect(clusteredSlugs.size).toBe(23);
 
       for (const article of GUIDE_ARTICLES) {
         expect(article.topicClusterId).toBeDefined();

@@ -18,6 +18,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
+import GuideMorningAlertRetentionCard from '@/components/guide/GuideMorningAlertRetentionCard';
 
 const GUIDE_HUB_OG_IMAGE =
   'https://dongtanview.com/api/og?title=' +
@@ -50,6 +51,9 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: 'https://dongtanview.com/guide',
+    types: {
+      'application/rss+xml': 'https://dongtanview.com/feed.xml',
+    },
   },
   openGraph: {
     title: '동탄 부동산 비교 가이드 (동탄1 vs 2 · 동탄역 vs 호수공원 · 광비콤 vs 시범단지) | D-VIEW',
@@ -132,6 +136,9 @@ export default function GuideIndexPage() {
   };
 
   const lakeEduPreview = buildGuideAptMiniPreview('동탄더샵레이크에듀타운');
+  const hubRetentionApts = HIGH_CONVERSION_FLAGSHIP_APARTMENTS.map((name) =>
+    buildGuideAptMiniPreview(name)
+  ).filter((item): item is NonNullable<typeof item> => item !== null);
 
   return (
     <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
@@ -415,6 +422,14 @@ export default function GuideIndexPage() {
               </article>
             ))}
           </div>
+
+          {/* Morning 7 AM Real-Transaction Alert & Watchlist Revisit Retention Card */}
+          <GuideMorningAlertRetentionCard
+            guideSlug="guide-index"
+            apartments={hubRetentionApts}
+            surface="guide_hub"
+            sectionId="guide-hub-morning-alert-retention"
+          />
 
           {/* Recirculation Hub Links */}
           <section className="bg-surface border border-border/80 rounded-2xl p-5 sm:p-6 lg:p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">

@@ -171,7 +171,7 @@ const LoungeHeader = React.memo(function LoungeHeader({ activeTab = 'overview', 
                 <Link
                   href="/guide"
                   prefetch={false}
-                  title="동탄 부동산 20개 심층 비교 분석 가이드"
+                  title="동탄 부동산 23개 심층 비교 분석 가이드"
                   onClick={(e) => handleNavClick(e, '/guide', 'guide')}
                   className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] px-4 py-2 text-[13px] font-extrabold transition-colors duration-75 rounded-[12px] ${
                     activeTab === 'guide'

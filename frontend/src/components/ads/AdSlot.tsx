@@ -1,7 +1,10 @@
 'use client';
 
 import React, { useRef, useState, useCallback, useId, useEffect, useMemo } from 'react';
+import * as NextNavigation from 'next/navigation';
 import { useAdBlockDetector } from '@/hooks/useAdBlockDetector';
+import { isNoindexAdExcludedPath } from '@/lib/ads/noindexAdGuard';
+import { useDocumentNoindexMeta } from '@/lib/ads/useDocumentNoindexMeta';
 import { logger } from '@/lib/services/logger';
 import {
   adRefreshManager,
@@ -146,6 +149,11 @@ function trimNonEmptySlotId(value?: string): string | undefined {
   return trimmed && trimmed.length > 0 ? trimmed : undefined;
 }
 
+function useSafePathname(): string | null {
+  const hook = (NextNavigation as { usePathname?: () => string | null }).usePathname;
+  return typeof hook === 'function' ? hook() : null;
+}
+
 export function resolveDefaultAdSenseSlotId(format: AdSlotFormat = 'auto'): string {
   const loungeDetail = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_LOUNGE_DETAIL);
   const aptModal = trimNonEmptySlotId(process.env.NEXT_PUBLIC_ADSENSE_SLOT_APT_MODAL);
@@ -195,6 +203,8 @@ export function AdSlot({
   customCpaPayload,
 }: AdSlotProps) {
   const instanceId = useId();
+  const pathname = useSafePathname();
+  const hasClientNoindexMeta = useDocumentNoindexMeta(pathname, testMode);
   const { isAdBlockActive } = useAdBlockDetector();
   const [isAdLoaded, setIsAdLoaded] = useState(false);
   const [totalRefreshCount, setTotalRefreshCount] = useState(0);
@@ -237,7 +247,16 @@ export function AdSlot({
 
   const clientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
   const isDev = process.env.NODE_ENV === 'development';
-  const isPlaceholder = Boolean(testMode || !clientId || (isDev && !testMode));
+  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+  const isNoindexSuppressed =
+    !testMode && (isNoindexAdExcludedPath(pathname) || hasClientNoindexMeta);
+  const isPlaceholder = Boolean(
+    testMode ||
+      !clientId ||
+      (isDev && !testMode) ||
+      (!testMode && isApprovalMode) ||
+      isNoindexSuppressed
+  );
 
   const minHeightClass = propMinHeightClass || getAdSlotMinHeightClass(format);
 
@@ -527,7 +546,7 @@ export function AdSlot({
 
   // Dispatch ADBLOCK_FALLBACK beacon when adblock fallback is active
   useEffect(() => {
-    if (process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true' && !testMode) {
+    if ((isApprovalMode || isNoindexSuppressed) && !testMode) {
       return;
     }
     if (!isAdBlockActive) {
@@ -550,6 +569,8 @@ export function AdSlot({
       });
     }
   }, [
+    isApprovalMode,
+    isNoindexSuppressed,
     isAdBlockActive,
     testMode,
     effectiveSlotId,
@@ -623,8 +644,7 @@ export function AdSlot({
     startCascadeTimeout,
   });
 
-  const isApprovalMode = process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
-  if (isApprovalMode && !testMode) {
+  if ((isApprovalMode || isNoindexSuppressed) && !testMode) {
     return null;
   }
 

@@ -10,6 +10,8 @@ import {
   Building2,
   MapPin,
   Layers,
+  BellRing,
+  ShieldCheck,
 } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
@@ -39,6 +41,10 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
+import GuideMobileScrollDepthBar, {
+  type GuideSectionAnchorItem,
+} from '@/components/guide/GuideMobileScrollDepthBar';
+import GuideMorningAlertRetentionCard from '@/components/guide/GuideMorningAlertRetentionCard';
 import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
@@ -48,7 +54,9 @@ import {
   CANONICAL_TX_SUMMARY_MAP,
 } from '@/lib/utils/canonicalAptCatalog';
 
-export const revalidate = 86400;
+export const dynamic = 'force-static';
+export const revalidate = false;
+export const dynamicParams = false;
 
 export async function generateStaticParams() {
   return GUIDE_ARTICLES.map((article) => ({
@@ -61,7 +69,12 @@ export async function generateMetadata(props: {
 }): Promise<Metadata> {
   const params = await props.params;
   const article = GUIDE_ARTICLES.find((a) => a.slug === params.slug);
-  if (!article) return { title: '가이드를 찾을 수 없습니다 | D-VIEW' };
+  if (!article) {
+    return {
+      title: '가이드를 찾을 수 없습니다 | D-VIEW',
+      robots: { index: false, follow: false },
+    };
+  }
 
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const url = `${baseUrl}/guide/${article.slug}`;
@@ -75,6 +88,9 @@ export async function generateMetadata(props: {
     keywords: article.tags.join(', '),
     alternates: {
       canonical: url,
+      types: {
+        'application/rss+xml': `${baseUrl}/feed.xml`,
+      },
     },
     openGraph: {
       title: metaTitle,
@@ -245,6 +261,45 @@ function isMarkdownTableSeparator(line: string): boolean {
   return cells.length > 0 && cells.every((c) => /^:?-{2,}:?$/.test(c));
 }
 
+export interface ExtractedGuideHeading {
+  id: string;
+  index: number;
+  title: string;
+  label: string;
+}
+
+export function extractGuideSectionHeadings(rawContent: string): ExtractedGuideHeading[] {
+  if (!rawContent) return [];
+  const withoutCodeFences = rawContent.replace(/```[\s\S]*?```/g, '');
+  const lines = withoutCodeFences.split(/\r?\n/);
+  const headings: ExtractedGuideHeading[] = [];
+  let index = 0;
+
+  for (const rawLine of lines) {
+    const trimmed = rawLine.trim();
+    if (!trimmed.startsWith('### ') || trimmed.startsWith('#### ')) continue;
+    const cleanTitle = trimmed
+      .slice(4)
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/\*\*/g, '')
+      .trim();
+    if (!cleanTitle) continue;
+    index += 1;
+    const compactBase = cleanTitle.replace(/^\d+\.\s*/, '').trim();
+    const compactChars = Array.from(compactBase);
+    const truncated =
+      compactChars.length > 14 ? `${compactChars.slice(0, 14).join('').trim()}…` : compactBase;
+    headings.push({
+      id: `guide-section-${index}`,
+      index,
+      title: cleanTitle,
+      label: `${index}. ${truncated || cleanTitle}`,
+    });
+  }
+
+  return headings;
+}
+
 export function renderGuideBodyContent(
   rawContent: string,
   options?: {
@@ -275,6 +330,7 @@ export function renderGuideBodyContent(
   let activeZonePreview: ResolvedGuideZoneSectionPreview | null = null;
   let activeZonePreviewLevel: 3 | 4 | null = null;
   let emittedZonePreviewCount = 0;
+  let h3SectionCounter = 0;
   const emittedHeadings = new Set<string>();
 
   const renderMidConversionActionBar = (
@@ -514,6 +570,15 @@ export function renderGuideBodyContent(
     if (trimmed.startsWith('### ')) {
       flushActiveZonePreview(`before-h3-${i}`);
       const headingText = trimmed.slice(4).trim();
+      const cleanedHeadingText = headingText
+        .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+        .replace(/\*\*/g, '')
+        .trim();
+      let sectionAnchorId: string | undefined;
+      if (cleanedHeadingText) {
+        h3SectionCounter += 1;
+        sectionAnchorId = `guide-section-${h3SectionCounter}`;
+      }
       const matchedH3 = findHeadingPreview(headingText);
       if (matchedH3) {
         activeZonePreview = matchedH3;
@@ -522,7 +587,8 @@ export function renderGuideBodyContent(
       elements.push(
         <h3
           key={`h3-${i}`}
-          className="text-xl sm:text-2xl font-black text-primary tracking-tight mt-10 mb-4 pb-2 border-b border-border/40"
+          id={sectionAnchorId}
+          className="scroll-mt-40 md:scroll-mt-48 text-xl sm:text-2xl font-black text-primary tracking-tight mt-10 mb-4 pb-2 border-b border-border/40"
         >
           {renderInlineBold(headingText, inlineSlugLookup, guideSlug)}
         </h3>
@@ -570,7 +636,7 @@ export function renderGuideBodyContent(
       const dataRows = contentRows.slice(1);
 
       elements.push(
-        <div key={`table-${startIdx}`} className="overflow-x-auto my-6 rounded-xl border border-border/60">
+        <div key={`table-${startIdx}`} className="overflow-x-auto overscroll-x-contain my-6 rounded-xl border border-border/60">
           <table className="w-full text-left text-[12.5px] text-secondary">
             <thead className="bg-body text-primary font-bold border-b border-border/60">
               <tr>
@@ -833,6 +899,63 @@ export default async function GuideArticlePage(props: {
   const primaryPreviewApt =
     featuredAptRows[0] || zoneSectionPreviews[0]?.items[0] || headToHeadRows[0]?.left;
 
+  const extractedHeadings = extractGuideSectionHeadings(article.content);
+  const tocSections: GuideSectionAnchorItem[] = [
+    ...extractedHeadings.map((h) => ({
+      id: h.id,
+      label: h.label,
+      fullTitle: h.title,
+    })),
+    ...(headToHeadRows.length > 0
+      ? [
+          {
+            id: 'guide-head-to-head-comparison',
+            label: '1:1 맞대결',
+            fullTitle: '핵심 대표 단지 1:1 실거래 맞대결',
+          },
+        ]
+      : []),
+    ...(featuredAptRows.length > 0 || featuredZoneItems.length > 0
+      ? [
+          {
+            id: 'guide-live-data-comparison',
+            label: '실거래 비교표',
+            fullTitle: '국토교통부 최신 실거래가 비교표',
+          },
+        ]
+      : []),
+    {
+      id: 'guide-morning-alert-retention',
+      label: '07시 알림',
+      fullTitle: '오전 7시 실거래 알림 및 관심단지 저장',
+    },
+    ...(article.faqs && article.faqs.length > 0
+      ? [
+          {
+            id: 'guide-faq-section',
+            label: 'FAQ',
+            fullTitle: '자주 묻는 핵심 질문 (FAQ)',
+          },
+        ]
+      : []),
+  ];
+
+  const pricedFeaturedRows = featuredAptRows.filter((row) => row.latestPrice > 0);
+  const sortedByPrice = [...pricedFeaturedRows].sort((a, b) => a.latestPrice - b.latestPrice);
+  const minPriceRow = sortedByPrice[0] || null;
+  const maxPriceRow =
+    sortedByPrice.length > 0 ? sortedByPrice[sortedByPrice.length - 1] : null;
+  const latestVerifiedTxDate =
+    featuredAptRows
+      .map((row) => row.latestDate)
+      .filter((d): d is string => Boolean(d && /^\d{4}-\d{2}-\d{2}$/.test(d)))
+      .sort()
+      .pop() ||
+    article.updatedDate ||
+    article.date;
+  const retentionApartments =
+    featuredAptRows.length > 0 ? featuredAptRows : topRepAptCtas;
+
   return (
     <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
       <script
@@ -908,22 +1031,84 @@ export default async function GuideArticlePage(props: {
               </p>
             </header>
 
+            {/* Mobile Scroll Depth & Chapter Quick-Jump Sticky Bar */}
+            <GuideMobileScrollDepthBar guideSlug={article.slug} sections={tocSections} />
+
+            {/* SSR GEO Real-Data Citation Fact Strip (AI Search & Naver SERP Verification) */}
+            <section
+              id="guide-geo-fact-sheet"
+              data-testid="guide-geo-fact-sheet"
+              aria-label="국토교통부 실거래 데이터 검증 요약"
+              className="scroll-mt-40 md:scroll-mt-48 rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-3.5 sm:p-4 grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs box-border"
+            >
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[11px] font-bold text-tertiary block truncate">
+                  실거래 검증 단지
+                </span>
+                <strong className="text-sm font-black text-primary tabular-nums block truncate">
+                  {featuredAptRows.length > 0 ? `${featuredAptRows.length}개 대표 단지` : '184개 동탄 단지'}
+                </strong>
+              </div>
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[11px] font-bold text-tertiary block truncate">
+                  실거래 가격 범위
+                </span>
+                <strong className="text-sm font-black text-emerald-700 dark:text-emerald-400 tabular-nums block truncate">
+                  {minPriceRow && maxPriceRow
+                    ? minPriceRow.canonicalSlug === maxPriceRow.canonicalSlug
+                      ? minPriceRow.latestPriceStr
+                      : `${minPriceRow.latestPriceStr} ~ ${maxPriceRow.latestPriceStr}`
+                    : '국토부 실거래 연동'}
+                </strong>
+              </div>
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[11px] font-bold text-tertiary block truncate">
+                  최신 실거래 기준일
+                </span>
+                <strong className="text-sm font-black text-primary tabular-nums block truncate">
+                  {latestVerifiedTxDate}
+                </strong>
+              </div>
+              <div className="space-y-0.5 min-w-0">
+                <span className="text-[11px] font-bold text-tertiary block truncate">
+                  공공데이터 원천
+                </span>
+                <strong className="text-sm font-black text-blue-700 dark:text-blue-400 inline-flex items-center gap-1 truncate">
+                  <ShieldCheck size={13} className="shrink-0" />
+                  <span className="truncate">국토교통부 실거래가</span>
+                </strong>
+              </div>
+            </section>
+
             {/* Key Takeaways Callout + Above-the-Fold Representative Complex Instant CTA Bar */}
-            <div className="bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-4">
+            <div
+              id="guide-key-takeaways"
+              className="scroll-mt-40 md:scroll-mt-48 bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-4"
+            >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
                   <span>본 리포트의 핵심 결론 및 요약 (Key Takeaways)</span>
                 </div>
-                <Link
-                  href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
-                  prefetch={false}
-                  data-testid="guide-top-stats-comparison-cta"
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs shrink-0"
-                >
-                  <Scale size={13} />
-                  <span>동탄1 vs 동탄2 실시간 집값 통계 비교표 열기</span>
-                  <ArrowUpRight size={13} />
-                </Link>
+                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                  <a
+                    href="#guide-morning-alert-retention"
+                    data-testid="guide-top-morning-alert-jump"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-extrabold transition-colors shrink-0"
+                  >
+                    <BellRing size={13} />
+                    <span>오전 7시 실거래 알림</span>
+                  </a>
+                  <Link
+                    href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
+                    prefetch={false}
+                    data-testid="guide-top-stats-comparison-cta"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs shrink-0"
+                  >
+                    <Scale size={13} />
+                    <span>동탄1 vs 동탄2 실시간 집값 통계 비교표 열기</span>
+                    <ArrowUpRight size={13} />
+                  </Link>
+                </div>
               </div>
               <ul className="space-y-2 text-[13px] sm:text-[14px] text-secondary font-medium pl-5 list-disc">
                 {article.keyTakeaways.map((point, idx) => (
@@ -1368,7 +1553,7 @@ export default async function GuideArticlePage(props: {
               <section
                 id="guide-head-to-head-comparison"
                 aria-label="핵심 단지 1:1 국토교통부 실거래 맞대결 비교"
-                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
+                className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
               >
                 <div>
                   <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
@@ -1508,7 +1693,7 @@ export default async function GuideArticlePage(props: {
               <section
                 id="guide-live-data-comparison"
                 aria-label="리포트 연관 주요 아파트 국토교통부 실거래 비교표"
-                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
+                className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-5"
               >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
@@ -1599,6 +1784,13 @@ export default async function GuideArticlePage(props: {
               placement="guide_article_bottom"
             />
 
+            {/* Morning 7 AM Real-Transaction Alert & Watchlist Revisit Retention CTA */}
+            <GuideMorningAlertRetentionCard
+              guideSlug={article.slug}
+              apartments={retentionApartments}
+              surface="guide_article_bottom"
+            />
+
             {/* Topic Cluster & Popular Guide Internal Cross-Linking Hub */}
             {clusterRelatedGuides.length > 0 && (
               <section
@@ -1628,7 +1820,7 @@ export default async function GuideArticlePage(props: {
                     prefetch={false}
                     className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 text-xs font-extrabold transition-colors w-fit shrink-0"
                   >
-                    <span>전체 20개 가이드 허브</span>
+                    <span>전체 {GUIDE_ARTICLES.length}개 가이드 허브</span>
                     <ArrowUpRight size={13} />
                   </Link>
                 </div>
@@ -1718,7 +1910,7 @@ export default async function GuideArticlePage(props: {
                 {/* 5-Cluster Pillar Cross-Navigation Bar */}
                 <div className="rounded-xl border border-slate-200/80 dark:border-slate-800 bg-white/80 dark:bg-slate-900/40 p-3.5 space-y-2">
                   <span className="block text-[11.5px] font-extrabold text-slate-700 dark:text-slate-300">
-                    5대 핵심 토픽 클러스터 대표 가이드 (20개 리포트 전체 연결)
+                    5대 핵심 토픽 클러스터 대표 가이드 ({GUIDE_ARTICLES.length}개 리포트 전체 연결)
                   </span>
                   <div className="flex flex-wrap items-center gap-2">
                     {GUIDE_TOPIC_CLUSTERS.map((cluster) => {
@@ -1750,7 +1942,7 @@ export default async function GuideArticlePage(props: {
               <section
                 id="guide-faq-section"
                 aria-label="리포트 자주 묻는 핵심 질문 FAQ"
-                className="pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4"
+                className="scroll-mt-40 md:scroll-mt-48 pt-6 border-t border-slate-200 dark:border-slate-800 space-y-4"
               >
                 <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight flex items-center gap-2">
                   <HelpCircle size={19} className="text-blue-600 dark:text-blue-400 shrink-0" />

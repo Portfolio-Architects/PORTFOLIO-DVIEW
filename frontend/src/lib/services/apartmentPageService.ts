@@ -23,6 +23,7 @@ import {
 } from '@/lib/utils/apartmentMapping';
 import { logger } from '@/lib/services/logger';
 import { dongToZoneId } from '@/lib/zones';
+import { GUIDE_ARTICLES } from '@/lib/data/guides';
 import {
   decodeAptName,
   formatPriceEok,
@@ -63,6 +64,144 @@ export {
   type MolitLatestTradeSummary,
   type PriceAnalytics,
 };
+
+export const ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT = 40;
+
+export function isAdSenseApprovalMode(): boolean {
+  return process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE === 'true';
+}
+
+/**
+ * Returns true iff the apartment has a verified MOLIT sale transaction price (`latestPrice > 0`).
+ * Rental-only (LH / 행복주택 / 국민임대 / 영구임대) and unregistered zero-sale complexes (43/185) return false
+ * and are unconditionally isolated with `noindex, follow` + excluded from `sitemap.xml`.
+ */
+export function hasVerifiedApartmentSalePrice(summary?: AptTxSummary | null): boolean {
+  return Boolean(
+    summary &&
+      typeof summary.latestPrice === 'number' &&
+      Number.isFinite(summary.latestPrice) &&
+      summary.latestPrice > 0
+  );
+}
+
+const eliteAptSlugsCache = new WeakMap<Record<string, AptTxSummary>, Set<string>>();
+
+/**
+ * Selects the top verified flagship apartment canonical slugs for AdSense Approval Mode.
+ * Requires verified MOLIT sale price (> 0) and rent deposit (> 0), prioritizing guide-featured
+ * complexes and high-liquidity Dongtan benchmarks across zones while excluding 0-sale rental complexes.
+ */
+export function getAdSenseApprovalEliteAptSlugs(
+  txSummary: Record<string, AptTxSummary>,
+  limit: number = ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT
+): Set<string> {
+  if (!txSummary || typeof txSummary !== 'object') {
+    return new Set<string>();
+  }
+  if (limit === ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT) {
+    const cached = eliteAptSlugsCache.get(txSummary);
+    if (cached) return cached;
+  }
+
+  const guideFeaturedSlugs = new Set<string>();
+  const coreBenchmarks = [
+    '동탄역롯데캐슬',
+    '동탄역린스트라우스',
+    '동탄역예미지시그너스',
+    'METAPOLIS',
+    '산척동동탄호수공원금강펜테리움센트럴파크2',
+  ];
+  for (const name of coreBenchmarks) {
+    const slug = resolveCanonicalAptSlug(name, { txMap: txSummary });
+    if (slug) guideFeaturedSlugs.add(slug);
+  }
+  for (const article of GUIDE_ARTICLES) {
+    for (const apt of article.featuredApartments || []) {
+      const slug = resolveCanonicalAptSlug(apt, { txMap: txSummary });
+      if (slug) guideFeaturedSlugs.add(slug);
+    }
+    for (const matchup of article.headToHeadComparisons || []) {
+      const leftSlug = resolveCanonicalAptSlug(matchup.leftApt, { txMap: txSummary });
+      const rightSlug = resolveCanonicalAptSlug(matchup.rightApt, { txMap: txSummary });
+      if (leftSlug) guideFeaturedSlugs.add(leftSlug);
+      if (rightSlug) guideFeaturedSlugs.add(rightSlug);
+    }
+  }
+
+  interface CandidateItem {
+    canonicalSlug: string;
+    latestPrice: number;
+    txCount: number;
+    isFeatured: boolean;
+    zoneId: string;
+    score: number;
+  }
+
+  const seen = new Set<string>();
+  const verifiedAll: CandidateItem[] = [];
+
+  for (const aptName of Object.keys(txSummary)) {
+    const summary = txSummary[aptName];
+    if (!summary) continue;
+    const latestPrice = Number(summary.latestPrice || 0);
+    const latestRentDeposit = Number(summary.latestRentDeposit || 0);
+    const txCount = Number(summary.txCount || 0);
+    if (latestPrice <= 0 || latestRentDeposit <= 0) continue;
+
+    const canonicalSlug =
+      resolveCanonicalAptSlug(aptName, {
+        txMap: txSummary,
+        dong: summary.dong,
+      }) || aptName;
+    if (seen.has(canonicalSlug)) continue;
+    seen.add(canonicalSlug);
+
+    const isFeatured = guideFeaturedSlugs.has(canonicalSlug);
+    const zoneId = summary.dong ? dongToZoneId(summary.dong) || 'other' : 'other';
+    const liquidityFactor = 1 + Math.min(txCount, 600) / 600;
+    const featuredMultiplier = isFeatured ? 1.35 : 1.0;
+    const score = latestPrice * liquidityFactor * featuredMultiplier;
+
+    verifiedAll.push({
+      canonicalSlug,
+      latestPrice,
+      txCount,
+      isFeatured,
+      zoneId,
+      score,
+    });
+  }
+
+  const deepPool = verifiedAll.filter((c) => c.txCount >= 20);
+  const candidatePool = deepPool.length >= limit ? deepPool : verifiedAll;
+
+  candidatePool.sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    if (b.txCount !== a.txCount) return b.txCount - a.txCount;
+    return a.canonicalSlug.localeCompare(b.canonicalSlug, 'ko');
+  });
+
+  const selected = new Set<string>();
+  const perZoneCount = new Map<string, number>();
+  for (const item of candidatePool) {
+    if (selected.size >= limit) break;
+    const count = perZoneCount.get(item.zoneId) || 0;
+    if (count < 2) {
+      selected.add(item.canonicalSlug);
+      perZoneCount.set(item.zoneId, count + 1);
+    }
+  }
+  for (const item of candidatePool) {
+    if (selected.size >= limit) break;
+    selected.add(item.canonicalSlug);
+  }
+
+  if (limit === ADSENSE_APPROVAL_FLAGSHIP_APT_LIMIT) {
+    eliteAptSlugsCache.set(txSummary, selected);
+  }
+  return selected;
+}
 
 export const TechnoValleyJisanSchema = z.object({
   seq: z.union([z.string(), z.number()]),
@@ -547,16 +686,26 @@ export function buildMortgageSsrData(
 ): MortgageSsrData {
   const hasValidInputPrice =
     typeof latestPriceManwon === 'number' && Number.isFinite(latestPriceManwon) && latestPriceManwon > 0;
-  const rawPriceManwon = hasValidInputPrice ? latestPriceManwon : 50000; // 5억원 기본 기준값
-  const rawPriceWon = rawPriceManwon * 10000;
-
-  // LTV 70% 기본 적용, 최소 1천만원 가드
-  const principalWon = Math.max(10000000, Math.round(rawPriceWon * 0.70));
-
   const hasValidInputDeposit =
     typeof latestDepositManwon === 'number' && Number.isFinite(latestDepositManwon) && latestDepositManwon > 0;
-  const rawDepositManwon = hasValidInputDeposit ? latestDepositManwon : Math.round(rawPriceManwon * 0.60);
-  const jeonseDepositWon = Math.max(10000000, rawDepositManwon * 10000);
+
+  const rawPriceManwon = hasValidInputPrice ? latestPriceManwon : 0;
+  const rawPriceWon = rawPriceManwon * 10000;
+
+  const rawDepositManwon = hasValidInputDeposit
+    ? latestDepositManwon
+    : hasValidInputPrice
+      ? Math.round(rawPriceManwon * 0.60)
+      : 0;
+  const jeonseDepositWon =
+    rawDepositManwon > 0 ? Math.max(10000000, rawDepositManwon * 10000) : 0;
+
+  // 매매 실거래 존재 시 주담대 LTV 70%, 전월세 보증금만 존재 시 실보증금 80%(전세대출 기준), 매매·전월세 모두 결측 시 0원(가짜 3.5억 폴백 차단)
+  const principalWon = hasValidInputPrice
+    ? Math.max(10000000, Math.round(rawPriceWon * 0.70))
+    : hasValidInputDeposit
+      ? Math.max(10000000, Math.round(jeonseDepositWon * 0.80))
+      : 0;
 
   // 1. Amortization (30년 만기, 기본금리 4.0%)
   const equalPi = calculateEqualPrincipalAndInterest({
@@ -644,11 +793,24 @@ export function buildMortgageSsrData(
     ? `인근 ${faqContext.locationScore.nearestStationName}역(${faqContext.locationScore.nearestStationLine || '광역교통'}) 접근성과 `
     : '';
 
+  const jeonseLoanLabel = formatPriceEok(Math.round(principalWon / 10000));
   const faq0Answer = hasSaleRecord
     ? `동탄 ${aptName} 국토교통부 실거래가 요약 결과, ${dealDateLabel}최근 매매 실거래가는 ${salePriceLabel}${perPyeongLabel}${maxPriceLabel}${deltaLabel} 수준입니다. 주택담보대출 갈아타기 시 LTV 최대 70% 적용 한도는 약 ${ltvAmountEokStr}억원이며, 스트레스 DSR 40% 규제에 따라 최종 한도가 결정됩니다.`
     : hasValidInputDeposit
-      ? `동탄 ${aptName} 국토교통부 실거래가 요약 결과, 현재 등록된 매매 실거래 내역이 없으며(평당가·최고가·직전 대비 변동액 집계 중), ${dealDateLabel}최근 전월세 보증금 실거래가는 ${formatPriceEok(rawDepositManwon)} 수준입니다. 기준 시세 적용 시 주택담보대출 갈아타기 LTV 최대 70% 한도는 약 ${ltvAmountEokStr}억원이며, 스트레스 DSR 40% 규제에 따라 최종 한도가 결정됩니다.`
-      : `동탄 ${aptName} 국토교통부 실거래가 요약 결과, 현재 등록된 매매 실거래 내역이 없으며 최근 거래일·평당가·최고가·직전 대비 변동액은 실거래 신고 집계 중입니다. 기준 시세 적용 시 주택담보대출 갈아타기 LTV 최대 70% 한도는 약 ${ltvAmountEokStr}억원이며, 스트레스 DSR 40% 규제에 따라 최종 한도가 결정됩니다.`;
+      ? `동탄 ${aptName} 국토교통부 실거래가 요약 결과, 현재 등록된 매매 실거래 내역이 없으며 ${dealDateLabel}최근 전월세 보증금 실거래가는 ${formatPriceEok(rawDepositManwon)} 수준입니다. 전세보증금 80% 기준 전세자금대출 시뮬레이션 원금은 약 ${jeonseLoanLabel}이며, 차주별 소득·보증기관 요건에 따라 한도가 결정됩니다.`
+      : `동탄 ${aptName} 국토교통부 실거래가 요약 결과, 현재 등록된 매매 실거래 내역이 없으며 최근 거래일·평당가·최고가·직전 대비 변동액은 실거래 신고 집계 중입니다. 향후 국토교통부 공식 매매·전월세 실거래 신고가 확인되는 즉시 실제 거래 금액 기준의 LTV 및 스트레스 DSR 40% 한도가 반영됩니다.`;
+
+  const faq1Answer = !hasSaleRecord
+    ? hasValidInputDeposit
+      ? `동탄 ${aptName} 단지는 현재 국토교통부 전월세 임대차 계약 중심(최근 기준 보증금 ${depositLabel})으로 거래되고 있어 매매가 대비 전세가율 산출 대상이 아닙니다. ${schoolClause}${stationClause}임대차 계약 시에는 동일 생활권 유사 평형 보증금 추이와 보증보험 가입 요건을 함께 비교하는 것이 안전합니다.`
+      : `동탄 ${aptName} 단지는 현재 국토교통부 매매 실거래 신고 내역이 없어 매매가 대비 전세가율 산출 대상이 아닙니다. ${schoolClause}${stationClause}임대차 계약 및 실수요 탐색 시에는 동일 생활권 인근 단지의 실제 거래 추이와 보증보험 가입 요건을 함께 비교하는 것이 안전합니다.`
+    : `동탄 ${aptName}의 현재 전세가율은 약 ${ratioVal}%(기준 전세보증금 ${depositLabel})입니다. ${schoolClause}${stationClause}호갱노노 비교 및 실수요 탐색 시에는 단순 호가가 아닌 국토부 실거래가·평당가 추이와 동일 권역 유사 평당가 단지 대비 전세 안전 마진을 함께 비교하는 것이 유리합니다.`;
+
+  const faq2Answer = !hasSaleRecord
+    ? hasValidInputDeposit
+      ? `동탄 ${aptName} 최근 전월세 보증금(${depositLabel})의 80% 기준 전세대출 시뮬레이션 원금은 약 ${jeonseLoanLabel}이며, 스트레스 금리 5.2%(가산금리 1.2%p) DSR 40% 적용 시 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원 범위 내에서 상환 여력이 산출됩니다.`
+      : `동탄 ${aptName} 단지는 현재 등록된 매매 실거래 내역이 없어 단지 시세 기반 LTV 한도는 실거래 신고 후 산출되며, 30년 만기 스트레스 금리 5.2%(가산금리 1.2%p) DSR 40% 적용 시 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원 범위 내에서 차주 소득별 상환 여력이 산출됩니다.`
+    : `동탄 ${aptName} 최근 실거래가 기준 LTV 최대 70%(약 ${ltvAmountEokStr}억원) 및 30년 만기 스트레스 금리 5.2%(가산금리 1.2%p) 기준, 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원이 최대 한도로 도출됩니다.`;
 
   const faqList = [
     {
@@ -657,11 +819,11 @@ export function buildMortgageSsrData(
     },
     {
       question: `동탄 ${aptName} 전세가율, 배정 초등학교 학군 및 호갱노노 비교 시 핵심 포인트는 무엇인가요?`,
-      answer: `동탄 ${aptName}의 현재 전세가율은 약 ${ratioVal}%(기준 전세보증금 ${depositLabel})입니다. ${schoolClause}${stationClause}호갱노노 비교 및 실수요 탐색 시에는 단순 호가가 아닌 국토부 실거래가·평당가 추이와 동일 권역 유사 평당가 단지 대비 전세 안전 마진을 함께 비교하는 것이 유리합니다.`,
+      answer: faq1Answer,
     },
     {
       question: `동탄 ${aptName} 주택담보대출 갈아타기 및 DSR 40% 한도 규제 적용 시 연소득별 최대 대출 가능 금액은 어떻게 되나요?`,
-      answer: `동탄 ${aptName} 최근 실거래가 기준 LTV 최대 70%(약 ${ltvAmountEokStr}억원) 및 30년 만기 스트레스 금리 5.2%(가산금리 1.2%p) 기준, 연소득 5,000만원 차주는 약 ${STATIC_DSR_50_EOK_STR}억원, 연소득 8,000만원 차주는 약 ${STATIC_DSR_80_EOK_STR}억원, 연소득 1억원 차주는 약 ${STATIC_DSR_100_EOK_STR}억원이 최대 한도로 도출됩니다.`,
+      answer: faq2Answer,
     },
     {
       question: `동탄 ${aptName} 전세보증금 반환대출(역전세 대출) 신청 요건과 원리금균등·원금균등 상환 방식 차이는 무엇인가요?`,
@@ -1222,6 +1384,7 @@ export function getDefaultApartmentMetadata(baseUrl: string, aptName: string = '
   return {
     title,
     description,
+    robots: { index: false, follow: true },
     alternates: {
       canonical: `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
     },
@@ -1382,10 +1545,24 @@ export async function buildApartmentSeoMetadata(
     const highValueMortgageKeywords = '주택담보대출 갈아타기, DSR 40% 한도, 스트레스 DSR, 전세보증금 반환대출, 역전세 대출, 금리 충격 계산기';
     const dynamicKeywords = `동탄, ${decodedName}, 실거래가, 평당가, 매매가, 전세가율, 배정 초등학교, 호갱노노 비교, 학군, 교통, 인프라, 아파트 분석, 임장, 호갱노노, 아실, 부동산, ${highValueMortgageKeywords}${aliasKeywords ? `, ${aliasKeywords}` : ''}${pyeongKeywordsList ? `, ${pyeongKeywordsList}` : ''}`;
 
+    let robotsDirective: Metadata['robots'];
+    if (!hasVerifiedApartmentSalePrice(aptSummary)) {
+      robotsDirective = { index: false, follow: true };
+    } else if (isAdSenseApprovalMode()) {
+      const txSummaryForApproval = await getTxSummaryData();
+      const eliteSlugs = getAdSenseApprovalEliteAptSlugs(txSummaryForApproval);
+      robotsDirective = eliteSlugs.has(canonicalSlug)
+        ? { index: true, follow: true }
+        : { index: false, follow: true };
+    } else {
+      robotsDirective = { index: true, follow: true };
+    }
+
     return {
       title: seoTitle,
       description: seoDescription,
       keywords: dynamicKeywords,
+      robots: robotsDirective,
       alternates: {
         canonical: `https://dongtanview.com/apartment/${encodeURIComponent(canonicalSlug)}`,
       },
@@ -2318,6 +2495,7 @@ export function buildTechnoValleySeoMetadata(
     title,
     description,
     keywords,
+    robots: { index: false, follow: true },
     alternates: {
       canonical: canonicalUrl,
     },

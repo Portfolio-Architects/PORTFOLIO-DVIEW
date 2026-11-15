@@ -729,4 +729,92 @@ describe('Milestone 3 Push Notification Unit & Logic Invariants', () => {
       expect(resolveSwTargetUrl({ data: {} })).toBe('/');
     });
   });
+
+  describe('6. Canonical & Spaced Display Name Alias Resolution at 07:00 KST Dispatch', () => {
+    it('matches both canonical slug and spaced displayName subscribers when MOLIT recent-transactions uses raw/canonical aptName', async () => {
+      const { resolvePushSubscriptionAptAliases, resolveCanonicalAptSlug } = await import(
+        '@/lib/utils/apartmentMapping'
+      );
+      const { CANONICAL_DONG_APT_LIST } = await import('@/lib/utils/canonicalAptCatalog');
+
+      // Find a real registered transaction whose catalog display name (`entry.name`) differs from `tx.aptName`
+      const aliasCandidateTx = realRecentTransactions.find((tx) => {
+        if (!tx.aptName || !tx.registeredDate || !/^\d{8}$/.test(tx.registeredDate)) return false;
+        const canonical = resolveCanonicalAptSlug(tx.aptName, { txKey: tx.txKey, dong: tx.dong });
+        const entry = CANONICAL_DONG_APT_LIST.find((e) => e.txKey === canonical);
+        return Boolean(entry && entry.name !== tx.aptName && entry.txKey);
+      });
+      expect(aliasCandidateTx).toBeDefined();
+
+      const canonical = resolveCanonicalAptSlug(aliasCandidateTx!.aptName, {
+        txKey: aliasCandidateTx!.txKey,
+        dong: aliasCandidateTx!.dong,
+      })!;
+      const catalogEntry = CANONICAL_DONG_APT_LIST.find((e) => e.txKey === canonical)!;
+
+      const aliases = resolvePushSubscriptionAptAliases(aliasCandidateTx!.aptName, {
+        txKey: aliasCandidateTx!.txKey,
+        dong: aliasCandidateTx!.dong,
+      });
+      expect(aliases).toContain(aliasCandidateTx!.aptName);
+      expect(aliases).toContain(canonical);
+      expect(aliases).toContain(catalogEntry.name);
+      expect(aliases.length).toBeLessThanOrEqual(10);
+
+      mockPushSubscriptions.push(
+        {
+          id: 'sub_canonical_key',
+          data: () => ({
+            subscription: {
+              endpoint: 'https://fcm.googleapis.com/fcm/send/canonical-subscriber',
+              keys: { p256dh: 'p256-canonical', auth: 'auth-canonical' },
+            },
+            apts: [canonical],
+          }),
+        },
+        {
+          id: 'sub_spaced_display',
+          data: () => ({
+            subscription: {
+              endpoint: 'https://fcm.googleapis.com/fcm/send/spaced-display-subscriber',
+              keys: { p256dh: 'p256-spaced', auth: 'auth-spaced' },
+            },
+            apts: [catalogEntry.name],
+          }),
+        }
+      );
+
+      const dryRunReq = new NextRequest(
+        `http://localhost:5000/api/cron/send-tx-notifications?dryRun=true&date=${aliasCandidateTx!.registeredDate}`,
+        { headers: { host: 'localhost:5000' } }
+      );
+      const dryRunRes = await GET(dryRunReq);
+      expect(dryRunRes.status).toBe(200);
+      const dryRunJson = await dryRunRes.json();
+      expect(dryRunJson.success).toBe(true);
+      expect(dryRunJson.data.uniqueDevicesTargeted).toBe(2);
+      expect(dryRunJson.data.totalTasksQueued).toBeGreaterThanOrEqual(2);
+
+      (webpush.sendNotification as jest.Mock).mockResolvedValue({ statusCode: 201 });
+      const liveReq = new NextRequest(
+        `http://localhost:5000/api/cron/send-tx-notifications?date=${aliasCandidateTx!.registeredDate}`,
+        { headers: { host: 'localhost:5000' } }
+      );
+      const liveRes = await GET(liveReq);
+      expect(liveRes.status).toBe(200);
+      const liveJson = await liveRes.json();
+      expect(liveJson.success).toBe(true);
+      expect(liveJson.data.sentCount).toBeGreaterThanOrEqual(2);
+
+      const deliveredEndpoints = (webpush.sendNotification as jest.Mock).mock.calls.map(
+        ([sub]: [PushSubscriptionData]) => sub.endpoint
+      );
+      expect(deliveredEndpoints).toContain(
+        'https://fcm.googleapis.com/fcm/send/canonical-subscriber'
+      );
+      expect(deliveredEndpoints).toContain(
+        'https://fcm.googleapis.com/fcm/send/spaced-display-subscriber'
+      );
+    });
+  });
 });

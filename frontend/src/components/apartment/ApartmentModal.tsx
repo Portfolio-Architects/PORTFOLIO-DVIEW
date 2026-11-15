@@ -360,6 +360,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   nameMapping,
   txSummaryData,
   locationScores,
+  suppressAds = false,
 }: { 
   report: FieldReportData;
   onClose: () => void;
@@ -383,6 +384,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   nameMapping?: Record<string, string>;
   txSummaryData?: Record<string, import('@/types/transaction').AptTxSummary>;
   locationScores?: Record<string, import('@/types/transaction').LocationScoreItem>;
+  suppressAds?: boolean;
 }) {
   const handleModalClose = useCallback(() => {
     if (!inline) {
@@ -1445,7 +1447,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         </section>
 
         {/* Chapter 02 Native In-Feed AdSense Slot */}
-        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && !suppressAds && (
           <div 
             data-testid="apartment-ad-slot-ch02"
             ref={ch02AdContainerRef}
@@ -1662,7 +1664,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         </section>
 
         {/* Chapter 05 Native In-Feed AdSense Slot */}
-        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && !suppressAds && (
           <div 
             data-testid="apartment-ad-slot-ch05"
             ref={ch05AdContainerRef}
@@ -1821,7 +1823,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         </section>
 
         {/* AdSense Responsive Slot */}
-        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && !suppressAds && (
           <div className="w-full my-6 empty:hidden" data-testid="apartment-modal-ad-slot">
             <AdSlot format="banner" className="w-full" />
           </div>

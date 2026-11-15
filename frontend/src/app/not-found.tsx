@@ -1,5 +1,20 @@
+import type { Metadata } from 'next';
 import { Search, Home } from 'lucide-react';
 import Link from 'next/link';
+
+export const metadata: Metadata = {
+  title: '페이지를 찾을 수 없어요 | D-VIEW',
+  description: '요청하신 페이지가 존재하지 않거나 주소가 변경되었을 수 있습니다.',
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+  alternates: {},
+};
 
 export default function NotFound() {
   return (
