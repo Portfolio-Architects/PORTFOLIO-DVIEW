@@ -84,7 +84,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         expect(hrefs).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
 
         const labels = links.map((l) => l.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '분석 리포트', '테크노밸리 랩']);
 
         // Zero trace of obsolete /mbti, /office, /admin in primary links, while right utility button links to /lounge
         expect(within(container).queryByText(/MBTI/i)).toBeNull();
@@ -108,7 +108,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
         expect(hrefs).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
 
         const labels = links.map((l) => l.querySelector('span')?.textContent?.trim());
-        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
+        expect(labels).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '분석 리포트', '테크노밸리 랩']);
 
         // Zero trace of obsolete tabs
         expect(within(container).queryByText(/MBTI/i)).toBeNull();
@@ -120,7 +120,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       expect(TABS).toHaveLength(5);
       expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'stats', 'guide', 'technovalley']);
       expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '분석 리포트', '테크노밸리 랩']);
     });
   });
 
@@ -137,7 +137,7 @@ describe('Empirical Adversarial Stress Harness: Milestone 1 Navigation & Redirec
       const tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       const tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      const tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       const tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
       const tabs = [tab1, tab2, tab3, tab4, tab5];
       const expectedIds = ['overview', 'imjang', 'stats', 'guide', 'technovalley'];

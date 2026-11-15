@@ -1962,17 +1962,17 @@ export function formatJisanTitleLabel(name: string): string {
 }
 
 function decodeJisanParamSafely(raw: string): string {
-  let current = raw.trim();
+  let current = raw.trim().replace(/\+/g, ' ');
   for (let i = 0; i < 3; i++) {
     try {
-      const next = decodeURIComponent(current);
+      const next = decodeURIComponent(current).replace(/\+/g, ' ');
       if (next === current) break;
       current = next;
     } catch {
       break;
     }
   }
-  return current.trim();
+  return current.replace(/\s+/g, ' ').trim();
 }
 
 function normalizeUnicodeRomanNumerals(input: string): string {
@@ -2009,7 +2009,7 @@ function normalizeJisanCoreAliasKey(input: string): string {
   const phonetic = normalizeJisanPhoneticKey(input);
   if (!phonetic) return '';
   return phonetic
-    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/^(?:동탄테크노밸리|테크노밸리|신동탄|동탄역|동탄2|동탄)/, '')
     .replace(/동탄$/, '')
     .replace(/center$/, '');
 }
@@ -2068,6 +2068,11 @@ function getJisanLookupIndex(jisanList: TechnoValleyJisan[]): PrecomputedJisanLo
         pushUnique(coreAliasMap, 'shtimesquare', item);
       } else if (coreAlias === '금강펜테리움ixtower') {
         pushUnique(coreAliasMap, '금강ixtower', item);
+        pushUnique(coreAliasMap, '금강펜테리움9tower', item);
+        pushUnique(coreAliasMap, '금강9tower', item);
+        pushUnique(coreAliasMap, '금강펜테리움ix', item);
+      } else if (coreAlias === '이든앤스페이스') {
+        pushUnique(coreAliasMap, '이든스페이스', item);
       } else if (coreAlias === '메가비즈towera동') {
         pushUnique(coreAliasMap, '메가비즈tower', item);
       } else if (coreAlias === '현대실리콘앨리') {
@@ -2385,15 +2390,15 @@ export function buildTechnoValleySeoMetadata(
 
   if (!matched) {
     const countLabel = jisanList.length > 0 ? `${jisanList.length}개` : '56개';
-    const defaultOgImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`동탄테크노밸리 ${countLabel} 지식산업센터 카탈로그`)}&subtitle=${encodeURIComponent('연면적·호실수·제조·IT 입주 업종 및 취득세·재산세 35% 세제 감면 분석 | D-VIEW')}`;
-    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그 및 법인 세제 혜택 분석 | D-VIEW`;
-    const defaultDescription = `경기도 화성시 동탄테크노밸리 ${countLabel} 지식산업센터 분양·입주 현황, 연면적·호실수·제조·IT 입주 업종 스펙 비교, 중소기업 취득세 35% 감면·재산세 35% 감면·과밀억제권역 법인세 감면 및 정책자금 대출 데이터를 제공합니다.`;
+    const defaultOgImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`동탄테크노밸리 ${countLabel} 지식산업센터 카탈로그`)}&subtitle=${encodeURIComponent('실거래가·연면적·호실수·제조·IT 입주 업종 및 취득세 35% 세제 감면 | D-VIEW')}`;
+    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그·실거래가·취득세 35% 감면 | D-VIEW`;
+    const defaultDescription = `동탄테크노밸리 · 동탄 지식산업센터 ${countLabel} 국토교통부 실거래가·매매 시세, 연면적·호실수·제조·IT 입주 업종 전수 비교. 동탄금강펜테리움 IX타워·에이팩시티 등 주요 센터 스펙과 취득세 35%·재산세 35%·과밀억제권역 법인세 100% 감면 시뮬레이터를 제공합니다.`;
 
     return {
       title: defaultTitle,
       description: defaultDescription,
       keywords:
-        '동탄테크노밸리, 지식산업센터, 동탄 지식산업센터, 입주 업종, 취득세 35% 감면, 재산세 35% 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 분양, 사옥 이전',
+        '동탄테크노밸리, 동탄 지식산업센터, 지식산업센터 실거래가, 동탄 에이팩시티, 동탄금강펜테리움 IX타워, 금강펜테리움 IX타워, 입주 업종, 취득세 35% 감면, 재산세 35% 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 매매 시세, 사옥 이전',
       alternates: {
         canonical: `${baseUrl}/technovalley`,
       },
@@ -2470,19 +2475,28 @@ export function buildTechnoValleySeoMetadata(
     ? `${customBiz} 및 제조·지식·정보통신(IT) 입주 가능 업종`
     : '제조·지식·정보통신(IT) 입주 가능 업종';
 
-  const description = `${centerTitleLabel}(${address}) 공식 인허가 스펙 — ${detailSummary}${eligibleDesc} 요건과 중소기업 취득세 35%·재산세 35% 세제 감면, 과밀억제권역 이전 법인세 감면 및 정책자금 최대 80% 대출 한도를 확인하세요.`;
+  const locationPrefix = /동탄/.test(centerTitleLabel) ? '' : '동탄테크노밸리 ';
+  const description = `${locationPrefix}${centerTitleLabel}(${address}) 국토부 실거래가·매매 시세 및 공식 인허가 스펙 — ${detailSummary}${eligibleDesc} 요건과 중소기업 취득세 35%·재산세 35% 세제 감면, 과밀억제권역 이전 법인세 감면 및 정책자금 최대 80% 대출 한도를 확인하세요.`;
   const cleanSlug = formatTechnoValleyJisanSlug(matched.name);
   const canonicalUrl = `${baseUrl}/technovalley/${encodeURIComponent(cleanSlug)}`;
-  const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`${centerTitleLabel}${specParen}`)}&subtitle=${encodeURIComponent(`${address} · ${industryHook} · 취득세·재산세 35% 감면 | D-VIEW`)}`;
+  const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`${centerTitleLabel}${specParen}`)}&subtitle=${encodeURIComponent(`동탄테크노밸리 실거래가 · ${address} · ${industryHook} · 취득세 35% 감면 | D-VIEW`)}`;
 
+  const strippedDongtanAlias = matched.name.replace(/^동탄\s*/, '').trim();
   const keywords = Array.from(
     new Set([
       matched.name,
       centerTitleLabel,
+      `동탄 ${matched.name}`,
+      `동탄테크노밸리 ${matched.name}`,
+      ...(strippedDongtanAlias && strippedDongtanAlias !== matched.name
+        ? [strippedDongtanAlias, `${strippedDongtanAlias} 실거래가`]
+        : []),
       `${matched.name} 입주 업종`,
       `${matched.name} 연면적`,
       `${matched.name} 실거래가`,
+      `${matched.name} 매매 시세`,
       '동탄테크노밸리 지식산업센터',
+      '동탄 지식산업센터',
       '지식산업센터 입주 업종',
       '취득세 35% 감면',
       '재산세 35% 감면',

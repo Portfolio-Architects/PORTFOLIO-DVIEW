@@ -398,14 +398,10 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
     (max, t) => ((t.registeredDate || '') > max ? String(t.registeredDate) : max),
     ''
   );
-  const maxDeltaAnyReg = enrichedRawDocs.reduce(
-    (max, d) => ((d.registeredDate || '') > max ? String(d.registeredDate) : max),
-    ''
-  );
-  const maxDeltaReg = maxDeltaSaleReg || maxDeltaAnyReg;
+  // Rent-only Firestore delta docs (전세/월세) must NOT advance sale latestRegisteredDate.
   const latestRegisteredDate =
-    maxDeltaReg && maxDeltaReg > baselineRegisteredDate
-      ? maxDeltaReg
+    maxDeltaSaleReg && maxDeltaSaleReg > baselineRegisteredDate
+      ? maxDeltaSaleReg
       : (baseMarketStats?.latestRegisteredDate ?? (baselineRegisteredDate || null));
 
   const maxDeltaContract = deltaTransactions.reduce(
@@ -442,13 +438,14 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
     if (t.isNewHigh) todayNewHighCount += 1;
   }
 
-  if (todayRegisteredCount === 0 && latestRegisteredDate === todayYmd) {
+  const baseLatestReg = cleanYmd(baseMarketStats?.latestRegisteredDate);
+  if (todayRegisteredCount === 0 && latestRegisteredDate === todayYmd && baseLatestReg === todayYmd) {
     todayRegisteredCount =
-      typeof baseMarketStats?.todayRegisteredCount === 'number'
+      typeof baseMarketStats?.todayRegisteredCount === 'number' && baseMarketStats.todayRegisteredCount > 0
         ? baseMarketStats.todayRegisteredCount
-        : enrichedRawDocs.filter((d) => cleanYmd(d.registeredDate) === todayYmd).length || 1;
+        : 0;
     todayNewHighCount =
-      typeof baseMarketStats?.todayNewHighCount === 'number'
+      typeof baseMarketStats?.todayNewHighCount === 'number' && baseMarketStats.todayNewHighCount > 0
         ? baseMarketStats.todayNewHighCount
         : 0;
   }

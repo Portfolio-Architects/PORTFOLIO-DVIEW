@@ -441,11 +441,11 @@ export default async function TechnoValleyPage(
             </div>
           </div>
 
-          {/* B2B Corporate Relocation Zero-CLS AdSlot */}
+          {/* B2B Corporate Relocation Zero-CLS AdSlot (Ad Money v5.1 Soft Surface) */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
             <div
               data-testid="technovalley-b2b-adslot-top"
-              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+              className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
             >
               <AdSlot
                 refreshSlotId="1000000002_technovalley_b2b"
@@ -509,7 +509,7 @@ export default async function TechnoValleyPage(
               {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
                 <div
                   data-testid="technovalley-b2b-adslot-mid"
-                  className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+                  className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
                 >
                   <AdSlot
                     refreshSlotId="1000000002_technovalley_mid_commuter"
@@ -611,11 +611,11 @@ export default async function TechnoValleyPage(
             </div>
           </div>
 
-          {/* Bottom B2B Zero-CLS AdSlot */}
+          {/* Bottom B2B Zero-CLS AdSlot (Ad Money v5.1 Soft Surface) */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
             <div
               data-testid="technovalley-b2b-adslot-bottom"
-              className="w-full min-h-[250px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-xl p-4 flex flex-col justify-center overflow-hidden empty:hidden"
+              className="w-full min-h-[250px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] flex flex-col justify-center overflow-hidden empty:hidden"
             >
               <AdSlot
                 refreshSlotId="1000000001_technovalley_b2b_bottom"

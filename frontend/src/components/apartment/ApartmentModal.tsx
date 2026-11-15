@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useMemo, useEffect, useCallback, useDeferredValue } from 'react';
 import {
-  X, Camera, Building, Info, Shield, ShieldAlert, ChevronDown, ArrowLeft, Download, Check,
+  X, Camera, Building, Info, Shield, ShieldAlert, ShieldCheck, ChevronDown, ArrowLeft, Download, Check,
   Crown, ChevronRight, Calculator, Bell,
   Activity, Layers, GraduationCap, TrendingUp, Building2, Globe2, FileText
 } from 'lucide-react';
@@ -375,7 +375,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
   onRequestLogin?: (message: string) => void;
   onSelectApartment?: (aptName: string, dong?: string) => void;
   onOpenCompare?: (aptName: string, targetAptName?: string) => void;
-  onOpenJeonseSafety?: (aptName: string) => void;
+  onOpenJeonseSafety?: (aptName: string, trigger?: string) => void;
   onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
   onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
   onOpenSellTimingCalculator?: (aptName: string) => void;
@@ -1280,8 +1280,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
       chartType={chartType} 
       normalizeAptName={normalizeAptName} 
       loadAllTransactions={loadAllTransactions}
+      compact={!inline}
     />
-  ), [filteredTransactions, typeMap, chartType, loadAllTransactions]);
+  ), [filteredTransactions, typeMap, chartType, loadAllTransactions, inline]);
 
   const renderTransactionChartNode = useCallback(() => (
     <TransactionChartSection 
@@ -1293,8 +1294,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
       typeMap={typeMap} 
       normalizeAptName={normalizeAptName} 
       txSummary={txSummary}
+      compact={!inline}
     />
-  ), [filteredTransactions, chartType, setChartType, displayAptName, report.dong, typeMap, txSummary]);
+  ), [filteredTransactions, chartType, setChartType, displayAptName, report.dong, typeMap, txSummary, inline]);
 
   const renderTransactionSummaryMetricsNode = useCallback(() => (
     <TransactionSummaryMetrics 
@@ -1307,6 +1309,50 @@ const ApartmentModal = React.memo(function ApartmentModal({
   ), [filteredTransactions, report.apartmentName, typeMap, filterOutliers, chartType]);
 
   const chapterScrollMarginClass = inline ? 'scroll-mt-14 md:scroll-mt-36' : 'scroll-mt-14';
+
+  const retentionAndBridgeBlock = (
+    <div className={inline ? '-mb-4 w-full space-y-2.5' : 'w-full space-y-2.5'}>
+      <ApartmentLandingRetentionStrip
+        currentAptName={report.apartmentName}
+        currentDong={report.dong || '동탄'}
+        targets={recirculationTargets}
+        txSummaryData={effectiveTxSummaryMap}
+        nameMapping={nameMapping}
+        inline={inline}
+        hideFavoriteAction={!inline}
+        onSelectPeer={handleRecircSelectApartment}
+        onOpenCompare={handleRecircOpenCompare}
+        onOpenPushModal={() => setIsPushModalOpen(true)}
+      />
+      <InlineMortgageDsrBridge
+        apartmentName={displayAptName}
+        canonicalSlug={canonicalAptSlug}
+        dong={report.dong || undefined}
+        benchmarkPriceManwon={jeonseSafetyData?.latestPrice || txSummary?.latestPrice || 0}
+        surface={inline ? 'apartment_inline_top' : 'apartment_modal_top'}
+        trigger={inline ? 'apartment_inline_top_bridge' : 'apartment_modal_top_bridge'}
+        compact
+        onOpenMortgage={
+          onOpenMortgage
+            ? (bridgedApt, priceWon, trig) =>
+                onOpenMortgage(bridgedApt ? report.apartmentName : '', priceWon, trig)
+            : undefined
+        }
+        onOpenTaxCalculator={
+          onOpenTaxCalculator
+            ? (bridgedApt, trig) =>
+                onOpenTaxCalculator(bridgedApt ? report.apartmentName : '', trig)
+            : undefined
+        }
+        onOpenJeonseSafety={
+          onOpenJeonseSafety
+            ? (bridgedApt, trig) =>
+                onOpenJeonseSafety(bridgedApt ? report.apartmentName : '', trig)
+            : undefined
+        }
+      />
+    </div>
+  );
 
   const content = (
     <>
@@ -1335,45 +1381,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
         activeChapter={activeChapter}
         onSelectChapter={handleSelectChapter}
         scrollContainerRef={inline ? undefined : modalRef}
+        compact={!inline}
         className={inline ? 'md:top-[80px]' : ''}
       />
 
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
-      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4' : 'px-3 py-3 md:px-6 md:py-4'} flex flex-col gap-8 w-full`}>
-        <div className="-mb-4 w-full space-y-2.5">
-          <ApartmentLandingRetentionStrip
-            currentAptName={report.apartmentName}
-            currentDong={report.dong || '동탄'}
-            targets={recirculationTargets}
-            txSummaryData={effectiveTxSummaryMap}
-            nameMapping={nameMapping}
-            inline={inline}
-            onSelectPeer={handleRecircSelectApartment}
-            onOpenCompare={handleRecircOpenCompare}
-            onOpenPushModal={() => setIsPushModalOpen(true)}
-          />
-          <InlineMortgageDsrBridge
-            apartmentName={displayAptName}
-            canonicalSlug={canonicalAptSlug}
-            dong={report.dong || undefined}
-            benchmarkPriceManwon={jeonseSafetyData?.latestPrice || txSummary?.latestPrice || 0}
-            surface={inline ? 'apartment_inline_top' : 'apartment_modal_top'}
-            trigger={inline ? 'apartment_inline_top_bridge' : 'apartment_modal_top_bridge'}
-            compact
-            onOpenMortgage={
-              onOpenMortgage
-                ? (bridgedApt, priceWon, trig) =>
-                    onOpenMortgage(bridgedApt ? report.apartmentName : '', priceWon, trig)
-                : undefined
-            }
-            onOpenTaxCalculator={
-              onOpenTaxCalculator
-                ? (bridgedApt, trig) =>
-                    onOpenTaxCalculator(bridgedApt ? report.apartmentName : '', trig)
-                : undefined
-            }
-          />
-        </div>
+      <div className={`${inline ? 'px-2 py-2 md:px-6 md:py-4 gap-8' : 'px-3 pt-1.5 pb-4 md:px-6 md:py-4 gap-5 md:gap-7'} flex flex-col w-full`}>
+        {inline && retentionAndBridgeBlock}
 
         {/* Chapter 01: 개요 및 실거래 궤적 (Overview & Price) */}
         <section
@@ -1406,6 +1420,9 @@ const ApartmentModal = React.memo(function ApartmentModal({
             />
           </ErrorBoundary>
         </section>
+
+        {/* Bottom-sheet (!inline): First-fold Data-First UX places Retention & Mortgage Bridge below Chapter 01 */}
+        {!inline && retentionAndBridgeBlock}
 
         {/* Chapter 02: 거래량 회전율 분석 (Turnover & Volume) */}
         <section
@@ -1630,6 +1647,20 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   >
                     <Calculator size={16} />
                     <span>주담대 및 DSR 대출 한도 계산하기</span>
+                  </button>
+                )}
+
+                {onOpenJeonseSafety && (
+                  <button
+                    type="button"
+                    data-testid="chapter05-jeonse-safety-cta"
+                    onClick={() => onOpenJeonseSafety(report.apartmentName, 'chapter05_cta')}
+                    onMouseEnter={preloadCalculators}
+                    onFocus={preloadCalculators}
+                    className="w-full sm:w-auto px-5 py-3.5 bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white active:scale-[0.98] text-white dark:text-slate-900 font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
+                  >
+                    <ShieldCheck size={16} />
+                    <span>전세 보증 · 안전진단 계산하기</span>
                   </button>
                 )}
 
@@ -1914,13 +1945,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
         onClick={(e) => e.stopPropagation()}
         className="relative w-full md:w-[52vw] lg:w-[780px] xl:w-[880px] md:min-w-[380px] lg:min-w-[780px] xl:min-w-[880px] shrink-0 h-[94dvh] max-h-[94dvh] md:h-dvh md:max-h-[calc(100dvh-80px)] md:max-w-[780px] xl:max-w-[880px] bg-surface rounded-t-3xl md:rounded-none md:rounded-l-3xl shadow-2xl overflow-y-auto overscroll-contain overflow-x-hidden flex flex-col border-t md:border-t-0 md:border-l border-border/80 outline-none animate-in slide-in-from-bottom md:slide-in-from-right duration-300"
       >
-        <div className="md:hidden w-full pt-2.5 pb-1 flex justify-center shrink-0 bg-surface" aria-hidden="true">
+        <div className="md:hidden w-full pt-2 pb-0.5 flex justify-center shrink-0 bg-surface" aria-hidden="true">
           <div className="w-10 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
         </div>
         <button
           onClick={handleModalClose}
           aria-label="닫기"
-          className="absolute top-4 right-4 z-50 p-2.5 rounded-full bg-surface/80 hover:bg-surface text-secondary hover:text-primary border border-border shadow-sm transition-all cursor-pointer outline-none"
+          className="absolute top-3 right-3.5 z-[80] p-2 rounded-full bg-surface/90 hover:bg-surface text-secondary hover:text-primary border border-border shadow-sm transition-all cursor-pointer outline-none"
         >
           <X size={20} />
         </button>

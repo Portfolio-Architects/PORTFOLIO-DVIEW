@@ -396,7 +396,7 @@ describe('DVIEW Apartment Statistics Hub: Tiers 1 ~ 4 Comprehensive E2E Test Sui
           { label: '아파트 랩', href: '/' },
           { label: '아파트 탐색', href: '/explore' },
           { label: '아파트 통계', href: '/stats' },
-          { label: '부동산 가이드', href: '/guide' },
+          { label: '분석 리포트', href: '/guide' },
           { label: '테크노밸리 랩', href: '/technovalley' },
         ];
 

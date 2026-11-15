@@ -969,7 +969,7 @@ export default async function GuideArticlePage(props: {
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto min-w-0">
         <PageHeroHeader
           isTitleDiv
-          title="D-VIEW 부동산 가이드"
+          title="D-VIEW 분석 리포트"
           compactTitle={article.title}
           subtitleStrong={<MarketStatsStrong />}
           subtitleLight={<MarketStatsLight />}
@@ -981,17 +981,17 @@ export default async function GuideArticlePage(props: {
             <nav aria-label="브레드크럼" className="flex items-center gap-1.5 text-[12px] text-tertiary">
               <Link href="/" prefetch={false} className="hover:text-primary transition-colors">홈</Link>
               <ChevronRight size={12} />
-              <Link href="/guide" prefetch={false} className="hover:text-primary transition-colors">부동산 가이드</Link>
+              <Link href="/guide" prefetch={false} className="hover:text-primary transition-colors">분석 리포트</Link>
               <ChevronRight size={12} />
               <span className="text-secondary font-semibold truncate max-w-[220px] sm:max-w-[360px]">{article.category}</span>
             </nav>
 
             <Link
               href="/guide" prefetch={false}
-              aria-label="가이드 목록으로 이동"
+              aria-label="리포트 목록으로 이동"
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-body hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/60 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition-colors shrink-0"
             >
-              <span>가이드 목록</span>
+              <span>리포트 목록</span>
             </Link>
           </div>
 

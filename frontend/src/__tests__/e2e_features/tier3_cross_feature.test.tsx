@@ -120,7 +120,7 @@ describe('Tier 3: Cross-Feature Interactions Suite [F1 ~ F7]', () => {
     expect(adSlot).toBeInTheDocument();
 
     // 3. Navigate tabs and verify zero unhandled exceptions
-    const guideLink = screen.getByRole('link', { name: /가이드/i });
+    const guideLink = screen.getByRole('link', { name: /분석 리포트/i });
     fireEvent.click(guideLink);
 
     expect(hero).toBeInTheDocument();

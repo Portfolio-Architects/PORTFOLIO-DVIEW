@@ -156,9 +156,8 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
       timelineHeading.compareDocumentPosition(heroAdSlot1) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
 
-    // 5. High-CPC Finance Section + AdSlot 2 below Zone 3, followed by Guides & Lower 7:5 Retention Hub
-    const financeSection = screen.getByTestId('high-cpc-finance-section');
-    expect(financeSection).toBeInTheDocument();
+    // 5. Option C: HighCpcFinanceSection removed from Main Dashboard while preserving AdSlot 2, Guides & Lower 7:5 Retention Hub
+    expect(screen.queryByTestId('high-cpc-finance-section')).not.toBeInTheDocument();
     const financeAdSlot2 = screen.getByTestId('finance-ad-slot-2');
     expect(financeAdSlot2).toBeInTheDocument();
     const guidesGrid = screen.getByTestId('curated-guides-grid');
@@ -167,10 +166,7 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     expect(retentionGrid).toBeInTheDocument();
 
     expect(
-      timelineHeading.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
-    ).toBeTruthy();
-    expect(
-      financeSection.compareDocumentPosition(financeAdSlot2) & Node.DOCUMENT_POSITION_FOLLOWING
+      timelineHeading.compareDocumentPosition(financeAdSlot2) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy();
     expect(
       financeAdSlot2.compareDocumentPosition(guidesGrid) & Node.DOCUMENT_POSITION_FOLLOWING
@@ -281,15 +277,13 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
     );
 
     const heroGrid = screen.getByTestId('hero-donut-trend-grid');
-    const financeGrid = screen.getByTestId('finance-quick-widgets-grid');
+    expect(screen.queryByTestId('high-cpc-finance-section')).not.toBeInTheDocument();
     const guidesGrid = screen.getByTestId('curated-guides-grid');
     const retentionGrid = screen.getByTestId('zone4-retention-community-grid');
 
     expect(heroGrid.className).toContain('grid-cols-1');
     expect(heroGrid.className).not.toContain('lg:grid-cols-12');
     expect(heroGrid.className).not.toContain('2xl:grid-cols-12');
-    expect(financeGrid.className).toContain('grid-cols-1');
-    expect(financeGrid.className).not.toContain('lg:grid-cols-2');
     expect(guidesGrid.className).toContain('grid-cols-1');
     expect(guidesGrid.className).not.toContain('md:grid-cols-3');
     expect(guidesGrid.className).not.toContain('xl:grid-cols-3');
@@ -342,5 +336,212 @@ describe('MacroDashboardClient Authoritative Layout & Hybrid Integration', () =>
 
     expect(mainContainer.className).toContain('md:px-5');
     expect(categorySidebar.className).toContain('hidden 2xl:flex');
+  });
+
+  it('unifies mobile (375px) insight card, timeline card, and ranking clicks onto single detail modal callback without rendering MacroMobileDrawer', () => {
+    const onSelectApt = jest.fn();
+    const originalInnerWidth = window.innerWidth;
+
+    try {
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375,
+      });
+
+      render(
+        <SettingsProvider>
+          <AuthProvider>
+            <MacroDashboardClient
+              sheetApartments={mockSheetApartments}
+              txSummaryData={mockTxSummaryData}
+              macroTrendData={mockMacroTrendData}
+              publicRentalSet={new Set()}
+              fieldReportsMap={new Map()}
+              favoriteCounts={{}}
+              recentTransactions={mockRecentTransactions}
+              onSelectApt={onSelectApt}
+            />
+          </AuthProvider>
+        </SettingsProvider>
+      );
+
+      // 1. Insight card click triggers unified detail modal callback once with zero mobile drawer
+      const newHighCard = screen.getByTestId('insight-card-new-high');
+      fireEvent.click(newHighCard);
+
+      expect(onSelectApt).toHaveBeenCalledTimes(1);
+      expect(onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '여울동');
+      expect(screen.queryByTestId('mobile-drawer-action-footer')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('mobile-drawer-detail-cta')).not.toBeInTheDocument();
+
+      // 2. Timeline card click on mobile directly opens unified detail modal callback (no drawer)
+      onSelectApt.mockClear();
+      const timelineCardBtn = screen.getByRole('button', {
+        name: /실거래 분석 아파트 선택: 동탄역시범우남퍼스트빌/,
+      });
+      fireEvent.click(timelineCardBtn);
+
+      expect(onSelectApt).toHaveBeenCalledTimes(1);
+      expect(onSelectApt).toHaveBeenCalledWith('동탄역시범우남퍼스트빌', '청계동');
+      expect(screen.queryByTestId('mobile-drawer-action-footer')).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: originalInnerWidth,
+      });
+    }
+  });
+
+  it('routes AptMetricCards activeSector drilldown directly to detail modal on desktop & mobile and propagates resolved dong when summary lacks dong', () => {
+    const onSelectApt = jest.fn();
+    const originalInnerWidth = window.innerWidth;
+
+    const txWithMissingSummaryDong = [
+      {
+        aptName: '시범한빛금호어울림',
+        txKey: 'tx-ban-1',
+        date: '09.18',
+        contractDate: '20260918',
+        priceVal: 19.2,
+        priceEok: '19억 2,000만',
+        area: 84.9,
+        areaPyeong: 25.7,
+        floor: 15,
+        dealType: '매매',
+        type: 'high',
+        isNewHigh: true,
+      },
+      ...mockRecentTransactions,
+    ];
+
+    try {
+      // Desktop viewport (1280px)
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 1280,
+      });
+
+      render(
+        <SettingsProvider>
+          <AuthProvider>
+            <MacroDashboardClient
+              sheetApartments={mockSheetApartments}
+              txSummaryData={mockTxSummaryData}
+              macroTrendData={mockMacroTrendData}
+              publicRentalSet={new Set()}
+              fieldReportsMap={new Map()}
+              favoriteCounts={{}}
+              recentTransactions={txWithMissingSummaryDong}
+              onSelectApt={onSelectApt}
+            />
+          </AuthProvider>
+        </SettingsProvider>
+      );
+
+      // 1. Insight card for apartment absent from txSummaryData still resolves dong from sheetApartments
+      fireEvent.click(screen.getByTestId('insight-card-new-high'));
+      expect(onSelectApt).toHaveBeenCalledWith('시범한빛금호어울림', '반송동');
+
+      // 2. Selecting donut sector switches AptMetricCards to 4 representative tx cards -> click opens modal on desktop
+      onSelectApt.mockClear();
+      fireEvent.click(screen.getByTestId('donut-legend-high'));
+      const repCardDesktop = screen.getByLabelText(/시범한빛금호어울림.*실거래 상세 리포트 열기/);
+      fireEvent.click(repCardDesktop);
+      expect(onSelectApt).toHaveBeenCalledTimes(1);
+      expect(onSelectApt).toHaveBeenCalledWith('시범한빛금호어울림', '반송동');
+
+      // 3. Same AptMetricCards drilldown click on mobile (375px) opens unified detail modal cleanly without drawer
+      onSelectApt.mockClear();
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375,
+      });
+      fireEvent.click(repCardDesktop);
+      expect(onSelectApt).toHaveBeenCalledTimes(1);
+      expect(onSelectApt).toHaveBeenCalledWith('시범한빛금호어울림', '반송동');
+      expect(screen.queryByTestId('mobile-drawer-action-footer')).not.toBeInTheDocument();
+    } finally {
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: originalInnerWidth,
+      });
+    }
+  });
+
+  it('renders Zone 4B lower bento as a symmetric 2x2 unified soft-surface grid and opens AptFitFinder modal from standalone AptFitFinderCard', () => {
+    render(
+      <SettingsProvider>
+        <AuthProvider>
+          <MacroDashboardClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            macroTrendData={mockMacroTrendData}
+            publicRentalSet={new Set()}
+            fieldReportsMap={new Map()}
+            favoriteCounts={{}}
+            recentTransactions={mockRecentTransactions}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    const retentionGrid = screen.getByTestId('zone4-retention-community-grid');
+    expect(retentionGrid).toBeInTheDocument();
+
+    const noticeHeading = screen.getByText('동탄 철도 교통 게시판');
+    const retentionCard = screen.getByTestId('retention-action-card');
+    const loungeCard = screen.getByTestId('lounge-entry-card');
+    const aptFitFinderCard = screen.getByTestId('apt-fit-finder-card');
+
+    expect(retentionGrid).toContainElement(noticeHeading);
+    expect(retentionGrid).toContainElement(retentionCard);
+    expect(retentionGrid).toContainElement(loungeCard);
+    expect(retentionGrid).toContainElement(aptFitFinderCard);
+
+    // Unified bg-elevated rounded-2xl soft surface across all 4 cards
+    expect(retentionGrid.children).toHaveLength(4);
+    expect(retentionCard.className).toContain('bg-elevated');
+    expect(retentionCard.className).toContain('rounded-2xl');
+    expect(loungeCard.className).toContain('bg-elevated');
+    expect(loungeCard.className).toContain('rounded-2xl');
+    expect(aptFitFinderCard.className).toContain('bg-elevated');
+    expect(aptFitFinderCard.className).toContain('rounded-2xl');
+
+    // Separate AptFitFinder button is absent from RetentionActionCard and mounted on AptFitFinderCard
+    expect(retentionCard).not.toHaveTextContent('내게 맞는 단지 찾기');
+
+    // Clicking standalone AptFitFinder CTA opens AptFitFinder modal
+    const ctaButton = screen.getByTestId('apt-fit-finder-cta');
+    fireEvent.click(ctaButton);
+    expect(screen.getByText('나만의 동탄 찰떡 아파트 찾기')).toBeInTheDocument();
+  });
+
+  it('stacks Zone 4B bento into single-column grid when isSplitMode=true', () => {
+    render(
+      <SettingsProvider>
+        <AuthProvider>
+          <MacroDashboardClient
+            sheetApartments={mockSheetApartments}
+            txSummaryData={mockTxSummaryData}
+            macroTrendData={mockMacroTrendData}
+            publicRentalSet={new Set()}
+            fieldReportsMap={new Map()}
+            favoriteCounts={{}}
+            recentTransactions={mockRecentTransactions}
+            isSplitMode={true}
+          />
+        </AuthProvider>
+      </SettingsProvider>
+    );
+
+    const retentionGrid = screen.getByTestId('zone4-retention-community-grid');
+    expect(retentionGrid.className).toContain('grid-cols-1');
+    expect(retentionGrid.className).not.toContain('lg:grid-cols-12');
+    expect(retentionGrid.children).toHaveLength(4);
   });
 });

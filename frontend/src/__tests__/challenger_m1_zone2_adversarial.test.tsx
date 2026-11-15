@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 
 import { RetentionActionCard } from '@/components/macro/components/RetentionActionCard';
+import { AptFitFinderCard } from '@/components/macro/components/AptFitFinderCard';
 import { RealtimeRankingBoard } from '@/components/ranking/RealtimeRankingBoard';
 import * as analytics from '@/lib/utils/analytics';
 
@@ -142,18 +143,13 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
       });
     });
 
-    it('Oracle 1.5: AptFitFinder trigger invokes callback and logs analytics', () => {
+    it('Oracle 1.5: AptFitFinderCard trigger invokes callback and logs analytics', () => {
       const onOpenAptFitFinder = jest.fn();
-      render(
-        <RetentionActionCard
-          onOpenPushModal={jest.fn()}
-          onOpenAptFitFinder={onOpenAptFitFinder}
-        />
-      );
+      render(<AptFitFinderCard onOpenAptFitFinder={onOpenAptFitFinder} />);
 
-      const quizBtn = screen.getByText('내게 맞는 단지 찾기 (AptFitFinder)').closest('button');
-      expect(quizBtn).not.toBeNull();
-      fireEvent.click(quizBtn!);
+      const quizBtn = screen.getByTestId('apt-fit-finder-cta');
+      expect(quizBtn).toBeInTheDocument();
+      fireEvent.click(quizBtn);
 
       expect(onOpenAptFitFinder).toHaveBeenCalledTimes(1);
       expect(trackEventSpy).toHaveBeenCalledWith('open_calculator', {
@@ -162,16 +158,12 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
       });
     });
 
-    it('Oracle 1.6: AptFitFinder safely no-ops without exception when onOpenAptFitFinder is undefined', () => {
-      render(
-        <RetentionActionCard
-          onOpenPushModal={jest.fn()}
-        />
-      );
+    it('Oracle 1.6: AptFitFinderCard safely no-ops without exception when onOpenAptFitFinder is undefined', () => {
+      render(<AptFitFinderCard />);
 
-      const quizBtn = screen.getByText('내게 맞는 단지 찾기 (AptFitFinder)').closest('button');
+      const quizBtn = screen.getByTestId('apt-fit-finder-cta');
       expect(() => {
-        fireEvent.click(quizBtn!);
+        fireEvent.click(quizBtn);
       }).not.toThrow();
       expect(trackEventSpy).toHaveBeenCalledWith('open_calculator', {
         calculator_type: 'apt_fit_finder',
@@ -179,21 +171,23 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
       });
     });
 
-    it('Stress 1.7: 100 rapid sequential clicks burst on retention buttons causes zero errors', () => {
+    it('Stress 1.7: 100 rapid sequential clicks burst on retention and AptFitFinder buttons causes zero errors', () => {
       const onOpenPushModal = jest.fn();
       const onOpenAptFitFinder = jest.fn();
 
       render(
-        <RetentionActionCard
-          selectedAptName="동탄역 린스트라우스"
-          onOpenPushModal={onOpenPushModal}
-          onOpenAptFitFinder={onOpenAptFitFinder}
-        />
+        <>
+          <RetentionActionCard
+            selectedAptName="동탄역 린스트라우스"
+            onOpenPushModal={onOpenPushModal}
+          />
+          <AptFitFinderCard onOpenAptFitFinder={onOpenAptFitFinder} />
+        </>
       );
 
       const pushBtn = screen.getByText('오전 7시 실거래 알림 받기').closest('button')!;
       const a2hsBtn = screen.getByText('홈 화면에 앱 추가').closest('button')!;
-      const quizBtn = screen.getByText('내게 맞는 단지 찾기 (AptFitFinder)').closest('button')!;
+      const quizBtn = screen.getByTestId('apt-fit-finder-cta');
 
       act(() => {
         for (let i = 0; i < 100; i++) {
@@ -363,6 +357,22 @@ describe('Empirical Challenger: Zone 2 Adversarial Stress Suite', () => {
 
     it('Oracle 3.9: PushSubscriptionModal receives pushTargetApt or selectedTimelineApt', () => {
       expect(source).toMatch(/aptName=\{pushTargetApt\s*\|\|\s*selectedTimelineApt\s*\|\|\s*'동탄 전체'\}/);
+    });
+
+    it('Oracle 3.10: Zone 4B uses 2x2 symmetric bento grid with standalone AptFitFinderCard and no forced 350px height on TrafficNoticeBoard', () => {
+      const matches7 = source.match(/lg:col-span-7/g);
+      const matches5 = source.match(/lg:col-span-5/g);
+      expect(matches7!.length).toBeGreaterThanOrEqual(2);
+      expect(matches5!.length).toBeGreaterThanOrEqual(2);
+      expect(source).toMatch(/<AptFitFinderCard[\s\S]*?onOpenAptFitFinder=\{handleOpenAptFitFinder\}/);
+
+      const trafficBoardPath = path.resolve(
+        __dirname,
+        '../components/macro/TrafficNoticeBoard.tsx'
+      );
+      const trafficSource = fs.readFileSync(trafficBoardPath, 'utf-8');
+      expect(trafficSource).not.toMatch(/md:h-\[350px\]/);
+      expect(trafficSource).toMatch(/bg-elevated rounded-2xl/);
     });
   });
 

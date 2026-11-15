@@ -147,10 +147,13 @@ export async function proxy(request: NextRequest) {
   }
 
   // 0.55. 구형 /technovalley?jisan=... 중복 쿼리 URL → /technovalley/[slug] (불일치·빈값 시 /technovalley) HTTP 308 영구 리다이렉트
-  if (pathname === '/technovalley' && request.nextUrl.searchParams.has('jisan')) {
+  if (
+    (pathname === '/technovalley' || pathname === '/technovalley/') &&
+    request.nextUrl.searchParams.has('jisan')
+  ) {
     const rawJisan = request.nextUrl.searchParams.get('jisan');
     const resolvedSlug = resolveTechnoValleyJisanCanonicalSlug(rawJisan);
-    const redirectUrl = request.nextUrl.clone();
+    const redirectUrl = new URL(request.url);
     redirectUrl.searchParams.delete('jisan');
     for (const key of Array.from(redirectUrl.searchParams.keys())) {
       if ((NOISE_APARTMENT_QUERY_PARAMS as readonly string[]).includes(key.toLowerCase())) {
@@ -319,6 +322,10 @@ export const config = {
     },
     {
       source: '/technovalley',
+      has: [{ type: 'query', key: 'jisan' }],
+    },
+    {
+      source: '/technovalley/',
       has: [{ type: 'query', key: 'jisan' }],
     },
     '/api/bypass-notice',

@@ -73,7 +73,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       { id: 'overview', label: '아파트 랩', href: '/' },
       { id: 'imjang', label: '아파트 탐색', href: '/explore' },
       { id: 'stats', label: '아파트 통계', href: '/stats' },
-      { id: 'guide', label: '부동산 가이드', href: '/guide' },
+      { id: 'guide', label: '분석 리포트', href: '/guide' },
       { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
     ];
 
@@ -117,7 +117,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       const tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       const tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       const tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      const tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      const tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       const tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
       // Click Tab 1 ('아파트 랩')
@@ -138,7 +138,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(mockReplace).toHaveBeenLastCalledWith('/stats', { scroll: false });
       expect(pushStateSpy).toHaveBeenLastCalledWith(null, '', '/stats');
 
-      // Click Tab 4 ('부동산 가이드')
+      // Click Tab 4 ('분석 리포트')
       fireEvent.click(tab4);
       expect(onTabChangeSpy).toHaveBeenLastCalledWith('guide');
       expect(mockReplace).toHaveBeenLastCalledWith('/guide', { scroll: false });
@@ -159,7 +159,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       let tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       let tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       let tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      let tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      let tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       let tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
       expect(tab1).toHaveClass('text-blue-600');
@@ -174,7 +174,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
       expect(tab2).toHaveClass('text-blue-600');
@@ -189,7 +189,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
       expect(tab3).toHaveClass('text-blue-600');
@@ -204,7 +204,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
       expect(tab4).toHaveClass('text-blue-600');
@@ -219,7 +219,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       tab1 = screen.getByRole('link', { name: /아파트 랩/i });
       tab2 = screen.getByRole('link', { name: /아파트 탐색/i });
       tab3 = screen.getByRole('link', { name: /아파트 통계/i });
-      tab4 = screen.getByRole('link', { name: /부동산 가이드/i });
+      tab4 = screen.getByRole('link', { name: /분석 리포트/i });
       tab5 = screen.getByRole('link', { name: /테크노밸리 랩/i });
 
       expect(tab5).toHaveClass('text-blue-600');
@@ -281,7 +281,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
     it('declares and renders exactly 5 canonical tabs in MobileDock TABS export', () => {
       expect(TABS).toHaveLength(5);
       expect(TABS.map((t) => t.id)).toEqual(['overview', 'imjang', 'stats', 'guide', 'technovalley']);
-      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '부동산 가이드', '테크노밸리 랩']);
+      expect(TABS.map((t) => t.label)).toEqual(['아파트 랩', '아파트 탐색', '아파트 통계', '분석 리포트', '테크노밸리 랩']);
       expect(TABS.map((t) => t.href)).toEqual(['/', '/explore', '/stats', '/guide', '/technovalley']);
     });
 
@@ -322,7 +322,7 @@ describe('Milestone 1 Empirical Challenger: Navigation, Cleanup & Redirect Verif
       expect(onTabClickSpy).toHaveBeenLastCalledWith('stats');
       expect(mockReplace).toHaveBeenLastCalledWith('/stats', { scroll: false });
 
-      // Tab 3: 부동산 가이드
+      // Tab 3: 분석 리포트
       fireEvent.click(links[3]);
       expect(onTabClickSpy).toHaveBeenLastCalledWith('guide');
       expect(mockReplace).toHaveBeenLastCalledWith('/guide', { scroll: false });

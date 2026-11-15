@@ -199,13 +199,13 @@ describe('Milestone 3 — Zone 5 Implementation (SSR Market Editorial & Zero-CLS
       const timeline = container.querySelector('.min-h-\\[420px\\]');
       expect(timeline).not.toBeNull();
 
-      // Zone 4: Finance, AdSlot 2, Guides 3-Pack, and Lower 7:5 Retention Hub
+      // Zone 4: Finance, AdSlot 2, Guides 3-Pack, and Lower 2x2 (7:5) Retention Hub
       const guides3Pack = container.querySelector('.md\\:grid-cols-3');
       expect(guides3Pack).not.toBeNull();
       const zone4b = getByTestId('skeleton-zone4b-retention');
       expect(zone4b).toBeInTheDocument();
-      expect(zone4b.querySelector('.lg\\:col-span-7')).not.toBeNull();
-      expect(zone4b.querySelector('.lg\\:col-span-5')).not.toBeNull();
+      expect(zone4b.querySelectorAll('.lg\\:col-span-7').length).toBe(2);
+      expect(zone4b.querySelectorAll('.lg\\:col-span-5').length).toBe(2);
 
       // Zone 5: Compact soft editorial container skeleton
       const zone5 = container.querySelector('.h-\\[180px\\]');
@@ -231,12 +231,12 @@ describe('Milestone 3 — Zone 5 Implementation (SSR Market Editorial & Zero-CLS
       // Zone 3 (Timeline)
       expect(container.querySelector('.min-h-\\[420px\\]')).not.toBeNull();
 
-      // Zone 4 (Finance + AdSlot 2 + 3 Guides + Lower 7:5 Retention Hub)
+      // Zone 4 (Finance + AdSlot 2 + 3 Guides + Lower 2x2 Retention Hub)
       expect(container.querySelector('.md\\:grid-cols-3')).not.toBeNull();
       const zone4b = getByTestId('skeleton-zone4b-retention');
       expect(zone4b).toBeInTheDocument();
-      expect(zone4b.querySelector('.lg\\:col-span-7')).not.toBeNull();
-      expect(zone4b.querySelector('.lg\\:col-span-5')).not.toBeNull();
+      expect(zone4b.querySelectorAll('.lg\\:col-span-7').length).toBe(2);
+      expect(zone4b.querySelectorAll('.lg\\:col-span-5').length).toBe(2);
     });
 
     it('renders OverviewDashboardSkeleton in overview/page.tsx matching 5-Zone geometry', () => {
@@ -258,12 +258,12 @@ describe('Milestone 3 — Zone 5 Implementation (SSR Market Editorial & Zero-CLS
       // Zone 3 (Timeline)
       expect(container.querySelector('.min-h-\\[420px\\]')).not.toBeNull();
 
-      // Zone 4 (Finance + AdSlot 2 + 3 Guides + Lower 7:5 Retention Hub)
+      // Zone 4 (Finance + AdSlot 2 + 3 Guides + Lower 2x2 Retention Hub)
       expect(container.querySelector('.md\\:grid-cols-3')).not.toBeNull();
       const zone4b = getByTestId('skeleton-zone4b-retention');
       expect(zone4b).toBeInTheDocument();
-      expect(zone4b.querySelector('.lg\\:col-span-7')).not.toBeNull();
-      expect(zone4b.querySelector('.lg\\:col-span-5')).not.toBeNull();
+      expect(zone4b.querySelectorAll('.lg\\:col-span-7').length).toBe(2);
+      expect(zone4b.querySelectorAll('.lg\\:col-span-5').length).toBe(2);
 
       // Zone 5
       expect(container.querySelector('.h-\\[180px\\]')).not.toBeNull();

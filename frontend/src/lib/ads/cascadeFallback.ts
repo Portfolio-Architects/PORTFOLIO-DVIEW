@@ -121,10 +121,10 @@ export const CPA_CAMPAIGN_CATALOG: Record<CpaCampaignId, CpaCampaignTemplate> = 
     cpaCampaignId: 'corporate-relocation',
     badgeText: 'D-VIEW B2B 인사이트',
     title: '동탄테크노밸리 지식산업센터 법인 이전 세제 혜택 분석',
-    subtitle: '취득세·재산세 감면 요건 및 중소기업 정책자금 융자 한도 확인',
-    ctaText: '법인 이전 혜택 확인',
+    subtitle: '취득세 35% 감면·법인세 5년 100% 절세 요건 및 중소기업 정책자금 최대 80% 한도 확인',
+    ctaText: '세제·정책자금 가이드 보기',
     targetUrl:
-      'https://dongtanview.com/technovalley?utm_source=dview_cpa&utm_medium=b2b_affiliate&utm_campaign=corporate-relocation&partner=b2b_factoryon_tax',
+      'https://dongtanview.com/guide/dongtan-technovalley-corporate-relocation-tax?utm_source=dview_cpa&utm_medium=b2b_affiliate&utm_campaign=corporate-relocation&partner=b2b_factoryon_tax',
     estimatedCpaValueWon: 50000,
     accentTone: 'blue',
     partnerCode: 'b2b_factoryon_tax',

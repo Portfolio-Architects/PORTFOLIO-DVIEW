@@ -27,8 +27,8 @@ import {
 import { MacroHeader } from "./macro/components/MacroHeader";
 import { MacroTimelineView } from "./macro/components/MacroTimelineView";
 import { MacroChartSection } from "./macro/components/MacroChartSection";
-import { MacroMobileDrawer } from "./macro/components/MacroMobileDrawer";
 import { RetentionActionCard } from "./macro/components/RetentionActionCard";
+import { AptFitFinderCard } from "./macro/components/AptFitFinderCard";
 import { AptDonutSection, type AptDonutDataItem, type AptDonutPeriod } from "./macro/AptDonutSection";
 import { AptMetricCards } from "./macro/AptMetricCards";
 import { RealtimeRankingBoard } from "@/components/ranking/RealtimeRankingBoard";
@@ -36,7 +36,6 @@ import { usePWA } from "@/components/pwa/PWAProvider";
 import { trackEvent, trackApartmentView, trackSearchQuery } from '@/lib/utils/analytics';
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ChartErrorBoundary from "@/components/common/ChartErrorBoundary";
-import { HighCpcFinanceSection } from "@/components/finance/HighCpcFinanceSection";
 import { AdSlot } from "@/components/ads/AdSlot";
 import Link from "next/link";
 import { Star, MessageSquare, Clock, ArrowRight } from "lucide-react";
@@ -861,7 +860,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   const { locationScores } = useLocationScores(initialLocationScores);
 
   const { triggerCustomA2HSModal } = usePWA();
-  const [isBottomSheetOpen, setIsBottomSheetOpen] = useState(false);
   const [isQuizOpen, setIsQuizOpen] = useState(false);
   const [isPushModalOpen, setIsPushModalOpen] = useState(false);
   const [pushTargetApt, setPushTargetApt] = useState<string>('');
@@ -948,7 +946,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   useEffect(() => {
     if (typeof window === 'undefined' || typeof document === 'undefined') return;
-    if (isBottomSheetOpen || isQuizOpen) {
+    if (isQuizOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
@@ -956,7 +954,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isBottomSheetOpen, isQuizOpen]);
+  }, [isQuizOpen]);
 
   const [selectedTimelineApt, setSelectedTimelineApt] = useState<string | null>("동탄역 롯데캐슬");
   const [hasSetDefaultApt, setHasSetDefaultApt] = useState(false);
@@ -1036,30 +1034,33 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
   );
 
   const handleCardClick = useCallback((aptName: string) => {
+    if (!aptName) return;
     setSelectedTimelineApt(aptName);
-    const resolvedDong = aptName ? resolveAptDong(aptName) : '';
-    if (aptName) {
-      addRecentApartment({ name: aptName, dong: resolvedDong });
-    }
+    const resolvedDong = resolveAptDong(aptName);
     const isMob = typeof window !== 'undefined' && window.innerWidth < 1024;
-    if (aptName) {
-      const cardViewPayload = {
-        apartment_name: aptName,
-        apt_name: aptName,
-        dong: resolvedDong || undefined,
-        surface: isMob ? 'dashboard_mobile_drawer' : 'dashboard_timeline_preview',
-        view_type: (isMob ? 'mobile_drawer' : 'chart_preview') as 'mobile_drawer' | 'chart_preview',
-      };
-      if (typeof trackApartmentView === 'function') {
-        trackApartmentView(cardViewPayload);
-      } else {
-        trackEvent('apartment_view', cardViewPayload);
-      }
-    }
     if (isMob) {
-      setIsBottomSheetOpen(true);
+      if (onSelectApt) {
+        addRecentApartment({ name: aptName, dong: resolvedDong });
+        onSelectApt(aptName, resolvedDong || undefined);
+      } else {
+        handleNavigateDetailPage(aptName, resolvedDong || undefined, 'dashboard_timeline_mobile');
+      }
+      return;
     }
-  }, [setSelectedTimelineApt, setIsBottomSheetOpen, resolveAptDong]);
+    addRecentApartment({ name: aptName, dong: resolvedDong });
+    const cardViewPayload = {
+      apartment_name: aptName,
+      apt_name: aptName,
+      dong: resolvedDong || undefined,
+      surface: 'dashboard_timeline_preview',
+      view_type: 'chart_preview' as const,
+    };
+    if (typeof trackApartmentView === 'function') {
+      trackApartmentView(cardViewPayload);
+    } else {
+      trackEvent('apartment_view', cardViewPayload);
+    }
+  }, [setSelectedTimelineApt, resolveAptDong, onSelectApt, handleNavigateDetailPage]);
 
   const handleDetailsClick = useCallback((aptName: string) => {
     handleNavigateDetailPage(aptName, undefined, 'timeline_detail');
@@ -1076,15 +1077,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
   const handleOpenAptFitFinder = useCallback(() => {
     setIsQuizOpen(true);
-  }, []);
-
-  const scrollToHighCpcFinanceSection = useCallback(() => {
-    if (typeof document !== 'undefined') {
-      const financeEl = document.querySelector('[data-testid="high-cpc-finance-section"]');
-      if (financeEl && typeof financeEl.scrollIntoView === 'function') {
-        financeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }
   }, []);
 
   const lastTrackedTimelineSearchRef = useRef<string>('');
@@ -1134,10 +1126,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     });
     if (onOpenCompare) {
       onOpenCompare(safeAptName);
-    } else {
-      scrollToHighCpcFinanceSection();
     }
-  }, [onOpenCompare, scrollToHighCpcFinanceSection]);
+  }, [onOpenCompare]);
 
   const handleOpenJeonseSafety = useCallback((aptName?: string, trigger?: string) => {
     const safeAptName =
@@ -1153,10 +1143,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     });
     if (onOpenJeonseSafety) {
       onOpenJeonseSafety(safeAptName);
-    } else {
-      scrollToHighCpcFinanceSection();
     }
-  }, [onOpenJeonseSafety, scrollToHighCpcFinanceSection]);
+  }, [onOpenJeonseSafety]);
 
   const handleOpenMortgage = useCallback(
     (aptName?: string, priceWon?: number, trigger?: string) => {
@@ -1177,11 +1165,9 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       });
       if (onOpenMortgage) {
         onOpenMortgage(safeAptName, safePriceWon);
-      } else {
-        scrollToHighCpcFinanceSection();
       }
     },
-    [onOpenMortgage, scrollToHighCpcFinanceSection]
+    [onOpenMortgage]
   );
 
   const handleOpenSellTiming = useCallback((aptName?: string, trigger?: string) => {
@@ -1200,10 +1186,8 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       onOpenSellTimingCalculator(safeAptName);
     } else if (_onOpenTaxCalculator) {
       _onOpenTaxCalculator(safeAptName);
-    } else {
-      scrollToHighCpcFinanceSection();
     }
-  }, [onOpenSellTimingCalculator, _onOpenTaxCalculator, scrollToHighCpcFinanceSection]);
+  }, [onOpenSellTimingCalculator, _onOpenTaxCalculator]);
 
   const handleOpenTaxCalculator = useCallback((aptName?: string, trigger?: string) => {
     const safeAptName =
@@ -1221,14 +1205,18 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       _onOpenTaxCalculator(safeAptName);
     } else if (onOpenSellTimingCalculator) {
       onOpenSellTimingCalculator(safeAptName);
-    } else {
-      scrollToHighCpcFinanceSection();
     }
-  }, [_onOpenTaxCalculator, onOpenSellTimingCalculator, scrollToHighCpcFinanceSection]);
+  }, [_onOpenTaxCalculator, onOpenSellTimingCalculator]);
 
   const handleSelectApt = useCallback((name: string, dong?: string) => {
-    onSelectApt?.(name, dong);
-  }, [onSelectApt]);
+    if (!name) return;
+    const resolvedDong = resolveAptDong(name, dong);
+    if (onSelectApt) {
+      onSelectApt(name, resolvedDong || undefined);
+    } else {
+      handleNavigateDetailPage(name, resolvedDong || dong, 'dashboard_card');
+    }
+  }, [resolveAptDong, onSelectApt, handleNavigateDetailPage]);
 
   const isDefaultAptSettingUp = useMemo(() => {
     if (!mounted) return true;
@@ -1445,17 +1433,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
 
     return JSON.stringify(datasetSchema);
   }, [activeMacroData]);
-
-  const selectedAptSummary = useMemo(() => {
-    if (!selectedTimelineApt || !txSummaryData) return null;
-    const summaryMap = (txSummaryData as { summary?: Record<string, AptTxSummary> })?.summary || txSummaryData;
-    const resolvedTxKey = findTxKey(selectedTimelineApt, summaryMap, nameMapping) || selectedTimelineApt;
-    if (summaryMap[resolvedTxKey]) return summaryMap[resolvedTxKey];
-    const normKey = normalizeAptName(resolvedTxKey);
-    if (summaryMap[normKey]) return summaryMap[normKey];
-    const matchedKey = Object.keys(summaryMap).find(k => normalizeAptName(k) === normKey);
-    return matchedKey ? summaryMap[matchedKey] : null;
-  }, [selectedTimelineApt, txSummaryData, nameMapping]);
 
   const selectedAptChartData = useMemo(() => {
     if (!selectedTimelineApt) return null;
@@ -2048,10 +2025,15 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
       rawSummary?.[aptName] ||
       (sanName ? rawSummary?.[sanName] : undefined) ||
       (normName ? rawSummary?.[normName] : undefined);
+    if (!aptName) return;
     const dongVal = summary?.dong;
-    handleCardClick(aptName);
-    handleSelectApt(aptName, dongVal);
-  }, [txSummaryData, handleCardClick, handleSelectApt]);
+    const resolvedDong = resolveAptDong(aptName, dongVal);
+    setSelectedTimelineApt(aptName);
+    if (onSelectApt) {
+      addRecentApartment({ name: aptName, dong: resolvedDong });
+    }
+    handleSelectApt(aptName, resolvedDong || dongVal);
+  }, [txSummaryData, resolveAptDong, onSelectApt, handleSelectApt]);
 
   const displayedTimelineData = useMemo(() => {
     let count = 0;
@@ -2178,17 +2160,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
     );
   }, [trendChartReady, lineData, xTicks, yTicks, timeframe]);
 
-  const renderBottomSheetChart = useCallback(() => (
-    <MacroTrendChart
-      key={selectedTimelineApt || 'all'}
-      lineData={lineData}
-      xTicks={xTicks}
-      yTicks={yTicks}
-      timeframe={timeframe}
-      isBottomSheet={true}
-    />
-  ), [selectedTimelineApt, lineData, xTicks, yTicks, timeframe]);
-
   const handleHoverApt = useCallback((aptName: string) => {
     if (!sheetApartments) return;
     const allApts = Object.values(sheetApartments).flat();
@@ -2276,9 +2247,14 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
                 onOpenMortgageModal={handleOpenMortgage}
                 onOpenJeonseSafetyModal={handleOpenJeonseSafety}
                 onSelectComplex={handleSelectComplex}
-                onSelectApt={(aptName) => {
+                onSelectApt={(aptName, dong) => {
+                  if (!aptName) return;
+                  const resolvedDong = resolveAptDong(aptName, dong);
                   setSelectedTimelineApt(aptName);
-                  handleCardClick(aptName);
+                  if (onSelectApt) {
+                    addRecentApartment({ name: aptName, dong: resolvedDong });
+                  }
+                  handleSelectApt(aptName, resolvedDong || dong);
                 }}
                 preloadApartmentTx={preloadApartmentTx}
               />
@@ -2414,21 +2390,7 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </ChartErrorBoundary>
         </div>
 
-        {/* ═══ Zone 4A: AdSense High-CPC Finance Hub & Zero-CLS AdSlot 2 (Immediately Below Timeline) ═══ */}
-        <ErrorBoundary name="정책자금 및 전세안전진단">
-          <HighCpcFinanceSection
-            onOpenMortgageModal={handleOpenMortgage}
-            onOpenMortgage={handleOpenMortgage}
-            onOpenJeonseSafetyModal={handleOpenJeonseSafety}
-            onOpenJeonseSafety={handleOpenJeonseSafety}
-            onOpenTaxCalculator={handleOpenTaxCalculator}
-            onOpenSellTiming={handleOpenSellTiming}
-            apartmentName={financeBinding.aptName}
-            defaultPriceWon={financeBinding.priceWon}
-            isSplitMode={isSplitMode}
-          />
-        </ErrorBoundary>
-
+        {/* ═══ Zone 4A: Zero-CLS Finance In-Feed AdSlot 2 (Immediately Below Timeline) ═══ */}
         {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
           <div className="w-full my-6 empty:hidden" data-testid="finance-ad-slot-2">
             <AdSlot
@@ -2512,72 +2474,105 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           </div>
         </div>
 
-        {/* Lower 7:5 Asymmetric Retention & Community Hub */}
+        {/* Lower 2x2 Bento Retention & Community Hub (7:5 Symmetric Grid) */}
         <div
           data-testid="zone4-retention-community-grid"
           className={`w-full ${
             isSplitMode ? 'grid grid-cols-1' : 'grid grid-cols-1 lg:grid-cols-12'
-          } gap-6 items-stretch box-border transition-all duration-300 ease-out`}
+          } gap-4 lg:gap-5 items-stretch box-border transition-all duration-300 ease-out`}
         >
-          {/* Left 7 Columns (lg:col-span-7): TrafficNoticeBoard + Community Lounge */}
+          {/* Row 1 Left (lg:col-span-7): TrafficNoticeBoard */}
           <div
             className={
               isSplitMode
-                ? 'flex flex-col gap-4 min-w-0'
-                : 'lg:col-span-7 flex flex-col gap-4 min-w-0'
+                ? 'flex flex-col min-w-0'
+                : 'lg:col-span-7 flex flex-col min-w-0'
             }
           >
             <ErrorBoundary name="철도·교통 게시판">
               <TrafficNoticeBoard
                 railStrategyNotices={railStrategyNotices}
                 tramNotices={tramNotices}
+                className="h-full"
               />
             </ErrorBoundary>
+          </div>
 
+          {/* Row 1 Right (lg:col-span-5): RetentionActionCard */}
+          <div
+            className={
+              isSplitMode
+                ? 'flex flex-col min-w-0'
+                : 'lg:col-span-5 flex flex-col min-w-0'
+            }
+          >
+            <ErrorBoundary name="리텐션 액션 허브">
+              <RetentionActionCard
+                selectedAptName={selectedTimelineApt}
+                className="h-full"
+                onOpenPushModal={(apt) => {
+                  setPushTargetApt(apt);
+                  setIsPushModalOpen(true);
+                }}
+                onOpenA2HSModal={() => {
+                  triggerCustomA2HSModal();
+                }}
+              />
+            </ErrorBoundary>
+          </div>
+
+          {/* Row 2 Left (lg:col-span-7): Community Lounge */}
+          <div
+            className={
+              isSplitMode
+                ? 'flex flex-col min-w-0'
+                : 'lg:col-span-7 flex flex-col min-w-0'
+            }
+          >
             <div
               data-testid="lounge-entry-card"
-              className="w-full bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between border border-border/50 relative overflow-hidden shadow-2xs group"
+              className="w-full h-full bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col justify-between gap-3.5 relative overflow-hidden group transition-colors"
             >
               <div className="flex flex-col gap-3">
-                <div className="flex justify-between items-center border-b border-border/40 pb-3">
+                <div className="flex flex-wrap min-[400px]:flex-nowrap justify-between items-center border-b border-slate-200/70 dark:border-slate-800/80 pb-3 gap-2">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="bg-blue-600/10 dark:bg-blue-600/25 text-blue-700 dark:text-blue-400 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+                    <span className="bg-blue-600/10 dark:bg-blue-600/25 text-blue-700 dark:text-blue-400 font-extrabold text-[10.5px] px-2 sm:px-2.5 py-0.5 rounded-[8px] shrink-0">
                       입주민 커뮤니티
                     </span>
                     <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
                       동탄 실시간 입주민 라운지
                     </h4>
                   </div>
-                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md">
+                  <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md shrink-0">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     실시간 토론 중
                   </span>
                 </div>
 
-                <p className="text-[12.5px] text-secondary leading-relaxed font-medium">
+                <p className="text-[12.5px] text-secondary leading-relaxed font-medium break-keep">
                   동탄1·2 단지별 실거주 후기 · 학군 · 급매 · 갈아타기 실전 정보 교류
                 </p>
 
-                <div className="flex flex-col gap-2 pt-1">
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-body/60 dark:bg-slate-900/30 border border-border/30 text-[12px] text-tertiary">
+                <div className="flex flex-col gap-2 pt-0.5">
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-surface text-[12px] text-tertiary">
                     <MessageSquare size={14} className="text-blue-500 shrink-0" />
-                    <span className="font-semibold text-primary truncate">“동탄역 대장단지 vs 1동탄 대형평수 실거주 비교”</span>
+                    <span className="font-semibold text-primary break-keep line-clamp-2 min-[360px]:line-clamp-none min-[360px]:truncate">“동탄역 대장단지 vs 1동탄 대형평수 실거주 비교”</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-body/60 dark:bg-slate-900/30 border border-border/30 text-[12px] text-tertiary">
+                  <div className="flex items-center gap-2 p-2.5 rounded-xl bg-surface text-[12px] text-tertiary">
                     <MessageSquare size={14} className="text-emerald-500 shrink-0" />
-                    <span className="font-semibold text-primary truncate">“인동선 및 트램 착공 구간별 실질 수혜 단지 정리”</span>
+                    <span className="font-semibold text-primary break-keep line-clamp-2 min-[360px]:line-clamp-none min-[360px]:truncate">“인동선 및 트램 착공 구간별 실질 수혜 단지 정리”</span>
                   </div>
                 </div>
               </div>
 
-              <div className="pt-4 mt-2 border-t border-border/30 flex items-center justify-between">
-                <span className="text-[11px] text-tertiary font-medium">
+              <div className="pt-3 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-wrap min-[360px]:flex-nowrap items-center justify-between gap-2 shrink-0">
+                <span className="text-[11px] text-tertiary font-medium break-keep">
                   D-VIEW 인증 입주민 & 실투자자 전용
                 </span>
                 <Link
                   href="/lounge" prefetch={false}
                   data-testid="lounge-link-btn"
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold shadow-xs transition-all active:scale-95 cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-bold transition-all active:scale-95 cursor-pointer shrink-0 ml-auto"
                 >
                   <span>라운지 입장하기</span>
                   <ArrowRight size={13} />
@@ -2586,25 +2581,17 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
             </div>
           </div>
 
-          {/* Right 5 Columns (lg:col-span-5): RetentionActionCard */}
+          {/* Row 2 Right (lg:col-span-5): AptFitFinderCard */}
           <div
             className={
               isSplitMode
-                ? 'flex flex-col gap-4 min-w-0'
-                : 'lg:col-span-5 flex flex-col gap-4 min-w-0'
+                ? 'flex flex-col min-w-0'
+                : 'lg:col-span-5 flex flex-col min-w-0'
             }
           >
-            <ErrorBoundary name="리텐션 액션 허브">
-              <RetentionActionCard
-                selectedAptName={selectedTimelineApt}
-                className="h-full justify-between"
-                onOpenPushModal={(apt) => {
-                  setPushTargetApt(apt);
-                  setIsPushModalOpen(true);
-                }}
-                onOpenA2HSModal={() => {
-                  triggerCustomA2HSModal();
-                }}
+            <ErrorBoundary name="맞춤 단지 찾기 카드">
+              <AptFitFinderCard
+                className="h-full"
                 onOpenAptFitFinder={handleOpenAptFitFinder}
               />
             </ErrorBoundary>
@@ -2625,19 +2612,6 @@ const MacroDashboardClient = React.memo(function MacroDashboardClient({
           locationScores={locationScores || EMPTY_OBJECT}
         />
       </ErrorBoundary>
-
-      {/* Mobile Bottom Sheet Modal */}
-      <MacroMobileDrawer
-        isBottomSheetOpen={isBottomSheetOpen}
-        setIsBottomSheetOpen={setIsBottomSheetOpen}
-        selectedTimelineApt={selectedTimelineApt}
-        selectedAptSummary={selectedAptSummary}
-        timeframe={timeframe}
-        setTimeframe={setTimeframe}
-        renderBottomSheetChart={renderBottomSheetChart}
-        onOpenMortgageModal={handleOpenMortgage}
-        onNavigateDetail={(aptName) => handleNavigateDetailPage(aptName, undefined, 'mobile_drawer')}
-      />
 
       {/* Push Subscription Modal */}
       {isPushModalOpen && (

@@ -420,4 +420,65 @@ describe('D-VIEW Admin Device GA4 & Telemetry Exclusion System', () => {
       document.head.innerHTML = originalHeadHtml;
     }
   });
+
+  it('prevents React 19 hydration mismatch when adsbygoogle.js sets data-checked-head="true" on #google-adsense before hydration', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+    const layoutSource = fs.readFileSync(
+      path.resolve(__dirname, '../../app/layout.tsx'),
+      'utf-8'
+    );
+    const adsScriptMatch = layoutSource.match(/<script[\s\S]*?id="google-adsense"[\s\S]*?\/>/);
+    expect(adsScriptMatch).not.toBeNull();
+    expect(adsScriptMatch![0]).toContain('suppressHydrationWarning');
+
+    const ReactDOMClient = await import('react-dom/client');
+    const adsSrc =
+      'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1103228112872356';
+    const originalHeadHtml = document.head.innerHTML;
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    try {
+      document.head.innerHTML = '';
+
+      const adsScript = document.createElement('script');
+      adsScript.id = 'google-adsense';
+      adsScript.async = true;
+      adsScript.setAttribute('itemprop', 'adsense-loader');
+      adsScript.src = adsSrc;
+      adsScript.crossOrigin = 'anonymous';
+      // Simulate adsbygoogle.js stamping data-checked-head="true" before React hydrates <head>
+      adsScript.setAttribute('data-checked-head', 'true');
+      document.head.appendChild(adsScript);
+
+      let root: ReturnType<typeof ReactDOMClient.hydrateRoot> | null = null;
+      await act(async () => {
+        root = ReactDOMClient.hydrateRoot(
+          document.head,
+          <script
+            id="google-adsense"
+            async
+            itemProp="adsense-loader"
+            suppressHydrationWarning
+            src={adsSrc}
+            crossOrigin="anonymous"
+          />
+        );
+      });
+
+      const hydrationErrors = errorSpy.mock.calls
+        .map((args) => args.map(String).join(' '))
+        .filter((msg) => /hydrat|mismatch|didn't match|data-checked-head/i.test(msg));
+      expect(hydrationErrors).toEqual([]);
+
+      if (root) {
+        act(() => {
+          (root as ReturnType<typeof ReactDOMClient.hydrateRoot>).unmount();
+        });
+      }
+    } finally {
+      errorSpy.mockRestore();
+      document.head.innerHTML = originalHeadHtml;
+    }
+  });
 });

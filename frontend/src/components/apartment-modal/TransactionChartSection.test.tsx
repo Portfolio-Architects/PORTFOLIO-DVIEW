@@ -1,4 +1,6 @@
 import React from 'react';
+import fs from 'fs';
+import path from 'path';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { TransactionChartSection } from './TransactionChartSection';
@@ -130,6 +132,46 @@ describe('TransactionChartSection Empirical Verification', () => {
     );
 
     expect(screen.getByText('현재 숨고르기 중인 단지입니다')).toBeInTheDocument();
+  });
+
+  it('uses mobile 2x2 momentum grid, solid series colors matching legend, XAxis padding, and Recharts 3 axis scale hooks', () => {
+    const source = fs.readFileSync(path.resolve(__dirname, './TransactionChartSection.tsx'), 'utf8');
+
+    expect(source).not.toContain('saleLineGrad');
+    expect(source).not.toContain('jeonseLineGrad');
+    expect(source).not.toContain('<Customized component=');
+    expect(source).toContain('useXAxisScale');
+    expect(source).toContain('useYAxisScale');
+    expect(source).toContain('padding={{ left: 16, right: 16 }}');
+
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      const { container } = render(
+        <TransactionChartSection
+          transactions={mockTransactions as any}
+          chartType="sale"
+          setChartType={jest.fn()}
+          displayAptName="동탄역 시범한화꿈에그린프레스티지"
+          dong="청계동"
+          typeMap={{}}
+          normalizeAptName={(name) => name}
+        />
+      );
+
+      const gridEl = container.querySelector('.grid.grid-cols-2.sm\\:grid-cols-4');
+      expect(gridEl).toBeInTheDocument();
+      expect(screen.getByText('1개월 평균')).toBeInTheDocument();
+      expect(screen.getByText('3개월 평균')).toBeInTheDocument();
+      expect(screen.getByText('6개월 평균')).toBeInTheDocument();
+      expect(screen.getByText('1년 평균')).toBeInTheDocument();
+
+      expect(errorSpy).not.toHaveBeenCalled();
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
   });
 });
 

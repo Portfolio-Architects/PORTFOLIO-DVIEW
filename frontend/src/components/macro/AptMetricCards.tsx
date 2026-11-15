@@ -374,18 +374,26 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         {/* 1. 최고 거래가 단지 */}
         <div
           data-testid="insight-card-new-high"
-          onClick={() => handleInsightClick(newHighComplex)}
-          onMouseEnter={() => handleInsightHover(newHighComplex)}
-          role="button"
-          tabIndex={0}
-          aria-label={`최고 거래가 ${newHighComplex?.aptName || '해당 없음'} 상세 보기`}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleInsightClick(newHighComplex);
-            }
-          }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          onClick={newHighComplex ? () => handleInsightClick(newHighComplex) : undefined}
+          onMouseEnter={newHighComplex ? () => handleInsightHover(newHighComplex) : undefined}
+          role={newHighComplex ? 'button' : undefined}
+          tabIndex={newHighComplex ? 0 : undefined}
+          aria-label={newHighComplex ? `최고 거래가 ${newHighComplex.aptName} 상세 보기` : undefined}
+          onKeyDown={
+            newHighComplex
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleInsightClick(newHighComplex);
+                  }
+                }
+              : undefined
+          }
+          className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
+            newHighComplex
+              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              : 'cursor-default'
+          }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
@@ -414,18 +422,26 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         {/* 2. 최고 평당가 단지 */}
         <div
           data-testid="insight-card-optimal-gap"
-          onClick={() => handleInsightClick(optimalGapComplex)}
-          onMouseEnter={() => handleInsightHover(optimalGapComplex)}
-          role="button"
-          tabIndex={0}
-          aria-label={`최고 평당가 ${optimalGapComplex?.aptName || '해당 없음'} 상세 보기`}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleInsightClick(optimalGapComplex);
-            }
-          }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          onClick={optimalGapComplex ? () => handleInsightClick(optimalGapComplex) : undefined}
+          onMouseEnter={optimalGapComplex ? () => handleInsightHover(optimalGapComplex) : undefined}
+          role={optimalGapComplex ? 'button' : undefined}
+          tabIndex={optimalGapComplex ? 0 : undefined}
+          aria-label={optimalGapComplex ? `최고 평당가 ${optimalGapComplex.aptName} 상세 보기` : undefined}
+          onKeyDown={
+            optimalGapComplex
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleInsightClick(optimalGapComplex);
+                  }
+                }
+              : undefined
+          }
+          className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
+            optimalGapComplex
+              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              : 'cursor-default'
+          }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
@@ -454,18 +470,26 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         {/* 3. 거래량 급증 단지 */}
         <div
           data-testid="insight-card-volume-surge"
-          onClick={() => handleInsightClick(volumeSurgeComplex)}
-          onMouseEnter={() => handleInsightHover(volumeSurgeComplex)}
-          role="button"
-          tabIndex={0}
-          aria-label={`거래량 최다 ${volumeSurgeComplex?.aptName || '해당 없음'} 상세 보기`}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleInsightClick(volumeSurgeComplex);
-            }
-          }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          onClick={volumeSurgeComplex ? () => handleInsightClick(volumeSurgeComplex) : undefined}
+          onMouseEnter={volumeSurgeComplex ? () => handleInsightHover(volumeSurgeComplex) : undefined}
+          role={volumeSurgeComplex ? 'button' : undefined}
+          tabIndex={volumeSurgeComplex ? 0 : undefined}
+          aria-label={volumeSurgeComplex ? `거래량 최다 ${volumeSurgeComplex.aptName} 상세 보기` : undefined}
+          onKeyDown={
+            volumeSurgeComplex
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleInsightClick(volumeSurgeComplex);
+                  }
+                }
+              : undefined
+          }
+          className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
+            volumeSurgeComplex
+              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              : 'cursor-default'
+          }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">
@@ -494,18 +518,26 @@ export const AptMetricCards = React.memo(function AptMetricCards({
         {/* 4. 낙폭과대 급매 단지 */}
         <div
           data-testid="insight-card-urgent-bargain"
-          onClick={() => handleInsightClick(urgentBargainComplex)}
-          onMouseEnter={() => handleInsightHover(urgentBargainComplex)}
-          role="button"
-          tabIndex={0}
-          aria-label={`직전가 대비 하락 ${urgentBargainComplex?.aptName || '해당 없음'} 상세 보기`}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleInsightClick(urgentBargainComplex);
-            }
-          }}
-          className="bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 cursor-pointer text-left group"
+          onClick={urgentBargainComplex ? () => handleInsightClick(urgentBargainComplex) : undefined}
+          onMouseEnter={urgentBargainComplex ? () => handleInsightHover(urgentBargainComplex) : undefined}
+          role={urgentBargainComplex ? 'button' : undefined}
+          tabIndex={urgentBargainComplex ? 0 : undefined}
+          aria-label={urgentBargainComplex ? `직전가 대비 하락 ${urgentBargainComplex.aptName} 상세 보기` : undefined}
+          onKeyDown={
+            urgentBargainComplex
+              ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleInsightClick(urgentBargainComplex);
+                  }
+                }
+              : undefined
+          }
+          className={`bg-elevated px-2.5 py-2.5 sm:px-3 xl:px-3.5 sm:py-3 rounded-xl sm:rounded-2xl flex flex-col justify-between h-full min-h-0 overflow-hidden box-border transition-colors duration-150 text-left ${
+            urgentBargainComplex
+              ? 'hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer group'
+              : 'cursor-default'
+          }`}
         >
           <div className="flex items-center justify-between gap-1.5 min-w-0 w-full shrink-0 overflow-hidden">
             <div className="flex items-center gap-1 min-w-0 overflow-hidden">

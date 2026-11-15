@@ -356,7 +356,16 @@ export function StatsPyeongRankingChart({
                     <div
                       key={`${item.aptKey || item.aptName}-${rank}`}
                       data-testid={`ranking-item-${rank}`}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`${rank}위 ${item.aptName} 상세 보기`}
                       onClick={() => onSelectComplex?.(item.aptKey, item.aptName)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          onSelectComplex?.(item.aptKey, item.aptName);
+                        }
+                      }}
                       className="p-4 rounded-xl border border-border/60 bg-body/40 hover:bg-body hover:border-blue-500/40 transition-all cursor-pointer flex flex-col justify-between gap-2.5 group"
                     >
                       {/* Top Row: Rank Badge + Complex Name + Dong Pill */}
@@ -451,7 +460,16 @@ export function StatsPyeongRankingChart({
                       <div
                         key={`${item.aptKey || item.aptName}-${rank}`}
                         data-testid={`ranking-item-${rank}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`${rank}위 ${item.aptName} 상세 보기`}
                         onClick={() => onSelectComplex?.(item.aptKey, item.aptName)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onSelectComplex?.(item.aptKey, item.aptName);
+                          }
+                        }}
                         className="py-2.5 px-2 hover:bg-body/60 transition-colors cursor-pointer flex items-center justify-between gap-3 group"
                       >
                         {/* Left: Rank + Complex Name + Dong */}

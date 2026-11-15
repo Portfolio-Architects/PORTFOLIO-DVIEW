@@ -44,7 +44,7 @@ import {
 export const MacroDashboardSkeleton = () => (
   <div className="w-full flex flex-col bg-transparent animate-pulse min-h-[85vh] min-h-[800px] select-none" data-testid="macrodashboard-5zone-skeleton">
     {/* PageHeroHeader Skeleton */}
-    <div className="h-[144px] flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-border/60 shrink-0">
+    <div className="h-[130px] sm:h-[128px] flex flex-col gap-3 sm:gap-4 px-3 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-3 w-full max-w-full overflow-x-clip min-w-0 bg-transparent border-b border-border/60 shrink-0">
       <div className="flex items-center gap-3 sm:gap-4">
         <div className="w-[36px] h-[36px] min-w-[36px] min-h-[36px] sm:w-[42px] sm:h-[42px] sm:min-w-[42px] sm:min-h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
         <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
@@ -68,7 +68,7 @@ export const MacroDashboardSkeleton = () => (
             </div>
             <div className="flex items-center gap-4 flex-1 py-2">
               <div className="flex-1 flex items-center justify-center">
-                <div className="w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px] rounded-full border-[20px] border-black/10 dark:border-surface/10 shrink-0" />
+                <div className="w-[270px] h-[270px] sm:w-[226px] sm:h-[226px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px] rounded-full border-[20px] border-black/10 dark:border-surface/10 shrink-0" />
               </div>
               <div className="hidden sm:flex flex-col gap-2 sm:w-[268px] md:w-[296px] lg:w-[212px] xl:w-[280px] 2xl:w-[324px] shrink-0">
                 {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -120,20 +120,10 @@ export const MacroDashboardSkeleton = () => (
         </div>
       </div>
 
-      {/* ═══ Zone 4A: HighCpcFinanceSection + AdSlot 2 Skeleton ═══ */}
-      <div className="w-full flex flex-col gap-6 mb-6">
-        <div className="h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 p-5 flex flex-col justify-between border border-border/30">
-          <div className="w-48 h-6 bg-black/10 dark:bg-surface/10 rounded-lg" />
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="h-10 rounded-xl bg-black/10 dark:bg-surface/10" />
-            ))}
-          </div>
-        </div>
-        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-          <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
-        )}
-      </div>
+      {/* ═══ Zone 4A: Finance In-Feed AdSlot 2 Skeleton ═══ */}
+      {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+        <div className="w-full h-[140px] sm:h-[160px] mb-6 rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+      )}
 
       {/* ═══ Zone 4B: Curated Guides 3-Pack + 7:5 Retention & Community Hub Skeleton ═══ */}
       <div className="w-full flex flex-col gap-6 mb-6">
@@ -148,33 +138,62 @@ export const MacroDashboardSkeleton = () => (
         </div>
         <div
           data-testid="skeleton-zone4b-retention"
-          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+          className="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch"
         >
-          <div className="lg:col-span-7 flex flex-col gap-4 min-w-0">
-            <div className="h-44 sm:h-52 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
+          <div className="lg:col-span-7 flex flex-col min-w-0">
+            <div className="h-[288px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
               <div className="w-40 h-5 bg-black/10 dark:bg-surface/10 rounded" />
-              <div className="space-y-2">
-                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
-                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
-              </div>
-            </div>
-            <div className="h-44 sm:h-52 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
-              <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
-              <div className="space-y-2">
-                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
-                <div className="w-32 h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
+              <div className="space-y-2.5">
+                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
               </div>
             </div>
           </div>
-          <div className="lg:col-span-5 flex flex-col gap-4 min-w-0">
-            <div className="h-[360px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between border border-border/30">
+          <div className="lg:col-span-5 flex flex-col min-w-0">
+            <div className="h-[288px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="w-32 h-5 bg-black/10 dark:bg-surface/10 rounded" />
-                <div className="w-20 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-16 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
               </div>
-              <div className="flex flex-col gap-2.5">
-                <div className="w-full h-11 rounded-xl bg-black/10 dark:bg-surface/10" />
-                <div className="w-full h-11 rounded-xl bg-black/10 dark:bg-surface/10" />
+              <div className="grid grid-cols-2 gap-2.5 flex-1 my-3">
+                <div className="rounded-xl bg-black/10 dark:bg-surface/10" />
+                <div className="rounded-xl bg-black/10 dark:bg-surface/10" />
+              </div>
+              <div className="w-44 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+            </div>
+          </div>
+          <div className="lg:col-span-7 flex flex-col min-w-0">
+            <div className="h-[268px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <div className="w-44 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-20 h-5 bg-black/10 dark:bg-surface/10 rounded-md" />
+              </div>
+              <div className="space-y-2">
+                <div className="w-full h-10 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                <div className="w-full h-10 bg-black/10 dark:bg-surface/10 rounded-xl" />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="w-36 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-28 h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+              </div>
+            </div>
+          </div>
+          <div className="lg:col-span-5 flex flex-col min-w-0">
+            <div className="h-[268px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-16 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+                <div className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+                <div className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="w-36 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+                <div className="w-28 h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
               </div>
             </div>
           </div>
@@ -1562,6 +1581,10 @@ const DashboardClient = React.memo(function DashboardClient({
 
       if (detail.calcType === 'property_tax') {
         handleOpenTaxCalculator(targetApt, detail.priceWon, effectiveCtx);
+      } else if (detail.calcType === 'jeonse_safety') {
+        handleOpenJeonseSafety(targetApt);
+      } else if (detail.calcType === 'sell_timing') {
+        handleOpenSellTimingCalculator(targetApt);
       } else {
         handleOpenMortgage(targetApt, detail.priceWon, effectiveCtx);
       }
@@ -1578,6 +1601,8 @@ const DashboardClient = React.memo(function DashboardClient({
     selectedReport?.apartmentName,
     handleOpenMortgage,
     handleOpenTaxCalculator,
+    handleOpenJeonseSafety,
+    handleOpenSellTimingCalculator,
   ]);
 
   useEffect(() => {
@@ -1946,14 +1971,16 @@ const DashboardClient = React.memo(function DashboardClient({
                         });
                         handleOpenCompare(aptName, targetAptName);
                       }}
-                      onOpenJeonseSafety={(aptName) => {
+                      onOpenJeonseSafety={(aptName, trigger) => {
+                        const trackedApt = aptName || effectiveInlineReport.apartmentName;
                         trackEvent('open_calculator', {
                           calculator_type: 'jeonse_safety',
-                          apartment_name: aptName,
-                          apt_name: aptName,
+                          apartment_name: trackedApt,
+                          apt_name: trackedApt,
                           surface: 'apartment_inline_page',
+                          ...(trigger ? { trigger } : {}),
                         });
-                        handleOpenJeonseSafety(aptName);
+                        handleOpenJeonseSafety(aptName || effectiveInlineReport.apartmentName);
                       }}
                       onOpenMortgage={(aptName, priceWon, trigger) => {
                         const trackedApt = aptName || effectiveInlineReport.apartmentName;
@@ -2032,14 +2059,16 @@ const DashboardClient = React.memo(function DashboardClient({
                       });
                       handleOpenCompare(aptName, targetAptName);
                     }}
-                    onOpenJeonseSafety={(aptName) => {
+                    onOpenJeonseSafety={(aptName, trigger) => {
+                      const trackedApt = aptName || selectedReport.apartmentName;
                       trackEvent('open_calculator', {
                         calculator_type: 'jeonse_safety',
-                        apartment_name: aptName,
-                        apt_name: aptName,
+                        apartment_name: trackedApt,
+                        apt_name: trackedApt,
                         surface: 'apartment_modal',
+                        ...(trigger ? { trigger } : {}),
                       });
-                      handleOpenJeonseSafety(aptName);
+                      handleOpenJeonseSafety(aptName || selectedReport.apartmentName);
                     }}
                     onOpenMortgage={(aptName, priceWon, trigger) => {
                       const trackedApt = aptName || selectedReport.apartmentName;

@@ -14,15 +14,20 @@ export interface LocalNoticeItem {
 interface TrafficNoticeBoardProps {
   railStrategyNotices: LocalNoticeItem[];
   tramNotices: LocalNoticeItem[];
+  className?: string;
 }
 
-export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: TrafficNoticeBoardProps) {
+export function TrafficNoticeBoard({
+  railStrategyNotices,
+  tramNotices,
+  className = '',
+}: TrafficNoticeBoardProps) {
   return (
-    <div className="w-full bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col gap-4 relative md:h-[350px] justify-start">
+    <div className={`w-full h-full bg-elevated rounded-2xl p-4 sm:p-5 flex flex-col gap-2.5 relative justify-start ${className}`}>
       {/* Header */}
-      <div className="flex justify-between items-center border-b border-border/40 pb-3 shrink-0">
+      <div className="flex justify-between items-center border-b border-slate-200/70 dark:border-slate-800/80 pb-3 shrink-0">
         <div className="relative group/title flex items-center gap-1.5 min-w-0">
-          <span className="bg-emerald-600/10 dark:bg-emerald-600/25 text-emerald-700 dark:text-emerald-700 font-extrabold text-[10.5px] px-2.5 py-0.5 rounded-[8px] shrink-0">
+          <span className="bg-emerald-600/10 dark:bg-emerald-600/25 text-emerald-700 dark:text-emerald-400 font-extrabold text-[10.5px] px-2 sm:px-2.5 py-0.5 rounded-[8px] shrink-0">
             철도·교통
           </span>
           <h4 className="text-[14px] font-extrabold text-primary tracking-tight truncate">
@@ -40,15 +45,15 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
       </div>
 
       {/* 소식 리스트 */}
-      <div className="flex flex-col gap-2.5 flex-1 justify-start py-1.5 overflow-hidden">
+      <div className="flex flex-col gap-2 flex-1 justify-start min-w-0">
         {/* 1. 철도전략과 소식 */}
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2 mb-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 shadow-[0_0_4px_rgba(220,110,45,0.4)]"></span>
+        <div className="flex flex-col gap-1">
+          <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
             철도전략과 소식
           </div>
           {railStrategyNotices.length === 0 ? (
-            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-slate-50/50 dark:bg-slate-900/10 rounded-xl border border-dashed border-border/30">
+            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-surface rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/80">
               관련 공지사항이 없습니다.
             </div>
           ) : (
@@ -64,17 +69,17 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                     window.location.href = `/news?notice=${item.id}`;
                   }
                 }}
-                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-slate-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                className="flex items-center justify-between py-1 px-2 hover:bg-surface rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-slate-200/70 dark:hover:border-slate-800/80 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
                 {/* Left: Title */}
-                <div className="flex items-center min-w-0 mr-3">
-                  <span className="text-[14px] font-bold text-primary group-hover/item:text-emerald-700 transition-colors truncate" title={item.title}>
+                <div className="flex items-center min-w-0 mr-2">
+                  <span className="text-[13.5px] sm:text-[14px] font-bold text-primary group-hover/item:text-emerald-700 dark:group-hover/item:text-emerald-400 transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>
                 </div>
                 {/* Right: Date */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                  <span className="text-[11.5px] text-tertiary font-semibold text-right shrink-0 tabular-nums">
                     {item.date.substring(5, 10).replace("-", "/")}
                   </span>
                 </div>
@@ -84,16 +89,16 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
         </div>
 
         {/* 구분선 */}
-        <div className="border-t border-border/30 my-1.5 mx-2"></div>
+        <div className="border-t border-slate-200/70 dark:border-slate-800/80 my-0.5"></div>
 
         {/* 2. 트램건설추진단 소식 */}
-        <div className="flex flex-col gap-1.5">
-          <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2 mb-0.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_4px_rgba(16,185,129,0.4)]"></span>
+        <div className="flex flex-col gap-1">
+          <div className="text-[12.5px] font-black text-secondary/80 flex items-center gap-1.5 px-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
             트램건설추진단 소식
           </div>
           {tramNotices.length === 0 ? (
-            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-slate-50/50 dark:bg-slate-900/10 rounded-xl border border-dashed border-border/30">
+            <div className="text-center py-4 text-tertiary text-[11.5px] font-medium bg-surface rounded-xl border border-dashed border-slate-200/70 dark:border-slate-800/80">
               관련 공지사항이 없습니다.
             </div>
           ) : (
@@ -105,17 +110,17 @@ export function TrafficNoticeBoard({ railStrategyNotices, tramNotices }: Traffic
                 onClick={() => {
                   window.open(item.url, '_blank', 'noopener,noreferrer');
                 }}
-                className="flex items-center justify-between py-1.5 px-2.5 hover:bg-body/60 dark:hover:bg-slate-900/30 rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-border/30 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
+                className="flex items-center justify-between py-1 px-2 hover:bg-surface rounded-xl transition-all duration-200 cursor-pointer group/item active:scale-[0.995] border border-transparent hover:border-slate-200/70 dark:hover:border-slate-800/80 min-w-0 w-full text-left bg-transparent outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/50"
               >
                 {/* Left: Title */}
-                <div className="flex items-center min-w-0 mr-3">
-                  <span className="text-[14px] font-bold text-primary group-hover/item:text-emerald-600 transition-colors truncate" title={item.title}>
+                <div className="flex items-center min-w-0 mr-2">
+                  <span className="text-[13.5px] sm:text-[14px] font-bold text-primary group-hover/item:text-emerald-600 dark:group-hover/item:text-emerald-400 transition-colors truncate" title={item.title}>
                     {item.title}
                   </span>
                 </div>
                 {/* Right: Date */}
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-[11.5px] text-tertiary font-semibold w-[42px] text-right shrink-0">
+                  <span className="text-[11.5px] text-tertiary font-semibold text-right shrink-0 tabular-nums">
                     {item.date.substring(5, 10).replace("-", "/")}
                   </span>
                 </div>

@@ -474,7 +474,7 @@ describe('Tier 2: Boundary Value Analysis (BVA) & Corner Cases Suite [F1 ~ F7]',
       const onTabChange = jest.fn();
       render(<LoungeHeader onTabChange={onTabChange} />);
 
-      const guideLink = screen.getByRole('link', { name: /가이드/i });
+      const guideLink = screen.getByRole('link', { name: /분석 리포트/i });
       for (let i = 0; i < 50; i++) {
         fireEvent.click(guideLink);
       }

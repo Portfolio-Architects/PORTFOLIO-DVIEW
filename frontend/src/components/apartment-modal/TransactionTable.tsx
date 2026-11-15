@@ -13,6 +13,7 @@ interface TransactionTableProps {
   chartType: 'sale' | 'jeonse';
   normalizeAptName: (name: string) => string;
   loadAllTransactions?: () => void;
+  compact?: boolean;
 }
 
 export const TransactionTable = React.memo(function TransactionTable({
@@ -20,7 +21,8 @@ export const TransactionTable = React.memo(function TransactionTable({
   typeMap,
   chartType,
   normalizeAptName,
-  loadAllTransactions
+  loadAllTransactions,
+  compact = false,
 }: TransactionTableProps) {
   const { areaUnit } = useSettingsValues();
   const [txSort, setTxSort] = useState<'date_desc' | 'date_asc' | 'price_desc' | 'price_asc'>('date_desc');
@@ -232,7 +234,7 @@ export const TransactionTable = React.memo(function TransactionTable({
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
       )}
-      <div className="flex items-center justify-between p-4 bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full">
+      <div className={`flex items-center justify-between bg-[#F9FAFB] dark:bg-[#1a1a1a] border-b border-border w-full ${compact ? 'px-3 py-2 sm:px-4 sm:py-3 md:p-4' : 'p-4'}`}>
         <h2 className="text-[14px] font-bold text-secondary shrink-0">
           실거래가 <span className="text-blue-600 dark:text-blue-400 ml-1">{filteredTransactions.length}</span>건
         </h2>
@@ -268,7 +270,7 @@ export const TransactionTable = React.memo(function TransactionTable({
       </div>
 
       {/* 테이블 컬럼 헤더 추가 */}
-      <div className="flex items-center justify-between pl-4 pr-[22px] py-2 bg-body border-b border-border text-[11px] font-extrabold text-[#4e5968] dark:text-[#cbd5e1] select-none shrink-0 w-full gap-2">
+      <div className={`flex items-center justify-between bg-body border-b border-border text-[11px] font-extrabold text-[#4e5968] dark:text-[#cbd5e1] select-none shrink-0 w-full gap-2 ${compact ? 'pl-3 pr-4 py-1.5 sm:pl-4 sm:pr-[22px] sm:py-2' : 'pl-4 pr-[22px] py-2'}`}>
         <div className="w-[74px] md:w-[84px] shrink-0 text-left">계약일</div>
         <div className="w-[48px] md:w-[56px] shrink-0 text-center">전용면적</div>
         <div className="w-[36px] md:w-[48px] shrink-0 text-center">층</div>
@@ -277,7 +279,7 @@ export const TransactionTable = React.memo(function TransactionTable({
 
       <div 
       ref={scrollContainerRef}
-      className="overflow-y-visible md:overflow-y-auto touch-pan-y overscroll-y-auto md:overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-auto md:h-[420px] focus:outline-none"
+      className={`overflow-y-visible md:overflow-y-auto touch-pan-y overscroll-y-auto md:overscroll-y-contain custom-scrollbar flex-1 relative min-h-0 h-auto ${compact ? 'md:h-auto' : 'md:h-[420px]'} focus:outline-none`}
       style={{ WebkitOverflowScrolling: 'touch', scrollbarGutter: 'stable' }}
       tabIndex={0}
       aria-label="실거래 내역 목록"
@@ -287,7 +289,8 @@ export const TransactionTable = React.memo(function TransactionTable({
             key={`tx-row-${tx.contractYm}-${tx.contractDay}-${tx.price}-${tx.floor}-${i}`} 
             tx={tx} 
             areaUnit={areaUnit} 
-            typeMap={typeMap} 
+            typeMap={typeMap}
+            compact={compact}
           />
         ))}
 
@@ -338,12 +341,14 @@ interface TransactionRowProps {
   tx: TransactionRecord;
   areaUnit: 'm2' | 'pyeong';
   typeMap: Record<string, Record<string, { typeM2: string; typePyeong: string }>>;
+  compact?: boolean;
 }
 
 const TransactionRow = React.memo(function TransactionRow({
   tx,
   areaUnit,
-  typeMap
+  typeMap,
+  compact = false,
 }: TransactionRowProps) {
   const ym = String(tx.contractYm || '');
   const m = ym.length >= 6 ? ym.substring(4, 6) : '01';
@@ -416,7 +421,7 @@ const TransactionRow = React.memo(function TransactionRow({
   }, [tx.dealType, tx.deposit, displayMonthly, eok, rem]);
 
   return (
-    <div className={`flex items-center justify-between p-3 md:p-4 border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
+    <div className={`flex items-center justify-between ${compact ? 'px-3 py-2.5 md:px-4 md:py-3' : 'p-3 md:p-4'} border-b border-body bg-surface hover:bg-body hover:-translate-y-[1px] hover:shadow-sm transition-all duration-200 cursor-default ${isCancelled ? 'opacity-40' : ''} gap-2`}>
       {/* 1. 날짜 */}
       <div className="flex flex-col w-[74px] md:w-[84px] shrink-0 text-left">
         <div className={`text-[14px] md:text-[15px] font-bold tracking-tight whitespace-nowrap ${isCancelled ? 'text-tertiary line-through decoration-red-500/60 dark:decoration-red-400/60' : 'text-[#6b7684] dark:text-[#9ca3af]'}`}>

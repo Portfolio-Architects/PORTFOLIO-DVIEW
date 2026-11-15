@@ -2,7 +2,7 @@ import { Suspense } from 'react';
 import Script from 'next/script';
 import Link from 'next/link';
 import { Metadata } from 'next';
-import { ChevronDown, TrendingUp, Activity, ShieldCheck } from 'lucide-react';
+import { ChevronDown } from 'lucide-react';
 import DashboardClient from '@/components/DashboardClient';
 import { getInitialData } from '@/lib/services/dashboardData';
 import { toSlimDashboardInitialData } from '@/lib/services/slimInitialPayload';
@@ -13,7 +13,6 @@ import {
   getSeoAccordionSummaryClass,
   getSeoAccordionChevronClass,
   getSeoAccordionBodyClass,
-  getVisualSignalPillClass,
 } from '@/lib/design-system/copyDiet';
 
 interface HomeTransactionRecord {
@@ -98,7 +97,7 @@ export function DashboardSkeleton() {
       </header>
 
       {/* PageHeroHeader Skeleton */}
-      <div className="h-[144px] flex flex-col gap-3 sm:gap-4 px-4 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-1.5 sm:pb-6 w-full max-w-[2000px] mx-auto border-b border-border/60 shrink-0">
+      <div className="h-[130px] sm:h-[128px] flex flex-col gap-3 sm:gap-4 px-4 sm:px-6 md:px-10 lg:px-16 pt-[28px] md:pt-6 lg:pt-8 pb-3 w-full max-w-[2000px] mx-auto border-b border-border/60 shrink-0">
         <div className="flex items-center gap-3 sm:gap-4">
           <div className="w-[36px] h-[36px] sm:w-[42px] sm:h-[42px] bg-black/5 dark:bg-surface/5 rounded-xl shrink-0" />
           <div className="w-48 sm:w-64 h-8 bg-black/5 dark:bg-surface/5 rounded-xl" />
@@ -122,7 +121,7 @@ export function DashboardSkeleton() {
               </div>
               <div className="flex items-center gap-4 flex-1 py-2">
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px] rounded-full border-[20px] border-black/10 dark:border-surface/10 shrink-0" />
+                  <div className="w-[270px] h-[270px] sm:w-[226px] sm:h-[226px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px] rounded-full border-[20px] border-black/10 dark:border-surface/10 shrink-0" />
                 </div>
                 <div className="hidden sm:flex flex-col gap-2 sm:w-[268px] md:w-[296px] lg:w-[212px] xl:w-[280px] 2xl:w-[324px] shrink-0">
                   {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -174,20 +173,10 @@ export function DashboardSkeleton() {
           </div>
         </div>
 
-        {/* ═══ Zone 4A: HighCpcFinanceSection + AdSlot 2 Skeleton ═══ */}
-        <div className="w-full flex flex-col gap-6 mb-6">
-          <div className="h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 p-5 flex flex-col justify-between border border-border/30">
-            <div className="w-48 h-6 bg-black/10 dark:bg-surface/10 rounded-lg" />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="h-10 rounded-xl bg-black/10 dark:bg-surface/10" />
-              ))}
-            </div>
-          </div>
-          {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
-            <div className="w-full h-[140px] sm:h-[160px] rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
-          )}
-        </div>
+        {/* ═══ Zone 4A: Finance In-Feed AdSlot 2 Skeleton ═══ */}
+        {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
+          <div className="w-full h-[140px] sm:h-[160px] mb-6 rounded-2xl bg-black/5 dark:bg-surface/5 border border-border/30" />
+        )}
 
         {/* ═══ Zone 4B: Curated Guides 3-Pack + 7:5 Retention & Community Hub Skeleton ═══ */}
         <div className="w-full flex flex-col gap-6 mb-6">
@@ -202,33 +191,62 @@ export function DashboardSkeleton() {
           </div>
           <div
             data-testid="skeleton-zone4b-retention"
-            className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch"
+            className="w-full grid grid-cols-1 lg:grid-cols-12 gap-4 lg:gap-5 items-stretch"
           >
-            <div className="lg:col-span-7 flex flex-col gap-4 min-w-0">
-              <div className="h-44 sm:h-52 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
+            <div className="lg:col-span-7 flex flex-col min-w-0">
+              <div className="h-[288px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
                 <div className="w-40 h-5 bg-black/10 dark:bg-surface/10 rounded" />
-                <div className="space-y-2">
-                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
-                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
-                </div>
-              </div>
-              <div className="h-44 sm:h-52 rounded-2xl bg-black/5 dark:bg-surface/5 p-4 flex flex-col justify-between border border-border/30">
-                <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
-                <div className="space-y-2">
-                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
-                  <div className="w-32 h-8 bg-black/10 dark:bg-surface/10 rounded-lg" />
+                <div className="space-y-2.5">
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                  <div className="w-full h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
                 </div>
               </div>
             </div>
-            <div className="lg:col-span-5 flex flex-col gap-4 min-w-0">
-              <div className="h-[360px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between border border-border/30">
+            <div className="lg:col-span-5 flex flex-col min-w-0">
+              <div className="h-[288px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <div className="w-32 h-5 bg-black/10 dark:bg-surface/10 rounded" />
-                  <div className="w-20 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-16 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
                 </div>
-                <div className="flex flex-col gap-2.5">
-                  <div className="w-full h-11 rounded-xl bg-black/10 dark:bg-surface/10" />
-                  <div className="w-full h-11 rounded-xl bg-black/10 dark:bg-surface/10" />
+                <div className="grid grid-cols-2 gap-2.5 flex-1 my-3">
+                  <div className="rounded-xl bg-black/10 dark:bg-surface/10" />
+                  <div className="rounded-xl bg-black/10 dark:bg-surface/10" />
+                </div>
+                <div className="w-44 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+              </div>
+            </div>
+            <div className="lg:col-span-7 flex flex-col min-w-0">
+              <div className="h-[268px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div className="w-44 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-20 h-5 bg-black/10 dark:bg-surface/10 rounded-md" />
+                </div>
+                <div className="space-y-2">
+                  <div className="w-full h-10 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                  <div className="w-full h-10 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="w-36 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-28 h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
+                </div>
+              </div>
+            </div>
+            <div className="lg:col-span-5 flex flex-col min-w-0">
+              <div className="h-[268px] rounded-2xl bg-black/5 dark:bg-surface/5 p-4 sm:p-5 flex flex-col justify-between">
+                <div className="flex items-center justify-between">
+                  <div className="w-36 h-5 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-16 h-5 bg-black/10 dark:bg-surface/10 rounded-full" />
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+                  <div className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+                  <div className="h-14 rounded-xl bg-black/10 dark:bg-surface/10" />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="w-36 h-4 bg-black/10 dark:bg-surface/10 rounded" />
+                  <div className="w-28 h-8 bg-black/10 dark:bg-surface/10 rounded-xl" />
                 </div>
               </div>
             </div>
@@ -321,47 +339,14 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
       <section
         id="overview-ssr-semantic-catalog"
         aria-label="동탄 대장 아파트 랭킹 및 최신 실거래 내역"
-        className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-10"
+        className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-10"
       >
-        <div className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-6 space-y-3.5">
-          <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 tracking-tight">
-                대장 시세 · 최신 실거래 요약
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
-                184개 단지 국토부 실거래가 · 전세가율 일일 동기화
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5">
-              {top10Leaderboard[0] && (
-                <div className="inline-flex items-center gap-1.5">
-                  <span className={getVisualSignalPillClass('safe')}>
-                    <TrendingUp size={12} className="shrink-0" />
-                    <span>대장 #1</span>
-                  </span>
-                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200 tabular-nums">
-                    {top10Leaderboard[0].name} {formatPrice(top10Leaderboard[0].latestPrice)}
-                  </span>
-                </div>
-              )}
-              <span className={getVisualSignalPillClass('neutral', 'tabular-nums')}>
-                <Activity size={12} className="shrink-0" />
-                <span>최근 등록 {Math.min(recentTxs.length, 15)}건</span>
-              </span>
-              <span className={getVisualSignalPillClass('down')}>
-                <ShieldCheck size={12} className="shrink-0" />
-                <span>국토부 공식</span>
-              </span>
-            </div>
-          </header>
-
-          <details className={getSeoAccordionClass('bg-white dark:bg-[#1e1e24]')}>
-            <summary className={getSeoAccordionSummaryClass()}>
-              <span>TOP 10 랭킹 · 최신 실거래 더보기</span>
-              <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
-            </summary>
-            <div className={getSeoAccordionBodyClass('space-y-4')}>
+        <details className={getSeoAccordionClass()}>
+          <summary className={getSeoAccordionSummaryClass()}>
+            <span>최근 실거래 · 시세 랭킹 더보기</span>
+            <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+          </summary>
+          <div className={getSeoAccordionBodyClass('space-y-4')}>
               {top10Leaderboard.length === 0 && recentTxs.length === 0 ? (
                 <p className="text-xs text-slate-600 dark:text-slate-400">
                   등록된 실거래 내역이 없습니다.
@@ -436,11 +421,10 @@ async function DashboardDataLoader({ initialTab }: { initialTab?: 'overview' | '
                       </p>
                     )}
                   </section>
-                </div>
-              )}
-            </div>
-          </details>
-        </div>
+              </div>
+            )}
+          </div>
+        </details>
       </section>
     </>
   );

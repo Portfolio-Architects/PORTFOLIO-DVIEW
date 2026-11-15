@@ -359,4 +359,38 @@ describe('ApartmentChapterNavBar & APARTMENT_CHAPTERS Invariant Suite', () => {
       expect(disconnectMock).toHaveBeenCalled();
     });
   });
+
+  describe('4. compact 모드 (모바일 1단 바텀시트 1줄 슬림 내비)', () => {
+    it('compact={true} 일 때 영문 서브타이틀을 제거하고 1줄 콤팩트 패딩으로 렌더링되어야 한다', () => {
+      const onSelectChapter = jest.fn();
+      const { container } = render(
+        <ApartmentChapterNavBar
+          activeChapter="chapter-01-overview"
+          onSelectChapter={onSelectChapter}
+          compact={true}
+        />
+      );
+
+      const nav = container.querySelector('nav');
+      expect(nav).toHaveAttribute('data-compact', 'true');
+      expect(nav?.className).toContain('sticky');
+      expect(nav?.className).toContain('top-0');
+      expect(nav?.className).toContain('z-[60]');
+      expect(nav?.className).toContain('py-1');
+      expect(nav?.className).not.toContain('py-2 ');
+
+      APARTMENT_CHAPTERS.forEach((chapter) => {
+        expect(screen.getByText(chapter.title)).toBeInTheDocument();
+        expect(screen.queryByText(chapter.subtitle)).toBeNull();
+      });
+
+      const firstBtn = container.querySelector('button[data-chapter-id="chapter-01-overview"]');
+      expect(firstBtn?.className).toContain('py-1');
+      expect(firstBtn?.className).toContain('rounded-lg');
+
+      const secondBtn = container.querySelector('button[data-chapter-id="chapter-02-volume"]');
+      fireEvent.click(secondBtn!);
+      expect(onSelectChapter).toHaveBeenCalledWith('chapter-02-volume');
+    });
+  });
 });

@@ -663,7 +663,7 @@ describe('P2 Boost: Mobile Scroll Depth, Morning 7AM Revisit Retention & Naver/G
       const { container: heroContainer, unmount: unmountHero } = render(
         <PageHeroHeader
           isTitleDiv
-          title="D-VIEW 부동산 가이드"
+          title="D-VIEW 분석 리포트"
           compactTitle={GUIDE_ARTICLES[0].title}
           subtitleStrong="국토부 검증"
         />

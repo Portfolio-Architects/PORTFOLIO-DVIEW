@@ -165,6 +165,9 @@ export default function TechnoValleyBounceDefenseBridge({
           if (typeof el.scrollIntoView === 'function') {
             el.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
+          if (typeof (el as HTMLElement).focus === 'function') {
+            (el as HTMLElement).focus({ preventScroll: true });
+          }
           window.__dviewPendingRelocationSim = undefined;
           return true;
         }
@@ -174,11 +177,21 @@ export default function TechnoValleyBounceDefenseBridge({
       if (!scrollToSim()) {
         if (scrollTimeoutRef.current !== null) {
           window.clearTimeout(scrollTimeoutRef.current);
-        }
-        scrollTimeoutRef.current = window.setTimeout(() => {
           scrollTimeoutRef.current = null;
-          scrollToSim();
-        }, 280);
+        }
+        const retryDelays = [120, 280, 650, 1200];
+        let step = 0;
+        const scheduleRetry = () => {
+          if (step >= retryDelays.length) return;
+          const delay = retryDelays[step++];
+          scrollTimeoutRef.current = window.setTimeout(() => {
+            scrollTimeoutRef.current = null;
+            if (!scrollToSim()) {
+              scheduleRetry();
+            }
+          }, delay);
+        };
+        scheduleRetry();
       }
     }
   };

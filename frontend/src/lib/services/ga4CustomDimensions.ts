@@ -123,7 +123,7 @@ export const DVIEW_GA4_INTERACTION_DIMENSIONS: ReadonlyArray<Ga4CustomDimensionS
     parameterName: 'view_type',
     apiName: 'customEvent:view_type',
     displayName: 'Apartment View Type',
-    description: 'Presentation mode for apartment_view (modal, detail_page, chart_preview, mobile_drawer, shortcut)',
+    description: 'Presentation mode for apartment_view (modal, detail_page, chart_preview, shortcut)',
     scope: 'EVENT',
     requiredCore: false,
   },

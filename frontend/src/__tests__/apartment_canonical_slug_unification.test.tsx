@@ -1039,34 +1039,22 @@ describe('Apartment Canonical URL Slug & Metadata Unification Suite', () => {
         expect(noTxMapSlug).toBe(fullSlug);
       }
 
-      // 5) Homepage `/` SSR `#home-ssr-semantic-catalog` renders canonical links for recent transactions (`aptName` / `txKey`)
+      // 5) Homepage `/` SSR `#home-ssr-market-editorial` (TOP 10 leader grid + `#home-ssr-recent-tx-accordion`) renders canonical links without standalone catalog card
       const HomePage = (await import('@/app/page')).default;
-      const homeRootEl = (await HomePage()) as React.ReactElement<{
-        children: React.ReactElement[];
-      }>;
-      const suspenseWrapper = homeRootEl.props.children.find(
-        (child) => React.isValidElement(child) && (child as React.ReactElement<{ children?: unknown }>).props?.children
-      ) as React.ReactElement<{ children: React.ReactElement }> | undefined;
-      if (suspenseWrapper) {
-        const loaderEl = suspenseWrapper.props.children as React.ReactElement & {
-          type: (props: Record<string, unknown>) => Promise<React.ReactElement>;
-        };
-        if (typeof loaderEl?.type === 'function') {
-          const homeResolvedJsx = await loaderEl.type(loaderEl.props || {});
-          const { container: homeContainer, unmount: unmountHome } = render(homeResolvedJsx);
-          const homeCatalog = homeContainer.querySelector('#home-ssr-semantic-catalog');
-          expect(homeCatalog).not.toBeNull();
-          const homeAptAnchors = Array.from(
-            homeCatalog!.querySelectorAll('a[href^="/apartment/"]')
-          );
-          // 10 TOP leaderboard + 15 recent transactions = 25 canonical apartment anchors
-          expect(homeAptAnchors.length).toBeGreaterThanOrEqual(20);
-          for (const a of homeAptAnchors) {
-            expect(a.getAttribute('href')).not.toContain('%20');
-          }
-          unmountHome();
-        }
+      const homeRootEl = (await HomePage()) as React.ReactElement;
+      const { container: homeContainer, unmount: unmountHome } = render(homeRootEl);
+      expect(homeContainer.querySelector('#home-ssr-semantic-catalog')).toBeNull();
+      const homeEditorial = homeContainer.querySelector('#home-ssr-market-editorial');
+      expect(homeEditorial).not.toBeNull();
+      const homeAptAnchors = Array.from(
+        homeEditorial!.querySelectorAll('a[href^="/apartment/"]')
+      );
+      // 10 TOP leaderboard cards + 15 recent transactions inside collapsed accordion = 25 canonical apartment anchors
+      expect(homeAptAnchors.length).toBeGreaterThanOrEqual(20);
+      for (const a of homeAptAnchors) {
+        expect(a.getAttribute('href')).not.toContain('%20');
       }
+      unmountHome();
     });
 
     it('restores custom returnPath (/explore or /zone/[id]) and resets shallow route signature via syncShallowModalCloseToDashboard', () => {

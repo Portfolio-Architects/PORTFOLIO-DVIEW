@@ -316,6 +316,49 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       expect(topPyeongCard).toHaveTextContent('매매 12억5,000');
       expect(topPyeongCard).toHaveTextContent('평당 7,004만원');
     });
+
+    it('enforces keyboard role="button" accessibility on populated cards and disables interaction semantics when insights are empty', () => {
+      const onSelectComplex = jest.fn();
+      const { rerender } = render(
+        <HyperlocalInsightCards
+          insights={{
+            newHighComplex: MOCK_COMPLEX_STAT,
+            optimalGapComplex: null,
+            volumeSurgeComplex: null,
+            urgentBargainComplex: null,
+          }}
+          onSelectComplex={onSelectComplex}
+        />
+      );
+
+      const populatedCard = screen.getByTestId('insight-card-new-high');
+      const emptyCard = screen.getByTestId('insight-card-optimal-gap');
+
+      expect(populatedCard).toHaveAttribute('role', 'button');
+      expect(populatedCard).toHaveAttribute('tabindex', '0');
+      fireEvent.keyDown(populatedCard, { key: 'Enter' });
+      expect(onSelectComplex).toHaveBeenCalledTimes(1);
+      expect(onSelectComplex).toHaveBeenCalledWith('apt-1', '동탄역롯데캐슬');
+
+      expect(emptyCard).not.toHaveAttribute('role', 'button');
+      expect(emptyCard).not.toHaveAttribute('tabindex');
+      fireEvent.click(emptyCard);
+      fireEvent.keyDown(emptyCard, { key: 'Enter' });
+      expect(onSelectComplex).toHaveBeenCalledTimes(1);
+
+      rerender(
+        <HyperlocalInsightCards
+          insights={{
+            newHighComplex: null,
+            optimalGapComplex: null,
+            volumeSurgeComplex: null,
+            urgentBargainComplex: null,
+          }}
+          onSelectComplex={onSelectComplex}
+        />
+      );
+      expect(screen.getByTestId('insight-card-new-high')).not.toHaveAttribute('role', 'button');
+    });
   });
 
   // 4. StatsTimeTrendChart
@@ -368,6 +411,30 @@ describe('M2 Statistics Dashboard UI Component Suite', () => {
       fireEvent.click(chartOnlyBtn);
 
       expect(screen.queryByTestId('ranking-list')).not.toBeInTheDocument();
+    });
+
+    it('supports accessible keyboard Enter/Space activation on podium and list ranking rows', () => {
+      const onSelectComplex = jest.fn();
+      render(
+        <StatsPyeongRankingChart
+          rankings={MOCK_RANKINGS}
+          onSelectComplex={onSelectComplex}
+          testMode={true}
+        />
+      );
+
+      const rank1 = screen.getByTestId('ranking-item-1');
+      const rank4 = screen.getByTestId('ranking-item-4');
+
+      expect(rank1).toHaveAttribute('role', 'button');
+      expect(rank1).toHaveAttribute('tabindex', '0');
+      fireEvent.keyDown(rank1, { key: 'Enter' });
+      expect(onSelectComplex).toHaveBeenCalledWith(MOCK_RANKINGS[0].aptKey, MOCK_RANKINGS[0].aptName);
+
+      expect(rank4).toHaveAttribute('role', 'button');
+      expect(rank4).toHaveAttribute('tabindex', '0');
+      fireEvent.keyDown(rank4, { key: ' ' });
+      expect(onSelectComplex).toHaveBeenCalledWith(MOCK_RANKINGS[3].aptKey, MOCK_RANKINGS[3].aptName);
     });
 
     it('handles empty, 1-item, and 2-item boundary rankings and non-finite pyeong prices safely', () => {

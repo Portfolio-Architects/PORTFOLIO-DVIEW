@@ -457,21 +457,22 @@ describe('M2 Challenger Empirical Stress Test Harness', () => {
       const timelineHeading = screen.getByText('일자별 최근 실거래');
       expect(timelineHeading).toBeInTheDocument();
 
-      // High CPC Finance section immediately below Timeline
-      const financeSection = screen.getByTestId('high-cpc-finance-section');
-      expect(financeSection).toBeInTheDocument();
+      // Option C: High CPC Finance section removed from Main Dashboard while AdSlot 2 stays immediately below Timeline
+      expect(screen.queryByTestId('high-cpc-finance-section')).not.toBeInTheDocument();
+      const financeAdSlot2 = screen.getByTestId('finance-ad-slot-2');
+      expect(financeAdSlot2).toBeInTheDocument();
 
       // AdSlots
       const adContainers = screen.getAllByTestId('ad-slot-container');
       expect(adContainers.length).toBeGreaterThanOrEqual(2);
 
-      // Strict DOM Hierarchy Order Verification: Donut & Timeline Hero -> Prime AdSlot 1 -> Chart Section -> Finance
+      // Strict DOM Hierarchy Order Verification: Donut & Timeline Hero -> Prime AdSlot 1 -> Chart Section -> Finance AdSlot 2
       expect(
         timelineHeading.compareDocumentPosition(heroAdSlot1) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
       expect(
-        heroAdSlot1.compareDocumentPosition(financeSection) & Node.DOCUMENT_POSITION_FOLLOWING
+        heroAdSlot1.compareDocumentPosition(financeAdSlot2) & Node.DOCUMENT_POSITION_FOLLOWING
       ).toBeTruthy();
 
       // View tab switcher is hidden in compactHeroMode

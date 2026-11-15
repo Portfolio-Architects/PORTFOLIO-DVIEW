@@ -92,12 +92,14 @@ describe('Challenger Milestone 2: Adversarial Stress Test Suite', () => {
       expect(emptyBadge.className).toContain('text-slate-600');
     });
 
-    it('1.4 MacroHeader preserves PageHeroHeader h-[144px] Zero-CLS container and unifies live ticker into subtitle without duplicate rightContent badge', () => {
+    it('1.4 MacroHeader preserves PageHeroHeader h-[130px] sm:h-[128px] Zero-CLS container and unifies live ticker into subtitle without duplicate rightContent badge', () => {
       const { container } = render(<MacroHeader macroTrendJsonLd={null} />);
 
-      // Verify the hero header container has h-[144px] shrink-0
-      const heroOuter = container.querySelector('.h-\\[144px\\]');
+      // Verify the hero header container has tight 50%-reduced bottom spacing (h-[130px] sm:h-[128px], pb-3 shrink-0)
+      const heroOuter = container.querySelector('.h-\\[130px\\]');
       expect(heroOuter).not.toBeNull();
+      expect(heroOuter?.className).toContain('sm:h-[128px]');
+      expect(heroOuter?.className).toContain('pb-3');
       expect(heroOuter?.className).toContain('shrink-0');
 
       // Verify duplicate top-right TodayUpdatePillBadge skeleton is eliminated in favor of the single-row ticker

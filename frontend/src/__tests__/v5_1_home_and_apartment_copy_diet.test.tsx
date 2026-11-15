@@ -6,6 +6,7 @@ import '@testing-library/jest-dom';
 import { SWRConfig } from 'swr';
 import HomePage from '../app/page';
 import OverviewPage from '../app/overview/page';
+import ExplorePage from '../app/explore/page';
 import ApartmentPage from '../app/apartment/[aptName]/page';
 import { MacroHeader } from '../components/macro/components/MacroHeader';
 import { HighCpcFinanceSection } from '../components/finance/HighCpcFinanceSection';
@@ -37,6 +38,16 @@ jest.mock('../components/DashboardClient', () => {
     return (
       <div data-testid="mock-dashboard-client" data-apt={preselectedAptName || ''}>
         {!hideHeader && <h1>D-VIEW 동탄 아파트 랩</h1>}
+      </div>
+    );
+  };
+});
+
+jest.mock('../app/explore/ExploreClient', () => {
+  return function MockExploreClient() {
+    return (
+      <div data-testid="mock-explore-client">
+        <h1>D-VIEW 아파트 탐색</h1>
       </div>
     );
   };
@@ -93,6 +104,32 @@ async function renderResolvedOverviewPage() {
     children: React.ReactNode[];
   }>;
   const childrenArray = React.Children.toArray(overviewRootEl.props.children);
+  const resolvedNodes: React.ReactNode[] = [];
+
+  for (const child of childrenArray) {
+    if (
+      React.isValidElement<{ children?: React.ReactElement }>(child) &&
+      child.type === React.Suspense &&
+      React.isValidElement(child.props.children) &&
+      typeof child.props.children.type === 'function'
+    ) {
+      const loaderEl = child.props.children as React.ReactElement<Record<string, unknown>>;
+      const loaderFn = loaderEl.type as (props: Record<string, unknown>) => Promise<React.ReactNode>;
+      const resolvedChild = await loaderFn(loaderEl.props || {});
+      resolvedNodes.push(<React.Fragment key="resolved-loader">{resolvedChild}</React.Fragment>);
+    } else {
+      resolvedNodes.push(child);
+    }
+  }
+
+  return render(<>{resolvedNodes}</>);
+}
+
+async function renderResolvedExplorePage() {
+  const exploreRootEl = (await ExplorePage()) as React.ReactElement<{
+    children: React.ReactNode[];
+  }>;
+  const childrenArray = React.Children.toArray(exploreRootEl.props.children);
   const resolvedNodes: React.ReactNode[] = [];
 
   for (const child of childrenArray) {
@@ -234,18 +271,38 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
         expect(summaryCheck.hasVerboseEnding).toBe(false);
       }
 
-      // Catalog Layer 1 checks + canonical apartment anchors preserved inside Layer 2 <details>
-      const catalog = container.querySelector('#home-ssr-semantic-catalog') as HTMLElement;
-      expect(catalog).not.toBeNull();
-      const catalogH2 = catalog.querySelector('header h2');
-      const catalogSub = catalog.querySelector('header p');
-      expect(checkCopyBudget(catalogH2?.textContent || '', 'sectionTitle').withinBudget).toBe(true);
-      expect(checkCopyBudget(catalogSub?.textContent || '', 'sectionSubtitle').withinBudget).toBe(true);
-      expect(catalog.querySelectorAll('details a[href^="/apartment/"]').length).toBeGreaterThanOrEqual(20);
+      // Standalone catalog section removed in favor of collapsed Layer 2 recent transactions accordion inside #home-ssr-market-editorial
+      expect(container.querySelector('#home-ssr-semantic-catalog')).toBeNull();
+      const recentAccordion = container.querySelector('#home-ssr-recent-tx-accordion') as HTMLElement;
+      expect(recentAccordion).not.toBeNull();
+      expect(recentAccordion.hasAttribute('open')).toBe(false);
+      expect(recentAccordion.querySelectorAll('a[href^="/apartment/"]').length).toBeGreaterThanOrEqual(15);
 
       // Editorial Layer 1 headings & zone card descriptions obey copy budgets
       const editorial = container.querySelector('#home-ssr-market-editorial') as HTMLElement;
       expect(editorial).not.toBeNull();
+      expect(editorial.querySelectorAll('a[href^="/apartment/"]').length).toBeGreaterThanOrEqual(20);
+      // HomePage bottom methodology & catalog <details> stay collapsed for compact UX while preserving full SSR text
+      for (const detailsEl of Array.from(editorial.querySelectorAll('details'))) {
+        expect(detailsEl.hasAttribute('open')).toBe(false);
+      }
+      expect(editorial.querySelector('h2')?.textContent || '').toContain('동탄 아파트 시세');
+      // HomePage bottom editorial copy uses updated "분석 리포트" tone without stale "가이드" phrasing
+      const editorialCombinedText = `${editorial.getAttribute('aria-label') || ''} ${editorial.textContent || ''}`;
+      expect(editorialCombinedText).not.toContain('가이드');
+      expect(editorial.querySelector('#home-lab-to-guide-interlink')?.textContent || '').toContain('분석 리포트');
+      const guideGridEl = editorial.querySelector('#home-guide-4col-grid')!;
+      expect(guideGridEl.textContent || '').toContain('분석 리포트');
+      const guideDirectoryDetails = guideGridEl.querySelector('details');
+      expect(guideDirectoryDetails).not.toBeNull();
+      expect(guideDirectoryDetails?.hasAttribute('open')).toBe(false);
+      const guideLinks = Array.from(guideDirectoryDetails?.querySelectorAll('a[href^="/guide/"]') || []);
+      expect(guideLinks.length).toBeGreaterThanOrEqual(20);
+      for (const guideLink of guideLinks) {
+        const titleEl = guideLink.querySelector('h4');
+        expect(titleEl).not.toBeNull();
+        expect(titleEl?.classList.contains('truncate')).toBe(false);
+      }
       const layer1H3s = Array.from(editorial.querySelectorAll('h3')).filter(
         (el) => !el.closest('details')
       );
@@ -300,12 +357,12 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
       jest.spyOn(dashboardDataService, 'getInitialData').mockResolvedValueOnce(emptyData);
 
       const { container: emptyHomeContainer, unmount: unmountEmpty } = await renderResolvedHomePage();
-      const emptyCatalog = emptyHomeContainer.querySelector('#home-ssr-semantic-catalog');
-      expect(emptyCatalog).not.toBeNull();
-      expect(emptyCatalog?.textContent).toContain('최근 등록 0건');
-      expect(emptyCatalog?.textContent).toContain('등록된 실거래 내역이 없습니다.');
-      expect(emptyCatalog?.textContent).not.toContain('NaN');
-      expect(emptyCatalog?.textContent).not.toContain('undefined');
+      expect(emptyHomeContainer.querySelector('#home-ssr-semantic-catalog')).toBeNull();
+      const emptyRecentAccordion = emptyHomeContainer.querySelector('#home-ssr-recent-tx-accordion');
+      expect(emptyRecentAccordion).not.toBeNull();
+      expect(emptyRecentAccordion?.textContent).toContain('등록된 실거래 내역이 없습니다.');
+      expect(emptyRecentAccordion?.textContent).not.toContain('NaN');
+      expect(emptyRecentAccordion?.textContent).not.toContain('undefined');
       unmountEmpty();
 
       jest.spyOn(dashboardDataService, 'getInitialData').mockResolvedValueOnce(emptyData);
@@ -326,6 +383,67 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
         expect(checkCopyBudget(pill.textContent || '', 'signalBadge').withinBudget).toBe(true);
       }
       unmountOverview();
+    });
+
+    it('collapses #explore-ssr-semantic-catalog into a clean Layer 2 accordion, formats YYYYMM yearBuilt, preserves 184-complex SEO links, and handles empty data safely on ExplorePage', async () => {
+      const { container: exploreContainer, unmount: unmountExplore } = await renderResolvedExplorePage();
+
+      const exploreAudit = auditSeoSemanticContainer(exploreContainer, { requireSingleH1: true });
+      expect(exploreAudit.valid).toBe(true);
+      expect(exploreAudit.violations).toEqual([]);
+      expect(exploreAudit.adSlotsInsideAccordionCount).toBe(0);
+
+      const catalog = exploreContainer.querySelector('#explore-ssr-semantic-catalog') as HTMLElement;
+      expect(catalog).not.toBeNull();
+
+      const detailsList = Array.from(catalog.querySelectorAll('details'));
+      expect(detailsList).toHaveLength(1);
+      const accordion = detailsList[0];
+      expect(accordion.hasAttribute('open')).toBe(false);
+      expect(accordion.className).toContain('dview-seo-accordion');
+
+      const summary = accordion.querySelector('summary');
+      expect(summary).not.toBeNull();
+      const summaryCheck = checkCopyBudget(summary?.textContent || '', 'accordionSummary');
+      expect(summaryCheck.withinBudget).toBe(true);
+      expect(summaryCheck.hasVerboseEnding).toBe(false);
+
+      expect(catalog.querySelectorAll('a[href^="/apartment/"]').length).toBeGreaterThanOrEqual(20);
+      expect(catalog.querySelectorAll('a[href^="/zone/"]').length).toBe(7);
+
+      const combinedText = `${catalog.getAttribute('aria-label') || ''} ${catalog.textContent || ''}`;
+      expect(combinedText).not.toMatch(/20\d{4}년/);
+      expect(combinedText).not.toContain('가이드');
+
+      expect(EMOJI_REGEX.test(exploreContainer.textContent || '')).toBe(false);
+      expect(exploreContainer.querySelectorAll('.font-mono').length).toBe(0);
+      for (const el of Array.from(exploreContainer.querySelectorAll('*'))) {
+        if (typeof el.className === 'string') {
+          expect(PROHIBITED_PALETTE_CLASS_REGEX.test(el.className)).toBe(false);
+        }
+      }
+      unmountExplore();
+
+      const emptyExploreData = {
+        txSummary: {},
+        recentTransactions: [],
+        sheetApartments: {},
+        macroTrend: [],
+        fieldReports: [],
+        railNotices: [],
+        tramNotices: [],
+        dongtanNotices: [],
+      } as unknown as Awaited<ReturnType<typeof dashboardDataService.getInitialData>>;
+
+      jest.spyOn(dashboardDataService, 'getInitialData').mockResolvedValueOnce(emptyExploreData);
+      const { container: emptyExploreContainer, unmount: unmountEmptyExplore } =
+        await renderResolvedExplorePage();
+      const emptyCatalog = emptyExploreContainer.querySelector('#explore-ssr-semantic-catalog');
+      expect(emptyCatalog).not.toBeNull();
+      expect(emptyCatalog?.textContent).toContain('등록된 실거래 내역이 없습니다.');
+      expect(emptyCatalog?.textContent).not.toContain('NaN');
+      expect(emptyCatalog?.textContent).not.toContain('undefined');
+      unmountEmptyExplore();
     });
   });
 
@@ -616,11 +734,12 @@ describe('Ad Money v5.1: Main Home, Hero & Apartment Detail Copy Diet + Semantic
 
     it('binds 100% real MOLIT recent-transactions.json prices, names, formatted dates, and canonical links on both HomePage and OverviewPage without emitting "정보 없음"', async () => {
       const homeRender = await renderResolvedHomePage();
-      const homeCatalog = homeRender.container.querySelector('#home-ssr-semantic-catalog');
-      expect(homeCatalog).not.toBeNull();
-      const homeTables = homeCatalog!.querySelectorAll('table');
-      expect(homeTables.length).toBe(2);
-      const homeRecentRows = Array.from(homeTables[1].querySelectorAll('tbody tr'));
+      expect(homeRender.container.querySelector('#home-ssr-semantic-catalog')).toBeNull();
+      const homeRecentAccordion = homeRender.container.querySelector('#home-ssr-recent-tx-accordion');
+      expect(homeRecentAccordion).not.toBeNull();
+      const homeTables = homeRecentAccordion!.querySelectorAll('table');
+      expect(homeTables.length).toBe(1);
+      const homeRecentRows = Array.from(homeTables[0].querySelectorAll('tbody tr'));
       expect(homeRecentRows.length).toBe(15);
       for (const row of homeRecentRows) {
         const text = row.textContent || '';

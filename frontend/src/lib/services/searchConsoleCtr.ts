@@ -675,7 +675,7 @@ function normalizeJisanCoreSearchKey(input: string): string {
   const phonetic = normalizeJisanPhoneticSearchKey(input);
   if (!phonetic) return '';
   return phonetic
-    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/^(?:동탄테크노밸리|테크노밸리|신동탄|동탄역|동탄2|동탄)/, '')
     .replace(/동탄$/, '')
     .replace(/center$/, '');
 }
@@ -723,7 +723,16 @@ function resolveVerifiedJisanParamName(rawParam: string, jisanNames: string[]): 
         const nCore = normalizeJisanCoreSearchKey(n);
         if (nCore === qCore) return true;
         if (qCore === 'shtimesquare' && nCore === 'shtimesquare1') return true;
-        if (qCore === '금강ixtower' && nCore === '금강펜테리움ixtower') return true;
+        if (
+          (qCore === '금강ixtower' ||
+            qCore === '금강펜테리움9tower' ||
+            qCore === '금강9tower' ||
+            qCore === '금강펜테리움ix') &&
+          nCore === '금강펜테리움ixtower'
+        ) {
+          return true;
+        }
+        if (qCore === '이든스페이스' && nCore === '이든앤스페이스') return true;
         if (qCore === '메가비즈tower' && nCore === '메가비즈towera동') return true;
         if (qCore === '실리콘앨리' && nCore === '현대실리콘앨리') return true;
         if (qCore === '루체스타' && nCore === '루체스타비즈') return true;
@@ -736,7 +745,7 @@ function resolveVerifiedJisanParamName(rawParam: string, jisanNames: string[]): 
 }
 
 function stripLeadingDongtanRegion(phoneticKey: string): string {
-  return phoneticKey.replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '');
+  return phoneticKey.replace(/^(?:동탄테크노밸리|테크노밸리|신동탄|동탄역|동탄2|동탄)/, '');
 }
 
 const GENERIC_JISAN_HUB_PHONETIC_KEYS = new Set([
@@ -797,7 +806,12 @@ function matchVerifiedJisanFromQuery(rawQuery: string, jisanNames: string[]): st
       (e) =>
         (qWithoutRegion.length >= 4 && e.withoutRegion === qWithoutRegion) ||
         (qCoreKey.length >= 4 && e.coreKey === qCoreKey) ||
-        (qCoreKey === '금강ixtower' && e.coreKey === '금강펜테리움ixtower') ||
+        ((qCoreKey === '금강ixtower' ||
+          qCoreKey === '금강펜테리움9tower' ||
+          qCoreKey === '금강9tower' ||
+          qCoreKey === '금강펜테리움ix') &&
+          e.coreKey === '금강펜테리움ixtower') ||
+        (qCoreKey === '이든스페이스' && e.coreKey === '이든앤스페이스') ||
         (qCoreKey === '메가비즈tower' && e.coreKey === '메가비즈towera동') ||
         (qCoreKey === '실리콘앨리' && e.coreKey === '현대실리콘앨리')
     );

@@ -96,6 +96,7 @@ export function evaluateTodayUpdateMetrics(
     contractDate?: string;
     isNewHigh?: boolean;
     type?: string;
+    dealType?: string;
   }> = [],
   marketStats?: MarketStatsInput | null,
   referenceDate: Date = new Date()
@@ -105,9 +106,10 @@ export function evaluateTodayUpdateMetrics(
 
   const safeTransactions = Array.isArray(recentTransactions) ? recentTransactions : [];
 
-  // Strictly filter by registeredDate (MOLIT RTMS public disclosure date), NEVER contractDate
+  // Strictly filter sale records by registeredDate (MOLIT RTMS public disclosure date), NEVER contractDate
   const todayTxs = safeTransactions.filter((tx) => {
     if (!tx || typeof tx !== 'object') return false;
+    if (tx.dealType === '전세' || tx.dealType === '월세') return false;
     const regDate = String(tx.registeredDate || '').replace(/[^0-9]/g, '').slice(0, 8);
     return regDate.length === 8 && regDate === todayYmd;
   });

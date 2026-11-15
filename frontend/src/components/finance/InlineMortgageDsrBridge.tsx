@@ -37,7 +37,7 @@ export type InlineFinanceBridgeSurface =
   | 'guide_mid_conversion';
 
 export interface OpenCalculatorModalEventDetail {
-  calcType: 'mortgage' | 'property_tax';
+  calcType: 'mortgage' | 'property_tax' | 'jeonse_safety' | 'sell_timing';
   aptName?: string;
   priceWon?: number;
   annualIncomeManwon?: number;
@@ -60,6 +60,7 @@ export interface InlineMortgageDsrBridgeProps {
   compact?: boolean;
   onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
   onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
+  onOpenJeonseSafety?: (aptName: string, trigger?: string) => void;
 }
 
 const LTV_OPTIONS = [50, 60, 70] as const;
@@ -156,6 +157,7 @@ export default function InlineMortgageDsrBridge({
   compact = false,
   onOpenMortgage,
   onOpenTaxCalculator,
+  onOpenJeonseSafety,
 }: InlineMortgageDsrBridgeProps) {
   const hasVerifiedPrice =
     typeof benchmarkPriceManwon === 'number' &&
@@ -164,6 +166,10 @@ export default function InlineMortgageDsrBridge({
 
   const verifiedPriceManwon = hasVerifiedPrice ? Math.round(benchmarkPriceManwon!) : 0;
   const isGuideSurface = surface === 'guide_top_summary' || surface === 'guide_mid_conversion';
+  const isApartmentSurface =
+    surface === 'apartment_modal_top' ||
+    surface === 'apartment_inline_top' ||
+    surface === 'apartment_ssr_top';
 
   const [priceSource, setPriceSource] = useState<'verified' | 'tier'>(
     hasVerifiedPrice ? 'verified' : 'tier'
@@ -350,6 +356,47 @@ export default function InlineMortgageDsrBridge({
   const deepLinkHref = resolvedSlug
     ? `/apartment/${encodeURIComponent(resolvedSlug)}?calc=${deepLinkCalcParam}`
     : `/?calc=${deepLinkCalcParam}`;
+
+  const handleJeonseSafetyCta = () => {
+    const jeonseTrigger = `${trigger}_jeonse`;
+    const targetAptSlug = isUsingVerifiedPrice ? apartmentName || canonicalSlug || '' : '';
+    if (onOpenJeonseSafety) {
+      persistPendingCalcContext(false);
+      onOpenJeonseSafety(targetAptSlug, jeonseTrigger);
+      return;
+    }
+    if (typeof window !== 'undefined' && window.__dviewDashboardCalcHostActive) {
+      persistPendingCalcContext(false);
+      window.dispatchEvent(
+        new CustomEvent<OpenCalculatorModalEventDetail>('dview:open_calculator_modal', {
+          detail: {
+            calcType: 'jeonse_safety',
+            aptName: targetAptSlug || undefined,
+            priceWon: effectivePriceWon,
+            surface,
+            trigger: jeonseTrigger,
+            alreadyTrackedOpen: false,
+          },
+        })
+      );
+      return;
+    }
+    trackEvent('open_calculator', {
+      calculator_type: 'jeonse_safety',
+      surface,
+      trigger: jeonseTrigger,
+      apartment_name: apartmentName || undefined,
+      apt_name: apartmentName || undefined,
+      dong: dong || undefined,
+      benchmark_price_manwon: effectivePriceManwon,
+    });
+    if (typeof window !== 'undefined') {
+      const href = resolvedSlug
+        ? `/apartment/${encodeURIComponent(resolvedSlug)}?calc=jeonse_safety`
+        : '/?calc=jeonse_safety';
+      window.location.assign(href);
+    }
+  };
 
   const handleDeepLinkClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     persistPendingCalcContext(true);
@@ -597,6 +644,18 @@ export default function InlineMortgageDsrBridge({
                 <ChevronDown size={13} className="shrink-0" />
               ))}
           </button>
+
+          {(isApartmentSurface || Boolean(onOpenJeonseSafety)) && (
+            <button
+              type="button"
+              data-testid="inline-jeonse-safety-open-btn"
+              onClick={handleJeonseSafetyCta}
+              className="inline-flex items-center justify-center gap-1 px-2.5 py-2 rounded-xl text-xs font-extrabold transition-colors cursor-pointer whitespace-nowrap bg-surface dark:bg-[#202027] hover:bg-slate-100 dark:hover:bg-[#2c2c35] text-secondary hover:text-primary"
+            >
+              <ShieldCheck size={13} className="shrink-0" />
+              <span>전세 안전진단</span>
+            </button>
+          )}
         </div>
       </div>
 

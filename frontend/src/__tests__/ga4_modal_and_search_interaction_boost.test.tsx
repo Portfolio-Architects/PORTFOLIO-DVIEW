@@ -7,6 +7,7 @@ import {
   trackApartmentView,
   trackSearchQuery,
 } from '@/lib/utils/analytics';
+import * as recentApartments from '@/lib/utils/recentApartments';
 import { MacroChartSection } from '@/components/macro/components/MacroChartSection';
 import MacroDashboardClient from '@/components/MacroDashboardClient';
 import { ZoneDonutFullscreenModal } from '@/components/macro/ZoneDonutFullscreenModal';
@@ -284,83 +285,159 @@ describe('GA4 Apartment Modal & Search Interaction Telemetry Boost Suite', () =>
     });
   });
 
-  describe('3. Main Dashboard (/) Timeline Click, Mobile Drawer & Detail Navigation Telemetry', () => {
-    it('emits apartment_view on timeline item click (desktop chart preview & mobile drawer) and detail navigation', () => {
+  describe('3. Main Dashboard (/) Timeline Click, Mobile Unified Detail & Detail Navigation Telemetry', () => {
+    it('emits apartment_view on timeline item click (desktop chart preview & mobile unified detail) and detail navigation', () => {
       const trackSpy = jest.spyOn(analytics, 'trackEvent');
       const onNavigateApartmentPage = jest.fn();
+      const originalInnerWidth = window.innerWidth;
 
-      // Desktop viewport (1280px)
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: 1280,
-      });
+      try {
+        // Desktop viewport (1280px)
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: 1280,
+        });
 
-      render(
-        <SettingsProvider>
-          <AuthProvider>
-            <MacroDashboardClient
-              sheetApartments={mockSheetApartments}
-              txSummaryData={mockTxSummaryData}
-              macroTrendData={mockMacroTrendData}
-              publicRentalSet={new Set()}
-              fieldReportsMap={new Map()}
-              favoriteCounts={{}}
-              recentTransactions={mockRecentTransactions as any}
-              onNavigateApartmentPage={onNavigateApartmentPage}
-            />
-          </AuthProvider>
-        </SettingsProvider>
-      );
+        render(
+          <SettingsProvider>
+            <AuthProvider>
+              <MacroDashboardClient
+                sheetApartments={mockSheetApartments}
+                txSummaryData={mockTxSummaryData}
+                macroTrendData={mockMacroTrendData}
+                publicRentalSet={new Set()}
+                fieldReportsMap={new Map()}
+                favoriteCounts={{}}
+                recentTransactions={mockRecentTransactions as any}
+                onNavigateApartmentPage={onNavigateApartmentPage}
+              />
+            </AuthProvider>
+          </SettingsProvider>
+        );
 
-      // Click timeline card preview button -> invokes handleCardClick on desktop
-      const previewBtn = screen.getByRole('button', {
-        name: /실거래 분석 아파트 선택: 동탄역 롯데캐슬/,
-      });
-      fireEvent.click(previewBtn);
+        // Click timeline card preview button -> invokes handleCardClick on desktop
+        const previewBtn = screen.getByRole('button', {
+          name: /실거래 분석 아파트 선택: 동탄역 롯데캐슬/,
+        });
+        fireEvent.click(previewBtn);
 
-      expect(trackSpy).toHaveBeenCalledWith(
-        'apartment_view',
-        expect.objectContaining({
-          apartment_name: '동탄역 롯데캐슬',
-          apt_name: '동탄역 롯데캐슬',
-          dong: '오산동',
-          surface: 'dashboard_timeline_preview',
-          view_type: 'chart_preview',
-        })
-      );
+        expect(trackSpy).toHaveBeenCalledWith(
+          'apartment_view',
+          expect.objectContaining({
+            apartment_name: '동탄역 롯데캐슬',
+            apt_name: '동탄역 롯데캐슬',
+            dong: '오산동',
+            surface: 'dashboard_timeline_preview',
+            view_type: 'chart_preview',
+          })
+        );
 
-      // Click chart header detail CTA -> invokes handleNavigateDetailPage
-      const detailCta = screen.getByTestId('chart-header-detail-cta');
-      fireEvent.click(detailCta);
+        // Click chart header detail CTA -> invokes handleNavigateDetailPage
+        const detailCta = screen.getByTestId('chart-header-detail-cta');
+        fireEvent.click(detailCta);
 
-      expect(trackSpy).toHaveBeenCalledWith(
-        'apartment_view',
-        expect.objectContaining({
-          apartment_name: '동탄역 롯데캐슬',
-          apt_name: '동탄역 롯데캐슬',
-          surface: 'chart_header',
-          view_type: 'detail_page',
-        })
-      );
+        expect(trackSpy).toHaveBeenCalledWith(
+          'apartment_view',
+          expect.objectContaining({
+            apartment_name: '동탄역 롯데캐슬',
+            apt_name: '동탄역 롯데캐슬',
+            surface: 'chart_header',
+            view_type: 'detail_page',
+          })
+        );
+        expect(onNavigateApartmentPage).toHaveBeenCalledTimes(1);
 
-      // Mobile viewport (375px) -> clicking timeline card opens mobile drawer and tracks mobile_drawer view
-      Object.defineProperty(window, 'innerWidth', {
-        writable: true,
-        configurable: true,
-        value: 375,
-      });
-      fireEvent.click(previewBtn);
+        // Mobile viewport (375px) -> clicking timeline card directly opens unified detail (no MacroMobileDrawer 2-layer popup)
+        onNavigateApartmentPage.mockClear();
+        const addRecentSpy = jest.spyOn(recentApartments, 'addRecentApartment');
+        addRecentSpy.mockClear();
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: 375,
+        });
+        fireEvent.click(previewBtn);
 
-      expect(trackSpy).toHaveBeenCalledWith(
-        'apartment_view',
-        expect.objectContaining({
-          apartment_name: '동탄역 롯데캐슬',
-          apt_name: '동탄역 롯데캐슬',
-          surface: 'dashboard_mobile_drawer',
-          view_type: 'mobile_drawer',
-        })
-      );
+        expect(screen.queryByTestId('mobile-drawer-action-footer')).not.toBeInTheDocument();
+        expect(onNavigateApartmentPage).toHaveBeenCalledTimes(1);
+        expect(onNavigateApartmentPage).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+        expect(addRecentSpy).toHaveBeenCalledTimes(1);
+        expect(trackSpy).toHaveBeenCalledWith(
+          'apartment_view',
+          expect.objectContaining({
+            apartment_name: '동탄역 롯데캐슬',
+            apt_name: '동탄역 롯데캐슬',
+            dong: '오산동',
+            surface: 'dashboard_timeline_mobile',
+            view_type: 'detail_page',
+          })
+        );
+        addRecentSpy.mockRestore();
+      } finally {
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: originalInnerWidth,
+        });
+      }
+    });
+
+    it('invokes onSelectApt directly on mobile timeline click without duplicate recent storage or false hybrid_detail_navigate telemetry', () => {
+      const trackSpy = jest.spyOn(analytics, 'trackEvent');
+      const addRecentSpy = jest.spyOn(recentApartments, 'addRecentApartment');
+      const onSelectApt = jest.fn();
+      const originalInnerWidth = window.innerWidth;
+
+      try {
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: 375,
+        });
+
+        render(
+          <SettingsProvider>
+            <AuthProvider>
+              <MacroDashboardClient
+                sheetApartments={mockSheetApartments}
+                txSummaryData={mockTxSummaryData}
+                macroTrendData={mockMacroTrendData}
+                publicRentalSet={new Set()}
+                fieldReportsMap={new Map()}
+                favoriteCounts={{}}
+                recentTransactions={mockRecentTransactions as any}
+                onSelectApt={onSelectApt}
+              />
+            </AuthProvider>
+          </SettingsProvider>
+        );
+
+        trackSpy.mockClear();
+        addRecentSpy.mockClear();
+
+        const previewBtn = screen.getByRole('button', {
+          name: /실거래 분석 아파트 선택: 동탄역 롯데캐슬/,
+        });
+        fireEvent.click(previewBtn);
+
+        expect(onSelectApt).toHaveBeenCalledTimes(1);
+        expect(onSelectApt).toHaveBeenCalledWith('동탄역 롯데캐슬', '오산동');
+        expect(addRecentSpy).toHaveBeenCalledTimes(1);
+        expect(trackSpy).not.toHaveBeenCalledWith('hybrid_detail_navigate', expect.anything());
+        expect(trackSpy).not.toHaveBeenCalledWith(
+          'apartment_view',
+          expect.objectContaining({ view_type: 'detail_page' })
+        );
+        expect(screen.queryByTestId('mobile-drawer-action-footer')).not.toBeInTheDocument();
+      } finally {
+        addRecentSpy.mockRestore();
+        Object.defineProperty(window, 'innerWidth', {
+          writable: true,
+          configurable: true,
+          value: originalInnerWidth,
+        });
+      }
     });
   });
 

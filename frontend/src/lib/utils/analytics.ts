@@ -173,8 +173,7 @@ function shouldSuppressApartmentViewCascade(
     (lastApartmentViewRecord.viewType === 'shortcut' ||
       lastApartmentViewRecord.viewType === 'detail_page' ||
       lastApartmentViewRecord.viewType === 'modal_tx_click' ||
-      lastApartmentViewRecord.viewType === 'chart_preview' ||
-      lastApartmentViewRecord.viewType === 'mobile_drawer') &&
+      lastApartmentViewRecord.viewType === 'chart_preview') &&
     elapsed < 250
   ) {
     lastApartmentViewRecord.viewType = 'modal';
@@ -518,7 +517,6 @@ export interface ApartmentViewEventParams {
   surface: string;
   view_type?:
     | 'modal'
-    | 'mobile_drawer'
     | 'chart_preview'
     | 'detail_page'
     | 'inline_report'

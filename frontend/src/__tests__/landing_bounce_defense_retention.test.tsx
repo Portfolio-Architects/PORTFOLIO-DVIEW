@@ -358,5 +358,26 @@ describe('Landing Bounce Defense & Returning-Visitor Retention', () => {
         })
       );
     });
+
+    it('hides duplicate landing-retention-action-btn when hideFavoriteAction=true while preserving peer chips and 1:1 compare', () => {
+      render(
+        <ApartmentLandingRetentionStrip
+          currentAptName="동탄역 롯데캐슬"
+          currentDong="여울동"
+          targets={mockPeerTargets}
+          txSummaryData={mockTxSummaryData}
+          inline={false}
+          hideFavoriteAction={true}
+          onSelectPeer={jest.fn()}
+          onOpenCompare={jest.fn()}
+          onOpenPushModal={jest.fn()}
+        />
+      );
+
+      expect(screen.getByTestId('apartment-landing-retention-strip')).toBeInTheDocument();
+      expect(screen.getByTestId('landing-peer-chip-0')).toBeInTheDocument();
+      expect(screen.getByTestId('landing-quick-compare-btn')).toBeInTheDocument();
+      expect(screen.queryByTestId('landing-retention-action-btn')).toBeNull();
+    });
   });
 });

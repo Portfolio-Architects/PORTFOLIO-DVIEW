@@ -538,6 +538,16 @@ describe('Single-View "실거래 체결 온도" Circular Donut Navigator + 3-Way
     expect(capsule1d).toHaveTextContent('총 1건');
     expect(capsule1d).toHaveTextContent('10.28');
 
+    const totalRow1d = screen.getByTestId('donut-center-total-row');
+    expect(totalRow1d.className).toContain('items-baseline');
+    expect(totalRow1d.className).toContain('leading-none');
+    const countSpan1d = screen.getByText('총 1건');
+    const dateSpan1d = screen.getByText('10.28');
+    expect(countSpan1d.className).toContain('leading-none');
+    expect(dateSpan1d.className).toContain('leading-none');
+    expect(countSpan1d.className).not.toMatch(/\btext-\[/);
+    expect(dateSpan1d.className).not.toMatch(/\btext-\[/);
+
     rerender(
       <AptDonutSection
         variant="navigator"
@@ -564,7 +574,7 @@ describe('Single-View "실거래 체결 온도" Circular Donut Navigator + 3-Way
     expect(container.innerHTML).not.toMatch(/font-mono|Consolas|Gulim/i);
   });
 
-  it('enforces chart-dominant width ratio with 10% scaled-down donut box and lg:h-[360px] Zero-CLS height', () => {
+  it('enforces chart-dominant width ratio with +30% enlarged narrow-view donut box (270px) and lg:h-[360px] desktop Zero-CLS height', () => {
     const { container } = render(<ConnectedHeroLeftHarness />);
 
     const root = container.querySelector('#apt-market-energy-donut');
@@ -576,6 +586,10 @@ describe('Single-View "실거래 체결 온도" Circular Donut Navigator + 3-Way
     const legendPane = screen.getByTestId('donut-legend-pane');
 
     expect(chartPane.className).toContain('sm:flex-1');
+    expect(chartBox.className).toContain('w-[270px]');
+    expect(chartBox.className).toContain('h-[270px]');
+    expect(chartBox.className).toContain('sm:w-[226px]');
+    expect(chartBox.className).toContain('lg:w-[174px]');
     expect(chartBox.className).toContain('xl:w-[220px]');
     expect(chartBox.className).toContain('2xl:w-[262px]');
     expect(legendPane.className).toContain('shrink-0');

@@ -108,17 +108,28 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
 
       {/* Rankings List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-        {currentItems.map((item) => (
+        {currentItems.map((item) => {
+          const handleActivate = () => {
+            trackEvent('ranking_item_click', {
+              apt_name: item.apartmentName,
+              rank: item.rank,
+              tab_id: activeTab,
+            });
+            handleSelect?.(item.apartmentName);
+          };
+          return (
           <div
             key={`${item.rank}-${item.apartmentName}`}
             data-testid={`ranking-item-${item.rank}`}
-            onClick={() => {
-              trackEvent('ranking_item_click', {
-                apt_name: item.apartmentName,
-                rank: item.rank,
-                tab_id: activeTab,
-              });
-              handleSelect?.(item.apartmentName);
+            role="button"
+            tabIndex={0}
+            aria-label={`${item.rank}위 ${item.displayAptName || item.apartmentName} 상세 보기`}
+            onClick={handleActivate}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleActivate();
+              }
             }}
             className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-blue-600/40 dark:hover:border-blue-400/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-all cursor-pointer group"
           >
@@ -167,7 +178,8 @@ export const RealtimeRankingBoard = React.memo(function RealtimeRankingBoard({
               </span>
             </div>
           </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

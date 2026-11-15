@@ -1221,8 +1221,12 @@ async function main() {
 
   // 헤더 서브타이틀용 경량 실시간 지표 (국토부 매매 실거래 누적 건수 / 최신 등록일·당일 신규·신고가 집계) - 실제 집계값만 기록
   try {
+    const isSaleTx = (t) => Boolean(t) && t.dealType !== '전세' && t.dealType !== '월세';
+    const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+    const todayKst = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
     const latestRegisteredDate =
       recentTransactions
+        .filter(isSaleTx)
         .map((t) => String((t && (t.registeredDate || t.contractDate)) || ''))
         .filter((d) => /^\d{8}$/.test(d))
         .sort()
@@ -1230,10 +1234,16 @@ async function main() {
     const latestBatchSales = latestRegisteredDate
       ? recentTransactions.filter(
           (t) =>
+            isSaleTx(t) &&
             String((t && t.registeredDate) || '').replace(/\D/g, '').slice(0, 8) ===
             latestRegisteredDate
         )
       : [];
+    const todayBatchSales = recentTransactions.filter(
+      (t) =>
+        isSaleTx(t) &&
+        String((t && t.registeredDate) || '').replace(/\D/g, '').slice(0, 8) === todayKst
+    );
     const marketStats = {
       apartmentCount: (() => {
         try {
@@ -1247,8 +1257,10 @@ async function main() {
       saleTxCount: Object.values(summaries).reduce((n, s) => n + (Number(s && s.txCount) || 0), 0),
       latestContractDate: recentTransactions.map((t) => String((t && t.contractDate) || '')).filter(Boolean).sort().pop() || null,
       latestRegisteredDate,
-      todayRegisteredCount: latestBatchSales.length,
-      todayNewHighCount: latestBatchSales.filter((t) => Boolean(t && (t.isNewHigh || t.type === 'high'))).length,
+      todayRegisteredCount: todayBatchSales.length,
+      todayNewHighCount: todayBatchSales.filter((t) => Boolean(t && (t.isNewHigh || t.type === 'high'))).length,
+      latestBatchCount: latestBatchSales.length,
+      latestBatchNewHighCount: latestBatchSales.filter((t) => Boolean(t && (t.isNewHigh || t.type === 'high'))).length,
     };
     fs.writeFileSync(MARKET_STATS_OUTPUT_PATH, JSON.stringify(marketStats, null, 2));
   } catch (statsErr) {

@@ -208,6 +208,67 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       await getLiveTransactionDelta();
       expect(mockFirestoreGet).toHaveBeenCalledTimes(2);
     });
+
+    it('keeps latestRegisteredDate on prior sale day and excludes rent docs from today counts', async () => {
+      const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+      const todayYmd = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+
+      await invalidateLiveTransactionOverlayCache();
+      mockFirestoreGet.mockResolvedValueOnce({
+        empty: false,
+        docs: [
+          {
+            id: 'rent-only-jeonse-1',
+            data: () => ({
+              dong: '산척동',
+              aptName: '더레이크시티부영6단지',
+              dealType: '전세',
+              contractDate: '20260907',
+              registeredDate: '20991231',
+              price: 40000,
+              deposit: 40000,
+              monthlyRent: 0,
+              area: 59.99,
+              floor: 16,
+            }),
+          },
+          {
+            id: 'rent-only-wolse-2',
+            data: () => ({
+              dong: '장지동',
+              aptName: '금호어울림레이크',
+              dealType: '월세',
+              contractDate: '20260908',
+              registeredDate: todayYmd,
+              price: 1500,
+              deposit: 1500,
+              monthlyRent: 85,
+              area: 59.96,
+              floor: 17,
+            }),
+          },
+        ],
+      });
+
+      const delta = await getLiveTransactionDelta();
+      expect(delta.deltaTransactions).toHaveLength(0);
+      expect(delta.rawDeltaDocs).toHaveLength(2);
+      expect(delta.marketStats?.latestRegisteredDate).toBe(realMarketStats.latestRegisteredDate);
+      expect(delta.marketStats?.latestRegisteredDate).not.toBe('20991231');
+      if (realMarketStats.latestRegisteredDate !== todayYmd) {
+        expect(delta.marketStats?.latestRegisteredDate).not.toBe(todayYmd);
+        expect(delta.marketStats?.todayRegisteredCount).toBe(0);
+        expect(delta.marketStats?.todayNewHighCount).toBe(0);
+      }
+
+      const { evaluateTodayUpdateMetrics } = await import('@/lib/todayUpdateEvaluator');
+      const evalResult = evaluateTodayUpdateMetrics([
+        { registeredDate: todayYmd, contractDate: '20260907', dealType: '전세', isNewHigh: true },
+        { registeredDate: todayYmd, contractDate: '20260908', dealType: '월세', type: 'high' },
+      ]);
+      expect(evalResult.todayRegisteredCount).toBe(0);
+      expect(evalResult.isTodayUpdated).toBe(false);
+    });
   });
 
   describe('2. CDN API Route (/api/transactions/live-delta)', () => {

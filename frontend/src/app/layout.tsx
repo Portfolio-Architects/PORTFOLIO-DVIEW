@@ -145,12 +145,13 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://t1.kakaocdn.net" />
         <meta name="naver-site-verification" content="e0240efa3f3f36785b2ca54faa765e9058f3707a" />
         <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'} />
-        {/* Google AdSense — Direct SSR <head> async script (itemProp prevents React 19 resource hoisting ahead of #dview-adsense-noindex-guard) */}
+        {/* Google AdSense — Direct SSR <head> async script (itemProp prevents React 19 resource hoisting ahead of #dview-adsense-noindex-guard; suppressHydrationWarning prevents mismatch when adsbygoogle.js stamps data-checked-head="true" before hydration) */}
         {(process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || process.env.NODE_ENV === 'production') && (
           <script
             id="google-adsense"
             async
             itemProp="adsense-loader"
+            suppressHydrationWarning
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID || 'ca-pub-1103228112872356'}`}
             crossOrigin="anonymous"
           />

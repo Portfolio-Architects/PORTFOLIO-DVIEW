@@ -419,12 +419,12 @@ D-VIEW의 지리정보시스템(GIS) 분석 모델에 따른 트램 정거장 �
   },
   {
     slug: 'stress-dsr-valuation-guide',
-    title: '2026년 스트레스 DSR 40% 규제 환경에서의 아파트 실거주 PER 지표 활용 가이드',
+    title: '2026년 스트레스 DSR 40% 규제 환경에서의 아파트 실거주 PER 지표 분석 리포트',
     seoTitle: '2026 스트레스 DSR 40% 주담대 한도표 & 동탄 실거주 PER 저평가 아파트 분석 | D-VIEW',
     subtitle: '대출 한도 축소 시대, 고평가 거품 단지 선별과 안심 자산 판별을 위한 정량적 방법론',
     description: '스트레스 DSR 2단계 및 3단계 전면 시행에 따른 가계 차주별 대출 한도 축소액, 금리 충격 민감도, 실거주 PER(Price-to-Jeonse Ratio) 지표를 활용한 내재가치 저평가 아파트 발굴 기법을 제시합니다.',
     seoDescription: '2026 스트레스 DSR 40% 시행에 따른 연소득별(5천만~1.5억) 주담대 최대 한도 축소액을 계산하고, 실거주 PER·전세가율 지표로 동탄 내 하방 지지력이 검증된 아파트를 비교합니다.',
-    category: '금융·가치평가 가이드',
+    category: '금융·가치평가 리포트',
     topicClusterId: 'finance-tax-safety-cluster',
     relatedGuideSlugs: [
       'dongtan-budget-tier-ranking',
@@ -1427,7 +1427,7 @@ D-VIEW가 집계한 국토교통부 실거래가 및 전월세 신고 데이터�
   },
   {
     slug: 'dongtan-acquisition-property-tax-2026-guide',
-    title: '동탄 아파트 매수 시 취득세·재산세·종합부동산세 구간별 세액 시뮬레이션 가이드',
+    title: '동탄 아파트 매수 시 취득세·재산세·종합부동산세 구간별 세액 분석 리포트',
     seoTitle: '동탄 아파트 취득세·재산세·종부세 계산기 기준 (6억·9억·12억·15억 구간별 세금 비교) | D-VIEW',
     subtitle: '주택 가격대별 취득세 누진세율(1~3%)과 공시가격 기반 보유세(재산세·종부세) 실부담액 완벽 해부',
     description: '동탄 아파트 매수 예산(6억·9억·12억·15억·20억 원)별로 달라지는 1주택자 및 다주택자 취득세율(지방교육세·농어촌특별세 포함), 전용 85㎡ 초과 여부, 공시가격 공정시장가액비율에 따른 재산세·종합부동산세 실부담액을 정밀 계산합니다.',
@@ -4386,7 +4386,7 @@ export function buildGuideArticleJsonLd(
         {
           '@type': 'ListItem',
           position: 2,
-          name: '동탄 부동산 가이드',
+          name: 'D-VIEW 분석 리포트',
           item: `${baseUrl}/guide`,
         },
         {

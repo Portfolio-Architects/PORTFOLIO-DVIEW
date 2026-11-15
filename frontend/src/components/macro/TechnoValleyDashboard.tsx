@@ -15,18 +15,11 @@ import {
   Tooltip 
 } from 'recharts';
 import { Building2, Percent, Coins, Users, Sparkles, ChevronRight, ChevronDown, ChevronUp, HelpCircle, ArrowUpDown } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import RelocationTaxSimulator from '@/components/macro/RelocationTaxSimulator';
+import { trackEvent } from '@/lib/utils/analytics';
 import { apiClient } from '@/lib/api/apiClient';
 import ErrorBoundary from '@/components/ui/ErrorBoundary';
 import ChartErrorBoundary from '@/components/common/ChartErrorBoundary';
-
-const RelocationTaxSimulator = dynamic(
-  () => import('@/components/macro/RelocationTaxSimulator'),
-  {
-    ssr: false,
-    loading: () => <div className="w-full h-48 animate-pulse bg-black/5 dark:bg-surface/5 border border-border/40 rounded-[20px]" />
-  }
-);
 
 interface CircularProgressProps {
   percent: number;
@@ -617,7 +610,16 @@ const CompanyCard = React.memo(function CompanyCard({ co, sectorColor }: Company
   );
 });
 
-const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
+export interface TechnoValleyDashboardProps {
+  selectedJisanName?: string | null;
+  benchmarkPriceManwon?: number;
+}
+
+const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard({
+  selectedJisanName,
+  benchmarkPriceManwon,
+}: TechnoValleyDashboardProps = {}) {
+  const attributedCenterName = selectedJisanName?.trim() || '동탄테크노밸리';
   const [mounted, setMounted] = useState(false);
   useEffect(() => {
     setMounted(true);
@@ -680,10 +682,10 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
   const [selectedBuildings, setSelectedBuildings] = useState<string[]>(['금강 IX', '실리콘앨리', '테라타워', '더퍼스트', 'SK V1']);
   const REPRESENTATIVE_BUILDINGS = ['금강 IX', '실리콘앨리', '테라타워'];
 
-  // Accordion portfolio states
+  // Accordion portfolio states (collapsed by default so simulator & Ad Money conversion slots stay above deep scroll)
   const [expandedSectors, setExpandedSectors] = useState<Record<string, boolean>>({
     'IT·소프트웨어': false,
-    '반도체·첨단제조': true,
+    '반도체·첨단제조': false,
     '바이오·헬스케어': false,
     '지식기반 서비스': false,
     '정밀기기 및 기타': false
@@ -786,20 +788,58 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
     setActiveCategory(null);
   }, []);
 
-  const { data: responseData } = useSWR('/api/technovalley/industry-distribution', (url: string) => apiClient.get<any>(url), {
+  const [shouldFetchLiveDashboardData, setShouldFetchLiveDashboardData] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof navigator === 'undefined') return;
+    const ua = navigator.userAgent || '';
+    const isAutomated =
+      Boolean((navigator as Navigator & { webdriver?: boolean }).webdriver) ||
+      /bot|crawl|spider|slurp|googlebot|bingbot|headless/i.test(ua);
+    if (isAutomated) return;
+    const timer = window.setTimeout(() => {
+      setShouldFetchLiveDashboardData(true);
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const { data: responseData, mutate: mutateIndustry } = useSWR(
+    '/api/technovalley/industry-distribution',
+    (url: string) => apiClient.get<any>(url),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000,
+      isPaused: () => !shouldFetchLiveDashboardData,
+    }
+  );
+
+  const {
+    data: trendResponse,
+    isValidating: isTrendValidating,
+    isLoading: isTrendLoading,
+    mutate: mutateTrend,
+  } = useSWR('/api/technovalley/trend', (url: string) => apiClient.get<any>(url), {
     revalidateOnFocus: false,
-    dedupingInterval: 300000
+    dedupingInterval: 300000,
+    isPaused: () => !shouldFetchLiveDashboardData,
   });
 
-  const { data: trendResponse, isValidating: isTrendValidating, isLoading: isTrendLoading } = useSWR('/api/technovalley/trend', (url: string) => apiClient.get<any>(url), {
-    revalidateOnFocus: false,
-    dedupingInterval: 300000
-  });
+  const { data: jisanStatusRes, mutate: mutateJisanStatus } = useSWR(
+    '/api/technovalley/jisan-status',
+    (url: string) => apiClient.get<any>(url),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 300000,
+      isPaused: () => !shouldFetchLiveDashboardData,
+    }
+  );
 
-  const { data: jisanStatusRes } = useSWR('/api/technovalley/jisan-status', (url: string) => apiClient.get<any>(url), {
-    revalidateOnFocus: false,
-    dedupingInterval: 300000
-  });
+  useEffect(() => {
+    if (!shouldFetchLiveDashboardData) return;
+    if (typeof mutateIndustry === 'function') void mutateIndustry();
+    if (typeof mutateTrend === 'function') void mutateTrend();
+    if (typeof mutateJisanStatus === 'function') void mutateJisanStatus();
+  }, [shouldFetchLiveDashboardData, mutateIndustry, mutateTrend, mutateJisanStatus]);
 
   const jisanSummary = useMemo(() => {
     const total = jisanStatusRes?.total || 56;
@@ -1224,23 +1264,37 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
             </div>
 
             {/* Card 4: Tax Simulator (Interactive Link) */}
-            <button 
+            <button
               type="button"
+              data-testid="technovalley-kpi-tax-simulator-btn"
               onClick={(e) => {
                 e.preventDefault();
-                document.getElementById('tax-simulator')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                trackEvent('open_calculator', {
+                  calculator_type: 'corporate_tax_simulator',
+                  surface: 'technovalley_kpi_card',
+                  trigger: 'kpi_tax_card_cta',
+                  apartment_name: attributedCenterName,
+                  apt_name: attributedCenterName,
+                });
+                const simEl = document.getElementById('tax-simulator');
+                if (simEl) {
+                  simEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  if (typeof (simEl as HTMLElement).focus === 'function') {
+                    (simEl as HTMLElement).focus({ preventScroll: true });
+                  }
+                }
               }}
-              className="bg-surface/80 dark:bg-slate-900/80 backdrop-blur-md border border-border/80 p-3 sm:p-4 rounded-[20px] shadow-sm flex items-center justify-between hover:shadow-md hover:scale-[1.02] active:scale-[0.98] hover:border-emerald-200 transition-all duration-300 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] p-3 sm:p-4 rounded-2xl flex items-center justify-between active:scale-[0.98] transition-all duration-200 cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
             >
               <div className="flex flex-col gap-1 min-w-0">
                 <span className="text-[10px] sm:text-[11px] text-tertiary font-bold">세제 혜택 시뮬레이터</span>
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-[12px] sm:text-[13.5px] font-black text-emerald-700 leading-snug">
+                  <span className="text-[12px] sm:text-[13.5px] font-black text-emerald-700 dark:text-emerald-400 leading-snug">
                     내 예상 절세 혜택 알아보기 (클릭 시 이동)
                   </span>
                 </div>
               </div>
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 shrink-0 ml-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 shrink-0 ml-3">
                 <ChevronRight className="w-4 h-4" />
               </div>
             </button>
@@ -1459,6 +1513,20 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
 
       </div>
 
+      {/* 과밀억제권역 기업 동탄 이전 세제 시뮬레이터 (Desktop High-Visibility Full Width) */}
+      <div
+        id="tax-simulator"
+        tabIndex={-1}
+        className="lg:col-span-12 mt-1 mb-2 scroll-mt-20 sm:scroll-mt-24 focus:outline-none"
+      >
+        <ErrorBoundary name="세제 시뮬레이터">
+          <RelocationTaxSimulator
+            centerName={selectedJisanName}
+            initialPurchasePriceManwon={benchmarkPriceManwon}
+          />
+        </ErrorBoundary>
+      </div>
+
       {/* 업종 구분별 기업 리스트 아코디언 (Full Width) */}
       <div className="lg:col-span-12">
         <ErrorBoundary name="업종별 기업 리스트">
@@ -1612,13 +1680,6 @@ const TechnoValleyDashboard = React.memo(function TechnoValleyDashboard() {
             </div>
             )}
           </div>
-        </ErrorBoundary>
-      </div>
-
-      {/* 과밀억제권역 기업 동탄 이전 세제 시뮬레이터 (Full Width) */}
-      <div id="tax-simulator" className="lg:col-span-12 mt-6 scroll-mt-20 sm:scroll-mt-24">
-        <ErrorBoundary name="세제 시뮬레이터">
-          <RelocationTaxSimulator />
         </ErrorBoundary>
       </div>
 

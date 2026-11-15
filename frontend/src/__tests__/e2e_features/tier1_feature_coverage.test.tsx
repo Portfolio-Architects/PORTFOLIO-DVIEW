@@ -620,7 +620,7 @@ describe('Tier 1: Feature Coverage (Category-Partition) Suite [F1 ~ F7]', () => 
       const onTabChange = jest.fn();
       render(<LoungeHeader onTabChange={onTabChange} />);
 
-      const guideLink = screen.getByRole('link', { name: /가이드/i });
+      const guideLink = screen.getByRole('link', { name: /분석 리포트/i });
       fireEvent.click(guideLink);
 
       expect(onTabChange).toHaveBeenCalledWith('guide');

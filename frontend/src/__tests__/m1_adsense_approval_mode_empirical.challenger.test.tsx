@@ -323,7 +323,7 @@ describe('AdSense Approval P0 Remediation Empirical Verification', () => {
       expect(interlinkCard?.querySelector('a[href="/guide"]')).not.toBeNull();
       const guideGrid = homeContainer.querySelector('#home-guide-4col-grid');
       expect(guideGrid).not.toBeNull();
-      expect(guideGrid?.querySelector('a[href="#home-ssr-semantic-catalog"]')).not.toBeNull();
+      expect(guideGrid?.querySelector('a[href="#apt-market-energy-donut"]')).not.toBeNull();
       unmountHome();
 
       // 2) ApartmentPage forward-placed guide anchor card + bottom related guides section

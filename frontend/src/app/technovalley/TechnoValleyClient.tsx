@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Building2,
@@ -20,34 +20,11 @@ import {
   selectPeerTechnoValleyJisans,
   type TechnoValleyPeerJisanItem,
 } from '@/lib/utils/technovalleyPeerUtils';
-import dynamic from 'next/dynamic';
+import TechnoValleyDashboard from '@/components/macro/TechnoValleyDashboard';
 import type {
   TechnoValleyJisan,
   JisanOfficeTransactionItem,
 } from '@/lib/services/apartmentPageService';
-
-const TechnoValleyDashboard = dynamic(
-  () => import('@/components/macro/TechnoValleyDashboard'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-6 mb-5 items-stretch animate-pulse">
-        {/* Left Panel Skeleton */}
-        <div className="lg:col-span-6 flex flex-col gap-6 h-[586px]">
-          <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-6 rounded-[24px] h-[370px] shrink-0" />
-          <div className="grid grid-cols-2 gap-4 flex-1">
-            <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
-            <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
-            <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
-            <div className="bg-black/5 dark:bg-surface/5 border border-border/40 p-4 rounded-[20px] h-[80px]" />
-          </div>
-        </div>
-        {/* Right Panel Skeleton */}
-        <div className="lg:col-span-6 bg-black/5 dark:bg-surface/5 border border-border/40 p-6 rounded-[24px] h-[566px]" />
-      </div>
-    ),
-  }
-);
 
 function parsePositiveNum(val?: number | string): number {
   if (val === undefined || val === null || val === '') return 0;
@@ -97,7 +74,7 @@ function normalizeClientCoreKey(input: string): string {
     .replace(/iii$/g, '3')
     .replace(/ii$/g, '2')
     .replace(/(square|tower|center)i$/g, '$11')
-    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/^(?:동탄테크노밸리|테크노밸리|신동탄|동탄역|동탄2|동탄)/, '')
     .replace(/동탄$/, '')
     .replace(/center$/, '');
 }
@@ -200,23 +177,45 @@ export interface TechnoValleyClientProps {
 
 const EMPTY_TRANSACTIONS: JisanOfficeTransactionItem[] = [];
 
+const JISAN_CORE_QUERY_ALIASES: Record<string, readonly string[]> = {
+  금강ixtower: ['금강펜테리움ixtower'],
+  금강펜테리움9tower: ['금강펜테리움ixtower'],
+  금강9tower: ['금강펜테리움ixtower'],
+  금강펜테리움ix: ['금강펜테리움ixtower'],
+  이든스페이스: ['이든앤스페이스'],
+  실리콘앨리: ['현대실리콘앨리'],
+  shtimesquare: ['shtimesquare1'],
+};
+
 function resolveClientQueryJisan(
   jisanList: readonly TechnoValleyJisan[] | undefined,
   rawQuery: string | null | undefined
 ): TechnoValleyJisan | null {
   if (!jisanList || jisanList.length === 0 || !rawQuery) return null;
-  const trimmed = rawQuery.trim();
-  if (!trimmed || trimmed.length > 100 || /[<>"'`()]|javascript:|onerror=/i.test(trimmed)) {
+  let decoded = rawQuery.trim().replace(/\+/g, ' ');
+  for (let i = 0; i < 2; i++) {
+    try {
+      const next = decodeURIComponent(decoded);
+      if (next === decoded) break;
+      decoded = next;
+    } catch {
+      break;
+    }
+  }
+  const trimmed = decoded.replace(/\+/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!trimmed || trimmed.length > 200 || /[<>"'`]|javascript:|onerror=/i.test(trimmed)) {
     return null;
   }
   const targetSlug = formatClientJisanSlug(trimmed).toLowerCase();
   const targetCore = normalizeClientCoreKey(trimmed);
+  const aliasedCores = JISAN_CORE_QUERY_ALIASES[targetCore] || [];
   for (const item of jisanList) {
     if (!item?.name) continue;
+    const itemCore = normalizeClientCoreKey(item.name);
     if (
       item.name.trim().toLowerCase() === trimmed.toLowerCase() ||
       formatClientJisanSlug(item.name).toLowerCase() === targetSlug ||
-      (targetCore.length >= 2 && normalizeClientCoreKey(item.name) === targetCore)
+      (targetCore.length >= 2 && (itemCore === targetCore || aliasedCores.includes(itemCore)))
     ) {
       return item;
     }
@@ -235,6 +234,7 @@ export default function TechnoValleyClient({
   // Initialize null so client hydration matches force-static SSR HTML 1:1,
   // then resolve ?jisan= on mount and browser history navigation without hydration mismatch.
   const [clientQueryJisan, setClientQueryJisan] = useState<TechnoValleyJisan | null>(null);
+  const initialDocumentTitleRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (selectedJisan) {
@@ -242,13 +242,28 @@ export default function TechnoValleyClient({
       return;
     }
     if (typeof window === 'undefined' || !jisanList?.length) return;
+    if (typeof document !== 'undefined' && initialDocumentTitleRef.current === null) {
+      initialDocumentTitleRef.current = document.title;
+    }
 
     const syncFromLocation = () => {
       try {
         const param = new URLSearchParams(window.location.search).get('jisan');
-        setClientQueryJisan(resolveClientQueryJisan(jisanList, param));
+        const resolved = resolveClientQueryJisan(jisanList, param);
+        setClientQueryJisan(resolved);
+        if (typeof document !== 'undefined') {
+          if (resolved) {
+            const prefix = /동탄/.test(resolved.name) ? '' : '동탄테크노밸리 ';
+            document.title = `${prefix}${formatCenterDisplayLabel(resolved.name)} — 실거래가·취득세 35% 감면 | D-VIEW`;
+          } else if (initialDocumentTitleRef.current !== null) {
+            document.title = initialDocumentTitleRef.current;
+          }
+        }
       } catch {
         setClientQueryJisan(null);
+        if (typeof document !== 'undefined' && initialDocumentTitleRef.current !== null) {
+          document.title = initialDocumentTitleRef.current;
+        }
       }
     };
 
@@ -388,7 +403,7 @@ export default function TechnoValleyClient({
         />
 
         <div className="max-w-[2000px] mx-auto w-full max-w-full px-4 sm:px-6 md:px-10 lg:px-16 pt-6 pb-0 overflow-x-hidden min-w-0">
-          {effectiveSelectedJisan && selectedLabel && (
+          {!suppressHeroBridge && effectiveSelectedJisan && selectedLabel && (
             <section
               id="technovalley-selected-jisan-hero-banner"
               aria-label={`${selectedLabel} 실거래가·핵심 건축 스펙 및 취득세 감면 요약`}
@@ -550,7 +565,14 @@ export default function TechnoValleyClient({
             </section>
           )}
 
-          <TechnoValleyDashboard />
+          <TechnoValleyDashboard
+            selectedJisanName={effectiveSelectedJisan?.name ?? null}
+            benchmarkPriceManwon={
+              latestSaleTx?.priceRaw && latestSaleTx.priceRaw > 0
+                ? latestSaleTx.priceRaw
+                : undefined
+            }
+          />
         </div>
       </div>
 

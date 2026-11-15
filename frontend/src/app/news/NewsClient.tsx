@@ -331,7 +331,7 @@ const NewsClient = React.memo(function NewsClient({ initialNews, initialNotices 
                 className={`flex items-center justify-center min-w-[88px] sm:min-w-[100px] gap-1.5 px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 rounded-[12px] text-tertiary hover:text-secondary hover:bg-black/5 dark:hover:bg-surface/5`}
               >
                 <MessageSquare size={18} className="text-tertiary group-hover:scale-110 transition-transform duration-200" />
-                <span>부동산 가이드</span>
+                <span>분석 리포트</span>
               </button>
               
               <button

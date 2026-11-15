@@ -1078,12 +1078,6 @@ export const MacroTimelineView = React.memo(function MacroTimelineView({
         effectiveTaxHandler(targetApt);
         return;
       }
-      if (typeof document !== 'undefined') {
-        const financeEl = document.querySelector('[data-testid="high-cpc-finance-section"]');
-        if (financeEl && typeof financeEl.scrollIntoView === 'function') {
-          financeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }
     },
     [effectiveSelectedApt, onOpenMortgage, onOpenJeonseSafety, effectiveTaxHandler]
   );

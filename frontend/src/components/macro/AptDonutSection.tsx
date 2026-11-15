@@ -1341,10 +1341,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
               onClick={() => onClearSelectedDate?.()}
               title="선택된 등재일 필터 해제"
               aria-label={`${selectedDateLabel} 등재일 필터 해제`}
-              className="px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 text-[10.5px] sm:text-[11px] font-extrabold shrink-0 tabular-nums whitespace-nowrap inline-flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2 h-[22px] leading-none rounded-full bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-600 dark:text-blue-400 text-[10.5px] sm:text-[11px] font-extrabold shrink-0 tabular-nums whitespace-nowrap inline-flex items-center justify-center gap-1 transition-colors cursor-pointer"
             >
-              <span>{selectedDateLabel} 등재</span>
-              {onClearSelectedDate && <span aria-hidden="true">×</span>}
+              <span className="leading-none">{selectedDateLabel} 등재</span>
+              {onClearSelectedDate && <span className="leading-none" aria-hidden="true">×</span>}
             </button>
           )}
         </div>
@@ -1430,10 +1430,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
             style={{ maxWidth: chartSize, maxHeight: chartSize }}
             className={`relative shrink-0 flex items-center justify-center transition-opacity duration-200 ${
               isSplitMode
-                ? 'w-[196px] h-[196px] sm:w-[204px] sm:h-[204px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
+                ? 'w-[255px] h-[255px] sm:w-[265px] sm:h-[265px] xl:w-[196px] xl:h-[196px] 2xl:w-[232px] 2xl:h-[232px]'
                 : isNavigator
-                  ? 'w-[208px] h-[208px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
-                  : 'w-[208px] h-[208px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
+                  ? 'w-[270px] h-[270px] sm:w-[226px] sm:h-[226px] md:w-[242px] md:h-[242px] lg:w-[174px] lg:h-[174px] xl:w-[220px] xl:h-[220px] 2xl:w-[262px] 2xl:h-[262px]'
+                  : 'w-[270px] h-[270px] sm:w-[230px] sm:h-[230px] lg:w-[202px] lg:h-[202px] xl:w-[234px] xl:h-[234px] 2xl:w-[256px] 2xl:h-[256px]'
             } ${isPeriodLoading ? 'opacity-50' : 'opacity-100'}`}
           >
             {mounted ? (
@@ -1458,17 +1458,17 @@ export const AptDonutSection = React.memo(function AptDonutSection({
             >
               {displaySector ? (
                 <>
-                  <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                  <span className="text-[12px] sm:text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight px-2 truncate whitespace-nowrap max-w-[150px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
                     {displaySector.name}
                   </span>
-                  <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-primary leading-tight mt-0.5 tabular-nums whitespace-nowrap">
+                  <span className="text-[24px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-primary leading-tight mt-0.5 tabular-nums whitespace-nowrap">
                     {isNavigator
                       ? `${displaySector.count.toLocaleString()}건`
                       : `${displaySector.value.toFixed(1)}%`}
                   </span>
                   <div className="flex items-center gap-1 mt-0.5">
                     <span
-                      className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold px-2 py-0.5 rounded-full tabular-nums whitespace-nowrap"
+                      className="inline-flex items-center justify-center h-[20px] xl:h-[21px] text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] leading-none font-extrabold px-2 rounded-full tabular-nums whitespace-nowrap"
                       style={{ color: displaySector.color, backgroundColor: `${displaySector.color}18` }}
                     >
                       {isNavigator
@@ -1479,11 +1479,11 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 </>
               ) : mode === 'energy' ? (
                 <>
-                  <span className="text-[10.5px] xl:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
+                  <span className="text-[12px] sm:text-[10.5px] xl:text-[11.5px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
                     {energyMetrics.bullishPct >= 50 ? '상승 에너지 우위' : '급매·매수 우위'}
                   </span>
                   <span
-                    className={`text-[20px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums whitespace-nowrap ${
+                    className={`text-[24px] sm:text-[22px] 2xl:text-[25px] font-black leading-tight mt-0.5 tabular-nums whitespace-nowrap ${
                       energyMetrics.bullishPct >= 50
                         ? 'text-red-600 dark:text-red-400'
                         : 'text-blue-600 dark:text-blue-400'
@@ -1497,19 +1497,26 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                   </span>
                   <span
                     data-testid="donut-center-total-capsule"
-                    className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-slate-100/90 dark:bg-slate-800/90 tabular-nums whitespace-nowrap"
+                    className="mt-1 inline-flex items-center justify-center h-[22px] sm:h-[20px] xl:h-[22px] px-2.5 rounded-full bg-slate-100/90 dark:bg-slate-800/90 leading-none tabular-nums whitespace-nowrap"
                   >
-                    <span className="text-[10.5px] xl:text-[11px] font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
-                      총 {effectiveTotalCount.toLocaleString()}건
+                    <span
+                      data-testid="donut-center-total-row"
+                      className="inline-flex items-baseline gap-1 text-[11px] sm:text-[10.5px] xl:text-[11px] leading-none tracking-tight translate-y-[0.5px]"
+                    >
+                      <span className="font-extrabold text-slate-800 dark:text-slate-100 leading-none">
+                        총 {effectiveTotalCount.toLocaleString()}건
+                      </span>
+                      {centerPeriodInfo.dateText && !centerPeriodInfo.dateText.includes('~') && (
+                        <>
+                          <span className="font-bold text-slate-300 dark:text-slate-600 leading-none select-none" aria-hidden="true">
+                            ·
+                          </span>
+                          <span className="font-semibold text-slate-500 dark:text-slate-400 leading-none">
+                            {centerPeriodInfo.dateText}
+                          </span>
+                        </>
+                      )}
                     </span>
-                    {centerPeriodInfo.dateText && !centerPeriodInfo.dateText.includes('~') && (
-                      <>
-                        <span className="text-[9px] text-slate-300 dark:text-slate-600" aria-hidden="true">·</span>
-                        <span className="text-[10px] xl:text-[10.5px] font-semibold text-slate-500 dark:text-slate-400 tracking-tight">
-                          {centerPeriodInfo.dateText}
-                        </span>
-                      </>
-                    )}
                     <span className="sr-only">
                       {centerPeriodInfo.periodText}
                       {centerPeriodInfo.dateText ? ` ${centerPeriodInfo.dateText}` : ''}
@@ -1519,13 +1526,13 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                 </>
               ) : (
                 <>
-                  <span className="text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
+                  <span className="text-[12px] sm:text-[10.5px] xl:text-[11.5px] 2xl:text-[12px] font-bold text-slate-400 dark:text-slate-500 tracking-tight whitespace-nowrap">
                     {mode === 'zone' && budget !== 'all'
                       ? `${BUDGET_LABELS[budget]} 거래`
                       : `${PERIOD_LABELS[period]} 거래`}
                     <span className="sr-only">총 실거래</span>
                   </span>
-                  <span className="text-[20px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5 tabular-nums whitespace-nowrap">
+                  <span className="text-[24px] sm:text-[22px] lg:text-[19px] xl:text-[23px] 2xl:text-[27px] font-black text-slate-900 dark:text-white leading-tight mt-0.5 tabular-nums whitespace-nowrap">
                     {isPeriodLoading ? (
                       <span className="text-[14px] font-bold text-tertiary animate-pulse">조회 중...</span>
                     ) : (
@@ -1533,8 +1540,10 @@ export const AptDonutSection = React.memo(function AptDonutSection({
                     )}
                   </span>
                   {isNavigator && overallAvgPriceLabel && (
-                    <span className="text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 py-0.5 rounded-full mt-0.5 tabular-nums truncate whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
-                      전체 {overallAvgPriceLabel}
+                    <span className="inline-flex items-center justify-center h-[20px] xl:h-[21px] text-[9.5px] xl:text-[10px] 2xl:text-[10.5px] leading-none font-extrabold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-950/50 px-2 rounded-full mt-0.5 tabular-nums whitespace-nowrap max-w-[116px] sm:max-w-[136px] lg:max-w-[110px] xl:max-w-[140px]">
+                      <span className="truncate leading-none translate-y-[0.5px]">
+                        전체 {overallAvgPriceLabel}
+                      </span>
                     </span>
                   )}
                   <span className="sr-only">

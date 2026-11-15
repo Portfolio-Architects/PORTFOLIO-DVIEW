@@ -1,27 +1,62 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { HelpCircle, Check, Copy } from 'lucide-react';
+import { HelpCircle, Check, Copy, ArrowUpRight, Landmark } from 'lucide-react';
 import type { RelocationSimulatorBridgePayload } from '@/components/technovalley/TechnoValleyBounceDefenseBridge';
+import { trackEvent } from '@/lib/utils/analytics';
+import {
+  CPA_CAMPAIGN_CATALOG,
+  buildCpaAttributedTargetUrl,
+  sendTelemetry,
+} from '@/lib/ads/cascadeFallback';
+import { getToggleTrackClass, getToggleBtnClass } from '@/lib/design-system/controls';
+
+const CORP_TAX_PRESETS_MANWON: ReadonlyArray<{ label: string; value: number }> = [
+  { label: '세액 3,000만', value: 3000 },
+  { label: '세액 8,000만', value: 8000 },
+  { label: '세액 1.5억', value: 15000 },
+  { label: '세액 3억', value: 30000 },
+];
+
+const PURCHASE_PRICE_PRESETS_MANWON: ReadonlyArray<{ label: string; value: number }> = [
+  { label: '매입 3억', value: 30000 },
+  { label: '매입 5억', value: 50000 },
+  { label: '매입 10억', value: 100000 },
+  { label: '매입 20억', value: 200000 },
+];
 
 export interface RelocationTaxSimulatorProps {
   initialPurchasePriceManwon?: number;
   initialLocation?: 'overconcentrated' | 'other';
+  centerName?: string | null;
 }
 
 export default function RelocationTaxSimulator({
   initialPurchasePriceManwon,
   initialLocation = 'overconcentrated',
+  centerName,
 }: RelocationTaxSimulatorProps = {}) {
+  const attributedCenterName = useMemo(
+    () => centerName?.trim() || '동탄테크노밸리',
+    [centerName]
+  );
+  const attributedCenterNameRef = useRef<string>(attributedCenterName);
+  attributedCenterNameRef.current = attributedCenterName;
+
   // 1. Inputs
   const [existingLocation, setExistingLocation] = useState<'overconcentrated' | 'other'>(initialLocation);
 
   // Timer refs to prevent memory leaks in async handlers on unmount
   const copyTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const sliderPendingTimersRef = useRef<Record<string, NodeJS.Timeout>>({});
+  const sliderPendingValuesRef = useRef<Record<string, number>>({});
+  const hasUserEditedPriceRef = useRef<boolean>(false);
 
   useEffect(() => {
+    const pendingTimers = sliderPendingTimersRef.current;
     return () => {
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
+      Object.values(pendingTimers).forEach((timer) => clearTimeout(timer));
     };
   }, []);
   const simulatorRootRef = useRef<HTMLDivElement | null>(null);
@@ -58,6 +93,7 @@ export default function RelocationTaxSimulator({
         Number.isFinite(payload.purchasePriceManwon) &&
         payload.purchasePriceManwon > 0
       ) {
+        hasUserEditedPriceRef.current = true;
         const clamped = Math.min(500000, Math.max(5000, Math.round(payload.purchasePriceManwon)));
         setPurchasePrice(clamped);
         setAnnualPropTax(Math.min(3000, Math.max(20, Math.round(clamped * 0.0025))));
@@ -92,7 +128,72 @@ export default function RelocationTaxSimulator({
     };
   }, []);
 
+  useEffect(() => {
+    if (hasUserEditedPriceRef.current) return;
+    if (
+      typeof initialPurchasePriceManwon === 'number' &&
+      Number.isFinite(initialPurchasePriceManwon) &&
+      initialPurchasePriceManwon > 0
+    ) {
+      const clamped = Math.min(500000, Math.max(5000, Math.round(initialPurchasePriceManwon)));
+      setPurchasePrice(clamped);
+      setAnnualPropTax(Math.min(3000, Math.max(20, Math.round(clamped * 0.0025))));
+    }
+  }, [initialPurchasePriceManwon]);
+
   const [isCopied, setIsCopied] = useState(false);
+  const lastSliderTrackAtRef = useRef<Record<string, number>>({});
+
+  const emitQuickInteract = (action: string, extra?: Record<string, unknown>) => {
+    const targetName = attributedCenterNameRef.current;
+    trackEvent('finance_quick_interact', {
+      widget_type: 'relocation_tax_simulator',
+      calculator_type: 'corporate_tax_simulator',
+      surface: 'relocation_tax_simulator',
+      trigger: 'simulator_input',
+      action,
+      apartment_name: targetName,
+      apt_name: targetName,
+      ...extra,
+    });
+  };
+
+  const flushSliderInteract = (
+    field: 'annual_corp_tax' | 'purchase_price' | 'annual_prop_tax'
+  ) => {
+    const pendingTimer = sliderPendingTimersRef.current[field];
+    if (pendingTimer) {
+      clearTimeout(pendingTimer);
+      delete sliderPendingTimersRef.current[field];
+    }
+    const pendingValue = sliderPendingValuesRef.current[field];
+    if (pendingValue === undefined) return;
+    delete sliderPendingValuesRef.current[field];
+    lastSliderTrackAtRef.current[field] = Date.now();
+    emitQuickInteract(`change_${field}`, { [field]: pendingValue });
+  };
+
+  const emitSliderInteract = (field: 'annual_corp_tax' | 'purchase_price' | 'annual_prop_tax', value: number) => {
+    const now = Date.now();
+    const prev = lastSliderTrackAtRef.current[field] ?? 0;
+    if (now - prev >= 800) {
+      if (sliderPendingTimersRef.current[field]) {
+        clearTimeout(sliderPendingTimersRef.current[field]);
+        delete sliderPendingTimersRef.current[field];
+      }
+      delete sliderPendingValuesRef.current[field];
+      lastSliderTrackAtRef.current[field] = now;
+      emitQuickInteract(`change_${field}`, { [field]: value });
+      return;
+    }
+    sliderPendingValuesRef.current[field] = value;
+    if (sliderPendingTimersRef.current[field]) {
+      clearTimeout(sliderPendingTimersRef.current[field]);
+    }
+    sliderPendingTimersRef.current[field] = setTimeout(() => {
+      flushSliderInteract(field);
+    }, 350);
+  };
 
   // 2. Calculation Logic
   // 법인세 감면: 수도권 과밀억제권역에서 이전 시 4년간 100%, 이후 2년간 50% 감면 (합산 5년치 수준의 절세액)
@@ -130,6 +231,33 @@ export default function RelocationTaxSimulator({
     return `${eok}억 ${remainder.toLocaleString()}만 원`;
   };
 
+  const b2bGuideCpaUrl = useMemo(
+    () =>
+      buildCpaAttributedTargetUrl(CPA_CAMPAIGN_CATALOG['corporate-relocation'], {
+        slotId: 'technovalley_simulator_cta',
+        apartmentName: attributedCenterName,
+        includeContextParams: true,
+      }),
+    [attributedCenterName]
+  );
+
+  const handleLocationSelect = (nextLoc: 'overconcentrated' | 'other') => {
+    setExistingLocation(nextLoc);
+    emitQuickInteract('change_relocation_zone', { existing_location: nextLoc });
+  };
+
+  const handleSelectCorpTaxPreset = (valueManwon: number) => {
+    setAnnualCorpTax(valueManwon);
+    emitQuickInteract('select_corp_tax_preset', { annual_corp_tax: valueManwon });
+  };
+
+  const handleSelectPricePreset = (valueManwon: number) => {
+    hasUserEditedPriceRef.current = true;
+    setPurchasePrice(valueManwon);
+    setAnnualPropTax(Math.min(3000, Math.max(20, Math.round(valueManwon * 0.0025))));
+    emitQuickInteract('select_purchase_price_preset', { purchase_price_manwon: valueManwon });
+  };
+
   const handleCopy = () => {
     const text = `[D-VIEW 동탄 지산 세제 혜택 시뮬레이션 결과]\n` +
       `- 이전 조건: ${existingLocation === 'overconcentrated' ? '수도권 과밀억제권역 -> 동탄 테크노밸리' : '기타 지역 -> 동탄 테크노밸리'}\n` +
@@ -142,8 +270,12 @@ export default function RelocationTaxSimulator({
       `  - 재산세 감면 (5개년 누적): ${formatKoreanPrice(propTaxSavings)}\n` +
       `* 본 결과는 지방세특례제한법 및 조세특례제한법 기준 시뮬레이션 추정치입니다.`;
 
+    emitQuickInteract('copy_tax_report', { total_savings_manwon: totalSavings });
+
     try {
-      navigator.clipboard.writeText(text);
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        navigator.clipboard.writeText(text);
+      }
       setIsCopied(true);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = setTimeout(() => {
@@ -153,6 +285,25 @@ export default function RelocationTaxSimulator({
     } catch (err) {
       console.error('Failed to copy text: ', err);
     }
+  };
+
+  const handleSimulatorB2bCpaClick = () => {
+    trackEvent('open_calculator', {
+      calculator_type: 'corporate_tax_simulator',
+      surface: 'relocation_tax_simulator_cta',
+      trigger: 'simulator_b2b_cpa_cta',
+      apartment_name: attributedCenterName,
+      apt_name: attributedCenterName,
+      total_savings_manwon: totalSavings,
+    });
+    sendTelemetry({
+      eventType: 'FALLBACK_CLICK',
+      slotId: 'technovalley_simulator_cta',
+      placementSlotId: 'technovalley_simulator_cta',
+      campaignId: 'corporate-relocation',
+      apartmentName: attributedCenterName,
+      timestamp: new Date().toISOString(),
+    });
   };
 
   return (
@@ -189,7 +340,7 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 1: Location Toggle */}
-          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm min-w-0">
+          <div className="p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3 min-w-0">
             <div className="text-[11.5px] font-black text-secondary flex items-center gap-1">
               <span>기존 법인(사업자) 소재지</span>
               <div className="group relative cursor-pointer">
@@ -199,26 +350,28 @@ export default function RelocationTaxSimulator({
                 </div>
               </div>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 sm:gap-1 bg-body/80 p-1 border border-border/40 rounded-xl shadow-inner">
+            <div className={getToggleTrackClass('grid grid-cols-1 sm:grid-cols-2 w-full')}>
               <button
                 type="button"
-                onClick={() => setExistingLocation('overconcentrated')}
-                className={`py-2 px-2.5 text-[10.5px] sm:text-[11.5px] font-black rounded-lg transition-all cursor-pointer break-keep text-center ${
-                  existingLocation === 'overconcentrated'
-                    ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary'
-                }`}
+                onClick={() => handleLocationSelect('overconcentrated')}
+                className={getToggleBtnClass({
+                  active: existingLocation === 'overconcentrated',
+                  tone: 'emerald',
+                  size: 'md',
+                  extraClass: 'w-full !whitespace-normal break-keep text-center text-[10.5px] sm:text-[11.5px]',
+                })}
               >
                 수도권 과밀억제권역 (서울/인천 등)
               </button>
               <button
                 type="button"
-                onClick={() => setExistingLocation('other')}
-                className={`py-2 px-2.5 text-[10.5px] sm:text-[11.5px] font-black rounded-lg transition-all cursor-pointer break-keep text-center ${
-                  existingLocation === 'other'
-                    ? 'bg-surface text-primary shadow-sm ring-1 ring-black/5 dark:ring-white/10'
-                    : 'text-tertiary hover:text-secondary'
-                }`}
+                onClick={() => handleLocationSelect('other')}
+                className={getToggleBtnClass({
+                  active: existingLocation === 'other',
+                  tone: 'emerald',
+                  size: 'md',
+                  extraClass: 'w-full !whitespace-normal break-keep text-center text-[10.5px] sm:text-[11.5px]',
+                })}
               >
                 기타 지역 (성장관리권역/수도권 외)
               </button>
@@ -226,20 +379,48 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 2: Corp Tax Slider */}
-          <div className={`p-4 bg-body/40 border rounded-2xl flex flex-col gap-3 transition-all shadow-sm ${
-            existingLocation !== 'overconcentrated' ? 'border-border/20 opacity-60' : 'border-border/40'
+          <div className={`p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3 transition-opacity ${
+            existingLocation !== 'overconcentrated' ? 'opacity-60' : ''
           }`}>
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연평균 법인세 (또는 사업소득세)</span>
-              <span className="text-emerald-700 text-[13px] font-black tabular-nums">{formatKoreanPrice(annualCorpTax)}</span>
+              <span className="text-emerald-700 dark:text-emerald-400 text-[13px] font-black tabular-nums">{formatKoreanPrice(annualCorpTax)}</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="연평균 법인세 빠른 선택">
+              {CORP_TAX_PRESETS_MANWON.map((preset) => {
+                const active = annualCorpTax === preset.value;
+                return (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    disabled={existingLocation !== 'overconcentrated'}
+                    onClick={() => handleSelectCorpTaxPreset(preset.value)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-colors cursor-pointer tabular-nums disabled:opacity-40 disabled:cursor-not-allowed ${
+                      active
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
             </div>
             <input
               type="range"
+              aria-label="연평균 법인세 또는 사업소득세 슬라이더"
               min="500"
               max="50000"
               step="500"
               value={annualCorpTax}
-              onChange={(e) => setAnnualCorpTax(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setAnnualCorpTax(val);
+                emitSliderInteract('annual_corp_tax', val);
+              }}
+              onPointerUp={() => flushSliderInteract('annual_corp_tax')}
+              onKeyUp={() => flushSliderInteract('annual_corp_tax')}
+              onBlur={() => flushSliderInteract('annual_corp_tax')}
               disabled={existingLocation !== 'overconcentrated'}
               className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600 disabled:opacity-40"
             />
@@ -256,18 +437,46 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 3: Jisan Purchase Price */}
-          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
+          <div className="p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3">
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">동탄 지식산업센터 매입(취득) 가격</span>
-              <span className="text-emerald-700 text-[13px] font-black tabular-nums">{formatKoreanPrice(purchasePrice)}</span>
+              <span className="text-emerald-700 dark:text-emerald-400 text-[13px] font-black tabular-nums">{formatKoreanPrice(purchasePrice)}</span>
+            </div>
+            <div className="flex flex-wrap gap-1.5" role="group" aria-label="매입가 빠른 선택">
+              {PURCHASE_PRICE_PRESETS_MANWON.map((preset) => {
+                const active = purchasePrice === preset.value;
+                return (
+                  <button
+                    key={preset.value}
+                    type="button"
+                    onClick={() => handleSelectPricePreset(preset.value)}
+                    className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-colors cursor-pointer tabular-nums ${
+                      active
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-surface hover:bg-[#f2f4f6] dark:bg-[#202027] dark:hover:bg-[#2c2c35] text-secondary'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                );
+              })}
             </div>
             <input
               type="range"
+              aria-label="동탄 지식산업센터 매입 가격 슬라이더"
               min="5000"
               max="500000"
               step={purchasePrice % 5000 === 0 ? 5000 : 100}
               value={purchasePrice}
-              onChange={(e) => setPurchasePrice(Number(e.target.value))}
+              onChange={(e) => {
+                hasUserEditedPriceRef.current = true;
+                const val = Number(e.target.value);
+                setPurchasePrice(val);
+                emitSliderInteract('purchase_price', val);
+              }}
+              onPointerUp={() => flushSliderInteract('purchase_price')}
+              onKeyUp={() => flushSliderInteract('purchase_price')}
+              onBlur={() => flushSliderInteract('purchase_price')}
               className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
             <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
@@ -277,18 +486,26 @@ export default function RelocationTaxSimulator({
           </div>
  
           {/* Input 4: Property Tax Slider */}
-          <div className="p-4 bg-body/40 border border-border/40 rounded-2xl flex flex-col gap-3 shadow-sm">
+          <div className="p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl flex flex-col gap-3">
             <div className="flex justify-between items-center text-[11.5px] font-black">
               <span className="text-secondary">연간 예상 재산세 납부액</span>
-              <span className="text-emerald-700 text-[13px] font-black tabular-nums">{formatKoreanPrice(annualPropTax)}</span>
+              <span className="text-emerald-700 dark:text-emerald-400 text-[13px] font-black tabular-nums">{formatKoreanPrice(annualPropTax)}</span>
             </div>
             <input
               type="range"
+              aria-label="연간 예상 재산세 납부액 슬라이더"
               min="20"
               max="3000"
               step={annualPropTax % 20 === 0 ? 20 : 1}
               value={annualPropTax}
-              onChange={(e) => setAnnualPropTax(Number(e.target.value))}
+              onChange={(e) => {
+                const val = Number(e.target.value);
+                setAnnualPropTax(val);
+                emitSliderInteract('annual_prop_tax', val);
+              }}
+              onPointerUp={() => flushSliderInteract('annual_prop_tax')}
+              onKeyUp={() => flushSliderInteract('annual_prop_tax')}
+              onBlur={() => flushSliderInteract('annual_prop_tax')}
               className="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none cursor-pointer accent-emerald-600"
             />
             <span className="text-[9.5px] text-tertiary font-bold flex items-start gap-1">
@@ -308,7 +525,7 @@ export default function RelocationTaxSimulator({
             </div>
  
             {/* Big Score Board */}
-            <div className="bg-body/80 p-6 sm:p-7 rounded-3xl border border-border/80 flex flex-col items-center justify-center text-center my-2 select-none">
+            <div className="bg-[#f9fafb] dark:bg-[#17171c] p-6 sm:p-7 rounded-3xl flex flex-col items-center justify-center text-center my-2 select-none">
               <span className="text-[10.5px] text-tertiary font-extrabold uppercase tracking-wider mb-2">
                 6개년 총 절세 추정치
               </span>
@@ -324,7 +541,7 @@ export default function RelocationTaxSimulator({
             <div className="flex flex-col gap-3 my-4">
               
               {/* Corp Tax Savings */}
-              <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
+              <div className="flex items-center justify-between p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" />
                   <div className="flex flex-col">
@@ -338,7 +555,7 @@ export default function RelocationTaxSimulator({
               </div>
  
               {/* Acquisition Tax Savings */}
-              <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
+              <div className="flex items-center justify-between p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#00a37b]" />
                   <div className="flex flex-col">
@@ -352,7 +569,7 @@ export default function RelocationTaxSimulator({
               </div>
  
               {/* Property Tax Savings */}
-              <div className="flex items-center justify-between p-4 bg-body/40 border border-border/60 rounded-2xl hover:border-border/80 transition-all">
+              <div className="flex items-center justify-between p-4 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="w-2.5 h-2.5 rounded-full bg-blue-600 dark:bg-blue-400" />
                   <div className="flex flex-col">
@@ -367,12 +584,37 @@ export default function RelocationTaxSimulator({
             </div>
           </div>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col gap-3 mt-4 pt-4 border-t border-border/40">
+        {/* Action Buttons & B2B CPA Guide Funnel (Ad Money v5.1 Soft Surface) */}
+        <div className="flex flex-col gap-2.5 mt-4 pt-4 border-t border-border/40">
+          <a
+            href={b2bGuideCpaUrl}
+            data-testid="relocation-sim-b2b-cpa-cta"
+            onClick={handleSimulatorB2bCpaClick}
+            className="w-full flex items-center justify-between gap-3 py-3 px-4 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] transition-colors text-left"
+          >
+            <div className="min-w-0 flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-400 flex items-center justify-center shrink-0">
+                <Landmark size={15} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-[12.5px] font-extrabold text-primary truncate">
+                  예상 절세 {formatKoreanPrice(totalSavings)} 적용 요건·정책자금 한도 확인
+                </p>
+                <p className="text-[11px] font-medium text-tertiary truncate">
+                  과밀억제권역 이전 법인세 100%·분양가 80% 시설자금 실전 가이드
+                </p>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] font-extrabold shrink-0">
+              <span>가이드 보기</span>
+              <ArrowUpRight size={13} className="shrink-0" />
+            </span>
+          </a>
+
           <button
             type="button"
             onClick={handleCopy}
-            className="w-full flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl border border-border/80 bg-body hover:bg-slate-100 dark:hover:bg-slate-800 text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
+            className="w-full flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-2xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] text-[12px] font-extrabold text-secondary cursor-pointer transition-all active:scale-[0.98]"
           >
             {isCopied ? (
               <>

@@ -9,7 +9,14 @@ import { getExploreSchema, safeJsonLd } from '@/lib/utils/structuredData';
 import { DongApartment } from '@/lib/dong-apartments';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import Link from 'next/link';
+import { ChevronDown } from 'lucide-react';
 import { ZONES } from '@/lib/zones';
+import {
+  getSeoAccordionClass,
+  getSeoAccordionSummaryClass,
+  getSeoAccordionChevronClass,
+  getSeoAccordionBodyClass,
+} from '@/lib/design-system/copyDiet';
 
 export const revalidate = 86400; // Revalidate every 24 hours (ISR)
 
@@ -62,7 +69,8 @@ export const metadata: Metadata = {
 
 function ExploreSkeleton() {
   return (
-    <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
+    <>
+      <div className="flex flex-col min-h-[100dvh] bg-transparent relative pb-[env(safe-area-inset-bottom)]">
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto overflow-x-hidden">
         <PageHeroHeader 
           title="D-VIEW 아파트 탐색"
@@ -174,6 +182,11 @@ function ExploreSkeleton() {
         </div>
       </main>
     </div>
+      {/* Layer 2 Collapsed SEO Accordion Placeholder (Zero-CLS) */}
+      <div className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-10">
+        <div className="h-[48px] rounded-2xl bg-black/5 dark:bg-surface/5 animate-pulse" />
+      </div>
+    </>
   );
 }
 
@@ -236,76 +249,147 @@ async function ExploreDataLoader() {
     return `${eok}억 ${remainder.toLocaleString()}만원`;
   };
 
+  const formatSsrYearBuilt = (raw?: string | number) => {
+    if (!raw) return '정보 없음';
+    const digits = String(raw).replace(/\D/g, '');
+    if (digits.length >= 6) {
+      return `${digits.slice(0, 4)}.${digits.slice(4, 6)}`;
+    }
+    if (digits.length === 4) {
+      return `${digits}년`;
+    }
+    return `${raw}년`;
+  };
+
   return (
     <>
       <ExploreClient initialDashboardData={toSlimExploreInitialData(initialData)} />
-      {/* SSR SEO Semantic HTML Block (Visible Directory Section — B9 Anti-Cloaking) */}
+      {/* SSR SEO Semantic HTML Block (Collapsed Layer 2 Accordion for Clean UX & Crawlers) */}
       <section
         id="explore-ssr-semantic-catalog"
         aria-label="동탄 전역 아파트 실거래가 및 입지 가치 비교 카탈로그"
-        className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mt-6 border-t border-slate-200/80 dark:border-slate-800/80 bg-[#f9fafb] dark:bg-[#17171c] rounded-2xl text-xs text-slate-600 dark:text-slate-400 tabular-nums"
+        className="w-full max-w-[2000px] mx-auto px-4 sm:px-6 md:px-10 lg:px-16 pt-2 pb-10 tabular-nums"
       >
-        <header>
-          <h2 className="text-sm font-extrabold text-slate-900 dark:text-slate-100">동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트</h2>
-          <p>동탄 1, 2신도시 전체 184개 단지의 인프라, 전세가율, 세대수, 연식 일괄 비교 분석 맵</p>
-        </header>
-        <div className="mt-3 max-h-64 overflow-y-auto">
-          <table>
-            <caption className="sr-only">동탄 전역 184개 아파트 실거래가 및 전세가율 비교 표</caption>
-            <thead>
-              <tr>
-                <th>단지명</th>
-                <th>행정동</th>
-                <th>연식</th>
-                <th>세대수</th>
-                <th>평균 매매가</th>
-                <th>평균 전세가</th>
-                <th>전세가율</th>
-              </tr>
-            </thead>
-            <tbody>
-              {apartmentsList.map((apt) => {
-                const { canonicalSlug } = apt;
-                const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
-                const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
-                const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
-                const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
-                const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
+        <details className={getSeoAccordionClass()}>
+          <summary className={getSeoAccordionSummaryClass()}>
+            <span>전체 단지 실거래 요약 · 권역별 시세 더보기</span>
+            <ChevronDown size={16} className={getSeoAccordionChevronClass()} />
+          </summary>
+          <div className={getSeoAccordionBodyClass('space-y-4')}>
+            <header>
+              <h2 className="text-xs sm:text-sm font-extrabold text-primary">
+                동탄 전역 아파트 실거래가 및 입지 가치 비교 탐색 리포트
+              </h2>
+              <p className="mt-1 text-xs text-tertiary">
+                동탄 1·2신도시 전체 {apartmentsList.length}개 단지의 준공연월, 세대수, 평균 매매·전세 실거래가 및 전세가율 요약표입니다.
+              </p>
+            </header>
+            <div className="rounded-xl bg-body dark:bg-[#202027]/70 p-3 sm:p-4">
+              <div className="max-h-72 overflow-x-auto overflow-y-auto [&_table]:w-full [&_table]:min-w-[640px] [&_table]:border-collapse [&_table]:text-left [&_table]:text-xs [&_thead]:sticky [&_thead]:top-0 [&_thead]:z-10 [&_thead]:bg-body dark:[&_thead]:bg-[#202027] [&_tbody]:divide-y [&_tbody]:divide-slate-200/60 dark:[&_tbody]:divide-slate-800/70">
+                <table>
+                  <caption className="sr-only">동탄 전역 184개 아파트 실거래가 및 전세가율 비교 표</caption>
+                  <thead>
+                    <tr className="border-b border-slate-200/80 dark:border-slate-700/80 text-[11px] font-extrabold text-slate-600 dark:text-slate-300">
+                      <th scope="col" className="py-2.5 pr-3 whitespace-nowrap">단지명</th>
+                      <th scope="col" className="py-2.5 px-3 whitespace-nowrap">행정동</th>
+                      <th scope="col" className="py-2.5 px-3 text-right whitespace-nowrap">준공</th>
+                      <th scope="col" className="py-2.5 px-3 text-right whitespace-nowrap">세대수</th>
+                      <th scope="col" className="py-2.5 px-3 text-right whitespace-nowrap">평균 매매가</th>
+                      <th scope="col" className="py-2.5 px-3 text-right whitespace-nowrap">평균 전세가</th>
+                      <th scope="col" className="py-2.5 pl-3 text-right whitespace-nowrap">전세가율</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {apartmentsList.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-4 text-center text-slate-500 dark:text-slate-400">
+                          등록된 실거래 내역이 없습니다.
+                        </td>
+                      </tr>
+                    ) : (
+                      apartmentsList.map((apt) => {
+                        const { canonicalSlug } = apt;
+                        const hasDetailPage = Boolean(txSummary[canonicalSlug] || txSummary[apt.name]);
+                        const summary = txSummary[canonicalSlug] || txSummary[apt.name] || {};
+                        const salesPrice = summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0;
+                        const rentPrice = summary.avg1MRentDeposit || summary.avg3MRentDeposit || summary.latestRentDeposit || 0;
+                        const ratio = salesPrice > 0 && rentPrice > 0 ? Math.round((rentPrice / salesPrice) * 100) : 0;
+                        const formattedHouseholds =
+                          typeof apt.householdCount === 'number' && apt.householdCount > 0
+                            ? `${apt.householdCount.toLocaleString()}세대`
+                            : apt.householdCount
+                            ? `${apt.householdCount}세대`
+                            : '정보 없음';
 
-                return (
-                  <tr key={`${apt.dong}-${apt.name}`}>
-                    <td>
-                      {hasDetailPage ? (
-                        <Link href={`/apartment/${encodeURIComponent(canonicalSlug)}`} prefetch={false}>
-                          {apt.name}
-                        </Link>
-                      ) : (
-                        <span>{apt.name}</span>
-                      )}
-                    </td>
-                    <td>{apt.dong}</td>
-                    <td>{apt.yearBuilt ? `${apt.yearBuilt}년` : '정보 없음'}</td>
-                    <td>{apt.householdCount ? `${apt.householdCount}세대` : '정보 없음'}</td>
-                    <td>{formatPrice(salesPrice)}</td>
-                    <td>{formatPrice(rentPrice)}</td>
-                    <td>{ratio > 0 ? `${ratio}%` : '정보 없음'}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-        <nav aria-label="동탄 7대 핵심 권역별 아파트 시세 분석" className="mt-4">
-          <ul className="flex flex-wrap gap-2">
-            {ZONES.map((zone) => (
-              <li key={zone.id}>
-                <Link href={`/zone/${zone.id}`} prefetch={false}>
-                  {zone.name} ({zone.dongLabel}) 아파트 시세 리포트
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+                        return (
+                          <tr
+                            key={`${apt.dong}-${apt.name}`}
+                            className="hover:bg-slate-100/70 dark:hover:bg-[#2c2c35]/50 transition-colors"
+                          >
+                            <td className="py-2 pr-3 font-bold text-primary whitespace-nowrap">
+                              {hasDetailPage ? (
+                                <Link
+                                  href={`/apartment/${encodeURIComponent(canonicalSlug)}`}
+                                  prefetch={false}
+                                  className="hover:text-blue-600 dark:hover:text-blue-400 underline decoration-slate-300 dark:decoration-slate-700 underline-offset-2"
+                                >
+                                  {apt.name}
+                                </Link>
+                              ) : (
+                                <span>{apt.name}</span>
+                              )}
+                            </td>
+                            <td className="py-2 px-3 text-secondary whitespace-nowrap">{apt.dong}</td>
+                            <td className="py-2 px-3 text-right text-secondary tabular-nums whitespace-nowrap">
+                              {formatSsrYearBuilt(apt.yearBuilt)}
+                            </td>
+                            <td className="py-2 px-3 text-right text-secondary tabular-nums whitespace-nowrap">
+                              {formattedHouseholds}
+                            </td>
+                            <td className="py-2 px-3 text-right font-bold text-primary tabular-nums whitespace-nowrap">
+                              {formatPrice(salesPrice)}
+                            </td>
+                            <td className="py-2 px-3 text-right text-secondary tabular-nums whitespace-nowrap">
+                              {formatPrice(rentPrice)}
+                            </td>
+                            <td
+                              className={`py-2 pl-3 text-right tabular-nums whitespace-nowrap ${
+                                ratio > 0
+                                  ? 'font-semibold text-emerald-700 dark:text-emerald-400'
+                                  : 'text-slate-400 dark:text-slate-500'
+                              }`}
+                            >
+                              {ratio > 0 ? `${ratio}%` : '정보 없음'}
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <nav aria-label="동탄 7대 핵심 권역별 아파트 시세 분석" className="space-y-2">
+              <h3 className="text-xs font-extrabold text-primary">7대 권역별 아파트 시세 리포트</h3>
+              <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1.5">
+                {ZONES.map((zone) => (
+                  <li key={zone.id}>
+                    <Link
+                      href={`/zone/${zone.id}`}
+                      prefetch={false}
+                      className="group flex items-center justify-between gap-2 rounded-xl bg-body dark:bg-[#202027]/70 hover:bg-slate-100/80 dark:hover:bg-[#2c2c35] px-3 py-2 text-xs transition-colors"
+                    >
+                      <span className="font-bold text-primary group-hover:text-emerald-700 dark:group-hover:text-emerald-400 truncate">
+                        {zone.name} 아파트 시세 리포트
+                      </span>
+                      <span className="text-[11px] text-tertiary shrink-0">{zone.dongLabel}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          </div>
+        </details>
       </section>
     </>
   );

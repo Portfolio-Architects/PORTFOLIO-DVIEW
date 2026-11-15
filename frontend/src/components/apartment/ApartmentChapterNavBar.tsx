@@ -24,6 +24,7 @@ export interface ApartmentChapterNavBarProps {
   activeChapter: string;
   onSelectChapter: (chapterId: string) => void;
   scrollContainerRef?: React.RefObject<HTMLElement | null> | React.RefObject<HTMLDivElement | null>;
+  compact?: boolean;
   className?: string;
 }
 
@@ -128,6 +129,7 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
   activeChapter,
   onSelectChapter,
   scrollContainerRef,
+  compact = false,
   className = '',
 }) => {
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
@@ -244,9 +246,12 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
   return (
     <nav
       aria-label="아파트 단지 분석 챕터 내비게이션"
-      className={`sticky top-0 z-[60] w-full bg-surface/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-border/80 py-2 px-3 sm:px-4 ${className}`}
+      data-compact={compact ? 'true' : 'false'}
+      className={`sticky top-0 z-[60] w-full bg-surface/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-border/80 ${
+        compact ? 'py-1 px-2.5 sm:px-4' : 'py-2 px-3 sm:px-4'
+      } ${className}`}
     >
-      <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scroll-smooth">
+      <div className={`flex items-center ${compact ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'} overflow-x-auto no-scrollbar scroll-smooth`}>
         {APARTMENT_CHAPTERS.map((chapter) => {
           const isActive = activeChapter === chapter.id;
 
@@ -264,7 +269,11 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
               onClick={() => handleTabClick(chapter.id)}
               aria-current={isActive ? 'page' : undefined}
               data-chapter-id={chapter.id}
-              className={`relative flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors duration-150 shrink-0 select-none cursor-pointer outline-none ${
+              className={`relative flex items-center whitespace-nowrap transition-colors duration-150 shrink-0 select-none cursor-pointer outline-none ${
+                compact
+                  ? 'gap-1 px-2.5 py-1 rounded-lg text-[11.5px] sm:text-xs font-semibold'
+                  : 'gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-semibold'
+              } ${
                 isActive
                   ? 'text-primary font-bold'
                   : 'text-tertiary hover:text-secondary hover:bg-surface-variant/40'
@@ -274,13 +283,19 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
                 <motion.div
                   layoutId="activeApartmentChapterPill"
                   data-testid="active-chapter-pill"
-                  className="absolute inset-0 bg-primary/10 dark:bg-primary/20 rounded-xl -z-10 border border-primary/30"
+                  className={`absolute inset-0 bg-primary/10 dark:bg-primary/20 -z-10 border border-primary/30 ${
+                    compact ? 'rounded-lg' : 'rounded-xl'
+                  }`}
                   transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                 />
               )}
 
               <span
-                className={`inline-flex items-center justify-center text-[10px] sm:text-[11px] tabular-nums font-bold px-1.5 py-0.5 rounded-md transition-colors ${
+                className={`inline-flex items-center justify-center tabular-nums font-bold transition-colors ${
+                  compact
+                    ? 'text-[10px] px-1 py-0.5 rounded'
+                    : 'text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-md'
+                } ${
                   isActive
                     ? 'bg-primary text-white dark:bg-primary dark:text-white'
                     : 'bg-surface-variant text-tertiary'
@@ -295,14 +310,20 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
                 </span>
               )}
 
-              <div className="flex flex-col text-left leading-tight">
-                <span className="text-[12px] sm:text-[13px] font-medium sm:font-semibold">
+              {compact ? (
+                <span className="text-[11.5px] sm:text-[12px] font-bold leading-none">
                   {chapter.title}
                 </span>
-                <span className="text-[9.5px] sm:text-[10px] text-tertiary font-normal tracking-tight">
-                  {chapter.subtitle}
-                </span>
-              </div>
+              ) : (
+                <div className="flex flex-col text-left leading-tight">
+                  <span className="text-[12px] sm:text-[13px] font-medium sm:font-semibold">
+                    {chapter.title}
+                  </span>
+                  <span className="text-[9.5px] sm:text-[10px] text-tertiary font-normal tracking-tight">
+                    {chapter.subtitle}
+                  </span>
+                </div>
+              )}
             </button>
           );
         })}

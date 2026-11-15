@@ -48,7 +48,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     { id: 'overview', label: '아파트 랩', href: '/' },
     { id: 'imjang', label: '아파트 탐색', href: '/explore' },
     { id: 'stats', label: '아파트 통계', href: '/stats' },
-    { id: 'guide', label: '부동산 가이드', href: '/guide' },
+    { id: 'guide', label: '분석 리포트', href: '/guide' },
     { id: 'technovalley', label: '테크노밸리 랩', href: '/technovalley' },
   ];
 
@@ -78,7 +78,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
       '아파트 랩',
       '아파트 탐색',
       '아파트 통계',
-      '부동산 가이드',
+      '분석 리포트',
       '테크노밸리 랩',
     ]);
     expect(leftLinks[2]).toHaveAttribute('href', '/stats');
@@ -100,7 +100,7 @@ describe('LoungeHeader & MobileDock Route & Contract Synchronization', () => {
     ['imjang', '아파트 탐색', 'bg-white', 'text-blue-600'],
     ['explore', '아파트 탐색', 'bg-white', 'text-blue-600'],
     ['stats', '아파트 통계', 'bg-white', 'text-blue-600'],
-    ['guide', '부동산 가이드', 'bg-white', 'text-blue-600'],
+    ['guide', '분석 리포트', 'bg-white', 'text-blue-600'],
     ['technovalley', '테크노밸리 랩', 'bg-white', 'text-blue-600'],
   ])('highlights activeTab "%s" correctly with expected visual feedback in LoungeHeader and MobileDock', (activeTab, label, expectedBg, expectedText) => {
     const { container: headerContainer } = render(

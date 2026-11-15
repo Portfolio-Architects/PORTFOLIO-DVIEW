@@ -473,7 +473,7 @@ function GuideRecirculationBlock({
         <div>
           <div className="flex items-center gap-1.5 text-xs font-extrabold text-emerald-600 dark:text-emerald-400 mb-1">
             <BookOpen className="w-3.5 h-3.5" />
-            <span>통계 × 부동산 가이드 양방향 심층 리포트</span>
+            <span>통계 × 분석 리포트 양방향 심층 연동</span>
           </div>
           <h3 className="text-base sm:text-lg font-black text-primary tracking-tight">
             수치로 확인한 집값 격차, 단지별 입지 분석글로 이어서 읽기

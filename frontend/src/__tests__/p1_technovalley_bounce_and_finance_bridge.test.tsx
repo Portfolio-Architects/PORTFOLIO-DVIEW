@@ -558,6 +558,8 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
     const kpiLine = screen.getByTestId('inline-mortgage-dsr-kpi-line');
     expect(kpiLine.textContent).toContain(`약 ${expectedMonthlyManwon.toLocaleString('ko-KR')}만원`);
     expect(Math.round(expectedDsr.maxLoanWon / 10_000)).toBeGreaterThan(0);
+    // Guide surfaces stay focused on Mortgage + Tax and omit the apartment-only Jeonse quick CTA
+    expect(screen.queryByTestId('inline-jeonse-safety-open-btn')).toBeNull();
 
     // Toggling LTV 50% emits finance_quick_interact, NOT open_calculator
     fireEvent.click(screen.getByRole('button', { name: 'LTV 50%' }));
@@ -609,9 +611,10 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
     );
   });
 
-  it('delegates directly to onOpenMortgage / onOpenTaxCalculator without duplicate open_calculator firing when inside ApartmentModal', () => {
+  it('delegates directly to onOpenMortgage / onOpenTaxCalculator / onOpenJeonseSafety without duplicate open_calculator firing when inside ApartmentModal', () => {
     const onOpenMortgage = jest.fn();
     const onOpenTaxCalculator = jest.fn();
+    const onOpenJeonseSafety = jest.fn();
 
     render(
       <InlineMortgageDsrBridge
@@ -623,6 +626,7 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
         trigger="apartment_inline_top_bridge"
         onOpenMortgage={onOpenMortgage}
         onOpenTaxCalculator={onOpenTaxCalculator}
+        onOpenJeonseSafety={onOpenJeonseSafety}
       />
     );
 
@@ -644,6 +648,16 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
       '동탄역롯데캐슬',
       'apartment_inline_top_bridge_tax'
     );
+
+    fireEvent.click(screen.getByTestId('inline-jeonse-safety-open-btn'));
+    expect(onOpenJeonseSafety).toHaveBeenCalledTimes(1);
+    expect(onOpenJeonseSafety).toHaveBeenCalledWith(
+      '동탄역롯데캐슬',
+      'apartment_inline_top_bridge_jeonse'
+    );
+    expect(
+      trackEventSpy.mock.calls.filter(([name]) => name === 'open_calculator')
+    ).toHaveLength(0);
   });
 
   it('renders top & mid-article InlineMortgageDsrBridge on high-inflow /guide/[slug] articles including tax guides', async () => {
@@ -769,6 +783,20 @@ describe('P1 Track 2: InlineMortgageDsrBridge & /guide/* + /apartment/* Conversi
       ([name]) => name === 'open_calculator'
     ).length;
     expect(openCallsAfterDrawerEscalate).toBe(openCallsBeforeDrawerEscalate);
+
+    // Consolidated Apartment Detail hub also exposes Jeonse Safety launcher on SSR bridge and dispatches directly to DashboardClient host
+    const ssrJeonseBtn = ssrBridge.querySelector(
+      '[data-testid="inline-jeonse-safety-open-btn"]'
+    ) as HTMLButtonElement;
+    expect(ssrJeonseBtn).not.toBeNull();
+    fireEvent.click(ssrJeonseBtn);
+    const jeonseOpenCalls = trackEventSpy.mock.calls.filter(
+      ([name, params]) =>
+        name === 'open_calculator' &&
+        params &&
+        (params as Record<string, unknown>).calculator_type === 'jeonse_safety'
+    );
+    expect(jeonseOpenCalls).toHaveLength(1);
 
     aptRender.unmount();
   }, 20000);

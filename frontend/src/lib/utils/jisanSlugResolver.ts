@@ -5,17 +5,17 @@ interface MinimalJisanRecord {
 }
 
 function decodeJisanParamSafely(raw: string): string {
-  let current = raw.trim();
+  let current = raw.trim().replace(/\+/g, ' ');
   for (let i = 0; i < 3; i++) {
     try {
-      const next = decodeURIComponent(current);
+      const next = decodeURIComponent(current).replace(/\+/g, ' ');
       if (next === current) break;
       current = next;
     } catch {
       break;
     }
   }
-  return current.trim();
+  return current.replace(/\s+/g, ' ').trim();
 }
 
 function normalizeUnicodeRomanNumerals(input: string): string {
@@ -55,7 +55,7 @@ function normalizeJisanCoreAliasKey(input: string): string {
   const phonetic = normalizeJisanPhoneticKey(input);
   if (!phonetic) return '';
   return phonetic
-    .replace(/^(?:신동탄|동탄역|동탄2|동탄)/, '')
+    .replace(/^(?:동탄테크노밸리|테크노밸리|신동탄|동탄역|동탄2|동탄)/, '')
     .replace(/동탄$/, '')
     .replace(/center$/, '');
 }
@@ -111,6 +111,11 @@ function getJisanSlugIndex(): JisanSlugIndex {
         pushUnique(coreAliasMap, 'shtimesquare', name);
       } else if (coreAlias === '금강펜테리움ixtower') {
         pushUnique(coreAliasMap, '금강ixtower', name);
+        pushUnique(coreAliasMap, '금강펜테리움9tower', name);
+        pushUnique(coreAliasMap, '금강9tower', name);
+        pushUnique(coreAliasMap, '금강펜테리움ix', name);
+      } else if (coreAlias === '이든앤스페이스') {
+        pushUnique(coreAliasMap, '이든스페이스', name);
       } else if (coreAlias === '메가비즈towera동') {
         pushUnique(coreAliasMap, '메가비즈tower', name);
       } else if (coreAlias === '현대실리콘앨리') {

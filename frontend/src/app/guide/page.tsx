@@ -115,7 +115,7 @@ export default function GuideIndexPage() {
         {
           '@type': 'ListItem',
           position: 2,
-          name: '비교 가이드 리포트',
+          name: 'D-VIEW 분석 리포트',
           item: `${baseUrl}/guide`,
         },
       ],
@@ -152,8 +152,8 @@ export default function GuideIndexPage() {
 
       <main id="main-content" className="flex-1 w-full max-w-[2000px] mx-auto min-w-0">
         <PageHeroHeader
-          title="D-VIEW 부동산 가이드"
-          compactTitle="D-VIEW 부동산 가이드"
+          title="D-VIEW 분석 리포트"
+          compactTitle="D-VIEW 분석 리포트"
           subtitleStrong={<MarketStatsStrong />}
           subtitleLight={<MarketStatsLight />}
         />

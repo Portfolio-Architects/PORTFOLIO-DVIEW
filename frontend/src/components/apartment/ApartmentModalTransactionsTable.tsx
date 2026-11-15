@@ -52,13 +52,17 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
     <>
       {/* Hero Section — Layout: Global Filter Bar + (Inline: 35% table / 65% chart | Inspector: Full-width stacked Chart + Table) */}
       <section
-        className={`w-full flex flex-col py-4 md:py-5 bg-surface border-b border-border shrink-0 ${
-          inline ? 'md:h-[700px]' : ''
+        className={`w-full flex flex-col bg-surface border-b border-border shrink-0 ${
+          inline ? 'py-4 md:py-5 md:h-[700px]' : 'pt-1 pb-3 md:py-3.5'
         }`}
       >
         {/* Global Real Transaction Filter Bar (Zero-CLS Fixed Coordinates on Mobile & Desktop) */}
         {isAnimationFinished && (
-          <div className="w-full flex flex-wrap items-center gap-x-2.5 gap-y-2.5 pb-4 mb-4 border-b border-border/50 shrink-0">
+          <div
+            className={`w-full flex flex-wrap items-center gap-x-2 gap-y-1.5 border-b border-border/50 shrink-0 ${
+              inline ? 'pb-4 mb-4 gap-x-2.5 gap-y-2' : 'pb-2 mb-2'
+            }`}
+          >
             {/* 1. Deal Type Toggle — pinned top-left on both mobile & desktop */}
             <div className="order-1 shrink-0">
               <SegmentedControl
@@ -137,7 +141,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
         {/* Main Data Area: Inline (35% Table & 65% Chart) vs Inspector (Full-width Stacked Chart & Table) */}
         <div
           className={`w-full flex flex-col-reverse ${
-            inline ? 'md:flex-row gap-4 md:gap-8 flex-1 min-h-0' : 'gap-5'
+            inline ? 'md:flex-row gap-4 md:gap-8 flex-1 min-h-0' : 'gap-2.5 md:gap-3.5'
           }`}
         >
           {/* Transaction Table */}
@@ -145,7 +149,7 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
             className={
               inline
                 ? 'w-full md:w-[35%] shrink-0 flex flex-col self-start md:self-stretch min-h-[320px] md:h-full'
-                : 'w-full shrink-0 flex flex-col min-h-[320px] h-[360px] md:h-[380px]'
+                : 'w-full shrink-0 flex flex-col min-h-[240px] md:h-[380px]'
             }
           >
             {renderTransactionTable()}
@@ -156,14 +160,18 @@ export const ApartmentModalTransactionsTable = React.memo(function ApartmentModa
             className={
               inline
                 ? 'w-full md:w-[65%] flex flex-col min-h-[580px] md:min-h-0 md:h-full md:self-stretch'
-                : 'w-full flex flex-col min-h-[340px] h-[360px] md:h-[400px]'
+                : 'w-full flex flex-col min-h-[340px] md:min-h-[420px]'
             }
           >
             {showChartLoadingSkeleton ? (
               <div
                 key="tx-chart-loading"
                 aria-hidden="true"
-                className="w-full flex-1 min-h-[580px] md:min-h-0 md:h-full rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center"
+                className={
+                  inline
+                    ? 'w-full flex-1 min-h-[580px] md:min-h-0 md:h-full rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center'
+                    : 'w-full min-h-[380px] md:min-h-[440px] rounded-2xl border border-border/40 animate-shimmer flex items-center justify-center'
+                }
               >
                 <span className="text-tertiary text-[12px] font-bold">실거래 시세 차트 불러오는 중...</span>
               </div>

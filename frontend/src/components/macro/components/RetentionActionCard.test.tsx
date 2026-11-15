@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { RetentionActionCard } from './RetentionActionCard';
+import { AptFitFinderCard } from './AptFitFinderCard';
 
 const mockTriggerCustomA2HSModal = jest.fn();
 jest.mock('@/components/pwa/PWAProvider', () => ({
@@ -15,7 +16,7 @@ describe('RetentionActionCard Component Test Suite', () => {
     jest.clearAllMocks();
   });
 
-  it('renders dual retention action buttons and quick tool button', () => {
+  it('renders dual retention action buttons without separated AptFitFinder card content', () => {
     render(
       <RetentionActionCard
         selectedAptName="동탄역 롯데캐슬"
@@ -26,7 +27,8 @@ describe('RetentionActionCard Component Test Suite', () => {
     expect(screen.getByTestId('retention-action-card')).toBeInTheDocument();
     expect(screen.getByText('오전 7시 실거래 알림 받기')).toBeInTheDocument();
     expect(screen.getByText('홈 화면에 앱 추가')).toBeInTheDocument();
-    expect(screen.getByText('내게 맞는 단지 찾기 (AptFitFinder)')).toBeInTheDocument();
+    expect(screen.queryByTestId('apt-fit-finder-cta')).not.toBeInTheDocument();
+    expect(screen.queryByText(/내게 맞는 단지 찾기/)).not.toBeInTheDocument();
   });
 
   it('triggers onOpenPushModal with selected apartment name when push button is clicked', () => {
@@ -64,22 +66,34 @@ describe('RetentionActionCard Component Test Suite', () => {
       expect(handleOpenA2HS).toHaveBeenCalled();
     }
   });
+});
 
-  it('triggers onOpenAptFitFinder when quick tool button is clicked', () => {
+describe('AptFitFinderCard Component Test Suite', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders independent AptFitFinderCard with bg-elevated rounded-2xl surface', () => {
+    render(<AptFitFinderCard />);
+
+    const card = screen.getByTestId('apt-fit-finder-card');
+    expect(card).toBeInTheDocument();
+    expect(card.className).toContain('bg-elevated');
+    expect(card.className).toContain('rounded-2xl');
+    expect(screen.getByRole('heading', { name: '내게 맞는 단지 찾기' })).toBeInTheDocument();
+    expect(screen.getByText('3억 ~ 14억+')).toBeInTheDocument();
+    expect(screen.getByText('초품아 · 학원')).toBeInTheDocument();
+    expect(screen.getByText('GTX · 트램')).toBeInTheDocument();
+    expect(screen.getByTestId('apt-fit-finder-cta')).toBeInTheDocument();
+  });
+
+  it('triggers onOpenAptFitFinder when CTA button is clicked', () => {
     const handleOpenQuiz = jest.fn();
 
-    render(
-      <RetentionActionCard
-        onOpenPushModal={jest.fn()}
-        onOpenAptFitFinder={handleOpenQuiz}
-      />
-    );
+    render(<AptFitFinderCard onOpenAptFitFinder={handleOpenQuiz} />);
 
-    const quizBtn = screen.getByText('내게 맞는 단지 찾기 (AptFitFinder)').closest('button');
-    expect(quizBtn).not.toBeNull();
-    if (quizBtn) {
-      fireEvent.click(quizBtn);
-      expect(handleOpenQuiz).toHaveBeenCalled();
-    }
+    const quizBtn = screen.getByTestId('apt-fit-finder-cta');
+    fireEvent.click(quizBtn);
+    expect(handleOpenQuiz).toHaveBeenCalledTimes(1);
   });
 });

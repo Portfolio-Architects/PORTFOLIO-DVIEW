@@ -15,6 +15,7 @@ export interface ApartmentLandingRetentionStripProps {
   txSummaryData?: Record<string, AptTxSummary>;
   nameMapping?: Record<string, string>;
   inline?: boolean;
+  hideFavoriteAction?: boolean;
   onSelectPeer: (aptName: string) => void;
   onOpenCompare?: (baseAptName: string, targetAptName: string) => void;
   onOpenPushModal: () => void;
@@ -79,6 +80,7 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
   txSummaryData,
   nameMapping,
   inline = false,
+  hideFavoriteAction = false,
   onSelectPeer,
   onOpenCompare,
   onOpenPushModal,
@@ -148,71 +150,75 @@ export const ApartmentLandingRetentionStrip = React.memo(function ApartmentLandi
         </div>
       </div>
 
-      {/* Right: 1:1 Compare + Contextual Favorite -> Push Retention Bridge */}
-      <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
-        {onOpenCompare && primaryTarget && (
-          <button
-            type="button"
-            data-testid="landing-quick-compare-btn"
-            onClick={() => {
-              trackEvent('landing_bounce_defense_click', {
-                action: 'open_1v1_compare',
-                apt_name: currentAptName,
-                apartment_name: currentAptName,
-                target_apt_name: primaryTarget.aptName,
-                surface,
-              });
-              onOpenCompare(currentAptName, primaryTarget.aptName);
-            }}
-            className="h-8 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none"
-          >
-            <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
-            <span>1:1 비교</span>
-          </button>
-        )}
-
-        <button
-          type="button"
-          data-testid="landing-retention-action-btn"
-          onClick={() => {
-            if (!isFavorite) {
-              trackEvent('watchlist_toggle_favorite', {
-                apt_name: currentAptName,
-                apartment_name: currentAptName,
-                is_favorite: true,
-                source: 'landing_strip',
-                surface,
-              });
-              handleToggleFavorite(currentAptName);
-            } else {
-              trackEvent('push_modal_open', {
-                surface,
-                trigger: 'post_favorite_nudge',
-                apt_name: currentAptName,
-                apartment_name: currentAptName,
-              });
-              onOpenPushModal();
-            }
-          }}
-          className={
-            isFavorite
-              ? 'h-8 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer'
-              : 'h-8 px-3 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer'
-          }
-        >
-          {isFavorite ? (
-            <>
-              <Bell className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-              <span>관심 저장됨 · 변동 알림 켜기</span>
-            </>
-          ) : (
-            <>
-              <Star className="w-3.5 h-3.5 shrink-0" />
-              <span>+ 관심단지 담기</span>
-            </>
+      {/* Right: 1:1 Compare + Optional Favorite -> Push Retention Bridge */}
+      {((onOpenCompare && primaryTarget) || !hideFavoriteAction) && (
+        <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap">
+          {onOpenCompare && primaryTarget && (
+            <button
+              type="button"
+              data-testid="landing-quick-compare-btn"
+              onClick={() => {
+                trackEvent('landing_bounce_defense_click', {
+                  action: 'open_1v1_compare',
+                  apt_name: currentAptName,
+                  apartment_name: currentAptName,
+                  target_apt_name: primaryTarget.aptName,
+                  surface,
+                });
+                onOpenCompare(currentAptName, primaryTarget.aptName);
+              }}
+              className="h-8 px-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer border-none"
+            >
+              <ArrowRightLeft className="w-3.5 h-3.5 shrink-0" />
+              <span>1:1 비교</span>
+            </button>
           )}
-        </button>
-      </div>
+
+          {!hideFavoriteAction && (
+            <button
+              type="button"
+              data-testid="landing-retention-action-btn"
+              onClick={() => {
+                if (!isFavorite) {
+                  trackEvent('watchlist_toggle_favorite', {
+                    apt_name: currentAptName,
+                    apartment_name: currentAptName,
+                    is_favorite: true,
+                    source: 'landing_strip',
+                    surface,
+                  });
+                  handleToggleFavorite(currentAptName);
+                } else {
+                  trackEvent('push_modal_open', {
+                    surface,
+                    trigger: 'post_favorite_nudge',
+                    apt_name: currentAptName,
+                    apartment_name: currentAptName,
+                  });
+                  onOpenPushModal();
+                }
+              }}
+              className={
+                isFavorite
+                  ? 'h-8 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer'
+                  : 'h-8 px-3 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-slate-200 dark:border-slate-700 text-secondary hover:text-blue-600 dark:hover:text-blue-400 text-[12px] font-extrabold inline-flex items-center gap-1.5 transition-colors shrink-0 cursor-pointer'
+              }
+            >
+              {isFavorite ? (
+                <>
+                  <Bell className="w-3.5 h-3.5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  <span>관심 저장됨 · 변동 알림 켜기</span>
+                </>
+              ) : (
+                <>
+                  <Star className="w-3.5 h-3.5 shrink-0" />
+                  <span>+ 관심단지 담기</span>
+                </>
+              )}
+            </button>
+          )}
+        </div>
+      )}
     </section>
   );
 });

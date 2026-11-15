@@ -114,8 +114,29 @@ export function HyperlocalInsightCards({
       {/* 1. 최고 거래가 단지 */}
       <div
         data-testid="insight-card-new-high"
-        onClick={() => newHighComplex && onSelectComplex?.(newHighComplex.aptKey, newHighComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
+        onClick={
+          newHighComplex
+            ? () => onSelectComplex?.(newHighComplex.aptKey, newHighComplex.aptName)
+            : undefined
+        }
+        onKeyDown={
+          newHighComplex
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectComplex?.(newHighComplex.aptKey, newHighComplex.aptName);
+                }
+              }
+            : undefined
+        }
+        role={newHighComplex ? 'button' : undefined}
+        tabIndex={newHighComplex ? 0 : undefined}
+        aria-label={newHighComplex ? `최고 거래가 ${newHighComplex.aptName} 상세 보기` : undefined}
+        className={`relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated transition-colors ${
+          newHighComplex
+            ? 'group hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer'
+            : 'cursor-default'
+        }`}
       >
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
@@ -158,8 +179,31 @@ export function HyperlocalInsightCards({
       {/* 2. 최고 평당가 단지 */}
       <div
         data-testid="insight-card-optimal-gap"
-        onClick={() => optimalGapComplex && onSelectComplex?.(optimalGapComplex.aptKey, optimalGapComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
+        onClick={
+          optimalGapComplex
+            ? () => onSelectComplex?.(optimalGapComplex.aptKey, optimalGapComplex.aptName)
+            : undefined
+        }
+        onKeyDown={
+          optimalGapComplex
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectComplex?.(optimalGapComplex.aptKey, optimalGapComplex.aptName);
+                }
+              }
+            : undefined
+        }
+        role={optimalGapComplex ? 'button' : undefined}
+        tabIndex={optimalGapComplex ? 0 : undefined}
+        aria-label={
+          optimalGapComplex ? `최고 평당가 ${optimalGapComplex.aptName} 상세 보기` : undefined
+        }
+        className={`relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated transition-colors ${
+          optimalGapComplex
+            ? 'group hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer'
+            : 'cursor-default'
+        }`}
       >
         <div>
           <div className="flex items-center justify-between gap-2 mb-2">
@@ -204,8 +248,31 @@ export function HyperlocalInsightCards({
       {/* 3. 주간 거래량 급증 단지 */}
       <div
         data-testid="insight-card-volume-surge"
-        onClick={() => volumeSurgeComplex && onSelectComplex?.(volumeSurgeComplex.aptKey, volumeSurgeComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
+        onClick={
+          volumeSurgeComplex
+            ? () => onSelectComplex?.(volumeSurgeComplex.aptKey, volumeSurgeComplex.aptName)
+            : undefined
+        }
+        onKeyDown={
+          volumeSurgeComplex
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectComplex?.(volumeSurgeComplex.aptKey, volumeSurgeComplex.aptName);
+                }
+              }
+            : undefined
+        }
+        role={volumeSurgeComplex ? 'button' : undefined}
+        tabIndex={volumeSurgeComplex ? 0 : undefined}
+        aria-label={
+          volumeSurgeComplex ? `거래량 급증 ${volumeSurgeComplex.aptName} 상세 보기` : undefined
+        }
+        className={`relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated transition-colors ${
+          volumeSurgeComplex
+            ? 'group hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer'
+            : 'cursor-default'
+        }`}
       >
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -232,8 +299,31 @@ export function HyperlocalInsightCards({
       {/* 4. 낙폭과대 급매 단지 */}
       <div
         data-testid="insight-card-urgent-bargain"
-        onClick={() => urgentBargainComplex && onSelectComplex?.(urgentBargainComplex.aptKey, urgentBargainComplex.aptName)}
-        className="group relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated hover:bg-slate-100/90 dark:hover:bg-slate-800/80 transition-colors cursor-pointer"
+        onClick={
+          urgentBargainComplex
+            ? () => onSelectComplex?.(urgentBargainComplex.aptKey, urgentBargainComplex.aptName)
+            : undefined
+        }
+        onKeyDown={
+          urgentBargainComplex
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onSelectComplex?.(urgentBargainComplex.aptKey, urgentBargainComplex.aptName);
+                }
+              }
+            : undefined
+        }
+        role={urgentBargainComplex ? 'button' : undefined}
+        tabIndex={urgentBargainComplex ? 0 : undefined}
+        aria-label={
+          urgentBargainComplex ? `낙폭과대 급매 ${urgentBargainComplex.aptName} 상세 보기` : undefined
+        }
+        className={`relative flex flex-col justify-between p-4 sm:p-5 rounded-2xl bg-elevated transition-colors ${
+          urgentBargainComplex
+            ? 'group hover:bg-slate-100/90 dark:hover:bg-slate-800/80 cursor-pointer'
+            : 'cursor-default'
+        }`}
       >
         <div>
           <div className="flex items-center justify-between mb-2">

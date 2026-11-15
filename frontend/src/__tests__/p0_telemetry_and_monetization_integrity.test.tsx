@@ -459,10 +459,10 @@ describe('P0 Telemetry & Monetization Integrity Suite (GA4 Report 2026-11-14)', 
       );
       expect(window.scrollTo).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' });
 
-      // 4. Genuine tab switch via MobileDock ('부동산 가이드' -> guide) emits EXACTLY 1 event with mobile_dock + tab_guide
+      // 4. Genuine tab switch via MobileDock ('분석 리포트' -> guide) emits EXACTLY 1 event with mobile_dock + tab_guide
       gtagMock.mockClear();
       resetAnalyticsInteractionState();
-      const allGuideLinks = screen.getAllByRole('link', { name: /부동산 가이드/ });
+      const allGuideLinks = screen.getAllByRole('link', { name: /분석 리포트/ });
       expect(allGuideLinks.length).toBeGreaterThanOrEqual(2);
       const mobileDockGuideLink = allGuideLinks[allGuideLinks.length - 1];
       fireEvent.click(mobileDockGuideLink);

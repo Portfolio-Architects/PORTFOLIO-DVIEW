@@ -247,7 +247,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       const heroLeftCol = screen.getByTestId('hero-left-donut-col');
       const heroRightCol = screen.getByTestId('hero-right-chart-col');
       const donutBox = screen.getByTestId('donut-chart-box');
-      const financeGrid = screen.getByTestId('finance-quick-widgets-grid');
+      expect(screen.queryByTestId('high-cpc-finance-section')).not.toBeInTheDocument();
       const guidesGrid = screen.getByTestId('curated-guides-grid');
       const zone4Grid = screen.getByTestId('zone4-retention-community-grid');
 
@@ -272,8 +272,6 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       });
 
       // Lower grids also stack in 1 column when isSplitMode={true}
-      expect(financeGrid.className).toContain('grid-cols-1');
-      expect(financeGrid.className).not.toContain('lg:grid-cols-2');
       expect(guidesGrid.className).toContain('grid-cols-1');
       expect(guidesGrid.className).not.toContain('md:grid-cols-3');
       expect(guidesGrid.className).not.toContain('xl:grid-cols-3');
@@ -302,7 +300,7 @@ describe('Milestone M2 Zero-CLS Layout Invariants & Dimensional Contracts', () =
       expect(heroGrid.className).toContain('lg:grid-cols-12');
       expect(heroLeftCol.className).toContain('lg:col-span-6');
       expect(heroRightCol.className).toContain('lg:col-span-6');
-      expect(financeGrid.className).toContain('lg:grid-cols-2');
+      expect(screen.queryByTestId('high-cpc-finance-section')).not.toBeInTheDocument();
       expect(guidesGrid.className).toContain('md:grid-cols-3');
       expect(zone4Grid.className).toContain('lg:grid-cols-12');
     });

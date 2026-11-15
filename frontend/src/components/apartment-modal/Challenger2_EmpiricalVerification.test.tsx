@@ -506,6 +506,80 @@ describe('Milestone 1 Challenger 2 Empirical Verification Suite', () => {
       fireEvent.change(select, { target: { value: '84A' } });
       expect(setSelectedAreaFilter).toHaveBeenCalledWith('84A');
     });
+
+    it('avoids mobile fixed-height chart/table clipping under bottom-sheet mode (inline=false) and preserves compact chart mode', () => {
+      const { container } = render(
+        <ApartmentModalTransactionsTable
+          isAnimationFinished={true}
+          isTxLoading={false}
+          filteredTransactions={sampleTransactions}
+          typeMap={{}}
+          chartType="sale"
+          setChartType={jest.fn()}
+          normalizeAptName={(n) => n}
+          displayAptName="동탄린스트라우스더레이크"
+          dong="송동"
+          apartmentName="동탄린스트라우스더레이크"
+          filterOutliers={false}
+          handleToggleFilter={jest.fn()}
+          areaFilterChips={['전체', '84A']}
+          selectedAreaFilter="전체"
+          setSelectedAreaFilter={jest.fn()}
+          renderTransactionTable={() => <div data-testid="sheet-table">Table</div>}
+          renderTransactionChart={() => <div data-testid="sheet-chart">Chart</div>}
+          renderTransactionSummaryMetrics={() => null}
+          inline={false}
+        />
+      );
+
+      const chartWrapper = screen.getByTestId('sheet-chart').closest('div.w-full.flex.flex-col');
+      const tableWrapper = screen.getByTestId('sheet-table').closest('div.w-full.shrink-0');
+      expect(chartWrapper?.className).not.toContain('h-[360px]');
+      expect(chartWrapper?.className).not.toContain('md:h-[400px]');
+      expect(tableWrapper?.className).not.toContain('h-[360px]');
+
+      const compactChartRender = render(
+        <TransactionChartSection
+          transactions={sampleTransactions}
+          chartType="sale"
+          setChartType={jest.fn()}
+          displayAptName="동탄린스트라우스더레이크"
+          dong="송동"
+          typeMap={{}}
+          normalizeAptName={(n) => n}
+          compact={true}
+        />
+      );
+      expect(compactChartRender.container.querySelector('.h-\\[170px\\]')).toBeInTheDocument();
+      expect(compactChartRender.container.querySelector('.grid.grid-cols-2.sm\\:grid-cols-4')).toBeInTheDocument();
+      expect(compactChartRender.getByText('1개월 평균')).toBeInTheDocument();
+
+      // Loading skeleton under inline=false uses bounded bottom-sheet min-height rather than 580px inline skeleton
+      const loadingRender = render(
+        <ApartmentModalTransactionsTable
+          isAnimationFinished={true}
+          isTxLoading={true}
+          filteredTransactions={[]}
+          typeMap={{}}
+          chartType="sale"
+          setChartType={jest.fn()}
+          normalizeAptName={(n) => n}
+          displayAptName="동탄린스트라우스더레이크"
+          dong="송동"
+          apartmentName="동탄린스트라우스더레이크"
+          filterOutliers={false}
+          handleToggleFilter={jest.fn()}
+          areaFilterChips={[]}
+          selectedAreaFilter="전체"
+          setSelectedAreaFilter={jest.fn()}
+          renderTransactionTable={() => null}
+          renderTransactionChart={() => null}
+          renderTransactionSummaryMetrics={() => null}
+          inline={false}
+        />
+      );
+      expect(loadingRender.container.querySelector('.min-h-\\[580px\\]')).toBeNull();
+    });
   });
 
   describe('5. TransactionTable & TransactionSummaryMetrics Contract Verification', () => {
