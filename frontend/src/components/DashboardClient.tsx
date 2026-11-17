@@ -1585,6 +1585,8 @@ const DashboardClient = React.memo(function DashboardClient({
         handleOpenJeonseSafety(targetApt);
       } else if (detail.calcType === 'sell_timing') {
         handleOpenSellTimingCalculator(targetApt);
+      } else if (detail.calcType === 'compare') {
+        handleOpenCompare(targetApt, detail.targetAptName);
       } else {
         handleOpenMortgage(targetApt, detail.priceWon, effectiveCtx);
       }
@@ -1599,6 +1601,7 @@ const DashboardClient = React.memo(function DashboardClient({
     filterCompatiblePendingContext,
     preselectedAptName,
     selectedReport?.apartmentName,
+    handleOpenCompare,
     handleOpenMortgage,
     handleOpenTaxCalculator,
     handleOpenJeonseSafety,
@@ -1616,29 +1619,38 @@ const DashboardClient = React.memo(function DashboardClient({
       }
       let sp: URLSearchParams;
       let calcParam: string | null = null;
+      let rawApt1 = '';
+      let rawApt2 = '';
       try {
         sp = new URLSearchParams(rawSearch);
         calcParam = sp.get('calc');
+        rawApt1 = sp.get('apt1')?.trim() || '';
+        rawApt2 = sp.get('apt2')?.trim() || '';
       } catch {
         handledQueryCalcRef.current = null;
         return;
       }
-      if (!calcParam) {
+      const decodedApt1 = rawApt1 ? decodeSafeAptParam(rawApt1) || rawApt1 : undefined;
+      const decodedApt2 = rawApt2 ? decodeSafeAptParam(rawApt2) || rawApt2 : undefined;
+      const effectiveCalcParam =
+        calcParam || (decodedApt1 && decodedApt2 ? 'compare' : null);
+      if (!effectiveCalcParam) {
         handledQueryCalcRef.current = null;
         return;
       }
-      const normalizedCalc = calcParam.trim().toLowerCase();
+      const normalizedCalc = effectiveCalcParam.trim().toLowerCase();
       if (
         normalizedCalc !== 'mortgage' &&
         normalizedCalc !== 'property_tax' &&
         normalizedCalc !== 'tax' &&
         normalizedCalc !== 'jeonse_safety' &&
-        normalizedCalc !== 'sell_timing'
+        normalizedCalc !== 'sell_timing' &&
+        normalizedCalc !== 'compare'
       ) {
         return;
       }
 
-      const dedupeKey = `${window.location.pathname}?calc=${normalizedCalc}`;
+      const dedupeKey = `${window.location.pathname}?calc=${normalizedCalc}&apt1=${decodedApt1 || ''}&apt2=${decodedApt2 || ''}`;
       if (handledQueryCalcRef.current === dedupeKey) return;
 
       const pathname = window.location.pathname || '/';
@@ -1648,9 +1660,11 @@ const DashboardClient = React.memo(function DashboardClient({
           ? preselectedAptName
           : pathname.startsWith('/apartment/')
             ? decodeSafeAptParam(pathname.slice('/apartment/'.length)) || preselectedAptName || undefined
-            : /[#&]apt=/.test(hashStr)
-              ? selectedReport?.apartmentName || undefined
-              : undefined;
+            : decodedApt1
+              ? decodedApt1
+              : /[#&]apt=/.test(hashStr)
+                ? selectedReport?.apartmentName || undefined
+                : undefined;
 
       const rawPendingCtx = consumePendingCalculatorContext();
       const queryOverrides = parseCalculatorQueryOverrides(sp);
@@ -1731,11 +1745,26 @@ const DashboardClient = React.memo(function DashboardClient({
           });
         }
         handleOpenSellTimingCalculator(targetApt);
+      } else if (normalizedCalc === 'compare') {
+        const secondApt = decodedApt2 || compatiblePendingCtx?.targetAptName || undefined;
+        if (!shouldSkipOpenTrack) {
+          trackEvent('open_calculator', {
+            calculator_type: 'compare',
+            apartment_name: targetApt,
+            apt_name: targetApt,
+            target_apt_name: secondApt,
+            surface: surfaceLabel,
+            trigger: 'url_query_deep_link',
+          });
+        }
+        handleOpenCompare(targetApt, secondApt);
       }
 
       try {
         if (window.history && typeof window.history.replaceState === 'function') {
           sp.delete('calc');
+          sp.delete('apt1');
+          sp.delete('apt2');
           sp.delete('price');
           sp.delete('income');
           sp.delete('over85');
@@ -1765,6 +1794,7 @@ const DashboardClient = React.memo(function DashboardClient({
     preselectedAptName,
     selectedReport?.apartmentName,
     isInlineApartmentPage,
+    handleOpenCompare,
     handleOpenMortgage,
     handleOpenTaxCalculator,
     handleOpenJeonseSafety,
@@ -1961,15 +1991,18 @@ const DashboardClient = React.memo(function DashboardClient({
                       onSelectApartment={(name, dong) => {
                         handleNavigateApartmentPage(name, dong);
                       }}
-                      onOpenCompare={(aptName, targetAptName) => {
+                      onOpenCompare={(aptName, targetAptName, trigger) => {
+                        const trackedApt = aptName || effectiveInlineReport.apartmentName;
                         trackEvent('open_calculator', {
                           calculator_type: 'compare',
-                          apartment_name: aptName,
-                          apt_name: aptName,
+                          apartment_name: trackedApt,
+                          apt_name: trackedApt,
                           target_apt_name: targetAptName,
                           surface: 'apartment_inline_page',
+                          trigger:
+                            trigger || (targetAptName ? 'recirculation_compare' : 'header_tool_menu'),
                         });
-                        handleOpenCompare(aptName, targetAptName);
+                        handleOpenCompare(trackedApt, targetAptName);
                       }}
                       onOpenJeonseSafety={(aptName, trigger) => {
                         const trackedApt = aptName || effectiveInlineReport.apartmentName;
@@ -1978,7 +2011,7 @@ const DashboardClient = React.memo(function DashboardClient({
                           apartment_name: trackedApt,
                           apt_name: trackedApt,
                           surface: 'apartment_inline_page',
-                          ...(trigger ? { trigger } : {}),
+                          trigger: trigger || 'header_tool_menu',
                         });
                         handleOpenJeonseSafety(aptName || effectiveInlineReport.apartmentName);
                       }}
@@ -2004,14 +2037,16 @@ const DashboardClient = React.memo(function DashboardClient({
                         });
                         handleOpenTaxCalculator(aptName || undefined);
                       }}
-                      onOpenSellTimingCalculator={(aptName) => {
+                      onOpenSellTimingCalculator={(aptName, trigger) => {
+                        const trackedApt = aptName || effectiveInlineReport.apartmentName;
                         trackEvent('open_calculator', {
                           calculator_type: 'sell_timing',
-                          apartment_name: aptName,
-                          apt_name: aptName,
+                          apartment_name: trackedApt,
+                          apt_name: trackedApt,
                           surface: 'apartment_inline_page',
+                          trigger: trigger || 'header_tool_menu',
                         });
-                        handleOpenSellTimingCalculator(aptName);
+                        handleOpenSellTimingCalculator(trackedApt);
                       }}
                     />
                   </ErrorBoundary>
@@ -2049,15 +2084,18 @@ const DashboardClient = React.memo(function DashboardClient({
                     txSummaryData={txSummary}
                     locationScores={locationScores}
                     onSelectApartment={handleAptClickByName}
-                    onOpenCompare={(aptName, targetAptName) => {
+                    onOpenCompare={(aptName, targetAptName, trigger) => {
+                      const trackedApt = aptName || selectedReport.apartmentName;
                       trackEvent('open_calculator', {
                         calculator_type: 'compare',
-                        apartment_name: aptName,
-                        apt_name: aptName,
+                        apartment_name: trackedApt,
+                        apt_name: trackedApt,
                         target_apt_name: targetAptName,
                         surface: 'apartment_modal',
+                        trigger:
+                          trigger || (targetAptName ? 'recirculation_compare' : 'header_tool_menu'),
                       });
-                      handleOpenCompare(aptName, targetAptName);
+                      handleOpenCompare(trackedApt, targetAptName);
                     }}
                     onOpenJeonseSafety={(aptName, trigger) => {
                       const trackedApt = aptName || selectedReport.apartmentName;
@@ -2066,7 +2104,7 @@ const DashboardClient = React.memo(function DashboardClient({
                         apartment_name: trackedApt,
                         apt_name: trackedApt,
                         surface: 'apartment_modal',
-                        ...(trigger ? { trigger } : {}),
+                        trigger: trigger || 'header_tool_menu',
                       });
                       handleOpenJeonseSafety(aptName || selectedReport.apartmentName);
                     }}
@@ -2092,14 +2130,16 @@ const DashboardClient = React.memo(function DashboardClient({
                       });
                       handleOpenTaxCalculator(aptName || undefined);
                     }}
-                    onOpenSellTimingCalculator={(aptName) => {
+                    onOpenSellTimingCalculator={(aptName, trigger) => {
+                      const trackedApt = aptName || selectedReport.apartmentName;
                       trackEvent('open_calculator', {
                         calculator_type: 'sell_timing',
-                        apartment_name: aptName,
-                        apt_name: aptName,
+                        apartment_name: trackedApt,
+                        apt_name: trackedApt,
                         surface: 'apartment_modal',
+                        trigger: trigger || 'header_tool_menu',
                       });
-                      handleOpenSellTimingCalculator(aptName);
+                      handleOpenSellTimingCalculator(trackedApt);
                     }}
                   />
                 </ErrorBoundary>

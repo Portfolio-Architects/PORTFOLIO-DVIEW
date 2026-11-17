@@ -7,14 +7,14 @@ import { safeJsonLd } from '@/lib/utils/structuredData';
 const ABOUT_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('D-VIEW (디뷰 · 동뷰 · 동탄뷰)')}&subtitle=${encodeURIComponent('동탄 184개 아파트 실거래 시세·전세가율 분석 및 56개 지식산업센터 데이터 랩')}`;
 
 export const metadata: Metadata = {
-  title: 'D-VIEW (디뷰 · 동뷰 · 동탄뷰) 소개 | 동탄 184개 아파트 실거래 시세·전세가율 분석',
+  title: '디뷰 · 동뷰 · 동탄뷰 (D-VIEW) 공식 포털 | 동탄 184개 아파트 실거래 시세·전세가율 분석',
   description:
-    '디뷰(D-VIEW · 동뷰 · 동탄뷰)는 국토교통부 공식 실거래가를 매일 동기화하여 동탄 1·2신도시 184개 아파트 실거래 시세·집값 추이 그래프·전세가율(실거주 PER)·초품아 학군지와 동탄테크노밸리 56개 지식산업센터 세제 혜택을 분석하는 데이터 플랫폼입니다.',
+    '동뷰·디뷰·동탄뷰(D-VIEW) 공식 부동산 데이터 포털 — 동탄 1·2신도시 184개 아파트 국토부 실거래 시세·집값 추이 그래프·전세가율(실거주 PER)·학군지 순위, 주담대 DSR 한도 계산기 및 동탄테크노밸리 56개 지식산업센터 세제 혜택을 무료로 바로 확인하세요.',
   keywords: [
-    'D-VIEW',
-    '디뷰',
     '동뷰',
+    '디뷰',
     '동탄뷰',
+    'D-VIEW',
     '동탄 아파트 시세',
     '동탄 실거래가',
     '동탄 전세가율',
@@ -26,9 +26,9 @@ export const metadata: Metadata = {
     canonical: 'https://dongtanview.com/about',
   },
   openGraph: {
-    title: 'D-VIEW (디뷰 · 동뷰 · 동탄뷰) 소개 | 동탄 184개 아파트 실거래 시세·전세가율 분석',
+    title: '디뷰 · 동뷰 · 동탄뷰 (D-VIEW) 공식 포털 | 동탄 184개 아파트 실거래 시세·전세가율 분석',
     description:
-      '국토교통부 공식 데이터 기반 동탄 184개 아파트 실거래 시세·집값 추이 그래프·전세가율 분석 및 동탄테크노밸리 56개 지식산업센터 통합 포털 디뷰(동뷰·동탄뷰)',
+      '동뷰·디뷰·동탄뷰(D-VIEW) 공식 데이터 포털 — 동탄 184개 아파트 실거래 시세·집값 추이 그래프·전세가율 순위 및 56개 지식산업센터 세제 혜택 통합 분석',
     url: 'https://dongtanview.com/about',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
@@ -44,12 +44,25 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'D-VIEW (디뷰 · 동뷰 · 동탄뷰) 소개 | 동탄 184개 아파트 실거래 시세·전세가율 분석',
+    title: '디뷰 · 동뷰 · 동탄뷰 (D-VIEW) 공식 포털 | 동탄 184개 아파트 실거래 시세·전세가율 분석',
     description:
-      '국토교통부 공식 데이터 기반 동탄 184개 아파트 실거래 시세·집값 추이 그래프·전세가율 분석 플랫폼 디뷰(동뷰·동탄뷰)',
+      '동뷰·디뷰·동탄뷰(D-VIEW) 공식 데이터 포털 — 동탄 184개 아파트 실거래 시세·집값 추이 그래프·전세가율 분석 및 주담대 DSR 계산기',
     images: [ABOUT_OG_IMAGE_URL],
   },
 };
+
+const ABOUT_FAQS = [
+  {
+    question: '동뷰(디뷰 · 동탄뷰, D-VIEW)에서는 어떤 데이터를 무료로 확인할 수 있나요?',
+    answer:
+      '화성시 동탄 1·2신도시 184개 아파트의 국토교통부 매매·전월세 실거래 시세, 평형별 집값 추이 그래프, 전세가율·실거주 PER 안전성, 초품아 학군 실거리, 주담대 스트레스 DSR 40%·취득세 계산기, 그리고 동탄테크노밸리 56개 지식산업센터 인허가 스펙 및 세제 감면 혜택을 별도 회원가입 없이 무료로 조회할 수 있습니다.',
+  },
+  {
+    question: '동뷰(D-VIEW)의 동탄 아파트 실거래가 데이터는 얼마나 자주 업데이트되나요?',
+    answer:
+      '국토교통부 실거래가 공개시스템 공식 OpenAPI와 매일 오전 KST 기준으로 동기화하며, 이상거래(직거래·특수관계 거래 추정치) 필터링과 평형별 정규화를 거쳐 검증된 실제 거래 내역만 반영합니다.',
+  },
+] as const;
 
 export default async function AboutPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
@@ -62,7 +75,7 @@ export default async function AboutPage() {
         "@type": "AboutPage",
         "@id": `${baseUrl}/about#webpage`,
         "url": `${baseUrl}/about`,
-        "name": "D-VIEW (디뷰 · 동뷰 · 동탄뷰) 소개 | 동탄 184개 아파트 실거래 시세·전세가율 분석",
+        "name": "디뷰 · 동뷰 · 동탄뷰 (D-VIEW) 공식 포털 | 동탄 184개 아파트 실거래 시세·전세가율 분석",
         "description": "디뷰(D-VIEW · 동뷰 · 동탄뷰)의 국토교통부 실거래 데이터 연동 기준, 동탄 184개 아파트 실거래 시세·전세가율(실거주 PER)·학군 입지 평가 모델 및 동탄테크노밸리 56개 지식산업센터 분석 엔진을 소개합니다.",
         "breadcrumb": {
           "@type": "BreadcrumbList",
@@ -95,6 +108,18 @@ export default async function AboutPage() {
           "addressRegion": "경기도",
           "addressLocality": "화성시 동탄역로"
         }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": `${baseUrl}/about#faq`,
+        "mainEntity": ABOUT_FAQS.map((faq) => ({
+          "@type": "Question",
+          "name": faq.question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": faq.answer,
+          },
+        })),
       }
     ]
   };
@@ -146,6 +171,33 @@ export default async function AboutPage() {
           <p className="mt-5 text-[13px] sm:text-[15.5px] text-secondary max-w-[780px] mx-auto px-6 leading-relaxed font-medium break-keep">
             <strong>디뷰(D-VIEW · 동뷰 · 동탄뷰)</strong>는 국토교통부 공식 실거래가를 매일 동기화하여 <strong>동탄 1·2신도시 184개 아파트 실거래 시세·집값 추이 그래프·전세가율(실거주 PER)·학군지</strong>와 <strong>동탄테크노밸리 56개 지식산업센터의 입주 업종·세제 감면 혜택</strong>을 결합해 주는 데이터 팩트체크 허브입니다. 예비 창업자와 법인에게는 최적의 사옥 스펙과 취득세·재산세 절세 방안을, 실거주 가구에게는 통학 환경과 정량화된 주거 가치 지표를 제공합니다.
           </p>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-2.5 px-4">
+            <Link
+              href="/"
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-extrabold transition-colors"
+            >
+              <TrendingUp size={15} className="shrink-0" />
+              <span>184개 단지 실거래 대시보드 열기</span>
+            </Link>
+            <Link
+              href="/explore"
+              prefetch={false}
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-surface hover:bg-slate-100 dark:hover:bg-slate-800 border border-border text-primary text-xs sm:text-sm font-extrabold transition-colors"
+            >
+              <Landmark size={15} className="shrink-0 text-emerald-600 dark:text-emerald-400" />
+              <span>아파트 시세 순위 비교표</span>
+            </Link>
+            <Link
+              href="/?calc=mortgage"
+              prefetch={false}
+              data-testid="about-hero-dsr-calc-cta"
+              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#f9fafb] hover:bg-[#f2f4f6] dark:bg-[#17171c] dark:hover:bg-[#202027] border border-border text-primary text-xs sm:text-sm font-extrabold transition-colors"
+            >
+              <Percent size={15} className="shrink-0 text-blue-600 dark:text-blue-400" />
+              <span>주담대 DSR 40% 계산기</span>
+            </Link>
+          </div>
         </div>
 
         {/* 핵심 분석 지표 */}
@@ -283,6 +335,32 @@ export default async function AboutPage() {
             </div>
           </div>
         </div>
+
+        {/* 자주 묻는 질문 (FAQPage JSON-LD 1:1 매칭) */}
+        <section
+          id="about-brand-faq"
+          aria-label="동뷰(디뷰·동탄뷰, D-VIEW) 자주 묻는 질문"
+          className="mt-8 bg-surface p-6 sm:p-8 rounded-2xl border border-border shadow-sm space-y-4"
+        >
+          <h2 className="text-[16px] sm:text-[18px] font-extrabold text-primary tracking-tight">
+            동뷰 (디뷰 · 동탄뷰, D-VIEW) 자주 묻는 질문
+          </h2>
+          <div className="space-y-3">
+            {ABOUT_FAQS.map((faq, idx) => (
+              <div
+                key={idx}
+                className="rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 space-y-1.5"
+              >
+                <h3 className="text-[13.5px] sm:text-[14.5px] font-extrabold text-primary">
+                  Q. {faq.question}
+                </h3>
+                <p className="text-[12.5px] sm:text-[13.5px] text-secondary leading-relaxed font-medium">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
+          </div>
+        </section>
 
         {/* 면책 고지 */}
         <div className="mt-8 bg-slate-100/60 dark:bg-slate-800/40 p-6 rounded-2xl border border-slate-300/60 text-secondary relative overflow-hidden">

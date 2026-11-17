@@ -23,7 +23,11 @@ import {
   resolveCanonicalAptSlug,
   stripApartmentNoiseQueryParams,
 } from '@/lib/utils/apartmentMapping';
-import { trackApartmentView } from '@/lib/utils/analytics';
+import { trackApartmentView, trackEvent } from '@/lib/utils/analytics';
+import {
+  consumePendingCalculatorContext,
+  persistPendingCalculatorContext,
+} from '@/lib/utils/pendingCalculatorContext';
 import ApartmentModalSkeleton from '@/components/ui/ApartmentModalSkeleton';
 
 const FieldReportModal = dynamic(() => import('@/components/apartment/ApartmentModal').catch(err => {
@@ -416,6 +420,148 @@ const ZoneDetailClient = React.memo(function ZoneDetailClient() {
               typeMap={{}}
               isLoadingDetail={isLoadingDetail}
               onSelectApartment={handleSelectApartmentByName}
+              onOpenCompare={(aptName, targetAptName, trigger) => {
+                const baseApt = aptName || selectedReport.apartmentName;
+                const slug1 = resolveCanonicalAptSlug(baseApt, { dong: selectedReport.dong }) || baseApt;
+                const slug2 = targetAptName
+                  ? resolveCanonicalAptSlug(targetAptName) || targetAptName
+                  : undefined;
+                persistPendingCalculatorContext({
+                  aptName: baseApt,
+                  canonicalSlug: slug1,
+                  targetAptName: slug2,
+                  alreadyTrackedOpen: true,
+                });
+                trackEvent('open_calculator', {
+                  calculator_type: 'compare',
+                  apartment_name: baseApt,
+                  apt_name: baseApt,
+                  target_apt_name: targetAptName,
+                  zone: zoneId,
+                  surface: 'zone_detail_modal',
+                  trigger: trigger || (targetAptName ? 'recirculation_compare' : 'header_tool_menu'),
+                });
+                const compareQuery = slug2
+                  ? `/explore?calc=compare&apt1=${encodeURIComponent(slug1)}&apt2=${encodeURIComponent(slug2)}`
+                  : `/explore?calc=compare&apt1=${encodeURIComponent(slug1)}`;
+                router.push(compareQuery);
+              }}
+              onOpenJeonseSafety={(aptName, trigger) => {
+                const priorCtx = consumePendingCalculatorContext();
+                const hasExplicitApt = typeof aptName === 'string' ? aptName.trim().length > 0 : true;
+                const targetApt = aptName || selectedReport.apartmentName;
+                const canonicalSlug =
+                  resolveCanonicalAptSlug(targetApt, { dong: selectedReport.dong }) || targetApt;
+                persistPendingCalculatorContext({
+                  aptName: hasExplicitApt ? targetApt : undefined,
+                  canonicalSlug: hasExplicitApt ? canonicalSlug : undefined,
+                  priceManwon: priorCtx?.priceManwon,
+                  annualIncomeManwon: priorCtx?.annualIncomeManwon,
+                  areaOver85: priorCtx?.areaOver85,
+                  alreadyTrackedOpen: true,
+                });
+                trackEvent('open_calculator', {
+                  calculator_type: 'jeonse_safety',
+                  apartment_name: targetApt,
+                  apt_name: targetApt,
+                  zone: zoneId,
+                  surface: 'zone_detail_modal',
+                  trigger: trigger || 'header_tool_menu',
+                });
+                router.push(
+                  hasExplicitApt
+                    ? `/apartment/${encodeURIComponent(canonicalSlug)}?calc=jeonse_safety`
+                    : '/?calc=jeonse_safety'
+                );
+              }}
+              onOpenMortgage={(aptName, priceWon, trigger) => {
+                const priorCtx = consumePendingCalculatorContext();
+                const hasExplicitApt = typeof aptName === 'string' ? aptName.trim().length > 0 : true;
+                const targetApt = aptName || selectedReport.apartmentName;
+                const canonicalSlug =
+                  resolveCanonicalAptSlug(targetApt, { dong: selectedReport.dong }) || targetApt;
+                const explicitPriceManwon =
+                  typeof priceWon === 'number' && Number.isFinite(priceWon) && priceWon > 0
+                    ? Math.round(priceWon / 10_000)
+                    : priorCtx?.priceManwon;
+                persistPendingCalculatorContext({
+                  aptName: hasExplicitApt ? targetApt : undefined,
+                  canonicalSlug: hasExplicitApt ? canonicalSlug : undefined,
+                  priceManwon: explicitPriceManwon,
+                  annualIncomeManwon: priorCtx?.annualIncomeManwon,
+                  areaOver85: priorCtx?.areaOver85,
+                  alreadyTrackedOpen: true,
+                });
+                trackEvent('open_calculator', {
+                  calculator_type: 'mortgage',
+                  apartment_name: targetApt,
+                  apt_name: targetApt,
+                  zone: zoneId,
+                  surface: 'zone_detail_modal',
+                  trigger: trigger || 'header_tool_menu',
+                });
+                router.push(
+                  hasExplicitApt
+                    ? `/apartment/${encodeURIComponent(canonicalSlug)}?calc=mortgage`
+                    : '/?calc=mortgage'
+                );
+              }}
+              onOpenTaxCalculator={(aptName, trigger) => {
+                const priorCtx = consumePendingCalculatorContext();
+                const hasExplicitApt = typeof aptName === 'string' ? aptName.trim().length > 0 : true;
+                const targetApt = aptName || selectedReport.apartmentName;
+                const canonicalSlug =
+                  resolveCanonicalAptSlug(targetApt, { dong: selectedReport.dong }) || targetApt;
+                persistPendingCalculatorContext({
+                  aptName: hasExplicitApt ? targetApt : undefined,
+                  canonicalSlug: hasExplicitApt ? canonicalSlug : undefined,
+                  priceManwon: priorCtx?.priceManwon,
+                  annualIncomeManwon: priorCtx?.annualIncomeManwon,
+                  areaOver85: priorCtx?.areaOver85,
+                  alreadyTrackedOpen: true,
+                });
+                trackEvent('open_calculator', {
+                  calculator_type: 'property_tax',
+                  apartment_name: targetApt,
+                  apt_name: targetApt,
+                  zone: zoneId,
+                  surface: 'zone_detail_modal',
+                  trigger: trigger || 'header_tool_menu',
+                });
+                router.push(
+                  hasExplicitApt
+                    ? `/apartment/${encodeURIComponent(canonicalSlug)}?calc=property_tax`
+                    : '/?calc=property_tax'
+                );
+              }}
+              onOpenSellTimingCalculator={(aptName, trigger) => {
+                const priorCtx = consumePendingCalculatorContext();
+                const hasExplicitApt = typeof aptName === 'string' ? aptName.trim().length > 0 : true;
+                const targetApt = aptName || selectedReport.apartmentName;
+                const canonicalSlug =
+                  resolveCanonicalAptSlug(targetApt, { dong: selectedReport.dong }) || targetApt;
+                persistPendingCalculatorContext({
+                  aptName: hasExplicitApt ? targetApt : undefined,
+                  canonicalSlug: hasExplicitApt ? canonicalSlug : undefined,
+                  priceManwon: priorCtx?.priceManwon,
+                  annualIncomeManwon: priorCtx?.annualIncomeManwon,
+                  areaOver85: priorCtx?.areaOver85,
+                  alreadyTrackedOpen: true,
+                });
+                trackEvent('open_calculator', {
+                  calculator_type: 'sell_timing',
+                  apartment_name: targetApt,
+                  apt_name: targetApt,
+                  zone: zoneId,
+                  surface: 'zone_detail_modal',
+                  trigger: trigger || 'header_tool_menu',
+                });
+                router.push(
+                  hasExplicitApt
+                    ? `/apartment/${encodeURIComponent(canonicalSlug)}?calc=sell_timing`
+                    : '/?calc=sell_timing'
+                );
+              }}
             />
           )}
         </aside>

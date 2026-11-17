@@ -4,6 +4,7 @@ export const PENDING_CALC_TTL_MS = 60_000;
 export interface PendingCalculatorContextPayload {
   aptName?: string;
   canonicalSlug?: string;
+  targetAptName?: string;
   priceManwon?: number;
   annualIncomeManwon?: number;
   areaOver85?: boolean;
@@ -42,6 +43,10 @@ function sanitizePayload(raw: unknown): PendingCalculatorContextPayload | null {
     typeof candidate.canonicalSlug === 'string' && candidate.canonicalSlug.trim()
       ? candidate.canonicalSlug.trim()
       : undefined;
+  const targetAptName =
+    typeof candidate.targetAptName === 'string' && candidate.targetAptName.trim()
+      ? candidate.targetAptName.trim()
+      : undefined;
   const priceManwon = normalizePositiveManwon(candidate.priceManwon);
   const annualIncomeManwon = normalizePositiveManwon(candidate.annualIncomeManwon);
   const areaOver85 =
@@ -54,6 +59,7 @@ function sanitizePayload(raw: unknown): PendingCalculatorContextPayload | null {
   return {
     aptName,
     canonicalSlug,
+    targetAptName,
     priceManwon,
     annualIncomeManwon,
     areaOver85,
@@ -79,6 +85,7 @@ export function persistPendingCalculatorContext(
   const normalized: PendingCalculatorContextPayload = {
     aptName: payload.aptName?.trim() || undefined,
     canonicalSlug: payload.canonicalSlug?.trim() || undefined,
+    targetAptName: payload.targetAptName?.trim() || undefined,
     priceManwon: normalizePositiveManwon(payload.priceManwon),
     annualIncomeManwon: normalizePositiveManwon(payload.annualIncomeManwon),
     areaOver85: typeof payload.areaOver85 === 'boolean' ? payload.areaOver85 : undefined,

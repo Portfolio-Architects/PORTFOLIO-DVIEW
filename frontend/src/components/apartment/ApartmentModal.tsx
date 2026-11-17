@@ -374,11 +374,11 @@ const ApartmentModal = React.memo(function ApartmentModal({
   loadAllTransactions?: () => void;
   onRequestLogin?: (message: string) => void;
   onSelectApartment?: (aptName: string, dong?: string) => void;
-  onOpenCompare?: (aptName: string, targetAptName?: string) => void;
+  onOpenCompare?: (aptName: string, targetAptName?: string, trigger?: string) => void;
   onOpenJeonseSafety?: (aptName: string, trigger?: string) => void;
   onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
   onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
-  onOpenSellTimingCalculator?: (aptName: string) => void;
+  onOpenSellTimingCalculator?: (aptName: string, trigger?: string) => void;
   isTxLoading?: boolean;
   sheetApartments?: Record<string, import('@/lib/dong-apartments').DongApartment[]>;
   nameMapping?: Record<string, string>;
@@ -1370,6 +1370,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
         setIsToolDropdownOpen={setIsToolDropdownOpen}
         toolDropdownRef={toolDropdownRef}
         preloadCalculators={preloadCalculators}
+        verifiedSalePriceManwon={jeonseSafetyData?.latestPrice || txSummary?.latestPrice || 0}
         onOpenCompare={onOpenCompare}
         onOpenJeonseSafety={onOpenJeonseSafety}
         onOpenMortgage={onOpenMortgage}
@@ -1604,7 +1605,16 @@ const ApartmentModal = React.memo(function ApartmentModal({
                   jeonseRatio={jeonseSafetyData?.ratio}
                   householdCount={report.metrics?.householdCount}
                   inline={inline}
-                  onOpenMortgageCalculator={onOpenMortgage ? () => onOpenMortgage(report.apartmentName) : undefined}
+                  onOpenMortgageCalculator={
+                    onOpenMortgage
+                      ? () =>
+                          onOpenMortgage(
+                            report.apartmentName,
+                            currentPriceWon > 0 ? currentPriceWon : undefined,
+                            'chapter05_sentinel_cta'
+                          )
+                      : undefined
+                  }
                 />
               </ErrorBoundary>
 
@@ -1640,7 +1650,13 @@ const ApartmentModal = React.memo(function ApartmentModal({
               <div className="flex flex-col sm:flex-row flex-wrap gap-3 justify-center items-center w-full">
                 {onOpenMortgage && (
                   <button
-                    onClick={() => onOpenMortgage(report.apartmentName)}
+                    onClick={() =>
+                      onOpenMortgage(
+                        report.apartmentName,
+                        currentPriceWon > 0 ? currentPriceWon : undefined,
+                        'chapter05_cta'
+                      )
+                    }
                     onMouseEnter={preloadCalculators}
                     onFocus={preloadCalculators}
                     className="w-full sm:w-auto px-5 py-3.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
@@ -1666,7 +1682,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
                 {onOpenTaxCalculator && (
                   <button
-                    onClick={() => onOpenTaxCalculator(report.apartmentName)}
+                    onClick={() => onOpenTaxCalculator(report.apartmentName, 'chapter05_cta')}
                     onMouseEnter={preloadCalculators}
                     onFocus={preloadCalculators}
                     className="w-full sm:w-auto px-5 py-3.5 bg-emerald-500 hover:bg-emerald-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"
@@ -1678,7 +1694,7 @@ const ApartmentModal = React.memo(function ApartmentModal({
 
                 {onOpenSellTimingCalculator && (
                   <button
-                    onClick={() => onOpenSellTimingCalculator(report.apartmentName)}
+                    onClick={() => onOpenSellTimingCalculator(report.apartmentName, 'chapter05_cta')}
                     onMouseEnter={preloadCalculators}
                     onFocus={preloadCalculators}
                     className="w-full sm:w-auto px-5 py-3.5 bg-red-500 hover:bg-red-600 active:scale-[0.98] text-white font-extrabold text-[14px] rounded-2xl shadow-md flex items-center justify-center gap-2 transition-all cursor-pointer border-none"

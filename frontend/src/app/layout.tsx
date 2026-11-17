@@ -45,9 +45,9 @@ const ROOT_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURICompo
 export const metadata: Metadata = {
   referrer: 'strict-origin-when-cross-origin',
   metadataBase: new URL('https://dongtanview.com'),
-  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
-  description: '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·전세가율·학군지 비교와 56개 지식산업센터 세제 혜택 데이터를 한눈에 확인하세요.',
-  keywords: '동탄 아파트 시세, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄1신도시 동탄2신도시 비교, 동탄역 롯데캐슬, 동탄 전세가율, 동탄 학군지, 동탄 호수공원 아파트, 스트레스 DSR, 동탄테크노밸리 지식산업센터, D-VIEW, 디뷰, 동뷰, 동탄뷰',
+  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
+  description: '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·전세가율·학군지 비교, 주담대 DSR 계산기 및 56개 지식산업센터 세제 감면을 국토부 공식 데이터로 확인하세요.',
+  keywords: '동탄 아파트 시세, 동탄 집값, 동탄 집값 그래프, 동탄 집값 추이 그래프, 동탄 아파트 가격, 동탄 아파트 순위, 동탄 신도시 아파트 시세, 동탄 1 신도시 아파트 시세, 동탄 아파트 실거래가, 1동탄 2동탄 차이, 동탄1 동탄2 비교, 동탄역 롯데캐슬, 동탄 전세가율, 동탄 학군지, 동탄 학원가, 스트레스 DSR, 동탄테크노밸리 지식산업센터, D-VIEW, 디뷰, 동뷰, 동탄뷰',
   alternates: {
     canonical: '/',
     types: {
@@ -70,8 +70,8 @@ export const metadata: Metadata = {
     'ai-search-crawling': 'allowed', 'naver-site-verification': 'e0240efa3f3f36785b2ca54faa765e9058f3707a',
   },
   openGraph: {
-    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
-    description: '국토교통부 공식 실거래가 기반 동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·전세가율 비교, 실거주 PER 진단 및 권역별 심층 리포트.',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
+    description: '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·전세가율 비교, 주담대 DSR 계산기 및 권역별 심층 리포트.',
     url: 'https://dongtanview.com',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
@@ -87,8 +87,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
-    description: '국토교통부 공식 실거래가 기반 동탄 1·2신도시 184개 아파트 시세·집값 추이 그래프·전세가율 비교 및 권역별 심층 리포트.',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
+    description: '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 — 동탄 1·2신도시 184개 아파트 가격·전세가율 비교 및 주담대 DSR 계산기.',
     images: [ROOT_OG_IMAGE_URL],
   },
   icons: {

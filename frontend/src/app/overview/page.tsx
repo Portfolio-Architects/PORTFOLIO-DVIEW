@@ -47,16 +47,16 @@ export const revalidate = 86400;
 const OVERVIEW_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 아파트 시세·실거래가·집값 추이 그래프')}&subtitle=${encodeURIComponent('동탄 1·2신도시 184개 단지 국토부 실거래가·전세가율·학군 비교 | D-VIEW')}`;
 
 export const metadata: Metadata = {
-  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+  title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
   description:
-    '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단 및 권역별 실거래가 데이터 분석을 제공합니다.',
+    '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·평형별 시세·전세가율 진단 및 권역별 실거래 데이터 분석을 확인하세요.',
   alternates: {
     canonical: 'https://dongtanview.com/overview',
   },
   openGraph: {
-    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
     description:
-      '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프, 전세가율·실거주 PER 진단 및 권역별 실거래가 데이터 분석을 제공합니다.',
+      '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 매일 동기화 — 동탄 1·2신도시 184개 아파트 가격·전세가율 진단 및 권역별 실거래 데이터 분석.',
     url: 'https://dongtanview.com/overview',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
@@ -72,9 +72,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (184개 단지 전세가율·학군) | D-VIEW',
+    title: '동탄 아파트 시세·실거래가·집값 추이 그래프 (1·2신도시 184개 가격 순위·전세가율) | D-VIEW',
     description:
-      '국토교통부 공식 실거래가 매일 동기화 — 동탄 1·2신도시 184개 아파트 시세·평형별 집값 추이 그래프 및 전세가율 분석.',
+      '동탄 아파트 시세·집값 추이 그래프·실거래가 순위 — 동탄 1·2신도시 184개 아파트 가격·전세가율 분석.',
     images: [OVERVIEW_OG_IMAGE_URL],
   },
 };

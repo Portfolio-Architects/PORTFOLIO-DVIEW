@@ -7,6 +7,7 @@ import type { FieldReportData } from '@/types/report';
 import { useFavorites } from '@/hooks/useFavorites';
 import { isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import { trackEvent } from '@/lib/utils/analytics';
+import { persistPendingCalculatorContext } from '@/lib/utils/pendingCalculatorContext';
 
 export interface ApartmentModalHeaderProps {
   report: FieldReportData;
@@ -24,11 +25,12 @@ export interface ApartmentModalHeaderProps {
   setIsToolDropdownOpen: React.Dispatch<React.SetStateAction<boolean>>;
   toolDropdownRef: React.RefObject<HTMLDivElement | null>;
   preloadCalculators: () => void;
-  onOpenCompare?: (aptName: string) => void;
-  onOpenJeonseSafety?: (aptName: string) => void;
-  onOpenMortgage?: (aptName: string) => void;
-  onOpenTaxCalculator?: (aptName: string) => void;
-  onOpenSellTimingCalculator?: (aptName: string) => void;
+  verifiedSalePriceManwon?: number;
+  onOpenCompare?: (aptName: string, targetAptName?: string, trigger?: string) => void;
+  onOpenJeonseSafety?: (aptName: string, trigger?: string) => void;
+  onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
+  onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
+  onOpenSellTimingCalculator?: (aptName: string, trigger?: string) => void;
 }
 
 export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
@@ -47,6 +49,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   setIsToolDropdownOpen,
   toolDropdownRef,
   preloadCalculators,
+  verifiedSalePriceManwon,
   onOpenCompare,
   onOpenJeonseSafety,
   onOpenMortgage,
@@ -56,6 +59,31 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   const { userFavorites, handleToggleFavorite } = useFavorites();
   const resolvedDisplayAptName = displayAptName || report.apartmentName || '';
   const targetAptName = report.apartmentName || resolvedDisplayAptName;
+  const hasAnyToolAction = Boolean(
+    onOpenCompare ||
+      onOpenJeonseSafety ||
+      onOpenMortgage ||
+      onOpenTaxCalculator ||
+      onOpenSellTimingCalculator
+  );
+  const verifiedSalePriceWon =
+    typeof verifiedSalePriceManwon === 'number' &&
+    Number.isFinite(verifiedSalePriceManwon) &&
+    verifiedSalePriceManwon > 0
+      ? Math.round(verifiedSalePriceManwon) * 10_000
+      : undefined;
+
+  const handleQuickTaxOpen = (trigger: string) => {
+    if (!onOpenTaxCalculator) return;
+    if (verifiedSalePriceWon) {
+      persistPendingCalculatorContext({
+        aptName: report.apartmentName,
+        priceManwon: Math.round(verifiedSalePriceWon / 10_000),
+        alreadyTrackedOpen: false,
+      });
+    }
+    onOpenTaxCalculator(report.apartmentName, trigger);
+  };
   const effectiveIsFavorite =
     propIsFavorite !== undefined
       ? propIsFavorite
@@ -194,7 +222,10 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                   strokeWidth={2.3}
                   className={effectiveIsFavorite ? 'fill-current text-white shrink-0' : 'text-current shrink-0'}
                 />
-                <span>{effectiveIsFavorite ? '관심단지 저장됨' : '관심단지 저장'}</span>
+                <span>
+                  <span className="hidden min-[380px]:inline">관심단지 </span>
+                  {effectiveIsFavorite ? '저장됨' : '저장'}
+                </span>
               </button>
 
               <button
@@ -255,21 +286,64 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
               </button>
             </div>
 
-            <div className="relative shrink-0" ref={toolDropdownRef}>
-              <button
-                type="button"
-                aria-label="분석 및 금융 도구"
-                aria-expanded={isToolDropdownOpen}
-                onClick={() => setIsToolDropdownOpen(prev => !prev)}
-                className="h-7 px-2 sm:px-2.5 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-lg shadow-sm flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
-                title="AI 분석 리포트 및 부동산 금융 계산기 열기"
-              >
-                <Calculator size={12} className="shrink-0" />
-                <span>금융 도구</span>
-                <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
+            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+              {onOpenMortgage && (
+                <button
+                  type="button"
+                  data-testid="apt-header-quick-mortgage-btn"
+                  aria-label={`${resolvedDisplayAptName} 주담대 및 DSR 한도 빠른 계산`}
+                  onClick={() =>
+                    onOpenMortgage(
+                      report.apartmentName,
+                      verifiedSalePriceWon,
+                      'modal_header_quick_pill'
+                    )
+                  }
+                  onMouseEnter={preloadCalculators}
+                  onFocus={preloadCalculators}
+                  className="h-7 px-1.5 sm:px-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
+                  title="주담대 및 스트레스 DSR 40% 한도 즉시 계산"
+                >
+                  <Calculator size={11} className="shrink-0" />
+                  <span>
+                    <span className="hidden min-[380px]:inline">주담대·</span>DSR
+                  </span>
+                </button>
+              )}
 
-              {toolDropdownMenu}
+              {onOpenTaxCalculator && (
+                <button
+                  type="button"
+                  data-testid="apt-header-quick-tax-btn"
+                  aria-label={`${resolvedDisplayAptName} 취득세 빠른 계산`}
+                  onClick={() => handleQuickTaxOpen('modal_header_quick_pill_tax')}
+                  onMouseEnter={preloadCalculators}
+                  onFocus={preloadCalculators}
+                  className="h-7 px-2 hidden sm:inline-flex items-center gap-1 bg-[#f2f4f6] hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 text-primary rounded-lg font-bold text-[11px] sm:text-[11.5px] border border-border/50 cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
+                  title="주택 취득세 및 생애최초 감면액 즉시 계산"
+                >
+                  <span>취득세 계산</span>
+                </button>
+              )}
+
+              {hasAnyToolAction && (
+                <div className="relative shrink-0" ref={toolDropdownRef}>
+                  <button
+                    type="button"
+                    aria-label="분석 및 금융 도구"
+                    aria-expanded={isToolDropdownOpen}
+                    onClick={() => setIsToolDropdownOpen(prev => !prev)}
+                    className="h-7 px-1.5 sm:px-2.5 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-lg shadow-sm flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap"
+                    title="AI 분석 리포트 및 부동산 금융 계산기 열기"
+                  >
+                    <Calculator size={12} className="shrink-0" />
+                    <span>금융 도구</span>
+                    <ChevronDown size={12} className={`shrink-0 transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {toolDropdownMenu}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -405,20 +479,60 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             <span className="text-white">실거래 알림 받기</span>
           </button>
 
-          {/* Financial & Analysis Toolkit Dropdown */}
-          <div className="relative shrink-0" ref={toolDropdownRef}>
+          {onOpenMortgage && (
             <button
-              onClick={() => setIsToolDropdownOpen(prev => !prev)}
-              className="h-10 px-4 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-[12px] shadow-md flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
-              title="AI 분석 리포트 및 부동산 금융 계산기 열기"
+              type="button"
+              data-testid="apt-header-quick-mortgage-btn"
+              aria-label={`${resolvedDisplayAptName} 주담대 및 DSR 한도 빠른 계산`}
+              onClick={() =>
+                onOpenMortgage(
+                  report.apartmentName,
+                  verifiedSalePriceWon,
+                  'inline_header_quick_pill'
+                )
+              }
+              onMouseEnter={preloadCalculators}
+              onFocus={preloadCalculators}
+              className="h-10 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
+              title="주담대 및 스트레스 DSR 40% 한도 즉시 계산"
             >
               <Calculator size={14} />
-              <span>분석 및 금융 도구</span>
-              <ChevronDown size={14} className={`transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
+              <span>주담대·DSR 한도</span>
             </button>
+          )}
 
-            {toolDropdownMenu}
-          </div>
+          {onOpenTaxCalculator && (
+            <button
+              type="button"
+              data-testid="apt-header-quick-tax-btn"
+              aria-label={`${resolvedDisplayAptName} 취득세 빠른 계산`}
+              onClick={() => handleQuickTaxOpen('inline_header_quick_pill_tax')}
+              onMouseEnter={preloadCalculators}
+              onFocus={preloadCalculators}
+              className="h-10 px-4 bg-[#f2f4f6] hover:bg-[#e5e8eb] dark:bg-slate-800 dark:hover:bg-slate-700 text-primary rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
+              title="주택 취득세 및 생애최초 감면액 즉시 계산"
+            >
+              <GraduationCap size={14} className="text-blue-600 dark:text-blue-400" />
+              <span>취득세 계산</span>
+            </button>
+          )}
+
+          {/* Financial & Analysis Toolkit Dropdown */}
+          {hasAnyToolAction && (
+            <div className="relative shrink-0" ref={toolDropdownRef}>
+              <button
+                onClick={() => setIsToolDropdownOpen(prev => !prev)}
+                className="h-10 px-4 bg-gradient-to-r from-emerald-700 to-emerald-600 hover:from-emerald-600 hover:to-emerald-500 text-white rounded-[12px] shadow-md flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94]"
+                title="AI 분석 리포트 및 부동산 금융 계산기 열기"
+              >
+                <Calculator size={14} />
+                <span>분석 및 금융 도구</span>
+                <ChevronDown size={14} className={`transition-transform duration-200 ${isToolDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {toolDropdownMenu}
+            </div>
+          )}
         </div>
       </div>
     </div>

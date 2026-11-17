@@ -2391,14 +2391,14 @@ export function buildTechnoValleySeoMetadata(
   if (!matched) {
     const countLabel = jisanList.length > 0 ? `${jisanList.length}개` : '56개';
     const defaultOgImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`동탄테크노밸리 ${countLabel} 지식산업센터 카탈로그`)}&subtitle=${encodeURIComponent('실거래가·연면적·호실수·제조·IT 입주 업종 및 취득세 35% 세제 감면 | D-VIEW')}`;
-    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그·실거래가·취득세 35% 감면 | D-VIEW`;
-    const defaultDescription = `동탄테크노밸리 · 동탄 지식산업센터 ${countLabel} 국토교통부 실거래가·매매 시세, 연면적·호실수·제조·IT 입주 업종 전수 비교. 동탄금강펜테리움 IX타워·에이팩시티 등 주요 센터 스펙과 취득세 35%·재산세 35%·과밀억제권역 법인세 100% 감면 시뮬레이터를 제공합니다.`;
+    const defaultTitle = `동탄테크노밸리 ${countLabel} 지식산업센터 전수 카탈로그·실거래가·입주기업·취득세 35% 감면 | D-VIEW`;
+    const defaultDescription = `동탄테크노밸리 · 동탄 지식산업센터 ${countLabel} 국토교통부 실거래가·매매 시세, 입주 기업 리스트, 연면적·호실수·제조·IT 입주 업종 전수 비교. 동탄금강펜테리움 IX타워·에이팩시티 등 주요 센터 스펙과 취득세 35%·재산세 35%·과밀억제권역 법인세 100% 감면 시뮬레이터를 바로 확인하세요.`;
 
     return {
       title: defaultTitle,
       description: defaultDescription,
       keywords:
-        '동탄테크노밸리, 동탄 지식산업센터, 지식산업센터 실거래가, 동탄 에이팩시티, 동탄금강펜테리움 IX타워, 금강펜테리움 IX타워, 입주 업종, 취득세 35% 감면, 재산세 35% 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 매매 시세, 사옥 이전',
+        '동탄테크노밸리, 동탄 지식산업센터, 동탄 산업단지, 동탄 기업 리스트, 지식산업센터 실거래가, 동탄 에이팩시티, 에이팩시티, 동탄금강펜테리움 IX타워, 동탄금강펜테리움ix타워, 금강펜테리움 IX타워, 입주 업종, 취득세 35% 감면, 재산세 35% 감면, 법인세 감면, 과밀억제권역 법인 이전, 중소기업 정책자금 대출, 오피스 매매 시세, 사옥 이전',
       alternates: {
         canonical: `${baseUrl}/technovalley`,
       },
@@ -2482,10 +2482,14 @@ export function buildTechnoValleySeoMetadata(
   const ogImageUrl = `${baseUrl}/api/og?title=${encodeURIComponent(`${centerTitleLabel}${specParen}`)}&subtitle=${encodeURIComponent(`동탄테크노밸리 실거래가 · ${address} · ${industryHook} · 취득세 35% 감면 | D-VIEW`)}`;
 
   const strippedDongtanAlias = matched.name.replace(/^동탄\s*/, '').trim();
+  const unspacedLowerAlias = matched.name.replace(/\s+/g, '').toLowerCase();
   const keywords = Array.from(
     new Set([
       matched.name,
       centerTitleLabel,
+      ...(unspacedLowerAlias && unspacedLowerAlias !== matched.name
+        ? [unspacedLowerAlias, `${unspacedLowerAlias} 실거래가`]
+        : []),
       `동탄 ${matched.name}`,
       `동탄테크노밸리 ${matched.name}`,
       ...(strippedDongtanAlias && strippedDongtanAlias !== matched.name
@@ -2592,6 +2596,36 @@ export function buildTechnoValleyJsonLd(
         name: 'D-VIEW 부동산 데이터 랩스',
         url: baseUrl,
       },
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': `${baseUrl}/technovalley#breadcrumb`,
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: '홈',
+          item: baseUrl,
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: '동탄테크노밸리 지식산업센터',
+          item: `${baseUrl}/technovalley`,
+        },
+        ...(selectedJisan
+          ? [
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: formatJisanTitleLabel(selectedJisan.name),
+                item: `${baseUrl}/technovalley/${encodeURIComponent(
+                  formatTechnoValleyJisanSlug(selectedJisan.name)
+                )}`,
+              },
+            ]
+          : []),
+      ],
     },
   ];
 

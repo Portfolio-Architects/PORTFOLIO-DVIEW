@@ -12,6 +12,7 @@ import {
   Layers,
   BellRing,
   ShieldCheck,
+  Calculator,
 } from 'lucide-react';
 import LoungeHeader from '@/components/LoungeHeader';
 import MobileDock from '@/components/pwa/MobileDock';
@@ -333,9 +334,16 @@ export function renderGuideBodyContent(
   let h3SectionCounter = 0;
   const emittedHeadings = new Set<string>();
 
+  const isMultiTierFinanceGuide =
+    guideSlug === 'dongtan-budget-tier-ranking' ||
+    guideSlug === 'stress-dsr-valuation-guide' ||
+    guideSlug === 'dongtan-first-home-policy-loan-comparison' ||
+    guideSlug === 'dongtan-acquisition-property-tax-2026-guide';
+
   const renderMidConversionActionBar = (
     sectionPreview?: ResolvedGuideZoneSectionPreview,
-    includeFinanceBridge: boolean = false
+    includeFinanceBridge: boolean = false,
+    sectionIdx: number = 1
   ) => {
     const midRepApts = resolveMidSectionRepresentativeAptCtas(
       sectionPreview?.items,
@@ -345,6 +353,16 @@ export function renderGuideBodyContent(
     const midCalcApt = midRepApts[0] || lakeEduTownPreview;
     const barSectionTitle =
       sectionPreview?.sectionTitle || '리포트 중간 핵심 전환 대표 단지 바로가기';
+    const sectionTierManwon: 60000 | 90000 | 120000 =
+      sectionPreview?.sectionTitle.includes('Tier 1') || sectionPreview?.sectionTitle.includes('6억')
+        ? 60000
+        : sectionPreview?.sectionTitle.includes('Tier 3') || sectionPreview?.sectionTitle.includes('12억')
+          ? 120000
+          : 90000;
+    const midBridgeTrigger =
+      sectionIdx <= 1
+        ? 'guide_mid_conversion_bridge'
+        : `guide_mid_tier_${sectionIdx}_bridge`;
 
     return (
       <div
@@ -445,8 +463,9 @@ export function renderGuideBodyContent(
             benchmarkPriceManwon={midCalcApt?.latestPrice}
             guideSlug={guideSlug}
             surface="guide_mid_conversion"
-            trigger="guide_mid_conversion_bridge"
+            trigger={midBridgeTrigger}
             defaultFocus={guideSlug.includes('tax') ? 'tax' : 'mortgage'}
+            initialPriceTierManwon={sectionTierManwon}
             compact
           />
         )}
@@ -484,7 +503,8 @@ export function renderGuideBodyContent(
     const currentPreview = activeZonePreview;
     emittedHeadings.add(currentPreview.sectionHeadingMatch);
     emittedZonePreviewCount += 1;
-    const isFirstZonePreview = emittedZonePreviewCount === 1;
+    const currentSectionIndex = emittedZonePreviewCount;
+    const isFirstZonePreview = currentSectionIndex === 1;
     activeZonePreview = null;
     activeZonePreviewLevel = null;
 
@@ -532,7 +552,11 @@ export function renderGuideBodyContent(
         </div>
 
         {/* Mid-Article High-Dwell Conversion Action Bar */}
-        {renderMidConversionActionBar(currentPreview, isFirstZonePreview)}
+        {renderMidConversionActionBar(
+          currentPreview,
+          isFirstZonePreview || isMultiTierFinanceGuide,
+          currentSectionIndex
+        )}
 
         {/* In-Body Mid-Section Zero-CLS AdSlot for Active-View Fill Rate */}
         {isFirstZonePreview &&
@@ -901,6 +925,11 @@ export default async function GuideArticlePage(props: {
 
   const extractedHeadings = extractGuideSectionHeadings(article.content);
   const tocSections: GuideSectionAnchorItem[] = [
+    {
+      id: 'guide-top-finance-bridge',
+      label: 'DSR·세금 계산',
+      fullTitle: '스트레스 DSR 40% · 취득세 실시간 계산기',
+    },
     ...extractedHeadings.map((h) => ({
       id: h.id,
       label: h.label,
@@ -1091,6 +1120,14 @@ export default async function GuideArticlePage(props: {
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 shrink-0">
                   <a
+                    href="#guide-top-finance-bridge"
+                    data-testid="guide-top-finance-jump"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-500/35 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold transition-colors shrink-0"
+                  >
+                    <Calculator size={13} />
+                    <span>주담대·취득세 계산기</span>
+                  </a>
+                  <a
                     href="#guide-morning-alert-retention"
                     data-testid="guide-top-morning-alert-jump"
                     className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-extrabold transition-colors shrink-0"
@@ -1196,13 +1233,20 @@ export default async function GuideArticlePage(props: {
 
               {/* Above-the-Fold 1-Line DSR 40% & Mortgage / Tax Conversion Bridge */}
               {(() => {
+                const balancedBudgetApt =
+                  article.slug === 'dongtan-budget-tier-ranking'
+                    ? featuredAptRows.find(
+                        (r) => r.canonicalSlug === '힐스테이트동탄' || r.canonicalSlug === '동탄더샵레이크에듀타운'
+                      )
+                    : undefined;
                 const primaryCalcApt =
+                  balancedBudgetApt ||
                   topRepAptCtas[0] ||
                   featuredAptRows[0] ||
                   clusterFlagshipAptRows[0] ||
                   lakeEduTownPreview;
                 return (
-                  <div className="pt-2">
+                  <div id="guide-top-finance-bridge" className="pt-2 scroll-mt-40 md:scroll-mt-48">
                     <InlineMortgageDsrBridge
                       apartmentName={primaryCalcApt?.displayName}
                       canonicalSlug={primaryCalcApt?.canonicalSlug}

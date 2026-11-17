@@ -53,6 +53,27 @@ export function getMainPageSchema(baseUrl: string) {
           "height": 192
         },
         "description": "동탄 전역 184개 아파트 실거래 시세·집값 추이 그래프, 전세가율 하방 안전성 및 학군지·테크노밸리 입지 데이터 분석 전문 기관"
+      },
+      {
+        "@type": "Dataset",
+        "@id": `${baseUrl}/#dataset`,
+        "name": "동탄 1·2신도시 184개 아파트 국토교통부 실거래 시세·집값 추이·전세가율 데이터셋",
+        "description": "국토교통부 실거래가 공개시스템 OpenAPI를 매일 동기화한 화성시 동탄 1·2신도시 184개 아파트 매매·전월세 실거래 가격, 평형별 시세 추이 그래프, 전세가율 및 동탄테크노밸리 56개 지식산업센터 현황 데이터",
+        "url": baseUrl,
+        "inLanguage": "ko-KR",
+        "isAccessibleForFree": true,
+        "keywords": [
+          "동탄 아파트 시세",
+          "동탄 집값 추이 그래프",
+          "동탄 아파트 실거래가",
+          "1동탄 2동탄 차이",
+          "동탄 학군지",
+          "동탄 전세가율"
+        ],
+        "creator": {
+          "@id": `${baseUrl}/#organization`
+        },
+        "isBasedOn": "https://rt.molit.go.kr"
       }
     ]
   };

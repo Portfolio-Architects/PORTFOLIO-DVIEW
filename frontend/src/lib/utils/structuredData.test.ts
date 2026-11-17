@@ -31,19 +31,23 @@ describe('structuredData Utility', () => {
   });
 
   describe('getMainPageSchema', () => {
-    it('should generate organization and website graph correctly', () => {
+    it('should generate organization, website, and dataset graph correctly', () => {
       const schema = getMainPageSchema(baseUrl);
       expect(schema['@context']).toBe('https://schema.org');
       const graph = schema['@graph'];
-      expect(graph).toHaveLength(2);
+      expect(graph).toHaveLength(3);
 
       const website = graph.find(item => item['@type'] === 'WebSite');
       const organization = graph.find(item => item['@type'] === 'Organization');
+      const dataset = graph.find(item => item['@type'] === 'Dataset') as Record<string, unknown> | undefined;
 
       expect(website?.url).toBe(baseUrl);
       expect(website?.name).toContain('D-VIEW');
       expect(organization?.url).toBe(baseUrl);
       expect(organization?.logo?.url).toBe(`${baseUrl}/d-view-icon.png`);
+      expect(dataset?.['@id']).toBe(`${baseUrl}/#dataset`);
+      expect(dataset?.isBasedOn).toBe('https://rt.molit.go.kr');
+      expect(String(dataset?.description || '').length).toBeGreaterThanOrEqual(50);
     });
   });
 

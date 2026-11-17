@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   Calculator,
@@ -37,8 +37,9 @@ export type InlineFinanceBridgeSurface =
   | 'guide_mid_conversion';
 
 export interface OpenCalculatorModalEventDetail {
-  calcType: 'mortgage' | 'property_tax' | 'jeonse_safety' | 'sell_timing';
+  calcType: 'mortgage' | 'property_tax' | 'jeonse_safety' | 'sell_timing' | 'compare';
   aptName?: string;
+  targetAptName?: string;
   priceWon?: number;
   annualIncomeManwon?: number;
   areaOver85?: boolean;
@@ -57,6 +58,7 @@ export interface InlineMortgageDsrBridgeProps {
   surface: InlineFinanceBridgeSurface;
   trigger: string;
   defaultFocus?: 'mortgage' | 'tax';
+  initialPriceTierManwon?: 60000 | 90000 | 120000;
   compact?: boolean;
   onOpenMortgage?: (aptName: string, priceWon?: number, trigger?: string) => void;
   onOpenTaxCalculator?: (aptName: string, trigger?: string) => void;
@@ -154,6 +156,7 @@ export default function InlineMortgageDsrBridge({
   surface,
   trigger,
   defaultFocus = 'mortgage',
+  initialPriceTierManwon = 90000,
   compact = false,
   onOpenMortgage,
   onOpenTaxCalculator,
@@ -174,13 +177,14 @@ export default function InlineMortgageDsrBridge({
   const [priceSource, setPriceSource] = useState<'verified' | 'tier'>(
     hasVerifiedPrice ? 'verified' : 'tier'
   );
-  const [fallbackTierManwon, setFallbackTierManwon] = useState<number>(90000);
+  const [fallbackTierManwon, setFallbackTierManwon] = useState<number>(initialPriceTierManwon);
   const [ltvPercent, setLtvPercent] = useState<(typeof LTV_OPTIONS)[number]>(70);
   const [annualIncomeManwon, setAnnualIncomeManwon] = useState<number>(8000);
 
   // Standalone inline precision drawer states (used on /guide/[slug] and SSR top where modal host is absent)
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false);
   const [activeDrawerTab, setActiveDrawerTab] = useState<'mortgage' | 'tax'>(defaultFocus);
+  const trackedDrawerTabsRef = useRef<Set<'mortgage' | 'tax'>>(new Set());
   const [annualRatePct, setAnnualRatePct] = useState<number>(4.0);
   const [maturityYears, setMaturityYears] = useState<(typeof MATURITY_YEARS_OPTIONS)[number]>(30);
   const [repaymentType, setRepaymentType] = useState<RepaymentType>(
@@ -304,6 +308,11 @@ export default function InlineMortgageDsrBridge({
 
     const willOpenOrSwitch = !isDrawerOpen || activeDrawerTab !== 'mortgage';
     if (willOpenOrSwitch) {
+      if (!isDrawerOpen) {
+        trackedDrawerTabsRef.current = new Set(['mortgage']);
+      } else {
+        trackedDrawerTabsRef.current.add('mortgage');
+      }
       trackEvent('open_calculator', {
         calculator_type: 'mortgage',
         surface,
@@ -317,6 +326,7 @@ export default function InlineMortgageDsrBridge({
       setActiveDrawerTab('mortgage');
       setIsDrawerOpen(true);
     } else {
+      trackedDrawerTabsRef.current.clear();
       setIsDrawerOpen(false);
     }
   };
@@ -334,6 +344,11 @@ export default function InlineMortgageDsrBridge({
 
     const willOpenOrSwitch = !isDrawerOpen || activeDrawerTab !== 'tax';
     if (willOpenOrSwitch) {
+      if (!isDrawerOpen) {
+        trackedDrawerTabsRef.current = new Set(['tax']);
+      } else {
+        trackedDrawerTabsRef.current.add('tax');
+      }
       trackEvent('open_calculator', {
         calculator_type: 'property_tax',
         surface,
@@ -347,7 +362,26 @@ export default function InlineMortgageDsrBridge({
       setActiveDrawerTab('tax');
       setIsDrawerOpen(true);
     } else {
+      trackedDrawerTabsRef.current.clear();
       setIsDrawerOpen(false);
+    }
+  };
+
+  const handleDrawerTabSwitch = (nextTab: 'mortgage' | 'tax') => {
+    if (activeDrawerTab === nextTab) return;
+    setActiveDrawerTab(nextTab);
+    if (!trackedDrawerTabsRef.current.has(nextTab)) {
+      trackedDrawerTabsRef.current.add(nextTab);
+      trackEvent('open_calculator', {
+        calculator_type: nextTab === 'tax' ? 'property_tax' : 'mortgage',
+        surface,
+        trigger: `${trigger}_drawer_tab_${nextTab}`,
+        apartment_name: apartmentName || undefined,
+        apt_name: apartmentName || undefined,
+        dong: dong || undefined,
+        guide_slug: guideSlug || undefined,
+        benchmark_price_manwon: effectivePriceManwon,
+      });
     }
   };
 
@@ -381,6 +415,7 @@ export default function InlineMortgageDsrBridge({
       );
       return;
     }
+    persistPendingCalcContext(true);
     trackEvent('open_calculator', {
       calculator_type: 'jeonse_safety',
       surface,
@@ -394,7 +429,11 @@ export default function InlineMortgageDsrBridge({
       const href = resolvedSlug
         ? `/apartment/${encodeURIComponent(resolvedSlug)}?calc=jeonse_safety`
         : '/?calc=jeonse_safety';
-      window.location.assign(href);
+      try {
+        window.location.assign(href);
+      } catch {
+        // Ignore navigation restrictions in sandboxed/JSDOM environments
+      }
     }
   };
 
@@ -669,7 +708,7 @@ export default function InlineMortgageDsrBridge({
             <div role="group" aria-label="정밀 계산기 모드 전환" className={getToggleTrackClass()}>
               <button
                 type="button"
-                onClick={() => setActiveDrawerTab('mortgage')}
+                onClick={() => handleDrawerTabSwitch('mortgage')}
                 className={getToggleBtnClass({
                   active: activeDrawerTab === 'mortgage',
                   size: 'sm',
@@ -680,7 +719,7 @@ export default function InlineMortgageDsrBridge({
               </button>
               <button
                 type="button"
-                onClick={() => setActiveDrawerTab('tax')}
+                onClick={() => handleDrawerTabSwitch('tax')}
                 className={getToggleBtnClass({
                   active: activeDrawerTab === 'tax',
                   size: 'sm',
@@ -892,22 +931,22 @@ export default function InlineMortgageDsrBridge({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
                 <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">취득 기준가</div>
-                  <div className="mt-0.5 text-sm font-black text-primary">
+                  <div className="mt-0.5 text-sm font-black text-primary tabular-nums">
                     {formatManwonLabel(effectivePriceManwon)}
                   </div>
                 </div>
                 <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">적용 실효세율 (교육세 포함)</div>
-                  <div className="mt-0.5 text-sm font-black text-blue-600 dark:text-blue-400">
+                  <div className="mt-0.5 text-sm font-black text-blue-600 dark:text-blue-400 tabular-nums">
                     {calcMetrics.acqEffectiveRatePct}%
                   </div>
                 </div>
                 <div className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] p-2.5">
                   <div className="text-[10.5px] font-bold text-tertiary">예상 납부 취득세</div>
-                  <div className="mt-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300">
+                  <div className="mt-0.5 text-sm font-black text-emerald-700 dark:text-emerald-300 tabular-nums">
                     {calcMetrics.acqTaxManwon.toLocaleString('ko-KR')}만원
                     {calcMetrics.firstHomeSavedManwon > 0 && (
-                      <span className="ml-1 text-[11px] font-bold text-secondary">
+                      <span className="ml-1 text-[11px] font-bold text-secondary tabular-nums">
                         (-{calcMetrics.firstHomeSavedManwon}만 감면)
                       </span>
                     )}

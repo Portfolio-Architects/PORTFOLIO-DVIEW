@@ -24,11 +24,13 @@ const EXPLORE_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURICo
 
 export const metadata: Metadata = {
   title: '동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색',
-  description: '동탄 1·2신도시 184개 아파트 단지의 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진, 초품아 학군·동탄역 거리 조건 필터링 및 단지 비교표를 제공합니다.',
+  description: '동탄 아파트 순위·1·2신도시 184개 단지 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진, 초품아 학군·동탄역 거리 조건 필터링 및 주담대 DSR 한도를 한눈에 비교하세요.',
   keywords: [
+    '동탄 아파트 순위',
     '동탄 아파트 탐색',
     '동탄 아파트 실거래가 순위',
     '동탄 평당가 랭킹',
+    '동탄 아파트 가격 순위',
     '동탄 전세가율 비교',
     '동탄 184개 아파트 비교표',
     '동탄1신도시 아파트 시세',
@@ -45,7 +47,7 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: '동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색',
-    description: '동탄 1·2신도시 184개 아파트 단지의 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진, 초품아 학군·동탄역 거리 조건 필터링 및 단지 비교표를 제공합니다.',
+    description: '동탄 아파트 순위·1·2신도시 184개 단지 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진, 초품아 학군·동탄역 거리 조건 필터링 및 주담대 DSR 한도 비교.',
     url: 'https://dongtanview.com/explore',
     siteName: 'D-VIEW',
     locale: 'ko_KR',
@@ -62,7 +64,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: '동탄 184개 아파트 실거래가 순위·평당가·전세가율 비교표 | D-VIEW 아파트 탐색',
-    description: '동탄 1·2신도시 184개 아파트 단지의 국토교통부 최신 실거래가, 평당가 랭킹, 전세가율·역전세 안전마진 및 단지 비교표를 제공합니다.',
+    description: '동탄 아파트 순위·1·2신도시 184개 단지 국토교통부 최신 실거래가, 평당가 랭킹 및 전세가율 비교표.',
     images: [EXPLORE_OG_IMAGE_URL],
   },
 };
