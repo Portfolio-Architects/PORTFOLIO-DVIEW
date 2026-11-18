@@ -71,7 +71,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
       fetchGlobalCounts: false,
       skipRemoteInTest: true,
     });
-    const { isIOS, isPushSupported, isStandalone, triggerCustomA2HSModal } = usePWA();
+    const { isIOS, isPushSupported, isStandalone, triggerCustomA2HSModal, showToast } = usePWA();
     const showIosA2hsShortcut = Boolean(isIOS && !isPushSupported && !isStandalone);
 
     const isFavorite = useMemo(
@@ -112,6 +112,11 @@ export const GuideMorningAlertRetentionCard = React.memo(
         trigger: 'guide_watchlist_btn',
       });
       void handleToggleFavorite(selectedCanonical);
+      if (nextIsFavorite) {
+        showToast?.(
+          `${selectedDisplay} 로그인 없이 관심단지에 찜했습니다 · 평일 07시 실거래 알림도 켜보세요`
+        );
+      }
     }, [
       activeApt,
       isFavorite,
@@ -121,6 +126,7 @@ export const GuideMorningAlertRetentionCard = React.memo(
       guideSlug,
       surface,
       handleToggleFavorite,
+      showToast,
     ]);
 
     const handleOpenPushModal = useCallback(() => {
@@ -158,14 +164,18 @@ export const GuideMorningAlertRetentionCard = React.memo(
           <div className="flex flex-wrap items-center gap-2 min-w-0">
             <span className={getVisualSignalPillClass('down', 'tabular-nums')}>
               <BellRing size={11} className="shrink-0" />
-              <span>매일 07:00 KST</span>
+              <span>평일 07:00</span>
+            </span>
+            <span className={getVisualSignalPillClass('safe')}>
+              <Star size={11} className="shrink-0" />
+              <span>비로그인 1초 찜</span>
             </span>
             <h3 className="text-sm sm:text-[15px] font-black text-primary tracking-tight">
               실거래 신고 즉시 오전 7시 알림 받기
             </h3>
           </div>
           <span className="text-[11.5px] font-bold text-secondary tabular-nums">
-            신규 실거래 자동 동기화 브리핑
+            05:38~06:38 국토부 동기화 직후 브리핑
           </span>
         </div>
 
@@ -228,9 +238,9 @@ export const GuideMorningAlertRetentionCard = React.memo(
             </p>
             <p
               data-testid="guide-retention-summary-copy"
-              className="text-[11.5px] font-semibold text-secondary sm:truncate"
+              className="text-[11.5px] font-semibold text-secondary sm:truncate tabular-nums"
             >
-              신규 매매·전세 계약 · 신고가·전세가율 변동 요약 발송
+              로그인 없이 관심단지 저장 · 평일 07시 매매·전세 변동 요약 발송
             </p>
           </div>
 
@@ -280,11 +290,18 @@ export const GuideMorningAlertRetentionCard = React.memo(
                 <button
                   type="button"
                   data-testid="guide-morning-7am-push-btn"
+                  data-post-favorite-nudge={isFavorite ? 'true' : 'false'}
                   onClick={handleOpenPushModal}
-                  className="min-h-[38px] py-2 px-3 sm:px-4 w-full sm:w-auto min-w-0 whitespace-nowrap justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs"
+                  className={`min-h-[38px] py-2 px-3 sm:px-4 w-full sm:w-auto min-w-0 whitespace-nowrap justify-center rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-[11.5px] sm:text-xs font-extrabold inline-flex items-center gap-1.5 leading-snug text-center transition-colors cursor-pointer shadow-2xs tabular-nums ${
+                    isFavorite ? 'ring-2 ring-blue-500/30' : ''
+                  }`}
                 >
                   <BellRing size={14} className="shrink-0" />
-                  <span className="truncate">이 단지 실거래 신고 즉시 오전 7시 알림 받기</span>
+                  <span className="truncate">
+                    {isFavorite
+                      ? '관심 저장됨 · 평일 07시 변동 알림 켜기'
+                      : '이 단지 실거래 신고 즉시 오전 7시 알림 받기'}
+                  </span>
                 </button>
               </>
             ) : (

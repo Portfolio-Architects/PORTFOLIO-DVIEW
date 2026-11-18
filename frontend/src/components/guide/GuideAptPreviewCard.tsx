@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from 'lucide-react';
 import type { GuideAptMiniPreviewItem } from '@/lib/data/guides';
+import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
 import { trackEvent, trackVirtualPageView } from '@/lib/utils/analytics';
 import { sendTelemetry } from '@/lib/ads/cascadeFallback';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
@@ -226,16 +227,17 @@ export default function GuideAptPreviewCard({
     safeSlug === '동탄역센트럴자이A-10';
 
   return (
-    <Link
-      href={safeHref}
-      prefetch={false}
-      onClick={handleCardClick}
-      data-testid={`guide-apt-preview-card-${placement}`}
-      data-apt-slug={safeSlug}
-      data-apt-dong={item.dong}
-      aria-label={`${item.displayName} 실시간 실거래가 미니 프리뷰 및 단지 상세 이동`}
-      className="group relative flex flex-col justify-between min-h-[158px] sm:min-h-[168px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80 hover:border-emerald-500/40 p-4 transition-all duration-200 shadow-2xs hover:shadow-sm no-underline"
-    >
+    <div className="flex flex-col gap-1.5 min-w-0">
+      <Link
+        href={safeHref}
+        prefetch={false}
+        onClick={handleCardClick}
+        data-testid={`guide-apt-preview-card-${placement}`}
+        data-apt-slug={safeSlug}
+        data-apt-dong={item.dong}
+        aria-label={`${item.displayName} 실시간 실거래가 미니 프리뷰 및 단지 상세 이동`}
+        className="group relative flex flex-col justify-between min-h-[158px] sm:min-h-[168px] rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/90 hover:bg-slate-100/80 dark:bg-slate-900/80 dark:hover:bg-slate-800/80 hover:border-emerald-500/40 p-4 transition-all duration-200 shadow-2xs hover:shadow-sm no-underline"
+      >
       <div className="space-y-3">
         {/* Top Metadata Row: Dong/Zone Badge & Live Indicator */}
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -345,7 +347,28 @@ export default function GuideAptPreviewCard({
           <ArrowUpRight size={12} />
         </span>
       </div>
-    </Link>
+      </Link>
+
+      <div
+        data-testid={`guide-apt-preview-retention-${placement}`}
+        className="rounded-xl bg-[#f9fafb] dark:bg-[#17171c] px-3 py-2 flex flex-wrap items-center justify-between gap-2 min-w-0"
+      >
+        <span className="text-[11px] font-bold text-secondary truncate tabular-nums">
+          로그인 없이 1초 저장 · 평일 07:00 변동 알림
+        </span>
+        <QuickNonLoginRetentionAction
+          aptName={item.name}
+          displayAptName={item.displayName}
+          canonicalSlug={safeSlug}
+          dong={item.dong}
+          guideSlug={guideSlug}
+          surface="guide_preview_card"
+          triggerPrefix={`preview_${placement}`}
+          size="xs"
+          testIdPrefix={`guide-preview-${placement}`}
+        />
+      </div>
+    </div>
   );
 }
 

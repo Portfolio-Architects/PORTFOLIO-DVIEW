@@ -13,6 +13,8 @@
  */
 
 import { STATS_TOPICS } from '@/types/statsTopic';
+import { lookupCanonicalTxKeyForDongApt } from '@/lib/utils/canonicalAptCatalog';
+import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 import type {
   ApartmentStatRecord,
   DistanceTierSummary,
@@ -21,6 +23,10 @@ import type {
   Issue1AnalysisPayload,
   DistanceTierId,
   StatsDatasetMeta,
+  UndervaluedScopeFilter,
+  UndervaluedModelType,
+  UndervaluedComplexItem,
+  UndervaluedRegressionSummary,
 } from './types';
 
 // Pre-computed Compact Station Analysis Cache (~45KB, decoupled from 3.29MB transactions-1y.json - P2-1 & Guardrail D)
@@ -685,5 +691,246 @@ export function getDongtanStationAnalysisData(
     regression: { ...slice.regression },
     filters: { ...resolvedFilters },
     datasetMeta: MASTER_DATASET_META,
+  };
+}
+
+const DONGTAN_1_DONG_SET: ReadonlySet<string> = new Set(['반송동', '석우동', '능동']);
+
+function resolveUndervaluedRegionId(dong: string): '동탄1' | '동탄2' {
+  const normalized = (dong || '').trim() === '오산동' ? '여울동' : (dong || '').trim();
+  return DONGTAN_1_DONG_SET.has(normalized) ? '동탄1' : '동탄2';
+}
+
+function resolveUndervaluedCanonicalSlug(name: string, dong?: string): string {
+  if (!name) return '';
+  if (dong) {
+    const directKey = lookupCanonicalTxKeyForDongApt(dong, name);
+    if (directKey) return directKey;
+  }
+  const resolved = resolveCanonicalAptSlug(name, dong ? { dong } : undefined);
+  return resolved || name;
+}
+
+export interface ComputeUndervaluedOptions {
+  scope?: UndervaluedScopeFilter;
+  limit?: number;
+  minTxCount?: number;
+  minHouseholds?: number;
+  strictQualification?: boolean;
+}
+
+/**
+ * Deterministic 100% Real-Data Undervalued Apartment Extractor.
+ * Fits an empirical multi-variable OLS regression of 1Y average price per pyeong (만원/평)
+ * against log-distance to GTX-A Dongtan Station ln(km) and building age (2026 - builtYear),
+ * and ranks verified liquid complexes trading below their model-expected price.
+ */
+export function computeUndervaluedComplexes(
+  records: ApartmentStatRecord[] = MASTER_RECORDS,
+  options?: ComputeUndervaluedOptions
+): UndervaluedRegressionSummary {
+  const scope: UndervaluedScopeFilter = options?.scope ?? 'all';
+  const rawLimit = options?.limit ?? 4;
+  const limit = Number.isFinite(rawLimit) ? Math.max(0, Math.floor(rawLimit)) : 4;
+  const minTxCount = options?.minTxCount ?? 15;
+  const minHouseholds = options?.minHouseholds ?? 300;
+
+  if (!Array.isArray(records) || records.length < 2 || limit === 0) {
+    return {
+      scope,
+      modelType: 'degenerate',
+      rSquared: 0,
+      sampleComplexCount: Array.isArray(records) ? records.length : 0,
+      qualifiedComplexCount: 0,
+      items: [],
+    };
+  }
+
+  const normalizedPoints = records
+    .map((r) => {
+      const pyeongMan =
+        r.avgPricePerPyeongWon > 100_000
+          ? r.avgPricePerPyeongWon / 10_000
+          : r.avgPricePerPyeongWon;
+      const builtYear =
+        Number.isFinite(r.builtYear) && r.builtYear > 1970 ? Math.round(r.builtYear) : 2015;
+      const age = Math.max(0, 2026 - builtYear);
+      return {
+        record: r,
+        pyeongMan,
+        builtYear,
+        age,
+        logDistKm: Math.log(Math.max(0.08, r.distanceToStationMeters / 1000)),
+      };
+    })
+    .filter(
+      (p) =>
+        Number.isFinite(p.record.distanceToStationMeters) &&
+        p.record.distanceToStationMeters > 0 &&
+        Number.isFinite(p.pyeongMan) &&
+        p.pyeongMan > 0
+    );
+
+  const n = normalizedPoints.length;
+  if (n < 2) {
+    return {
+      scope,
+      modelType: 'degenerate',
+      rSquared: 0,
+      sampleComplexCount: n,
+      qualifiedComplexCount: 0,
+      items: [],
+    };
+  }
+
+  const meanU = normalizedPoints.reduce((acc, p) => acc + p.logDistKm, 0) / n;
+  const meanA = normalizedPoints.reduce((acc, p) => acc + p.age, 0) / n;
+  const meanY = normalizedPoints.reduce((acc, p) => acc + p.pyeongMan, 0) / n;
+
+  let suu = 0;
+  let saa = 0;
+  let sua = 0;
+  let suy = 0;
+  let say = 0;
+  let syy = 0;
+
+  for (const p of normalizedPoints) {
+    const du = p.logDistKm - meanU;
+    const da = p.age - meanA;
+    const dy = p.pyeongMan - meanY;
+    suu += du * du;
+    saa += da * da;
+    sua += du * da;
+    suy += du * dy;
+    say += da * dy;
+    syy += dy * dy;
+  }
+
+  if (!Number.isFinite(syy) || syy <= 1e-9) {
+    return {
+      scope,
+      modelType: 'degenerate',
+      rSquared: 0,
+      sampleComplexCount: n,
+      qualifiedComplexCount: 0,
+      items: [],
+    };
+  }
+
+  let modelType: UndervaluedModelType = 'mean_benchmark';
+  let predictFn: (logDistKm: number, age: number) => number = () => meanY;
+  let rSquared = 0;
+
+  const det = suu * saa - sua * sua;
+  const canFitMultiOls =
+    n >= 6 &&
+    suu > 1e-9 &&
+    saa > 1e-9 &&
+    Number.isFinite(det) &&
+    det / (suu * saa) > 1e-4;
+
+  if (canFitMultiOls) {
+    const b1 = (saa * suy - sua * say) / det;
+    const b2 = (suu * say - sua * suy) / det;
+    const b0 = meanY - b1 * meanU - b2 * meanA;
+    let sse = 0;
+    for (const p of normalizedPoints) {
+      const err = p.pyeongMan - (b0 + b1 * p.logDistKm + b2 * p.age);
+      sse += err * err;
+    }
+    rSquared = Math.round(Math.max(0, Math.min(1, 1 - sse / syy)) * 10000) / 10000;
+    modelType = 'multi_ols_log_dist_age';
+    predictFn = (logDistKm, age) => b0 + b1 * logDistKm + b2 * age;
+  } else if (n >= 3 && suu > 1e-9) {
+    const b1 = suy / suu;
+    const b0 = meanY - b1 * meanU;
+    const rawR2 = (suy * suy) / (suu * syy);
+    rSquared = Math.round(Math.max(0, Math.min(1, rawR2)) * 10000) / 10000;
+    modelType = 'semi_log_dist';
+    predictFn = (logDistKm) => b0 + b1 * logDistKm;
+  }
+
+  const scopedPoints = normalizedPoints.filter((p) => {
+    if (scope === 'station_core') {
+      return p.record.distanceToStationMeters <= 1800;
+    }
+    if (scope === 'dongtan1') {
+      return resolveUndervaluedRegionId(p.record.dong) === '동탄1';
+    }
+    return true;
+  });
+
+  const strictQualified = scopedPoints.filter(
+    (p) => (p.record.txCount || 0) >= minTxCount && (p.record.householdCount || 0) >= minHouseholds
+  );
+
+  const allowSmallSampleFallback =
+    !options?.strictQualification &&
+    records !== MASTER_RECORDS &&
+    strictQualified.length === 0 &&
+    scopedPoints.length < 15;
+
+  const candidatePoints = allowSmallSampleFallback
+    ? scopedPoints.filter((p) => (p.record.txCount || 0) >= 1)
+    : strictQualified;
+
+  const evaluated = candidatePoints
+    .map((p) => {
+      const r = p.record;
+      const rawExpected = predictFn(p.logDistKm, p.age);
+      const safeExpected = Math.max(100, Number.isFinite(rawExpected) ? rawExpected : meanY);
+      const actualMan = Math.round(p.pyeongMan);
+      const expectedMan = Math.round(safeExpected);
+      const rawGapMan = p.pyeongMan - safeExpected;
+      const rawGapPct = (rawGapMan / safeExpected) * 100;
+      const discountPercent = Math.round(rawGapPct * 10) / 10;
+      const discountPerPyeongManwon = Math.round(rawGapMan);
+      const effectiveLatestWon = r.latestPriceWon > 0 ? r.latestPriceWon : r.avgPriceWon;
+      const avgWon = r.avgPriceWon > 0 ? r.avgPriceWon : effectiveLatestWon;
+      const normDong = (r.dong || '').trim() === '오산동' ? '여울동' : (r.dong || '').trim();
+
+      return {
+        id: r.id || r.name,
+        name: r.name,
+        canonicalSlug: resolveUndervaluedCanonicalSlug(r.name, normDong),
+        dong: normDong,
+        regionId: resolveUndervaluedRegionId(normDong),
+        distanceToStationMeters: Math.round(r.distanceToStationMeters),
+        builtYear: p.builtYear,
+        buildingAge: p.age,
+        householdCount: r.householdCount || 0,
+        txCount: r.txCount || 0,
+        actualPyeongManwon: actualMan,
+        expectedPyeongManwon: expectedMan,
+        discountPerPyeongManwon,
+        discountPercent,
+        latestPriceWon: effectiveLatestWon,
+        latestPriceEokText: formatPriceEokCompact(effectiveLatestWon),
+        avgPriceWon: avgWon,
+        avgPriceEokText: formatPriceEokCompact(avgWon),
+        latestContractDateShort: formatShortContractDate(r.latestContractDate),
+      };
+    })
+    .filter((item) => item.discountPercent < -0.5 && item.discountPerPyeongManwon < 0)
+    .sort(
+      (a, b) =>
+        a.discountPercent - b.discountPercent ||
+        a.discountPerPyeongManwon - b.discountPerPyeongManwon ||
+        b.txCount - a.txCount ||
+        a.name.localeCompare(b.name, 'ko')
+    );
+
+  const items: UndervaluedComplexItem[] = evaluated.slice(0, limit).map((item, idx) => ({
+    rank: idx + 1,
+    ...item,
+  }));
+
+  return {
+    scope,
+    modelType,
+    rSquared,
+    sampleComplexCount: n,
+    qualifiedComplexCount: candidatePoints.length,
+    items,
   };
 }

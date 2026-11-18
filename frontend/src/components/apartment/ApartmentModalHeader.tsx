@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import type { FieldReportData } from '@/types/report';
 import { useFavorites } from '@/hooks/useFavorites';
+import { usePWA } from '@/components/pwa/PWAProvider';
 import { isApartmentInFavorites } from '@/lib/utils/apartmentMapping';
 import { trackEvent } from '@/lib/utils/analytics';
 import { persistPendingCalculatorContext } from '@/lib/utils/pendingCalculatorContext';
@@ -57,6 +58,7 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
   onOpenSellTimingCalculator,
 }: ApartmentModalHeaderProps) {
   const { userFavorites, handleToggleFavorite } = useFavorites();
+  const pwa = usePWA();
   const resolvedDisplayAptName = displayAptName || report.apartmentName || '';
   const targetAptName = report.apartmentName || resolvedDisplayAptName;
   const hasAnyToolAction = Boolean(
@@ -186,6 +188,66 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
               className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto no-scrollbar min-w-0 flex-1 py-0.5"
               style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
+              <button
+                type="button"
+                data-testid="apt-detail-favorite-btn"
+                aria-pressed={effectiveIsFavorite}
+                aria-label={`${resolvedDisplayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
+                onClick={() => {
+                  const nextIsFav = !effectiveIsFavorite;
+                  trackEvent('watchlist_toggle_favorite', {
+                    apt_name: targetAptName,
+                    is_favorite: nextIsFav,
+                    surface: 'apartment_detail',
+                  });
+                  effectiveToggleFavorite(targetAptName);
+                  if (nextIsFav) {
+                    pwa?.showToast?.(
+                      `${resolvedDisplayAptName} 로그인 없이 관심단지에 저장됨 · 평일 07시 실거래 알림도 켜보세요`
+                    );
+                  }
+                }}
+                className={`h-7 px-2 sm:px-2.5 rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 ${
+                  effectiveIsFavorite
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-sm'
+                    : 'bg-[#f2f4f6] hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400 border-border/50'
+                }`}
+                title={effectiveIsFavorite ? '내 관심단지에서 해제 (비로그인)' : '로그인 없이 내 관심단지에 1초 저장'}
+              >
+                <Star
+                  size={11}
+                  strokeWidth={2.3}
+                  className={effectiveIsFavorite ? 'fill-current text-white shrink-0' : 'text-current shrink-0'}
+                />
+                <span>
+                  <span className="hidden sm:inline">관심단지 </span>
+                  {effectiveIsFavorite ? '저장됨' : '저장'}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                data-testid="apt-header-morning-7am-btn"
+                aria-label="평일 07시 실거래 알림 받기"
+                onClick={() => {
+                  trackEvent('push_modal_open', {
+                    surface: 'apartment_detail',
+                    trigger: effectiveIsFavorite ? 'header_post_fav_7am' : 'header_7am_cta',
+                    apt_name: targetAptName,
+                    apartment_name: targetAptName,
+                    ...(report.dong ? { dong: report.dong } : {}),
+                  });
+                  setIsPushModalOpen(true);
+                }}
+                className="h-7 px-2 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 tabular-nums"
+                title="평일 오전 7시 실거래 변동 알림 받기 (비로그인)"
+              >
+                <Bell size={11} strokeWidth={2.4} className="shrink-0" />
+                <span className="text-white">
+                  <span className="hidden sm:inline">평일 </span>07시 알림
+                </span>
+              </button>
+
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(resolvedDisplayAptName + (resolvedDisplayAptName.includes('아파트') ? '' : ' 아파트'))}`}
                 target="_blank"
@@ -196,48 +258,6 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
                 <MapPin className="w-3 h-3 shrink-0" />
                 <span>지도보기</span>
               </a>
-
-              <button
-                type="button"
-                data-testid="apt-detail-favorite-btn"
-                aria-pressed={effectiveIsFavorite}
-                aria-label={`${resolvedDisplayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
-                onClick={() => {
-                  trackEvent('watchlist_toggle_favorite', {
-                    apt_name: targetAptName,
-                    is_favorite: !effectiveIsFavorite,
-                    surface: 'apartment_detail',
-                  });
-                  effectiveToggleFavorite(targetAptName);
-                }}
-                className={`h-7 px-2 sm:px-2.5 rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0 ${
-                  effectiveIsFavorite
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-transparent shadow-sm'
-                    : 'bg-[#f2f4f6] hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400 border-border/50'
-                }`}
-                title={effectiveIsFavorite ? '내 관심단지에서 해제' : '내 관심단지에 저장'}
-              >
-                <Star
-                  size={11}
-                  strokeWidth={2.3}
-                  className={effectiveIsFavorite ? 'fill-current text-white shrink-0' : 'text-current shrink-0'}
-                />
-                <span>
-                  <span className="hidden min-[380px]:inline">관심단지 </span>
-                  {effectiveIsFavorite ? '저장됨' : '저장'}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                aria-label="실거래 알림 받기"
-                onClick={() => setIsPushModalOpen(true)}
-                className="h-7 px-2 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-lg flex items-center gap-1 font-bold text-[11px] sm:text-[11.5px] border-none cursor-pointer transition-all active:scale-[0.96] whitespace-nowrap shrink-0"
-                title="실거래 변동 Web Push 알림 받기"
-              >
-                <Bell size={11} strokeWidth={2.4} className="shrink-0" />
-                <span className="text-white">알림 받기</span>
-              </button>
 
               <button
                 type="button"
@@ -401,19 +421,25 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
             aria-pressed={effectiveIsFavorite}
             aria-label={`${resolvedDisplayAptName} ${effectiveIsFavorite ? '관심단지 해제' : '관심단지 저장'}`}
             onClick={() => {
+              const nextIsFav = !effectiveIsFavorite;
               trackEvent('watchlist_toggle_favorite', {
                 apt_name: targetAptName,
-                is_favorite: !effectiveIsFavorite,
+                is_favorite: nextIsFav,
                 surface: 'apartment_detail',
               });
               effectiveToggleFavorite(targetAptName);
+              if (nextIsFav) {
+                pwa?.showToast?.(
+                  `${resolvedDisplayAptName} 로그인 없이 관심단지에 저장됨 · 평일 07시 실거래 알림도 켜보세요`
+                );
+              }
             }}
             className={`h-10 px-4 rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 ${
               effectiveIsFavorite
                 ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md'
                 : 'bg-[#f2f4f6] hover:bg-blue-50 dark:bg-slate-800 dark:hover:bg-blue-950/40 text-secondary hover:text-blue-600 dark:hover:text-blue-400'
             }`}
-            title={effectiveIsFavorite ? '내 관심단지에서 해제' : '내 관심단지에 저장'}
+            title={effectiveIsFavorite ? '내 관심단지에서 해제 (비로그인)' : '로그인 없이 내 관심단지에 1초 저장'}
           >
             <Star
               size={14}
@@ -471,12 +497,23 @@ export const ApartmentModalHeader = React.memo(function ApartmentModalHeader({
 
           {/* Push Notifications Button */}
           <button
-            onClick={() => setIsPushModalOpen(true)}
-            className="h-10 px-4 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0"
-            title="실거래 변동 Web Push 알림 받기"
+            type="button"
+            data-testid="apt-header-morning-7am-btn"
+            onClick={() => {
+              trackEvent('push_modal_open', {
+                surface: 'apartment_detail',
+                trigger: effectiveIsFavorite ? 'inline_header_post_fav_7am' : 'inline_header_7am_cta',
+                apt_name: targetAptName,
+                apartment_name: targetAptName,
+                ...(report.dong ? { dong: report.dong } : {}),
+              });
+              setIsPushModalOpen(true);
+            }}
+            className="h-10 px-4 bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-800 dark:hover:bg-emerald-900 text-white rounded-[12px] shadow-sm flex items-center gap-1.5 font-extrabold text-[13px] border-none cursor-pointer transform transition-all duration-200 active:scale-[0.94] shrink-0 tabular-nums"
+            title="평일 오전 7시 실거래 변동 Web Push 알림 받기 (비로그인)"
           >
-            <Bell size={14} strokeWidth={2.5} className="animate-pulse" />
-            <span className="text-white">실거래 알림 받기</span>
+            <Bell size={14} strokeWidth={2.5} />
+            <span className="text-white">평일 07시 실거래 알림</span>
           </button>
 
           {onOpenMortgage && (

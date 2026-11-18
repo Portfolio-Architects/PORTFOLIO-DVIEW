@@ -5,6 +5,18 @@ import { enqueueOfflineRequest, retryOfflineRequests } from '@/lib/utils/offline
 import { usePathname, useSearchParams } from 'next/navigation';
 import { initSafeReloadDiagnostics } from '@/lib/utils/safeReload';
 import { isAppleTouchDevice } from '@/lib/utils/bodyScrollLock';
+import {
+  readSanitizedGuestFavorites,
+  consumeInboundGuestFavoritesFromUrl,
+  takePendingInAppHandoffReceipt,
+} from '@/hooks/useFavorites';
+import {
+  getDisplayAptName,
+  isSameApartment,
+  normalizeAptName,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
+import { trackEvent } from '@/lib/utils/analytics';
 import { logger } from '@/lib/services/logger';
 import { X } from 'lucide-react';
 
@@ -264,6 +276,54 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
 
     // Clear old SWR localStorage cache to ensure returning users get fresh data
     safeLocalRemove('dview-swr-cache');
+
+    // Hydrate In-App -> External Browser watchlist handoff (?dview_fav=...) & clean URL noise
+    const directHandoffReceipt =
+      typeof consumeInboundGuestFavoritesFromUrl === 'function'
+        ? consumeInboundGuestFavoritesFromUrl()
+        : null;
+    const handoffReceipt =
+      directHandoffReceipt && directHandoffReceipt.restoredSlugs.length > 0
+        ? directHandoffReceipt
+        : typeof takePendingInAppHandoffReceipt === 'function'
+          ? takePendingInAppHandoffReceipt()
+          : null;
+    // Drain any remaining pending receipt so it cannot linger across navigations
+    if (
+      directHandoffReceipt &&
+      directHandoffReceipt.restoredSlugs.length > 0 &&
+      typeof takePendingInAppHandoffReceipt === 'function'
+    ) {
+      takePendingInAppHandoffReceipt();
+    }
+
+    const isStillInAppWebView =
+      /kakaotalk|naver|line\/|instagram|fb_iab|fb4a|fban|fbios|twitter|twttr/i.test(
+        window.navigator.userAgent || ''
+      );
+    if (handoffReceipt && handoffReceipt.restoredSlugs.length > 0 && !isStillInAppWebView) {
+      const primarySlug = handoffReceipt.restoredSlugs[0];
+      const primaryDisplay = getDisplayAptName(primarySlug) || primarySlug;
+      const count = handoffReceipt.restoredSlugs.length;
+      trackEvent('inapp_watchlist_handoff_restored', {
+        surface: 'pwa_provider',
+        trigger: 'external_browser_arrival',
+        apartment_name: primarySlug,
+        restored_count: count,
+        newly_added_count: handoffReceipt.newlyAddedSlugs.length,
+      });
+      setToastMessage(
+        count > 1
+          ? `${primaryDisplay} 외 ${count - 1}곳 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요`
+          : `${primaryDisplay} 관심단지가 이어졌습니다 · 평일 07시 알림을 켜보세요`
+      );
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+      toastTimeoutRef.current = setTimeout(() => {
+        if (mountedRef.current) {
+          setToastMessage(null);
+        }
+      }, 3500);
+    }
 
     // iOS / iPadOS detection and manual installation guide eligibility
     const isAppleMobile = isAppleTouchDevice(
@@ -557,6 +617,35 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
       
       if (!mountedRef.current) return false;
       setPushSubscription(sub);
+
+      const trimmedPrimaryApt = (aptName || '').trim();
+      const primaryNorm = trimmedPrimaryApt ? normalizeAptName(trimmedPrimaryApt) : '';
+      const seenExtraNorms = new Set<string>();
+      const dedupedExtraFavs: string[] = [];
+      const rawGuestFavs =
+        typeof readSanitizedGuestFavorites === 'function' ? readSanitizedGuestFavorites() : [];
+      for (const fav of rawGuestFavs) {
+        const canonicalFav = resolveCanonicalAptSlug(fav) || fav;
+        const favNorm = normalizeAptName(canonicalFav);
+        if (!favNorm || seenExtraNorms.has(favNorm)) continue;
+        if (
+          trimmedPrimaryApt &&
+          (canonicalFav === trimmedPrimaryApt ||
+            favNorm === primaryNorm ||
+            isSameApartment(canonicalFav, trimmedPrimaryApt))
+        ) {
+          continue;
+        }
+        seenExtraNorms.add(favNorm);
+        dedupedExtraFavs.push(canonicalFav);
+      }
+      const extraGuestFavs = dedupedExtraFavs.slice(-50);
+      const subscribeBody: Record<string, unknown> = {
+        subscription: sub,
+        uid: uid || null,
+        apartmentName: aptName || null,
+        ...(extraGuestFavs.length > 0 ? { apartmentNames: extraGuestFavs } : {}),
+      };
       
       // Save subscription to the backend
       if (typeof window !== 'undefined' && !navigator.onLine) {
@@ -564,7 +653,7 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           await enqueueOfflineRequest({
             url: '/api/push/subscribe',
             method: 'POST',
-            body: { subscription: sub, uid: uid || null, apartmentName: aptName || null }
+            body: subscribeBody
           });
           if (mountedRef.current) {
             showToast('네트워크가 연결되지 않아 푸시 알림 구독이 오프라인 큐에 저장되었습니다. 연결 시 동기화됩니다.');
@@ -573,20 +662,29 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           logger.error('PWAProvider', 'Failed to enqueue push subscription', undefined, err);
         }
       } else {
+        let rejectedClientPayload = false;
         try {
-          await fetch('/api/push/subscribe', {
+          const res = await fetch('/api/push/subscribe', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subscription: sub, uid: uid || null, apartmentName: aptName || null })
+            body: JSON.stringify(subscribeBody)
           });
-          logger.info('PWAProvider', 'Push Subscribed & Saved', { subscription: JSON.stringify(sub), apartmentName: aptName });
+          if (res && typeof res.ok === 'boolean' && !res.ok) {
+            if (res.status >= 500 || res.status === 429) {
+              throw new Error(`PUSH_SUBSCRIBE_HTTP_${res.status}`);
+            }
+            rejectedClientPayload = true;
+            logger.warn('PWAProvider', 'Push subscription rejected by server', { status: res.status, apartmentName: aptName });
+          } else {
+            logger.info('PWAProvider', 'Push Subscribed & Saved', { subscription: JSON.stringify(sub), apartmentName: aptName });
+          }
         } catch (fetchErr) {
           logger.warn('PWAProvider', 'Failed to save push subscription online, queuing offline', undefined, fetchErr);
           try {
             await enqueueOfflineRequest({
               url: '/api/push/subscribe',
               method: 'POST',
-              body: { subscription: sub, uid: uid || null, apartmentName: aptName || null }
+              body: subscribeBody
             });
             if (mountedRef.current) {
               showToast('네트워크 불안정으로 푸시 알림 구독이 오프라인 큐에 저장되었습니다.');
@@ -594,6 +692,9 @@ export const PWAProvider = React.memo(function PWAProvider({ children }: { child
           } catch (err) {
             logger.error('PWAProvider', 'Failed to enqueue push subscription after fetch failure', undefined, err);
           }
+        }
+        if (rejectedClientPayload) {
+          return false;
         }
       }
       return true;

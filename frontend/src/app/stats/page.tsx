@@ -6,7 +6,10 @@ import MobileDock from '@/components/pwa/MobileDock';
 import PageHeroHeader from '@/components/PageHeroHeader';
 import { MarketStatsStrong, MarketStatsLight } from '@/components/common/MarketStatsSubtitle';
 import { safeJsonLd } from '@/lib/utils/structuredData';
-import { getDongtanStationAnalysisData } from '@/lib/stats/dongtanStationDistanceEngine';
+import {
+  getDongtanStationAnalysisData,
+  computeUndervaluedComplexes,
+} from '@/lib/stats/dongtanStationDistanceEngine';
 import { getDongtan1Vs2ComparisonData } from '@/lib/stats/dongtan1Vs2ComparisonEngine';
 import {
   getSchoolDistrictPremiumData,
@@ -87,6 +90,10 @@ export const metadata: Metadata = {
 export default function StatsPage() {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://dongtanview.com';
   const initialPayload = getDongtanStationAnalysisData();
+  const initialUndervaluedSummary = computeUndervaluedComplexes(
+    initialPayload.allRecords,
+    { scope: 'all', limit: 4 }
+  );
   const initialComparisonData = getDongtan1Vs2ComparisonData('all');
   const initialSchoolData = getSchoolDistrictPremiumData('all');
   const initialLakeData = getLakeParkPremiumData('all');
@@ -306,6 +313,7 @@ export default function StatsPage() {
           <Suspense fallback={<StatsSkeleton />}>
             <StatsPageClient
               initialPayload={initialPayload}
+              initialUndervaluedSummary={initialUndervaluedSummary}
               initialComparisonData={initialComparisonData}
               initialSchoolData={initialSchoolData}
               initialLakeData={initialLakeData}
@@ -340,6 +348,38 @@ export default function StatsPage() {
                 </li>
               ))}
             </ul>
+            {initialUndervaluedSummary.items.length > 0 && (
+              <div
+                id="stats-ssr-undervalued-summary"
+                className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"
+              >
+                <p className="leading-relaxed">
+                  동탄역 로그거리·연식 다중회귀(R² {(initialUndervaluedSummary.rSquared * 100).toFixed(1)}%) 기대가 대비 저평가 상위 단지:{' '}
+                  {initialUndervaluedSummary.items.map((item, idx) => (
+                    <React.Fragment key={item.canonicalSlug}>
+                      {idx > 0 ? ', ' : ''}
+                      <Link
+                        href={`/apartment/${encodeURIComponent(item.canonicalSlug)}`}
+                        prefetch={false}
+                        className="font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                      >
+                        {item.name}
+                      </Link>
+                      {`(${item.dong}, 기대가 대비 ${item.discountPercent.toFixed(1)}%, 최근 ${item.latestPriceEokText})`}
+                    </React.Fragment>
+                  ))}
+                  .
+                </p>
+                <Link
+                  href="/guide/dongtan-budget-tier-ranking"
+                  prefetch={false}
+                  className="shrink-0 font-bold text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  예산별 실거래 랭킹 가이드 보기
+                </Link>
+              </div>
+            )}
+
             <div
               id="stats-ssr-dongtan-1-vs-2-summary"
               className="pt-2.5 border-t border-slate-200/70 dark:border-slate-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2"

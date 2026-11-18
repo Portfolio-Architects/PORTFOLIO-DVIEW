@@ -383,8 +383,13 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
       if (!m || !apartments || !reportsMap) return;
 
       const match = window.location.hash.match(/[#&]apt=([^&]+)/);
-      if (match) {
-        const aptName = decodeURIComponent(match[1]);
+      const searchParamsObj = window.location.search
+        ? new URLSearchParams(window.location.search)
+        : null;
+      const queryAptCandidate = searchParamsObj?.get('apt')?.trim() || '';
+      const rawMatchedApt = match ? match[1] : queryAptCandidate;
+      if (rawMatchedApt) {
+        const aptName = decodeSafeAptParam(rawMatchedApt) || rawMatchedApt;
         const allApts = Object.values(apartments).flat() as DongApartment[];
         const targetApt =
           allApts.find(
@@ -401,7 +406,15 @@ const ExploreClient = React.memo(function ExploreClient({ initialDashboardData }
 
         if (targetApt) {
           if (window.location.pathname.startsWith('/explore')) {
-            returnExplorePathRef.current = `${window.location.pathname}${window.location.search || ''}`;
+            const cleanReturnSp = new URLSearchParams(window.location.search || '');
+            for (const key of Array.from(cleanReturnSp.keys())) {
+              const lk = key.toLowerCase();
+              if (lk === 'apt' || lk === 'dview_fav' || lk === 'openexternalbrowser') {
+                cleanReturnSp.delete(key);
+              }
+            }
+            const cleanReturnQuery = cleanReturnSp.toString();
+            returnExplorePathRef.current = `${window.location.pathname}${cleanReturnQuery ? `?${cleanReturnQuery}` : ''}`;
           }
           const canonicalSlug = getCanonicalAptSlug(
             targetApt.name,

@@ -75,3 +75,43 @@ export interface Issue1AnalysisPayload {
   filters: StatsFilterOptions;
   datasetMeta?: StatsDatasetMeta;
 }
+
+export type UndervaluedScopeFilter = 'all' | 'station_core' | 'dongtan1';
+
+export type UndervaluedModelType =
+  | 'multi_ols_log_dist_age'
+  | 'semi_log_dist'
+  | 'mean_benchmark'
+  | 'degenerate';
+
+export interface UndervaluedComplexItem {
+  rank: number;
+  id: string;
+  name: string;
+  canonicalSlug: string;
+  dong: string;
+  regionId: '동탄1' | '동탄2';
+  distanceToStationMeters: number;
+  builtYear: number;
+  buildingAge: number;
+  householdCount: number;
+  txCount: number;
+  actualPyeongManwon: number;
+  expectedPyeongManwon: number;
+  discountPerPyeongManwon: number;
+  discountPercent: number;
+  latestPriceWon: number;
+  latestPriceEokText: string;
+  avgPriceWon: number;
+  avgPriceEokText: string;
+  latestContractDateShort: string | null;
+}
+
+export interface UndervaluedRegressionSummary {
+  scope: UndervaluedScopeFilter;
+  modelType: UndervaluedModelType;
+  rSquared: number;
+  sampleComplexCount: number;
+  qualifiedComplexCount: number;
+  items: UndervaluedComplexItem[];
+}

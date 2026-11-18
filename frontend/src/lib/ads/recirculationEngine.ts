@@ -89,6 +89,26 @@ export function decodeSafeAptParam(raw: string): string {
   return current.normalize('NFC');
 }
 
+function preservePendingInAppHandoffBeforeHistoryOverwrite(): void {
+  if (typeof window === 'undefined' || !window.location?.search) return;
+  if (!/dview_fav/i.test(window.location.search)) return;
+  try {
+    const sp = new URLSearchParams(window.location.search);
+    const vals: string[] = [];
+    sp.forEach((v, k) => {
+      if (k.toLowerCase() === 'dview_fav' && v) {
+        vals.push(v);
+      }
+    });
+    if (vals.length > 0) {
+      const win = window as Window & { __dviewInboundFavPayloads?: string[] };
+      win.__dviewInboundFavPayloads = [...(win.__dviewInboundFavPayloads || []), ...vals];
+    }
+  } catch {
+    // Ignore malformed query string
+  }
+}
+
 /**
  * Synchronizes browser history to `/apartment/[aptName]` and dispatches exactly 1 virtual PV.
  * Deduplicates parent DashboardClient and async-mounted child ApartmentModal calls via path-state idempotency.
@@ -125,6 +145,7 @@ export function syncShallowApartmentOpen(
   lastShallowRouteSignature = { path: targetPath, timestamp: now };
 
   if (typeof window !== 'undefined' && window.history && typeof window.history.pushState === 'function') {
+    preservePendingInAppHandoffBeforeHistoryOverwrite();
     window.history.pushState(null, '', targetPath);
   }
 

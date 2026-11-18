@@ -29,6 +29,7 @@
     "sync-location-scores": "node scripts/sync-location-scores.js",
     "sync-static": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/sync-static-data.ts",
     "seo:ctr": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/analyze-gsc-ctr.ts",
+    "seo:compare-cohort": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/compare-3f056525-cohort.ts",
     "seo:naver": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/audit-naver-seo-readiness.ts",
     "ga4:sync-dimensions": "npx ts-node -T -r tsconfig-paths/register --project scratch/tsconfig.test.json scripts/sync-ga4-custom-dimensions.ts",
     "import-csv": "node scripts/import-csv.js",

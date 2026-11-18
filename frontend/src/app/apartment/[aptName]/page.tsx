@@ -21,6 +21,7 @@ import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import PreGaCanonicalSync from '@/components/common/PreGaCanonicalSync';
 import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
+import ApartmentQuickRetentionBar from '@/components/apartment/ApartmentQuickRetentionBar';
 import type { DashboardInitialDataLocal } from '@/hooks/useDashboardMeta';
 import type { LocationScoreItem } from '@/types/transaction';
 import { safeJsonLd } from '@/lib/utils/structuredData';
@@ -539,6 +540,15 @@ export default async function ApartmentPage(props: {
                 />
               </div>
             )}
+
+            <div className="mt-3">
+              <ApartmentQuickRetentionBar
+                apartmentName={decodedName}
+                canonicalSlug={canonicalSlug}
+                dong={aptDong || undefined}
+                latestPriceStr={hasVerifiedSalePrice ? latestSalePriceStr : undefined}
+              />
+            </div>
 
             {/* Layer 2: Progressive SEO Accordion for AI Market Briefing */}
             <details open data-editorial-open="true" className={getSeoAccordionClass('mt-3.5 bg-[#f9fafb] dark:bg-[#17171c]')}>

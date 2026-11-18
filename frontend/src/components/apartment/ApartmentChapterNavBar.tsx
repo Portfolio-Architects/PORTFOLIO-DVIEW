@@ -11,6 +11,7 @@ import {
   Globe2,
   FileText,
 } from 'lucide-react';
+import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
 
 export interface ApartmentChapter {
   id: string;
@@ -26,6 +27,12 @@ export interface ApartmentChapterNavBarProps {
   scrollContainerRef?: React.RefObject<HTMLElement | null> | React.RefObject<HTMLDivElement | null>;
   compact?: boolean;
   className?: string;
+  apartmentName?: string;
+  displayAptName?: string;
+  canonicalSlug?: string;
+  dong?: string;
+  inline?: boolean;
+  onOpenPushModal?: () => void;
 }
 
 /**
@@ -131,6 +138,12 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
   scrollContainerRef,
   compact = false,
   className = '',
+  apartmentName,
+  displayAptName,
+  canonicalSlug,
+  dong,
+  inline = false,
+  onOpenPushModal,
 }) => {
   const buttonRefs = useRef<Map<string, HTMLButtonElement>>(new Map());
   const onSelectChapterRef = useRef(onSelectChapter);
@@ -243,6 +256,8 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
     }
   };
 
+  const showStickyRetention = Boolean(apartmentName && apartmentName.trim());
+
   return (
     <nav
       aria-label="아파트 단지 분석 챕터 내비게이션"
@@ -251,7 +266,8 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
         compact ? 'py-1 px-2.5 sm:px-4' : 'py-2 px-3 sm:px-4'
       } ${className}`}
     >
-      <div className={`flex items-center ${compact ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'} overflow-x-auto no-scrollbar scroll-smooth`}>
+      <div className="flex items-center justify-between gap-2 min-w-0">
+      <div className={`flex flex-1 min-w-0 items-center ${compact ? 'gap-1 sm:gap-1.5' : 'gap-1.5 sm:gap-2'} overflow-x-auto no-scrollbar scroll-smooth`}>
         {APARTMENT_CHAPTERS.map((chapter) => {
           const isActive = activeChapter === chapter.id;
 
@@ -327,6 +343,27 @@ export const ApartmentChapterNavBar: React.FC<ApartmentChapterNavBarProps> = ({
             </button>
           );
         })}
+      </div>
+
+      {showStickyRetention && apartmentName && (
+        <div
+          data-testid="chapter-nav-sticky-retention"
+          className="shrink-0 pl-1.5 sm:pl-2 border-l border-[#f2f4f6] dark:border-[#202027]"
+        >
+          <QuickNonLoginRetentionAction
+            aptName={apartmentName}
+            displayAptName={displayAptName}
+            canonicalSlug={canonicalSlug}
+            dong={dong}
+            surface={inline ? 'apartment_inline_chapter_nav' : 'apartment_modal_chapter_nav'}
+            triggerPrefix="sticky_chapter"
+            size="xs"
+            compactMobileLabels
+            testIdPrefix="chapter-nav-retention"
+            onOpenPushModal={onOpenPushModal ? () => onOpenPushModal() : undefined}
+          />
+        </div>
+      )}
       </div>
     </nav>
   );

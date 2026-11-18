@@ -48,6 +48,13 @@ enforces:
    Set-Location frontend; npm run seo:ctr
    # GSC 내보내기 CSV 오프라인 분석 시: Set-Location frontend; npm run seo:ctr -- <Queries.csv>
    ```
+4. 배포 전후 7일 코호트(`open_calculator` 트리거·서피스·유형별 전환율 및 GSC 라우트·0-Click 검색어 CTR 상승폭) 실측 비교는 [`compare-3f056525-cohort.ts`](../../../frontend/scripts/compare-3f056525-cohort.ts) CLI로 실행합니다:
+   ```powershell
+   Set-Location frontend; npm run seo:compare-cohort
+   # 순수 JSON 파이프 출력(--silent 필수) 또는 UTF-8 파일 저장(--out):
+   # Set-Location frontend; npm --silent run seo:compare-cohort -- --pre-start 2026-11-11 --pre-end 2026-11-17 --post-start 2026-11-18 --post-end 2026-11-24 --json
+   # Set-Location frontend; npm run seo:compare-cohort -- --out scratch/cohort-3f056525.json
+   ```
 
 ### 시나리오 C. GA4 커스텀 차원 및 지표 동기화
 1. **반드시 `dryRun: true`를 먼저 호출**하여 기존 등록 차원(`alreadyExistingDimensions`)과 신규 생성 예정 목록(`plannedDimensions`, `plannedMetrics`)을 사전 검증합니다.

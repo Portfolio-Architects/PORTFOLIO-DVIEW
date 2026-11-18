@@ -18,6 +18,36 @@ export function StatsSkeleton() {
         </div>
       </div>
 
+      {/* Top Undervalued Complexes Bridge Skeleton */}
+      <div
+        data-testid="stats-skeleton-undervalued-bridge"
+        className="w-full min-h-[296px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] p-4 sm:p-5 border border-[#f2f4f6] dark:border-[#202027] flex flex-col gap-3.5"
+      >
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          <div className="space-y-1.5">
+            <div className="h-4 w-44 bg-slate-200/70 dark:bg-slate-800 rounded-md" />
+            <div className="h-5 w-60 bg-slate-200/70 dark:bg-slate-800 rounded-md" />
+            <div className="h-3.5 w-72 max-w-full bg-slate-200/50 dark:bg-slate-800/70 rounded-md" />
+          </div>
+          <div className="h-8 w-full sm:w-64 bg-slate-200/60 dark:bg-slate-800 rounded-[10px]" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+          {[1, 2, 3, 4].map((i) => (
+            <div
+              key={i}
+              className="min-h-[148px] rounded-2xl bg-slate-200/50 dark:bg-slate-800/60"
+            />
+          ))}
+        </div>
+        <div className="pt-2 border-t border-[#f2f4f6] dark:border-[#202027] flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="h-7 w-40 bg-slate-200/60 dark:bg-slate-800 rounded-xl" />
+            <div className="h-7 w-36 bg-slate-200/50 dark:bg-slate-800/70 rounded-xl" />
+          </div>
+          <div className="h-7 w-40 bg-slate-200/60 dark:bg-slate-800 rounded-xl" />
+        </div>
+      </div>
+
       {/* AdSlot #1 (Horizontal-Strip) Skeleton */}
       {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
         <div

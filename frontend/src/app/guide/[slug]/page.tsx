@@ -41,12 +41,14 @@ import { safeJsonLd } from '@/lib/utils/structuredData';
 import { AdSlot } from '@/components/ads/AdSlot';
 import ReportShareBar from '@/components/common/ReportShareBar';
 import GuideAptPreviewCard, { GuideAptCtaLink } from '@/components/guide/GuideAptPreviewCard';
+import { GuideTopMatchupBridge } from '@/components/guide/GuideTopMatchupBridge';
 import { GuideStatsComparisonBridge } from '@/components/guide/GuideStatsComparisonBridge';
 import GuideMobileScrollDepthBar, {
   type GuideSectionAnchorItem,
 } from '@/components/guide/GuideMobileScrollDepthBar';
 import GuideMorningAlertRetentionCard from '@/components/guide/GuideMorningAlertRetentionCard';
 import InlineMortgageDsrBridge from '@/components/finance/InlineMortgageDsrBridge';
+import { truncateToCopyBudget } from '@/lib/design-system/copyDiet';
 import { getTxSummaryData } from '@/lib/services/apartmentPageService';
 import { getZoneById } from '@/lib/zones';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
@@ -923,8 +925,22 @@ export default async function GuideArticlePage(props: {
   const primaryPreviewApt =
     featuredAptRows[0] || zoneSectionPreviews[0]?.items[0] || headToHeadRows[0]?.left;
 
+  const showTopMatchupBridge =
+    headToHeadRows.length > 0 &&
+    (article.slug === 'dongtan-1-vs-2-comparison' ||
+      article.topicClusterId === 'vs-region-comparison');
+
   const extractedHeadings = extractGuideSectionHeadings(article.content);
   const tocSections: GuideSectionAnchorItem[] = [
+    ...(showTopMatchupBridge
+      ? [
+          {
+            id: 'guide-top-h2h-matchup-bridge',
+            label: '상단 1:1 비교',
+            fullTitle: '대표 단지 1:1 실거래 매치업',
+          },
+        ]
+      : []),
     {
       id: 'guide-top-finance-bridge',
       label: 'DSR·세금 계산',
@@ -999,7 +1015,7 @@ export default async function GuideArticlePage(props: {
         <PageHeroHeader
           isTitleDiv
           title="D-VIEW 분석 리포트"
-          compactTitle={article.title}
+          compactTitle={truncateToCopyBudget(article.title, 'pageH1')}
           subtitleStrong={<MarketStatsStrong />}
           subtitleLight={<MarketStatsLight />}
         />
@@ -1025,7 +1041,7 @@ export default async function GuideArticlePage(props: {
           </div>
 
           {/* Article Container */}
-          <article className="bg-surface border border-border/80 rounded-2xl p-5 sm:p-8 lg:p-10 shadow-xs space-y-8">
+          <article className="bg-surface border border-border/80 rounded-2xl p-4 sm:p-8 lg:p-10 shadow-xs space-y-8 min-w-0 max-w-full overflow-x-clip">
             {/* Header */}
             <header className="border-b border-border/60 pb-6 sm:pb-8 space-y-4">
               <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[12px] text-tertiary">
@@ -1061,7 +1077,11 @@ export default async function GuideArticlePage(props: {
             </header>
 
             {/* Mobile Scroll Depth & Chapter Quick-Jump Sticky Bar */}
-            <GuideMobileScrollDepthBar guideSlug={article.slug} sections={tocSections} />
+            <GuideMobileScrollDepthBar
+              guideSlug={article.slug}
+              sections={tocSections}
+              apartments={retentionApartments}
+            />
 
             {/* SSR GEO Real-Data Citation Fact Strip (AI Search & Naver SERP Verification) */}
             <section
@@ -1109,41 +1129,50 @@ export default async function GuideArticlePage(props: {
               </div>
             </section>
 
+            {/* Above-the-Fold Flagship 1:1 Real-Transaction Matchup Bridge (Primary VS Comparison Guides) */}
+            {showTopMatchupBridge && (
+              <GuideTopMatchupBridge
+                guideSlug={article.slug}
+                guideTitle={article.title}
+                matchups={headToHeadRows}
+              />
+            )}
+
             {/* Key Takeaways Callout + Above-the-Fold Representative Complex Instant CTA Bar */}
             <div
               id="guide-key-takeaways"
               className="scroll-mt-40 md:scroll-mt-48 bg-emerald-500/[0.04] dark:bg-emerald-950/20 border border-emerald-500/20 rounded-2xl p-5 sm:p-6 space-y-4"
             >
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px]">
+              <div className="flex flex-wrap items-center justify-between gap-2 min-w-0">
+                <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-300 font-extrabold text-[14px] min-w-0">
                   <span>본 리포트의 핵심 결론 및 요약 (Key Takeaways)</span>
                 </div>
-                <div className="flex flex-wrap items-center gap-1.5 shrink-0">
+                <div className="flex flex-wrap items-center gap-1.5 min-w-0 max-w-full">
                   <a
                     href="#guide-top-finance-bridge"
                     data-testid="guide-top-finance-jump"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-500/35 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold transition-colors shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-500/35 text-emerald-700 dark:text-emerald-300 text-xs font-extrabold transition-colors max-w-full"
                   >
-                    <Calculator size={13} />
-                    <span>주담대·취득세 계산기</span>
+                    <Calculator size={13} className="shrink-0" />
+                    <span className="truncate">주담대·취득세 계산기</span>
                   </a>
                   <a
                     href="#guide-morning-alert-retention"
                     data-testid="guide-top-morning-alert-jump"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-extrabold transition-colors shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface hover:bg-blue-50 dark:hover:bg-blue-950/40 border border-blue-500/30 text-blue-700 dark:text-blue-300 text-xs font-extrabold transition-colors max-w-full"
                   >
-                    <BellRing size={13} />
-                    <span>오전 7시 실거래 알림</span>
+                    <BellRing size={13} className="shrink-0" />
+                    <span className="truncate">오전 7시 실거래 알림</span>
                   </a>
                   <Link
                     href="/stats?topic=dongtan-1-vs-2-comparison#dongtan-1-vs-2-comparison"
                     prefetch={false}
                     data-testid="guide-top-stats-comparison-cta"
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs shrink-0"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-extrabold transition-colors shadow-2xs min-w-0 max-w-full"
                   >
-                    <Scale size={13} />
-                    <span>동탄1 vs 동탄2 실시간 집값 통계 비교표 열기</span>
-                    <ArrowUpRight size={13} />
+                    <Scale size={13} className="shrink-0" />
+                    <span className="truncate">동탄1 vs 동탄2 실시간 집값 통계 비교표 열기</span>
+                    <ArrowUpRight size={13} className="shrink-0" />
                   </Link>
                 </div>
               </div>
@@ -1437,16 +1466,16 @@ export default async function GuideArticlePage(props: {
                       placement="article_top"
                       sectionTitle="상단 고전환 슬롯 동탄더샵레이크에듀타운 바로가기"
                       dataTestId="guide-top-lake-edutown-spotlight"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors w-fit shrink-0"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-extrabold transition-colors max-w-full min-w-0"
                     >
-                      <span className="tabular-nums">
+                      <span className="tabular-nums truncate">
                         {`동탄더샵레이크에듀타운 (평균 15분 체류${
                           lakeEduTownPreview?.latestPriceStr
                             ? ` · ${lakeEduTownPreview.latestPriceStr}`
                             : ''
                         }) 상세보기`}
                       </span>
-                      <ArrowUpRight size={12} />
+                      <ArrowUpRight size={12} className="shrink-0" />
                     </GuideAptCtaLink>
                   </div>
 

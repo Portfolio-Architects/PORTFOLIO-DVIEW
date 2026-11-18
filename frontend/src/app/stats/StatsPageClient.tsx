@@ -22,9 +22,12 @@ import type {
   Issue1AnalysisPayload,
   ApartmentStatRecord,
   AreaBandFilter,
+  UndervaluedScopeFilter,
+  UndervaluedRegressionSummary,
 } from '@/lib/stats/types';
 import { getStatsTopicById } from '@/types/statsTopic';
 import { StatsTopicSelector } from '@/components/stats/StatsTopicSelector';
+import { StatsUndervaluedTopBridge } from '@/components/stats/StatsUndervaluedTopBridge';
 import { StationPremiumSummary } from '@/components/stats/StationPremiumSummary';
 import { DistanceBandComparisonChart } from '@/components/stats/DistanceBandComparisonChart';
 import { DistanceRegressionScatterPlot } from '@/components/stats/DistanceRegressionScatterPlot';
@@ -41,6 +44,7 @@ export interface StatsPageClientProps {
   initialTopicId?: string;
   initialFilters?: Partial<StatsFilterOptions>;
   initialPayload?: Issue1AnalysisPayload;
+  initialUndervaluedSummary?: UndervaluedRegressionSummary;
   initialComparisonData?: Dongtan1Vs2ComparisonPayload;
   initialSchoolData?: SchoolDistrictPremiumPayload;
   initialLakeData?: LakeParkPremiumPayload;
@@ -128,6 +132,7 @@ export function StatsPageClient({
   initialTopicId = 'dongtan-station-distance',
   initialFilters,
   initialPayload,
+  initialUndervaluedSummary,
   initialComparisonData,
   initialSchoolData,
   initialLakeData,
@@ -229,6 +234,26 @@ export function StatsPageClient({
     []
   );
 
+  const handleJumpFromUndervaluedBridge = useCallback(
+    (scope: UndervaluedScopeFilter) => {
+      setFilters({
+        areaBand: 'all',
+        buildingAge: 'all',
+        dong: scope === 'dongtan1' ? '동탄1' : 'all',
+        sortBy: scope === 'station_core' ? 'distance' : 'volumeDesc',
+      });
+      try {
+        const tableEl = document.getElementById('stats-complex-drilldown-anchor');
+        if (tableEl && typeof tableEl.scrollIntoView === 'function') {
+          tableEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      } catch {
+        // Ignore scroll error in test environment
+      }
+    },
+    []
+  );
+
   const currentTopic = useMemo(() => {
     if (activeTopicId === 'dongtan-station-distance') {
       return payload.topic;
@@ -265,6 +290,12 @@ export function StatsPageClient({
       {/* Conditional Rendering: Active Report vs. Upcoming Topic Placeholder */}
       {currentTopic.status === 'active' ? (
         <>
+          {/* Above-the-Fold Real-Data Regression Undervalued TOP Complexes Bridge */}
+          <StatsUndervaluedTopBridge
+            initialSummary={initialUndervaluedSummary}
+            onJumpToTable={handleJumpFromUndervaluedBridge}
+          />
+
           {/* AdSlot 1: Top Horizontal-Strip */}
           {process.env.NEXT_PUBLIC_ADSENSE_APPROVAL_MODE !== 'true' && (
             <div className="w-full rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] border border-[#f2f4f6] dark:border-[#202027] overflow-hidden empty:hidden">

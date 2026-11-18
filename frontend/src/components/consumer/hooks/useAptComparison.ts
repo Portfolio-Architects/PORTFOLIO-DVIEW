@@ -4,7 +4,14 @@ import React, { useState, useMemo, useEffect, useRef, useDeferredValue, useCallb
 import type { DongApartment } from '@/lib/dong-apartments';
 import type { AptTxSummary, LocationScoreItem } from '@/types/transaction';
 import type { FieldReportData, ObjectiveMetrics } from '@/types/report';
-import { findTxKey, normalizeAptName, getDisplayAptName } from '@/lib/utils/apartmentMapping';
+import {
+  findTxKey,
+  normalizeAptName,
+  sanitizeAptKey,
+  getDisplayAptName,
+  isSameApartment,
+  resolveCanonicalAptSlug,
+} from '@/lib/utils/apartmentMapping';
 import { filterAndRankApartments } from '@/lib/utils/apartmentSearch';
 import { addRecentApartment } from '@/lib/utils/recentApartments';
 import { localCache } from '@/lib/utils/localCache';
@@ -191,7 +198,9 @@ export function getEffectiveMetrics(
 
   let locScore: LocationScoreItem | null = null;
   if (locationScores) {
-    const matchKey = findTxKey(apt.name, locationScores, nameMapping || {});
+    const directKey = apt.txKey && locationScores[apt.txKey] ? apt.txKey : null;
+    const matchKey =
+      directKey || findTxKey(apt.name, locationScores, nameMapping || {}, false, apt.dong);
     if (matchKey) {
       locScore = locationScores[matchKey];
     }
@@ -311,19 +320,89 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     initialChartType = 'sale',
   } = options;
 
-  // Flattened all apartments (deduplicated by display name)
-  const allApartments = useMemo(() => {
+  // Flattened all apartments (deduplicated by display name while retaining original catalog name)
+  const { allApartments, rawNameByDisplay } = useMemo(() => {
     const seen = new Set<string>();
     const result: DongApartment[] = [];
+    const rawMap = new Map<string, string>();
     for (const apt of Object.values(sheetApartments).flat()) {
       const displayName = getDisplayAptName(apt.name);
       if (displayName && !seen.has(displayName)) {
         seen.add(displayName);
+        if (apt.name && apt.name !== displayName) {
+          rawMap.set(displayName, apt.name);
+        }
         result.push({ ...apt, name: displayName });
       }
     }
-    return result;
+    return { allApartments: result, rawNameByDisplay: rawMap };
   }, [sheetApartments]);
+
+  const matchComparisonApartment = useCallback(
+    (rawTargetId?: string | null): DongApartment | undefined => {
+      const trimmed = rawTargetId?.trim() || '';
+      if (!trimmed || allApartments.length === 0) return undefined;
+
+      const targetNorm = normalizeAptName(trimmed);
+      const targetSanitized = sanitizeAptKey(trimmed);
+
+      // 1. Exact txKey, display name, or pre-override sheet name match
+      const exactMatch = allApartments.find((a) => {
+        const rawSheetName = rawNameByDisplay.get(a.name);
+        return (
+          (a.txKey &&
+            (sanitizeAptKey(a.txKey) === targetSanitized ||
+              normalizeAptName(a.txKey) === targetNorm)) ||
+          normalizeAptName(a.name) === targetNorm ||
+          (rawSheetName ? normalizeAptName(rawSheetName) === targetNorm : false)
+        );
+      });
+      if (exactMatch) return exactMatch;
+
+      // 2. Canonical slug resolution match
+      const canonicalSlug = resolveCanonicalAptSlug(trimmed, {
+        txMap: txSummaryData,
+        sheetApartments,
+        manualMapping: nameMapping,
+      });
+      const canonicalNorm = normalizeAptName(canonicalSlug);
+      if (canonicalNorm) {
+        const canonicalMatch = allApartments.find((a) => {
+          const rawSheetName = rawNameByDisplay.get(a.name);
+          return (
+            (a.txKey && normalizeAptName(a.txKey) === canonicalNorm) ||
+            normalizeAptName(a.name) === canonicalNorm ||
+            (rawSheetName ? normalizeAptName(rawSheetName) === canonicalNorm : false)
+          );
+        });
+        if (canonicalMatch) return canonicalMatch;
+      }
+
+      // 3. Alias / HARDCODED_MAPPING / dong-aware fuzzy match
+      return allApartments.find((a) => {
+        const rawSheetName = rawNameByDisplay.get(a.name);
+        return (
+          isSameApartment(a.name, trimmed, nameMapping, a.dong) ||
+          (rawSheetName ? isSameApartment(rawSheetName, trimmed, nameMapping, a.dong) : false) ||
+          (a.txKey ? isSameApartment(a.txKey, trimmed, nameMapping, a.dong) : false)
+        );
+      });
+    },
+    [allApartments, rawNameByDisplay, txSummaryData, sheetApartments, nameMapping]
+  );
+
+  const resolveAptFileKey = useCallback(
+    (apt: DongApartment): string => {
+      const rawSheetName = rawNameByDisplay.get(apt.name);
+      const fromSummary =
+        (apt.txKey && txSummaryData[apt.txKey] ? apt.txKey : null) ||
+        findTxKey(apt.name, txSummaryData, nameMapping, false, apt.dong) ||
+        (rawSheetName ? findTxKey(rawSheetName, txSummaryData, nameMapping, false, apt.dong) : null);
+      const rawCandidate = fromSummary || apt.txKey || rawSheetName || apt.name;
+      return sanitizeAptKey(rawCandidate) || normalizeAptName(rawCandidate);
+    },
+    [rawNameByDisplay, txSummaryData, nameMapping]
+  );
 
   // Selected apartment states
   const [apt1, setApt1] = useState<DongApartment | null>(null);
@@ -453,10 +532,9 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     if (lastInitializedKeyRef.current === currentInitKey) return;
 
     if (initialAptIds && initialAptIds.length > 0) {
-      const firstApt = allApartments.find(a => normalizeAptName(a.name) === normalizeAptName(initialAptIds[0]));
-      const secondApt = initialAptIds.length > 1
-        ? allApartments.find(a => normalizeAptName(a.name) === normalizeAptName(initialAptIds[1]))
-        : undefined;
+      const firstApt = matchComparisonApartment(initialAptIds[0]);
+      const secondApt =
+        initialAptIds.length > 1 ? matchComparisonApartment(initialAptIds[1]) : undefined;
 
       if (firstApt) {
         setApt1(prev => (prev?.name === firstApt.name ? prev : firstApt));
@@ -482,7 +560,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
         lastInitializedKeyRef.current = currentInitKey;
       }
     } else if (initialAptName) {
-      const matched = allApartments.find(a => normalizeAptName(a.name) === normalizeAptName(initialAptName));
+      const matched = matchComparisonApartment(initialAptName);
       if (matched) {
         setApt1(prev => (prev?.name === matched.name ? prev : matched));
         setSearchQuery1(prev => {
@@ -495,7 +573,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
         lastInitializedKeyRef.current = currentInitKey;
       }
     }
-  }, [isOpen, initialAptName, initialAptIdsKey, currentInitKey, allApartments, saveToRecent]);
+  }, [isOpen, initialAptName, initialAptIdsKey, currentInitKey, allApartments, matchComparisonApartment, saveToRecent]);
 
   // Autocomplete options
   const dropdownOptions1 = useMemo(() => {
@@ -603,8 +681,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     }
     setIsTxLoading1(true);
     const controller = new AbortController();
-    const resolved = findTxKey(apt1.name, txSummaryData, nameMapping) || apt1.name;
-    const txKey = normalizeAptName(resolved);
+    const txKey = resolveAptFileKey(apt1);
     fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
@@ -632,7 +709,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       active = false;
       controller.abort();
     };
-  }, [apt1, txSummaryData, nameMapping]);
+  }, [apt1, resolveAptFileKey]);
 
   // Transaction Fetching 2
   useEffect(() => {
@@ -644,8 +721,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
     }
     setIsTxLoading2(true);
     const controller = new AbortController();
-    const resolved = findTxKey(apt2.name, txSummaryData, nameMapping) || apt2.name;
-    const txKey = normalizeAptName(resolved);
+    const txKey = resolveAptFileKey(apt2);
     fetch(`/tx-data/${encodeURIComponent(txKey)}.json?v=${BUILD_VERSION}`, { signal: controller.signal })
       .then(res => {
         if (!res.ok) throw new Error('No data');
@@ -673,11 +749,11 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       active = false;
       controller.abort();
     };
-  }, [apt2, txSummaryData, nameMapping]);
+  }, [apt2, resolveAptFileKey]);
 
   // Add & remove apartment canonical methods
   const addApartment = useCallback((aptId: string) => {
-    const found = allApartments.find(a => normalizeAptName(a.name) === normalizeAptName(aptId));
+    const found = matchComparisonApartment(aptId);
     if (!found) return;
     if (!apt1) {
       setApt1(found);
@@ -690,26 +766,43 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       setSearchQuery2(getDisplayAptName(found.name));
     }
     saveToRecent(found);
-  }, [allApartments, apt1, apt2, saveToRecent]);
+  }, [matchComparisonApartment, apt1, apt2, saveToRecent]);
 
   const removeApartment = useCallback((aptId: string) => {
+    const matched = matchComparisonApartment(aptId);
     const norm = normalizeAptName(aptId);
-    if (apt1 && normalizeAptName(apt1.name) === norm) {
+    if (
+      apt1 &&
+      (normalizeAptName(apt1.name) === norm ||
+        (apt1.txKey && normalizeAptName(apt1.txKey) === norm) ||
+        (matched && apt1.name === matched.name))
+    ) {
       setApt1(null);
       setSearchQuery1('');
     }
-    if (apt2 && normalizeAptName(apt2.name) === norm) {
+    if (
+      apt2 &&
+      (normalizeAptName(apt2.name) === norm ||
+        (apt2.txKey && normalizeAptName(apt2.txKey) === norm) ||
+        (matched && apt2.name === matched.name))
+    ) {
       setApt2(null);
       setSearchQuery2('');
     }
-  }, [apt1, apt2]);
+  }, [apt1, apt2, matchComparisonApartment]);
 
   // Derived metrics
   const metrics1 = useMemo<ComparisonMetrics | null>(() => {
     if (!apt1) return null;
-    const report = fieldReportsMap.get(apt1.name);
+    const rawSheetName = rawNameByDisplay.get(apt1.name);
+    const report =
+      fieldReportsMap.get(apt1.name) ||
+      (rawSheetName ? fieldReportsMap.get(rawSheetName) : undefined);
     const effective = getEffectiveMetrics(apt1, report, locationScores, nameMapping);
-    const txKey = findTxKey(apt1.name, txSummaryData, nameMapping);
+    const txKey =
+      (apt1.txKey && txSummaryData[apt1.txKey] ? apt1.txKey : null) ||
+      findTxKey(apt1.name, txSummaryData, nameMapping, false, apt1.dong) ||
+      (rawSheetName ? findTxKey(rawSheetName, txSummaryData, nameMapping, false, apt1.dong) : null);
     const summary = txKey ? txSummaryData[txKey] : null;
 
     const avg3MPriceVal = summary ? (summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0) : 0;
@@ -724,13 +817,19 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       jeonseRatio: jeonseRatioVal,
       avg3MPerPyeong: avg3MPerPyeongVal,
     };
-  }, [apt1, fieldReportsMap, txSummaryData, nameMapping, locationScores]);
+  }, [apt1, rawNameByDisplay, fieldReportsMap, txSummaryData, nameMapping, locationScores]);
 
   const metrics2 = useMemo<ComparisonMetrics | null>(() => {
     if (!apt2) return null;
-    const report = fieldReportsMap.get(apt2.name);
+    const rawSheetName = rawNameByDisplay.get(apt2.name);
+    const report =
+      fieldReportsMap.get(apt2.name) ||
+      (rawSheetName ? fieldReportsMap.get(rawSheetName) : undefined);
     const effective = getEffectiveMetrics(apt2, report, locationScores, nameMapping);
-    const txKey = findTxKey(apt2.name, txSummaryData, nameMapping);
+    const txKey =
+      (apt2.txKey && txSummaryData[apt2.txKey] ? apt2.txKey : null) ||
+      findTxKey(apt2.name, txSummaryData, nameMapping, false, apt2.dong) ||
+      (rawSheetName ? findTxKey(rawSheetName, txSummaryData, nameMapping, false, apt2.dong) : null);
     const summary = txKey ? txSummaryData[txKey] : null;
 
     const avg3MPriceVal = summary ? (summary.avg1MPrice || summary.avg3MPrice || summary.latestPrice || 0) : 0;
@@ -745,7 +844,7 @@ export function useAptComparison(options: UseAptComparisonOptions = EMPTY_OPTION
       jeonseRatio: jeonseRatioVal,
       avg3MPerPyeong: avg3MPerPyeongVal,
     };
-  }, [apt2, fieldReportsMap, txSummaryData, nameMapping, locationScores]);
+  }, [apt2, rawNameByDisplay, fieldReportsMap, txSummaryData, nameMapping, locationScores]);
 
   const wins = useMemo<MetricWins>(() => {
     const emptyWins: MetricWins = {

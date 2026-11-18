@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ListTree } from 'lucide-react';
+import { Building2, ListTree } from 'lucide-react';
+import { QuickNonLoginRetentionAction } from '@/components/common/QuickNonLoginRetentionAction';
+import type { GuideRetentionAptItem } from '@/components/guide/GuideMorningAlertRetentionCard';
 import { getControlPillClass } from '@/lib/design-system/controls';
 import { getVisualSignalPillClass } from '@/lib/design-system/copyDiet';
 import { trackEvent } from '@/lib/utils/analytics';
+import { normalizeAptName } from '@/lib/utils/apartmentMapping';
 import { isAppleTouchDevice } from '@/lib/utils/bodyScrollLock';
 
 export interface GuideSectionAnchorItem {
@@ -16,6 +19,7 @@ export interface GuideSectionAnchorItem {
 export interface GuideMobileScrollDepthBarProps {
   guideSlug: string;
   sections: ReadonlyArray<GuideSectionAnchorItem>;
+  apartments?: ReadonlyArray<GuideRetentionAptItem>;
 }
 
 export const SCROLL_DEPTH_MILESTONES = [25, 50, 75, 90] as const;
@@ -76,12 +80,145 @@ export function computeScrollProgressPct(
   return Math.min(100, Math.max(0, Math.round((scrollTop / maxScrollable) * 100)));
 }
 
+/**
+ * Resolves the representative apartment for the currently active guide section so
+ * the sticky 1-Click favorite & 07:00 alert bar tracks the complex being read.
+ * Falls back deterministically to `apartments[0]` when the section is general.
+ */
+export function resolveActiveGuideSectionApartment(
+  activeSectionId: string,
+  sections: ReadonlyArray<GuideSectionAnchorItem>,
+  apartments: ReadonlyArray<GuideRetentionAptItem>,
+  domMatchedSlug?: string | null
+): GuideRetentionAptItem | null {
+  const validApts = (apartments || []).filter((item) =>
+    Boolean(item && (item.canonicalSlug || item.displayName || item.name))
+  );
+  if (validApts.length === 0) return null;
+
+  if (domMatchedSlug && domMatchedSlug.trim()) {
+    const trimmedDom = domMatchedSlug.trim();
+    const normDom = normalizeAptName(trimmedDom);
+    const domHit = validApts.find(
+      (item) =>
+        item.canonicalSlug === trimmedDom ||
+        (normDom.length >= 2 &&
+          (normalizeAptName(item.canonicalSlug || '') === normDom ||
+            normalizeAptName(item.name || '') === normDom ||
+            normalizeAptName(item.displayName || '') === normDom))
+    );
+    if (domHit) return domHit;
+  }
+
+  const activeSec = sections.find((sec) => sec.id === activeSectionId);
+  if (activeSec) {
+    const rawSecText = `${activeSec.fullTitle || ''} ${activeSec.label || ''}`.trim();
+    const normSecText = normalizeAptName(rawSecText);
+
+    if (normSecText.length >= 2) {
+      for (const item of validApts) {
+        const candidates = [item.displayName, item.canonicalSlug, item.name]
+          .filter((v): v is string => Boolean(v && v.trim()))
+          .map((v) => normalizeAptName(v))
+          .filter((v) => v.length >= 3);
+        if (candidates.some((cand) => normSecText.includes(cand))) {
+          return item;
+        }
+      }
+    }
+
+    for (const item of validApts) {
+      const dong = (item.dong || '').trim();
+      if (dong.length >= 2 && rawSecText.includes(dong)) {
+        return item;
+      }
+      const dongStem = dong.endsWith('동') ? dong.slice(0, -1) : '';
+      if (
+        dongStem.length >= 2 &&
+        (rawSecText.includes(`${dongStem}·`) || rawSecText.includes(`·${dongStem}`))
+      ) {
+        return item;
+      }
+    }
+  }
+
+  return validApts[0];
+}
+
+function scanSectionDomApartmentSlug(
+  sectionId: string,
+  validSlugSet: ReadonlySet<string>
+): string | null {
+  if (typeof document === 'undefined' || !sectionId || validSlugSet.size === 0) return null;
+  const headingEl = document.getElementById(sectionId);
+  if (!headingEl) return null;
+
+  const checkElement = (el: Element): string | null => {
+    const directSlug = el.getAttribute('data-apt-slug');
+    if (directSlug && validSlugSet.has(directSlug)) return directSlug;
+    const nested = el.querySelectorAll?.('[data-apt-slug]');
+    if (nested && nested.length > 0) {
+      for (let i = 0; i < nested.length; i += 1) {
+        const s = nested[i].getAttribute('data-apt-slug');
+        if (s && validSlugSet.has(s)) return s;
+      }
+    }
+    return null;
+  };
+
+  const insideSelf = checkElement(headingEl);
+  if (insideSelf) return insideSelf;
+
+  let cursor = headingEl.nextElementSibling;
+  let steps = 0;
+  while (cursor && steps < 12) {
+    if (
+      cursor.id &&
+      (cursor.id.startsWith('guide-section-') || cursor.id.startsWith('guide-'))
+    ) {
+      break;
+    }
+    const hit = checkElement(cursor);
+    if (hit) return hit;
+    cursor = cursor.nextElementSibling;
+    steps += 1;
+  }
+  return null;
+}
+
 export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDepthBar({
   guideSlug,
   sections,
+  apartments = [],
 }: GuideMobileScrollDepthBarProps) {
+  const validApartments = useMemo(
+    () =>
+      (apartments || []).filter((item) =>
+        Boolean(item && (item.canonicalSlug || item.displayName || item.name))
+      ),
+    [apartments]
+  );
+  const validSlugSet = useMemo(
+    () =>
+      new Set(
+        validApartments
+          .flatMap((item) => [item.canonicalSlug, item.name, item.displayName])
+          .filter((s): s is string => Boolean(s && s.trim()))
+      ),
+    [validApartments]
+  );
+  const validSlugSetRef = useRef<ReadonlySet<string>>(validSlugSet);
+  useEffect(() => {
+    validSlugSetRef.current = validSlugSet;
+  }, [validSlugSet]);
+
   const [progressPct, setProgressPct] = useState(0);
   const [activeId, setActiveId] = useState<string>(() => sections[0]?.id || '');
+  const [domMatchedSlug, setDomMatchedSlug] = useState<string | null>(null);
+  const activeSectionApt = useMemo(
+    () => resolveActiveGuideSectionApartment(activeId, sections, validApartments, domMatchedSlug),
+    [activeId, sections, validApartments, domMatchedSlug]
+  );
   const firedMilestonesRef = useRef<Set<number>>(new Set());
   const rafIdRef = useRef<number | null>(null);
   const rafScheduledRef = useRef(false);
@@ -145,7 +282,14 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
             matchedSectionId = sec.id;
           }
         }
-        setActiveId(matchedSectionId);
+        setActiveId((prevId) => {
+          if (prevId !== matchedSectionId) {
+            setDomMatchedSlug(
+              scanSectionDomApartmentSlug(matchedSectionId, validSlugSetRef.current)
+            );
+          }
+          return matchedSectionId;
+        });
       }
     },
     [guideSlug]
@@ -171,6 +315,7 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
     }
     setProgressPct(0);
     setActiveId(firstId);
+    setDomMatchedSlug(null);
   }, [guideSlug, evaluateScroll]);
 
   // Keep activeId valid if section IDs structurally change within the same guide, without clearing firedMilestonesRef.
@@ -249,6 +394,7 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
   const handleChipClick = useCallback(
     (e: React.MouseEvent<HTMLAnchorElement>, section: GuideSectionAnchorItem) => {
       setActiveId(section.id);
+      setDomMatchedSlug(scanSectionDomApartmentSlug(section.id, validSlugSetRef.current));
       trackEvent('guide_toc_jump', {
         guide_slug: guideSlug,
         target_section: section.id,
@@ -279,7 +425,7 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
       }
 
       try {
-        window.history?.replaceState?.(null, '', `#${section.id}`);
+        window.history?.replaceState?.(window.history.state, '', `#${section.id}`);
       } catch {
         // Ignore SecurityError in sandboxed preview iframes
       }
@@ -295,12 +441,15 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
     <nav
       data-testid="guide-mobile-scroll-depth-bar"
       aria-label="리포트 목차 바로가기 및 읽기 진행률"
-      className="sticky top-[48px] md:top-[84px] z-20 w-full min-h-[56px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-3.5 py-2.5 space-y-2 transition-colors box-border"
+      className="sticky top-[48px] md:top-[84px] z-20 w-full min-h-[56px] rounded-2xl bg-[#f9fafb] dark:bg-[#17171c] px-3 sm:px-3.5 py-2.5 space-y-2 transition-colors box-border min-w-0 max-w-full"
     >
-      <div className="flex items-center justify-between gap-2 min-w-0">
+      <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1.5 min-w-0">
         <div className="inline-flex items-center gap-1.5 shrink-0">
           <ListTree size={14} className="text-blue-600 dark:text-blue-400 shrink-0" />
-          <span className="text-[11.5px] sm:text-xs font-extrabold text-primary">
+          <span
+            data-testid="guide-toc-title-label"
+            className="text-[11.5px] sm:text-xs font-extrabold text-primary whitespace-nowrap"
+          >
             목차 바로가기
           </span>
         </div>
@@ -309,11 +458,41 @@ export const GuideMobileScrollDepthBar = React.memo(function GuideMobileScrollDe
           data-testid="guide-scroll-progress-label"
           className={getVisualSignalPillClass(
             progressPct >= 75 ? 'safe' : progressPct >= 25 ? 'down' : 'neutral',
-            'tabular-nums shrink-0'
+            'tabular-nums shrink-0 sm:order-3'
           )}
         >
           <span>읽기 {progressPct}%</span>
         </span>
+
+        {activeSectionApt && (
+          <div
+            data-testid="guide-sticky-retention-row"
+            className="w-full sm:w-auto sm:flex-1 sm:order-2 flex items-center justify-between sm:justify-end gap-1.5 min-w-0 pt-1.5 sm:pt-0 border-t sm:border-t-0 border-[#f2f4f6] dark:border-[#202027]"
+          >
+            <span
+              data-testid="guide-sticky-active-apt"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-secondary min-w-0 sm:max-w-[180px]"
+            >
+              <Building2 size={11} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span className="truncate">
+                {activeSectionApt.displayName || activeSectionApt.name}
+              </span>
+            </span>
+
+            <QuickNonLoginRetentionAction
+              aptName={activeSectionApt.name}
+              displayAptName={activeSectionApt.displayName || activeSectionApt.name}
+              canonicalSlug={activeSectionApt.canonicalSlug}
+              dong={activeSectionApt.dong}
+              guideSlug={guideSlug}
+              surface="guide_sticky_depth_bar"
+              triggerPrefix="sticky_depth"
+              size="xs"
+              compactMobileLabels
+              testIdPrefix="guide-sticky-retention"
+            />
+          </div>
+        )}
       </div>
 
       <div

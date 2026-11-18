@@ -17,7 +17,10 @@ const SubscribeInputSchema = z.object({
   subscription: PushSubscriptionSchema,
   uid: z.string().nullable().optional(),
   apartmentName: z.string().min(1).nullable().optional(),
+  apartmentNames: z.array(z.string().min(1)).max(50).optional(),
 });
+
+const IGNORED_PLACEHOLDER_APTS = new Set(['아파트']);
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,7 +46,7 @@ export async function POST(req: NextRequest) {
       return apiError('INVALID_PAYLOAD', 'Invalid subscription object', 400, parsed.error.issues);
     }
 
-    const { subscription, uid, apartmentName } = parsed.data;
+    const { subscription, uid, apartmentName, apartmentNames } = parsed.data;
 
     if (!db) {
       logger.error('PushSubscribeAPI.POST', 'Firebase Admin not initialized');
@@ -63,13 +66,27 @@ export async function POST(req: NextRequest) {
       updatedAt: new Date().toISOString(),
     };
 
-    if (apartmentName) {
-      updateData.apts = FieldValue.arrayUnion(apartmentName);
+    const mergedAptNames = Array.from(
+      new Set(
+        [
+          ...(apartmentName ? [apartmentName.trim()] : []),
+          ...((apartmentNames || []).map((n) => n.trim())),
+        ].filter((n) => n.length > 0 && !IGNORED_PLACEHOLDER_APTS.has(n))
+      )
+    );
+
+    if (mergedAptNames.length > 0) {
+      updateData.apts = FieldValue.arrayUnion(...mergedAptNames);
     }
 
     await db.collection('push_subscriptions').doc(endpointHash).set(updateData, { merge: true });
 
-    logger.info('PushSubscribeAPI.POST', 'Push subscription registered successfully', { uid, endpointHash, apartmentName });
+    logger.info('PushSubscribeAPI.POST', 'Push subscription registered successfully', {
+      uid,
+      endpointHash,
+      apartmentName,
+      mergedCount: mergedAptNames.length,
+    });
     return apiSuccess({ message: 'Subscribed successfully' });
   } catch (error: unknown) {
     logger.error('PushSubscribeAPI.POST', 'Push Subscribe Error', {}, error as Error);

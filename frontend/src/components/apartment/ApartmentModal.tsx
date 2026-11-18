@@ -1384,6 +1384,12 @@ const ApartmentModal = React.memo(function ApartmentModal({
         scrollContainerRef={inline ? undefined : modalRef}
         compact={!inline}
         className={inline ? 'md:top-[80px]' : ''}
+        apartmentName={report.apartmentName}
+        displayAptName={displayAptName}
+        canonicalSlug={canonicalAptSlug}
+        dong={report.dong || undefined}
+        inline={inline}
+        onOpenPushModal={() => setIsPushModalOpen(true)}
       />
 
       {/* Magazine Content Wrapper with 8 Discrete Analytical Chapters */}
@@ -1930,6 +1936,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
           isOpen={isPushModalOpen}
           onClose={() => setIsPushModalOpen(false)}
           aptName={displayAptName}
+          canonicalSlug={canonicalAptSlug}
+          dong={report.dong || undefined}
         />
         {mounted && (
           <ApartmentModalKakaoCard
@@ -1997,6 +2005,8 @@ const ApartmentModal = React.memo(function ApartmentModal({
           isOpen={isPushModalOpen}
           onClose={() => setIsPushModalOpen(false)}
           aptName={displayAptName}
+          canonicalSlug={canonicalAptSlug}
+          dong={report.dong || undefined}
         />
 
         {mounted && (

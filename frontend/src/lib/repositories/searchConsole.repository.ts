@@ -41,6 +41,30 @@ export interface GscQueryFetchResult {
   rows: RawGscQueryRow[];
 }
 
+export type GscAnalyticsDimension = 'query' | 'page' | 'date' | 'device' | 'country';
+
+export interface RawGscAnalyticsRow {
+  keys: string[];
+  clicks: number;
+  impressions: number;
+  ctr: number; // percentage 0..100
+  position: number;
+}
+
+export interface GscAnalyticsFetchResult {
+  ok: boolean;
+  siteProperty?: string;
+  serviceAccountEmail?: string;
+  startDate: string;
+  endDate: string;
+  dimensions: GscAnalyticsDimension[];
+  errorCode?: 'MISSING_CREDENTIALS' | 'SERVICE_DISABLED' | 'PERMISSION_DENIED' | 'API_ERROR' | 'INVALID_DATE_RANGE';
+  activationUrl?: string;
+  message?: string;
+  attemptedAccounts?: GscAccountAttemptDiagnostic[];
+  rows: RawGscAnalyticsRow[];
+}
+
 const CANDIDATE_SITE_PROPERTIES = [
   'sc-domain:dongtanview.com',
   'https://dongtanview.com/',
@@ -119,7 +143,12 @@ function base64url(buf: Buffer): string {
     .replace(/\//g, '_');
 }
 
-async function getAccessToken(clientEmail: string, privateKey: string): Promise<string> {
+async function getAccessToken(
+  clientEmail: string,
+  privateKey: string,
+  fetchFn?: typeof fetch
+): Promise<string> {
+  const effectiveFetch: typeof fetch = fetchFn ?? ((...args) => fetch(...args));
   const header = { alg: 'RS256', typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
   const payload = {
@@ -141,7 +170,7 @@ async function getAccessToken(clientEmail: string, privateKey: string): Promise<
 
   const jwt = `${signInput}.${signatureB64}`;
 
-  const res = await fetch('https://oauth2.googleapis.com/token', {
+  const res = await effectiveFetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
@@ -205,9 +234,27 @@ function parseGoogleApiError(rawBody: string): {
   }
 }
 
-async function resolveVerifiedSiteProperties(accessToken: string): Promise<string[]> {
+function isValidCalendarIsoDate(iso: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const [yStr, mStr, dStr] = iso.split('-');
+  const y = Number(yStr);
+  const m = Number(mStr);
+  const d = Number(dStr);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return (
+    dt.getUTCFullYear() === y &&
+    dt.getUTCMonth() === m - 1 &&
+    dt.getUTCDate() === d
+  );
+}
+
+async function resolveVerifiedSiteProperties(
+  accessToken: string,
+  fetchFn?: typeof fetch
+): Promise<string[]> {
+  const effectiveFetch: typeof fetch = fetchFn ?? ((...args) => fetch(...args));
   try {
-    const res = await fetch('https://www.googleapis.com/webmasters/v3/sites', {
+    const res = await effectiveFetch('https://www.googleapis.com/webmasters/v3/sites', {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     if (!res.ok) {
@@ -230,9 +277,12 @@ async function resolveVerifiedSiteProperties(accessToken: string): Promise<strin
 
 export async function fetchSearchConsoleQueryRows(options?: {
   days?: number;
+  startDate?: string;
+  endDate?: string;
   rowLimit?: number;
   includePageDimension?: boolean;
   siteProperty?: string;
+  fetchFn?: typeof fetch;
 }): Promise<GscQueryFetchResult> {
   const credentialsList = getAllGoogleCredentials();
   if (credentialsList.length === 0) {
@@ -244,11 +294,18 @@ export async function fetchSearchConsoleQueryRows(options?: {
     };
   }
 
+  const effectiveFetch: typeof fetch = options?.fetchFn ?? ((...args) => fetch(...args));
   const days = Math.max(1, Math.min(options?.days ?? 28, 480));
-  const rowLimit = Math.max(1, Math.min(options?.rowLimit ?? 250, 5000));
+  const rowLimit = Math.max(1, Math.min(options?.rowLimit ?? 250, 25000));
   const dimensions = options?.includePageDimension === false ? ['query'] : ['query', 'page'];
-  const startDate = formatIsoDateOffset(days);
-  const endDate = formatIsoDateOffset(0);
+  const hasExplicitRange =
+    typeof options?.startDate === 'string' &&
+    typeof options?.endDate === 'string' &&
+    isValidCalendarIsoDate(options.startDate) &&
+    isValidCalendarIsoDate(options.endDate) &&
+    options.startDate <= options.endDate;
+  const startDate = hasExplicitRange ? options!.startDate! : formatIsoDateOffset(days);
+  const endDate = hasExplicitRange ? options!.endDate! : formatIsoDateOffset(0);
 
   let primaryFailure: GscQueryFetchResult | null = null;
   let emptySuccessFallback: GscQueryFetchResult | null = null;
@@ -256,15 +313,15 @@ export async function fetchSearchConsoleQueryRows(options?: {
 
   for (const creds of credentialsList) {
     try {
-      const accessToken = await getAccessToken(creds.client_email, creds.private_key);
+      const accessToken = await getAccessToken(creds.client_email, creds.private_key, options?.fetchFn);
       const siteCandidates = options?.siteProperty
         ? [options.siteProperty]
-        : await resolveVerifiedSiteProperties(accessToken);
+        : await resolveVerifiedSiteProperties(accessToken, options?.fetchFn);
 
       let credLastFailure: GscQueryFetchResult | null = null;
 
       for (const siteProperty of siteCandidates) {
-        const apiRes = await fetch(
+        const apiRes = await effectiveFetch(
           `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteProperty)}/searchAnalytics/query`,
           {
             method: 'POST',
@@ -345,10 +402,6 @@ export async function fetchSearchConsoleQueryRows(options?: {
         }
       }
 
-      if (emptySuccessFallback) {
-        return emptySuccessFallback;
-      }
-
       if (credLastFailure && credLastFailure.errorCode && credLastFailure.errorCode !== 'MISSING_CREDENTIALS') {
         attemptedAccounts.push({
           serviceAccountEmail: creds.client_email,
@@ -392,6 +445,223 @@ export async function fetchSearchConsoleQueryRows(options?: {
 
   return {
     ok: false,
+    errorCode: 'API_ERROR',
+    message: 'Unable to query Google Search Console API.',
+    attemptedAccounts,
+    rows: [],
+  };
+}
+
+export async function fetchSearchConsoleAnalyticsRows(options: {
+  startDate: string;
+  endDate: string;
+  dimensions?: ReadonlyArray<GscAnalyticsDimension>;
+  rowLimit?: number;
+  siteProperty?: string;
+  fetchFn?: typeof fetch;
+}): Promise<GscAnalyticsFetchResult> {
+  const dimensions = options.dimensions ? [...options.dimensions] : [];
+  const startDate = (options.startDate || '').trim();
+  const endDate = (options.endDate || '').trim();
+
+  if (
+    !isValidCalendarIsoDate(startDate) ||
+    !isValidCalendarIsoDate(endDate) ||
+    startDate > endDate
+  ) {
+    return {
+      ok: false,
+      startDate,
+      endDate,
+      dimensions,
+      errorCode: 'INVALID_DATE_RANGE',
+      message: `Invalid Google Search Console date range: ${startDate} .. ${endDate}`,
+      rows: [],
+    };
+  }
+
+  const credentialsList = getAllGoogleCredentials();
+  if (credentialsList.length === 0) {
+    return {
+      ok: false,
+      startDate,
+      endDate,
+      dimensions,
+      errorCode: 'MISSING_CREDENTIALS',
+      message: 'Google Service Account credentials are not configured.',
+      rows: [],
+    };
+  }
+
+  const effectiveFetch: typeof fetch = options.fetchFn ?? ((...args) => fetch(...args));
+  const rowLimit = Math.max(1, Math.min(options.rowLimit ?? 1000, 25000));
+
+  let primaryFailure: GscAnalyticsFetchResult | null = null;
+  let emptySuccessFallback: GscAnalyticsFetchResult | null = null;
+  const attemptedAccounts: GscAccountAttemptDiagnostic[] = [];
+
+  for (const creds of credentialsList) {
+    try {
+      const accessToken = await getAccessToken(
+        creds.client_email,
+        creds.private_key,
+        options.fetchFn
+      );
+      const siteCandidates = options.siteProperty
+        ? [options.siteProperty]
+        : await resolveVerifiedSiteProperties(accessToken, options.fetchFn);
+
+      let credLastFailure: GscAnalyticsFetchResult | null = null;
+
+      for (const siteProperty of siteCandidates) {
+        const requestBody: Record<string, unknown> = {
+          startDate,
+          endDate,
+        };
+        if (dimensions.length > 0) {
+          requestBody.dimensions = dimensions;
+          requestBody.rowLimit = rowLimit;
+        }
+
+        const apiRes = await effectiveFetch(
+          `https://www.googleapis.com/webmasters/v3/sites/${encodeURIComponent(siteProperty)}/searchAnalytics/query`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(requestBody),
+          }
+        );
+
+        if (!apiRes.ok) {
+          const errText = await apiRes.text();
+          const parsedErr = parseGoogleApiError(errText);
+          if (parsedErr.reason === 'SERVICE_DISABLED' || parsedErr.reason === 'accessNotConfigured') {
+            credLastFailure = {
+              ok: false,
+              siteProperty,
+              serviceAccountEmail: creds.client_email,
+              startDate,
+              endDate,
+              dimensions,
+              errorCode: 'SERVICE_DISABLED',
+              activationUrl: parsedErr.activationUrl,
+              message: parsedErr.message,
+              rows: [],
+            };
+            break;
+          }
+          credLastFailure = {
+            ok: false,
+            siteProperty,
+            serviceAccountEmail: creds.client_email,
+            startDate,
+            endDate,
+            dimensions,
+            errorCode: apiRes.status === 403 ? 'PERMISSION_DENIED' : 'API_ERROR',
+            message: parsedErr.message || `HTTP ${apiRes.status}`,
+            rows: [],
+          };
+          continue;
+        }
+
+        const apiData = await apiRes.json();
+        const rawRows = Array.isArray(apiData?.rows) ? apiData.rows : [];
+        const rows: RawGscAnalyticsRow[] = rawRows
+          .map((r: {
+            keys?: string[];
+            clicks?: number;
+            impressions?: number;
+            ctr?: number;
+            position?: number;
+          }) => {
+            const keys = Array.isArray(r?.keys)
+              ? r.keys.map((k) => String(k ?? '').trim())
+              : [];
+            const clicks = Math.max(0, Math.round(Number(r?.clicks ?? 0) || 0));
+            const impressions = Math.max(0, Math.round(Number(r?.impressions ?? 0) || 0));
+            const ctrRatio = Number(r?.ctr ?? 0) || 0;
+            const ctr = parseFloat(Math.max(0, Math.min(100, ctrRatio * 100)).toFixed(2));
+            const position = parseFloat(Math.max(0, Number(r?.position ?? 0) || 0).toFixed(1));
+            return { keys, clicks, impressions, ctr, position };
+          })
+          .filter((r: RawGscAnalyticsRow) =>
+            dimensions.length === 0 ? true : r.keys.length >= dimensions.length && r.keys[0].length > 0
+          );
+
+        const successResult: GscAnalyticsFetchResult = {
+          ok: true,
+          siteProperty,
+          serviceAccountEmail: creds.client_email,
+          startDate,
+          endDate,
+          dimensions,
+          rows,
+        };
+
+        const hasNonZeroActivity = rows.some((r) => r.impressions > 0 || r.clicks > 0);
+        if (rows.length > 0 && (dimensions.length > 0 || hasNonZeroActivity)) {
+          return successResult;
+        }
+        if (!emptySuccessFallback) {
+          emptySuccessFallback = successResult;
+        }
+      }
+
+      if (credLastFailure && credLastFailure.errorCode && credLastFailure.errorCode !== 'MISSING_CREDENTIALS') {
+        attemptedAccounts.push({
+          serviceAccountEmail: creds.client_email,
+          errorCode:
+            credLastFailure.errorCode === 'INVALID_DATE_RANGE'
+              ? 'API_ERROR'
+              : credLastFailure.errorCode,
+          activationUrl: credLastFailure.activationUrl,
+          message: credLastFailure.message,
+        });
+        if (!primaryFailure) {
+          primaryFailure = credLastFailure;
+        }
+      }
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : String(error);
+      attemptedAccounts.push({
+        serviceAccountEmail: creds.client_email,
+        errorCode: 'API_ERROR',
+        message: errMsg,
+      });
+      if (!primaryFailure) {
+        primaryFailure = {
+          ok: false,
+          serviceAccountEmail: creds.client_email,
+          startDate,
+          endDate,
+          dimensions,
+          errorCode: 'API_ERROR',
+          message: errMsg,
+          rows: [],
+        };
+      }
+    }
+  }
+
+  if (emptySuccessFallback) {
+    return emptySuccessFallback;
+  }
+
+  if (primaryFailure) {
+    return {
+      ...primaryFailure,
+      attemptedAccounts,
+    };
+  }
+
+  return {
+    ok: false,
+    startDate,
+    endDate,
+    dimensions,
     errorCode: 'API_ERROR',
     message: 'Unable to query Google Search Console API.',
     attemptedAccounts,

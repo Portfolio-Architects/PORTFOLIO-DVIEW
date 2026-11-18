@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { Copy, ExternalLink, Compass, X, AlertTriangle } from 'lucide-react';
+import { buildGuestFavoritesHandoffUrl } from '@/hooks/useFavorites';
+import { isAppleTouchDevice } from '@/lib/utils/bodyScrollLock';
 import { logger } from '@/lib/services/logger';
 
 /**
@@ -96,13 +98,14 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const userAgent = navigator.userAgent.toLowerCase();
+    const rawUa = navigator.userAgent || '';
+    const userAgent = rawUa.toLowerCase();
     const isAndroid = /android/i.test(userAgent);
-    const isIOS = /iphone|ipad|ipod/i.test(userAgent);
+    const isIOS = isAppleTouchDevice(rawUa, navigator.maxTouchPoints);
 
     const isKakao = /kakaotalk/i.test(userAgent);
     const isNaver = /naver/i.test(userAgent);
-    const isLine = /line/i.test(userAgent);
+    const isLine = /line\//i.test(userAgent);
     const isInstagram = /instagram/i.test(userAgent);
     const isFacebook = /fb_iab|fb4a|fban|fbios/i.test(userAgent);
     const isTwitter = /twitter|twttr/i.test(userAgent);
@@ -128,7 +131,7 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
       else if (isFacebook) appName = 'facebook';
       else if (isTwitter) appName = 'twitter';
 
-      const canAutoRedirect = isAndroid || (isIOS && (isKakao || isNaver));
+      const canAutoRedirect = isAndroid || (isIOS && (isKakao || isNaver || isLine));
 
       setInAppInfo({
         isInApp,
@@ -152,24 +155,34 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
   };
 
   const handleRedirectClick = () => {
-    const currentUrl = window.location.href;
+    const currentUrl = buildGuestFavoritesHandoffUrl(window.location.href) || window.location.href;
     setRedirectFailed(false);
 
     if (inAppInfo.isAndroid) {
-      const rawUrl = currentUrl.replace(/^https?:\/\//i, '');
-      const intentUrl = `intent://${rawUrl}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end`;
+      const withoutScheme = currentUrl.replace(/^https?:\/\//i, '');
+      const hashIdx = withoutScheme.indexOf('#');
+      const rawHostPathQuery = hashIdx >= 0 ? withoutScheme.slice(0, hashIdx) : withoutScheme;
+      const intentUrl = `intent://${rawHostPathQuery}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(currentUrl)};end`;
       safeBypassRedirect(intentUrl);
     } else if (inAppInfo.isIOS) {
       if (inAppInfo.appName === 'kakaotalk') {
         safeBypassRedirect(`kakaotalk://web/openExternal?url=${encodeURIComponent(currentUrl)}`);
       } else if (inAppInfo.appName === 'naver') {
         safeBypassRedirect(`naversearchapp://default?version=1&command=showURL&url=${encodeURIComponent(currentUrl)}`);
+      } else if (inAppInfo.appName === 'line') {
+        try {
+          const lineParsed = new URL(currentUrl, 'https://dongtanview.com');
+          lineParsed.searchParams.set('openExternalBrowser', '1');
+          safeBypassRedirect(lineParsed.toString());
+        } catch {
+          setRedirectFailed(true);
+        }
       }
     }
   };
 
   const handleCopyLink = async () => {
-    const text = window.location.href;
+    const text = buildGuestFavoritesHandoffUrl(window.location.href) || window.location.href;
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
         await navigator.clipboard.writeText(text);
@@ -189,8 +202,10 @@ const InAppBrowserBypass = React.memo(function InAppBrowserBypass() {
     try {
       const textArea = document.createElement('textarea');
       textArea.value = text;
+      textArea.setAttribute('readonly', '');
       textArea.style.top = '0';
       textArea.style.left = '0';
+      textArea.style.opacity = '0';
       textArea.style.position = 'fixed';
       document.body.appendChild(textArea);
       textArea.focus();
