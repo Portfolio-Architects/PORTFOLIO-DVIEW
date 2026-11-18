@@ -2,7 +2,8 @@ import { GUIDE_ARTICLES, GUIDE_DEFAULT_TX_SUMMARY_MAP } from '@/lib/data/guides'
 import { ZONES, dongToZoneId } from '@/lib/zones';
 
 export const runtime = 'nodejs';
-export const revalidate = 86400; // Cache for 24 hours
+export const dynamic = 'force-static';
+export const revalidate = false; // Pure SSG
 
 function escapeXml(value: string): string {
   return String(value || '')

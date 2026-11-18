@@ -59,8 +59,41 @@ const TransactionRecordSchema = z.object({
   contractDate: z.string().optional().nullable(),
   registeredDate: z.string().optional().nullable(),
   registeredDateLabel: z.string().optional().nullable(),
+  registeredTime: z.string().optional().nullable(),
   registrationDate: z.string().optional().nullable(),
 });
+
+function normalizeSyncTimeHm(raw) {
+  if (!raw || typeof raw !== 'string') return '';
+  const m = raw.trim().match(/^([01]\d|2[0-3]):([0-5]\d)(?:\s*KST)?$/i);
+  return m ? `${m[1]}:${m[2]}` : '';
+}
+
+function resolveDocRegisteredTimeHm(d, docSnap, regDate) {
+  const explicit = normalizeSyncTimeHm(d && d.registeredTime);
+  if (explicit) return explicit;
+  if (
+    regDate &&
+    regDate.length === 8 &&
+    docSnap &&
+    docSnap.createTime &&
+    typeof docSnap.createTime.toDate === 'function'
+  ) {
+    try {
+      const created = docSnap.createTime.toDate();
+      if (created instanceof Date && !Number.isNaN(created.getTime())) {
+        const kst = new Date(created.getTime() + 9 * 60 * 60 * 1000);
+        const kstYmd = `${kst.getUTCFullYear()}${String(kst.getUTCMonth() + 1).padStart(2, '0')}${String(kst.getUTCDate()).padStart(2, '0')}`;
+        if (kstYmd === regDate) {
+          return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`;
+        }
+      }
+    } catch (_) {
+      // Ignore malformed timestamp
+    }
+  }
+  return '';
+}
 
 const OUTPUT_PATH = path.resolve(__dirname, '../public/data/tx-summary.json');
 const RECENT_TX_OUTPUT_PATH = path.resolve(__dirname, '../public/data/recent-transactions.json');
@@ -887,6 +920,7 @@ async function main() {
 
     const regDate = normalizeRegisteredDate(d.registeredDate || d.registrationDate || validData.registeredDate || validData.registrationDate, cDate);
     const regDateLabel = d.registeredDateLabel || validData.registeredDateLabel || (regDate && regDate.length >= 8 ? `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}` : '');
+    const regTime = resolveDocRegisteredTimeHm(d, docSnap, regDate);
 
     byApt[key].push({
       aptName: validData.aptName,
@@ -909,6 +943,7 @@ async function main() {
       contractDate: cDate,
       registeredDate: regDate,
       registeredDateLabel: regDateLabel,
+      registeredTime: regTime,
       cancelDate: validData.cancelDate || d.cdealDay || (isCanceled ? '취소' : ''),
       cdealDay: d.cdealDay || '',
       cdealType: d.cdealType || '',
@@ -983,6 +1018,7 @@ async function main() {
 
     const regDate = normalizeRegisteredDate(d.registeredDate || d.registrationDate || validData.registeredDate || validData.registrationDate, cDate);
     const regDateLabel = d.registeredDateLabel || validData.registeredDateLabel || (regDate && regDate.length >= 8 ? `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}` : '');
+    const regTime = resolveDocRegisteredTimeHm(d, docSnap, regDate);
 
     byApt[key].push({
       aptName: validData.aptName,
@@ -1005,6 +1041,7 @@ async function main() {
       contractDate: cDate,
       registeredDate: regDate,
       registeredDateLabel: regDateLabel,
+      registeredTime: regTime,
       cancelDate: validData.cancelDate || d.cdealDay || (isCanceled ? '취소' : ''),
       cdealDay: d.cdealDay || '',
       cdealType: d.cdealType || '',
@@ -1100,6 +1137,10 @@ async function main() {
         const preservedReg = (existing._fromLocalCache && existing.registeredDate) ? existing.registeredDate : (winner.registeredDate || existing.registeredDate || t.registeredDate);
         winner.registeredDate = normalizeRegisteredDate(preservedReg, winner.contractDate);
         winner.registeredDateLabel = winner.registeredDate && /^\d{8}$/.test(winner.registeredDate) ? `${winner.registeredDate.slice(4, 6)}.${winner.registeredDate.slice(6, 8)}` : '';
+        winner.registeredTime =
+          (!existing._isLiveMolitFetch && existing.registeredTime)
+            ? existing.registeredTime
+            : ((!t._isLiveMolitFetch && t.registeredTime) || winner.registeredTime || existing.registeredTime || t.registeredTime || '');
         if (existing._fromLocalCache) winner._fromLocalCache = true;
         seen.set(key, winner);
       }
@@ -1219,8 +1260,17 @@ async function main() {
     transactionsAll,
   });
 
-  // 헤더 서브타이틀용 경량 실시간 지표 (국토부 매매 실거래 누적 건수 / 최신 등록일·당일 신규·신고가 집계) - 실제 집계값만 기록
+  // 헤더 서브타이틀용 경량 실시간 지표 (국토부 매매 실거래 누적 건수 / 최신 등록일·실제 수집 시각·당일 신규·신고가 집계) - 실제 집계값만 기록
   try {
+    let prevMarketStats = null;
+    try {
+      if (fs.existsSync(MARKET_STATS_OUTPUT_PATH)) {
+        prevMarketStats = JSON.parse(fs.readFileSync(MARKET_STATS_OUTPUT_PATH, 'utf8'));
+      }
+    } catch (_) {
+      prevMarketStats = null;
+    }
+
     const isSaleTx = (t) => Boolean(t) && t.dealType !== '전세' && t.dealType !== '월세';
     const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
     const todayKst = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
@@ -1244,6 +1294,26 @@ async function main() {
         isSaleTx(t) &&
         String((t && t.registeredDate) || '').replace(/\D/g, '').slice(0, 8) === todayKst
     );
+    const batchSyncHmFromTxs = latestRegisteredDate
+      ? allSaleTxs
+          .filter(
+            (t) =>
+              String((t && t.registeredDate) || '').replace(/\D/g, '').slice(0, 8) ===
+              latestRegisteredDate
+          )
+          .map((t) => normalizeSyncTimeHm(t && t.registeredTime))
+          .filter(Boolean)
+          .sort()
+          .pop() || ''
+      : '';
+    const preservedPrevSyncHm =
+      prevMarketStats &&
+      latestRegisteredDate &&
+      String(prevMarketStats.latestRegisteredDate || '') === latestRegisteredDate
+        ? normalizeSyncTimeHm(prevMarketStats.lastSyncTime)
+        : '';
+    const lastSyncTime = batchSyncHmFromTxs || preservedPrevSyncHm || '';
+
     const marketStats = {
       apartmentCount: (() => {
         try {
@@ -1261,6 +1331,7 @@ async function main() {
       todayNewHighCount: todayBatchSales.filter((t) => Boolean(t && (t.isNewHigh || t.type === 'high'))).length,
       latestBatchCount: latestBatchSales.length,
       latestBatchNewHighCount: latestBatchSales.filter((t) => Boolean(t && (t.isNewHigh || t.type === 'high'))).length,
+      ...(lastSyncTime ? { lastSyncTime } : {}),
     };
     fs.writeFileSync(MARKET_STATS_OUTPUT_PATH, JSON.stringify(marketStats, null, 2));
   } catch (statsErr) {

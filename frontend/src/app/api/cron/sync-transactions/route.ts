@@ -6,7 +6,6 @@
  * 수동 호출도 가능: fetch('/api/cron/sync-transactions')
  */
 import { NextRequest } from 'next/server';
-import { revalidatePath } from 'next/cache';
 import { adminDb as db } from '@/lib/firebaseAdmin';
 import { invalidateLiveTransactionOverlayCache } from '@/lib/services/liveTransactionOverlay';
 import { sendMail } from '@/lib/utils/server/mailService';
@@ -212,6 +211,7 @@ const transactionRecordSchema = z.object({
   registrationDate: z.string().optional().nullable(),
   registeredDate: z.string().optional().nullable(),
   registeredDateLabel: z.string().optional().nullable(),
+  registeredTime: z.string().optional().nullable(),
   housingType: z.string().optional().nullable(),
   source: z.string(),
   _key: z.string(),
@@ -334,11 +334,11 @@ export async function GET(request: NextRequest) {
 
     for (const ym of Array.from(monthsToSync).sort()) {
       // 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
-      const existingMap = new Map<string, { cancelDate: string; dealType: string; registeredDate?: string }>();
+      const existingMap = new Map<string, { cancelDate: string; dealType: string; registeredDate?: string; registeredTime?: string }>();
       try {
         const existingSnap = await collRef
           .where('contractYm', '==', ym)
-          .select('cancelDate', 'dealType', 'registeredDate')
+          .select('cancelDate', 'dealType', 'registeredDate', 'registeredTime')
           .get();
         existingSnap.docs.forEach(doc => {
           const data = doc.data();
@@ -346,6 +346,7 @@ export async function GET(request: NextRequest) {
             cancelDate: (data.cancelDate || '').trim(),
             dealType: (data.dealType || '').trim(),
             registeredDate: (data.registeredDate || '').trim(),
+            registeredTime: (data.registeredTime || '').trim(),
           });
         });
       } catch (err: unknown) {
@@ -517,6 +518,13 @@ export async function GET(request: NextRequest) {
                 })();
                 return `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}`;
               })(),
+              registeredTime: (() => {
+                const existingDoc = existingMap.get(key);
+                if (existingDoc?.registeredTime) return existingDoc.registeredTime;
+                if (existingDoc?.registeredDate) return '';
+                const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+                return `${String(kstNow.getUTCHours()).padStart(2, '0')}:${String(kstNow.getUTCMinutes()).padStart(2, '0')}`;
+              })(),
               housingType: '',
               source: 'govt_api',
               _key: key,
@@ -685,6 +693,13 @@ export async function GET(request: NextRequest) {
                 })();
                 return `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}`;
               })(),
+              registeredTime: (() => {
+                const existingDoc = existingMap.get(_key);
+                if (existingDoc?.registeredTime) return existingDoc.registeredTime;
+                if (existingDoc?.registeredDate) return '';
+                const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
+                return `${String(kstNow.getUTCHours()).padStart(2, '0')}:${String(kstNow.getUTCMinutes()).padStart(2, '0')}`;
+              })(),
               housingType: '',
               source: 'govt_api_rent',
               reqGb: getTag(tagMap, 'contractType', '계약구분') || '',
@@ -734,11 +749,9 @@ export async function GET(request: NextRequest) {
     if (totalNew > 0) {
       try {
         await invalidateLiveTransactionOverlayCache();
-        revalidatePath('/');
-        revalidatePath('/explore');
-        syncLog.push('Invalidated live transaction overlay cache and revalidated SSR paths (/, /explore)');
+        syncLog.push('Invalidated live transaction overlay cache');
       } catch (revalErr) {
-        logger.warn('SyncTransactionsAPI.GET', 'Live cache invalidation / revalidatePath warning', {}, revalErr as Error);
+        logger.warn('SyncTransactionsAPI.GET', 'Live cache invalidation warning', {}, revalErr as Error);
       }
 
       // Best-effort warm fetch of live-delta CDN cache immediately after Firestore commit

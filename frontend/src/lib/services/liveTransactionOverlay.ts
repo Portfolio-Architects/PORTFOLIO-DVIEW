@@ -8,7 +8,7 @@ import {
   mergeTransactions,
   computeRecent7DaysVolume,
 } from '@/lib/services/staticDataService';
-import { getTodayYmdKST, type MarketStatsInput } from '@/lib/todayUpdateEvaluator';
+import { extractSyncTimeHm, getTodayYmdKST, type MarketStatsInput } from '@/lib/todayUpdateEvaluator';
 import type { RecentTransaction, AptTxSummary } from '@/types/transaction';
 import type { InitialPageDataWithScores } from '@/lib/services/dashboardData';
 import type {
@@ -66,7 +66,41 @@ function isCancelledDoc(doc: Record<string, unknown>): boolean {
   return isValidCancelStr(doc.cancelDate) || isValidCancelStr(doc.cdealDay);
 }
 
-function normalizeDocToRawRecord(doc: Record<string, unknown>): LiveDeltaRawRecord | null {
+function resolveDocRegisteredTimeHm(
+  doc: Record<string, unknown>,
+  regDate: string,
+  createTime?: unknown
+): string | undefined {
+  const explicitHm = extractSyncTimeHm(
+    typeof doc.registeredTime === 'string' ? doc.registeredTime : null
+  );
+  if (explicitHm) return explicitHm;
+
+  if (
+    regDate.length === 8 &&
+    createTime &&
+    typeof (createTime as { toDate?: () => Date }).toDate === 'function'
+  ) {
+    try {
+      const createdDate = (createTime as { toDate: () => Date }).toDate();
+      if (createdDate instanceof Date && !Number.isNaN(createdDate.getTime())) {
+        const kst = new Date(createdDate.getTime() + 9 * 3600000);
+        const kstYmd = `${kst.getUTCFullYear()}${String(kst.getUTCMonth() + 1).padStart(2, '0')}${String(kst.getUTCDate()).padStart(2, '0')}`;
+        if (kstYmd === regDate) {
+          return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`;
+        }
+      }
+    } catch {
+      // Ignore non-standard mock timestamp objects
+    }
+  }
+  return undefined;
+}
+
+function normalizeDocToRawRecord(
+  doc: Record<string, unknown>,
+  createTime?: unknown
+): LiveDeltaRawRecord | null {
   const aptName = typeof doc.aptName === 'string' ? doc.aptName.trim() : '';
   if (!aptName) return null;
 
@@ -83,6 +117,7 @@ function normalizeDocToRawRecord(doc: Record<string, unknown>): LiveDeltaRawReco
     : typeof doc.registeredDateLabel === 'string'
       ? doc.registeredDateLabel
       : undefined;
+  const regTime = resolveDocRegisteredTimeHm(doc, regDate, createTime);
 
   const area = Number(doc.area) || 0;
   const areaPyeong = Number(doc.areaPyeong) || Math.round(area * 0.3025 * 1.33 * 10) / 10;
@@ -102,6 +137,7 @@ function normalizeDocToRawRecord(doc: Record<string, unknown>): LiveDeltaRawReco
     contractDate: contractDateClean || `${contractYm}${contractDay}`,
     ...(regDate ? { registeredDate: regDate } : {}),
     ...(regLabel ? { registeredDateLabel: regLabel } : {}),
+    ...(regTime ? { registeredTime: regTime } : {}),
     ...(typeof doc.registrationDate === 'string' ? { registrationDate: doc.registrationDate } : {}),
     price,
     deposit,
@@ -149,7 +185,10 @@ async function queryFirestorePostBaseline(baselineRegisteredDate: string): Promi
       const data = typeof d.data === 'function' ? d.data() : (d as unknown as Record<string, unknown>);
       if (!data || typeof data !== 'object') continue;
       if (isCancelledDoc(data as Record<string, unknown>)) continue;
-      const normalized = normalizeDocToRawRecord(data as Record<string, unknown>);
+      const normalized = normalizeDocToRawRecord(
+        data as Record<string, unknown>,
+        (d as { createTime?: unknown }).createTime
+      );
       if (normalized) {
         records.push(normalized);
       }
@@ -374,6 +413,7 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
       date: `${contractDate.slice(4, 6)}.${contractDate.slice(6, 8)}`,
       contractDate,
       ...(regDate ? { registeredDate: regDate, registeredDateLabel: `${regDate.slice(4, 6)}.${regDate.slice(6, 8)}` } : {}),
+      ...(raw.registeredTime ? { registeredTime: raw.registeredTime } : {}),
       priceVal,
       priceEok: formatPriceEok(raw.price),
       area: raw.area,
@@ -451,6 +491,24 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
   }
 
   const hasDelta = deltaTransactions.length > 0 || enrichedRawDocs.length > 0;
+  const cleanLatestReg = cleanYmd(latestRegisteredDate);
+  const deltaSyncHm = cleanLatestReg
+    ? deltaTransactions
+        .filter((t) => cleanYmd(t.registeredDate) === cleanLatestReg)
+        .map((t) => extractSyncTimeHm(t.registeredTime))
+        .filter((v): v is string => Boolean(v))
+        .sort()
+        .pop() || null
+    : null;
+  const baseSyncHm =
+    cleanLatestReg && baseLatestReg === cleanLatestReg
+      ? extractSyncTimeHm(baseMarketStats?.lastSyncTime)
+      : null;
+  const resolvedLastSyncTime =
+    [deltaSyncHm, baseSyncHm]
+      .filter((v): v is string => Boolean(v))
+      .sort()
+      .pop() || undefined;
 
   return {
     hasDelta,
@@ -462,7 +520,7 @@ export async function getLiveTransactionDelta(): Promise<LiveTransactionDeltaRes
       latestRegisteredDate,
       todayRegisteredCount,
       todayNewHighCount,
-      lastSyncTime: baseMarketStats?.lastSyncTime || '07:00 KST',
+      ...(resolvedLastSyncTime ? { lastSyncTime: resolvedLastSyncTime } : {}),
     },
     deltaTransactions,
     rawDeltaDocs: enrichedRawDocs,

@@ -38,7 +38,7 @@ import {
 } from '@/lib/services/apartmentPageService';
 
 export const dynamic = 'force-static';
-export const revalidate = 86400;
+export const revalidate = false;
 
 export interface TechnoValleyPageProps {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

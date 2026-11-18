@@ -19,7 +19,8 @@ import {
 import { StatsPageClient } from './StatsPageClient';
 import { StatsSkeleton } from '@/components/stats/StatsSkeleton';
 
-export const revalidate = 86400;
+export const dynamic = 'force-static';
+export const revalidate = false;
 
 const STATS_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent(
   '동탄 아파트 통계 · 초품아·호수공원·연식별·동탄1 vs 동탄2 집값 비교 및 동탄역 회귀분석'

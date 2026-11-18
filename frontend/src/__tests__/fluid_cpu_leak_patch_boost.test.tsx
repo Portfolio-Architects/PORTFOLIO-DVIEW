@@ -196,17 +196,17 @@ describe('Fluid Active CPU Leak Patch Verification Suite (Priorities 1-5)', () =
     });
   });
 
-  describe('Priority 2: Pure SSG apartment detail (revalidate = false) & Static JSON-backed ISR hubs revalidate = 86400', () => {
-    it('exports revalidate = false on apartment detail (Pure SSG) and revalidate = 86400 across home, overview, explore, news, lounge, sitemap, and technovalley', () => {
+  describe('Priority 2: Pure SSG apartment detail & hubs (dynamic = force-static, revalidate = false)', () => {
+    it('exports revalidate = false on apartment detail, home, overview, explore, news, lounge, sitemap, and technovalley', () => {
       expect(apartmentRevalidate).toBe(false);
-      expect(homeRevalidate).toBe(86400);
-      expect(overviewRevalidate).toBe(86400);
+      expect(homeRevalidate).toBe(false);
+      expect(overviewRevalidate).toBe(false);
       expect(overviewDynamic).toBe('force-static');
-      expect(exploreRevalidate).toBe(86400);
-      expect(newsRevalidate).toBe(86400);
-      expect(loungeRevalidate).toBe(86400);
-      expect(sitemapRevalidate).toBe(86400);
-      expect(technoValleyRevalidate).toBe(86400);
+      expect(exploreRevalidate).toBe(false);
+      expect(newsRevalidate).toBe(false);
+      expect(loungeRevalidate).toBe(false);
+      expect(sitemapRevalidate).toBe(false);
+      expect(technoValleyRevalidate).toBe(false);
       expect(technoValleyDynamic).toBe('force-static');
     });
   });

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { staticDataService } from '@/lib/services/staticDataService';
 import { BUILD_VERSION } from '@/lib/build-version';
-import { getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
+import { extractSyncTimeHm, getTodayYmdKST } from '@/lib/todayUpdateEvaluator';
 import { useLiveTransactionDelta } from '@/hooks/useLiveTransactionDelta';
 
 export { TodayUpdatePillBadge } from './TodayUpdatePillBadge';
@@ -91,7 +91,7 @@ export function MarketStatsStrong() {
 
 /**
  * subtitleLight 용 통합 실시간 실거래 티커 바:
- * - 당일 07:00 신규 등록분 존재 시: "| ● 오늘 신규 36건 · 신고가 15건 (11.14 07:00)"
+ * - 당일 신규 등록분 존재 시: "| ● 오늘 신규 36건 · 신고가 15건 (11.14 06:33)" (실제 수집·반영 시각 표기)
  * - 주말/공휴일 등 과거 등록일 기준 시: "| 11월 13일 국토부 등록 반영"
  * - 마운트/로딩 전: Zero-CLS 폭 예약 스켈레톤
  */
@@ -103,6 +103,7 @@ export function MarketStatsLight({ text }: { text?: string } = {}) {
 
   const todayYmdKST = getTodayYmdKST();
   const isTodayBatch = Boolean(stats?.latestRegisteredDate && stats.latestRegisteredDate === todayYmdKST);
+  const syncTimeHm = isTodayBatch ? extractSyncTimeHm(stats?.lastSyncTime) : null;
   const todayRegisteredCount =
     isTodayBatch && typeof stats?.todayRegisteredCount === 'number' && stats.todayRegisteredCount > 0
       ? stats.todayRegisteredCount
@@ -139,7 +140,7 @@ export function MarketStatsLight({ text }: { text?: string } = {}) {
         )}
         {shortRegLabel && (
           <span className="text-tertiary font-medium text-[12px] sm:text-[13px]">
-            ({shortRegLabel} 07:00)
+            ({syncTimeHm ? `${shortRegLabel} ${syncTimeHm}` : shortRegLabel})
           </span>
         )}
       </span>
@@ -152,7 +153,7 @@ export function MarketStatsLight({ text }: { text?: string } = {}) {
       >
         <span aria-hidden="true" className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
         <span className="font-bold text-emerald-700 dark:text-emerald-400">
-          오늘 07:00 실거래 갱신
+          {syncTimeHm ? `오늘 ${syncTimeHm} 실거래 갱신` : '오늘 실거래 갱신'}
         </span>
         {shortRegLabel && (
           <span className="text-tertiary font-medium text-[12px] sm:text-[13px]">

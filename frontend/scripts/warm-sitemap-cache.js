@@ -12,6 +12,7 @@ const DEFAULT_PROJECT_ID = 'prj_OCym05uVc30QN4JhiMj9paHaK0Yt';
 const DEFAULT_TEAM_ID = 'team_6oiLYgowOwsSHPYuKP3NPrSY';
 const DEFAULT_CONCURRENCY = 6;
 const DEFAULT_MAX_RETRIES = 3;
+const DEFAULT_CANARY_LIMIT = 3;
 const DEFAULT_REQUEST_TIMEOUT_MS = 20000;
 const DEFAULT_MAX_DEPLOY_WAIT_MS = 180000;
 const DEFAULT_POLL_INTERVAL_MS = 6000;
@@ -41,6 +42,52 @@ function extractSitemapLocUrls(xml) {
     }
   }
   return urls;
+}
+
+function getPathname(rawUrl) {
+  try {
+    return new URL(rawUrl).pathname || '/';
+  } catch {
+    const stripped = String(rawUrl || '')
+      .replace(/^[a-z]+:\/\/[^/]+/i, '')
+      .split(/[?#]/)[0];
+    return stripped || '/';
+  }
+}
+
+/**
+ * Select a lightweight set of representative canary URLs (`/`, `/explore`, first `/apartment/...`)
+ * to verify post-deploy SSR/Edge health without downloading every page in `sitemap.xml`.
+ * @param {string[]} urls
+ * @param {number} [maxCount=3]
+ * @returns {string[]}
+ */
+function selectCanaryUrls(urls, maxCount = DEFAULT_CANARY_LIMIT) {
+  if (!Array.isArray(urls) || urls.length === 0) return [];
+  const parsed = Number(maxCount);
+  const limit = Number.isFinite(parsed) && parsed > 0 ? Math.floor(parsed) : DEFAULT_CANARY_LIMIT;
+
+  const selected = [];
+  const seen = new Set();
+  const addIfNew = (candidate) => {
+    if (!candidate || seen.has(candidate) || selected.length >= limit) return;
+    seen.add(candidate);
+    selected.push(candidate);
+  };
+
+  addIfNew(urls.find((u) => {
+    const p = getPathname(u);
+    return p === '/' || p === '';
+  }));
+  addIfNew(urls.find((u) => getPathname(u) === '/explore'));
+  addIfNew(urls.find((u) => getPathname(u).startsWith('/apartment/')));
+
+  for (const url of urls) {
+    if (selected.length >= limit) break;
+    addIfNew(url);
+  }
+
+  return selected.slice(0, limit);
 }
 
 async function waitForProductionDeploymentReady({
@@ -233,9 +280,16 @@ async function runWarmup(env = process.env, fetchImpl = globalThis.fetch) {
 
   const xml = await sitemapRes.text();
   const urls = extractSitemapLocUrls(xml);
-  console.log(`[warm-sitemap-cache] Discovered ${urls.length} <loc> URLs. Starting concurrent warm-up...`);
+  const fullCrawl = String(env.WARMUP_FULL_CRAWL || '').toLowerCase() === 'true';
+  const parsedLimit = Number(env.WARMUP_CANARY_LIMIT);
+  const canaryLimit =
+    Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.floor(parsedLimit) : DEFAULT_CANARY_LIMIT;
+  const targetUrls = fullCrawl ? urls : selectCanaryUrls(urls, canaryLimit);
+  console.log(
+    `[warm-sitemap-cache] Discovered ${urls.length} <loc> URLs. Running ${fullCrawl ? 'full warm-up' : `canary check (${targetUrls.length} URLs)`}...`
+  );
 
-  const summary = await warmSitemapUrls(urls, {
+  const summary = await warmSitemapUrls(targetUrls, {
     concurrency: Number(env.WARMUP_CONCURRENCY) || DEFAULT_CONCURRENCY,
     maxRetries: Number(env.WARMUP_MAX_RETRIES) || DEFAULT_MAX_RETRIES,
     fetchImpl,
@@ -273,6 +327,7 @@ if (require.main === module) {
 
 module.exports = {
   extractSitemapLocUrls,
+  selectCanaryUrls,
   warmSingleUrl,
   warmSitemapUrls,
   waitForProductionDeploymentReady,

@@ -237,6 +237,11 @@ if (require.main === module) {
     console.log(
       `[Report Sync] status=${result.status} date=${result.metadata.date} grade=${result.metadata.grade} branch=${result.metadata.branch}`
     );
+    const { syncHeadGuard } = require('./sync-head-guard');
+    const headGuardResult = syncHeadGuard({ checkOnly });
+    console.log(
+      `[Head Guard Sync] status=${headGuardResult.status} version=${headGuardResult.version} bytes=${headGuardResult.bytes}`
+    );
   } catch (err) {
     console.error(err && err.message ? err.message : err);
     process.exit(1);

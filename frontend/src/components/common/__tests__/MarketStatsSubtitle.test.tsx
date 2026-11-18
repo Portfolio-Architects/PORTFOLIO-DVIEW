@@ -16,7 +16,7 @@ describe('MarketStatsSubtitle', () => {
     jest.clearAllMocks();
   });
 
-  it('renders unified today live ticker with new registrations and new high counts without em-dash or duplicate chrome', async () => {
+  it('renders unified today live ticker with exact lastSyncTime, new registrations, and new high counts without hardcoded 07:00', async () => {
     const todayYmd = getTodayYmdKST();
     const mm = todayYmd.slice(4, 6);
     const dd = todayYmd.slice(6, 8);
@@ -28,6 +28,7 @@ describe('MarketStatsSubtitle', () => {
       latestRegisteredDate: todayYmd,
       todayRegisteredCount: 36,
       todayNewHighCount: 15,
+      lastSyncTime: '06:33',
     });
 
     const { container } = render(
@@ -44,25 +45,28 @@ describe('MarketStatsSubtitle', () => {
       expect(screen.getByText('66,336건')).toBeInTheDocument();
       expect(screen.getByText('오늘 신규 36건')).toBeInTheDocument();
       expect(screen.getByText('신고가 15건')).toBeInTheDocument();
-      expect(screen.getByText(`(${mm}.${dd} 07:00)`)).toBeInTheDocument();
+      expect(screen.getByText(`(${mm}.${dd} 06:33)`)).toBeInTheDocument();
     });
 
+    expect(container.textContent).not.toContain('07:00');
     expect(container.textContent).not.toContain('—');
     expect(container.textContent).not.toContain('오늘 아침 7시 갱신');
     expect(screen.getByText('신고가 15건').className).toContain('text-brand-red');
     expect(screen.getByText('신고가 15건').className).not.toContain('bg-red-500');
   });
 
-  it('displays truthful "오늘 07:00 실거래 갱신" without fabricating counts when latestRegisteredDate is today and count is omitted', async () => {
+  it('omits time rather than fabricating 07:00 when lastSyncTime is absent on today batch', async () => {
     const todayYmd = getTodayYmdKST();
     const mm = todayYmd.slice(4, 6);
     const dd = todayYmd.slice(6, 8);
 
     (staticDataService.fetchJson as jest.Mock).mockResolvedValue({
-      apartmentCount: 185,
-      saleTxCount: 65510,
-      latestContractDate: '20261030',
+      apartmentCount: 183,
+      saleTxCount: 66394,
+      latestContractDate: todayYmd,
       latestRegisteredDate: todayYmd,
+      todayRegisteredCount: 21,
+      todayNewHighCount: 10,
     });
 
     const { container } = render(
@@ -72,10 +76,39 @@ describe('MarketStatsSubtitle', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('오늘 07:00 실거래 갱신')).toBeInTheDocument();
+      expect(screen.getByText('오늘 신규 21건')).toBeInTheDocument();
+      expect(screen.getByText('신고가 10건')).toBeInTheDocument();
       expect(screen.getByText(`(${mm}.${dd})`)).toBeInTheDocument();
     });
 
+    expect(container.textContent).not.toContain('07:00');
+  });
+
+  it('displays truthful sync time or neutral label without fabricating counts when latestRegisteredDate is today and count is omitted', async () => {
+    const todayYmd = getTodayYmdKST();
+    const mm = todayYmd.slice(4, 6);
+    const dd = todayYmd.slice(6, 8);
+
+    (staticDataService.fetchJson as jest.Mock).mockResolvedValue({
+      apartmentCount: 185,
+      saleTxCount: 65510,
+      latestContractDate: '20261030',
+      latestRegisteredDate: todayYmd,
+      lastSyncTime: '05:38',
+    });
+
+    const { container } = render(
+      <SWRConfig value={{ provider: () => new Map(), dedupingInterval: 0 }}>
+        <MarketStatsLight />
+      </SWRConfig>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('오늘 05:38 실거래 갱신')).toBeInTheDocument();
+      expect(screen.getByText(`(${mm}.${dd})`)).toBeInTheDocument();
+    });
+
+    expect(container.textContent).not.toContain('07:00');
     expect(container.textContent).not.toContain('0건');
     expect(container.textContent).not.toContain('신규 1건');
   });

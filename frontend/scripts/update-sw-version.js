@@ -9,6 +9,9 @@ const DynamicCacheNameSchema = z.string().startsWith('dview-dynamic-v-', '동적
 
 const swPath = path.join(__dirname, '../public/sw.js');
 const versionPath = path.join(__dirname, '../src/lib/build-version.ts');
+const headGuardJsPath = path.join(__dirname, '../public/js/dview-ga-admin-guard.js');
+const headGuardVersionPath = path.join(__dirname, '../src/lib/head-guard-version.ts');
+const { syncHeadGuard } = require('./sync-head-guard');
 const isDevMode = process.argv.includes('--dev');
 
 function clearStaleNextLocks() {
@@ -41,6 +44,10 @@ function prewarmAppRouterDirectoryCache() {
 
 try {
   if (isDevMode && fs.existsSync(versionPath) && fs.existsSync(swPath)) {
+    if (!fs.existsSync(headGuardJsPath) || !fs.existsSync(headGuardVersionPath)) {
+      const hgDev = syncHeadGuard({ checkOnly: false });
+      console.log(`[Head Guard Sync] status=${hgDev.status} version=${hgDev.version} bytes=${hgDev.bytes}`);
+    }
     clearStaleNextLocks();
     prewarmAppRouterDirectoryCache();
     console.log('[SW Update] Dev mode detected: preserved existing build-version.ts & sw.js to maintain compiler cache.');
@@ -91,6 +98,9 @@ try {
   const newVersionContent = `export const BUILD_VERSION = '${buildId}';\n`;
   fs.writeFileSync(versionPath, newVersionContent, 'utf8');
   console.log(`[Version Update] Updated src/lib/build-version.ts to ${buildId}`);
+
+  const hgProd = syncHeadGuard({ checkOnly: false });
+  console.log(`[Head Guard Sync] status=${hgProd.status} version=${hgProd.version} bytes=${hgProd.bytes}`);
 
   clearStaleNextLocks();
 } catch (error) {

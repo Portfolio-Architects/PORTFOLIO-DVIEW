@@ -8,6 +8,8 @@
 import {
   getTodayYmdKST,
   formatDateLabelKST,
+  extractSyncTimeHm,
+  formatSyncTimeLabelKST,
   isRegisteredToday,
   evaluateTodayUpdateMetrics,
 } from '@/lib/todayUpdateEvaluator';
@@ -156,7 +158,7 @@ describe('todayUpdateEvaluator Unit Tests', () => {
       expect(metrics.lastSyncTimeLabel).toBe('06:55 KST');
     });
 
-    it('safely handles empty, null, or undefined parameters without throwing exceptions', () => {
+    it('safely handles empty, null, or undefined parameters without throwing exceptions or fabricating 07:00', () => {
       const metrics = evaluateTodayUpdateMetrics(
         undefined,
         null,
@@ -167,7 +169,32 @@ describe('todayUpdateEvaluator Unit Tests', () => {
       expect(metrics.isTodayUpdated).toBe(false);
       expect(metrics.todayRegisteredCount).toBe(0);
       expect(metrics.todayNewHighCount).toBe(0);
+      expect(metrics.lastSyncTimeLabel).toBe('');
       expect(metrics.todayTransactions).toEqual([]);
+    });
+
+    it('resolves exact registeredTime from today transactions and ignores stale prior-day marketStats.lastSyncTime', () => {
+      expect(extractSyncTimeHm('06:33')).toBe('06:33');
+      expect(extractSyncTimeHm('06:33 KST')).toBe('06:33');
+      expect(extractSyncTimeHm('2026-11-17T21:33:36.858Z')).toBe('06:33');
+      expect(extractSyncTimeHm('')).toBeNull();
+      expect(formatSyncTimeLabelKST('05:38')).toBe('05:38 KST');
+
+      const metrics = evaluateTodayUpdateMetrics(
+        [
+          { contractDate: '20261110', registeredDate: '20261111', registeredTime: '05:38' },
+          { contractDate: '20261111', registeredDate: '20261111', registeredTime: '06:33', isNewHigh: true },
+        ],
+        {
+          latestRegisteredDate: '20261110',
+          lastSyncTime: '11:50',
+        },
+        fixedReferenceDate
+      );
+
+      expect(metrics.isTodayUpdated).toBe(true);
+      expect(metrics.todayRegisteredCount).toBe(2);
+      expect(metrics.lastSyncTimeLabel).toBe('06:33 KST');
     });
   });
 });

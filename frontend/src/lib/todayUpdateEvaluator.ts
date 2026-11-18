@@ -17,6 +17,7 @@ export interface TodayUpdateMetrics {
   lastSyncTimeLabel: string;
   todayTransactions?: Array<{
     registeredDate?: string;
+    registeredTime?: string;
     contractDate?: string;
     isNewHigh?: boolean;
     type?: string;
@@ -30,6 +31,56 @@ const KST_YMD_FORMATTER = new Intl.DateTimeFormat('en-CA', {
   month: '2-digit',
   day: '2-digit',
 });
+
+const KST_HM_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  timeZone: 'Asia/Seoul',
+  hour: '2-digit',
+  minute: '2-digit',
+  hour12: false,
+});
+
+/**
+ * Extracts a normalized 24-hour "HH:mm" KST time string (e.g., "06:33") from
+ * "06:33", "06:33 KST", or a valid ISO-8601 timestamp. Returns null when absent or invalid.
+ */
+export function extractSyncTimeHm(syncTime?: string | null): string | null {
+  if (!syncTime || typeof syncTime !== 'string') return null;
+  const trimmed = syncTime.trim();
+  if (!trimmed) return null;
+
+  const directHm = trimmed.match(/^([01]\d|2[0-3]):([0-5]\d)(?:\s*KST)?$/i);
+  if (directHm) {
+    return `${directHm[1]}:${directHm[2]}`;
+  }
+
+  if (trimmed.includes('T') || /^\d{4}-\d{2}-\d{2}/.test(trimmed)) {
+    const parsed = new Date(trimmed);
+    if (!Number.isNaN(parsed.getTime())) {
+      try {
+        const formatted = KST_HM_FORMATTER.format(parsed);
+        const m = formatted.match(/^(\d{2}):(\d{2})$/);
+        if (m) {
+          const hh = m[1] === '24' ? '00' : m[1];
+          return `${hh}:${m[2]}`;
+        }
+      } catch {
+        const kst = new Date(parsed.getTime() + 9 * 3600000);
+        return `${String(kst.getUTCHours()).padStart(2, '0')}:${String(kst.getUTCMinutes()).padStart(2, '0')}`;
+      }
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Formats a sync time input into "HH:mm KST", or returns an empty string when unknown
+ * (never fabricating a placeholder time).
+ */
+export function formatSyncTimeLabelKST(syncTime?: string | null): string {
+  const hm = extractSyncTimeHm(syncTime);
+  return hm ? `${hm} KST` : '';
+}
 
 /**
  * Returns today's date in YYYYMMDD string format according to Korean Standard Time (KST, Asia/Seoul).
@@ -93,6 +144,7 @@ export interface MarketStatsInput {
 export function evaluateTodayUpdateMetrics(
   recentTransactions: Array<{
     registeredDate?: string;
+    registeredTime?: string;
     contractDate?: string;
     isNewHigh?: boolean;
     type?: string;
@@ -135,6 +187,22 @@ export function evaluateTodayUpdateMetrics(
   const isTodayUpdated = latestReg === todayYmd || todayRegisteredCount > 0;
   const displayDate = latestReg || todayYmd;
 
+  const txLatestHm =
+    todayTxs
+      .map((tx) => extractSyncTimeHm(tx.registeredTime))
+      .filter((v): v is string => Boolean(v))
+      .sort()
+      .pop() || null;
+  const statsHm =
+    !isTodayUpdated || !latestReg || latestReg === todayYmd
+      ? extractSyncTimeHm(marketStats?.lastSyncTime)
+      : null;
+  const resolvedHm =
+    [txLatestHm, statsHm]
+      .filter((v): v is string => Boolean(v))
+      .sort()
+      .pop() || null;
+
   return {
     todayYmd,
     latestRegisteredDate: latestReg,
@@ -142,7 +210,7 @@ export function evaluateTodayUpdateMetrics(
     todayRegisteredCount,
     todayNewHighCount,
     latestRegisteredDateLabel: formatDateLabelKST(displayDate),
-    lastSyncTimeLabel: marketStats?.lastSyncTime || '07:00 KST',
+    lastSyncTimeLabel: resolvedHm ? `${resolvedHm} KST` : '',
     todayTransactions: todayTxs,
   };
 }

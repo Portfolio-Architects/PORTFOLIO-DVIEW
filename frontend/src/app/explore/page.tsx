@@ -18,7 +18,8 @@ import {
   getSeoAccordionBodyClass,
 } from '@/lib/design-system/copyDiet';
 
-export const revalidate = 86400; // Revalidate every 24 hours (ISR)
+export const dynamic = 'force-static';
+export const revalidate = false; // Pure SSG
 
 const EXPLORE_OG_IMAGE_URL = `https://dongtanview.com/api/og?title=${encodeURIComponent('동탄 184개 아파트 실거래가 비교표')}&subtitle=${encodeURIComponent('평당가 랭킹 · 전세가율 · 학군 · 동탄역 거리 조건 탐색')}`;
 

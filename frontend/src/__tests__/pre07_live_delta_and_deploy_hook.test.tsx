@@ -101,6 +101,7 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       mockFirestoreGet.mockResolvedValue({
         docs: [
           {
+            createTime: { toDate: () => new Date('2099-12-30T21:33:36.858Z') }, // 2099-12-31 06:33 KST
             data: () => ({
               aptName: sampleAptKey,
               dong: '오산동',
@@ -179,6 +180,7 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       expect(delta.hasDelta).toBe(true);
       expect(delta.deltaTransactions).toHaveLength(2);
       expect(delta.rawDeltaDocs).toHaveLength(3); // 2 sales + 1 rent; cancelled sale excluded
+      expect(delta.marketStats?.lastSyncTime).toBe('06:33');
 
       const newHighTx = delta.deltaTransactions.find((t) => t.floor === 22);
       const regularTx = delta.deltaTransactions.find((t) => t.floor === 7);
@@ -339,7 +341,7 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
           latestRegisteredDate: todayYmd,
           todayRegisteredCount: 2,
           todayNewHighCount: 1,
-          lastSyncTime: '07:00 KST',
+          lastSyncTime: '06:33',
         },
         deltaTransactions,
         rawDeltaDocs: deltaTransactions.map((t) => ({
@@ -401,7 +403,7 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
 
       await waitFor(() => {
         const badge = screen.getByTestId('today-update-pill-badge');
-        expect(badge).toHaveTextContent('오늘 신규 2건 등록 (07:00 반영)');
+        expect(badge).toHaveTextContent('오늘 신규 2건 등록 (06:33 반영)');
         expect(badge).toHaveTextContent('신고가 1건');
       });
 
@@ -409,7 +411,7 @@ describe('Pre-07:00 KST Live Transaction Delta & Deploy Hook Integrity', () => {
       const ticker = screen.getByTestId('market-stats-today-ticker');
       expect(ticker).toHaveTextContent('오늘 신규 2건');
       expect(ticker).toHaveTextContent('신고가 1건');
-      expect(ticker).toHaveTextContent(`(${todayMmDd} 07:00)`);
+      expect(ticker).toHaveTextContent(`(${todayMmDd} 06:33)`);
 
       // usePeriodTransactions('1d') immediately includes today's 2 new transactions on top of yesterday's fallback
       const yesterdayFallback: RecentTransaction[] = [

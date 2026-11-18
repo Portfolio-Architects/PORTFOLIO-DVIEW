@@ -11,6 +11,8 @@
 import React from 'react';
 import fs from 'fs';
 import path from 'path';
+import crypto from 'crypto';
+import vm from 'vm';
 import ts from 'typescript';
 import { render, fireEvent, renderHook, act } from '@testing-library/react';
 import { SWRConfig } from 'swr';
@@ -89,6 +91,11 @@ import { GET as typeMapGet } from '@/app/api/type-map/route';
 import { GET as centerSpecsGet } from '@/app/api/technovalley/center-specs/route';
 import { GET as proxyImageGet } from '@/app/api/proxy-image/route';
 import { checkRateLimit } from '@/lib/api/rateLimiter';
+import {
+  buildPreHydrationAdminGuardScript,
+  DEFAULT_GA_MEASUREMENT_ID,
+} from '@/lib/utils/adminExclusion';
+import { HEAD_GUARD_VERSION } from '@/lib/head-guard-version';
 
 function walkTsxFiles(dir: string): string[] {
   const results: string[] = [];
@@ -742,6 +749,177 @@ describe('Vercel Origin Transfer & Payload Optimization (/boost)', () => {
       // proxy.ts exempts /api/proxy-image from duplicate Edge rate-limiting
       const proxySrc = fs.readFileSync(path.resolve(__dirname, '../proxy.ts'), 'utf8');
       expect(proxySrc).toContain("'/api/proxy-image'");
+    });
+  });
+
+  // =========================================================================
+  // 4. Static Head Guard CDN Split, Pure SSG Routes, Canary Warmup & Cache Hygiene
+  // =========================================================================
+  describe('4. Static Head Guard, Pure SSG 11 Routes, Canary Warmup & Repository Cache Hygiene', () => {
+    it('4.1 keeps public/js/dview-ga-admin-guard.js in sync with buildPreHydrationAdminGuardScript and loads it synchronously in <head>', () => {
+      const staticGuardPath = path.resolve(__dirname, '../../public/js/dview-ga-admin-guard.js');
+      const staticGuardCode = fs.readFileSync(staticGuardPath, 'utf8');
+
+      // Deterministic match regardless of shell NEXT_PUBLIC_GA_ID
+      expect(staticGuardCode).toBe(buildPreHydrationAdminGuardScript(DEFAULT_GA_MEASUREMENT_ID));
+      delete process.env.NEXT_PUBLIC_GA_ID;
+      expect(staticGuardCode).toBe(buildPreHydrationAdminGuardScript());
+
+      const expectedHash = crypto
+        .createHash('sha256')
+        .update(staticGuardCode, 'utf8')
+        .digest('hex')
+        .slice(0, 12);
+      expect(HEAD_GUARD_VERSION).toBe(expectedHash);
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { syncHeadGuard } = require('../../scripts/sync-head-guard.js');
+      expect(syncHeadGuard({ checkOnly: true }).status).toBe('in-sync');
+
+      // Runtime data-ga-id support in static script
+      const mockWindow: Record<string, unknown> = {
+        location: { pathname: '/', search: '?dview_admin=1', hash: '', protocol: 'https:' },
+        history: { state: null, replaceState: jest.fn() },
+        localStorage: { getItem: jest.fn(), setItem: jest.fn(), removeItem: jest.fn() },
+      };
+      const mockDocument = {
+        cookie: '',
+        head: null,
+        currentScript: { getAttribute: (name: string) => (name === 'data-ga-id' ? 'G-CUSTOM9999' : null) },
+        getElementById: () => null,
+      };
+      vm.runInNewContext(staticGuardCode, {
+        window: mockWindow,
+        document: mockDocument,
+        URL,
+        URLSearchParams,
+      });
+      expect(mockWindow[`ga-disable-${DEFAULT_GA_MEASUREMENT_ID}`]).toBe(true);
+      expect(mockWindow['ga-disable-G-CUSTOM9999']).toBe(true);
+
+      // layout.tsx placement & synchronous <script> contract
+      const layoutSrc = fs.readFileSync(path.resolve(__dirname, '../app/layout.tsx'), 'utf8');
+      expect(layoutSrc).not.toContain('PreHydrationInlineScript id="dview-ga-admin-guard"');
+      expect(layoutSrc).toContain('id="dview-ga-admin-guard"');
+      expect(layoutSrc).toContain('itemProp="admin-guard"');
+      expect(layoutSrc).toContain('src={`/js/dview-ga-admin-guard.js?v=${HEAD_GUARD_VERSION}`}');
+
+      const guardScriptMatch = layoutSrc.match(/<script[\s\S]*?id="dview-ga-admin-guard"[\s\S]*?\/>/);
+      expect(guardScriptMatch).not.toBeNull();
+      expect(guardScriptMatch![0]).not.toMatch(/\b(async|defer)\b/);
+
+      const guardIdx = layoutSrc.indexOf('id="dview-ga-admin-guard"');
+      const noindexIdx = layoutSrc.indexOf('id="dview-adsense-noindex-guard"');
+      const adsenseIdx = layoutSrc.indexOf('id="google-adsense"');
+      const headCloseIdx = layoutSrc.indexOf('</head>');
+      const gaIdx = layoutSrc.indexOf('<GoogleAnalytics');
+      expect(guardIdx).toBeGreaterThan(layoutSrc.indexOf('<head'));
+      expect(guardIdx).toBeLessThan(noindexIdx);
+      expect(noindexIdx).toBeLessThan(adsenseIdx);
+      expect(adsenseIdx).toBeLessThan(headCloseIdx);
+      expect(headCloseIdx).toBeLessThan(gaIdx);
+
+      // next.config.ts immutable cache header for /js/:path*
+      const nextConfigSrc = fs.readFileSync(path.resolve(__dirname, '../../next.config.ts'), 'utf8');
+      expect(nextConfigSrc).toContain("source: '/js/:path*'");
+      expect(nextConfigSrc).toContain('public, max-age=31536000, immutable');
+    });
+
+    it('4.2 enforces pure SSG (dynamic = force-static, revalidate = false) across all 11 hub/feed/sitemap routes and no revalidatePath in sync cron', () => {
+      const pureSsgRoutes = [
+        '../app/page.tsx',
+        '../app/explore/page.tsx',
+        '../app/guide/page.tsx',
+        '../app/stats/page.tsx',
+        '../app/technovalley/page.tsx',
+        '../app/overview/page.tsx',
+        '../app/lounge/page.tsx',
+        '../app/news/page.tsx',
+        '../app/sitemap.ts',
+        '../app/feed.xml/route.ts',
+        '../app/rss.xml/route.ts',
+      ];
+
+      for (const relPath of pureSsgRoutes) {
+        const src = fs.readFileSync(path.resolve(__dirname, relPath), 'utf8');
+        expect(src).toMatch(/export const dynamic = ['"]force-static['"];/);
+        expect(src).toMatch(/export const revalidate = false;/);
+      }
+
+      const cronSrc = fs.readFileSync(
+        path.resolve(__dirname, '../app/api/cron/sync-transactions/route.ts'),
+        'utf8'
+      );
+      expect(cronSrc).not.toContain('revalidatePath');
+    });
+
+    it('4.3 restricts warm-sitemap-cache.js default runWarmup to <= 3 canary URLs after XML validation', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { selectCanaryUrls, runWarmup } = require('../../scripts/warm-sitemap-cache.js');
+
+      const sampleUrls = [
+        'https://dongtanview.com/',
+        'https://dongtanview.com/guide',
+        'https://dongtanview.com/explore',
+        ...Array.from({ length: 178 }, (_, idx) => `https://dongtanview.com/apartment/단지${idx + 1}`),
+      ];
+
+      const canary = selectCanaryUrls(sampleUrls, 3);
+      expect(canary).toEqual([
+        'https://dongtanview.com/',
+        'https://dongtanview.com/explore',
+        'https://dongtanview.com/apartment/단지1',
+      ]);
+
+      const sitemapXml = `<?xml version="1.0" encoding="UTF-8"?><urlset>${sampleUrls
+        .map((u) => `<url><loc>${u}</loc></url>`)
+        .join('')}</urlset>`;
+
+      const fetchedUrls: string[] = [];
+      const mockFetch = jest.fn(async (url: string) => {
+        fetchedUrls.push(String(url));
+        const isSitemap = String(url).endsWith('/sitemap.xml');
+        return {
+          ok: true,
+          status: 200,
+          headers: { get: () => 'HIT' },
+          text: async () => (isSitemap ? sitemapXml : '<html>ok</html>'),
+        };
+      });
+
+      const summary = await runWarmup({ VERCEL_APP_URL: 'https://dongtanview.com' }, mockFetch);
+      expect(summary.total).toBe(3);
+      expect(summary.succeeded).toBe(3);
+      expect(fetchedUrls).toEqual([
+        'https://dongtanview.com/sitemap.xml',
+        'https://dongtanview.com/',
+        'https://dongtanview.com/explore',
+        'https://dongtanview.com/apartment/단지1',
+      ]);
+    });
+
+    it('4.4 prevents Next.js Data Cache pollution from _t= timestamps + next.revalidate in repositories and newsData', () => {
+      const sheetsRepoSrc = fs.readFileSync(
+        path.resolve(__dirname, '../lib/repositories/googleSheets.repository.ts'),
+        'utf8'
+      );
+      const locationRepoSrc = fs.readFileSync(
+        path.resolve(__dirname, '../lib/repositories/location.repository.ts'),
+        'utf8'
+      );
+      const newsDataSrc = fs.readFileSync(
+        path.resolve(__dirname, '../lib/services/newsData.ts'),
+        'utf8'
+      );
+
+      for (const src of [sheetsRepoSrc, locationRepoSrc, newsDataSrc]) {
+        expect(src).not.toMatch(/next:\s*\{\s*revalidate/);
+      }
+
+      expect(sheetsRepoSrc).toContain("bypassCache ? `&_t=${Date.now()}` : ''");
+      expect(sheetsRepoSrc).toContain("{ cache: 'no-store' }");
+      expect(locationRepoSrc).toContain("forceRefresh ? `&_t=${Date.now()}` : ''");
+      expect(locationRepoSrc).toContain("{ cache: 'no-store' }");
     });
   });
 });

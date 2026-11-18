@@ -11,7 +11,8 @@ import {
 } from '@/lib/services/apartmentPageService';
 import { resolveCanonicalAptSlug } from '@/lib/utils/apartmentMapping';
 
-export const revalidate = 86400; // Revalidate sitemap every 24 hours
+export const dynamic = 'force-static';
+export const revalidate = false; // Pure SSG sitemap
 
 export function parseSitemapDate(
   raw: string | undefined | null,

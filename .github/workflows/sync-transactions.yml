@@ -209,10 +209,17 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_EXPECTED_COMMIT_SHA: ${{ steps.commit_push.outputs.pushed_sha || '' }}
 
-      # Step 4.5: 프로덕션 Sitemap SSR/ISR Edge 캐시 프리워밍 (Cold-start HTTP 500 원천 차단)
+      # Step 4.5: 프로덕션 Sitemap 카나리 헬스체크 (실제 배포 발생 시에만 최소 경로 검증)
       - name: Warm up Sitemap SSR/ISR Edge Cache
-        if: always() && (github.event_name == 'push' || steps.commit_push.outputs.pushed_sha != '' || github.event_name == 'workflow_dispatch')
-        run: node scripts/warm-sitemap-cache.js
+        if: always() && (steps.commit_push.outputs.pushed_sha != '' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && !contains(github.event.head_commit.message, '[vercel skip]') && !contains(github.event.head_commit.message, '[skip ci]')))
+        run: |
+          if [ "${{ github.event_name }}" = "push" ] && git rev-parse --verify HEAD^ >/dev/null 2>&1; then
+            if git diff --quiet HEAD^ HEAD -- . ':!*.test.*' ':!*.spec.*'; then
+              echo "Skipped warmup: no non-test frontend changes (Vercel ignoreCommand skipped deployment)"
+              exit 0
+            fi
+          fi
+          node scripts/warm-sitemap-cache.js
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           VERCEL_APP_URL: https://dongtanview.com

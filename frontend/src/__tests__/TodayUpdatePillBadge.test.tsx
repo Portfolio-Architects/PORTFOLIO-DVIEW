@@ -12,13 +12,13 @@ import { TodayUpdateMetrics } from '@/lib/todayUpdateEvaluator';
 
 describe('TodayUpdatePillBadge Component Tests', () => {
   const activeMetrics: TodayUpdateMetrics = {
-    todayYmd: '20261111',
-    latestRegisteredDate: '20261111',
+    todayYmd: '20261118',
+    latestRegisteredDate: '20261118',
     isTodayUpdated: true,
-    todayRegisteredCount: 5,
-    todayNewHighCount: 2,
-    latestRegisteredDateLabel: '11월 11일',
-    lastSyncTimeLabel: '07:00 KST',
+    todayRegisteredCount: 21,
+    todayNewHighCount: 10,
+    latestRegisteredDateLabel: '11월 18일',
+    lastSyncTimeLabel: '06:33 KST',
     todayTransactions: [],
   };
 
@@ -42,13 +42,14 @@ describe('TodayUpdatePillBadge Component Tests', () => {
     expect(skeleton).toHaveClass('animate-pulse');
   });
 
-  it('renders Value Emerald live pulse badge when today transactions exist', () => {
+  it('renders Value Emerald live pulse badge with exact sync time when today transactions exist', () => {
     render(<TodayUpdatePillBadge metrics={activeMetrics} />);
 
     const badge = screen.getByTestId('today-update-pill-badge');
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveTextContent('오늘 신규 5건 등록 (07:00 반영)');
-    expect(badge).toHaveTextContent('신고가 2건');
+    expect(badge).toHaveTextContent('오늘 신규 21건 등록 (06:33 반영)');
+    expect(badge).toHaveTextContent('신고가 10건');
+    expect(badge).not.toHaveTextContent('07:00');
 
     // Value Emerald tokens and tabular-nums
     expect(badge).toHaveClass('bg-emerald-50');
@@ -58,13 +59,29 @@ describe('TodayUpdatePillBadge Component Tests', () => {
     expect(badge).toHaveClass('h-[26px]');
   });
 
+  it('omits time parenthetical without fabricating 07:00 when lastSyncTimeLabel is empty', () => {
+    render(
+      <TodayUpdatePillBadge
+        metrics={{
+          ...activeMetrics,
+          lastSyncTimeLabel: '',
+        }}
+      />
+    );
+
+    const badge = screen.getByTestId('today-update-pill-badge');
+    expect(badge).toHaveTextContent('오늘 신규 21건 등록');
+    expect(badge).not.toHaveTextContent('반영)');
+    expect(badge).not.toHaveTextContent('07:00');
+  });
+
   it('renders compact text variant when variant="compact"', () => {
     render(<TodayUpdatePillBadge metrics={activeMetrics} variant="compact" />);
 
     const badge = screen.getByTestId('today-update-pill-badge');
     expect(badge).toBeInTheDocument();
-    expect(badge).toHaveTextContent('오늘 등록 5건');
-    expect(badge).toHaveTextContent('신고가 2건');
+    expect(badge).toHaveTextContent('오늘 등록 21건');
+    expect(badge).toHaveTextContent('신고가 10건');
   });
 
   it('renders truthful neutral state with Clock icon when 0 transactions registered today (weekend/holiday)', () => {

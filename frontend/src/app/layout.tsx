@@ -24,7 +24,7 @@ import Footer from '@/components/Footer';
 
 import dynamic from 'next/dynamic';
 import { safeReload } from '@/lib/utils/safeReload';
-import { buildPreHydrationAdminGuardScript } from '@/lib/utils/adminExclusion';
+import { HEAD_GUARD_VERSION } from '@/lib/head-guard-version';
 import { buildPreHydrationAdSenseNoindexGuardScript } from '@/lib/ads/noindexAdGuard';
 import PreHydrationInlineScript from '@/components/common/PreHydrationInlineScript';
 import ScrollToTop from '@/components/ui/ScrollToTop';
@@ -135,7 +135,15 @@ export default function RootLayout({
     <html lang="ko" suppressHydrationWarning className={pretendard.variable}>
       <head suppressHydrationWarning>
         <PreHydrationInlineScript id="dview-preview-iframe-shield" nonce={nonce} code={PREVIEW_IFRAME_SHIELD_SCRIPT} />
-        <PreHydrationInlineScript id="dview-ga-admin-guard" nonce={nonce} code={buildPreHydrationAdminGuardScript(process.env.NEXT_PUBLIC_GA_ID)} />
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script
+          id="dview-ga-admin-guard"
+          nonce={nonce}
+          itemProp="admin-guard"
+          suppressHydrationWarning
+          data-ga-id={process.env.NEXT_PUBLIC_GA_ID || undefined}
+          src={`/js/dview-ga-admin-guard.js?v=${HEAD_GUARD_VERSION}`}
+        />
         <PreHydrationInlineScript id="dview-adsense-noindex-guard" nonce={nonce} code={buildPreHydrationAdSenseNoindexGuardScript()} />
         <link rel="preconnect" href="https://pagead2.googlesyndication.com" crossOrigin="anonymous" />
         <link rel="dns-prefetch" href="https://pagead2.googlesyndication.com" />

@@ -16,6 +16,7 @@ export interface LiveDeltaRawRecord {
   contractDate?: string;
   registeredDate?: string;
   registeredDateLabel?: string;
+  registeredTime?: string;
   registrationDate?: string;
   price: number;
   deposit: number;

@@ -54,13 +54,11 @@ async function fetchCSVWithRetry(url: string, options: RequestInit = {}, retries
 }
 
 async function fetchSheetCSV(tabName: string, forceRefresh = false): Promise<string[][]> {
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}&_t=${Date.now()}`;
-  const fetchOptions: RequestInit = forceRefresh 
-    ? { cache: 'no-store' } 
-    : { next: { revalidate: 86400 } };
-  
+  const cacheBust = forceRefresh ? `&_t=${Date.now()}` : '';
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(tabName)}${cacheBust}`;
+
   try {
-    const res = await fetchCSVWithRetry(csvUrl, fetchOptions);
+    const res = await fetchCSVWithRetry(csvUrl, { cache: 'no-store' });
     const csvText = await res.text();
     const lines = csvText.split('\n').filter(l => l.trim());
     return lines.map(l => parseCsvLine(l));

@@ -178,6 +178,21 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: '/js/:path*',
+        headers: [
+          {
+            key: 'Cache-Control',
+            value: isDev
+              ? 'no-store, no-cache, must-revalidate, max-age=0'
+              : 'public, max-age=31536000, immutable',
+          },
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+        ],
+      },
+      {
         source: '/favicon.ico',
         headers: [
           {

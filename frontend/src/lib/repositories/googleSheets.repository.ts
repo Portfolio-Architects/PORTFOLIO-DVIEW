@@ -60,9 +60,10 @@ async function fetchWithRetry(url: string, options: RequestInit = {}, retries = 
 }
 
 async function fetchCsvFromGoogle(sheetName: string, bypassCache: boolean = false): Promise<string[][]> {
-  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1&_t=${Date.now()}`;
+  const cacheBust = bypassCache ? `&_t=${Date.now()}` : '';
+  const csvUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}&headers=1${cacheBust}`;
   try {
-    const res = await fetchWithRetry(csvUrl, { next: { revalidate: bypassCache ? 0 : 3600 } });
+    const res = await fetchWithRetry(csvUrl, { cache: 'no-store' });
     const text = await res.text();
     return text.split('\n').filter(l => l.trim()).map(parseCsvLine).map(row => row.map(v => v.replace(/^"|"$/g, '').trim()));
   } catch (e: unknown) {

@@ -33,6 +33,7 @@ export interface TransactionRecord {
   contractDate?: string;
   registeredDate?: string;
   registeredDateLabel?: string;
+  registeredTime?: string;
   priceVal?: number;
   isNewHigh?: boolean;
   newHighDelta?: number;
@@ -72,6 +73,7 @@ export interface RecentTransaction {
   contractDate: string;
   registeredDate?: string;
   registeredDateLabel?: string;
+  registeredTime?: string;
   priceVal: number;
   priceEok: string;
   area: number;

@@ -57,6 +57,7 @@ const AptTransactionRecordSchema = z.object({
   registrationDate: z.string().optional().default(''),
   registeredDate: z.string().optional().default(''),
   registeredDateLabel: z.string().optional().default(''),
+  registeredTime: z.string().optional().default(''),
   housingType: z.string().optional().default(''),
   source: z.literal('govt_api'),
   _key: z.string().min(1)
@@ -303,11 +304,11 @@ async function main() {
     const seenRawTxKeys = new Set();
     // 🔥 최적화: 해당 월에 등록된 기존 Firestore 데이터를 단 한번 쿼리하여 메모리 맵 구축
     // read 횟수는 최소화하고 Firestore 쓰기(Write) 요금을 획기적으로(99%) 감면
-    const existingMap = new Map(); // _key -> { cancelDate, dealType, registeredDate }
+    const existingMap = new Map(); // _key -> { cancelDate, dealType, registeredDate, registeredTime }
     try {
       const existingSnap = await collRef
         .where('contractYm', '==', ym)
-        .select('cancelDate', 'dealType', 'registeredDate')
+        .select('cancelDate', 'dealType', 'registeredDate', 'registeredTime')
         .get();
       existingSnap.docs.forEach(doc => {
         const d = doc.data();
@@ -315,6 +316,7 @@ async function main() {
           cancelDate: (d.cancelDate || '').trim(),
           dealType: (d.dealType || '').trim(),
           registeredDate: (d.registeredDate || '').trim(),
+          registeredTime: (d.registeredTime || '').trim(),
         });
       });
       console.log(`   📂 [${ym}] Firestore 기존 거래 로드 완료: ${existingMap.size}건`);
@@ -472,9 +474,13 @@ async function main() {
 
             const kstNow = new Date(Date.now() + 9 * 60 * 60 * 1000);
             const todayKst = `${kstNow.getUTCFullYear()}${String(kstNow.getUTCMonth() + 1).padStart(2, '0')}${String(kstNow.getUTCDate()).padStart(2, '0')}`;
+            const nowHmKst = `${String(kstNow.getUTCHours()).padStart(2, '0')}:${String(kstNow.getUTCMinutes()).padStart(2, '0')}`;
             const existingEntry = existingMap.get(key);
             const registeredDate = (existingEntry && existingEntry.registeredDate) ? existingEntry.registeredDate : todayKst;
             const registeredDateLabel = `${registeredDate.slice(4, 6)}.${registeredDate.slice(6, 8)}`;
+            const registeredTime = (existingEntry && existingEntry.registeredTime)
+              ? existingEntry.registeredTime
+              : (registeredDate === todayKst ? nowHmKst : '');
 
             const record = {
               sigungu: `경기도 화성시 동탄구 ${dong}`,
@@ -499,6 +505,7 @@ async function main() {
               registrationDate: cleanStr(item.rgstDate),
               registeredDate,
               registeredDateLabel,
+              registeredTime,
               housingType: '',
               source: 'govt_api',
               _key: key,

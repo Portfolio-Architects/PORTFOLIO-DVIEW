@@ -7,6 +7,7 @@ import { staticDataService } from '@/lib/services/staticDataService';
 import { BUILD_VERSION } from '@/lib/build-version';
 import {
   evaluateTodayUpdateMetrics,
+  extractSyncTimeHm,
   TodayUpdateMetrics,
 } from '@/lib/todayUpdateEvaluator';
 import {
@@ -120,10 +121,13 @@ export function TodayUpdatePillBadge({
 
   // Case A: Today's new transactions registered (Value Emerald Live Pulse)
   if (metrics.isTodayUpdated && metrics.todayRegisteredCount > 0) {
+    const syncTimeHm = extractSyncTimeHm(metrics.lastSyncTimeLabel);
     const mainText =
       variant === 'compact'
         ? `오늘 등록 ${metrics.todayRegisteredCount}건`
-        : `오늘 신규 ${metrics.todayRegisteredCount}건 등록 (07:00 반영)`;
+        : syncTimeHm
+          ? `오늘 신규 ${metrics.todayRegisteredCount}건 등록 (${syncTimeHm} 반영)`
+          : `오늘 신규 ${metrics.todayRegisteredCount}건 등록`;
 
     return (
       <div
@@ -131,7 +135,11 @@ export function TodayUpdatePillBadge({
         data-testid="today-update-pill-badge"
         {...interactiveProps}
         onClick={onClick}
-        aria-label={`오늘 아침 7시 갱신, 신규 실거래 ${metrics.todayRegisteredCount}건 등록`}
+        aria-label={
+          syncTimeHm
+            ? `오늘 ${syncTimeHm} 갱신, 신규 실거래 ${metrics.todayRegisteredCount}건 등록`
+            : `오늘 신규 실거래 ${metrics.todayRegisteredCount}건 등록`
+        }
         className={`h-[26px] inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 border border-emerald-500/25 text-[11px] sm:text-xs font-bold sm:font-extrabold tracking-tight tabular-nums select-none shrink-0 transition-colors ${
           isClickable ? 'cursor-pointer hover:bg-emerald-100/70 dark:hover:bg-emerald-900/50' : ''
         } ${className}`}
